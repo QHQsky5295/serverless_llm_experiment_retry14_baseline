@@ -1,0 +1,364 @@
+{
+  "passed": true,
+  "installation_accounting_passed": true,
+  "metadata_use_count_qualified": true,
+  "request_release_snapshots": 4000,
+  "installed_workers": [
+    {
+      "owner_id": "0fcaf0e1eaf64d8e95fae269a77cc7c8",
+      "worker_pid": 2390799,
+      "bound_requests": 2586,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03999",
+        "epoch": 19953,
+        "updates": 8008,
+        "copied_bytes": 45915560,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "c7c1b660e5934379b61e9d03022bb04e",
+      "worker_pid": 2394960,
+      "bound_requests": 3,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00063",
+        "epoch": 152,
+        "updates": 6,
+        "copied_bytes": 42312,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "44213286d5d64df99d641e470632a0fa",
+      "worker_pid": 2398805,
+      "bound_requests": 9,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00154",
+        "epoch": 404,
+        "updates": 30,
+        "copied_bytes": 149520,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "ea47fad516a84d10add30e2061736f6e",
+      "worker_pid": 2404415,
+      "bound_requests": 133,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00509",
+        "epoch": 1522,
+        "updates": 385,
+        "copied_bytes": 2392304,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "e0073b59745f4a59b4dc05489696e3db",
+      "worker_pid": 2408282,
+      "bound_requests": 46,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00570",
+        "epoch": 1029,
+        "updates": 150,
+        "copied_bytes": 856296,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "46f7cc44f4aa4b97890e57f3dc2acc41",
+      "worker_pid": 2408441,
+      "bound_requests": 17,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00457",
+        "epoch": 631,
+        "updates": 52,
+        "copied_bytes": 328376,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "a30f39750f924f078f96e1642a09785e",
+      "worker_pid": 2424475,
+      "bound_requests": 32,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00780",
+        "epoch": 455,
+        "updates": 77,
+        "copied_bytes": 591304,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "3db2505967fe428dacfab3b33f97af58",
+      "worker_pid": 2424536,
+      "bound_requests": 24,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00851",
+        "epoch": 657,
+        "updates": 51,
+        "copied_bytes": 405504,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "6a4777a00e4c4e5d83531bbd277b6373",
+      "worker_pid": 2425296,
+      "bound_requests": 30,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_00877",
+        "epoch": 694,
+        "updates": 90,
+        "copied_bytes": 540336,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "b38308a0678a45529df7ad4766409c52",
+      "worker_pid": 2438299,
+      "bound_requests": 136,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_01943",
+        "epoch": 2924,
+        "updates": 380,
+        "copied_bytes": 2487880,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "eb397e8ce9d8446d8dc63d03baa451f2",
+      "worker_pid": 2438921,
+      "bound_requests": 805,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03565",
+        "epoch": 9474,
+        "updates": 2384,
+        "copied_bytes": 13884544,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "d9926db37839481d957233a03dfcb69d",
+      "worker_pid": 2439012,
+      "bound_requests": 54,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_01533",
+        "epoch": 1514,
+        "updates": 150,
+        "copied_bytes": 970368,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "a0132a40b89449afb6e639ceb4c455de",
+      "worker_pid": 2481356,
+      "bound_requests": 50,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_02624",
+        "epoch": 1184,
+        "updates": 129,
+        "copied_bytes": 855144,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "24e7f569ce8242228a53c68e28efa5df",
+      "worker_pid": 2508212,
+      "bound_requests": 25,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03489",
+        "epoch": 1672,
+        "updates": 68,
+        "copied_bytes": 399712,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "a2dee72490094359a269fc58934611a0",
+      "worker_pid": 2508295,
+      "bound_requests": 5,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03127",
+        "epoch": 325,
+        "updates": 13,
+        "copied_bytes": 96488,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "91140adccf8f404e8c8db80a9010b661",
+      "worker_pid": 2545374,
+      "bound_requests": 8,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03926",
+        "epoch": 701,
+        "updates": 17,
+        "copied_bytes": 135472,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "7a10b52f5bee436aa5dab6b02c3ce95e",
+      "worker_pid": 2545601,
+      "bound_requests": 3,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03796",
+        "epoch": 268,
+        "updates": 10,
+        "copied_bytes": 49616,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    },
+    {
+      "owner_id": "774eec7d825f4adb802c8f5031a03d10",
+      "worker_pid": 2545694,
+      "bound_requests": 34,
+      "pinned_increment_bytes": 99040,
+      "tensor_budget_bytes": 2147483648,
+      "installed": true,
+      "retired": true,
+      "last_observed_release": {
+        "request_id": "req_03998",
+        "epoch": 1039,
+        "updates": 76,
+        "copied_bytes": 584456,
+        "reuse_waits": 0
+      },
+      "caveat": "Cumulative observed lower bound, not per-request attributable updates; unserved workers have no release sample."
+    }
+  ],
+  "global_host_budget": {
+    "kind": "ieee_managed_host_budget_v1",
+    "owner_id": "114b079c3351400c922f73147331d294",
+    "limit_bytes": 17179869184,
+    "shared_file_bytes": 62914560,
+    "native_reserved_bytes": 0,
+    "native_reservations": {},
+    "bound_native_reserved_bytes": 0,
+    "activation_reserved_bytes": 0,
+    "activation_reservations": {},
+    "pending_file_increment_bytes": 0,
+    "remaining_bytes": 17116954624,
+    "scope": "shared_allocated_files_plus_native_tensor_allowances",
+    "whole_service_rss_covered": false,
+    "snapshot_reserves_capacity": false
+  },
+  "observed_updates_lower_bound": 12076,
+  "observed_copied_bytes_lower_bound": 70685192,
+  "observed_reuse_waits_lower_bound": 0,
+  "n_correct": null,
+  "numerical_correctness_qualified": false,
+  "performance_ranking_eligible": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d529_20261014/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d529_7b_full_w0.json",
+      "sha256": "66bcc1b1b2a6a9e555f1262e72d0ef9511e332facf0ae7878768ccf07a29fab3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d529_20261014/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "d61db79fa0748e72390984e5733498a7d158037ac805ac78ec0bf4d9746ea7d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d529_20261014/actual_qualification.json",
+      "sha256": "178cac812dcc875efd72c018fa6277d5901ed02a828d801329e884dd89c68d41"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d529_20261014/analysis_closure.json",
+      "sha256": "fb19603d131825f97ffbca60b2e4a7020675e2b5341f1e1a0794f43a56fe9e2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d529_20261014/audit_metadata.py",
+      "sha256": "9c473f485fd08cddb1bed78b20c372b294620704ae19cce4190fde5960f0435f"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-8cca6bda0626422993a49e43194f03c4.scope",
+    "invocation_id": "9d42685ecb414e8b9b07e3668b7063ca",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8cca6bda0626422993a49e43194f03c4.scope",
+    "inode": 25002228
+  }
+}

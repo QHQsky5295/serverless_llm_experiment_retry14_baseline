@@ -1,4 +1,4 @@
-# IEEE TC execution status — D529 completion counters qualified; full W0 prepared
+# IEEE TC execution status — D529 completed; candidate not improved
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,84 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D529 TERMINAL SUCCESS and postrelease audits COMPLETE. 4000 nativecontracts,
+458224tokens,3820/4000jointSLO(95.5%),U11508.173072298989GPU-s,
+P95TTFT2893.6735775787383ms. Against D476: U+6.770216%,P95+24.977084%,
+joint-1.925percentagepoints. REJECT as performance improvement; keep D476 as
+retained reference, do not repeat this key or promote metadata config to default.
+Read D529_FULL_W0_RESULT.md. Same input/nativeprompt/source contracts4000,
+3758outputhashmatches/242differences vsD476; causeUNKNOWN,n_correctnull.
+18workers installed/served/retired,4000release snapshots. Per-owner final
+observed cumulative lower bounds12076updates/70685192copiedB/0reusewaits;
+no GPU-buffer replacement/poison,99040Bpinnedincrement perworker, budgets same.
+132remote fetch/131480060wireB/packing0, samecounts/bytes asD476; both have
+initial1/natural17activations. No causal conclusion from these equal totals.
+Servicepeak23218364416B,allhigh/max/OOM/kill/swap0. Actual GPU/service release,
+launcher auxrecursiveempty/pathgone; ownedremote3unitsinactive/portsabsent,
+dual-side hashesmatch. Analysis/contract/result/review scopes CLOSED with exact
+recursiveempty/pathgone; peaks787431424/1120518144/1068621824/26861568B,events0.
+RAW d529_20261014; curated d529_metadata_full_w0/full4000_result.json,
+metadata_audit.json,cross_contract.json. Source SHA
+66bcc1b1b2a6a9e555f1262e72d0ef9511e332facf0ae7878768ccf07a29fab3.
+Postrun helpers actually passed; publication backup NOT YET performed.
+NEXT explicit result backup with archive/ref/protected/userdirt/secrets checks,
+then evidence-based main-line bottleneck review using D476 reference. No new
+candidate/experiment prepared, no liveGPU/remote/auxiliary job. No repeated
+100/calibration/device/baseline tests. Allremaining scopeACTIVE,sharedk3suntouched.
+
+Previous live-monitoring notes below are historical, superseded by terminal above:
+
+Latest continuation is a VERIFIED WAIT on live tmux tc-d529-metadata-w0,
+panePID2389314/python3. At watchdog3282: peak22604292096B,allmemoryevents0,
+swap0,hostavailable100535373824B,diskfree168904478720B,no warning/abort.
+Service reports3525/4000completed,3525success/0failure; no terminal launch.json.
+This continuation only polled the SAME live process and retained state; no
+serving/config/helper edits,tests,backup,remote operation or additional job.
+Read the prepared postrelease helpers only; none has been executed or qualified.
+Transient queues around request611 subsequently drained; do not infer final
+SLO/resource performance or terminate early while original arrivals remain.
+Same original inference continues; do not restart or begin another heavy job.
+Offline postrelease helpers from the prior turn remain UNEXECUTED/UNTESTED:
+cross_contract.py reuses D528 input/output audit with full4000 and D476 reference;
+audit_metadata.py reuses D528 HOST-install/accounting audit plus actual release
+snapshots, grouped by owner/worker. It requires all4000 snapshots, checks ordered
+cumulative counters, and reports per-worker last-observed lower bounds (not a
+sum over request snapshots). Unserved installed workers keep counterunknown.
+These helpers were prepared AFTER execution checkpoint, are not serving changes,
+and require postrun source hashes/validation/archival; not completed evidence.
+After run_analysis.py and actual analysis closure, execute each in its own4GiB
+auxiliary scope; close.py contract/result correspondingly. Counter/output cause
+remain unknown until actual data audit. No new performance result or ranking.
+
+D529 NOW RUNNING ONCE via existing runner d529, tmux tc-d529-metadata-w0.
+Actual start_receipt.json/service_aux_identity.json retained in RAW d529_20261014.
+Execution checkpoint acd84bbbc225ce87fa7df00c8b91a0da2727efa8 PUSHED/remote-equal;
+10explicitfiles,21CPUtests/protected147/userdirt/secrets/archive checks passed.
+Backup/start scopes actualrecursiveempty/CLOSED/pathgone,events0/swap0.
+Remote bothservices/monitor ACTIVE;actual NIC1000Mb/s/full,7Bclock
+remote-process-monotonic:84858a81c17a4ea7917bbb0d6268559c.
+Do NOT start another experiment/tests/build/hashscan/compression/backup or
+remote maintenance during inference. This is development full W0 for the
+existing metadata candidate; actual performance/use counters still UNMEASURED.
+NEXT monitor terminal -> close_launch.py exact local release -> stop_remote.sh
+-> bounded run_analysis.py (collect_closure + existing full analyzer), close.py
+analysis -> cumulative per-owner metadata/outputhash audit -> save/compare.
+Do not sum cumulative counters across requests; n_correct staysunknown pending
+independent numerical proof. No short100/calibration/device/baseline reruns.
+All7B W1/W2/G2,3B,ablations,sensitivities/reviewer scopeACTIVE;sharedk3suntouched.
+
+Live check: watchdog sample180 servicepeak12782522368B,all memoryevents0,
+swap0,hostavailable101864906752B,no warning/abort. Service later reported
+60/4000 completed,60success/0failure,one natural scale-up. This is partial
+progress only,not finalfrozenSLO/performancequalification. No launch.json terminal
+yet. No auxiliary/test/backup job live; unchanged original inference continues.
+Postrelease helpers are prepared but NOTexecuted:run_analysis.py reuses full4000
+D516 analyzer; cpu_frontend section read with ijson to avoid fulloutcome RAM
+expansion. Counter and same-backend outputhash audit still need postrun work;
+do not interpret prepared helpers as completed analysis or numericalproof.
+
+Previous preparation handoff below is historical:
 
 D529 PREPARED, NOT LAUNCHED. Existing native release receipt now retains
 publisher CPU counters; no new RPC/device fence/query or numeric policy change.
