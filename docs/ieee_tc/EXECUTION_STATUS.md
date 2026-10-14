@@ -1,4 +1,4 @@
-# IEEE TC execution status — D530 offline diagnosis complete; advance W1 qualification
+# IEEE TC execution status — D531 W1 input qualification complete; D532 reference next
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,27 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D531 W1 input qualification COMPLETE; no inference started. HTTP helper now
+opt-in trace_w1_v1 delegates exact same FrozenReplayPlan W1 as PrimeLoRA;
+analyzer full4000_w1 requires complete exact profile (full4000 staysW0).
+103 CPU tests PASS/0fail/error/skip, actual source/prompt/nativeprompt/body/
+adapter/target unchanged4000,132IDs,458224tokens. W1 arrival2186.9921293258667s,
+8x500/half/30s independentlychecked. Native vLLM config unchanged. D533 Full
+YAML differs D476 ONLY output/cache paths, exact original profiles actuallyload,
+metadata candidateOFF. Existing runner d533 explicitlyexportsW1. No newtrace.
+Qualification actualrecursiveempty/CLOSED/pathgone,peak1019711488B,events0/swap0;
+protected147/userdirtunchanged. Read D531_W1_INPUT_QUALIFICATION.md.
+RAW main_comparison/d531_20261015; curated main_comparison/d531_w1_input.
+NEXT checked explicit two-repo backup, then prepare ownedremote/start safety
+for ONE D532 frozenvLLM W1 reference. D532 HTTPcfg/run7b.sh PREPARED under
+vllm_qualification/d532_20261015; remote/start helpers NOT prepared yet.
+D533 FullW1 follows D532 terminal/audit. No GPU/remote job currentlylive.
+This is inputqualification, not liveentry/performance/numericalproof; entire
+remaining scope ACTIVE, sharedk3suntouched. Do not rerun these103checks unless
+affectedcode changes. Source config and test hashes are in qualification.json.
+
+Prior D530 handoff (completed, superseded only for next action):
 
 D530 offline stage/control/physical analysis COMPLETE; NO new GPU run or serving
 change. Reused D511 machinery and sealedD476 statistics on D529 full4000.
@@ -24,7 +45,16 @@ D530 RAW results/ieee_tc/main_comparison/d530_20261015; curated
 paper_results/ieee_tc/main_comparison/d530_metadata_stage_gap.40CPUtestsPASS;
 analysis/curation actualrecursiveempty/CLOSED/pathgone,peaks147771392/45461504B,
 events0/swap0. Protected147/userdirt/baselinefiles unchanged; no liveGPU/remotejob.
-D530 result backup PENDING, perform explicit source/archive/secrets checks first.
+D530 result backup COMPLETE: a8b7a9849a4f66a58d9694a32de149228b68f251
+PUSHED/remote-equal,5explicitfiles. Source/archive-roundtrip/test/protected147/
+userdirt/diff/secrets checks pass; actualbackup recursiveempty/CLOSED/pathgone,
+peak30617600B,events0/swap0. RAW backup_receipt/backup_closure record identities.
+Do not repeat D530 analysis/tests/backup. Only this post-backup status and
+untoucheduser manifest are dirty. Fresh disk160GiB,MemAvailable107125MiB.
+W1 already has FrozenReplayPlan.load(profile='W1') using approved8x500/half/
+30s formula; W2 intentionally rejects until frozenadaptermap. Existing main
+runner currently exports W0 except functionalcoverage; must qualify actual
+W1 entry, not relabel W0. No newW1 run/config has been created yet.
 Sharedk3suntouched,HydraServeD510complete; no baseline reruns of existing W0.
 
 Prior D529 completion handoff retained below:

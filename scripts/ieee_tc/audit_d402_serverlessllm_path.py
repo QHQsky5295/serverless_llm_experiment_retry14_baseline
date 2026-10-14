@@ -68,7 +68,7 @@ async def reproduce_queue(source):
 def validate_population(config, ready, contracts, native, population):
     """Reconstruct the offered view; do not infer full coverage from a label."""
     counts = {'prefix100': 100, 'prefix1000': 1000, 'adapter_coverage_v1': 500,
-              'full4000': 4000}
+              'full4000': 4000, 'full4000_w1': 4000}
     if population not in counts:
         raise ValueError('unknown qualification population')
     count = counts[population]
@@ -77,12 +77,13 @@ def validate_population(config, ready, contracts, native, population):
     plan = native.load_http_replay_plan(config)
     if plan.identity() != ready['plan'] or set(contracts) != {e.request_id for e in plan.entries}:
         raise ValueError('offered view differs from frozen input derivation')
-    if population == 'full4000':
+    expected_profile = 'W1' if population == 'full4000_w1' else 'W0'
+    if population in ('full4000', 'full4000_w1'):
         identity = plan.identity()
         if (identity.get('source_count') != count or identity.get('count') != count
                 or len(plan.entries) != count or identity.get('rate_scale') != 1.
-                or identity.get('profile') != 'W0'):
-            raise ValueError('full4000 requires the complete unscaled W0 source, not a prefix or transformed view')
+                or identity.get('profile') != expected_profile):
+            raise ValueError(f'{population} requires the complete unscaled {expected_profile} view')
     for entry in plan.entries:
         source, contract = json.loads(entry.source_json), contracts[entry.request_id]
         if (contract['source_item_sha256'] != entry.source_sha256
@@ -94,7 +95,7 @@ def validate_population(config, ready, contracts, native, population):
                     or contract.get('tc_adapter_coverage') != source.get('tc_adapter_coverage')
                     or contract.get('tc_adapter_coverage') is None):
                 raise ValueError('whole-pool functional derivation evidence missing')
-        elif plan.profile != 'W0' or 'tc_adapter_coverage' in contract:
+        elif plan.profile != expected_profile or 'tc_adapter_coverage' in contract:
             raise ValueError('ordinary prefix cannot silently become a coverage view')
     if population == 'adapter_coverage_v1' and len({r['adapter_id'] for r in contracts.values()}) != 500:
         raise ValueError('functional view has incomplete unique adapter coverage')
@@ -680,7 +681,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     assert digest(ready['plan']['source_path']) == ready['plan']['source_sha256']
     config_path = root/{'adapter_coverage_v1': 'http_7b_500.json',
                        'prefix1000': 'http_7b_1000.json', 'prefix100': 'http_7b_100.json',
-                       'full4000': 'http_7b_4000.json'}[population]
+                       'full4000': 'http_7b_4000.json',
+                       'full4000_w1': 'http_7b_4000.json'}[population]
     assert digest(config_path) == ready['config_sha256']
     count = validate_population(json.loads(config_path.read_text()), ready,
                                 index['request_contract'], native, population)
@@ -866,8 +868,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         raw_sources=[dict(path=str(p), sha256=digest(p)) for p in source_paths],
         limitations=[('500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.'
                       if population == 'adapter_coverage_v1' else
-                      'Complete 4000-request development W0 observation; not unseen evaluation or a cross-scenario configuration optimum.'
-                      if population == 'full4000' else
+                      f"Complete 4000-request development {ready['plan']['profile']} observation; not unseen evaluation or a cross-scenario configuration optimum."
+                      if population in ('full4000', 'full4000_w1') else
                       f'{count}-request development prefix, not a full W0 comparison or configuration optimum.'),
             'Raw unknown numerical correctness and old qualification flags are preserved.',
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
@@ -878,7 +880,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
              'Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.' if is_vllm else
              'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.'),
             ('Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.'
-             if population == 'full4000' else
+             if population in ('full4000', 'full4000_w1') else
              'No relative performance comparison with the 4000-request PrimeLoRA observation.')])
     if static_native:
         result.update(artifact_attribution='deployment_preparation_reference_not_request_transfer',
@@ -908,22 +910,22 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         rows = summary['diagnostic_rows']
         result['common_slo'] = frozen_slo_summary(rows, observations, frozen_slo['groups'])
         result['common_slo'].update(freeze_path=str(slo_freeze), freeze_sha256=digest(slo_freeze),
-            scope=('complete W0 native-binding observation; not a cross-scenario optimum or independent numerical proof'
-                   if population == 'full4000' else
+            scope=(f"complete {ready['plan']['profile']} native-binding observation; not a cross-scenario optimum or independent numerical proof"
+                   if population in ('full4000', 'full4000_w1') else
                    'complete qualified population only; prefix or coverage is not full W0 qualification'),
             physical_gpu_seconds_per_binding_valid_request=(integral/response_count if response_count else None))
         if outcome == 'complete_with_failures':
-            result['common_slo']['scope'] = 'Complete offered W0 failure diagnostic; failures retained, not an eligible G1/G2 point or independent numerical proof'
+            result['common_slo']['scope'] = f"Complete offered {ready['plan']['profile']} failure diagnostic; failures retained, not an eligible G1/G2 point or independent numerical proof"
             result['common_slo']['physical_gpu_seconds_per_offered_request'] = integral/count
         result['conditional_metrics']['tpot_ms'] = timing_stats(
             [r['tpot_ms'] for r in rows if r['status'] == 'http_response' and r['actual_tokens'] > 1])
-        if population in ('prefix1000', 'full4000'):
+        if population in ('prefix1000', 'full4000', 'full4000_w1'):
             # Exhaustive, nonoverlapping source-order slices; diagnostic only.
             # Never drop the startup portion from the primary SLO denominator.
             ordered = sorted(rows, key=lambda r: r['planned_arrival_s'])
             result['source_order_diagnostics'] = []
             slices = ([(lo, lo+500) for lo in range(0, 4000, 500)]
-                      if population == 'full4000' else [(0, 100), (100, 500), (500, 1000)])
+                      if population in ('full4000', 'full4000_w1') else [(0, 100), (100, 500), (500, 1000)])
             for lo, hi in slices:
                 subset = ordered[lo:hi]
                 result['source_order_diagnostics'].append(dict(
@@ -943,7 +945,7 @@ if __name__ == '__main__':
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1'), default='original')
-    parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000'), default='prefix100')
+    parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000', 'full4000_w1'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)
     parser.add_argument('--outcome', choices=('success', 'complete_with_failures'), default='success',

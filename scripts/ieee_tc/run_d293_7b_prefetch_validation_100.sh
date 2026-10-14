@@ -535,6 +535,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d533)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/7b_full_w1
+    CONFIG=configs/ieee_tc/20261015_d533_7b_full_w1.yaml
+    TAG=d533_7b_full_w1
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -564,6 +571,9 @@ fi
 export FAASLORA_TC_QUALIFICATION=1
 export FAASLORA_TC_EXTERNAL_REPLAY=1
 export FAASLORA_TC_REPLAY_PROFILE=W0
+if [[ "${1:-d293}" == d533 ]]; then
+  export FAASLORA_TC_REPLAY_PROFILE=W1
+fi
 if [[ -n "$PREFIX_COUNT" ]]; then
   export FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT="$PREFIX_COUNT"
 else

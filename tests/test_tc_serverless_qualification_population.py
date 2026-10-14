@@ -395,6 +395,24 @@ class QualificationPopulationTests(unittest.TestCase):
         cfg, ready, contracts, native, _ = self.fixture(False, n=4000)
         self.assertEqual(validate_population(cfg, ready, contracts, native, 'full4000'), 4000)
 
+    def test_complete_w1_requires_explicit_population_and_matched_identity(self):
+        cfg, ready, contracts, native, plan = self.fixture(False, n=4000)
+        with self.assertRaisesRegex(ValueError, 'complete unscaled W1'):
+            validate_population(cfg, ready, contracts, native, 'full4000_w1')
+        identity = dict(plan.identity(), profile='W1', view_sha256='w1-view')
+        plan.profile = 'W1'
+        plan.identity = lambda: identity
+        self.assertEqual(validate_population(cfg, dict(plan=identity), contracts, native, 'full4000_w1'), 4000)
+        with self.assertRaises(ValueError):
+            validate_population(cfg, ready, contracts, native, 'full4000_w1')
+        with self.assertRaises(ValueError):
+            validate_population(cfg, dict(plan=identity), contracts, native, 'full4000')
+        for key, value in (('source_count', 5000), ('count', 1000), ('rate_scale', 2.)):
+            changed = dict(identity, **{key:value})
+            plan.identity = lambda: changed
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                validate_population(cfg, dict(plan=changed), contracts, native, 'full4000_w1')
+
     def test_full4000_rejects_short_runs_and_unknown_aliases(self):
         cfg, ready, contracts, native, _ = self.fixture(False, n=1000)
         for name in ('full4000', 'full', 'prefix4000'):
