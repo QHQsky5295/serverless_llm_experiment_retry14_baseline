@@ -1,0 +1,29 @@
+{
+  "schema": "ieee_tc_native_toolchain_v1",
+  "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "workspace_root": "/home/qhq/.cache/primelora_tc_native",
+  "environment": {
+    "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda-13.0/bin:/usr/local/bin:/usr/bin:/bin",
+    "CC": "/usr/bin/gcc",
+    "CXX": "/usr/bin/c++",
+    "CUDA_HOME": "/usr/local/cuda-13.0",
+    "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc",
+    "MAX_JOBS": "2",
+    "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+    "FLASHINFER_NVCC_THREADS": "1"
+  },
+  "absent_environment": [
+    "CUDA_PATH", "FLASHINFER_EXTRA_CFLAGS", "FLASHINFER_EXTRA_CUDAFLAGS", "FLASHINFER_EXTRA_LDFLAGS",
+    "FLASHINFER_CXX_LAUNCHER", "FLASHINFER_NVCC_LAUNCHER",
+    "FLASHINFER_DISABLE_JIT", "FLASHINFER_DISABLE_VERSION_CHECK",
+    "FLASHINFER_CUBIN_DIR", "FLASHINFER_JIT_DEBUG", "FLASHINFER_JIT_LINEINFO",
+    "NVCC_PREPEND_FLAGS", "NVCC_APPEND_FLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS",
+    "CPATH", "CPLUS_INCLUDE_PATH", "LIBRARY_PATH"
+  ],
+  "executables": {
+    "cc": {"path": "/usr/bin/gcc", "sha256": "821af3c74506283c179ca413bb33e6b528805a4dd8a5c09df125e5ad560a9e89"},
+    "cxx": {"path": "/usr/bin/c++", "sha256": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0"},
+    "nvcc": {"path": "/usr/local/cuda-13.0/bin/nvcc", "sha256": "b8e2347d9d7fcadf8812a27324d515de99d033d3e48611811ece7e66d7895f8a"},
+    "ninja": {"path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja", "sha256": "08639e194fffa7f08b259fc4abfa4803aff66b64de52549cee42ec527d55cea6"}
+  }
+}

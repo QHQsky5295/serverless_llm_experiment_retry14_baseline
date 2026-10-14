@@ -113,6 +113,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# New campaigns explicitly opt into a common native build contract. This must
+# precede torch/FlashInfer imports; marked children verify inherited values.
+from scripts.ieee_tc_native_toolchain import bind_native_toolchain as _bind_native_toolchain
+_native_build_env, _native_build_receipt = _bind_native_toolchain(os.environ, python=sys.executable)
+if _native_build_receipt is not None:
+    os.environ.update(_native_build_env)
+    print('TC_NATIVE_TOOLCHAIN_RECEIPT ' + json.dumps(_native_build_receipt, sort_keys=True), flush=True)
+
 # PyTorch 2.6+: 默认 weights_only=True 会破坏 legacy .tar 格式的 LoRA；强制使用 weights_only=False
 os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
 

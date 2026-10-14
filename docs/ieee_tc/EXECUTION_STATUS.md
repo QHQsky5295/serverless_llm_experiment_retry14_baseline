@@ -1,4 +1,4 @@
-# IEEE TC execution status — D532 startup cache mismatch identified; common toolchain adaptation next
+# IEEE TC execution status — D534 shared-toolchain CPU qualification complete; common software build next
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,27 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D534 common compiler binding IMPLEMENTED/CPU-qualified, no build/inference yet.
+Read D534_COMMON_NATIVE_TOOLCHAIN.md. Shared stdlib helper plus frozen compiler
+manifest binds both actual entrypoints and verifies marked child inheritance;
+new compiler-SHA FlashInfer namespace prevents old global-cache overwrites.
+16CPUchecksPASS; actual PrimeLoRA/vLLM native renderers produce identical4523B
+description SHA458aaa5a094c7158005abd944e1dc40898f2d7445e550847ccc295c2c6eb9a5b.
+No CUDA initialization/build/model/trace generation; old sampling build/log
+SHA unchanged. Native v2 config differs v1 ONLY compiler contract; D533 runner
+opts in, no model/algorithm/profile/SLO changes. First test package collision
+and later shell-parser fi-in-configs failure retained; completed tests/probes
+reused, not rerun. All three exact scopes recursiveempty/CLOSED/pathgone;
+peaks1627500544/1572179968/26677248B,events0/swap0,protected147/userdirtunchanged.
+RAW main_comparison/d534_20261015; curated main_comparison/d534_native_toolchain.
+NEXT checked two-repo backup, then bounded common generic sampling software
+build WITHOUT GPU/weights/trace. Verify no-work build compatibility/source/cache
+identity for both entrypoints, then ONE NEW vLLM W1 key and existing D533FullW1.
+No new W1 reference frozen; no D532rerun, no subtraction/winnerfilter. D533 NOT
+launched. No liveGPU/remote/auxjob; sharedk3suntouched/HydraServeD510done.
+Fullremaining scopeACTIVE. Older no-code/next-diagnosis statements below are
+historical, superseded by this actual CPU qualification.
 
 D532 bounded startup review COMPLETE; read D532_STARTUP_CACHE_REVIEW.md.
 Direct evidence: sealed ninja-log prefixes match D423/D532, then four appended
@@ -23,7 +44,15 @@ contract scopes recursiveempty/CLOSED/pathgone,peaks387276800/383705088B,events0
 NEXT minimal common compiler-identity/cache-compatibility adaptation and affected
 CPU validation BEFORE D533/newW1reference; no silent prewarming, new policy needs
 explicit execution identity/impact. Reuse existing tools, not baseline tuning.
-Review checkpoint backup pending; no liveGPU/remote/auxjob,sharedk3suntouched.
+Review checkpoint backup COMPLETE:7f25b2bd82e5c1933109189883e10d5d662e4b2a
+PUSHED/remote-equal,8explicitfiles; SHA/archive-roundtrip/nativeCPU-render/
+protected147/userdirt/secrets/diff checksPASS. Actual review_backup scope
+recursiveempty/CLOSED/pathgone,peak26734592B,events0/swap0; RAW receipts retain
+identity and closure. BASE unchanged at b540d7664bf4f8522b3b2694348d889e902034c6.
+Do not repeat these probes/backup or D532 performance. Only this post-backup
+status and untouched usermanifest remain dirty. Disk167484452864B available,
+MemAvailable109741908kB; fresh safety gate required before next heavy job.
+No liveGPU/remote/auxjob,sharedk3suntouched. No next adaptation code yet.
 HydraServeD510 alreadyisolated/completed; delayed clusterreply requires no redo.
 Allremaining scope ACTIVE. Prior unresolved-cause statements below are historical.
 

@@ -1,0 +1,252 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d5340000000000000000000000000003.scope",
+    "invocation_id": "f78d016661f24c5b9dc959fc69d58f1c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5340000000000000000000000000003.scope",
+    "inode": 25060896
+  },
+  "tests": [
+    {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d534_20261015/tests_serverless_llm_experiment_retry14_baseline.json",
+      "sha256": "0ad11b3c91422c8169cb17bb26427c56c6fdfefe98c203c06b2bd8186a161256",
+      "count": 8,
+      "reused": true
+    },
+    {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d534_20261015/tests2_serverless_llm_baselines.json",
+      "sha256": "9862e7ed0cb4606364d3b3558fd85656b2a32f0273ed4dbfbe7bae92615e6c10",
+      "count": 8,
+      "reused": true
+    }
+  ],
+  "test_count": 16,
+  "rendered": {
+    "primelora": {
+      "receipt": {
+        "schema": "ieee_tc_native_toolchain_v1",
+        "contract": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/native_toolchain_cuda130_v1.json",
+        "contract_sha256": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+        "helper_sha256": "24c35bb480fb9c9ee402cec7115254ff8f9af7695d95ad06935e51b3e8498699",
+        "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "environment": {
+          "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda-13.0/bin:/usr/local/bin:/usr/bin:/bin",
+          "CC": "/usr/bin/gcc",
+          "CXX": "/usr/bin/c++",
+          "CUDA_HOME": "/usr/local/cuda-13.0",
+          "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc",
+          "MAX_JOBS": "2",
+          "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+          "FLASHINFER_NVCC_THREADS": "1",
+          "FLASHINFER_WORKSPACE_BASE": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c"
+        },
+        "absent_environment": [
+          "CUDA_PATH",
+          "FLASHINFER_EXTRA_CFLAGS",
+          "FLASHINFER_EXTRA_CUDAFLAGS",
+          "FLASHINFER_EXTRA_LDFLAGS",
+          "FLASHINFER_CXX_LAUNCHER",
+          "FLASHINFER_NVCC_LAUNCHER",
+          "FLASHINFER_DISABLE_JIT",
+          "FLASHINFER_DISABLE_VERSION_CHECK",
+          "FLASHINFER_CUBIN_DIR",
+          "FLASHINFER_JIT_DEBUG",
+          "FLASHINFER_JIT_LINEINFO",
+          "NVCC_PREPEND_FLAGS",
+          "NVCC_APPEND_FLAGS",
+          "CFLAGS",
+          "CXXFLAGS",
+          "LDFLAGS",
+          "CPATH",
+          "CPLUS_INCLUDE_PATH",
+          "LIBRARY_PATH"
+        ],
+        "executables": {
+          "cc": {
+            "path": "/usr/bin/gcc",
+            "resolved": "/usr/bin/x86_64-linux-gnu-gcc-11",
+            "sha256": "821af3c74506283c179ca413bb33e6b528805a4dd8a5c09df125e5ad560a9e89"
+          },
+          "cxx": {
+            "path": "/usr/bin/c++",
+            "resolved": "/usr/bin/x86_64-linux-gnu-g++-11",
+            "sha256": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0"
+          },
+          "nvcc": {
+            "path": "/usr/local/cuda-13.0/bin/nvcc",
+            "resolved": "/usr/local/cuda-13.0/bin/nvcc",
+            "sha256": "b8e2347d9d7fcadf8812a27324d515de99d033d3e48611811ece7e66d7895f8a"
+          },
+          "ninja": {
+            "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+            "resolved": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+            "sha256": "08639e194fffa7f08b259fc4abfa4803aff66b64de52549cee42ec527d55cea6"
+          }
+        },
+        "cache_policy": "compiler_identity_namespace_v1",
+        "build_performed": false
+      },
+      "text": "ninja_required_version = 1.3\nname = sampling\ncuda_home = /usr/local/cuda-13.0\ncxx = /usr/bin/c++\nnvcc = /usr/local/cuda-13.0/bin/nvcc\ncxx_launcher = \nnvcc_launcher = \n\ncommon_cflags = -DPy_LIMITED_API=0x03090000 $\n    -D_GLIBCXX_USE_CXX11_ABI=1 $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/cub $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/libcudacxx/include $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/thrust $\n    -isystem /home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12 $\n    -isystem $cuda_home/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/tools/util/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/spdlog/include\ncflags = $common_cflags $\n    -fPIC $\n    -std=c++17 $\n    -Wno-switch-bool $\n    -DNDEBUG $\n    -O3\npost_cflags =\ncuda_cflags = -ccbin $\n    /usr/bin/gcc $\n    $common_cflags $\n    --compiler-options=-fPIC $\n    --expt-relaxed-constexpr $\n    -static-global-template-stub=false $\n    -gencode=arch=compute_86,code=sm_86 $\n    -DFLASHINFER_ENABLE_FP8_E8M0 $\n    -DFLASHINFER_ENABLE_FP4_E2M1 $\n    -std=c++17 $\n    --threads=1 $\n    -use_fast_math $\n    -Xfatbin=-compress-all $\n    --compress-mode=size $\n    -DFLASHINFER_ENABLE_F16 $\n    -DFLASHINFER_ENABLE_BF16 $\n    -DFLASHINFER_ENABLE_FP8_E4M3 $\n    -DFLASHINFER_ENABLE_FP8_E5M2 $\n    -DNDEBUG $\n    -O3\ncuda_post_cflags =\nldflags = -shared $\n    -L$cuda_home/lib64 $\n    -L$cuda_home/lib64/stubs $\n    -lcudart $\n    -lcuda\n\nrule compile\n  command = $cxx_launcher $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule cuda_compile\n  command = $nvcc_launcher $nvcc --generate-dependencies-with-compile -MF $out.d $cuda_cflags -c $in -o $out $cuda_post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule link\n  command = $cxx $in $ldflags -o $out\n\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/sampling.cu\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/renorm.cu\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/flashinfer_sampling_binding.cu\n\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so: link /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o\ndefault /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so\n",
+      "sha256": "458aaa5a094c7158005abd944e1dc40898f2d7445e550847ccc295c2c6eb9a5b",
+      "bytes": 4523,
+      "jit_dir": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops",
+      "cuda_initialized": false,
+      "build_called": false
+    },
+    "vllm": {
+      "receipt": {
+        "schema": "ieee_tc_native_toolchain_v1",
+        "contract": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/native_toolchain_cuda130_v1.json",
+        "contract_sha256": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+        "helper_sha256": "24c35bb480fb9c9ee402cec7115254ff8f9af7695d95ad06935e51b3e8498699",
+        "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "environment": {
+          "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda-13.0/bin:/usr/local/bin:/usr/bin:/bin",
+          "CC": "/usr/bin/gcc",
+          "CXX": "/usr/bin/c++",
+          "CUDA_HOME": "/usr/local/cuda-13.0",
+          "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc",
+          "MAX_JOBS": "2",
+          "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+          "FLASHINFER_NVCC_THREADS": "1",
+          "FLASHINFER_WORKSPACE_BASE": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c"
+        },
+        "absent_environment": [
+          "CUDA_PATH",
+          "FLASHINFER_EXTRA_CFLAGS",
+          "FLASHINFER_EXTRA_CUDAFLAGS",
+          "FLASHINFER_EXTRA_LDFLAGS",
+          "FLASHINFER_CXX_LAUNCHER",
+          "FLASHINFER_NVCC_LAUNCHER",
+          "FLASHINFER_DISABLE_JIT",
+          "FLASHINFER_DISABLE_VERSION_CHECK",
+          "FLASHINFER_CUBIN_DIR",
+          "FLASHINFER_JIT_DEBUG",
+          "FLASHINFER_JIT_LINEINFO",
+          "NVCC_PREPEND_FLAGS",
+          "NVCC_APPEND_FLAGS",
+          "CFLAGS",
+          "CXXFLAGS",
+          "LDFLAGS",
+          "CPATH",
+          "CPLUS_INCLUDE_PATH",
+          "LIBRARY_PATH"
+        ],
+        "executables": {
+          "cc": {
+            "path": "/usr/bin/gcc",
+            "resolved": "/usr/bin/x86_64-linux-gnu-gcc-11",
+            "sha256": "821af3c74506283c179ca413bb33e6b528805a4dd8a5c09df125e5ad560a9e89"
+          },
+          "cxx": {
+            "path": "/usr/bin/c++",
+            "resolved": "/usr/bin/x86_64-linux-gnu-g++-11",
+            "sha256": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0"
+          },
+          "nvcc": {
+            "path": "/usr/local/cuda-13.0/bin/nvcc",
+            "resolved": "/usr/local/cuda-13.0/bin/nvcc",
+            "sha256": "b8e2347d9d7fcadf8812a27324d515de99d033d3e48611811ece7e66d7895f8a"
+          },
+          "ninja": {
+            "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+            "resolved": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+            "sha256": "08639e194fffa7f08b259fc4abfa4803aff66b64de52549cee42ec527d55cea6"
+          }
+        },
+        "cache_policy": "compiler_identity_namespace_v1",
+        "build_performed": false
+      },
+      "text": "ninja_required_version = 1.3\nname = sampling\ncuda_home = /usr/local/cuda-13.0\ncxx = /usr/bin/c++\nnvcc = /usr/local/cuda-13.0/bin/nvcc\ncxx_launcher = \nnvcc_launcher = \n\ncommon_cflags = -DPy_LIMITED_API=0x03090000 $\n    -D_GLIBCXX_USE_CXX11_ABI=1 $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/cub $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/libcudacxx/include $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/thrust $\n    -isystem /home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12 $\n    -isystem $cuda_home/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/tools/util/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/spdlog/include\ncflags = $common_cflags $\n    -fPIC $\n    -std=c++17 $\n    -Wno-switch-bool $\n    -DNDEBUG $\n    -O3\npost_cflags =\ncuda_cflags = -ccbin $\n    /usr/bin/gcc $\n    $common_cflags $\n    --compiler-options=-fPIC $\n    --expt-relaxed-constexpr $\n    -static-global-template-stub=false $\n    -gencode=arch=compute_86,code=sm_86 $\n    -DFLASHINFER_ENABLE_FP8_E8M0 $\n    -DFLASHINFER_ENABLE_FP4_E2M1 $\n    -std=c++17 $\n    --threads=1 $\n    -use_fast_math $\n    -Xfatbin=-compress-all $\n    --compress-mode=size $\n    -DFLASHINFER_ENABLE_F16 $\n    -DFLASHINFER_ENABLE_BF16 $\n    -DFLASHINFER_ENABLE_FP8_E4M3 $\n    -DFLASHINFER_ENABLE_FP8_E5M2 $\n    -DNDEBUG $\n    -O3\ncuda_post_cflags =\nldflags = -shared $\n    -L$cuda_home/lib64 $\n    -L$cuda_home/lib64/stubs $\n    -lcudart $\n    -lcuda\n\nrule compile\n  command = $cxx_launcher $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule cuda_compile\n  command = $nvcc_launcher $nvcc --generate-dependencies-with-compile -MF $out.d $cuda_cflags -c $in -o $out $cuda_post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule link\n  command = $cxx $in $ldflags -o $out\n\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/sampling.cu\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/renorm.cu\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/flashinfer_sampling_binding.cu\n\nbuild /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so: link /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o\ndefault /home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so\n",
+      "sha256": "458aaa5a094c7158005abd944e1dc40898f2d7445e550847ccc295c2c6eb9a5b",
+      "bytes": 4523,
+      "jit_dir": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c/.cache/flashinfer/0.6.18.post1/86/cached_ops",
+      "cuda_initialized": false,
+      "build_called": false
+    }
+  },
+  "closures": {
+    "qualification": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d5340000000000000000000000000001.scope",
+        "invocation_id": "ffdbcca4758a4fea851f921814627183",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5340000000000000000000000000001.scope",
+        "inode": 25058837
+      },
+      "actual_recursive_procs_empty": true,
+      "path_gone": true,
+      "resources": {
+        "memory.peak": "1627500544",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "source_sha256": "89f9b3d98fe389a92d5fddfeb5fd3730e6ecbfab83c544056f0f4274f81803b9"
+    },
+    "qualification2": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d5340000000000000000000000000002.scope",
+        "invocation_id": "cf7add7ce54643f9804b581e6b5baf9e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5340000000000000000000000000002.scope",
+        "inode": 25059827
+      },
+      "actual_recursive_procs_empty": true,
+      "path_gone": true,
+      "resources": {
+        "memory.peak": "1572179968",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "source_sha256": "0a54ad63f723d2b4db6a1bfee3eadf8a12ab9118a3111e99b8f6ef51c99d4737"
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "retained_failures": [
+    "test package namespace collision before baseline tests",
+    "shell text parser split fi inside configs after successful native renderers"
+  ],
+  "no_kernel_build": true,
+  "no_gpu_run": true,
+  "legacy_build_description_and_ninja_log_unchanged": {
+    "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/build.ninja": {
+      "sha256": "98c0b5e1fdebe080604bdf3b08bf39d9ed05c61e35e06037e0756d4d561756d1",
+      "bytes": 3731
+    },
+    "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/.ninja_log": {
+      "sha256": "5fe83f04277aee9638680a3d3604a58b7200d0835b9c7b5959bd05f05c2c22b1",
+      "bytes": 4858
+    }
+  },
+  "serving_config_unchanged_except_explicit_compiler_contract": true,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d534_20261015/finish.py": "0a557e2c1d7ec003204f72d2edd2e337692bf0ee33024671e978c88633d64130",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d534_20261015/qualify.py": "53d2a3f64426accd0720bfba8e3f2a8250bfddbd5af69562f3f6c33c2a083a6b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d534_20261015/qualify2.py": "b04e4ce380874c6555759c8a3e149bf5e8099dea8d0ae1d0c53f1bd4a8e58f52",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/native_toolchain_cuda130_v1.json": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+    "/home/qhq/serverless_llm_baselines/configs/ieee_tc/vllm_7b_resident_native_compiler_v2.json": "bcf48994aaee0f6388404c6180683e7211b986ee5334793d6cc24a9b9a1db31d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "b02ab733dda8791033713aef238248b1ad5a1d597495690a496a3be02abf7402",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_native_toolchain.py": "24c35bb480fb9c9ee402cec7115254ff8f9af7695d95ad06935e51b3e8498699",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "1430e46ded13757d756bb5affae16c289a001c90374db0b11139fa67e301caed",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_tc_native_toolchain.py": "bd83a360b4ecbf6a22a7d9346f8a53f6c027ec4151fccb40f8274569fc9eba3a",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "cbfbca88beb1602534dcc5e4368374dcc700b61899da35c3916c1de621c77d19",
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_vllm_service.py": "3aab270c7fa35b002e28b74e2b4db4a275b35bbbb00f237e74a9b73f5df652d6"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "resources": {
+    "memory.peak": "26677248\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}
