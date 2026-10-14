@@ -1,4 +1,100 @@
-# IEEE TC status — D512 current native-timing diagnostic preparation
+# IEEE TC status — D512 diagnostic complete; current control-cost evidence
+
+## Current authoritative state 2026-10-14: D512 complete, result backup pending
+
+D512 original1000 prefix completed ONCE. Actual launch PASS/native GPU release/
+service-path removal, all1000 terminal/native contracts complete, failure0.
+Exact-owned remote services/monitor stopped AFTER localrelease; logs downloaded
+with remote SHA, local start4/serviceaux and collection5 actually empty closed.
+Analysis6 and operation7 also actual recursive-empty closed (660807680/48947200B
+peak, all memoryevents/swap0). No live GPU run; no inference restart in analysis.
+Source1088c48fa272a3b182ac6db844a12cf3c40f4a00ccc9f8d6f077a1d800e97652,
+77615074B. Native count/input/content/lease/physical checks PASS; independent
+numerical n_correct remains null. 10/10 complete uncapped observer journals,
+1000/1000 request coverage,231722 completedspans. 119 existing analysis tests PASS.
+Servicepeak21803249664B/minhost92132245504B,1181samples,high/max/OOM/OOMkill/swap0.
+60remotefetches/74953014wireB,0requestpacking; launchlink1000Mb/s/full.
+
+Read D512_NATIVE_CORE_DIAGNOSTIC_RESULT.md. Work utility costs remain material:
+source_snapshot698calls/94.010s,prepare_host415/93.248s,routing_snapshot577/41.866s;
+~99% threadCPU/wall. Totalworkclient358.062s vsidle-entry306.561s, acrossprocesses,
+NOT directly subtractable request latency/GPU-s. Observer60.942s includeswrite48.528s.
+Diagnosticmean/P95TTFT2151.407/13272.553ms,TPOT34.336/64.168ms,U3905.398137;
+NOT an ordinary full4000 candidate, no comparison/speedup inferred. D394 frozen
+thresholds used; legacy analyzer phrase 'provisional ruler' inaccurate for this run,
+explicitly corrected in resultdoc/curatedsummary without overwriting rawanalysis.
+
+Latest user asks publication venues and objective/industry norms. Read
+BASELINE_PUBLICATIONS_AND_OPTIMALITY_20261014.md. Officialmainconference records:
+vLLM/PagedAttention SOSP2023;S-LoRA MLSys2024;ServerlessLLM OSDI2024;
+HydraServe NSDI2026;Loquetier NeurIPS2025;dLoRA OSDI2024. ElasticLocality is an
+INTERNAL control, not a published external baseline; retain it despite stronger
+resource results. Venue does not prove adaptation correctness. CurrentvLLM0.30
+is not identicalto2023release. G1/G2unchanged; minimumGPU-s is NOT minimumGPU
+utilization. MLPerf/DistServe support quality-constrained efficiency, but this
+project's95%/75%/warmmultipliers are NOT a universal industry standard/certification.
+
+Resultcuration8 completed reused D511 boundedarchive/source/protected/test workflow:
+128 CPU tests PASS, protected147/userdirt/sourcechecks PASS,98140B archive roundtrip
+PASS; actual recursiveempty closed,peak652222464B/events0/swap0. Resultmanifest
+c7013262c71e3afa9dcfa95eafba277be87d6e1844ca36407f81d096cad4e567 in
+paper_results/ieee_tc/p2_backend/d512_native_core/result1. Explicit outcome backup
+uses RAW/backup_result.py; actual backup_result_receipt/closure determine success.
+After tested result/doc backup, NEXT ONLY: one evidence-driven formula-preserving
+PrimeLoRA optimization from current control costs. Inspect fresh physical graph
+construction/consumer dependencies and historical D329/D352/D355/D474 counterexamples;
+no crosscall identity/pinning cache, missing physical proof, blindcapacity/cooldown
+change, or repeated diagnostic without newhypothesis. If no safe redundantwork is
+proved, inspect native iterationcomposition. Minimalvalidation then one ordinary
+fullreplay. D510 seven-system baseline comparison already COMPLETE; no need to
+restart HydraServe/basicsetup or repeat its fullrun. Baseline defects still require
+necessary adaptation when supported, not performance tuning/search.
+
+Full goalACTIVE:7B W1/W2/G2/commonrefs;3Boptimization/allbaselines;dLoRA3BB6;
+A1–A5,S1–S13,cost/CE,reviewdocs,finalfigures. Nineformulas/frozenmetrics/single-run/
+storage+OOMgates/protected147/userdirt preserved. No figures yet. The following
+RUNNING/prepared notes are historical, not current process state.
+
+## Actual live state 2026-10-14 01:34 CST
+
+D512 actually launched once at01:33CST after backup/source/resource/protected
+gates and explicitly awaited remote start/authenticated health PASS. MAIN HEAD
+f5bf24c7ef1e9a934eb7becb5e4e044d605ce441 pushed/remote-equal; BASE09baa937
+unchanged. CPU1–3 actual recursively empty scopes closed, resources/events saved.
+tmux tc-d512-coreprefix1 pane3815771 ALIVE; do not relaunch or interpret this
+status as completed. Service aa9cd657a4204195a871026b43eb24cc.scope Invocation
+446beff7ce144a15b5f4efc6d42499f9,inode24366662; service_aux73227bfe951a4131bd08846e798eec4d
+Invocation0c73bdd611274bcb97e172d355ed89d8,inode24366620 captured in RAW.
+Notice1420081.471460440,replayt0=1420141.471460440,original1000 prefix identity
+verified by actual launch. Remote1000Mb/s/full, publishedgzip; no remote changes
+while live. Last watchdog MemAvailable103872331776B,service8272945152B,
+memory.high/max/OOM/OOMkill/swap0,warningfalse/noabort. Not a result.
+NEXT: lightweight progress/watchdog checks only until actual localrelease.
+No hashscan/test/build/compression/backup/secondrun during inference. Existing
+RAW/close_after_release.py and collect_closure.py own exact start+serviceaux
+closure and remote stop/download AFTER verified native GPU release. Run those
+in a new bounded auxiliary scope, preserve that scope's actual identity and
+close it via RAW/close.py collection. If launch fails, retain failure and use
+failure-aware closure rather than success-only helpers. Then full native/source
+audit and D351 timing analysis with current D394 thresholds; not G1/G2ranking.
+All fullscope remainsACTIVE. The following prepared paragraphs are historical.
+
+Continuation actual live check: same tmux/pane3815771 alive, watchdog sample761,
+561 terminal journal records; MemAvailable94.5564GiB/service11.3691GiB,
+warningfalse/noabort. This is a VERIFIED WAIT, not stopped/completed. No runtime
+code/config/remote changes, new inference, tests, hashes or backup whilelive.
+Prepared-only RAW/analyze_prefix.py reuses D351 audit/core-span partition with
+D476 streaming outcome selection and D394 frozen thresholds (group labels are
+enumeration only); cross_contract.py reuses D476 with D434 exact1000 witness.
+RAW/run_analysis.py requires completed collection_closure/native release/remote
+stop and runs reused CPUtests then analysis. summarize_operations.py reuses D351
+operation aggregation after analysis_closure. These four helpers and
+close_analysis.py are NOT executed/tested yet. Review them before execution;
+they neither alter serving code nor replace the launch-frozen helpers.
+After completion: collection in newboundedaux5 -> close.py collection ->
+run_analysis.py in newboundedaux6 -> close_analysis.py analysis ->
+summarize_operations.py in newboundedaux7 -> close_analysis.py operation.
+Preserve any failure/partial output; no repeated GPU run for analysis errors.
 
 ## Current main line 2026-10-14: D512 CPU-qualified, checkpoint/launch pending
 
