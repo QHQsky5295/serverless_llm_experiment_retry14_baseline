@@ -1,10 +1,88 @@
 """Offline counter audit fixtures, not performance or numerical qualification."""
 import copy
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
 from scripts.ieee_tc.export_d298_profiles import (
     audit_control_interleave_snapshots, audit_control_source_run, audit_file_demand_source_run,
-    audit_metadata_source_run)
+    audit_metadata_source_run, audit_measurement_seal, p)
+
+
+class MeasurementSealIsolation(unittest.TestCase):
+    """File identity fixtures only; not measured timing or model evidence."""
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.raw, self.prepared, self.measured = [self.root/name for name in
+                                                ('raw', 'prepared', 'measured')]
+        for path in (self.raw, self.prepared, self.measured):
+            path.mkdir()
+        self.source = self.raw/'source1.json'
+        self.source.write_text('{"fixture": true}\n')
+        (self.prepared/'source_spec.json').write_text('{"unchanged_input": true}\n')
+        (self.raw/'source_commit.txt').write_text('a'*40+'\n')
+        self.checkpoint = dict(passed=True, measurement_complete=True,
+            source_run=dict(path=str(self.source), sha256=p.digest(self.source)),
+            source_execution_commit='a'*40,
+            source_refs=[dict(path=str(self.prepared/'source_spec.json'),
+                             sha256=p.digest(self.prepared/'source_spec.json'))])
+        self.seal()
+
+    def seal(self, directory=None):
+        directory = self.measured if directory is None else directory
+        path = directory/'measurement_checkpoint.json'
+        path.write_text(json.dumps(self.checkpoint))
+        (directory/'measurement_outputs.sha256').write_text(
+            p.digest(path)+'  '+path.name+'\n')
+
+    def test_new_measurement_does_not_require_writing_reused_input_directory(self):
+        before = {x.name:x.read_bytes() for x in self.prepared.iterdir()}
+        paths = audit_measurement_seal(self.raw, self.measured, self.source)
+        self.assertEqual(paths[0].parent, self.measured)
+        self.assertEqual(before, {x.name:x.read_bytes() for x in self.prepared.iterdir()})
+        with self.assertRaises(FileNotFoundError):
+            audit_measurement_seal(self.raw, self.prepared, self.source)
+
+    def test_legacy_colocated_seal_remains_valid(self):
+        self.seal(self.prepared)
+        audit_measurement_seal(self.raw, self.prepared, self.source)
+
+    def test_foreign_run_rejected_even_if_bytes_match(self):
+        old = self.root/'old_source.json'
+        old.write_bytes(self.source.read_bytes())
+        self.checkpoint['source_run']['path'] = str(old)
+        self.seal()
+        with self.assertRaises(AssertionError):
+            audit_measurement_seal(self.raw, self.measured, self.source)
+
+    def test_failed_incomplete_or_other_commit_rejected(self):
+        original = copy.deepcopy(self.checkpoint)
+        for patch in (dict(passed=False), dict(measurement_complete=False),
+                      dict(source_execution_commit='b'*40)):
+            with self.subTest(patch=patch):
+                self.checkpoint = dict(original, **patch)
+                self.seal()
+                with self.assertRaises(AssertionError):
+                    audit_measurement_seal(self.raw, self.measured, self.source)
+
+    def test_tampered_source_reference_and_seal_rejected(self):
+        for path in (self.source, self.prepared/'source_spec.json',
+                     self.measured/'measurement_checkpoint.json'):
+            with self.subTest(path=path):
+                original = path.read_bytes()
+                path.write_bytes(original+b' ')
+                with self.assertRaises(AssertionError):
+                    audit_measurement_seal(self.raw, self.measured, self.source)
+                path.write_bytes(original)
+
+    def test_seal_cannot_resolve_members_outside_measurement_directory(self):
+        (self.measured/'measurement_outputs.sha256').write_text(
+            p.digest(self.source)+'  ../raw/source1.json\n')
+        with self.assertRaises(AssertionError):
+            audit_measurement_seal(self.raw, self.measured, self.source)
 
 
 class MetadataProfileInstallationAudit(unittest.TestCase):

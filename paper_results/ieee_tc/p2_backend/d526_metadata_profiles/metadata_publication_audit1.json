@@ -1,0 +1,90 @@
+{
+  "policy": "cpu_live_mapping_v1",
+  "installed": true,
+  "triggered": true,
+  "pinned_staging_bytes": 99040,
+  "actual_pinned_increment": 99040,
+  "tensor_budget_bytes": 2147483648,
+  "snapshots": [
+    {
+      "policy": "cpu_live_mapping_v1",
+      "installed": true,
+      "staging_bytes": 99040,
+      "banks": 2,
+      "rows": 1024,
+      "slots": 14,
+      "updates": 0,
+      "reuse_waits": 0,
+      "copied_bytes": 0,
+      "poisoned": false,
+      "gpu_buffers_replaced": false,
+      "native_mapping_invalidation_preserved": true,
+      "accounted_before_bytes": 63300,
+      "accounted_after_bytes": 162340,
+      "required_minimum_with_staging_bytes": 1006863940
+    },
+    {
+      "policy": "cpu_live_mapping_v1",
+      "installed": true,
+      "staging_bytes": 99040,
+      "banks": 2,
+      "rows": 1024,
+      "slots": 14,
+      "updates": 5060,
+      "reuse_waits": 0,
+      "copied_bytes": 28392544,
+      "poisoned": false,
+      "gpu_buffers_replaced": false,
+      "native_mapping_invalidation_preserved": true
+    },
+    {
+      "policy": "cpu_live_mapping_v1",
+      "installed": true,
+      "staging_bytes": 99040,
+      "banks": 2,
+      "rows": 1024,
+      "slots": 14,
+      "updates": 5060,
+      "reuse_waits": 0,
+      "copied_bytes": 28392544,
+      "poisoned": false,
+      "gpu_buffers_replaced": false,
+      "native_mapping_invalidation_preserved": true
+    },
+    {
+      "policy": "cpu_live_mapping_v1",
+      "installed": true,
+      "staging_bytes": 99040,
+      "banks": 2,
+      "rows": 1024,
+      "slots": 14,
+      "updates": 5060,
+      "reuse_waits": 0,
+      "copied_bytes": 28392544,
+      "poisoned": false,
+      "gpu_buffers_replaced": false,
+      "native_mapping_invalidation_preserved": true
+    }
+  ],
+  "global_host_budget": {
+    "kind": "ieee_managed_host_budget_v1",
+    "owner_id": "61fb908bf09346a9898d098d7686d8dc",
+    "limit_bytes": 17179869184,
+    "shared_file_bytes": 0,
+    "native_reserved_bytes": 2147483648,
+    "native_reservations": {
+      "8c60c13b7ae94fefa2f67f30ca350f0d": 2147483648
+    },
+    "bound_native_reserved_bytes": 2147483648,
+    "activation_reserved_bytes": 0,
+    "activation_reservations": {},
+    "pending_file_increment_bytes": 0,
+    "remaining_bytes": 15032385536,
+    "scope": "shared_allocated_files_plus_native_tensor_allowances",
+    "whole_service_rss_covered": false,
+    "snapshot_reserves_capacity": false
+  },
+  "timing_samples_relabelled": false,
+  "numerical_correctness_qualified": false,
+  "causal_speedup": null
+}

@@ -1,0 +1,40 @@
+{
+  "kind": "d526_complete_native_measurement_summary_v1",
+  "native_calls": 1669,
+  "warmup_calls": 34,
+  "measured_calls": 1635,
+  "source_run_sha256": "837915f97f7719abe9137d7aad54f3ac009b0c1dc07d00f9b1c2fc0341e8ed62",
+  "physical_gpu_seconds": 2112.197101198137,
+  "startup_latency_ms": 40034.73908803426,
+  "fetches": 1669,
+  "wire_bytes": 3406922201,
+  "request_packing": 0,
+  "service_peak_bytes": 5708759040,
+  "min_host_available_bytes": 106395848704,
+  "service_swap_bytes": 0,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "missing_service_classes": 0,
+  "measured_service_classes": 200,
+  "required_service_classes": 200,
+  "measured_preparation_classes": 24,
+  "class_domain_covered": true,
+  "n_correct": null,
+  "full_qualified": false,
+  "common_SLO_qualified": false,
+  "independent_runs": 1,
+  "CI": null,
+  "control_interleave_triggered": true,
+  "control_interleave_delta": {
+    "input_turns": 33347,
+    "handled_controls": 27280,
+    "yields_to_native_loop": 15681,
+    "yields_with_queued_input": 10319
+  },
+  "file_demand_transactions": 969,
+  "advanced_owner_epoch_transactions": 201
+}

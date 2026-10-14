@@ -556,8 +556,28 @@ def export_history_length_coverage():
     print(json.dumps(coverage, indent=2), flush=True)
 
 
+def audit_measurement_seal(raw_dir, measurement_dir, source):
+    """Bind a new measurement to its own seal, independently of reused inputs."""
+    seal_path = measurement_dir/'measurement_outputs.sha256'
+    for line in seal_path.read_text().splitlines():
+        sha, name = line.split(maxsplit=1)
+        path = measurement_dir/name
+        assert path.parent == measurement_dir and p.digest(path) == sha
+    checkpoint_path = measurement_dir/'measurement_checkpoint.json'
+    checkpoint = read(checkpoint_path)
+    assert checkpoint['passed'] and checkpoint['measurement_complete']
+    assert Path(checkpoint['source_run']['path']).resolve() == source.resolve()
+    assert checkpoint['source_run']['sha256'] == p.digest(source)
+    for entry in checkpoint['source_refs']:
+        assert p.digest(Path(entry['path'])) == entry['sha256']
+    commit = (raw_dir/'source_commit.txt').read_text().strip()
+    assert re.fullmatch('[0-9a-f]{40}', commit)
+    assert commit == checkpoint['source_execution_commit']
+    return [seal_path, checkpoint_path, raw_dir/'source_commit.txt']
+
+
 def audited_source_run(raw_dir, curated_dir, config_path, *, health_model=None,
-                       require_measurement_seal=False):
+                       require_measurement_seal=False, measurement_dir=None):
     """Verify each real run independently before combining measured samples."""
     source, launch_path = raw_dir/'source1.json', raw_dir/'source1_launch.json'
     raw, launch = read(source), read(launch_path)
@@ -607,22 +627,8 @@ def audited_source_run(raw_dir, curated_dir, config_path, *, health_model=None,
     paths = [source, launch_path, spec_path, contract_path, journal, watchdog,
         raw_dir/'remote_monitor.log', raw_dir/'remote_stop.log', raw_dir/'remote_health.json']
     if require_measurement_seal:
-        seal_path = curated_dir/'measurement_outputs.sha256'
-        for line in seal_path.read_text().splitlines():
-            sha, name = line.split(maxsplit=1)
-            path = curated_dir/name
-            assert path.parent == curated_dir and p.digest(path) == sha
-        checkpoint_path = curated_dir/'measurement_checkpoint.json'
-        checkpoint = read(checkpoint_path)
-        assert checkpoint['passed'] and checkpoint['measurement_complete']
-        assert Path(checkpoint['source_run']['path']).resolve() == source.resolve()
-        assert checkpoint['source_run']['sha256'] == p.digest(source)
-        for entry in checkpoint['source_refs']:
-            assert p.digest(Path(entry['path'])) == entry['sha256']
-        commit = (raw_dir/'source_commit.txt').read_text().strip()
-        assert re.fullmatch('[0-9a-f]{40}', commit)
-        assert commit == checkpoint['source_execution_commit']
-        paths.extend([seal_path, checkpoint_path, raw_dir/'source_commit.txt'])
+        paths.extend(audit_measurement_seal(raw_dir,
+            curated_dir if measurement_dir is None else measurement_dir, source))
     measured = [w for w in spec['waves'] if w['role'] == 'representative_measurement']
     roles = {f'source-profile/w{i}/l{lane}':w['role'] for i,w in enumerate(spec['waves'])
              for lane in range(len(w['requests']))}
@@ -666,9 +672,9 @@ def main(campaign='d298'):
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
-    elif campaign == 'd524':
-        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d524_20261014'
-        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d524_metadata_profiles'
+    elif campaign in ('d524', 'd526'):
+        RAW = ROOT/f'results/ieee_tc/p2_backend_qualification/{campaign}_20261014'
+        CURATED = ROOT/f'paper_results/ieee_tc/p2_backend/{campaign}_metadata_profiles'
         config_path = ROOT/'configs/ieee_tc/20261014_d524_7b_metadata_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
     elif campaign == 'd362':
@@ -681,17 +687,20 @@ def main(campaign='d298'):
     assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
     out = CURATED / 'initialization'
     assert not out.exists(), 'never overwrite a prior export'
-    directories = [(RAW,CURATED)]
+    prepared = (ROOT/'paper_results/ieee_tc/p2_backend/d524_metadata_profiles'
+                if campaign == 'd526' else CURATED)
+    directories = [(RAW,prepared)]
     if campaign in ('d344-merged', 'd356-merged'):
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith(('d344','d356','d362','d524')) else None,
-        require_measurement_seal=campaign.startswith(('d344','d356','d362','d524'))) for r,c in directories]
+        health_model='7b' if campaign.startswith(('d344','d356','d362','d524','d526')) else None,
+        require_measurement_seal=campaign.startswith(('d344','d356','d362','d524','d526')),
+        measurement_dir=CURATED if campaign == 'd526' else None) for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
-    metadata_audit = audit_metadata_source_run(raw) if campaign == 'd524' else None
+    metadata_audit = audit_metadata_source_run(raw) if campaign in ('d524','d526') else None
     control_audit = None
-    if campaign.startswith(('d356','d362','d524')):
+    if campaign.startswith(('d356','d362','d524','d526')):
         audits = []
         for run,(raw_dir,_) in zip(runs,directories):
             audit = audit_control_source_run(run['payload'])
@@ -804,13 +813,13 @@ def main(campaign='d298'):
             calibration_executions=len(runs),
             repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
             clock_domains_joined=False)
-    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362', 'd524'):
+    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362', 'd524', 'd526'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     if control_audit is not None:
         result['control_interleave_audit'] = control_audit
     if metadata_audit is not None:
         result['metadata_publication_audit'] = metadata_audit
-    if campaign in ('d362', 'd524'):
+    if campaign in ('d362', 'd524', 'd526'):
         result['file_demand_transaction_audit'] = audit_file_demand_source_run(raw)
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -819,11 +828,11 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362'], ['d524']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362'], ['d524'], ['d526']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
     elif sys.argv[1:] == ['--completed-length-candidate']:
         export_completed_length_candidate()
     else:
-        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, d356-merged, --history-length-coverage or --completed-length-candidate')
+        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, d356-merged, d362, d524, d526, --history-length-coverage or --completed-length-candidate')

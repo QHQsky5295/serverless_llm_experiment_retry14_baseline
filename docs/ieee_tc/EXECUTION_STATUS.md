@@ -1,4 +1,4 @@
-# IEEE TC execution status — D525 integer contract qualified; D526 timing refresh NEXT
+# IEEE TC execution status — D526 timing calibration/export COMPLETE
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,83 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+2026-10-14 13:46 UTC: D526 TERMINAL SUCCESS, strict source/calibration export
+COMPLETE. This supersedes all RUNNING/prepared/not-tested statements below.
+All1669 calls pass (34warmup/1635representative),200/200service+24preparation
+classes, no missing content sources. Metadata installed/triggered:5060updates,
+99040B actual pinned increment,28392544copiedB,no poison/no buffer replacement.
+1669 bilateral fetches/3406922201wireB,zero request packing. Calibration only:
+2112.197101198137GPU-s,not Full W0 performance; n_correct remainsnull.
+Source SHA837915f97f7719abe9137d7aad54f3ac009b0c1dc07d00f9b1c2fc0341e8ed62;
+source execution commit6b22e02bfbc4a513e7e5ccf8b27715c2fcebe3cb.
+Actual GPU release/pathgone and launcher auxiliary recursiveempty/pathgone
+confirmed; remote bothservices/monitorinactive and downloadSHAs match remote.
+58 affected CPU tests PASS. Analysis/seal/export scopes all recursivelyempty,
+closed/pathgone; peaks989442048/363069440/950407168B,events0/swap0.
+Servicepeak5708759040B,minhost106395848704B,all memoryevents0/swap0.
+New profiles: paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/.
+Service SHA1d349c001d37b9a9f8516cf50a2b3643bd8b535b68ee09f49c02e23b31f532a2;
+preparation SHAfd7f0c7e9c7d6c69c796c1fb1ab3e4a29aaec32fd50d1cdacfe95e3a12e054ed.
+Frozen D524 inputs reused unchanged, no D524 failed timing reused. Read
+D526_METADATA_TIMING_RESULT.md. Backup NEXT (actual receipt establishes status).
+Then NEW original100 Full config with these exact profile bindings; ONE4000 W0
+if qualified. Do not repeat calibration, CPU/device qualification or baselines.
+No Full100 config/launch prepared yet; no GPU/remote/analysis job remains live.
+Full7B W1/W2/G2,3B,ablation,sensitivity and reviewer deliverables remain ACTIVE.
+
+Historical live-monitoring and preparation notes, superseded above:
+D526 RUNNING exactly once in tmux tc-d526-source, existing D298 collector.
+Source checkpoint6b22e02bfbc4a513e7e5ccf8b27715c2fcebe3cb PUSHED/remote-equal.
+RAW results/ieee_tc/p2_backend_qualification/d526_20261014; exact unchanged
+D524 config/spec135waves1669calls; original failed D524 remains immutable.
+No second job/tests/build/compression/hashscan/backup/remote changes during
+measurement. This is affected initialization, NOT a Full performance point.
+Remote bothservices/monitor ACTIVE; 7Bclock
+remote-process-monotonic:8b4095a8b39f4571a70144d720c2cf64;
+monitorInvocation9df46df004a54b03b2c5b7183dc003de. start_receipt.json confirms
+launch; check actual state/launcher identity before any next action.
+Starter scope CLOSED/recursiveempty/pathgone,peak31965184B/events0/swap0.
+Launcher aux-ff0bf133da534ed6919fcfdd770f064e.scope Invocation
+43613bbe2f164eaeb21678c0bf6a9ccf, inode24923990 captured live.
+At watchdog sample153, actual source generation reached wave8 (native_host),
+beyond D524's first-wave failure; servicepeak5708759040B/events0/swap0,
+no abort. Partial successful generation is NOT complete calibration or speedup.
+2026-10-14 13:18 UTC follow-up: D526 remains LIVE in its original tmux;
+533 native_source_profile_sample records observed of1669 planned calls.
+At watchdog sample670: servicepeak5708759040B, all memory events0,swap0,
+hostavailable108169105408B,no warning/abort; root filesystem161GiB available.
+No source1.json/source1_launch.json terminal result existed at this check.
+No second job, code change, hash scan, backup or remote maintenance performed.
+Latest user reply confirms shared k3s belongs to another project and authorizes
+appropriate adaptation. Existing isolated HydraServe D510 already fulfills that
+platform adaptation; preserve its result/limitations, do not redo or touch k3s.
+NEXT monitor -> exact local release/recursiveempty closure -> owned remote stop
+and dual-side evidence -> strict source/profile/metadata audit. No D524 failed
+timings may enter exports. Then original100 Full
+using new timing and ONE4000 W0 if qualified; full scope remains ACTIVE.
+
+2026-10-14 13:25 UTC: verified same live tmux panePID2172010/python3;
+922/1669 source sample records, watchdog1105,peak5708759040B,events0/swap0,
+hostavailable108103266304B,no warning/abort. Terminal launch/result still absent.
+Previous goal turn was a VERIFIED WAIT, not a restart or completed experiment.
+While measurement remains live, ONLY offline exporter/tests/helpers were edited;
+no serving collector/backend/model/config/input changes and no tests executed.
+Existing export_d298_profiles now has d526 case: frozen D524 input directory,
+NEW d526_metadata_profiles output/seal directory. Extracted unchanged seal
+checks into audit_measurement_seal; six new fixture tests protect separate input/
+measurement paths, exact source/commit identity and tamper rejection. UNTESTED
+until actual measurement closure; no qualified export or new performance claim.
+Reused D362 raw helpers via mechanical apply_patch adaptation: D526 analyze.py,
+run_analysis.py,seal_measurement.py,export_profiles.py. Do NOT execute now.
+On terminal source/launch: verify nativeGPUrelease/pathgone; stop_remote.sh;
+then ONE bounded auxiliary run of run_analysis.py (it includes collect_closure.py,
+affected CPU tests and analyze.py). Do NOT separately collect first: open('x')
+identities/receipts are single-write. Close with close.py analysis; then bounded
+seal_measurement.py -> close.py seal -> bounded export_profiles.py -> close.py
+export. Reinspect helpers/actual receipts before action; preserve any failure.
+No commit/push yet because backup/tests must not overlap inference. Checkpoint
+6b22e02 remains the actual measurement source. Full remaining scope unchanged.
 
 D525 CPU qualification COMPLETE:393 PASS/0failure/error/skip, actual installed
 LoraState produces np.int32 and exactly reproduces the preserved D524 failure.
@@ -16,7 +93,12 @@ oracle cases included; native producer->publisher path now covered.
 Actual CPU scope recursively empty/closed/pathgone; peak2312175616B,events0/swap0.
 Read D525_NATIVE_INTEGER_CONTRACT.md. RAW d525_20261014; curated
 paper_results/ieee_tc/p2_backend/d525_native_integer_contract/.
-Checkpoint backup NEXT; no live GPU/CPU/remote job. D526 runner case prepared:
+D525 checkpoint backup COMPLETE,10explicitfiles/protected147/dirt/secrets/archive
+checks. Firstarchive guard rejected3.49MB remote monitor before staging; failure
+and partial archive retained. Archival-only member limit8MiB used in backup2;
+no serving/resource limit changed. backup2 closed/recursiveempty/pathgone,
+peak32534528B/events0/swap0. No need to repeat qualification or backup.
+Historical pre-launch handoff (superseded above): D526 runner case prepared:
 new raw d526_20261014 reuses exact D524 config/spec, no input regeneration.
 Actual source calibration NOT launched; export must use new output directory.
 After qualified new timing, new original100 Full then ONE4000 W0. Do not repeat

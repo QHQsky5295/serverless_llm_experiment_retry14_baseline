@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "calibration_complete": true,
+  "full_performance_qualified": false,
+  "n_correct": null,
+  "source_execution_commit": "6b22e02bfbc4a513e7e5ccf8b27715c2fcebe3cb",
+  "source_run": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d526_20261014/source1.json",
+    "sha256": "837915f97f7719abe9137d7aad54f3ac009b0c1dc07d00f9b1c2fc0341e8ed62"
+  },
+  "measured_calls": 1635,
+  "native_calls": 1669,
+  "service_classes": 200,
+  "preparation_classes": 24,
+  "file_demand_transactions": 969,
+  "advanced_owner_epoch_transactions": 201,
+  "tests_after_release": 58,
+  "smoke_reused": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d525_20261014/cpu_result.json",
+    "sha256": "cb0e2887a90adf126dfc7aad783291d95d35898faee630ece70abf71a444ba86"
+  },
+  "changed_sources": {
+    "scripts/ieee_tc/export_d298_profiles.py": "3103dacb223a0614a97ca79fec1c0aac61dbf5106956bd9df2284d0bb27ce66c",
+    "tests/test_ieee_tc_control_profile_analysis.py": "f3d106c5e38192c802782be851e9fad1c2ac3f231e3aac6d9fe4069e40de0a42"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "export_resources": {
+    "memory.peak": "950407168",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "export_evidence": {
+    "sha256": "5603f94710dc824b96dee7973bdd25596ff32cddc2672850b0d91646d98d1d75",
+    "bytes": 9050
+  },
+  "no_figures": true,
+  "next": "NEW original100 Full with exact D526 timings, then ONE4000 W0 against retained D476 and published baselines"
+}
