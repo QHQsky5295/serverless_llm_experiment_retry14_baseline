@@ -762,6 +762,75 @@ class AdapterCoverageViewTests(unittest.TestCase):
             launch.pre_ready_ingress_options(dict(cfg, formal_run=True), 1235, 'm', self.root)
 
 
+class W1ReplayViewTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.trace = Path(self.temporary.name)/'fixture.json'
+        # Unit fixtures only, never an experiment trace or adapter collection.
+        self.rows = [dict(request_id=f'r{i:04d}', arrival_time_s=10.+i*1.25,
+            adapter_id=f'a{i%17}', expected_output_tokens=1+i%300,
+            body=dict(messages=[dict(role='user', content=f'prompt {i}')])) for i in range(4000)]
+        self.trace.write_text(json.dumps(dict(requests=self.rows)))
+        self.cfg = dict(trace=str(self.trace), trace_sha256=launch.sha(self.trace.read_bytes()),
+                        request_count=4000, request_view='trace_w1_v1')
+
+    def test_complete_view_matches_independent_phase_formula_and_native_entry(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan, prepare_frozen_http_request
+        raw = self.trace.read_bytes()
+        plan = launch.load_http_replay_plan(self.cfg)
+        original = FrozenReplayPlan.load(self.trace)
+        native = FrozenReplayPlan.load(self.trace, profile='W1')
+        self.assertTrue(launch.qualified_http_population(self.cfg))
+        self.assertEqual(plan, native)
+        self.assertEqual(plan.profile, 'W1')
+        self.assertNotEqual(plan.identity()['view_sha256'], original.identity()['view_sha256'])
+        tokenizer = NS(encode=lambda text, **kw: list(map(ord, text)),
+                       decode=lambda ids, **kw: ''.join(map(chr, ids)))
+        for i, (entry, old) in enumerate(zip(plan.entries, original.entries)):
+            phase, position = divmod(i, 500)
+            self.assertEqual(entry.offset_s, phase*(499*1.25/2+30)+position*1.25/2)
+            self.assertEqual((entry.request_id, entry.source_json, entry.source_sha256),
+                             (old.request_id, old.source_json, old.source_sha256))
+            a, b = [prepare_frozen_http_request(e, tokenizer, 'm') for e in (old, entry)]
+            for key in ('canonical_prompt_sha256', 'native_prompt_token_ids_sha256', 'target_tokens', 'body'):
+                self.assertEqual(a[key], b[key])
+        context = dict(plan=plan.identity(), tiny_witness=False, replay_scope='full_source_v1')
+        self.assertEqual(FrozenReplayPlan.from_launch_context(context), plan)
+        self.assertEqual(self.trace.read_bytes(), raw)
+
+    def test_prefix_and_conflicting_transform_cannot_silently_become_w1(self):
+        for change in (dict(request_count=100), dict(request_count=1000), dict(request_count=500),
+                       dict(request_count=True), dict(request_view='W1'), dict(replay_profile='W0'),
+                       dict(rate_scale=2.), dict(trace_sha256='0'*64)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(self.cfg, **change))
+        cfg = dict(self.cfg)
+        cfg.pop('trace_sha256')
+        with self.assertRaises(ValueError):
+            launch.load_http_replay_plan(cfg)
+
+    def test_full_source_and_ready_identity_are_required(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        for rows in (self.rows[:-1], self.rows+[dict(self.rows[-1], request_id='extra')]):
+            self.trace.write_text(json.dumps(dict(requests=rows)))
+            with self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(self.cfg, trace_sha256=launch.sha(self.trace.read_bytes())))
+        self.trace.write_text(json.dumps(dict(requests=self.rows)))
+        w1 = launch.load_http_replay_plan(self.cfg)
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.load(self.trace).validate_launch_context(dict(
+                plan=w1.identity(), tiny_witness=False, replay_scope='full_source_v1'))
+
+    def test_existing_w0_remains_identical_and_cannot_ignore_w1_label(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        for count in (100, 1000, 4000):
+            cfg = dict(self.cfg, request_view='trace_prefix_v1', request_count=count)
+            self.assertEqual(launch.load_http_replay_plan(cfg), FrozenReplayPlan.load(self.trace, count=count))
+            with self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(cfg, replay_profile='W1'))
+
+
 class IngressContractTests(unittest.TestCase):
     def test_mode_is_explicit_and_public_native_ports_must_differ(self):
         base = dict(ingress_mode='service_pre_ready_v1', request_count=100, model='m',
