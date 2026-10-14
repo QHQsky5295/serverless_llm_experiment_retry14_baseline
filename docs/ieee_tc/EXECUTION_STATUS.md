@@ -1,4 +1,4 @@
-# IEEE TC execution status — D521 bounded metadata publication
+# IEEE TC execution status — D522 device qualification complete
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,44 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D522 actual CUDA device qualification COMPLETE, device2.json pass. Ten cases
+(one/mixed/reassigned/all14slots/allbase, specialization off/on) have exact
+native metadata/eager nonzero LoRA/pre-existing CUDA Graph output agreement.
+Each mode queued32 update/replay/output-copy operations without per-update
+readback; all64 outputs exactly match native eager oracles. Stable GPU buffers;
+each publisher adds99040 actual allocator-accounted pinned bytes. No weights,
+adapter pools or traces created. This is bounded arithmetic, NOT full-model,
+native-worker-installation or performance qualification; n_correct staysnull.
+Firstattempt import-only failed before CUDA/cases; corrected preflight sys.path,
+allfailed logs retained. Both actualservicepaths gone and exactaux recursiveempty
+closed/pathgone. Read D522_METADATA_DEVICE_QUALIFICATION.md.
+
+Added read-only publisher counters to existing source/worker observation (no
+extra RPC/readback). CPU regression521 PASS/0failure/error/skip; peak1059352576B,
+high/max/OOM/OOMkill/swap0, actualrecursiveempty/pathgone. D521 tests remainvalid
+historical evidence, not newperformance. RAW d522_20261014; curated
+paper_results/ieee_tc/p2_backend/d522_metadata_device/. Backup NEXT.
+
+NEXT D523 original100 Full native integration qualification: existing runner
+d523 case and configs/ieee_tc/20261014_d523_7b_cpu_frontend_validation_100.yaml
+prepared, NOT launched. Exactly D475/D476 non-target config plus
+ieee_lora_metadata_policy=cpu_live_mapping_v1; no parameter tuning. This uses
+Full's actual global HOST reservation/worker attach, unlike direct preflight
+which does not attach HOST. Must verify installed publisher, actual pinned
+accounting/update evidence and all100 nativecontracts before ONE new4000 W0.
+No D523 remote/start helpers prepared yet. Remote inactive; no liveGPU/CPU job.
+Do NOT repeat D522device/CPU or completedbaseline runs.
+
+## Prior D521 checkpoint (superseded next-action text below)
+
+D521 checkpoint0bad961c2d0f15eb5360752e5658a3ed2a933598 PUSHED/remote-equal.
+RAW/backup_receipt.json confirms10explicitfiles/source/tests/protected147/
+userdirt/diff/secrets/archive-roundtrip checks; backupactualrecursiveempty
+closed/pathgone,peak33509376B/events0/swap0. Do NOTrepeatbackup orCPUqualification.
+Onlypost-backupstatushandoff below is uncommitted; user'smanifest remainsuntouched.
+Freshpostbackupdisk161GiB,MemAvailable107172MiB,GPUprocessesempty.
+Nextnativequalification ONLY as below; no livedevicejob/configprepared.
 
 D521 default-off `cpu_live_mapping_v1` integrated via existing runner/worker
 HOST-budget attachment; no config/run enabled yet. Read

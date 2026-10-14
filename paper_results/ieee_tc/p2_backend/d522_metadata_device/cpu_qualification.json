@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "tests": 521,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "sources": [
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "official_sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+      "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_gpu.py",
+      "official_sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+      "sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/utils.py",
+      "official_sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py",
+      "official_sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/async_utils.py",
+      "sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu/async_utils.py",
+      "official_sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba",
+      "byte_equal": true
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "serving_integration": true,
+  "gpu_qualified": false,
+  "performance_qualified": false,
+  "cuda_initialized": false,
+  "native_dma_qualified": false,
+  "scope": {
+    "unit": "primelora-tc-aux-d5220000000000000000000000000003.scope",
+    "invocation_id": "3d154959c70448799799b82ba6a8ed68",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5220000000000000000000000000003.scope",
+    "inode": 24902146
+  },
+  "prior_device_qualification_sha256": "41b8d9fc32c67460c77e41a1daaf31f36541a729eb5c1c5aafe64d0539e10933",
+  "device_qualification_not_cpu_test": true,
+  "non_target_config_equal": true,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/lora_metadata.py": "7ab5aa9e74f727eea082ce388d03923dd1b5e77568bd148d3b35f5edba7cdafb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/lora_metadata_publication.py": "624f8fc1bd6bca91ddab93d91fb1942008212c0975566cfb5a346a4d0b3dbe44",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "84673617ae5b8e928c8e17ce341396721c3ca03ba9be53d707159b4c9370564c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_lora_metadata_publication.py": "3aedf7e248ebf03f36b97072d76b13645b8d4983a3290c118b0bfac644be5f32",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py": "147afe02cee61c3c6f5a1249f68a112eade118134e9cfc7837d165b3dcf1b397",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py": "239dee5fbe3ccc67f333e4582a65d17eb270c2026a40a7ae8c2cd0f3891e6e6f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "6896ec4d12c967e1bea691517ab32261f5a06a6e5041cb550b40fac0144ee364",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261014_d523_7b_cpu_frontend_validation_100.yaml": "1073152aa18162dc5c2391e7b8f9d2489aed760def095eb69a7c326bbc0a3cd2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "dcdccf39dcefeaedaed56ec5b3c91dc6fa1fb916a2e4b429d2617eda89e781e6",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "4b2d2cdaa469a514722f8dd8848068d984f4ca122ddc364fce250ef038fd7b77",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  }
+}

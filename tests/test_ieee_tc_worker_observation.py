@@ -790,7 +790,13 @@ class WorkerObservationContract(unittest.TestCase):
             self.assertEqual([r['storage_bytes'] for r in result['host_adapter_footprints']], [512, 512])
             self.assertIn('0::', result['cgroup'])
             self.assertTrue(result['affinity'])
+            self.assertNotIn('metadata_publication', result)
+            publication = {'policy': 'cpu_live_mapping_v1', 'updates': 7,
+                           'installed': True, 'staging_bytes': 99040}
+            worker._ieee_metadata_publisher = SimpleNamespace(snapshot=Mock(return_value=publication))
             barrier = worker.ieee_worker_observation(synchronize=True)
+            self.assertEqual(barrier['metadata_publication'], publication)
+            worker._ieee_metadata_publisher.snapshot.assert_called_once_with()
             torch.cuda.synchronize.assert_called_once_with(worker.device)
             self.assertTrue(barrier['device_barrier_used'])
             self.assertFalse(barrier['dispatch_reference_held'])

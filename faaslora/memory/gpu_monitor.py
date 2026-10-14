@@ -1521,6 +1521,9 @@ class IEEEWorkerObservationExtension:
                     _ieee_lora_host_inventory(manager, staged_models=staged, include_tensor_views=False)
                     if staged else copy.deepcopy(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
+                publisher = getattr(self, '_ieee_metadata_publisher', None)
+                if publisher is not None:
+                    result['metadata_publication'] = publisher.snapshot()
         if operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
                          'request_source_snapshot'):
             # CUDA ordinals can be remapped in dedicated workers; publish the
@@ -1575,6 +1578,9 @@ class IEEEWorkerObservationExtension:
             torch.cuda.synchronize(self.device)
         content = ({} if audit_adapter_ids is None else
                    {'slot_content_audit': _ieee_lora_slot_content_audit(manager, audit_adapter_ids)})
+        publisher = getattr(self, '_ieee_metadata_publisher', None)
+        if publisher is not None:
+            content['metadata_publication'] = publisher.snapshot()
         with torch.cuda.device(self.device):
             free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
             allocated_bytes = torch.cuda.memory_allocated(self.device)

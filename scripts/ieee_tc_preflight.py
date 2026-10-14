@@ -2634,6 +2634,160 @@ def backend_copy_check(runtime_receipt: Path) -> dict:
     return result
 
 
+def backend_metadata_check(runtime_receipt: Path) -> dict:
+    """D521 publication vs native CUDA metadata/eager/graph arithmetic.
+
+    Reuse backend-copy-check's guarded, in-memory nonzero fixture contract.
+    No model, adapter artifact, workload or performance sample is generated.
+    Native-worker installation and full-model execution are separate gates.
+    """
+    service = verify_current_service()
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('metadata qualification requires completed native CUDA receipt')
+    result = dict(kind='native_metadata_publication_device_qualification_v1',
+        service=service, runtime_receipt_sha256=digest(runtime_receipt),
+        source_sha256=digest(Path(__file__)), plan_sha256=check_plan(),
+        environment=sys.prefix, performance_sample=False, full_model_qualification=False,
+        native_worker_installation_qualified=False, n_correct=None, cases=[],
+        fixture='bounded_nonzero_in_memory_arithmetic_not_LoRA_artifacts', stage='imports')
+    result['pass'] = False
+    try:
+        import torch
+        import vllm
+        from types import SimpleNamespace
+        from vllm.lora.layers import LoRAMapping
+        from vllm.lora.punica_wrapper.punica_gpu import PunicaWrapperGPU
+        sys.path.insert(0, str(ROOT))
+        from faaslora.memory.lora_metadata_publication import DenseMetadataPublisher, BASE, KERNEL, FLAGS
+        if (vllm.__version__ != '0.30.0' or torch.__version__ != '2.13.0+cu130'
+                or torch.cuda.device_count() != 1):
+            raise RuntimeError('metadata qualification requires qualified native versions and one GPU')
+        device = torch.device('cuda:0')
+        torch.cuda.set_device(device)
+        stream = torch.cuda.current_stream(device)
+        # Production D476 capacities; arithmetic widths only are bounded fixtures.
+        capacity, slots, rank, width, rows = 1024, 14, 16, 128, 17
+        ids = tuple(range(11, 11 + slots))
+        layout = list(ids)
+        cases = [('one', (11,) * rows, layout),
+                 ('mixed', tuple((11, 12, 0)[i % 3] for i in range(rows)), layout),
+                 ('reassigned', tuple((11, 12, 0)[i % 3] for i in range(rows)), list(reversed(ids))),
+                 ('all_slots', tuple(ids[i % slots] for i in range(rows)), layout),
+                 ('all_base', (0,) * rows, layout)]
+        def pattern(shape, divisor):
+            n = 1
+            for size in shape:
+                n *= size
+            return ((torch.arange(n, dtype=torch.int32).remainder(13) - 6).float()
+                    .div(divisor).to(torch.float16).reshape(shape).to(device))
+        aa = (pattern((slots, 1, rank, width), 32),)
+        bb = (pattern((slots, 1, width, rank), 32),)
+        xx = pattern((rows, width), 16)
+        for specialized in (False, True):
+            result['stage'] = 'specialized_' + str(specialized)
+            cfg = SimpleNamespace(max_loras=slots, specialize_active_lora=specialized)
+            native = PunicaWrapperGPU(capacity, 14, device, lora_config=cfg)
+            candidate = PunicaWrapperGPU(capacity, 14, device, lora_config=cfg)
+            y_native, y_candidate = torch.zeros_like(xx), torch.zeros_like(xx)
+            graphs = {}
+            # Capture the candidate wrapper while it still uses native metadata,
+            # exactly preserving the production "install after capture" boundary.
+            for name, token_ids, current_layout in cases:
+                mapping = LoRAMapping(token_ids, token_ids, is_prefill=False)
+                candidate.update_metadata(mapping, current_layout, slots + 1, 32000)
+                key = (candidate.token_mapping_meta.no_lora_flag_cpu.item(),
+                       candidate.token_mapping_meta.num_active_loras_cpu.item())
+                if key in graphs:
+                    continue
+                warm = torch.cuda.Stream(device)
+                warm.wait_stream(stream)
+                with torch.cuda.stream(warm):
+                    y_candidate.zero_()
+                    candidate.add_lora_linear(y_candidate, xx, aa, bb, 1., (width,))
+                stream.wait_stream(warm)
+                stream.synchronize()
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    y_candidate.zero_()
+                    candidate.add_lora_linear(y_candidate, xx, aa, bb, 1., (width,))
+                graphs[key] = graph
+            stream.synchronize()
+            host_before = torch.cuda.host_memory_stats()['allocated_bytes.current']
+            publisher = DenseMetadataPublisher(candidate, rows=capacity, slots=slots,
+                banks=2, stream=stream, torch_module=torch)
+            host_after = torch.cuda.host_memory_stats()['allocated_bytes.current']
+            if host_after - host_before < publisher.staging_bytes:
+                raise RuntimeError('persistent pinned staging is absent from actual allocator accounting')
+            candidate.update_metadata = publisher.update_metadata
+            expected, keys = [], []
+            for name, token_ids, current_layout in cases:
+                mapping = LoRAMapping(token_ids, token_ids, is_prefill=False)
+                native.update_metadata(mapping, current_layout, slots + 1, 32000)
+                candidate.update_metadata(mapping, current_layout, slots + 1, 32000)
+                stream.synchronize()
+                for field in BASE:
+                    if not torch.equal(getattr(native, field)[:rows], getattr(candidate, field)[:rows]):
+                        raise RuntimeError('base metadata differs: ' + field)
+                for label in ('token_mapping_meta', 'prompt_mapping_meta'):
+                    left, right = getattr(native, label), getattr(candidate, label)
+                    for field in FLAGS:
+                        if not torch.equal(getattr(left, field), getattr(right, field)):
+                            raise RuntimeError('native CPU flag differs: ' + field)
+                    for field in KERNEL:
+                        if left.no_lora_flag_cpu.item() and field in KERNEL[:2]:
+                            continue  # Native deliberately retains unused stale bytes.
+                        a, b = getattr(left, field), getattr(right, field)
+                        if field in KERNEL[:2]:
+                            a, b = a[:rows], b[:rows]
+                        if not torch.equal(a, b):
+                            raise RuntimeError('device metadata differs: ' + field)
+                y_native.zero_()
+                native.add_lora_linear(y_native, xx, aa, bb, 1., (width,))
+                y_candidate.zero_()
+                candidate.add_lora_linear(y_candidate, xx, aa, bb, 1., (width,))
+                if not torch.equal(y_native, y_candidate):
+                    raise RuntimeError('nonzero native eager arithmetic differs')
+                key = (candidate.token_mapping_meta.no_lora_flag_cpu.item(),
+                       candidate.token_mapping_meta.num_active_loras_cpu.item())
+                graphs[key].replay()
+                if not torch.equal(y_native, y_candidate):
+                    raise RuntimeError('previously captured native graph arithmetic differs')
+                zero = torch.count_nonzero(y_native).item() == 0
+                if zero != (name == 'all_base'):
+                    raise RuntimeError('nonzero/base negative control failed')
+                expected.append(y_native.detach().cpu())
+                keys.append(key)
+                result['cases'].append(dict(name=name, specialized=specialized,
+                    metadata_equal=True, eager_equal=True, captured_graph_equal=True,
+                    nonzero=not zero, graph_key=list(key)))
+            # Many publications/replays, no per-update readback/device barrier.
+            # The publisher's own event retirement is the only source-reuse wait.
+            history = torch.empty((32, rows, width), device=device, dtype=torch.float16)
+            for step in range(32):
+                index = step % len(cases)
+                _, token_ids, current_layout = cases[index]
+                candidate.update_metadata(LoRAMapping(token_ids, token_ids), current_layout, slots + 1, 32000)
+                graphs[keys[index]].replay()
+                history[step].copy_(y_candidate)
+            stream.synchronize()
+            actual = history.cpu()
+            for step in range(32):
+                if not torch.equal(actual[step], expected[step % len(cases)]):
+                    raise RuntimeError('queued publication/replay reused an incomplete source')
+            result.setdefault('publication', []).append(dict(specialized=specialized,
+                **publisher.snapshot(), host_before_bytes=host_before, host_after_bytes=host_after,
+                queued_graph_replays=32, exact_queued_output_match=True))
+        torch.cuda.synchronize(device)
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def validate_model_worker(observation: dict, service: dict, clock_id: str) -> None:
     """Compare an actual worker reply with this host's process identity."""
     pid = observation['pid']
@@ -6154,7 +6308,7 @@ def main():
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
-                                         'backend-pin-check', 'backend-frontend-check',
+                                         'backend-pin-check', 'backend-frontend-check', 'backend-metadata-check',
                                          'backend-peft-reference', 'backend-peft-sequence-reference',
                                          'artifact-audit', 'artifact-index', 'artifact-disk-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
@@ -6323,6 +6477,10 @@ def main():
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')
         result = backend_copy_check(args.runtime_receipt)
+    elif args.action == 'backend-metadata-check':
+        if not args.runtime_receipt or not args.output:
+            parser.error('backend-metadata-check requires native runtime receipt and new output')
+        result = backend_metadata_check(args.runtime_receipt)
     elif args.action == 'backend-host-check':
         if not args.runtime_receipt or not args.artifact_audit or not args.output:
             parser.error('backend-host-check requires native runtime receipt, existing artifact audit and new output')
