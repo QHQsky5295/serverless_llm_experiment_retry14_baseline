@@ -1,4 +1,45 @@
-# IEEE TC status — D515 native validation CPU-qualified, not launched
+# IEEE TC status — D515 native100 complete; result backup pending
+
+## D515 authoritative result, 2026-10-14
+
+D515 original100 executed ONCE and completed, not live. All100native contracts,
+17369tokens,0failure,commonjoint100/100. Input/content/adapter/clock/physical
+auditPASS. GPU37plans/39attempts/39native receipts/34acquired/5deferred;
+HOST27preparations,dispatchGPU61/HOST8/NVMe2/remote29. Remote29fetches,
+50650865wireB,packing0. Mean/P95TTFT816.699662/2064.692368ms,
+TPOT29.005707/35.633536ms,physical374.8210465789307GPU-s. This shortfragment
+isNOTperformanceimprovement: D475meanTTFT683.487/U334.046011 were lower.
+3same-backendoutputdigestchanges retained; unknowncause/rawn_correctnull.
+CPU4preparations/2activations/2unused,nomidrunreplacement. ActualnativeGPU
+release/servicepathgonePASS; exact-ownedremote services+monitor stopped only
+afterlocalrelease,logsSHAverified. Servicepeak12666990592B/events0/swap0.
+CPU1–3,collection5,analysis6,lifecycle7,contract8actuallyemptyclosed;curation9
+PASS,nextactualclosureandoutcomebackup. ReadD515_NATIVE_VALIDATION_RESULT.md.
+RawsourceSHA315c0d97f4d902c27beb511e7c26550f250009dbd5ad6b5be1b90d3b39562aa4.
+AftertestedbackupONLY nextD516 ordinaryfull4000W0 usingD476frozenconfiguration
+andD514production; not yetprepared/launched. No extrashortreplay/parameters/SLO,
+no repeatedbaselines. Fullresultdecidescandidateacceptance; ifnobenefitstop
+mechanicalsnapshotrefinements. RemainingwholegoalACTIVE. Liveparagraphsbelow
+arehistorical,doNOTrestartD515. Previousbackuphashese4775b9/cab2a4a retained.
+
+## Actual D515 live state, 2026-10-14
+
+ACTUALLY launched ONCE after explicit awaited remote/authenticated health and
+source/protected/resource gates. MAINe4775b944774e652f6b5445aa1b977b0d3787c91
+pushed/remote-equal, BASE09baa937 unchanged. CPU1–3actualemptyclosurescomplete.
+tmux tc-d515-cpuprep100 pane850890 alive; never relaunch from tool timeout.
+Remote actual1000Mb/s/full, readonlypublishedgzip; nochangesduringinference.
+At watchdog sample158,38terminal records,hostavailable102174572544B,
+service10207248384B;memoryhigh/max/OOM/swap0,warningfalse/noabort.
+This is NOT a completed result. Continue lightweight progress/watchdog only.
+After actualrelease, boundedaux5 close_after_release.py then close_postrun.py
+collection (not close.py collection, which expects a different identityfile).
+Prepared-only postrun analyze.py/analyze_prefix.py/cross_contract.py/
+audit_lifecycle.py/curate_native.py/backup_result.py reuse D475; not executed yet.
+Review before execution; baseline/input and same-backend comparisons keep unknown
+numerical correctness. New GPU-preparation receipt check must prove changed path
+triggered. No performance claim before complete ordinary4000 followup.
+Whole remaining scopeACTIVE; prior not-launched notes below now historical.
 
 ## D515 next launch: source qualification passed
 

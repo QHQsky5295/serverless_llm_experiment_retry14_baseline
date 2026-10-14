@@ -1,0 +1,148 @@
+{
+  "gpu_preparation_plans": 37,
+  "gpu_preparation_attempts": 39,
+  "gpu_preparation_receipts": 39,
+  "gpu_preparation_acquired": 34,
+  "kind": "d515_actual_native100_qualification_v1",
+  "passed": true,
+  "stats": {
+    "completed": 100,
+    "mean_ttft_ms": 816.6996623110026,
+    "p95_ttft_ms": 2064.6923680324107,
+    "mean_queue_ms": 210.112072089687,
+    "p95_queue_ms": 534.5865883864462,
+    "mean_service_ms": 606.5875902213156,
+    "p95_service_ms": 1697.8491710033268,
+    "mean_tpot_ms": 29.005707034148244,
+    "p95_tpot_ms": 35.63353577192174,
+    "initial_preload_wall_s": 45.20980706810951,
+    "physical_gpu_seconds": 374.8210465789307,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d515_7b_cpu_frontend_validation_100.json",
+    "source_sha256": "315c0d97f4d902c27beb511e7c26550f250009dbd5ad6b5be1b90d3b39562aa4",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "eeb753c85629d629d06dcc2cc7ea8b48eea6181fdedb859531141a8a02b56157",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "protocol_bound_count": 100,
+  "numerical_correctness_qualified": false,
+  "fixed_workload_complete4000": false,
+  "ranking_eligible": false,
+  "replicates": 1,
+  "confidence_interval": null,
+  "host_preparation_records": 27,
+  "host_preparation_sources": {
+    "residency": 23,
+    "handoff": 4
+  },
+  "native_tokens": 17369,
+  "dispatch_tiers": {
+    "remote": 29,
+    "gpu": 61,
+    "host": 8,
+    "nvme": 2
+  },
+  "activation_categories": {
+    "initial": 1,
+    "natural_scaleout": 1
+  },
+  "activation_state_counts": {
+    "initial": {
+      "runtime_ready": 1
+    },
+    "natural_scaleout": {
+      "runtime_ready": 1
+    }
+  },
+  "initial_activation_s": [
+    45.063485705060884
+  ],
+  "common_threshold_joint_count": 100,
+  "remote_transfers": 29,
+  "remote_wire_bytes": 50650865,
+  "request_time_pack_count": 0,
+  "resources": {
+    "samples": 262,
+    "peak_bytes": 12666990592,
+    "max_swap_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d515_7b_cpu_frontend_validation_100.json",
+      "sha256": "315c0d97f4d902c27beb511e7c26550f250009dbd5ad6b5be1b90d3b39562aa4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "f70182e4cdee5387c159a85692b052c3e6070652ad2f43afd385110110b3dd49"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/launch.json",
+      "sha256": "fafc7aa0651488b0690e479834da286345780bcd6da3291a59bc3d12c19941fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/remote_transfers.jsonl",
+      "sha256": "b4ab8e2f7a5ddbfd9781a041fe6ecb88d8b5aebe4024babb9cc1d482a3aa1245"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/remote_monitor.log",
+      "sha256": "90b5585a922e833759f7f4192e7510577f48fb380d1a90bc120ddaec0ed08e18"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/remote_stop.json",
+      "sha256": "e56294ab38308eccb356fb9a3b365944805f24308fddf535a6dc80f6ec5e4fb8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/local_cleanup.json",
+      "sha256": "fb2121bdbbd58aa68dcf1689c0dc71800d3472bc741b70f923fec53e232a94a2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/completion_receipt.json",
+      "sha256": "5ce62d21a25eaa544d1681d4c104c14e343ab0abe9e192c753d6dbde1283e89e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/remote_health.json",
+      "sha256": "514dd81e1892bd6bf3d45fabfa887346d9287450f61adc922866b09d54bdb115"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/launch.launch/watchdog.jsonl",
+      "sha256": "b2dad25e08924e24755e0ee24e4d9be1b393675dbaa6043a89ecb258dfdc7482"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/analyze_prefix.py",
+      "sha256": "bb5c7e926a63d3329593c1c307ff01b8ddd4147ea982b21519990a1973166038"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d5150000000000000000000000000006.scope",
+    "invocation_id": "6b4eb94d17fc483a87d296bb171bede6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5150000000000000000000000000006.scope",
+    "inode": 24643548
+  }
+}
