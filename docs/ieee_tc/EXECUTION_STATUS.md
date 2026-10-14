@@ -1,4 +1,4 @@
-# IEEE TC execution status — D528 original100 complete; counter evidence pending
+# IEEE TC execution status — D529 completion counters qualified; full W0 prepared
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,32 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D529 PREPARED, NOT LAUNCHED. Existing native release receipt now retains
+publisher CPU counters; no new RPC/device fence/query or numeric policy change.
+21 affected CPU/config tests PASS/0failure/error/skip, no CUDA initialized;
+actual scope recursivelyempty/CLOSED/pathgone,peak698589184B,events0/swap0.
+D529 full W0 YAML differs from D528 only output/cache paths; exact D526 timing
+binding loaded through actual ScenarioRunner path. Read D529_METADATA_FULL_W0.md.
+RAW d529_20261014; curated d529_metadata_full_w0. NEXT checked explicit backup,
+owned remote health then ONE full4000 via existing runner d529. No repeat100,
+calibration/device checks/baselines. Same-backend10hashdifferences remain UNKNOWN,
+n_correctnull; cumulative counters must not be summed across request snapshots.
+No GPU/remote/auxiliary job remains. Sharedk3suntouched. FullscopeACTIVE.
+
+Prior D528 handoff below is superseded only for next-action preparation:
+
+D528 RESULT BACKUP COMPLETE:7cfcfe4dda373c683a200fca2d345d2310e98287
+PUSHED/remote-equal,6explicitfiles; archives/SHA/protected147/userdirt/secrets
+checks pass. publication_receipt.json and publication_closure.json retain exact
+owned scope,recursiveempty/pathgone,peak26697728B,events0/swap0. No need repeat
+backup,analysis,short100,calibration orbaselines. Only this post-backup status
+and untouched user'smanifest are dirty; no GPU/remote/auxiliary job remains.
+NEXT main-line: preserve existing publisherCPUcounters in native completion/
+release receipts (no addedRPC/barrier), minimal affectedCPUtests, retain
+same-backend outputhash discrepancy as unknown pending numericalaudit; then
+ONE new4000W0 under unchanged numericpolicy/SLO/profile/workload. No D529
+serving edit/config exists yet. Read D528_NATIVE100_RESULT.md; allscope ACTIVE.
 
 D528 TERMINAL SUCCESS; native100 and strict existing analysis COMPLETE. All100
 nativecontracts,17369tokens,100/100frozenjointSLO. P95TTFT1512.1370328124613ms,

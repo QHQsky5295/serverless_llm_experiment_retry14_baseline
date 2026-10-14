@@ -81,6 +81,68 @@ class NativeAdapter:
         self.rank = rank
 
 
+class MetadataReleaseReceipt(unittest.TestCase):
+    """Retain CPU counters, without a second RPC or any CUDA observation."""
+    def setUp(self):
+        self.manager = object()
+        self.receipt = dict(released=True, owner_id='owner', lease_id='request')
+        self.owner = SimpleNamespace(manager=self.manager,
+            release=Mock(side_effect=lambda **kwargs: dict(self.receipt)),
+            _ieee_request_capacity_receipts={'request': {'original': True}})
+        self.worker = SimpleNamespace(device=SimpleNamespace(type='cuda'), rank=0,
+            model_runner=SimpleNamespace(lora_manager=SimpleNamespace(
+                _adapter_manager=self.manager)),
+            _ieee_gpu_reference_owner=self.owner,
+            _ieee_host_allocator_policy={'captured': True})
+
+    def release(self):
+        # An object without CUDA methods makes an added device call fail here.
+        with patch.object(gpu_monitor, 'torch', object()):
+            return gpu_monitor.IEEEWorkerObservationExtension.ieee_gpu_reference(
+                self.worker, operation='release', lease_id='request',
+                expected_owner_id='owner')
+
+    def test_default_path_preserves_release_without_metadata_field(self):
+        result = self.release()
+        self.assertNotIn('metadata_publication', result)
+        self.assertEqual({key: result[key] for key in self.receipt}, self.receipt)
+        self.owner.release.assert_called_once_with(
+            lease_id='request', expected_owner_id='owner')
+        self.assertEqual(self.owner._ieee_request_capacity_receipts, {})
+
+    def test_existing_release_captures_current_cpu_counters_once(self):
+        counter = dict(updates=17, copied_bytes=4096, reuse_waits=0, poisoned=False)
+        publisher = SimpleNamespace(snapshot=Mock(side_effect=lambda: dict(counter)))
+        self.worker._ieee_metadata_publisher = publisher
+        first = self.release()
+        publisher.snapshot.assert_called_once_with()
+        self.assertEqual(first['metadata_publication'], counter)
+        self.assertNotIn('metadata_publication', self.receipt)
+        counter.update(updates=21, copied_bytes=5120)
+        second = self.release()
+        self.assertEqual(first['metadata_publication']['updates'], 17)
+        self.assertEqual(second['metadata_publication']['updates'], 21)
+        self.assertEqual(self.owner.release.call_count, 2)
+        self.assertEqual(publisher.snapshot.call_count, 2)
+        self.assertEqual(counter['updates'], 21)
+
+    def test_failed_release_does_not_publish_success_counters(self):
+        publisher = SimpleNamespace(snapshot=Mock())
+        self.worker._ieee_metadata_publisher = publisher
+        self.owner.release.side_effect = RuntimeError('original release failure')
+        with self.assertRaisesRegex(RuntimeError, 'original release failure'):
+            self.release()
+        publisher.snapshot.assert_not_called()
+        self.assertIn('request', self.owner._ieee_request_capacity_receipts)
+
+    def test_snapshot_failure_is_not_silently_hidden(self):
+        self.worker._ieee_metadata_publisher = SimpleNamespace(
+            snapshot=Mock(side_effect=RuntimeError('counter failure')))
+        with self.assertRaisesRegex(RuntimeError, 'counter failure'):
+            self.release()
+        self.owner.release.assert_called_once()
+
+
 class NativeFileHostPreparation(unittest.TestCase):
     def setUp(self):
         self.manager = NativeManager()

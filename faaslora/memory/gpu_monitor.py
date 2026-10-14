@@ -1501,6 +1501,12 @@ class IEEEWorkerObservationExtension:
             result = install_after_host_budget(self, manager, owner, result)
         if operation == 'release':
             getattr(owner, '_ieee_request_capacity_receipts', {}).pop(kwargs.get('lease_id'), None)
+            # Preserve cumulative CPU counters on the existing completion RPC.
+            # No extra device query/fence or metadata update; installation-only
+            # snapshots cannot establish use during the completed request stream.
+            publisher = getattr(self, '_ieee_metadata_publisher', None)
+            if publisher is not None:
+                result['metadata_publication'] = publisher.snapshot()
         if operation in ('source_snapshot', 'routing_source_snapshot'):
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.

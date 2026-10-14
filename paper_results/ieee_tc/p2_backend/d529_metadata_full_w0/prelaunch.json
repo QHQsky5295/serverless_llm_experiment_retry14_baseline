@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "tests": 21,
+  "full_performance_qualified": false,
+  "n_correct": null,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "qualification_resources": {
+    "memory.peak": "698589184",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "archive": {
+    "sha256": "989b0b878a868df5867555a5dfd24e53bc31cebc37e387020cc4ac1de978853d",
+    "bytes": 16784
+  },
+  "helpers": {
+    "analyze.py": "e50b9479d0f33282e676a7ecdd7438e03eac80e8322f30c22f2c94616504c01d",
+    "analyze_prefix.py": "dc2bf0512f6d4cf49daeb8e2a65bf9497d0871769dbfd3e30c48bc6a3381a973",
+    "backup.py": "95dfbf5c74840a5cfb38dddce56321b8121a71827c33112818439fd05eab7bd9",
+    "check_remote_health_stdlib.py": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+    "close.py": "89f9b3d98fe389a92d5fddfeb5fd3730e6ecbfab83c544056f0f4274f81803b9",
+    "close_launch.py": "b97cede212d35e4866651248763d3eb92941b5bbb50174b0e1a53c7f958bf7cd",
+    "collect_closure.py": "ea743ead51a6a92933c9cfeefad5b325df01be5921ecf61aafbd5e3667168903",
+    "qualify.py": "30e5853353b39eea457a61cdc079200c20ea2b4efcc2c3afbeedd336f39882f6",
+    "run_analysis.py": "61d8d5e09268b8602286e01dbce21465f01aff78bef2242dcfe76eca956d9f89",
+    "start.py": "bfbcc598014c4b984d4d6d96752f0ed1b81417a25dd0192d8f848a7be671cc63",
+    "start_remote.sh": "87a9a0f60c038941fd13514208dbe0521bcaaf6d4f2db70e91a73e8712e9df2a",
+    "stop_remote.sh": "c0446f363449a9a745be1f43d7058f6a5aa1041c80b8263b82df67e644f9cb40"
+  },
+  "next": "ONE complete4000 W0; audit cumulative native counters and numerical evidence limits"
+}
