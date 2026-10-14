@@ -1,0 +1,46 @@
+{
+  "kind": "d516_gpu_execution_full4000_closure_v1",
+  "source_commit": "cf36b0df9c4ec8cfe7b2c59569d20a31acd12cf7",
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_native_contract_complete": 4000,
+  "n_failed_from_terminal_journal": 0,
+  "planned": 4000,
+  "terminal": 4000,
+  "successful_returns": 4000,
+  "failed": 0,
+  "source_sha256": "8889d3f1543b1464a508980432c1be95e6c992fde9b32a2ec875369c732a2cd2",
+  "launch_sha256": "60b35d424c3dbb2167167f8c020aad93a3b7c2ae353710f9cd23fb465d2c9976",
+  "physical_gpu_seconds_total": 11011.303222888382,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_transfers_sha256": "1b3f5cf94bcf300ff08ef068e36f49a9c00433b8e170c8ecc1835e9265800fb5",
+  "remote_monitor_sha256": "495e855d6f402e338cc25815729226e33ce170c6be447325bb996050e765e80b",
+  "remote_stop": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "1b3f5cf94bcf300ff08ef068e36f49a9c00433b8e170c8ecc1835e9265800fb5",
+      "remote_monitor.log": "495e855d6f402e338cc25815729226e33ce170c6be447325bb996050e765e80b"
+    },
+    "stop_log_sha256": "5f16bf3617983c1c0b50c168a9625581ef97d87326ff48fe3c77e22adc65c489"
+  },
+  "remote_cleanup": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "1b3f5cf94bcf300ff08ef068e36f49a9c00433b8e170c8ecc1835e9265800fb5",
+      "remote_monitor.log": "495e855d6f402e338cc25815729226e33ce170c6be447325bb996050e765e80b"
+    },
+    "stop_log_sha256": "5f16bf3617983c1c0b50c168a9625581ef97d87326ff48fe3c77e22adc65c489"
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "no_figures": true,
+  "caveat": "PrimeLoRA GPU execution projection full4000 W0; source/native/SLO audit pending; no independent numerical proof or cross-system ranking before audit."
+}

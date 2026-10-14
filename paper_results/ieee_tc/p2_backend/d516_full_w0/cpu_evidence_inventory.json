@@ -1,0 +1,20 @@
+{
+  "preparations": 23,
+  "states": {
+    "activation_sent": 23
+  },
+  "returncodes": {
+    "0": 23
+  },
+  "observations": 23,
+  "activations": 23,
+  "journal_count": 23,
+  "journal_event_sequences": {
+    "acquire,prepared_worker_bind,native_workers,native_workers_exited,release": 23
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d516_20261014/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "04382f60609b03fb562397a8e84466ee8abb5aa9a421330f71e1520f302a151b"
+  },
+  "incomplete_activation_records": []
+}

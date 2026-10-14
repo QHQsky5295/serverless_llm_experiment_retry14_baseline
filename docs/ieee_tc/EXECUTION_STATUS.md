@@ -1,4 +1,99 @@
-# IEEE TC status — D516 full W0 preparation; no new run launched yet
+# IEEE TC status — D516 completed, nonfeasible; result backup next
+
+## D516 authoritative result, 2026-10-14
+
+The single original4000 W0 run COMPLETED; tmux gone, launchPASS/nativeGPUrelease/
+servicepathremoved. No live inference. Full4000native contracts/458224tokens,
+0failures; input/content/clock/remote/physical checksPASS. Joint3791/4000=94.775%,
+belowunchanged95%; U11011.303222888382 GPU-s,2.7528258057220953/request.
+Mean/P95TTFT1272.858456/3321.357967ms;mean/P95TPOT32.901143/56.422733ms.
+AgainstD476,U+2.16037%,joint-2.65pp,P95TTFT+43.44867%. Candidate NOT accepted
+as improved/feasible workingpoint; retainD476 and allnegativeevidence, no repeat.
+Read D516_FULL_W0_RESULT.md. No claimthat single-run delta provescausalharm.
+
+GPU1785plans/2233attempts/2230receipts/1902acquired/328deferred; changedboundary
+actuallyexecuted. HOST1242preparations; dispatchGPU2437/HOST574/NVMe855/remote134.
+132matchedremote transfers131480060wireB,packing0. NativeCPU23activations/19
+replacements,allactualreleaseclosed. Same-backendD476 outputs3811equal/189changed;
+causeunknown,rawn_correctnull. PublishedD513six-systemcomparison retained incl
+HydraServe, nonfeasible rows notdeleted;ElasticLocality onlyablation.
+Service4059samples,peak23431499776B,high/max/OOM/OOMkill/swap0,noabort/warning.
+2systemdinotifywarningsretained; noenvironmentchange/no claimnoiseabsent.
+
+Source8889d3f1543b1464a508980432c1be95e6c992fde9b32a2ec875369c732a2cd2.
+CPU1–3,collection5,analysis6,lifecyclecollection7,lifecycle8,curation9,finalverify10
+actuallyrecursiveemptyclosed. Exact-ownedremote stopped AFTERlocalGPUrelease,
+logsSHAverified. Curated17resultJSON/sourcebackups inpaper_results/.../d516_full_w0;
+finalverification101refs/protected147/userdirt/metricsPASS. NoGPUreplayorfigures.
+Next explicit tested outcome backup, thenoneevidence-driven newbottleneck review
+ofnativeiteration/controlcomposition usingD512/history/officialsources. Stop
+mechanical snapshot refinements; currentproductionstillD514candidate, no revert
+yet/no newexperiment prepared. W1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/final
+delivery allACTIVE. All following live/prepared clausesare historical; doNOTrestart.
+
+## D516 actual launch and live handoff, 2026-10-14
+
+Checkpoint cf36b0df9c4ec8cfe7b2c59569d20a31acd12cf7 PUSHED/remote-equal;
+CPU1–3 actualrecursive-empty closures complete. BASE09baa937 unchanged.
+start.py ACTUALLY awaited source/protected/resource gates, remote_start and
+authenticated health PASS, then launched ONCE. tmux tc-d516-gpuexecw0 pane
+909835 is alive; never repeat launch from a tool timeout or historical note.
+Service deda058361994718b0cc010cded407ee.scope, Invocation
+bf38ec90f1a843cda65e442766ca27ac, inode24652895. Exact service_aux identity
+is saved; auxiliary unit11b86d9372e849bf8987ae15c1158476.scope.
+Notice1456243.396487997; replayt0=1456303.396487997; original4000 fullview
+verified. Remote actual1000Mb/s/full, D78/D80 publishedgzip; no live maintenance.
+At watchdog sample78:3terminal records, hostavailable105141096448B,
+service6961025024B; high/max/OOM/OOMkill/swap0, no warning/abort.
+This is running evidence, NOT a completed outcome or performance improvement.
+
+NEXT: lightweight progress/watchdog only until actual local GPU release. No
+hash scans/tests/builds/compression/backup/secondrun or remote changes whilelive.
+After launch.json confirms native GPU release/service path removal, run existing
+RAW/close_after_release.py in new bounded aux5, then close.py collection; it
+verifies exact-owned empty local scopes and stops/downloads only owned remote.
+If failed, preserve failure and use failure-aware closure, not success-only audit.
+Then reuse D476 streaming native/source/lifecycle/contract analyses with D515
+GPU-plan receipt checks and D394 common ruler; include D513 published roster
+and HydraServe in comparison, no ElasticLocality baseline. No analysis has run
+yet. Keep independent numerical proof unknown and audit same-backend changes.
+All remaining W1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery ACTIVE.
+Earlier prepared/not-launched clauses are now historical; do not re-execute them.
+
+Continuation verified SAME live tmux/pane909835 at watchdog sample548,
+412terminal records; hostavailable91.973953GiB/service13.333275GiB/disk161.092110GiB,
+high/max/OOM/OOMkill/swap0,warningfalse/noabort. This is a VERIFIED WAIT, not
+stopped/completed. No runtime/config/remote change or concurrent heavy task.
+Prepared-only RAW/analyze_closed.py,analyze_prefix.py,cross_contract.py,
+collect_cpu_evidence.py,audit_lifecycle.py,close_postrun_extended.py reuse D476.
+They have NOT been run/tested yet; review before execution after collection.
+analyze_prefix streams GPU-plan receipts to prove changed boundary activation;
+cross_contract pins current approved PLAN and retains full D435 input witness.
+Postrelease order: collection aux5 -> close.py collection -> analyze_closed.py
+bounded aux6 -> close_postrun_extended.py analysis -> collect_cpu_evidence.py
+bounded aux7 -> closure lifecycle_collection -> audit_lifecycle.py bounded aux8
+-> closure lifecycle. Existing streaming primitives/common D394 ruler unchanged.
+Comparison/curation/outcome backup are not yet prepared; must use D513 published
+six-system roster including HydraServe and audit D476 same-backend outputs.
+No comparison of this incomplete run, no new inference or threshold change.
+
+Latest continuation VERIFIED WAIT on the same live tmux/pane909835 through
+watchdog sample1169:1051terminal journal records. Hostavailable89.575600GiB,
+service16.145092GiB,disk160.744186GiB; high/max/OOM/OOMkill/swap0,
+warningfalse/noabort. Several successive live polls showed continued progress
+(496->551->659->788->848->908->1051), not a stale state-file assumption.
+No tests, analysis, hashes, compression, backups, remote changes or new run
+executed during this continuation. Postrun helpers above remain prepared-only.
+Continue the SAME run; no completed result or optimization acceptance yet.
+
+Subsequent monitoring continuation VERIFIED WAIT, same actual live pane909835,
+watchdog sample1996 and2074terminal records (continued from1121 this turn).
+Hostavailable88.655636GiB/service17.423279GiB/disk160.129696GiB;
+high/max/OOM/OOMkill/swap0, no warnings/abort. All intervening actual polls
+confirmed progress; no new experiment, production edit, remote management,
+test/analysis/hash/compression/backup executed. Existing prepared postrun
+helpers remain unexecuted. Wait for actual completion/native release before
+collection aux5; preserve full remaining mainline, no midpoint ranking.
 
 ## D516 current main line, 2026-10-14
 

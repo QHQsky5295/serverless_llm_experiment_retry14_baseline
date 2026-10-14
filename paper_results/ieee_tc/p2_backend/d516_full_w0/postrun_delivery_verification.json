@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "verified_refs": 101,
+  "input_qualification_refs": 33,
+  "source_backups": 10,
+  "scope": {
+    "unit": "primelora-tc-aux-d5160000000000000000000000000009.scope",
+    "invocation_id": "84d980be27ab4991888fb70891a3d7bc",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5160000000000000000000000000009.scope",
+    "inode": 24686759
+  },
+  "no_figures": true
+}

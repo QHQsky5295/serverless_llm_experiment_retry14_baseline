@@ -1,0 +1,27 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d5160000000000000000000000000004.scope",
+    "invocation_id": "3781a29f59b34aeca855c5ecd31c5021",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5160000000000000000000000000004.scope",
+    "inode": 24652732
+  },
+  "service_aux": {
+    "unit": "primelora-tc-aux-11b86d9372e849bf8987ae15c1158476.scope",
+    "invocation_id": "acd1e72ba48d4cee8ec2db54d4675b07",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11b86d9372e849bf8987ae15c1158476.scope",
+    "inode": 24652774
+  },
+  "files": {
+    "memory.peak": "327835648\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n",
+    "memory.high": "3221225472\n",
+    "memory.max": "4294967296\n",
+    "memory.swap.max": "0\n",
+    "cgroup.events": "populated 0\nfrozen 0\n"
+  },
+  "after": "inactive",
+  "service_aux_after": "inactive",
+  "launch_pass": true,
+  "native_gpu_release_confirmed": true
+}
