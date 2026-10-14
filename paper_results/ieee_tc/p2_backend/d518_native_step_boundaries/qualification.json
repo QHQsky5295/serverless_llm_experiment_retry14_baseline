@@ -1,0 +1,128 @@
+{
+  "tests": {
+    "passed": true,
+    "count": 163,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d5180000000000000000000000000001.scope",
+    "invocation_id": "7639e829307b47d294774c8aa6e2a4ba",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5180000000000000000000000000001.scope",
+    "inode": 24715651
+  },
+  "actual_gpu_run_complete": false,
+  "performance_improvement_proved": false,
+  "resources": {
+    "memory.peak": "613306368",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/core_timing.py",
+      "sha256": "62911c580f8e30e13d90e1d335ab79549a601ee2574b70e8fead82afb8fc9844"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "1023f36bb14b3231e29f3d1c53471b87049ca6e405cc4b87d8cf962080fb6b5c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_timing.py",
+      "sha256": "6fec6f82dcf7f465092cf10a05a5409471ab9d7a5aedae74733ae7b274adbe3b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "f60ce71039fab27a0ea9c1ab13ba3a4e2bf85b998bce6475484ad2fea09d93d5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261012_d476_7b_full_w0.yaml",
+      "sha256": "0e7dd121bb64b9157f644f834ae231c3b8f15f4a1e3dd7777738b2629ec9eade"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+      "sha256": "174c93db921c23cf0396eee4764be25b2bd2d4b6a06e9fa41ce3598b884ce8ce"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/async_utils.py",
+      "sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/lora_model_runner_mixin.py",
+      "sha256": "fef6092a15d8d37f6fa22495e6106e2e5280180908d61ce43d9ff5bf4eef3f2f"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/lora_utils.py",
+      "sha256": "1e90eddd9ddb4ca55e574bb28e87ae3a6f6750175a62d373102426543f4ccd66"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+      "sha256": "3cb039b80fe9b03dc1122f93c1f8a4098ef1355104b317ff6df25358f4349494"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+      "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/vllm.py",
+      "sha256": "956b812e5a719bcbfa3a3958801361b38b9c928c96b8c073311bbb96376dfb7a"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+      "sha256": "6dc04c5be3efb1379f80f23edae0d53f741b6d3d80e6d4d05774fbc9f4e82752"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/memory.py",
+      "sha256": "7dc1d9d2a00b571977e6ecc6997d7ccfa4f13b620c11faf1f3f82317c548ec99"
+    }
+  ],
+  "closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d5180000000000000000000000000001.scope",
+      "invocation_id": "7639e829307b47d294774c8aa6e2a4ba",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5180000000000000000000000000001.scope",
+      "inode": 24715651
+    },
+    "actual_recursive_procs_empty": true,
+    "resources": {
+      "memory.peak": "613306368",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "41c83557dfec7c8a5af1644af088ab345e8d7aa32e2a11bd4e6e54663b67b0bd"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_members": {
+    "cpu_check.py": "8f6997a9fbec679b8c009ee4513b7e66a42199fbe68dcbe915c7e0ac8cb62701",
+    "close.py": "41c83557dfec7c8a5af1644af088ab345e8d7aa32e2a11bd4e6e54663b67b0bd",
+    "backup.py": "bf7c4e25aac5a15f31694a5143bb270cd8b4b25f82de483a11f42139d1d00e23",
+    "cpu.log": "e083e26be5a5657214aeb2577f6cb7c36c155e7105b2d5e118b4b40ad4563c3d",
+    "cpu_result.json": "2952a8a5305dd38101c50f3d7532e6c50292562fa0d5933bc873f87d3859122d",
+    "cpu_closure.json": "ea58958760c93556bf09176b22338c53d6758d669cc87e0c32beb53c059c8774"
+  },
+  "archive_sha256": "ccaa9800a5b039b8782137ca792e826f96014eee72b74661177b0c34f966b3c7",
+  "experimental_state": "CPU_qualified_GPU_not_run",
+  "serving_policy_changed": false
+}

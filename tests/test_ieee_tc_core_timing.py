@@ -184,5 +184,121 @@ class CoreTiming(unittest.TestCase):
             self.assertEqual(rows[-1]['event'], 'observation_close')
 
 
+class StepComponents(unittest.TestCase):
+    def counts(self, alloc=0, free=0):
+        return dict(num_host_alloc=alloc, num_host_free=free,
+                    **{'host_alloc_time.total': 0.0, 'host_free_time.total': 0.0})
+
+    def setup_observer(self):
+        _, scheduler, _ = fixture()
+        output = io.BytesIO()
+        observer = CoreHostTiming(output, scheduler, step_components=True)
+        return observer, output
+
+    def test_nested_components_and_allocator_deltas_do_not_add_spans(self):
+        observer, output = self.setup_observer()
+        calls, result = [], object()
+        counts = self.counts(4, 2)
+        class Runner:
+            def prepare_inputs(self, *args, **kwargs):
+                calls.append((args, kwargs)); counts['num_host_alloc'] += 2
+                return result
+            def execute_model(self):
+                assert self.prepare_inputs('private', _method='private-kw') is result
+                return result
+        runner = Runner()
+        observer._attach_component_targets([
+            (runner, 'prepare_inputs', 'prepare_inputs'),
+            (runner, 'execute_model', 'execute_model')], lambda: counts)
+        self.assertIs(runner.execute_model(), result)  # Outside step: no timing.
+        self.assertEqual(output.getvalue(), b'')
+        def step():
+            self.assertIs(runner.execute_model(), result)
+            return True
+        self.assertIs(observer.call('step', step, (), {}), True)
+        rows = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(len(rows), 1)
+        data = rows[0]['details']['step_components_v1']
+        self.assertTrue(data['nested_not_additive'])
+        self.assertFalse(data['gpu_kernel_timing'])
+        self.assertEqual(data['allocator_before']['num_host_alloc'], 6)
+        self.assertEqual(data['allocator_after']['num_host_alloc'], 8)
+        inner, outer = [data['values'][key] for key in ('prepare_inputs', 'execute_model')]
+        self.assertEqual((inner[0], outer[0]), (1, 1))
+        self.assertEqual((inner[3], outer[3]), (0, 0))
+        self.assertLessEqual(inner[1], outer[1])
+        self.assertLessEqual(outer[1], rows[0]['end_ns'] - rows[0]['begin_ns'])
+        self.assertEqual(calls, [(('private',), {'_method': 'private-kw'})] * 2)
+        self.assertNotIn(b'private', output.getvalue())
+        self.assertIsNone(observer.component_rows)
+
+    def test_exception_identity_and_second_step_reset(self):
+        observer, output = self.setup_observer()
+        failure, count = ValueError('private failure'), []
+        def original():
+            count.append(1)
+            raise failure
+        obj = NS(method=original)
+        observer._attach_component_targets([(obj, 'method', 'sample_tokens')],
+            self.counts)
+        with self.assertRaises(ValueError) as caught:
+            observer.call('step', obj.method, (), {})
+        self.assertIs(caught.exception, failure)
+        self.assertIsNone(observer.component_rows)
+        observer.call('step', lambda: False, (), {})
+        rows = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(rows[0]['outcome'], 'raised')
+        self.assertEqual(rows[0]['details']['step_components_v1']['values']['sample_tokens'][3], 1)
+        self.assertEqual(rows[1]['details']['step_components_v1']['values'], {})
+        self.assertEqual(count, [1])
+        self.assertNotIn(b'private failure', output.getvalue())
+
+    def test_cap_keeps_original_work_and_stops_component_observation(self):
+        observer, output = self.setup_observer()
+        observer.max_spans = 0
+        calls = []
+        obj = NS(method=lambda: calls.append(1))
+        observer._attach_component_targets([(obj, 'method', 'prepare_inputs')],
+            self.counts)
+        for _ in range(3): observer.call('step', obj.method, (), {})
+        self.assertTrue(observer.truncated)
+        self.assertEqual(calls, [1, 1, 1])
+        self.assertIsNone(observer.component_rows)
+        self.assertEqual(len(output.getvalue().splitlines()), 1)
+
+    def test_all_targets_validated_before_patch(self):
+        observer, _ = self.setup_observer()
+        original = lambda: None
+        obj = NS(good=original, bad=None)
+        with self.assertRaises(ValueError):
+            observer._attach_component_targets([(obj, 'good', 'good'), (obj, 'bad', 'bad')], lambda: {})
+        self.assertIs(obj.good, original)
+        self.assertEqual(observer.component_targets, [])
+
+    def test_explicit_diagnostic_flag_and_dependency(self):
+        for main, component in ((None, 'v2_components_v1'), ('0', 'v2_components_v1'),
+                                ('host_spans_v1', 'typo')):
+            cls, scheduler, _ = fixture()
+            before = dict(vars(cls))
+            with patch.dict(os.environ, {}, clear=True):
+                if main is not None: os.environ['FAASLORA_TC_CORE_TIMING'] = main
+                os.environ['FAASLORA_TC_CORE_STEP_TIMING'] = component
+                with self.assertRaises(ValueError): install_core_host_timing(cls, scheduler)
+            self.assertEqual(dict(vars(cls)), before)
+
+    def test_unknown_or_reset_allocator_counts_reject(self):
+        observer, _ = self.setup_observer()
+        obj = NS(method=lambda: True)
+        observer._attach_component_targets([(obj, 'method', 'prepare_inputs')], lambda: {})
+        with self.assertRaisesRegex(ValueError, 'unavailable'):
+            observer.call('step', obj.method, (), {})
+        self.assertIsNone(observer.component_rows)
+        counts = iter([self.counts(2, 1), self.counts(1, 1)])
+        observer.host_stats = lambda: next(counts)
+        with self.assertRaisesRegex(ValueError, 'reset'):
+            observer.call('step', obj.method, (), {})
+        self.assertIsNone(observer.component_rows)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,50 @@
-# IEEE TC status — D517 offline iteration audit complete; source review next
+# IEEE TC status — D518 native step source review and CPU observer qualification
+
+## D518 current handoff, 2026-10-14
+
+Read D518_NATIVE_STEP_BOUNDARIES.md. Actual inference entry is scripts/
+run_all_experiments.py, not the old serving/vllm_wrapper.py. Qualified native
+path is V2 gpu/model_runner.py, async two-batch UniProc; no need to re-enable
+async scheduling or assume all graph/eager iterations have identical costs.
+New falsifiable hypothesis: process-wide pinned_max_cached_size_mb=0 also
+affects per-iteration small pinned input/output staging. D56–D60 already proved
+the LoRA release benefit and warned about lost reuse; current overhead UNKNOWN.
+Do not remove HOST accounting, restore unlimited cache or sweep thresholds.
+
+Existing CoreHostTiming now has opt-in FAASLORA_TC_CORE_STEP_TIMING=
+v2_components_v1, requiring host_spans_v1 and native V2 dense async TP/PP/DP1.
+Per-step bounded component counts/wall/threadCPU plus native process allocator
+count/time counters; nested not additive, driver microseconds not GPU kernels,
+background frees not automatically attributable to step. Default unchanged.
+No new runner/framework/input/profile/SLO; no GPU/remote/k3s operation thisturn.
+163 relevant CPUtestsPASS/0skip; actualCPUrecursiveemptyclosure/pathgone,
+peak613306368B/events0/swap0, protected147unchanged. Rawd518_20261014.
+Explicit tested backup NEXT; actual backup_receipt/closure establish completion.
+
+NEXT ONE: restore rejected D514 single production change to accepted D476
+semantics with source/test evidence, then preregister ONE original1000-prefix
+component diagnostic reusing D512 recipe and current explicit observer. It is
+NOT prepared/launched yet. Production currently STILL D514; do not mislabel it
+D476. D516 remainsnonfeasible/sealed; no repeated D516 or HydraServe performance.
+If allocator hypothesis unsupported, use measured dominant component, no cache
+parameter sweep. If supported, derive bounded reuse/physical-capacity contract
+before candidate, minimalqualification thenordinaryfull4000. Whole7BW1/W2/G2/
+commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery ACTIVE.
+Prior NEXT/live paragraphs beloware historical, not current process state.
+
+## D517 outcome backup verified — resume here
+
+Checkpoint75dc40f7d8a09dff21b90caae12a8ba0a95a1806 PUSHED/remote-equal.
+RAW/backup_retry_receipt.json verifiesexplicit10files,133CPUtests,source/CSVcell/
+protected147/userdirt/diff/secretschecks. Analysis1/curation2/failedbackup3/retry4
+ALLactualrecursiveemptyclosed/pathsgone,events0/swap0;finalbackuppeak27127808B.
+Publication uses*_lf.csv andpublication_manifest.json; originalCRLFfiles/failed
+backup.py remainuntouched. DoNOTrepeatD517analysis/tests/curation/backup orGPUruns.
+No liveGPUexperiment, no remote/k3schanges, no productionchange thisstage.
+This is localpost-backup handoff; priorbackup-pendingclausesare historical.
+NextONE actualstep-internal source/history review; no candidate, newobservation
+or revertpreparedyet. D514candidate stillpresent;D516notaccepted,D476preserved.
+Whole7BW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery goalACTIVE.
 
 ## D517 current result, 2026-10-14
 
