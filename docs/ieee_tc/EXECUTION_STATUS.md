@@ -1,4 +1,4 @@
-# IEEE TC execution status — D526 timing calibration/export COMPLETE
+# IEEE TC execution status — D527 Full100 qualification PREPARED
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,23 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D527 PREPARED, NOT LAUNCHED: new original100 Full config binds exact D526
+service/preparation timings; all other D523/D476 controls unchanged. 308 CPU/
+configuration/entry tests PASS; runtime child identity loads both profiles,
+non_target_config_equal=true, CUDA not initialized. Actual qualification scope
+recursiveempty/CLOSED/pathgone, peak3083395072B, events0/swap0. RAW
+results/ieee_tc/p2_backend_qualification/d527_20261014; curated
+paper_results/ieee_tc/p2_backend/d527_metadata_full_qualification/.
+Read D527_FULL_METADATA_QUALIFICATION.md. Reused start/remote/close helpers
+prepared; backup then ONE original100 via existing runner d527. Must audit
+native contracts and actual publisher installation/accounting/use, then ONE
+new4000 W0 if qualified. No CPU/device/calibration/baseline reruns.
+Latest delayed user reply again confirms k3s is unrelated; existing isolated
+HydraServe D510 fulfills adaptation, no shared cluster operations. No inference
+or remote job live. Full remaining scope below stays ACTIVE.
+
+Prior D526 completed handoff (superseded only for next-action preparation):
 
 2026-10-14 13:46 UTC: D526 TERMINAL SUCCESS, strict source/calibration export
 COMPLETE. This supersedes all RUNNING/prepared/not-tested statements below.
@@ -25,7 +42,12 @@ New profiles: paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initializa
 Service SHA1d349c001d37b9a9f8516cf50a2b3643bd8b535b68ee09f49c02e23b31f532a2;
 preparation SHAfd7f0c7e9c7d6c69c796c1fb1ab3e4a29aaec32fd50d1cdacfe95e3a12e054ed.
 Frozen D524 inputs reused unchanged, no D524 failed timing reused. Read
-D526_METADATA_TIMING_RESULT.md. Backup NEXT (actual receipt establishes status).
+D526_METADATA_TIMING_RESULT.md. Backup COMPLETE: checkpoint
+a0081007e683aac892065af8558e9cd5027394c8 PUSHED/remote-equal,19explicitfiles,
+147protected/history/userdirt/secrets/archive-roundtrip checks. Actual receipts
+RAW/backup_receipt.json and backup_closure.json; scope recursiveempty/pathgone.
+No need to repeat calibration/export/tests/backup. Only this post-backup handoff
+is uncommitted alongside the untouched user's manifest.
 Then NEW original100 Full config with these exact profile bindings; ONE4000 W0
 if qualified. Do not repeat calibration, CPU/device qualification or baselines.
 No Full100 config/launch prepared yet; no GPU/remote/analysis job remains live.
