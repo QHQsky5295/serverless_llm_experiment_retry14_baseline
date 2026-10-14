@@ -1,4 +1,4 @@
-# IEEE TC execution status — D536 complete; result curation and W1 initial-state review
+# IEEE TC execution status — D536 sealed; D533 Full W1 prepared
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -22,16 +22,30 @@ Execution MAINfea6a1be08f2663c3a89fe5680cfa704f644515e and
 BASEbde215460acb9e850efa479a89bda6fc39a2bd7d werePUSHED/remoteequal beforelaunch.
 RAW vllm_qualification/d536_20261015. Result curation COMPLETE: result1/audit.json,
 manifest.json and75450-byte evidence.tar.gz; source/archive-roundtrip/protected147/
-userdirt checksPASS. Exactresultclosure recorded. publish_result.py prepared by
-reuse ofD532; NEXT explicitresultbackup -> exactpublicationclosure. Do not rerun completed
+userdirt checksPASS. Resultactualrecursiveempty/CLOSED/pathgone,peak26963968B,
+events0/swap0. Result backup COMPLETE:3090d9130a78b4e67d3ed7e929e71ed15766caab
+PUSHED/remoteequal,7explicitfiles; SHA/archive/protected147/userdirt/secrets/diff
+checksPASS. Publicationactualrecursiveempty/CLOSED/pathgone,peak26615808B,
+events0/swap0. RAW publication_receipt/closure retain actualidentities. Do not rerun completed
 analysis/collection/performance/D531103tests/D53416checks/D535build.
 
 D536 actualmodelJIT usednewprefix6d1961d6a9;worker0graph9.01s,totalcompile31.58s,
 engineinit56.71s. All realJIT remainsinmeasurement; commonD535sampling build is
 not all-modelprewarm. Prelaunchseal didNOTestablish newprefixprestate.
-Afterresultbackup: boundedexistinglog/config/cacheidentityreview BEFORE W1
-Uref/Qref freeze or D533 FullW1. Do not silentlyprewarm/subtract/restart or claim
-allW1losscausedbycompiler. D533 preparedNOTlaunched. No W1referencefrozen.
+Boundedinitialstate review COMPLETE:15directbackbonemetadata,onlyD536prefix
+matchesnewenv/compiler;old/newbaselinecode+confighashsame,CUDA_HOMEenvdiff,
+compilerhashdiff. PrimeLoRagraphconfig14slots/rank16 differsbaseline4/rank64;
+nativehashincludesboth. ThisdoesNOTexclude lowerkernelcachesharing or prove
+wholecacheprestate. Reviewactualrecursiveempty/CLOSED/pathgone,peak26841088B,
+events0/swap0. Eightphasejoint60.2/73/58.4/63.6/78.4/75.4/75.6/96.8%; notall
+lossattributabletostartup. RAW initial_state_review.json/sourceSHAs retained.
+D533 FullW1 helpersPREPARED by reusingD536/D529, no serving/configchange;
+readD533_FULL_W1.md. NEXT testedexplicitbackup -> close.py backup -> start.py
+boundedaux -> close.py start. No need moreGPUwarmup or repeatedqualification.
+Startrecords actualmodelcachemetadata and D536predeclaredreferencevalues;
+actualcross-systeminitialstate/nativejoin remainsrequired afterD533. Uref/Qref
+NOTfrozen,noG2optimumclaim. D533NOTlauncheduntilactualstart_receipt. Nojoblive.
+Do not silentlyprewarm/subtract/restart or claim allW1losscausedbycompiler.
 Currentturn PROGRESS: actualrunterminal/release/audit; priorwait notes superseded.
 Sharedk3suntouched;HydraServeD510isolatedresultretained. FullremainingscopeACTIVE.
 Historical notes below retain earlier states; this handoff is authoritative.
