@@ -132,6 +132,75 @@ class NativeCoreAnalysis(unittest.TestCase):
                       timing_tpot_miss=False,first=4e-9,last=21e-9)]
         return directory,receipt,deployment,windows,root/'output',source
 
+    def test_iteration_opt_in_keeps_default_and_source_unchanged(self):
+        rows=events();before=copy.deepcopy(rows)
+        default=summarize_core_host_spans(rows)
+        detailed=summarize_core_host_spans(rows,include_iterations=True)
+        iteration=detailed.pop('iterations')
+        self.assertEqual(default,detailed)
+        self.assertEqual(rows,before)
+        row,=iteration['records']
+        self.assertEqual(row['category'],'has_multi_token_allocations')
+        self.assertEqual((row['step_ns'],row['schedule_ns'],row['step_non_schedule_ns']),(20,3,17))
+        self.assertEqual((row['scheduled_requests'],row['scheduled_tokens'],row['multi_token_requests']),(2,11,1))
+        self.assertEqual((row['preceding_input_id'],row['preceding_client_count'],row['preceding_utility_count']),(1,1,1))
+        self.assertEqual(row['preceding_client_ns'],4)
+        index=iteration['index']
+        self.assertEqual(core_interval_overlap(index[row['category']],14,21),7)
+        self.assertEqual(core_interval_overlap(index['schedule'],14,21),1)
+        self.assertEqual(core_interval_overlap(index['step_non_schedule'],14,21),6)
+        self.assertFalse(iteration['gpu_kernel_timing'])
+
+    def test_iteration_single_empty_and_absent_schedule_remain_distinct(self):
+        rows=events();rows[2]['details'].update(scheduled_tokens=2,multi_token_requests=0)
+        self.assertEqual(summarize_core_host_spans(rows,include_iterations=True)
+            ['iterations']['records'][0]['category'],'single_token_allocations')
+        rows[2]['details'].update(scheduled_requests=0,scheduled_tokens=0)
+        rows[3]['details']['model_executed']=False
+        self.assertEqual(summarize_core_host_spans(rows,include_iterations=True)
+            ['iterations']['records'][0]['category'],'zero_tokens')
+        rows.pop(2);rows[2]['id']=3;rows[-1]['completed_spans']=3
+        iteration=summarize_core_host_spans(rows,include_iterations=True)['iterations']
+        row,=iteration['records']
+        self.assertEqual(row['category'],'no_schedule')
+        self.assertIsNone(row['scheduled_tokens'])
+        self.assertEqual(row['step_non_schedule_ns'],20)
+
+    def test_iteration_rejects_missing_and_impossible_counts(self):
+        changes=[lambda e:e[2]['details'].pop('scheduled_requests'),
+            lambda e:e[2]['details'].update(scheduled_requests=True),
+            lambda e:e[2]['details'].update(multi_token_requests=3),
+            lambda e:e[2]['details'].update(scheduled_tokens=2),
+            lambda e:e[2]['details'].update(multi_token_requests=0),
+            lambda e:e[2]['details'].update(scheduled_requests=0,multi_token_requests=0),
+            lambda e:e[3]['details'].pop('model_executed'),
+            lambda e:e[3]['details'].update(running_before=-1),
+            lambda e:e[3]['details'].update(waiting_before=None)]
+        for change in changes:
+            with self.subTest(change=change):
+                rows=events();change(rows)
+                with self.assertRaises(ValueError):summarize_core_host_spans(rows,include_iterations=True)
+
+    def test_iteration_raised_missing_close_and_empty_stream(self):
+        rows=events();rows[2].update(outcome='raised',details={})
+        rows[3]['outcome']='raised';rows[3]['details'].pop('model_executed')
+        row,=summarize_core_host_spans(rows,include_iterations=True)['iterations']['records']
+        self.assertEqual(row['category'],'step_raised')
+        self.assertIsNone(row['scheduled_tokens'])
+        self.assertIsNone(row['model_executed'])
+        with self.assertRaises(ValueError):summarize_core_host_spans(rows[:-1],include_iterations=True)
+        close=events()[-1];close['completed_spans']=0
+        empty=summarize_core_host_spans([close],include_iterations=True)['iterations']
+        self.assertEqual(empty['records'],[])
+        self.assertTrue(all(v['total_ns']==0 for v in empty['index'].values()))
+
+    def test_iteration_rejects_ambiguous_multiple_schedules(self):
+        rows=events();second=copy.deepcopy(rows[2]);second.update(id=5,begin_ns=16,end_ns=18,
+            thread_cpu_begin_ns=8,thread_cpu_end_ns=9)
+        rows.insert(3,second);rows[-1]['completed_spans']=5
+        with self.assertRaisesRegex(ValueError,'at most one schedule'):
+            summarize_core_host_spans(rows,include_iterations=True)
+
     def test_file_binding_output_partition_and_no_overwrite(self):
         import csv
         with tempfile.TemporaryDirectory() as tmp:

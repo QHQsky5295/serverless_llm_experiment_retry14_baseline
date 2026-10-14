@@ -1,4 +1,45 @@
-# IEEE TC status — D516 completed, nonfeasible; result backup next
+# IEEE TC status — D517 offline iteration audit complete; source review next
+
+## D517 current result, 2026-10-14
+
+D517 reused D512 ten complete journals/231722spans/1000decodewindows, no newGPU
+run or productionchange. Read D517_ITERATION_COMPOSITION_RESULT.md. 69293steps:
+67424single-token-allocation,994multi-token,577zero-token,298no-schedule,0raised.
+Meanstep22.709636/80.707289ms; meanthreadCPU6.940118/79.687214ms; mean
+schedule.220505/.339003ms. Shapes are NOT puredecode/prefill or GPUkerneltime.
+Current14020work-entry nonemptyinputturns have0multi-UTILITY and0clienttimeafter
+firstUTILITY: historicalD355interleave alreadyworks, donotreimplementit.
+ShortTPOTmiss19requests meanclient418.857832ms/multitokenstep237.767947ms/
+schedule2.644124ms; passing293respectively116.329921/46.634196/3.172342ms.
+Allgroups retained; overlapisnotcausal/effectsize, no latency subtraction.
+133CPUtestsPASS; priorSHA/1000partitionequalities/protected147PASS. Analysis1
+actualrecursiveemptyclosed/pathgone,peak630038528B,events0/swap0. Rawd517_20261014;
+curation/testedexplicitbackupNEXT, not yetclaimedcomplete. No liveGPU/remotechanges.
+Curationsources23/archive11139B/roundtripPASS,actualemptyclosurepeak26673152B.
+Firstbackup stoppedBEFOREcommit: inheritedCSVCRLF failscachedwhitespacecheck.
+Raw/curatedCRLFandmanifest preserved. backup_retry.py publishes separateLFcopies
+withidenticalCSVcells andpublication_manifest; noanalysis/inferencerepeat.
+Actualbackup_retry_receipt/closure determine publishing; oldbackup.py mustnotrerun.
+NextONE source/history review of actualstep-internal inputpreparation/execution/
+synchronization/outputpath before candidate or additionalobservation. DoNOT
+repeatD517/D512/D516/HydraServe, mechanicalsnapshottrims orblindparameters.
+D516nonfeasible preserved,D476retained;productionstillD514candidate,notreverted.
+WholeW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery remainsACTIVE.
+Prior next/live clauses beloware historical and superseded by this handoff.
+
+## D516 outcome backup verified — resume here
+
+Outcome65eb834fa2d5e1a726bf5f1849365b7274d753bf PUSHED/remote-equal.
+RAW/backup_result_receipt.json confirms123CPUtestsPASS/0skip, explicit19files,
+source/protected147/userdirt/diff/secrets checksPASS. Backup11actualrecursiveempty
+closurePASS/pathgone,peak608145408B/events0/swap0. AlllocalownedscopesandGPUreleased;
+remoteexact-ownedservicesinactive. No inferenceoranalysiscurrentlyrunning.
+Do NOT rerunD516,itsanalysis,tests,backup,orHydraServe. This is localpost-backup
+handoff; earlier backup-next/live clausesare historical.
+NextONE newbottleneck review ofnativeiteration/controlcomposition, usingexisting
+D512logs/history/officialsources; D516notaccepted, D476sealedpointpreserved.
+No newcandidate/revertpreparedyet. Stopmechanicalsnapshotrefinements andretain
+allW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery scopeACTIVE.
 
 ## D516 authoritative result, 2026-10-14
 

@@ -1054,7 +1054,7 @@ def analyze_control_boundaries(directory: Path, receipt_path: Path,
     return result
 
 
-def summarize_core_host_spans(events, *, include_input_turns=False):
+def summarize_core_host_spans(events, *, include_input_turns=False, include_iterations=False):
     """Validate one completed diagnostic stream; host spans are not GPU time.
 
     Missing close/truncated tails remain explicitly incomplete. Disjoint root
@@ -1175,7 +1175,93 @@ def summarize_core_host_spans(events, *, include_input_turns=False):
         if not complete:
             raise ValueError('input-turn audit requires a complete native core stream')
         result['input_turns'] = _summarize_core_input_turns(roots, children)
+    if include_iterations:
+        if not complete:
+            raise ValueError('iteration audit requires a complete native core stream')
+        result['iterations'] = _summarize_core_iterations(roots, children)
     return result
+
+
+def _summarize_core_iterations(roots, children):
+    """Partition observed step host time by allocation shape, not kernel phase.
+
+    A one-token allocation need not be decode; a multi-token allocation need
+    not be pure prefill. A step may retire a prior asynchronous batch. Adjacent
+    input/client spans are context, not proven causes of step duration.
+    """
+    categories = ('single_token_allocations', 'has_multi_token_allocations',
+                  'zero_tokens', 'no_schedule', 'schedule_raised', 'step_raised')
+    records, intervals = [], {key: [] for key in categories}
+    intervals.update(schedule=[], step_non_schedule=[])
+    for i, root in enumerate(roots):
+        if root['boundary'] != 'step':
+            continue
+        details = root['details']
+        for name in ('unfinished_before', 'running_before', 'waiting_before'):
+            if type(details.get(name)) is not int or details[name] < 0:
+                raise ValueError('iteration missing nonnegative entry counts')
+        nested = children[root['id']]
+        if len(nested) > 1:
+            raise ValueError('iteration audit requires at most one schedule call per step')
+        executed = details.get('model_executed')
+        if root['outcome'] == 'returned' and type(executed) is not bool:
+            raise ValueError('returned iteration missing native model_executed')
+        schedule = nested[0] if nested else None
+        n = tokens = multi = None
+        category = 'no_schedule'
+        schedule_ns = schedule_cpu_ns = 0
+        begin, end = root['begin_ns'], root['end_ns']
+        if schedule is not None:
+            a, b = schedule['begin_ns'], schedule['end_ns']
+            schedule_ns = b-a
+            schedule_cpu_ns = schedule['thread_cpu_end_ns']-schedule['thread_cpu_begin_ns']
+            intervals['schedule'].append((a, b))
+            intervals['step_non_schedule'].extend(((begin, a), (b, end)))
+            if schedule['outcome'] == 'returned':
+                d = schedule['details']
+                n, tokens, multi = (d.get(key) for key in
+                    ('scheduled_requests', 'scheduled_tokens', 'multi_token_requests'))
+                if (any(type(v) is not int or v < 0 for v in (n, tokens, multi))
+                        or multi > n or tokens < n+multi
+                        or (n == 0 and tokens != 0)
+                        or (multi == 0 and tokens != n)):
+                    raise ValueError('inconsistent iteration allocation counts')
+                category = ('zero_tokens' if n == 0 else
+                            'has_multi_token_allocations' if multi else 'single_token_allocations')
+            else:
+                category = 'schedule_raised'
+        else:
+            intervals['step_non_schedule'].append((begin, end))
+        if root['outcome'] == 'raised':
+            category = 'step_raised'
+        intervals[category].append((begin, end))
+        previous = roots[i-1] if i else None
+        preceding_input = previous if previous and previous['boundary'] == 'input_queue' else None
+        clients = children[preceding_input['id']] if preceding_input else []
+        records.append(dict(id=root['id'], begin_ns=begin, end_ns=end,
+            category=category, outcome=root['outcome'], model_executed=executed,
+            **{key: details[key] for key in ('unfinished_before','running_before','waiting_before')},
+            scheduled_requests=n, scheduled_tokens=tokens, multi_token_requests=multi,
+            step_ns=end-begin,
+            step_thread_cpu_ns=root['thread_cpu_end_ns']-root['thread_cpu_begin_ns'],
+            schedule_ns=schedule_ns, schedule_thread_cpu_ns=schedule_cpu_ns,
+            step_non_schedule_ns=end-begin-schedule_ns,
+            preceding_input_id=preceding_input['id'] if preceding_input else None,
+            preceding_input_unfinished=preceding_input['details']['unfinished_before']
+                if preceding_input else None,
+            preceding_client_count=len(clients),
+            preceding_utility_count=sum(c['details'].get('request_type') == 'UTILITY' for c in clients),
+            preceding_client_ns=sum(c['end_ns']-c['begin_ns'] for c in clients)))
+    index = {}
+    for name, spans in intervals.items():
+        prefix, total = [], 0
+        for a, b in spans:
+            prefix.append(total)
+            total += b-a
+        index[name] = dict(starts=[a for a,b in spans], ends=[b for a,b in spans],
+                           prefix=prefix, total_ns=total)
+    return dict(records=records, index=index, categories=categories,
+                step_count=len(records), gpu_kernel_timing=False)
 
 
 def _summarize_core_input_turns(roots, children):
