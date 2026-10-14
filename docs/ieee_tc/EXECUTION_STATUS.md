@@ -1,6 +1,74 @@
-# IEEE TC status — D512 diagnostic complete; current control-cost evidence
+# IEEE TC status — D513 publication scope and threshold rationale complete
 
-## Current authoritative state 2026-10-14: D512 complete, result backup pending
+## Current authoritative state 2026-10-14: D513 offline update complete
+
+Latest user explicitly excludes unpublished systems from baseline tables and asks
+for scientific support for95%/75%. Read BASELINE_SCOPE_20261014.md and
+SLO_BUDGET_RATIONALE_20261014.md. Formal baseline roster: vLLM SOSP2023,
+S-LoRA MLSys2024,ServerlessLLM OSDI2024,HydraServe NSDI2026,Loquetier NeurIPS2025;
+dLoRA OSDI2024 only3BW1/W2. ElasticLocality is NOT a baseline; preserve D453 and
+old D510/D511 as composite-ablation evidence, never relabel it as a paper system.
+Earlier clauses below requiring it in the main comparison are historical and
+SUPERSEDED. Publication status does not prove mechanism coverage or correctness.
+
+D513 reused sealed D510 rows, no GPU run/config tuning/metric changes/figures.
+New paper_results/ieee_tc/main_comparison/d513_published_7b_w0 has six unchanged
+rows including PrimeLoRA; all nonfeasible published rows retained; separate
+mechanism_evidence.json retains ElasticLocality unchanged. Native-count/binding
+evidence remains distinct from independent numerical proof (raw_n_correctnull).
+101CPUtests PASS; protected147/userdirt/source/V1/V2 unchanged. Analysis scope
+1638ae3e66524ac7a96a8e6219b79d0b actualrecursiveempty closed/pathgone,
+peak598212608B/events0/swap0. RAW originalresults/ieee_tc/main_comparison/d513_20261014.
+First backup attempt stopped BEFORE staging/commit: preflight tests used the
+model Python lacking pidfd_send_signal, and the approved-plan test still pinned
+the old snapshot. Failed96-test log retained; no guard bypass or serving change.
+Actualbackupscope recursivelyemptyclosed,peak597950464B/events0. Correct the
+plan-identity test and run watchdog/preflight tests with qualified /usr/bin/python3;
+new backup_retry receipt/closure determines actual publishing, never repeat oldhelper.
+That all-host retry also stopped before staging:6 model-dependent tests need the
+existing model environment (host lacks numpy/has incompatible user Torch). Preserve
+both failures; retry2 partitions ALL96 tests by actual interpreter role, ProtocolGates
+onqualifiedhost andremainingclasses onmodelPython, no skips/newpackages/guardbypass.
+backup_retry scopeactualemptyclosed,peak74297344B/events0. Only backup_retry2_receipt
+andclosure can establish finalbackup; do not rerun firsttwohelpers.
+Read CONTRIBUTION_METRIC_MAP_20261014.md for the latest user clarification:
+paper problem -> core mechanism -> metric motivation -> PrimeLoRA causal evidence.
+
+Fixed-W0 sensitivity:90% feasible orderPrimeLoRA,S-LoRA,ServerlessLLM,vLLM;
+95% PrimeLoRA,ServerlessLLM,vLLM;99%onlyvLLM. At95%/50%budget none,75%only
+PrimeLoRA,100%PrimeLoRA/ServerlessLLM/vLLM. No reoptimized frontier or W1/W2G2
+claim. PrimeLoRA's33.011%/33.117% lowerU vsServerlessLLM/vLLM comes withlower
+jointattainment/higherP95TTFT. Changing the roster is NOT measured improvement.
+95% is a frozen explicit5%latency-violation allowance, not universalstandard;
+75% is a25%resource-saving testscenario, not scientifically unique/optimalconstant.
+DistServe90/99,HydraServewarm5/2,SarathiP99TBT,Llumnixresource-tailtradeoff,
+MLPerfapplication-specificconstraints checked in officialprimarysources.
+FrozenG1/G2remain; approvedthreshold/budgetsensitivities mustretainnegativecases.
+
+PLAN amended by explicit latestuser instructions and new immutable snapshot:
+SHA d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83.
+preflight SNAPSHOT path now PLAN_APPROVED_20261014_PUBLISHED_BASELINES.md;
+oldapprovedsnapshots/history notmodified. Fullread sourceplan and metrics asusual.
+Servingfaaslora unchanged; existinganalyzer extended with explicit publication
+view,sourceSHA/exclusiveoutputguards and no new inferenceframework.
+
+NEXT aftertestedbackup: resume ONE evidence-driven PrimeLoRAoptimization(D514),
+fromD512currentCPUutilitycosts and historicalD329/D352/D355/D474constraints.
+No prepared candidate yet; no promised speedup; donotrerunHydraServe/D512/D513.
+Whole remaining7BW1/W2/G2,3B,dLoRA3BB6,A1–A5,S1–S13,cost/CE,reviewdocs,
+finalfigures/V2delivery ACTIVE. Neednotbeat an unpublished variant to qualify
+the externalbaseline comparison, but mechanism overhead remains an optimization
+and ablation question. No isolatedTTFT/TPOT shortcut, thresholdselectionbywinner,
+newweights/traces/13B, userdirtstaging, oldresultoverwrite or earlygoalcompletion.
+
+## Historical D512 state — completed, not the current comparison roster
+
+## Current authoritative state 2026-10-14: D512 complete and backed up
+
+Outcome checkpoint e8b88dca93bece05e7749eb0f8218fb61ce75db5 PUSHED and remote-equal,
+verified by RAW/backup_result_receipt.json. Backup9 actual recursive-empty closure
+also complete; its captured path is gone. Do not repeat D512 launch, analysis,
+curation or outcome backup. This local status update is the post-backup handoff.
 
 D512 original1000 prefix completed ONCE. Actual launch PASS/native GPU release/
 service-path removal, all1000 terminal/native contracts complete, failure0.

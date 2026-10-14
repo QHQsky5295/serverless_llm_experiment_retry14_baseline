@@ -6,6 +6,17 @@ Before any task, after context compaction, and before every experiment, read
 historical "plan mode / no execution this turn" sentences describe approval
 time, not the user's subsequent explicit execution authorization.
 
+Latest user update (2026-10-14): read
+`docs/ieee_tc/BASELINE_SCOPE_20261014.md` and
+`docs/ieee_tc/SLO_BUDGET_RATIONALE_20261014.md`.
+External baseline tables contain published-paper systems only. ElasticLocality
+is NOT an external baseline; preserve historical data and use it only as a
+PrimeLoRA composite ablation variant. No relabeling as another paper system,
+deleting evidence, or claiming performance improved because the table changed.
+Core-mechanism preservation/evidence matters, not an exact hardware replica.
+95%/75% are frozen project points, not universal industry norms; keep the
+approved threshold/budget sensitivity without changing online policy or history.
+
 Latest user order (2026-10-12): read
 `docs/ieee_tc/STORAGE_PRIORITY_20261013.md` FIRST for the newer storage-first
 instruction: audit and safely reclaim proven obsolete/rebuildable data or

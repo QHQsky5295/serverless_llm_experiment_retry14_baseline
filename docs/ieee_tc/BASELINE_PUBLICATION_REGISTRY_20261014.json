@@ -1,0 +1,14 @@
+{
+  "id": "published_baselines_20261014_v1",
+  "reason": "User requires published-paper external baselines; post-result scope revision, not a performance improvement.",
+  "systems": {
+    "PrimeLoRA": {"role": "subject", "published": false},
+    "vLLM": {"role": "external_baseline", "published": true, "venue": "SOSP", "year": 2023, "source": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/README.md", "scope": "Current vLLM 0.30.0, not an exact reproduction of the 2023 version."},
+    "S-LoRA": {"role": "external_baseline", "published": true, "venue": "MLSys", "year": 2024, "source": "https://proceedings.mlsys.org/paper_files/paper/2024/hash/906419cd502575b617cc489a1a696a67-Abstract-Conference.html"},
+    "ServerlessLLM": {"role": "external_baseline", "published": true, "venue": "OSDI", "year": 2024, "source": "https://www.usenix.org/conference/osdi24/presentation/fu"},
+    "HydraServe": {"role": "external_baseline", "published": true, "venue": "NSDI", "year": 2026, "source": "https://www.usenix.org/conference/nsdi26/presentation/lou", "scope": "D510 native pp1 only; full pipeline consolidation not demonstrated."},
+    "Loquetier": {"role": "external_baseline", "published": true, "venue": "NeurIPS main conference", "year": 2025, "source": "https://proceedings.nips.cc/paper_files/paper/2025/hash/5ebc22174f6dff6fa7c2447d0dfa31ea-Abstract-Conference.html", "scope": "Native SMLM plus disclosed static sharding, not an official cluster scheduler."},
+    "dLoRA": {"role": "external_baseline", "published": true, "venue": "OSDI", "year": 2024, "source": "https://www.usenix.org/conference/osdi24/presentation/wu-bingyang", "scope": "Limited 3B W1/W2 planned; no 7B W0 result supplied."},
+    "ElasticLocality": {"role": "composite_ablation", "published": false, "scope": "Retain historical evidence only outside external-baseline tables and rankings."}
+  }
+}

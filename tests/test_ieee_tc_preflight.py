@@ -73,10 +73,10 @@ class LivePinQueryQualification(unittest.TestCase):
 
 
 class ApprovedPlanIdentity(unittest.TestCase):
-    def test_current_binding_matches_approved_full_names_and_single_run_plan(self):
-        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261010_FULL_NAMES.md')
+    def test_current_binding_matches_published_baselines_and_single_run_plan(self):
+        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261014_PUBLISHED_BASELINES.md')
         self.assertEqual(p.check_plan(),
-            'f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5')
+            'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83')
 
     def test_plan_mismatch_still_refuses_instead_of_selecting_a_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -4,6 +4,7 @@ No inference, figures, new metric definitions, or overwriting existing results.
 The large outcome is projected through jq streaming, never loaded as a tree.
 """
 import argparse
+import copy
 import csv
 import gc
 import hashlib
@@ -1456,6 +1457,114 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False,
     print(json.dumps(dict(output=str(output),matched=4000,reference=reference,differences=diffs)))
 
 
+def published_w0_view(report, registry):
+    """Offline, lossless row classification; never change execution or SLOs.
+
+    The thresholds below are the already approved sensitivity grid, NOT new
+    main-point selection or additional experiments. W0 cannot certify W1/W2 G2.
+    """
+    if (report['matched_request_count'] != 4000 or report['native_tokens'] != 458224
+            or report['common_input']['profile'] != 'W0'
+            or report['formal_m1_m2_complete'] is not False
+            or report['confidence_interval'] is not None):
+        raise ValueError('complete known W0 single-run observation required')
+    catalog = registry['systems']
+    rows, variants = {}, {}
+    for name, row in report['results'].items():
+        fact = catalog[name]  # Missing publication identity must not silently drop a row.
+        if fact['role'] == 'subject':
+            if name != 'PrimeLoRA':
+                raise ValueError('unexpected subject')
+        elif fact['role'] == 'external_baseline':
+            if (fact['published'] is not True or not fact['venue']
+                    or type(fact['year']) is not int or not fact['source'].startswith('https://')):
+                raise ValueError('verified publication metadata required')
+        elif fact['role'] == 'composite_ablation':
+            variants[name] = copy.deepcopy(row)
+            continue
+        else:
+            raise ValueError('unknown comparison role')
+        counts = row['counts']
+        if ('N' in counts and counts['N'] != 4000) or ('n' in counts and counts['n'] != 4000):
+            raise ValueError('complete 4000-row population required')
+        if not {'N', 'n'} & counts.keys():
+            raise ValueError('explicit population required')
+        joint = counts['joint_pass']
+        if (type(joint) is not int or not 0 <= joint <= 4000
+                or row['joint_slo'] != joint / 4000
+                or row['observed_protocol_feasible'] is not (joint >= 3800)):
+            raise ValueError('joint count/ratio/frozen feasibility mismatch')
+        u, r = row['physical_gpu_seconds'], row['gpu_seconds_per_protocol_valid_request']
+        q = row['metrics']['ttft_ms']['p95_type1']
+        if any(type(x) not in (int, float) or not math.isfinite(x) or x <= 0 for x in (u, r, q)):
+            raise ValueError('finite positive observed resource and tail required')
+        if not math.isclose(r * 4000, u, rel_tol=1e-12, abs_tol=1e-9):
+            raise ValueError('resource denominator mismatch')
+        # Preserve unknown proof rather than inferring correctness from completion.
+        if 'raw_n_correct' not in row or 'independent_numerical_proof' not in row:
+            raise ValueError('explicit numerical evidence boundary required')
+        rows[name] = copy.deepcopy(row)
+    if 'PrimeLoRA' not in rows:
+        raise ValueError('subject missing')
+    reference = report['reference']
+    uref = reference['U_ref_gpu_seconds']
+    if (reference['reference_frozen'] is not True or reference['workload'] != 'W0'
+            or type(uref) not in (int, float) or not math.isfinite(uref) or uref <= 0):
+        raise ValueError('finite frozen W0 reference required')
+    sensitivity = []
+    for attainment in (.90, .95, .99):
+        feasible = [name for name, row in rows.items()
+                    if row['counts']['joint_pass'] >= math.ceil(attainment * 4000)]
+        sensitivity.append(dict(joint_attainment_requirement=attainment,
+            observed_feasible_resource_order=sorted(feasible, key=lambda n: (rows[n]['physical_gpu_seconds'], n)),
+            budget_slices=[dict(fraction=fraction, budget_gpu_seconds=fraction * uref,
+                observed_feasible_names=[name for name in feasible
+                    if rows[name]['physical_gpu_seconds'] <= fraction * uref])
+                for fraction in (.5, .75, 1.)]))
+    shared = ('matched_request_count', 'matched_contract_sha256', 'native_tokens',
+        'actual_unique_adapters', 'common_input', 'common_resource_policy', 'common_slo_sha256',
+        'metric_protocol_sha256', 'single_run_amendment_sha256', 'reference',
+        'formal_m1_m2_complete', 'confidence_interval', 'independent_numerical_qualification')
+    view = {key: copy.deepcopy(report[key]) for key in shared}
+    view.update(kind='published_baseline_known_w0_view_v1', publication_registry_id=registry['id'],
+        results=rows, publication_facts={name: copy.deepcopy(catalog[name]) for name in rows},
+        pending_published_baselines={name: copy.deepcopy(fact) for name, fact in catalog.items()
+            if fact['role'] == 'external_baseline' and name not in rows},
+        PrimeLoRA_relative_observations={name: matched_relative_observation(rows['PrimeLoRA'], row)
+            for name, row in rows.items() if name != 'PrimeLoRA'},
+        observed_feasible_resource_order=sensitivity[1]['observed_feasible_resource_order'],
+        fixed_configuration_sensitivity=sensitivity,
+        caveats=['Post-result publication eligibility revision requested by user, not a measured improvement.',
+            'Rows retained byte-equivalent as JSON values; source report and all excluded variant evidence remain available.',
+            'No new inference, retuning, SLO threshold change, CI or independent holdout claim.',
+            'Publication is not proof of mechanism coverage or numerical correctness; retain source run limitations.',
+            'Sensitivity only classifies existing fixed configurations, not optimal achievable frontiers.',
+            'Budget slices are W0 diagnostics only; W1/W2 and formal G2 remain incomplete.'])
+    mechanism = dict(kind='retained_composite_ablation_evidence_v1', results=variants,
+        external_baseline=False, formal_g1_ranking=False,
+        caveat='Historical observations retained unchanged; not a single-factor causal experiment.')
+    return view, mechanism
+
+
+def export_published_w0(source, expected_sha, registry_path, output):
+    if sha256(source) != expected_sha:
+        raise ValueError('sealed source report SHA mismatch')
+    report, registry = read(source), read(registry_path)
+    view, mechanism = published_w0_view(report, registry)
+    refs = [dict(path=str(source.resolve()), sha256=expected_sha),
+            dict(path=str(registry_path.resolve()), sha256=sha256(registry_path)),
+            dict(path=str(Path(__file__).resolve()), sha256=sha256(Path(__file__)))]
+    for value in (view, mechanism):
+        value['source_refs'] = refs
+    output.mkdir(parents=True, exist_ok=False)
+    for name, value in (('comparison.json', view), ('mechanism_evidence.json', mechanism)):
+        with (output/name).open('x') as stream:
+            json.dump(value, stream, indent=2, allow_nan=False)
+            stream.write('\n')
+    print(json.dumps(dict(output=str(output), systems=list(view['results']),
+        observed_feasible_resource_order=view['observed_feasible_resource_order'])))
+
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
@@ -1464,6 +1573,10 @@ if __name__=='__main__':
     parser.add_argument('--single-run-source', type=Path)
     parser.add_argument('--warm-reference', type=Path)
     parser.add_argument('--review-output', type=Path)
+    parser.add_argument('--published-w0-source', type=Path)
+    parser.add_argument('--published-w0-source-sha256')
+    parser.add_argument('--publication-registry', type=Path)
+    parser.add_argument('--published-w0-output', type=Path)
     parser.add_argument('--matched-w0-output', type=Path,
         help='D424 offline join of sealed D371/D397, D414 and D423; exclusive output directory')
     parser.add_argument('--include-sealed-slora', action='store_true',
@@ -1473,6 +1586,15 @@ if __name__=='__main__':
     parser.add_argument('--include-sealed-elastic-locality', action='store_true',
         help='D454: add sealed D453, preserving all five prior rows and native-output audit')
     args = parser.parse_args()
+    publication_args = (args.published_w0_source, args.published_w0_source_sha256,
+                        args.publication_registry, args.published_w0_output)
+    if any(value is not None for value in publication_args):
+        if not all(value is not None for value in publication_args):
+            parser.error('publication view requires source, explicit source SHA, registry and new output')
+        if args.matched_w0_output is not None or args.single_run_source is not None:
+            parser.error('publication view cannot be combined with another analysis mode')
+        export_published_w0(*publication_args)
+        raise SystemExit(0)
     if args.include_sealed_elastic_locality and not (args.include_sealed_loquetier and args.include_sealed_slora):
         parser.error('--include-sealed-elastic-locality requires both sealed baseline extensions')
     if args.include_sealed_loquetier and not args.include_sealed_slora:

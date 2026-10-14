@@ -1,0 +1,161 @@
+{
+  "kind": "retained_composite_ablation_evidence_v1",
+  "results": {
+    "ElasticLocality": {
+      "counts": {
+        "n": 4000,
+        "tokens": 458224,
+        "ttft_pass": 3845,
+        "tpot_pass": 3973,
+        "joint_pass": 3831
+      },
+      "observed_protocol_feasible": true,
+      "joint_slo": 0.95775,
+      "physical_gpu_seconds": 9892.715870097047,
+      "gpu_seconds_per_protocol_valid_request": 2.4731789675242615,
+      "window_gpu_seconds": {
+        "arrival": 9677.612534384942,
+        "cleanup": 166.03733100835234,
+        "drain": 2.6234305556863546,
+        "pre_arrival": 46.44257414806634
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 1003.6978649219964,
+          "p50_type1": 449.3766324594617,
+          "p95_type1": 2420.6078292336315
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 29.212304973657865,
+          "p50_type1": 24.99906770804877,
+          "p95_type1": 54.52343840152025
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 4202.885712397925,
+          "p50_type1": 3137.6369264908135,
+          "p95_type1": 9246.669217711315
+        },
+        "arrival_to_last_token_ms": {
+          "count": 4000,
+          "mean": 4106.3139375100145,
+          "p50_type1": 3047.7030966430902,
+          "p95_type1": 9108.410807792097
+        },
+        "submit_lag_ms": {
+          "count": 4000,
+          "mean": 2.445594213088043,
+          "p50_type1": 1.68507918715477,
+          "p95_type1": 4.865346709266305
+        },
+        "submit_to_native_entry_ms": {
+          "count": 4000,
+          "mean": 699.6888706746395,
+          "p50_type1": 200.59627597220242,
+          "p95_type1": 1758.2793291658163
+        },
+        "native_entry_to_first_ms": {
+          "count": 4000,
+          "mean": 301.56340003426885,
+          "p50_type1": 238.7111959978938,
+          "p95_type1": 797.42412106134
+        },
+        "decode_ms": {
+          "count": 4000,
+          "mean": 3102.616072588018,
+          "p50_type1": 2301.7661911435425,
+          "p95_type1": 7686.0462431795895
+        },
+        "completion_tail_ms": {
+          "count": 4000,
+          "mean": 96.57177488791058,
+          "p50_type1": 52.027259953320026,
+          "p95_type1": 465.5069129075855
+        }
+      },
+      "source_order_500_request_phases": [
+        {
+          "n": 500,
+          "tokens": 68925,
+          "ttft_pass": 500,
+          "tpot_pass": 497,
+          "joint_pass": 497
+        },
+        {
+          "n": 500,
+          "tokens": 53585,
+          "ttft_pass": 397,
+          "tpot_pass": 483,
+          "joint_pass": 390
+        },
+        {
+          "n": 500,
+          "tokens": 57954,
+          "ttft_pass": 465,
+          "tpot_pass": 498,
+          "joint_pass": 464
+        },
+        {
+          "n": 500,
+          "tokens": 45283,
+          "ttft_pass": 500,
+          "tpot_pass": 500,
+          "joint_pass": 500
+        },
+        {
+          "n": 500,
+          "tokens": 42245,
+          "ttft_pass": 500,
+          "tpot_pass": 500,
+          "joint_pass": 500
+        },
+        {
+          "n": 500,
+          "tokens": 52244,
+          "ttft_pass": 483,
+          "tpot_pass": 496,
+          "joint_pass": 481
+        },
+        {
+          "n": 500,
+          "tokens": 60332,
+          "ttft_pass": 500,
+          "tpot_pass": 500,
+          "joint_pass": 500
+        },
+        {
+          "n": 500,
+          "tokens": 77656,
+          "ttft_pass": 500,
+          "tpot_pass": 499,
+          "joint_pass": 499
+        }
+      ],
+      "completion_boundary": "controller completion",
+      "raw_n_correct": null,
+      "independent_numerical_proof": false,
+      "native_entry_boundary": "vLLM native engine entry",
+      "remote_transfers": 132,
+      "remote_wire_bytes": 131480060
+    }
+  },
+  "external_baseline": false,
+  "formal_g1_ranking": false,
+  "caveat": "Historical observations retained unchanged; not a single-factor causal experiment.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d510_7b_w0/comparison.json",
+      "sha256": "d8f1f1ab7acc698d0653cefde4afa135e69a906b014bd4b0dfd3a55a5b856288"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/BASELINE_PUBLICATION_REGISTRY_20261014.json",
+      "sha256": "55247e2f42e30a845b8a160a85737c9ace6aa981e6227c9a9fc2469b914bbae3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "b36f7c312454fa74b5dbc6dca244c74752b4e34c8cedb73bebba9c9bb491b71d"
+    }
+  ]
+}
