@@ -1,4 +1,4 @@
-# IEEE TC execution status — D534 shared-toolchain CPU qualification complete; common software build next
+# IEEE TC execution status — D535 common sampling build/load verified; W1 launch next
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,31 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D535 common sampling software build/load qualification COMPLETE. Read
+D535_COMMON_SAMPLING_BUILD.md. ONE native generic build, no CUDA/model/LoRA/
+trace load or kernel execution. Both actual entry boundaries render identical
+D5344523B description, ninja dry-run no-work, load same shared binary SHA
+0c8303aa574025abf1998836a42dde6092a8cd1701fee75b1dc610429432e76d.
+7files5865832B/1512dependencySHAs; native build/check256.088828s.
+Original bound-child-to-parent verifier error retained; only failedvLLMprobe
+completed using actualunboundparent boundary, no productionchange/rebuild.
+Then offline digest(str) receipt error retained; purefinalizer reused all
+completedchecks, no repetition. RAW build_result remainsfalse; verified_result
+records successful evidence and bothharnessfailures separately.
+Buildactualrecursiveempty/CLOSED/pathgone,peak3511922688B,high39172,
+max/OOM/OOMkill/swap0. Verificationpeak1535655936B/events0/swap0; exactclosed.
+Finalization alsoexactclosed. Legacycache/protected147/userdirtunchanged.
+RAW main_comparison/d535_20261015. Curated d535_common_sampling_build pending
+explicitpublication checkpoint via prepared publish.py; do not rerun build,
+loadchecks or D534 tests. D536 raw helpers PREPARED under vllm_qualification/
+d536_20261015, copied existing D532 with newkey/nativecompiler-v2/cachepath.
+Not yet prelaunch-qualified/backedup/launched. D536 doc stillrequired.
+After D535 publication/closure: D536 backup.py -> close.py backup -> start.py
+boundedaux (source/cachefreeze/ownedremotehealth/tmux) -> close.py start.
+D533 FullW1 follows D536 actualterminal/release/audit. W1 Uref/Qref stillOPEN.
+No liveGPU/remote/build job; sharedk3suntouched. Fullremaining scopeACTIVE.
+Older no-build/next-D534 notes below are historical, superseded here.
 
 D534 common compiler binding IMPLEMENTED/CPU-qualified, no build/inference yet.
 Read D534_COMMON_NATIVE_TOOLCHAIN.md. Shared stdlib helper plus frozen compiler
@@ -20,8 +45,18 @@ and later shell-parser fi-in-configs failure retained; completed tests/probes
 reused, not rerun. All three exact scopes recursiveempty/CLOSED/pathgone;
 peaks1627500544/1572179968/26677248B,events0/swap0,protected147/userdirtunchanged.
 RAW main_comparison/d534_20261015; curated main_comparison/d534_native_toolchain.
-NEXT checked two-repo backup, then bounded common generic sampling software
-build WITHOUT GPU/weights/trace. Verify no-work build compatibility/source/cache
+D534 tested backup COMPLETE: MAIN877cfc300c58680455aa05a8ee7cba03b1567490,
+BASEbde215460acb9e850efa479a89bda6fc39a2bd7d, bothPUSHED/remote-equal.
+Explicit10main/4baselinefiles; source/archive-roundtrip/protected147/userdirt/
+diff/secrets checksPASS. Actual backup scope recursiveempty/CLOSED/pathgone,
+peak32313344B,events0/swap0; RAW backup_receipt/backup_closure retained. Do not
+repeat completed16CPUchecks/native-render probes/backup. Only this postbackup
+status plus untoucheduser manifest remain MAINdirty; BASEtwo userfiles unchanged.
+Fresh disk167481139200B,MemAvailable109550516kB; fresh safety gate before build.
+NEXT bounded common generic sampling software build WITHOUT GPU/weights/trace.
+No build helper or new W1 launch has been prepared yet. Reuse existing native
+FlashInfer build and bounded resource/closure machinery, not a new framework.
+Verify no-work build compatibility/source/cache
 identity for both entrypoints, then ONE NEW vLLM W1 key and existing D533FullW1.
 No new W1 reference frozen; no D532rerun, no subtraction/winnerfilter. D533 NOT
 launched. No liveGPU/remote/auxjob; sharedk3suntouched/HydraServeD510done.
