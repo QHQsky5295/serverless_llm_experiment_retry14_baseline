@@ -64,6 +64,18 @@ def native_worker_environment(cfg, device, environ=None):
         VLLM_WORKER_MULTIPROC_METHOD='spawn', PYTHONDONTWRITEBYTECODE='1')
     env.pop('PYTHONPATH', None)
     env.pop('PYTHONHOME', None)
+    compiler_receipt = None
+    if cfg.get('native_compiler_contract') is None and any(env.get(key) for key in (
+            'FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT', 'FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256',
+            'FAASLORA_TC_NATIVE_TOOLCHAIN_BOUND_SHA256')):
+        raise ValueError('compiler contract must be explicit in native service configuration')
+    if cfg.get('native_compiler_contract') is not None:
+        from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+        binding = cfg['native_compiler_contract']
+        if not isinstance(binding, dict) or set(binding) != {'path', 'sha256'}:
+            raise ValueError('explicit native compiler contract path/SHA required')
+        env, compiler_receipt = bind_native_toolchain(env, python=str(python),
+            contract=binding['path'], expected_sha=binding['sha256'])
     expected = python.parent/'ninja'
     ninja = shutil.which('ninja', path=env['PATH'])
     if not expected.is_file() or not ninja or Path(ninja).resolve() != expected.resolve():
@@ -75,6 +87,10 @@ def native_worker_environment(cfg, device, environ=None):
     identity = dict(python=str(python), python_resolved=str(python.resolve()),
         ninja=str(expected), ninja_sha256=_sha(expected), ninja_version=version,
         build_max_jobs=jobs, path_sha256=hashlib.sha256(env['PATH'].encode()).hexdigest())
+    if compiler_receipt is not None:
+        if env['MAX_JOBS'] != str(jobs):
+            raise ValueError('build_max_jobs differs from native compiler contract')
+        identity['compiler_contract'] = compiler_receipt
     return env, identity
 
 
@@ -1045,6 +1061,15 @@ async def _native_worker(config_path, index):
     # Read back the actual tool inherited by this worker, not only the parent
     # launch intention. Avoid prepending PATH twice in this check.
     toolchain = cfg['native_toolchain']
+    if cfg.get('native_compiler_contract') is not None:
+        from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+        binding = cfg['native_compiler_contract']
+        if os.environ.get('FAASLORA_TC_NATIVE_TOOLCHAIN_BOUND_SHA256') != binding['sha256']:
+            raise ValueError('native worker must inherit its qualified compiler environment')
+        _, actual = bind_native_toolchain(os.environ, python=sys.executable,
+            contract=binding['path'], expected_sha=binding['sha256'])
+        if actual != toolchain.get('compiler_contract'):
+            raise ValueError('native worker compiler receipt differs')
     if (hashlib.sha256(os.environ.get('PATH', '').encode()).hexdigest() != toolchain['path_sha256']
             or os.environ.get('MAX_JOBS') != str(toolchain['build_max_jobs'])
             or shutil.which('ninja') != toolchain['ninja']

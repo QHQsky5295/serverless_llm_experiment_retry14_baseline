@@ -84,6 +84,28 @@ class ContractTests(unittest.TestCase):
             with self.subTest(jobs=jobs), self.assertRaises(ValueError):
                 service.native_worker_environment(dict(python=sys.executable, build_max_jobs=jobs), 0, {})
 
+    def test_explicit_common_compiler_contract_matches_primelora(self):
+        from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+        cfg = json.loads((ROOT/'configs/ieee_tc/vllm_7b_resident_native_compiler_v2.json').read_text())
+        binding = cfg['native_compiler_contract']
+        source = dict(PATH='/usr/bin', KEEP='unchanged')
+        env, receipt = service.native_worker_environment(cfg, 2, source)
+        prime_env, prime_receipt = bind_native_toolchain(source, python=cfg['python'],
+            contract=binding['path'], expected_sha=binding['sha256'])
+        self.assertEqual(receipt['compiler_contract'], prime_receipt)
+        for key in prime_receipt['environment']:
+            self.assertEqual(env[key], prime_env[key])
+        self.assertEqual(env['CUDA_VISIBLE_DEVICES'], '2')
+        self.assertEqual(source, dict(PATH='/usr/bin', KEEP='unchanged'))
+        old = json.loads((ROOT/'configs/ieee_tc/vllm_7b_resident_native_v1.json').read_text())
+        self.assertEqual({k:v for k,v in cfg.items() if k!='native_compiler_contract'}, old)
+
+    def test_compiler_contract_cannot_enter_legacy_config_implicitly(self):
+        from scripts.ieee_tc_native_toolchain import CONTRACT_ENV
+        cfg = json.loads((ROOT/'configs/ieee_tc/vllm_7b_resident_native_v1.json').read_text())
+        with self.assertRaisesRegex(ValueError, 'explicit'):
+            service.native_worker_environment(cfg, 0, {CONTRACT_ENV:'/unexpected'})
+
     def test_explicit_consumer_and_lifecycle(self):
         cfg, http = configs()
         self.assertEqual(service.validate_native_service_config(cfg, http), 18090)
