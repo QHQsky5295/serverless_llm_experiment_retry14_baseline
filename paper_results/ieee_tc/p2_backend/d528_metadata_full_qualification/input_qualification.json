@@ -1,0 +1,319 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d5280000000000000000000000000001.scope",
+    "invocation_id": "c135bbe5df964a48ad53ad3f3fd58193",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5280000000000000000000000000001.scope",
+    "inode": 24954946
+  },
+  "tests": 14,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "gate": {
+    "kind": "ieee_tc_preflight",
+    "time_unix": 1791987097.5782936,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "policy": {
+      "service_high_bytes": 77309411328,
+      "service_max_bytes": 85899345920,
+      "service_swap_max_bytes": 2147483648,
+      "aux_max_bytes": 4294967296,
+      "stop_available_bytes": 17179869184,
+      "margin_bytes": 2147483648,
+      "warning_available_bytes": 25769803776,
+      "service_cpus": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "aux_cpus": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "reserved_cpus": [
+        0,
+        1,
+        24,
+        25
+      ],
+      "memory_full_avg10_percent": 10,
+      "pressure_samples": 10,
+      "sample_seconds": 1,
+      "disk_stop_bytes": 107374182400,
+      "disk_start_floor_bytes": 161061273600
+    },
+    "memory": {
+      "MemTotal": 134626844672,
+      "MemFree": 38637142016,
+      "MemAvailable": 112383717376,
+      "Buffers": 8172089344,
+      "Cached": 56435236864,
+      "SwapCached": 247160832,
+      "Active": 33340522496,
+      "Inactive": 48344801280,
+      "Active(anon)": 16679055360,
+      "Inactive(anon)": 408096768,
+      "Active(file)": 16661467136,
+      "Inactive(file)": 47936704512,
+      "Unevictable": 3211264,
+      "Mlocked": 0,
+      "SwapTotal": 36507213824,
+      "SwapFree": 35025195008,
+      "Zswap": 0,
+      "Zswapped": 0,
+      "Dirty": 802816,
+      "Writeback": 212992,
+      "AnonPages": 17012793344,
+      "Mapped": 1279279104,
+      "Shmem": 9252864,
+      "KReclaimable": 10528768000,
+      "Slab": 11973877760,
+      "SReclaimable": 10528768000,
+      "SUnreclaim": 1445109760,
+      "KernelStack": 42807296,
+      "PageTables": 172146688,
+      "SecPageTables": 0,
+      "NFS_Unstable": 0,
+      "Bounce": 0,
+      "WritebackTmp": 0,
+      "CommitLimit": 103820636160,
+      "Committed_AS": 21286535168,
+      "VmallocTotal": 35184372087808,
+      "VmallocUsed": 756023296,
+      "VmallocChunk": 0,
+      "Percpu": 243793920,
+      "HardwareCorrupted": 0,
+      "AnonHugePages": 71303168,
+      "ShmemHugePages": 0,
+      "ShmemPmdMapped": 0,
+      "FileHugePages": 0,
+      "FilePmdMapped": 0,
+      "Unaccepted": 0,
+      "HugePages_Total": 0,
+      "HugePages_Free": 0,
+      "HugePages_Rsvd": 0,
+      "HugePages_Surp": 0,
+      "Hugepagesize": 2097152,
+      "Hugetlb": 0,
+      "DirectMap4k": 55126753280,
+      "DirectMap2M": 81778442240,
+      "DirectMap1G": 2147483648
+    },
+    "required_available_bytes": 109521666048,
+    "filesystems": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "device": 2050,
+        "free_bytes": 172505276416,
+        "required_bytes": 161061273600,
+        "free_inodes": 210022782
+      }
+    ],
+    "service_parent_chain": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+        "memory.current": 43968770048,
+        "memory.peak": 93511049216,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 216862720,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=537109876\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=528655840",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1767084029669\nuser_usec 1616425844224\nsystem_usec 150658185444\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 439555,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+        "memory.current": 79834247168,
+        "memory.peak": 125386870784,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 219009024,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=1280920205\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1269853904",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1855201948066\nuser_usec 1681208204058\nsystem_usec 173993744008\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 439555,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "memory.current": 79975067648,
+        "memory.peak": 125467160576,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 395100160,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=1274138117\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1262768544",
+        "cpu.max": "max 100000",
+        "cpu.stat": "usage_usec 1912466072525\nuser_usec 1721024707191\nsystem_usec 191441365334\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": {
+          "low": 0,
+          "high": 439555,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "memory.current": null,
+        "memory.peak": null,
+        "memory.high": null,
+        "memory.max": null,
+        "memory.swap.current": null,
+        "memory.swap.max": null,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=1307526187\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1279713150",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 3670521974000\nuser_usec 2737156177000\nsystem_usec 933365797000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": null
+      }
+    ],
+    "issues": [],
+    "preflight_pass": true,
+    "production_launch_authorized": false,
+    "remaining_gates": [
+      "actual_service_workers",
+      "separate_replay_and_watchdog",
+      "gpu_cleanup",
+      "per_filesystem_quota_audit"
+    ]
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "cuda_initialized": false,
+  "non_target_config_equal": true,
+  "exact_runtime_profiles_loaded": true,
+  "profiles": {
+    "service": {
+      "kind": "native_service_profiles_v1",
+      "profile_sha256": "1d349c001d37b9a9f8516cf50a2b3643bd8b535b68ee09f49c02e23b31f532a2",
+      "supported_classes": 200,
+      "initial_samples": 1635,
+      "source_run_sha256": [
+        "837915f97f7719abe9137d7aad54f3ac009b0c1dc07d00f9b1c2fc0341e8ed62"
+      ],
+      "beta": 0.5
+    },
+    "preparation": {
+      "kind": "native_preparation_profiles_v1",
+      "profile_sha256": "fd7f0c7e9c7d6c69c796c1fb1ab3e4a29aaec32fd50d1cdacfe95e3a12e054ed",
+      "layout_partition": "exact_content_v1",
+      "supported_classes": 24,
+      "initial_samples": 1302,
+      "source_run_sha256": [
+        "837915f97f7719abe9137d7aad54f3ac009b0c1dc07d00f9b1c2fc0341e8ed62"
+      ],
+      "beta": 0.5,
+      "size_edges_bytes": [],
+      "activation_layout_available": true
+    }
+  },
+  "bindings": {
+    "ieee_service_profile": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/service.json",
+      "sha256": "1d349c001d37b9a9f8516cf50a2b3643bd8b535b68ee09f49c02e23b31f532a2",
+      "context": {
+        "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+        "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+        "input_contract_sha256": "b4682a775c8dfc16bd2f3054ad2dfd2fcae196d1e86df71b0df525c9668bfcd0"
+      },
+      "ewma_beta": 0.5
+    },
+    "ieee_preparation_profile": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/preparation.json",
+      "sha256": "fd7f0c7e9c7d6c69c796c1fb1ab3e4a29aaec32fd50d1cdacfe95e3a12e054ed",
+      "context": {
+        "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+        "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+        "input_contract_sha256": "b4682a775c8dfc16bd2f3054ad2dfd2fcae196d1e86df71b0df525c9668bfcd0"
+      },
+      "ewma_beta": 0.5
+    }
+  },
+  "n_correct": null,
+  "full_performance_qualified": false,
+  "new_inputs_generated": false,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261014_d527_7b_cpu_frontend_validation_100.yaml": "61f1707a81535a8a405bc7e59acd77030c8906975e17c769b82bd5203463e1c5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261014_d528_7b_cpu_frontend_validation_100.yaml": "ed551d292bfa5c8b6afaa0bc2c54cfef368134aad23fda7f332e5e26e25f8b19",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/manifest.json": "18e28327e5bfe934bccac09320d4562423b3cb07dbc9a2dcb9e476b77b3ce21a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d528_20261014/qualify.py": "06c16e74253047b69e7b3d53f271460614aadcbfd9f339a71947a5fe52205952",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py": "ebde62c5f119a05853c0029ce09730470504afc1b47ebe2284f23b8468c400f9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "b782598282986578cbd459d103299db56ada6fc70408eaac1fdb28a22d44fbad",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "4b2d2cdaa469a514722f8dd8848068d984f4ca122ddc364fce250ef038fd7b77",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/service.json": "1d349c001d37b9a9f8516cf50a2b3643bd8b535b68ee09f49c02e23b31f532a2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d526_metadata_profiles/initialization/preparation.json": "fd7f0c7e9c7d6c69c796c1fb1ab3e4a29aaec32fd50d1cdacfe95e3a12e054ed"
+  }
+}

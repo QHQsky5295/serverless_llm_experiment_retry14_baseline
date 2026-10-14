@@ -1,4 +1,4 @@
-# IEEE TC execution status — D527 Full100 qualification PREPARED
+# IEEE TC execution status — D528 exact YAML binding QUALIFIED
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,28 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D527 TERMINAL before request submission: strict profile binding rejected stale
+model_backend_id/profile_id in actual YAML. Prior CPU gate had substituted
+the measured admission profile in its test object, so did not validate actual
+YAML. Preserve failure and do not repeat D527. Actual local_cleanup confirms
+GPU release and service/aux paths gone; remote_stop all3units inactive/MainPID0,
+ports absent. Native timing calibration D526 remains valid and is NOT rerun.
+
+D528 exact YAML binding CPU qualification COMPLETE:14tests PASS/no skips,
+CUDA not initialized. Four new tests run actual scenario config/pending runtime
+and actual profile loaders: old D527 rejection, corrected D528 acceptance,
+only two provenance IDs differ, mutations rejected. Numeric admission means,
+window,transfer cap and all other non-path config unchanged. RAW d528_20261014;
+curated d528_metadata_full_qualification. Actual qualification scope CLOSED/
+recursiveempty/pathgone. Read D528_FULL_METADATA_QUALIFICATION.md.
+NEXT explicit tested backup, owned remote health, ONE original100 Full d528;
+audit actual native contract/metadata installation/accounting/use then ONE4000
+W0. No serving algorithm edit, no calibration/device/baseline reruns. No live
+GPU or remote job. Shared k3s stays untouched; HydraServe D510 already done.
+Full remaining scope below stays ACTIVE.
+
+Prior D527 prepared handoff (superseded by the actual failure above):
 
 D527 PREPARED, NOT LAUNCHED: new original100 Full config binds exact D526
 service/preparation timings; all other D523/D476 controls unchanged. 308 CPU/

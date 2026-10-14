@@ -766,6 +766,56 @@ class HistoricalServiceRebin(unittest.TestCase):
             completed_gap_samples(source.payload,source_sha='e'*64,identities=source.identities)
 
 
+class MetadataFullProfileConfiguration(unittest.TestCase):
+    """Exercise actual YAML -> scenario -> pending runtime binding, without repair."""
+
+    def bound_runner(self, campaign='d528'):
+        import yaml
+        root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        cfg = yaml.safe_load((root/f'configs/ieee_tc/20261014_{campaign}_7b_cpu_frontend_validation_100.yaml').read_text())
+        selected = next(item for item in cfg['scenarios'] if item['name'] == 'tc_ieee_full')
+        coord = dict(cfg['resource_coordination'], **selected.get('resource_coordination', {}))
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service.model_cfg = runner._prepare_scenario_runtime_model_config(
+            runner._normalize_runtime_concurrency_cap(cfg['model']), cfg['workload'], coord)
+        service.coord_cfg = coord
+        service._initial_runtime_pending = True
+        service.engine = SimpleNamespace(model_cfg=service.model_cfg)
+        return service
+
+    def test_failed_d527_actual_yaml_remains_rejected_by_both_loaders(self):
+        for name in ('service', 'preparation'):
+            service = self.bound_runner('d527')
+            with self.subTest(profile=name), self.assertRaisesRegex(ValueError, 'model/configuration/context mismatch'):
+                getattr(service, '_load_ieee_'+name+'_profiles')()
+
+    def test_corrected_yaml_binds_both_profiles_without_substitution(self):
+        service = self.bound_runner()
+        service._service_profiles = service._load_ieee_service_profiles()
+        preparation = service._load_ieee_preparation_profiles()
+        self.assertEqual(len(service._service_profiles.profiles), 200)
+        self.assertEqual(len(preparation.profiles), 24)
+        self.assertEqual(service._service_profiles.model_config_json, preparation.model_config_json)
+
+    def test_actual_identity_matches_measured_runtime_not_only_means(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        service = self.bound_runner()
+        measured = json.loads(Path(service.coord_cfg['ieee_service_profile']['path']).read_text())
+        self.assertEqual(FrozenServiceProfiles.model_identity(service._ieee_profile_binding_model_config()), measured['model_config'])
+        old = self.bound_runner('d527')._ieee_profile_binding_model_config()
+        actual = service._ieee_profile_binding_model_config()
+        self.assertEqual(old['ieee_admission_profile']['profile_means'], actual['ieee_admission_profile']['profile_means'])
+        self.assertEqual({key for key in actual if actual[key] != old.get(key)}, {'ieee_admission_profile'})
+        self.assertEqual({key for key in actual['ieee_admission_profile'] if actual['ieee_admission_profile'][key] != old['ieee_admission_profile'].get(key)}, {'model_backend_id', 'profile_id'})
+
+    def test_admission_identity_mutations_are_not_silently_replaced(self):
+        for key in ('model_backend_id', 'profile_id'):
+            service = self.bound_runner()
+            service.model_cfg['ieee_admission_profile'][key] = 'unmeasured'
+            with self.subTest(field=key), self.assertRaisesRegex(ValueError, 'model/configuration/context mismatch'):
+                service._load_ieee_service_profiles()
+
+
 class LengthCandidateConfiguration(unittest.TestCase):
     def test_d328_observation_changes_only_exclusive_paths(self):
         import copy

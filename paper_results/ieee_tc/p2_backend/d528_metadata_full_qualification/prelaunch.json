@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "tests": 14,
+  "full_performance_qualified": false,
+  "n_correct": null,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "qualification_resources": {
+    "memory.peak": "686125056",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "archive": {
+    "sha256": "b68a81f1bf77e52b5fc0d84a4f66f000c3520598601b67ac043960df098b330c",
+    "bytes": 15884
+  },
+  "helpers": {
+    "backup.py": "750e2b0ac090b53899a3b28dc2084f75d25cd495c9636a17421a3fa6f6f55a44",
+    "check_remote_health_stdlib.py": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+    "close.py": "ae6a6c62c51023594ec6555c7e34bd1f4279f0d0c2dcea95ab999b6b50d9d54a",
+    "close_launch.py": "62366299cb3f9bcd00487126db74374624196f797e605e7f6ec030bfa94bdfca",
+    "qualify.py": "06c16e74253047b69e7b3d53f271460614aadcbfd9f339a71947a5fe52205952",
+    "start.py": "3e0b09febd5dff74e764514c256f63a60f88a5cea273dce50be77a184a290c05",
+    "start_remote.sh": "1f7037d06e21940b9ae646a5afdc62914d8a72efd7fdadd6b015e100ece5747b",
+    "stop_remote.sh": "9e13d92e9692401f5ce5d55e9995bb02bde7dd9057ef86651fc4f7923df9078f"
+  },
+  "next": "ONE original100 Full, actual native contract/metadata audit then ONE new4000 W0"
+}
