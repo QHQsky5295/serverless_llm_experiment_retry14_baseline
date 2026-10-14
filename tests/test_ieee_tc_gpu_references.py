@@ -200,7 +200,8 @@ class NativeFileHostPreparation(unittest.TestCase):
             lora_config=SimpleNamespace(lora_dtype='fixture-dtype'),
             _load_adapter=Mock(return_value=loaded),
             add_adapter=Mock(side_effect=AssertionError('GPU activation forbidden')))
-        worker.model_runner = SimpleNamespace(lora_manager=loader)
+        worker.model_runner = SimpleNamespace(lora_manager=loader,
+            vllm_config=SimpleNamespace(additional_config={}))
         modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
             # Explicit0.30 request fixture; the preserved0.10 test environment
             # has no load_inplace field and is not our native qualification.
@@ -359,7 +360,8 @@ class NativeHostWorkspace(unittest.TestCase):
         model.id = 4
         loader = SimpleNamespace(_adapter_manager=self.manager,
             lora_config=SimpleNamespace(lora_dtype='torch.float16'), _load_adapter=Mock(return_value=model))
-        worker.model_runner = SimpleNamespace(lora_manager=loader)
+        worker.model_runner = SimpleNamespace(lora_manager=loader,
+            vllm_config=SimpleNamespace(additional_config={}))
         modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
             'vllm.lora.request': SimpleNamespace(LoRARequest=SimpleNamespace),
             'vllm.utils.torch_utils': SimpleNamespace(PIN_MEMORY=True),

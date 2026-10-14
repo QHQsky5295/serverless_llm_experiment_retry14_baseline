@@ -1496,6 +1496,9 @@ class IEEEWorkerObservationExtension:
             result = owner.source_snapshot(**kwargs)
         else:
             result = getattr(owner, operation)(**kwargs)
+        if operation == 'configure_host_budget':
+            from .lora_metadata_publication import install_after_host_budget
+            result = install_after_host_budget(self, manager, owner, result)
         if operation == 'release':
             getattr(owner, '_ieee_request_capacity_receipts', {}).pop(kwargs.get('lease_id'), None)
         if operation in ('source_snapshot', 'routing_source_snapshot'):

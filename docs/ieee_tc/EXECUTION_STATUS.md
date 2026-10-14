@@ -1,4 +1,4 @@
-# IEEE TC execution status — D520 CPU metadata lowering
+# IEEE TC execution status — D521 bounded metadata publication
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,35 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D521 default-off `cpu_live_mapping_v1` integrated via existing runner/worker
+HOST-budget attachment; no config/run enabled yet. Read
+D521_METADATA_PUBLICATION_CONTRACT.md. Fixed pinned staging K*(48N+24L+32),
+K=actualnativeconcurrency2; D476 N1024/L14 gives99040B. Exactcopyeventbefore
+reuse, sameexecutionstream/thread, nativeGPUaddresses/CPUflags preserved,
+currentmapping+slotlayout invalidation/activation/LRU/admission untouched.
+ExistingHOSTallowance must fit staging plus unchangedloadworkspace; actual
+postallocation check and futureallocatorwide checks charge allpinnedbytes.
+Noinstalleddependency edit, newweights/traces/pools or graphreplacement.
+
+D521 CPU qualification COMPLETE:441tests PASS/0fail/error/skip in cpu2/.
+Firstattempt441 had3errors fromtwo oldfakeworkerfixtures lacking nativecfg;
+new13tests passed. Fixtures nowinclude actualdefaultempty additional_config;
+productionchecks notweakened. Failedattempt retained. ActualtwoCPUscopeclosure
+recursiveempty/pathgone; cpu2peak2288648192B,high/max/OOM/OOMkill/swap0.
+RAW results/ieee_tc/p2_backend_qualification/d521_20261014; curated
+paper_results/ieee_tc/p2_backend/d521_metadata_publication. NoCUDAinitialized,
+no realDMA/graph/model qualification/performanceclaim. BackupNEXT; actual
+backup_receipt/closure will establishcompletion. No livejob.
+
+NEXT ONLY minimal native device metadata/graph/nonzero-LoRA qualification,
+including realworkerinstallation/HOSTaccounting and updatecount evidence.
+Then ONEordinaryoriginal4000W0 at frozenD476 plussolemetadatastrategy ifqualified.
+Do NOTrepeat D520/D521CPUtests, D519diagnosis, HydraServe orbaselinefullruns.
+Allfullmatrix remainsACTIVE. No GPU qualification config preparedyet.
+
+D520 checkpoint0f5671ce432bd62e9cb55ca8c5a774c607e51070 pushed/remote-equal;
+311CPUtests/96nativeCPUoracle/fiveofficialsources/protected147 archived.
 
 D519 outcome4e272a8be91db44ab1c6e10d2a91e7e7d1609d4a pushed/remote-equal.
 D520 read source/history and added ONLY an unintegrated pure CPU metadata helper
@@ -25,17 +54,8 @@ paper_results/ieee_tc/p2_backend/d520_metadata_lowering/cpu_qualification.json.
 Explicit tested checkpoint backup NEXT; actual backup_receipt/closure establish
 completion. Do not rerun completed qualification. No live inference or CPU job.
 
-NEXT ONE: complete the device-publication/lifetime contract and integrate this
-candidate via existing worker extension, explicit versioned dense V2 strategy.
-Keep native activation/LRU/current-slot invalidation/references/admission and IEEE
-nine equations. Stable GPU buffer addresses/dtypes/graph bindings; same native
-execution stream. Bounded pinned staging ownership must prevent overwrite until
-actual copy completion and count bytes in existing HOST/cgroup budgets. No
-unbounded cache, speculative free-byte credit or fallback to guessed slots.
-Minimal native metadata/graph/nonzero-LoRA qualification, then ONE ordinary
-original4000 W0 with frozen D476 config and this sole change if qualified.
-Do not launch a new D519 diagnostic or baseline replay. No runtime integration,
-new config or GPU qualification is prepared yet. Full goal ACTIVE.
+D520's then-pending integration is now implemented byD521above. GPUqualification
+and ordinary4000 stillpending; neitherCPU result constitutes scientificclosure.
 
 ## Authority and execution rules
 

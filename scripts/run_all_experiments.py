@@ -3769,6 +3769,13 @@ class InferenceEngine:
                         or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
                     raise ValueError('native control interleave requires the qualified IEEE single-GPU owner')
                 kwargs['additional_config']['ieee_tc_control_interleave'] = POLICY
+            if self.model_cfg.get('ieee_lora_metadata_policy') is not None:
+                from faaslora.memory.lora_metadata_publication import POLICY
+                if (self.model_cfg['ieee_lora_metadata_policy'] != POLICY or not enable_lora
+                        or not self.model_cfg.get('ieee_scheduler_observation', False)
+                        or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
+                    raise ValueError('native metadata policy requires the qualified IEEE dense LoRA owner')
+                kwargs['additional_config']['ieee_tc_lora_metadata_policy'] = POLICY
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
