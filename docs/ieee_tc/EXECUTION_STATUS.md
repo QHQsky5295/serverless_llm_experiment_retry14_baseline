@@ -7,6 +7,23 @@ Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
 
+D532 PREPARED, notlaunched: one frozenvLLM W1 commonreference candidate.
+Read D532_VLLM_W1_REFERENCE.md. D531103tests/inputqualification reused, no GPU
+or CPU qualification repeated. D423 run7b/freeze_inputs and D529 remote/start/
+exactclosure helpers adapted ONLY for campaign/entry identities, source archived
+by backup.py; no serving change or baseline tuning. New RAW
+vllm_qualification/d532_20261015; curated main_comparison/d532_vllm_w1.
+NEXT backup.py in boundedaux -> close.py backup -> start.py in boundedaux,
+which freezes source/cache, verifies remotehealth, then starts tc-d532-vllm-w1.
+Actual start_receipt/service_aux_identity establish live launch; observation
+timeout is NOTterminal/restartpermission. Until receipt: no newGPU/remotejob.
+After terminal: close_launch.py -> stop_remote.sh -> preserved remote/resolver
+evidence and strict existing resident_rr_v1/full4000_w1 audit. Postrun evidence
+collector/analyzer wrapper NOT prepared yet; reuse D423 with W1 population.
+D533 FullW1 follows terminal/audit, entire scopeACTIVE,sharedk3suntouched.
+
+Prior D531 qualification handoff (completed; preparation above supersedes):
+
 D531 W1 input qualification COMPLETE; no inference started. HTTP helper now
 opt-in trace_w1_v1 delegates exact same FrozenReplayPlan W1 as PrimeLoRA;
 analyzer full4000_w1 requires complete exact profile (full4000 staysW0).
@@ -18,7 +35,13 @@ metadata candidateOFF. Existing runner d533 explicitlyexportsW1. No newtrace.
 Qualification actualrecursiveempty/CLOSED/pathgone,peak1019711488B,events0/swap0;
 protected147/userdirtunchanged. Read D531_W1_INPUT_QUALIFICATION.md.
 RAW main_comparison/d531_20261015; curated main_comparison/d531_w1_input.
-NEXT checked explicit two-repo backup, then prepare ownedremote/start safety
+D531 tested checkpoint backup COMPLETE: main c7fca6b3a46cd3768932679bf2e36848f0ceb7e4,
+baseline b540d7664bf4f8522b3b2694348d889e902034c6, bothPUSHED/remote-equal.
+Explicit9main/3baselinefiles, archive-roundtrip/source/protected147/userdirt/
+diff/secrets checksPASS. Actual backup recursiveempty/CLOSED/pathgone; closure
+and exact resources retained RAW/backup_closure.json. Do not repeat tests/backup.
+Only this postbackup status plus untoucheduser manifest remain MAINdirty;
+BASE usertwofiles untouched. NEXT prepare ownedremote/start safety
 for ONE D532 frozenvLLM W1 reference. D532 HTTPcfg/run7b.sh PREPARED under
 vllm_qualification/d532_20261015; remote/start helpers NOT prepared yet.
 D533 FullW1 follows D532 terminal/audit. No GPU/remote job currentlylive.
