@@ -1,4 +1,4 @@
-# IEEE TC execution status — D528 exact YAML binding QUALIFIED
+# IEEE TC execution status — D528 original100 complete; counter evidence pending
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,51 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D528 TERMINAL SUCCESS; native100 and strict existing analysis COMPLETE. All100
+nativecontracts,17369tokens,100/100frozenjointSLO. P95TTFT1512.1370328124613ms,
+U334.53006593417376GPU-s. Against D475 original100: P95+1.2375%,U+0.1449%;
+no improvement claim/CI/ranking. Actual source SHA
+44933a4d08334f3a99a6f4217fca2fe23ca31c28f44924c8d60b746ed475665e.
+Two nativeworkers90/10requests, both installed/charged99040B pinnedincrement,
+original2GiB/native16GiB/globalbudget,retired/released. Full stored ONLY initial
+metadata counters0; actualpostgenerationupdates UNKNOWN, NOT evidence of0use.
+Do not substituteD526's5060updates. Native100 installation passed, use-count
+qualificationfalse. D528_NATIVE100_RESULT.md explains allboundaries.
+Input/prompt/nativeprompt/source SHA match all100 with existingS-LoRAcontracts.
+90/100outputtokenSHA matchD475;10differences IDs retained, causeUNKNOWN (not
+automaticallyrounding/batch),n_correctnull. D475 vsD471 had8differences too,
+not proofthatD528isnumericallycorrect. Do not repeatshortworkload forwinner.
+29remote fetch/50650865wireB/packing0;dispatchremote/gpu/host/nvme29/55/10/6.
+Servicepeak12652523520B,allhigh/max/OOM/kill/swap0. ActualGPU/service/auxrelease
+confirmed; remotebothservices/monitorinactive andportsabsent,downloadhashmatch.
+Analysis/result/contract scopes actualrecursiveempty/CLOSED/pathgone; no livejob.
+Curated native100_result.json and cross_contract.json; RAW d528_20261014.
+NEXT seal/push resultcheckpoint, then preserve actualpublisherCPUcounters in
+EXISTING completion/release receipt (no newRPC/barrier/policy), affectedCPUtests
+and same-backendnumericalevidenceaudit, then ONE new4000W0. Do not rerun100,
+calibration,devicechecks orbaselines. No nextFull4000config prepared yet.
+Allfullremaining scope ACTIVE. Sharedk3suntouched;HydraServeD510done.
+
+Previous running/preparation notes below are historical:
+
+D528 NOW RUNNING once in tmux tc-d528-cpuprep100, existing runner d528.
+Source checkpoint9727bcfb71231c9cff25ef8ab114164b7f7cfb7d PUSHED/remote-equal;
+9explicitfiles and archive/hash/tests/protected147/userdirt checks. Backup scope
+and starter scope actualrecursiveempty/CLOSED/pathgone. Actual start_receipt
+and service_aux_identity in RAW d528_20261014. Remote bothservices/monitor
+active, 7Bclock remote-process-monotonic:bd3e42bdf9494354b91590273264b1a2,
+actual NIC1000Mb/s/full. Do not start another job/test/build/hashscan/backup
+or remote maintenance while this runs. Sample151:28/100 native successes,
+0failures,servicepeak12652523520B,events0/swap0,hostavailable104591429632B.
+Passed previous config-rejection point; partial progress is NOT qualification
+completion or performance improvement. Only offline analysis helpers copied
+from D475 while live; no serving/config changes. NEXT terminal -> close_launch.py
+exact local closure -> stop_remote.sh -> bounded collect_closure.py/analyze.py,
+then actual metadata audit. Must retain allfailed evidence. Fullremaining scope
+ACTIVE. Do not rerun D527/D526/D522/baselines.
+
+Prelaunch and prior failure records below:
 
 D527 TERMINAL before request submission: strict profile binding rejected stale
 model_backend_id/profile_id in actual YAML. Prior CPU gate had substituted
