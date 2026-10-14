@@ -57,6 +57,19 @@ def mapping(ids=(7, 0, 9, 7), prompts=(9, 7)):
 
 
 class PublicationTests(unittest.TestCase):
+    def test_native_v2_mapping_reaches_publisher_without_type_coercion_fixture(self):
+        from tests.test_ieee_tc_lora_metadata_lowering import native_request_mapping
+        p, w, _ = fixture()
+        inp, _ = native_request_mapping()
+        p.update_metadata(inp, [7, 9], 3, 32000)
+        self.assertEqual(w._token_lora_indices[:6].tolist(), [1, 1, 0, 0, 0, -1])
+        self.assertEqual(w._sampler_indices[:3].tolist(), [1, 0, -1])
+        self.assertEqual(w._sampler_indices_padded[:3].tolist(), [3, 1, 8])
+        self.assertEqual(w.token_mapping_meta.num_tokens_per_lora.tolist(), [1, 3, 2])
+        self.assertEqual(p.updates, 1)
+        self.assertFalse(p.poisoned)
+        self.assertFalse(torch.cuda.is_initialized())
+
     def test_bytes_and_fixed_allocations(self):
         p, _, _ = fixture()
         self.assertEqual(p.staging_bytes, 2 * (48 * 8 + 24 * 2 + 32))

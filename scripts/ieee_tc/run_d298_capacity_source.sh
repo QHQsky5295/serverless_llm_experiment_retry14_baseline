@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d526)
+    # D525 fixes the native integer contract; reuse frozen cases, not old timings.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d526_20261014
+    CONFIG=configs/ieee_tc/20261014_d524_7b_metadata_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d524_metadata_profiles/source_spec.json
+    ;;
   d524)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d524_20261014
     CONFIG=configs/ieee_tc/20261014_d524_7b_metadata_source.yaml

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D523 pre-start rejection; affected profiles next
+# IEEE TC execution status — D525 integer contract qualified; D526 timing refresh NEXT
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,68 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D525 CPU qualification COMPLETE:393 PASS/0failure/error/skip, actual installed
+LoraState produces np.int32 and exactly reproduces the preserved D524 failure.
+Three installed official0.30 source files byte-identical; no CUDA initialized.
+Lossless Integral/index normalization only; bool/float/tensor/arbitrary coercions
+still rejected, no fallback or formula/budget/SLO change. Existing96 nativeCPU
+oracle cases included; native producer->publisher path now covered.
+Actual CPU scope recursively empty/closed/pathgone; peak2312175616B,events0/swap0.
+Read D525_NATIVE_INTEGER_CONTRACT.md. RAW d525_20261014; curated
+paper_results/ieee_tc/p2_backend/d525_native_integer_contract/.
+Checkpoint backup NEXT; no live GPU/CPU/remote job. D526 runner case prepared:
+new raw d526_20261014 reuses exact D524 config/spec, no input regeneration.
+Actual source calibration NOT launched; export must use new output directory.
+After qualified new timing, new original100 Full then ONE4000 W0. Do not repeat
+completed CPU/device checks or any baseline. Full remaining scope ACTIVE.
+
+D524 is TERMINAL FAILED at source_profile_wave:0, before any successful source
+sample (14 records,0pass). Native worker HOST attachment installed the candidate:
+cpu_live_mapping_v1,99040B/two banks/1024rows/14slots; actual pinned63300->162340B
+within unchanged native2GiB/global16GiB budgets. This proves installation only,
+NOT generation/performance. Root worker error: lower_dense_lora_metadata rejects
+index_mapping because its elements are not exact built-in int; native V2
+LoraState.make_lora_inputs uses tuples of np.int32. The profile-reservation error
+is a fatal-worker consequence, not the root failure. No timing export allowed.
+source1.json SHA ef1a60e0e68e168727a81bb90fbac1db61ac19bdfdef1121e7522ce9b24b98f6.
+Actual local_cleanup.json confirms GPU release, recursively empty auxiliary and
+both captured service/auxiliary paths gone; remote_stop.json confirms all owned
+units inactive, no ports18080/18081 and downloaded evidence hashes matching.
+All jobs CLOSED; no GPU/CPU/remote experiment remains active. Do not repeat D524.
+
+Historical D525 intention (completed above): preserve failure and verify official/native CPU input types, then
+qualify an exact lossless integer-normalization correction with native LoraState
+fixtures and strict rejection of bool/float/tensor/unknown IDs. No new weights,
+traces, budgets, formulas or SLOs. Subsequent affected timing
+calibration requires a new execution key; previous D362 timing cannot be relabeled.
+Then new original100 Full and ONE4000 if qualified. Full remaining scope active.
+
+Historical launch handoff below is superseded by the terminal outcome above:
+D524 source calibration RUNNING in tmux `tc-d524-source`, exactly once via
+existing `run_d298_capacity_source.sh d524`. Check current process state before
+any next action; do not launch another job, tests, build, compression, hashscan,
+backup or remote changes during inference. RAW d524_20261014/source1*. It is
+initialization evidence, not Full performance. Never relabel its timings as W0.
+Source checkpoint d4cddb5d1429098942362dcc50ebf79e51981799 PUSHED/remote-equal;
+15 explicit files,322tests/protected147/userdirt/secrets/archive checks passed.
+Backup scope closed/recursiveempty/pathgone, peak30003200B/events0/swap0.
+
+First management starter failed importing numpy with host stdlib Python before
+tmux/inference. Its source and failure record preserved in start1_failure.json.
+Reused D362 stdlib-only HTTP health import; no dependency install, no remote
+restart/config change. resume_start.py/start2_gate.json retain exact remote
+InvocationIDs; start_receipt.json establishes actual launch. Both starter scopes
+closed/recursiveempty/pathgone. Remote NIC actual1000Mb/s/full;
+7B clock remote-process-monotonic:36160e2111304032b3cca1eb369d92a7.
+Remote services/monitor ACTIVE for this run; do not stop until local release.
+launcher_identity.json: aux-f00ce6e6e6a94dc4865d2810067dca63.scope,
+Invocation b40303de811c42ec887b0664484b456d, inode24914216.
+
+NEXT monitor actual measurement -> exact local release/recursiveempty closure
+and owned remote stop -> retained bilateral evidence -> measured class/profile
+and metadata-installation audit/export. Then new original100 Full using exact
+new profiles, ONE4000 if qualified. No rerun of old D522/D523/baselines.
 
 D523 original100 Full attempt TERMINAL before model initialization or request
 submission: `FrozenServiceProfiles.load` rejected model/configuration/context
@@ -41,7 +103,7 @@ peak2285068288B, high/max/OOM/OOMkill/swap0. New spec SHA
 847182165fcbe44bf132dce1f67ee61c844371ef5cce6ff9ffdabffd5936a179.
 Read D524_METADATA_PROFILE_REFRESH.md. Metadata installation receipt/counter
 audit is prepared; actual native installation/timing remain unmeasured.
-NEXT explicit tested backup, then existing d524 source collector exactly once.
+Backup and launch now COMPLETE as above; no timing result yet.
 
 D522 checkpoint cc80e58b1a495e90fda3eecc657012bc3ba36b83 PUSHED/remote-equal.
 Ten explicit files; source/tests/protected147/userdirt/secrets/archive-roundtrip

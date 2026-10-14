@@ -1,12 +1,14 @@
-"""CPU lowering of current dense-LoRA mappings; not installed in serving yet.
+"""CPU lowering of current dense-LoRA mappings for the opt-in publisher.
 
 The vLLM 0.30 GPU kernel metadata is a deterministic function of CPU request IDs
 and the *current* slot layout. This module neither caches a layout nor changes
 adapter activation, references, GPU buffers, admission or allocator policy.
-Device publication/lifetime qualification is a separate, still-required step.
+Device publication/lifetime and full-model qualification are separate steps.
 """
 from bisect import bisect_left
 from dataclasses import dataclass
+from numbers import Integral
+from operator import index
 
 
 @dataclass(frozen=True)
@@ -32,8 +34,21 @@ class DenseLoRAMetadata:
 
 
 def _integers(values, name):
-    if type(values) is not tuple or any(type(x) is not int for x in values):
+    if type(values) is not tuple:
         raise ValueError(f'{name} must be an immutable tuple of integers')
+    result = []
+    for value in values:
+        # Native V2 LoraState emits np.int32 scalars, not built-in int. Accept
+        # exact integer values, never int(float), bool-as-ID or tensor.__index__
+        # (which could read a device). Normalize before integer arithmetic so
+        # NumPy's fixed-width overflow rules cannot affect metadata offsets.
+        if isinstance(value, bool) or not isinstance(value, Integral):
+            raise ValueError(f'{name} must be an immutable tuple of integers')
+        try:
+            result.append(index(value))
+        except TypeError as exc:
+            raise ValueError(f'{name} must be an immutable tuple of integers') from exc
+    return tuple(result)
 
 
 def _kernel_rows(slots, capacity, captured):
@@ -71,9 +86,9 @@ def lower_dense_lora_metadata(*, index_mapping, prompt_mapping, slot_layout,
     Missing positive IDs, duplicate physical slots and excess rows are errors;
     none silently become base-model execution. No tensor/device is inspected.
     """
-    _integers(index_mapping, 'index_mapping')
-    _integers(prompt_mapping, 'prompt_mapping')
-    _integers(captured_lora_counts, 'captured_lora_counts')
+    index_mapping = _integers(index_mapping, 'index_mapping')
+    prompt_mapping = _integers(prompt_mapping, 'prompt_mapping')
+    captured_lora_counts = _integers(captured_lora_counts, 'captured_lora_counts')
     if (type(slot_layout) is not tuple or not slot_layout
             or any(x is not None and (type(x) is not int or x <= 0)
                    for x in slot_layout)):

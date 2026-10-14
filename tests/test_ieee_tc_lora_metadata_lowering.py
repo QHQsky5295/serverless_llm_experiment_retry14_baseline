@@ -9,6 +9,28 @@ import unittest
 from faaslora.utils.lora_metadata import lower_dense_lora_metadata as lower
 
 
+def native_request_mapping(ids=(7, 0, 9), order=(2, 0, 1), counts=(2, 3, 1)):
+    """Actual installed V2 producer and native LoRAMapping; no model/GPU/file I/O."""
+    import numpy as np
+    import torch
+    from vllm.lora.layers import LoRAMapping
+    from vllm.lora.request import LoRARequest
+    from vllm.v1.worker.gpu.lora_utils import LoraState
+    path = Path(sys.modules[LoraState.__module__].__file__)
+    if hashlib.sha256(path.read_bytes()).hexdigest() != '1e90eddd9ddb4ca55e574bb28e87ae3a6f6750175a62d373102426543f4ccd66':
+        raise RuntimeError('native request-mapping producer identity changed')
+    if torch.cuda.is_initialized():
+        raise RuntimeError('native CPU fixture must not initialize CUDA')
+    state = LoraState(len(ids))
+    for i, adapter in enumerate(ids):
+        request = LoRARequest(str(adapter), adapter, '/unit-test-only/not-opened') if adapter else None
+        state.add_request(str(i), i, request)
+    prompt, tokens, active = state.make_lora_inputs(
+        [str(i) for i in order], np.array(order, dtype=np.int32),
+        np.array(counts, dtype=np.int32))
+    return LoRAMapping(tokens, prompt, is_prefill=True), active
+
+
 class DenseMetadataLowering(unittest.TestCase):
     def call(self, **changes):
         args = dict(index_mapping=(11, 11, 0, 7, 11), prompt_mapping=(7, 0, 11),
@@ -56,6 +78,61 @@ class DenseMetadataLowering(unittest.TestCase):
         for change in (dict(index_mapping=(23,)), dict(prompt_mapping=(23,))):
             with self.assertRaisesRegex(ValueError, 'no current physical slot'):
                 self.call(**change)
+
+    def test_exact_cpu_integer_representations(self):
+        import numpy as np
+        for dtype in (np.int8, np.int16, np.int32, np.int64,
+                      np.uint8, np.uint16, np.uint32, np.uint64):
+            with self.subTest(dtype=dtype):
+                value = self.call(index_mapping=tuple(map(dtype, (11, 11, 0, 7, 11))),
+                                  prompt_mapping=tuple(map(dtype, (7, 0, 11))),
+                                  captured_lora_counts=tuple(map(dtype, (1, 2, 4))))
+                self.assertEqual(value, self.call())
+                self.assertTrue(all(type(x) is int for x in value.sampler_indices_padded))
+
+    def test_reject_implicit_integer_coercions_without_device_reads(self):
+        import numpy as np
+        import torch
+        from unittest.mock import patch
+        class IndexOnly:
+            def __index__(self):
+                raise AssertionError('arbitrary index coercion is forbidden')
+        values = (True, np.bool_(True), 7.0, np.float32(7), '7',
+                  np.array(7), torch.tensor(7), IndexOnly(), np.timedelta64(7, 's'))
+        with patch.object(torch.Tensor, '__index__', side_effect=AssertionError('tensor read')):
+            for field in ('index_mapping', 'prompt_mapping', 'captured_lora_counts'):
+                for value in values:
+                    with self.subTest(field=field, value=type(value)), self.assertRaises(ValueError):
+                        self.call(**{field: (value,)})
+
+    def test_native_v2_producer_preserves_order_and_current_slots(self):
+        import numpy as np
+        mapping, active = native_request_mapping()
+        self.assertEqual({item.lora_int_id for item in active}, {7, 9})
+        self.assertTrue(all(type(x) is np.int32 for x in mapping.index_mapping + mapping.prompt_mapping))
+        self.assertEqual(mapping.index_mapping, (9, 9, 7, 7, 7, 0))
+        self.assertEqual(mapping.prompt_mapping, (9, 7, 0))
+        for layout, base, prompt in (((7, 9), (1, 1, 0, 0, 0, -1), (1, 0, -1)),
+                                     ((9, 7), (0, 0, 1, 1, 1, -1), (0, 1, -1))):
+            value = self.call(index_mapping=mapping.index_mapping, prompt_mapping=mapping.prompt_mapping,
+                              slot_layout=layout, captured_lora_counts=(1, 2, 3))
+            self.assertEqual(value.base_indices, base)
+            self.assertEqual(value.sampler_indices, prompt)
+        with self.assertRaisesRegex(ValueError, 'no current physical slot'):
+            self.call(index_mapping=mapping.index_mapping, slot_layout=(7, None), captured_lora_counts=())
+
+    def test_native_v2_all_base_empty_and_full_slot_occupancy(self):
+        for ids, order, counts, layout in (
+                ((0, 0), (1, 0), (1, 2), (None, None)),
+                ((7,), (), (), (7,)),
+                (tuple(range(1, 15)), tuple(reversed(range(14))), (1,) * 14, tuple(range(1, 15)))):
+            mapping, _ = native_request_mapping(ids, order, counts)
+            args = dict(index_mapping=mapping.index_mapping, prompt_mapping=mapping.prompt_mapping,
+                        slot_layout=layout, max_num_tokens=1024, captured_lora_counts=())
+            value = self.call(**args)
+            self.assertEqual(value, self.call(**{**args,
+                'index_mapping': tuple(int(x) for x in mapping.index_mapping),
+                'prompt_mapping': tuple(int(x) for x in mapping.prompt_mapping)}))
 
     def test_reject_mutable_ambiguous_and_out_of_capacity(self):
         invalid = [dict(index_mapping=[11]), dict(prompt_mapping=(True,)),
