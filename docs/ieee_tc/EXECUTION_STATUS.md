@@ -21,12 +21,15 @@ records successful evidence and bothharnessfailures separately.
 Buildactualrecursiveempty/CLOSED/pathgone,peak3511922688B,high39172,
 max/OOM/OOMkill/swap0. Verificationpeak1535655936B/events0/swap0; exactclosed.
 Finalization alsoexactclosed. Legacycache/protected147/userdirtunchanged.
-RAW main_comparison/d535_20261015. Curated d535_common_sampling_build pending
-explicitpublication checkpoint via prepared publish.py; do not rerun build,
-loadchecks or D534 tests. D536 raw helpers PREPARED under vllm_qualification/
+RAW main_comparison/d535_20261015. Curated d535_common_sampling_build and tested
+backup COMPLETE:2a83d227a2a1b3ea5bd97d4b7116774f012cd023 PUSHED/remote-equal,
+5explicitfiles/source/dependency/archive-roundtrip/protected147/userdirt/secrets
+checksPASS. Actual publicationrecursiveempty/CLOSED/pathgone. Do not rerun
+build,loadchecks,D534 tests or thisbackup. BASEbde2154unchanged/remote-equal.
+D536 raw helpers PREPARED under vllm_qualification/
 d536_20261015, copied existing D532 with newkey/nativecompiler-v2/cachepath.
-Not yet prelaunch-qualified/backedup/launched. D536 doc stillrequired.
-After D535 publication/closure: D536 backup.py -> close.py backup -> start.py
+Not yet prelaunch-qualified/backedup/launched. D536_VLLM_W1_REFERENCE.md ready.
+NEXT D536 backup.py -> close.py backup -> start.py
 boundedaux (source/cachefreeze/ownedremotehealth/tmux) -> close.py start.
 D533 FullW1 follows D536 actualterminal/release/audit. W1 Uref/Qref stillOPEN.
 No liveGPU/remote/build job; sharedk3suntouched. Fullremaining scopeACTIVE.
