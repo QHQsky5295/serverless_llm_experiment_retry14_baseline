@@ -1,4 +1,4 @@
-# IEEE TC execution status — D554 fixed-configuration W2 prepared
+# IEEE TC execution status — D554 W2 complete, below joint SLO
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,81 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D554 TERMINAL/AUDIT COMPLETE: no live inference, remote or analysis job remains.
+Read D554_FULL_W2_RESULT.md. All4000 native-binding responses/458224tokens/0fail;
+joint3582=89.55%, TTFT3603, TPOT3975, NOT95%feasible. Independent numerical proof
+UNKNOWN/n_correctnull. U14641.25898185838GPU-s, R3.660314745464595/bindingvalid;
+P95TTFT5827.475134283304ms, meanTTFT1757.587671969668ms,
+meanTPOT28.827897007445863/P9548.07525214094382ms, meanE2E5280.846960886439ms.
+Violations393TTFTonly/21TPOTonly/4both; source-order quarters966/920/850/846joint.
+Do not attribute all violations to initial deployment or use W1 numerical output
+as a W2 reference. Full4000 invariant prompt/native-input/target join to sealed
+D536 evidence PASS; adapters independently matched to W2 map. No W2 baseline
+comparison/resource reference yet. Firstreadybusiness-0.615473s;23earlycontrol
+samples match actual arrivals, NO early natural activation. No isolated gain claim.
+Service/replay/watchdogRC0; actualGPUrelease/servicepathgone, launcherauxclosed.
+All3exactownedremoteunitsinactive/MainPID0/portsabsent. 497fetch/418365205wireB,
+requestpacking0/bilateralSHApass. Dispatchg2473/h169/n842/r516; initial1/natural7ready.
+Servicepeak30795841536B,events/swap0. Analysisactualemptyclosed/pathgone,
+peak860995584B/events0/swap0; input_review likewise closed (receipt inRAW).
+Prelaunch review identity already existed; guard refused BEFORE another scope,
+then new input_review name used, preserving historical identity/closure.
+NEXT curate/push this tested result checkpoint; no performance/analyzer/inputjoin
+repeat. Current post-release disk162256502784B, unlike the lower live value;
+fresh resource gate and targeted closed-cache audit ONLY if needed before next
+heavy run. Then W2 baseline/common-reference mainline; no baseline tuning.
+Full PLAN/status/V1/V2 and latest rules fully read in context, PLAN unchanged SHA
+reverified. This turn PROGRESS: same run completed, exact closures/strict audits/
+input-startup review. Fullscope ACTIVE: W0 compatibility/G2/3B/ablations/sensitivity/
+docs/figures remain. No global closure, no CI or same-key winner retry.
+
+The following live notes are historical, superseded by terminal state above:
+
+D554 AUTHORITATIVE LIVE: single full4000 W2 RUNNING, do NOT repeat start/backup.
+Prelaunch MAIN51eebc4ef1c7664023508d704d36fdead76d85c1 PUSHED/remoteequal,
+8 explicit files; BASEaff60bb210c6d1fb9ce94534c5ef37521976bc0a unchanged/pushed.
+Source/archive/protected147/user-dirt/secrets/diff checks PASS. Qualification2,
+backup and starter actually recursive-empty/closed/path-gone; respective peaks
+375672832/29974528/28033024B, high/max/OOM/kill/swap0. No auxiliary maintenance
+left alongside performance. Both failed fixture/preservation attempts retained.
+RAW p2_backend_qualification/d554_20261015; tmux tc-d554-initialw2.
+Actual service primelora-tc-svc-4eb4fd2ab37b43e5bc181f3da46cdcd6.scope,
+Invocation06a50495af6645dea4d8ee66b83ee2d6, inode25581168.
+Launcher aux primelora-tc-aux-96e2062c4c4147f7901ba1d9a9f66629.scope;
+exact identity in service_aux_identity.json. Notice1572913.608651136,
+business1572973.608651136. Actual exec receipt binds full W2/map SHA below.
+Remote owned services LIVE, actual1000Mb/s/full; published_gzip/timing_v2 health
+passed. 7b clock remote-process-monotonic:595318369e0c4a97a5c0d5656636eec8;
+monitor primelora-artifact-monitor-d554-initialw2.service. All 3 exact identities
+in remote_start.log. No remote changes/packing/cleaning during performance.
+Latest actual sample3116: disk152055697408B, high/max/OOM/kill0/noabort.
+Sample3021 hostavailable93433503744B, service28589715456B, swap0; no newer
+memory value inferred. Same service Invocation and tmux reconfirmed active;
+terminal launch.json ABSENT. Live log3394arrived/3388completed/0failed of4000,
+natural scale_up7/scale_down4; not final audited native counts or SLO results.
+Disk now below150GiB next-heavy start but above100GiB ongoing stop. Do NOT clean
+during this replay; after closure/evidence preservation audit closed rebuildable
+caches before the next experiment, preserving unique assets and failed evidence.
+live5000ms SLO/CE are NOT frozen D394 final metrics. No W2 performance conclusion.
+NEXT monitor SAME actual service/append-only journals with light reads only.
+No tests/build/hashscan/compression/backup/cleanup/remote changes while running.
+After actual terminal inspect launch.json, close_launch.py -> stop_remote.sh;
+run_analysis.py only if actual success (bounded aux + exact analysis closure).
+Failure must be preserved and analyzed as failure, not sent through success-only
+collector. No guessed GPU release or independent numerical proof. Then input/
+binding/timing/remote/physical audit, save and push result; no same-key repeat.
+Launch milestone PROGRESS: shell wiring/config qualification, tested checkpoint and
+new full W2 launch. Previous/current turns VERIFIED WAIT: same actual Invocation
+rechecked at samples2824/2914/3021/3116; no restart or second job. After compaction,
+full PLAN/status/V1/V2/latest rules read completely in bounded chunks; unchanged
+PLAN/V1/V2 SHAs reverified. monitor-experiment read and followed. Only light
+monitoring/document reads/status edits during inference; no performance interference
+from new testing, scans, maintenance or remote changes. Full remaining scope ACTIVE.
+Post-push status delta intentionally reserved for next milestone, not a second
+backup during inference. W2 baselines/G2/W0 compatibility/3B/ablations remain.
+
+The following preparation notes are historical, superseded by live state above:
 
 D554 CURRENT: fixed-D551 model configuration and full4000 W2 startup wiring
 qualified; read D554_INITIAL_CONTROL_FULL_W2.md. RAW p2_backend_qualification/
