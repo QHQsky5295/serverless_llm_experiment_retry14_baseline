@@ -1,4 +1,4 @@
-# IEEE TC execution status — D549 initial observed-control CPU qualification complete
+# IEEE TC execution status — D550 native first100 prepared, not launched
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,39 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D550: offline new-config/input binding PASS; no native run yet.
+Read D550_INITIAL_CONTROL_NATIVE100.md. RAW p2_backend_qualification/d550_20261015.
+OnlyD549observed_arrivals_v1 enabled vsD533; model/profile/thresholds/generation/
+remote/60snotice unchanged. Existing W1 first100 prefix, source4000 reused.
+ViewSHA1d28435540b9e462276596b75097a20286cbccc1fda626dcdaa781eeda8ac1a0.
+D549363CPUtests/D531103inputtests/D53416compilerchecks reused, not repeated.
+First offline fixture omitted diagnostic_prefix_count, correctly rejected; original
+qualify_attempt1.py/failure record/empty closure retained. Added explicit100 in
+fixture only; production unchanged. Second binding/profile/syntax check PASS;
+both bounded scopes actually recursiveemptyclosed/pathgone, peaks648306688/
+see qualification2_closure.json, events0/swap0. No new GPU/remotejob.
+Existing D533 launch/remote/closure/analyzer recipes reused with new private paths;
+100-not4000 population guard retained. NEXT tested prelaunch checkpoint/push,
+fresh launch gate then single tc-d550-initial100. If cache lets initial ready before
+business, report no early mechanism trigger; no artificial delay/cache reset or
+short-run performance attribution. FullscopeACTIVE; W1still93.725%, noG1/G2closure.
+HydraServe isolatedPodman adaptation alreadyDONE, unrelatedk3s remains untouched.
+
+The following D549 notes are historical, superseded by D550 preparation above:
+
+AUTHORITATIVE D549 PUBLICATION: 5833564cd0bca0cebe60256122eeacd0a27740ba
+PUSHED/remoteequal,7explicitfiles; source/nestedarchive/checksum/protected147/
+userdirt/secrets/diffchecksPASS. BASEbde2154unchanged/pushed. Publication actual
+recursiveemptyclosed/pathgone; receipt/closure inRAW. No live local/remotejob.
+This turn made PROGRESS: one candidate implemented, failedfixture preserved,
+32targeted/363affectedCPUtestsPASS, code/evidence/document checkpoint pushed.
+No native qualification/config/performance launch yet. NEXT prepare the existing
+guarded100-request native path under NEWkey (D550 suggested), preservingD533
+model/profile/thresholds/generation and changing only this opt-in plus identity
+paths/prefix. Verify observed control trigger and all actualowners before full
+W1; no fakebenefit/95%claim, no oldrun/repeatedCPUtest without affectedchanges.
+FullscopeACTIVE. Postpushstatusdelta reserved nextmilestone; no status-onlypush.
 
 LATEST D549: implemented ONE opt-in candidate, NOT performance-qualified.
 Read D549_INITIAL_OBSERVED_CONTROL.md. Observed external arrivals drive SAME
