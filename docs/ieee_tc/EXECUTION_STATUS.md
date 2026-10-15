@@ -1,4 +1,4 @@
-# IEEE TC execution status — D540 preserved failure; D541 measurement repair validated
+# IEEE TC execution status — D542 S-LoRA W1 repair attempt prepared
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,31 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D542 PREPARED, NOT YET STARTED. Read D542_SLORA_W1.md.
+RAW originalresults/ieee_tc/slora_qualification/d542_20261015.
+Reuse D540 native/http config values (only added EOF newline), source_view and 51 CPU qualification tests;
+D541 53 lifecycle tests reused. Only common pidfd measurement repaired, no native
+policy/config tuning. New private cold cache /tmp/tc-d542-7bs, new remote run dir.
+Helpers adapted from D540; existing strict W1 analyzer via D537 bounded wrapper.
+Full PLAN/status/V1/V2 and current rules read this turn. Initial disk162123390976B,
+MemAvailable112116985856B, GPU compute processes empty; fresh gate still required.
+NEXT explicit prelaunch source/protection/secret check and push, then fresh-gated
+single run in tc-d542-slora-w1. Do not repeat old qualifications/cleanup/performance.
+Previous D540 remains measurement failure with unknown full U. Remaining scope below.
+
+D541checkpoint0e5f25e5107971ab1b2c116dfdb34d4708c5edf7 PUSHED/remoteequal;
+7explicitfiles,53CPUtests reused, source/archive/checksum/protected147/userdirt/
+secrets/diff checksPASS. Publicationactualemptyclosed/pathgone;alljobsclosed.
+BASEbde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed.
+NEXT newS-LoRA7BW1 measurement-repairattempt after FULLPLAN/status/V1/V2 andfreshgates.
+ReuseD540native/sourceview/http qualification, inputs andhelpers; currentcommon
+pidfdcodeonlychanged. No baselinealgorithm/performanceparameterchange.
+Do NOTrepeatCPUqualification,D540run,cleanup,backup,oranyothercompletedperformance.
+RetainD540failure/Runknown; newattempt independentcoldcache andpostfixexecutionSHA.
+Beforelaunch capturecurrentTritoncachemetadata; noextraGPUprewarm orassetgeneration.
+Thisturn endedatverifiedfailure+testedmeasurementrepaircheckpoint, notgoalcompletion.
+Postpushstatusdelta intentionallyreservedfornextcheckpoint.
 
 D540failurecheckpoint31526e77835ec8e70e0096de21dbc3b9375bfc19 PUSHED/remoteequal;
 6explicitfiles,old147/userdirt/source/archive/secretschecksPASS.
@@ -21,7 +46,7 @@ RealCPUchild+F_DUPFD_CLOEXEC>=1024 reproducesoldValueError (before.log1expectede
 after.log53tests1fixtureerror: patchedglobalclockaffectedasyncio; preserved.
 FixturechangedtomoduleclockobjectONLY, productionfixunchanged;after2.log53PASS1.954s.
 before/after/after2actualscopesemptyclosed/pathgone;peaks40239104/681508864/
-580861952B,allhigh/max/OOM/swap0. Codeawaitingcheckpoint, nootherproductionchange.
+580861952B,allhigh/max/OOM/swap0. CodecheckpointPUSHED above, nootherproductionchange.
 Frozenafter2metricsSHAf5edf08ae9d29352fd3b0aaa2ca5f66e30928a8980c78a40e82654aca4637147;
 testSHAcde053fecb57468c90a9dacbd615d60fc36165c1bfa294b0b9a23757668f3efe.
 D541 targetedD540duplicatecachecleanup COMPLETE;actualaux0004emptyclosed/pathgone.
@@ -29,7 +54,7 @@ Full500currentcache+retainedpoolSHA/refs/metadata checksPASS,5000files1298598445
 reclaimed13004378112B;diskafter162126163968B(~150.99GiB),protected147unchanged.
 Only/tmp/tc-d540-7bs/remote_artifacts/objects removed; evidenceanduniqueassetsretained.
 Maintenancehigh11400,max/OOM/kill/swap0; no concurrentperformance.
-Do NOTrepeatcleanup. NextpublishD541testedfix+receipts, thennewS-LoRAW1attemptonlyafterfreshgates;
+Do NOTrepeatcleanup/publication. NextnewS-LoRAW1attemptonlyafterfreshgates;
 originalD540mustnotrerun/overwrite, othercompleteW1/W0pointsnotrerun.
 
 AUTHORITATIVE UPDATE: D540 terminated after all4000responses, serviceRC1;
