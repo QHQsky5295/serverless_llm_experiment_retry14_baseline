@@ -1,4 +1,4 @@
-# IEEE TC execution status — D555 ServerlessLLM W2 input qualified
+# IEEE TC execution status — D555 closed; pause for RelayServe migration
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,96 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+Latest user order (2026-10-15, RelayServe migration window): finish the CURRENT
+D555 replay once, perform actual resource release/owned cleanup and preserve its
+result, then PAUSE plan work awaiting the user's instruction. Do not launch the
+next experiment, build, optimization or storage campaign. This supersedes the
+next-run instructions below, not current frozen execution or evidence integrity.
+Pause is requested AFTER this run and cleanup, not an early cancellation. Once
+current closure/result preservation is verified, mark the goal paused and stop.
+
+Latest user reinforcement (2026-10-15): every PrimeLoRA optimization must first
+reconcile modification history, historical logs, related published mechanisms/
+official code and current primary-source web evidence with the full PLAN and
+conversation. One falsifiable bottleneck hypothesis, unchanged nine equations and
+frozen G1/G2, minimal qualification then full new-version replay. Preserve proven
+points and regressions; do not replace a better eligible point with a regressing
+candidate, hide tradeoffs, change thresholds or chase side tasks. This restates
+existing P3, not permission for baseline tuning or mid-run changes. Current D555
+continues unchanged; don't edit its source PLAN/contract during the live run.
+
+D555 AUTHORITATIVE TERMINAL: full4000/458224native tokens/0fail, strict W2 audit
+and full4000 D554 input join PASS. joint3756=93.90%, TTFT3756/TPOT4000; NOT95%.
+U15893.645977688022 GPU-s/R3.9734114944220056 per binding-valid request;
+P95TTFT9516.719258390367ms/mean4895.820238510147ms;
+P95TPOT33.329517629585766ms/mean26.823938882516934ms;
+meanE2E7940.703259314585ms. Independent numerical proof UNKNOWN/n_correctnull.
+PrimeLoRA D554 versus D555: U7.879797%lower/P9538.765924%lower but joint4.35pp
+LOWER; both fail95%, no G1/G2 closure or global optimum. No W2 reference frozen.
+Read D555_SERVERLESSLLM_W2_RESULT.md. 497fetch/418365205wireB/packing0,
+same count/bytes as D554, so no remote-download-reduction claim from this pair.
+Service/replay/watchdogRC0, actualGPUrelease/servicepathgone. Launcher aux
+recursive-empty/closed/pathgone, peak573296640B/events0/swap0. Own loader RESTORED;
+all3exactownedremoteunitsinactive/MainPID0/portsabsent. Analysis/cross scopes
+actuallyempty/closed/pathgone, peaks748318720/742830080B/events0/swap0.
+No live inference/remote/analysis job remains. Result curation COMPLETE at
+main_comparison/d555_serverlessllm_w2/result1; archive97955B, all current sources,
+147protected files/userdirt/nested SHA/secrets checks PASS. Result scope actually
+recursive-empty/closed/pathgone. Only explicit current-result backup remains
+before honoring the requested PAUSE. Do not start next performance,
+optimization, build, storage campaign or old qualification. Full remaining scope
+below is retained but will not execute until explicit user resume.
+
+The following D555 live notes are historical, superseded by terminal state above:
+
+D555 PREVIOUS LIVE: single full4000 W2 running. Prelaunch MAIN
+0e2f41fdde9748e8ec30227e422637423f756752 PUSHED/remoteequal,4explicitfiles;
+BASEaff60bb210c6d1fb9ce94534c5ef37521976bc0a unchanged/pushed. All source/archive/
+protected147/user-dirt/secrets/diff checks PASS; prior tests reused, no repeats.
+Qualification/backup/starter actual recursive-empty/closed/path-gone, respective
+peaks404832256/51470336/28037120B,high/max/OOM/kill/swap0. No maintenance active.
+tmux tc-d555-serverlessllm-w2; RAW serverless_qualification/d555_20261015.
+Actual service primelora-tc-svc-e662c98403274fffbcb55af12b664160.scope,
+Invocationcfccc46f58b740d0bc893dbb08b267e8,inode25631116.
+Launcherauxprimelora-tc-aux-d5550000000000000000000000000004.scope,
+Invocation2d22189d01a9480985e8e8228368f090. Identity in service_aux_identity.json.
+Fresh launch gate PASS. Notice1579189.118559709, business1579249.118559709.
+No terminal receipt/results yet; do not repeat start.
+Remote own services LIVE, actual1000Mb/s/full, prepublished_gzip/timing_v2 health
+PASS. 7bclockremote-process-monotonic:8773482dd4f4471c8e7166872eed456c;
+monitorprimelora-artifact-monitor-d555-w2.service, Invocation812118bc41e74f4e82a3d7714d61e08e.
+3bInvocationd82256d70f5e47ebba934342d5f3aed2;7bce4cbf3816f64bdb81678e1e3a0808bd.
+Latest sample2705 hostavailable55092228096B/service65861787648B/disk151679606784B,
+high/max/OOM/kill/swap0/noabort. Four actual native ready receipts at
+1579471.516400937/1579471.519610557/1579471.526544859/1579471.633616479;
+all engine_present/enable_lora true,load_format serverless_llm. Responses underway;
+these are live progress, not audited completed/native-correct counts. Actual SAME
+service Invocation and tmux rechecked active; launch terminal receipt absent.
+Disk below next-heavy150GiB start but above ongoing100GiB stop; no cleanup during
+this replay. After actual closure/evidence preservation audit closed rebuildable
+cache only if fresh gate requires. No final performance or numerical proof.
+NEXT light monitor same actualservice/tmux/append-only journals. No tests/build/
+hashscan/compression/cleanup/backup/remotechanges during performance. After actual
+terminal inspect launch7b_repaired.json: close_launch.py -> restore_overlay.py ->
+stop_remote.sh -> bounded run_analysis.py with actual outcome; then exact closure,
+fullinput join/save/push. Do not use success-only analysis for a failure or infer
+GPU release from a single idle sample. Allfullscope ACTIVE, no G1/G2 closure.
+Launch turn made PROGRESS: W2 wiring qualified, checkpoint pushed, fullrun launched.
+Previous/current monitoring turns VERIFIED WAIT: SAME actual service Invocation
+rechecked in preceding polls and this turn at2446/2514/2579/2642/2705; tmux also
+rechecked live at2705. Latest replay has req_02980 submitted/req_02979 response, not final audited
+counts; all4000
+not yet terminal. Native4 ready receipts and responses observed. Complete PLAN/V1/V2 still read
+in current context, their unchanged SHAs reverified; monitor-experiment reread.
+Only light monitoring/status edits, no tests/build/hashscan/remotechanges/backup.
+Earlier append-only replay poll:352 request_created/348 http_response/0
+http_request_failed, not final audited native counts. First textual count assumed
+JSON spaces and returned0; corrected whitespace-tolerant monitor before reporting.
+No raw record changed, no analyzer/result claim based on that failed text pattern.
+Postpush status delta reserved next milestone, not another backup during inference.
+
+The following preparation notes are historical, superseded by the live state above:
 
 D555 OFFLINE PREPARATION PASS, no new GPU or remote run yet. Read
 D555_SERVERLESSLLM_W2.md. RAW serverless_qualification/d555_20261015.

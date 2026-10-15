@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "schema": "d555_w2_input_witness_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d5550000000000000000000000000006.scope",
+    "invocation_id": "6f82c3223fda45eba15528aa4c25012f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5550000000000000000000000000006.scope",
+    "inode": 25664227
+  },
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "target_tokens",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "scheduled_arrival_offset_s"
+  ],
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300"
+  },
+  "comparison": {
+    "PrimeLoRA": {
+      "joint": 0.8955,
+      "gpu_seconds": 14641.25898185838,
+      "p95_ttft_ms": 5827.475134283304
+    },
+    "ServerlessLLM": {
+      "joint": 0.939,
+      "gpu_seconds": 15893.645977688022,
+      "p95_ttft_ms": 9516.719258390367
+    }
+  },
+  "changes": {
+    "lower_better_change_percent": {
+      "gpu_seconds": 7.879796728754248,
+      "p95_ttft_ms": 38.765923675372264
+    },
+    "joint_difference_pp": -4.349999999999998
+  },
+  "reference_frozen": false,
+  "independent_numerical_correctness": "unknown",
+  "input_join_only": true,
+  "initial_state_contract_identical": false,
+  "limitations": [
+    "Single known-workload observations; no repeated-run inference.",
+    "Native versions and compilation histories differ; input identity is not numerical proof.",
+    "PrimeLoRA W2 is below 95%; no G1/G2 closure or global optimum claim."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d555_20261015/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "7a5fa0297f5312b287bc75650e3f1e9df1ddcd5c64dd00cf62d738e1f60f848c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d554_7b_initial_control_full_w2.json",
+      "sha256": "bda577e019baf5ff61763a7faaab8814b6be08d4f54283f1675bdae8a054e975"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/cross_contract.json",
+      "sha256": "68306e8920a11921c5dde0c391b3dcb769c27fd55d0212b17a89ca0fc84af8dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d555_20261015/audit_full4000_w2.json",
+      "sha256": "27c3b9e6dbf93236105c814c8f9591bccf88fa4e966cc19ee7f7aec50010f7dd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d555_20261015/cross_contract.py",
+      "sha256": "74c0fa74dc0a8854c2cab5a400b2d402d158768e3ca696f913c3faeb927c1ad9"
+    }
+  ]
+}
