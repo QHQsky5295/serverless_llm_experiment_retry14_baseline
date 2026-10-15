@@ -1,0 +1,1551 @@
+{
+  "passed": true,
+  "schema": "d539_native_startup_queue_review_v1",
+  "identity": {
+    "unit": "primelora-tc-aux-d5390000000000000000000000000001.scope",
+    "invocation_id": "96fe48f041264feca8dc13865d73dc5d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5390000000000000000000000000001.scope",
+    "inode": 25312443
+  },
+  "observations": {
+    "D537_W1": {
+      "epochs": [
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_bfc0451f-d6c8-4c6a-a30b-fd774f2eae82",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/5757cf058e244c23afb62aa35198abe8.json",
+          "receipt_sha256": "f004b5d6c011f91bc2922cdf28055a9732fcb45c6b86485d15b849d1e1f059c8",
+          "pid": 3892760,
+          "backend_ready_since_business_s": 180.41241909214295,
+          "backend_ready_since_notice_s": 240.41241909214295,
+          "created_wall_s": 1792028810.9173238,
+          "router_ready_wall_s": 1792028941.8791091,
+          "router_created_to_ready_s": 130.96178531646729,
+          "served": 1177,
+          "log_evidence": [
+            "INFO 10-15 09:47:06 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:47:37 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:47:43 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:47:45 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:48:12 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:48:18 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 5.067544 seconds",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 25.91 s",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:48:53 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 7.155 s",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 25.91 s in total",
+            "(EngineCore_DP0 pid=3894290) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 42.30 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_df483fd8-6a0d-4d84-a8f4-d7a3b6c7ffdb",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/d2deb2cc27f54557aa2ec3128db5405f.json",
+          "receipt_sha256": "d125a5bd50fb569077ed4cfe47da4d9dcff450d8a5bee62a7722e9801131a5dd",
+          "pid": 3892627,
+          "backend_ready_since_business_s": 180.52584683103487,
+          "backend_ready_since_notice_s": 240.52584683103487,
+          "created_wall_s": 1792028809.9142566,
+          "router_ready_wall_s": 1792028941.925909,
+          "router_created_to_ready_s": 132.011652469635,
+          "served": 1183,
+          "log_evidence": [
+            "INFO 10-15 09:47:05 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:47:37 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:47:43 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:47:45 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:48:12 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:48:17 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 3.480865 seconds",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 27.56 s",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:48:53 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 7.177 s",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 27.56 s in total",
+            "(EngineCore_DP0 pid=3894287) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 44.17 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_256b9fe4-b700-4081-b6b3-a12c7bb1f542",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/e0ba79ed3fc345a1a4033abb5f272510.json",
+          "receipt_sha256": "d3ae4265f8103819959143d3cb16e5dd6b0ae9109b3590a89a38b29f41c8c9c4",
+          "pid": 3892574,
+          "backend_ready_since_business_s": 180.5361779150553,
+          "backend_ready_since_notice_s": 240.5361779150553,
+          "created_wall_s": 1792028808.9124305,
+          "router_ready_wall_s": 1792028941.9435933,
+          "router_created_to_ready_s": 133.03116273880005,
+          "served": 245,
+          "log_evidence": [
+            "INFO 10-15 09:47:05 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:47:37 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:47:43 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:47:45 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:48:12 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:48:16 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 3.163407 seconds",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 27.58 s",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:48:53 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 7.180 s",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 27.58 s in total",
+            "(EngineCore_DP0 pid=3894288) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 44.54 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_74134912-59b0-4fe6-963c-bcabf156fa17",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/4c8b4dc68af64f30aa52fbfd63051632.json",
+          "receipt_sha256": "695082f3aca0584c6d4569a33ad8b52cfa4e8475a655aae20ea8c4bfe26325d2",
+          "pid": 3892090,
+          "backend_ready_since_business_s": 180.56999768107198,
+          "backend_ready_since_notice_s": 240.56999768107198,
+          "created_wall_s": 1792028807.9107451,
+          "router_ready_wall_s": 1792028941.988028,
+          "router_created_to_ready_s": 134.0772829055786,
+          "served": 260,
+          "log_evidence": [
+            "INFO 10-15 09:47:00 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:47:37 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:47:43 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:47:45 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:48:12 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:48:17 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 3.493190 seconds",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 27.58 s",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:48:53 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 7.176 s",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 27.58 s in total",
+            "(EngineCore_DP0 pid=3894289) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 44.25 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_9b781472-8655-445b-be0b-5c41233cb843",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/21ce3e3ac3734e47986b191c7aa39699.json",
+          "receipt_sha256": "9aa8d464b67c22d6b27203bd11739a10893fb5820e9e9ee37225af03fcfaf5ac",
+          "pid": 3915722,
+          "backend_ready_since_business_s": 677.4536682709586,
+          "backend_ready_since_notice_s": 737.4536682709586,
+          "created_wall_s": 1792029363.9417648,
+          "router_ready_wall_s": 1792029438.945851,
+          "router_created_to_ready_s": 75.00408625602722,
+          "served": 94,
+          "log_evidence": [
+            "INFO 10-15 09:56:12 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:56:25 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:56:30 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:56:32 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:56:51 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:56:55 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.850132 seconds",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:57:07 [backends.py:550] Dynamo bytecode transform time: 11.48 s",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:57:12 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.727 s",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:57:14 [monitor.py:34] torch.compile takes 11.48 s in total",
+            "(EngineCore_DP0 pid=3916896) INFO 10-15 09:57:18 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.62 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_075eaa36-de5d-4e94-a581-16a24d86f9e7",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/bb612f4e63c74d6d85792c4a16b3a97a.json",
+          "receipt_sha256": "1a14eee0772d2759997704fa3bf19860e96f9472a379c9dabc29355befe1269c",
+          "pid": 3915974,
+          "backend_ready_since_business_s": 678.5357402269728,
+          "backend_ready_since_notice_s": 738.5357402269728,
+          "created_wall_s": 1792029367.9520223,
+          "router_ready_wall_s": 1792029440.070748,
+          "router_created_to_ready_s": 72.11872577667236,
+          "served": 94,
+          "log_evidence": [
+            "INFO 10-15 09:56:15 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 09:56:25 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 09:56:31 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:56:32 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:56:52 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:56:57 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 4.023268 seconds",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:57:09 [backends.py:550] Dynamo bytecode transform time: 11.03 s",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:57:13 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.616 s",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:57:15 [monitor.py:34] torch.compile takes 11.03 s in total",
+            "(EngineCore_DP0 pid=3916908) INFO 10-15 09:57:19 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.96 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_93d9abe7-a1ae-48cd-9d26-8b6727c83c13",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/7f3983c79a7e41b58edc5cbcef4e034d.json",
+          "receipt_sha256": "609886f59c2ba446b003584f9f74de7b96e8309bbfc53f1c9d5865851344ed78",
+          "pid": 3927164,
+          "backend_ready_since_business_s": 931.6516505430918,
+          "backend_ready_since_notice_s": 991.6516505430918,
+          "created_wall_s": 1792029623.7834198,
+          "router_ready_wall_s": 1792029693.2319505,
+          "router_created_to_ready_s": 69.44853067398071,
+          "served": 91,
+          "log_evidence": [
+            "INFO 10-15 10:00:30 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:00:40 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:00:46 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:00:47 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:06 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:10 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.913974 seconds",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:22 [backends.py:550] Dynamo bytecode transform time: 10.68 s",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:26 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.514 s",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:28 [monitor.py:34] torch.compile takes 10.68 s in total",
+            "(EngineCore_DP0 pid=3927941) INFO 10-15 10:01:32 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.66 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_cb37edbf-c4f9-42e3-876c-0ffa67419995",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/ead2336585054fddb5c242546414bd16.json",
+          "receipt_sha256": "8aeb8ff54a7cb4a9fc3c5811aa5ecc737af3ef97d2885121ca4d3f5dea836b61",
+          "pid": 3927321,
+          "backend_ready_since_business_s": 934.8115119701251,
+          "backend_ready_since_notice_s": 994.8115119701251,
+          "created_wall_s": 1792029626.7866588,
+          "router_ready_wall_s": 1792029696.3934875,
+          "router_created_to_ready_s": 69.6068286895752,
+          "served": 93,
+          "log_evidence": [
+            "INFO 10-15 10:00:33 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:00:43 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:00:48 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:00:50 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:09 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:13 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.362710 seconds",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:24 [backends.py:550] Dynamo bytecode transform time: 10.92 s",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:29 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.596 s",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:31 [monitor.py:34] torch.compile takes 10.92 s in total",
+            "(EngineCore_DP0 pid=3928010) INFO 10-15 10:01:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.46 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_431698c7-0d4b-43bb-8e18-8da2d95fd7dc",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/128d08d965a748f5ae61a17e1b2d6856.json",
+          "receipt_sha256": "7ddf9963148f7cdf8a3f8fe1627dcb123ff8a64e0e9790183a3e7e60a7910346",
+          "pid": 3936070,
+          "backend_ready_since_business_s": 1138.1508628970478,
+          "backend_ready_since_notice_s": 1198.1508628970478,
+          "created_wall_s": 1792029831.1732447,
+          "router_ready_wall_s": 1792029899.6612153,
+          "router_created_to_ready_s": 68.48797059059143,
+          "served": 101,
+          "log_evidence": [
+            "INFO 10-15 10:03:58 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:04:08 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:04:13 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:14 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:33 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:37 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.816603 seconds",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:49 [backends.py:550] Dynamo bytecode transform time: 10.72 s",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:53 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.462 s",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:55 [monitor.py:34] torch.compile takes 10.72 s in total",
+            "(EngineCore_DP0 pid=3936737) INFO 10-15 10:04:58 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.32 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_a40712cc-2d4e-4e15-8280-64c7eeca1314",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/55284a823cd3424cbad7786e2151af28.json",
+          "receipt_sha256": "593e18b99268d75e6d1df764e0ee212a073453258f35bb6ea1cfb1f5291818b7",
+          "pid": 3936303,
+          "backend_ready_since_business_s": 1146.5005387051497,
+          "backend_ready_since_notice_s": 1206.5005387051497,
+          "created_wall_s": 1792029837.1824195,
+          "router_ready_wall_s": 1792029908.0189989,
+          "router_created_to_ready_s": 70.83657932281494,
+          "served": 90,
+          "log_evidence": [
+            "INFO 10-15 10:04:04 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:04:14 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:04:19 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:04:23 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:04:42 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:04:45 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.281923 seconds",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:04:57 [backends.py:550] Dynamo bytecode transform time: 10.80 s",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:05:01 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.570 s",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:05:03 [monitor.py:34] torch.compile takes 10.80 s in total",
+            "(EngineCore_DP0 pid=3936972) INFO 10-15 10:05:07 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.53 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_572e07da-7f4c-46c9-b622-1f9638f37f90",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/779c9077b7824841858aeed9b0d6e5e1.json",
+          "receipt_sha256": "51cfb5b2d6b216a045b0596288a825c84dee367a941c1c5a9a42a79d15783f13",
+          "pid": 3945379,
+          "backend_ready_since_business_s": 1355.1440629400313,
+          "backend_ready_since_notice_s": 1415.1440629400313,
+          "created_wall_s": 1792030046.8588662,
+          "router_ready_wall_s": 1792030116.7216797,
+          "router_created_to_ready_s": 69.8628134727478,
+          "served": 87,
+          "log_evidence": [
+            "INFO 10-15 10:07:33 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:07:43 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:07:49 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:07:51 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:10 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:14 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.854287 seconds",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:25 [backends.py:550] Dynamo bytecode transform time: 10.91 s",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:30 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.600 s",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:32 [monitor.py:34] torch.compile takes 10.91 s in total",
+            "(EngineCore_DP0 pid=3946145) INFO 10-15 10:08:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.70 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_c46c2ea4-802e-43a1-bf9d-21eec6cb6d7d",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/7859aeab9d564641ae9f7166ecafe1af.json",
+          "receipt_sha256": "0f7a13589a4f194a7fea30dd36889d1e8a82c1175f1ebb3d2fe96c0dd0cd9554",
+          "pid": 3945552,
+          "backend_ready_since_business_s": 1357.5226265911479,
+          "backend_ready_since_notice_s": 1417.5226265911479,
+          "created_wall_s": 1792030048.8611999,
+          "router_ready_wall_s": 1792030118.9546113,
+          "router_created_to_ready_s": 70.09341144561768,
+          "served": 93,
+          "log_evidence": [
+            "INFO 10-15 10:07:36 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:07:46 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:07:52 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:07:53 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:12 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:16 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.267121 seconds",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:28 [backends.py:550] Dynamo bytecode transform time: 11.73 s",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:32 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.496 s",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:34 [monitor.py:34] torch.compile takes 11.73 s in total",
+            "(EngineCore_DP0 pid=3946298) INFO 10-15 10:08:38 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.21 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_efaf5773-cd62-4484-b693-b3f0bd1dac2a",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/bf1246dd326c44dfab36238b09b976ea.json",
+          "receipt_sha256": "dee61bc738a6b38dd8123843dc405ade220b952e4412ecc9ce77fe140dbe60b4",
+          "pid": 3955544,
+          "backend_ready_since_business_s": 1593.6845874621067,
+          "backend_ready_since_notice_s": 1653.6845874621067,
+          "created_wall_s": 1792030284.427382,
+          "router_ready_wall_s": 1792030355.1391037,
+          "router_created_to_ready_s": 70.71172165870667,
+          "served": 99,
+          "log_evidence": [
+            "INFO 10-15 10:11:31 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:11:41 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:11:47 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:11:48 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:07 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:11 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.828795 seconds",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:23 [backends.py:550] Dynamo bytecode transform time: 10.85 s",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:27 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.573 s",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:29 [monitor.py:34] torch.compile takes 10.85 s in total",
+            "(EngineCore_DP0 pid=3956507) INFO 10-15 10:12:34 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.80 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_c720da9d-88a1-4ff1-8e63-853b0109bbeb",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/0c68c351db664b7fb2d7fd0cfc77ca2f.json",
+          "receipt_sha256": "262fedb3ee6f38c9f0cf1bef0f92c21343d3ff279b0491c0aaea4cb449b04e8b",
+          "pid": 3955743,
+          "backend_ready_since_business_s": 1594.2143975789659,
+          "backend_ready_since_notice_s": 1654.2143975789659,
+          "created_wall_s": 1792030285.4281766,
+          "router_ready_wall_s": 1792030355.7133164,
+          "router_created_to_ready_s": 70.28513979911804,
+          "served": 92,
+          "log_evidence": [
+            "INFO 10-15 10:11:34 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:11:44 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:11:49 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:11:50 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:10 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:13 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.254207 seconds",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:24 [backends.py:550] Dynamo bytecode transform time: 10.51 s",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:28 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.496 s",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:31 [monitor.py:34] torch.compile takes 10.51 s in total",
+            "(EngineCore_DP0 pid=3956621) INFO 10-15 10:12:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.62 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_3a93f85f-a1ed-491d-870c-5842f786e4f5",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/fbbe4efd9f1f4f54991ab1ee150a1c5e.json",
+          "receipt_sha256": "9da52ae0be2512d3cf3e5cd06a5e628e5e37eb5dde0a19924ecaf1f5521b4a31",
+          "pid": 3968232,
+          "backend_ready_since_business_s": 1888.7213168919552,
+          "backend_ready_since_notice_s": 1948.7213168919552,
+          "created_wall_s": 1792030580.3084843,
+          "router_ready_wall_s": 1792030650.25708,
+          "router_created_to_ready_s": 69.94859576225281,
+          "served": 112,
+          "log_evidence": [
+            "INFO 10-15 10:16:26 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:16:38 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:16:43 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:16:45 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:04 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:08 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.823394 seconds",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:19 [backends.py:550] Dynamo bytecode transform time: 10.73 s",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:24 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.507 s",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:26 [monitor.py:34] torch.compile takes 10.73 s in total",
+            "(EngineCore_DP0 pid=3969212) INFO 10-15 10:17:29 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.18 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_c81de615-571e-48d2-92e9-19d152ce6259",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/ef155d6968294d1dad77ade4c8c489d7.json",
+          "receipt_sha256": "40cf1355de5427f1c3f6f0716fe38a55352be4409118fd632e04c9423d19292b",
+          "pid": 3970817,
+          "backend_ready_since_business_s": 1942.8505714961793,
+          "backend_ready_since_notice_s": 2002.8505714961793,
+          "created_wall_s": 1792030637.4511664,
+          "router_ready_wall_s": 1792030704.3605711,
+          "router_created_to_ready_s": 66.90940475463867,
+          "served": 89,
+          "log_evidence": [
+            "INFO 10-15 10:17:23 [__init__.py:216] Automatically detected platform cuda.",
+            "INFO 10-15 10:17:33 [__init__.py:742] Resolved architecture: LlamaForCausalLM",
+            "INFO 10-15 10:17:38 [__init__.py:216] Automatically detected platform cuda.",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:17:40 [core.py:76] Initializing a V1 LLM engine (v0.10.2) with config: model='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', speculative_config=None, tokenizer='/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=serverless_llm, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={\"level\":3,\"debug_dump_path\":\"\",\"cache_dir\":\"\",\"backend\":\"\",\"custom_ops\":[],\"splitting_ops\":[\"vllm.unified_attention\",\"vllm.unified_attention_with_output\",\"vllm.mamba_mixer2\",\"vllm.mamba_mixer\",\"vllm.short_conv\",\"vllm.linear_attention\",\"vllm.plamo2_mamba_mixer\",\"vllm.gdn_attention\"],\"use_inductor\":true,\"compile_sizes\":[],\"inductor_compile_config\":{\"enable_auto_functionalized_v2\":false},\"inductor_passes\":{},\"cudagraph_mode\":1,\"use_cudagraph\":true,\"cudagraph_num_of_warmups\":1,\"cudagraph_capture_sizes\":[8,4,2,1],\"cudagraph_copy_inputs\":false,\"full_cuda_graph\":false,\"pass_config\":{},\"max_capture_size\":8,\"local_cache_dir\":null}",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:17:59 [gpu_model_runner.py:2338] Starting to load model /home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927...",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:18:02 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.249948 seconds",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:18:14 [backends.py:550] Dynamo bytecode transform time: 10.53 s",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:18:18 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.500 s",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:18:20 [monitor.py:34] torch.compile takes 10.53 s in total",
+            "(EngineCore_DP0 pid=3971453) INFO 10-15 10:18:23 [core.py:218] init engine (profile, create kv cache, warmup model) took 20.87 seconds"
+          ],
+          "compiled_graph_cache_hit": true
+        }
+      ],
+      "epoch_count": 16,
+      "phases": [
+        {
+          "indices": [
+            0,
+            499
+          ],
+          "ready_at_enqueue_counts": {
+            "0": 282,
+            "4": 218
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 69973.4637180809,
+              "median": 108296.36397631839,
+              "p95": 157581.89147314988,
+              "max": 182810.7244761195,
+              "mean": 111577.37292057509
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 69820.13749796897,
+              "median": 107802.40369192325,
+              "p95": 143394.79537005536,
+              "max": 151177.2820369806,
+              "mean": 109620.8268584162
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.2448451705276966,
+              "median": 0.8184220641851425,
+              "p95": 14600.459536071867,
+              "max": 46886.354197980836,
+              "mean": 1433.3481792425737
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.298417802900076,
+              "median": 4.261686000972986,
+              "p95": 291.2394830491394,
+              "max": 994.8623180389404,
+              "mean": 62.58161153644323
+            }
+          }
+        },
+        {
+          "indices": [
+            500,
+            999
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 500
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 86.94151043891907,
+              "median": 13613.071742933244,
+              "p95": 30481.961849844083,
+              "max": 42921.90299811773,
+              "mean": 11743.987299473025
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2943999134004116,
+              "median": 13230.116246035323,
+              "p95": 30059.06991288066,
+              "max": 42325.20919502713,
+              "mean": 11287.612668402027
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.25355396792292595,
+              "median": 0.8295411244034767,
+              "p95": 0.9612010326236486,
+              "max": 13.882936909794807,
+              "mean": 0.8248472069390118
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.4622830785810947,
+              "median": 4.00158204138279,
+              "p95": 227.45658014900982,
+              "max": 571.5556039940566,
+              "mean": 34.8085510074161
+            }
+          }
+        },
+        {
+          "indices": [
+            1000,
+            1499
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 163,
+            "4": 337
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 102.8898989316076,
+              "median": 1557.6555728912354,
+              "p95": 22626.54537591152,
+              "max": 25990.492868470028,
+              "mean": 5712.3058337434195
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2670940011739731,
+              "median": 1004.3690619058907,
+              "p95": 22018.668483011425,
+              "max": 25620.968892937526,
+              "mean": 5255.602425506804
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.20615896210074425,
+              "median": 0.8100280538201332,
+              "p95": 1.0181961115449667,
+              "max": 34.46973115205765,
+              "mean": 0.8639327571727335
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.1961141135543585,
+              "median": 3.294103080406785,
+              "p95": 225.15181987546384,
+              "max": 663.9587709214538,
+              "mean": 28.148271123878658
+            }
+          }
+        },
+        {
+          "indices": [
+            1500,
+            1999
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 199,
+            "3": 25,
+            "4": 276
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 175.15295883640647,
+              "median": 14250.474898610264,
+              "p95": 21655.87272401899,
+              "max": 23527.1618925035,
+              "mean": 13278.381231870968
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.35975011996924877,
+              "median": 13727.664680918679,
+              "p95": 20947.72809999995,
+              "max": 23029.581861104816,
+              "mean": 12769.147391563281
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.28333510272204876,
+              "median": 0.8015809580683708,
+              "p95": 1.021465053781867,
+              "max": 30.79574112780392,
+              "mean": 0.8340656906366348
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.1411819141358137,
+              "median": 3.683023154735565,
+              "p95": 280.52503801882267,
+              "max": 1294.0976498648524,
+              "mean": 37.41169278975576
+            }
+          }
+        },
+        {
+          "indices": [
+            2000,
+            2499
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 190,
+            "3": 20,
+            "4": 290
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 85.18343325704336,
+              "median": 10574.821650283411,
+              "p95": 19775.780770694837,
+              "max": 21492.32011870481,
+              "mean": 9744.12742819963
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2723929937928915,
+              "median": 9873.128549894318,
+              "p95": 19275.151845999062,
+              "max": 20483.148063067347,
+              "mean": 9246.996882461477
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.1611767802387476,
+              "median": 0.7977799978107214,
+              "p95": 0.9154609870165586,
+              "max": 1.8574921414256096,
+              "mean": 0.7645123982802033
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2450560461729765,
+              "median": 3.3226069062948227,
+              "p95": 264.9320650380105,
+              "max": 977.5232849642634,
+              "mean": 37.24829249409959
+            }
+          }
+        },
+        {
+          "indices": [
+            2500,
+            2999
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 186,
+            "3": 4,
+            "4": 310
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 87.52454887144268,
+              "median": 6950.238697230816,
+              "p95": 20621.02177250199,
+              "max": 22576.346323359758,
+              "mean": 8212.321741919965
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.3392871003597975,
+              "median": 6273.345809895545,
+              "p95": 20176.00292316638,
+              "max": 22205.92185202986,
+              "mean": 7745.294911253266
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.26238407008349895,
+              "median": 0.7962759118527174,
+              "p95": 0.9157941676676273,
+              "max": 1.6593278851360083,
+              "mean": 0.7390356655232608
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2511340901255608,
+              "median": 3.267972031608224,
+              "p95": 162.13384317234159,
+              "max": 728.1916490755975,
+              "mean": 25.94539231946692
+            }
+          }
+        },
+        {
+          "indices": [
+            3000,
+            3499
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 143,
+            "3": 3,
+            "4": 354
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 81.09292387962341,
+              "median": 643.4412251692265,
+              "p95": 14591.2960274145,
+              "max": 17067.99432937987,
+              "mean": 3210.782534578815
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.26370398700237274,
+              "median": 0.6511821411550045,
+              "p95": 14005.408915923908,
+              "max": 16669.808503007516,
+              "mean": 2728.405244313646
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.29433704912662506,
+              "median": 0.8321700152009726,
+              "p95": 0.9349870961159468,
+              "max": 1.6678550746291876,
+              "mean": 0.7852916489355266
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.1842821259051561,
+              "median": 3.1817201524972916,
+              "p95": 177.69599799066782,
+              "max": 1175.938367145136,
+              "mean": 26.606448092497885
+            }
+          }
+        },
+        {
+          "indices": [
+            3500,
+            3999
+          ],
+          "ready_at_enqueue_counts": {
+            "2": 86,
+            "3": 61,
+            "4": 353
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 45.84050294943154,
+              "median": 451.1891708243638,
+              "p95": 3246.390918036923,
+              "max": 7750.8541736751795,
+              "mean": 773.2642352278344
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.24441699497401714,
+              "median": 0.6051999516785145,
+              "p95": 2665.8126758411527,
+              "max": 7149.521172046661,
+              "mean": 332.5692347912118
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.18940912559628487,
+              "median": 0.8338568732142448,
+              "p95": 0.9250009898096323,
+              "max": 1.68574508279562,
+              "mean": 0.7772786943241954
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2197820469737053,
+              "median": 3.13803693279624,
+              "p95": 40.73397093452513,
+              "max": 906.5159989986569,
+              "mean": 13.281922529451549
+            }
+          }
+        }
+      ],
+      "by_ready_count": {
+        "0": {
+          "n": 282,
+          "ttft_ms": {
+            "n": 282,
+            "min": 105880.29185449705,
+            "median": 122975.16049444675,
+            "p95": 160050.26652803645,
+            "max": 182810.7244761195,
+            "mean": 126307.72596733489
+          },
+          "router_queue_ms": {
+            "n": 282,
+            "min": 105032.89751010016,
+            "median": 122622.92703893036,
+            "p95": 148278.60221313313,
+            "max": 151177.2820369806,
+            "mean": 123189.89465663751
+          }
+        },
+        "4": {
+          "n": 2638,
+          "ttft_ms": {
+            "n": 2638,
+            "min": 45.84050294943154,
+            "median": 1555.8340337593108,
+            "p95": 89135.58989646845,
+            "max": 114277.04889257438,
+            "mean": 13020.204455188652
+          },
+          "router_queue_ms": {
+            "n": 2638,
+            "min": 0.24441699497401714,
+            "median": 1003.4020850434899,
+            "p95": 88677.25625098683,
+            "max": 113812.42103804834,
+            "mean": 12569.896676015938
+          }
+        },
+        "2": {
+          "n": 967,
+          "ttft_ms": {
+            "n": 967,
+            "min": 85.6571071781218,
+            "median": 12084.826542297378,
+            "p95": 22292.737634619698,
+            "max": 25990.492868470028,
+            "mean": 11611.284670529785
+          },
+          "router_queue_ms": {
+            "n": 967,
+            "min": 0.26370398700237274,
+            "median": 11601.878862828016,
+            "p95": 21722.437034826726,
+            "max": 25620.968892937526,
+            "mean": 11079.951022408282
+          }
+        },
+        "3": {
+          "n": 113,
+          "ttft_ms": {
+            "n": 113,
+            "min": 87.91550854220986,
+            "median": 1289.3763941247016,
+            "p95": 20673.88868215494,
+            "max": 21420.121076283976,
+            "mean": 8248.506732884613
+          },
+          "router_queue_ms": {
+            "n": 113,
+            "min": 0.3708282019942999,
+            "median": 0.7173421327024698,
+            "p95": 20142.267231130973,
+            "max": 20819.471902912483,
+            "mean": 7787.411019321432
+          }
+        }
+      },
+      "request_metrics": {
+        "ttft_ms": {
+          "n": 4000,
+          "min": 45.84050294943154,
+          "median": 7050.711170071736,
+          "p95": 109994.30134566501,
+          "max": 182810.7244761195,
+          "mean": 20531.567903198593
+        },
+        "router_queue_ms": {
+          "n": 4000,
+          "min": 0.24441699497401714,
+          "median": 6540.535352891311,
+          "p95": 109382.31392600574,
+          "max": 151177.2820369806,
+          "mean": 19873.30695208849
+        },
+        "ingress_wait_ms": {
+          "n": 4000,
+          "min": 0.1611767802387476,
+          "median": 0.8155161049216986,
+          "p95": 0.9794149082154036,
+          "max": 46886.354197980836,
+          "mean": 179.86714291304816
+        },
+        "adapter_resolve_ms": {
+          "n": 4000,
+          "min": 1.1411819141358137,
+          "median": 3.303745063021779,
+          "p95": 229.7064010053873,
+          "max": 1294.0976498648524,
+          "mean": 33.25402273662621
+        }
+      },
+      "same_host_wall_durations_only": true,
+      "epoch_first_requests_not_relabelled": true
+    },
+    "D414_W0": {
+      "epochs": [
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_03d67f40-22c7-4efa-a800-9cb4bd32068c",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/worker_receipts/38cab19defb34dac8d86dc3eff0e09b2.json",
+          "receipt_sha256": "89e954f4d3b6d763131a31a84fb9b59e23bff9ae0062141c896104f1d0b0055e",
+          "pid": 2850639,
+          "backend_ready_since_business_s": 77.48313075001352,
+          "backend_ready_since_notice_s": 137.48313075001352,
+          "created_wall_s": 1791665275.9515522,
+          "router_ready_wall_s": 1791665350.70897,
+          "router_created_to_ready_s": 74.75741791725159,
+          "served": 1043
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_c9305e83-f0fb-442a-8f95-db4ea439e50b",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/worker_receipts/8fbd8473e8a942db8025906523bc69ea.json",
+          "receipt_sha256": "ec644e9aaee3e2fb0241d39b0a4484a0a3b0231dd320ec1c882a2944a6ac59e2",
+          "pid": 2851506,
+          "backend_ready_since_business_s": 100.65964691690169,
+          "backend_ready_since_notice_s": 160.6596469169017,
+          "created_wall_s": 1791665303.1584485,
+          "router_ready_wall_s": 1791665373.9736362,
+          "router_created_to_ready_s": 70.81518769264221,
+          "served": 1030
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_e7f00f68-584e-4288-8afb-dc97550d7c0b",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/worker_receipts/dcc5b717bb724b039f235cbfa5c7586a.json",
+          "receipt_sha256": "8f37741bfc1379bf8f292deb2927caf669ba6e16241757a770a188ae2c812c04",
+          "pid": 2852041,
+          "backend_ready_since_business_s": 110.84856900991872,
+          "backend_ready_since_notice_s": 170.84856900991872,
+          "created_wall_s": 1791665313.1999571,
+          "router_ready_wall_s": 1791665384.0932999,
+          "router_created_to_ready_s": 70.89334273338318,
+          "served": 1012
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_b1ffb92a-b0e3-4929-a49c-7d1987ee5d9b",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/worker_receipts/75acc85d016247c0804ee408aeacf2a4.json",
+          "receipt_sha256": "17fd3b1b0d4fbed769b307a626aa4ea1556dbedd28172f717259e357f5424239",
+          "pid": 2852365,
+          "backend_ready_since_business_s": 117.4766607908532,
+          "backend_ready_since_notice_s": 177.4766607908532,
+          "created_wall_s": 1791665320.2256904,
+          "router_ready_wall_s": 1791665390.768518,
+          "router_created_to_ready_s": 70.54282760620117,
+          "served": 197
+        },
+        {
+          "instance": "tc-native-llama2-7b-fp16-20260927_e5bc5fea-e80a-4dae-98bf-6db492f861ce",
+          "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/worker_receipts/e485d38e67274e02ab8a6c4ab4b6000c.json",
+          "receipt_sha256": "0b4d27493581ac677dc2820d98cb09d79b2dc67d14c0f98cabcde50bbbba0c0c",
+          "pid": 2895335,
+          "backend_ready_since_business_s": 1145.506235267967,
+          "backend_ready_since_notice_s": 1205.506235267967,
+          "created_wall_s": 1791666349.5162256,
+          "router_ready_wall_s": 1791666418.7619967,
+          "router_created_to_ready_s": 69.24577116966248,
+          "served": 718
+        }
+      ],
+      "epoch_count": 5,
+      "phases": [
+        {
+          "indices": [
+            0,
+            499
+          ],
+          "ready_at_enqueue_counts": {
+            "0": 27,
+            "1": 18,
+            "2": 6,
+            "3": 1,
+            "4": 448
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 46.388448448851705,
+              "median": 438.58492840081453,
+              "p95": 44825.5477740895,
+              "max": 79281.84612398036,
+              "mean": 4260.284169348422
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2842377871274948,
+              "median": 0.6159308832138777,
+              "p95": 43893.91773799434,
+              "max": 75001.32438982837,
+              "mean": 3811.490657577757
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.2072700299322605,
+              "median": 0.8252779953181744,
+              "p95": 0.9535611607134342,
+              "max": 3155.085247941315,
+              "mean": 7.226322890724987
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.3670441694557667,
+              "median": 3.1535481102764606,
+              "p95": 175.05615716800094,
+              "max": 771.2587371934205,
+              "mean": 30.55523661430925
+            }
+          }
+        },
+        {
+          "indices": [
+            500,
+            999
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 330,
+            "3": 170
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 77.3117623757571,
+              "median": 439.4731158390641,
+              "p95": 2842.0184429269284,
+              "max": 5767.3764016944915,
+              "mean": 657.9451127522625
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2423680853098631,
+              "median": 0.6085720378905535,
+              "p95": 1691.9729739893228,
+              "max": 5263.415831141174,
+              "mean": 220.89198682410643
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.2856890205293894,
+              "median": 0.8288649842143059,
+              "p95": 0.9181529749184847,
+              "max": 1.578575000166893,
+              "mean": 0.7999791335314512
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.1981299612671137,
+              "median": 3.1290350016206503,
+              "p95": 58.86752298101783,
+              "max": 706.7909969482571,
+              "mean": 14.81143824197352
+            }
+          }
+        },
+        {
+          "indices": [
+            1000,
+            1499
+          ],
+          "ready_at_enqueue_counts": {
+            "3": 91,
+            "4": 409
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 46.29688011482358,
+              "median": 451.1293505784124,
+              "p95": 955.5806340649724,
+              "max": 6944.706544512883,
+              "mean": 547.0937300682999
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.28140400536358356,
+              "median": 0.6117990706115961,
+              "p95": 2.5882860645651817,
+              "max": 6260.09772811085,
+              "mean": 113.9749865825288
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.29923301190137863,
+              "median": 0.8261578623205423,
+              "p95": 0.9965160861611366,
+              "max": 25.128564098849893,
+              "mean": 0.8446250753477216
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2201110366731882,
+              "median": 3.1301581766456366,
+              "p95": 16.902471892535686,
+              "max": 603.704275097698,
+              "mean": 13.108640315011144
+            }
+          }
+        },
+        {
+          "indices": [
+            1500,
+            1999
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 500
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 45.7063305657357,
+              "median": 459.44071491248906,
+              "p95": 644.4267733022571,
+              "max": 2761.308198561892,
+              "mean": 433.2188348695636
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.26654801331460476,
+              "median": 0.6127068772912025,
+              "p95": 0.7250059861689806,
+              "max": 1003.5457171034068,
+              "mean": 5.108875462785363
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.31142099760472775,
+              "median": 0.8185550104826689,
+              "p95": 0.9140670299530029,
+              "max": 1.56028987839818,
+              "mean": 0.7891510250046849
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.225014915689826,
+              "median": 3.1157699413597584,
+              "p95": 16.62501017563045,
+              "max": 585.8793710358441,
+              "mean": 9.207379987929016
+            }
+          }
+        },
+        {
+          "indices": [
+            2000,
+            2499
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 500
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 46.4435878675431,
+              "median": 479.6723611652851,
+              "p95": 678.1015109736472,
+              "max": 2600.0930233858526,
+              "mean": 447.2439753576182
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.32566580921411514,
+              "median": 0.6075671408325434,
+              "p95": 0.7007599342614412,
+              "max": 1003.6759898066521,
+              "mean": 2.619721081107855
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.27973600663244724,
+              "median": 0.8060759864747524,
+              "p95": 0.9382199496030807,
+              "max": 15.94735006801784,
+              "mean": 0.8415553574450314
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2525729835033417,
+              "median": 3.1104800291359425,
+              "p95": 27.66005089506507,
+              "max": 597.0297809690237,
+              "mean": 10.947433036752045
+            }
+          }
+        },
+        {
+          "indices": [
+            2500,
+            2999
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 500
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 80.62596339732409,
+              "median": 493.224790552631,
+              "p95": 743.7665909528732,
+              "max": 2873.4256559982896,
+              "mean": 456.35453973477706
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.25752303190529346,
+              "median": 0.6106439977884293,
+              "p95": 0.7723909802734852,
+              "max": 1003.1256731599569,
+              "mean": 11.737049091141671
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.2808452118188143,
+              "median": 0.8173580281436443,
+              "p95": 0.9223190136253834,
+              "max": 12.778636068105698,
+              "mean": 0.797096632886678
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.1918311938643456,
+              "median": 3.085775999352336,
+              "p95": 22.130403900519013,
+              "max": 560.266214190051,
+              "mean": 12.27657795837149
+            }
+          }
+        },
+        {
+          "indices": [
+            3000,
+            3499
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 500
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 47.36841912381351,
+              "median": 513.1623870693147,
+              "p95": 757.0240944623947,
+              "max": 2887.6324757002294,
+              "mean": 490.8396820286289
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.253917183727026,
+              "median": 0.6110349204391241,
+              "p95": 0.7304719183593988,
+              "max": 1002.1750850137323,
+              "mean": 6.648140134289861
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.34952699206769466,
+              "median": 0.8416699711233377,
+              "p95": 0.9812549687922001,
+              "max": 2.012473065406084,
+              "mean": 0.8038123599253595
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.231183996424079,
+              "median": 3.0822339467704296,
+              "p95": 9.155479958280921,
+              "max": 711.8786629289389,
+              "mean": 10.549322799313813
+            }
+          }
+        },
+        {
+          "indices": [
+            3500,
+            3999
+          ],
+          "ready_at_enqueue_counts": {
+            "4": 464,
+            "3": 10,
+            "2": 26
+          },
+          "metrics": {
+            "ttft_ms": {
+              "n": 500,
+              "min": 46.429936308413744,
+              "median": 536.4089198410511,
+              "p95": 812.164357630536,
+              "max": 2895.5293351318687,
+              "mean": 496.5141924470663
+            },
+            "router_queue_ms": {
+              "n": 500,
+              "min": 0.2899931278079748,
+              "median": 0.6135629955679178,
+              "p95": 0.7175360806286335,
+              "max": 1001.8005690071732,
+              "mean": 5.2062660893425345
+            },
+            "ingress_wait_ms": {
+              "n": 500,
+              "min": 0.3123681526631117,
+              "median": 0.8511731866747141,
+              "p95": 0.9557830635458231,
+              "max": 1.9487300887703896,
+              "mean": 0.8154306425713003
+            },
+            "adapter_resolve_ms": {
+              "n": 500,
+              "min": 1.2039071880280972,
+              "median": 3.0918470583856106,
+              "p95": 6.194736110046506,
+              "max": 646.8106769025326,
+              "mean": 10.064644022844732
+            }
+          }
+        }
+      ],
+      "by_ready_count": {
+        "0": {
+          "n": 27,
+          "ttft_ms": {
+            "n": 27,
+            "min": 44027.180573903024,
+            "median": 47613.88663901016,
+            "p95": 67984.3522598967,
+            "max": 79281.84612398036,
+            "mean": 50340.7534126934
+          },
+          "router_queue_ms": {
+            "n": 27,
+            "min": 43815.39458106272,
+            "median": 47291.36739904061,
+            "p95": 61834.74610815756,
+            "max": 75001.32438982837,
+            "mean": 49355.92705266619
+          }
+        },
+        "1": {
+          "n": 18,
+          "ttft_ms": {
+            "n": 18,
+            "min": 21573.315801564604,
+            "median": 24371.551917865872,
+            "p95": 33004.257201682776,
+            "max": 33004.257201682776,
+            "mean": 26104.280588540456
+          },
+          "router_queue_ms": {
+            "n": 18,
+            "min": 21014.69938014634,
+            "median": 23924.687575781718,
+            "p95": 32547.215668018907,
+            "max": 32547.215668018907,
+            "mean": 25602.824124067814
+          }
+        },
+        "2": {
+          "n": 32,
+          "ttft_ms": {
+            "n": 32,
+            "min": 197.87758588790894,
+            "median": 670.8837822079659,
+            "p95": 18051.944348495454,
+            "max": 18395.612637279555,
+            "mean": 3575.772864467581
+          },
+          "router_queue_ms": {
+            "n": 32,
+            "min": 0.2899931278079748,
+            "median": 0.6038579158484936,
+            "p95": 17656.889220001176,
+            "max": 18146.794626954943,
+            "mean": 3034.396951115923
+          }
+        },
+        "3": {
+          "n": 272,
+          "ttft_ms": {
+            "n": 272,
+            "min": 46.29688011482358,
+            "median": 457.5581296812743,
+            "p95": 4988.580484176055,
+            "max": 6944.706544512883,
+            "mean": 1099.9789659741937
+          },
+          "router_queue_ms": {
+            "n": 272,
+            "min": 0.2423680853098631,
+            "median": 0.6163029465824366,
+            "p95": 4315.087900031358,
+            "max": 6260.09772811085,
+            "mean": 594.8551996099173
+          }
+        },
+        "4": {
+          "n": 3651,
+          "ttft_ms": {
+            "n": 3651,
+            "min": 45.7063305657357,
+            "median": 462.1509085409343,
+            "p95": 711.2262169830501,
+            "max": 6125.091471010819,
+            "mean": 452.492663697323
+          },
+          "router_queue_ms": {
+            "n": 3651,
+            "min": 0.253917183727026,
+            "median": 0.6108169909566641,
+            "p95": 0.7523309905081987,
+            "max": 5576.020882930607,
+            "mean": 9.990868265328608
+          }
+        }
+      },
+      "request_metrics": {
+        "ttft_ms": {
+          "n": 4000,
+          "min": 45.7063305657357,
+          "median": 463.91269098967314,
+          "p95": 1052.2463605739176,
+          "max": 79281.84612398036,
+          "mean": 973.6867795758299
+        },
+        "router_queue_ms": {
+          "n": 4000,
+          "min": 0.2423680853098631,
+          "median": 0.6115578580647707,
+          "p95": 0.9731780737638474,
+          "max": 75001.32438982837,
+          "mean": 522.2097103553824
+        },
+        "ingress_wait_ms": {
+          "n": 4000,
+          "min": 0.2072700299322605,
+          "median": 0.8283141069114208,
+          "p95": 0.9424011223018169,
+          "max": 3155.085247941315,
+          "mean": 1.6147466396796517
+        },
+        "adapter_resolve_ms": {
+          "n": 4000,
+          "min": 1.1918311938643456,
+          "median": 3.109975950792432,
+          "p95": 33.66399300284684,
+          "max": 771.2587371934205,
+          "mean": 13.940084122063126
+        }
+      },
+      "same_host_wall_durations_only": true,
+      "epoch_first_requests_not_relabelled": true
+    }
+  },
+  "upstream_core_ast_equal": {
+    "auto_scaler": true,
+    "_auto_scaler_loop": true,
+    "_stop_instance": true,
+    "_finish_instance": true
+  },
+  "upstream_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+  "changed_serving_code": false,
+  "new_performance_run": false,
+  "causal_attribution_complete": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d539_20261015/review_queue.py",
+      "sha256": "08af91522401e1c4edf9eb14757a7715702aec665847016a61dbb086a6846ec9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/routers/roundrobin_router.py",
+      "sha256": "ee08f28f550b0d50fa81f58ae98a94c3af75f17f6371ed446ee6896716ab09ff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/source_repaired/sllm/routers/roundrobin_router.py",
+      "sha256": "ee08f28f550b0d50fa81f58ae98a94c3af75f17f6371ed446ee6896716ab09ff"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-cf3b228b6ad633d6f86ce39a18f958c87819bdf37ee7a63dc356ec7a-01000000-3892760.out",
+      "sha256": "cda631b87b4a77004016b5a57254be1673e9ebde5196b8850cebec8082084e7f"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-9e7122c1f0f1346af5787175d8df10dab178d7410dd012f716c466b9-01000000-3892627.out",
+      "sha256": "f99f18e6c82c984f848b5787fe8ee784f460dea727b2365b43d41cfbfed0d459"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-e86b99fa243e3622b2da68b1ab8b154d767a31807678755d58d00ad4-01000000-3892574.out",
+      "sha256": "08fcf8fb1ed563331551d2e9b804bf0f3d8fdc40940ddd05b6619be965502470"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-3f4099d9fc5b39bc00b3a23775f879008eb36f6b6c76dfd125b37c0f-01000000-3892090.out",
+      "sha256": "6a0bea44b7b454bfcf894e12c670473e9e93555b578f68b3aaaa038836e40f47"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-455d79092788e809f6b4dcd06705fb3718451bd2392d03d6121fe0dd-01000000-3915722.out",
+      "sha256": "b26c4de6d98543a7edadfca4344e68aa44fc7321903383ab1a8dfe37b0fd37a1"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-893d5bb1cefaf66ba250eaedd04593513e103e05bc537ea247fe23aa-01000000-3915974.out",
+      "sha256": "7f9b52781379740bd16293ea45fda3c6362293f9da2cea34d18e6f7c5c64da01"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-588cbcb9aaaa3f831bf30c60fd72e56454442c964ec99b8f6242b9a0-01000000-3927164.out",
+      "sha256": "6a61ff2e1db72ae6e353141de7b01c3aa6d67b18138c206213d83ec87429ac02"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-27b0a8248d678fb93108260fa3561bceed3c0ff507e89093d05d7758-01000000-3927321.out",
+      "sha256": "43bcc0e0e7b7bc1752d6ef17579d8b0ea463863c1151d84124b660d59d9870b6"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-9d1424ce6ab17da37e9c168fe5859f29430def5e6134916800334070-01000000-3936070.out",
+      "sha256": "793aa80455a8a6d644da79401124f50691f78c21ed0005c27ca5faab4c5bf2f0"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-76193b0ac579f11dcb313bd94f8190400d22100e5e8fe80688e42c3a-01000000-3936303.out",
+      "sha256": "db8f0499376d190a2e9dcb89439462a3c0764e527d284a2f70789688ae02f85a"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-b709a24ff4dee5ca939c12f6de57e40b3d7b608a16ea5788ce0ab9d1-01000000-3945379.out",
+      "sha256": "55d61150603257ce9ab173c60e13c1ab67925566c87af949bbe5a0f6df8854c1"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-b24a9a3e48fca41bbcf7d1471985d3ce3e799b8ac62d74b02053fc49-01000000-3945552.out",
+      "sha256": "241291319c69e988b6e080ec20aa6ec7bbc627181cb255cf38d118f26589b6a0"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-f8f4393972743037e53be4ea5749ae75fe1a532981372aae395556c0-01000000-3955544.out",
+      "sha256": "0abd1f9084be652a7b9faa098b52ec4cccf48cf388621e23a3ca899809e17598"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-c452de27c867658057024b66b8ee8606666dcd58466c533d91f2c662-01000000-3955743.out",
+      "sha256": "56df757efa3b9bffe9a0405c13f869dbb831142f98f31c96f4dd23d633c9f1fb"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-07f3e48426e4c23a58df42884ab6b4a21cfc0a82aec96d20c4768967-01000000-3968232.out",
+      "sha256": "e8ed98b9482d5ddf99d95847d209f2ffd01b61a9f2603613ed31617bf3e695a6"
+    },
+    {
+      "path": "/tmp/tc-d537-7br/ray_tmp/ray/session_latest/logs/worker-dcdd36a0259afeccacb6e42020fc2542c87b93ab74ca100bba8a2fb9-01000000-3970817.out",
+      "sha256": "cf867bb2d2c7b6c24c828d59be0b12740e205d36508d3f7f7888c4f860f3b033"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "5ea160f919da25ea63f45af719b57f9004a196ba4c3a38ffd208f4b89a5687a2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/launch7b_repaired.launch/exec_receipt.json",
+      "sha256": "9f92db5212c7d6513a6a5e6900a5de14de384d512e725b545041ac4972e3bfa0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "589db9707b8e05e2bf3056b6ff9c303fd0a1fa0e31ebded3d6f35aa59c670d30"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/launch7b_repaired.launch/exec_receipt.json",
+      "sha256": "c35144699e43615cf7f8354dc507748c7d5871af0aab15541a3fe5ca4cfbc4b6"
+    }
+  ],
+  "limitations": [
+    "Queue/ready group membership is system-induced, not a randomized counterfactual.",
+    "Stored instance wall durations and native monotonic ready offsets are not mixed into one timeline.",
+    "Cache-hit evidence excludes the claim that those model graphs were all recompiled; it does not identify all startup overhead.",
+    "Epochs count logical instances, not physical GPU allocation."
+  ]
+}

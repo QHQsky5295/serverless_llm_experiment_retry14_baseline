@@ -1,4 +1,4 @@
-# IEEE TC execution status — D537 ServerlessLLM W1 complete; preserve and audit queue
+# IEEE TC execution status — D538/D539 complete; resume S-LoRA W1
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,27 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D538 targetedstorageDONE; D539 offlinequeueauditDONE. No liveGPU/remotejob.
+Read D538_TARGETED_CACHE_RECLAIM.md and D539_SERVERLESSLLM_QUEUE_REVIEW.md.
+D538 removedONLYclosedD532duplicateobjects1320files; retainedoriginalpool SHAchecked.
+Reclaimed3305652224B,diskafter162489970688B; protected147unchanged.
+Auxpeak3222093824B,high3159,max/OOM/kill/swap0; no concurrentperformance.
+Actualemptyclosed/pathgone. Rawstorage_maintenance/d538_20261015.
+D539 reusedD537/D414nativejournals, no inference/configchange.
+16/16D537workerlogs showcompiledmodelgraphcachehits, notallgraphsrecompiled.
+Earliest4ready180.412-180.570safterbusiness;routercreated->ready130.962-134.077s.
+Dynamo25.91-27.58s,engineprofile/KV/warmup42.30-44.54s (nestednotadditive).
+Later12created->ready66.909-75.004s,init20.87-22.80s.
+Native4autoscaling/stopfunctionsASTequalofficialcommit9f50241;
+routerfileSHAequalsD414. Queue96.794%ofmeanTTFT, notproofuniqueCPU/JITcause.
+No evidencednewadaptationdefect;retainD537nonfeasiblepoint,notbaselineparametersweep.
+D539auxpeak513466368B,high/max/OOM/swap0,actualemptyclosed/pathgone.
+D538/D539curationDONE,twoarchive4938/17311B; curationauxclosed/pathgone,
+peak27033600B,events0/swap0. Publicationpreparedexplicitpaths,no productionchange.
+BackupD538+D539next, then reuseS-LoRAD435nativequalification for7BW1;
+continueLoquetier/HydraServeW1. Do notrerunD537/D533/D536orW0.
+PrimeLoRAW1still93.725%<95; noG1/G2completion. Allfullscopebelowretained.
 
 D537 ServerlessLLM W1 TERMINAL SUCCESS; no live model/remote job remains.
 Read D537_SERVERLESSLLM_W1_RESULT.md. RAW originalresults/ieee_tc/serverless_qualification/d537_20261015.
@@ -35,13 +56,17 @@ allthreeW1pointsbelow95,noG1/G2closure. WholeW1referenceNOTformallyfrozen.
 D537initialcompile25.91-27.58s/init44.25-44.54s vsD414earlycompile10.77-13.10/
 init21.39-23.78s. LaterD537init~22s. Rayaggregatedlogsnotindependentsamples;
 notproofallqueuefromcompile, nativeflaw, oradaptationdefect.
-NEXT preserve/backupthisresult, restorestorageheadroombeforeanotherheavyjob,
-then boundedactualstartup/scalequeueaudit beforedecidinganynecessaryadaptation.
+OriginalnextactionsnowDONE:backup3e759d7,storageD538,queueauditD539above.
 No blindrepeat/configsweep/oldqualification/D533/D536/W0rerun.
 
 Curatedmain_comparison/d537_serverlessllm_w1/result1 DONE:
 audit.json,cross_contract.json,startup_diagnostic.json,manifest.json,evidence.tar.gz96390B.
-Resultscopeclosed,pathgone,events0/swap0; publication pending below/actualreceipt.
+Resultscopeclosed,pathgone,peak28344320B,events0/swap0. Publication COMPLETE:
+3e759d75b6e69e182d646d87aca5090f5935024f PUSHED/remoteequal,10explicitfiles.
+Archive/SHA/protected147/userdirt/secrets/diff checksPASS;114tests reused.
+Resultpublicationscopeclosed/recursiveempty/pathgone,peak31260672B,events0/swap0.
+RAW result_publication_receipt.json/result_publication_closure.json retainexactidentity.
+No secondbackup/performance/tests needed. This postpushstatusdelta stays fornextcheckpoint.
 PrelaunchMAIN3062716be26faf17d607928e8b26b45b5186452a/BASEbde2154,
 bothpushed. D414native0102/store/RRconfig retained; onlyW1view/newpaths.
 114tests reused112nativeenv+2analysisenv; alloriginalerrors retained, noinstall.
@@ -50,7 +75,7 @@ Actualnotice1535948.902932362,businesst01536008.902932362; noearlydelaysremoved.
 D537sourceview4filesmatchD414. Actualservice68a54559dfa545b6bfb8d1b39a50cda7,
 Invocation7e3fd03a02cd4ca89d0d63e668ff5666 nowgone.
 Status+resultpublication usesexplicitpaths only, protected147 anduserdirtpreserved.
-Diskafterrelease159230144512B (~148.3GiB), below150GiBnext-heavy-start,
+Diskafterpublication159185506304B (~148.3GiB), below150GiBnext-heavy-start,
 above100GiBongoingstop. No cleanupduringrun. Beforeanotherheavyjob:
 specificclosedrebuildablecacheaudit/reclaim, no broadD483repeat/rawevidencedeletion.
 D532andD536privatecaches~3.31GB each retained; do NOTremove byname.
