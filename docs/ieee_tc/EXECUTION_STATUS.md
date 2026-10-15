@@ -1,4 +1,4 @@
-# IEEE TC execution status — D546 HydraServe W1 prepared; prelaunch backup next
+# IEEE TC execution status — D546 six-system W1 comparison saved; publication next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,93 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D546 UPDATE: strict full4000 input join to D536 and sealed D544 five-system
+witness PASS. Six published-system W1 observations now available; all below95%.
+Read D546_HYDRASERVE_W1_RESULT.md. PrimeLoRA versus HydraServe joint+48.45pp,
+U2.214771%lower/P9553.412792%lower. PrimeLoRA remains93.725% and U1.276723%
+above S-LoRA; do not call G1/G2 or cross-scenario optimization complete.
+HydraServe21actualnativeworkers/allpp1/batch8. Phasejoint242,220,237,208,122,
+197,267,318; TPOTfail1936/TTFTfail671/both418, not merely initial-only delay.
+No new native policy or backend change, no same-key repeat. Cause not uniquely
+established, no evidence here of a new adaptation defect; retain actual result.
+Crossscope0011 actualemptyclosed/pathgone,peak423944192B,events0/swap0.
+Curation COMPLETE at main_comparison/d546_hydraserve_w1/result1:
+audit/cross/phase/manifest/evidence764278B, all source/archive/protected147/userdirt
+checksPASS. Resultscope0012 actualemptyclosed/pathgone,peak28676096B,events0/swap0.
+NEXT explicit tested result backup/push, then storage fresh-gate/targeted closed
+cache audit if necessary and PrimeLoRA history/primary-source bottleneck work.
+Do NOT repeat audit/inputjoin/curation/performance/closure or old qualifications.
+No live job remains. Full scope below ACTIVE; W1 reference not formally frozen.
+
+AUTHORITATIVE TERMINAL UPDATE: D546 all4000 native-binding responses/458224 tokens,
+zero failures. Service/replay/watchdog RC0; actual native GPU release confirmed,
+service path gone; launcher aux recursively empty and closed. Automatic remote
+collection complete: all three owned units inactive, ports absent, hashes match.
+No live inference or remote experimental job remains. Do not rerun closure/stop.
+Strict preregistered audit passed; audit aux0010 Invocation5e35b641a967434caf979525810bc2f7
+actually empty/closed/pathgone, peak310046720B, high/max/OOM/swap0.
+full_w1_evaluation.json: joint1811/4000=45.275%, TTFT83.225%, TPOT51.6%;
+U8329.838421378518 GPU-s, per binding-valid request2.0824596053446296.
+MeanTTFT2205.2212941060425ms, P959602.060910314322ms;
+meanTPOT84.01662851894156ms, P95128.71620181778616ms,
+meanE2E11210.45368192764ms. Not95%feasible, independent numerical proof UNKNOWN,
+raw n_correctnull. Full observed workload is not a global optimum or G1/G2 closure.
+Service peak53797986304B, high/max/OOM/kill/swap0. All examined scheduler instances
+pp1; no claim of pipeline/consolidation benefit. Total worker/phase diagnostics
+and full4000 input join to other W1 systems are NEXT, not yet complete.
+Use existing bounded analysis/curation recipes; preserve evidence, save/push
+milestone, then full available comparison and PrimeLoRA optimization mainline.
+W1 reference still not formally frozen; all remaining scope below ACTIVE.
+Current turn made PROGRESS: same live run completed, exact-owned closure and strict
+audit verified. No repeated performance, native code/config tuning or k3s changes.
+
+The following running notes are historical, superseded by the terminal update:
+
+AUTHORITATIVE LIVE UPDATE: D546 single HydraServe7BW1 RUNNING, no repeatstart.
+Prelaunchcheckpoint b4c2ab12f7423f202d21752e9524136f4f411645 PUSHED/remoteequal,
+4explicitfiles; source/archive/protected147/userdirt/secrets/diffchecksPASS.
+BASE bde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed.
+Firstbackup archiveenumeration rejected directory beforestaging/output; failedsource
+andemptyclosure retained. Exactmanifestfile enumeration fixed onlybackup; no service
+change/testrepeat. Finishbackupactualemptyclosed/pathgone,peak31932416B/events0/swap0.
+Reusepeak138567680B,prepare163016704B,remote-prelaunch28639232B; allclosed/events0.
+Freshprelaunchandactualguardpassed. tmux tc-d546-hydraserve-w1.
+Serviceprimelora-tc-svc-97a41dedb71e4026b77254fe48785552.scope,
+Invocationdd3308697d694c6b8dc74ed71c356b37,inode25440269.
+Launcherauxprimelora-tc-aux-d5460000000000000000000000000009.scope,
+Invocation65fa8726f0f14a91a30583d9040d4b17.
+Notice1555418.005171145,business1555478.005171145; same4000W1view.
+Nativeprivate storage/provider initialized. No finalperformanceorcount yet.
+Latest verified poll: watchdog sample 1214; actual service Invocation still
+dd3308697d694c6b8dc74ed71c356b37 active. tmux was also rechecked live at sample1141.
+Native HTTP terminal_count2264 observed in append-only service log (progress,
+not complete audit). Host available62182903808B; high/max/OOM/kill0, swap0,
+no abort. At sample1141 service memory49220165632B; no later memory value inferred.
+Disk158692769792B is above100GiB ongoing stop but below150GiB next-heavy start;
+no cleanupduringactiveperformance. launch_gate.json terminalreceipt absent.
+PreviousgoalturnmadePROGRESS: reuseaudit/preparation16tests/checkpointpush/newW1launch.
+Current turn VERIFIED WAIT: same actual Invocation rechecked several times;
+full4000 workload still running, no terminal result or release receipt yet.
+FULL PLAN/status, both AGENTS, latest rules, frozen V1/single-run V2 and
+monitor-experiment skill read in full after compaction. No
+servingchanges/newtests/build/hashscans/backup/remotechanges orsecondexperiment.
+Continue samefull4000run untilactualterminal; notblocked orgoalcomplete.
+RemoteownservicesLIVE, actual1000/full,prepublished_gzip_v1/artifact_timing_v2.
+Monitorprimelora-artifact-monitor-d546-hydraremote.service,
+Invocation19c15bda833045ab88721a0b26b07a32;
+3b3a2a33cb865a4d1abd55780e87e53004;7bbecc9132806d4bfbb83fac19e5e63eed.
+7bclockremote-process-monotonic:d64dc27ab562460e91cb967536c62345.
+NEXT monitor SAMEtmux/actualservice/appendonlyjournals; no tests/build/hashscan/
+backup/cleanup/remotechanges duringinference. run_and_close.sh automatically runs
+close_audit.py thencollect_remote.py onlyafterlaunchterminal. Do notduplicatestop.
+On actualterminal inspectlaunch/result/closure/remote_stop; boundedrun_audit.py
+onlyifsuccess, preservefailure otherwise. Auditassumespp1: ifmultirankobserved,
+do notbypass; analyzeactualboundary. Then4000inputjoin,save/pushresult.
+AllgoalscopeACTIVE. W1referenceunfrozen,PrimeLoRA93.725%<95, noG1/G2closure.
+Postpushstatusdelta reservednextmilestone; no backupduringperformance.
+
+The following preparation notes are historical, superseded by live update above:
 
 AUTHORITATIVE D546 UPDATE: offline reuse/preparation PASS; no new GPU run yet.
 Read D546_HYDRASERVE_W1.md. RAW hydraserve_qualification/d546_20261015.

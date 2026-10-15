@@ -1,0 +1,135 @@
+{
+  "schema": "hydraserve_full_w1_v1_binding_accounting_observation",
+  "full_audit_pass": true,
+  "formal_run": false,
+  "independent_holdout": false,
+  "n_plan": 4000,
+  "n_arrived": 4000,
+  "n_terminal": 4000,
+  "n_v1_contract_complete": 4000,
+  "raw_n_correct_preserved": null,
+  "independent_numerical_qualification": false,
+  "count_basis": "frozen V1 native source/adapter binding, normal terminal, fixed work and clock; D393 interpretation",
+  "n_failed": 0,
+  "n_joint": 1811,
+  "joint_slo": 0.45275,
+  "ttft_attainment": 0.83225,
+  "tpot_conditional_attainment": 0.516,
+  "tpot_conditional_denominator": 4000,
+  "observed_w1_g1_feasible": false,
+  "physical_gpu_seconds": 8329.838421378518,
+  "gpu_seconds_per_v1_contract_request": 2.0824596053446296,
+  "physical_boundary": "actual pp1 container reservation union, before create through actual release",
+  "resource_configuration_optimum": false,
+  "g2_or_cross_workload_goal_complete": false,
+  "observation_s": 2191.5398220538627,
+  "completed_requests_per_s": 1.8252006921103028,
+  "good_requests_per_s": 0.8263596133529396,
+  "good_requests_per_gpu_second": 0.2174111799518309,
+  "native_output_tokens": 458224,
+  "output_tokens_per_s": 209.08769048538784,
+  "remote_transfers": 132,
+  "remote_wire_bytes": 131480060,
+  "metrics": {
+    "ttft_ms": {
+      "n": 4000,
+      "mean": 2205.2212941060425,
+      "p50": 539.3072448205203,
+      "p95": 9602.060910314322,
+      "p99": 17808.714616810903,
+      "max": 25891.207489185035
+    },
+    "tpot_ms": {
+      "n": 4000,
+      "mean": 84.01662851894156,
+      "p50": 78.57286368222373,
+      "p95": 128.71620181778616,
+      "p99": 201.17629998518774,
+      "max": 543.584445817396
+    },
+    "e2e_ms": {
+      "n": 4000,
+      "mean": 11210.45368192764,
+      "p50": 9408.34738034755,
+      "p95": 24204.402827192098,
+      "p99": 31396.01212274283,
+      "max": 51238.39115165174
+    },
+    "submit_lag_ms": {
+      "n": 4000,
+      "mean": 4.9328817094210535,
+      "p50": 1.9592419266700745,
+      "p95": 3.87921673245728,
+      "p99": 83.10516923666,
+      "max": 889.0590865630656
+    },
+    "dispatch_wait_after_submit_ms": {
+      "n": 4000,
+      "mean": 1478.9448442062712,
+      "p50": 7.936066947877407,
+      "p95": 8114.439741009846,
+      "p99": 16444.736584089696,
+      "max": 22789.703781949356
+    },
+    "service_ttft_ms": {
+      "n": 4000,
+      "mean": 721.3435681903502,
+      "p50": 450.47315303236246,
+      "p95": 2175.6775570102036,
+      "p99": 3929.247120860964,
+      "max": 6964.75306712091
+    },
+    "decode_ms": {
+      "n": 4000,
+      "mean": 8884.204031711968,
+      "p50": 7042.023233138025,
+      "p95": 21299.193874001503,
+      "p99": 23703.20275402628,
+      "max": 28227.24746190943
+    },
+    "completion_notification_ms": {
+      "n": 4000,
+      "mean": 121.02835610962939,
+      "p50": 28.015398886054754,
+      "p95": 717.5540151074529,
+      "p99": 1212.076756870374,
+      "max": 3142.279852181673
+    },
+    "artifact_resolve_ms": {
+      "n": 4000,
+      "mean": 61.57196755264886,
+      "p50": 4.487076075747609,
+      "p95": 306.98697711341083,
+      "p99": 927.1131858695298,
+      "max": 5467.159085907042
+    }
+  },
+  "stage_note": "dispatch_wait ends at actual instance assignment; service_ttft is assignment-to-first and includes any init/adapter wait; artifact span nested, not additive",
+  "references": {
+    "plan": {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "metric_protocol": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    "single_run_amendment": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    "slo_eval": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/audit.py": "496ef18317ddc724fc29fa7761e05302298c4a64b7cd3a362c8bd278dc5f136a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d503_20261013/audit.py": "bbb64378e11f125ce97fc3534cf5e3c51f49853d5dce49164923b55bb0857d5a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/preregistration.json": "49feb319f0e758b55b71bfdde8bca588c107b4aea50a04f5646887af55d46cf2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/http_audit.json": "f303c336869dd6ee2d3429139b5dae27d0ecb79b2a8fecb10ff52e9a28d2acb4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/request_metrics.json": "8298238f3a025423eeedce8cbb4ddbfca7212be654649877fb9da932d30da387",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/physical/container_allocations.jsonl": "a54727442d23f8c2ab3338c845fd5270913f8b3ac7f42f37fabe92979af089fd",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/native_scheduler_after_requests.json": "3e30e531f694be6cdf77e540fa79cf9ba4427ec9d1c04730f607a846f871bb5a"
+  }
+}

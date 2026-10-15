@@ -1,0 +1,566 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d5460000000000000000000000000011.scope",
+    "invocation_id": "bd399b57c05b419c8eb11a47fd39b7f0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5460000000000000000000000000011.scope",
+    "inode": 25462417
+  },
+  "phase": [
+    {
+      "phase": 1,
+      "n": 500,
+      "ttft_good": 389,
+      "tpot_good": 292,
+      "joint_good": 242,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 2526.6231991825625,
+          "p50_type1": 668.6448187101632,
+          "p95_type1": 9951.654348056763
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 79.2871062183372,
+          "p50_type1": 76.05922817636062,
+          "p95_type1": 114.96901249905166
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 1604.2258478957228,
+          "p50_type1": 13.750667916610837,
+          "p95_type1": 7761.309752939269
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 913.8414049129933,
+          "p50_type1": 510.13760385103524,
+          "p95_type1": 3278.8578239269555
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 10456.930512361228,
+          "p50_type1": 9045.636447845027,
+          "p95_type1": 22054.345784941688
+        }
+      }
+    },
+    {
+      "phase": 2,
+      "n": 500,
+      "ttft_good": 345,
+      "tpot_good": 281,
+      "joint_good": 220,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 3225.786411056295,
+          "p50_type1": 972.9015403427184,
+          "p95_type1": 9885.002612369135
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 85.8184083105845,
+          "p50_type1": 76.99901749017752,
+          "p95_type1": 141.57340689862687
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 2425.5398164545186,
+          "p50_type1": 47.82709386199713,
+          "p95_type1": 8525.923556182534
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 795.080492623616,
+          "p50_type1": 533.399943029508,
+          "p95_type1": 2377.7088969945908
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 8209.477562420536,
+          "p50_type1": 5589.152876986191,
+          "p95_type1": 20993.173863040283
+        }
+      }
+    },
+    {
+      "phase": 3,
+      "n": 500,
+      "ttft_good": 466,
+      "tpot_good": 244,
+      "joint_good": 237,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 1276.8541545369662,
+          "p50_type1": 547.700546681881,
+          "p95_type1": 6315.736141055822
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 86.50631644652726,
+          "p50_type1": 78.91111246023614,
+          "p95_type1": 135.04498283792702
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 630.3184024314396,
+          "p50_type1": 9.480698965489864,
+          "p95_type1": 4265.313539886847
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 643.8415698441677,
+          "p50_type1": 416.87915404327214,
+          "p95_type1": 1999.2309799417853
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 9102.479903080966,
+          "p50_type1": 6996.687825070694,
+          "p95_type1": 21961.188765009865
+        }
+      }
+    },
+    {
+      "phase": 4,
+      "n": 500,
+      "ttft_good": 487,
+      "tpot_good": 216,
+      "joint_good": 208,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 867.3651089128107,
+          "p50_type1": 489.76870416663587,
+          "p95_type1": 2253.2982241827995
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 86.66411990747102,
+          "p50_type1": 81.40341533792459,
+          "p95_type1": 136.64557138690725
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 230.07770651904866,
+          "p50_type1": 4.617463098838925,
+          "p95_type1": 925.1049591694027
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 633.4042761852033,
+          "p50_type1": 456.66874293237925,
+          "p95_type1": 1743.4086150024086
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 7279.957278878428,
+          "p50_type1": 5521.3563370052725,
+          "p95_type1": 21585.02371306531
+        }
+      }
+    },
+    {
+      "phase": 5,
+      "n": 500,
+      "ttft_good": 325,
+      "tpot_good": 170,
+      "joint_good": 122,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 4927.893805631436,
+          "p50_type1": 987.9486339632422,
+          "p95_type1": 20187.92466330342
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 86.73621291675742,
+          "p50_type1": 84.04015075362656,
+          "p95_type1": 127.20681158825755
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 4106.4234209698625,
+          "p50_type1": 33.84695597924292,
+          "p95_type1": 17326.939006103203
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 813.830347402487,
+          "p50_type1": 509.9170438479632,
+          "p95_type1": 2493.7648749910295
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 6883.443119236734,
+          "p50_type1": 6174.764728173614,
+          "p95_type1": 21087.450705934316
+        }
+      }
+    },
+    {
+      "phase": 6,
+      "n": 500,
+      "ttft_good": 391,
+      "tpot_good": 239,
+      "joint_good": 197,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 2550.5869854856282,
+          "p50_type1": 517.344894586131,
+          "p95_type1": 12151.374555425718
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 84.45939078908627,
+          "p50_type1": 81.18760490091518,
+          "p95_type1": 121.37373499572277
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 1848.8371694330126,
+          "p50_type1": 7.5573669746518135,
+          "p95_type1": 9191.704801050946
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 697.0763640776277,
+          "p50_type1": 455.272831954062,
+          "p95_type1": 2186.3023950718343
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 8305.493675847072,
+          "p50_type1": 7145.17034497112,
+          "p95_type1": 21277.31821499765
+        }
+      }
+    },
+    {
+      "phase": 7,
+      "n": 500,
+      "ttft_good": 461,
+      "tpot_good": 283,
+      "joint_good": 267,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 1190.1846266989596,
+          "p50_type1": 471.86145070008934,
+          "p95_type1": 6157.6104601845145
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 83.71079266819527,
+          "p50_type1": 78.4273022044526,
+          "p95_type1": 123.19496138952672
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 475.5730527122505,
+          "p50_type1": 3.8258349522948265,
+          "p95_type1": 3974.2557839490473
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 712.2210152568296,
+          "p50_type1": 436.9501348119229,
+          "p95_type1": 2189.5397000480443
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 9306.736704318319,
+          "p50_type1": 7602.266106987372,
+          "p95_type1": 21013.914314098656
+        }
+      }
+    },
+    {
+      "phase": 8,
+      "n": 500,
+      "ttft_good": 465,
+      "tpot_good": 339,
+      "joint_good": 318,
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 1076.476061343681,
+          "p50_type1": 391.9887482188642,
+          "p95_type1": 6094.943558331579
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 78.95068089457358,
+          "p50_type1": 74.3337638073546,
+          "p95_type1": 107.24039344737928
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 500,
+          "mean": 510.56333723431453,
+          "p50_type1": 2.893120050430298,
+          "p95_type1": 4949.116575066
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 561.4530752198771,
+          "p50_type1": 376.7424412071705,
+          "p95_type1": 1642.1516579575837
+        },
+        "decode_ms": {
+          "count": 500,
+          "mean": 11529.113497552462,
+          "p50_type1": 12626.133169978857,
+          "p95_type1": 20619.67393802479
+        }
+      }
+    }
+  ],
+  "event_counts": {
+    "replay_ready": 1,
+    "request_contract": 4000,
+    "request_created": 4000,
+    "http_headers_sent": 4000,
+    "http_raw_response": 4000,
+    "http_response": 4000,
+    "http_replay_complete": 1
+  },
+  "native_worker_count": 21,
+  "all_pp1": true,
+  "batch_size": 8,
+  "pipeline_consolidation_observed": false,
+  "allocation_event_counts": {
+    "acquire": 21,
+    "worker_spawn": 21,
+    "native_context": 21,
+    "release": 21
+  },
+  "physical": {
+    "contract": "hydraserve_container_union_v1",
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "measurement_complete": true,
+    "n_plan": 4000,
+    "n_terminal": 4000,
+    "n_correct": null,
+    "observed_until_s": 1557779.026631417,
+    "gpu_seconds_observed": 8329.838421378518,
+    "gpu_seconds": 8329.838421378518,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 2.0824596053446296,
+    "window_gpu_seconds": {
+      "pre_arrival": 0.0,
+      "arrival": 8137.914235701319,
+      "drain": 13.647490289993584,
+      "cleanup": 178.2766953872051
+    },
+    "device_intervals": {
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          1555478.076276627,
+          1557729.154309703
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          1555499.125445133,
+          1557746.719625692
+        ]
+      ],
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          1555509.178275436,
+          1555836.738555335
+        ],
+        [
+          1555849.267384546,
+          1556567.320774767
+        ],
+        [
+          1556576.366661376,
+          1556757.796288419
+        ],
+        [
+          1556777.985323324,
+          1557306.953346182
+        ],
+        [
+          1557318.2453894,
+          1557369.957440331
+        ],
+        [
+          1557469.721427267,
+          1557521.567129652
+        ],
+        [
+          1557521.992257513,
+          1557592.546256613
+        ]
+      ],
+      "GPU-c4663821-4888-e199-7151-d6298f8d45a5": [
+        [
+          1555524.327105988,
+          1555612.358619026
+        ],
+        [
+          1555638.818992786,
+          1555748.427429983
+        ],
+        [
+          1555766.373134366,
+          1555848.804302103
+        ],
+        [
+          1555873.285167173,
+          1555995.10405499
+        ],
+        [
+          1556039.70950174,
+          1556174.445940017
+        ],
+        [
+          1556200.674118655,
+          1556334.67740969
+        ],
+        [
+          1556356.881205423,
+          1556530.700551759
+        ],
+        [
+          1556567.335546585,
+          1556777.907319073
+        ],
+        [
+          1556785.376429529,
+          1557013.40089922
+        ],
+        [
+          1557053.408361104,
+          1557121.941908681
+        ],
+        [
+          1557137.339252909,
+          1557282.775546779
+        ],
+        [
+          1557307.014181451,
+          1557711.042151695
+        ]
+      ]
+    },
+    "open_lease_ids": [],
+    "owner_event_count": 42,
+    "eligible_correctness": false,
+    "owner_and_native_census_qualification_required": true,
+    "numerical_correctness_qualified": false,
+    "native_contexts_qualified": true,
+    "allocation_journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/physical/container_allocations.jsonl",
+    "allocation_journal_sha256": "a54727442d23f8c2ab3338c845fd5270913f8b3ac7f42f37fabe92979af089fd"
+  },
+  "causal_attribution_complete": false,
+  "stage_note": "dispatch_wait ends at actual instance assignment; service_ttft is assignment-to-first and includes any init/adapter wait; artifact span nested, not additive",
+  "ttft_failure_count": 671,
+  "tpot_failure_count": 1936,
+  "both_failure_count": 418,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w0.native-request.json",
+      "sha256": "2dff418e49588ce759ce270478a063e80ddb6cdb420522dcee184c7ec8606190"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w1.native-request.json",
+      "sha256": "5e7a735fd73af40a1675c8f5284cb9f8cf8e2ba18363d77061070af2438bad9b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w10.native-request.json",
+      "sha256": "ddc42b98d322e82ec527d2d86dc8198fa4fb92235cfdb992de3cc9fcf1b782b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w11.native-request.json",
+      "sha256": "834b564087a0dd306872954b4ae83576fde40ed2d97f7dfd8925fc0a10886e79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w12.native-request.json",
+      "sha256": "9876c84492c90635c52079b95199adf24b87c65679d448682139802f7e347773"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w13.native-request.json",
+      "sha256": "84c207d48fc777b947f1abf42743e299f04647b7c9f03df3fe9637741c5fd327"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w14.native-request.json",
+      "sha256": "1ce23621155e24dd2d4f24171d4dd9b4648cdbd138bfdaa9d7aeb17f6a7c18c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w15.native-request.json",
+      "sha256": "0b9bca5fa1e51907f2e303ce506449305416781b20328904413b64a2da48c148"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w16.native-request.json",
+      "sha256": "ab038dcd456ab7ab8295957d123a6befec278679fca9318f6402d8ada170d3cd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w17.native-request.json",
+      "sha256": "5018a38462c5c33651fbab60c6b98693baac0f42a7971338bf290fb586d27244"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w18.native-request.json",
+      "sha256": "cffb01a0cac167268e01b1712b1cfa63a3cc2d957889f8037c82c162d2154aef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w19.native-request.json",
+      "sha256": "5807363d24a61874a73c6766331d4c5f6f62b976f4cbed33061b8365b3d4182d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w2.native-request.json",
+      "sha256": "983ea4a30bda4ea5ebab3f3aaaadb659d70a113e47c9ba0ccb7a2ac3afebbb38"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w20.native-request.json",
+      "sha256": "1dcf7558bdbde41edde3e3e5d4b9356907260c0495316ceffba627e50d7cf3e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w3.native-request.json",
+      "sha256": "71e520b46c74984cdf3a8a59b67694c1b9b6977bd6fd9df091f74ce009519ad8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w4.native-request.json",
+      "sha256": "e31cbf2226e8b724ada23ead9420e35d31a1b30bf10a138140fcc99037b8cac8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w5.native-request.json",
+      "sha256": "06730b46367a65e7c8ff116f9a1b2cf37f53a1add340372afddf12d429999f1e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w6.native-request.json",
+      "sha256": "14b3766be10f869479f73ba576ab65fe1ac8bb399776bf6a956bdffeca9505c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w7.native-request.json",
+      "sha256": "1cfbb064a63ec38214b37016926c86aab8223b315267df0eafc854095b2bdac5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w8.native-request.json",
+      "sha256": "05f76046ef48970224e276f3598a15001ee282df26ae3da863956deee448609c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/platform/d546-w9.native-request.json",
+      "sha256": "c67ce8695586dee5b73587cf0dbb23f3a8d20ffab6900a90684eedf2f2f6748c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/physical/container_allocations.jsonl",
+      "sha256": "a54727442d23f8c2ab3338c845fd5270913f8b3ac7f42f37fabe92979af089fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/request_metrics.json",
+      "sha256": "8298238f3a025423eeedce8cbb4ddbfca7212be654649877fb9da932d30da387"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/full_w1_slo_rows.json",
+      "sha256": "ef7837680886a2e7114014736783c1419a9a06738e5dc4a161c6fb6a72e0ff93"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "passed": true,
+  "schema": "d546_w1_six_system_input_witness_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d5460000000000000000000000000011.scope",
+    "invocation_id": "bd399b57c05b419c8eb11a47fd39b7f0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5460000000000000000000000000011.scope",
+    "inode": 25462417
+  },
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "artifact_content_sha256",
+    "artifact_manifest_sha256",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "source_item_sha256",
+    "target_tokens",
+    "relative_planned_arrival_s"
+  ],
+  "arrival_max_error_s": 0.0,
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "comparison": {
+    "vLLM": {
+      "joint": 0.72675,
+      "gpu_seconds": 9008.761400188087,
+      "p95_ttft_ms": 9777.026765514165
+    },
+    "PrimeLoRA": {
+      "joint": 0.93725,
+      "gpu_seconds": 8145.351609454025,
+      "p95_ttft_ms": 4473.332113120705
+    },
+    "ServerlessLLM": {
+      "joint": 0.44275,
+      "gpu_seconds": 8845.260943896137,
+      "p95_ttft_ms": 109994.30134566501
+    },
+    "S-LoRA": {
+      "joint": 0.86425,
+      "gpu_seconds": 8042.6690288472455,
+      "p95_ttft_ms": 178743.89261263423
+    },
+    "Loquetier": {
+      "joint": 0.0,
+      "gpu_seconds": 14803.43732188805,
+      "p95_ttft_ms": 1725784.2440695968,
+      "failed": 156,
+      "latency_sample_count": 3844,
+      "performance_ranking_eligible": false
+    },
+    "HydraServe": {
+      "joint": 0.45275,
+      "gpu_seconds": 8329.838421378518,
+      "p95_ttft_ms": 9602.060910314322,
+      "failed": 0,
+      "latency_sample_count": 4000,
+      "performance_ranking_eligible": false
+    }
+  },
+  "prime_observed_differences": {
+    "vLLM": {
+      "joint_difference_pp": 21.05,
+      "gpu_seconds_relative_reduction": 0.0958411209243521,
+      "p95_ttft_relative_reduction": 0.54246498241171
+    },
+    "ServerlessLLM": {
+      "joint_difference_pp": 49.45,
+      "gpu_seconds_relative_reduction": 0.079128172575293,
+      "p95_ttft_relative_reduction": 0.9593312375423619
+    },
+    "S-LoRA": {
+      "joint_difference_pp": 7.300000000000006,
+      "gpu_seconds_relative_reduction": -0.012767226929080354,
+      "p95_ttft_relative_reduction": 0.9749735107156074
+    },
+    "Loquetier": {
+      "joint_difference_pp": 93.72500000000001,
+      "gpu_seconds_relative_reduction": 0.44976619738103124,
+      "p95_ttft_relative_reduction": 0.9974079424305253
+    },
+    "HydraServe": {
+      "joint_difference_pp": 48.45,
+      "gpu_seconds_relative_reduction": 0.022147705944812544,
+      "p95_ttft_relative_reduction": 0.5341279174436865
+    }
+  },
+  "input_join_only": true,
+  "reference_frozen": false,
+  "all_below_joint_95": true,
+  "independent_numerical_correctness": false,
+  "initial_state_contract_identical": false,
+  "limitations": [
+    "Loquetier latency is conditional on3844 responses; failed156 stay in4000 SLO denominator.",
+    "No feasible G1/G2 ranking or failure-censored latency superiority inferred.",
+    "Native versions/static sharding/slot capacity/cache histories differ; input equality is not state equality."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/launch_gate.launch/replay.jsonl",
+      "sha256": "b87e0887c3488e84d9ee3ef1fe6138693e8e4cbbe344cf1b1a60d8ce616eda60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/launch7b.launch/replay.jsonl",
+      "sha256": "df6d8a1038e95f80c4d9c14f453f8b2fef7f00768271c298783ec89e13dd2112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d544_loquetier_w1/result1/cross_contract.json",
+      "sha256": "92dd884710a9c1de329ed768a80b37f4d8898448c60083b65bf2a013a23fa3fe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/full_w1_evaluation.json",
+      "sha256": "eac874785059f70f388023c30a9d573e1c12879cef2f5ffa810ae3df64fc6797"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/cross_contract.py",
+      "sha256": "191d65a3906430f5938cd7e80aeeb3dacc2372f78727448326a85ac35b5cfd4a"
+    }
+  ]
+}
