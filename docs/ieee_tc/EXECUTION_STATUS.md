@@ -1,4 +1,4 @@
-# IEEE TC execution status — D554 W2 complete, below joint SLO
+# IEEE TC execution status — D555 ServerlessLLM W2 input qualified
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,55 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D555 OFFLINE PREPARATION PASS, no new GPU or remote run yet. Read
+D555_SERVERLESSLLM_W2.md. RAW serverless_qualification/d555_20261015.
+Same D537 native config/RR/scaling/store and four measured native file SHAs;
+49 setup +33 measurement AST nodes unchanged. Only already-qualified D553 W2
+map/view/input wiring and new execution paths. Full4000/497IDs/458224targets,
+view5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7.
+114 native/386 W2 tests reused, not rerun; six new input contract checks PASS.
+Qualification actual recursive-empty/closed/path-gone, peak404832256B/events0/swap0.
+No serving code change, no new weights/trace, no baseline tuning. Current native
+checkpoint/loader/cache metadata validated. Unrelated k3s untouched; HydraServe
+isolated adaptation already done, latest cluster reply does not restart that work.
+NEXT tested prelaunch backup.py -> actual close.py backup -> fresh gated start.py,
+single tmux tc-d555-serverlessllm-w2. Do not repeat D554 or old qualifications.
+After actual performance termination: close_launch.py, restore_overlay.py,
+stop_remote.sh, bounded run_analysis.py full4000_w2, input join/save/push.
+No failure passed through success-only collection; no guessed GPU release.
+Latest disk161752133632B above150GiB; fresh 32GiB-growth gate still required.
+Full PLAN/status/V1/V2/current rules and run-experiment/resource/github-sync skills
+read completely this turn. Fullscope ACTIVE; D55489.55% not G1/G2 closure.
+MAIN345c35bce5902e38e1b0a6a3535ea155d13f5749, BASEaff60bb both pushed before
+this preparation; user dirt preserved. Current docs/helpers not yet backed up.
+
+The following D554 publication notes remain authoritative for its closed result:
+
+D554 RESULT PUBLICATION COMPLETE: 345c35bce5902e38e1b0a6a3535ea155d13f5749
+PUSHED/remoteequal,5explicitfiles. BASEaff60bb210c6d1fb9ce94534c5ef37521976bc0a
+unchanged/pushed. Source/test-reuse/archive/checksum/protected147/user-dirt/
+secrets/diff checks PASS. No new performance or repeated qualification.
+Publication actual recursive-empty/closed/path-gone, peak27234304B/events0/swap0;
+input review likewise peak174907392B/events0/swap0. All jobs actually closed.
+Curated main_comparison/d554_initial_control_full_w2/result1. No repeat publication.
+Archive member32_publication1.log is the 79-byte SEALING-TIME prefix, not the
+complete later Git/push log. Its archived SHA06b683ee8310611b1180c459ece12b260a3457c5dab8f06770b224fc600288a9
+remains valid for that snapshot; completed raw log SHA
+aae17708a8fcb6bcb98808ca0aa9181c339f1d425d631cc600353ab259795499 and
+publication_receipt.json/publication_closure.json provide actual publication outcome.
+Do not misinterpret the prefix as full publication evidence or overwrite the bundle.
+Fresh postpublication disk162184736768B (~151.046GiB), above150GiB start floor;
+do NOT repeat old cleanup lists. Fresh per-job growth/resource gate still required.
+NEXT W2 ServerlessLLM/common-reference baseline preparation using sealed D553 map,
+same native frozen configuration and existing W1 adaptation/qualification evidence.
+No code/config/launch for this next experiment yet. Do not repeat HydraServe base
+adaptation, change unrelated k3s or tune baseline performance. All fullscope below
+ACTIVE; W2 PrimeLoRA89.55% is not G1/G2 closure. Postpush status delta reserved for
+next meaningful checkpoint, not an extra status-only backup.
+
+The following terminal notes retain result evidence; their publication-next step
+is superseded by the completed checkpoint above:
 
 D554 TERMINAL/AUDIT COMPLETE: no live inference, remote or analysis job remains.
 Read D554_FULL_W2_RESULT.md. All4000 native-binding responses/458224tokens/0fail;
