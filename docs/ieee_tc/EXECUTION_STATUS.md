@@ -1,4 +1,4 @@
-# IEEE TC execution status — D547 targeted storage complete; resume PrimeLoRA mainline
+# IEEE TC execution status — D548 W1 capacity diagnosis complete; PrimeLoRA optimization next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,50 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D548 UPDATE: retained D533 W1 violation/stage/capacity analysis COMPLETE;
+read D548_W1_VIOLATION_CAPACITY.md. No new GPU run, production change or baseline
+tuning. All4000 rows match sealed timing means/3749joint/3788TTFT/3950TPOT;
+251jointviolations=201TTFTonly+39TPOTonly+11both. Only33requests arrived before
+initialready, allfailed;218violations arrived afterready. Initialready isbusiness
++42.644557s, NOT90.499551minus60: initialtrigger occursbusiness−47.854994s.
+Keep trigger-to-ready90.499551 and actualarrivalclock separate.
+Ready-after218violations:meanTTFT8402.023ms,gateacquire-to-resume5756.270ms;
+descriptive notremovableoverhead. First1000=204violations,later3000=47.
+36/1036control samples have unresumedacquire;13definiteownershipcoverscapacity.
+Atbusiness+73.806546:capacity14/definite14/waiting35/pending3. No evidence for
+missing-wakeup patch; FIFO ownership alreadyfixed. Both early phase gatewaits
+almost entirely overlapactualstartup, correlationnotcausation.
+ArrivalmeanheldGPUs3.692953,fourcardwall1642.063214s; fullU8145.351609 unchanged.
+All six published-system W1 points remain below95%; noG1/G2/referenceclosure.
+
+Next candidate hypothesis IDENTIFIED, NOTIMPLEMENTED: IEEE preload awaits first
+initialready before continuous control starts, despite already-observed arrivals.
+Paper§3.1 does not require ready before queue-driven max-score scaling; pure
+IEEEReplicaControl supports ready0/capacity0. Verify safe separation of control
+from initialruntime wait using existing initial-lifecycle tests, pendingownership,
+actualingress and same2s cadence; no futuretrace/pending-as-ready/hardcodedextra
+replica, state reset or nineformula/config/SLO change. If unsupported, reject;
+do not bypass qualification or declare expected performance gain. This one
+hypothesis doesn't explain all secondphase/laterfailures or guarantee lowerU.
+HistoryD466/D530/D533, currentFIFO/nativeasync/CPUfrontend implementations,
+IEEE source and officialLlumnix/vLLM0.30docs/source checked. Do not redo existing
+FIFO, CPUimport/preparation, metadataD529, batch/queue threshold sweeps.
+
+D548analysis scopes actualemptyclosed/pathgone,peak869048320/88825856B,
+high/max/OOM/kill/swap0. CurationDONE,40CPUtestsPASS0.459s,evidence1763230B,
+source/archive/protected147/userdirtchecksPASS; actualcurationscopeclosed/pathgone.
+RAW originalresults/ieee_tc/main_comparison/d548_20261015;
+curated main_comparison/d548_w1_violation_capacity. No live model/remotejob.
+NEXT explicit tested evidence checkpoint/push, then candidate lifecycle validation.
+Do not repeat D548analysis/tests/curation, D547cleanup, D546performance/publication.
+FullPLAN/status/V1/V2/latestuser rules fullyread aftercompaction; fullscopeACTIVE.
+
+D547publication AUTHORITATIVE: d7d3f7188e4daaa076f16efaa2dff8a271bf8ffa
+PUSHED/remoteequal,11explicitfiles,publicationactualemptyclosed/pathgone,
+peak28020736B/events0/swap0. BASEbde2154unchanged/pushed. No repeatbackup.
+
+The following D547/D546 notes are historical, superseded by D548 above:
 
 LATEST D547 UPDATE: targeted closed D536 duplicate-cache reclamation COMPLETE.
 Read D547_TARGETED_CACHE_RECLAIM.md. Only/tmp/tc-d536-7bv/remote_artifacts/objects,

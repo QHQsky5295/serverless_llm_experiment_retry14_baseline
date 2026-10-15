@@ -1,0 +1,686 @@
+{
+  "passed": true,
+  "kind": "d548_retained_w1_capacity_context_v1",
+  "new_gpu_run": false,
+  "causal_attribution_established": false,
+  "split": {
+    "kind": "retained_dispatch_gate_split_v1",
+    "count": 4000,
+    "metrics": {
+      "pre_acquire_ms": {
+        "count": 4000,
+        "sum": 707335.6485373806,
+        "mean": 176.83391213434516,
+        "p95_type1": 124.12751512601972,
+        "p99_type1": 1054.3726300820708,
+        "maximum": 42963.94443884492
+      },
+      "acquire_to_resume_ms": {
+        "count": 4000,
+        "sum": 1570385.3618602734,
+        "mean": 392.59634046506835,
+        "p95_type1": 324.3976100347936,
+        "p99_type1": 13861.897218972445,
+        "maximum": 28090.16269003041
+      },
+      "dispatch_window_wait_ms": {
+        "count": 4000,
+        "sum": 2277721.010397654,
+        "mean": 569.4302525994135,
+        "p95_type1": 1575.7870820816606,
+        "p99_type1": 22873.10849200003,
+        "maximum": 42963.9752227813
+      },
+      "runtime_slot_wait_ms": {
+        "count": 4000,
+        "sum": 1197666.5603583679,
+        "mean": 299.41664008959197,
+        "p95_type1": 880.813776049763,
+        "p99_type1": 1713.140597101301,
+        "maximum": 4638.760352041572
+      },
+      "pre_acquire_startup_overlap_ms": {
+        "count": 4000,
+        "sum": 575801.5586638357,
+        "mean": 143.95038966595894,
+        "p95_type1": 11.194308986887336,
+        "p99_type1": 195.80668513663113,
+        "maximum": 42635.8791438397
+      },
+      "acquire_to_resume_startup_overlap_ms": {
+        "count": 4000,
+        "sum": 1570168.9738084096,
+        "mean": 392.5422434521024,
+        "p95_type1": 324.3976100347936,
+        "p99_type1": 13861.897218972445,
+        "maximum": 28090.16269003041
+      }
+    },
+    "max_identity_error_ms": 0.0,
+    "n_correct": null,
+    "formal_qualification": false,
+    "confidence_interval": null,
+    "caveats": [
+      "Pre-acquire includes controller task scheduling/yield; it is not permit saturation.",
+      "Acquire-to-resume combines permit availability and callback/task resumption.",
+      "Grant can precede resumed timestamp; release lies between native completion and terminal.",
+      "These boundaries cannot reconstruct exact permit ownership or the live gate limit.",
+      "Startup overlap is an interval union, not CPU attribution or a causal effect.",
+      "Each source is one development run; timing/binding is not numerical qualification."
+    ]
+  },
+  "context": {
+    "kind": "sampled_dispatch_capacity_bounds_v1",
+    "samples": 1036,
+    "samples_with_unresumed_acquire": 36,
+    "waiting_samples_capacity_definitely_covered": 13,
+    "peak_unresumed_acquire": 35,
+    "caveat": "Sample-time capacity coverage, not an exact full-interval cause or GPU occupancy."
+  },
+  "phases": [
+    {
+      "phase": 0,
+      "first_arrival_s": 0.0,
+      "last_arrival_s": 305.3087329864502,
+      "count": 500,
+      "joint_misses": 91,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 2375.316993211396,
+        "p50_type1": 0.06758002564311028,
+        "p95_type1": 18982.396932085976
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 2375.262678496074,
+        "p50_type1": 0.0,
+        "p95_type1": 18982.396932085976
+      },
+      "control_samples": 128,
+      "waiting_samples": 21,
+      "definitely_full_samples": 13,
+      "peak_wait_sample": {
+        "offset_s": 73.80654616118409,
+        "queue": 35,
+        "active": 14,
+        "capacity": 14,
+        "pending": 3,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 41183.01506200805,
+        "all_low": false,
+        "definitely_owned": 14,
+        "possibly_owned": 49,
+        "acquire_not_yet_resumed": 35,
+        "capacity_covered_by_definite_owners": true
+      }
+    },
+    {
+      "phase": 1,
+      "first_arrival_s": 335.3087329864502,
+      "last_arrival_s": 567.351803779602,
+      "count": 500,
+      "joint_misses": 113,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 765.1149197556078,
+        "p50_type1": 0.07121404632925987,
+        "p95_type1": 3973.1505180243403
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 765.0752691207454,
+        "p50_type1": 0.0,
+        "p95_type1": 3973.1505180243403
+      },
+      "control_samples": 112,
+      "waiting_samples": 15,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 404.83235648600385,
+        "queue": 24,
+        "active": 27,
+        "capacity": 28,
+        "pending": 2,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 2265.402985038236,
+        "all_low": false,
+        "definitely_owned": 25,
+        "possibly_owned": 51,
+        "acquire_not_yet_resumed": 23,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 2,
+      "first_arrival_s": 597.351803779602,
+      "last_arrival_s": 823.0237140655518,
+      "count": 500,
+      "joint_misses": 1,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.05593592440709472,
+        "p50_type1": 0.05195708945393562,
+        "p95_type1": 0.08721603080630302
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 109,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 598.5627883840352,
+        "queue": 0,
+        "active": 6,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 4572.744270553812,
+        "all_low": false,
+        "definitely_owned": 5,
+        "possibly_owned": 6,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 3,
+      "first_arrival_s": 853.0237140655518,
+      "last_arrival_s": 1038.3466024398804,
+      "count": 500,
+      "joint_misses": 12,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.056684133131057024,
+        "p50_type1": 0.053162919357419014,
+        "p95_type1": 0.0896540004760027
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 90,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 854.4899470750242,
+        "queue": 0,
+        "active": 3,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 1583.276879740879,
+        "all_low": true,
+        "definitely_owned": 3,
+        "possibly_owned": 3,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 4,
+      "first_arrival_s": 1068.3466024398804,
+      "last_arrival_s": 1250.0487279891968,
+      "count": 500,
+      "joint_misses": 11,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.057737743481993675,
+        "p50_type1": 0.057653989642858505,
+        "p95_type1": 0.08964189328253269
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 88,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 1068.7180688260123,
+        "queue": 0,
+        "active": 3,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 2125.4237750545144,
+        "all_low": true,
+        "definitely_owned": 3,
+        "possibly_owned": 3,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 5,
+      "first_arrival_s": 1280.0487279891968,
+      "last_arrival_s": 1491.0459938049316,
+      "count": 500,
+      "joint_misses": 9,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.05726379109546542,
+        "p50_type1": 0.05489611066877842,
+        "p95_type1": 0.09017600677907467
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 101,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 1281.9234136801679,
+        "queue": 0,
+        "active": 5,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 1502.5127660483122,
+        "all_low": true,
+        "definitely_owned": 5,
+        "possibly_owned": 5,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 6,
+      "first_arrival_s": 1521.0459938049316,
+      "last_arrival_s": 1781.4104347229004,
+      "count": 500,
+      "joint_misses": 9,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.05487963231280446,
+        "p50_type1": 0.04912796430289745,
+        "p95_type1": 0.08791615255177021
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 125,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 1522.3116316702217,
+        "queue": 2,
+        "active": 7,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 2852.2232151590288,
+        "all_low": false,
+        "definitely_owned": 8,
+        "possibly_owned": 8,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    {
+      "phase": 7,
+      "first_arrival_s": 1811.4104347229004,
+      "last_arrival_s": 2186.9921293258667,
+      "count": 500,
+      "joint_misses": 5,
+      "gate_wait_ms": {
+        "count": 500,
+        "mean": 0.05630952911451459,
+        "p50_type1": 0.05126814357936382,
+        "p95_type1": 0.08675199933350086
+      },
+      "startup_overlap_ms": {
+        "count": 500,
+        "mean": 0.0,
+        "p50_type1": 0.0,
+        "p95_type1": 0.0
+      },
+      "control_samples": 180,
+      "waiting_samples": 0,
+      "definitely_full_samples": 0,
+      "peak_wait_sample": {
+        "offset_s": 1812.0072734940331,
+        "queue": 0,
+        "active": 1,
+        "capacity": 56,
+        "pending": 0,
+        "action": "no_action",
+        "outcome": "no_action",
+        "p95_ttft_ms": 2250.0369648914784,
+        "all_low": true,
+        "definitely_owned": 1,
+        "possibly_owned": 1,
+        "acquire_not_yet_resumed": 0,
+        "capacity_covered_by_definite_owners": false
+      }
+    }
+  ],
+  "activations": [
+    {
+      "activation_id": "ieee-activation-c7f2ef0029004cd0af7faf17b36b61d2",
+      "target_replica": "ieee-activation-c7f2ef0029004cd0af7faf17b36b61d2",
+      "category": "initial",
+      "policy": "full",
+      "trigger_at": 1512428.592301172,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "68add622c94b73ef4d2a170e211bfe2282f89e39a8b21fc194614b925516866c",
+      "preparation_state": "completed",
+      "preparation_terminal_at": 1512441.132954671,
+      "engine_ready_at": 1512519.091852092,
+      "native_owner_id": "9bf446535ca0477095dfee48ea4a6ef2",
+      "trigger_offset_s": -47.85499376291409,
+      "engine_ready_offset_s": 42.64455715706572
+    },
+    {
+      "activation_id": "ieee-activation-55981694b7034c4bb20a893e16a52fef",
+      "target_replica": "ieee-activation-55981694b7034c4bb20a893e16a52fef",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 1512519.419917387,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "1c6d1cf535632da3f444e654523ee12ce3c77836334f709468ca6da8b90aa922",
+      "preparation_state": "completed",
+      "preparation_terminal_at": 1512526.320679085,
+      "engine_ready_at": 1512557.317010598,
+      "native_owner_id": "c398e3a707ee40f291730200c2128008",
+      "trigger_offset_s": 42.97262245207094,
+      "engine_ready_offset_s": 80.86971566313878
+    },
+    {
+      "activation_id": "ieee-activation-e08670a84a914c4db78f66df7e32d4ed",
+      "target_replica": "ieee-activation-e08670a84a914c4db78f66df7e32d4ed",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 1512521.394978401,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "d2b22f2801561b8e17ced9653f55f59120c8b86f2e0c48facbb77f3a6fa62ba6",
+      "preparation_state": "failed",
+      "engine_ready_at": 1512561.703088967,
+      "native_owner_id": "dc4f3c50368e4687a1f4be6c8d3e7b1d",
+      "preparation_error": "PreparationPlanSuperseded",
+      "preparation_terminal_at": 1512564.538509601,
+      "trigger_offset_s": 44.94768346613273,
+      "engine_ready_offset_s": 85.25579403201118
+    },
+    {
+      "activation_id": "ieee-activation-5f831916eb164fd08f633f37ed40ba9c",
+      "target_replica": "ieee-activation-5f831916eb164fd08f633f37ed40ba9c",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 1512523.456178966,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "11ef4a5df1277b600f64c36d055b5c19fae44808f59dd9cdaa067b71f01cfff9",
+      "preparation_state": "failed",
+      "engine_ready_at": 1512563.409857947,
+      "native_owner_id": "912dae5e015c47a0a7d4caa6947fdd1c",
+      "preparation_error": "PreparationPlanSuperseded",
+      "preparation_terminal_at": 1512565.100238159,
+      "trigger_offset_s": 47.00888403109275,
+      "engine_ready_offset_s": 86.96256301202811
+    },
+    {
+      "activation_id": "ieee-activation-ec6edc94c7ac40c3b557b948cb557fa8",
+      "target_replica": "ieee-activation-ec6edc94c7ac40c3b557b948cb557fa8",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 1512875.243016807,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "ed841611e5b6544470f0e1458120459e681b995929bde1f7807d634bd66442d4",
+      "preparation_state": "completed",
+      "engine_ready_at": 1512911.722077583,
+      "native_owner_id": "081131c758bb40a289cb10d203264fd1",
+      "preparation_terminal_at": 1512964.889929572,
+      "trigger_offset_s": 398.7957218720112,
+      "engine_ready_offset_s": 435.27478264807723
+    },
+    {
+      "activation_id": "ieee-activation-6c7b31d75dbb428983915c17aacfd920",
+      "target_replica": "ieee-activation-6c7b31d75dbb428983915c17aacfd920",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 1512877.308161293,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "runtime_ready",
+      "plan_sha256": "c9f07d4ba59c9b7a1a10f899b49f460e533a700601bd424240798ccef8642c55",
+      "preparation_state": "completed",
+      "engine_ready_at": 1512915.197213229,
+      "native_owner_id": "11a9ecfa934d4a029fde8eb6768e9bc2",
+      "preparation_terminal_at": 1512959.936031335,
+      "trigger_offset_s": 400.86086635803804,
+      "engine_ready_offset_s": 438.7499182941392
+    }
+  ],
+  "control_actions": [
+    {
+      "offset_s": 42.91022782609798,
+      "queue": 33,
+      "active": 0,
+      "capacity": 14,
+      "pending": 0,
+      "action": "scale_up",
+      "outcome": "activation_scheduled",
+      "p95_ttft_ms": null,
+      "all_low": false,
+      "definitely_owned": 0,
+      "possibly_owned": 0,
+      "acquire_not_yet_resumed": 0,
+      "capacity_covered_by_definite_owners": false
+    },
+    {
+      "offset_s": 44.9362965200562,
+      "queue": 21,
+      "active": 14,
+      "capacity": 14,
+      "pending": 1,
+      "action": "scale_up",
+      "outcome": "activation_scheduled",
+      "p95_ttft_ms": null,
+      "all_low": false,
+      "definitely_owned": 14,
+      "possibly_owned": 35,
+      "acquire_not_yet_resumed": 21,
+      "capacity_covered_by_definite_owners": true
+    },
+    {
+      "offset_s": 46.992528276052326,
+      "queue": 24,
+      "active": 14,
+      "capacity": 14,
+      "pending": 2,
+      "action": "scale_up",
+      "outcome": "activation_scheduled",
+      "p95_ttft_ms": null,
+      "all_low": false,
+      "definitely_owned": 14,
+      "possibly_owned": 38,
+      "acquire_not_yet_resumed": 24,
+      "capacity_covered_by_definite_owners": true
+    },
+    {
+      "offset_s": 246.71421084320173,
+      "queue": 0,
+      "active": 10,
+      "capacity": 56,
+      "pending": 0,
+      "action": "scale_down",
+      "outcome": "drained_replica_retired",
+      "p95_ttft_ms": 2031.5297518391162,
+      "all_low": true,
+      "definitely_owned": 10,
+      "possibly_owned": 10,
+      "acquire_not_yet_resumed": 0,
+      "capacity_covered_by_definite_owners": false
+    },
+    {
+      "offset_s": 347.59475124208257,
+      "queue": 0,
+      "active": 9,
+      "capacity": 42,
+      "pending": 0,
+      "action": "scale_down",
+      "outcome": "drained_replica_retired",
+      "p95_ttft_ms": 1440.4520657844841,
+      "all_low": true,
+      "definitely_owned": 9,
+      "possibly_owned": 9,
+      "acquire_not_yet_resumed": 0,
+      "capacity_covered_by_definite_owners": false
+    },
+    {
+      "offset_s": 398.752419030061,
+      "queue": 0,
+      "active": 21,
+      "capacity": 28,
+      "pending": 0,
+      "action": "scale_up",
+      "outcome": "activation_scheduled",
+      "p95_ttft_ms": 1362.2602918185294,
+      "all_low": false,
+      "definitely_owned": 21,
+      "possibly_owned": 21,
+      "acquire_not_yet_resumed": 0,
+      "capacity_covered_by_definite_owners": false
+    },
+    {
+      "offset_s": 400.8165570551064,
+      "queue": 15,
+      "active": 27,
+      "capacity": 28,
+      "pending": 1,
+      "action": "scale_up",
+      "outcome": "activation_scheduled",
+      "p95_ttft_ms": 1497.951181139797,
+      "all_low": false,
+      "definitely_owned": 25,
+      "possibly_owned": 42,
+      "acquire_not_yet_resumed": 14,
+      "capacity_covered_by_definite_owners": false
+    },
+    {
+      "offset_s": 1818.1830106941052,
+      "queue": 0,
+      "active": 9,
+      "capacity": 56,
+      "pending": 0,
+      "action": "scale_down",
+      "outcome": "drained_replica_retired",
+      "p95_ttft_ms": 2250.0369648914784,
+      "all_low": true,
+      "definitely_owned": 9,
+      "possibly_owned": 9,
+      "acquire_not_yet_resumed": 0,
+      "capacity_covered_by_definite_owners": false
+    }
+  ],
+  "peak_wait_sample": {
+    "offset_s": 73.80654616118409,
+    "queue": 35,
+    "active": 14,
+    "capacity": 14,
+    "pending": 3,
+    "action": "no_action",
+    "outcome": "no_action",
+    "p95_ttft_ms": 41183.01506200805,
+    "all_low": false,
+    "definitely_owned": 14,
+    "possibly_owned": 49,
+    "acquire_not_yet_resumed": 35,
+    "capacity_covered_by_definite_owners": true
+  },
+  "longest_wait": {
+    "request_id": "req_00040",
+    "instance_id": "ieee-activation-c7f2ef0029004cd0af7faf17b36b61d2",
+    "arrival_offset_s": 47.249667167663574,
+    "released_offset_s": 47.36873199813999,
+    "acquire_offset_s": 47.38540828716941,
+    "gate_resumed_offset_s": 75.47557097719982,
+    "runtime_admitted_offset_s": 75.97169246315025,
+    "native_completed_offset_s": 78.10021942015737,
+    "terminal_offset_s": 78.73918176908046,
+    "pre_acquire_ms": 16.676289029419422,
+    "acquire_to_resume_ms": 28090.16269003041,
+    "dispatch_window_wait_ms": 28106.83897905983,
+    "runtime_slot_wait_ms": 496.12148595042527,
+    "pre_acquire_startup_overlap_ms": 16.676289029419422,
+    "acquire_to_resume_startup_overlap_ms": 28090.16269003041,
+    "source_order": 40,
+    "phase": 0,
+    "ttft_pass": false,
+    "tpot_pass": true,
+    "joint_pass": false,
+    "ttft_ms": 29973.39856950566
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/7b_full_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d533_7b_full_w1.json",
+      "sha256": "35ed3fe26978d739d7b10bc80570b9939a03d0559ba4ccd77b0761b84e1b38bc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/7b_full_w1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "b1a511233ebeba22cfec96f16ab1eeb2f8e953fba1d7ae4992eeda743ade987a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/7b_full_w1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "9abc033c4f333a444b757a09a576a8900e5de05ace755c186f82f2b780764696"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/requests.jsonl",
+      "sha256": "9bddd48061fd35d961e5ef5097a65927e9790d27ab4f9ff7c33677352867d660"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/controls.jsonl",
+      "sha256": "184e1d7aee1d96ee9c4b64852ba5604ec23290fe842a4e2f4f154df6ce5f8c57"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/gate_requests.json",
+      "sha256": "967a0aaa318bb3fee2f8b85976ff248a5edbb5bf1e0848b780529f004b5555ac"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/capacity_samples.json",
+      "sha256": "c4d61fa7e85c66fe7208d48b6cf2f34e2e76cddd00dc64f0a6bdafc1122041bb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/analyze_context.py",
+      "sha256": "b3cf154ceb81e4b902be5a4195598505f7b581c9f73644ca76cad5163bad193d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d548_20261015/summary.json",
+      "sha256": "c1cdddc476be4dfe2df3a0480d879e99405493d0cd16404962be34593aca87e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "6ebc923d59cbc3a44e51363d8461dab70bf1a9ea2c3d994072e6397cf1018fd7"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d5480000000000000000000000000002.scope",
+    "invocation_id": "66d0c9e5903e440d96e2825f7bad877a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5480000000000000000000000000002.scope",
+    "inode": 25480723
+  }
+}
