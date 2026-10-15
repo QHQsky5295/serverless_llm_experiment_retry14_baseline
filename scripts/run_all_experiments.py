@@ -21089,12 +21089,12 @@ def _load_shared_trace_requests(
     if not request_items:
         raise ValueError(f"shared trace artifact has no requests: {path}")
 
-    if external_replay is not None and external_replay.plan.profile == 'ADAPTER_COVERAGE_V1':
+    if external_replay is not None and external_replay.plan.profile in ('ADAPTER_COVERAGE_V1', 'W2'):
         plan = external_replay.plan
         plan.validate_launch_context(external_replay.context, formal_run=formal_run)
         if (str(path) != plan.path or _sha256_file(path) != plan.source_sha256
                 or len(request_items) != plan.source_count):
-            raise ValueError('coverage source differs from the guarded replay view')
+            raise ValueError('adapter-derived source differs from the guarded replay view')
         # The independently published derived rows, not the original hot-set
         # mapping, also own service routing and physical request accounting.
         request_items = [json.loads(entry.source_json) for entry in plan.entries]
@@ -21165,7 +21165,7 @@ def _load_shared_trace_requests(
         plan = external_replay.plan
         scope = plan.validate_launch_context(external_replay.context, formal_run=formal_run)
         if (str(path) != plan.path or _sha256_file(path) != plan.source_sha256
-                or len(traces) != (len(plan.entries) if plan.profile == 'ADAPTER_COVERAGE_V1'
+                or len(traces) != (len(plan.entries) if plan.profile in ('ADAPTER_COVERAGE_V1', 'W2')
                                    else plan.source_count)):
             raise ValueError('shared trace source differs from the guarded replay view')
         if scope == 'diagnostic_prefix_v1':

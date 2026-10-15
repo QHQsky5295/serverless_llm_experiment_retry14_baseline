@@ -63,7 +63,8 @@ class FrozenReplayEntry:
 class FrozenReplayPlan:
     """Read-only view of an existing trace; never generates requests or weights.
 
-    W1 changes only the arrival index by the approved formula. Prefix/rate
+    W1 changes only the arrival index; W2 binds a frozen adapter-only index.
+    Neither profile regenerates prompts, targets or weights. Prefix/rate
     options are explicit diagnostic views, not new independent trace seeds.
     """
     path: str
@@ -74,10 +75,20 @@ class FrozenReplayPlan:
     source_count: int
     coverage_pool_index: Optional[str] = None
     coverage_pool_index_sha256: Optional[str] = None
+    adapter_map: Optional[str] = None
+    adapter_map_sha256: Optional[str] = None
 
     @classmethod
     def load(cls, path, *, profile='W0', count=None, rate_scale=1.0,
-             coverage_pool_index=None, coverage_pool_index_sha256=None):
+             coverage_pool_index=None, coverage_pool_index_sha256=None,
+             adapter_map=None, adapter_map_sha256=None):
+        if profile == 'W2':
+            if (rate_scale != 1. or (count is not None and (type(count) is not int or count != 4000))
+                    or coverage_pool_index is not None or coverage_pool_index_sha256 is not None):
+                raise ValueError('W2 requires the complete unscaled 4000-request source')
+            return cls.load(path).with_adapter_rotation(adapter_map, adapter_map_sha256)
+        if adapter_map is not None or adapter_map_sha256 is not None:
+            raise ValueError('adapter map requires the explicit W2 profile')
         if profile == 'ADAPTER_COVERAGE_V1':
             if type(count) is not int or count != 500 or rate_scale != 1.:
                 raise ValueError('coverage requires the unscaled 500-request functional view')
@@ -119,6 +130,76 @@ class FrozenReplayPlan:
                            hashlib.sha256(canonical.encode()).hexdigest()))
         return cls(str(source), hashlib.sha256(raw).hexdigest(), tuple(entries),
                    profile, rate_scale, len(rows))
+
+    def with_adapter_rotation(self, adapter_map, adapter_map_sha256):
+        """Replay the audited source ranks with rotation100 instead of rotation500.
+
+        Only adapter identity/domain changes. The source's observed local ranks,
+        48-ID window and stride12 (75% overlap) stay fixed. The immutable map is
+        verified against the entire original trace and existing pool, not trusted
+        as an arbitrary replacement workload. This is input preparation, never
+        an online demand forecast or a prefetch instruction.
+        """
+        if (self.profile != 'W0' or self.source_count != 4000
+                or len(self.entries) != 4000 or self.rate_scale != 1.
+                or not adapter_map or not adapter_map_sha256):
+            raise ValueError('W2 requires its frozen adapter map and complete original source')
+        path = Path(adapter_map).resolve(strict=True)
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != adapter_map_sha256:
+            raise ValueError('W2 adapter map changed')
+        mapping = json.loads(raw)
+        required = dict(schema='rank_preserving_hotset_rotation_v1', source_count=4000,
+            source_sha256=self.source_sha256, source_w0_view_sha256=self.identity()['view_sha256'],
+            source_rotation_requests=500, target_rotation_requests=100, active_adapter_cap=48,
+            rotation_stride=12, adjacent_hotset_overlap_fraction=.75)
+        if (any(mapping.get(key) != value for key, value in required.items())
+                or mapping.get('source_path') != self.path):
+            raise ValueError('W2 map source or rotation contract differs')
+        source_raw = Path(self.path).read_bytes()
+        if hashlib.sha256(source_raw).hexdigest() != self.source_sha256:
+            raise ValueError('W2 source changed during view construction')
+        selected = json.loads(source_raw).get('selected_adapters', [])
+        ids = [row.get('id') for row in selected]
+        if (len(ids) != 500 or any(not isinstance(aid, str) or not aid for aid in ids)
+                or len(set(ids)) != 500 or mapping.get('adapter_order') != ids
+                or any(row.get('manifest_index') != i for i, row in enumerate(selected))):
+            raise ValueError('W2 requires the original ordered 500-adapter selection')
+        pool_raw = Path(mapping['pool_index']).read_bytes()
+        pool_ids = [row['id'] for row in json.loads(pool_raw)['artifacts']]
+        if (hashlib.sha256(pool_raw).hexdigest() != mapping.get('pool_index_sha256')
+                or len(pool_ids) != 500 or set(pool_ids) != set(ids)):
+            raise ValueError('W2 frozen pool differs from original adapter selection')
+        mapped = mapping.get('rows', [])
+        if len(mapped) != len(self.entries):
+            raise ValueError('W2 map must bind every original request exactly once')
+        positions = {aid: i for i, aid in enumerate(ids)}
+        entries = []
+        for ordinal, (entry, item) in enumerate(zip(self.entries, mapped)):
+            row = json.loads(entry.source_json)
+            old = row.get('adapter_id')
+            if (old not in positions or 'tc_adapter_coverage' in row or 'tc_adapter_rotation' in row
+                    or row.get('body', {}).get('lora_adapter_name') != old):
+                raise ValueError('W2 source is not an original consistently adapter-bound request')
+            rank = (positions[old]-12*(ordinal//500)) % 500
+            target = (rank+12*(ordinal//100)) % 500
+            aid = ids[target]
+            expected = dict(request_id=entry.request_id, source_item_sha256=entry.source_sha256,
+                original_adapter_id=old, adapter_id=aid, local_rank=rank)
+            if rank >= 48 or item != expected:
+                raise ValueError('W2 map does not preserve the original hot-window rank')
+            row['tc_adapter_rotation'] = dict(contract=mapping['schema'], ordinal=ordinal,
+                original_source_item_sha256=entry.source_sha256, original_adapter_id=old,
+                original_adapter_domain=row.get('adapter_domain'), adapter_map_sha256=adapter_map_sha256)
+            row['adapter_id'] = aid
+            row['body']['lora_adapter_name'] = aid
+            if 'adapter_domain' in row:
+                row['adapter_domain'] = selected[target].get('domain')
+            canonical = json.dumps(row, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+            entries.append(replace(entry, source_json=canonical,
+                source_sha256=hashlib.sha256(canonical.encode()).hexdigest()))
+        return replace(self, entries=tuple(entries), profile='W2', adapter_map=str(path),
+                       adapter_map_sha256=adapter_map_sha256)
 
     def with_adapter_coverage(self, pool_index, pool_index_sha256):
         """Same immutable view as the existing HTTP baseline qualification.
@@ -163,6 +244,8 @@ class FrozenReplayPlan:
         if self.coverage_pool_index is not None:
             identity.update(coverage_pool_index=self.coverage_pool_index,
                             coverage_pool_index_sha256=self.coverage_pool_index_sha256)
+        if self.adapter_map is not None:
+            identity.update(adapter_map=self.adapter_map, adapter_map_sha256=self.adapter_map_sha256)
         return identity
 
     def validate_launch_context(self, context, *, formal_run=False):
@@ -197,7 +280,9 @@ class FrozenReplayPlan:
         plan = cls.load(context['plan']['source_path'],
                         profile=context['plan']['profile'], count=count,
                         coverage_pool_index=context['plan'].get('coverage_pool_index'),
-                        coverage_pool_index_sha256=context['plan'].get('coverage_pool_index_sha256'))
+                        coverage_pool_index_sha256=context['plan'].get('coverage_pool_index_sha256'),
+                        adapter_map=context['plan'].get('adapter_map'),
+                        adapter_map_sha256=context['plan'].get('adapter_map_sha256'))
         plan.validate_launch_context(context, formal_run=formal_run)
         return plan
 
@@ -255,13 +340,16 @@ def prepare_frozen_http_request(entry, tokenizer, model):
         raise ValueError('frozen request requires positive integer target and explicit adapter')
     target = min(expected, 256)
     prepared = canonical_fixed_prompt(render_role_lines(row['body']['messages']), tokenizer, target)
-    return dict(request_id=entry.request_id, source_item_sha256=entry.source_sha256,
+    result = dict(request_id=entry.request_id, source_item_sha256=entry.source_sha256,
                 adapter_id=row['adapter_id'], target_tokens=target, **prepared,
                 body=dict(model=model, request_id=entry.request_id,
                           input_tokens=prepared['input_token_ids'],
                           lora_adapter_name=row['adapter_id'], max_tokens=target,
                           temperature=0, top_p=1, ignore_eos=True, stop=[], stop_token_ids=[],
                           stream=False))
+    if 'tc_adapter_rotation' in row:
+        result['tc_adapter_rotation'] = row['tc_adapter_rotation']
+    return result
 
 
 async def replay_frozen_http(plan, origin, prepared, send, emit, *, request_timeout_s=1800.):

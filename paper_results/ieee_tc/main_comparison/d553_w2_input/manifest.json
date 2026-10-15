@@ -1,0 +1,209 @@
+{
+  "passed": true,
+  "tests": 386,
+  "baseline_checkpoint": {
+    "head": "aff60bb210c6d1fb9ce94534c5ef37521976bc0a",
+    "remote_equal": true,
+    "files": [
+      "scripts/prepare_ieee_tc_serverless_stack.py",
+      "tests/test_ieee_tc_serverless_measurement.py",
+      "docs/ieee_tc/D553_W2_REPLAY_VIEW.md"
+    ]
+  },
+  "qualification_sha256": "1e5f62dac7b1cb9e94f9b37a8b56e232a58069ac47513e36441751921a5fdeb1",
+  "archive_sha256": "fdab11594f3301a888ae0d2214e2d1a6dbb50fd9572986d840b89791e49964ad",
+  "archive_members": {
+    "00_audit_map.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/audit_map.py",
+      "sha256": "8ad3e9c4cbea0ed30f5bac4d81b3208fb73a3e5199b1a6aaf40d52c2849c2908",
+      "bytes": 5683
+    },
+    "01_audit_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/audit_identity.json",
+      "sha256": "a3bccf5edfa13438153b5fce0792d6d9cd8883757d517feada98b990b1ce072e",
+      "bytes": 286
+    },
+    "02_audit_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/audit_closure.json",
+      "sha256": "5aff29100c0c7f348160093d068f0894b5f23424eefdca089c3f5c6b2b2ff8ca",
+      "bytes": 647
+    },
+    "03_qualify.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualify.py",
+      "sha256": "ea03990d4d3464336463f0ce6461472fe3f8e686f2d20bb210442ad995b194c0",
+      "bytes": 7491
+    },
+    "04_qualify2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualify2.py",
+      "sha256": "e4d1682752cc3edf32da714e6958bb1f85191c5103971125e8ff27587b79c940",
+      "bytes": 1320
+    },
+    "05_qualify3.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualify3.py",
+      "sha256": "3da8a5db7eae3d81d598494e51dabe4d0a51a984316865b6dbc53d33e8cdc6ff",
+      "bytes": 1350
+    },
+    "06_tests.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/tests.log",
+      "sha256": "403ca0501a9172a702a9b928858e89d8700bd0f96c1537ee0e751b6dd1ff2e24",
+      "bytes": 31893
+    },
+    "07_tests2.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/tests2.log",
+      "sha256": "f24a227b07758ea35726f9cdab75c26d1cca627418ad16ee2fc82d6a6bcaef6f",
+      "bytes": 31890
+    },
+    "08_tests3.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/tests3.log",
+      "sha256": "c97a0ea7e602fa72318887e1f361619807cd4ed9abb267175ac6a9ef3ae1919c",
+      "bytes": 81710
+    },
+    "09_qualification_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification_identity.json",
+      "sha256": "cc30a00c1bd6baf880d2cc80cceb131b1a788ee6cd45ab0b892b6cc0fcecce97",
+      "bytes": 286
+    },
+    "10_qualification2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification2_identity.json",
+      "sha256": "441701cd39275bc401d7d211b0885e646a9514148e9a8ee30d1d8495f56cd5de",
+      "bytes": 286
+    },
+    "11_qualification3_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification3_identity.json",
+      "sha256": "7e6272e5660bb2d0cb8ce43e11f9a8e460f36893352f3e840eabfd4516911534",
+      "bytes": 286
+    },
+    "12_qualification3_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification3_closure.json",
+      "sha256": "871462a62db37cefcb4c5dc3985e9febd00d3f01029ac3f2ef5140b7af3a3ba7",
+      "bytes": 648
+    },
+    "13_qualification3.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification3.json",
+      "sha256": "890ca09ad25c015a443801544a743f0329ba3b41b1b4730c57ac65ea5c56cb95",
+      "bytes": 12897
+    },
+    "14_qualification_failed_sources.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification_failed_sources.tar.gz",
+      "sha256": "eff4c066a70b37b8130e91c1f20ee7cf75260fd078ad1653bd36064a610b825e",
+      "bytes": 532376
+    },
+    "15_qualification2_failed_sources.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification2_failed_sources.tar.gz",
+      "sha256": "00d2c166fcff1df6d5b3623b17adb48e0f865287c5e66d78e584970e634bc2b7",
+      "bytes": 462762
+    },
+    "16_qualification2_failed_sources_attempt2.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification2_failed_sources_attempt2.tar.gz",
+      "sha256": "588a15d6e4d3662373930e8d1da6fe8b05dbc88cc6dd095956f459b68aaea21c",
+      "bytes": 532386
+    },
+    "17_qualification_failure_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification_failure_closure.json",
+      "sha256": "6cc374bc56fe7a6d9ab8318e60eed51795ab588bef4bb8a534a502e525a667d4",
+      "bytes": 733
+    },
+    "18_qualification2_failure_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/qualification2_failure_closure.json",
+      "sha256": "aed9eadf7ddbc14215ef3d28257e203b5e75f7b28496dbed6cb8db76db7ee5af",
+      "bytes": 733
+    },
+    "19_close_failed_qualification.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close_failed_qualification.py",
+      "sha256": "6e36e5b64a687ec563f126b6ec451b4638c021e4af27fa955cb5c104a29253e1",
+      "bytes": 2858
+    },
+    "20_close_failed_qualification2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close_failed_qualification2.py",
+      "sha256": "8132c3370457550765ada57e07c1894be1106332bb98eeab3d3da4d8f3392aec",
+      "bytes": 1490
+    },
+    "21_close_failed_qualification2b.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close_failed_qualification2b.py",
+      "sha256": "0eccc056d39df1313128836ed98a5529dc10997ef315e2ce12bfd4cee5e86864",
+      "bytes": 1887
+    },
+    "22_finish_failed_closure.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/finish_failed_closure.py",
+      "sha256": "12184c967a443143a90f269b763faaa09193892eee393735e9a7373ff906c982",
+      "bytes": 1141
+    },
+    "23_finish_failed_closure2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/finish_failed_closure2.py",
+      "sha256": "513f1105718fbfde35b91db0f3fbef2b4e86993b295ea424a85028cdb619b991",
+      "bytes": 489
+    },
+    "24_http_7b_4000.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/http_7b_4000.json",
+      "sha256": "b85ce0f644ba22d14de43322c76408f13df50d71daa70bf4349c362ac47df26e",
+      "bytes": 2048
+    },
+    "25_http_7b_4000_v2.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/http_7b_4000_v2.json",
+      "sha256": "b85ce0f644ba22d14de43322c76408f13df50d71daa70bf4349c362ac47df26e",
+      "bytes": 2048
+    },
+    "26_http_7b_4000_v3.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/http_7b_4000_v3.json",
+      "sha256": "b85ce0f644ba22d14de43322c76408f13df50d71daa70bf4349c362ac47df26e",
+      "bytes": 2048
+    },
+    "27_finalize_qualification.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/finalize_qualification.py",
+      "sha256": "bf5035e8c7cd34815cc4ef16549b253ea03c4abaacc5ba20155b195adc2df543",
+      "bytes": 4006
+    },
+    "28_contract_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/contract_identity.json",
+      "sha256": "09cf9bdf14d334e3e83a3540eea61e34b1f836da6a5df2e8c6d2bae828c0a49e",
+      "bytes": 286
+    },
+    "29_contract_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/contract_closure.json",
+      "sha256": "8f0d431682edff39ebcb6c1aa5f2545a0b26aeb1c4a843cf73e50ed5e788ab7e",
+      "bytes": 646
+    },
+    "30_system_guard_tests.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/system_guard_tests.log",
+      "sha256": "fb0bf22b01964091ae91c107b0d55fad9a0a1a1b0bb7536f6d7f5c063b8ec692",
+      "bytes": 519
+    },
+    "31_analysis_tests.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/analysis_tests.log",
+      "sha256": "8b5f69682a713cafd04986e17be3ee816dd9b9f92879dc8621dbdbf37221d80e",
+      "bytes": 484
+    },
+    "32_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close.py",
+      "sha256": "e224f57e53eb7b94bce75b4bf8454250ae48f5dcedb78f5e05d9a8aaac24eb79",
+      "bytes": 559
+    },
+    "33_close2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close2.py",
+      "sha256": "a2f26172cf9747be11511fd5983aba5bfaf247404dc2de6d3cd4fb1ab40c6ecd",
+      "bytes": 568
+    },
+    "34_close3.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close3.py",
+      "sha256": "3c0b430dc8e2f81b35f498443ec158a43d4803a94cd84f460be408af1ed224d1",
+      "bytes": 568
+    },
+    "35_close_contract.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/close_contract.py",
+      "sha256": "35ef8e5bea9a6502dcd165e313764d30a86a27ea0e0e2c6e6750fbf30ddc39ea",
+      "bytes": 571
+    },
+    "36_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d553_20261015/publish.py",
+      "sha256": "6ab6ac6e6f816b23020336b6a1ead4e960929dd4123f13a8b2ce1618ac739213",
+      "bytes": 5857
+    },
+    "37_backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d531_20261015/backup.py",
+      "sha256": "a4d4a812c4185358541980005a7e30847618b0d1ce8746b09827f9ffe25e4d03",
+      "bytes": 5745
+    }
+  },
+  "preparation_only": true,
+  "no_inference_started": true
+}

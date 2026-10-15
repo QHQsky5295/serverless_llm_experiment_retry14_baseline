@@ -419,6 +419,29 @@ class QualificationPopulationTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 validate_population(cfg, ready, contracts, native, name)
 
+    def test_full_w2_requires_map_and_per_request_rotation_provenance(self):
+        cfg, ready, contracts, native, plan = self.fixture(False,n=4000)
+        identity = dict(plan.identity(),profile='W2',view_sha256='w2-view',
+                        adapter_map='/frozen/map.json',adapter_map_sha256='map-sha')
+        cfg.update(adapter_map=identity['adapter_map'],adapter_map_sha256='map-sha')
+        plan.profile,plan.identity = 'W2',lambda: identity
+        for entry in plan.entries:
+            row = json.loads(entry.source_json)
+            row['tc_adapter_rotation'] = dict(adapter_map_sha256='map-sha',request=entry.request_id)
+            entry.source_json = json.dumps(row)
+            contracts[entry.request_id]['tc_adapter_rotation'] = row['tc_adapter_rotation']
+        ready = dict(plan=identity)
+        self.assertEqual(validate_population(cfg,ready,contracts,native,'full4000_w2'),4000)
+        for population in ('full4000','full4000_w1'):
+            with self.assertRaises(ValueError):
+                validate_population(cfg,ready,contracts,native,population)
+        for change in (dict(adapter_map=None),dict(adapter_map_sha256='wrong')):
+            with self.assertRaises(ValueError):
+                validate_population(dict(cfg,**change),ready,contracts,native,'full4000_w2')
+        contracts['r0'].pop('tc_adapter_rotation')
+        with self.assertRaisesRegex(ValueError,'rotation derivation'):
+            validate_population(cfg,ready,contracts,native,'full4000_w2')
+
     def test_full4000_cannot_be_prefix_scaled_or_different_profile(self):
         cfg, ready, contracts, native, plan = self.fixture(False, n=4000)
         original = plan.identity()

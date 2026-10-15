@@ -1,4 +1,4 @@
-# IEEE TC execution status — D552 storage complete, W2 next
+# IEEE TC execution status — D553 W2 input qualified, checkpoint next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,58 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D553 AUTHORITATIVE: full4000 offline W2 input/native-prompt/target and integrated
+PrimeLoRA/HTTP adapter binding PASS. 386 affected CPU methods:380 in existing
+CPU wrapper +4 system-Python watchdog +2 existing ijson analysis methods, no skips.
+qualification_final.json SHA1e5f62dac7b1cb9e94f9b37a8b56e232a58069ac47513e36441751921a5fdeb1.
+W2 view5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7,
+4000requests/497IDs/458224targets; existing source/weights untouched. Read D553 doc.
+Both incomplete first attempts and third environment-only errors retained, source
+unchanged throughout retries; no inference or performance repeat. Main test scope
+peak2898542592B, supplement75853824B, all high/max/OOM/swap0, actual recursive-empty/
+closed/path-gone. Failed scopes separately actually stopped/path-gone, not normal
+empty closure. No live local GPU/remote/test job remains.
+NEXT explicit two-repository checkpoint using prepared RAW publish.py, then close
+publication via close_contract.py publication. Afterwards prepare new same-D551
+configuration W2 case: existing user-scope wrapper still needs explicit adapter-map
+forwarding; new config/runner/analyzer input binding not yet prepared. Do NOT repeat
+D553 map/CPU qualification, D551/W1 or baseline performance. Preserve all failure
+records, user dirt and protected147. Fullscope ACTIVE, no G1/G2/global closure.
+
+The following D553 execution notes are historical, superseded above:
+
+D553 CURRENT: W2 offline rank-preserving map audit PASS, no GPU experiment.
+Read D553_W2_INPUT_QUALIFICATION.md. Source 4000 requests / 458224 target tokens
+unchanged; source hot window48/stride12/75% overlap retained, rotation500→100.
+Actual IDs132→497,3900 remapped. Map SHA48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300.
+Audit actual recursive-empty/closed/path-gone; peak183365632B, events/swap0.
+Shared FrozenReplayPlan, Unix publisher/service loader, HTTP harness and population
+analyzer extended; no online policy/nine-formula/backend configuration changes.
+First CPU qualification FAILED/INCOMPLETE: unguarded driver re-entered during
+multiprocessing spawn; FileExistsError then blocked test cleanup. Original driver,
+log and all tested source archive preserved. Only exact owned scope stopped;
+20s stop wait timed out, later actual inactive/dead/path-gone independently verified.
+No production/test assertion changes. qualify2.py added main-module guard; the
+formerly failing control test passed, but native0300 child imports launched
+humming NVRTC/launcher helpers and stalled in memory.high reclaim. No OOM observed.
+Second incomplete suite/source archive retained; exact owned scope killed/stopped,
+20s stop wait timed out then actual inactive/dead/path-gone verified. First closure
+helper had an overbroad filename replacement; partial archive/helper retained,
+explicit names corrected before the owned stop. No serving changes or limit increase.
+qualify3.py now uses existing D549 CPU wrapper interpreter, same guarded checks;
+CURRENTLY RUNNING aux d5530000000000000000000000000004.
+RAW main_comparison/d553_20261015. Monitor same job; do not repeat map generation.
+Includes real4000 tokenizer/input join and affected CPU regression. No GPU result.
+D552 checkpoint ad3c8c0dc59c6d600e62e77cb596683ec9f2fd2c pushed/remoteequal;
+BASE bde2154 unchanged before these W2 edits. User dirt preserved. No inference
+or remote experimental job, no change to unrelated k3s. Full PLAN/V1/V2 and latest
+rules read completely this turn; resource detector and actual bounded gate used.
+NEXT terminal qualification -> actual closure -> tested two-repo checkpoint,
+then new W2 performance preparation with same D551 model configuration. All
+W0 compatibility/G2/3B/ablation/sensitivity/docs/figures scope remains ACTIVE.
+
+The following D552 notes are historical, superseded by D553 above:
 
 LATEST D552: targetedclosedD537cache reclamation COMPLETE; read
 D552_TARGETED_CACHE_RECLAIM.md. Only/tmp/tc-d537-7br/remote_artifacts/objects

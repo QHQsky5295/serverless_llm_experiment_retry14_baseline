@@ -1300,7 +1300,8 @@ def completed_http_failure(path: Path, ready: dict) -> dict:
 def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
                  replay_trace=None, replay_profile='W0', http_replay_config=None,
                  diagnostic_prefix_count=None, coverage_pool_index=None,
-                 coverage_pool_index_sha256=None) -> dict:
+                 coverage_pool_index_sha256=None, adapter_map=None,
+                 adapter_map_sha256=None) -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
 
     The supervisor and watcher share the <=4 GiB auxiliary scope; serving is a
@@ -1320,6 +1321,13 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
             raise ValueError('coverage requires explicit frozen pool and diagnostic count500')
     elif coverage_pool_index is not None or coverage_pool_index_sha256 is not None:
         raise ValueError('coverage pool requires functional profile')
+    rotation = replay_profile == 'W2'
+    if rotation:
+        if (not adapter_map or not adapter_map_sha256 or tiny or diagnostic_prefix_count is not None
+                or replay_trace is None or http_replay_config is not None):
+            raise ValueError('W2 requires a frozen adapter map and full Unix replay')
+    elif adapter_map is not None or adapter_map_sha256 is not None:
+        raise ValueError('adapter map requires explicit W2 replay')
     require_watchdog_primitives()
     if http_replay_config is not None and (tiny or replay_trace is not None):
         raise ValueError('HTTP replay and Unix/tiny replay are distinct explicit transports')
@@ -1429,6 +1437,9 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 if coverage:
                     publish_args.extend(['--coverage-pool-index', str(coverage_pool_index),
                                          '--coverage-pool-index-sha256', coverage_pool_index_sha256])
+                if rotation:
+                    publish_args.extend(['--adapter-map', str(adapter_map),
+                                         '--adapter-map-sha256', adapter_map_sha256])
                 publisher = subprocess.Popen(publish_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                              stderr=watch_error, text=True, bufsize=1, env=publish_env)
                 if not select.select([publisher.stdout], [], [], 180 if http_replay_config else 15)[0]:
@@ -1443,6 +1454,13 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                         or replay_ready['plan'].get('coverage_pool_index') != str(Path(coverage_pool_index).resolve())
                         or replay_ready['plan'].get('coverage_pool_index_sha256') != coverage_pool_index_sha256):
                     raise ValueError('coverage publisher differs from the frozen requested pool')
+                if rotation and (
+                        replay_ready['plan'].get('profile') != 'W2'
+                        or replay_ready['plan'].get('adapter_map') != str(Path(adapter_map).resolve())
+                        or replay_ready['plan'].get('adapter_map_sha256') != adapter_map_sha256
+                        or replay_ready['plan'].get('count') != 4000
+                        or replay_ready['plan'].get('source_count') != 4000):
+                    raise ValueError('W2 publisher differs from the frozen requested adapter map')
                 if diagnostic_prefix_count is not None and (
                         replay_ready.get('replay_scope') != 'diagnostic_prefix_v1'
                         or replay_ready.get('diagnostic_prefix_count') != diagnostic_prefix_count
@@ -1637,7 +1655,9 @@ def replay_publisher(args):
                                 count=32 if args.tiny_witness else prefix,
                                 rate_scale=8. if args.tiny_witness else 1.,
                                 coverage_pool_index=args.coverage_pool_index,
-                                coverage_pool_index_sha256=args.coverage_pool_index_sha256)
+                                coverage_pool_index_sha256=args.coverage_pool_index_sha256,
+                                adapter_map=args.adapter_map,
+                                adapter_map_sha256=args.adapter_map_sha256)
     diagnostic = {} if prefix is None else dict(replay_scope='diagnostic_prefix_v1',
                                                 diagnostic_prefix_count=prefix)
     if diagnostic:
@@ -6375,9 +6395,11 @@ def main():
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
     parser.add_argument('--replay-trace', type=Path)
-    parser.add_argument('--replay-profile', choices=['W0', 'W1', 'ADAPTER_COVERAGE_V1'], default='W0')
+    parser.add_argument('--replay-profile', choices=['W0', 'W1', 'W2', 'ADAPTER_COVERAGE_V1'], default='W0')
     parser.add_argument('--coverage-pool-index', type=Path)
     parser.add_argument('--coverage-pool-index-sha256')
+    parser.add_argument('--adapter-map', type=Path)
+    parser.add_argument('--adapter-map-sha256')
     parser.add_argument('--diagnostic-prefix-count', type=int,
                         help='Explicit nonformal prefix of the original trace; never Full qualification')
     parser.add_argument('--http-replay-config', type=Path,
@@ -6386,6 +6408,9 @@ def main():
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if (args.adapter_map is not None or args.adapter_map_sha256 is not None) and (
+            args.action not in {'gated-launch', '_replay-publisher'} or args.replay_profile != 'W2'):
+        parser.error('adapter map arguments apply only to explicit W2 frozen replay')
     if (args.coverage_pool_index is not None or args.coverage_pool_index_sha256 is not None) and (
             args.action not in {'gated-launch', '_replay-publisher'}
             or args.replay_profile != 'ADAPTER_COVERAGE_V1'):
@@ -6437,7 +6462,9 @@ def main():
                               http_replay_config=args.http_replay_config,
                               diagnostic_prefix_count=args.diagnostic_prefix_count,
                               coverage_pool_index=args.coverage_pool_index,
-                              coverage_pool_index_sha256=args.coverage_pool_index_sha256)
+                              coverage_pool_index_sha256=args.coverage_pool_index_sha256,
+                              adapter_map=args.adapter_map,
+                              adapter_map_sha256=args.adapter_map_sha256)
     elif args.action == 'artifact-audit':
         if not args.path or not args.output:
             parser.error('artifact-audit requires existing pool path(s) and new output')

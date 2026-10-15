@@ -1,5 +1,6 @@
 """Frozen open-loop transport tests; fixtures are not experimental workloads."""
 import asyncio
+import copy
 import hashlib
 import json
 import math
@@ -128,6 +129,141 @@ class FrozenViews(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'nonformal'):
                 FrozenReplayPlan.from_launch_context(context, formal_run=True)
             self.assertEqual(path.read_text(), raw)
+
+
+class FrozenRotationViews(unittest.TestCase):
+    """Synthetic unit fixtures only; never generate experimental data/assets."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        root = Path(self.tmp.name)
+        self.path, self.pool, self.map = [root/name for name in ('trace.json','pool.json','map.json')]
+        selected = [dict(id=f'a{i:03d}', manifest_index=i, domain=f'd{i%4}') for i in range(500)]
+        ids = [row['id'] for row in selected]
+        rows = []
+        for i in range(4000):
+            position = (12*(i//500)+i%48) % 500
+            rows.append(dict(request_id=f'r{i:04d}', arrival_time_s=10+i*1.25,
+                adapter_id=ids[position], adapter_domain=selected[position]['domain'],
+                expected_output_tokens=1+i%300, body=dict(lora_adapter_name=ids[position],
+                    messages=[dict(role='user',content=f'unchanged prompt {i}')])))
+        self.path.write_text(json.dumps(dict(requests=rows,selected_adapters=selected)))
+        self.pool.write_text(json.dumps(dict(artifacts=[dict(id=aid) for aid in ids])))
+        self.old = FrozenReplayPlan.load(self.path)
+        self.mapping = dict(schema='rank_preserving_hotset_rotation_v1', source_count=4000,
+            source_path=str(self.path),source_sha256=self.old.source_sha256,
+            source_w0_view_sha256=self.old.identity()['view_sha256'], pool_index=str(self.pool),
+            pool_index_sha256=hashlib.sha256(self.pool.read_bytes()).hexdigest(), adapter_order=ids,
+            source_rotation_requests=500,target_rotation_requests=100,active_adapter_cap=48,
+            rotation_stride=12,adjacent_hotset_overlap_fraction=.75,
+            rows=[dict(request_id=e.request_id,source_item_sha256=e.source_sha256,
+                original_adapter_id=rows[i]['adapter_id'],adapter_id=ids[(12*(i//100)+i%48)%500],
+                local_rank=i%48) for i,e in enumerate(self.old.entries)])
+        self.freeze(self.mapping)
+
+    def freeze(self, mapping):
+        self.map.write_text(json.dumps(mapping))
+        self.options = dict(profile='W2',adapter_map=str(self.map),
+                            adapter_map_sha256=hashlib.sha256(self.map.read_bytes()).hexdigest())
+
+    def test_rotation_preserves_each_rank_prompt_target_arrival_and_source(self):
+        raw = self.path.read_bytes()
+        plan = FrozenReplayPlan.load(self.path, **self.options)
+        self.assertEqual(plan.profile,'W2')
+        self.assertEqual(plan.source_sha256,self.old.source_sha256)
+        self.assertNotEqual(plan.identity()['view_sha256'],self.old.identity()['view_sha256'])
+        tokenizer = CanonicalHTTPInput.Tokenizer()
+        for i,(entry,old) in enumerate(zip(plan.entries,self.old.entries)):
+            source,row = [json.loads(e.source_json) for e in (old,entry)]
+            self.assertEqual((entry.request_id,entry.offset_s),(old.request_id,old.offset_s))
+            aid = self.mapping['adapter_order'][(12*(i//100)+i%48)%500]
+            self.assertEqual(row['adapter_id'],aid)
+            self.assertEqual(row['body']['lora_adapter_name'],aid)
+            self.assertEqual(row['adapter_domain'],f'd{int(aid[1:])%4}')
+            annotation = row.pop('tc_adapter_rotation')
+            self.assertEqual(annotation['original_source_item_sha256'],old.source_sha256)
+            self.assertEqual(annotation['adapter_map_sha256'],self.options['adapter_map_sha256'])
+            row['adapter_id'] = source['adapter_id']
+            row['body']['lora_adapter_name'] = source['body']['lora_adapter_name']
+            row['adapter_domain'] = annotation['original_adapter_domain']
+            self.assertEqual(row,source)
+            a,b = [prepare_frozen_http_request(e,tokenizer,'model') for e in (entry,old)]
+            for key in ('canonical_prompt_sha256','native_prompt_token_ids_sha256','target_tokens'):
+                self.assertEqual(a[key],b[key])
+            self.assertEqual(a['tc_adapter_rotation'],annotation)
+        context = dict(plan=plan.identity(),tiny_witness=False,replay_scope='full_source_v1')
+        self.assertEqual(FrozenReplayPlan.from_launch_context(context),plan)
+        self.assertEqual(self.path.read_bytes(),raw)
+        self.assertEqual(FrozenReplayPlan.load(self.path).identity(),self.old.identity())
+
+    def test_w2_rejects_missing_map_prefix_rate_or_conflicting_profile(self):
+        for change in (dict(adapter_map=None),dict(adapter_map_sha256=None),
+                       dict(adapter_map_sha256='wrong'),dict(count=100),dict(count=True),
+                       dict(rate_scale=2.),dict(profile='W0'),dict(profile='W1'),
+                       dict(coverage_pool_index=self.pool)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                FrozenReplayPlan.load(self.path,**{**self.options,**change})
+
+    def test_integrated_service_uses_the_same_derived_adapter_and_prompt(self):
+        from types import SimpleNamespace
+        from scripts.run_all_experiments import _load_shared_trace_requests
+        plan = FrozenReplayPlan.load(self.path,**self.options)
+        context = dict(plan=plan.identity(),tiny_witness=False,replay_scope='full_source_v1')
+        external = SimpleNamespace(plan=plan,context=context)
+        _,traces,metadata = _load_shared_trace_requests(str(self.path),
+            allowed_adapter_ids=self.mapping['adapter_order'],external_replay=external)
+        self.assertEqual(metadata['replay_plan'],plan.identity())
+        for trace,entry in zip(traces,plan.entries):
+            row = json.loads(entry.source_json)
+            self.assertEqual(trace.adapter_id,row['adapter_id'])
+            self.assertEqual(trace.adapter_domain,row['adapter_domain'])
+            self.assertEqual(trace.chat_messages,row['body']['messages'])
+            self.assertEqual(trace.expected_output_tokens,row['expected_output_tokens'])
+        external.context = dict(context,plan=self.old.identity())
+        with self.assertRaises(ValueError):
+            _load_shared_trace_requests(str(self.path),external_replay=external)
+
+    def test_rehashed_but_incorrect_map_is_rejected(self):
+        for key,value in (('source_sha256','wrong'),('source_w0_view_sha256','wrong'),
+                          ('source_path','wrong'),('schema','unknown'),('source_count',3999),
+                          ('source_rotation_requests',100),('target_rotation_requests',500),
+                          ('rotation_stride',48),('active_adapter_cap',49),
+                          ('adjacent_hotset_overlap_fraction',0),('pool_index_sha256','wrong'),
+                          ('adapter_order',list(reversed(self.mapping['adapter_order']))),
+                          ('rows',self.mapping['rows'][:-1])):
+            self.freeze(dict(self.mapping,**{key:value}))
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                FrozenReplayPlan.load(self.path,**self.options)
+        for key,value in (('request_id','other'),('source_item_sha256','wrong'),
+                          ('original_adapter_id','a099'),('adapter_id','a099'),('local_rank',1)):
+            changed = copy.deepcopy(self.mapping)
+            changed['rows'][100][key] = value
+            self.freeze(changed)
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                FrozenReplayPlan.load(self.path,**self.options)
+
+    def test_changed_pool_or_source_never_reuses_frozen_map(self):
+        pool = self.pool.read_bytes()
+        self.pool.write_bytes(pool+b' ')
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.load(self.path,**self.options)
+        self.pool.write_bytes(pool)
+        self.path.write_bytes(self.path.read_bytes()+b' ')
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.load(self.path,**self.options)
+
+    def test_launcher_rejects_invalid_w2_before_any_resource_or_service_operation(self):
+        from scripts import ieee_tc_preflight as preflight
+        from unittest.mock import patch
+        valid = dict(replay_trace=self.path,replay_profile='W2',
+                     adapter_map=self.map,adapter_map_sha256=self.options['adapter_map_sha256'])
+        for change in (dict(adapter_map=None),dict(adapter_map_sha256=None),dict(tiny=True),
+                       dict(diagnostic_prefix_count=100),dict(replay_trace=None),
+                       dict(http_replay_config=self.path),dict(replay_profile='W0')):
+            with self.subTest(change=change), patch.object(preflight,'require_watchdog_primitives') as guard:
+                with self.assertRaises(ValueError):
+                    preflight.gated_launch(['never-start'],self.map,**{**valid,**change})
+                guard.assert_not_called()
 
 
 class CanonicalHTTPInput(unittest.TestCase):

@@ -99,6 +99,7 @@ class ForwardedCommandCLI(unittest.TestCase):
                                                        for i in range(3)])))
             args = SimpleNamespace(replay_trace=source, replay_profile='W0', tiny_witness=False,
                 coverage_pool_index=None, coverage_pool_index_sha256=None,
+                adapter_map=None, adapter_map_sha256=None,
                 diagnostic_prefix_count=2, output=root/'out.jsonl', gate_socket=str(root/'socket'),
                 gate_nonce='fixture')
             observed = []
