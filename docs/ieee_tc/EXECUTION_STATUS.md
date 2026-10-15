@@ -1,4 +1,4 @@
-# IEEE TC execution status — D546 six-system W1 comparison saved; publication next
+# IEEE TC execution status — D547 targeted storage complete; resume PrimeLoRA mainline
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,36 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D547 UPDATE: targeted closed D536 duplicate-cache reclamation COMPLETE.
+Read D547_TARGETED_CACHE_RECLAIM.md. Only/tmp/tc-d536-7bv/remote_artifacts/objects,
+1320files/3300789780payloadB removed after fresh full retained-original/cache SHA,
+metadata copy, refs, closure/publication and protected147 checks. Actual reclaimed
+3305656320B,diskafter161254809600B(~150.18GiB); no unique assets/raw evidence removed.
+Cleanup actualemptyclosed/pathgone,peak3221962752B,high938,max/OOM/kill/swap0;
+high only offline maintenance, no concurrent inference. Three unreadable sameUID
+proc entries disclosed. Reused D532/D538 recipe, no old deletion list repetition.
+Curation DONE, evidence7262B, actualcuration scopeemptyclosed/pathgone.
+NEXT explicit small maintenance checkpoint, then PrimeLoRA existing W1 bottleneck
+analysis. D530/D533 result docs reread; no new optimization candidate yet.
+Do NOT repeat D547cleanup, D546analysis/publication/performance or baseline tuning.
+Full PLAN/V1/V2 remain fully read in current context, unchanged PLAN SHA rechecked.
+No active model/remote job. Full scope ACTIVE; new heavy launch still needs freshgate.
+
+AUTHORITATIVE PUBLICATION UPDATE: D546 checkpoint
+f52100be2b8b24890a77fdb03adbfc20fca11fe2 PUSHED/remoteequal,9explicitfiles.
+Source/archive/checksum/protected147/userdirt/secrets/diff checks PASS;16CPU
+qualification tests reused, no performance rerun. BASEbde2154 unchanged/pushed.
+Publication aux0013 actually recursively empty/closed/pathgone; closure receipt
+in RAW result_publication_identity_closure.json. No live inference/remote job.
+This turn made PROGRESS: D546 actualterminal/closure/strictaudit/4000inputjoin/
+six-system comparison/curation/result push. Do NOT repeat completed steps.
+NEXT storage fresh check and only proven closed-cache reclaim if below150GiB;
+then PrimeLoRA evidence-driven optimization using D530/D533 and full W1 table,
+historical code plus primary official sources. No additional HydraServe basis
+adaptation or baseline tuning. Full scope ACTIVE, all6W1 points below95%,
+W1 reference not formally frozen; W2/G2/3B and all mechanism/sensitivity tasks
+remain. Postpush status delta reserved for next milestone, no duplicate backup.
 
 LATEST D546 UPDATE: strict full4000 input join to D536 and sealed D544 five-system
 witness PASS. Six published-system W1 observations now available; all below95%.
