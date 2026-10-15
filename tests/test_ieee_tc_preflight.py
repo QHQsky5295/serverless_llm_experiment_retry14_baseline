@@ -8,6 +8,70 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class UserScopeAdapterMapForwarding(unittest.TestCase):
+    """Exercise the real shell boundary without starting systemd or a model."""
+
+    def invoke(self, **overrides):
+        import os
+        import subprocess
+        env = {k: v for k, v in os.environ.items() if not k.startswith('FAASLORA_')}
+        env.update(FAASLORA_PYTHON='/usr/bin/python3', FAASLORA_TC_QUALIFICATION='1',
+                   FAASLORA_TC_EXTERNAL_REPLAY='1', FAASLORA_TC_REPLAY_PROFILE='W2',
+                   FAASLORA_TC_LAUNCH_OUTPUT='/not-executed/launch.json',
+                   FAASLORA_SHARED_TRACE_PATH='/not-executed/source trace.json',
+                   FAASLORA_TC_ADAPTER_MAP='/not-executed/adapter map.json',
+                   FAASLORA_TC_ADAPTER_MAP_SHA256='a' * 64)
+        for key, value in overrides.items():
+            if value is None:
+                env.pop(key, None)
+            else:
+                env[key] = value
+        wrapper = Path(__file__).resolve().parents[1] / 'scripts/run_all_experiments_user_scope.sh'
+        return subprocess.run(['bash', '-c',
+            'exec() { [[ "$1" == systemd-run ]] || exit 99; shift; printf "%s\\0" "$@"; exit 0; }; source "$1" --scenario tc_ieee_full',
+            'wrapper-test', str(wrapper)], env=env, capture_output=True, timeout=10)
+
+    def test_w2_forwards_both_map_arguments_and_retains_containment(self):
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = result.stdout.decode().split('\0')
+        for flag, value in (('--adapter-map', '/not-executed/adapter map.json'),
+                            ('--adapter-map-sha256', 'a' * 64), ('--replay-profile', 'W2')):
+            self.assertEqual(args[args.index(flag) + 1], value)
+        for value in ('MemoryHigh=3G', 'MemoryMax=4G', 'MemorySwapMax=0', 'gated-launch'):
+            self.assertIn(value, args)
+
+    def test_w2_rejects_missing_map_or_sha(self):
+        for field in ('FAASLORA_TC_ADAPTER_MAP', 'FAASLORA_TC_ADAPTER_MAP_SHA256'):
+            with self.subTest(field=field):
+                result = self.invoke(**{field: None})
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, b'')
+
+    def test_rejects_stray_map_and_unguarded_w2(self):
+        for overrides in ({'FAASLORA_TC_REPLAY_PROFILE': 'W0'},
+                          {'FAASLORA_TC_REPLAY_PROFILE': 'W1'},
+                          {'FAASLORA_TC_QUALIFICATION': '0'},
+                          {'FAASLORA_TC_EXTERNAL_REPLAY': '0'},
+                          {'FAASLORA_DISABLE_SYSTEMD_SCOPE': '1'}):
+            with self.subTest(overrides=overrides):
+                result = self.invoke(**overrides)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, b'')
+
+    def test_w0_w1_and_coverage_keep_existing_arguments(self):
+        for profile in ('W0', 'W1', 'ADAPTER_COVERAGE_V1'):
+            with self.subTest(profile=profile):
+                result = self.invoke(FAASLORA_TC_REPLAY_PROFILE=profile,
+                    FAASLORA_TC_ADAPTER_MAP=None, FAASLORA_TC_ADAPTER_MAP_SHA256=None,
+                    FAASLORA_TC_COVERAGE_POOL_INDEX='/not-executed/pool.json',
+                    FAASLORA_TC_COVERAGE_POOL_INDEX_SHA256='b' * 64)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                args = result.stdout.decode().split('\0')
+                self.assertNotIn('--adapter-map', args)
+                self.assertEqual('--coverage-pool-index' in args, profile == 'ADAPTER_COVERAGE_V1')
+
+
 class LivePinQueryQualification(unittest.TestCase):
     def runtime(self, status=0, memory_type=1):
         from types import SimpleNamespace as NS

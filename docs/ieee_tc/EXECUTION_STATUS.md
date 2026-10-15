@@ -1,4 +1,4 @@
-# IEEE TC execution status — D553 W2 input qualified, checkpoint next
+# IEEE TC execution status — D554 fixed-configuration W2 prepared
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,45 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D554 CURRENT: fixed-D551 model configuration and full4000 W2 startup wiring
+qualified; read D554_INITIAL_CONTROL_FULL_W2.md. RAW p2_backend_qualification/
+d554_20261015. Same D553 view5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7;
+497IDs/458224targettokens, no new trace/weights. Only shell map forwarding/new
+case/config paths; serving AST unchanged from D551 except D553 qualified loader.
+4 new wrapper tests PASS; prior386 input/native/compiler qualification reused,
+not repeated. First fixture missed Bash exec boundary, four real guarded auxiliary
+scopes rejected invalid fixture inputs BEFORE model launch. Failure/source archive
+preserved; all exact identities recursively empty/closed/path-gone. Initial closure
+helper's incorrect --collect assumption also retained. Fixed ONLY test interception;
+production unchanged. Successful qualification2 actually closed; no GPU/remote job.
+NEXT explicit prelaunch checkpoint via RAW backup.py, exact close.py backup, then
+fresh gated start.py; single tmux tc-d554-initialw2. Do not repeat qualification,
+D553 map or any W0/W1 performance. Full PLAN/status/V1/V2/latest rules read;
+resource detection and guarded preflight passed, launch gate must be fresh.
+Complete remaining scope below ACTIVE; no W2 result/G2/global closure yet.
+
+The following D553 notes are historical, superseded by D554 preparation above:
+
+D553 PUBLICATION COMPLETE: MAIN0901334fd05fc32c0c44053d7aa0b5e69c574573 and
+BASEaff60bb210c6d1fb9ce94534c5ef37521976bc0a both PUSHED/remoteequal.
+16 MAIN/3 BASE explicit files; source/archive/secrets/diff/protected147/user-dirt
+checks PASS. Actual publication scope recursively empty/closed/path-gone, receipt
+in RAW publication_closure.json. No live inference/remote/test/publication job.
+Do NOT repeat publication/map/CPU qualification or any W1 performance. Post-push
+status delta reserved for next milestone; no status-only second backup.
+This turn made PROGRESS: qualified full W2 input, integrated service/HTTP binding,
+386 affected CPU checks with environment-specific supplement, preserved all failed
+drivers and pushed both repositories. Not a GPU performance result or global closure.
+NEXT same-D551 configuration W2 performance preparation: extend existing
+scripts/run_all_experiments_user_scope.sh to forward explicit adapter-map args;
+register a new config/runner case and reuse existing guarded remote/analysis helpers.
+Use the new W2 map/view and native input contracts, never old W0 adapter outputs as
+numeric proof. Existing D549/D550 native mechanism qualification remains reusable;
+do not redo unaffected baseline adaptation. Fresh resource gate before heavy work.
+All W0 compatibility/W1-W2 resource budget/3B/A1–A5/S1–S13/docs/figures still ACTIVE.
+
+The following pre-publication note is superseded by the completed checkpoint above:
 
 D553 AUTHORITATIVE: full4000 offline W2 input/native-prompt/target and integrated
 PrimeLoRA/HTTP adapter binding PASS. 386 affected CPU methods:380 in existing

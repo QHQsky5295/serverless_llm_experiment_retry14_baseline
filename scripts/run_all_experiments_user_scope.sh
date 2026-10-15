@@ -17,6 +17,15 @@ fi
 
 cd "$ROOT_DIR"
 
+if [[ "${FAASLORA_TC_REPLAY_PROFILE:-W0}" == W2 || -n "${FAASLORA_TC_ADAPTER_MAP:-}" || -n "${FAASLORA_TC_ADAPTER_MAP_SHA256:-}" ]]; then
+  if [[ "${FAASLORA_TC_QUALIFICATION:-0}" != 1 || "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" != 1 || "${FAASLORA_TC_REPLAY_PROFILE:-W0}" != W2 ]]; then
+    echo "[ERROR] Adapter rotation requires guarded external W2 replay" >&2
+    exit 1
+  fi
+  : "${FAASLORA_TC_ADAPTER_MAP:?W2 requires frozen adapter map}"
+  : "${FAASLORA_TC_ADAPTER_MAP_SHA256:?W2 requires frozen adapter map SHA}"
+fi
+
 if [[ -n "${FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT:-}" ]]; then
   if [[ "${FAASLORA_TC_QUALIFICATION:-0}" != "1" || "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" != "1" ]]; then
     echo "[ERROR] Diagnostic prefix requires the guarded external replay" >&2
@@ -38,6 +47,10 @@ if [[ "${FAASLORA_TC_QUALIFICATION:-0}" == "1" ]]; then
   if [[ "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" == "1" ]]; then
     : "${FAASLORA_SHARED_TRACE_PATH:?External replay requires the existing frozen trace}"
     TC_REPLAY_ARGS=(--replay-trace "$FAASLORA_SHARED_TRACE_PATH" --replay-profile "${FAASLORA_TC_REPLAY_PROFILE:-W0}")
+    if [[ "${FAASLORA_TC_REPLAY_PROFILE:-W0}" == W2 ]]; then
+      TC_REPLAY_ARGS+=(--adapter-map "$FAASLORA_TC_ADAPTER_MAP"
+        --adapter-map-sha256 "$FAASLORA_TC_ADAPTER_MAP_SHA256")
+    fi
     if [[ "${FAASLORA_TC_REPLAY_PROFILE:-W0}" == ADAPTER_COVERAGE_V1 ]]; then
       : "${FAASLORA_TC_COVERAGE_POOL_INDEX:?Coverage requires frozen pool index}"
       : "${FAASLORA_TC_COVERAGE_POOL_INDEX_SHA256:?Coverage requires frozen pool SHA}"
