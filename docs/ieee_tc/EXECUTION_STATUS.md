@@ -1,4 +1,4 @@
-# IEEE TC execution status — D533 Full W1 completed, below SLO; no live experiment
+# IEEE TC execution status — D537 ServerlessLLM W1 qualified, prelaunch backup next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,12 +9,18 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
-D533 TERMINAL SUCCESS. Request/timing/physical/remote/W1 input audits DONE.
-Read D533_FULL_W1_RESULT.md. No inference/remote/analysis job remains.
-NEXT finish explicit result backup, then remaining published W1 baselines
-(ServerlessLLM first) and W2 input/reference preparation. Use retained startup/
-burst evidence for one falsifiable PrimeLoRA hypothesis, not endless W0 tuning.
-No next performance config/launch prepared. No serving change this turn.
+D533 TERMINAL SUCCESS and sealed; read D533_FULL_W1_RESULT.md.
+D537 ServerlessLLM W1 prepared/qualified, NOT YET STARTED. Read
+D537_SERVERLESSLLM_W1.md. RAW originalresults/ieee_tc/serverless_qualification/d537_20261015.
+Reuse D414 native0102/store/RR config, only explicit trace_w1_v1/replay_profileW1
+and new paths. No serving code or native policy changes. All114 CPU tests closed:
+112 native-env passes;2 analysis-only methods had6 ijson-missing subcase errors,
+then only those2 passed in existing analysisenv. No dependency installed.
+Firstoverstrict AST assertion failed beforeviewcreation; exactsharedhook review
+retained. All3aux scopes closed/recursiveempty/pathgone/events0/swap0;
+peaks137654272/344240128/149884928B. No GPU run/overlay/remote start yet.
+NEXT explicit prelaunch backup/push, freshsafetygate, ownloaderinstall, remote
+health, one4000W1 run. Do not repeat qualification or D533/D536/W0.
 
 D533 actual MAINfc4161a1088efe1b49d853dbbc8effe9a525c431,BASE
 bde215460acb9e850efa479a89bda6fc39a2bd7d; both pushed before launch.
@@ -22,7 +28,11 @@ RAW /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification
 Curated paper_results/ieee_tc/main_comparison/d533_full_w1/result1:
 audit.json,cross_contract.json,manifest.json,evidence.tar.gz84895B.
 Curation DONE, actualresultscope recursivelyempty/closed/pathgone,peak26853376B,
-events0/swap0; testedpublication next. Source/archive/protected147/userdirt PASS.
+events0/swap0. Testedpublication COMPLETE:bb5f355a7c274ac027c9e35f7eb3375bdaf9a06e
+PUSHED/remoteequal,9explicitfiles. Archive/SHA/protected147/userdirt/diff/secrets
+checksPASS. Actualpublicationscope recursiveempty/closed/pathgone,peak27127808B,
+events0/swap0. RAWpublication_receipt/closure retain identity. Do not repeat backup.
+Only status and untoucheduser manifest were tracked dirty after D533 backup.
 D531103tests,D53416tests,D535build reused, not repeated. No collection/analysis rerun.
 
 4000nativebindings/458224tokens/0failures,n_correctnull. Joint3749=93.725%,
@@ -117,6 +127,7 @@ Oneheavyjob; no tests/build/hashscan/compression/backup/remotechangesduringinfer
 Servicehigh72/max80GiB,swap2,CPU4-23,28-47;auxhigh3/max4GiB,swap0,CPU2,3,26,27.
 EmptyhoststartMemAvailable>=102GiB,remaininggrowthotherwise;16GiBstop.
 Diskstart>=max150GiB,100GiB+1.5growth;stop100GiB. Freshgatebeforenextrun.
+Latestpostbackup disk162879889408B,MemAvailable109282876kB; no new run launched.
 Actualworkerscontained; no blindOOMretry/globalGPUreset/unknowncleanup.
 ExactInvocation/inode/recursivecgroup.procs/pathgoneclosure,UID1001.
 D533/D536/D532privatefetchcaches retained; reclaimonlyafterreferences/openfiles/
@@ -137,6 +148,13 @@ D78/D80readonlygzip1581215261B reuse,norepublish/newpool/requestpacking.
 Latestactual1Gbps/full;old100Mbpsdistinct,causeunknown.
 
 ## Full remaining scope — ACTIVE
+
+D537 newrun7b_repaired/sourceview/http/start/restore/close helpers exist.
+Sourceview4measuredfileSHAs equalD414, native configASTunchanged.
+W1viewSHA103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3;
+4000/132IDs/458224tokens, allsourceassetsreused. Existinganalyzerfull4000_w1.
+LoaderpreflightPASS only; startmustinstallownoverlay7b_repaired receipt/backups.
+Restoreonlyafteractualrelease. Do not executeD414oldpaths or oldrestore receipt.
 
 7BW1/W2/G2/commonrefs/allpublishedsystems;PrimeLoRAevidence-drivenoptimization;
 3Boptimization/allbaselines;dLoRA3BB6;A1–A5confirmedstate/elasticity/handoff/
