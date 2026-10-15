@@ -1,4 +1,4 @@
-# IEEE TC execution status — D550 native first100 qualification complete
+# IEEE TC execution status — D551 full W1 prepared
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,43 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D551 PREPARATION: offline full4000 input/config/profile binding PASS;
+no native launch yet. Read D551_INITIAL_CONTROL_FULL_W1.md.
+RAW p2_backend_qualification/d551_20261015. SameD550 observed_arrivals_v1 candidate,
+sameD533 model/profiles/thresholds, fulloriginal4000W1 restored; no secondcandidate.
+W1viewSHA103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3.
+D549363/D550native100+59offline/D531103/D53416/D535build reused, not rerun.
+Qualificationactualrecursiveemptyclosed/pathgone; limits3/4GiB/swap0/CPU2,3,26,27.
+Onlynewconfig and existinglaunchercase; no newproduction algorithm/test change.
+Prior fullPLAN/V1/V2 stillfullyread incontext andSHA unchangedverified thisturn;
+currentstatus/actualHEAD/noGPU/currentdisk+memory rechecked. No remotejobactive.
+NEXT explicitprelaunchbackup, closebackup, freshgatedstart.py single tmux
+tc-d551-initialw1. PreserveallD550negative49/100 andunknown startupcause; no
+delay subtraction/cacheprewarm/thresholdchange or repeatedqualification.
+FullscopeACTIVE, allremainingW0/W2/G2/3B/ablation/sensitivity tasks retained.
+
+The following D550 notes are historical, superseded by D551 preparation above:
+
+AUTHORITATIVE D550 PUBLICATION: cd7279974c29ad4678918f8dd29312971b67d19f
+PUSHED/remoteequal,7explicitfiles; BASEbde2154unchanged/pushed. Allactual-arrival
+queue joins (30samples), allocatedjournal SHA/release, source/archive/checksum/
+protected147/userdirt/secrets/diffchecksPASS. 59CPUtests reused, no native rerun.
+Resultpublication2 actualrecursiveemptyclosed/pathgone,peak48885760B/events0/swap0.
+Firstpublication regex overescaped and rejected retainedOK log BEFOREstaging;
+source/failure/closure preserved, only logcheck corrected. No result selection.
+No live local/remotejob. Onlyuser manifest tracked dirty before this status delta.
+This turn made PROGRESS: native100 mechanism qualification, strictaudit, causal
+actual-arrival check, closedresources and code/resultcheckpointpush completed.
+NEXT prepare NEWfull4000W1 execution key (D551 suggested), sameD550candidate/model/
+profiles/thresholds/remote/60snotice; remove diagnosticprefix only, use new result/
+cache paths. ReuseD549363/D550native100/59offline tests, no basisqualificationredo.
+Existing D533 full launcher+helpers andD550 safety/source checks are recipes.
+Fresh resourcegate required; lastdisk161191530496B(~150.12GiB), noGPUcompute.
+Do not rerunD550/closure/analysis/curation/backup or optimize a second hypothesis
+before fullcandidate result. Notice->initialtrigger50.324s unexplained; retain
+startup evidence and don't claim cache-independent gain or subtract delay.
+FullscopeACTIVE; postpushstatusdelta reservednextmilestone, notstatus-onlypush.
 
 LATEST D550 TERMINAL: native100 qualification PASS, no live local/remotejob.
 Read D550_INITIAL_CONTROL_NATIVE100.md. 100nativebindings/17369tokens/0fail,
