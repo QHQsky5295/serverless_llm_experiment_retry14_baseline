@@ -1,4 +1,4 @@
-# IEEE TC execution status — D540 S-LoRA W1 prelaunch
+# IEEE TC execution status — D540 S-LoRA W1 TERMINAL, resource measurement FAILED
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,7 +9,77 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
-D538 targetedstorageDONE; D539 offlinequeueauditDONE. No liveGPU/remotejob.
+AUTHORITATIVE UPDATE: D540 terminated after all4000responses, serviceRC1;
+replay/watchdogRC0. No live D540 model/service/remote remains.
+Read D540_SLORA_W1_RESULT.md. PhysicalGPUAllocation.wait_workers used select.select
+on a high-numbered pidfd and raised filedescriptor out of range in select().
+One allocator release missing:30c5d525703949e882b63d803e9eebf8;
+measurement_complete=false,gpu_seconds=null. Uobserved7819.95453941403 is NOT
+complete U, cannot rank G1/G2 or reconstruct release from idle sample.
+External actualnativeGPUrelease and servicepathgone confirmed; ownemptyauxclosed;
+threeownedremoteunitsinactive/MainPID0/portsabsent, exactIDschecked.
+preserve_evidence.py DONE: resolverjournals/receipts/runcontract plus bilateral
+transfer/monitor collected and SHAchecked; materializedweights notcopied.
+run_failure_analysis.py reuses request analyzer only, notfullaffectedpathqualifier.
+failure_diagnostic.json:4000responses/0fail/458224tokens; joint3251=81.275%,
+TTFT3253/TPOT3994; meanTTFT34521.0034802226,P95256165.63779953867ms,
+meanTPOT35.241842825260015,P9551.37594520004795,E2E38632.8153013016.
+Phasejoint14,269,470,500,500,500,498,500. No crosssystemrank/causalproof.
+analysisaux0006closedactualempty/pathgone,peak475516928B,events0/swap0.
+MAINsourceunchangedasofdiagnostic; oldmetrics source captured inrefs andGit.
+Next seal/pushfailurecheckpoint, then CPU realhigh-pidfd regression and common
+poll-based lifecycle correction; no ignoringerrors/sleep/guessingrelease.
+Need safeclosedcacheaudit beforeanotherheavyjob (disk149257678848B~139GiB).
+Do NOTexecute success-onlyrun_analysis or relaunchD540; anyaffectedreplaynewattempt.
+Unfinishedmainline below retained, includingLoquetier/HydraServeW1.
+
+Read-onlyLoquetier preparation whileD540ran: officialfixedcommit aae33bae raw
+model_workflow.py/model_generation.py fetchedsuccessfully; localFIFO native
+bridge fills batch2 and callsnativegenerate, noextraunconditionalsleepseen.
+D437/D438 staticmemorynear24GiB constrainsbatch; no automaticbatchincrease.
+ThisisnotnewCPU/GPUqualification orproofthatoldlongqueuesareintrinsic.
+NoLoquetierimplementationchanges or newperformance thisturn.
+
+The following D540 live notes are historical, superseded by terminal update above:
+D540 S-LoRA7BW1 LIVE; do not start another job or repeat start.py.
+tmux tc-d540-slora-w1, RAW originalresults/ieee_tc/slora_qualification/d540_20261015.
+Actual service unit primelora-tc-svc-558ff141d0cd4f6f862031ac155739e6.scope,
+Invocation a908fd5c8cf44d07bddec879bfd5f2b0, inode25325224.
+Actual launcher aux primelora-tc-aux-d5400000000000000000000000000003.scope,
+Invocation860a4a99918941088549a56f8a1e237c,inode25325024.
+start_receipt/service_aux_identity/launch7b.launch/exec_receipt retain identities.
+Prelaunch backup bcd79b3fa88e54926cb25829e348d6b0841dffd1 PUSHED/remoteequal;
+BASE bde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed.
+4explicitfiles; archive/source/protected147/userdirt/diff/secrets checksPASS.
+Backup scope actualempty/closed/pathgone,peak26669056B,events0/swap0.
+Starter scope actualempty/closed/pathgone,peak190361600B,events0/swap0.
+ExistingTriton2055files/62246523B sealed, noGPUpreload. Full500preparation receipt
+nowexists; original4000W1business underway, ALL4nativeworkersREADY.
+Actualworkerready(index,at):0/1541257.340656371,1/1541350.277117151,
+2/1541441.125432152,3/1541547.882360987;eachadapter_count500,TP1.
+Latestwatchdogsample689 at1541679.203139661:service58.4117GiB,
+hostavailable56.7802GiB,high/max/OOM/kill/swap0,noabort.
+Livepoll1075http_response/1114request_created; NOTcompleteaudit/qualifiedcount.
+Earlierresponseexamplesreq00311/315/319 hadTTFT~350s/routerqueue~309-312s;
+preserveearlywaits,do not inferfinalP95/uniquecause orcancelbecauseSLOpoor.
+Nativeworkerlogs showactualadapterload/offload. Whole4000stillRUNNING,
+tmux+actualserviceInvocationrecheckedLIVE,no restart. Turnclassifiedverifiedwait.
+Disk~139.18GiB aftermaterialization,
+above100GiBongoingstop but below150GiBnext-jobgate; no cleanupduringperformance.
+RemoteD540 services LIVE, actual1000/full, bothhealthPASS prepublished_gzip_v1.
+7bclockremote-process-monotonic:9b97eaa25ebd43c692c3a6a597e3b7c0.
+Remote own monitor primelora-artifact-monitor-d540-w1.service; exact3unitIDs
+in remote_start.log. No token exposure, noexistingk3s changes.
+NEXT monitor SAME tmux/receipt/journals until terminal. Do not rerunqualification,
+freeze_inputs,backup,start,oldperformance,hashscans,builds,compressionorcleanup.
+After launch7b.json terminal:close_launch.py (ownedemptyaux),stop_remote.sh,
+preserve_evidence.py in boundedaux; then existing analyzer
+slora_resident_rr_v1/full4000_w1, crossinput audit,save/push result.
+Never stop remote or clean private /tmp/tc-d540-7bs before actualrelease.
+Independent numerical proof remains unknown; no finalD540performanceyet.
+Postpush status delta intentionallynotbackedup duringinference; nextresultcheckpoint.
+
+D538 targetedstorageDONE; D539 offlinequeueauditDONE (historicalbeforeD540start).
 Read D538_TARGETED_CACHE_RECLAIM.md and D539_SERVERLESSLLM_QUEUE_REVIEW.md.
 D538 removedONLYclosedD532duplicateobjects1320files; retainedoriginalpool SHAchecked.
 Reclaimed3305652224B,diskafter162489970688B; protected147unchanged.
@@ -36,7 +106,7 @@ NextreuseS-LoRAD435nativequalification for7BW1;
 continueLoquetier/HydraServeW1. Do notrerunD537/D533/D536orW0.
 PrimeLoRAW1still93.725%<95; noG1/G2completion. Allfullscopebelowretained.
 
-D540 S-LoRA W1 OFFLINEQUALIFICATIONPASS, PRELAUNCHPREPARED, NOTLAUNCHED.
+D540 S-LoRA W1 OFFLINEQUALIFICATIONPASS, PRELAUNCHPUSHED, NOWRUNNING above.
 RAW originalresults/ieee_tc/slora_qualification/d540_20261015.
 inspect_reuse.py/reuse_inspection.json preserved:oldD430viewwholehelperSHA
 staleafterLoquetier/HydraServe/W1support,notnativepolicydefect.
@@ -48,11 +118,10 @@ http_7b_4000.json differsD435onlyexplicitW1view/profile/experimentrole.
 Inputview103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3,
 4000requests/132requestedIDs/458224targets;staticfull500preparationretained.
 51CPUtestsPASS4.053s inoldqualifiedwrapperenv;bothreuse/qualificationauxclosed.
-NoGPUsacquired,no remoteunitsstarted,noformalperformancecompleted.
+ThequalificationitselfacquirednoGPUs; actualperformancehasnowstarted above.
 Launcher/start/stop/evidence/backup helpers adapted from D435/D537 existing recipes.
-Read D540_SLORA_W1.md. NEXT explicit prelaunch backup and close its owned scope,
-then bounded start.py seals Triton/input metadata, checks fresh resource/remote gates,
-and launches ONE7BW1run. Do notrepeatqualification. No baseline algorithm changes.
+Read D540_SLORA_W1.md. Prelaunchbackup/startDONE, monitor existingrunonly.
+Do notrepeatqualification. No baseline algorithm changes.
 Usecurrentanalyzer slora_resident_rr_v1/full4000_w1 (alreadyimplemented).
 KeeporiginalS-LoRAnativeenv,DP4/TP1/RR,sequentialstartup,packedHOST,nativepaging;
 notice+60business,full500remoteafter-notice,coldprivatecache,new/tmp/tc-d540-7bs.
