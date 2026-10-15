@@ -1,0 +1,257 @@
+{
+  "kind": "d533_existing_original4000_input_witness_v1",
+  "passed": true,
+  "initial_state": {
+    "common_compiler_receipt_equal": true,
+    "workers": [
+      {
+        "worker_root": "/tmp/faaslora_worker_plvw1ezx",
+        "state": "activation_sent",
+        "log_sha256": "6ab9896e3b817290942d55b229224f4313e6381d673a4131b92d9c3462510e64",
+        "cache_paths": [
+          "/home/qhq/.cache/vllm/torch_compile_cache/3a5577e355/rank_0_0/backbone"
+        ],
+        "log_evidence": [
+          "(EngineCore pid=3040107) INFO 10-15 03:13:50 [backends.py:1094] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/3a5577e355/rank_0_0/backbone for vLLM's torch.compile",
+          "(EngineCore pid=3040107) INFO 10-15 03:13:59 [backends.py:393] Compiling a graph for compile range (1, 1024) takes 8.81 s",
+          "(EngineCore pid=3040107) INFO 10-15 03:14:07 [decorators.py:719] saved AOT compiled function to /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3040107) INFO 10-15 03:14:07 [monitor.py:53] torch.compile took 30.50 s in total",
+          "(EngineCore pid=3040107) INFO 10-15 03:14:31 [core.py:372] init engine (profile, create kv cache, warmup model) took 56.49 s (compilation: 30.50 s)",
+          "(EngineCore pid=3040107) WARNING 10-15 03:14:32 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {
+          "/home/qhq/.cache/vllm/torch_compile_cache/3a5577e355/rank_0_0/backbone": false
+        }
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_3hpslgof",
+        "state": "activation_sent",
+        "log_sha256": "350c8751299e7db4756fc3c5a26760c2552022f6f976f9f31a2da8e98da640de",
+        "cache_paths": [],
+        "log_evidence": [
+          "(EngineCore pid=3043811) INFO 10-15 03:14:58 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3043811) INFO 10-15 03:14:58 [monitor.py:53] torch.compile took 0.35 s in total",
+          "(EngineCore pid=3043811) INFO 10-15 03:15:08 [core.py:372] init engine (profile, create kv cache, warmup model) took 13.92 s (compilation: 0.35 s)",
+          "(EngineCore pid=3043811) WARNING 10-15 03:15:10 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {}
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_sf4e85tm",
+        "state": "activation_sent",
+        "log_sha256": "570fea822fbe28d0e092817d3303203b6f59d30f6bf4355e4c19c9f0aa6477a1",
+        "cache_paths": [],
+        "log_evidence": [
+          "(EngineCore pid=3043900) INFO 10-15 03:15:02 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3043900) INFO 10-15 03:15:02 [monitor.py:53] torch.compile took 1.81 s in total",
+          "(EngineCore pid=3043900) INFO 10-15 03:15:12 [core.py:372] init engine (profile, create kv cache, warmup model) took 14.52 s (compilation: 1.81 s)",
+          "(EngineCore pid=3043900) WARNING 10-15 03:15:14 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {}
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_shw1jqz0",
+        "state": "activation_sent",
+        "log_sha256": "c2d04a441740f687798ce6d403f841fca40dc08084dd3071270bc72e2c97db13",
+        "cache_paths": [],
+        "log_evidence": [
+          "(EngineCore pid=3044005) INFO 10-15 03:15:03 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3044005) INFO 10-15 03:15:03 [monitor.py:53] torch.compile took 0.27 s in total",
+          "(EngineCore pid=3044005) INFO 10-15 03:15:13 [core.py:372] init engine (profile, create kv cache, warmup model) took 13.16 s (compilation: 0.27 s)",
+          "(EngineCore pid=3044005) WARNING 10-15 03:15:16 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {}
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_lmeaedkq",
+        "state": "activation_sent",
+        "log_sha256": "31216b7ab5aa7624b782881989e4c09427330d41c6b4a787aff93348527a0307",
+        "cache_paths": [],
+        "log_evidence": [
+          "(EngineCore pid=3059074) INFO 10-15 03:20:55 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3059074) INFO 10-15 03:20:55 [monitor.py:53] torch.compile took 0.29 s in total",
+          "(EngineCore pid=3059074) INFO 10-15 03:21:05 [core.py:372] init engine (profile, create kv cache, warmup model) took 13.05 s (compilation: 0.29 s)",
+          "(EngineCore pid=3059074) WARNING 10-15 03:21:11 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {}
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_pccjcp5o",
+        "state": "activation_sent",
+        "log_sha256": "b51f71fd3f8336195a5bcc35a974b453b90d64c5cdeabf9ec921119b068663e2",
+        "cache_paths": [],
+        "log_evidence": [
+          "(EngineCore pid=3058998) INFO 10-15 03:20:53 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/936104b991e9ff22cb3c4b7698d45eee90f7200228bc4570e9e65966dab81fc6/rank_0_0/model",
+          "(EngineCore pid=3058998) INFO 10-15 03:20:53 [monitor.py:53] torch.compile took 0.31 s in total",
+          "(EngineCore pid=3058998) INFO 10-15 03:21:03 [core.py:372] init engine (profile, create kv cache, warmup model) took 13.54 s (compilation: 0.31 s)",
+          "(EngineCore pid=3058998) WARNING 10-15 03:21:04 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+        ],
+        "cache_metadata_present_before": {}
+      },
+      {
+        "worker_root": "/tmp/faaslora_worker_ykwoh_wx",
+        "state": "abandoned",
+        "log_sha256": "c88e288eb4917405ca9bbd4aff31123bd49800faa6378d64296889501941f00a",
+        "cache_paths": [],
+        "log_evidence": [],
+        "cache_metadata_present_before": {}
+      }
+    ],
+    "baseline_worker0_log_sha256": "b0144d70a7aed4535578cf20e96121ccc9acb3a6b10cb920f8ec9a2e532d115e",
+    "baseline_worker0_log_evidence": [
+      "(EngineCore pid=2905058) INFO 10-15 02:17:50 [backends.py:1094] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/6d1961d6a9/rank_0_0/backbone for vLLM's torch.compile",
+      "(EngineCore pid=2905058) INFO 10-15 02:18:00 [backends.py:393] Compiling a graph for compile range (1, 1024) takes 9.01 s",
+      "(EngineCore pid=2905058) INFO 10-15 02:18:09 [decorators.py:719] saved AOT compiled function to /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/a52d5fba6d4e2d3a318cc68b34578fb8d938847af1fc32975adf57946e498eae/rank_0_0/model",
+      "(EngineCore pid=2905058) INFO 10-15 02:18:09 [monitor.py:53] torch.compile took 31.58 s in total",
+      "(EngineCore pid=2905058) INFO 10-15 02:18:32 [core.py:372] init engine (profile, create kv cache, warmup model) took 56.71 s (compilation: 31.58 s)",
+      "(EngineCore pid=2905058) WARNING 10-15 02:18:33 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+    ],
+    "whole_cache_prestate_proved": false,
+    "limitation": "Both initial model graphs compiled in measured startup; lower-level kernel cache sharing is not excluded. Different native LoRA configurations remain explicit."
+  },
+  "comparison": {
+    "PrimeLoRA": {
+      "joint": 0.93725,
+      "gpu_seconds": 8145.351609454025,
+      "p95_ttft_ms": 4473.332113120705
+    },
+    "vLLM": {
+      "joint": 0.72675,
+      "gpu_seconds": 9008.761400188087,
+      "p95_ttft_ms": 9777.026765514165
+    },
+    "lower_better_change_percent": {
+      "gpu_seconds": 9.58411209243521,
+      "p95_ttft_ms": 54.24649824117101
+    },
+    "joint_difference_pp": 21.05,
+    "reference_frozen": false,
+    "budget_candidate": 6756.571050141065,
+    "PrimeLoRA_budget_ratio": 1.2055451721008639,
+    "both_below_95_percent": true
+  },
+  "numerical_difference_cause": "unknown; input binding is not independent numerical proof",
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "target_tokens",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "source_item_sha256"
+  ],
+  "generation_contract": "fixed_length_greedy_v1",
+  "output_token_equality_required": false,
+  "numerical_correctness_qualified": false,
+  "performance_comparison": false,
+  "scope": {
+    "unit": "primelora-tc-aux-00000000000000000000000000053305.scope",
+    "invocation_id": "909fe8008ab8434aae5428dba2d7a47e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-00000000000000000000000000053305.scope",
+    "inode": 25274720
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/7b_full_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d533_7b_full_w1.json",
+      "sha256": "35ed3fe26978d739d7b10bc80570b9939a03d0559ba4ccd77b0761b84e1b38bc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/launch7b.launch/replay.jsonl",
+      "sha256": "df6d8a1038e95f80c4d9c14f453f8b2fef7f00768271c298783ec89e13dd2112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d536_vllm_w1/result1/audit.json",
+      "sha256": "3a7a7fba27734b2ac5bed3eeca3a29cce2a25f69984443fb56226ac90ecf63f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/model7b/worker_0.log",
+      "sha256": "b0144d70a7aed4535578cf20e96121ccc9acb3a6b10cb920f8ec9a2e532d115e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/model7b/worker_receipts/89885025e5524b9e8835afbd1d6c0251.json",
+      "sha256": "6ca7e2fdffeba264a4bbb05733f5096cdc4092d9275afe826ea24e3f9862d51e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/model7b/worker_receipts/a1d132ffdb294c04a07a67584e1a1c52.json",
+      "sha256": "c371ad3a8769a26e53185e59a906c2dd25cefb8a02a24091b5100966bd1e0747"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/model7b/worker_receipts/ca3f52f7dd0c43fc8441deac2daca33a.json",
+      "sha256": "a4d2e73b00b80be1b7212adead893967b012f77ed9f67ce41612ae90633124c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/model7b/worker_receipts/d3ab25819531467b88e6f3e1d701916a.json",
+      "sha256": "7820184ac5d6c933ca145cb98dfdd2a9d0479c24e324166bc6430e25b9c1f2a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/model_cache_metadata_before.json",
+      "sha256": "bc512fb86453d752331959e87a2123f304f48ad8a79810bf0fd37fabc470eeaa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/reference_candidate.json",
+      "sha256": "d9d9c8bde4c1d9fd719ef56fb077e97a43f0dc932832b5bd206f40c28c251112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/cross_contract_v2.py",
+      "sha256": "89380bb3a1f3173130679b4f42481e8f1f14d78aee1b59a8180d32373833386e"
+    },
+    {
+      "path": "/tmp/faaslora_worker_plvw1ezx/worker.log",
+      "sha256": "6ab9896e3b817290942d55b229224f4313e6381d673a4131b92d9c3462510e64"
+    },
+    {
+      "path": "/tmp/faaslora_worker_3hpslgof/worker.log",
+      "sha256": "350c8751299e7db4756fc3c5a26760c2552022f6f976f9f31a2da8e98da640de"
+    },
+    {
+      "path": "/tmp/faaslora_worker_sf4e85tm/worker.log",
+      "sha256": "570fea822fbe28d0e092817d3303203b6f59d30f6bf4355e4c19c9f0aa6477a1"
+    },
+    {
+      "path": "/tmp/faaslora_worker_shw1jqz0/worker.log",
+      "sha256": "c2d04a441740f687798ce6d403f841fca40dc08084dd3071270bc72e2c97db13"
+    },
+    {
+      "path": "/tmp/faaslora_worker_lmeaedkq/worker.log",
+      "sha256": "31216b7ab5aa7624b782881989e4c09427330d41c6b4a787aff93348527a0307"
+    },
+    {
+      "path": "/tmp/faaslora_worker_pccjcp5o/worker.log",
+      "sha256": "b51f71fd3f8336195a5bcc35a974b453b90d64c5cdeabf9ec921119b068663e2"
+    },
+    {
+      "path": "/tmp/faaslora_worker_ykwoh_wx/worker.log",
+      "sha256": "c88e288eb4917405ca9bbd4aff31123bd49800faa6378d64296889501941f00a"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+      "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh",
+      "sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+    }
+  ],
+  "projection_correction": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d533_20261015/cross_contract.json",
+    "sha256": "d63e14937d28e04d8dcf0cfa5488a2e5c154069bb45a73dc684b1478a91f6302",
+    "reason": "overescaped regex in intermediate cache-directory projection; restore exact saved log literal, no metric or input change"
+  }
+}
