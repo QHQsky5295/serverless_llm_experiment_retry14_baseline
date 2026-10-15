@@ -1,4 +1,4 @@
-# IEEE TC execution status — D538/D539 complete; resume S-LoRA W1
+# IEEE TC execution status — D540 S-LoRA W1 prelaunch
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -26,9 +26,38 @@ No evidencednewadaptationdefect;retainD537nonfeasiblepoint,notbaselineparameters
 D539auxpeak513466368B,high/max/OOM/swap0,actualemptyclosed/pathgone.
 D538/D539curationDONE,twoarchive4938/17311B; curationauxclosed/pathgone,
 peak27033600B,events0/swap0. Publicationpreparedexplicitpaths,no productionchange.
-BackupD538+D539next, then reuseS-LoRAD435nativequalification for7BW1;
+D538/D539publicationCOMPLETE:f58f04c764adfece86f5983cee89cc6290cf11ad
+PUSHED/remoteequal,16explicitfiles;allchecksPASS. Firstattemptstoppeddiffcheck
+atnewdocEOFblankline;correctedonlywhitespacebeforecommit,noexperimentrerun.
+Failedpublicationauxclosed26849280B;finishingauxclosed26890240B;events0/swap0.
+RAW D539publication_receipt.json/publication_finish_closure.json retainidentity.
+No servingcodechangeorBASEcommitthisturn. Postpushstatusdeltafornextcheckpoint.
+NextreuseS-LoRAD435nativequalification for7BW1;
 continueLoquetier/HydraServeW1. Do notrerunD537/D533/D536orW0.
 PrimeLoRAW1still93.725%<95; noG1/G2completion. Allfullscopebelowretained.
+
+D540 S-LoRA W1 OFFLINEQUALIFICATIONPASS, PRELAUNCHPREPARED, NOTLAUNCHED.
+RAW originalresults/ieee_tc/slora_qualification/d540_20261015.
+inspect_reuse.py/reuse_inspection.json preserved:oldD430viewwholehelperSHA
+staleafterLoquetier/HydraServe/W1support,notnativepolicydefect.
+OnlytwohelperSHAsdiffer;16S-LoRAmeasurement/sourceadapter/runtimefunctions
+ASTequalD435BASEcae13c57. Original/measuredsourceSHAsidenticaltonewsource_view.
+Existingprepare_slora_measurement_view reused; native_7b.json differsfrom
+frozenBASEconfigonlysource_view/pathmanifestSHA. Noengineconfigtuning/newweights.
+http_7b_4000.json differsD435onlyexplicitW1view/profile/experimentrole.
+Inputview103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3,
+4000requests/132requestedIDs/458224targets;staticfull500preparationretained.
+51CPUtestsPASS4.053s inoldqualifiedwrapperenv;bothreuse/qualificationauxclosed.
+NoGPUsacquired,no remoteunitsstarted,noformalperformancecompleted.
+Launcher/start/stop/evidence/backup helpers adapted from D435/D537 existing recipes.
+Read D540_SLORA_W1.md. NEXT explicit prelaunch backup and close its owned scope,
+then bounded start.py seals Triton/input metadata, checks fresh resource/remote gates,
+and launches ONE7BW1run. Do notrepeatqualification. No baseline algorithm changes.
+Usecurrentanalyzer slora_resident_rr_v1/full4000_w1 (alreadyimplemented).
+KeeporiginalS-LoRAnativeenv,DP4/TP1/RR,sequentialstartup,packedHOST,nativepaging;
+notice+60business,full500remoteafter-notice,coldprivatecache,new/tmp/tc-d540-7bs.
+Freshlastdisk162478022656B,MemAvailable110046964kB,GPUnone;notlaunchguarantee.
+Allsourceweights/tracesunchanged;51testsnotanewperformanceexperiment.
 
 D537 ServerlessLLM W1 TERMINAL SUCCESS; no live model/remote job remains.
 Read D537_SERVERLESSLLM_W1_RESULT.md. RAW originalresults/ieee_tc/serverless_qualification/d537_20261015.
