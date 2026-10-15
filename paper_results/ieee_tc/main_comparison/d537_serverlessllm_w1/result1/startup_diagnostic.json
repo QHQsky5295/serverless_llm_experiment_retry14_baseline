@@ -1,0 +1,1892 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d5370000000000000000000000000006.scope",
+    "invocation_id": "164644273bb14c3aba55226dbfb5bb2f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5370000000000000000000000000006.scope",
+    "inode": 25305007
+  },
+  "log_evidence": {
+    "D537_W1": [
+      {
+        "line": 295,
+        "text": "(start_instance pid=3890646) INFO 10-15 09:46:49 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_74134912-59b0-4fe6-963c-bcabf156fa17 with backend vllm"
+      },
+      {
+        "line": 296,
+        "text": "(start_instance pid=3890646) INFO 10-15 09:46:49 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_74134912-59b0-4fe6-963c-bcabf156fa17 with backend vllm"
+      },
+      {
+        "line": 1517,
+        "text": "(VllmBackend pid=3892574) (EngineCore_DP0 pid=3894288) INFO 10-15 09:48:16 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 3.163407 seconds"
+      },
+      {
+        "line": 1519,
+        "text": "(VllmBackend pid=3892574) (EngineCore_DP0 pid=3894288) INFO 10-15 09:48:16 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 3.163407 seconds"
+      },
+      {
+        "line": 1585,
+        "text": "(VllmBackend pid=3892760) (EngineCore_DP0 pid=3894290) INFO 10-15 09:48:18 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 5.067544 seconds [repeated 6x across cluster]"
+      },
+      {
+        "line": 1948,
+        "text": "(VllmBackend pid=3892090) (EngineCore_DP0 pid=3894289) INFO 10-15 09:48:45 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1949,
+        "text": "(VllmBackend pid=3892090) (EngineCore_DP0 pid=3894289) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 27.58 s"
+      },
+      {
+        "line": 2025,
+        "text": "(VllmBackend pid=3892760) (EngineCore_DP0 pid=3894290) INFO 10-15 09:48:45 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile [repeated 7x across cluster]"
+      },
+      {
+        "line": 2026,
+        "text": "(VllmBackend pid=3892760) (EngineCore_DP0 pid=3894290) INFO 10-15 09:48:45 [backends.py:550] Dynamo bytecode transform time: 25.91 s [repeated 7x across cluster]"
+      },
+      {
+        "line": 2155,
+        "text": "(VllmBackend pid=3892090) (EngineCore_DP0 pid=3894289) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 27.58 s in total"
+      },
+      {
+        "line": 2276,
+        "text": "(VllmBackend pid=3892574) (EngineCore_DP0 pid=3894288) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 44.54 seconds"
+      },
+      {
+        "line": 2303,
+        "text": "(VllmBackend pid=3892760) (EngineCore_DP0 pid=3894290) INFO 10-15 09:48:56 [monitor.py:34] torch.compile takes 25.91 s in total [repeated 7x across cluster]"
+      },
+      {
+        "line": 2576,
+        "text": "(VllmBackend pid=3892090) (EngineCore_DP0 pid=3894289) INFO 10-15 09:49:01 [core.py:218] init engine (profile, create kv cache, warmup model) took 44.25 seconds [repeated 7x across cluster]"
+      },
+      {
+        "line": 20274,
+        "text": "(start_instance pid=3892089) INFO 10-15 09:56:05 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_9b781472-8655-445b-be0b-5c41233cb843 with backend vllm"
+      },
+      {
+        "line": 20287,
+        "text": "(start_instance pid=3892089) INFO 10-15 09:56:05 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_9b781472-8655-445b-be0b-5c41233cb843 with backend vllm"
+      },
+      {
+        "line": 20488,
+        "text": "(start_instance pid=3892089) INFO 10-15 09:56:09 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_075eaa36-de5d-4e94-a581-16a24d86f9e7 with backend vllm"
+      },
+      {
+        "line": 20490,
+        "text": "(start_instance pid=3892089) INFO 10-15 09:56:09 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_075eaa36-de5d-4e94-a581-16a24d86f9e7 with backend vllm"
+      },
+      {
+        "line": 22383,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:56:55 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.850132 seconds"
+      },
+      {
+        "line": 22384,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:56:55 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.850132 seconds"
+      },
+      {
+        "line": 22570,
+        "text": "(VllmBackend pid=3915974) (EngineCore_DP0 pid=3916908) INFO 10-15 09:56:57 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 4.023268 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 22765,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:07 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 22766,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:07 [backends.py:550] Dynamo bytecode transform time: 11.48 s"
+      },
+      {
+        "line": 22767,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:07 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 22768,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:07 [backends.py:550] Dynamo bytecode transform time: 11.48 s"
+      },
+      {
+        "line": 22899,
+        "text": "(VllmBackend pid=3915974) (EngineCore_DP0 pid=3916908) INFO 10-15 09:57:09 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile [repeated 2x across cluster]"
+      },
+      {
+        "line": 22900,
+        "text": "(VllmBackend pid=3915974) (EngineCore_DP0 pid=3916908) INFO 10-15 09:57:09 [backends.py:550] Dynamo bytecode transform time: 11.03 s [repeated 2x across cluster]"
+      },
+      {
+        "line": 22957,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:14 [monitor.py:34] torch.compile takes 11.48 s in total"
+      },
+      {
+        "line": 22958,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:14 [monitor.py:34] torch.compile takes 11.48 s in total"
+      },
+      {
+        "line": 23073,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:18 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.62 seconds"
+      },
+      {
+        "line": 23074,
+        "text": "(VllmBackend pid=3915722) (EngineCore_DP0 pid=3916896) INFO 10-15 09:57:18 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.62 seconds"
+      },
+      {
+        "line": 23130,
+        "text": "(VllmBackend pid=3915974) (EngineCore_DP0 pid=3916908) INFO 10-15 09:57:15 [monitor.py:34] torch.compile takes 11.03 s in total [repeated 2x across cluster]"
+      },
+      {
+        "line": 23283,
+        "text": "(VllmBackend pid=3915974) (EngineCore_DP0 pid=3916908) INFO 10-15 09:57:19 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.96 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 30321,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:00:25 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_93d9abe7-a1ae-48cd-9d26-8b6727c83c13 with backend vllm"
+      },
+      {
+        "line": 30324,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:00:25 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_93d9abe7-a1ae-48cd-9d26-8b6727c83c13 with backend vllm"
+      },
+      {
+        "line": 30502,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:00:28 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_cb37edbf-c4f9-42e3-876c-0ffa67419995 with backend vllm"
+      },
+      {
+        "line": 30503,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:00:28 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_cb37edbf-c4f9-42e3-876c-0ffa67419995 with backend vllm"
+      },
+      {
+        "line": 32229,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:10 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.913974 seconds"
+      },
+      {
+        "line": 32230,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:10 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.913974 seconds"
+      },
+      {
+        "line": 32474,
+        "text": "(VllmBackend pid=3927321) (EngineCore_DP0 pid=3928010) INFO 10-15 10:01:13 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.362710 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 32786,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:22 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 32787,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:22 [backends.py:550] Dynamo bytecode transform time: 10.68 s"
+      },
+      {
+        "line": 32789,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:22 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 32790,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:22 [backends.py:550] Dynamo bytecode transform time: 10.68 s"
+      },
+      {
+        "line": 32951,
+        "text": "(VllmBackend pid=3927321) (EngineCore_DP0 pid=3928010) INFO 10-15 10:01:24 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile [repeated 2x across cluster]"
+      },
+      {
+        "line": 32952,
+        "text": "(VllmBackend pid=3927321) (EngineCore_DP0 pid=3928010) INFO 10-15 10:01:24 [backends.py:550] Dynamo bytecode transform time: 10.92 s [repeated 2x across cluster]"
+      },
+      {
+        "line": 32992,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:28 [monitor.py:34] torch.compile takes 10.68 s in total"
+      },
+      {
+        "line": 32993,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:28 [monitor.py:34] torch.compile takes 10.68 s in total"
+      },
+      {
+        "line": 33176,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:32 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.66 seconds"
+      },
+      {
+        "line": 33179,
+        "text": "(VllmBackend pid=3927164) (EngineCore_DP0 pid=3927941) INFO 10-15 10:01:32 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.66 seconds"
+      },
+      {
+        "line": 33233,
+        "text": "(VllmBackend pid=3927321) (EngineCore_DP0 pid=3928010) INFO 10-15 10:01:31 [monitor.py:34] torch.compile takes 10.92 s in total [repeated 2x across cluster]"
+      },
+      {
+        "line": 33549,
+        "text": "(VllmBackend pid=3927321) (EngineCore_DP0 pid=3928010) INFO 10-15 10:01:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.46 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 39925,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:03:53 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_431698c7-0d4b-43bb-8e18-8da2d95fd7dc with backend vllm"
+      },
+      {
+        "line": 39950,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:03:53 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_431698c7-0d4b-43bb-8e18-8da2d95fd7dc with backend vllm"
+      },
+      {
+        "line": 40157,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:03:59 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_a40712cc-2d4e-4e15-8280-64c7eeca1314 with backend vllm"
+      },
+      {
+        "line": 40183,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:03:59 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_a40712cc-2d4e-4e15-8280-64c7eeca1314 with backend vllm"
+      },
+      {
+        "line": 41750,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:37 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.816603 seconds"
+      },
+      {
+        "line": 41751,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:37 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.816603 seconds"
+      },
+      {
+        "line": 42142,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:45 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.281923 seconds"
+      },
+      {
+        "line": 42143,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:45 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.281923 seconds"
+      },
+      {
+        "line": 42293,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:49 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 42294,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:49 [backends.py:550] Dynamo bytecode transform time: 10.72 s"
+      },
+      {
+        "line": 42317,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:49 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 42318,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:49 [backends.py:550] Dynamo bytecode transform time: 10.72 s"
+      },
+      {
+        "line": 42622,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:55 [monitor.py:34] torch.compile takes 10.72 s in total"
+      },
+      {
+        "line": 42626,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:55 [monitor.py:34] torch.compile takes 10.72 s in total"
+      },
+      {
+        "line": 42704,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:57 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 42705,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:57 [backends.py:550] Dynamo bytecode transform time: 10.80 s"
+      },
+      {
+        "line": 42706,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:57 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 42707,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:04:57 [backends.py:550] Dynamo bytecode transform time: 10.80 s"
+      },
+      {
+        "line": 42781,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:58 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.32 seconds"
+      },
+      {
+        "line": 42782,
+        "text": "(VllmBackend pid=3936070) (EngineCore_DP0 pid=3936737) INFO 10-15 10:04:58 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.32 seconds"
+      },
+      {
+        "line": 43045,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:05:03 [monitor.py:34] torch.compile takes 10.80 s in total"
+      },
+      {
+        "line": 43047,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:05:03 [monitor.py:34] torch.compile takes 10.80 s in total"
+      },
+      {
+        "line": 43305,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:05:07 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.53 seconds"
+      },
+      {
+        "line": 43307,
+        "text": "(VllmBackend pid=3936303) (EngineCore_DP0 pid=3936972) INFO 10-15 10:05:07 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.53 seconds"
+      },
+      {
+        "line": 49691,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:07:27 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_572e07da-7f4c-46c9-b622-1f9638f37f90 with backend vllm"
+      },
+      {
+        "line": 49716,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:07:27 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_572e07da-7f4c-46c9-b622-1f9638f37f90 with backend vllm"
+      },
+      {
+        "line": 49859,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:07:30 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c46c2ea4-802e-43a1-bf9d-21eec6cb6d7d with backend vllm"
+      },
+      {
+        "line": 49861,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:07:30 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c46c2ea4-802e-43a1-bf9d-21eec6cb6d7d with backend vllm"
+      },
+      {
+        "line": 51638,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:14 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.854287 seconds"
+      },
+      {
+        "line": 51656,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:14 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.854287 seconds"
+      },
+      {
+        "line": 51891,
+        "text": "(VllmBackend pid=3945552) (EngineCore_DP0 pid=3946298) INFO 10-15 10:08:16 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.267121 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 52220,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:25 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 52221,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:25 [backends.py:550] Dynamo bytecode transform time: 10.91 s"
+      },
+      {
+        "line": 52222,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:25 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 52223,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:25 [backends.py:550] Dynamo bytecode transform time: 10.91 s"
+      },
+      {
+        "line": 52411,
+        "text": "(VllmBackend pid=3945552) (EngineCore_DP0 pid=3946298) INFO 10-15 10:08:28 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile [repeated 2x across cluster]"
+      },
+      {
+        "line": 52412,
+        "text": "(VllmBackend pid=3945552) (EngineCore_DP0 pid=3946298) INFO 10-15 10:08:28 [backends.py:550] Dynamo bytecode transform time: 11.73 s [repeated 2x across cluster]"
+      },
+      {
+        "line": 52456,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:32 [monitor.py:34] torch.compile takes 10.91 s in total"
+      },
+      {
+        "line": 52457,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:32 [monitor.py:34] torch.compile takes 10.91 s in total"
+      },
+      {
+        "line": 52608,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.70 seconds"
+      },
+      {
+        "line": 52609,
+        "text": "(VllmBackend pid=3945379) (EngineCore_DP0 pid=3946145) INFO 10-15 10:08:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.70 seconds"
+      },
+      {
+        "line": 52671,
+        "text": "(VllmBackend pid=3945552) (EngineCore_DP0 pid=3946298) INFO 10-15 10:08:34 [monitor.py:34] torch.compile takes 11.73 s in total [repeated 2x across cluster]"
+      },
+      {
+        "line": 52838,
+        "text": "(VllmBackend pid=3945552) (EngineCore_DP0 pid=3946298) INFO 10-15 10:08:38 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.21 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 59582,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:11:25 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_efaf5773-cd62-4484-b693-b3f0bd1dac2a with backend vllm"
+      },
+      {
+        "line": 59596,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:11:25 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_efaf5773-cd62-4484-b693-b3f0bd1dac2a with backend vllm"
+      },
+      {
+        "line": 59727,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:11:28 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c720da9d-88a1-4ff1-8e63-853b0109bbeb with backend vllm"
+      },
+      {
+        "line": 59741,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:11:28 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c720da9d-88a1-4ff1-8e63-853b0109bbeb with backend vllm"
+      },
+      {
+        "line": 61219,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:11 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.828795 seconds"
+      },
+      {
+        "line": 61221,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:11 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.828795 seconds"
+      },
+      {
+        "line": 61437,
+        "text": "(VllmBackend pid=3955743) (EngineCore_DP0 pid=3956621) INFO 10-15 10:12:13 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.254207 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 61678,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:23 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 61679,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:23 [backends.py:550] Dynamo bytecode transform time: 10.85 s"
+      },
+      {
+        "line": 61680,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:23 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 61681,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:23 [backends.py:550] Dynamo bytecode transform time: 10.85 s"
+      },
+      {
+        "line": 61893,
+        "text": "(VllmBackend pid=3955743) (EngineCore_DP0 pid=3956621) INFO 10-15 10:12:24 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile [repeated 2x across cluster]"
+      },
+      {
+        "line": 61894,
+        "text": "(VllmBackend pid=3955743) (EngineCore_DP0 pid=3956621) INFO 10-15 10:12:24 [backends.py:550] Dynamo bytecode transform time: 10.51 s [repeated 2x across cluster]"
+      },
+      {
+        "line": 61945,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:29 [monitor.py:34] torch.compile takes 10.85 s in total"
+      },
+      {
+        "line": 61946,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:29 [monitor.py:34] torch.compile takes 10.85 s in total"
+      },
+      {
+        "line": 62101,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:34 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.80 seconds"
+      },
+      {
+        "line": 62102,
+        "text": "(VllmBackend pid=3955544) (EngineCore_DP0 pid=3956507) INFO 10-15 10:12:34 [core.py:218] init engine (profile, create kv cache, warmup model) took 22.80 seconds"
+      },
+      {
+        "line": 62142,
+        "text": "(VllmBackend pid=3955743) (EngineCore_DP0 pid=3956621) INFO 10-15 10:12:31 [monitor.py:34] torch.compile takes 10.51 s in total [repeated 2x across cluster]"
+      },
+      {
+        "line": 62396,
+        "text": "(VllmBackend pid=3955743) (EngineCore_DP0 pid=3956621) INFO 10-15 10:12:35 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.62 seconds [repeated 2x across cluster]"
+      },
+      {
+        "line": 69486,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:16:21 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_3a93f85f-a1ed-491d-870c-5842f786e4f5 with backend vllm"
+      },
+      {
+        "line": 69502,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:16:21 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_3a93f85f-a1ed-491d-870c-5842f786e4f5 with backend vllm"
+      },
+      {
+        "line": 70638,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:08 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.823394 seconds"
+      },
+      {
+        "line": 70641,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:08 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.823394 seconds"
+      },
+      {
+        "line": 71015,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:17:18 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c81de615-571e-48d2-92e9-19d152ce6259 with backend vllm"
+      },
+      {
+        "line": 71018,
+        "text": "(start_instance pid=3892089) INFO 10-15 10:17:18 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c81de615-571e-48d2-92e9-19d152ce6259 with backend vllm"
+      },
+      {
+        "line": 71063,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:19 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 71064,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:19 [backends.py:550] Dynamo bytecode transform time: 10.73 s"
+      },
+      {
+        "line": 71068,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:19 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 71069,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:19 [backends.py:550] Dynamo bytecode transform time: 10.73 s"
+      },
+      {
+        "line": 71246,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:26 [monitor.py:34] torch.compile takes 10.73 s in total"
+      },
+      {
+        "line": 71247,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:26 [monitor.py:34] torch.compile takes 10.73 s in total"
+      },
+      {
+        "line": 71349,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:29 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.18 seconds"
+      },
+      {
+        "line": 71350,
+        "text": "(VllmBackend pid=3968232) (EngineCore_DP0 pid=3969212) INFO 10-15 10:17:29 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.18 seconds"
+      },
+      {
+        "line": 72213,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:02 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.249948 seconds"
+      },
+      {
+        "line": 72214,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:02 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.249948 seconds"
+      },
+      {
+        "line": 72469,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:14 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 72470,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:14 [backends.py:550] Dynamo bytecode transform time: 10.53 s"
+      },
+      {
+        "line": 72471,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:14 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 72472,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:14 [backends.py:550] Dynamo bytecode transform time: 10.53 s"
+      },
+      {
+        "line": 72655,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:20 [monitor.py:34] torch.compile takes 10.53 s in total"
+      },
+      {
+        "line": 72656,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:20 [monitor.py:34] torch.compile takes 10.53 s in total"
+      },
+      {
+        "line": 72767,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:23 [core.py:218] init engine (profile, create kv cache, warmup model) took 20.87 seconds"
+      },
+      {
+        "line": 72770,
+        "text": "(VllmBackend pid=3970817) (EngineCore_DP0 pid=3971453) INFO 10-15 10:18:23 [core.py:218] init engine (profile, create kv cache, warmup model) took 20.87 seconds"
+      }
+    ],
+    "D414_W0": [
+      {
+        "line": 113,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:47:57 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_03d67f40-22c7-4efa-a800-9cb4bd32068c with backend vllm"
+      },
+      {
+        "line": 126,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:47:57 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_03d67f40-22c7-4efa-a800-9cb4bd32068c with backend vllm"
+      },
+      {
+        "line": 381,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:24 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c9305e83-f0fb-442a-8f95-db4ea439e50b with backend vllm"
+      },
+      {
+        "line": 394,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:24 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_c9305e83-f0fb-442a-8f95-db4ea439e50b with backend vllm"
+      },
+      {
+        "line": 525,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:34 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_e7f00f68-584e-4288-8afb-dc97550d7c0b with backend vllm"
+      },
+      {
+        "line": 539,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:34 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_e7f00f68-584e-4288-8afb-dc97550d7c0b with backend vllm"
+      },
+      {
+        "line": 646,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:41 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_b1ffb92a-b0e3-4929-a49c-7d1987ee5d9b with backend vllm"
+      },
+      {
+        "line": 663,
+        "text": "(start_instance pid=2849141) INFO 10-11 04:48:41 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_b1ffb92a-b0e3-4929-a49c-7d1987ee5d9b with backend vllm"
+      },
+      {
+        "line": 792,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:48:48 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.846852 seconds"
+      },
+      {
+        "line": 796,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:48:48 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.846852 seconds"
+      },
+      {
+        "line": 942,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:00 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 943,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:00 [backends.py:550] Dynamo bytecode transform time: 10.77 s"
+      },
+      {
+        "line": 946,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:00 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 947,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:00 [backends.py:550] Dynamo bytecode transform time: 10.77 s"
+      },
+      {
+        "line": 1021,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:06 [monitor.py:34] torch.compile takes 10.77 s in total"
+      },
+      {
+        "line": 1022,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:06 [monitor.py:34] torch.compile takes 10.77 s in total"
+      },
+      {
+        "line": 1079,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:09 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.308352 seconds"
+      },
+      {
+        "line": 1082,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:09 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.308352 seconds"
+      },
+      {
+        "line": 1089,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:10 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.39 seconds"
+      },
+      {
+        "line": 1090,
+        "text": "(VllmBackend pid=2850639) (EngineCore_DP0 pid=2851269) INFO 10-11 04:49:10 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.39 seconds"
+      },
+      {
+        "line": 1340,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:19 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.241114 seconds"
+      },
+      {
+        "line": 1342,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:19 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.241114 seconds"
+      },
+      {
+        "line": 1358,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:21 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1359,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:21 [backends.py:550] Dynamo bytecode transform time: 10.78 s"
+      },
+      {
+        "line": 1360,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:21 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1361,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:21 [backends.py:550] Dynamo bytecode transform time: 10.78 s"
+      },
+      {
+        "line": 1517,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:26 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.271717 seconds"
+      },
+      {
+        "line": 1518,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:26 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.271717 seconds"
+      },
+      {
+        "line": 1592,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:29 [monitor.py:34] torch.compile takes 10.78 s in total"
+      },
+      {
+        "line": 1596,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:29 [monitor.py:34] torch.compile takes 10.78 s in total"
+      },
+      {
+        "line": 1672,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:33 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 1673,
+        "text": "(VllmBackend pid=2851506) (EngineCore_DP0 pid=2852278) INFO 10-11 04:49:33 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 1678,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:33 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1679,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:33 [backends.py:550] Dynamo bytecode transform time: 13.10 s"
+      },
+      {
+        "line": 1684,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:33 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1685,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:33 [backends.py:550] Dynamo bytecode transform time: 13.10 s"
+      },
+      {
+        "line": 1858,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:40 [monitor.py:34] torch.compile takes 13.10 s in total"
+      },
+      {
+        "line": 1859,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:40 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1860,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:40 [backends.py:550] Dynamo bytecode transform time: 11.53 s"
+      },
+      {
+        "line": 1861,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:40 [monitor.py:34] torch.compile takes 13.10 s in total"
+      },
+      {
+        "line": 1862,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:40 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 1863,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:40 [backends.py:550] Dynamo bytecode transform time: 11.53 s"
+      },
+      {
+        "line": 1949,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:43 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 1950,
+        "text": "(VllmBackend pid=2852041) (EngineCore_DP0 pid=2852836) INFO 10-11 04:49:43 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 2093,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:46 [monitor.py:34] torch.compile takes 11.53 s in total"
+      },
+      {
+        "line": 2094,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:46 [monitor.py:34] torch.compile takes 11.53 s in total"
+      },
+      {
+        "line": 2205,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:50 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 2206,
+        "text": "(VllmBackend pid=2852365) (EngineCore_DP0 pid=2853312) INFO 10-11 04:49:50 [core.py:218] init engine (profile, create kv cache, warmup model) took 23.78 seconds"
+      },
+      {
+        "line": 22208,
+        "text": "(start_instance pid=2849141) INFO 10-11 05:05:50 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_e5bc5fea-e80a-4dae-98bf-6db492f861ce with backend vllm"
+      },
+      {
+        "line": 22240,
+        "text": "(start_instance pid=2849141) INFO 10-11 05:05:50 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_e5bc5fea-e80a-4dae-98bf-6db492f861ce with backend vllm"
+      },
+      {
+        "line": 23760,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:36 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.268670 seconds"
+      },
+      {
+        "line": 23767,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:36 [gpu_model_runner.py:2392] Model loading took 1.2114 GiB and 2.268670 seconds"
+      },
+      {
+        "line": 24044,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:48 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 24045,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:48 [backends.py:550] Dynamo bytecode transform time: 10.84 s"
+      },
+      {
+        "line": 24046,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:48 [backends.py:539] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone for vLLM's torch.compile"
+      },
+      {
+        "line": 24047,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:48 [backends.py:550] Dynamo bytecode transform time: 10.84 s"
+      },
+      {
+        "line": 24294,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:54 [monitor.py:34] torch.compile takes 10.84 s in total"
+      },
+      {
+        "line": 24297,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:54 [monitor.py:34] torch.compile takes 10.84 s in total"
+      },
+      {
+        "line": 24472,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:58 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.54 seconds"
+      },
+      {
+        "line": 24480,
+        "text": "(VllmBackend pid=2895335) (EngineCore_DP0 pid=2896022) INFO 10-11 05:06:58 [core.py:218] init engine (profile, create kv cache, warmup model) took 21.54 seconds"
+      },
+      {
+        "line": 85272,
+        "text": "(start_instance pid=2849141) INFO 10-11 05:53:52 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_ff7f658f-4cdf-4d96-8a88-20bbc94bfd25 with backend vllm"
+      },
+      {
+        "line": 85284,
+        "text": "(start_instance pid=2849141) INFO 10-11 05:53:52 inference_instance.py:30] Starting instance tc-native-llama2-7b-fp16-20260927_ff7f658f-4cdf-4d96-8a88-20bbc94bfd25 with backend vllm"
+      }
+    ]
+  },
+  "startup_events": [
+    {
+      "event": "native_stack_start",
+      "monotonic_s": 1535990.648440988,
+      "wall_time_s": 1792028743.126967
+    },
+    {
+      "event": "native_stack_return",
+      "monotonic_s": 1536046.286309639,
+      "wall_time_s": 1792028798.7648363
+    },
+    {
+      "event": "model_registration_start",
+      "monotonic_s": 1536046.53581581,
+      "wall_time_s": 1792028799.0143416
+    },
+    {
+      "event": "model_registration_return",
+      "monotonic_s": 1536054.852133536,
+      "wall_time_s": 1792028807.33066
+    },
+    {
+      "event": "native_router_start_observed",
+      "monotonic_s": 1536055.853194214,
+      "wall_time_s": 1792028808.331721
+    }
+  ],
+  "backend_ready_receipts": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/d2deb2cc27f54557aa2ec3128db5405f.json",
+      "sha256": "d125a5bd50fb569077ed4cfe47da4d9dcff450d8a5bee62a7722e9801131a5dd",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536189.428779193,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "2",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3892627,
+        "receipt_id": "d2deb2cc27f54557aa2ec3128db5405f",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153606767,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/5757cf058e244c23afb62aa35198abe8.json",
+      "sha256": "f004b5d6c011f91bc2922cdf28055a9732fcb45c6b86485d15b849d1e1f059c8",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536189.315351454,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "3",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3892760,
+        "receipt_id": "5757cf058e244c23afb62aa35198abe8",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153606888,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/e0ba79ed3fc345a1a4033abb5f272510.json",
+      "sha256": "d3ae4265f8103819959143d3cb16e5dd6b0ae9109b3590a89a38b29f41c8c9c4",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536189.439110277,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3892574,
+        "receipt_id": "e0ba79ed3fc345a1a4033abb5f272510",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153606711,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/4c8b4dc68af64f30aa52fbfd63051632.json",
+      "sha256": "695082f3aca0584c6d4569a33ad8b52cfa4e8475a655aae20ea8c4bfe26325d2",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536189.472930043,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3892090,
+        "receipt_id": "4c8b4dc68af64f30aa52fbfd63051632",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153606189,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/21ce3e3ac3734e47986b191c7aa39699.json",
+      "sha256": "9aa8d464b67c22d6b27203bd11739a10893fb5820e9e9ee37225af03fcfaf5ac",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536686.356600633,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3915722,
+        "receipt_id": "21ce3e3ac3734e47986b191c7aa39699",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153661262,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/bb612f4e63c74d6d85792c4a16b3a97a.json",
+      "sha256": "1a14eee0772d2759997704fa3bf19860e96f9472a379c9dabc29355befe1269c",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536687.438672589,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3915974,
+        "receipt_id": "bb612f4e63c74d6d85792c4a16b3a97a",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153661662,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/7f3983c79a7e41b58edc5cbcef4e034d.json",
+      "sha256": "609886f59c2ba446b003584f9f74de7b96e8309bbfc53f1c9d5865851344ed78",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536940.554582905,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3927164,
+        "receipt_id": "7f3983c79a7e41b58edc5cbcef4e034d",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153687270,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/ead2336585054fddb5c242546414bd16.json",
+      "sha256": "8aeb8ff54a7cb4a9fc3c5811aa5ecc737af3ef97d2885121ca4d3f5dea836b61",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1536943.714444332,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3927321,
+        "receipt_id": "ead2336585054fddb5c242546414bd16",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153687571,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/128d08d965a748f5ae61a17e1b2d6856.json",
+      "sha256": "7ddf9963148f7cdf8a3f8fe1627dcb123ff8a64e0e9790183a3e7e60a7910346",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537147.053795259,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3936070,
+        "receipt_id": "128d08d965a748f5ae61a17e1b2d6856",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153708062,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/55284a823cd3424cbad7786e2151af28.json",
+      "sha256": "593e18b99268d75e6d1df764e0ee212a073453258f35bb6ea1cfb1f5291818b7",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537155.403471067,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3936303,
+        "receipt_id": "55284a823cd3424cbad7786e2151af28",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153708663,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/779c9077b7824841858aeed9b0d6e5e1.json",
+      "sha256": "51cfb5b2d6b216a045b0596288a825c84dee367a941c1c5a9a42a79d15783f13",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537364.046995302,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3945379,
+        "receipt_id": "779c9077b7824841858aeed9b0d6e5e1",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153729552,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/7859aeab9d564641ae9f7166ecafe1af.json",
+      "sha256": "0f7a13589a4f194a7fea30dd36889d1e8a82c1175f1ebb3d2fe96c0dd0cd9554",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537366.425558953,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3945552,
+        "receipt_id": "7859aeab9d564641ae9f7166ecafe1af",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153729854,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/0c68c351db664b7fb2d7fd0cfc77ca2f.json",
+      "sha256": "262fedb3ee6f38c9f0cf1bef0f92c21343d3ff279b0491c0aaea4cb449b04e8b",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537603.117329941,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3955743,
+        "receipt_id": "0c68c351db664b7fb2d7fd0cfc77ca2f",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153753657,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/bf1246dd326c44dfab36238b09b976ea.json",
+      "sha256": "dee61bc738a6b38dd8123843dc405ade220b952e4412ecc9ce77fe140dbe60b4",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537602.587519824,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3955544,
+        "receipt_id": "bf1246dd326c44dfab36238b09b976ea",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153753356,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/fbbe4efd9f1f4f54991ab1ee150a1c5e.json",
+      "sha256": "9da52ae0be2512d3cf3e5cd06a5e628e5e37eb5dde0a19924ecaf1f5521b4a31",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537897.624249254,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "0",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3968232,
+        "receipt_id": "fbbe4efd9f1f4f54991ab1ee150a1c5e",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153782881,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/worker_receipts/ef155d6968294d1dad77ade4c8c489d7.json",
+      "sha256": "40cf1355de5427f1c3f6f0716fe38a55352be4409118fd632e04c9423d19292b",
+      "observation": {
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "at": 1537951.753503858,
+        "backend_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/source_repaired/sllm/backends/vllm_backend.py",
+        "backend_sha256": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-68a54559dfa545b6bfb8d1b39a50cda7.scope",
+        "checkpoint_path": "/home/qhq/serverless_llm_baselines/models/vllm/tc-native-llama2-7b-fp16-20260927",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "cuda_visible": "1",
+        "enable_lora": true,
+        "engine_present": true,
+        "load_format": "serverless_llm",
+        "pid": 3970817,
+        "receipt_id": "ef155d6968294d1dad77ade4c8c489d7",
+        "schema": "ieee_tc_native_backend_ready_v1",
+        "start_ticks": 153788608,
+        "store_path": "/home/qhq/serverless_llm_baselines/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1/site-packages/sllm_store/torch.py",
+        "store_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+      }
+    }
+  ],
+  "counts": {
+    "native_ready_receipts": 16
+  },
+  "phase_joint": [
+    0,
+    175,
+    327,
+    87,
+    123,
+    213,
+    362,
+    484
+  ],
+  "queue_mean_fraction_of_ttft": 0.967939080239091,
+  "causal_attribution_complete": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/serve.log",
+      "sha256": "33a54e984040ce8991f3aef871a86b4e5c746dd42f9ca58b37de96a5f9843827"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d414_20261011/model7b_repaired/serve.log",
+      "sha256": "5ee8621d87c156f941dc6deb33a441c2ab84b5dde75bfab2fd4521a519aa6418"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/model7b_repaired/startup_events.jsonl",
+      "sha256": "228ff43e18b9cfedff5bd05540751ef7f4fffe238ce876bdb2cac55fdfb6934f"
+    }
+  ]
+}

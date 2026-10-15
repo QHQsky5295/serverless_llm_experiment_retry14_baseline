@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "schema": "d537_w1_input_witness_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d5370000000000000000000000000006.scope",
+    "invocation_id": "164644273bb14c3aba55226dbfb5bb2f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5370000000000000000000000000006.scope",
+    "inode": 25305007
+  },
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "artifact_content_sha256",
+    "artifact_manifest_sha256",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "source_item_sha256",
+    "target_tokens"
+  ],
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "comparison": {
+    "PrimeLoRA": {
+      "joint": 0.93725,
+      "gpu_seconds": 8145.351609454025,
+      "p95_ttft_ms": 4473.332113120705
+    },
+    "vLLM": {
+      "joint": 0.72675,
+      "gpu_seconds": 9008.761400188087,
+      "p95_ttft_ms": 9777.026765514165
+    },
+    "ServerlessLLM": {
+      "joint": 0.44275,
+      "gpu_seconds": 8845.260943896137,
+      "p95_ttft_ms": 109994.30134566501
+    }
+  },
+  "changes": {
+    "vLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 9.58411209243521,
+        "p95_ttft_ms": 54.24649824117101
+      },
+      "joint_difference_pp": 21.05
+    },
+    "ServerlessLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 7.9128172575293,
+        "p95_ttft_ms": 95.93312375423619
+      },
+      "joint_difference_pp": 49.45
+    }
+  },
+  "all_below_joint_95": true,
+  "independent_numerical_correctness": false,
+  "reference_frozen": false,
+  "generation_contract": "fixed_length_greedy_v1",
+  "input_join_only": true,
+  "initial_state_contract_identical": false,
+  "limitations": [
+    "Transitive input join via sealed D533-to-D536 witness; not numeric output equality.",
+    "Native versions, LoRA slot/rank settings and compilation histories differ explicitly.",
+    "No proof that all queue delay is caused by startup, compilation or one native mechanism.",
+    "All three observed W1 points are below the frozen 95% joint requirement."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "5ea160f919da25ea63f45af719b57f9004a196ba4c3a38ffd208f4b89a5687a2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/launch7b.launch/replay.jsonl",
+      "sha256": "df6d8a1038e95f80c4d9c14f453f8b2fef7f00768271c298783ec89e13dd2112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d533_full_w1/result1/cross_contract.json",
+      "sha256": "ceb4d7ad6aec1978f1211465b858c61f47ea0eec334637b0fd5e4b3595e4a182"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/audit_full4000_w1.json",
+      "sha256": "23cb0f2b3296458e375147baae125d553a7cb1d78d30d62a3d3d7ffec1c70800"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d537_20261015/cross_contract.py",
+      "sha256": "dce3d07a1e1e6b9f821eba6c933da45034ea0243ae90c2105c751c19fd3c0834"
+    }
+  ]
+}
