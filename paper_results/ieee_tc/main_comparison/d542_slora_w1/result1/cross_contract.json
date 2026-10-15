@@ -1,0 +1,114 @@
+{
+  "passed": true,
+  "schema": "d542_w1_input_witness_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d5420000000000000000000000000005.scope",
+    "invocation_id": "d06374230243407dac47a5952e52bdc7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5420000000000000000000000000005.scope",
+    "inode": 25377041
+  },
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "artifact_content_sha256",
+    "artifact_manifest_sha256",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "source_item_sha256",
+    "target_tokens"
+  ],
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "comparison": {
+    "PrimeLoRA": {
+      "joint": 0.93725,
+      "gpu_seconds": 8145.351609454025,
+      "p95_ttft_ms": 4473.332113120705
+    },
+    "vLLM": {
+      "joint": 0.72675,
+      "gpu_seconds": 9008.761400188087,
+      "p95_ttft_ms": 9777.026765514165
+    },
+    "ServerlessLLM": {
+      "joint": 0.44275,
+      "gpu_seconds": 8845.260943896137,
+      "p95_ttft_ms": 109994.30134566501
+    },
+    "S-LoRA": {
+      "joint": 0.86425,
+      "gpu_seconds": 8042.6690288472455,
+      "p95_ttft_ms": 178743.89261263423
+    }
+  },
+  "changes": {
+    "vLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 9.58411209243521,
+        "p95_ttft_ms": 54.24649824117101
+      },
+      "joint_difference_pp": 21.05
+    },
+    "ServerlessLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 7.9128172575293,
+        "p95_ttft_ms": 95.93312375423619
+      },
+      "joint_difference_pp": 49.45
+    },
+    "S-LoRA": {
+      "lower_better_change_percent": {
+        "gpu_seconds": -1.2767226929080353,
+        "p95_ttft_ms": 97.49735107156074
+      },
+      "joint_difference_pp": 7.300000000000006
+    }
+  },
+  "all_below_joint_95": true,
+  "independent_numerical_correctness": false,
+  "reference_frozen": false,
+  "generation_contract": "fixed_length_greedy_v1",
+  "input_join_only": true,
+  "initial_state_contract_identical": false,
+  "limitations": [
+    "Transitive input join via sealed D533-to-D536 witness; not numeric output equality.",
+    "Native versions, LoRA slot/rank settings and compilation histories differ explicitly.",
+    "No proof that all queue delay is caused by startup, compilation or one native mechanism.",
+    "No per-configuration optimality or G1/G2 feasibility is inferred solely from relative changes."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/launch7b.launch/replay.jsonl",
+      "sha256": "0ad7acbd46baaf219d72a21b64d596f74e54117399096eae5636dd2e1aa37d35"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d536_20261015/launch7b.launch/replay.jsonl",
+      "sha256": "df6d8a1038e95f80c4d9c14f453f8b2fef7f00768271c298783ec89e13dd2112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d533_full_w1/result1/cross_contract.json",
+      "sha256": "ceb4d7ad6aec1978f1211465b858c61f47ea0eec334637b0fd5e4b3595e4a182"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d537_serverlessllm_w1/result1/cross_contract.json",
+      "sha256": "0eba6f1a2b017322755d2170fceb3089b440990cc920520063eee7b1606a6fde"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/audit_full4000_w1.json",
+      "sha256": "6e650c1c9b6357944c8d0215540e57d1dd5cefa586b057bad4a527eacb52489a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/cross_contract.py",
+      "sha256": "536bebcfea5013d45edb5db00469a7db0887405ea837481ad14f66c55cb428ab"
+    }
+  ]
+}

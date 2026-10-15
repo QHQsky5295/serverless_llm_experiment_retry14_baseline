@@ -1,4 +1,4 @@
-# IEEE TC execution status — D542 S-LoRA W1 repair attempt prepared
+# IEEE TC execution status — D542 S-LoRA W1 complete, result preservation
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,7 +9,91 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
-D542 PREPARED, NOT YET STARTED. Read D542_SLORA_W1.md.
+AUTHORITATIVE TERMINAL UPDATE: D542 completed, no live model or remote service.
+Read D542_SLORA_W1_RESULT.md. Service/replay/watchdogRC0, actualGPUrelease,
+servicepathgone. Owned launcheraux recursiveempty/closed/pathgone,peak448589824B,
+events0/swap0. Three exactowned remoteunits inactive/MainPID0/portsabsent.
+Original D540 failure remains; no policy/config/performance tuning or repeat tests.
+Strict slora_resident_rr_v1/full4000_w1 analysis and full4000 input join PASS.
+4000nativebindings/458224tokens/0fail; n_correctnull, independentnumericunknown.
+Joint3457=86.425%,TTFT3459,TPOT3995; NOT95%feasible.
+U8042.6690288472455,R2.010667257211811/bindingvalidrequest;
+P95TTFT178743.89261263423ms,meanTTFT21036.816011070914;
+TPOTmean34.59364340318101/P9550.15211544775715,E2E25038.428590440366.
+GPUwindows pre0,arrival8015.242313393159,drain1.9482171889394522,
+cleanup25.47849826514721. Servicepeak62685339648B,high/max/OOM/kill/swap0.
+Phasejoint77,382,500,499,500,500,500,499;541/543violationsinfirst1000.
+Full500preparation95.313788s, endsbusiness+36.871159s; native4ready at
+business+140.455436/229.745357/323.718940/421.973713s.
+Meanrouterqueue16112.6820463ms=76.592779%ofmeanTTFT;
+serviceTTFT4916.021424ms includes possible nativequeue, not pureGPUcompute.
+Fullpool+sequentialstartup are disclosed frozen deploymentadaptation, NOTproof
+of intrinsicunavoidableS-LoRAflaw. Noqueue/startupsubtraction orlatephaseselection.
+500remote fetch/420740410wireB/deployment, requestfetch0/requestpacking0;
+allcontentSHA and bilateraljoinPASS. Same4000inputs asD536, sealedD533/D537
+witnessesconnect allfour; nativeversions/initialcachehistoriesremain different.
+PrimeLoRAvsS-LoRA joint+7.30pp,P95lower97.497351%,U HIGHER1.276723%.
+AllfourW1pointsbelow95; noG1/G2closure, W1refstillnotformallyfrozen.
+Analysisclosedpeak642011136B; crossclosed262864896B, events0/swap0/pathgone.
+Restored-context filename-only discovery (~10s) occurred late in replay;
+not preregisteredmonitoring, impactunknown; recordedinresultdoc, noheavyhash/build/
+cleanup/remotechange, noresult-dependentdiscard. Do not call absolutelyinterferencefree.
+Resultcuration COMPLETE: audit/cross/startup/manifest/evidence178172B saved in
+main_comparison/d542_slora_w1/result1; actualresultscopeclosed/pathgone,
+peak fromresult_closure.json, events0/swap0. NEXT explicitpublish_result.py then
+close result_publication; do notrepeatcuration oroverwrite outputs.
+No new GPU run, no repeat analysis/inputjoin/qualification. Nextcheckpoint saves
+sourceSHA,strictaudit,closures and explanation; no userdirt staging.
+After preservation: exactclosedduplicatecacheaudit/reclaim needed before nextheavy
+job (disk~138.8GiB below150GiBstart, above100GiBstop). Keepuniqueassets/rawfailed
+evidence. ThenLoquetier/HydraServeW1; allfullremaining scope belowstillACTIVE.
+LatestuserclusterreplyalreadyhandledbyD510isolatedrootlessPodman; do NOTalter
+unrelatedk3s/restartHydraServebasisqualification. AllD542remoteunits nowSTOPPED.
+
+The following D542 live notes are historical, superseded by terminal update above:
+D542 LIVE, SINGLE MEASUREMENT-REPAIR ATTEMPT. Read D542_SLORA_W1.md.
+Prelaunch checkpoint fb544bfe69bbc40b746c0964a079c3ddfb8d5acc PUSHED/remoteequal;
+BASE bde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed. Four explicit files,
+source/archive/secrets/protected147/userdirt/diff checks PASS. No repeated tests.
+Backup actual empty/closed/pathgone, peak29024256B; starter likewise194547712B;
+both high/max/OOM/swap0. No maintenance remains active alongside inference.
+tmux tc-d542-slora-w1; do NOT repeat backup/start/freeze_inputs or launch old D540.
+Actual service primelora-tc-svc-fdce0c8cd4474522ad455315307caed2.scope,
+Invocation7d83a29af5774c8a968b9d58c996d1cd,inode25357997.
+Launcher aux primelora-tc-aux-d5420000000000000000000000000003.scope,
+Invocation18a47ceb277f4e2b837d8f966b0041b4,inode25357718.
+Notice1545106.377946718,business1545166.377946718; input/view/500pool unchanged.
+Existing Triton2055files/62246523B recorded before launch, no extra GPU prewarm.
+Last watchdog sample1115 at1546235.651594219: hostavailable61419790336B,
+service62575382528B, all high/max/OOM/kill/swap0,noabort. Same actual service
+Invocation rechecked active, tmux live; terminal launch7b.json not yet present.
+All FOUR native ready receipts now exist (index/at):0/1545306.833383132,
+1/1545396.12330404,2/1545490.096887186,3/1545588.351659463; each500adapters/TP1.
+Live replay has2003http_response and2011request_created events; these are progress,
+NOT fully audited native-correct counts. No final performance/resource conclusion.
+Latest turn classified VERIFIED WAIT on this actual live handle. Complete PLAN is
+still in current context, unchanged SHA reverified; latest status read. Existing
+Loquetier analyzer supports W1, no new qualification or serving code edits.
+D430 original deployment contract and actual service loop reread: full500 preparation
+and sequential startup are disclosed frozen adaptation choices, not evidence that
+all early queue is an inherent S-LoRA inference flaw. No policy adjustment or new
+causal claim. On completion report deployment/queue/native generation separately.
+Disk after full500 materialization149108170752B(~138.87GiB), above ongoing100GiB
+stop, below next-job150GiB gate. Do not clean during inference; after closure and
+evidence preservation, audit only rebuildable duplicate caches before next heavy run.
+Monitor the SAME run until terminal;
+no scans/cleanup/compression/build/tests/backup/remote changes during performance.
+Remote own services LIVE, actual1000/full, health prepublished_gzip_v1 passes.
+7bclockremote-process-monotonic:b222453f58da471f913789317c9474f0;
+monitor primelora-artifact-monitor-d542-w1.service. Exact three Invocation IDs in
+remote_start.log; stop only after actual service/native GPU release.
+On terminal: close_launch.py -> stop_remote.sh -> bounded run_analysis.py
+--outcome success (only if actual success; else preserve failure classification),
+then strict input join/interpret/save/push. Analyzer uses slora_resident_rr_v1,
+full4000_w1 and D394 frozen SLO. Do not guess missing releases or count HTTP
+success as independent numerical correctness. Full goal remains active.
+Postpush status delta reserved for next milestone; no backup during inference.
+
 RAW originalresults/ieee_tc/slora_qualification/d542_20261015.
 Reuse D540 native/http config values (only added EOF newline), source_view and 51 CPU qualification tests;
 D541 53 lifecycle tests reused. Only common pidfd measurement repaired, no native
@@ -17,8 +101,8 @@ policy/config tuning. New private cold cache /tmp/tc-d542-7bs, new remote run di
 Helpers adapted from D540; existing strict W1 analyzer via D537 bounded wrapper.
 Full PLAN/status/V1/V2 and current rules read this turn. Initial disk162123390976B,
 MemAvailable112116985856B, GPU compute processes empty; fresh gate still required.
-NEXT explicit prelaunch source/protection/secret check and push, then fresh-gated
-single run in tc-d542-slora-w1. Do not repeat old qualifications/cleanup/performance.
+Prelaunch checks/push and fresh-gated start completed above. Do not repeat old
+qualifications/cleanup/performance. Input config EOF-only differences documented.
 Previous D540 remains measurement failure with unknown full U. Remaining scope below.
 
 D541checkpoint0e5f25e5107971ab1b2c116dfdb34d4708c5edf7 PUSHED/remoteequal;

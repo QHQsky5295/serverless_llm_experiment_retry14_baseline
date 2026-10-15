@@ -1,0 +1,102 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d5420000000000000000000000000005.scope",
+    "invocation_id": "d06374230243407dac47a5952e52bdc7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5420000000000000000000000000005.scope",
+    "inode": 25377041
+  },
+  "deployment_notice_s": 1545106.377946718,
+  "business_start_s": 1545166.377946718,
+  "full_pool_prepare_start_s": 1545107.93531781,
+  "full_pool_prepare_end_s": 1545203.249106064,
+  "full_pool_count": 500,
+  "worker_startup": "sequential_v1",
+  "worker_ready": [
+    {
+      "index": 0,
+      "native_ready_s": 1545306.833383132,
+      "notice_to_ready_s": 200.45543641410768,
+      "business_to_ready_s": 140.45543641410768,
+      "acquire_s": 1545204.071588714,
+      "acquire_to_ready_s": 102.76179441809654,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 1,
+      "native_ready_s": 1545396.12330404,
+      "notice_to_ready_s": 289.74535732204095,
+      "business_to_ready_s": 229.74535732204095,
+      "acquire_s": 1545307.136594625,
+      "acquire_to_ready_s": 88.9867094149813,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 2,
+      "native_ready_s": 1545490.096887186,
+      "notice_to_ready_s": 383.71894046803936,
+      "business_to_ready_s": 323.71894046803936,
+      "acquire_s": 1545396.630627836,
+      "acquire_to_ready_s": 93.46625934983604,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 3,
+      "native_ready_s": 1545588.351659463,
+      "notice_to_ready_s": 481.9737127451226,
+      "business_to_ready_s": 421.9737127451226,
+      "acquire_s": 1545490.399179607,
+      "acquire_to_ready_s": 97.95247985608876,
+      "adapter_count": 500,
+      "tp": 1
+    }
+  ],
+  "phase_joint": [
+    77,
+    382,
+    500,
+    499,
+    500,
+    500,
+    500,
+    499
+  ],
+  "queue_mean_fraction_of_ttft": 0.7659277923912303,
+  "causal_attribution_complete": false,
+  "limitations": [
+    "Sequential startup is a disclosed frozen deployment adaptation, not a uniquely intrinsic S-LoRA inference cost.",
+    "No subtraction of deployment or queue spans from user latency; no partial request selection."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/worker_receipts/08193561debe47d4afb6e4b56fb7a34c.json",
+      "sha256": "e661b435a028989d06349a0c79a95cc3e745b35baa014fd9de07d4cf6eb01857"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/worker_receipts/3bcd42d351dc4cada14bf8913f21d741.json",
+      "sha256": "7e9f191e8f987bfa6366f1a05735dc878772ee8ceeed96ea87862321b8082231"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/worker_receipts/6b35c8205542426aaa279d9208c86183.json",
+      "sha256": "c09f0bca78911530d0343afbc22e01b07f293a422a303fb62dcb486c42eb7080"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/worker_receipts/d19e723360974bde92d4a0c440705d7b.json",
+      "sha256": "87b21bef3e8cd9e33ef26f09b6bacabd2a69129579efcba88bd8c65df2ce6857"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/slora_full_pool_preparation.json",
+      "sha256": "772325dd2f10718bb62079e870d8bb780780dbf2d0bb6070dfe69b232636af21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/worker_config.json",
+      "sha256": "4382f70f7770cf79436b9de122e73891d7a7170e1a4f9fb14454d716c4fe7760"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015/model7b/model_qualification.json",
+      "sha256": "8112293522feb1fa53f45be3016fab6b1c8385c9fbe1cfb35425c2c8eef936b9"
+    }
+  ]
+}
