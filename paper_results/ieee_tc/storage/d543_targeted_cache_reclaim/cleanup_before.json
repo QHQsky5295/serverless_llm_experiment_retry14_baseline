@@ -1,0 +1,34 @@
+{
+  "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+  "target": "/tmp/tc-d542-7bs/remote_artifacts/objects",
+  "files": 5000,
+  "payload_bytes": 12985984450,
+  "disk_before_bytes": 148916584448,
+  "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+  "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d542_20261015",
+  "all_current_original_and_cache_bytes_rehashed": true,
+  "metadata_copies_hash_match": true,
+  "protected_before": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "owned_runtime_references": [],
+  "future_config_script_references": [],
+  "unreadable_same_uid_proc_entries": [
+    "2628",
+    "4156156",
+    "4157313"
+  ],
+  "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not whole system",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "classification_unchanged": true,
+  "recipe_sha256": "daaf22545530fe06c19c95e8cddc91e8c86ce925fc4b00f226062755eb20d831",
+  "source_index_sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+  "publication_head": "619c3988de1183c74dc7f94261bb4466224bce8e",
+  "recorded_unix": 1792040618.2523634
+}

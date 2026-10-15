@@ -1,4 +1,4 @@
-# IEEE TC execution status — D542 S-LoRA W1 complete, result preservation
+# IEEE TC execution status — D542 sealed, D543 storage complete, next baselines
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,22 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D543 targetedstorage COMPLETE, not a performance experiment. Read
+D543_TARGETED_CACHE_RECLAIM.md. OnlyclosedD542objects5000files/12985984450B
+removed after fullcurrentcache+retainedpoolSHA, metadata/refs/inode/closurechecks.
+Actualreclaimed13004374016B,diskafter161920958464B(~150.80GiB);147protected
+oldfiles unchanged, originalassets/rawsuccessful/failedresults preserved.
+Actualcleanupscopeclosed/empty/pathgone,peak3221749760B,high9464,max/OOM/kill/
+swap0; high onlymaintenance, no concurrentperformance. Curationpassedarchive5618B,
+scopeclosed/pathgone/events0/swap0. RAW storage_maintenance/d543_20261015.
+NEXT explicitD543publish.py and closepublication, thenLoquetier7BW1reuseaudit/
+qualification usingD445frozenconfiguration (no tuning), followedHydraServeW1.
+Do NOTrepeatD543cleanup, D542analysis/backup or completedperformance.
+Latest D445 contract reread; old source-view helperSHA may be stale after other
+baseline/W1 support. Inspect affected native AST and regenerate measurement-only
+view via existing helper IF needed; do not change SMLM/batch2/sharding/startup.
+No new Loquetier qualification/config/launch has occurred in this turn.
 
 AUTHORITATIVE TERMINAL UPDATE: D542 completed, no live model or remote service.
 Read D542_SLORA_W1_RESULT.md. Service/replay/watchdogRC0, actualGPUrelease,
@@ -40,13 +56,16 @@ not preregisteredmonitoring, impactunknown; recordedinresultdoc, noheavyhash/bui
 cleanup/remotechange, noresult-dependentdiscard. Do not call absolutelyinterferencefree.
 Resultcuration COMPLETE: audit/cross/startup/manifest/evidence178172B saved in
 main_comparison/d542_slora_w1/result1; actualresultscopeclosed/pathgone,
-peak fromresult_closure.json, events0/swap0. NEXT explicitpublish_result.py then
-close result_publication; do notrepeatcuration oroverwrite outputs.
+peak29122560B, events0/swap0. Resultpublication COMPLETE:
+619c3988de1183c74dc7f94261bb4466224bce8e PUSHED/remoteequal,9explicitfiles;
+allsource/archive/checksum/protected147/userdirt/secrets/diff checksPASS.
+Resultpublicationscopeclosed/recursiveempty/pathgone; receipt+closure inRAW.
+No repeatcuration/publication/analysis/performance. Postpushstatusdelta fornext
+milestone. NEXT exactclosedduplicatecacheaudit/reclaim thennextbaselines below.
 No new GPU run, no repeat analysis/inputjoin/qualification. Nextcheckpoint saves
 sourceSHA,strictaudit,closures and explanation; no userdirt staging.
-After preservation: exactclosedduplicatecacheaudit/reclaim needed before nextheavy
-job (disk~138.8GiB below150GiBstart, above100GiBstop). Keepuniqueassets/rawfailed
-evidence. ThenLoquetier/HydraServeW1; allfullremaining scope belowstillACTIVE.
+After preservation storage requirement DONE byD543above; freshresourcegate still
+required before nextheavyjob. ThenLoquetier/HydraServeW1; fullscope stillACTIVE.
 LatestuserclusterreplyalreadyhandledbyD510isolatedrootlessPodman; do NOTalter
 unrelatedk3s/restartHydraServebasisqualification. AllD542remoteunits nowSTOPPED.
 
