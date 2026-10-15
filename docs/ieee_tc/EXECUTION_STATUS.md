@@ -1,4 +1,4 @@
-# IEEE TC execution status — D544 Loquetier W1 qualified, prelaunch
+# IEEE TC execution status — D544 Loquetier W1 terminal with failures
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,7 +9,118 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
-D544 Loquetier7BW1 OFFLINEQUALIFICATIONPASS; NO newGPUrun yet.
+AUTHORITATIVE D544 RESULT UPDATE: failure-aware strict analysis and input join DONE;
+read D544_LOQUETIER_W1_RESULT.md. All4000 offered/terminal,3844 native-binding
+responses/428276tokens,156TimeoutError; timeoutmean1800.001975s. Joint0/4000,
+TPOT2863/3844. MeanTTFT1098265.744ms,P951725784.244ms conditional3844 only.
+U14803.43732188805, U/offered3.7008593304720123,
+U/bindingvalid3.8510502918543312. n_correctnull; independentlynumericunknown.
+NoG1/G2ranking. GPUwindows pre0/arrival7609.67812881805/drain7153.190300580114/
+cleanup40.56889248988591, all4actualleasesclosed/nativeGPUclear.
+Native4000enqueue/3845complete/155cancel, all156failuresterminal-accounted;
+one nativecomplete0.119418sAFTERclienttimeoutremainsfailed. Canceledpartial11279
+tokensnotgoodput. No native/registration/cleanuperrors; all155registeredcancellations.
+Meanqueuebeforeactualregister1058274.986ms=96.3587%meanTTFT;
+register->first210.962ms,decode6853.553ms. SameSMLM/FP16/batch2/static4x125/
+sequentialstartup. This frozen deployment overload is NOTproofallLoquetierdesigns
+fail. Staticshards offered1008/1076/1048/868; failures4/77/75/0. No newlyevidenced
+adaptationdefect; no baselineparametersweep/repeat. Officialworkflow rereadonline.
+Strictanalyzer initially rejected nativefailureerrorformat (analysis1.log retained).
+Existinganalyzerextended ONLYoffline diagnostic schema: exactnativeerror+terminal
+counts+independentclosedphysicalsummary, all laterchecks retained, successstill
+rejectsfailures.58CPUtestsPASS0.750s; no servingcodechange/replayrepeat.
+Analysis2closedpeak589230080B;crossclosed695726080B;events0/swap0/pathgone.
+4000input+relativearrivaljoinD536PASS, sealedD533/D537/D542witnessesjoined.
+AllfiveW1below95,PrimeLoRA93.725%; no W1reffreeze/G1/G2closure.
+500remote420740410wireB/12985984450materializedB/packing0; servicepeak43098591232B,
+high/max/OOM/kill/swap0. CurationDONE inmain_comparison/d544_loquetier_w1/result1,
+evidence171810B;curationscopeactualemptyclosed/pathgone. No livejobremains.
+NEXT exact-path testedresultbackup/push, then safelyaudit/reclaimclosedD544duplicate
+cache torestore150GiB beforeHydraServeW1. Do NOTrepeatcuration/analysis/qualification/
+performance or modifyunrelatedk3s. FullscopeACTIVE. CurrentpostresultMAINhas only
+offlineanalyzer+tests+newresultdoc/data+status changes plusprotectedusermanifest.
+
+The following terminal/analysis-in-progress notes are historical, superseded above:
+AUTHORITATIVE TERMINAL UPDATE (2026-10-15): D544 reached all4000 terminal events:
+3844 http_response,156 http_request_failed,1 http_replay_complete. Full error/native
+audit in progress; do NOT use outcome success or treat this as all-correct feasible.
+launch7b.json: passfalse,serviceRC1,replayRC1,watchdogRC0; actual nativeGPUrelease
+confirmed and servicepathgone. service.log raises incomplete/failed native HTTP
+workload; this is not yet evidence of an independent cleanup defect or native flaw.
+close_launch.py DONE: exactownedrecursiveemptyaux closed/pathgone,peak541196288B,
+high/max/OOM/kill/swap0. stop_remote.sh DONE: allthreeexactownedremoteunitsinactive,
+MainPID0/portsabsent; remote monitorSHA a8351c040d68d1962d2c87adae01b393af99e3e68936139878df0bdc7693262d.
+No live inference/remote job remains. Existing bounded run_analysis.py is running
+with --outcome complete_with_failures in aux d5440000000000000000000000000006.
+It first preserves evidence then runs strict loquetier_static_shards_v1/full4000_w1
+analysis with D394 frozenSLO. Preserve any analyzer failure; never bypass gates.
+Earlier light monitoring counted http_error, not the actual http_request_failed
+event. That omission was corrected before terminal; sampled failures were1800s
+TimeoutError, not OOM. Final full-error audit pending. Do not reuse earlier absent
+http_error observations as evidence that there were no request failures.
+Next: close analysis after actualempty, inspect full audit/remaining native work,
+inputjoin and failure-aware curation, preserve/push milestone; targetedclosedcache
+audit only after evidence preservation. Then HydraServeW1; no W0/basisqualification
+repeat, no unrelatedk3s change, no same-key winnerretry. FullgoalACTIVE.
+FullPLAN/AGENTS/latest rules/frozenV1/single-runV2 read this turn. monitor-experiment,
+analyze-results,github-sync instructions read. Do not repeat completed closures.
+
+The following D544 running/prelaunch notes are historical, superseded above:
+D544 Loquetier7BW1 RUNNING. Do NOTrepeatbackup/start/freeze/qualification.
+Prelaunchfa65e1619be810bb862dac91d1178cd25e01ac40 PUSHED/remoteequal;
+BASEbde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed.
+4explicitfiles,archive/source/protected147/userdirt/secrets/diffchecksPASS.
+Backupactualemptyclosed/pathgone,peak28499968B,events0/swap0;
+starteractualemptyclosed/pathgone,resourceclosureinRAW; no maintenance concurrent.
+tmux tc-d544-loquetier-w1; serviceprimelora-tc-svc-aead6347c87a4f72beac5cfe84a1357e.scope,
+Invocationc06357823ee0495c8c467e35c4a0f7b9,inode25384060.
+Launcherauxprimelora-tc-aux-d5440000000000000000000000000005.scope,
+Invocation75d274438b7b4ad69afe6d0bb32c7a6c,inode25383702.
+Notice1548355.609147275,business1548415.609147275. ActualfreshgatePASS,
+same4000W1 view; existingTriton2055files/62246523B recorded, noGPUprewarm.
+Full500preparationrecord exists:1548357.275530095→1548450.717844748,
+93.442315s. ALL FOUR native worker ready receipts now exist, index/time:
+0/1548691.117269728,1/1548782.943172354,2/1548874.333848858,
+3/1548965.706563929. These times are not request first-token times.
+Lastwatchdogsample3208 at1551606.450330394:high/max/OOM/kill0,noabort;
+hostavailable81241456640B,service43079065600B,swap0.
+ALL4000request_createdevents and3239http_responseevents observed; arrival window
+has ended, now draining SAME run. No http_error event observed at this poll.
+These are progress,
+NOTfinalnative/performancecounts. ExactserviceInvocation recheckedactive,
+tmuxlive, no terminalreceipt. Continue SAMErun until actualterminal.
+Latestturn reverified unchanged PLAN SHA above; FULLPLAN/AGENTS/latest rules/
+frozen V1/single-run V2 remain fully read in current context. Current status and
+monitor-experiment skill reread. Only light monitoring; no test/build/scan/backup/
+remotechanges. No terminal launch7b.json yet. Previous/current turn VERIFIED WAIT;
+exact actual service Invocation reconfirmed active after all arrivals. Continue
+through actual request terminal and GPU release, no blocker/goalcompletion.
+Latest user asks whether Loquetier is published: official NeurIPS proceedings
+reopened 2026-10-15, confirms NeurIPS2025 Main Conference Track, title
+Loquetier: A Virtualized Multi-LoRA Framework for Unified LLM Fine-tuning and Serving,
+DOI10.52202/085713-2199. Official URL:
+https://proceedings.neurips.cc/paper_files/paper/2025/hash/5ebc22174f6dff6fa7c2447d0dfa31ea-Abstract-Conference.html
+Existing publication registry conclusion unchanged. No new implementation
+qualification inferred from publication; static inference adaptation stays disclosed.
+Earlier reuseaudit/39tests/prelaunchbackup/newW1launch madePROGRESS; do not repeat.
+Currentdisk148813361152B is above ongoing100GiB stop but below next150GiB
+heavy-start gate; defer proven closed-cache maintenance until actual release and
+evidence preservation. Do not clean active /tmp/tc-d544-7bl.
+RemoteownservicesLIVE, healthprepublished_gzip_v1/artifact_timing_v2PASS;
+7bclockremote-process-monotonic:cc17ee8be65a4713b134016cf5f34561,
+3bclockremote-process-monotonic:52b5c697966b449683adf81aa1c8113d.
+Remoteactual1000/full. Monitorprimelora-artifact-monitor-d544-w1.service,
+Invocationcdd41dbeab6249699871ee14e55cee37;3b6b19ecd69aef47e18ab0519195a9e9d0,
+7b7fa276890fb64007a239ed4242735c14. No remotechanges/cleanup/hashscan/build/
+tests/backupduringrun. Starterclosedpeak166756352B,events0/swap0.
+On actualterminal: close_launch.py -> stop_remote.sh -> boundedrun_analysis.py
+--outcome success ONLYifactualsuccess, otherwisepreservefailure. Analyzerexisting
+loquetier_static_shards_v1/full4000_w1 withD394SLO. Theninputjoin/save/push;
+don't guessrelease or infercorrectness fromHTTP/tokenalone. FullgoalACTIVE.
+Postpushstatusdelta fornextmilestone, no backupduringperformance.
+
+The following D544 prelaunch notes are historical, superseded by running state:
+D544 Loquetier7BW1 OFFLINEQUALIFICATIONPASS.
 Read D544_LOQUETIER_W1.md; RAW loquetier_qualification/d544_20261015.
 FULLPLAN/status and latestrules incontext; previousgoalturnclassifiedPROGRESS
 (D542fullresultsealed+D543safeclosedcachecleanup), notblocked/goalcomplete.

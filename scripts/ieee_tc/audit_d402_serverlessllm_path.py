@@ -261,7 +261,8 @@ def timing_stats(values):
                 p95_type1=ordered[math.ceil(.95*len(ordered))-1] if ordered else None)
 
 
-def validate_terminal_outcome(summary, qualifier, count, outcome):
+def validate_terminal_outcome(summary, qualifier, count, outcome,
+                              scheduler_contract='original', physical_summary=None):
     """Separate complete failure diagnostics from the unchanged success gate.
 
     This only qualifies the observed population, never adapter correctness or
@@ -282,10 +283,42 @@ def validate_terminal_outcome(summary, qualifier, count, outcome):
             raise ValueError('success outcome requires all responses and passed qualification')
     else:
         if (counts['N_failed'] == 0 or qualifier.get('passed') is not False
-                or qualifier.get('error') != 'ValueError: external HTTP qualification failed; do not label binding as correctness'
                 or any(qualifier.get(k) is not None for k in
                        ('physical_confirmation_error', 'worker_audit_error', 'delete_error',
                         'physical_release_error', 'physical_measurement_error'))):
+            raise ValueError('explicit complete request-failure diagnostic required; other errors remain unqualified')
+        resident_contracts = {
+            'resident_rr_v1': ('vllm', 'vllm_resident_pool_v1'),
+            'slora_resident_rr_v1': ('slora', 'slora_resident_pool_v1'),
+            'loquetier_static_shards_v1': ('loquetier', 'loquetier_static_shards_v1'),
+        }
+        if scheduler_contract in resident_contracts:
+            backend, lifecycle = resident_contracts[scheduler_contract]
+            physical = physical_summary or {}
+            completion = qualifier.get('http_completion', {})
+            # The resident runner's terminal check deliberately rejects ANY
+            # failed request. Its second error conflates missing native success
+            # with missing resource measurement. Accept neither by message alone:
+            # independently require the closed physical/population evidence.
+            if (qualifier.get('schema') != f'ieee_tc_{backend}_native_model_qualification_v1'
+                    or qualifier.get('error') != 'ValueError: incomplete/failed native HTTP workload; retained for diagnosis'
+                    or qualifier.get('physical_terminal_error') != 'physical or native workload measurement incomplete'
+                    or qualifier.get('physical_release_errors') is not None
+                    or qualifier.get('physical_lifecycle', {}).get('mode') != lifecycle
+                    or qualifier.get('physical_lifecycle', {}).get('measurement_complete') is not True
+                    or completion.get('event') != 'http_replay_complete'
+                    or any(completion.get(k) != counts[k] for k in
+                           ('N_plan', 'N_arrived', 'N_terminal', 'N_response', 'N_failed'))
+                    or physical.get('contract') != 'physical_gpu_resource_summary_v1'
+                    or physical.get('measurement_complete') is not True
+                    or physical.get('eligible_physical_measurement') is not True
+                    or physical.get('open_lease_ids') != []
+                    or physical.get('n_plan') != count or physical.get('n_terminal') != count
+                    or physical.get('n_native_contract_complete') != counts['N_response']
+                    or physical.get('n_interrupted') != 0):
+                raise ValueError('resident failure diagnostic requires exact terminal and closed physical evidence')
+        elif (scheduler_contract not in ('original', 'request_identity_v1')
+              or qualifier.get('error') != 'ValueError: external HTTP qualification failed; do not label binding as correctness'):
             raise ValueError('explicit complete request-failure diagnostic required; other errors remain unqualified')
     return counts['N_response']
 
@@ -688,7 +721,10 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                                 index['request_contract'], native, population)
     cfg = json.loads((model_root/('worker_config.json' if resident else 'configuration.json')).read_text())
     qualifier = json.loads((model_root/'model_qualification.json').read_text())
-    response_count = validate_terminal_outcome(summary, qualifier, count, outcome)
+    terminal_physical = (json.loads((model_root/'physical/physical_resource_summary.json').read_text())
+                         if resident and outcome == 'complete_with_failures' else None)
+    response_count = validate_terminal_outcome(summary, qualifier, count, outcome,
+                                               scheduler_contract, terminal_physical)
     if resident:
         request_index = {r['request_id']: r for r in qualifier['requests']}
         if (len(request_index) != len(qualifier['requests'])

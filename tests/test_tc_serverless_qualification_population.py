@@ -542,6 +542,67 @@ class TerminalOutcomeTests(unittest.TestCase):
         self.assertFalse(result['observed_feasible'])
 
 
+class ResidentFailureOutcomeTests(unittest.TestCase):
+    def fixture(self, backend='loquetier', mode='loquetier_static_shards_v1'):
+        summary, qualifier = TerminalOutcomeTests().fixture(3)
+        qualifier.update(schema=f'ieee_tc_{backend}_native_model_qualification_v1',
+            error='ValueError: incomplete/failed native HTTP workload; retained for diagnosis',
+            physical_terminal_error='physical or native workload measurement incomplete',
+            physical_lifecycle=dict(mode=mode, measurement_complete=True),
+            http_completion=dict(event='http_replay_complete',
+                **{k: v for k, v in summary['counts'].items() if k != 'N_submitted'}))
+        physical = dict(contract='physical_gpu_resource_summary_v1', measurement_complete=True,
+            eligible_physical_measurement=True, open_lease_ids=[], n_plan=20, n_terminal=20,
+            n_native_contract_complete=17, n_interrupted=0)
+        return summary, qualifier, physical
+
+    def validate(self, summary, qualifier, physical, contract='loquetier_static_shards_v1'):
+        return validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures', contract, physical)
+
+    def test_complete_failure_diagnostic_preserves_inputs_and_success_rejection(self):
+        for backend, contract, mode in (
+                ('loquetier', 'loquetier_static_shards_v1', 'loquetier_static_shards_v1'),
+                ('slora', 'slora_resident_rr_v1', 'slora_resident_pool_v1'),
+                ('vllm', 'resident_rr_v1', 'vllm_resident_pool_v1')):
+            summary, qualifier, physical = self.fixture(backend, mode)
+            before = copy.deepcopy((summary, qualifier, physical))
+            self.assertEqual(self.validate(summary, qualifier, physical, contract), 17)
+            self.assertEqual((summary, qualifier, physical), before)
+            with self.assertRaisesRegex(ValueError, 'success outcome'):
+                validate_terminal_outcome(summary, qualifier, 20, 'success', contract, physical)
+
+    def test_resource_or_population_failure_cannot_be_relabeled(self):
+        changes = dict(contract='other', measurement_complete=False,
+            eligible_physical_measurement=False, open_lease_ids=['still-live'],
+            n_plan=19, n_terminal=19, n_native_contract_complete=16, n_interrupted=1)
+        for key, value in changes.items():
+            summary, qualifier, physical = self.fixture()
+            physical[key] = value
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, 'closed physical evidence'):
+                self.validate(summary, qualifier, physical)
+        with self.assertRaises(ValueError):
+            self.validate(*self.fixture()[:2], None)
+
+    def test_foreign_error_schema_release_and_lifecycle_are_rejected(self):
+        for key, value in dict(schema='other', error='another failure',
+                physical_terminal_error='another failure', physical_release_errors=['missing release'],
+                physical_lifecycle=dict(mode='loquetier_static_shards_v1', measurement_complete=False)).items():
+            summary, qualifier, physical = self.fixture()
+            qualifier[key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.validate(summary, qualifier, physical)
+        summary, qualifier, physical = self.fixture()
+        with self.assertRaises(ValueError):
+            self.validate(summary, qualifier, physical, 'original')
+
+    def test_terminal_receipt_must_match_every_count(self):
+        for key in ('N_plan', 'N_arrived', 'N_terminal', 'N_response', 'N_failed', 'event'):
+            summary, qualifier, physical = self.fixture()
+            qualifier['http_completion'][key] = 'wrong'
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.validate(summary, qualifier, physical)
+
+
 class FrozenSloTests(unittest.TestCase):
     def fixture(self):
         rows = [dict(request_id=f'r{i}', status='http_response', actual_tokens=2,
