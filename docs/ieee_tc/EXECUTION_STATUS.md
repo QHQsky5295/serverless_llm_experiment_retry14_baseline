@@ -1,4 +1,4 @@
-# IEEE TC execution status — D551 full W1 prepared
+# IEEE TC execution status — D551 full W1 result audited
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,70 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+AUTHORITATIVE D551 TERMINAL: no live inference/remote/analysis job remains.
+Read D551_FULL_W1_RESULT.md. All4000 nativebindings/458224tokens/0fail;
+joint3923=98.075%,TTFT3964,TPOT3958. IndependentnumericUNKNOWN,n_correctnull.
+U8263.640849841991GPU-s,R2.065910212460498/bindingvalidrequest;
+meanTTFT1011.184796ms/P952414.409330ms;meanTPOT34.915929/P9556.394261ms;
+meanE2E4981.633854ms. PhysicalGPUrelease/servicepathgone/ownauxclosure verified.
+Threeexactownedremoteunitsinactive/MainPID0/portsabsent; bilateralSHA/packing0.
+Servicepeak21127700480B,high/max/OOM/kill/swap0. Analysis/reviewactualemptyclosed/
+pathgone,peaks752967680/135888896B,events0/swap0. No new qualification/performance.
+Full4000 inputjoin toD536 +sealedD546 six-systemwitness PASS;147samebackend
+outputhashdifferences vsD533, causeUNKNOWN, inputs/adapters/targets unchanged.
+22earlycontrolsamples exactlymatchactualarrivals;initialreadybusiness-4.484950s,
+NO earlynaturalactivation. InitialAOTcachehit,compile0.30s/internalinit11.50s;
+trigger->ready43.730668s vsD53390.499551s. Thus fullpointmeets95%, but NOisolated
+early-controlperformancecausation. Do notsubtractstartup/cache effects orforce
+trigger/repeat. RelativeD533joint+4.35pp,P95-46.0266%,U+1.4522%;relativeS-LoRA
+U+2.7475%, allbaselinejoint<95. CandidateW1budgetU/B1.223052,refNOTformallyfrozen.
+NoG2/global/crossscenario closure. D550native100 triggerproofretainedseparately.
+Thisturn madePROGRESS: samefullrunterminal/actualclosure/strictaudit/inputjoin,
+retainedstartup/outputdifference interpretation. NEXT curate/push testedresult
+checkpoint, thenfreshdiskgate/closedrebuildablecacheaudit asneeded andmainline
+W2/budget/bottleneckevidence. No D551repeat/oldbaselinequalification/secondbackup.
+FullscopeACTIVE: sameconfigW0/W2/G2,3B,dLoRA,A1–A5,S1–S13/docs/figures remain.
+
+The following live notes are historical, superseded by terminal state above:
+
+AUTHORITATIVE D551 LIVE: single full4000 W1 candidate RUNNING, no repeatstart.
+Prelaunch a443b352076fb0b238b149380656d52581a392e2 PUSHED/remoteequal,
+6explicitfiles; BASEbde2154unchanged/pushed. Sources/archive/147protected/userdirt/
+secrets/diffchecksPASS, priorqualifications reused. Qualification/backup/start
+actualrecursiveemptyclosed/pathgone,peaks695631872/28647424/29437952B,events0/swap0.
+tmux tc-d551-initialw1; RAW p2_backend_qualification/d551_20261015.
+Serviceprimelora-tc-svc-8ecc0a4be5d048209c88ea369fb08c05.scope,
+Invocation6b674297fd254abcabfa7312573980e1,inode25521500.
+Launcherauxprimelora-tc-aux-9242c9c7a25b4d7c87d215027db400ae.scope,
+exactidentityservice_aux_identity.json. Notice1565440.46317732,
+business1565500.46317732; fullW1view103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3.
+FreshlaunchresourcegatePASS; no artificialstartupdelay/extraGPUprewarm.
+RemoteownservicesLIVE, actual1000Mb/s/full; prepublished_gzip_v1/timingv2healthPASS.
+7bclockremote-process-monotonic:88d292c21e1f40d490bcf604bac08ad5;
+monitorprimelora-artifact-monitor-d551-initialw1.service, exact3IDsremote_start.log.
+Latestverifiedsample828:hostavailable94522982400B,service18302771200B,
+high/max/OOM/kill/swap0,noabort. Liveprogress1381completed/1396arrived/4000,
+0fail reported; these are not final audited native counts. Thirdphase underway.
+Terminalreceipt absent. SAMEInvocation6b674297fd254abcabfa7312573980e1 recheckedactive.
+Disk159357726720B below next-heavy150GiB floor but aboveongoing100GiBstop;
+do notclean duringrun; afterclosure/preservation freshauditclosedrebuildablecache.
+Runtimeprinted5000ms/liveSLO is NOT D394 commonjointSLO; no finalperformance claim.
+ActualserviceInvocation+tmux reconfirmed live. Prior turn PROGRESS: prepared,
+qualified/backup/pushed and launched newfull4000 key. Currentturn VERIFIED WAIT:
+repeated actualowner/watchdog/liveprogress checks, no terminal state or restart.
+Complete PLAN/V1/V2 remain fullyread incontext; unchanged PLAN SHA verified;
+currentstatus and monitor-experiment read. Monitor SAMErun only.
+NEXT lightmonitoractualowner/watchdog/journals; no tests/build/hashscan/backup/
+compression/cleanup/remotechanges duringperformance. On actualterminal inspect
+launch.json; ifsuccess close_launch.py ->stop_remote.sh ->boundedrun_analysis.py,
+exactanalysisclose then inputjoin/compare/curate/push. If failure preserve it,
+don't runsuccess-onlycollector or inferrelease. Starttimeout nevermeansrestart.
+Do NOTrepeatD549/D550 qualifications, D551prelaunch or anybaseline performance.
+FullscopeACTIVE: candidateacceptance unknown; W0/W2/G2/3B/A1–A5/S1–S13/docs remain.
+Postpushstatusdelta reservednextmilestone, no backupduringinference.
+
+The following preparation notes are historical, superseded by live state above:
 
 LATEST D551 PREPARATION: offline full4000 input/config/profile binding PASS;
 no native launch yet. Read D551_INITIAL_CONTROL_FULL_W1.md.
