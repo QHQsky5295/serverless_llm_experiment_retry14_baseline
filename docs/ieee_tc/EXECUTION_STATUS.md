@@ -9,6 +9,31 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
+D545 targetedcleanup COMPLETE; D545_TARGETED_CACHE_RECLAIM.md is authoritative.
+OnlyclosedD544duplicateobjects5000files/12985984450B removed after fullcurrent
+cache+retainedpoolSHA,metadata,refs,closure/publicationchecks. Reclaimed13004419072B,
+diskafter161635860480B(~150.535GiB).147protectedoldfiles+userdirt unchanged.
+Rawsuccess/failureevidence anduniqueassets retained. Cleanupactualemptyclosed/pathgone;
+peak3221749760B,high5429,max/OOM/kill/swap0; highonlyoffline, no concurrentinference.
+Unreadable3sameUIDproc disclosed,notwhole-systemFDclaim. CurationPASS/archive5701B.
+NEXT closecuration thenexplicitcheckpointpush; afterwardHydraServeW1reuseaudit/new
+W1inputview, preservingD510nativepolicy andisolatedPodman. No repeatD544orW0.
+Do NOT reruncleanup or deleteanyothercache byname. FullgoalACTIVE,allscopebelow.
+
+The following D545 running notes are historical, superseded above:
+D544 result checkpoint dfeacf4e6042318b4cf365a4f9620a2a2dbd305e PUSHED/remoteequal.
+11explicitfiles,58CPUtests/source/archive/147protected/userdirt/secrets/diffchecksPASS.
+Actualpublicationscopeemptyclosed/pathgone,peak30179328B,events0/swap0.
+BASEbde215460acb9e850efa479a89bda6fc39a2bd7d unchanged/pushed. No repeatbackup.
+D545 targetedclosedD544cacheaudit/reclaim RUNNING inauxd5450000000000000000000000000001;
+RAW storage_maintenance/d545_20261015. ReusedD543recipe with exactnewtarget
+/tmp/tc-d544-7bl/remote_artifacts/objects; failureclassification remains unchanged.
+Beforedelete requires fullretainedpool/cacheSHA, receipts/journals equality,
+actualclosures/publication, protected147, noownedruntime/futureconfigreference.
+No original/failurelogs/uniqueweightsremoved. No inferenceorremoteservicerunning.
+NEXT waitsamecleanuphandle thenactualclose,curate/pushreceipt,HydraServeW1reuseaudit.
+Do NOT repeatcompletedD544analysis/curation/publication/performance. FullgoalACTIVE.
+
 AUTHORITATIVE D544 RESULT UPDATE: failure-aware strict analysis and input join DONE;
 read D544_LOQUETIER_W1_RESULT.md. All4000 offered/terminal,3844 native-binding
 responses/428276tokens,156TimeoutError; timeoutmean1800.001975s. Joint0/4000,

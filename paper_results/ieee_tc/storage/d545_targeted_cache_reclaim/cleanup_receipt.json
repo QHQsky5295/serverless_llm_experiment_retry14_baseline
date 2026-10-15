@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d5450000000000000000000000000001.scope",
+    "invocation_id": "5861a813cf29451ea035e5812f94a48a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5450000000000000000000000000001.scope",
+    "inode": 25426261
+  },
+  "target": "/tmp/tc-d544-7bl/remote_artifacts/objects",
+  "files": 5000,
+  "payload_bytes": 12985984450,
+  "observed_reclaimed_bytes": 13004419072,
+  "disk_after_bytes": 161635860480,
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "before_receipt_sha256": "8a24a383e22616d7f3edbb53157f8904c7fc17e508e317de4d84c7d798089662",
+  "resources": {
+    "memory.peak": "3221749760\n",
+    "memory.events": "low 0\nhigh 5429\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}
