@@ -830,6 +830,28 @@ class W1ReplayViewTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 launch.load_http_replay_plan(dict(cfg, replay_profile='W1'))
 
+    def test_w2_must_bind_shared_map_and_cannot_silently_become_w0_or_w1(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        cfg = dict(self.cfg,request_view='trace_w2_v1',replay_profile='W2',
+                   adapter_map='/frozen/map.json',adapter_map_sha256='map-sha')
+        identity = NS(source_sha256=cfg['trace_sha256'],source_count=4000,entries=[None]*4000)
+        with patch.object(FrozenReplayPlan,'load',return_value=identity) as load:
+            self.assertIs(launch.load_http_replay_plan(cfg),identity)
+            load.assert_called_once_with(cfg['trace'],profile='W2',count=4000,
+                adapter_map=cfg['adapter_map'],adapter_map_sha256='map-sha')
+        self.assertTrue(launch.qualified_http_population(cfg))
+        for count in (True,100,500,1000,3999):
+            self.assertFalse(launch.qualified_http_population(dict(cfg,request_count=count)))
+        for change in (dict(replay_profile='W0'),dict(replay_profile='W1'),dict(rate_scale=2.)):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(cfg,**change))
+        for view in ('trace_prefix_v1','trace_w1_v1'):
+            with self.subTest(view=view),self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(self.cfg,request_view=view,
+                    adapter_map='/frozen/map.json',adapter_map_sha256='map-sha'))
+        with self.assertRaises(ValueError):
+            launch.load_http_replay_plan(dict(self.cfg,request_view='trace_w2_v1'))
+
 
 class IngressContractTests(unittest.TestCase):
     def test_mode_is_explicit_and_public_native_ports_must_differ(self):

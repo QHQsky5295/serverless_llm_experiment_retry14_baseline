@@ -749,14 +749,14 @@ async def replay_http_session(plan, origin, prepared, url, emit, *, ingress_requ
 
 
 def qualified_http_population(cfg):
-    """Each transform is explicit; W1 is the complete approved arrival view."""
+    """Each transform is explicit; W1/W2 require the full approved source."""
     count = cfg.get('request_count')
     view = cfg.get('request_view', 'trace_prefix_v1')
     if type(count) is not int:
         return False
     if view == 'trace_prefix_v1':
         return count in (100, 1000, 4000)
-    if view == 'trace_w1_v1':
+    if view in ('trace_w1_v1', 'trace_w2_v1'):
         return count == 4000
     return (view == 'adapter_coverage_v1' and count == 500
             and cfg.get('qualification_only') is True
@@ -777,16 +777,17 @@ def load_http_replay_plan(cfg, *, trace=None):
     if trace is not None and Path(path).resolve() != Path(trace).resolve():
         raise ValueError('service and publisher trace differ')
     view = cfg.get('request_view', 'trace_prefix_v1')
-    profile = 'W1' if view == 'trace_w1_v1' else 'W0'
+    profile = {'trace_w1_v1':'W1', 'trace_w2_v1':'W2'}.get(view, 'W0')
     if cfg.get('replay_profile', profile) != profile or cfg.get('rate_scale', 1.) != 1.:
         raise ValueError('HTTP request view and replay transform differ')
-    plan = FrozenReplayPlan.load(path, profile=profile, count=cfg['request_count'])
+    plan = FrozenReplayPlan.load(path, profile=profile, count=cfg['request_count'],
+        adapter_map=cfg.get('adapter_map'), adapter_map_sha256=cfg.get('adapter_map_sha256'))
     if 'trace_sha256' in cfg and plan.source_sha256 != cfg['trace_sha256']:
         raise ValueError('existing trace changed')
-    if view == 'trace_w1_v1':
+    if view in ('trace_w1_v1', 'trace_w2_v1'):
         if (not qualified_http_population(cfg) or plan.source_count != 4000
                 or len(plan.entries) != 4000 or 'trace_sha256' not in cfg):
-            raise ValueError('W1 requires the complete frozen 4000-request source')
+            raise ValueError(f'{profile} requires the complete frozen 4000-request source')
         return plan
     if view == 'trace_prefix_v1':
         if cfg['request_count'] == 500:
