@@ -2165,6 +2165,224 @@ class IEEEInitialDeployment(unittest.TestCase):
         asyncio.run(run())
 
 
+class IEEEInitialObservedControl(unittest.TestCase):
+    """Real controller/activation ownership, synthetic native runtimes only."""
+
+    def make(self, policy='no_handoff'):
+        initial = IEEEInitialDeployment()
+        self.addCleanup(initial.doCleanups)
+        fixture, files, service, queue, engine = initial.make(policy)
+        from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
+        second = ActivationPreparation()
+        self.addCleanup(second.doCleanups)
+        _, _, second_queue, second_engine, second_native = second.make(policy)
+        second_native['owner_id'] = 'second-controlled-native'
+        service.name = 'initial-observed-fixture'
+        service.baseline_type = 'faaslora_full'
+        # Thousands of future records must not create observed queue pressure.
+        service.traces = [None] * 4000
+        service._ttft_slo_ms = 5000.
+        service.coord_cfg = dict(ieee_scaling=ieee_control_fixture(),
+                                ieee_initial_control_policy='observed_arrivals_v1')
+        service._scale_eval_interval_s = 1.
+        service._hierarchical_residency_enabled = False
+        service._runtime_forward_capacity_limit = Mock(return_value=4)
+        service._external_replay = SimpleNamespace(
+            context=dict(replay_t0_s=1000.), observed_times=[], receive=AsyncMock())
+        service._live_runtime_reservations = {}
+        service._unsettled_runtime_reservations = {}
+        service._slot_retire_lock = asyncio.Lock()
+        service.instance_pool.max_instances = 2
+        return fixture, files, service, queue, (engine, second_engine), second_queue
+
+    def test_invalid_policy_or_missing_ingress_fails_before_activation(self):
+        for policy, external in (('unknown', True), ('observed_arrivals_v1', False)):
+            with self.subTest(policy=policy, external=external):
+                _, _, service, queue, _, second_queue = self.make()
+                service.coord_cfg['ieee_initial_control_policy'] = policy
+                if not external: service._external_replay = None
+                async def run():
+                    with self.assertRaisesRegex(ValueError, 'external ingress'):
+                        await service._start_ieee_initial_deployment()
+                    service.engine_factory.assert_not_awaited()
+                    self.assertFalse(service._pending_scale_up_device_ids)
+                    await queue.close()
+                    await second_queue.close()
+                asyncio.run(run())
+
+    def test_observed_queue_scales_before_initial_ready_and_first_natural_can_serve(self):
+        _, _, service, queue, engines, second_queue = self.make()
+        async def run():
+            started = [asyncio.Event(), asyncio.Event()]
+            release = [asyncio.Event(), asyncio.Event()]
+            now = [1000.]
+            async def initialize(*, device_id):
+                started[device_id].set()
+                await release[device_id].wait()
+                return engines[device_id], None
+            service.engine_factory = AsyncMock(side_effect=initialize)
+            # Patch the runner's clock reference, not asyncio's process clock.
+            clock = Mock(wraps=runner.time)
+            clock.monotonic.side_effect = lambda: now[0]
+            with patch.object(runner, 'time', clock):
+                deployment = asyncio.create_task(service._start_ieee_initial_deployment())
+                await asyncio.wait_for(started[0].wait(), 2)
+                self.assertEqual(service.instance_pool.count(), 0)
+                self.assertEqual(service._pending_scale_up_count(), 1)
+                self.assertFalse(started[1].is_set())
+                first = service._ieee_control_events[0]
+                self.assertEqual((first['queue_depth'], first['ready_capacity'],
+                                  first['pending_instances']), (0, 0, 1))
+                self.assertIsNone(first['p95_ttft_ms'])
+                service._external_replay.observed_times.extend([1001.] * 3)
+                now[0] = 1001.
+                await asyncio.wait_for(started[1].wait(), 2)
+                self.assertFalse(deployment.done())
+                self.assertEqual(service._pending_scale_up_device_ids, {0, 1})
+                self.assertEqual(service._pending_scale_up_count(), 2)
+                event = service._ieee_control_events[-1]
+                self.assertEqual((event['queue_depth'], event['active_requests'],
+                                  event['ready_instances'], event['pending_instances']), (3, 0, 0, 1))
+                self.assertEqual(event['scheduled'], 1)
+                # Further periods cannot exceed the physical replica limit.
+                now[0] = 1002.
+                async def next_sample():
+                    while service._ieee_control_events[-1]['observed_at'] != 1002.:
+                        await asyncio.sleep(.01)
+                await asyncio.wait_for(next_sample(), 2)
+                self.assertEqual(service.engine_factory.await_count, 2)
+                self.assertEqual(service._ieee_control_events[-1]['action'], 'no_action')
+                controller = service._ieee_scale_controller
+                release[1].set()
+                await asyncio.wait_for(deployment, 2)
+                self.assertIs(service.engine, engines[1])
+                self.assertEqual(service._ieee_initial_deployment['first_ready_activation_kind'],
+                                 'natural_scaleout')
+                self.assertEqual(service._ieee_initial_deployment['ready_events'], [])
+                self.assertEqual(service._active_replay_t0, 1000.)
+                service._external_replay.receive.assert_not_awaited()
+                result = service._scenario_result_for_replay()
+                self.assertIs(result, service._active_scenario_result)
+                self.assertEqual(len(result.scale_up_events), 1)
+                self.assertEqual(result.scale_up_events[0]['activation_kind'], 'natural_scaleout')
+                self.assertEqual(result.scale_up_events[0]['arrived_request_count'], 3)
+                self.assertIs(service._ieee_scale_controller, controller)
+                self.assertEqual(controller.last_evaluation, 1002.)
+                await service._ensure_min_instances(True)
+                self.assertEqual(service.engine_factory.await_count, 2)
+                release[0].set()
+                await service._wait_for_pending_scale_up_tasks()
+                self.assertEqual(service._ieee_initial_deployment['ready_events'][0]['activation_kind'],
+                                 'initial')
+                self.assertFalse(service._pending_scale_up_device_ids)
+                await service._shutdown_instance_pool()
+                await second_queue.close()
+                for engine in engines: engine.shutdown.assert_awaited_once()
+        asyncio.run(run())
+
+    def test_cancel_joins_early_natural_startup_before_movement_close(self):
+        _, files, service, queue, engines, second_queue = self.make()
+        async def run():
+            # NoHandoff creates no movement jobs. Explicitly bind the empty
+            # owner to exercise shutdown ordering, not an unbound close no-op.
+            queue._bind()
+            started = [asyncio.Event(), asyncio.Event()]
+            release = [asyncio.Event(), asyncio.Event()]
+            service._external_replay.observed_times.extend([1000.] * 3)
+            async def initialize(*, device_id):
+                started[device_id].set()
+                await release[device_id].wait()
+                return engines[device_id], None
+            service.engine_factory = AsyncMock(side_effect=initialize)
+            actual_close = queue.close
+            async def close():
+                for engine in engines: engine.shutdown.assert_awaited_once()
+                await actual_close()
+            with patch.object(queue, 'close', AsyncMock(side_effect=close)) as closed:
+                deployment = asyncio.create_task(service._start_ieee_initial_deployment())
+                await asyncio.wait_for(asyncio.gather(*(s.wait() for s in started)), 2)
+                deployment.cancel()
+                await asyncio.sleep(0)
+                release[0].set()
+                await asyncio.sleep(.02)
+                self.assertFalse(deployment.done())
+                closed.assert_not_awaited()
+                release[1].set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await asyncio.wait_for(deployment, 2)
+                closed.assert_awaited_once()
+            self.assertFalse(files.owner.host_budget_snapshot()['activation_reservations'])
+            self.assertEqual(service.instance_pool.count(), 0)
+            self.assertFalse(service._pending_scale_up_device_ids)
+            self.assertTrue(all(t.done() for t in service._ieee_pre_ready_activation_tasks))
+            await second_queue.close()
+        asyncio.run(run())
+
+    def test_full_handoff_preparation_remains_owned_for_both_activation_categories(self):
+        from dataclasses import replace
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        fixture, files, service, queue, engines, second_queue = self.make('full')
+        # Synthetic two-native + file budget, not a production profile change.
+        service.model_cfg['ieee_host_budget_bytes'] = 65536
+        for engine in engines:
+            engine.model_cfg['ieee_host_budget_bytes'] = 65536
+        service._preparation_profiles = replace(service._preparation_profiles,
+            model_config_json=json.dumps(FrozenServiceProfiles.model_identity(engines[0].model_cfg),
+                                         sort_keys=True, allow_nan=False))
+        service.instance_pool.preparation_profiles = service._preparation_profiles
+        async def run():
+            service._external_replay.observed_times.extend([1000.] * 3)
+            async def initialize(*, device_id):
+                return engines[device_id], None
+            service.engine_factory = AsyncMock(side_effect=initialize)
+            await asyncio.wait_for(service._start_ieee_initial_deployment(), 60)
+            await asyncio.wait_for(service._wait_for_pending_scale_up_tasks(), 60)
+            await fixture.finish_preparation(service)
+            self.assertEqual({item['category'] for item in service._ieee_activations},
+                             {'initial', 'natural_scaleout'})
+            self.assertTrue(all(item['preparation_state'] == 'completed'
+                                for item in service._ieee_activations))
+            self.assertEqual((files.host/'a'/'weights').read_bytes(), b'a'*12288)
+            self.assertEqual(len(service._active_scenario_result.scale_up_events), 1)
+            self.assertEqual(service.instance_pool.count(), 2)
+            await service._shutdown_instance_pool()
+            await second_queue.close()
+            for engine in engines: engine.shutdown.assert_awaited_once()
+        asyncio.run(run())
+
+    def test_initial_or_natural_failure_is_not_hidden_by_ready_sibling(self):
+        for failed_device in (0, 1):
+            with self.subTest(failed_device=failed_device):
+                _, _, service, _, engines, second_queue = self.make()
+                async def run():
+                    service._external_replay.observed_times.extend([1000.] * 3)
+                    async def initialize(*, device_id):
+                        if device_id == failed_device:
+                            raise RuntimeError('owned startup failed')
+                        return engines[device_id], None
+                    service.engine_factory = AsyncMock(side_effect=initialize)
+                    with self.assertRaisesRegex(RuntimeError, 'owned startup failed|activation failed'):
+                        await service._start_ieee_initial_deployment()
+                    self.assertEqual(service._ieee_initial_deployment['state'], 'failed')
+                    self.assertEqual(service.instance_pool.count(), 0)
+                    self.assertTrue(all(t.done() for t in service._ieee_pre_ready_activation_tasks))
+                    await second_queue.close()
+                asyncio.run(run())
+
+    def test_early_result_identity_cannot_be_silently_replaced(self):
+        _, _, service, queue, _, second_queue = self.make()
+        result = service._scenario_result_for_replay()
+        service._ieee_initial_control_result = service._active_scenario_result = result
+        self.assertIs(service._scenario_result_for_replay(), result)
+        service._active_scenario_result = object()
+        with self.assertRaisesRegex(RuntimeError, 'identity changed'):
+            service._scenario_result_for_replay()
+        async def run():
+            await queue.close()
+            await second_queue.close()
+        asyncio.run(run())
+
+
 class SharedDedicatedFactory(unittest.TestCase):
     def test_parent_configuration_and_actual_device_path_are_preserved(self):
         model = dict(backend='vllm', visible_device_ids=[0, 1, 2, 3], device_id=0,

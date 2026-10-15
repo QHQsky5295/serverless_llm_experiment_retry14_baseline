@@ -14743,7 +14743,8 @@ class ScenarioRunner:
         # Initial activation owns startup AND preparation. Join it while the
         # common movement owner is still open; otherwise a late factory result
         # could publish a new slot after shutdown's plan/engine census.
-        initial = list(getattr(self, '_ieee_initial_tasks', ()))
+        initial = list(set(getattr(self, '_ieee_initial_tasks', ())) |
+                       set(getattr(self, '_ieee_pre_ready_activation_tasks', ())))
         for task in initial:
             if not task.done():
                 task.cancel()
@@ -15406,6 +15407,10 @@ class ScenarioRunner:
                 )
             )
             tasks.add(task)
+            pre_ready = getattr(self, '_ieee_pre_ready_activation_tasks', None)
+            if pre_ready is not None and self._initial_runtime_pending:
+                # Own the task before the controller next yields or fails.
+                pre_ready.add(task)
             task.add_done_callback(self._handle_pending_scale_up_task_done)
             scheduled += 1
         return scheduled
@@ -15938,6 +15943,70 @@ class ScenarioRunner:
         if mechanism is not None:
             self._ieee_full_launch_contract['system_mechanism_contract'] = copy.deepcopy(mechanism)
 
+    def _scenario_result_for_replay(self):
+        """Keep activation events produced before dispatch in the same result."""
+        result = getattr(self, '_ieee_initial_control_result', None)
+        if result is not None:
+            if (result is not getattr(self, '_active_scenario_result', None)
+                    or result.scenario_name != self.name
+                    or result.baseline_type != self.baseline_type
+                    or result.total != len(self.traces)):
+                raise RuntimeError('initial control result identity changed before replay')
+            return result
+        return ScenarioResult(scenario_name=self.name, baseline_type=self.baseline_type,
+                              total=len(self.traces), ttft_slo_ms=self._ttft_slo_ms)
+
+    async def _wait_ieee_ready_with_observed_control(self, record):
+        """Observe ingress while native activation is pending; never consume it.
+
+        This is the same IEEE controller and cadence used after first ready,
+        with no completed TTFT or active requests yet.  Pending activation is
+        not ready capacity.  The existing physical activation owner performs
+        all preparation, publication and cancellation work.
+        """
+        replay_t0 = self._external_replay.context['replay_t0_s']
+        self._active_replay_t0 = replay_t0
+        result = self._scenario_result_for_replay()
+        self._ieee_initial_control_result = self._active_scenario_result = result
+        observed_results = []
+        self._ieee_pre_ready_activation_tasks = set()
+        record.update(control_start_at=time.monotonic(), replay_t0_s=replay_t0)
+        poll_s = min(.1, max(.02, self._live_scale_eval_period_s()/20.))
+        while True:
+            owned = set(self._ieee_initial_tasks) | self._ieee_pre_ready_activation_tasks
+            # A successful sibling cannot hide another already-terminal failure.
+            for task in owned:
+                if task.done():
+                    task.result()
+            if getattr(self, '_ieee_scale_failure', None) is not None:
+                raise RuntimeError('IEEE activation failed before first ready') from self._ieee_scale_failure
+            slots = self.instance_pool.get_slots()
+            if slots:
+                # Pool insertion follows authoritative native ready publication.
+                # Natural scale-out can finish before the initial activation.
+                slot = slots[0]
+                activation = next(item for item in self._ieee_activations
+                                  if item['activation_id'] == slot.instance_id)
+                if activation['state'] != 'runtime_ready':
+                    raise RuntimeError('first serving owner lacks native ready evidence')
+                record['first_ready_activation_kind'] = activation['category']
+                return slot
+            await self._evaluate_ieee_live_control(result=result,
+                coord_enabled=self._coordination_enabled, replay_t0=replay_t0,
+                results_view=observed_results, backlog=self._arrived_request_count(replay_t0),
+                active_requests=0, completed_count=0)
+            # Retain these owners even after done callbacks remove pending tasks.
+            # Shutdown must join them before closing the common movement owner.
+            pending = [task for task in owned | self._ieee_pre_ready_activation_tasks
+                       if not task.done()]
+            if not pending:
+                for task in owned | self._ieee_pre_ready_activation_tasks:
+                    task.result()
+                if not self.instance_pool.count():
+                    raise RuntimeError('IEEE initial deployment has no pending or ready owner')
+                continue
+            await asyncio.wait(pending, timeout=poll_s, return_when=asyncio.FIRST_COMPLETED)
+
     async def _start_ieee_initial_deployment(self):
         """Start the initial physical pool through the same owner as scale-out.
 
@@ -15951,6 +16020,12 @@ class ScenarioRunner:
                 or self._routing_policy != 'ieee_confirmed'
                 or self.engine_factory is None):
             raise ValueError('IEEE initial deployment requires an empty owned pending pool')
+        control_policy = getattr(self, 'coord_cfg', {}).get('ieee_initial_control_policy')
+        if control_policy is not None:
+            if (control_policy != 'observed_arrivals_v1'
+                    or getattr(self, '_external_replay', None) is None):
+                raise ValueError('initial control requires observed_arrivals_v1 and external ingress')
+            self._ieee_control_owner()  # Validate unchanged IEEE limits before any startup.
         devices = []
         try:
             for _ in range(self.instance_pool.min_instances):
@@ -15966,6 +16041,8 @@ class ScenarioRunner:
         record = self._ieee_initial_deployment = dict(state='initializing',
             trigger_at=time.monotonic(), clock_id=local_monotonic_clock_id(),
             devices=list(devices), ready_events=[], failures=[])
+        if control_policy is not None:
+            record['control_policy'] = control_policy
 
         async def activate(device):
             try:
@@ -15990,15 +16067,18 @@ class ScenarioRunner:
             self._pending_scale_up_tasks.add(task)
             task.add_done_callback(self._handle_pending_scale_up_task_done)
         try:
-            done, _ = await asyncio.wait(self._ieee_initial_tasks,
-                                        return_when=asyncio.FIRST_COMPLETED)
-            # Surface every already-finished failure; do not pick a lucky
-            # successful sibling to conceal an incomplete initial pool.
-            for task in self._ieee_initial_tasks:
-                if task in done:
-                    task.result()
-            first = record['ready_events'][0]
-            slot = self.instance_pool.get_slot(first['instance_id'])
+            if control_policy is not None:
+                slot = await self._wait_ieee_ready_with_observed_control(record)
+            else:
+                done, _ = await asyncio.wait(self._ieee_initial_tasks,
+                                            return_when=asyncio.FIRST_COMPLETED)
+                # Surface every already-finished failure; do not pick a lucky
+                # successful sibling to conceal an incomplete initial pool.
+                for task in self._ieee_initial_tasks:
+                    if task in done:
+                        task.result()
+                first = record['ready_events'][0]
+                slot = self.instance_pool.get_slot(first['instance_id'])
             if slot is None:
                 raise RuntimeError('initial ready event has no owned pool member')
             self._primary_instance_id = slot.instance_id
@@ -16382,16 +16462,12 @@ class ScenarioRunner:
         multi_cycle_phases = int(self.wl_cfg.get("multi_cycle_phases", 1))
         idle_between_s = float(self.wl_cfg.get("idle_between_phases_s", 2.0))
 
-        result = ScenarioResult(
-            scenario_name=self.name,
-            baseline_type=self.baseline_type,
-            total=len(self.traces),
-            ttft_slo_ms=self._ttft_slo_ms,
-        )
+        result = self._scenario_result_for_replay()
         # Keep completed rows if post-replay scale control or cleanup fails.
         # Interrupted continuous windows retain their separate observed rows.
         self._active_scenario_result = result
-        self._live_scale_eval_last_at = 0.0
+        if getattr(self, '_ieee_initial_control_result', None) is None:
+            self._live_scale_eval_last_at = 0.0
         self._live_scale_overrides = None
         self._live_last_print_time = 0.0
         self._live_last_print_completed = -1

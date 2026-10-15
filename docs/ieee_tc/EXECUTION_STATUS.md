@@ -1,4 +1,4 @@
-# IEEE TC execution status — D548 W1 capacity diagnosis complete; PrimeLoRA optimization next
+# IEEE TC execution status — D549 initial observed-control CPU qualification complete
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,48 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D549: implemented ONE opt-in candidate, NOT performance-qualified.
+Read D549_INITIAL_OBSERVED_CONTROL.md. Observed external arrivals drive SAME
+IEEE max-score/cadence during initial runtime wait; no thresholds/nine-formula/
+model/profile/generation/remote/metric changes. Default legacy behavior retained.
+New coord key ieee_initial_control_policy=observed_arrivals_v1, not enabled in
+any performance config yet. Unknown policy/missing ingress fail before activation.
+Actual first-ready initial OR natural owner may serve; categories remain causal.
+Pre-ready natural tasks owned at creation, joined before movement teardown;
+initial scale events share replay result and controller cadence is not reset.
+Only production scripts/run_all_experiments.py and tests/test_ieee_tc_launch.py
+changed. autoscaler.py unchanged SHA57c54231ac790b5fb93a3410d7274db3820e126dc5ef54e1510241926b699463.
+CPUqualification first31:30PASS/1fixtureFAIL (unbound NoHandoff queue was wrongly
+expected to close); original source tar/log retained. Fixture explicitly bound,
+Full two-activation preparation added; production unchanged across both checks.
+qualification2=32PASS49.648s; full affected regression363PASS74.895s, no skips.
+All3actualscopes recursiveemptyclosed/pathgone, peaks1960259584/2250047488/
+2488819712B, high/max/OOM/kill/swap0. NoGPU/inference/remotejob active.
+RAW originalresults/ieee_tc/p2_backend_qualification/d549_20261015.
+Source runnerSHA0e25de8a8d95ce12b1877542ec58c36023a8bf01a435abb14712106a79bbfd31;
+testSHA34ac4beda77e26750a4c5d913768fbf32b8d79e9e12e83976c101ad8811ecf7a.
+Plan/status/V1/V2/latestrules fullyread; D548history and current officialLlumnix,
+vLLM0.30scheduler/Pythonasyncio docs checked before edits. No baseline tuning.
+NEXT tested checkpoint/push, then reuse existing guarded100-request native path
+with new execution key and only this candidate; verify early control actually
+triggered, lifecycle/generation/tier/physical release. Then full new-version7B
+replay, same model rule acrossW0/W1/W2. No performance gain/95%claim yet.
+Do NOT repeat D548/D547/D546 or CPUqualification/regression absent affected edits.
+Fullscope remainsACTIVE: W1 still93.725%, noG1/G2closure; all remaining matrix below.
+
+The following D548 notes are historical, superseded by D549 above:
+
+AUTHORITATIVE D548 PUBLICATION: 5620e90bbad08f26817faebbfcd8af1c604ee456
+PUSHED/remoteequal,6explicitfiles; source/archive/protected147/userdirt/secrets/
+diffchecksPASS,40CPUtests passed. Actualpublication scope recursivelyempty,
+closed/pathgone; receipt+closure inRAW. No live inference/remote/analysis job.
+This turn made PROGRESS: both retained analyses, causal-boundary review,
+concrete initial-control-dependency hypothesis, curation and checkpointpush.
+Do NOT repeat analysis/tests/curation/publication or any baseline performance.
+NEXT initial-lifecycle/control qualification for the one hypothesis below;
+production candidate NOTimplemented, no performance benefit yet. FullscopeACTIVE.
+Postpush status delta reserved next milestone; no duplicate backup solely for it.
 
 LATEST D548 UPDATE: retained D533 W1 violation/stage/capacity analysis COMPLETE;
 read D548_W1_VIOLATION_CAPACITY.md. No new GPU run, production change or baseline
