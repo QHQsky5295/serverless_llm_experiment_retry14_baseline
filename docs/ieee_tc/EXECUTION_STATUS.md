@@ -1,4 +1,4 @@
-# IEEE TC execution status — D542 sealed, D543 storage complete, next baselines
+# IEEE TC execution status — D544 Loquetier W1 qualified, prelaunch
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,6 +9,28 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
+D544 Loquetier7BW1 OFFLINEQUALIFICATIONPASS; NO newGPUrun yet.
+Read D544_LOQUETIER_W1.md; RAW loquetier_qualification/d544_20261015.
+FULLPLAN/status and latestrules incontext; previousgoalturnclassifiedPROGRESS
+(D542fullresultsealed+D543safeclosedcachecleanup), notblocked/goalcomplete.
+OldD441source-view guard staleonlysource_adapterSHA; unchanged native/helper/
+kernel and24Loquetierfunctions/classes inclresidentservice ASTequalD445BASE311663a.
+Existingprepare_loquetier_measurement_view reused; sameoriginal/measuredSHA.
+Nativeconfig onlysourceview/manifestpath differs; SMLM/FP16/batch2/context1024/
+4x125staticshards/sequentialstartup unchanged, no baselineperformance tuning.
+39CPUtestsPASS2.565s; reuseandqualificationactualscopesemptyclosed/pathgone,
+peaks137809920/160837632B,high/max/OOM/swap0; noGPUqualificationrepeated.
+NativeSHAecfc72f92175fc8d115965129602ec4c242facfa47370b928ae55a92bd7598bf;
+HTTPad2868ca14b33af9620807e3ec073ece1a83fb0302abe5cbecba6a53d1747440;
+view6bf4e21d78ded9aedfa3a0f54060a6afc9c1072346d100ed497fa5fb584dcc36.
+4000W1/132requestedIDs/458224tokens;static500after-notice; sameknowninput.
+Launcher/start/stop/freeze/analysis/backup adaptedfromD540/D542existingrecipes.
+NEXT boundedbackup.py thenclosebackup, freshgatedstart.py (newtmux/privatecache)
+thenclosestarter. Do NOTrepeatCPUqualification orD445/D542/W0performance.
+CurrentMAINb3a6aae86fe048750ee4c468bac0d661f2b9f6c3,BASEbde2154, bothpushed.
+No servingcode edits. Initialdisk~150.8GiB,GPUnone; freshgateNOTyetpassed.
+Remote currentlySTOPPED; nochange to unrelatedk3s. Fullscope belowACTIVE.
+
 D543 targetedstorage COMPLETE, not a performance experiment. Read
 D543_TARGETED_CACHE_RECLAIM.md. OnlyclosedD542objects5000files/12985984450B
 removed after fullcurrentcache+retainedpoolSHA, metadata/refs/inode/closurechecks.
@@ -17,8 +39,13 @@ oldfiles unchanged, originalassets/rawsuccessful/failedresults preserved.
 Actualcleanupscopeclosed/empty/pathgone,peak3221749760B,high9464,max/OOM/kill/
 swap0; high onlymaintenance, no concurrentperformance. Curationpassedarchive5618B,
 scopeclosed/pathgone/events0/swap0. RAW storage_maintenance/d543_20261015.
-NEXT explicitD543publish.py and closepublication, thenLoquetier7BW1reuseaudit/
-qualification usingD445frozenconfiguration (no tuning), followedHydraServeW1.
+D543publication COMPLETE: b3a6aae86fe048750ee4c468bac0d661f2b9f6c3 PUSHED/
+remoteequal,10explicitfiles; allarchive/SHA/secrets/protected/userdirt/diffchecksPASS.
+Actualpublicationscopeempty/closed/pathgone; receipts saved inRAW. No live local
+or remote experimentaljob. BASEbde2154 unchanged; no baselinecommit thisturn.
+NEXT Loquetier7BW1reuseaudit/qualification usingD445frozenconfiguration (no tuning),
+followedHydraServeW1. No additional backup needed for samecompletedmilestone;
+postpushstatusdelta is reserved fornextcheckpoint.
 Do NOTrepeatD543cleanup, D542analysis/backup or completedperformance.
 Latest D445 contract reread; old source-view helperSHA may be stale after other
 baseline/W1 support. Inspect affected native AST and regenerate measurement-only
