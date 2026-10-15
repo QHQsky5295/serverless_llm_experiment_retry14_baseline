@@ -1,4 +1,4 @@
-# IEEE TC execution status — D544 Loquetier W1 terminal with failures
+# IEEE TC execution status — D546 HydraServe W1 prepared; prelaunch backup next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -9,6 +9,40 @@ Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
 
+AUTHORITATIVE D546 UPDATE: offline reuse/preparation PASS; no new GPU run yet.
+Read D546_HYDRASERVE_W1.md. RAW hydraserve_qualification/d546_20261015.
+D510 15 native runtime files and 16 rendered overlays SHA equal. Only common
+D531 W1 view and D541 pidfd poll measurement differ; no native algorithm/config
+change. 16 affected CPU tests PASS2.089s. Complete existing4000 W1 view
+103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3;
+preregSHA49feb319f0e758b55b71bfdde8bca588c107b4aea50a04f5646887af55d46cf2.
+Unrelatedk3s untouched; reuse isolatedrootlessPodman, officialmodifiedvLLM0.4.2,
+nativebatch8/modelinfo/idle30/remoteondemand. Unknownnumericalproof preserved.
+First audit pre-import namespacefailure retained, exactscopeclosed8MB/events0.
+Successfulreuse and preparation scopesactualemptyclosed/pathgone; noGPU used.
+Scripts/config/probe/strictW1audit mechanicallyreused fromD510, alloldpaths retained.
+NEXT explicit tested prelaunch backup, fresh resource/remote gate, single tmux W1.
+Do NOTrepeat16tests/qualification/W0/performance or touchk3s. D545cleanup already
+done, no broadstoragecleanup. Fullscope belowACTIVE; noG1/G2closure.
+
+The following D545 handoff is historical, superseded by D546 preparation above:
+
+D545 checkpoint5b3581b74427542f759cfcfbbeb1e51a6e35b57e PUSHED/remoteequal.
+10explicitfiles,archive/source/protected147/userdirt/secrets/diffchecksPASS.
+Actualpublicationscopeemptyclosed/pathgone,peak29011968B,events0/swap0;
+curationclosed28323840B. No live localmodel/remotejob/GPUcompute remains.
+MAINHEAD5b3581b,BASEbde2154; userdirty3filesunchanged. No additionalbackupneeded.
+Postpushstatusdelta reservednextmilestone. This turn madePROGRESS:
+D544failureclosed/strictlyaudited/saved/pushed;D545safeclosedduplicatecleanup/pushed.
+NEXT HydraServe7BW1 reuseaudit/preparation; readFULLPLAN/status/V1/V2 andfresh
+resourcegate beforelaunch. D510 isolatedPodman/nativequalification/W0done; do not
+alterunrelatedk3s/repeatbasisqualification orLoquetierperformance. No HydraServeW1
+config/qualification/launch yet. D510BASEdoc andrun_and_close/run_audit read only.
+D544serveconfig/native unchanged; onlyofflinefailureanalyzer+58tests changed.
+ReuseD510scripts and existing W1view, verifyaffected source/measurementcontracts.
+7BW1PrimeLoRAstill93.725%<95;HydraServeW1missing,W2/G2/3B/fullscopeOPEN.
+
+The following cleanup pre-publication notes are historical, superseded above:
 D545 targetedcleanup COMPLETE; D545_TARGETED_CACHE_RECLAIM.md is authoritative.
 OnlyclosedD544duplicateobjects5000files/12985984450B removed after fullcurrent
 cache+retainedpoolSHA,metadata,refs,closure/publicationchecks. Reclaimed13004419072B,
