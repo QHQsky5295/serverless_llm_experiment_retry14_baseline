@@ -906,12 +906,14 @@ def matched_request_contract(left, right):
         raise ValueError('matched request contract differs: arrival_offset_s')
 
 
-def closed_physical_integral(summary):
+def closed_physical_integral(summary, *, expected_count=4000):
     """Check the retained physical union, not a logical replica-time estimate."""
+    if type(expected_count) is not int or expected_count <= 0:
+        raise ValueError('explicit positive planned population required')
     if (summary['measurement_complete'] is not True or summary['open_lease_ids']
-            or summary['n_plan'] != 4000 or summary['n_terminal'] != 4000
-            or summary['n_native_contract_complete'] != 4000):
-        raise ValueError('complete closed 4000-request physical ledger required')
+            or summary['n_plan'] != expected_count or summary['n_terminal'] != expected_count
+            or summary['n_native_contract_complete'] != expected_count):
+        raise ValueError(f'complete closed {expected_count}-request physical ledger required')
     total = 0.
     if not summary['device_intervals']:
         raise ValueError('physical device intervals required')

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D550 native first100 prepared, not launched
+# IEEE TC execution status — D550 native first100 qualification complete
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,52 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D550 TERMINAL: native100 qualification PASS, no live local/remotejob.
+Read D550_INITIAL_CONTROL_NATIVE100.md. 100nativebindings/17369tokens/0fail,
+independentnumericalUNKNOWN/n_correctnull. joint49/100; TTFT49/TPOT100;
+meanTTFT12270.667720ms/P9534961.046695ms,U361.1673198202625GPU-s.
+Not a full4000/performanceaccepted/G1/G2 point; no ranking from this prefix.
+Earlycontrol30samples, 3natural activations scheduled before firstready:
+business+20.636810/+22.649011/+24.660186 atqueue10/12/13,ready0,pending1/2/3.
+All4initial/natural actualruntime_ready; early-native mechanism triggered.
+Initialtriggerbusiness-9.676411,firstready+49.759224; notice->trigger50.323589s,
+unlikeD533~12.145s. Causeunknown; don'tsubtractdelay orattributeallcacheeffects.
+Nativebinding/timing/tier/remoteSHA/physicalintegral checksPASS;dispatchg27/h17/n28/r28,
+remote29fetch50650865wireB,requestpacking0. Servicepeak19644551168B,
+high/max/OOM/kill/swap0,actualGPUrelease/servicepathgone. Launcherauxclosed,
+peak166232064B/events0/swap0; threeownedremoteunitsinactive/MainPID0/portsabsent.
+Firstanalyzer correctly rejected100 at4000-onlyintegral gate; analysis1 failure/source
+retained. ONLYofflineintegral gets explicitexpected_count default4000 unchanged;
+59affectedCPUtestsPASS0.439s, strictanalysis2PASS. No servingchange/rerun.
+Analysis1/2 actualrecursiveemptyclosed/pathgone,peaks140595200/136773632B,events0.
+NEXT exact-resultcuration/checkpointpush including actual-arrival queue join,
+thenprepare new full4000W1 candidate key. Do NOT repeatnative100/analysis/remoteclosure.
+FullscopeACTIVE: W1historical93.725%, noG1/G2closure, W0/W2/3B/ablations remain.
+
+The following live notes are historical, superseded by terminal state above:
+
+AUTHORITATIVE D550 LIVE: prelaunch3efeaf976e72238724b65a87268079b03132bc2e
+PUSHED/remoteequal,6explicitfiles; BASEbde2154unchanged/pushed. Testedbinding,
+archive/source/protected147/userdirt/secrets/diffchecksPASS. Backup/start actual
+recursiveemptyclosed/pathgone,peak28782592/33837056B,events0/swap0.
+Single tmux tc-d550-initial100 running; DO NOTrepeatstart or qualification.
+Serviceprimelora-tc-svc-f571d109c3164c478e8d8942d9c25849.scope,
+Invocation3b48eb59d07f4b82b662f3ff48a756b9,inode25510220.
+Launcherauxprimelora-tc-aux-2f02896b6d504d3aac4f7f19c58dd9ae.scope,
+exactidentityinservice_aux_identity.json. Notice1564055.007987873,
+business1564115.007987873; originalW1first100 prefix. FreshresourcegatePASS.
+RemoteownservicesLIVE,prepublished_gzip_v1/artifact_timing_v2healthPASS.
+7bclockremote-process-monotonic:810dfc29cb7d4e0ea8472a3c2703fb50;
+monitorprimelora-artifact-monitor-d550-initial100.service;exact3IDsremote_start.log.
+Latestwatchdogsample75:hostavailable98048700416B,service13523251200B,
+high/max/OOM/kill/swap0,noabort. No terminalreceipt/performanceaudit yet.
+NEXT lightmonitor SAMEactualservice; no tests/build/hashscan/backup/remotechanges.
+Afteractualterminal:close_launch.py ->stop_remote.sh ->boundedrun_analysis.py,
+thenexactanalysisclose/save/push. If actualfailure preservefailure, don't run
+success-onlycollector or guessrelease. FullscopeACTIVE, noG1/G2closure.
+
+The following preparation notes are historical, superseded by live state above:
 
 LATEST D550: offline new-config/input binding PASS; no native run yet.
 Read D550_INITIAL_CONTROL_NATIVE100.md. RAW p2_backend_qualification/d550_20261015.

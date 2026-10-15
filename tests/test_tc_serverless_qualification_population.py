@@ -788,6 +788,25 @@ class MatchedW0Tests(unittest.TestCase):
             with self.subTest(intervals=intervals), self.assertRaises(ValueError):
                 closed_physical_integral(dict(self.physical(),device_intervals={'GPU':intervals}))
 
+    def test_diagnostic_population_is_explicit_and_not_inferred_from_result(self):
+        from scripts.ieee_tc.check_d299_full_context import closed_physical_integral
+        prefix = dict(self.physical(),n_plan=100,n_terminal=100,n_native_contract_complete=100)
+        self.assertEqual(closed_physical_integral(prefix,expected_count=100),20.)
+        with self.assertRaises(ValueError):
+            closed_physical_integral(prefix)
+        for count in (True,0,-1,100.,None):
+            with self.subTest(count=count), self.assertRaises(ValueError):
+                closed_physical_integral(prefix,expected_count=count)
+        for field in ('n_plan','n_terminal','n_native_contract_complete'):
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                closed_physical_integral(dict(prefix,**{field:99}),expected_count=100)
+        for changed in (dict(measurement_complete=False),dict(open_lease_ids=['open']),
+                        dict(gpu_seconds_observed=19.),dict(device_intervals={}),
+                        dict(window_gpu_seconds={'arrival':19.}),
+                        dict(device_intervals={'GPU':[[1.,11.],[5.,6.]]})):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                closed_physical_integral(dict(prefix,**changed),expected_count=100)
+
 
 class ElasticLocalityMatchedTests(unittest.TestCase):
     def row(self, rid='r'):
