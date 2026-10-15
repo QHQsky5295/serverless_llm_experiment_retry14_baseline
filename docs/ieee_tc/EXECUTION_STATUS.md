@@ -1,4 +1,4 @@
-# IEEE TC execution status — D551 full W1 result audited
+# IEEE TC execution status — D552 storage complete, W2 next
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,44 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+LATEST D552: targetedclosedD537cache reclamation COMPLETE; read
+D552_TARGETED_CACHE_RECLAIM.md. Only/tmp/tc-d537-7br/remote_artifacts/objects
+1320files/3300789780payloadB removed afterfreshfulloriginal/cacheSHA/metadata/
+refs/actualclosure andpublishedresultchecks. Reclaimed3305693184B,diskafter
+163669192704B(~152.43GiB). Protected147/userdirt unchanged; uniqueassets andraw
+success/failureevidence retained. Cleanupactualemptyclosed/pathgone,
+peak3221737472B,high509,max/OOM/kill/swap0;highofflineonly,noinferenceoverlap.
+Curationpassed/archive7370B; actualcurationscopeemptyclosed/pathgone.
+RAWstorage_maintenance/d552_20261015. NEXT explicitmaintenancecheckpointpush,
+thenexistingW2trace/view audit and sameD551frozenconfiguration preparation.
+No performance/config changes thisturn; no oldcleanup/run/qualification repeats.
+FullPLAN/V1/V2 stillreadincontext,unchangedPLAN SHA rechecked;currentstate read.
+FullscopeACTIVE; no localGPU/remote experimentaljob. Freshlaunchgate stillrequired.
+
+The following D551 publication notes remain authoritative for its result:
+
+AUTHORITATIVE D551 PUBLICATION: 723818eb9da2c73fca80ffc797be60a42cc3bf53
+PUSHED/remoteequal,5explicitfiles; BASEbde2154 unchanged. Curated result2:
+main_comparison/d551_initial_control_full_w1/result2. All source/archive/SHA/
+protected147/userdirt/secrets/diffchecksPASS, existing59populationtests reused.
+Firstpublication rejected38,575,221Bremote_monitor.log at8MiB payloadguard
+BEFOREstage/commit. Originalscript/failure/partialarchive retained; secondonly
+excludedexactrawmonitor fromsmallGitbundle, preservingactualrawpath/SHA.
+No inference/analyzer repeat orresultchange. Bothactualpublicationscopesempty/
+closed/pathgone,peaks52490240/29212672B,high/max/OOM/kill/swap0.
+No live localGPU/remote/analysisjob. Onlyuser manifestdirtyafterpush beforethis
+statusdelta. Latestdisk160364662784B (~149.35GiB), below150GiBnext-heavy gate.
+NEXT freshspecificclosedrebuildablecacheaudit/reclaim; thenprepare samefrozen
+candidate/config W2 high-churn input/contract, using existingassets/runner.
+Do NOTrepeatD551/D550/D533, qualification, publication, orstartanotherW1candidate
+without newevidence. W1joint98.075 doesnotcloseW0/W2/G2; AOT/startupconfounding
+and147outputdifferences stayunknown, noisolatedearlycontrolperformanceclaim.
+ThisturnPROGRESS:fullrunterminal/closures/audits/inputjoin/document/push complete.
+FullPLAN/status/V1/V2/latestrules andmonitor/analyze/githubskillsread. Fullscope
+ACTIVE; postpushstatusdelta reservednextmilestone, no status-onlybackup.
+
+The following terminal/prepublication notes are historical, superseded above:
 
 AUTHORITATIVE D551 TERMINAL: no live inference/remote/analysis job remains.
 Read D551_FULL_W1_RESULT.md. All4000 nativebindings/458224tokens/0fail;
