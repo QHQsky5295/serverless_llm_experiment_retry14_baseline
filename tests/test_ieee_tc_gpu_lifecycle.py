@@ -8,6 +8,7 @@ import asyncio
 import subprocess
 import sys
 import select
+import fcntl
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -231,7 +232,9 @@ class DedicatedPhysicalOwner(unittest.TestCase):
         self.census.process_identity = lambda _: {'pid': 10}
         with patch('faaslora.metrics.metrics_collector._open_pidfd', return_value=9876):
             owner.confirm_workers(workers)
-        with patch('select.select', return_value=([9876], [], [])):
+        poller = Mock()
+        poller.poll.return_value = [(9876, select.POLLIN)]
+        with patch('select.poll', return_value=poller):
             asyncio.run(owner.wait_workers(timeout_s=3.))
         self.sample['devices'][0]['processes'] = []
         with patch('os.close') as close:
@@ -251,9 +254,13 @@ class DedicatedPhysicalOwner(unittest.TestCase):
     def test_native_worker_wait_is_exit_event_not_fixed_sleep(self):
         owner = self.acquire()
         owner._worker_pidfds = {10: 9876}
-        with patch('select.select', return_value=([9876], [], [])) as select_fn:
+        poller = Mock()
+        poller.poll.return_value = [(9876, select.POLLIN)]
+        with patch('select.poll', return_value=poller):
             asyncio.run(owner.wait_workers(timeout_s=3.))
-            self.assertEqual(select_fn.call_count, 1)
+            self.assertEqual(poller.poll.call_count, 1)
+            poller.register.assert_called_once_with(9876, select.POLLIN)
+            poller.unregister.assert_called_once_with(9876)
         with patch('os.close'):
             owner.release()
 
@@ -267,9 +274,11 @@ class DedicatedPhysicalOwner(unittest.TestCase):
                 owner.wait_workers(timeout_s=3.),
             )
 
-        with patch('select.select', return_value=([9876], [], [])) as select_fn:
+        poller = Mock()
+        poller.poll.return_value = [(9876, select.POLLIN)]
+        with patch('select.poll', return_value=poller):
             asyncio.run(wait_twice())
-        self.assertEqual(select_fn.call_count, 1)
+        self.assertEqual(poller.poll.call_count, 1)
         self.assertEqual([r['event'] for r in owner.events],
                          ['acquire', 'native_workers_exited'])
 
@@ -281,11 +290,55 @@ class DedicatedPhysicalOwner(unittest.TestCase):
     def test_native_worker_timeout_keeps_durable_open_allocation(self):
         owner = self.acquire()
         owner._worker_pidfds = {10: 9876}
-        with patch('select.select', return_value=([], [], [])):
+        poller = Mock()
+        poller.poll.return_value = []
+        with patch('select.poll', return_value=poller):
             with self.assertRaises(TimeoutError):
                 asyncio.run(owner.wait_workers(timeout_s=0.))
         self.assertFalse(owner.released)
         self.assertEqual(owner.events[-1]['event'], 'release_deferred')
+
+    def test_invalid_poll_handle_is_not_worker_exit(self):
+        owner = self.acquire()
+        owner._worker_pidfds = {10: 9876}
+        for mask in (select.POLLNVAL, select.POLLERR, select.POLLOUT):
+            with self.subTest(mask=mask):
+                poller = Mock()
+                poller.poll.return_value = [(9876, mask)]
+                with patch('select.poll', return_value=poller):
+                    with self.assertRaisesRegex(RuntimeError, 'handle unqualified'):
+                        asyncio.run(owner.wait_workers(timeout_s=0.))
+                self.assertFalse(owner._worker_exit_observed)
+                self.assertFalse(owner.released)
+                self.assertEqual(owner.events[-1]['reason'], 'native_worker_exit_poll_error')
+                poller.unregister.assert_not_called()
+
+    def test_all_pidfds_must_exit_with_one_shared_deadline(self):
+        owner = self.acquire()
+        owner._worker_pidfds = {10: 9876, 11: 9877}
+        poller = Mock()
+        poller.poll.side_effect = [[(9876, select.POLLIN)], [(9877, select.POLLIN | select.POLLHUP)]]
+        # The second poll receives the remaining time, not a new full timeout.
+        clock = SimpleNamespace(monotonic=Mock(side_effect=[10.,10.,11.,12.]))
+        with patch('select.poll', return_value=poller), \
+             patch('faaslora.metrics.metrics_collector.time', clock):
+            asyncio.run(owner.wait_workers(timeout_s=3.))
+        self.assertEqual([c.args for c in poller.poll.call_args_list], [(3000,), (2000,)])
+        self.assertEqual([c.args for c in poller.unregister.call_args_list], [(9876,), (9877,)])
+        self.assertEqual(owner.events[-1]['event'], 'native_workers_exited')
+        self.assertEqual(owner.events[-1]['worker_pids'], [10,11])
+
+    def test_partial_exit_then_timeout_keeps_allocation_open(self):
+        owner = self.acquire()
+        owner._worker_pidfds = {10: 9876, 11: 9877}
+        poller = Mock()
+        poller.poll.side_effect = [[(9876, select.POLLIN)], []]
+        with patch('select.poll', return_value=poller):
+            with self.assertRaises(TimeoutError):
+                asyncio.run(owner.wait_workers(timeout_s=0.))
+        self.assertFalse(owner._worker_exit_observed)
+        self.assertFalse(owner.released)
+        self.assertFalse(any(e['event']=='native_workers_exited' for e in owner.events))
 
     def test_actual_kernel_exit_handle_in_existing_python_environment(self):
         child = subprocess.Popen([sys.executable, '-S', '-c', 'import sys; sys.stdin.buffer.read(1)'],
@@ -299,6 +352,40 @@ class DedicatedPhysicalOwner(unittest.TestCase):
             self.assertEqual(select.select([fd], [], [], 0)[0], [fd])
         finally:
             os.close(fd)
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=5)
+
+    def test_real_high_numbered_pidfd_waits_for_exit(self):
+        """A valid descriptor above select's limit is not a failed worker.
+
+        Only one duplicate descriptor and one small CPU child are needed; this
+        does not open thousands of sockets, exhaust limits or acquire a GPU.
+        """
+        owner = self.acquire()
+        child = subprocess.Popen([sys.executable, '-S', '-c', 'import sys; sys.stdin.buffer.read(1)'],
+                                 stdin=subprocess.PIPE)
+        fd = _open_pidfd(child.pid)
+        high_fd = fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 1024)
+        owner._worker_pidfds = {child.pid: high_fd}
+        try:
+            self.assertGreaterEqual(high_fd, 1024)
+            with self.assertRaises(TimeoutError):
+                asyncio.run(owner.wait_workers(timeout_s=0.))
+            self.assertFalse(owner._worker_exit_observed)
+            self.assertFalse(owner.released)
+            child.stdin.write(b'x')
+            child.stdin.close()
+            child.wait(timeout=5)
+            asyncio.run(owner.wait_workers(timeout_s=1.))
+            self.assertTrue(owner._worker_exit_observed)
+            self.assertEqual(sum(e['event'] == 'native_workers_exited' for e in owner.events), 1)
+        finally:
+            os.close(fd)
+            os.close(high_fd)
+            owner._worker_pidfds.clear()
+            if not child.stdin.closed:
+                child.stdin.close()
             if child.poll() is None:
                 child.kill()
                 child.wait(timeout=5)

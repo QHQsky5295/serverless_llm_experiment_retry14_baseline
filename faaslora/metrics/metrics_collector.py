@@ -555,8 +555,8 @@ class PhysicalGPUAllocation:
 
     async def wait_workers(self, *, timeout_s):
         """Wait on kernel exit notifications, never on a guessed teardown sleep."""
-        if timeout_s < 0:
-            raise ValueError('negative native teardown deadline')
+        if not math.isfinite(timeout_s) or timeout_s < 0:
+            raise ValueError('native teardown deadline must be finite and nonnegative')
         async with self._worker_wait_lock:
             # A second shutdown caller must observe the already-recorded
             # kernel exit (or a completed release) without appending a second
@@ -566,13 +566,28 @@ class PhysicalGPUAllocation:
                 return
             pending = set(self._worker_pidfds.values())
             deadline = time.monotonic() + timeout_s
+            # pidfds remain valid above FD_SETSIZE; select() does not.  Poll the
+            # same pinned kernel handles without truncating/renumbering them or
+            # replacing exit evidence with a sleep, process name or PID lookup.
+            poller = select.poll()
+            for fd in pending:
+                poller.register(fd, select.POLLIN)
             while pending:
-                ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
-                                                      max(0., deadline - time.monotonic()))
-                if not ready:
+                events = await asyncio.to_thread(
+                    poller.poll, math.ceil(max(0., deadline - time.monotonic()) * 1000.))
+                if not events:
                     self._append('release_deferred', reason='native_worker_exit_timeout')
                     raise TimeoutError('native workers have not terminated; physical lease retained')
-                pending.difference_update(ready)
+                for fd, mask in events:
+                    # A reaped pidfd may include HUP.  Invalid/error handles are
+                    # NOT exit evidence; the physical allocation stays open.
+                    if (fd not in pending or mask & (select.POLLNVAL | select.POLLERR)
+                            or not mask & (select.POLLIN | select.POLLHUP)):
+                        self._append('release_deferred', reason='native_worker_exit_poll_error',
+                                     descriptor=fd, poll_mask=mask)
+                        raise RuntimeError('native worker exit handle unqualified; physical lease retained')
+                    poller.unregister(fd)
+                    pending.remove(fd)
             self._worker_exit_observed = True
             self._append('native_workers_exited', worker_pids=sorted(self._worker_pidfds))
 

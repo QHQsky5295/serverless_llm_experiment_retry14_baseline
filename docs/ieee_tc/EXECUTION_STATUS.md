@@ -1,4 +1,4 @@
-# IEEE TC execution status — D540 S-LoRA W1 TERMINAL, resource measurement FAILED
+# IEEE TC execution status — D540 preserved failure; D541 measurement repair validated
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +8,29 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+D540failurecheckpoint31526e77835ec8e70e0096de21dbc3b9375bfc19 PUSHED/remoteequal;
+6explicitfiles,old147/userdirt/source/archive/secretschecksPASS.
+Actualpublicationauxclosed/pathgone,peak30695424B,events0/swap0.
+D541 commonpidfdmeasurementrepair CPUVALIDATED; notnewGPUperformance.
+RAW originalresults/ieee_tc/resource_measurement/d541_20261015.
+Read D541_PIDFD_EXIT_MEASUREMENT_FIX.md. OnlyPhysicalGPUAllocation.wait_workers:
+select.select ->poll samepinnedhandles, shareddeadline/allworkers/idempotentlock,
+invaliderrorflagsfailclosed; actualemptyGPU/releasechecks unchanged.
+RealCPUchild+F_DUPFD_CLOEXEC>=1024 reproducesoldValueError (before.log1expectederror).
+after.log53tests1fixtureerror: patchedglobalclockaffectedasyncio; preserved.
+FixturechangedtomoduleclockobjectONLY, productionfixunchanged;after2.log53PASS1.954s.
+before/after/after2actualscopesemptyclosed/pathgone;peaks40239104/681508864/
+580861952B,allhigh/max/OOM/swap0. Codeawaitingcheckpoint, nootherproductionchange.
+Frozenafter2metricsSHAf5edf08ae9d29352fd3b0aaa2ca5f66e30928a8980c78a40e82654aca4637147;
+testSHAcde053fecb57468c90a9dacbd615d60fc36165c1bfa294b0b9a23757668f3efe.
+D541 targetedD540duplicatecachecleanup COMPLETE;actualaux0004emptyclosed/pathgone.
+Full500currentcache+retainedpoolSHA/refs/metadata checksPASS,5000files12985984450B,
+reclaimed13004378112B;diskafter162126163968B(~150.99GiB),protected147unchanged.
+Only/tmp/tc-d540-7bs/remote_artifacts/objects removed; evidenceanduniqueassetsretained.
+Maintenancehigh11400,max/OOM/kill/swap0; no concurrentperformance.
+Do NOTrepeatcleanup. NextpublishD541testedfix+receipts, thennewS-LoRAW1attemptonlyafterfreshgates;
+originalD540mustnotrerun/overwrite, othercompleteW1/W0pointsnotrerun.
 
 AUTHORITATIVE UPDATE: D540 terminated after all4000responses, serviceRC1;
 replay/watchdogRC0. No live D540 model/service/remote remains.
