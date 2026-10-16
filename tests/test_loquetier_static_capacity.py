@@ -11,7 +11,8 @@ from unittest.mock import patch
 
 from Loquetier_project.scripts.run_loquetier_trace_gate import (
     _adapter_footprint, _static_capacity_shards, _tensor_header,
-    _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward, _parse_args)
+    _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward,
+    _capacity_bound, _capacity_mixed_forward, _parse_args)
 
 
 class LoquetierCapacityTests(unittest.TestCase):
@@ -189,6 +190,97 @@ class LoquetierCapacityTests(unittest.TestCase):
             self.assertFalse(value.inference_owner_probe)
         with patch('sys.argv', args+['--forward-capacity-probe', '--inference-owner-probe']), self.assertRaises(SystemExit):
             _parse_args()
+        for extra in (['--capacity-evidence', '/old'],
+                      ['--forward-capacity-probe', '--capacity-evidence', '/old'],
+                      ['--forward-capacity-probe', '--capacity-evidence', '/old', '--capacity-evidence-sha256', 'bad']):
+            with patch('sys.argv', args+extra), self.assertRaises(SystemExit):
+                _parse_args()
+        with patch('sys.argv', args+['--forward-capacity-probe', '--capacity-evidence', '/old',
+                                    '--capacity-evidence-sha256', 'c'*64]):
+            self.assertEqual(_parse_args().capacity_evidence, Path('/old'))
+
+    def test_capacity_bound_rounds_kv_workspace_and_largest_allocation_without_latency(self):
+        common = dict(device_total_bytes=1000, device_free_bytes=700,
+                      reserved_bytes=280, inactive_split_bytes=10)
+        samples = [dict(common, phase='registered', step=0, live_kv_bytes=40),
+            dict(common, phase='prefill', step=1, live_kv_bytes=40,
+                 peak_allocated_bytes=250),
+            dict(common, phase='decode', step=2, live_kv_bytes=0, allocated_bytes=110)]
+        evidence = dict(passed=True, verified_adapter_count=125, forward_capacity=dict(
+            passed=True, batch_size=2, kv_page_bytes=10, kv_page_tokens=16,
+            cases=[dict(samples=samples, outputs=[dict(native_output_tokens=2)]*2,
+                        target_tokens=2, prompt_tokens=2, idle_allocated_bytes=100)]))
+        bound = _capacity_bound(evidence, dict(vocab_size=2), 32)
+        self.assertEqual(bound['candidate_batch_size'], 8)
+        self.assertEqual(bound['per_request_accounted_bytes'], 100)
+        self.assertEqual(bound['per_request_scratch_bytes'], 60)
+        self.assertEqual(bound['predicted_total_bytes'], 940)
+        self.assertTrue(bound['estimated_only'])
+        self.assertFalse(bound['runtime_qualified'])
+        with self.assertRaisesRegex(ValueError, 'complete prior'):
+            _capacity_bound(dict(evidence, passed=False), dict(vocab_size=2), 32)
+        with self.assertRaisesRegex(ValueError, 'larger distinct'):
+            _capacity_bound(dict(evidence, verified_adapter_count=4), dict(vocab_size=2), 32)
+        with self.assertRaisesRegex(ValueError, 'geometry'):
+            _capacity_bound(evidence, dict(vocab_size=0), 32)
+
+    def test_distinct_capacity_inputs_preserve_original_adapter_mapping(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'input.jsonl'
+            def row(rid, aid, length):
+                return dict(event='loquetier_native_completed', request_id=rid,
+                    observation=dict(native_terminal_observed=True, native_adapter_id=aid,
+                        native_prompt_token_ids=list(range(length)), native_output_tokens=2,
+                        native_forward_count=2, completion_token_ids=[5, 6]))
+            path.write_text('\n'.join(json.dumps(r) for r in [row('c','a',15),
+                row('b','a',20), row('d','b',18), row('a','c',18)])+'\n')
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            value = _capacity_inputs(path, digest, 3)
+            self.assertEqual([(c['source_request_id'], c['adapter_id']) for c in value['cases']],
+                             [('b', 'a'), ('a', 'c'), ('d', 'b')])
+            self.assertFalse(value['duplicate_batch_copies'])
+            for count in (0, True, 4):
+                with self.assertRaises(ValueError):
+                    _capacity_inputs(path, digest, count)
+
+    def test_mixed_capacity_has_actual_staggered_registration_and_exact_drain(self):
+        class Bridge:
+            batch_size = 4
+            def __init__(self):
+                self.objects, self.generator = {}, SimpleNamespace(requests_len=0)
+                self.mark, self.steps, self.added_at = 0, 0, []
+            def add(self, rid, aid, ids, target):
+                mark = self.mark
+                self.mark += 1
+                self.objects[mark] = [aid, ids, target, 0]
+                self.generator.requests_len += 1
+                self.added_at.append(self.steps)
+                return mark
+            def step(self):
+                self.steps += 1
+                result = {}
+                for mark, item in list(self.objects.items()):
+                    item[3] += 1
+                    aid, ids, target, count = item
+                    if count == target:
+                        result[mark] = dict(native_adapter_id=aid, native_adapter_index=mark,
+                            native_prompt_token_ids=ids, native_output_tokens=target,
+                            native_forward_count=count, completion_token_ids=[8]*target)
+                        del self.objects[mark]
+                        self.generator.requests_len -= 1
+                return result
+        cases = [dict(source_request_id=str(i), adapter_id=str(i), prompt_ids=[1, 2],
+                      target_tokens=4, retained_output_ids=[8]*4) for i in range(4)]
+        for staggered in (False, True):
+            bridge, samples = Bridge(), []
+            rows = _capacity_mixed_forward(bridge, cases, lambda p,s:samples.append((p,s)), staggered)
+            self.assertEqual(bridge.steps, 4+int(staggered))
+            self.assertEqual(bridge.added_at, [0, 0, 1, 1] if staggered else [0]*4)
+            self.assertEqual(len(rows), 4)
+            self.assertTrue(all(r['matches_retained_output'] for r in rows))
+            self.assertEqual(('mixed', 2) in samples, staggered)
+        with self.assertRaisesRegex(ValueError, 'distinct'):
+            _capacity_mixed_forward(Bridge(), [cases[0]]*4, lambda *_:None, False)
 
     def test_capacity_forward_uses_full_target_and_rejects_malformed_native_result(self):
         class Bridge:

@@ -261,7 +261,7 @@ def _ownership_refs(models):
     return owners, parameters, storages, dict(dtypes)
 
 
-def _capacity_inputs(journal: Path, expected_sha: str) -> dict:
+def _capacity_inputs(journal: Path, expected_sha: str, distinct_count: int | None = None) -> dict:
     """Select retained geometry extrema, never latency winners or new prompts."""
     digest = hashlib.sha256()
     with journal.open('rb') as handle:
@@ -300,10 +300,116 @@ def _capacity_inputs(journal: Path, expected_sha: str) -> dict:
     cases = [dict(max(candidates, key=key), selection=name) for name, key in keys.items()]
     if cases[0]['source_request_id'] == cases[1]['source_request_id']:
         cases = [dict(cases[0], selection='max_prefill+max_context')]
+    if distinct_count is not None:
+        if type(distinct_count) is not int or distinct_count <= 0:
+            raise ValueError('positive distinct adapter capacity count required')
+        ordered = sorted(candidates, key=lambda r: (
+            -len(r['prompt_ids'])-r['target_tokens'], -len(r['prompt_ids']), r['source_request_id']))
+        distinct = {}
+        for row in ordered:
+            distinct.setdefault(row['adapter_id'], row)
+        if len(distinct) < distinct_count:
+            raise ValueError('insufficient retained distinct adapter inputs')
+        cases = [dict(row, selection='distinct_adapter_geometry')
+                 for row in list(distinct.values())[:distinct_count]]
     return dict(journal=str(journal), journal_sha256=expected_sha,
         source_native_completions=len(candidates), cases=cases,
-        selection='max_prefill_and_context_then_first_request_id_v1',
-        performance_input=False, duplicate_batch_copies=True)
+        selection=('max_context_prefill_then_request_id_per_adapter_v1' if distinct_count is not None
+                   else 'max_prefill_and_context_then_first_request_id_v1'),
+        performance_input=False, duplicate_batch_copies=distinct_count is None)
+
+
+def _capacity_bound(evidence: dict, model: dict, context_tokens: int) -> dict:
+    """Observed capacity estimate with one largest-allocation headroom, NOT proof.
+
+    Round each per-request allocation up to the native KV page-byte quantum.
+    KV covers full context, while scratch covers the largest retained prefill;
+    adding them is deliberately conservative even when their peaks differ.
+    An additional full FP32-logit allocation is reserved for allocator growth.
+    No latency/throughput/SLO value or future arrival is used for this estimate.
+    """
+    forward = evidence['forward_capacity']
+    if (evidence.get('passed') is not True or forward.get('passed') is not True
+            or forward['batch_size'] != 2 or len(forward['cases']) != 1):
+        raise ValueError('complete prior batch2 forward capacity evidence required')
+    case = forward['cases'][0]
+    samples = case['samples']
+    q, page_tokens = forward['kv_page_bytes'], forward['kv_page_tokens']
+    if any(type(v) is not int or v <= 0 for v in (q, page_tokens, context_tokens, model['vocab_size'])):
+        raise ValueError('invalid capacity geometry')
+    if (samples[-1]['live_kv_bytes'] != 0 or len(case['outputs']) != 2
+            or any(row['native_output_tokens'] != case['target_tokens'] for row in case['outputs'])
+            or len(samples) != case['target_tokens']+1):
+        raise ValueError('prior native capacity case is incomplete')
+    prefill = samples[1]
+    if prefill['phase'] != 'prefill' or prefill['step'] != 1:
+        raise ValueError('prior prefill observation missing')
+    total = min(r['device_total_bytes'] for r in samples)
+    outside = max(r['device_total_bytes']-r['device_free_bytes']-r['reserved_bytes'] for r in samples)
+    fragmentation = max(r['inactive_split_bytes'] for r in samples)
+    live = max(case['idle_allocated_bytes'], samples[-1]['allocated_bytes'])
+    scratch_batch = prefill['peak_allocated_bytes']-case['idle_allocated_bytes']-prefill['live_kv_bytes']
+    if min(outside, fragmentation, live, scratch_batch) < 0 or live == 0:
+        raise ValueError('inconsistent capacity accounting')
+    rounded = lambda n: q*((n+q-1)//q)
+    scratch = rounded((scratch_batch+1)//2)
+    kv = q*((context_tokens+page_tokens-1)//page_tokens)
+    logits = rounded(case['prompt_tokens']*model['vocab_size']*4)
+    per_request = kv+scratch+logits
+    budget = total-outside-fragmentation-live
+    batch = budget//per_request
+    if batch <= 2 or batch > evidence['verified_adapter_count']:
+        raise ValueError('no justified larger distinct-adapter capacity candidate')
+    return dict(schema='loquetier_observed_capacity_bound_v1', candidate_batch_size=batch,
+        estimated_only=True, runtime_qualified=False, context_tokens=context_tokens,
+        prompt_tokens=case['prompt_tokens'], kv_page_bytes=q, kv_page_tokens=page_tokens,
+        device_total_bytes=total, observed_nonallocator_bytes=outside,
+        observed_fragmentation_bytes=fragmentation, warm_live_bytes=live,
+        per_request_kv_bytes=kv, per_request_scratch_bytes=scratch,
+        per_request_largest_allocation_headroom_bytes=logits,
+        per_request_accounted_bytes=per_request, available_budget_bytes=budget,
+        predicted_total_bytes=live+outside+fragmentation+batch*per_request)
+
+
+def _capacity_mixed_forward(bridge, cases, sample, staggered):
+    """Existing complete inputs/adapter IDs, all-prefill or one mixed transition."""
+    if len(cases) != bridge.batch_size or len({c['adapter_id'] for c in cases}) != len(cases):
+        raise ValueError('one distinct retained adapter per capacity slot required')
+    if any(c['target_tokens'] < 2 for c in cases):
+        raise ValueError('mixed capacity requires a decode step')
+    pending, completed = {}, {}
+    def add(rows):
+        for c in rows:
+            mark = bridge.add('capacity-mixed-'+c['source_request_id'], c['adapter_id'],
+                              c['prompt_ids'], c['target_tokens'])
+            pending[mark] = c
+    split = len(cases)//2 if staggered else len(cases)
+    add(cases[:split])
+    sample('registered', 0)
+    for step in range(max(c['target_tokens'] for c in cases)+int(staggered)):
+        if staggered and step == 1:
+            add(cases[split:])
+            sample('mixed_registered', step)
+        for mark, row in bridge.step().items():
+            if mark not in pending or mark in completed:
+                raise ValueError('unexpected native capacity terminal')
+            c = pending[mark]
+            if (row['native_adapter_id'] != c['adapter_id']
+                    or row['native_prompt_token_ids'] != c['prompt_ids']
+                    or row['native_output_tokens'] != c['target_tokens']
+                    or row['native_forward_count'] != c['target_tokens']
+                    or len(row['completion_token_ids']) != c['target_tokens']):
+                raise ValueError('mixed capacity forward native contract mismatch')
+            completed[mark] = row
+        sample('prefill' if step == 0 else ('mixed' if staggered and step == 1 else 'decode'), step+1)
+    if set(completed) != set(pending) or bridge.objects or bridge.generator.requests_len:
+        raise ValueError('mixed capacity forward did not drain exactly')
+    return [dict(source_request_id=pending[mark]['source_request_id'],
+        native_adapter_id=row['native_adapter_id'], native_adapter_index=row['native_adapter_index'],
+        native_output_tokens=row['native_output_tokens'], native_forward_count=row['native_forward_count'],
+        completion_token_ids=row['completion_token_ids'],
+        matches_retained_output=row['completion_token_ids'] == pending[mark]['retained_output_ids'])
+        for mark, row in sorted(completed.items())]
 
 
 def _capacity_forward(bridge, case, sample):
@@ -335,14 +441,15 @@ def _capacity_forward(bridge, case, sample):
             for _, row in sorted(completed.items())]
 
 
-def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, stage):
-    """Long-input workspace witness at the existing batch, not a batch sweep."""
+def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, stage, capacity_model=None):
+    """Long-input witness at batch2 or one capacity-derived candidate, no sweep."""
     import gc
     import torch
     from transformers import LogitsProcessorList
     from loquetier_src.model_generation import InputRequest, InferStatus
     from replay_vllm_engine_trace import LoquetierNativeBatchBridge
-    witness = dict(passed=False, batch_size=2, input=inputs, cases=[],
+    batch = capacity_model['candidate_batch_size'] if capacity_model else 2
+    witness = dict(passed=False, batch_size=batch, input=inputs, cases=[], capacity_model=capacity_model,
         independent_numerical_correctness=False, performance_run=False)
     result['forward_capacity'] = witness
     owners, parameters, storages, dtypes = _ownership_refs(models)
@@ -372,15 +479,30 @@ def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, sta
             logits_processor=LogitsProcessorList(), max_length=len(ids)+target)
         request._tc_request_id = rid
         return request
-    bridge = LoquetierNativeBatchBridge(gen, factory, 2)
+    bridge = LoquetierNativeBatchBridge(gen, factory, batch)
     witness['kv_page_bytes'] = gen.kvpool.page_nbytes
     witness['kv_page_tokens'] = gen.kvpool.page_len
-    for case in inputs['cases']:
+    cases = (inputs['cases'] if capacity_model is None else
+             [dict(selection='all_prefill'), dict(selection='mixed_prefill_decode')])
+    if capacity_model:
+        free, total = torch.cuda.mem_get_info(0)
+        current_outside = total-free-torch.cuda.memory_reserved(0)
+        if (total < capacity_model['device_total_bytes']
+                or torch.cuda.memory_allocated(0) > capacity_model['warm_live_bytes']
+                or current_outside > capacity_model['observed_nonallocator_bytes']
+                    +capacity_model['available_budget_bytes']-batch*capacity_model['per_request_accounted_bytes']):
+            raise ValueError('current device state exceeds the frozen capacity estimate')
+        witness['pre_forward_device_guard'] = dict(device_free_bytes=free, device_total_bytes=total,
+            nonallocator_bytes=current_outside, live_allocated_bytes=torch.cuda.memory_allocated(0))
+    for case in cases:
         if gen.kvpool.num_pages or bridge.generator.requests_len or bridge.objects:
             raise ValueError('capacity case began with live native requests/KV')
-        row = dict(selection=case['selection'], source_request_id=case['source_request_id'],
-            adapter_id=case['adapter_id'], prompt_tokens=len(case['prompt_ids']),
-            target_tokens=case['target_tokens'], batch_size=2, samples=[])
+        row = dict(selection=case['selection'], batch_size=batch, samples=[])
+        if capacity_model is None:
+            row.update(source_request_id=case['source_request_id'], adapter_id=case['adapter_id'],
+                prompt_tokens=len(case['prompt_ids']), target_tokens=case['target_tokens'])
+        else:
+            row['source_request_ids'] = [c['source_request_id'] for c in inputs['cases']]
         witness['cases'].append(row)
         torch.cuda.synchronize()
         row['idle_allocated_bytes'] = torch.cuda.memory_allocated(0)
@@ -396,9 +518,13 @@ def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, sta
                 peak_reserved_bytes=torch.cuda.max_memory_reserved(0),
                 inactive_split_bytes=stats['inactive_split_bytes.all.current'],
                 device_free_bytes=free, device_total_bytes=total,
+                native_prefill_requests=len(gen.prefill_requests),
+                native_decode_requests=len(gen.requests),
                 live_kv_pages=gen.kvpool.num_pages,
                 live_kv_bytes=gen.kvpool.num_pages*gen.kvpool.page_nbytes))
-        row['outputs'] = _capacity_forward(bridge, case, sample)
+        row['outputs'] = (_capacity_forward(bridge, case, sample) if capacity_model is None else
+            _capacity_mixed_forward(bridge, inputs['cases'], sample,
+                staggered=case['selection'] == 'mixed_prefill_decode'))
         if gen.kvpool.num_pages:
             raise ValueError('native KV pages remain after capacity case')
         stage('capacity_'+case['selection']+'_complete')
@@ -592,10 +718,27 @@ def native_capacity_probe(args) -> int:
             result['verified_adapter_count'] = len(selected)
             prompt = (_ownership_prompt(args.ownership_input_journal, args.ownership_input_sha256)
                       if args.inference_owner_probe else None)
-            capacity_inputs = (_capacity_inputs(args.ownership_input_journal, args.ownership_input_sha256)
+            capacity_model = None
+            if args.capacity_evidence:
+                if stream_sha(args.capacity_evidence) != args.capacity_evidence_sha256:
+                    raise ValueError('prior capacity evidence identity differs')
+                prior = _load_json(args.capacity_evidence)
+                if (prior['measurement_manifest_sha256'] != args.measurement_view_sha256
+                        or prior['static_plan_sha256'] != result['static_plan_sha256']
+                        or prior['forward_capacity']['input']['journal_sha256'] != args.ownership_input_sha256):
+                    raise ValueError('prior native geometry/source/input contract differs')
+                capacity_model = _capacity_bound(prior, _load_json(args.base_model/'config.json'),
+                                                 plan['context_tokens'])
+                result['capacity_evidence_sha256'] = args.capacity_evidence_sha256
+                result['capacity_model'] = capacity_model
+            capacity_inputs = (_capacity_inputs(args.ownership_input_journal, args.ownership_input_sha256,
+                                                capacity_model['candidate_batch_size'] if capacity_model else None)
                                if args.forward_capacity_probe else None)
             if capacity_inputs and any(case['adapter_id'] not in selected for case in capacity_inputs['cases']):
                 raise ValueError('capacity input adapter is outside the frozen largest shard')
+            if capacity_model and any(len(c['prompt_ids']) != capacity_model['prompt_tokens']
+                                      or c['target_tokens'] != 256 for c in capacity_inputs['cases']):
+                raise ValueError('candidate distinct inputs do not cover measured worst geometry')
             sys.path.insert(0, str(args.measurement_view))
             os.environ['TRANSFORMERS_OFFLINE'] = '1'
             os.environ['HF_DATASETS_OFFLINE'] = '1'
@@ -659,11 +802,16 @@ def native_capacity_probe(args) -> int:
                     'not full-context forward workspace, four-worker capacity or performance qualification.')
                 _native_ownership_probe(base, mixed, models, gen, shard['adapter_ids'], prompt, result, stage)
             if args.forward_capacity_probe:
-                result['limitations'][1] = ('Full retained geometry-extreme inputs, duplicate batch2 copies; '
+                result['limitations'][1] = (
+                    'One capacity-derived batch with distinct retained inputs, all-prefill and mixed transition; '
+                    'not all-ID numerical, four-worker, online service or performance qualification.'
+                    if capacity_model else
+                    'Full retained geometry-extreme inputs, duplicate batch2 copies; '
                     'not an increased batch, mixed-prefill/decode, all-ID numerical or four-worker qualification.')
-                _native_forward_capacity_probe(base, mixed, models, gen, capacity_inputs, result, stage)
+                _native_forward_capacity_probe(base, mixed, models, gen, capacity_inputs, result, stage, capacity_model)
             stage('full_context_kv_allocation')
-            caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(plan['batch_size'])]
+            caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(
+                capacity_model['candidate_batch_size'] if capacity_model else plan['batch_size'])]
             stage('weights_and_kv_ready')
             for cache in caches:
                 cache.release()
@@ -797,6 +945,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--native-capacity-probe', action='store_true')
     parser.add_argument('--inference-owner-probe', action='store_true')
     parser.add_argument('--forward-capacity-probe', action='store_true')
+    parser.add_argument('--capacity-evidence', type=Path)
+    parser.add_argument('--capacity-evidence-sha256')
     parser.add_argument('--ownership-input-journal', type=Path)
     parser.add_argument('--ownership-input-sha256')
     parser.add_argument('--static-capacity-plan', type=Path)
@@ -813,6 +963,10 @@ def _parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.inference_owner_probe and args.forward_capacity_probe:
         parser.error('owner equivalence and forward capacity are separate diagnostic execution keys')
+    if args.capacity_evidence is not None or args.capacity_evidence_sha256 is not None:
+        if (not args.forward_capacity_probe or args.capacity_evidence is None
+                or not re.fullmatch('[0-9a-f]{64}', args.capacity_evidence_sha256 or '')):
+            parser.error('derived capacity requires full-forward probe and explicit prior evidence path/SHA')
     if args.inference_owner_probe or args.forward_capacity_probe:
         if (not args.native_capacity_probe or not args.ownership_input_journal
                 or not re.fullmatch('[0-9a-f]{64}', args.ownership_input_sha256 or '')):
