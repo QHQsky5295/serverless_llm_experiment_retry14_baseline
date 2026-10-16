@@ -1,5 +1,100 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D589 full W2 audited and curated — checkpoint, storage, remaining 7B
+
+2026-10-16 AUTHORITATIVE: D589 SINGLE Loquetier W2 complete;4000 native-binding
+responses/458224 target-matched native tokens/0failed,497 observedIDs/full500pool.
+Unchanged strict analyzer PASSED, auditSHA69ca2da9ba4340caa09cb79a127722b5d702cbab55fe7c8246ec061d613330db.
+Joint2696/4000=67.4%,U15113.09407798783 GPU-s,P95TTFT47419.83858891763ms,
+meanTTFT10930.466795611836ms. IndependentnumericUNKNOWN/n_correctnull/formalfalse;
+not95%-feasible or G1/G2complete. Read D589_LOQUETIER_CAPACITY_FULL_W2_RESULT.md.
+SameD557W2 input/nativeprompt/adapter/target/rotation and relativearrival join4000
+PASS,error0;cross-backend output equality NOT a numerical oracle or required.
+Readybusiness+137.117/235.781/342.187/440.697s;routermean7.932s,nativequeuemean
+2.748s,register-first231.670ms. First500 longtail;laterTTFT low butTPOTlimits joint.
+Allservice/GPU/launcheraux/exactremoteunits alreadyclosed. Analysis92131/cross13052
+COMPLETE;analysis/cross/result scopes actualrecursiveemptyclosed/pathgone.
+Peaks712998912/724652032B foranalysis/cross,events+swap0. CurationPASS/archive210654B;
+147protected/source/userdirtguards PASS. No servingchange or repeatedGPUqualification.
+Curated paper_results/ieee_tc/loquetier/d589_capacity_full_w2/result1.
+NEXT explicit resultcheckpoint then fresh bounded safe storage maintenance (disk
+below150GiB newheavyfloor), remainingS-LoRAW2 andcomplete7B baselinecomparison,
+thenPrimeLoRA evidence-drivenoptimization. No moreLoquetier performance search
+solelyforlowSLO. DoNOT repeat D589/D587/D585,analysis/join/curation or oldmaintenance.
+SameLoquetier7BW0/W1/W2 nowcomplete. AllG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/
+finalfigures remainACTIVE. Latest boundedbaseline rule and unrelatedk3s protection
+unchanged; no liveGPU/remotejob. All older LIVE sections below are historical.
+
+## D589 replay complete and resources closed — strict full W2 audit running
+
+2026-10-16 AUTHORITATIVE: SAME D589 full W2 reached4000created/4000response,
+no observed failure event. Observercell1451 ended on actualterminalreceipt after
+51spacedpolls; previous1444/1448 also complete. Service/replay/watchdogRC0,
+nativeGPUreleaseconfirmed/servicepathgone; tmux gone. Exactlauncheraux actually
+recursiveempty/closed/pathgone,peak554242048B,high/max/OOM/killswap0.
+Allthree exact-owned remote units now inactive/MainPID0/portsabsent; stopreceipt
+and remote monitorSHA retained. No inference or remote job remains.
+Strict existing full4000_w2/loquetier_static_shards_v1 audit now runs in bounded
+auxd5890000000000000000000000000006, raw run_analysis.py --outcome success.
+This first preserves bilateral/metadata evidence, then uses qualified analysis
+venv and frozenD394 SLO. Actualaudit output stillpending, no finalSLO claim.
+PLAN/V1/V2 fullyread incontext and SHAs unchanged; analyze-results skill read.
+NEXT sameanalysis completion/actualclose.py analysis, exactW2inputjoin toD557,
+interpret/preserve/checkpoint; keep unknownnumericalproof and all failed evidence.
+DoNOT repeatperformance/qualification/cleanup/remotestop. Diskbelow150GiB newheavy
+floor; onlybounded offlineaudit/preservation now, freshsafestorage beforeanother
+heavylaunch. Remaining7B/PrimeLoRA/G1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/figuresACTIVE.
+
+## D589 LIVE — fixed Loquetier full W2; monitor the same run
+
+Latest continuation: VERIFIED WAIT, not a new run or blocker. SAME actualservice
+Invocationf4f2ce6d9d874f5fb816be9123fe199d recheckedactive/running through twelve
+spaced polls913–1403; tmux604626 recheckedlive at847. Replayresponses advanced
+717->793->827->854->883->908->1008->1060->1120->1150->1175->1208->1287.
+At1403:1290created,1287responses,noobservedfailureevent;peak39519604736B,
+hostavailable85620850688B,disk148514824192B,allhigh/max/OOM/killswap0,
+warningfalse/abortempty. Earlier tenpolls405–805also confirmed sameowner/progress.
+No launch7b.json terminalreceipt. Observercells1444/1448 completed; experiment remains
+LIVE and no toolhandle is pending. Continue SAMErun, not restart/cleanup.
+Full PLAN/status remain read in context; unchangedPLAN SHA reverified, monitoring
+skill reread. No tests/build/scans/backup/remotechanges/secondheavyjob this turn.
+Existing postterminal close_launch/stop_remote/run_analysis helpers inspected
+read-only, not executed whilelive. Postterminal strictaudit/preservation and
+fullremaining scientificscope unchanged.
+
+Continuation: actual same service Invocation rechecked active/running at samples
+116/183/234/304; tmuxpane604626 alive at234. At304 replay150created/37http_response,
+servicepeak26951012352B,hostavailable97750904832B,disk148549849088B,
+allhigh/max/OOM/killswap0,warningfalse/abortempty. These are progress counts,
+not audited correctness/SLO. No terminal receipt. Backup session71874 and starter
+46019 completed; no pending tool/observer handle. Experiment remains LIVE.
+Full PLAN/status/rules and resource/run/monitor/github skills reread; no repeated
+qualification/maintenance or serving/remote change after launch. Continue SAMErun.
+
+2026-10-16 AUTHORITATIVE: prelaunch60b85e396b39ab4d77b50ba5c225a3802cfafeb7
+PUSHED/remoteequal,4explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. Both qualification scopes, backup and starter actuallyclosed/pathgone;
+backuppeak31256576B/startpeak188084224B,allhigh/max/OOM/killswap0.
+D589 launched ONCE, tmux tc-d589-loquetier-full-w2,pane604626. Actualservice
+primelora-tc-svc-0a9d9e0581764862b8cc88d3a43ec5a8.scope,
+Invocationf4f2ce6d9d874f5fb816be9123fe199d,inode26336040; recheckedactive/running.
+Launcherauxd5890000000000000000000000000005 identity inservice_aux_identity.json.
+Notice1667279.502183482,business1667339.502183482. Freshresource gates passed;
+sameW2view5734bd88.../497IDs/458224targets andsamebatch8nativeconfig. Remoteowned
+3b/7b/monitor d589-full-w2 live; published_gzip_v1/artifact_timing_v2healthPASS,
+7bclockremote-process-monotonic:c36bc33288b84005af10e1b4933fc268.
+At watchdogsample30 servicepeak4292988928B,hostavailable111480184832B,
+allhigh/max/OOM/killswap0. No terminalreceipt or finalperformance result yet.
+NEXT passive monitoring SAMEactualInvocation/tmux/append-only replay; no tests,
+build/hashscan/backup/cleanup/compression/remotechanges or secondheavyjob.
+After actualterminal: close_launch.py -> stop_remote.sh -> qualifiedvenv bounded
+run_analysis.py with ACTUAL success/failure, full4000_w2 audit, same-W2inputjoin,
+preserve/checkpoint. No repeatedqualification/start/maintenance. Do not infer
+completion from an observer ending or numerical correctness from HTTP alone.
+Fullremaining7B/PrimeLoRA/G1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfiguresACTIVE.
+Unrelatedk3s untouched; boundedbaseline rule remains. This statusdelta stays for
+next meaningful checkpoint, not a push during inference.
+
 ## D589 W2 input qualification passed — prelaunch checkpoint then one replay
 
 2026-10-16 AUTHORITATIVE: D588pusheda1f687be2c4e2b82d69f95341e3701645f2ab141;

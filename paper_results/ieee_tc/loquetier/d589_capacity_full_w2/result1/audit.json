@@ -1,0 +1,671 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/launch7b.launch/replay.jsonl",
+  "replay_sha256": "2d6ef5d91c02f2d3793da8eb4861b6e087476feb52400f81820da915c0b3eecd",
+  "counts": {
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0,
+    "N_submitted": 4000
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 10930.466795611836,
+      "p50_type1": 262.9731541965157,
+      "p95_type1": 47419.83858891763
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 18355.923598137335,
+      "p50_type1": 6327.640920644626,
+      "p95_type1": 59835.81070415676
+    },
+    "submit_lag_ms": {
+      "count": 4000,
+      "mean": 3.032245523063466,
+      "p50_type1": 2.039151033386588,
+      "p95_type1": 3.947878023609519
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 4000,
+      "mean": 7937.400917888561,
+      "p50_type1": 4.265949130058289,
+      "p95_type1": 19.00321408174932
+    },
+    "service_ttft_ms": {
+      "count": 4000,
+      "mean": 2990.0336322002113,
+      "p50_type1": 255.9513768646866,
+      "p95_type1": 11009.732670150697
+    },
+    "decode_ms": {
+      "count": 4000,
+      "mean": 7419.749612086685,
+      "p50_type1": 5772.065887926146,
+      "p95_type1": 17454.143106006086
+    },
+    "completion_notification_ms": {
+      "count": 4000,
+      "mean": 5.707190438813996,
+      "p50_type1": 5.092893959954381,
+      "p95_type1": 7.773935794830322
+    },
+    "router_queue_ms": {
+      "count": 4000,
+      "mean": 7931.902953212615,
+      "p50_type1": 0.013483921065926552,
+      "p95_type1": 0.035866862162947655
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 66.6705191278309,
+      "p50_type1": 63.689114607012506,
+      "p95_type1": 83.2334879586207
+    }
+  },
+  "actual_native_output_tokens": 458224,
+  "observed_instance_ids": [
+    "loquetier-0",
+    "loquetier-1",
+    "loquetier-2",
+    "loquetier-3"
+  ],
+  "offered_unique_adapters": 497,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 3999,
+    "mean": 0.9561796964103229,
+    "p50_type1": 0.5383410630747676,
+    "p95_type1": 3.480294539127499
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "Loquetier",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300"
+  },
+  "native_revalidated_requests": 4000,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 15113.09407798783,
+  "physical_window_gpu_seconds": {
+    "arrival": 15098.612577542663,
+    "cleanup": 11.234704893315211,
+    "drain": 3.246795551851392,
+    "pre_arrival": 0.0
+  },
+  "n_correct": null,
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "cache_hit_requests": null,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 4,
+  "remote_clock_ids": [
+    "remote-process-monotonic:c36bc33288b84005af10e1b4933fc268"
+  ],
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 39519604736,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 84955054080,
+  "disk_min_free_bytes": 148441165824,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "loquetier_static_shards_v1",
+  "scheduler_qualification": {
+    "contract": "loquetier_static_shards_v1",
+    "native_worker_receipts": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/0ab0685b53a84adda33e175ee73eada1.json",
+        "sha256": "4f2a6bdb9684c7eafa7d56d72341c17f91773f52a7f18bc1532064d6e8068c66"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/c70014fadcaf4d608ce708f410a96ba5.json",
+        "sha256": "034740e085b5f4fcd2a29e11eec3664087c72754f10d0255151544f295e893f3"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/e90318b980e94b4c867b0fbfe81fe03a.json",
+        "sha256": "81fd3ba595f39bf7cf0416fcbf2d9cb7c414e649447898ffa04db2c9ec71b557"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/bc8f38885c664307807ccfcd4b279ff1.json",
+        "sha256": "fb4f06948c0c92c0deb236baaa8d6f9768970ec84e856832579eb1a783158006"
+      }
+    ],
+    "conclusion": "Frozen input-only static shard mapping; every selected native forward/worker/ready/physical owner verified."
+  },
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/launch7b.launch/replay.jsonl",
+      "sha256": "2d6ef5d91c02f2d3793da8eb4861b6e087476feb52400f81820da915c0b3eecd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/physical/physical_resource_summary.json",
+      "sha256": "83e8004d3f01a7ce16f864851cba7cabe95c5eaf8cb9809ae9344bd253ae55f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/physical/summary.json",
+      "sha256": "70ae9835e37ba21cad8fee0a4ee87bf100d540f35a1c4d32132c20827094fe4c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/model_qualification.json",
+      "sha256": "9f9ed15f28bb0048f821eacb65c4666a4bc5650db6fa467c86c6ec3bd07528a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/http_7b_4000.json",
+      "sha256": "d1009852786f306bbb4a1c74b105b12091d34cea4f1f5fd2ffa7942a4b04d966"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/remote_transfers.jsonl",
+      "sha256": "b24573fdbeeb45899393963dc598230e56abd07f6f7fa25f797d261aa8a55690"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/remote_monitor.log",
+      "sha256": "66e652841f6f14d9ad6e5a1d1205ec3fb8158a026d20888d427e1f0682e33272"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py",
+      "sha256": "abd058ef46e2d42ded855867edd2422cf85d4131bbb08170203d2a9399f89311"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "d9277550f57098fccc36b6ca9c5d488518598aee740ddfbe6f2a95b88479ff48"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "4fe98186ec32f4d0dc2761a248a66d2574aa67669af56748b402cdaf1861f29e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_config.json",
+      "sha256": "3fefb914be81ac30f6027fa02e8215edce2529b1296485481f8d837eb0a7376c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/native_toolchain.json",
+      "sha256": "fc3ca759310279acb648ac21409814d5e7bea01741e3b4db0b65d1cce4d1fff2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/0ab0685b53a84adda33e175ee73eada1.json",
+      "sha256": "4f2a6bdb9684c7eafa7d56d72341c17f91773f52a7f18bc1532064d6e8068c66"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/c70014fadcaf4d608ce708f410a96ba5.json",
+      "sha256": "034740e085b5f4fcd2a29e11eec3664087c72754f10d0255151544f295e893f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/e90318b980e94b4c867b0fbfe81fe03a.json",
+      "sha256": "81fd3ba595f39bf7cf0416fcbf2d9cb7c414e649447898ffa04db2c9ec71b557"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_receipts/bc8f38885c664307807ccfcd4b279ff1.json",
+      "sha256": "fb4f06948c0c92c0deb236baaa8d6f9768970ec84e856832579eb1a783158006"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/loquetier_full_pool_preparation.json",
+      "sha256": "7b5b0d93101b5bb918b5c89fe950160f1fc326b1423a5c844ad47753eea53e77"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/source_view/measurement_manifest.json",
+      "sha256": "58a57e6be6027e40b2c06fc324e0f50c56ffba496bb64ecd3dc78790e0525c0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/launch7b.launch/exec_receipt.json",
+      "sha256": "13585318279e745aedb0c58144751a0973647bdb63dffc0450a582549440fe6e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/remote_resolver_evidence/journals/605447-9c32ca059e5a4943912b811781352d6b.jsonl",
+      "sha256": "c6ea508e613e133c52730ef1300c72d2befc146f913578a9f884f28074282f6c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/loquetier/d437_7b_static_capacity.json",
+      "sha256": "049441391b67e500328546c3c8e1001fd1ce197f0c1a93e150fc26e8bdfe4a77"
+    },
+    {
+      "path": "/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so",
+      "sha256": "100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_0.native_events.jsonl",
+      "sha256": "75fc7962bc75556e37bf478d15046ceec5115113686baf4800a77a3668d7f47a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_1.native_events.jsonl",
+      "sha256": "7806bdefd25a7a2833d59006c6ffb7657f19ae3327bda50792bb056a4f9a3db3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_2.native_events.jsonl",
+      "sha256": "435c82fe06983584537b30c30044675109ed375da437b6269ae1c4cf3ee35403"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/model7b/worker_3.native_events.jsonl",
+      "sha256": "243a809e3c96eb49d5d615a6ce38d40ec1471319c90aa83caaff0f3b4c9ce012"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  ],
+  "limitations": [
+    "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. Authorized pure-inference owner release and evidence-derived capacity optimization applied; actual worker receipts are validated. Native kernels, static routing and sequential startup retained. No PrimeLoRA policy added; this is not independent numerical correctness or a global capacity bound.",
+    "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+  ],
+  "artifact_attribution": "deployment_preparation_reference_not_request_transfer",
+  "deployment_prepared_adapters": 500,
+  "deployment_remote_wire_bytes": 420740410,
+  "request_remote_wire_bytes": 0,
+  "preparation_references": 4000,
+  "served_adapter_ids": 497,
+  "common_slo": {
+    "offered": 4000,
+    "binding_valid": 4000,
+    "ttft_good": 3725,
+    "tpot_eligible": 4000,
+    "tpot_good": 2883,
+    "joint_good": 2696,
+    "ttft_attainment": 0.93125,
+    "joint_attainment": 0.674,
+    "conditional_tpot_attainment": 0.72075,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete W2 native-binding observation; not a cross-scenario optimum or independent numerical proof",
+    "physical_gpu_seconds_per_binding_valid_request": 3.7782735194969574
+  },
+  "source_order_diagnostics": [
+    {
+      "source_indices_inclusive": [
+        0,
+        499
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 246,
+        "tpot_eligible": 500,
+        "tpot_good": 374,
+        "joint_good": 197,
+        "ttft_attainment": 0.492,
+        "joint_attainment": 0.394,
+        "conditional_tpot_attainment": 0.748,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 85193.22145862691,
+          "p50_type1": 5649.203561712056,
+          "p95_type1": 328620.06237357855
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 69.33081288341316,
+          "p50_type1": 67.3786269729117,
+          "p95_type1": 84.14898389938897
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 63455.11841625115,
+          "p50_type1": 0.014411984011530876,
+          "p95_type1": 298084.0394881088
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 21719.960478554945,
+          "p50_type1": 1675.641326000914,
+          "p95_type1": 95079.1269459296
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        500,
+        999
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 486,
+        "tpot_eligible": 500,
+        "tpot_good": 375,
+        "joint_good": 368,
+        "ttft_attainment": 0.972,
+        "joint_attainment": 0.736,
+        "conditional_tpot_attainment": 0.75,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 484.07503016805276,
+          "p50_type1": 263.5737431701273,
+          "p95_type1": 1079.8920018132776
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 68.89039242092737,
+          "p50_type1": 63.42330866498668,
+          "p95_type1": 96.45024137571454
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.013636794872581959,
+          "p50_type1": 0.013214070349931717,
+          "p95_type1": 0.017849961295723915
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 476.9382875864394,
+          "p50_type1": 256.46983995102346,
+          "p95_type1": 1053.1313279643655
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        1000,
+        1499
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 496,
+        "tpot_eligible": 500,
+        "tpot_good": 372,
+        "joint_good": 370,
+        "ttft_attainment": 0.992,
+        "joint_attainment": 0.74,
+        "conditional_tpot_attainment": 0.744,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 345.7664121245034,
+          "p50_type1": 260.8269911725074,
+          "p95_type1": 444.1655338741839
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 66.39436025599316,
+          "p50_type1": 63.29552793747508,
+          "p95_type1": 81.59769719466567
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.01718028960749507,
+          "p50_type1": 0.013623153790831566,
+          "p95_type1": 0.01921900548040867
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 338.51624064845964,
+          "p50_type1": 254.41826600581408,
+          "p95_type1": 435.23625703528523
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        1500,
+        1999
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 340,
+        "joint_good": 340,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 0.68,
+        "conditional_tpot_attainment": 0.68,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 279.87857366353273,
+          "p50_type1": 259.459659922868,
+          "p95_type1": 434.86944073811173
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 66.69755878475046,
+          "p50_type1": 64.35019447531361,
+          "p95_type1": 82.02236155921128
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.01333104120567441,
+          "p50_type1": 0.013242010027170181,
+          "p95_type1": 0.015405938029289246
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 272.1380603336729,
+          "p50_type1": 252.6781288906932,
+          "p95_type1": 426.8683469854295
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        2000,
+        2499
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 319,
+        "joint_good": 319,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 0.638,
+        "conditional_tpot_attainment": 0.638,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 268.68971067573875,
+          "p50_type1": 255.44525822624564,
+          "p95_type1": 414.13321788422763
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 65.52724054079975,
+          "p50_type1": 63.7654508687914,
+          "p95_type1": 76.98562762622412
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.015385068953037262,
+          "p50_type1": 0.013425014913082123,
+          "p95_type1": 0.020116101950407028
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 262.0544834570028,
+          "p50_type1": 248.4175490681082,
+          "p95_type1": 405.78761184588075
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        2500,
+        2999
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 499,
+        "tpot_eligible": 500,
+        "tpot_good": 346,
+        "joint_good": 346,
+        "ttft_attainment": 0.998,
+        "joint_attainment": 0.692,
+        "conditional_tpot_attainment": 0.692,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 293.0817175125703,
+          "p50_type1": 257.97464535571635,
+          "p95_type1": 436.9852407835424
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 66.12068892438228,
+          "p50_type1": 63.23604193274622,
+          "p95_type1": 76.79002423790972
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.013590250629931688,
+          "p50_type1": 0.01334305852651596,
+          "p95_type1": 0.017405953258275986
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 286.09396148240194,
+          "p50_type1": 251.23674678616226,
+          "p95_type1": 430.1355709321797
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        3000,
+        3499
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 370,
+        "joint_good": 370,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 0.74,
+        "conditional_tpot_attainment": 0.74,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 266.37564457859844,
+          "p50_type1": 259.3751472886652,
+          "p95_type1": 412.5845383387059
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 64.55307292993037,
+          "p50_type1": 62.72276210982133,
+          "p95_type1": 75.56914715454556
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.01609446806833148,
+          "p50_type1": 0.013695098459720612,
+          "p95_type1": 0.019832979887723923
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 259.1753625534475,
+          "p50_type1": 252.40932311862707,
+          "p95_type1": 407.3091840837151
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    },
+    {
+      "source_indices_inclusive": [
+        3500,
+        3999
+      ],
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 498,
+        "tpot_eligible": 500,
+        "tpot_good": 387,
+        "joint_good": 386,
+        "ttft_attainment": 0.996,
+        "joint_attainment": 0.772,
+        "conditional_tpot_attainment": 0.774,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 500,
+          "mean": 312.64581754477695,
+          "p50_type1": 260.73850644752383,
+          "p95_type1": 423.7658176571131
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 65.85002628245066,
+          "p50_type1": 63.00777977841718,
+          "p95_type1": 83.2334879586207
+        },
+        "router_queue_ms": {
+          "count": 500,
+          "mean": 0.015991536434739828,
+          "p50_type1": 0.013370998203754425,
+          "p95_type1": 0.01819804310798645
+        },
+        "service_ttft_ms": {
+          "count": 500,
+          "mean": 305.3921829853207,
+          "p50_type1": 253.7042659241706,
+          "p95_type1": 417.470911052078
+        }
+      },
+      "interpretation": "Post-run descriptive slice; not an independent run or startup-free primary result."
+    }
+  ]
+}
