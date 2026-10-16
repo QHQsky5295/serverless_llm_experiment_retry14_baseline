@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "tests": 6,
+  "refs": {
+    "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py": "34997eb36d04519f7c565217f85cc32fb57254533f0588558c99ff9e4081eac8",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "cbfbca88beb1602534dcc5e4368374dcc700b61899da35c3916c1de621c77d19",
+    "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py": "dc417b9d3847aba55afe4d942b4271ab3f2ca0e42bffce1f06b92354f0905c72",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/virtual_model.py": "d1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/models/mixed_lora.py": "93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/model_generation.py": "31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/run_tests.py": "45f3ffcece32ea97a3680c4be3e7729da7a5a2e1ff2730c6411fc72f94947e8e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification.log": "cd53adfe26465471b65fd92ff57fc5d58af66be6dd8c0f585bfc5564abd8af32",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_source.tar.gz": "2c563c910fed9e5ac1512485369cf26f3f14fa7941cf6810a21d8c93df493ef9"
+  },
+  "cpu_only": true,
+  "native_gpu_forward_qualified": false,
+  "production_changed": false,
+  "receipt": {
+    "passed": true,
+    "phase": "qualification",
+    "command": [
+      "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "tests.test_loquetier_native_generation",
+      "-v"
+    ],
+    "returncode": 0,
+    "identity": {
+      "unit": "primelora-tc-aux-d5590000000000000000000000000001.scope",
+      "invocation_id": "d5ab83af9d254a1aa2b8c55e5439fcc1",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5590000000000000000000000000001.scope",
+      "inode": 26006742
+    },
+    "sources": {
+      "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py": "34997eb36d04519f7c565217f85cc32fb57254533f0588558c99ff9e4081eac8",
+      "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "cbfbca88beb1602534dcc5e4368374dcc700b61899da35c3916c1de621c77d19",
+      "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py": "dc417b9d3847aba55afe4d942b4271ab3f2ca0e42bffce1f06b92354f0905c72",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/virtual_model.py": "d1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/models/mixed_lora.py": "93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/model_generation.py": "31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/run_tests.py": "45f3ffcece32ea97a3680c4be3e7729da7a5a2e1ff2730c6411fc72f94947e8e",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification.log": "cd53adfe26465471b65fd92ff57fc5d58af66be6dd8c0f585bfc5564abd8af32",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_source.tar.gz": "2c563c910fed9e5ac1512485369cf26f3f14fa7941cf6810a21d8c93df493ef9"
+    },
+    "resources": {
+      "memory.peak": "578465792\n",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "memory.swap.current": "0\n"
+    }
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  }
+}

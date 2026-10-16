@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "tests": 6,
+  "baseline_checkpoint": {
+    "head": "03c0a6ee455a71a679acd6ac6900a781d4c4a74f",
+    "remote_equal": true,
+    "files": [
+      "tests/test_loquetier_native_generation.py",
+      "docs/ieee_tc/D559_LOQUETIER_OWNER_QUALIFICATION.md"
+    ]
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_revision_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "qualification_sha256": "1414ea45c1a1129e1aa1c5574eb03a1b3fd4b6b5e38e63e6976c01dbe3c012bc",
+  "archive_sha256": "58d09d08ea639b9c3b669a3ba904c5446961ca52e4037c3a620677e23dab7ab9",
+  "archive_members": {
+    "00_run_tests.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/run_tests.py",
+      "sha256": "45f3ffcece32ea97a3680c4be3e7729da7a5a2e1ff2730c6411fc72f94947e8e",
+      "bytes": 2519
+    },
+    "01_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/close.py",
+      "sha256": "84512df689455f93cad7200a99e803f1d631c08690e68ed18d2e0bfda11219f8",
+      "bytes": 1268
+    },
+    "02_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/publish.py",
+      "sha256": "6f0e9c05076a10b17f9dd5a9be73d3fc736f1da99ac07d9a65349e249eba347c",
+      "bytes": 7772
+    },
+    "03_qualification.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification.log",
+      "sha256": "cd53adfe26465471b65fd92ff57fc5d58af66be6dd8c0f585bfc5564abd8af32",
+      "bytes": 1461
+    },
+    "04_qualification_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_identity.json",
+      "sha256": "d4186b64034ac645439ee8d5bb3bd84e45b313fdeb64a7518826300bc3943a2e",
+      "bytes": 286
+    },
+    "05_qualification_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_closure.json",
+      "sha256": "0589a18dc23659fabeb9043a059c154d1c9bb52db2f4991d5ed6b248a2823adc",
+      "bytes": 647
+    },
+    "06_qualification_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_receipt.json",
+      "sha256": "5358539aeb00610d3b56e47eb261b3c09738495fca9d0412529c1cc7408c90cd",
+      "bytes": 2337
+    },
+    "07_qualification_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d559_20261016/qualification_source.tar.gz",
+      "sha256": "2c563c910fed9e5ac1512485369cf26f3f14fa7941cf6810a21d8c93df493ef9",
+      "bytes": 50086
+    },
+    "08_test_loquetier_native_generation.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py",
+      "sha256": "34997eb36d04519f7c565217f85cc32fb57254533f0588558c99ff9e4081eac8",
+      "bytes": 9656
+    },
+    "09_D559_LOQUETIER_OWNER_QUALIFICATION.md": {
+      "path": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D559_LOQUETIER_OWNER_QUALIFICATION.md",
+      "sha256": "818bbb44c4aeca365fe419033d273fb90fc27b6f837cc209406a4ef915d673b5",
+      "bytes": 3880
+    },
+    "10_D559_LOQUETIER_OWNER_QUALIFICATION.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D559_LOQUETIER_OWNER_QUALIFICATION.md",
+      "sha256": "f501b390870bba70d79139f1e3e0b0a8f2769a6973680f55133de97ab37a3b28",
+      "bytes": 1555
+    },
+    "11_backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d531_20261015/backup.py",
+      "sha256": "a4d4a812c4185358541980005a7e30847618b0d1ce8746b09827f9ffe25e4d03",
+      "bytes": 5745
+    }
+  },
+  "preparation_only": true,
+  "no_inference_started": true
+}

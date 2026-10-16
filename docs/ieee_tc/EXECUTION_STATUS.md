@@ -15,11 +15,31 @@ D558 cleanup DONE: ONLY closed/published D557 private download objects removed,
 Fresh all-file original/cache SHA, refs, metadata, mounts and actual-closure gates
 PASS. Actual cleanup scope recursive-empty/closed/pathgone,peak3221749760B,
 high10303,max/OOM/kill/swap0; high offline only, no performance overlap.
-Read D558_TARGETED_CACHE_RECLAIM.md. Curation/backup next, no repeat deletion.
+Read D558_TARGETED_CACHE_RECLAIM.md. Curation and backup DONE:
+ba673a9cc191e4cd29bbdab93af4cb06e9a54499 PUSHED/remoteequal,11explicitfiles,
+archive7326B. Curation/publication actually recursive-empty/closed/pathgone,
+peaks26943488/26583040B,events/swap0. No repeat deletion/backup.
 Retain unique assets, raw success/failure evidence, protected147 and user dirt.
 After sufficient reserve, prioritize Loquetier ownership/capacity qualification;
 do not mechanically extend its weak old configuration to W2. Shared k3s untouched;
 HydraServe isolated D510/D546 adaptation remains reusable. Full goal ACTIVE.
+
+D559 CPUqualification PASS: ONLY existing native CPU test file extended for virtual/PEFT
+owner collection, copied and aliased prepared tensors, pointer/base preservation,
+nonzero synthetic CPU reference products. No serving code/config change, no GPU
+test or performance gain yet. Reused D549 bounded qualification recipe:6tests
+PASS22.241s/no skips; actualqualificationrecursiveempty/closed/pathgone,
+peak578465792B,events/swap0. Read D559_LOQUETIER_OWNER_QUALIFICATION.md.
+Original FP32 objects collect while prepared copies survive; FP16 alias case
+keeps required storage despite Parameter collection. Base/prepared pointers/content
+and CPUreferenceproducts unchanged; NOT GPU/native-forward or memory saving proof.
+Next tested two-repository checkpoint, then extend existing native capacity probe
+with explicit opt-in ownership/forward witness before production batch changes.
+No D559 test repeat without affected edits, no old low-performance W2 replay.
+History D437/D438/D439/D441/D445/D544 and current code reviewed. Official fixed
+run_inference fetched; mixed_lora/virtual_model raw URLs returned Cache miss,
+so ownership implementation facts use the local fixed checkout, not a claimed
+online byte verification. Full PLAN/V1/V2 remain read in current context.
 
 ## D557 terminal and strict audit, 2026-10-16
 
