@@ -1,0 +1,2892 @@
+{
+  "passed": true,
+  "new_gpu_run": true,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-d5820000000000000000000000000010.scope",
+    "invocation_id": "a4f649d295c24ecd82ba5848a7164e55",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5820000000000000000000000000010.scope",
+    "inode": 26256471
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "archive_members": {
+    "00_audit.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/audit.py",
+      "bytes": 10580,
+      "sha256": "9057d4b725efa4fcdb18a1ec9c23c491f5a15dfb2facf195652ee764ff6c153e"
+    },
+    "01_run_audit.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/run_audit.py",
+      "bytes": 678,
+      "sha256": "45dc757222e4345b73275f1967cff11aca7e98c3ce184c48ef36a60e076d2875"
+    },
+    "02_cross_contract.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/cross_contract.py",
+      "bytes": 5589,
+      "sha256": "b7f8da1062db960df91b2ca32d8ea73edef3f375cbe6920d6c35edabc17da39f"
+    },
+    "03_cross_contract_v2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/cross_contract_v2.py",
+      "bytes": 503,
+      "sha256": "d2b6e1768662bc3a9d467f12f85deb0c8fafb7844d1e5c430b4ab6439bc64112"
+    },
+    "04_cross_contract_attempt1_failure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/cross_contract_attempt1_failure.json",
+      "bytes": 551,
+      "sha256": "d55ee5f2e066aa96bfe5a53e0242dbb641d1c28b1efdce03099be33006b7cfd9"
+    },
+    "05_curate_result.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/curate_result.py",
+      "bytes": 4336,
+      "sha256": "e2473b5f6b66fedc2fb3dec9329de07037dcb4fef9bde8aa9b4a7b032c154b39"
+    },
+    "06_close_result.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/close_result.py",
+      "bytes": 541,
+      "sha256": "2c4dedb198f1ca2790859242d495d4f5cefa03618541cfd0fa896e9845637b1e"
+    },
+    "07_preregistration.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/preregistration.json",
+      "bytes": 6089,
+      "sha256": "ef54121a33157f9f06f6f759c7679ede0b821ee936d96f9895bf78d091efebc8"
+    },
+    "08_source_manifest.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/source_manifest.json",
+      "bytes": 10758,
+      "sha256": "6c790d6059e41843e524c5c7d0701d85b756ecf5cb08f711688a97d92731f404"
+    },
+    "09_reuse_inspection.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/reuse_inspection.json",
+      "bytes": 4444,
+      "sha256": "37a23410b7954af37ebee4855fcd58300c7df0f85afba29045f6136b5b658794"
+    },
+    "10_prepare_result.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/prepare_result.json",
+      "bytes": 1353,
+      "sha256": "f846ecdc41c3d6aa745aec4f7e5de547a6feede2b047c8ab193a1fb8626a5806"
+    },
+    "11_w2_input_qualification.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/w2_input_qualification.json",
+      "bytes": 1719,
+      "sha256": "4bf63af0e70f2a8eea9f1fe67ef01936e1824d51a39a64c2cb5f0c615d72eafe"
+    },
+    "12_prelaunch_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/prelaunch_gate.json",
+      "bytes": 6504,
+      "sha256": "570f6f7dc2deb87eac1e6bce99412eef925459b3a3056ce43e70530510a1ab5f"
+    },
+    "13_remote_health.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_health.json",
+      "bytes": 626,
+      "sha256": "d64fadddedb99ccc2809820d2ba6d466f2edda8cd7bf23f6c110ef1e1c3412e6"
+    },
+    "14_result.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/result.json",
+      "bytes": 919,
+      "sha256": "1886d2bb9d626bb7066b2ce06580abdf105ad5fdd056984c237815546a77f2b8"
+    },
+    "15_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/closure.json",
+      "bytes": 9986,
+      "sha256": "3fae5fc38ae0fb0734ee553caefbc1a9c96e2023b8926e8d7ef1f74b02308c67"
+    },
+    "16_remote_stop.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_stop.json",
+      "bytes": 470,
+      "sha256": "ae29af2dbbcac4325e82e8e286245aafb8d226f22d2c4af893a97e9d8bf468a3"
+    },
+    "17_remote_stop.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_stop.log",
+      "bytes": 505,
+      "sha256": "c10daf3d9e293fb0cf2970b7dc871743f7afcee11feec26cae956252bf3e1223"
+    },
+    "18_external_terminal_summary.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/external_terminal_summary.json",
+      "bytes": 199,
+      "sha256": "29ccaec0e8f18feb9830625acf73e4c064595ed0613e7f56fd2948c92a9d3ba9"
+    },
+    "19_http_audit.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/http_audit.json",
+      "bytes": 6459,
+      "sha256": "6b68b4e41a0fee879555809c060dde4c7a042c2a1cd83065a42313321d077b00"
+    },
+    "20_full_w2_evaluation.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/full_w2_evaluation.json",
+      "bytes": 6097,
+      "sha256": "e9518e38884310f76fddfafe182d0a3231a36c81362bb04f899e5cc05efdaef3"
+    },
+    "21_full_w2_slo_rows.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/full_w2_slo_rows.json",
+      "bytes": 1393716,
+      "sha256": "d8386c32ad929ad5f159b664184832dcbe2e5d0869267c7090edd3f503273c50"
+    },
+    "22_request_metrics.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/request_metrics.json",
+      "bytes": 3148847,
+      "sha256": "45bf1abc511922179327f4f4026e62143ef84d4e48a48d140be68e1d962e70ed"
+    },
+    "23_cross_contract.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/cross_contract.json",
+      "bytes": 5334,
+      "sha256": "eb9e23f3b124e1972c645714bf08e9924422ea73ff6e53545cdf87ed16c24de8"
+    },
+    "24_native_scheduler_after_requests.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/native_scheduler_after_requests.json",
+      "bytes": 883,
+      "sha256": "dad6fbbe756e37b3c7267bde1467ab5b70f54b7233b124a3c944ff0132a73121"
+    },
+    "25_native_admission_capacity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/native_admission_capacity.json",
+      "bytes": 179,
+      "sha256": "653c685351da2727dda8c483c89b26f70c8b3f05ebdad452b63d8f0597b6d681"
+    },
+    "26_generation_result.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/generation_result.json",
+      "bytes": 417,
+      "sha256": "1967a01f7ee2fa3c985d267c5635d1d2c329f3bdcc8b7e6482949d0902a70e8f"
+    },
+    "27_audit_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/audit_identity.json",
+      "bytes": 286,
+      "sha256": "eace621d71554057f3aada2f322ca7ba06a11f033b74e98120d18a447ab9ed74"
+    },
+    "28_audit_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/audit_closure.json",
+      "bytes": 647,
+      "sha256": "bd45800b84d7cdb19e4adda1cda87bc3d08a112ba365dc4f7512df27846956bc"
+    },
+    "29_output_comparison_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/output_comparison_identity.json",
+      "bytes": 286,
+      "sha256": "cd4e410849e20dec916d66ef0380d8939a0c2f6e22fcb61a5ad2e730b2070204"
+    },
+    "30_output_comparison_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/output_comparison_closure.json",
+      "bytes": 646,
+      "sha256": "e62f91187bc40bc5243ec235546b34d917f34d1521c69fc7ea19528981fcced6"
+    },
+    "31_output_comparison2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/output_comparison2_identity.json",
+      "bytes": 286,
+      "sha256": "7628fd2b1d90fc74085bb55abbd28ad26dcf06a956054f403901bd40131c3da9"
+    },
+    "32_output_comparison2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/output_comparison2_closure.json",
+      "bytes": 647,
+      "sha256": "96108a604cdbf6ab57374abed4e3cce60d3c819a9bb6cab6f9893d8e15f97ce3"
+    },
+    "33_remote_transfers.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_transfers.jsonl",
+      "bytes": 413656,
+      "sha256": "91ea0e11f3ff207f510b258c6d462a25048f24a0529b8111d70dfae64254ed55"
+    },
+    "34_container_allocations.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/physical/container_allocations.jsonl",
+      "bytes": 379583,
+      "sha256": "6fb7244749abbf505d62c86fab082957dff73435ef8b89314d5330b5138a37b5"
+    },
+    "35_summary.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/physical/summary.json",
+      "bytes": 3573,
+      "sha256": "934f945aa130a38de91df36cf3d40e8f1c410ebc0187c337b484a45d4d9a8da9"
+    },
+    "36_exec_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/launch_gate.launch/exec_receipt.json",
+      "bytes": 13625,
+      "sha256": "3f9c5eebca146c5dbed6c40e46ba9b102a6b3eddefe15b84b60e7125175b17b3"
+    },
+    "37_curate.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d539_20261015/curate.py",
+      "bytes": 5712,
+      "sha256": "5e02854d6a5abb875a4eaaf22aa517a71e0f47bd1aa1879ce41b29372153d59e"
+    },
+    "38_audit.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d503_20261013/audit.py",
+      "bytes": 5176,
+      "sha256": "bbb64378e11f125ce97fc3534cf5e3c51f49853d5dce49164923b55bb0857d5a"
+    },
+    "39_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/close.py",
+      "bytes": 1267,
+      "sha256": "982250fa2029b67f605a17f21292001918fc026b33c00dc9b693af14191f03c3"
+    },
+    "40_cross_contract.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/cross_contract.py",
+      "bytes": 7634,
+      "sha256": "c9439b3bb0b46782b76bc9bd8e583f2f9bc0016c85970b5d7f5b5249131a373a"
+    },
+    "41_D582_HYDRASERVE_LIFECYCLE_FULL_W2_RESULT.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D582_HYDRASERVE_LIFECYCLE_FULL_W2_RESULT.md",
+      "bytes": 4843,
+      "sha256": "683eddcfa907cb56af5f2e449768fe8003ce2e005fb3255bf127b1c250d9a376"
+    },
+    "42_d582-w0.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w0.native-request.json",
+      "bytes": 639,
+      "sha256": "2dff418e49588ce759ce270478a063e80ddb6cdb420522dcee184c7ec8606190"
+    },
+    "43_d582-w1.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w1.native-request.json",
+      "bytes": 639,
+      "sha256": "5e7a735fd73af40a1675c8f5284cb9f8cf8e2ba18363d77061070af2438bad9b"
+    },
+    "44_d582-w10.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w10.native-request.json",
+      "bytes": 640,
+      "sha256": "af15ca3661ffe0c1958c3076d48c7ea53bd7d6ba7574d42cf55a3e5a78c34e8f"
+    },
+    "45_d582-w11.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w11.native-request.json",
+      "bytes": 640,
+      "sha256": "834b564087a0dd306872954b4ae83576fde40ed2d97f7dfd8925fc0a10886e79"
+    },
+    "46_d582-w12.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w12.native-request.json",
+      "bytes": 640,
+      "sha256": "9876c84492c90635c52079b95199adf24b87c65679d448682139802f7e347773"
+    },
+    "47_d582-w13.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w13.native-request.json",
+      "bytes": 640,
+      "sha256": "7b65de4516d2d80d26b34b7a5120433c5ff5f05be1335036dea9f8d44ebe1f30"
+    },
+    "48_d582-w14.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w14.native-request.json",
+      "bytes": 640,
+      "sha256": "2c8a7fd1886b04db3c8c7b7b865a1ebd7819407a29cf8a932967ecddda7db766"
+    },
+    "49_d582-w15.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w15.native-request.json",
+      "bytes": 640,
+      "sha256": "958cd8983ca580f1c20a6c3681b70d231ce400a533d40e7e6f17bb6b89b61755"
+    },
+    "50_d582-w16.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w16.native-request.json",
+      "bytes": 640,
+      "sha256": "ab038dcd456ab7ab8295957d123a6befec278679fca9318f6402d8ada170d3cd"
+    },
+    "51_d582-w17.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w17.native-request.json",
+      "bytes": 640,
+      "sha256": "5018a38462c5c33651fbab60c6b98693baac0f42a7971338bf290fb586d27244"
+    },
+    "52_d582-w18.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w18.native-request.json",
+      "bytes": 640,
+      "sha256": "cffb01a0cac167268e01b1712b1cfa63a3cc2d957889f8037c82c162d2154aef"
+    },
+    "53_d582-w19.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w19.native-request.json",
+      "bytes": 640,
+      "sha256": "5807363d24a61874a73c6766331d4c5f6f62b976f4cbed33061b8365b3d4182d"
+    },
+    "54_d582-w2.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w2.native-request.json",
+      "bytes": 639,
+      "sha256": "983ea4a30bda4ea5ebab3f3aaaadb659d70a113e47c9ba0ccb7a2ac3afebbb38"
+    },
+    "55_d582-w20.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w20.native-request.json",
+      "bytes": 640,
+      "sha256": "1dcf7558bdbde41edde3e3e5d4b9356907260c0495316ceffba627e50d7cf3e4"
+    },
+    "56_d582-w21.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w21.native-request.json",
+      "bytes": 640,
+      "sha256": "a69e5f40d554bfcb8bec91556500317739e57f55f30005e630b533974858d672"
+    },
+    "57_d582-w22.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w22.native-request.json",
+      "bytes": 640,
+      "sha256": "a58c797f44f8845a973d58f1a7aeb165a84bbe5ae86f696e4882c6bc03425ec3"
+    },
+    "58_d582-w23.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w23.native-request.json",
+      "bytes": 640,
+      "sha256": "c387359c697d2ce95fcfd5164c7f19b51fec9bcb70b88d0642e6966e338b3103"
+    },
+    "59_d582-w24.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w24.native-request.json",
+      "bytes": 640,
+      "sha256": "c626ece47036146856f1755d76b20b3b475636a71f08e8a1276a280b02319bd4"
+    },
+    "60_d582-w25.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w25.native-request.json",
+      "bytes": 640,
+      "sha256": "f5d6f8ddb3ba5d658e53e4e2e4b84bf7e2148ba8e8dae14da7c3692281d52801"
+    },
+    "61_d582-w26.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w26.native-request.json",
+      "bytes": 640,
+      "sha256": "62016756e2fb92cdf4bb62672520dc7ff458b401d58d64994412604ae2a91255"
+    },
+    "62_d582-w27.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w27.native-request.json",
+      "bytes": 640,
+      "sha256": "7ae8c1975a51a3ddbe62206cea0e12742421faca8a510e2b6a7e3b933490a480"
+    },
+    "63_d582-w28.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w28.native-request.json",
+      "bytes": 640,
+      "sha256": "6ec790532331140f54c860787d95009d07ba624ad61523e7b6e20e31514b7214"
+    },
+    "64_d582-w29.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w29.native-request.json",
+      "bytes": 640,
+      "sha256": "e80fc388fb25feb63f01f6382a1f4a93dcdb224b8208940021a38c2ce8aebd7f"
+    },
+    "65_d582-w3.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w3.native-request.json",
+      "bytes": 639,
+      "sha256": "71e520b46c74984cdf3a8a59b67694c1b9b6977bd6fd9df091f74ce009519ad8"
+    },
+    "66_d582-w30.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w30.native-request.json",
+      "bytes": 640,
+      "sha256": "980d871128e803151c48431b9425f3cd7c77eac67b9fafeb209c9970bd3b1284"
+    },
+    "67_d582-w31.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w31.native-request.json",
+      "bytes": 640,
+      "sha256": "af55ce5a2db0a66a91218607d5c63c035231b7f297f09b9d8250870c4b1cac35"
+    },
+    "68_d582-w4.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w4.native-request.json",
+      "bytes": 639,
+      "sha256": "d843e6eb29c2331a7da75e420ec3dfa091d08b1e26d84fcb2237d2b00e2ff2a7"
+    },
+    "69_d582-w5.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w5.native-request.json",
+      "bytes": 639,
+      "sha256": "efa40910df9324a58c3adfb51ae2eb6e34af61b67988e6cefcd642f78ea086b1"
+    },
+    "70_d582-w6.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w6.native-request.json",
+      "bytes": 639,
+      "sha256": "14b3766be10f869479f73ba576ab65fe1ac8bb399776bf6a956bdffeca9505c9"
+    },
+    "71_d582-w7.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w7.native-request.json",
+      "bytes": 639,
+      "sha256": "1cfbb064a63ec38214b37016926c86aab8223b315267df0eafc854095b2bdac5"
+    },
+    "72_d582-w8.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w8.native-request.json",
+      "bytes": 639,
+      "sha256": "6ba0df11da7206ba0b5edaef1d518f7021ba60e90be2834c0f6e12634320cf5b"
+    },
+    "73_d582-w9.native-request.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/platform/d582-w9.native-request.json",
+      "bytes": 639,
+      "sha256": "c67ce8695586dee5b73587cf0dbb23f3a8d20ffab6900a90684eedf2f2f6748c"
+    },
+    "74_code_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora.json",
+      "bytes": 2462,
+      "sha256": "e856f9b5cf487d8bc5c41df91e8ec2e875ac5c615a908d8570cd045b0394a73f"
+    },
+    "75_code_lora_0015.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0015.json",
+      "bytes": 2476,
+      "sha256": "2195c1f9b0d92b615ea3c15cee8893432776de5882339211017e2df2dbc39d79"
+    },
+    "76_code_lora_0027.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0027.json",
+      "bytes": 2475,
+      "sha256": "9c82b09e8e62c37251a65184d6f6ad033a5877125a5020b7518c3f14bd3e8159"
+    },
+    "77_code_lora_0039.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0039.json",
+      "bytes": 2474,
+      "sha256": "d2e64df416206ed1516c1703d5dddb34488557516371d884963ffd5b9b1231d8"
+    },
+    "78_code_lora_0051.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0051.json",
+      "bytes": 2475,
+      "sha256": "f6f5f96126c546dba353469a9fa007d0b2b691a87f57a00886a895a027be4e7c"
+    },
+    "79_code_lora_0063.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0063.json",
+      "bytes": 2471,
+      "sha256": "8aeadecfcaceb35c85a4c16ccd4955ff756a24a37b86d2096db56d8daa82e2fe"
+    },
+    "80_code_lora_0075.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0075.json",
+      "bytes": 2476,
+      "sha256": "866bff462098549bfc93aa735c5a16af08056873413181aedc0a830bd1e66e30"
+    },
+    "81_code_lora_0087.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0087.json",
+      "bytes": 2475,
+      "sha256": "07895935f96c081b35943a1db64a545e64bebeff219f43a8ca802e79fdbb6edd"
+    },
+    "82_code_lora_0099.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0099.json",
+      "bytes": 2475,
+      "sha256": "85c0a821f8ab778abe7aa4628d3084130075682db7eec39a6e74c1b5cbec6bec"
+    },
+    "83_code_lora_0111.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0111.json",
+      "bytes": 2472,
+      "sha256": "eb50e6f1e6474dfa3c2bd957e3fd1f47d8d9da1a8510f745fa19720a6953cc9d"
+    },
+    "84_code_lora_0123.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0123.json",
+      "bytes": 2476,
+      "sha256": "451de50e4a46cac1e2925ab63edd4750a58e4d1d8e52f7107f1f940083610dfb"
+    },
+    "85_code_lora_0135.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0135.json",
+      "bytes": 2473,
+      "sha256": "9c1a7966edb953bc9feb1b964992745e95b28b65db1ca37744ce500c4451f16f"
+    },
+    "86_code_lora_0147.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0147.json",
+      "bytes": 2475,
+      "sha256": "fb204d25a1bbc1139c3bca56e0d5a408d5cdaf4c8ba44e957a939ebb98dcc04b"
+    },
+    "87_code_lora_0159.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0159.json",
+      "bytes": 2475,
+      "sha256": "6759109c9dcb63681724c960abb935f4c9f9d507e563c051e847c06f8af13f5d"
+    },
+    "88_code_lora_0171.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0171.json",
+      "bytes": 2468,
+      "sha256": "56028baf04eecff31de0a7d0174226baa56ec2130136d45a8b95ce635592db09"
+    },
+    "89_code_lora_0183.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0183.json",
+      "bytes": 2473,
+      "sha256": "74aa5af1fb148f24da495274f8ecb3687a2bc53ffd797896ef13cebd1a5e09cc"
+    },
+    "90_code_lora_0195.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0195.json",
+      "bytes": 2475,
+      "sha256": "4e685e5e867b0325877a34344680d62bf783e7e6efe6ac6368158708a055bc05"
+    },
+    "91_code_lora_0207.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0207.json",
+      "bytes": 2472,
+      "sha256": "738062cf21541b35aec8d1250f1599a7f213dcce1ff56d075651b0553c378656"
+    },
+    "92_code_lora_0219.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0219.json",
+      "bytes": 2475,
+      "sha256": "470fc7d973ea38820a4e7aa867695cdc0e4c641908631cb526d720ed1fe11632"
+    },
+    "93_code_lora_0231.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0231.json",
+      "bytes": 2474,
+      "sha256": "64a8ec853e5af4ce6017380f62cc19e1acdfb8c60f31eb1747faa26f16e12be1"
+    },
+    "94_code_lora_0243.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0243.json",
+      "bytes": 2475,
+      "sha256": "716e105d20e9bfe7bb5f8c5de23a8532280218a0c7d6e5a5590796c40e7eddf0"
+    },
+    "95_code_lora_0255.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0255.json",
+      "bytes": 2476,
+      "sha256": "adda21a3e012be37d5bc3a07ad6d82af4d1c425860d8baec62903850d6d5ae43"
+    },
+    "96_code_lora_0267.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0267.json",
+      "bytes": 2473,
+      "sha256": "13f39a0e8c7281081e96e90c4bda7da1a7a3319c84894ef67720d6ea9ac1ce9f"
+    },
+    "97_code_lora_0279.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0279.json",
+      "bytes": 2474,
+      "sha256": "a9ddb8062777292b374e17b43adadd33d22b1b265f228f61f0fd2c5fde0e4008"
+    },
+    "98_code_lora_0291.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0291.json",
+      "bytes": 2475,
+      "sha256": "efd9a9f33eeb88e23155d2635695612f9691e11f1ceed0510657773d26d9f9d4"
+    },
+    "99_code_lora_0303.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0303.json",
+      "bytes": 2473,
+      "sha256": "9d8cc8105f3da08c16dbdb7092b16aba1004d45c92032b0d7a4baa1f7f343424"
+    },
+    "100_code_lora_0315.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0315.json",
+      "bytes": 2476,
+      "sha256": "461459ede52b64ef35e4daf456b95fc8389ac5a59a4fd21ee805502e4d195048"
+    },
+    "101_code_lora_0327.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0327.json",
+      "bytes": 2475,
+      "sha256": "2ebb708bf1ed00c411058e086b0876d95411bd830b099167363ae6fc86cbdd88"
+    },
+    "102_code_lora_0339.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0339.json",
+      "bytes": 2474,
+      "sha256": "135be0202d07233ad6396e5ae8ea1ce4a39e5401fcd9e7ebdb35a5aba5373710"
+    },
+    "103_code_lora_0351.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0351.json",
+      "bytes": 2474,
+      "sha256": "4fd217103ba6a08d95b3aa7ba7c9f587bc52cfcdaf4aa712f22fb26eeb074d68"
+    },
+    "104_code_lora_0363.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0363.json",
+      "bytes": 2474,
+      "sha256": "71b2a39d74368d2202d5eac3673a30f22b4d1b7eb25b9c85c7c63384f6001aa5"
+    },
+    "105_code_lora_0375.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0375.json",
+      "bytes": 2475,
+      "sha256": "91a1da565521ba2b412e3e7cbce96bce2e8f7dd53d9a7c7ad86a60ab077d1a52"
+    },
+    "106_code_lora_0387.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0387.json",
+      "bytes": 2475,
+      "sha256": "ac941993fbf72495b3cabb726130bfdef91f5c37be8ef93e659c5abd4edd2ad0"
+    },
+    "107_code_lora_0399.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0399.json",
+      "bytes": 2474,
+      "sha256": "75ac86bc1eeae2d609e2a4b5a7f73a1fac5d94c29c4665650700512b81a4153e"
+    },
+    "108_code_lora_0411.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0411.json",
+      "bytes": 2473,
+      "sha256": "a371b7a384f429eb4f83478b9ace2ce3aef75f33f3f7caf0b536cb05801cdd1a"
+    },
+    "109_code_lora_0423.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0423.json",
+      "bytes": 2473,
+      "sha256": "ad6266e7c9ce8a0129061e65793611825ef14c4271f2725b8d919989fed16ea9"
+    },
+    "110_code_lora_0435.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0435.json",
+      "bytes": 2476,
+      "sha256": "71020896bcd2c3ca752f2e1622e2cf5ba1cef2822c6cb5fb73ae7a50c06718f5"
+    },
+    "111_code_lora_0447.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0447.json",
+      "bytes": 2476,
+      "sha256": "7c2f8f8c1010fdd67f22944052aca058e943ef13ca0c05db329880e4ea28bec0"
+    },
+    "112_code_lora_0459.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0459.json",
+      "bytes": 2476,
+      "sha256": "5f2cf01519b13ea281eefc59e69ba7bdfef7564988fae8ec7d2a96e18876f577"
+    },
+    "113_code_lora_0471.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0471.json",
+      "bytes": 2475,
+      "sha256": "834d94e8b597ccffe1f51bf8663c7e4b808947196a5518fbc517462d293a849d"
+    },
+    "114_code_lora_0483.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0483.json",
+      "bytes": 2474,
+      "sha256": "8d2f663e10c45078ec8fcc363feb366fc139eac9eb0464be7cd58ea082823817"
+    },
+    "115_code_lora_0495.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/code_lora_0495.json",
+      "bytes": 2475,
+      "sha256": "0a3190f372eebbf30679ba187c1284a6bd07daabb71f61b956afe4ebcea2d4b6"
+    },
+    "116_ecommerce_lora_0009.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0009.json",
+      "bytes": 2486,
+      "sha256": "58cd92a2796a024f8f4bfa1b8c48c3e17b257e02015ce7d99db3068d8104848d"
+    },
+    "117_ecommerce_lora_0021.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0021.json",
+      "bytes": 2486,
+      "sha256": "90d9bcc793160f7deaedf4c0894a3888a1d0abebf91a3bcccf82b7607387bb05"
+    },
+    "118_ecommerce_lora_0033.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0033.json",
+      "bytes": 2486,
+      "sha256": "0ed280a0eda9669180f3fc080e3e7d77424f04bc53f3180992503c3ba4664d01"
+    },
+    "119_ecommerce_lora_0045.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0045.json",
+      "bytes": 2485,
+      "sha256": "30fa23a47d49f2d9c91549b5d4fa8670c515b756e4756659286c6c6a25af8931"
+    },
+    "120_ecommerce_lora_0057.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0057.json",
+      "bytes": 2483,
+      "sha256": "27e6cb288849a0742162ce9b841151fb5a41330a54a87b391e165b2a439fa7cd"
+    },
+    "121_ecommerce_lora_0069.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0069.json",
+      "bytes": 2483,
+      "sha256": "1f9c7b5393a32bfd7c4df714546d6b1a86a46ed53a21c7c70c9e19163379344f"
+    },
+    "122_ecommerce_lora_0081.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0081.json",
+      "bytes": 2484,
+      "sha256": "7caef6034be8d5d35f8a80ff06384c37a0d4d0a0a5d8a9fe0dae247c04b926d8"
+    },
+    "123_ecommerce_lora_0093.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0093.json",
+      "bytes": 2484,
+      "sha256": "0d14ebc42ff0c263e783242ea3bbb7b59054782dd97c89d500d0b59830d1e73d"
+    },
+    "124_ecommerce_lora_0105.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0105.json",
+      "bytes": 2483,
+      "sha256": "1c2aff9ec2850c25f25d19e1d37ae075c04ebcabc1415a85b1c6ad581ac108e1"
+    },
+    "125_ecommerce_lora_0117.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0117.json",
+      "bytes": 2484,
+      "sha256": "c8bca6f3750bcdc5329a5f46941f5eb4dd24ea10af710da7ce7f4a2547408db1"
+    },
+    "126_ecommerce_lora_0129.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0129.json",
+      "bytes": 2486,
+      "sha256": "9d28beb4b359767e22228b41561e890bdd509af390c23ec2dd120142a02b466b"
+    },
+    "127_ecommerce_lora_0141.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0141.json",
+      "bytes": 2485,
+      "sha256": "f07dc227f728ab6a9d6eb63ce8106bd4978e4569d4d494b457baba24d4a4afa4"
+    },
+    "128_ecommerce_lora_0153.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0153.json",
+      "bytes": 2483,
+      "sha256": "868a4cecf40a207dfc7f18484f281df6c76d3e86991fe127eb3b067622a52f9c"
+    },
+    "129_ecommerce_lora_0165.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0165.json",
+      "bytes": 2482,
+      "sha256": "bcb13b2861f89d682eced608b93738a41b5515099f807214c1ed0740b0109eb6"
+    },
+    "130_ecommerce_lora_0177.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0177.json",
+      "bytes": 2485,
+      "sha256": "eba23920480043d24b7b17d5d0030c6b005fd66a7db248ccb81e2bceee580a8b"
+    },
+    "131_ecommerce_lora_0189.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0189.json",
+      "bytes": 2482,
+      "sha256": "32d48923f219d4500eb26b3d98da680ee731f66048fe8080e105f0fcdb2238e4"
+    },
+    "132_ecommerce_lora_0201.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0201.json",
+      "bytes": 2486,
+      "sha256": "6d420b79fd01b8ccad5f7dfc4ce4dc377115b5b870c6d77c90c4c49c0f7b68e0"
+    },
+    "133_ecommerce_lora_0213.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0213.json",
+      "bytes": 2483,
+      "sha256": "ceee5e4805058a83bc5d0dd5d839d84efc63c56f009e7ee096d6ab1ceddea4b6"
+    },
+    "134_ecommerce_lora_0225.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0225.json",
+      "bytes": 2481,
+      "sha256": "dc8adbadd724d1959573e1a1ab624b5cd57ee48034004f485a82b381ed8e791f"
+    },
+    "135_ecommerce_lora_0237.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0237.json",
+      "bytes": 2484,
+      "sha256": "30a40318bb7c24305d0a4b4c7808198f7dc60aac4a443b2fe4a8c7217728e9eb"
+    },
+    "136_ecommerce_lora_0249.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0249.json",
+      "bytes": 2484,
+      "sha256": "aa4f8ba9b06694e10659978295b4d34a6d51eb07e9aab462cbeec9f31608678e"
+    },
+    "137_ecommerce_lora_0261.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0261.json",
+      "bytes": 2485,
+      "sha256": "8447d3d0ba49d83e4753e9d64c62a0a45592fd44fb503858b69143c0d7ae0ba1"
+    },
+    "138_ecommerce_lora_0273.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0273.json",
+      "bytes": 2486,
+      "sha256": "78859f7202b6914ddfa6fce918e7742af785e13339bc92e7b85e8ed5b4b8b9be"
+    },
+    "139_ecommerce_lora_0285.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0285.json",
+      "bytes": 2483,
+      "sha256": "ec0bd89ea22b2e4281c01d75f499eeb822e6cef38c53b628fc19a3ee71f2413b"
+    },
+    "140_ecommerce_lora_0297.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0297.json",
+      "bytes": 2485,
+      "sha256": "a845ea4b1f45c8859e7860a130e5f293ee0f90266a7d50b35106c6d44d3d61f6"
+    },
+    "141_ecommerce_lora_0309.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0309.json",
+      "bytes": 2486,
+      "sha256": "1bf513555d1a83d7fb8c7a6c75634955dbdc0c714f45ec99153c6437d37819a9"
+    },
+    "142_ecommerce_lora_0321.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0321.json",
+      "bytes": 2484,
+      "sha256": "ee65d496a57e2afa8733e957ee04e1df4241ffde2f7d230009359e6895f5bfdf"
+    },
+    "143_ecommerce_lora_0333.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0333.json",
+      "bytes": 2485,
+      "sha256": "b871caac5cba31d693e4b0f81fbda7af6985e9b3d372c13178df5cd2f5a974d9"
+    },
+    "144_ecommerce_lora_0345.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0345.json",
+      "bytes": 2485,
+      "sha256": "60408dc19d66603d6d9684922fa1d15d0c9104ea97c1ef9b7bba208927fe2d20"
+    },
+    "145_ecommerce_lora_0357.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0357.json",
+      "bytes": 2482,
+      "sha256": "d36650dc5df9b987bd3917beaeb3a3ef5e1597788c5aedd234d22acdd4dae951"
+    },
+    "146_ecommerce_lora_0369.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0369.json",
+      "bytes": 2483,
+      "sha256": "79b0323bd398c8decec78200800a6a73d3876f5fcef80e00bf78530b7b1bc41f"
+    },
+    "147_ecommerce_lora_0381.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0381.json",
+      "bytes": 2485,
+      "sha256": "6b83fdb9661b093fb9b08370f338e84387c445ef0a744fab6e3a9520dac352d7"
+    },
+    "148_ecommerce_lora_0393.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0393.json",
+      "bytes": 2484,
+      "sha256": "123933525739af5572c529d5369caf2c4576474c317717a946ef2826c4a993fc"
+    },
+    "149_ecommerce_lora_0405.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0405.json",
+      "bytes": 2483,
+      "sha256": "9bf67c4c88ad03a8f9c0a7da44f28def8bad3b3cfe615f69c6e6358588968165"
+    },
+    "150_ecommerce_lora_0417.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0417.json",
+      "bytes": 2485,
+      "sha256": "4c8b10bb7caee178ebe0e96710c5312eb7acf5a910802067fddebedc7bdd5d28"
+    },
+    "151_ecommerce_lora_0429.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0429.json",
+      "bytes": 2483,
+      "sha256": "79654ad468098f54dc33d0b6d7069767d8f86f925e22de659d7664037b59d8c5"
+    },
+    "152_ecommerce_lora_0441.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0441.json",
+      "bytes": 2484,
+      "sha256": "ceb03deda65d617a0d9a137f1b2d5f7670f0a0ed5bbdda343f8a144c54099a42"
+    },
+    "153_ecommerce_lora_0453.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0453.json",
+      "bytes": 2485,
+      "sha256": "f1647c411883bcec788ef81b1a4038f5ff3131b835797259240633b285c6808d"
+    },
+    "154_ecommerce_lora_0465.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0465.json",
+      "bytes": 2484,
+      "sha256": "2cd02f8f078038c0d7109c4c2bf69878367cf5d2d25063b72ebd8dea3eac134b"
+    },
+    "155_ecommerce_lora_0477.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0477.json",
+      "bytes": 2482,
+      "sha256": "2d5c63ffe6910582762de77904e322dda0c7fdc39813de335f14336946ca7780"
+    },
+    "156_ecommerce_lora_0489.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/ecommerce_lora_0489.json",
+      "bytes": 2484,
+      "sha256": "0cf90f61401748e5b4a4042366ffba1f4aa2ac1a28136a00d0632210e23a7f24"
+    },
+    "157_education_lora_0007.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0007.json",
+      "bytes": 2485,
+      "sha256": "ece792bde5f9f3aab5256342909efdd5284b4e1cd2e728d26cc5d68cb3b32620"
+    },
+    "158_education_lora_0019.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0019.json",
+      "bytes": 2485,
+      "sha256": "541b64bbd8e8ff91c4a45c36c52c7c5892ab15845bb97ae1818a0b2b0c5bb385"
+    },
+    "159_education_lora_0031.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0031.json",
+      "bytes": 2485,
+      "sha256": "f279648e385a4453f0e2e53e154b842243f5b6477d8ba74f5971b6bada7645c1"
+    },
+    "160_education_lora_0043.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0043.json",
+      "bytes": 2480,
+      "sha256": "317f2874420da71c8ed64cb32334a73ec3e477c951176ee126df8e447ae38ca2"
+    },
+    "161_education_lora_0055.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0055.json",
+      "bytes": 2485,
+      "sha256": "346531e84c19df9ad3d5403653976582e159b1f93712260e4c2cb57d149f1a4c"
+    },
+    "162_education_lora_0067.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0067.json",
+      "bytes": 2481,
+      "sha256": "694a7d043cdfc6d60188f1121e5abf22edc9bd5dddeddb9e219d9b23820942ad"
+    },
+    "163_education_lora_0079.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0079.json",
+      "bytes": 2486,
+      "sha256": "bac65aee1d818c59d7d185c23ed666e514e3addfe912b719e9d21e705aa2bfa6"
+    },
+    "164_education_lora_0091.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0091.json",
+      "bytes": 2481,
+      "sha256": "a0715dde26c9923d7196c56ca581dc1fe08dfc824a3056ffee31ce07660c604f"
+    },
+    "165_education_lora_0103.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0103.json",
+      "bytes": 2481,
+      "sha256": "c2770a0c6f72853dc9cb16771685fb22b2da918bfed5ec56db9597240e4628e6"
+    },
+    "166_education_lora_0115.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0115.json",
+      "bytes": 2485,
+      "sha256": "38e9f6c48018798c063cfbc2cb6bd2eb1070c0255d90d4e31238276bbde8acc0"
+    },
+    "167_education_lora_0127.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0127.json",
+      "bytes": 2487,
+      "sha256": "97b8c7be09873b003769f2530edc8d315ede1736d40cfbd3e921104e1973e298"
+    },
+    "168_education_lora_0139.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0139.json",
+      "bytes": 2485,
+      "sha256": "718f62a996979eb88be63e991ea2d58252543b48b786caf8feca8554a284f49d"
+    },
+    "169_education_lora_0151.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0151.json",
+      "bytes": 2485,
+      "sha256": "0cfb53e352465810e500c75f272c4736ad91b60f8e5b7ebb6e52391a1d2babeb"
+    },
+    "170_education_lora_0163.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0163.json",
+      "bytes": 2485,
+      "sha256": "73b128b1fedf877419587bfd3bda5470a51ce12a713d109b716a48da26002759"
+    },
+    "171_education_lora_0175.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0175.json",
+      "bytes": 2486,
+      "sha256": "49d8af33ae2b47e343e1574866f0b4f6d96135b3eb9acf107fd388f443b05a35"
+    },
+    "172_education_lora_0187.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0187.json",
+      "bytes": 2485,
+      "sha256": "8db09d3cad1342c95df3dcfefd2721d383c1758210118c8311dc6c739c185996"
+    },
+    "173_education_lora_0199.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0199.json",
+      "bytes": 2483,
+      "sha256": "c00e08ce93b790db61a4d0b54e5a29a2b348e4eb763eec97ee5372e7ec698ebc"
+    },
+    "174_education_lora_0211.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0211.json",
+      "bytes": 2483,
+      "sha256": "dcd694418bb28964b14d0c3640937f9ad0a1add81fe75b45b0936890b3ea3cfc"
+    },
+    "175_education_lora_0223.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0223.json",
+      "bytes": 2485,
+      "sha256": "2ac8cb97bcfbc8f7bade9e4876d5fbc2f156ff33a9daf357d4e42f06fa73a362"
+    },
+    "176_education_lora_0235.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0235.json",
+      "bytes": 2485,
+      "sha256": "fb75b7042ffc39424b0e0af1a381657d492f96055a7c42d376d0cc0f30133beb"
+    },
+    "177_education_lora_0247.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0247.json",
+      "bytes": 2483,
+      "sha256": "600926ab6d7e6ccf03d0db09ba075ebb3100a231abc27a3749af56519a14ab1d"
+    },
+    "178_education_lora_0259.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0259.json",
+      "bytes": 2485,
+      "sha256": "2931ac709754699a267eb3b77b7e72f300c8e843c1df726e3c546968fc648cda"
+    },
+    "179_education_lora_0271.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0271.json",
+      "bytes": 2483,
+      "sha256": "28b68b5beeb2f4645cf3951de766f928b2cd09c7f4cb73a20a0b8ac06902d5f1"
+    },
+    "180_education_lora_0283.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0283.json",
+      "bytes": 2478,
+      "sha256": "651108c4195d78d8f7966cb480b9567cbbd0cce59d024565a1d7f0c7fc505621"
+    },
+    "181_education_lora_0295.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0295.json",
+      "bytes": 2485,
+      "sha256": "cee06f40831a9465f69be727fb14d6ba5baff5a98a893907427fd43e8f7d660f"
+    },
+    "182_education_lora_0307.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0307.json",
+      "bytes": 2483,
+      "sha256": "b314c1fcc7cb5565a0a2964c6652615d2317f6c1500bfb1795be0bc92c0f5344"
+    },
+    "183_education_lora_0319.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0319.json",
+      "bytes": 2486,
+      "sha256": "547ab74c258e26f0f2d16c35e491499db08138f2c7158a1c4c77354f446bc863"
+    },
+    "184_education_lora_0331.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0331.json",
+      "bytes": 2484,
+      "sha256": "70725dddec50ff706a03ab42ce43ff674d6576b714ed450d8fa9ef0e0df51817"
+    },
+    "185_education_lora_0343.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0343.json",
+      "bytes": 2487,
+      "sha256": "e2349534355ebbbcc316e847e80a0ad870829231bd9df6bb63221a84956310fc"
+    },
+    "186_education_lora_0355.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0355.json",
+      "bytes": 2485,
+      "sha256": "808e865de920ad0d73a00b70a0d6805f7aa74fb9c8cf151505a2c8e852f325bf"
+    },
+    "187_education_lora_0367.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0367.json",
+      "bytes": 2485,
+      "sha256": "842731162b50a3a3dae3bfe157f2a06f70478dec19e52886e2e7a32d6b3d2fe2"
+    },
+    "188_education_lora_0379.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0379.json",
+      "bytes": 2485,
+      "sha256": "78ca3856d95c954a46061aa48214fda87c48eb43670a3382c855d98e3528d354"
+    },
+    "189_education_lora_0391.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0391.json",
+      "bytes": 2484,
+      "sha256": "2b91313991d9d3a911dbb6b361e504a3e64c5f77f911f6e6966fdbbdbb9eacfc"
+    },
+    "190_education_lora_0403.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0403.json",
+      "bytes": 2484,
+      "sha256": "81e9f4c4cd40ff9d9a9317d9002f494c503f68d32d4809e736e9edda9c4afec9"
+    },
+    "191_education_lora_0415.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0415.json",
+      "bytes": 2483,
+      "sha256": "40cb3246a12e511ae2eed7a27700c71da5c8081aa132ec266315a38730c394df"
+    },
+    "192_education_lora_0427.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0427.json",
+      "bytes": 2484,
+      "sha256": "e6820a86ca1bbb827ab0f650178c00c3181e704dfa2fabe027a73fa606e20c5d"
+    },
+    "193_education_lora_0439.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0439.json",
+      "bytes": 2485,
+      "sha256": "d0f8675ba8c2919b659f69e92b382f11f5311f5cf6142a805db4bcbc4d03a782"
+    },
+    "194_education_lora_0451.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0451.json",
+      "bytes": 2485,
+      "sha256": "363f4a5b1652ea12c3c6db8c41062b2218dadb430e42871cc74bb5d3a49782aa"
+    },
+    "195_education_lora_0463.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0463.json",
+      "bytes": 2486,
+      "sha256": "0b957f5c1a50de6a4c774057e54d511719e84c39440cbc9aab9f0f2caa9de85d"
+    },
+    "196_education_lora_0475.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0475.json",
+      "bytes": 2484,
+      "sha256": "084d74f4e4f47c057c7ef2f142b3f5e1fea18402a75cf2559595bd4c3e4f9a90"
+    },
+    "197_education_lora_0487.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0487.json",
+      "bytes": 2484,
+      "sha256": "9528a710e7ba3932a593d6e4c7c96cd6879ff278b3dd3a94a5220caddec31376"
+    },
+    "198_education_lora_0499.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/education_lora_0499.json",
+      "bytes": 2484,
+      "sha256": "f60e305a6e394ba2b64426d1a8d6769ce479a1a764e45a06ae10c6220334f349"
+    },
+    "199_finance_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora.json",
+      "bytes": 2474,
+      "sha256": "a7614bb2f880baa3d0460cfbc4afe0fba40e1f80d4d5dbcc409870bb57e1546e"
+    },
+    "200_finance_lora_0013.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0013.json",
+      "bytes": 2478,
+      "sha256": "2764ac71fca8222ccff9dc2b47eb00f1c763148ff3f75bc74af137ed44bf92db"
+    },
+    "201_finance_lora_0025.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0025.json",
+      "bytes": 2483,
+      "sha256": "14f9dd51e8cb52890afb43a09113397b3da360cd52f72347ff95cc7b3a36cac4"
+    },
+    "202_finance_lora_0037.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0037.json",
+      "bytes": 2482,
+      "sha256": "b374745c97218a3c306b8bfdb2f1062681178431593e6d621cc5afbb528f5259"
+    },
+    "203_finance_lora_0049.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0049.json",
+      "bytes": 2480,
+      "sha256": "64d2f251cd683a8913c81ac02116ab66f8a07fb268c23b44b4d36c0dc8813d67"
+    },
+    "204_finance_lora_0061.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0061.json",
+      "bytes": 2479,
+      "sha256": "0405257a7e45a1a78ffd494ec2c9ceadfc1d0ca2c129120a58903c4959308028"
+    },
+    "205_finance_lora_0073.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0073.json",
+      "bytes": 2482,
+      "sha256": "7cd3107d66f0fd7874da2f9dbf650b626b28741bdd8eb92d4e8cba8fed8216ad"
+    },
+    "206_finance_lora_0085.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0085.json",
+      "bytes": 2483,
+      "sha256": "e53eab8e457fa99828ec077ec75813e5b08a9676f363dded09c26caff8105ea0"
+    },
+    "207_finance_lora_0097.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0097.json",
+      "bytes": 2479,
+      "sha256": "ab0acfcc847c0ae473bb803465c4517ddf06af06421e7b14dc8cc7383517173a"
+    },
+    "208_finance_lora_0109.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0109.json",
+      "bytes": 2482,
+      "sha256": "d581250fd64fb55a30036ff3b239a0cee81b4288327189fdd60cebe76d9b305d"
+    },
+    "209_finance_lora_0121.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0121.json",
+      "bytes": 2481,
+      "sha256": "9d28f82661c2e4f34d16e9decf836387d417f06048f61d5656f2492c3b379b8c"
+    },
+    "210_finance_lora_0133.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0133.json",
+      "bytes": 2478,
+      "sha256": "e56b6c1e80ae86732531c4e358d45c0712f9592009189acc27e5a6ee63a5b97f"
+    },
+    "211_finance_lora_0145.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0145.json",
+      "bytes": 2482,
+      "sha256": "185fe3250acd35fce47d947e195deae332e39b53461b48fd95af6ed283f5d457"
+    },
+    "212_finance_lora_0157.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0157.json",
+      "bytes": 2479,
+      "sha256": "6dbe255c7f31af8c467fa04b495a871ebdfbf9a6052049cf36cd59e46a109bfb"
+    },
+    "213_finance_lora_0169.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0169.json",
+      "bytes": 2479,
+      "sha256": "4d115d515220abeacdce3c95bf10fe66be4e87d3d066256afdeb6450cb4575ed"
+    },
+    "214_finance_lora_0181.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0181.json",
+      "bytes": 2481,
+      "sha256": "a4eece06d16eec29fca7af772cc82be7a1916b09e9892783a7ed918b782ffb03"
+    },
+    "215_finance_lora_0193.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0193.json",
+      "bytes": 2482,
+      "sha256": "3dc696d9228f0f50e33b928eab136784d3d2c3f9f9c5c3c7c055ad8cf7e47cd7"
+    },
+    "216_finance_lora_0205.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0205.json",
+      "bytes": 2480,
+      "sha256": "0787f5d32531989518482bcab9a86ba3546c6d4014187fd1b77b9b56e65886b7"
+    },
+    "217_finance_lora_0217.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0217.json",
+      "bytes": 2481,
+      "sha256": "dd204d7f72b086a65fc39b7ccbac2b19a971e8a163d52cb34cf6423e4a53c140"
+    },
+    "218_finance_lora_0229.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0229.json",
+      "bytes": 2481,
+      "sha256": "ddf065e9c18b4af3a27fa7ea8db2c4c746fbdc2fa04ebc7d5beb0f8c40820c5b"
+    },
+    "219_finance_lora_0241.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0241.json",
+      "bytes": 2476,
+      "sha256": "66dd5082d5064b6d68b93cf9d7c6340dc26eddbbefcd3e7ae5fa10a9154047dd"
+    },
+    "220_finance_lora_0253.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0253.json",
+      "bytes": 2478,
+      "sha256": "619f8f982f4c6ca582b5e7e870a95c06bc16e594cffef587d64a097f1172d274"
+    },
+    "221_finance_lora_0265.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0265.json",
+      "bytes": 2481,
+      "sha256": "e04e34d1a8f27a33a171a97b01477c1fac8b978e12be452114e68d86585de907"
+    },
+    "222_finance_lora_0277.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0277.json",
+      "bytes": 2482,
+      "sha256": "cbbbe41ab924ecb0a9818ad74bb6710e2b4fa242c4488867cee6968ff45fa5b8"
+    },
+    "223_finance_lora_0289.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0289.json",
+      "bytes": 2480,
+      "sha256": "7fa320d95cc6b04af2f92c35c360b3fcbe5ff03ee33b7941c6382b5e2b8f026f"
+    },
+    "224_finance_lora_0301.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0301.json",
+      "bytes": 2479,
+      "sha256": "5e382e1c2a395abbadbec45669aa39d1de19e96819cc37ce732d9baab511d19a"
+    },
+    "225_finance_lora_0313.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0313.json",
+      "bytes": 2480,
+      "sha256": "b86289c78bc40fd907bfca00d2b213f1e24dc9848e442c5b52536e2a631e05bd"
+    },
+    "226_finance_lora_0325.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0325.json",
+      "bytes": 2482,
+      "sha256": "f8e9d00aa8917ceaaab24bfaca2852c615f29ae957ea29a19e407190613034af"
+    },
+    "227_finance_lora_0337.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0337.json",
+      "bytes": 2477,
+      "sha256": "56d07b0fadf26e6d790142bd0f4f46eca2616106cb17be27b2ed8e68f79ba300"
+    },
+    "228_finance_lora_0349.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0349.json",
+      "bytes": 2479,
+      "sha256": "c65c2d09a6a5b3fa65652d9ddb361ab3a3c3391caa4f4460f29601737d09e028"
+    },
+    "229_finance_lora_0361.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0361.json",
+      "bytes": 2480,
+      "sha256": "f6cfb168569b4d0f358c4d2cf92e20cd23f1e630b87d4da20fe19f17fcb0acb7"
+    },
+    "230_finance_lora_0373.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0373.json",
+      "bytes": 2482,
+      "sha256": "bd93eb0da517c3a4981724ee2103207af93faedbb1c219b798969e9ad96a200e"
+    },
+    "231_finance_lora_0385.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0385.json",
+      "bytes": 2482,
+      "sha256": "9a305666228b2edf2c78b8790340076bc9006bf38c13bf20e5d0f9df6f2e7482"
+    },
+    "232_finance_lora_0397.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0397.json",
+      "bytes": 2482,
+      "sha256": "a34a7a425c453ae25752664081d1554f01f19fc16d92903c3cb96d0bd903fcda"
+    },
+    "233_finance_lora_0409.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0409.json",
+      "bytes": 2481,
+      "sha256": "0b1abab36846650d370ad8c6969e40dd43538686ca1406a439183595e4142d3c"
+    },
+    "234_finance_lora_0421.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0421.json",
+      "bytes": 2481,
+      "sha256": "771a10e886c3984dc88e1b5df15718b0de88876f74e5231ee27cc65afb55fcbc"
+    },
+    "235_finance_lora_0433.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0433.json",
+      "bytes": 2481,
+      "sha256": "612f95731217172e3ac95cb96082b254ad1ab649de0b6f1f85dc778d716ecc68"
+    },
+    "236_finance_lora_0445.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0445.json",
+      "bytes": 2479,
+      "sha256": "b9bb00e13ddc6205681f7596d7909eca590c97fa5f47230d4257801415af625b"
+    },
+    "237_finance_lora_0457.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0457.json",
+      "bytes": 2479,
+      "sha256": "2711769b49d5a8fc31866d9492fbab63a5eeedd9b4fd64486fdf52fff24f4995"
+    },
+    "238_finance_lora_0469.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0469.json",
+      "bytes": 2481,
+      "sha256": "7de97222a4df53b45e6e990126bcd61ca65e4cb4041ab12ce9dfbbd412a45ece"
+    },
+    "239_finance_lora_0481.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0481.json",
+      "bytes": 2481,
+      "sha256": "8267c4b796db0e6c91b2008df421e87577501e23cbed777686e42f612467ef10"
+    },
+    "240_finance_lora_0493.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/finance_lora_0493.json",
+      "bytes": 2483,
+      "sha256": "2fd0c369a629ccc80720d2828e0740761156710a0c447129eda7b199cbe56ae5"
+    },
+    "241_gaming_lora_0010.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0010.json",
+      "bytes": 2480,
+      "sha256": "324134d0a19f95d863528aee479cfd23e9e2cab30bf7ce8bc043914fcde7bf56"
+    },
+    "242_gaming_lora_0034.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0034.json",
+      "bytes": 2481,
+      "sha256": "736b4056954d1fad19a9a3cc35d659b2dcf974acfe6e98682ed2f5d56a297b01"
+    },
+    "243_gaming_lora_0046.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0046.json",
+      "bytes": 2479,
+      "sha256": "e79591e14c3f196b6a0563d48eeafcfedde29c10a174eaa9584ac51dcd2a00df"
+    },
+    "244_gaming_lora_0058.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0058.json",
+      "bytes": 2479,
+      "sha256": "724cd2bc8c7f72d290baf21706b3ac7ac1cbc38606add6e091000430ce38fc7c"
+    },
+    "245_gaming_lora_0070.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0070.json",
+      "bytes": 2479,
+      "sha256": "b3b7a2c9f5549fe5f5983bb7604622800a4c6fdd483d997681a56c182609bc30"
+    },
+    "246_gaming_lora_0082.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0082.json",
+      "bytes": 2477,
+      "sha256": "82cc1a5f2991ca3bb370e9e6ef3d6911af2c42afa8d08d59f4bee710fdbbfe3c"
+    },
+    "247_gaming_lora_0094.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0094.json",
+      "bytes": 2477,
+      "sha256": "299bd360aeac9334f566bf6e942f27e5793667545984e2fa9582e4d0caf919f9"
+    },
+    "248_gaming_lora_0106.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0106.json",
+      "bytes": 2478,
+      "sha256": "420abfc385cd344451ff47c3d2d98e0298cb80ba6652a99a28d135fe79e4f95a"
+    },
+    "249_gaming_lora_0118.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0118.json",
+      "bytes": 2480,
+      "sha256": "7277a58ec6e22645bf6e5400b97290c00a7f80fcfed21fe284cd9c46d85f16e4"
+    },
+    "250_gaming_lora_0130.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0130.json",
+      "bytes": 2479,
+      "sha256": "6aa4dff9b5b0e286afbf46f7d7fbacbdbe649bac8980664b36b175035258cf73"
+    },
+    "251_gaming_lora_0142.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0142.json",
+      "bytes": 2478,
+      "sha256": "052484415143af936d2604427387300df8268ea056845be542e9b9cfdb69c15e"
+    },
+    "252_gaming_lora_0154.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0154.json",
+      "bytes": 2476,
+      "sha256": "f2a07f60bca92d80581ada449015aa8d843216ce5bddebc1a3aed2bec1900a04"
+    },
+    "253_gaming_lora_0166.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0166.json",
+      "bytes": 2477,
+      "sha256": "485eb84db67710a8bfcc51f4c95a983dc9f3566051a6d5cd99a5a92563a9ad50"
+    },
+    "254_gaming_lora_0178.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0178.json",
+      "bytes": 2479,
+      "sha256": "005be0d3fecb09b0661b78048b3a8906bd1ff6ce759c8d1b99d543e700eaea2e"
+    },
+    "255_gaming_lora_0190.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0190.json",
+      "bytes": 2479,
+      "sha256": "df1806823d431a84a8737a89c90aa0a409ef894a850d0599292f7bb4bf936975"
+    },
+    "256_gaming_lora_0202.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0202.json",
+      "bytes": 2480,
+      "sha256": "4abe34e28c1b4d7a8e1063f8fae31e0e2e533bc176a9656bb93fdaff2342a7f4"
+    },
+    "257_gaming_lora_0214.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0214.json",
+      "bytes": 2476,
+      "sha256": "35664a44ded2478895b700ae11d51d7286d3ee7aa000f29f0e4e7ec3ec0c3dfc"
+    },
+    "258_gaming_lora_0226.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0226.json",
+      "bytes": 2480,
+      "sha256": "39a193d40559a1c8412d2398bbf58479d2683e538ca9ec80b020e5efc3b9a8c9"
+    },
+    "259_gaming_lora_0238.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0238.json",
+      "bytes": 2477,
+      "sha256": "f7574cce2900e7612c279ff0084f19a515de8a14120d48118ec1cf65963efa29"
+    },
+    "260_gaming_lora_0250.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0250.json",
+      "bytes": 2477,
+      "sha256": "4dd76cf9221f641cc9499c73f797ad86b10fa4b66969de3ef4dac9d32233094c"
+    },
+    "261_gaming_lora_0262.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0262.json",
+      "bytes": 2481,
+      "sha256": "d386354f528026033dc4fc5a514c31d2a0aafa7f7eb3328d3f36bca2f118a24f"
+    },
+    "262_gaming_lora_0274.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0274.json",
+      "bytes": 2477,
+      "sha256": "028704f6097b310b65247e9a97d5eec515ba43a741b964a14cb1c212a17790fe"
+    },
+    "263_gaming_lora_0286.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0286.json",
+      "bytes": 2479,
+      "sha256": "450fe213b88121c25b2c4c04e110b184288fc0af9d5e16cefb49e8b56ddebdf2"
+    },
+    "264_gaming_lora_0298.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0298.json",
+      "bytes": 2478,
+      "sha256": "8b6655e1f34949f2fb3e64dc57b782112b960656f1a05c2e04e1d3af46e18a0c"
+    },
+    "265_gaming_lora_0310.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0310.json",
+      "bytes": 2479,
+      "sha256": "2f5b7f40bd758333e098a406d9260effb9b04a78c398b2dda00d52c13a99c440"
+    },
+    "266_gaming_lora_0322.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0322.json",
+      "bytes": 2478,
+      "sha256": "9626f57faac54798cc83475ee7cd5ba23954c2074b0c842feb413615e3e55788"
+    },
+    "267_gaming_lora_0334.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0334.json",
+      "bytes": 2480,
+      "sha256": "b3554bfad679cc9ef0dccc78000fb2c9a0c13c3864bc08343aa8c9d02b281eda"
+    },
+    "268_gaming_lora_0346.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0346.json",
+      "bytes": 2478,
+      "sha256": "da64c8b8fb3f11135f54638b1218fc79ef1fe92d2eda3fc4c4be02cc7604dfc9"
+    },
+    "269_gaming_lora_0358.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0358.json",
+      "bytes": 2474,
+      "sha256": "d62dde14736503956130a44f95b03dea522969ea648f5d387f65616d500a3e1a"
+    },
+    "270_gaming_lora_0370.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0370.json",
+      "bytes": 2479,
+      "sha256": "ef82d12a21cbccb6d4eee2f01c125561e93c3f7c8bdcc154d25fde32f48d0a9b"
+    },
+    "271_gaming_lora_0382.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0382.json",
+      "bytes": 2479,
+      "sha256": "91e15f3b3ed3758cdf6b540ebf8ac3744fa067dd8c0a335b65f5304c18f9e51d"
+    },
+    "272_gaming_lora_0394.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0394.json",
+      "bytes": 2477,
+      "sha256": "2c545217e2b311670a13022bd992245ec0ea11a1adb0600bf5c036933280347c"
+    },
+    "273_gaming_lora_0406.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0406.json",
+      "bytes": 2479,
+      "sha256": "a494a63fffc04cd753c579f4e7a42ebfcdb4d3ab3a44b39f110ff5cbae6ade72"
+    },
+    "274_gaming_lora_0418.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0418.json",
+      "bytes": 2480,
+      "sha256": "23b06a157939c7945ee0271c6fb29ae2f523c7c5269e67f6619762489a0848a8"
+    },
+    "275_gaming_lora_0430.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0430.json",
+      "bytes": 2477,
+      "sha256": "077d8316117c782a100a14d0d6b12c95ee2a8139282dc2f88f199cd66bc512a0"
+    },
+    "276_gaming_lora_0442.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0442.json",
+      "bytes": 2476,
+      "sha256": "d844e57f975b5b7974b5d3bf6e21a0b67fbb17d574df9c0d2af6cdb2812300d6"
+    },
+    "277_gaming_lora_0454.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0454.json",
+      "bytes": 2477,
+      "sha256": "0859ab136e5405e77540c8ccc2e64d5f49d1c224e66531af901e5f2ec5cc5f94"
+    },
+    "278_gaming_lora_0466.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0466.json",
+      "bytes": 2474,
+      "sha256": "be7fc4e3ed12f8b3e5673b1a67bba4ab65de0ae597008b6169af15e680c02973"
+    },
+    "279_gaming_lora_0478.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0478.json",
+      "bytes": 2477,
+      "sha256": "c79907c6baab74ca122e7b32d8269c5fe3a92d813baa0dd37859cbed0493d501"
+    },
+    "280_gaming_lora_0490.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/gaming_lora_0490.json",
+      "bytes": 2478,
+      "sha256": "0c1698d6bce52e80e491cde69f57655c8fcf121a050349e230c7d79b8e110200"
+    },
+    "281_legal_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora.json",
+      "bytes": 2466,
+      "sha256": "96afff9165b37c1f2cf7a34b2ca22afcf39ae2e2b3818b6cd6f3c59eda7e07ee"
+    },
+    "282_legal_lora_0017.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0017.json",
+      "bytes": 2477,
+      "sha256": "dabd1ddf5e2d5b955003f0f0bda8e25761aa1779ccdfc7e280b29d8b4731de0e"
+    },
+    "283_legal_lora_0029.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0029.json",
+      "bytes": 2478,
+      "sha256": "7aad5a1ab0804a93e6ff98a2e6fdd7632a574099b25dd86b81f2e0927a89cb50"
+    },
+    "284_legal_lora_0041.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0041.json",
+      "bytes": 2478,
+      "sha256": "5e6da8dc6bb91816864b094ffa691710d1cf6d1368d026dba52b87230eaed964"
+    },
+    "285_legal_lora_0053.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0053.json",
+      "bytes": 2477,
+      "sha256": "65f9171fda63317d27ea64ec8458344d5e00b5bcea8743f1ac8793178eda5743"
+    },
+    "286_legal_lora_0065.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0065.json",
+      "bytes": 2478,
+      "sha256": "ccbbc9d741b8bc4ba575fc04eb35d3746c103dd3dd257c26c2f922e9356693b0"
+    },
+    "287_legal_lora_0077.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0077.json",
+      "bytes": 2479,
+      "sha256": "ae00624b1c77170d057657f579d45586ecaf1e4ebc0fb612e62f0bf345d2b676"
+    },
+    "288_legal_lora_0089.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0089.json",
+      "bytes": 2477,
+      "sha256": "72c6e217ab48bd84b22a219564fd1e87b1a941745c04aafe4b82ba911b3a341e"
+    },
+    "289_legal_lora_0101.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0101.json",
+      "bytes": 2474,
+      "sha256": "09475362a69a54606964f10c149e2756f7a89f45536ab76e741e4cb2b8ee987d"
+    },
+    "290_legal_lora_0113.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0113.json",
+      "bytes": 2475,
+      "sha256": "dece63eeafbd064e3e864a14e629ae5b3cf0c1aef86c430d2b2eeb9572be6635"
+    },
+    "291_legal_lora_0125.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0125.json",
+      "bytes": 2476,
+      "sha256": "31004f9204d1c0f24a0cf7158969ebc2b47f4b39c5393b3dae6aadb4680dff99"
+    },
+    "292_legal_lora_0137.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0137.json",
+      "bytes": 2475,
+      "sha256": "7e236a20adc8fcf7faf9fad7bdcafd0f35dd066ccdce8cc34edc96ec2df6f2ba"
+    },
+    "293_legal_lora_0149.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0149.json",
+      "bytes": 2477,
+      "sha256": "eadcc6141a8d16fe6c3ab8dcf48bb53fb7fe973ceafef56f1dca0281a0571402"
+    },
+    "294_legal_lora_0161.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0161.json",
+      "bytes": 2477,
+      "sha256": "f12579583f8fb991078641f8d81f4481d02e24c4c0efbdf14d31981931cee454"
+    },
+    "295_legal_lora_0173.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0173.json",
+      "bytes": 2476,
+      "sha256": "4755a3c6953b48206766f7003566d7199606f1e6e21a5b9041713a046ab6b967"
+    },
+    "296_legal_lora_0185.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0185.json",
+      "bytes": 2477,
+      "sha256": "b036505611bea6af60684e3a380216f4cd8a308c196b975c6cd4759e0957e584"
+    },
+    "297_legal_lora_0197.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0197.json",
+      "bytes": 2472,
+      "sha256": "5c00e08010fe244cd0da7009b2e9138181af031f27a074bbd013e7171dee4761"
+    },
+    "298_legal_lora_0209.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0209.json",
+      "bytes": 2475,
+      "sha256": "c22ed88dc6136ce1b14e806bcad68e49b28bcc9ef12b409ec2449c97bf6ca60e"
+    },
+    "299_legal_lora_0221.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0221.json",
+      "bytes": 2475,
+      "sha256": "3f143194d7ca24832f82857d02efd71cfc78b480adcccd2f55ed1267f8d7fa69"
+    },
+    "300_legal_lora_0233.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0233.json",
+      "bytes": 2477,
+      "sha256": "8e85b5ac91c320db85e2a7de37ce73ee88c7b54925e4ca26f3cb60b3a4260b78"
+    },
+    "301_legal_lora_0245.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0245.json",
+      "bytes": 2477,
+      "sha256": "2dd15a11a1e43b18f00be980eae77967bc12936b35452c0f58e3718cfffd7c71"
+    },
+    "302_legal_lora_0257.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0257.json",
+      "bytes": 2474,
+      "sha256": "6705fa93a2de3277cd600162a65e99fbaab565dfefa1b1ef51f83c0559a4fa40"
+    },
+    "303_legal_lora_0269.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0269.json",
+      "bytes": 2475,
+      "sha256": "600e35bdb275c6d04ce046a68baec5ec0205fbb421ad5c882d1445c6923c882a"
+    },
+    "304_legal_lora_0281.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0281.json",
+      "bytes": 2477,
+      "sha256": "29d2fba166dc4274f0a33f814937e759614592af84b8589be2cb8a0446c70d01"
+    },
+    "305_legal_lora_0293.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0293.json",
+      "bytes": 2477,
+      "sha256": "1ffe48f4cc4ae6ea46741ff59ad59bd5b04331b0b77c8ad3b4b12f06f3fb64f4"
+    },
+    "306_legal_lora_0305.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0305.json",
+      "bytes": 2477,
+      "sha256": "200e5905f9e5a2e9efff3d2bd1d1c803a173a7fb0b2faa4d6f197dbbef665631"
+    },
+    "307_legal_lora_0317.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0317.json",
+      "bytes": 2473,
+      "sha256": "96c6d580e60f0dee3ff506c35a8aa424d6fbfa52a6a42771b95a01575801afcb"
+    },
+    "308_legal_lora_0329.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0329.json",
+      "bytes": 2475,
+      "sha256": "8ca8ea403f4fce11b175e98c7143f89fba78b0def1f719ad6ca8a123fb437b69"
+    },
+    "309_legal_lora_0341.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0341.json",
+      "bytes": 2477,
+      "sha256": "a1a680bd304cb002894e55f88c34159eab77ad91fdfe613041542166bc63208c"
+    },
+    "310_legal_lora_0353.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0353.json",
+      "bytes": 2473,
+      "sha256": "cf75849e2bbdd5230d8e39579b9dc5db994787c6b05abc2eebd1d0222448af31"
+    },
+    "311_legal_lora_0365.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0365.json",
+      "bytes": 2477,
+      "sha256": "eef0b23fe5b9c9d1452d18bc5f3c4f0d362cbc8504cdb8c9f51e2149b60f9d71"
+    },
+    "312_legal_lora_0377.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0377.json",
+      "bytes": 2473,
+      "sha256": "ea17dc6a62096091561b3eb2eff2326aeb3d01a2d762893f13b3593f336131c2"
+    },
+    "313_legal_lora_0389.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0389.json",
+      "bytes": 2478,
+      "sha256": "fc547efb4786559103e19f0098682783e3ec7127411b4365f0fac8f3a1551f80"
+    },
+    "314_legal_lora_0401.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0401.json",
+      "bytes": 2478,
+      "sha256": "466d68d180690a022e90958d06961592847f3af747877455f6428f3667a098ed"
+    },
+    "315_legal_lora_0413.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0413.json",
+      "bytes": 2475,
+      "sha256": "d654eb2692ccb25ad9c44cd1ab22ce2375f9e13ea20692ac5d66a9a0fcd273a5"
+    },
+    "316_legal_lora_0425.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0425.json",
+      "bytes": 2478,
+      "sha256": "e2f40cb4dc3e6f8894d7fc5c8b4ee4521af80161e78c5476f7aa42552b31edfc"
+    },
+    "317_legal_lora_0437.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0437.json",
+      "bytes": 2478,
+      "sha256": "3b46bfe196188ce9bf13b606b8a6c832dfb84f72baa44d0d2544e21dba8ac1d5"
+    },
+    "318_legal_lora_0449.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0449.json",
+      "bytes": 2478,
+      "sha256": "571d4192631c4a318255f984259b2688e27d2862c38f04f094c8277a748e030e"
+    },
+    "319_legal_lora_0461.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0461.json",
+      "bytes": 2478,
+      "sha256": "7c036468903cda8c7369eebed95f5bec8181d89a4b5ccd45fb63785ff4f150c2"
+    },
+    "320_legal_lora_0473.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0473.json",
+      "bytes": 2475,
+      "sha256": "31ba985d7a909286dadf37e15992952f6fa3018052dfdb46865e73ce0c5f08e5"
+    },
+    "321_legal_lora_0485.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0485.json",
+      "bytes": 2476,
+      "sha256": "63005a6c834b5341454bb63a1caa4ca5619f2cd73469e86c26ccc27cf9ba2f4f"
+    },
+    "322_legal_lora_0497.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/legal_lora_0497.json",
+      "bytes": 2474,
+      "sha256": "619eef913247a3e5be4832c7282a6c179b687262b1f5db4e49e44c81981b8a1c"
+    },
+    "323_medical_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora.json",
+      "bytes": 2474,
+      "sha256": "cd423194ff06f5159fd24024714d251267e19cfedd96723655f154c1ddc49c17"
+    },
+    "324_medical_lora_0014.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0014.json",
+      "bytes": 2482,
+      "sha256": "456318d25b0edce4341db4167d95ed19c5a8881ff4c30c4efb24910229c5a216"
+    },
+    "325_medical_lora_0026.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0026.json",
+      "bytes": 2481,
+      "sha256": "c95201144073be45004183c797920979566dab8c8e2deae8bd1703603e53cedc"
+    },
+    "326_medical_lora_0038.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0038.json",
+      "bytes": 2479,
+      "sha256": "1c74b51212dcf97c9127f74f8bcce1bf2602ef4f6da2657a5eae8a687fb16a02"
+    },
+    "327_medical_lora_0050.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0050.json",
+      "bytes": 2480,
+      "sha256": "783d57fcaced3488e2e34596f7ebe42a848710ef872814014646c7ec91c8a4b1"
+    },
+    "328_medical_lora_0062.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0062.json",
+      "bytes": 2481,
+      "sha256": "a6edbb8720a6b160be62604f568b54c68a2bcc747391fee73111ef77566083aa"
+    },
+    "329_medical_lora_0074.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0074.json",
+      "bytes": 2478,
+      "sha256": "db6a84cf68b29fefae96eb779007c79099fc2ccd8b996aecfbc5271dc2b9144c"
+    },
+    "330_medical_lora_0086.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0086.json",
+      "bytes": 2481,
+      "sha256": "b969d13d325e92e4b55be20de7cfc4be736dca4e273baf38eeaca2c75fa8c0d7"
+    },
+    "331_medical_lora_0098.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0098.json",
+      "bytes": 2481,
+      "sha256": "e8e00094dae010d518325cd6b470840d7bddafe7a9aae9df60f0ad5f472460c6"
+    },
+    "332_medical_lora_0110.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0110.json",
+      "bytes": 2482,
+      "sha256": "6fb4c68aedbaf779770afaa29b4cd2a13d71bfcba03e29f6f480debc7ac94585"
+    },
+    "333_medical_lora_0122.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0122.json",
+      "bytes": 2482,
+      "sha256": "8a234e33b57fb32322ec95ab62e485698c9bd5f355589659625220f97e41e764"
+    },
+    "334_medical_lora_0134.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0134.json",
+      "bytes": 2481,
+      "sha256": "e43e74eb6aa2e1df5abd1733a93e0e0429929fdb957ce3fa3fece18e8fe9e46e"
+    },
+    "335_medical_lora_0146.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0146.json",
+      "bytes": 2480,
+      "sha256": "a4388aac06881a3441cc60e0c8c81d2d3a09060b13e4cf0c95e53f19fb2b23da"
+    },
+    "336_medical_lora_0158.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0158.json",
+      "bytes": 2480,
+      "sha256": "c6d5d3516a8391710ef4e84717be708a8b9f9917ff30a6f98ef170b717c86154"
+    },
+    "337_medical_lora_0170.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0170.json",
+      "bytes": 2481,
+      "sha256": "7725b0562750d54e062842b2f814e0fd0f0067263536105c03ef7dedbdb69539"
+    },
+    "338_medical_lora_0182.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0182.json",
+      "bytes": 2480,
+      "sha256": "a4bedc4dc252b41d7d00c71404755299dbdf1d06ae8f523b9626a261dadb6285"
+    },
+    "339_medical_lora_0194.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0194.json",
+      "bytes": 2480,
+      "sha256": "6732877871387b3248284b4e86ca4366104d0ece2c42f92b97af9fb2be066cef"
+    },
+    "340_medical_lora_0206.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0206.json",
+      "bytes": 2481,
+      "sha256": "a2a784e5ceb7d8c03c82da874d2b77a8ec667bbf4262ac55860ee569a19aaa2c"
+    },
+    "341_medical_lora_0218.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0218.json",
+      "bytes": 2480,
+      "sha256": "c1dd670c2cdb5567b2a3f300b2471a81dcc08d5e2c91d14710ad5c2cd8f6d4bc"
+    },
+    "342_medical_lora_0230.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0230.json",
+      "bytes": 2481,
+      "sha256": "894400c22051b6f9cd7ee9b8d2d9509614ba3aff7c13f233d616aa2566ba3574"
+    },
+    "343_medical_lora_0242.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0242.json",
+      "bytes": 2481,
+      "sha256": "f3787e17ac40c0d31c72a7db98df4e5d03f1231504705cc0ea38364ca2b4e38f"
+    },
+    "344_medical_lora_0254.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0254.json",
+      "bytes": 2478,
+      "sha256": "7e288afa81bca454e9286a7ab3204e21fb77125333cc22696f339bbd7c3b7dd6"
+    },
+    "345_medical_lora_0266.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0266.json",
+      "bytes": 2482,
+      "sha256": "251b4a298f281f33300a5761654d78e8c8271048513d2c4865b71234c8d9f180"
+    },
+    "346_medical_lora_0278.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0278.json",
+      "bytes": 2482,
+      "sha256": "5c9d5cc5819489b24d395cc19c1c6643df578928e4f8677869032b4a44b8ff08"
+    },
+    "347_medical_lora_0290.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0290.json",
+      "bytes": 2483,
+      "sha256": "8863742787c2b99f43b937cf1820fb7ba3d5a2e07afa0b7ddc0e06d691cdd0c8"
+    },
+    "348_medical_lora_0302.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0302.json",
+      "bytes": 2480,
+      "sha256": "aad9c92e296fa73bb5c69b24b23e1fa743ad3bcf0f6df4e57dccaef5e87f518f"
+    },
+    "349_medical_lora_0314.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0314.json",
+      "bytes": 2480,
+      "sha256": "4a48c9586d82f91e786ee113b3bc5a123f302a9f850355c99d7583c8243fc290"
+    },
+    "350_medical_lora_0326.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0326.json",
+      "bytes": 2482,
+      "sha256": "3d8b4fad09be32a23f16a953b2582b137a5c1487447aa00773f772de5ac2d67a"
+    },
+    "351_medical_lora_0338.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0338.json",
+      "bytes": 2481,
+      "sha256": "834fe85db50657e331bc6736467b0af81b050d4075f56368cf0d12d5e22d5589"
+    },
+    "352_medical_lora_0350.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0350.json",
+      "bytes": 2481,
+      "sha256": "c9a73ed6e1e0dee4b459f5346bddcce503fa6185a894fae19765de8fb0651066"
+    },
+    "353_medical_lora_0362.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0362.json",
+      "bytes": 2479,
+      "sha256": "945ca5f95812d7ae32daba269038c642d91a481bb5182c8fe9c6010ce72debff"
+    },
+    "354_medical_lora_0374.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0374.json",
+      "bytes": 2480,
+      "sha256": "2a3685cfba5db3487ffcc84a13bc5c048dba8d16ace4d657c783769207a7f8d1"
+    },
+    "355_medical_lora_0386.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0386.json",
+      "bytes": 2481,
+      "sha256": "5fbe82ca00da65270004657586ac2a3145c41f53f689dff268d1b125f9561677"
+    },
+    "356_medical_lora_0398.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0398.json",
+      "bytes": 2480,
+      "sha256": "282ae09d013fb37f61dbd25077f689697352b330beb3bf9383c016ba753eba1e"
+    },
+    "357_medical_lora_0410.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0410.json",
+      "bytes": 2482,
+      "sha256": "80e6bb81c0ac0325e01b5512f6805929e75883410325ad6cf2de47cdec10d5e0"
+    },
+    "358_medical_lora_0422.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0422.json",
+      "bytes": 2481,
+      "sha256": "73023dcc1b6818fde8cd606c300f29b81755f75413a6bbd163ea3b4612982e9b"
+    },
+    "359_medical_lora_0434.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0434.json",
+      "bytes": 2482,
+      "sha256": "450e9c5d5886c0654469502ee7953d5292714f453441398ee4e6f2ba79db078d"
+    },
+    "360_medical_lora_0446.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0446.json",
+      "bytes": 2480,
+      "sha256": "0f1a728e512a877647f8fea2fb85e6ff4fee3a7ada2f83bc15ae7f67ce15c354"
+    },
+    "361_medical_lora_0458.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0458.json",
+      "bytes": 2482,
+      "sha256": "ed1f4970537b285347606686a08abaea567d7c47058a1c32021d0e3c6fbe3cd3"
+    },
+    "362_medical_lora_0470.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0470.json",
+      "bytes": 2479,
+      "sha256": "257e3310418559fea4a5a4b2e90eac3494fe0fc494c1a9da2c6bb257c75fb0f6"
+    },
+    "363_medical_lora_0482.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0482.json",
+      "bytes": 2480,
+      "sha256": "d5de9b35fb1adf28a0eb085c6ac3a0d346b811ed6938e3045ed21ed572dcb8b8"
+    },
+    "364_medical_lora_0494.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/medical_lora_0494.json",
+      "bytes": 2482,
+      "sha256": "e9020690025b1a19b572d0de8196f6f7aed3d4575af58f9b6598bd970485cfce"
+    },
+    "365_research_lora_0008.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0008.json",
+      "bytes": 2481,
+      "sha256": "ea118a1e03f50a547e37cf4b5d51b4101055e6901119be3269175ce6fff5ff63"
+    },
+    "366_research_lora_0020.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0020.json",
+      "bytes": 2483,
+      "sha256": "58026cd1946335de5c9345607923014344c0ce50bb45b62360e97f13af279c6f"
+    },
+    "367_research_lora_0032.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0032.json",
+      "bytes": 2485,
+      "sha256": "ee735d214417865ceabfdebff238335725fc126d05e0e185eadea5f3c5c4c5ae"
+    },
+    "368_research_lora_0044.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0044.json",
+      "bytes": 2483,
+      "sha256": "44a36073ebe54fa258f4912d234eb5031d4efaef4058aab0e81c3a97d2399abd"
+    },
+    "369_research_lora_0056.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0056.json",
+      "bytes": 2485,
+      "sha256": "5e495e40beb967443c4e755f5f6cdc79c5eb6e4e5b705ebde98c1d3437b88670"
+    },
+    "370_research_lora_0068.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0068.json",
+      "bytes": 2481,
+      "sha256": "6c87da148374ead55edd1c6588cfa4b99dc8472d0440a35eafef8e6d90b7dc30"
+    },
+    "371_research_lora_0080.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0080.json",
+      "bytes": 2484,
+      "sha256": "09ed437ff83e1e266d835bcbd6e0edc017331dfd0e6c6a2895960c56aa1ee350"
+    },
+    "372_research_lora_0092.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0092.json",
+      "bytes": 2483,
+      "sha256": "f6295c1da4187c036fa58aafcae1ab5ec614dc2b0d3fe29a288c0a114e387300"
+    },
+    "373_research_lora_0104.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0104.json",
+      "bytes": 2481,
+      "sha256": "dc6c1cc86f56a1bd62dab875c8a85ff51b798db1852935bca45e3ef3413fb01e"
+    },
+    "374_research_lora_0116.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0116.json",
+      "bytes": 2483,
+      "sha256": "a167e9ff2ef4bc3593bc764ba14c3bcfe621d17bfd9fc75ef84014cb4206210f"
+    },
+    "375_research_lora_0128.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0128.json",
+      "bytes": 2480,
+      "sha256": "fa63485da49c946cf3c9dde76aae59d36d70afecd7ab0cd6ed3e031bb436f3d9"
+    },
+    "376_research_lora_0140.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0140.json",
+      "bytes": 2479,
+      "sha256": "cad715a340de43024ea342a581202c594cfe70bab4f34820f9b91ba71a048325"
+    },
+    "377_research_lora_0152.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0152.json",
+      "bytes": 2480,
+      "sha256": "3a070fb64d87e6ab6a37081af5b680adb0a2c48df84ef701448c5a909e3a0a83"
+    },
+    "378_research_lora_0164.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0164.json",
+      "bytes": 2481,
+      "sha256": "a142416a79254afaa7fef498993f4752ce9abbf627885f92e5ba9f65c94c216b"
+    },
+    "379_research_lora_0176.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0176.json",
+      "bytes": 2483,
+      "sha256": "b02a276004791c7d246a2ab855493ddfc6b21908be1e70dcab7475fc7d0fe499"
+    },
+    "380_research_lora_0188.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0188.json",
+      "bytes": 2482,
+      "sha256": "5fafb61c26d163656354b630c0f6d4fc8044942656cabcb4ee9b312d15cd7bd9"
+    },
+    "381_research_lora_0200.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0200.json",
+      "bytes": 2480,
+      "sha256": "2d096ea5cb2c178721431fb52e30abfb55991957461d5744638f08470b3cad11"
+    },
+    "382_research_lora_0212.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0212.json",
+      "bytes": 2482,
+      "sha256": "535340c3ba6929c7f867e79146d750a248ca24dfd89b9c81df38ecd257d9f52d"
+    },
+    "383_research_lora_0224.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0224.json",
+      "bytes": 2481,
+      "sha256": "5cf815efefbd5b24f8cb4ddfc1410c9f06b2521cb955cfe79d557e01d88e722a"
+    },
+    "384_research_lora_0236.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0236.json",
+      "bytes": 2483,
+      "sha256": "41db302a0f07aca0a2b7f20d84cdca18c46c0ed76aa88f8922a910736eb610f2"
+    },
+    "385_research_lora_0248.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0248.json",
+      "bytes": 2483,
+      "sha256": "8da8ac1aaf4deafcf8aa17361d3f48eccf0393952c4f983905e575fbcde5de95"
+    },
+    "386_research_lora_0260.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0260.json",
+      "bytes": 2483,
+      "sha256": "fad08535bcaf767a8cd1b3b0355a9c5341491ba7ed4213b25faee38a0a71d2f0"
+    },
+    "387_research_lora_0272.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0272.json",
+      "bytes": 2482,
+      "sha256": "145f6c7d53d249122a9b68b0afbea54de8c5effd4fb7c88d7b045954bdd0cf1c"
+    },
+    "388_research_lora_0284.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0284.json",
+      "bytes": 2480,
+      "sha256": "b4bb17d251198607050bbc2b4452ef8fe701427929e312110db0ebc2bcdc3a7e"
+    },
+    "389_research_lora_0296.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0296.json",
+      "bytes": 2483,
+      "sha256": "12a48d5e3365d5a4629d99c0a4d640f2c106716e07b292f410c4eca38d88f81a"
+    },
+    "390_research_lora_0308.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0308.json",
+      "bytes": 2483,
+      "sha256": "09ee08ac3e775a2a7c28ddb0ed17aa6e7a99a60bccbb65dd64cad4a6e53e232e"
+    },
+    "391_research_lora_0320.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0320.json",
+      "bytes": 2482,
+      "sha256": "ace03ae5377174508277a25ae40fe358bb2818da2014b7306abbef7cc7d52755"
+    },
+    "392_research_lora_0332.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0332.json",
+      "bytes": 2480,
+      "sha256": "0eeefc20d25a362593c9ac1e97bacc8fdb068c4f00d257de6df1b884e1b78fe0"
+    },
+    "393_research_lora_0344.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0344.json",
+      "bytes": 2479,
+      "sha256": "ad263ec6a83036f3f8abb75bba90c3adc4199e3e2bde51b50016b373e6d366b1"
+    },
+    "394_research_lora_0356.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0356.json",
+      "bytes": 2483,
+      "sha256": "59583ba92dc433f128902f4044156e6448c179a68100df34bf4091bd9d07b00c"
+    },
+    "395_research_lora_0368.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0368.json",
+      "bytes": 2484,
+      "sha256": "1fc638c0434607566ee8f0d26d4607bc105c047d6c55a8bd78f5379e7de58f61"
+    },
+    "396_research_lora_0380.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0380.json",
+      "bytes": 2484,
+      "sha256": "58b0705511e69b27861326f16099f3693f5d3f6ae48e8c4ef5ee6e2fe776f7c0"
+    },
+    "397_research_lora_0392.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0392.json",
+      "bytes": 2481,
+      "sha256": "f65e39d6d90cd5469118d0cc9c068e855ebeec1a2ea50af9886cb9186c490b88"
+    },
+    "398_research_lora_0404.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0404.json",
+      "bytes": 2481,
+      "sha256": "8c25f20ce10bf4c6cffa444716be5f8db67fa9d283f42bc98f35ae3de9eeeac8"
+    },
+    "399_research_lora_0416.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0416.json",
+      "bytes": 2485,
+      "sha256": "e33944d5be15ad3c7575dade2b8efb15f414e8feb41e59fb799f01c8982522c3"
+    },
+    "400_research_lora_0428.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0428.json",
+      "bytes": 2483,
+      "sha256": "1e86e0e6d727ab1b78d3626bec2a77fe07b25efccadaa6119e6fde6d53d244a3"
+    },
+    "401_research_lora_0440.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0440.json",
+      "bytes": 2480,
+      "sha256": "ebe4da2e08005c13bcebe47253733a11058207d0e4937bf1caf5b0738352a610"
+    },
+    "402_research_lora_0452.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0452.json",
+      "bytes": 2480,
+      "sha256": "9b4b52dfe2223874fad34c8349eea165393e5c808f3c36141109ebcd6404d4d4"
+    },
+    "403_research_lora_0464.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0464.json",
+      "bytes": 2480,
+      "sha256": "8f6a22a0935f20af08f4b6432975f3d854e8ec91e57feeaa2f7e3dea1994ecc6"
+    },
+    "404_research_lora_0476.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0476.json",
+      "bytes": 2484,
+      "sha256": "9f297c960ce7001a4563609e022ddd2bee93a006a1ff2155e193332f63af79e2"
+    },
+    "405_research_lora_0488.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/research_lora_0488.json",
+      "bytes": 2483,
+      "sha256": "6e3cb8a8e203fbbdd07d826536e5be6d05d491c46310755a5c040021f19aca50"
+    },
+    "406_security_lora_0012.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0012.json",
+      "bytes": 2484,
+      "sha256": "9f455efe38e64283ac1edf7bc783a239b5320b4b00c5ba5c015bec50e019ef2a"
+    },
+    "407_security_lora_0024.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0024.json",
+      "bytes": 2483,
+      "sha256": "87739296b0b81d0ffcee0668f7f9c900484dd46abf70c7aa230c80748f7eaf57"
+    },
+    "408_security_lora_0036.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0036.json",
+      "bytes": 2481,
+      "sha256": "b725476ed3804d6f766f53039043bd98805caf3496ffca3c47b82c2df12bf971"
+    },
+    "409_security_lora_0048.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0048.json",
+      "bytes": 2485,
+      "sha256": "dc4362962e8333480553978f5671d3d3b7dc0cbf5427ee2cfb33b3ab7d62ee18"
+    },
+    "410_security_lora_0060.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0060.json",
+      "bytes": 2484,
+      "sha256": "d6f3042611253ed0b9f98a59c919cf8cdf804f3e2a3cf73f4676c4784a8a927f"
+    },
+    "411_security_lora_0072.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0072.json",
+      "bytes": 2483,
+      "sha256": "703638c0a994cba37669cb66af4a4780f7a3702c7045c5eb057d10c203efd24a"
+    },
+    "412_security_lora_0084.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0084.json",
+      "bytes": 2484,
+      "sha256": "bc3bf7f4c8450ad3206d72b7ca6771a2e16dd3125079d86dd9d32f37d76d85a6"
+    },
+    "413_security_lora_0096.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0096.json",
+      "bytes": 2481,
+      "sha256": "115d994a5b97175668f7a0346380cad74253ba76cfbf3dcb9e11e0c7839b493b"
+    },
+    "414_security_lora_0108.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0108.json",
+      "bytes": 2482,
+      "sha256": "0b6eead63bb1c15fb571fa0e58532b8ecd653cf7f526d29ef28b7a67bb7c1f40"
+    },
+    "415_security_lora_0120.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0120.json",
+      "bytes": 2481,
+      "sha256": "01666b0356c4073b239beeb53b8c13c90ff2e87f32b97275b67b439abb35fbc3"
+    },
+    "416_security_lora_0132.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0132.json",
+      "bytes": 2483,
+      "sha256": "e63b4a32c5a1d626753aa9258f6a07f391d253e0ddb9157d75b508fe065b7206"
+    },
+    "417_security_lora_0144.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0144.json",
+      "bytes": 2485,
+      "sha256": "2f3dce72bc455d87eab7c4d674b943e3b3b80492e7a09cd92a71909ae06b07b1"
+    },
+    "418_security_lora_0156.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0156.json",
+      "bytes": 2480,
+      "sha256": "5f0962735cedbb36c1277c5ac65fe82cbb9edd1d451eeb05a3a1c37c7914a043"
+    },
+    "419_security_lora_0168.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0168.json",
+      "bytes": 2482,
+      "sha256": "530e7b4e479577f0852ffc1bf651119dd329b9de46552ba5b3e0065325172ffb"
+    },
+    "420_security_lora_0180.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0180.json",
+      "bytes": 2482,
+      "sha256": "0fc1c75e19fcea557ffb2c66d27fd2ba7f8812f138e25d6eff9304bd4133a727"
+    },
+    "421_security_lora_0192.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0192.json",
+      "bytes": 2485,
+      "sha256": "bdf9772904ec7bd86744e89d88ad48e199ed00da0d4ae9b72f68577255f03aad"
+    },
+    "422_security_lora_0204.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0204.json",
+      "bytes": 2481,
+      "sha256": "85492d8abd4f79fce81470113478a51d2390f01498ae769aa1ba7323c1cb0033"
+    },
+    "423_security_lora_0216.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0216.json",
+      "bytes": 2483,
+      "sha256": "432ef6aa6d2037f22fd95d5e82e15923e749f386102f50dd883b67461c3cbd4c"
+    },
+    "424_security_lora_0228.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0228.json",
+      "bytes": 2484,
+      "sha256": "1ad462ac08ac8d8e596e99f31534638259926860fd147305e70111b754eb4400"
+    },
+    "425_security_lora_0240.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0240.json",
+      "bytes": 2482,
+      "sha256": "83b446ff070a4262b1a2831a5e3ed7d0fa57ca751fe583125c5c38912e8e2cd1"
+    },
+    "426_security_lora_0252.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0252.json",
+      "bytes": 2482,
+      "sha256": "b6782009afa37cd40d2f3d439a7b361954b76a0a923260fdcd0575a32d139377"
+    },
+    "427_security_lora_0264.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0264.json",
+      "bytes": 2483,
+      "sha256": "ada77415df135c3942aeba9d500653f67a8ca432550fe6107961536af65b74e4"
+    },
+    "428_security_lora_0276.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0276.json",
+      "bytes": 2484,
+      "sha256": "86b5192e1d14a79cd3bc7038288e9fe29a614325e5ae1616a0d510c6da9e4f18"
+    },
+    "429_security_lora_0288.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0288.json",
+      "bytes": 2484,
+      "sha256": "e3732184971935ccb00c33ec641dd2596e4e41b3a96c064f254d6c842053bb72"
+    },
+    "430_security_lora_0300.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0300.json",
+      "bytes": 2481,
+      "sha256": "8959ce3bcb1764139f278976f20adcb94e9ba8e2d7ee78fe208edacb10b3d7b4"
+    },
+    "431_security_lora_0312.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0312.json",
+      "bytes": 2483,
+      "sha256": "8624955055482a66c5a51dc034a9f6bdf79ff6c4bc3fc11124b8b9be2e50e459"
+    },
+    "432_security_lora_0324.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0324.json",
+      "bytes": 2482,
+      "sha256": "43c4781a4d8daf73eee3b47c76ba3aa0c06fc3fe5f76e911ae9f7cb483e9633d"
+    },
+    "433_security_lora_0336.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0336.json",
+      "bytes": 2483,
+      "sha256": "fca3091e3a99da85f7272ce4b4f0ac24b2ce817e188967cd3629177c3518e1bb"
+    },
+    "434_security_lora_0348.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0348.json",
+      "bytes": 2479,
+      "sha256": "8ffbd1a502faf9853e43052f9a1f4897b68a464c27d7ad7051a328d9e6e4b462"
+    },
+    "435_security_lora_0360.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0360.json",
+      "bytes": 2483,
+      "sha256": "8dd0627bf6b556046084d4d907463418a8f8192ba9cbb979e4f0064db4231929"
+    },
+    "436_security_lora_0372.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0372.json",
+      "bytes": 2484,
+      "sha256": "6c2dd05f9e4a9de477c251f651b7b484df56954f9d951463328cdf1b87d2c6c9"
+    },
+    "437_security_lora_0384.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0384.json",
+      "bytes": 2480,
+      "sha256": "e9dc9f78c0e7aa667048f8f19793af175f27790e64135934accbb26f3ec4aa84"
+    },
+    "438_security_lora_0396.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0396.json",
+      "bytes": 2480,
+      "sha256": "d1541ebe72f5c5bf118089ec0e33a954d23daee6f92a1ccf54bc9b16d37b799c"
+    },
+    "439_security_lora_0408.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0408.json",
+      "bytes": 2483,
+      "sha256": "d66de06091f7ab7274158a07fddd28ef8cbb9d9fbaea47550ff6e5fed20395e0"
+    },
+    "440_security_lora_0420.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0420.json",
+      "bytes": 2481,
+      "sha256": "2ec7c71a69ad0f9c5b221ccb3b99f291fc8c2ea509ab7afabb3a5507be6a8edf"
+    },
+    "441_security_lora_0432.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0432.json",
+      "bytes": 2482,
+      "sha256": "99d7dbcbfeb1c919966f286f26485499a755ad93715e65628291e4f887677b6a"
+    },
+    "442_security_lora_0444.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0444.json",
+      "bytes": 2482,
+      "sha256": "9ecb9ead308118161ba360d2e854769a185ba775449274ba9328039772292942"
+    },
+    "443_security_lora_0456.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0456.json",
+      "bytes": 2482,
+      "sha256": "bc54d2013fb7bc6f4347b886bcb7892eebb7e182afcc24b7527e39e2c71d3d00"
+    },
+    "444_security_lora_0468.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0468.json",
+      "bytes": 2483,
+      "sha256": "2afedcfa33d3149ce5ab7b7deacf2655005c14d147f1701551dff63358dd0bc3"
+    },
+    "445_security_lora_0480.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0480.json",
+      "bytes": 2482,
+      "sha256": "74f6d1f3f64262105c03dbfc1cce2112fd65fd76cdfe82eb84015fa6805da297"
+    },
+    "446_security_lora_0492.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/security_lora_0492.json",
+      "bytes": 2483,
+      "sha256": "b6359b721cd34e8c0f91aba9d575f1ddec9efb40be8a39397d575b9d849990ac"
+    },
+    "447_support_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora.json",
+      "bytes": 2472,
+      "sha256": "091a46040853a06343b81086ab44b81922370ea1f20581de3ca60e9675d589d0"
+    },
+    "448_support_lora_0016.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0016.json",
+      "bytes": 2479,
+      "sha256": "317366edd3de08d657384d25534053c40d1a868bd7321ea395f3cd208bd06338"
+    },
+    "449_support_lora_0028.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0028.json",
+      "bytes": 2477,
+      "sha256": "a2c9b38cc8b7170b6124cf654ff3b636b0dafded85e883317367a4ca1a889a83"
+    },
+    "450_support_lora_0040.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0040.json",
+      "bytes": 2478,
+      "sha256": "402531dcf3e9f704c3c68123e9b90208595f52fb0936716c70bb1dbb3c0ea59c"
+    },
+    "451_support_lora_0052.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0052.json",
+      "bytes": 2480,
+      "sha256": "b0ac069951b25031b57ba4196a34d765ca0e64a60e2b4c790267114e7b82c370"
+    },
+    "452_support_lora_0064.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0064.json",
+      "bytes": 2480,
+      "sha256": "83b37d1433a35ecc96b721e694177a25703b278eb1700666cf28e37db71a5345"
+    },
+    "453_support_lora_0076.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0076.json",
+      "bytes": 2480,
+      "sha256": "247061d14abe6e52b8cf74dbf02db66e748283229e6b4648d679ced5d8bb590d"
+    },
+    "454_support_lora_0088.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0088.json",
+      "bytes": 2482,
+      "sha256": "0e5ed68dc1187300be50f7d08933684ebe3e73b8d7f9a8d28052c27f615226f6"
+    },
+    "455_support_lora_0100.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0100.json",
+      "bytes": 2481,
+      "sha256": "b8dd451f052e5d8e4296a6f4c0d713782abe2fe45f12963b5c82a6840d40bec1"
+    },
+    "456_support_lora_0112.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0112.json",
+      "bytes": 2481,
+      "sha256": "eeb3e65f9636297b3790650a68227f390d5704638e810570192f720a4319af2b"
+    },
+    "457_support_lora_0124.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0124.json",
+      "bytes": 2481,
+      "sha256": "61b4554e4b8d88c782d2158f899aefec20d950da937c9e05da72930e68d4027c"
+    },
+    "458_support_lora_0136.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0136.json",
+      "bytes": 2482,
+      "sha256": "11d72b09927385af2f6423d62cd66442471327c2c247c8fdda4e104361b90d37"
+    },
+    "459_support_lora_0148.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0148.json",
+      "bytes": 2480,
+      "sha256": "f8a6926d11e65f5ed7604e9ff115a7d78b2adbba15ea4304bdc8231ffd167b4a"
+    },
+    "460_support_lora_0160.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0160.json",
+      "bytes": 2481,
+      "sha256": "b76c4c39d81a5b06c6aa6a8f3027bea7a025704c4fcb649f418382f41854a816"
+    },
+    "461_support_lora_0172.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0172.json",
+      "bytes": 2482,
+      "sha256": "5bc0831d2be3465483a613604becaae84d42fbbabcf5577d1786062f50b3fe16"
+    },
+    "462_support_lora_0184.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0184.json",
+      "bytes": 2481,
+      "sha256": "fa0f0cd66d799890b661bfb6fb2e62b2c8e4f99572cc1afedd5765ce68dace66"
+    },
+    "463_support_lora_0196.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0196.json",
+      "bytes": 2476,
+      "sha256": "fecbf60a1666fd48c5d45218f8d30e787ff5e470fb5c8810fc3b77f532f91f82"
+    },
+    "464_support_lora_0208.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0208.json",
+      "bytes": 2483,
+      "sha256": "a31423743cb2c2f5f2a76dd1fa0582aa636d39dce2858db750f098ebce7ac032"
+    },
+    "465_support_lora_0220.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0220.json",
+      "bytes": 2480,
+      "sha256": "6432ca64cfed5c0327ce096ad2c3a8f43fc1c530e7f998f54b2129e8161dc9ca"
+    },
+    "466_support_lora_0232.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0232.json",
+      "bytes": 2480,
+      "sha256": "94f6ec5a0cc6048b50bf5a308cc8fb7088ed929bb5ef58c198739e505ab6da14"
+    },
+    "467_support_lora_0244.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0244.json",
+      "bytes": 2479,
+      "sha256": "6dd793ed06c9a14a16b879027f5e67dbc448221551b6a14dd9abd73ffd649f3f"
+    },
+    "468_support_lora_0256.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0256.json",
+      "bytes": 2482,
+      "sha256": "72050577c2e2739f8df8004e4fe82dff260401a96e5489fd85149c2f4536087e"
+    },
+    "469_support_lora_0268.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0268.json",
+      "bytes": 2476,
+      "sha256": "4b82e06481d350ef2e9d0c59d003f93553e5f538645969dbb8c49d369796d395"
+    },
+    "470_support_lora_0280.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0280.json",
+      "bytes": 2481,
+      "sha256": "4718afe03172effb417c23ae31f9b218e2e0301d517d48fb8713843c463b983a"
+    },
+    "471_support_lora_0292.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0292.json",
+      "bytes": 2481,
+      "sha256": "37922c0d98a7ab4cc5e1eaf5e5f8e7a93ab5f8440cb2df1903301e87daf2faab"
+    },
+    "472_support_lora_0304.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0304.json",
+      "bytes": 2480,
+      "sha256": "93b67b8c849f7eb4d80ddf77664a5b207bd0f17dc00d080c829300745f2df303"
+    },
+    "473_support_lora_0316.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0316.json",
+      "bytes": 2480,
+      "sha256": "699f3c96ab1f6ffd0267dc8cdc785b28ad4aec3a79b76343d9c890f64b3b19d7"
+    },
+    "474_support_lora_0328.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0328.json",
+      "bytes": 2479,
+      "sha256": "ca75fd2ae5b91591881ced838bd7cc952f0d457d402ecf0bdd6160c9931a0ac9"
+    },
+    "475_support_lora_0340.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0340.json",
+      "bytes": 2481,
+      "sha256": "7b9d1f31d8eab495060ced031f681c1addaa1b9e0bb6e030b45f2c38e5efb2de"
+    },
+    "476_support_lora_0352.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0352.json",
+      "bytes": 2481,
+      "sha256": "c5ff217c73466477a368e4b0e30f146dd1f39a7c29b17397c1473f24815ce8c0"
+    },
+    "477_support_lora_0364.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0364.json",
+      "bytes": 2480,
+      "sha256": "97887b9850830474cbfd0ef57b311ba045bc74365ae6d37453da15eb4cb0568c"
+    },
+    "478_support_lora_0376.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0376.json",
+      "bytes": 2480,
+      "sha256": "b59e9980966708cdc06219af9289e851bc5656e4578dc643af92b26ad049409c"
+    },
+    "479_support_lora_0388.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0388.json",
+      "bytes": 2480,
+      "sha256": "a3fa7e19ac26ca2c3ebf266cb6635eea2b5541b062c0385796f25fcecc1090f3"
+    },
+    "480_support_lora_0400.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0400.json",
+      "bytes": 2475,
+      "sha256": "1cfa102b29f4e12c680623d1c650dccaab1116cffb9bfff871079b126334036c"
+    },
+    "481_support_lora_0412.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0412.json",
+      "bytes": 2480,
+      "sha256": "4b9977f22046e5c1c582d880bc1645be46f275c1ea0b2f9f6fa1495595d316ce"
+    },
+    "482_support_lora_0424.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0424.json",
+      "bytes": 2481,
+      "sha256": "73d65041213f432c7d904043f331a6bc77dff1a2efb3df3d21b59eb58ef343b4"
+    },
+    "483_support_lora_0436.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0436.json",
+      "bytes": 2483,
+      "sha256": "f5c86e35319444686b71d8fb77b09b0bab12d4204321c77dccb67b3eab196750"
+    },
+    "484_support_lora_0448.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0448.json",
+      "bytes": 2480,
+      "sha256": "2bbbab92aec4e86c1948330ec825c4fda56a9139714caa5cdd79da926f74d4a0"
+    },
+    "485_support_lora_0460.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0460.json",
+      "bytes": 2482,
+      "sha256": "28bb33a2a3be88e491919bd8d1366b29bf395653775adfe5043e163f14654c7d"
+    },
+    "486_support_lora_0472.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0472.json",
+      "bytes": 2479,
+      "sha256": "b1c520a34f1f8d89889980bd56a8a6efccd59a8459f1e5e1a38ef9bd8d1261e3"
+    },
+    "487_support_lora_0484.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0484.json",
+      "bytes": 2482,
+      "sha256": "d8332366b11542410f90f5e9c0a27663a8bc368de62ab4d91e92861975ac377e"
+    },
+    "488_support_lora_0496.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/support_lora_0496.json",
+      "bytes": 2480,
+      "sha256": "98751650f0969bb68aa43be880df2cc439aaff065cf06b2a289c10ebe60c14aa"
+    },
+    "489_translate_lora.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora.json",
+      "bytes": 2475,
+      "sha256": "9176fea27021b959e43c5f368ddd4a4c0181ff3d8f4913d7af0ad7d3463f6283"
+    },
+    "490_translate_lora_0018.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0018.json",
+      "bytes": 2483,
+      "sha256": "0e423e19d9bcbae0423169bb3e77de4d3f5e3a19d821a3f69f480eaa8d8a96d5"
+    },
+    "491_translate_lora_0030.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0030.json",
+      "bytes": 2484,
+      "sha256": "80b9e1b9adbc792c7e66baba6d58a3f8768d5fe7354a4ea17c385af233ce7815"
+    },
+    "492_translate_lora_0042.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0042.json",
+      "bytes": 2486,
+      "sha256": "7ba0aa19742218e97587e10c40ef4ffd5ccf4edc9b061d35741119c5149a981e"
+    },
+    "493_translate_lora_0054.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0054.json",
+      "bytes": 2484,
+      "sha256": "e00f4e973ee9d9f05390f14f0c9254d38c2ee46f4c8015f9471d3bdb908bd749"
+    },
+    "494_translate_lora_0066.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0066.json",
+      "bytes": 2483,
+      "sha256": "32f1196c8fc5dc91f5daff11b579b3fb3024f5150687e2f1978ea46a99c750e3"
+    },
+    "495_translate_lora_0078.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0078.json",
+      "bytes": 2487,
+      "sha256": "225c335fa8ac8d291c5c778d503af5d86b8f625d1700fcb7b523afadfcdc2442"
+    },
+    "496_translate_lora_0090.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0090.json",
+      "bytes": 2487,
+      "sha256": "391dc085a7962e492a31c0a1c3f693f27761be5947f5705d8adf9cf3e3843fc9"
+    },
+    "497_translate_lora_0102.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0102.json",
+      "bytes": 2486,
+      "sha256": "da3b7b5b3107762f5e4543e3fc0eb304096bbad4db32f5c64faadfdb2090c588"
+    },
+    "498_translate_lora_0114.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0114.json",
+      "bytes": 2485,
+      "sha256": "e8df99bf3a417cf65d282b248837c3ddf92df23fc349db6a77cc5007767810b9"
+    },
+    "499_translate_lora_0126.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0126.json",
+      "bytes": 2485,
+      "sha256": "470fcf0272a1c1a10c10973a41f6d7f83604436911e1ae0206c8412338f11e02"
+    },
+    "500_translate_lora_0138.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0138.json",
+      "bytes": 2485,
+      "sha256": "5228e8244d2ca30a7d9391285f60d6cd72b6afb7ebd139e1abd73b63417359d9"
+    },
+    "501_translate_lora_0150.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0150.json",
+      "bytes": 2485,
+      "sha256": "5f410e10cbc19acc6fc9bed89207eabc054bf43b8e250b880d45fb68a9b756dc"
+    },
+    "502_translate_lora_0162.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0162.json",
+      "bytes": 2485,
+      "sha256": "3781b466647a930e17c569413a1168997e355f0deb7e344a8f80480e912bbbca"
+    },
+    "503_translate_lora_0174.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0174.json",
+      "bytes": 2487,
+      "sha256": "c77faecbc27e11285c9d8fdf7bb2bdcb408e5179a897d2a816b05469202a9a5f"
+    },
+    "504_translate_lora_0186.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0186.json",
+      "bytes": 2483,
+      "sha256": "517ee35c7e9c31cfa19002ce9982c8d52fb21f0a4841ed5adb1cab4403011151"
+    },
+    "505_translate_lora_0198.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0198.json",
+      "bytes": 2484,
+      "sha256": "81ef1246272117ac7ccbbe9402d6abd91a7c6a929616b7926e5b9db6c51928bd"
+    },
+    "506_translate_lora_0210.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0210.json",
+      "bytes": 2484,
+      "sha256": "0b5d864be27d76ca5d4d4f39a8f9875ec636f86c2805170c473cdb166a2c95d5"
+    },
+    "507_translate_lora_0222.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0222.json",
+      "bytes": 2484,
+      "sha256": "12429a1c43d82f006c889f48b5c7e41e8c761e63f26bfea075685cf8a7e1136d"
+    },
+    "508_translate_lora_0234.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0234.json",
+      "bytes": 2484,
+      "sha256": "095898c182ec11bc72abf50b34dec375ae6011f64306b994ce3aa6a17e5b335d"
+    },
+    "509_translate_lora_0246.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0246.json",
+      "bytes": 2482,
+      "sha256": "a35dc9c93a1bed942bb4216051a62307e7304db1ab14588663cca2210c4fe221"
+    },
+    "510_translate_lora_0258.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0258.json",
+      "bytes": 2484,
+      "sha256": "801b7d79ded1e57ef6969f0c3816d70a6dde83cb60cc0499e152acd7c96efda8"
+    },
+    "511_translate_lora_0270.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0270.json",
+      "bytes": 2487,
+      "sha256": "2033308195f9eb2b952c6234e9548964bbfc0fb1fb0d12be21e53bd41fcae8ef"
+    },
+    "512_translate_lora_0282.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0282.json",
+      "bytes": 2485,
+      "sha256": "af7944a7c9f4bb927b9539a5de63dce39883ceaf9a6bccb303d0e954304acf39"
+    },
+    "513_translate_lora_0294.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0294.json",
+      "bytes": 2484,
+      "sha256": "24dc0f39b197bd1617cbea223b2d11e723d063d85affc5badedfb833e02eff02"
+    },
+    "514_translate_lora_0306.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0306.json",
+      "bytes": 2485,
+      "sha256": "7a1f5613490d1f157d104c08827da09cd96a2e98a39f656a3ba50a87c258479c"
+    },
+    "515_translate_lora_0318.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0318.json",
+      "bytes": 2483,
+      "sha256": "52d97784ad7c104638a8f3f22fe5eb8d81f5c1c659164bdf5211cea9f8d902ed"
+    },
+    "516_translate_lora_0330.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0330.json",
+      "bytes": 2483,
+      "sha256": "1f3c62cfa683883128c0b0c401018cfeeb2baf5842e6d32ed3e2c91a4962cd45"
+    },
+    "517_translate_lora_0342.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0342.json",
+      "bytes": 2484,
+      "sha256": "b5ae39c876c9d1090fb6c5ed80b04c0aea4f53b761eced99237131a1c15b1f71"
+    },
+    "518_translate_lora_0354.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0354.json",
+      "bytes": 2485,
+      "sha256": "f7b96e9c61c4ca9c88371fd30e1784fed8d7a04e2faa3cd1e3e33843da1e8fd4"
+    },
+    "519_translate_lora_0366.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0366.json",
+      "bytes": 2485,
+      "sha256": "b42e03e583aaba948c4543dd7ebb6211e7020dc9f64862050a5cce34bf1ea13d"
+    },
+    "520_translate_lora_0378.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0378.json",
+      "bytes": 2484,
+      "sha256": "9608cbcfe919301bb547f14ce086214e6558536f2e600fafed0c1d68da5d0317"
+    },
+    "521_translate_lora_0390.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0390.json",
+      "bytes": 2480,
+      "sha256": "4ba5c1f773e01f3af71a3b186ab533fd8d7b4c7b8558c4d7a780b651f8d1c3f4"
+    },
+    "522_translate_lora_0402.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0402.json",
+      "bytes": 2482,
+      "sha256": "94a8969f9c810d12095ef1fc5e5033ec0f1ef37cc496d8c716249ac126181937"
+    },
+    "523_translate_lora_0414.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0414.json",
+      "bytes": 2484,
+      "sha256": "7d60c19b0e679036b54cb7be2958d54637d254e9a3f3493335f65fcc23112ece"
+    },
+    "524_translate_lora_0426.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0426.json",
+      "bytes": 2482,
+      "sha256": "3700961d44aff3afe63f5c5fa64f1616d14a345be1b6c5c15da4317ccd809aff"
+    },
+    "525_translate_lora_0438.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0438.json",
+      "bytes": 2486,
+      "sha256": "20bd017efeb9fa2efa6c02e7f3a2e5ba665faa9068907bcad97b687c389c4cf2"
+    },
+    "526_translate_lora_0450.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0450.json",
+      "bytes": 2485,
+      "sha256": "2517fd4c9d6afc2e8ade9e7597a4b66480d4c15b726506447c4007ded7a40386"
+    },
+    "527_translate_lora_0462.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0462.json",
+      "bytes": 2484,
+      "sha256": "1c912a463b033ebc565ce801a8436a358245f84a02b4315c3d513f5c9cfc9c12"
+    },
+    "528_translate_lora_0474.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0474.json",
+      "bytes": 2486,
+      "sha256": "dba34a0c8225bf6c624c498021a589e8308609f83a621acff2b0f86d1f9e59e5"
+    },
+    "529_translate_lora_0486.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/translate_lora_0486.json",
+      "bytes": 2485,
+      "sha256": "a371982f6a64b1959b1c739786705d43f5d86103e59657ebcc1d6783b2ce37d4"
+    },
+    "530_writing_lora_0011.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0011.json",
+      "bytes": 2482,
+      "sha256": "5565ea526e8d134125c973ae097ed8f35af200b617104830d21c24a6e799033c"
+    },
+    "531_writing_lora_0023.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0023.json",
+      "bytes": 2480,
+      "sha256": "1a79d73b2ee79897afda10ea934888a1d9fc8aaa85bfa8d62be912c960ca2978"
+    },
+    "532_writing_lora_0035.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0035.json",
+      "bytes": 2482,
+      "sha256": "dec68515fdde7fc00ad3b711b305fc60aa2628bdd4549ca677d4cb084123161b"
+    },
+    "533_writing_lora_0047.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0047.json",
+      "bytes": 2483,
+      "sha256": "e74cd0bf61905b6b5fc1ce8fc568ba6a940f601408a050fe920314c8679d36cb"
+    },
+    "534_writing_lora_0059.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0059.json",
+      "bytes": 2479,
+      "sha256": "ff1e5e37e1fa3630b2755086ab46ff8d5776b6a1aaa73ea0dbbfde3c4cfc14c1"
+    },
+    "535_writing_lora_0071.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0071.json",
+      "bytes": 2481,
+      "sha256": "719676b8a6d56f21a9037ac706381d2a22a85ca14b2a1956a591f5bbee98313e"
+    },
+    "536_writing_lora_0083.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0083.json",
+      "bytes": 2480,
+      "sha256": "38bb1aed7ff5c3881672c95e9a89550fca96041c8f9a2332349bccc243ff1580"
+    },
+    "537_writing_lora_0095.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0095.json",
+      "bytes": 2481,
+      "sha256": "59f3645b49a573685489bfe4db1eb360ddd8cd3ecdb2c68bb4f574d37b4def1f"
+    },
+    "538_writing_lora_0107.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0107.json",
+      "bytes": 2481,
+      "sha256": "0667d462b6d56dd472bd2115dd9a8e7c86ef0e5f13dde7a47e712e7602a3191c"
+    },
+    "539_writing_lora_0119.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0119.json",
+      "bytes": 2478,
+      "sha256": "161460237cb64544a0fcbc3ea108bc6dd8bd87e0813a7aa7c7aa78435de1180f"
+    },
+    "540_writing_lora_0131.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0131.json",
+      "bytes": 2478,
+      "sha256": "056af39765d13824303c49b1523ce25e3bcb61d87eb197a1a1289d79fb9459ec"
+    },
+    "541_writing_lora_0143.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0143.json",
+      "bytes": 2481,
+      "sha256": "5c0eb2332730e795c869f8c1da41b13399a8b4ae67c228d2baf35bb3142748f0"
+    },
+    "542_writing_lora_0155.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0155.json",
+      "bytes": 2478,
+      "sha256": "760bfcba9d61cf8c0a892ec8f30e594af66ecd39fc312f166606106a8ce1fcda"
+    },
+    "543_writing_lora_0167.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0167.json",
+      "bytes": 2481,
+      "sha256": "e461b2579c618cc5d1a9d28a524e5c68bc22f5250fe2474f4461660894b4bc39"
+    },
+    "544_writing_lora_0179.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0179.json",
+      "bytes": 2482,
+      "sha256": "61dbc01aee125b04c0f9402f5b1833ec2eda072a9d74f518ebfef24db1cca6b3"
+    },
+    "545_writing_lora_0191.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0191.json",
+      "bytes": 2481,
+      "sha256": "75894ab1e054b5e3d0d228ad66aca356cbf07ed1c7737d077c7833f6aac64cba"
+    },
+    "546_writing_lora_0203.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0203.json",
+      "bytes": 2479,
+      "sha256": "192e370958065e56b64acfebdffaa184603cc5c32779ee8fc48a362559f3ae21"
+    },
+    "547_writing_lora_0215.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0215.json",
+      "bytes": 2480,
+      "sha256": "7110ffc0ac06930af480259bc322df2bb77cb403a21402a540fc9543515dbe92"
+    },
+    "548_writing_lora_0227.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0227.json",
+      "bytes": 2479,
+      "sha256": "0b83327d7de47cab6f4e3834ba1a8707b1cd9887a34d4556dba02dd0430ae4ee"
+    },
+    "549_writing_lora_0239.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0239.json",
+      "bytes": 2482,
+      "sha256": "b527b5b032f23f1bb6fded62132f49a10a71937559b9099981c3d97dac424faa"
+    },
+    "550_writing_lora_0251.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0251.json",
+      "bytes": 2482,
+      "sha256": "6df900f2a2d72ba9652e0c14db0a7fb766813442cd79901b23a7a36ec7d254da"
+    },
+    "551_writing_lora_0263.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0263.json",
+      "bytes": 2480,
+      "sha256": "822f329cf24664d32da9bc003f41f09fc972821d7078336b24d6de5bdb6fa540"
+    },
+    "552_writing_lora_0275.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0275.json",
+      "bytes": 2481,
+      "sha256": "3354c8b1efb74c49242d658621db47a2ff7b1cc48c4cb53b71f271271c58b4e0"
+    },
+    "553_writing_lora_0287.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0287.json",
+      "bytes": 2479,
+      "sha256": "377186da9255d879c4847eea31980f862fcf92c8942bf3a0d9376eb940b51383"
+    },
+    "554_writing_lora_0299.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0299.json",
+      "bytes": 2481,
+      "sha256": "32213003aad30bec14054f551211576f31c73da66d76818252380359d0970615"
+    },
+    "555_writing_lora_0311.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0311.json",
+      "bytes": 2478,
+      "sha256": "32239fc1877c0ce445582dc97b4af6219a43cd6b0feec35ac4bd3c2ccb3065b6"
+    },
+    "556_writing_lora_0323.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0323.json",
+      "bytes": 2480,
+      "sha256": "180339834bd382c1c2b0a8042c94671ff53fa9a5fcb2836a0767e7e02c53b282"
+    },
+    "557_writing_lora_0335.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0335.json",
+      "bytes": 2480,
+      "sha256": "afffe6a85126f83350b9354a37fc3248aa0e4b9cfa486456f2e13361d051378d"
+    },
+    "558_writing_lora_0347.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0347.json",
+      "bytes": 2481,
+      "sha256": "ca0f50506cf8ba16e711a78f59cf332c745da79ab921a503e9925e6a76671a1e"
+    },
+    "559_writing_lora_0359.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0359.json",
+      "bytes": 2481,
+      "sha256": "9b39c60f1b56d08d006afae63916b120c3e6916a5d719770e0a2d421e1e53119"
+    },
+    "560_writing_lora_0371.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0371.json",
+      "bytes": 2481,
+      "sha256": "c82346b74f3055f490f8ff6398e6a5e374742b1c3797492d80a4dbce2f33033a"
+    },
+    "561_writing_lora_0383.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0383.json",
+      "bytes": 2479,
+      "sha256": "76f5c7af504f46504ea58ebc31aed4ce2065f14dc7555f82d170f45c6f837b75"
+    },
+    "562_writing_lora_0395.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0395.json",
+      "bytes": 2480,
+      "sha256": "2c589dac5dc785df90faf711537d538353c3f9f0e601231efbfdb871668660e1"
+    },
+    "563_writing_lora_0407.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0407.json",
+      "bytes": 2478,
+      "sha256": "fb821417bc66cda32d583e02e2631bb877e92640f48fdf168fc24d1b8e0cbf5a"
+    },
+    "564_writing_lora_0419.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0419.json",
+      "bytes": 2482,
+      "sha256": "e9f7a588b82de1124b9eda45ab391e39573d56754b3334e3d9841ce22afab9ad"
+    },
+    "565_writing_lora_0431.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0431.json",
+      "bytes": 2480,
+      "sha256": "fdab7dedf785eef94903e24924d67803987f62cfb15a5709ea3e6c97eb1d204e"
+    },
+    "566_writing_lora_0443.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0443.json",
+      "bytes": 2479,
+      "sha256": "c40dccc307f5034fc5bd70b6c42675728aec860a4f03a98dfb0413da82f13bfa"
+    },
+    "567_writing_lora_0455.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0455.json",
+      "bytes": 2479,
+      "sha256": "735ea904e0c5cdff871b65d7a9dc2a105fa4b936a9405c53957e5e3a5efa4682"
+    },
+    "568_writing_lora_0467.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0467.json",
+      "bytes": 2483,
+      "sha256": "f2a5737038e25b6698b7dbeb6e4f1bbbe6ebd695bdbc8bb4560bea7f11e7d377"
+    },
+    "569_writing_lora_0479.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0479.json",
+      "bytes": 2481,
+      "sha256": "56b84d62fd73e9fa909b7dbdcb66a73bcc601e5d49ae405ec1fc86bdb7b1b01a"
+    },
+    "570_writing_lora_0491.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_artifacts/receipts/writing_lora_0491.json",
+      "bytes": 2480,
+      "sha256": "417263e2bd62f3733c4ffb1087193fa9c290b13ec6cfe3b1a3fcca2c018a60b2"
+    }
+  },
+  "outputs": {
+    "full_w2_evaluation.json": "e9518e38884310f76fddfafe182d0a3231a36c81362bb04f899e5cc05efdaef3",
+    "cross_contract.json": "eb9e23f3b124e1972c645714bf08e9924422ea73ff6e53545cdf87ed16c24de8",
+    "full_w2_slo_rows.json": "d8386c32ad929ad5f159b664184832dcbe2e5d0869267c7090edd3f503273c50",
+    "request_metrics.json": "45bf1abc511922179327f4f4026e62143ef84d4e48a48d140be68e1d962e70ed",
+    "closure.json": "3fae5fc38ae0fb0734ee553caefbc1a9c96e2023b8926e8d7ef1f74b02308c67",
+    "remote_stop.json": "ae29af2dbbcac4325e82e8e286245aafb8d226f22d2c4af893a97e9d8bf468a3",
+    "evidence.tar.gz": "923245dea4825f7ea266280ab1364d8aa9fd92dfabe84028547612424e6a72e0"
+  },
+  "validation": "One complete known-trace W2 replay; strict4000 native/remote/clock/physical audit; exact input join to D557 common W2 witness; all32 workers pp1/batch8; failed offline affinity attempt preserved; independent numerical qualification unknown; AST and archive SHA roundtrip"
+}

@@ -1,0 +1,143 @@
+{
+  "schema": "hydraserve_full_w2_v1_binding_accounting_observation",
+  "full_audit_pass": true,
+  "formal_run": false,
+  "independent_holdout": false,
+  "n_plan": 4000,
+  "n_arrived": 4000,
+  "n_terminal": 4000,
+  "n_v1_contract_complete": 4000,
+  "raw_n_correct_preserved": null,
+  "independent_numerical_qualification": false,
+  "count_basis": "frozen V1 native source/adapter binding, normal terminal, fixed work and clock; D393 interpretation",
+  "n_failed": 0,
+  "n_joint": 2640,
+  "joint_slo": 0.66,
+  "ttft_attainment": 0.8775,
+  "tpot_conditional_attainment": 0.724,
+  "tpot_conditional_denominator": 4000,
+  "observed_w2_g1_feasible": false,
+  "physical_gpu_seconds": 9909.915261428105,
+  "gpu_seconds_per_v1_contract_request": 2.477478815357026,
+  "physical_boundary": "actual pp1 container reservation union, before create through actual release",
+  "resource_configuration_optimum": false,
+  "g2_or_cross_workload_goal_complete": false,
+  "observation_s": 3971.5080059729517,
+  "completed_requests_per_s": 1.007174099607554,
+  "good_requests_per_s": 0.6647349057409857,
+  "good_requests_per_gpu_second": 0.26639985613959255,
+  "native_output_tokens": 458224,
+  "output_tokens_per_s": 115.37783615464296,
+  "remote_transfers": 497,
+  "remote_wire_bytes": 418365205,
+  "metrics": {
+    "ttft_ms": {
+      "n": 4000,
+      "mean": 1980.7875255140825,
+      "p50": 468.13348727300763,
+      "p95": 11435.1287370082,
+      "p99": 18186.31752068177,
+      "max": 24188.972901785746
+    },
+    "tpot_ms": {
+      "n": 4000,
+      "mean": 71.7854055900423,
+      "p50": 63.796848291531205,
+      "p95": 118.1072907987982,
+      "p99": 235.58933400393775,
+      "max": 575.2838543616235
+    },
+    "e2e_ms": {
+      "n": 4000,
+      "mean": 9433.579963712136,
+      "p50": 7748.0083119589835,
+      "p95": 19885.307958815247,
+      "p99": 27815.91299083084,
+      "max": 42365.30059250072
+    },
+    "submit_lag_ms": {
+      "n": 4000,
+      "mean": 4.038103569415398,
+      "p50": 2.107469830662012,
+      "p95": 4.044711822643876,
+      "p99": 48.6923479475081,
+      "max": 634.0989309828728
+    },
+    "dispatch_wait_after_submit_ms": {
+      "n": 4000,
+      "mean": 1113.6509307921515,
+      "p50": 2.40634405054152,
+      "p95": 9191.66549295187,
+      "p99": 15483.802319969982,
+      "max": 22903.47627317533
+    },
+    "service_ttft_ms": {
+      "n": 4000,
+      "mean": 863.0984911525156,
+      "p50": 448.18275701254606,
+      "p95": 2503.0916179530323,
+      "p99": 5184.758149087429,
+      "max": 7650.236046873033
+    },
+    "decode_ms": {
+      "n": 4000,
+      "mean": 7311.699797787804,
+      "p50": 5695.100522134453,
+      "p95": 17374.5016050525,
+      "p99": 19316.978682996705,
+      "max": 23742.826458998024
+    },
+    "completion_notification_ms": {
+      "n": 4000,
+      "mean": 141.09264041023562,
+      "p50": 21.00072894245386,
+      "p95": 655.5893260519952,
+      "p99": 2645.7934179343283,
+      "max": 4642.248067073524
+    },
+    "artifact_resolve_ms": {
+      "n": 4000,
+      "mean": 92.79192124592373,
+      "p50": 3.2228610944002867,
+      "p95": 459.13323503918946,
+      "p99": 1209.6916921436787,
+      "max": 5364.197977818549
+    }
+  },
+  "stage_note": "dispatch_wait ends at actual instance assignment; service_ttft is assignment-to-first and includes any init/adapter wait; artifact span nested, not additive",
+  "references": {
+    "plan": {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "metric_protocol": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    "single_run_amendment": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    "slo_eval": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    "w2_map": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json",
+      "sha256": "48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300"
+    },
+    "w2_input_qualification": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/w2_input_qualification.json",
+      "sha256": "4bf63af0e70f2a8eea9f1fe67ef01936e1824d51a39a64c2cb5f0c615d72eafe"
+    }
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/audit.py": "9057d4b725efa4fcdb18a1ec9c23c491f5a15dfb2facf195652ee764ff6c153e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d503_20261013/audit.py": "bbb64378e11f125ce97fc3534cf5e3c51f49853d5dce49164923b55bb0857d5a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/preregistration.json": "ef54121a33157f9f06f6f759c7679ede0b821ee936d96f9895bf78d091efebc8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/http_audit.json": "6b68b4e41a0fee879555809c060dde4c7a042c2a1cd83065a42313321d077b00",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/request_metrics.json": "45bf1abc511922179327f4f4026e62143ef84d4e48a48d140be68e1d962e70ed",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/physical/container_allocations.jsonl": "6fb7244749abbf505d62c86fab082957dff73435ef8b89314d5330b5138a37b5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/native_scheduler_after_requests.json": "dad6fbbe756e37b3c7267bde1467ab5b70f54b7233b124a3c944ff0132a73121"
+  }
+}

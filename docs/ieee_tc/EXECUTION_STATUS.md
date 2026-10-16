@@ -1,5 +1,98 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D582 complete and audited — preserve, checkpoint, storage, Loquetier next
+
+Resultcuration COMPLETE: hydraserve/d582_lifecycle_full_w2_result,
+archive1004136B; sourceAST/archiveSHAroundtrip/secrets/protected147/userdirtPASS.
+Result scopeactuallyclosed. Next exact-path checkpoint only, then current
+safe storage maintenance; do not repeat replay, audit, input join or curation.
+
+2026-10-16 AUTHORITATIVE: SAME full W2 completed4000 native-contract requests,
+458224tokens,0fail,497adapters/fetches,418365205wireB,packfalse. Joint2640/4000
+=66%,U9909.915261428105GPU-s,P95TTFT11435.1287370082ms; nonfeasible at95%,
+independentnumericUNKNOWN/rawn_correctnull,formalfalse/holdoutfalse. Actual32
+workers allpp1/batch8; finalscheduler3. Cross-contract4000 input join to D557
+commonW2 PASS; initial-state/backend differences and missing S-LoRA/LoquetierW2
+remain explicit. Localservice/aux/remote/audit/join allactuallyclosed/pathgone.
+Servicepeak61766651904B,allhigh/max/OOM/killswap0;auditpeak379674624B.
+Firstofflinejoin stopped at explicit affinity assertion; source/identity/failure/
+closure retained. Explicit taskset secondanalysis passed without inference rerun.
+Originalaudit affinity not independently recorded; do not equate AllowedCPUs
+configuration with observed affinity. ReadD582resultdoc. No liveGPU/remote job.
+NEXT boundedresultcuration and explicitcheckpoint,then freshsafe cachemaintenance
+(diskbelow150GiB newheavyfloor),then LoquetiernewfullW0/W1/W2 and remaining7B.
+DoNOTrepeatD582replay/audit/join or previouscleanup. FullPrimeLoRA/G2/3B/dLoRA/
+A1–A5/S1–S13/cost/docs/figures scope staysACTIVE; no finalgoal claim.
+
+## D582 LIVE — one HydraServe full W2; passive monitoring only
+
+Latest continuation: VERIFIED WAIT. Full PLAN/status/monitoring skill reread;
+SAME actual Invocation19a7badd97684d0b97ca03303683e249 active/running and
+tmuxpane4186935 live throughout spaced passive polls. Native terminal_count
+advanced1559→1647→1760→1845→1928→1978→2036→2093→2145→2233→2304→2376
+→2417→2480→2523→2575. Latest watchdogsample2374: peak59595415552B,
+hostavailable62812413952B,disk151674597376B,allhigh/max/OOM/killswap0,
+warningfalse/abortempty. Observation-loop cell1129 finished normally; the
+actual inference run remains LIVE. Do NOT restart it or confuse observer
+completion with experiment completion. No source/config changes, tests,
+builds, publication, cleanup or remote maintenance. Next monitor SAME run,
+then actual closure, existing preregistered audit, preservation/checkpoint,
+fresh safe storage maintenance and Loquetier full matrix. Remaining full
+PLAN scope stays ACTIVE; no full W2 result or final goal claim yet.
+
+Latest continuation: VERIFIED WAIT; full PLAN, current supplements and
+monitor-experiment skill reread. SAME actual service
+Invocation19a7badd97684d0b97ca03303683e249 remained active/running, tmux
+pane4186935 live. Spaced native terminal_count observations advanced
+1095→1234→1296→1361→1457→1513. At watchdogsample1595:
+peak55719276544B,hostavailable64348114944B,disk155020582912B;
+allhigh/max/OOM/killswap0,warningfalse/abortempty. No launch, restart,
+configuration change, test, build, publication, cleanup or remote maintenance.
+This is ongoing measured progress, not a full W2 performance result or blocker.
+Continue SAME run; only after actual local/remote closure execute existing
+preregistered run_audit.py, preserve the complete result and checkpoint, then
+fresh storage maintenance before Loquetier full W0/W1/W2. All remaining
+7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/final figures remain ACTIVE.
+
+Latest continuation: VERIFIED WAIT, full PLAN and monitoring skill reread.
+Spaced actual service polls confirmed SAME Invocation19a7badd97684d0b97ca03303683e249
+active/running; terminal_count501→547→619→738→800→845→883→913→1036.
+At sample1164: peak53787537408B,hostavailable62973710336B,disk156485689344B,
+allhigh/max/OOM/killswap0,warningfalse/abortempty. No new run, policy change,
+remote maintenance, test, build or publication. Not a completed performance point.
+Continue SAME tmux run; after actual closure use preregistered run_audit.py.
+Full baseline/PrimeLoRA/3B/ablation/sensitivity scope remains ACTIVE.
+
+Continuation classification: VERIFIED WAIT. Full PLAN reread; eight spaced
+polls confirmed SAME actual Invocation19a7badd97684d0b97ca03303683e249 active/
+running and tmux pane4186935 live. Native terminal_count advanced63→127→169→253
+→334→391→427→480. Latest sample648: peak49215524864B,hostavailable66421387264B,
+disk158461243392B,allhigh/max/OOM/killswap0,warningfalse/abortempty. No current
+blocker, new run, changed config, test, build, publication or maintenance.
+Next continue SAME run, then actual closure/remote collection and preregistered
+full W2 audit. Do not infer final SLO or resource totals from partial progress.
+
+Latest spaced passive polls confirmed SAME Invocation19a7badd97684d0b97ca03303683e249,
+active/running; native terminal_count advanced14→45. At sample169,
+peak44968120320B,host available67554865152B,disk160283787264B,all memory
+events/swap0,no warning/abort. This is ongoing progress, not a full performance
+result or a blocker. Continue SAME run; no new launch or maintenance.
+
+2026-10-16 AUTHORITATIVE: prereg checkpoint0fcea6f7a84e8e213e285e032e21d7e7e2ab7e8d
+pushed/remote-equal. Preparation/curation/publication/remote-prelaunch actually
+closed/path-gone. D582 launched ONCE in tmux primelora-d582,pane4186935;
+actual service primelora-tc-svc-e4874dff7e4c43e1be6b9e8e83d259c3.scope,
+Invocation19a7badd97684d0b97ca03303683e249,inode26219004. Remote owned services
+and monitor d582-hydraremote active; launch link1000Mb/s/full. At sample59,
+peak41710645248B,host available70307487744B,events/swap0,no warning/abort.
+No result yet. Keep SAME run; do not restart or repeat qualifications/maintenance.
+During inference no tests/builds/push/cleanup/remote maintenance or second heavy
+job. After actual local and remote closure, existing run_audit.py performs the
+preregistered full W2 audit in bounded CPU scope; preserve then compare exact
+common W2 inputs to other systems. RAW hydraserve_qualification/d582_20261016.
+Remaining Loquetier full W0/W1/W2, other7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/
+cost/docs/final figures stay ACTIVE. No k3s involved; no final goal claim.
+
 ## D582 common W2 prepared and preserved; checkpoint then one replay
 
 2026-10-16 AUTHORITATIVE: D582 preparation PASS: exact4000 shared W2 entries,

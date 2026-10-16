@@ -1,0 +1,127 @@
+{
+  "passed": true,
+  "schema": "d582_w2_four_system_input_witness_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d5820000000000000000000000000008.scope",
+    "invocation_id": "0c2f09460edb4398b18d33d527e11a92",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5820000000000000000000000000008.scope",
+    "inode": 26255560
+  },
+  "request_count": 4000,
+  "compared_fields": [
+    "request_id",
+    "adapter_id",
+    "target_tokens",
+    "canonical_prompt_sha256",
+    "canonical_prompt_tokens",
+    "native_prompt_token_ids_sha256",
+    "source_item_sha256",
+    "artifact_content_sha256",
+    "artifact_manifest_sha256"
+  ],
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300"
+  },
+  "comparison": {
+    "PrimeLoRA": {
+      "joint": 0.8955,
+      "gpu_seconds": 14641.25898185838,
+      "p95_ttft_ms": 5827.475134283304
+    },
+    "ServerlessLLM": {
+      "joint": 0.939,
+      "gpu_seconds": 15893.645977688022,
+      "p95_ttft_ms": 9516.719258390367
+    },
+    "vLLM": {
+      "joint": 0.98225,
+      "gpu_seconds": 16115.559125168016,
+      "p95_ttft_ms": 1751.2954722624272
+    },
+    "HydraServe": {
+      "joint": 0.66,
+      "gpu_seconds": 9909.915261428105,
+      "p95_ttft_ms": 11435.1287370082
+    }
+  },
+  "changes": {
+    "ServerlessLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 7.879796728754248,
+        "p95_ttft_ms": 38.765923675372264
+      },
+      "joint_difference_pp": -4.349999999999998
+    },
+    "vLLM": {
+      "lower_better_change_percent": {
+        "gpu_seconds": 9.148302779065169,
+        "p95_ttft_ms": -232.75225263701657
+      },
+      "joint_difference_pp": -8.674999999999999
+    },
+    "HydraServe": {
+      "lower_better_change_percent": {
+        "gpu_seconds": -47.74353357839356,
+        "p95_ttft_ms": 49.038832283335005
+      },
+      "joint_difference_pp": 23.549999999999994
+    }
+  },
+  "native_worker_count": 32,
+  "final_scheduler_instance_count": 3,
+  "all_workers_pp1_batch8": true,
+  "reference_frozen": false,
+  "input_join_only": true,
+  "independent_numerical_correctness": "unknown",
+  "initial_state_contract_identical": false,
+  "limitations": [
+    "Single known-workload observations; no repeated-run inference.",
+    "Native versions, configuration and compilation histories differ; input identity is not output/numerical proof.",
+    "PrimeLoRA W2 is below 95%; no G1/G2 closure or global optimum claim.",
+    "HydraServe joint SLO is below 95%; retain the complete nonfeasible observation.",
+    "All actual HydraServe workers are pp1; pipeline/consolidation benefit not established.",
+    "No previous same-backend W2 output reference; W0 output is not a W2 numerical oracle."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/launch_gate.launch/replay.jsonl",
+      "sha256": "9c73f7e6021742fa0e50156964d6afc158ce83e5d553395ade759f17e82f72f1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/launch7b.launch/replay.jsonl",
+      "sha256": "f2e7ec52cb06eaadac6de7b2dbb0b97d196ef6fe6cc8ca2c230f084d53d3ed81"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/cross_contract.json",
+      "sha256": "5dbbe610be8350fcf3a4687a532eb7f9fe44e1e446478747cbf68c0f4ac6497c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/cross_contract.py",
+      "sha256": "c9439b3bb0b46782b76bc9bd8e583f2f9bc0016c85970b5d7f5b5249131a373a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/cross_contract_v2.py",
+      "sha256": "d2b6e1768662bc3a9d467f12f85deb0c8fafb7844d1e5c430b4ab6439bc64112"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/full_w2_evaluation.json",
+      "sha256": "e9518e38884310f76fddfafe182d0a3231a36c81362bb04f899e5cc05efdaef3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/w2_input_qualification.json",
+      "sha256": "4bf63af0e70f2a8eea9f1fe67ef01936e1824d51a39a64c2cb5f0c615d72eafe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/physical/container_allocations.jsonl",
+      "sha256": "6fb7244749abbf505d62c86fab082957dff73435ef8b89314d5330b5138a37b5"
+    }
+  ]
+}
