@@ -315,6 +315,43 @@ class NativeLoquetierObservationTests(unittest.TestCase):
         self.assertEqual(gen.kvpool.num_pages, 0)
         self.assertEqual(bridge.close(), [])
 
+    def test_capacity_schedules_share_native_registry_without_reusing_request_ids(self):
+        from scripts.replay_vllm_engine_trace import LoquetierNativeBatchBridge
+        from Loquetier_project.scripts.run_loquetier_trace_gate import _capacity_mixed_forward
+        from loquetier.utils import KvPool
+        gen = self.fixture()
+        gen.kvpool = KvPool(1, 1, 2, 16, self.torch.float16, self.torch.device('cpu'))
+        def factory(mark, rid, aid, ids, target):
+            request = self.request(mark, target, aid)
+            request._tc_request_id = rid
+            request.input_ids = self.torch.tensor(ids, dtype=self.torch.long)
+            request.next_input_ids, request.max_length = list(ids), len(ids)+target
+            return request
+        def generate():
+            gen.pre_process()
+            self.step(gen, [8+r.lora_id for r in gen.requests])
+        # Model arithmetic alone is synthetic; registration, native lists/KV,
+        # postprocessing, observations, bridge and capacity helper are real.
+        gen.generate = generate
+        bridge = LoquetierNativeBatchBridge(gen, factory, 2)
+        cases = [dict(source_request_id='source-'+aid, adapter_id=aid,
+            prompt_ids=[1, 2, 3], target_tokens=3, retained_output_ids=[8+i]*3)
+            for i, aid in enumerate(('a', 'b'))]
+        for staggered in (False, True):
+            rows = _capacity_mixed_forward(bridge, cases, lambda *_: None, staggered)
+            self.assertEqual([r['source_request_id'] for r in rows], ['source-a', 'source-b'])
+            self.assertTrue(all(r['matches_retained_output'] for r in rows))
+            self.assertEqual(gen.kvpool.num_pages, 0)
+            self.assertEqual(gen._tc_loquetier_active, {})
+        self.assertEqual(len(gen._tc_loquetier_request_ids), 4)
+        self.assertEqual(gen._tc_loquetier_seen, {0, 1, 2, 3})
+        # Repeating a schedule is still rejected: do not reset the native guard.
+        with self.assertRaisesRegex(ValueError, 'fixed input/static binding contract'):
+            _capacity_mixed_forward(bridge, cases, lambda *_: None, False)
+        self.assertEqual(gen.kvpool.num_pages, 0)
+        self.assertEqual(gen._tc_loquetier_active, {})
+        self.assertEqual(bridge.close(), [])
+
     def test_empty_batch_cleanup_rejects_live_pages_and_leaves_active_batch_unchanged(self):
         gen = self.fixture()
         live = NS(num_pages=1, seqlen=1)

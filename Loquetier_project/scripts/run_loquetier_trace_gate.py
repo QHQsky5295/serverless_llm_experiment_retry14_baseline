@@ -378,9 +378,12 @@ def _capacity_mixed_forward(bridge, cases, sample, staggered):
     if any(c['target_tokens'] < 2 for c in cases):
         raise ValueError('mixed capacity requires a decode step')
     pending, completed = {}, {}
+    # Both schedules share one native registry, whose request IDs are unique
+    # for its entire lifetime. Keep source identity separately in the result.
+    phase = 'mixed-prefill-decode' if staggered else 'all-prefill'
     def add(rows):
         for c in rows:
-            mark = bridge.add('capacity-mixed-'+c['source_request_id'], c['adapter_id'],
+            mark = bridge.add('capacity-'+phase+'-'+c['source_request_id'], c['adapter_id'],
                               c['prompt_ids'], c['target_tokens'])
             pending[mark] = c
     split = len(cases)//2 if staggered else len(cases)
