@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "exact_candidate_rollback": true,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "bc43982913924eacebbf63243b43162a753bff82",
+  "restored_file_sha256": {
+    "faaslora/scheduling/resource_coordinator.py": "667860ef2ba1203014ecaa13d192eb989eac27f57f33f42f2944ff110929466b",
+    "tests/test_ieee_tc_transfer_pressure.py": "046d6a013731c38942c9632914f43fcc74961ee5c8751c5e5deb6162da15a341"
+  },
+  "test_counts": {
+    "regression": 363
+  },
+  "regression": {
+    "passed": true,
+    "returncode": 0,
+    "phase": "regression",
+    "command": [
+      "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "tests.test_ieee_tc_launch",
+      "tests.test_ieee_tc_cpu_frontend_integration",
+      "tests.test_ieee_tc_transfer_pressure",
+      "-v"
+    ],
+    "identity": {
+      "unit": "primelora-tc-aux-d6010000000000000000000000000001.scope",
+      "invocation_id": "ae414b826d8546b8b92e3565f8e4a36e",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d6010000000000000000000000000001.scope",
+      "inode": 26485564
+    },
+    "resources": {
+      "memory.peak": "2493739008",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "sources": {
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py": "667860ef2ba1203014ecaa13d192eb989eac27f57f33f42f2944ff110929466b",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "046d6a013731c38942c9632914f43fcc74961ee5c8751c5e5deb6162da15a341",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "590af2c544dd426fd4aba805b7e3d63d84217ac1441746b330149aeb0a06011d",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_cpu_frontend_integration.py": "0292dc1b08a32a24bd0222f98cd48b6c57b8778921a247c950f22ca5a0827436",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py": "34ac4beda77e26750a4c5d913768fbf32b8d79e9e12e83976c101ad8811ecf7a"
+    },
+    "driver_sha256": "038b6e9b6e7d083445e07d283db3ca3214b63327331cd3ebe821a1e5091e6676",
+    "log_sha256": "ee46bb40ac5a2c563b625fca82206f052daaf309675a2763898ad749916e722a"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "f003cc0d285e23c80546b0f7b799b82ee3db675f5fd2560b6805ffcfc819e010",
+  "caveat": "Exact D595 rollback and CPU regression only. D598 retained; no new performance gain or final G1/G2 claim."
+}

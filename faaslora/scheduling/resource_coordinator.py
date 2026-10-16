@@ -163,9 +163,7 @@ class NativeTransferObservation:
 class SharedFileTransferDomain:
     """One physical file owner's intervals, projected into participating cores.
 
-    Membership and transfer transitions are serialized, not the file operations.
-    Each transition projects concurrently to independent native owners, then
-    joins all acknowledgements before IO/closure; one owner's events stay ordered.
+    Starts, joins and finishes are serialized, not the actual file operations.
     The lock prevents activation from missing a start/finish transition. A core
     cannot participate before replaying every open interval. Subscriptions do
     not create transfers, byte reservations, measured loading times or GPU work.
@@ -208,24 +206,6 @@ class SharedFileTransferDomain:
                 ('adapter_id', 'source_tier', 'target_tier', 'file_owner_id')}),
             record if cancel_record is None else cancel_record)
         row.update(state='active', start_receipt=receipt)
-
-    @staticmethod
-    async def _settle_projections(operations, record):
-        """All-settled native-owner barrier, including repeated cancellation.
-
-        The caller holds membership/transition ownership throughout. Errors do
-        not abandon siblings whose native commands may already have committed.
-        Cancellation is propagated by run after closing the actual IO interval.
-        This is bounded by attached owners, not a new tunable worker pool.
-        """
-        pending = asyncio.gather(*operations, return_exceptions=True)
-        while True:
-            try:
-                return await asyncio.shield(pending)
-            except asyncio.CancelledError:
-                record['caller_cancelled'] = True
-                if pending.cancelled():
-                    raise
 
     async def attach(self, engine):
         if not callable(getattr(engine, 'ieee_transfer_event', None)):
@@ -307,7 +287,6 @@ class SharedFileTransferDomain:
             source_tier=source_tier, target_tier=target_tier, file_owner_id=self.owner_id,
             state='start_pending', operation_outcome='not_started', caller_cancelled=False,
             participants={}, created_at=time.monotonic(), clock_id=self.clock_id,
-            projection_policy='parallel_owner_barrier_v1',
             transfer_scope='shared_file_domain_and_serialized_native_v1')
         self.evidence.append(record)
         entry = dict(record=record, done=asyncio.Event())
@@ -322,18 +301,12 @@ class SharedFileTransferDomain:
                     if member is None or member['state'] != 'attached':
                         raise RuntimeError('target file pressure subscription is not available')
                 self.active[record['transfer_id']] = entry
-                participants = []
                 for member in self.members.values():
                     if member['state'] in ('retiring', 'retired'):
                         continue
                     if member['state'] != 'attached':
                         raise RuntimeError('shared file pressure has an uncertain subscriber')
-                    participants.append(member)
-                outcomes = await self._settle_projections(
-                    [self._start_member(member, record) for member in participants], record)
-                errors = [value for value in outcomes if isinstance(value, BaseException)]
-                if errors:
-                    raise errors[0]
+                    await self._start_member(member, record)
                 record['state'] = 'active'
             if record['caller_cancelled']:
                 raise asyncio.CancelledError()
@@ -359,21 +332,20 @@ class SharedFileTransferDomain:
                 entry['done'].set()
                 raise unresolved_error
             async def finish():
+                errors = []
                 async with self.lock:
                     record['state'] = 'finish_pending'
-                    async def finish_member(member, row):
+                    for member in self.members.values():
+                        row = record['participants'].get(member['owner_id'])
+                        if row is None:
+                            continue
                         try:
                             receipt = await self._rpc(member, dict(operation='finish',
                                 transfer_id=record['transfer_id'], expected_owner_id=member['owner_id']), record)
                             row.update(state='finished', finish_receipt=receipt)
                         except BaseException as exc:
                             row['finish_error_type'] = type(exc).__name__
-                            raise
-                    outcomes = await self._settle_projections([
-                        finish_member(member, record['participants'][member['owner_id']])
-                        for member in self.members.values()
-                        if member['owner_id'] in record['participants']], record)
-                    errors = [value for value in outcomes if isinstance(value, BaseException)]
+                            errors.append(exc)
                     if not errors:
                         record.update(state='finished', finished_at=time.monotonic())
                         self.active.pop(record['transfer_id'], None)

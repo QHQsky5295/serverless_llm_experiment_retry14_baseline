@@ -1,5 +1,19 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D601 exact D595 rollback tested — back up, then global wait/control diagnosis
+
+D599/D600 checkpointbc43982913924eacebbf63243b43162a753bff82 pushed/remoteequal;
+publication12584 completed0/actualclosed/pathgone,peak41496576B/events0.
+D601 restored onlyresource_coordinator.py andtransferpressuretests byte-for-byte
+to8639ce5parent; noformula/config/profile/backend/input/baselinechange. AllD595/
+D597/D598 results/code/negativeperformance retained. CPUregression363PASS;
+session47228done0,actualscopeclosed/pathgone,peak2493739008B/events/swap0.
+ReadD601_PARALLEL_PRESSURE_ROLLBACK.md. No GPU/remote/pendingjob; next explicit
+rollbackbackup,then boundedcurrentW2globalwait/controlwork audit usingD456/D457/
+D473/D530/D600history. No stalecache/metadatashortcut retry, no samekeyperformance
+repeat, no unverifiedsecondcandidate. Current source is restored, notD595parallel.
+Full7BsameconfigW0/W1/W2 G1/G2,3B,dLoRA,A1–A5/S1–S13/cost/docs/finalfiguresACTIVE.
+
 ## D599 storage and D600 offline W2 diagnosis complete — checkpoint then reject candidate
 
 2026-10-17: D599 losslessly compressed ONLY closed D598 main_outcome:661617010
