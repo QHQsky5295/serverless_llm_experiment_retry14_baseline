@@ -1,0 +1,207 @@
+{
+  "passed": true,
+  "n": 4000,
+  "comparisons": [
+    {
+      "metric": "joint_slo",
+      "old": 0.45275,
+      "new": 0.49425,
+      "new_minus_old": 0.04150000000000004,
+      "relative_improvement": 0.0916620651573717,
+      "percentage_point_change": 4.150000000000004
+    },
+    {
+      "metric": "ttft_attainment",
+      "old": 0.83225,
+      "new": 0.87425,
+      "new_minus_old": 0.041999999999999926,
+      "relative_improvement": 0.05046560528687284,
+      "percentage_point_change": 4.199999999999992
+    },
+    {
+      "metric": "tpot_conditional_attainment",
+      "old": 0.516,
+      "new": 0.54075,
+      "new_minus_old": 0.02474999999999994,
+      "relative_improvement": 0.047965116279069644,
+      "percentage_point_change": 2.474999999999994
+    },
+    {
+      "metric": "physical_gpu_seconds",
+      "old": 8329.838421378518,
+      "new": 8202.347262413707,
+      "new_minus_old": -127.4911589648109,
+      "relative_improvement": 0.015305357981207059,
+      "percentage_point_change": null
+    },
+    {
+      "metric": "gpu_seconds_per_v1_contract_request",
+      "old": 2.0824596053446296,
+      "new": 2.0505868156034266,
+      "new_minus_old": -0.031872789741203,
+      "relative_improvement": 0.015305357981207189,
+      "percentage_point_change": null
+    },
+    {
+      "metric": "ttft_ms.mean",
+      "old": 2205.2212941060425,
+      "new": 1691.969581537065,
+      "new_minus_old": -513.2517125689774,
+      "relative_improvement": 0.23274385837863973
+    },
+    {
+      "metric": "ttft_ms.p95",
+      "old": 9602.060910314322,
+      "new": 8750.468757469207,
+      "new_minus_old": -851.5921528451145,
+      "relative_improvement": 0.08868847644263046
+    },
+    {
+      "metric": "tpot_ms.mean",
+      "old": 84.01662851894156,
+      "new": 83.18743215723744,
+      "new_minus_old": -0.8291963617041205,
+      "relative_improvement": 0.009869431519942247
+    },
+    {
+      "metric": "tpot_ms.p95",
+      "old": 128.71620181778616,
+      "new": 131.71125150454992,
+      "new_minus_old": 2.995049686763764,
+      "relative_improvement": -0.023268630090589763
+    },
+    {
+      "metric": "e2e_ms.mean",
+      "old": 11210.45368192764,
+      "new": 10465.154626760766,
+      "new_minus_old": -745.2990551668736,
+      "relative_improvement": 0.06648250608879187
+    },
+    {
+      "metric": "e2e_ms.p95",
+      "old": 24204.402827192098,
+      "new": 22850.8656732738,
+      "new_minus_old": -1353.537153918296,
+      "relative_improvement": 0.055921113343795605
+    },
+    {
+      "metric": "submit_lag_ms.mean",
+      "old": 4.9328817094210535,
+      "new": 5.342731999699026,
+      "new_minus_old": 0.4098502902779728,
+      "relative_improvement": -0.08308536762501746
+    },
+    {
+      "metric": "submit_lag_ms.p95",
+      "old": 3.87921673245728,
+      "new": 3.9809448644518852,
+      "new_minus_old": 0.10172813199460506,
+      "relative_improvement": -0.02622388461656424
+    },
+    {
+      "metric": "dispatch_wait_after_submit_ms.mean",
+      "old": 1478.9448442062712,
+      "new": 980.9988266115543,
+      "new_minus_old": -497.946017594717,
+      "relative_improvement": 0.33669005273956487
+    },
+    {
+      "metric": "dispatch_wait_after_submit_ms.p95",
+      "old": 8114.439741009846,
+      "new": 7461.108556948602,
+      "new_minus_old": -653.3311840612441,
+      "relative_improvement": 0.08051463870750696
+    },
+    {
+      "metric": "service_ttft_ms.mean",
+      "old": 721.3435681903502,
+      "new": 705.6280229258118,
+      "new_minus_old": -15.715545264538378,
+      "relative_improvement": 0.021786491150069164
+    },
+    {
+      "metric": "service_ttft_ms.p95",
+      "old": 2175.6775570102036,
+      "new": 2028.2777580432594,
+      "new_minus_old": -147.39979896694422,
+      "relative_improvement": 0.06774891733934126
+    },
+    {
+      "metric": "decode_ms.mean",
+      "old": 8884.204031711968,
+      "new": 8665.056377420498,
+      "new_minus_old": -219.14765429146973,
+      "relative_improvement": 0.024667111821073343
+    },
+    {
+      "metric": "decode_ms.p95",
+      "old": 21299.193874001503,
+      "new": 20940.753791015595,
+      "new_minus_old": -358.4400829859078,
+      "relative_improvement": 0.016828809818170233
+    },
+    {
+      "metric": "completion_notification_ms.mean",
+      "old": 121.02835610962939,
+      "new": 108.12866780319018,
+      "new_minus_old": -12.899688306439202,
+      "relative_improvement": 0.10658401651555494
+    },
+    {
+      "metric": "completion_notification_ms.p95",
+      "old": 717.5540151074529,
+      "new": 666.802919935435,
+      "new_minus_old": -50.75109517201781,
+      "relative_improvement": 0.0707279091239116
+    },
+    {
+      "metric": "artifact_resolve_ms.mean",
+      "old": 61.57196755264886,
+      "new": 58.865669219812844,
+      "new_minus_old": -2.7062983328360133,
+      "relative_improvement": 0.043953416471902026
+    },
+    {
+      "metric": "artifact_resolve_ms.p95",
+      "old": 306.98697711341083,
+      "new": 282.1046409662813,
+      "new_minus_old": -24.882336147129536,
+      "relative_improvement": 0.08105339314747936
+    }
+  ],
+  "native_worker_count": 19,
+  "final_scheduler_instance_count": 4,
+  "all_pp1": true,
+  "unchanged_native_policy": true,
+  "independent_numerical_qualification": false,
+  "statistical_or_isolated_causal_claim": false,
+  "interpretation": "Single full W1 observations do not establish a lifecycle-lock performance improvement; preserve both outcomes and continue affected workload matrix without winner selection.",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d509_20261013/compare_outputs.py": "75710aa05325c8f1d418e9708593bf447665706e94521450d97c26a54e5e3330",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/compare_outputs.py": "7c6ae2aaea13698afa758ee842b14557eba6a55e49a6a033d5a0274e8860b487",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/same_backend_output_comparison.json": "5906c9a97eb003e3e6c12721af4b750257a4e6fc2124d9668e11087164a37333",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/full_w1_evaluation.json": "eac874785059f70f388023c30a9d573e1c12879cef2f5ffa810ae3df64fc6797",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/full_w1_evaluation.json": "55e4669060c162b527db2c819dc1ec58d08c85d05cb60ed8420729d72edf3140",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/native_scheduler_after_requests.json": "396f99d97a6a6cfb57f9b0adae5672744a9e87278aa06f154e2755149bea7542",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/physical/container_allocations.jsonl": "6d4af80243695ee0e5fa4f6b9b5bceb25005bc527e238306e4ba63c210a9e77c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w0.native-request.json": "2dff418e49588ce759ce270478a063e80ddb6cdb420522dcee184c7ec8606190",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w1.native-request.json": "5e7a735fd73af40a1675c8f5284cb9f8cf8e2ba18363d77061070af2438bad9b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w10.native-request.json": "ddc42b98d322e82ec527d2d86dc8198fa4fb92235cfdb992de3cc9fcf1b782b4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w11.native-request.json": "834b564087a0dd306872954b4ae83576fde40ed2d97f7dfd8925fc0a10886e79",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w12.native-request.json": "54dcf970e0f17e2300d43f196064c9b367ad3286379d0dd81aafb8c62220f0a9",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w13.native-request.json": "7b65de4516d2d80d26b34b7a5120433c5ff5f05be1335036dea9f8d44ebe1f30",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w14.native-request.json": "1ce23621155e24dd2d4f24171d4dd9b4648cdbd138bfdaa9d7aeb17f6a7c18c9",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w15.native-request.json": "0b9bca5fa1e51907f2e303ce506449305416781b20328904413b64a2da48c148",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w16.native-request.json": "74bcd4adfa1fd8c77331d392f9091841f2d412ed253e4936494886a4e8380b83",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w17.native-request.json": "ae0ac7e2d23bb177836ad9741212be313a0f0969cecf662767500cc38de654ab",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w18.native-request.json": "cffb01a0cac167268e01b1712b1cfa63a3cc2d957889f8037c82c162d2154aef",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w2.native-request.json": "983ea4a30bda4ea5ebab3f3aaaadb659d70a113e47c9ba0ccb7a2ac3afebbb38",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w3.native-request.json": "71e520b46c74984cdf3a8a59b67694c1b9b6977bd6fd9df091f74ce009519ad8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w4.native-request.json": "e31cbf2226e8b724ada23ead9420e35d31a1b30bf10a138140fcc99037b8cac8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w5.native-request.json": "06730b46367a65e7c8ff116f9a1b2cf37f53a1add340372afddf12d429999f1e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w6.native-request.json": "14b3766be10f869479f73ba576ab65fe1ac8bb399776bf6a956bdffeca9505c9",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w7.native-request.json": "1cfbb064a63ec38214b37016926c86aab8223b315267df0eafc854095b2bdac5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w8.native-request.json": "05f76046ef48970224e276f3598a15001ee282df26ae3da863956deee448609c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/platform/d579-w9.native-request.json": "c67ce8695586dee5b73587cf0dbb23f3a8d20ffab6900a90684eedf2f2f6748c"
+  }
+}

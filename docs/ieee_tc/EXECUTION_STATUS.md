@@ -1,5 +1,63 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D579 full W1 complete and strictly audited; preserve/checkpoint then storage
+
+Resultcuration COMPLETE: hydraserve/d579_lifecycle_full_w1_result,archive828067B,
+sourceAST/SHAroundtrip/protected147/userdirtPASS; result scopeactualclosed.
+Next explicit checkpoint only; no repeated run/audit/join/curation.
+
+2026-10-16 AUTHORITATIVE: SAME D579 completed4000 nativecontract requests,
+458224tokens,0fail; joint1977/4000=49.425%,U8202.347262413707GPU-s,
+P95TTFT8750.468757ms. VersusD546:joint+4.150pp,U−1.531%,P95TTFT−8.869%,
+P95TPOT+2.327%worse. Bothnonfeasible; no causal/statistical/general gain claim.
+Exact4000inputjoinPASS,3935same/65different outputsequences retained; independent
+numericUNKNOWN/rawn_correctnull. Actual19workers allpp1/batch8,finalscheduler4.
+Service/launcher/remote/audit/outputcomparison actualclosed; peak53860741120B,
+allhigh/max/OOM/killswap0; remotelogSHAverified. No liveGPU/remote/analysisjob.
+Read D579_HYDRASERVE_LIFECYCLE_FULL_W1_RESULT.md. NEXT boundedcuration/explicit
+checkpoint,then freshverifiedcachemaintenance before anotherheavyjob(diskbelow
+150GiB newlaunchfloor). DoNOTrepeatD579run/audit/join or D574/D576qualification.
+HydraServeW2/Loquetiernewfullmatrix/7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/
+cost/docs/figures remainACTIVE; no scope reduction or figure work.
+
+## D579 LIVE — full W1 launched once; passive monitoring only
+
+Continuation verified SAME live actualInvocation88d6af35588542d1b1ddb0d20b142745
+at every spacedpoll; tmuxpane4024012 still runs. Latestwatchdogsample980:
+1682completed/1708received; peak51248201728B,hostavailable63377584128B,
+disk158745313280B,allhigh/max/OOM/killswap0,warningfalse/abortempty.
+Progress sinceprevious turn1012→1158→1283→1462→1522→1682. This is a verified
+wait, not a new performance result or blocker. No restart, changedconfig,
+maintenance, tests or publication. Existing run_audit.py/audit.py inspected
+read-only; run ONLY after actualservice/remoteclosure. Nextsame-run monitoring
+then fullaudit, exactD546input/outputjoin, evidencecheckpoint. Fullgoal ACTIVE.
+
+Latest passive observation: SAME actual Invocation88d6af35588542d1b1ddb0d20b142745,
+cgroup inode26189363 active/running. At watchdogsample610:907completedresponses,
+923received; peak50064699392B,hostavailable64585441280B,disk159348658176B,
+allhigh/max/OOM/killswap0,no warning/abort. Multiple spaced polls observed
+continuous progress48→154→299→414→498→539→728→838→907; no run restart.
+No full audit or final metrics yet. Keep SAME tmux run; do not launch another.
+After actualrelease/remoteclosure use existing run_audit.py in boundedCPU scope,
+then exactD546input/outputjoin and resultpreservation. Currentdisk below150GiB
+new-heavy floor after expectedrunwrites,above100GiB runtimeabort; no cleanup
+during inference. Reclaim only freshlyproven rebuildablecache after closure/
+audits/checkpoint if needed before nextheavy job. No currenttest/build/push.
+
+2026-10-16 AUTHORITATIVE: prereg checkpoint5561d2a3e53bb9288f3624adac3b7ed816339429
+PUSHED/remoteequal,12explicitfiles; BASE80e08b4 unchanged. Prepare/curation/
+publication/remote_prelaunch actualrecursiveemptyclosed/pathgone,events/swap0.
+D579 launched ONCE in tmux primelora-d579,pane4024012; actualservice
+primelora-tc-svc-f5c8dce293be4ef3a0819b79ec67e813.scope. Raw directory:
+/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016.
+Remoteowned3b/7b services plus monitor d579-hydraremote ACTIVE; link1000Mb/s/full.
+Initial sample31:peak39870414848B,hostavailable72508030976B,events/swap0,noabort.
+Not a finished performance result. Do NOT repeat launch/preparation/checkpoint/
+remote start or D574/D576/D577/D578 work. No maintenance/tests/builds/push or other
+inference while live. Wrapper closes exact-owned localresources andremoteafter
+terminal. NEXT finish SAME run,verify actualclosure,then boundedstrictaudit and
+D546input/outputjoin; retain nonfeasibility. All remaining PLAN scopeACTIVE.
+
 ## D579 full W1 prepared; checkpoint then one replay
 
 2026-10-16 AUTHORITATIVE: D579 preparation passed; exact D546 full4000 W1
