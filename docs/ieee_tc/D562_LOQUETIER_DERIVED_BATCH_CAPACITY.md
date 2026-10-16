@@ -72,3 +72,31 @@ RAW：/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualificatio
 旧结果、147个投稿文件与用户修改保护；测试后的代码和小型证据分别提交对应仓库。
 资格之后接原生服务生命周期优化、全500资格和新版本完整W0/W1/W2比较，
 然后返回PrimeLoRA的G1/G2优化及3B/消融/敏感性完整主线。全目标保持ACTIVE。
+
+## 实际结果：未通过，完整保留
+
+一次原生运行已终止，服务RC1、watchdog RC0；实际GPU释放和服务资源域消失已验证，
+launcher递归空成员后关闭（峰值89,219,072B，high/max/OOM/swap均0）。没有重跑D562。
+
+- all_prefill完成：8条不同adapter请求各生成256个原生token，257个容量采样，
+  终态KV归零。观察到peak allocated=22,187,018,240B、peak reserved=24,956,108,800B；
+  没有观察到OOM。这只证明该完整场景能够执行，不是在线batch8资格或吞吐改进。
+- mixed_prefill_decode在第一条登记时被合同检查拒绝，尚无该场景的forward采样。
+  诊断函数两次都使用capacity-mixed-源request-ID；同一generator严格保存历史ID，
+  因此第二场景复用了已有ID。应该修正诊断请求命名，保留真实source_request_id，
+  不能删除原生唯一性检查或清空其历史集合。新修复须新增执行身份和CPU回归。
+- 7/8输出与D445逐token相同；req_00015/code_lora_0015的前131个token相同，
+  第132个（零基索引131）由11029变为1024；全256中116个位置不同。
+  D561的同请求batch2输出与D445一致。差异原因尚未确证，不能因为计数/绑定合格
+  或其余7条相同，就宣布数值正确或batch8全部合格。
+- 最后的8条1024-context KV分配尚未执行；不能补记为通过。
+
+[PyTorch2.1数值说明](https://docs.pytorch.org/docs/2.1/notes/numerical_accuracy.html)
+指出批量和单独执行未必逐bit一致。这支持检查批形状/数值误差这一假设，不证明本次
+差异就是舍入误差，更不能排除SMLM或绑定错误。下一最小诊断应在相同历史前缀下
+保存分歧处的原生logits、前两候选间距与绑定/分段证据，区分局部决策变化和错误执行；
+不靠重复生成直到输出相同、不缩短目标或跳过这条输入。
+
+D562按失败/部分证据封存，serving/native kernel/旧batch2配置未改。保留两种问题
+的独立身份：诊断请求ID缺陷已由源码定位，输出差异仍待实证。全500资格、四worker、
+新W0/W1/W2和完整PrimeLoRA主线仍未完成。
