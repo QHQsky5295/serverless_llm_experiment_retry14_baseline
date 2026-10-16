@@ -1,6 +1,35 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D564 native score/mixed capacity diagnostic prepared, 2026-10-16
+
+Read D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md. Existingcapacityprobe extended
+ONLY opt-in scoreevidenceSHA and read-only nativegreedy observation at retained
+D562firstdivergence. Same8inputs/125-IDshard, batch2reference+all8+mixed4/4,
+complete760/256 geometry, full8contextKV afterward. No forcedtokens/shortened
+outputs/newtrace/servingpolicy/kernel/config change. All original evidence retained.
+36CPUtestsPASS/no skips (19capacity+17nativeobservations), actualqualification
+recursiveempty/closed/pathgone,peak284471296B/events/swap0. OfflinepreparePASS,
+sameD560sourceview andD561derivedbatch8; no GPU result yet. Scorevectors will be
+saved exclusively with SHA, actualprefix and nativebinding/segments; notthroughput.
+Beforechanges fullPLAN/V1/V2 remainread incontext andunchangedSHAs reverified,
+currentHEAD/state checked; fixedofficialnativegeneration andPyTorch2.1docs browsed.
+Previous turn PROGRESS (D562failuresealed,D563reproducedfix33tests/push), notblocker.
+Next actualprepareclosure/testedexplicitcheckpoint, then one freshgated native
+diagnostic. No repeats of D562/D563 or old performance. FullgoalACTIVE; all remaining
+7B/G2/3B/ablations/sensitivities/docs/figures retained; unrelatedk3s untouched.
+
 ## D563 diagnostic identity fix CPU-qualified, 2026-10-16
+
+CHECKPOINT DONE: MAIN988d773cc1744aadd3f26b05e8c32cb6c8ea2e4b,
+BASE24fd50f29be91ac9cafa76a7856b7d11e6570e99 bothPUSHED/remoteequal.
+Explicit6MAIN/3BASEfiles;33CPUtests/source/archive/protected147/userdirt/secrets/
+diffchecksPASS. Publicationactualrecursiveempty/closed/pathgone; actualresources
+in RAWpublication_closure.json. No liveGPU/test/publication/remotejob remains.
+Do NOTrepeatD563tests/reproduction/backup or D562failednative run. Next implement
+bounded native logit observer in EXISTINGcapacityprobe under NEWkey (D564), then
+qualify observer invariance and same-prefix2/8/mixed arithmetic before serving
+capacity integration. D563 changed ONLYdiagnosticID and test, not numericalpath.
+This postpushclosure/status delta reserved next meaningfulcheckpoint; no status-onlypush.
 
 D562failed/partial result PRESERVED/PUSHED: MAIN9b68e76128e6835f8eef28f6487792b50e45acf5,
 BASE08321ad37ecab9cc379a2558032ea3b093960af9 bothremoteequal. Resultpublication
