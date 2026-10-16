@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "files": 1,
+  "reclaimed_bytes": 532033536,
+  "free_bytes": 161415860224,
+  "receipts": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261016_d586_closed_d554_outcome.json": "d3370c9cd927af82d5469a9482b81bbbac69835fa5ff204b5556133a3426e667"
+  },
+  "protected_unchanged": true,
+  "core_recipe_sha256": "3fbe720eaca01f6451a028ece71eba9600df420f1d233fdd669b3e2822e1f33b"
+}

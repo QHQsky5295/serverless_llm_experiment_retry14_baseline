@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792156106.7450926,
+  "before": {
+    "available_bytes": 160883884032
+  },
+  "after": {
+    "available_bytes": 161415860224
+  },
+  "entries": [
+    {
+      "run": "d554_20261015/7b_initial_control_full_w2",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "a1178f573177405a514e0a03e1c063a9042e480bec7eaa0fd7aa577e4998106b",
+      "audit_sha256": "a1178f573177405a514e0a03e1c063a9042e480bec7eaa0fd7aa577e4998106b",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 106203440,
+        "size": 599018524,
+        "mtime_ns": 1792069808946365188,
+        "ctime_ns": 1792069808946365188,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 1169968
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "5da01567b5b0edd8ea7ebdda0b25d26df9c752963d0d63393c63908640a05bb1",
+      "archive_sha256": "f76ed17e006f64fafd2cfe3dd049aec59553e5757caf9dd792ca21e922a73d83",
+      "archive_bytes": 66989694,
+      "archive_allocated_bytes": 66990080,
+      "first_roundtrip_sha256": "a1178f573177405a514e0a03e1c063a9042e480bec7eaa0fd7aa577e4998106b",
+      "second_roundtrip_sha256": "a1178f573177405a514e0a03e1c063a9042e480bec7eaa0fd7aa577e4998106b",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 532033536
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

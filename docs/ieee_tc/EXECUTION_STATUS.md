@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D586 storage complete — checkpoint then same-config Loquetier W1/W2
+
+2026-10-16 AUTHORITATIVE: D585 fullW0 remains complete/audited/pushed at
+545cd2a06b41bb00470c2b9e7c2cf723c3759326; no replay, audit or result repeated.
+D586 freshly rehashed retained originals and500 download objects/5000files,
+removed ONLY /tmp/tc-d585-7bl/remote_artifacts/objects; reclaimed13004480512B.
+All metadata/raw measurements/failed evidence/unique pool retained. Readable
+same-UID/fuser process checks have explicit visibility caveat in receipt.
+Closed/publishedD554W2 main_outcome losslesslygzipped, two roundtripSHAs match
+historicala1178f573177405a514e0a03e1c063a9042e480bec7eaa0fd7aa577e4998106b;
+reclaimed532033536B. Total13536514048B, free161415860224B(~150.33GiB).
+Cleanupscope peak3221889024B,high8505,max/OOM/killswap0; storagepeak689078272B,
+all events/swap0. Both actuallyclosed/pathgone; curationpassed andclosed.
+Protected147 andthreeuserdirt unchanged. No liveGPU/remote/maintenance job.
+Next explicitD586 checkpoint, then samefrozenLoquetier config fullW1/W2 and
+remaining7Bcomparison BEFORE newPrimeLoRA optimization. Freshresource gate
+stillrequired; doNOT repeatD585 orD586cleanup/compression. ReadD586doc.
+FullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures remainACTIVE.
+
+## D585 published and fully closed — storage then Loquetier W1/W2
+
+2026-10-16 AUTHORITATIVE: MAIN545cd2a06b41bb00470c2b9e7c2cf723c3759326
+PUSHED/remoteequal,9explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. AllD585service/aux/remote/failedanalysis/successfulanalysis/cross/
+result/publication actuallyclosed/pathgone. Publication scopepeak51630080B,
+allhigh/max/OOM/killswap0, verifiedinactualclosure receipt.
+No liveGPU/remote/analysis/publication job; no pendingobserver/session.
+Read resultdoc and retained firstanalysisfailure; doNOTrepeat replay, audit,
+join,curation orpublication. OldD445 and373outputdifferences remain preserved.
+NEXT freshboundedstorage maintenance of provenrebuildableD585private download
+objects, preservingallraw/receipts/originalpool/userdirt/protected147; diskbelow
+150GiB newheavyfloor. Then sameLoquetierconfigW1/W2 andremaining7Bcomparison
+before nextPrimeLoRA optimization. FullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/
+finalfigures stayACTIVE. This closesonebaselineW0point, notthefullgoal.
+
 ## D585 complete, audited and curated — publish, then storage and W1/W2
 
 2026-10-16 AUTHORITATIVE: SAME full4000W0 completed4000 native-contract
