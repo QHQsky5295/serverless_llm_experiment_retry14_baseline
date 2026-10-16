@@ -2,6 +2,39 @@
 
 ## D560 native ownership probe prepared, 2026-10-16
 
+AUTHORITATIVE TERMINAL: native owner/short-forward probe PASS once, no live job.
+Read D560 doc. All125 IDs two-token before/after outputs identical, base/prepared
+wholecontent/layout/pointers unchanged;375owners/32000FP32Parameters allcollected.
+Actualallocated23216416768->17747044352B, reduction5469372416B=rawstoragetotal;
+rawalias0. Reserved23309844480 unchanged throughrelease, laterfullKV24589107200.
+GC4.441870s; twofullcontext1024 KV afterrelease allocated18820787200B.
+Not fullcontextforward/fourworkers/full500/independentnumeric/performance proof.
+Service/watchdogRC0,243samples,actualGPUrelease/servicepathgone;servicepeak9276149760B,
+events/swap0. Launcheractualrecursiveempty/closed/pathgone,peak89636864B/events0.
+No repeats or serving/batch change. Next preserve/push actualresult checkpoint,
+then actualKV/workspace concurrency qualification via existingcapacity entry;
+do not infer safe batch from freedbytes alone. Fullgoal ACTIVE.
+
+Historical launch notes (superseded by terminal above): native diagnostic ran
+once in tmux tc-d560-nativeowner. Actualservice
+primelora-tc-svc-aeebc6f9e3fd48729b67bb315f6c8bad.scope,
+Invocationc1b1aa8c9b8b4b7db450e6368fab7ec8,inode26017190.
+Launcherauxd5600000000000000000000000000006 identity in RAWlauncher_identity.json.
+Fresh gated-launch passed; atsample17 hostavailable112439222272B,
+service2096807936Bpeak,events/swap0/noabort. No final probe result yet.
+Monitor SAMEactualrun only; no tests/build/hashscan/backup/remotechanges/cleanup.
+No remote artifact service needed for this explicitly local immutable-pool
+diagnostic. On terminal inspect capacity_launch.json/native_capacity.json,
+close exactempty launcher via close.py launcher, then interpret/save evidence.
+Never infer release from one idle sample, restart samekey or expand batch midrun.
+
+Prelaunch checkpoint DONE: MAIN9f2d43ffb9ba2d048d1aa6c3b34e03b5821c3fc8,
+BASE4c5ad93214d83ebaf38d81ebba9d75f61faeefce both PUSHED/remoteequal.
+Explicit6MAIN/4BASEfiles,11tests/source/archive/protected147/userdirt/secrets/diff
+checksPASS. Publication actualrecursiveempty/closed/pathgone; no repeat backup.
+Next launch.py uses fresh original gated-launch safety gate and one new tmux key;
+no new GPU result yet. Full PLAN still read in this context and SHA unchanged.
+
 FULL PLAN/status/AGENTS/current rule supplements reread after compaction.
 Existing capacity entry extended ONLY with explicit inference-owner probe;
 online serving/native kernel/config unchanged. Reuse D437 largest125-ID shard,

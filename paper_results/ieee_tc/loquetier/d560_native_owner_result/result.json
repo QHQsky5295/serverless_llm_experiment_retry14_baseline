@@ -1,0 +1,185 @@
+{
+  "passed": true,
+  "performance_run": false,
+  "independent_numerical_correctness": false,
+  "all_four_workers_qualified": false,
+  "full_context_forward_qualified": false,
+  "adapter_count": 125,
+  "target_modules": 128,
+  "raw_owner_count": 375,
+  "raw_parameter_count": 32000,
+  "raw_dtypes": {
+    "torch.float32": 32000
+  },
+  "raw_unique_storage_bytes": 5469372416,
+  "raw_shared_storage_bytes": 0,
+  "remaining_raw_owners": 0,
+  "remaining_raw_parameters": 0,
+  "allocated_reduction_bytes": 5469372416,
+  "release_seconds": 4.441870403010398,
+  "outputs_compared": 125,
+  "outputs_equal": true,
+  "distinct_two_token_sequences": 1,
+  "base": {
+    "tensor_count": 291,
+    "logical_bytes": 13476831232,
+    "unique_storage_bytes": 13476831232,
+    "content_sha256": "cd3590c25b8318e1522548eca61e636b445428f1f979166b3ac5e7b7e2d9c271",
+    "layout_sha256": "c0032647ce48b4425916b65cdaddbd3c402b5a9532b2f3928602d1466c5f77e5"
+  },
+  "prepared": {
+    "tensor_count": 32256,
+    "logical_bytes": 4194560000,
+    "unique_storage_bytes": 4194560000,
+    "content_sha256": "9bb1ccc42e39310081cca2df5fb3d40f46921c70e17476a3461ae8eb12d788e9",
+    "layout_sha256": "d3634937e333cfe77f8d3237349d4589e42e0132db9a1e23aa61c8de32e9f4e3"
+  },
+  "input": {
+    "journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d445_20261012/model7b/worker_0.native_events.jsonl",
+    "journal_sha256": "0bc08ab01d8a456ab578d3602d06689724a0a04515233b91098f7eb2b2be32c0",
+    "source_request_id": "req_00002",
+    "source_prompt_tokens": 359,
+    "prompt_ids": [
+      1,
+      4911,
+      29901,
+      2563,
+      2740,
+      2582,
+      29901,
+      13,
+      13,
+      29961,
+      29896,
+      29962,
+      376,
+      5592,
+      327,
+      11400,
+      29879,
+      526,
+      10839,
+      363,
+      278,
+      1494,
+      4072,
+      310,
+      664,
+      18132,
+      29901,
+      9481,
+      29914,
+      1688,
+      23136,
+      29892
+    ],
+    "target_tokens": 2,
+    "selection": "first_native_terminal_input_first32_v1",
+    "performance_input": false
+  },
+  "stages": [
+    {
+      "phase": "backbone_loading",
+      "at": 1628207.710090042,
+      "allocated_bytes": 0,
+      "reserved_bytes": 0,
+      "peak_allocated_bytes": 0,
+      "peak_reserved_bytes": 0
+    },
+    {
+      "phase": "adapters_loading",
+      "at": 1628212.608833856,
+      "allocated_bytes": 13476847616,
+      "reserved_bytes": 13478395904,
+      "peak_allocated_bytes": 13476847616,
+      "peak_reserved_bytes": 13478395904
+    },
+    {
+      "phase": "mixed_preparation",
+      "at": 1628293.058111335,
+      "allocated_bytes": 18946220032,
+      "reserved_bytes": 18964545536,
+      "peak_allocated_bytes": 18962997248,
+      "peak_reserved_bytes": 18964545536
+    },
+    {
+      "phase": "native_registry",
+      "at": 1628295.87290162,
+      "allocated_bytes": 23140786176,
+      "reserved_bytes": 23152558080,
+      "peak_allocated_bytes": 23140849664,
+      "peak_reserved_bytes": 23152558080
+    },
+    {
+      "phase": "ownership_forward_before",
+      "at": 1628298.805774736,
+      "allocated_bytes": 23140787200,
+      "reserved_bytes": 23152558080,
+      "peak_allocated_bytes": 23140849664,
+      "peak_reserved_bytes": 23152558080
+    },
+    {
+      "phase": "ownership_before_release",
+      "at": 1628361.98374827,
+      "allocated_bytes": 23216416768,
+      "reserved_bytes": 23309844480,
+      "peak_allocated_bytes": 23267265024,
+      "peak_reserved_bytes": 23309844480
+    },
+    {
+      "phase": "ownership_after_release",
+      "at": 1628366.437565547,
+      "allocated_bytes": 17747044352,
+      "reserved_bytes": 23309844480,
+      "peak_allocated_bytes": 23267265024,
+      "peak_reserved_bytes": 23309844480
+    },
+    {
+      "phase": "ownership_forward_after",
+      "at": 1628421.534922173,
+      "allocated_bytes": 17747044352,
+      "reserved_bytes": 23309844480,
+      "peak_allocated_bytes": 23267265024,
+      "peak_reserved_bytes": 23309844480
+    },
+    {
+      "phase": "full_context_kv_allocation",
+      "at": 1628429.152017214,
+      "allocated_bytes": 17747044352,
+      "reserved_bytes": 23309844480,
+      "peak_allocated_bytes": 23267265024,
+      "peak_reserved_bytes": 23309844480
+    },
+    {
+      "phase": "weights_and_kv_ready",
+      "at": 1628429.162835816,
+      "allocated_bytes": 18820787200,
+      "reserved_bytes": 24589107200,
+      "peak_allocated_bytes": 23267265024,
+      "peak_reserved_bytes": 24589107200
+    }
+  ],
+  "limitations": [
+    "One largest static shard only; not all four concurrent workers.",
+    "Two-token native forward for every ID on one largest shard; not full-context forward workspace, four-worker capacity or performance qualification.",
+    "Local immutable pool diagnostic, not real-remote preparation or request timing."
+  ],
+  "service_peak_bytes": 9276149760,
+  "service_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "service_swap_bytes": 0,
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/native_capacity.json": "77250e37f0bb3660184d927828d645214581a7fdf77f59455f87b095351ec7de",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/capacity_launch.json": "7f9535f91c2ce28ebe9692dcf11883c03e2beed1db478a6007e16e396efde4ba",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/capacity_launch.launch/watchdog.jsonl": "04ec75cecec14824824e5aea24498aa34c533b0af0604efdf2657073d23c5a63",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/capacity_launch.launch/service.log": "6bc95954bd23838e2f060ac70522822ef92eb8602890b4e30e2b2c99cb370c87",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/launcher_closure.json": "47b73661a7a3ad3e777734a1cabd44fffeabfa5cb2287180720d35fc0247cc99",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d560_20261016/publish_result.py": "4af7e69ab4d97d1683b09a3ab7269eaa4a1c6a85074e7e004a0d2ff566dbb0d7"
+  }
+}
