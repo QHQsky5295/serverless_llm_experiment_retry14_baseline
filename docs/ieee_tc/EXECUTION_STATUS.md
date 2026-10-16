@@ -1,5 +1,93 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D585 complete, audited and curated — publish, then storage and W1/W2
+
+2026-10-16 AUTHORITATIVE: SAME full4000W0 completed4000 native-contract
+responses/458224tokens/0fail. Actualservice/launcheraux/remoteownedservices
+closed; no GPUrun orremotejob remains. Joint2474/4000=61.85%,
+U14754.21322239074GPU-s,P95TTFT244725.09756777436ms,meanTTFT26961.193063211627ms.
+Servicepeak39694176256B,allhigh/max/OOM/killswap0. IndependentnumericUNKNOWN,
+rawn_correctnull,formalfalse/holdoutfalse; nonfeasible95% point retained.
+Unchangedfull4000analyzer passed in D569's qualified environment. Firstoffline
+analysis used /usr/bin/python3 and failed on missingnumpy AFTER successful
+evidencecollection; full failedreceipt/log/source/closure retained. Analysis2
+reusedcollectedevidence, no GPUrerun/analyzer-rulechange. Bothanalysis scopes
+actuallyclosed; peaks158035968/626782208B,events/swap0.
+ExactD4454000input/arrival joinPASS;3627same/373changed nativeoutputs retained,
+oldbatch2 notanindependentoracle. Crossscopeclosed,peak761008128B,events/swap0.
+ResultcurationPASS,archive191739B; protected147 andthreeuserdirtPASS,
+allsource/archiveSHA/secretschecksPASS; resultscopeactuallyclosed.
+ReadD585_LOQUETIER_CAPACITY_FULL_W0_RESULT.md. Remaining sequentialstartup
+andTPOTlimitations explicit; this is notG1/G2 completion orfullcausalproof.
+NEXT explicitresultcheckpoint,then freshboundedmaintenance of onlyproven
+rebuildableD585downloadobjects before anotherheavyjob; preserveallraw/failed
+evidence/originalpool. Then SAMELoquetierconfigW1/W2 andremaining7Bcomparison,
+PrimeLoRAoptimization,3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures. DoNOTrepeat
+D585replay/qualification/audit/join/curation oroldD583/D584cleanup.
+Observer1229 ended on terminalwatchdog event lackingservice key; actualreceipt
+independently confirmednormalreturn0/pathgone/GPUreleased, notrunfailure.
+
+## D585 monitoring correction — replay responses, not physical terminal file
+
+Latest continuation verified wait: watchdog2180, SAME Invocation
+c3bbc17a618349499fe562c2bb82dd2a and tmux248694 stilllive. Actual replay
+2356created/2348http_response events; fourreadyfiles. Peak39694176256B,
+hostavailable85565698048B,disk148090163200B,allhigh/max/OOM/killswap0,
+warningfalse/abortempty,no launch7b.json. Twelve passive samples1635–2180
+observed responses1561→2348; no serving/config/input/remote changes.
+Observer1226 finished; experiment DID NOT finish. No pendingobservercell.
+PLAN SHA rechecked d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83,
+unchanged from full prior read. Continue sameD585 only, then actualrelease,
+cleanup/remote-stop/audit/preserve/checkpoint as below. No repeatedqualifications,
+newrun,cleanup,tests/builds orpush during the live performance measurement.
+
+2026-10-16 continuation: SAME Invocationc3bbc17a618349499fe562c2bb82dd2a
+and tmux pane248694 still active. At watchdog sample828, actual replay events
+show678 requests created/headers sent and623 http_response events; all four
+worker ready files exist. These are live event counts, NOT final validated
+completion/correctness/SLO statistics. physical/request_terminals.jsonl is not
+the live response counter on this path; earlier zero from that file must NOT
+be interpreted as zero served requests or a stalled run. No experiment change,
+restart, configuration adjustment, cleanup or remote intervention was made.
+Peak39694176256B,hostavailable85607485440B,disk148132302848B;
+allhigh/max/OOM/killswap0,warningfalse,abortempty. No launch7b.json terminal
+receipt yet. Continue only passive observation; terminal cleanup/audit sequence
+below remains required. Status update is intentionally not pushed during replay.
+
+Latest verified wait: samples900/944/989/1033 show766/814/843/875
+http_response events respectively; sample1033 has880 request_created events.
+SAME actual service Invocation and tmux remain live; peak39694176256B,
+hostavailable85621616640B,disk148125278208B,high/max/OOM/killswap0,
+no warning/abort and no terminal receipt. Four ready files remain present.
+Observer cell1218 completed normally; that observation ending is NOT the
+experiment ending. Continue SAME D585; do not relaunch or run postterminal
+cleanup/audit until actual launch7b.json and resource-release evidence exist.
+
+## D585 LIVE — same Loquetier full W0; passive monitoring only
+
+2026-10-16 AUTHORITATIVE: prelaunch2765f7bbe2af8b0de44ec2e09fc447a769bb6365
+PUSHED/remoteequal; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged.
+Qualification/backup/start scopes actualrecursiveemptyclosed/pathgone,
+peaks240553984/28889088/147431424B,allhigh/max/OOM/killswap0.
+D585 launched ONCE, tmux tc-d585-loquetier-full-w0,pane248694. Actualservice
+primelora-tc-svc-6f63f1ebd3274849b204e4dc763ca954.scope,
+Invocationc3bbc17a618349499fe562c2bb82dd2a, recheckedactive/running.
+Launcherauxd5850000000000000000000000000005,
+Invocation86ecb35d69f141a48120c23a51c04290. Remoteowned3b/7b andmonitor
+primelora-artifact-monitor-d585-full-w0.service ACTIVE; link1000Mb/s/full,
+published_gzip_v1/artifact_timing_v2PASS. ExactremoteIDs inremote_start.log.
+At sample45,peak6018048000B,hostavailable111618990080B,events/swap0,
+no warning/abort. Download growth below150GiB new-heavyfloor is expected;
+runtime100GiB floor remains enforced, no cleanup during this inference.
+No fullperformance resultyet. DoNOTrepeatlaunch/remote start/qualification/
+backup/D583-D584maintenance. Onlypassive monitoring ofSAMErun now; no test,
+build,scan,cleanup,push,remotechanges orsecondheavyjob. Whenactuallyterminal,
+close_launch.py -> stop_remote.sh -> boundedrun_analysis.py withactualoutcome,
+then actualanalysisclosure/input-outputjoin/preservation/checkpoint.
+Runrecipe doesNOTautomatically callthose postterminal steps; verifybeforeeach.
+RemainingLoquetierW1/W2,7Bbaselinecomparison,PrimeLoRA/G2/3B/dLoRA/A1–A5/
+S1–S13/cost/docs/finalfigures allACTIVE. No k3s involvement orfinalgoalclaim.
+
 ## D585 full Loquetier W0 prepared — checkpoint then one replay
 
 2026-10-16 AUTHORITATIVE: D583/D584 checkpointd8dd6cf371bd7f29e412421fe7357c9c5c355eff

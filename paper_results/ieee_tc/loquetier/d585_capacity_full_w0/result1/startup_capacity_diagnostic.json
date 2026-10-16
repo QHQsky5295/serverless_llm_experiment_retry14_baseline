@@ -1,0 +1,420 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d5850000000000000000000000000008.scope",
+    "invocation_id": "1ffce225579f42258aca2a8ef80dffed",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5850000000000000000000000000008.scope",
+    "inode": 26298334
+  },
+  "error_counts": {},
+  "timeout_elapsed_s": {
+    "count": 0,
+    "mean": null,
+    "p50_type1": null,
+    "p95_type1": null
+  },
+  "event_counts": {
+    "replay_ready": 1,
+    "request_contract": 4000,
+    "request_created": 4000,
+    "http_headers_sent": 4000,
+    "http_raw_response": 4000,
+    "http_response": 4000,
+    "http_replay_complete": 1
+  },
+  "native_event_counts": {
+    "0": {
+      "loquetier_backbone_loading": 1,
+      "loquetier_inference_owner_release": 1,
+      "loquetier_online_enqueued": 1008,
+      "loquetier_native_completed": 1008,
+      "loquetier_worker_exiting": 1
+    },
+    "1": {
+      "loquetier_backbone_loading": 1,
+      "loquetier_inference_owner_release": 1,
+      "loquetier_online_enqueued": 1076,
+      "loquetier_native_completed": 1076,
+      "loquetier_worker_exiting": 1
+    },
+    "2": {
+      "loquetier_backbone_loading": 1,
+      "loquetier_inference_owner_release": 1,
+      "loquetier_online_enqueued": 1048,
+      "loquetier_native_completed": 1048,
+      "loquetier_worker_exiting": 1
+    },
+    "3": {
+      "loquetier_backbone_loading": 1,
+      "loquetier_inference_owner_release": 1,
+      "loquetier_online_enqueued": 868,
+      "loquetier_native_completed": 868,
+      "loquetier_worker_exiting": 1
+    }
+  },
+  "native_problem_records": [],
+  "worker_ready": [
+    {
+      "index": 0,
+      "adapter_count": 125,
+      "ready_s": 1658618.203429834,
+      "business_to_ready_s": 261.5847491188906,
+      "acquire_to_ready_s": 219.8182290729601,
+      "offered": 1008,
+      "successful": 1008,
+      "failed": 0,
+      "inference_capacity": {
+        "binding": {
+          "evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/native_capacity.json",
+          "evidence_sha256": "bdbcb881b936e400a630d0ea0a4908448d5cfa822675fb65427216f2f56b78df",
+          "policy": "prepared_only_observed_capacity_v1"
+        },
+        "device_guard": {
+          "allocated_bytes": 17671414784,
+          "device_free_bytes": 1807089664,
+          "device_total_bytes": 25296044032,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "nonallocator_bytes": 336396288,
+          "reserved_bytes": 23152558080
+        },
+        "model": {
+          "available_budget_bytes": 6819299328,
+          "candidate_batch_size": 8,
+          "context_tokens": 1024,
+          "device_total_bytes": 25296044032,
+          "estimated_only": true,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "observed_fragmentation_bytes": 342972416,
+          "observed_nonallocator_bytes": 386727936,
+          "per_request_accounted_bytes": 830472192,
+          "per_request_kv_bytes": 536870912,
+          "per_request_largest_allocation_headroom_bytes": 100663296,
+          "per_request_scratch_bytes": 192937984,
+          "predicted_total_bytes": 25120522240,
+          "prompt_tokens": 760,
+          "runtime_qualified": false,
+          "schema": "loquetier_observed_capacity_bound_v1",
+          "warm_live_bytes": 17747044352
+        },
+        "release": {
+          "aliased_storage_bytes": 0,
+          "allocated_reduction_bytes": 5469372416,
+          "collected_objects": 7092625,
+          "owner_count": 375,
+          "parameter_count": 32000,
+          "policy": "prepared_only_observed_capacity_v1",
+          "raw_storage_bytes": 5469372416,
+          "releasable_storage_bytes": 5469372416,
+          "remaining_owners": 0,
+          "remaining_parameters": 0,
+          "retained_layout_unchanged": true,
+          "runtime_content_hash_checked": false,
+          "seconds": 4.416983737144619
+        }
+      },
+      "native_args": {
+        "apply_scaling": "A",
+        "batch_size": 8,
+        "context_tokens": 1024,
+        "dtype": "float16",
+        "model_dir": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      }
+    },
+    {
+      "index": 1,
+      "adapter_count": 125,
+      "ready_s": 1658716.479113395,
+      "business_to_ready_s": 359.86043267999776,
+      "acquire_to_ready_s": 98.07237362209707,
+      "offered": 1076,
+      "successful": 1076,
+      "failed": 0,
+      "inference_capacity": {
+        "binding": {
+          "evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/native_capacity.json",
+          "evidence_sha256": "bdbcb881b936e400a630d0ea0a4908448d5cfa822675fb65427216f2f56b78df",
+          "policy": "prepared_only_observed_capacity_v1"
+        },
+        "device_guard": {
+          "allocated_bytes": 17671414784,
+          "device_free_bytes": 1807089664,
+          "device_total_bytes": 25296044032,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "nonallocator_bytes": 336396288,
+          "reserved_bytes": 23152558080
+        },
+        "model": {
+          "available_budget_bytes": 6819299328,
+          "candidate_batch_size": 8,
+          "context_tokens": 1024,
+          "device_total_bytes": 25296044032,
+          "estimated_only": true,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "observed_fragmentation_bytes": 342972416,
+          "observed_nonallocator_bytes": 386727936,
+          "per_request_accounted_bytes": 830472192,
+          "per_request_kv_bytes": 536870912,
+          "per_request_largest_allocation_headroom_bytes": 100663296,
+          "per_request_scratch_bytes": 192937984,
+          "predicted_total_bytes": 25120522240,
+          "prompt_tokens": 760,
+          "runtime_qualified": false,
+          "schema": "loquetier_observed_capacity_bound_v1",
+          "warm_live_bytes": 17747044352
+        },
+        "release": {
+          "aliased_storage_bytes": 0,
+          "allocated_reduction_bytes": 5469372416,
+          "collected_objects": 7092631,
+          "owner_count": 375,
+          "parameter_count": 32000,
+          "policy": "prepared_only_observed_capacity_v1",
+          "raw_storage_bytes": 5469372416,
+          "releasable_storage_bytes": 5469372416,
+          "remaining_owners": 0,
+          "remaining_parameters": 0,
+          "retained_layout_unchanged": true,
+          "runtime_content_hash_checked": false,
+          "seconds": 4.498812147881836
+        }
+      },
+      "native_args": {
+        "apply_scaling": "A",
+        "batch_size": 8,
+        "context_tokens": 1024,
+        "dtype": "float16",
+        "model_dir": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      }
+    },
+    {
+      "index": 2,
+      "adapter_count": 125,
+      "ready_s": 1658820.282407312,
+      "business_to_ready_s": 463.6637265968602,
+      "acquire_to_ready_s": 103.57200406305492,
+      "offered": 1048,
+      "successful": 1048,
+      "failed": 0,
+      "inference_capacity": {
+        "binding": {
+          "evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/native_capacity.json",
+          "evidence_sha256": "bdbcb881b936e400a630d0ea0a4908448d5cfa822675fb65427216f2f56b78df",
+          "policy": "prepared_only_observed_capacity_v1"
+        },
+        "device_guard": {
+          "allocated_bytes": 17671414784,
+          "device_free_bytes": 1840644096,
+          "device_total_bytes": 25296044032,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "nonallocator_bytes": 336396288,
+          "reserved_bytes": 23119003648
+        },
+        "model": {
+          "available_budget_bytes": 6819299328,
+          "candidate_batch_size": 8,
+          "context_tokens": 1024,
+          "device_total_bytes": 25296044032,
+          "estimated_only": true,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "observed_fragmentation_bytes": 342972416,
+          "observed_nonallocator_bytes": 386727936,
+          "per_request_accounted_bytes": 830472192,
+          "per_request_kv_bytes": 536870912,
+          "per_request_largest_allocation_headroom_bytes": 100663296,
+          "per_request_scratch_bytes": 192937984,
+          "predicted_total_bytes": 25120522240,
+          "prompt_tokens": 760,
+          "runtime_qualified": false,
+          "schema": "loquetier_observed_capacity_bound_v1",
+          "warm_live_bytes": 17747044352
+        },
+        "release": {
+          "aliased_storage_bytes": 0,
+          "allocated_reduction_bytes": 5435817984,
+          "collected_objects": 7092625,
+          "owner_count": 375,
+          "parameter_count": 32000,
+          "policy": "prepared_only_observed_capacity_v1",
+          "raw_storage_bytes": 5435817984,
+          "releasable_storage_bytes": 5435817984,
+          "remaining_owners": 0,
+          "remaining_parameters": 0,
+          "retained_layout_unchanged": true,
+          "runtime_content_hash_checked": false,
+          "seconds": 5.9443615530617535
+        }
+      },
+      "native_args": {
+        "apply_scaling": "A",
+        "batch_size": 8,
+        "context_tokens": 1024,
+        "dtype": "float16",
+        "model_dir": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      }
+    },
+    {
+      "index": 3,
+      "adapter_count": 125,
+      "ready_s": 1658920.958165341,
+      "business_to_ready_s": 564.3394846259616,
+      "acquire_to_ready_s": 100.41718082898296,
+      "offered": 868,
+      "successful": 868,
+      "failed": 0,
+      "inference_capacity": {
+        "binding": {
+          "evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/native_capacity.json",
+          "evidence_sha256": "bdbcb881b936e400a630d0ea0a4908448d5cfa822675fb65427216f2f56b78df",
+          "policy": "prepared_only_observed_capacity_v1"
+        },
+        "device_guard": {
+          "allocated_bytes": 17671414784,
+          "device_free_bytes": 1840644096,
+          "device_total_bytes": 25296044032,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "nonallocator_bytes": 336396288,
+          "reserved_bytes": 23119003648
+        },
+        "model": {
+          "available_budget_bytes": 6819299328,
+          "candidate_batch_size": 8,
+          "context_tokens": 1024,
+          "device_total_bytes": 25296044032,
+          "estimated_only": true,
+          "kv_page_bytes": 8388608,
+          "kv_page_tokens": 16,
+          "observed_fragmentation_bytes": 342972416,
+          "observed_nonallocator_bytes": 386727936,
+          "per_request_accounted_bytes": 830472192,
+          "per_request_kv_bytes": 536870912,
+          "per_request_largest_allocation_headroom_bytes": 100663296,
+          "per_request_scratch_bytes": 192937984,
+          "predicted_total_bytes": 25120522240,
+          "prompt_tokens": 760,
+          "runtime_qualified": false,
+          "schema": "loquetier_observed_capacity_bound_v1",
+          "warm_live_bytes": 17747044352
+        },
+        "release": {
+          "aliased_storage_bytes": 0,
+          "allocated_reduction_bytes": 5435817984,
+          "collected_objects": 7092625,
+          "owner_count": 375,
+          "parameter_count": 32000,
+          "policy": "prepared_only_observed_capacity_v1",
+          "raw_storage_bytes": 5435817984,
+          "releasable_storage_bytes": 5435817984,
+          "remaining_owners": 0,
+          "remaining_parameters": 0,
+          "retained_layout_unchanged": true,
+          "runtime_content_hash_checked": false,
+          "seconds": 4.47862609801814
+        }
+      },
+      "native_args": {
+        "apply_scaling": "A",
+        "batch_size": 8,
+        "context_tokens": 1024,
+        "dtype": "float16",
+        "model_dir": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      }
+    }
+  ],
+  "native_enqueued_count": 4000,
+  "native_completed_count": 4000,
+  "cancellation_count": 0,
+  "failed_native_completed": 0,
+  "failed_cancellation_recorded": 0,
+  "failed_without_native_terminal": 0,
+  "failure_rows": [],
+  "successful_latency_stages_ms": {
+    "native_queue_before_register_ms": {
+      "count": 4000,
+      "mean": 8930.810514104262,
+      "p50_type1": 35.79715313389897,
+      "p95_type1": 74808.90925088897
+    },
+    "register_to_first_ms": {
+      "count": 4000,
+      "mean": 234.7720480566495,
+      "p50_type1": 224.49857997708023,
+      "p95_type1": 371.93338107317686
+    },
+    "native_decode_ms": {
+      "count": 4000,
+      "mean": 7488.90424627607,
+      "p50_type1": 5881.053725024685,
+      "p95_type1": 17608.506634132937
+    }
+  },
+  "deployment_notice_s": 1658296.618680715,
+  "business_start_s": 1658356.618680715,
+  "full_pool_prepare_start_s": 1658299.782496926,
+  "full_pool_prepare_end_s": 1658397.079015517,
+  "full_pool_count": 500,
+  "worker_startup": "sequential_v1",
+  "phase_counts": null,
+  "causal_attribution_complete": false,
+  "official_workflow_url": "https://raw.githubusercontent.com/NJUDeepEngine/Loquetier/aae33baeeb19777129c1ccbff99a898d4a0e2c63/src/loquetier_src/model_workflow.py",
+  "limitations": [
+    "Official workflow batch-bound admission/generate loop is retained in an online FIFO adapter; static125-ID shards and evidence-derived batch8 define this deployment.",
+    "No request-time packing/fetch, no OOM/high/swap event; absence does not establish a unique cause.",
+    "No independent numerical oracle; all same-backend output differences are retained, not automatically accepted as rounding."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_0.native_events.jsonl",
+      "sha256": "4e73632945b9f1387c1635911d4eede19dcf69ad7138bf679db0b90200bcf0ec"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_1.native_events.jsonl",
+      "sha256": "6d24db3f3aee367aca2ddd5fe6ed9698b1203244e6fba17d45891942472976b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_2.native_events.jsonl",
+      "sha256": "7bb7f11aec41f19559019262b147548f1eb63cbc5c9bccb5c08d3cb8b7246056"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_3.native_events.jsonl",
+      "sha256": "483e386a36e5d225ec3e477924059d512bcbe03f74f3b73b70381c4fcda57de2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_receipts/1c1142e3b1c34e19932bfa64d0db697d.json",
+      "sha256": "8ab19d0b40a265328d163dd06336025b4ac2d07454dd30551842c734392c0c37"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_receipts/1eb47def1107458586a48ec43f6111dc.json",
+      "sha256": "1dd1cbf9733a9d784fddc21bfb41ec34557ad3867d2f758f3a3470debe181e26"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_receipts/6bb0ddf571ec422e833e95e50d75c847.json",
+      "sha256": "dc1233c2afb2b049095f94f0572f63ea12782d5a0b7b0846ae62fde037a768c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/worker_receipts/92caa3987a4b4df9a78abc8ba7ae9d70.json",
+      "sha256": "9d3d9eae32426d4dd775385d29abdd1c75094029a3aaf88c1610c9cfde132d85"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/loquetier_full_pool_preparation.json",
+      "sha256": "f438f8951495e6ed560e255db22d1d84b7ec713fc62c50368624fe634624431b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/model7b/model_qualification.json",
+      "sha256": "864746f28e63ef55abee88debb00e7a8a5d16d9cba7ae851e53ba9da48400f3c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py",
+      "sha256": "c810b6155f39e7512713969e3cf618b2b252a08214fa7907c7b9588c9e4cce2a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d585_20261016/cross_contract.py",
+      "sha256": "318819e8303173e1e5911efa110553f6886645a9b08357bdaf1af46753b0d4d1"
+    }
+  ]
+}
