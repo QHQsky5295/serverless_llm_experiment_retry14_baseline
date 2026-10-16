@@ -1,0 +1,1707 @@
+{
+  "passed": true,
+  "results": {
+    "D554": {
+      "run": "D554",
+      "counts": {
+        "requests": 4000,
+        "selected_remote": 516,
+        "has_owned_remote_receipt": 492,
+        "owned_remote_but_native_reused": 2
+      },
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "n": 490,
+          "joint": 194,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 490,
+              "mean": 1123.9419230464275,
+              "p95_type1": 3748.1265089008957,
+              "max": 7817.309824982658
+            },
+            "request_to_headers_ms": {
+              "n": 490,
+              "mean": 3.856623657903045,
+              "p95_type1": 9.064706042408943,
+              "max": 28.5780499689281
+            },
+            "reserve_receive_write_ms": {
+              "n": 490,
+              "mean": 501.5075268732308,
+              "p95_type1": 1556.8120488896966,
+              "max": 2081.0166029259562
+            },
+            "body_to_extract_start_ms": {
+              "n": 490,
+              "mean": 0.4315660045273146,
+              "p95_type1": 0.6076658610254526,
+              "max": 21.534811006858945
+            },
+            "extract_verify_ms": {
+              "n": 490,
+              "mean": 269.6240276373847,
+              "p95_type1": 942.4741130787879,
+              "max": 2531.863389071077
+            },
+            "extract_to_publication_ms": {
+              "n": 490,
+              "mean": 655.4761210504007,
+              "p95_type1": 1772.7239208761603,
+              "max": 2760.1114159915596
+            },
+            "publication_to_download_return_ms": {
+              "n": 490,
+              "mean": 165.97845222449348,
+              "p95_type1": 906.4590558409691,
+              "max": 4188.678778009489
+            },
+            "download_return_to_native_load_ms": {
+              "n": 490,
+              "mean": 1251.3978840327081,
+              "p95_type1": 3282.3812658898532,
+              "max": 8188.164349878207
+            },
+            "native_load_ms": {
+              "n": 490,
+              "mean": 51.00078260934703,
+              "p95_type1": 66.84661097824574,
+              "max": 257.75455706752837
+            },
+            "acquired_to_engine_ms": {
+              "n": 490,
+              "mean": 223.2734630316762,
+              "p95_type1": 711.0895779915154,
+              "max": 3376.2235189788043
+            },
+            "admission_to_engine_ms": {
+              "n": 490,
+              "mean": 4246.488370168099,
+              "p95_type1": 8655.087127815932,
+              "max": 14853.669807082042
+            },
+            "wire_bytes": {
+              "n": 490,
+              "mean": 842619.3408163266,
+              "p95_type1": 797234,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 490,
+              "mean": 25971968.912244897,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 490,
+              "mean": 484.0854766346939,
+              "p95_type1": 1529.765312,
+              "max": 2072.425599
+            },
+            "server_send_ms": {
+              "n": 490,
+              "mean": 483.5605998755102,
+              "p95_type1": 1529.253964,
+              "max": 2071.868912
+            },
+            "server_read_ms": {
+              "n": 490,
+              "mean": 0.4273412551020408,
+              "p95_type1": 0.451732,
+              "max": 9.988252
+            },
+            "server_socket_write_ms": {
+              "n": 490,
+              "mean": 483.11635365306125,
+              "p95_type1": 1528.818168,
+              "max": 2071.46204
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "1",
+          "n": 141,
+          "joint": 125,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 141,
+              "mean": 579.8709168980652,
+              "p95_type1": 1429.3967268895358,
+              "max": 7817.309824982658
+            },
+            "request_to_headers_ms": {
+              "n": 141,
+              "mean": 3.6264352206510644,
+              "p95_type1": 8.026668103411794,
+              "max": 24.01041006669402
+            },
+            "reserve_receive_write_ms": {
+              "n": 141,
+              "mean": 143.10652354950125,
+              "p95_type1": 606.6040529403836,
+              "max": 1018.5973399784416
+            },
+            "body_to_extract_start_ms": {
+              "n": 141,
+              "mean": 0.08254971995896904,
+              "p95_type1": 0.17980998381972313,
+              "max": 1.1065101716667414
+            },
+            "extract_verify_ms": {
+              "n": 141,
+              "mean": 200.88219375626997,
+              "p95_type1": 343.59350404702127,
+              "max": 1036.147217033431
+            },
+            "extract_to_publication_ms": {
+              "n": 141,
+              "mean": 243.30701304976134,
+              "p95_type1": 837.4078841879964,
+              "max": 1108.6889619473368
+            },
+            "publication_to_download_return_ms": {
+              "n": 141,
+              "mean": 36.7350838236273,
+              "p95_type1": 48.50486991927028,
+              "max": 758.8386570569128
+            },
+            "download_return_to_native_load_ms": {
+              "n": 141,
+              "mean": 628.504988430266,
+              "p95_type1": 1650.2739540301263,
+              "max": 3282.3812658898532
+            },
+            "native_load_ms": {
+              "n": 141,
+              "mean": 53.871088864361035,
+              "p95_type1": 67.00241984799504,
+              "max": 167.61304694227874
+            },
+            "acquired_to_engine_ms": {
+              "n": 141,
+              "mean": 152.48147345557544,
+              "p95_type1": 299.68683794140816,
+              "max": 1133.7226890027523
+            },
+            "admission_to_engine_ms": {
+              "n": 141,
+              "mean": 2042.4682667680374,
+              "p95_type1": 3950.665002921596,
+              "max": 10438.885150942951
+            },
+            "wire_bytes": {
+              "n": 141,
+              "mean": 982902.2056737589,
+              "p95_type1": 797235,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 141,
+              "mean": 25341319.75886525,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 141,
+              "mean": 132.67268185106383,
+              "p95_type1": 599.188967,
+              "max": 1005.582801
+            },
+            "server_send_ms": {
+              "n": 141,
+              "mean": 132.14712729078013,
+              "p95_type1": 598.68302,
+              "max": 1004.992993
+            },
+            "server_read_ms": {
+              "n": 141,
+              "mean": 0.49728853191489364,
+              "p95_type1": 0.484339,
+              "max": 9.988252
+            },
+            "server_socket_write_ms": {
+              "n": 141,
+              "mean": 131.63249063120566,
+              "p95_type1": 598.304385,
+              "max": 1004.587388
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "2",
+          "n": 112,
+          "joint": 48,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 112,
+              "mean": 1174.5924223879617,
+              "p95_type1": 3748.1265089008957,
+              "max": 7562.942283926532
+            },
+            "request_to_headers_ms": {
+              "n": 112,
+              "mean": 4.1490941699261645,
+              "p95_type1": 10.095434030517936,
+              "max": 28.5780499689281
+            },
+            "reserve_receive_write_ms": {
+              "n": 112,
+              "mean": 453.1551276969757,
+              "p95_type1": 1242.4003221094608,
+              "max": 1372.458445141092
+            },
+            "body_to_extract_start_ms": {
+              "n": 112,
+              "mean": 0.5513231049657666,
+              "p95_type1": 3.1283057760447264,
+              "max": 10.414039948955178
+            },
+            "extract_verify_ms": {
+              "n": 112,
+              "mean": 264.80953316578444,
+              "p95_type1": 908.6445129942149,
+              "max": 1168.91457606107
+            },
+            "extract_to_publication_ms": {
+              "n": 112,
+              "mean": 610.3310962436288,
+              "p95_type1": 1490.458688000217,
+              "max": 2311.9244931731373
+            },
+            "publication_to_download_return_ms": {
+              "n": 112,
+              "mean": 100.96862125543079,
+              "p95_type1": 353.5450368653983,
+              "max": 1326.1161809787154
+            },
+            "download_return_to_native_load_ms": {
+              "n": 112,
+              "mean": 1148.9260015971793,
+              "p95_type1": 2679.190987953916,
+              "max": 3426.910361042246
+            },
+            "native_load_ms": {
+              "n": 112,
+              "mean": 52.24642567710752,
+              "p95_type1": 70.39865688420832,
+              "max": 148.3138520270586
+            },
+            "acquired_to_engine_ms": {
+              "n": 112,
+              "mean": 194.58009724829546,
+              "p95_type1": 684.2710198834538,
+              "max": 1304.7813340090215
+            },
+            "admission_to_engine_ms": {
+              "n": 112,
+              "mean": 4004.3097425472556,
+              "p95_type1": 7127.742724958807,
+              "max": 9572.428641142324
+            },
+            "wire_bytes": {
+              "n": 112,
+              "mean": 785900.0982142857,
+              "p95_type1": 797234,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 112,
+              "mean": 26181689.6875,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 112,
+              "mean": 438.72518699107144,
+              "p95_type1": 1233.50073,
+              "max": 1364.859783
+            },
+            "server_send_ms": {
+              "n": 112,
+              "mean": 438.2055763839286,
+              "p95_type1": 1232.97648,
+              "max": 1364.35567
+            },
+            "server_read_ms": {
+              "n": 112,
+              "mean": 0.3948930446428571,
+              "p95_type1": 0.455418,
+              "max": 0.55243
+            },
+            "server_socket_write_ms": {
+              "n": 112,
+              "mean": 437.79374779464285,
+              "p95_type1": 1232.50261,
+              "max": 1363.927562
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "3",
+          "n": 129,
+          "joint": 16,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 129,
+              "mean": 1573.2380060186654,
+              "p95_type1": 3783.140528947115,
+              "max": 7473.239967832342
+            },
+            "request_to_headers_ms": {
+              "n": 129,
+              "mean": 3.9008970375988605,
+              "p95_type1": 9.520526975393295,
+              "max": 21.0214969702065
+            },
+            "reserve_receive_write_ms": {
+              "n": 129,
+              "mean": 641.4695352427806,
+              "p95_type1": 1444.1810329444706,
+              "max": 1914.728440111503
+            },
+            "body_to_extract_start_ms": {
+              "n": 129,
+              "mean": 0.5471916930648939,
+              "p95_type1": 0.8198991417884827,
+              "max": 21.534811006858945
+            },
+            "extract_verify_ms": {
+              "n": 129,
+              "mean": 276.2900605191325,
+              "p95_type1": 1034.1571508906782,
+              "max": 1537.193905794993
+            },
+            "extract_to_publication_ms": {
+              "n": 129,
+              "mean": 831.7076465540905,
+              "p95_type1": 1818.258874118328,
+              "max": 2712.96376013197
+            },
+            "publication_to_download_return_ms": {
+              "n": 129,
+              "mean": 243.08911681557868,
+              "p95_type1": 1140.3842989820987,
+              "max": 1889.3002790864557
+            },
+            "download_return_to_native_load_ms": {
+              "n": 129,
+              "mean": 1357.432355322738,
+              "p95_type1": 3193.6039009597152,
+              "max": 5118.223419878632
+            },
+            "native_load_ms": {
+              "n": 129,
+              "mean": 48.02787982923694,
+              "p95_type1": 59.375127078965306,
+              "max": 83.14333902671933
+            },
+            "acquired_to_engine_ms": {
+              "n": 129,
+              "mean": 304.9423528777421,
+              "p95_type1": 1585.5598340276629,
+              "max": 3376.2235189788043
+            },
+            "admission_to_engine_ms": {
+              "n": 129,
+              "mean": 5280.645041910629,
+              "p95_type1": 9320.486693177372,
+              "max": 13445.270266849548
+            },
+            "wire_bytes": {
+              "n": 129,
+              "mean": 785859.2558139535,
+              "p95_type1": 797234,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 129,
+              "mean": 26141045.85271318,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 129,
+              "mean": 612.473591131783,
+              "p95_type1": 1409.478296,
+              "max": 1905.633376
+            },
+            "server_send_ms": {
+              "n": 129,
+              "mean": 611.9464879302325,
+              "p95_type1": 1408.933119,
+              "max": 1905.013969
+            },
+            "server_read_ms": {
+              "n": 129,
+              "mean": 0.4023737596899225,
+              "p95_type1": 0.450044,
+              "max": 0.514714
+            },
+            "server_socket_write_ms": {
+              "n": 129,
+              "mean": 611.5275886744186,
+              "p95_type1": 1408.401094,
+              "max": 1904.577829
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "4",
+          "n": 108,
+          "joint": 5,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 108,
+              "mean": 1245.0711937616925,
+              "p95_type1": 4344.00876192376,
+              "max": 7762.4544450081885
+            },
+            "request_to_headers_ms": {
+              "n": 108,
+              "mean": 3.800962605358412,
+              "p95_type1": 9.064706042408943,
+              "max": 18.359897891059518
+            },
+            "reserve_receive_write_ms": {
+              "n": 108,
+              "mean": 852.3863333242911,
+              "p95_type1": 1788.4932870510966,
+              "max": 2081.0166029259562
+            },
+            "body_to_extract_start_ms": {
+              "n": 108,
+              "mean": 0.6249251439132624,
+              "p95_type1": 2.7468970511108637,
+              "max": 19.15876683779061
+            },
+            "extract_verify_ms": {
+              "n": 108,
+              "mean": 356.40091389952295,
+              "p95_type1": 1386.9727980345488,
+              "max": 2531.863389071077
+            },
+            "extract_to_publication_ms": {
+              "n": 108,
+              "mean": 1029.9040860177397,
+              "p95_type1": 2111.8415819946676,
+              "max": 2760.1114159915596
+            },
+            "publication_to_download_return_ms": {
+              "n": 108,
+              "mean": 310.02604741715237,
+              "p95_type1": 1186.110292095691,
+              "max": 4188.678778009489
+            },
+            "download_return_to_native_load_ms": {
+              "n": 108,
+              "mean": 2044.2340165911312,
+              "p95_type1": 4146.645166911185,
+              "max": 8188.164349878207
+            },
+            "native_load_ms": {
+              "n": 108,
+              "mean": 49.512627545347506,
+              "p95_type1": 60.51135202869773,
+              "max": 257.75455706752837
+            },
+            "acquired_to_engine_ms": {
+              "n": 108,
+              "mean": 247.90346958562387,
+              "p95_type1": 891.6586271952838,
+              "max": 2551.685963990167
+            },
+            "admission_to_engine_ms": {
+              "n": 108,
+              "mean": 6139.864575891773,
+              "p95_type1": 9892.840503016487,
+              "max": 14853.669807082042
+            },
+            "wire_bytes": {
+              "n": 108,
+              "mean": 786088.9907407408,
+              "p95_type1": 797234,
+              "max": 797240
+            },
+            "materialized_bytes": {
+              "n": 108,
+              "mean": 26375875.194444444,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 108,
+              "mean": 836.5622334351851,
+              "p95_type1": 1772.121668,
+              "max": 2072.425599
+            },
+            "server_send_ms": {
+              "n": 108,
+              "mean": 836.03543975,
+              "p95_type1": 1771.606363,
+              "max": 2071.868912
+            },
+            "server_read_ms": {
+              "n": 108,
+              "mean": 0.3994934814814815,
+              "p95_type1": 0.450773,
+              "max": 0.509573
+            },
+            "server_socket_write_ms": {
+              "n": 108,
+              "mean": 835.6191983240741,
+              "p95_type1": 1771.190674,
+              "max": 2071.46204
+            }
+          }
+        },
+        {
+          "group": "joint",
+          "label": "False",
+          "n": 296,
+          "joint": 0,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 296,
+              "mean": 1509.498340334913,
+              "p95_type1": 5295.833087991923,
+              "max": 7817.309824982658
+            },
+            "request_to_headers_ms": {
+              "n": 296,
+              "mean": 3.8922851058855854,
+              "p95_type1": 9.221005951985717,
+              "max": 28.5780499689281
+            },
+            "reserve_receive_write_ms": {
+              "n": 296,
+              "mean": 663.5522108621002,
+              "p95_type1": 1657.7725149691105,
+              "max": 2081.0166029259562
+            },
+            "body_to_extract_start_ms": {
+              "n": 296,
+              "mean": 0.6166235488726178,
+              "p95_type1": 3.1283057760447264,
+              "max": 21.534811006858945
+            },
+            "extract_verify_ms": {
+              "n": 296,
+              "mean": 312.8355212283094,
+              "p95_type1": 1202.6050849817693,
+              "max": 2531.863389071077
+            },
+            "extract_to_publication_ms": {
+              "n": 296,
+              "mean": 852.75996956861,
+              "p95_type1": 1877.109149005264,
+              "max": 2760.1114159915596
+            },
+            "publication_to_download_return_ms": {
+              "n": 296,
+              "mean": 236.51829677338182,
+              "p95_type1": 1182.267309166491,
+              "max": 4188.678778009489
+            },
+            "download_return_to_native_load_ms": {
+              "n": 296,
+              "mean": 1665.5498162601018,
+              "p95_type1": 3532.4488589540124,
+              "max": 8188.164349878207
+            },
+            "native_load_ms": {
+              "n": 296,
+              "mean": 50.162355126057925,
+              "p95_type1": 67.22273002378643,
+              "max": 257.75455706752837
+            },
+            "acquired_to_engine_ms": {
+              "n": 296,
+              "mean": 272.1782914045065,
+              "p95_type1": 1144.3952398840338,
+              "max": 3376.2235189788043
+            },
+            "admission_to_engine_ms": {
+              "n": 296,
+              "mean": 5567.563710212739,
+              "p95_type1": 9387.10933108814,
+              "max": 14853.669807082042
+            },
+            "wire_bytes": {
+              "n": 296,
+              "mean": 786149.6925675676,
+              "p95_type1": 797235,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 296,
+              "mean": 26436755.037162162,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 296,
+              "mean": 642.3463872837838,
+              "p95_type1": 1640.796806,
+              "max": 2072.425599
+            },
+            "server_send_ms": {
+              "n": 296,
+              "mean": 641.8211071925676,
+              "p95_type1": 1640.275229,
+              "max": 2071.868912
+            },
+            "server_read_ms": {
+              "n": 296,
+              "mean": 0.3986849763513513,
+              "p95_type1": 0.450859,
+              "max": 0.514714
+            },
+            "server_socket_write_ms": {
+              "n": 296,
+              "mean": 641.4055946182433,
+              "p95_type1": 1639.85836,
+              "max": 2071.46204
+            }
+          }
+        },
+        {
+          "group": "joint",
+          "label": "True",
+          "n": 194,
+          "joint": 194,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 194,
+              "mean": 535.670276049563,
+              "p95_type1": 1466.0762778948992,
+              "max": 2453.2336101401597
+            },
+            "request_to_headers_ms": {
+              "n": 194,
+              "mean": 3.802212376445148,
+              "p95_type1": 8.776792092248797,
+              "max": 24.01041006669402
+            },
+            "reserve_receive_write_ms": {
+              "n": 194,
+              "mean": 254.26409150877026,
+              "p95_type1": 998.1421700213104,
+              "max": 1453.9722080808133
+            },
+            "body_to_extract_start_ms": {
+              "n": 194,
+              "mean": 0.1492101636705632,
+              "p95_type1": 0.2596008125692606,
+              "max": 11.248320108279586
+            },
+            "extract_verify_ms": {
+              "n": 194,
+              "mean": 203.69308896257166,
+              "p95_type1": 360.71136710233986,
+              "max": 1168.91457606107
+            },
+            "extract_to_publication_ms": {
+              "n": 194,
+              "mean": 354.4657130019989,
+              "p95_type1": 1104.137125890702,
+              "max": 1490.458688000217
+            },
+            "publication_to_download_return_ms": {
+              "n": 194,
+              "mean": 58.350648170519506,
+              "p95_type1": 144.81414388865232,
+              "max": 906.4590558409691
+            },
+            "download_return_to_native_load_ms": {
+              "n": 194,
+              "mean": 619.4959668197774,
+              "p95_type1": 1619.6608690079302,
+              "max": 2309.3097149394453
+            },
+            "native_load_ms": {
+              "n": 194,
+              "mean": 52.28003279003555,
+              "p95_type1": 66.84661097824574,
+              "max": 167.61304694227874
+            },
+            "acquired_to_engine_ms": {
+              "n": 194,
+              "mean": 148.65578675148146,
+              "p95_type1": 323.36112996563315,
+              "max": 1133.7226890027523
+            },
+            "admission_to_engine_ms": {
+              "n": 194,
+              "mean": 2230.8270265948336,
+              "p95_type1": 3877.8952951543033,
+              "max": 4330.719898920506
+            },
+            "wire_bytes": {
+              "n": 194,
+              "mean": 928779.2164948453,
+              "p95_type1": 797234,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 194,
+              "mean": 25262810.70103093,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 194,
+              "mean": 242.6152212113402,
+              "p95_type1": 990.124321,
+              "max": 1447.111827
+            },
+            "server_send_ms": {
+              "n": 194,
+              "mean": 242.09095984536083,
+              "p95_type1": 989.609627,
+              "max": 1446.605132
+            },
+            "server_read_ms": {
+              "n": 194,
+              "mean": 0.471064237113402,
+              "p95_type1": 0.461017,
+              "max": 9.988252
+            },
+            "server_socket_write_ms": {
+              "n": 194,
+              "mean": 241.6028725927835,
+              "p95_type1": 989.188493,
+              "max": 1446.175636
+            }
+          }
+        }
+      ],
+      "examples": {
+        "remote_receipt_keys": [
+          "archive_bytes_declared",
+          "artifact_id",
+          "body_received_monotonic_s",
+          "client_completed_monotonic_s",
+          "client_stage_ms",
+          "confirmed_file_publication",
+          "content_manifest_sha256",
+          "content_verified",
+          "elapsed_ms",
+          "extraction_completed_monotonic_s",
+          "extraction_started_monotonic_s",
+          "file_reservation",
+          "headers_received_monotonic_s",
+          "http_transfer_id",
+          "loading_clock_id",
+          "loading_started_monotonic_s",
+          "local_source_owner_id",
+          "payload_bytes_expected",
+          "payload_bytes_verified",
+          "published_archive_verified",
+          "published_monotonic_s",
+          "remote_archive_sha256",
+          "remote_delivery_mode",
+          "remote_pack_duration_basis",
+          "remote_pack_ms",
+          "remote_pack_performed",
+          "remote_spans_additive_to_client_total",
+          "remote_timing_available",
+          "remote_timing_contract",
+          "stages_clock",
+          "state",
+          "target_path",
+          "transfer_id",
+          "transferred_bytes"
+        ],
+        "native_rpc_timing_example": {
+          "parent_rpc_channel_acquire_ms": 0.19393605180084705,
+          "parent_rpc_response_pickup_delay_ms": 0.0,
+          "parent_rpc_send_flush_ms": 0.036865007132291794,
+          "parent_rpc_request_bytes": 1047,
+          "parent_rpc_response_bytes": 8744,
+          "parent_rpc_wait_response_ms": 60.31838711351156,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0.0
+        }
+      },
+      "server_all_transfers": {
+        "n": 497,
+        "wire_bytes": 418365205,
+        "handler_ms": {
+          "n": 497,
+          "mean": 481.0803265472837,
+          "p95_type1": 1529.765312,
+          "max": 2072.425599
+        }
+      },
+      "observed_request_transfer_ids": 490,
+      "server_only_or_other_reasons": 7
+    },
+    "D598": {
+      "run": "D598",
+      "counts": {
+        "requests": 4000,
+        "selected_remote": 514,
+        "has_owned_remote_receipt": 494
+      },
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "n": 494,
+          "joint": 215,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 494,
+              "mean": 765.1187942847836,
+              "p95_type1": 2870.2583741396666,
+              "max": 10228.513202164322
+            },
+            "request_to_headers_ms": {
+              "n": 494,
+              "mean": 3.907025619202599,
+              "p95_type1": 9.108106140047312,
+              "max": 35.73242900893092
+            },
+            "reserve_receive_write_ms": {
+              "n": 494,
+              "mean": 458.68801883693317,
+              "p95_type1": 1467.3055380117148,
+              "max": 3366.275159874931
+            },
+            "body_to_extract_start_ms": {
+              "n": 494,
+              "mean": 0.6090726228317751,
+              "p95_type1": 3.4168080892413855,
+              "max": 43.52434608153999
+            },
+            "extract_verify_ms": {
+              "n": 494,
+              "mean": 268.6783944413081,
+              "p95_type1": 652.3504729848355,
+              "max": 1769.6326121222228
+            },
+            "extract_to_publication_ms": {
+              "n": 494,
+              "mean": 691.8544259897022,
+              "p95_type1": 1832.2769131045789,
+              "max": 2726.291747065261
+            },
+            "publication_to_download_return_ms": {
+              "n": 494,
+              "mean": 185.60852405383264,
+              "p95_type1": 1077.2907598875463,
+              "max": 2458.947167964652
+            },
+            "download_return_to_native_load_ms": {
+              "n": 494,
+              "mean": 1170.2748164397888,
+              "p95_type1": 3165.547160198912,
+              "max": 6510.044594062492
+            },
+            "native_load_ms": {
+              "n": 494,
+              "mean": 50.830911434922925,
+              "p95_type1": 66.5800089482218,
+              "max": 140.4108121059835
+            },
+            "acquired_to_engine_ms": {
+              "n": 494,
+              "mean": 231.45062739580024,
+              "p95_type1": 778.3477569464594,
+              "max": 2827.841040911153
+            },
+            "admission_to_engine_ms": {
+              "n": 494,
+              "mean": 3827.020611119106,
+              "p95_type1": 7523.473833920434,
+              "max": 16262.328108074144
+            },
+            "wire_bytes": {
+              "n": 494,
+              "mean": 842151.7165991903,
+              "p95_type1": 797234,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 494,
+              "mean": 25965176.336032387,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 494,
+              "mean": 442.2706960526316,
+              "p95_type1": 1460.768094,
+              "max": 3360.402041
+            },
+            "server_send_ms": {
+              "n": 494,
+              "mean": 441.7389519817813,
+              "p95_type1": 1460.246923,
+              "max": 3359.818848
+            },
+            "server_read_ms": {
+              "n": 494,
+              "mean": 0.38425774291497977,
+              "p95_type1": 0.415811,
+              "max": 9.563209
+            },
+            "server_socket_write_ms": {
+              "n": 494,
+              "mean": 441.34019871052635,
+              "p95_type1": 1459.912013,
+              "max": 3359.459941
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "1",
+          "n": 144,
+          "joint": 128,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 144,
+              "mean": 460.6092283971116,
+              "p95_type1": 1620.41642004624,
+              "max": 3951.495717978105
+            },
+            "request_to_headers_ms": {
+              "n": 144,
+              "mean": 3.727240683575575,
+              "p95_type1": 7.37484497949481,
+              "max": 30.98365804180503
+            },
+            "reserve_receive_write_ms": {
+              "n": 144,
+              "mean": 164.92053240977435,
+              "p95_type1": 687.782634049654,
+              "max": 808.1427470315248
+            },
+            "body_to_extract_start_ms": {
+              "n": 144,
+              "mean": 0.2634307877289959,
+              "p95_type1": 0.2811308950185776,
+              "max": 7.365502184256911
+            },
+            "extract_verify_ms": {
+              "n": 144,
+              "mean": 208.99144698826908,
+              "p95_type1": 381.94869784638286,
+              "max": 953.8253410719335
+            },
+            "extract_to_publication_ms": {
+              "n": 144,
+              "mean": 242.88809605705967,
+              "p95_type1": 760.3968500625342,
+              "max": 1391.8639118783176
+            },
+            "publication_to_download_return_ms": {
+              "n": 144,
+              "mean": 41.59414356238105,
+              "p95_type1": 76.57069200649858,
+              "max": 887.7036389894783
+            },
+            "download_return_to_native_load_ms": {
+              "n": 144,
+              "mean": 603.0186502094795,
+              "p95_type1": 1483.529161894694,
+              "max": 2706.156408879906
+            },
+            "native_load_ms": {
+              "n": 144,
+              "mean": 53.57459765056976,
+              "p95_type1": 69.2097470164299,
+              "max": 74.00683197192848
+            },
+            "acquired_to_engine_ms": {
+              "n": 144,
+              "mean": 167.38277231989844,
+              "p95_type1": 482.7431570738554,
+              "max": 801.5000289306045
+            },
+            "admission_to_engine_ms": {
+              "n": 144,
+              "mean": 1946.970139065848,
+              "p95_type1": 4040.238582994789,
+              "max": 6745.784834958613
+            },
+            "wire_bytes": {
+              "n": 144,
+              "mean": 978690.6319444445,
+              "p95_type1": 797235,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 144,
+              "mean": 25249597.993055556,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 144,
+              "mean": 153.03583041666667,
+              "p95_type1": 680.756598,
+              "max": 803.542379
+            },
+            "server_send_ms": {
+              "n": 144,
+              "mean": 152.5075247013889,
+              "p95_type1": 680.22789,
+              "max": 803.021088
+            },
+            "server_read_ms": {
+              "n": 144,
+              "mean": 0.4555849791666666,
+              "p95_type1": 0.407951,
+              "max": 9.563209
+            },
+            "server_socket_write_ms": {
+              "n": 144,
+              "mean": 152.03665452777778,
+              "p95_type1": 679.891127,
+              "max": 802.647528
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "2",
+          "n": 113,
+          "joint": 59,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 113,
+              "mean": 869.1598682363509,
+              "p95_type1": 3012.745074927807,
+              "max": 4680.217511020601
+            },
+            "request_to_headers_ms": {
+              "n": 113,
+              "mean": 4.111257367314095,
+              "p95_type1": 10.120465885847807,
+              "max": 35.73242900893092
+            },
+            "reserve_receive_write_ms": {
+              "n": 113,
+              "mean": 367.43716834178935,
+              "p95_type1": 1080.1922450773418,
+              "max": 1339.4232441205531
+            },
+            "body_to_extract_start_ms": {
+              "n": 113,
+              "mean": 0.9326121967648511,
+              "p95_type1": 4.031023941934109,
+              "max": 43.52434608153999
+            },
+            "extract_verify_ms": {
+              "n": 113,
+              "mean": 264.6519956941329,
+              "p95_type1": 573.0320098809898,
+              "max": 1307.0453370455652
+            },
+            "extract_to_publication_ms": {
+              "n": 113,
+              "mean": 596.0529326292299,
+              "p95_type1": 1432.6678649522364,
+              "max": 1910.3659328538924
+            },
+            "publication_to_download_return_ms": {
+              "n": 113,
+              "mean": 123.65881867492489,
+              "p95_type1": 734.1045609209687,
+              "max": 1223.0520939920098
+            },
+            "download_return_to_native_load_ms": {
+              "n": 113,
+              "mean": 943.845462338356,
+              "p95_type1": 2195.663421880454,
+              "max": 2942.909142933786
+            },
+            "native_load_ms": {
+              "n": 113,
+              "mean": 50.76860506458422,
+              "p95_type1": 66.53113500215113,
+              "max": 140.4108121059835
+            },
+            "acquired_to_engine_ms": {
+              "n": 113,
+              "mean": 218.275818524602,
+              "p95_type1": 839.0751271508634,
+              "max": 1711.0374870244414
+            },
+            "admission_to_engine_ms": {
+              "n": 113,
+              "mean": 3438.894539068049,
+              "p95_type1": 5909.434869885445,
+              "max": 7897.778695914894
+            },
+            "wire_bytes": {
+              "n": 113,
+              "mean": 785854.5575221239,
+              "p95_type1": 797234,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 113,
+              "mean": 26135291.327433627,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 113,
+              "mean": 345.5477164159292,
+              "p95_type1": 1073.217634,
+              "max": 1331.784583
+            },
+            "server_send_ms": {
+              "n": 113,
+              "mean": 345.0120959734513,
+              "p95_type1": 1072.694183,
+              "max": 1331.239211
+            },
+            "server_read_ms": {
+              "n": 113,
+              "mean": 0.3636633628318584,
+              "p95_type1": 0.421029,
+              "max": 1.292169
+            },
+            "server_socket_write_ms": {
+              "n": 113,
+              "mean": 344.6341321415929,
+              "p95_type1": 1072.327041,
+              "max": 1330.886727
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "3",
+          "n": 128,
+          "joint": 22,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 128,
+              "mean": 949.0962073923583,
+              "p95_type1": 3671.984533080831,
+              "max": 5742.439405992627
+            },
+            "request_to_headers_ms": {
+              "n": 128,
+              "mean": 3.8416544812207576,
+              "p95_type1": 9.067381964996457,
+              "max": 15.796647872775793
+            },
+            "reserve_receive_write_ms": {
+              "n": 128,
+              "mean": 582.3525302075723,
+              "p95_type1": 1498.3316930010915,
+              "max": 1667.1708379872143
+            },
+            "body_to_extract_start_ms": {
+              "n": 128,
+              "mean": 0.8667173497087788,
+              "p95_type1": 5.444669863209128,
+              "max": 15.91587602160871
+            },
+            "extract_verify_ms": {
+              "n": 128,
+              "mean": 300.0133341738547,
+              "p95_type1": 1090.9047510940582,
+              "max": 1769.6326121222228
+            },
+            "extract_to_publication_ms": {
+              "n": 128,
+              "mean": 911.0599730629474,
+              "p95_type1": 1851.4758020173758,
+              "max": 2726.291747065261
+            },
+            "publication_to_download_return_ms": {
+              "n": 128,
+              "mean": 243.12517562611902,
+              "p95_type1": 1055.7220380287617,
+              "max": 2458.947167964652
+            },
+            "download_return_to_native_load_ms": {
+              "n": 128,
+              "mean": 1462.8104138046183,
+              "p95_type1": 3636.681152973324,
+              "max": 4542.787195881829
+            },
+            "native_load_ms": {
+              "n": 128,
+              "mean": 49.030419722839724,
+              "p95_type1": 64.97767101973295,
+              "max": 101.92957799881697
+            },
+            "acquired_to_engine_ms": {
+              "n": 128,
+              "mean": 260.1903045124345,
+              "p95_type1": 668.3373311534524,
+              "max": 2827.841040911153
+            },
+            "admission_to_engine_ms": {
+              "n": 128,
+              "mean": 4762.386730333674,
+              "p95_type1": 7735.659644939005,
+              "max": 12498.978797113523
+            },
+            "wire_bytes": {
+              "n": 128,
+              "mean": 785899.21875,
+              "p95_type1": 797234,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 128,
+              "mean": 26181689.375,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 128,
+              "mean": 567.44730446875,
+              "p95_type1": 1491.605876,
+              "max": 1657.381151
+            },
+            "server_send_ms": {
+              "n": 128,
+              "mean": 566.910428546875,
+              "p95_type1": 1491.055612,
+              "max": 1656.839099
+            },
+            "server_read_ms": {
+              "n": 128,
+              "mean": 0.354892609375,
+              "p95_type1": 0.423877,
+              "max": 0.938547
+            },
+            "server_socket_write_ms": {
+              "n": 128,
+              "mean": 566.541310875,
+              "p95_type1": 1490.586703,
+              "max": 1656.498092
+            }
+          }
+        },
+        {
+          "group": "quarter",
+          "label": "4",
+          "n": 109,
+          "joint": 6,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 109,
+              "mean": 843.5006956932981,
+              "p95_type1": 3078.801868017763,
+              "max": 10228.513202164322
+            },
+            "request_to_headers_ms": {
+              "n": 109,
+              "mean": 4.009579278426159,
+              "p95_type1": 9.108106140047312,
+              "max": 27.467096922919154
+            },
+            "reserve_receive_write_ms": {
+              "n": 109,
+              "mean": 796.1633096261104,
+              "p95_type1": 1715.2075530029833,
+              "max": 3366.275159874931
+            },
+            "body_to_extract_start_ms": {
+              "n": 109,
+              "mean": 0.42773250686944625,
+              "p95_type1": 0.8045551367104053,
+              "max": 10.393684031441808
+            },
+            "extract_verify_ms": {
+              "n": 109,
+              "mean": 314.90803853215635,
+              "p95_type1": 1288.0334430374205,
+              "max": 1641.6375909466296
+            },
+            "extract_to_publication_ms": {
+              "n": 109,
+              "mean": 1126.8857125462025,
+              "p95_type1": 2035.789707209915,
+              "max": 2559.498731046915
+            },
+            "publication_to_download_return_ms": {
+              "n": 109,
+              "mean": 372.5466533871624,
+              "p95_type1": 1439.9957950226963,
+              "max": 1988.2458988577127
+            },
+            "download_return_to_native_load_ms": {
+              "n": 109,
+              "mean": 1810.888105319864,
+              "p95_type1": 3584.6611021552235,
+              "max": 6510.044594062492
+            },
+            "native_load_ms": {
+              "n": 109,
+              "mean": 49.385156792186955,
+              "p95_type1": 65.4965101275593,
+              "max": 131.29509496502578
+            },
+            "acquired_to_engine_ms": {
+              "n": 109,
+              "mean": 295.9996720053973,
+              "p95_type1": 1541.580667020753,
+              "max": 2509.564019041136
+            },
+            "admission_to_engine_ms": {
+              "n": 109,
+              "mean": 5614.714655687673,
+              "p95_type1": 9396.131100133061,
+              "max": 16262.328108074144
+            },
+            "wire_bytes": {
+              "n": 109,
+              "mean": 786191.1192660551,
+              "p95_type1": 797234,
+              "max": 797240
+            },
+            "materialized_bytes": {
+              "n": 109,
+              "mean": 26479915.95412844,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 109,
+              "mean": 777.6552049816513,
+              "p95_type1": 1700.16069,
+              "max": 3360.402041
+            },
+            "server_send_ms": {
+              "n": 109,
+              "mean": 777.1289635137615,
+              "p95_type1": 1699.647506,
+              "max": 3359.818848
+            },
+            "server_read_ms": {
+              "n": 109,
+              "mean": 0.34586122935779817,
+              "p95_type1": 0.403025,
+              "max": 0.416583
+            },
+            "server_socket_write_ms": {
+              "n": 109,
+              "mean": 776.7691301559634,
+              "p95_type1": 1699.308073,
+              "max": 3359.459941
+            }
+          }
+        },
+        {
+          "group": "joint",
+          "label": "False",
+          "n": 279,
+          "joint": 0,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 279,
+              "mean": 1030.7063072691187,
+              "p95_type1": 3671.984533080831,
+              "max": 10228.513202164322
+            },
+            "request_to_headers_ms": {
+              "n": 279,
+              "mean": 4.034070076093772,
+              "p95_type1": 9.862342150881886,
+              "max": 27.467096922919154
+            },
+            "reserve_receive_write_ms": {
+              "n": 279,
+              "mean": 595.301564694399,
+              "p95_type1": 1529.7032759990543,
+              "max": 3366.275159874931
+            },
+            "body_to_extract_start_ms": {
+              "n": 279,
+              "mean": 0.8667244577586758,
+              "p95_type1": 5.856019910424948,
+              "max": 43.52434608153999
+            },
+            "extract_verify_ms": {
+              "n": 279,
+              "mean": 296.77821957843383,
+              "p95_type1": 1144.4850058760494,
+              "max": 1769.6326121222228
+            },
+            "extract_to_publication_ms": {
+              "n": 279,
+              "mean": 935.4782858738295,
+              "p95_type1": 1935.3066622279584,
+              "max": 2726.291747065261
+            },
+            "publication_to_download_return_ms": {
+              "n": 279,
+              "mean": 278.6931430271703,
+              "p95_type1": 1223.0520939920098,
+              "max": 2458.947167964652
+            },
+            "download_return_to_native_load_ms": {
+              "n": 279,
+              "mean": 1628.7087809484733,
+              "p95_type1": 3580.2880960982293,
+              "max": 6510.044594062492
+            },
+            "native_load_ms": {
+              "n": 279,
+              "mean": 49.68958426146738,
+              "p95_type1": 66.54323893599212,
+              "max": 131.29509496502578
+            },
+            "acquired_to_engine_ms": {
+              "n": 279,
+              "mean": 287.23966266365727,
+              "p95_type1": 1222.321097040549,
+              "max": 2827.841040911153
+            },
+            "admission_to_engine_ms": {
+              "n": 279,
+              "mean": 5107.496342850402,
+              "p95_type1": 8061.897594947368,
+              "max": 16262.328108074144
+            },
+            "wire_bytes": {
+              "n": 279,
+              "mean": 785828.8243727599,
+              "p95_type1": 797234,
+              "max": 797241
+            },
+            "materialized_bytes": {
+              "n": 279,
+              "mean": 26110279.322580647,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 279,
+              "mean": 578.5866308028674,
+              "p95_type1": 1531.380766,
+              "max": 3360.402041
+            },
+            "server_send_ms": {
+              "n": 279,
+              "mean": 578.0525635734767,
+              "p95_type1": 1530.883172,
+              "max": 3359.818848
+            },
+            "server_read_ms": {
+              "n": 279,
+              "mean": 0.3569710752688172,
+              "p95_type1": 0.418939,
+              "max": 1.292169
+            },
+            "server_socket_write_ms": {
+              "n": 279,
+              "mean": 577.6815647168459,
+              "p95_type1": 1530.48685,
+              "max": 3359.459941
+            }
+          }
+        },
+        {
+          "group": "joint",
+          "label": "True",
+          "n": 215,
+          "joint": 215,
+          "metrics": {
+            "admission_to_download_start_ms": {
+              "n": 215,
+              "mean": 420.47267278418116,
+              "p95_type1": 1382.4500278569758,
+              "max": 2055.302324006334
+            },
+            "request_to_headers_ms": {
+              "n": 215,
+              "mean": 3.7421632774694022,
+              "p95_type1": 7.629061816260219,
+              "max": 35.73242900893092
+            },
+            "reserve_receive_write_ms": {
+              "n": 215,
+              "mean": 281.40811514282643,
+              "p95_type1": 1181.5853998996317,
+              "max": 1594.509637914598
+            },
+            "body_to_extract_start_ms": {
+              "n": 215,
+              "mean": 0.27472442774058775,
+              "p95_type1": 1.0824848432093859,
+              "max": 7.365502184256911
+            },
+            "extract_verify_ms": {
+              "n": 215,
+              "mean": 232.21397019359608,
+              "p95_type1": 477.1101800724864,
+              "max": 1038.8936491217464
+            },
+            "extract_to_publication_ms": {
+              "n": 215,
+              "mean": 375.70997525634635,
+              "p95_type1": 1210.341053083539,
+              "max": 1585.325663909316
+            },
+            "publication_to_download_return_ms": {
+              "n": 215,
+              "mean": 64.81499524657116,
+              "p95_type1": 204.53035086393356,
+              "max": 1150.5366971250623
+            },
+            "download_return_to_native_load_ms": {
+              "n": 215,
+              "mean": 575.3767880773562,
+              "p95_type1": 1382.3804850690067,
+              "max": 2380.5199230555445
+            },
+            "native_load_ms": {
+              "n": 215,
+              "mean": 52.31198251117454,
+              "p95_type1": 67.34287599101663,
+              "max": 140.4108121059835
+            },
+            "acquired_to_engine_ms": {
+              "n": 215,
+              "mean": 159.0546234900695,
+              "p95_type1": 410.9841410536319,
+              "max": 801.5000289306045
+            },
+            "admission_to_engine_ms": {
+              "n": 215,
+              "mean": 2165.380010407331,
+              "p95_type1": 3684.7921297885478,
+              "max": 4187.558545032516
+            },
+            "wire_bytes": {
+              "n": 215,
+              "mean": 915240.4930232558,
+              "p95_type1": 797234,
+              "max": 14736516
+            },
+            "materialized_bytes": {
+              "n": 215,
+              "mean": 25776879.90232558,
+              "p95_type1": 37716322,
+              "max": 37716322
+            },
+            "server_handler_ms": {
+              "n": 215,
+              "mean": 265.37699467906975,
+              "p95_type1": 1173.582418,
+              "max": 1580.01559
+            },
+            "server_send_ms": {
+              "n": 215,
+              "mean": 264.8482653116279,
+              "p95_type1": 1173.059593,
+              "max": 1579.470096
+            },
+            "server_read_ms": {
+              "n": 215,
+              "mean": 0.41966695348837213,
+              "p95_type1": 0.39921,
+              "max": 9.563209
+            },
+            "server_socket_write_ms": {
+              "n": 215,
+              "mean": 264.41349584651164,
+              "p95_type1": 1172.718624,
+              "max": 1579.124035
+            }
+          }
+        }
+      ],
+      "examples": {
+        "remote_receipt_keys": [
+          "archive_bytes_declared",
+          "artifact_id",
+          "body_received_monotonic_s",
+          "client_completed_monotonic_s",
+          "client_stage_ms",
+          "confirmed_file_publication",
+          "content_manifest_sha256",
+          "content_verified",
+          "elapsed_ms",
+          "extraction_completed_monotonic_s",
+          "extraction_started_monotonic_s",
+          "file_reservation",
+          "headers_received_monotonic_s",
+          "http_transfer_id",
+          "loading_clock_id",
+          "loading_started_monotonic_s",
+          "local_source_owner_id",
+          "payload_bytes_expected",
+          "payload_bytes_verified",
+          "published_archive_verified",
+          "published_monotonic_s",
+          "remote_archive_sha256",
+          "remote_delivery_mode",
+          "remote_pack_duration_basis",
+          "remote_pack_ms",
+          "remote_pack_performed",
+          "remote_spans_additive_to_client_total",
+          "remote_timing_available",
+          "remote_timing_contract",
+          "stages_clock",
+          "state",
+          "target_path",
+          "transfer_id",
+          "transferred_bytes"
+        ],
+        "native_rpc_timing_example": {
+          "parent_rpc_channel_acquire_ms": 0.2772589214146137,
+          "parent_rpc_response_pickup_delay_ms": 0.0,
+          "parent_rpc_send_flush_ms": 0.05126302130520344,
+          "parent_rpc_request_bytes": 1051,
+          "parent_rpc_response_bytes": 8750,
+          "parent_rpc_wait_response_ms": 56.98401597328484,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0.0
+        }
+      },
+      "server_all_transfers": {
+        "n": 497,
+        "wire_bytes": 418365205,
+        "handler_ms": {
+          "n": 497,
+          "mean": 440.72155955331993,
+          "p95_type1": 1460.768094,
+          "max": 3360.402041
+        }
+      },
+      "observed_request_transfer_ids": 494,
+      "server_only_or_other_reasons": 3
+    }
+  },
+  "selected_population": "Owned remote transfer plus invoked final native load; shared/reused sources excluded with counts, not zeros.",
+  "additive_client_stages": [
+    "admission_to_download_start_ms",
+    "request_to_headers_ms",
+    "reserve_receive_write_ms",
+    "body_to_extract_start_ms",
+    "extract_verify_ms",
+    "extract_to_publication_ms",
+    "publication_to_download_return_ms",
+    "download_return_to_native_load_ms",
+    "native_load_ms",
+    "acquired_to_engine_ms"
+  ],
+  "cross_host_subtraction": false,
+  "causal_intervention": false,
+  "caveats": [
+    "Server spans are nested/descriptive and must not be added to client timeline.",
+    "Receive interval includes local reservation, reading, hashing and writing; not pure wire latency.",
+    "Admission-to-download and return-to-native gaps are not instrumented internally in these receipts.",
+    "No stage has been subtracted from actual end-to-end performance."
+  ]
+}

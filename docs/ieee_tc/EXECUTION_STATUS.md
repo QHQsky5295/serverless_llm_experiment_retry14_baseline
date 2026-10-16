@@ -1,5 +1,37 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D599 storage and D600 offline W2 diagnosis complete — checkpoint then reject candidate
+
+2026-10-17: D599 losslessly compressed ONLY closed D598 main_outcome:661617010
+to73220105B,reclaimed588398592B,two roundtripSHA/currentclosure/reference checksPASS.
+Actualstorage scopeclosed/pathgone,peak94732288B/events0; do not repeatcompression.
+D600 reused D594 strict helpers:8000stages/984owned remote joins,4000matchedIDs,
+pressure andactualphysicalintegralsPASS. Allfiveanalysis scopesactuallyclosed/pathgone,
+peak126222336B/events/swap0. No GPU/remote job or pending tool. ReadD600doc.
+Remote preparation mean4246.488→3827.021ms, pressurebarriers sum−324.405ms;
+all-request queue+101.026ms/service−49.101ms. Four-card occupancy3078.022→3601.482s,
+arrival-windowU+528.629,totalU+520.429. No causalclaim fromconditionalcohorts.
+D595 candidate NOT adopted: next back up diagnosis then revert isolatedD595 production/
+tests to preceding verified semantics and audit bounded globalcontrol/wait bottleneck.
+Do not repeatD598 or stack anothercandidate on it. Fullsameconfig7B/G1/G2,3B,dLoRA,
+A1–A5/S1–S13/cost/docs/figures stayACTIVE. Currentcoordmetrics deepcopies arepostrun,
+not provenonlinecause. Existingbaselinesclosed, no newsearch solelyforlowSLO.
+
+## D598 result checkpoint pushed — closed; diagnose before another candidate
+
+Checkpoint1b57a4500552ea4592ae15de439984f9ccde9444 pushed/remote-equal;
+publication5334 completed0, actual publication scope recursiveempty/closed/pathgone,
+peak32927744B/events/swap0. All D598 execution, collection, analysis and publication
+are terminal; no pendingtool or live inference/remote job. Do not repeat them.
+Previous goal turn completed the full W2 run/audit/backup (progress, not blocked).
+Next reuse D594 pressure_diagnosis.py/remote_diagnosis.py and retained D554/D598
+logs to inspect why barrier parallelism did not improve jointSLO/GPU-s. No new
+GPU run or production change before that evidence. Fresh disk160560586752B is
+below150GiB startup floor: first losslessly compress eligible CLOSED evidence,
+with new actual closure/reference/SHA checks; do not repeat D596 old list or
+delete unique evidence. Main outcome remains uncompressed at this checkpoint.
+Full goal ACTIVE; no candidate adoption or cross-scenario/G1/G2 completion claim.
+
 ## D598 completed and audited — not a performance improvement
 
 SINGLE full W2 completed4000/4000 native contracts,458224 actual target-matched

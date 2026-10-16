@@ -1,0 +1,355 @@
+{
+  "passed": true,
+  "results": {
+    "D554": {
+      "activations": [
+        {
+          "activation_id": "ieee-activation-8fc151519d4c4d76b0b8af3ea1c4d634",
+          "category": "initial",
+          "trigger_offset_s": -46.882244647014886,
+          "ready_offset_s": -0.6165341041050851,
+          "engine_activation_s": 46.2657105429098,
+          "requests": 1649,
+          "first_dispatch_offset_s": 0.8029364219401032,
+          "first_request_ttft_ms": 1017.8497028537095
+        },
+        {
+          "activation_id": "ieee-activation-f35b31c75e0c45338f47a0477d5c8e90",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 60.624197599012405,
+          "ready_offset_s": 91.62051491695456,
+          "engine_activation_s": 30.996317317942157,
+          "requests": 5,
+          "first_dispatch_offset_s": 102.80225731688552,
+          "first_request_ttft_ms": 244.67889755032957
+        },
+        {
+          "activation_id": "ieee-activation-16a7ecd3ec714774aa98c97258fa6d5f",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 144.92516882205382,
+          "ready_offset_s": 178.3978158729151,
+          "engine_activation_s": 33.47264705086127,
+          "requests": 4,
+          "first_dispatch_offset_s": 202.9015582378488,
+          "first_request_ttft_ms": 855.5575585924089
+        },
+        {
+          "activation_id": "ieee-activation-a997193f2ba74e5f8e152b0da0bfa719",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 273.9391972280573,
+          "ready_offset_s": 307.8719759020023,
+          "engine_activation_s": 33.932778673944995,
+          "requests": 942,
+          "first_dispatch_offset_s": 313.2934473049827,
+          "first_request_ttft_ms": 462.7220982220024
+        },
+        {
+          "activation_id": "ieee-activation-a6d6f0c120e64d82831bc14f6213eaa1",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 362.66531062987633,
+          "ready_offset_s": 396.68928567296825,
+          "engine_activation_s": 34.02397504309192,
+          "requests": 1154,
+          "first_dispatch_offset_s": 397.1117127139587,
+          "first_request_ttft_ms": 468.0915402714163
+        },
+        {
+          "activation_id": "ieee-activation-1c700ae7b8254deb9dcbca13917eb7e7",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 364.7037623920478,
+          "ready_offset_s": 397.50948901404627,
+          "engine_activation_s": 32.805726621998474,
+          "requests": 11,
+          "first_dispatch_offset_s": 442.6060207739938,
+          "first_request_ttft_ms": 459.6416256390512
+        },
+        {
+          "activation_id": "ieee-activation-1b50ca8ba2cc40159f46b4d5e7802137",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 1078.543053091038,
+          "ready_offset_s": 1112.1655149329454,
+          "engine_activation_s": 33.62246184190735,
+          "requests": 13,
+          "first_dispatch_offset_s": 1116.697261227062,
+          "first_request_ttft_ms": 452.1117159165442
+        },
+        {
+          "activation_id": "ieee-activation-31358d15e9a14bc9a69f45270ff17282",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 1405.8393437669147,
+          "ready_offset_s": 1440.7944333569612,
+          "engine_activation_s": 34.955089590046555,
+          "requests": 222,
+          "first_dispatch_offset_s": 1458.0326468839776,
+          "first_request_ttft_ms": 4564.90342086181
+        }
+      ],
+      "unready": [],
+      "quarters": [
+        {
+          "quarter": 1,
+          "n": 1000,
+          "joint": 966,
+          "stages_ms": {
+            "arrival_release_ms": 70.93240756657906,
+            "release_to_acquire_ms": 41.560690169921145,
+            "runtime_slot_wait_ms": 258.4765056455508,
+            "admission_to_engine_dispatch_ms": 476.75808172416873,
+            "ttft_ms": 1179.5439297205303
+          }
+        },
+        {
+          "quarter": 2,
+          "n": 1000,
+          "joint": 920,
+          "stages_ms": {
+            "arrival_release_ms": 200.52326423162594,
+            "release_to_acquire_ms": 74.04741616430692,
+            "runtime_slot_wait_ms": 311.18860429758206,
+            "admission_to_engine_dispatch_ms": 632.7074675671756,
+            "ttft_ms": 1502.7741495345253
+          }
+        },
+        {
+          "quarter": 3,
+          "n": 1000,
+          "joint": 850,
+          "stages_ms": {
+            "arrival_release_ms": 415.80491213616915,
+            "release_to_acquire_ms": 93.68258172506467,
+            "runtime_slot_wait_ms": 437.96102766739205,
+            "admission_to_engine_dispatch_ms": 849.5944042617921,
+            "ttft_ms": 2072.024198982166
+          }
+        },
+        {
+          "quarter": 4,
+          "n": 1000,
+          "joint": 846,
+          "stages_ms": {
+            "arrival_release_ms": 591.6165682007559,
+            "release_to_acquire_ms": 91.90361611032858,
+            "runtime_slot_wait_ms": 432.05253548547626,
+            "admission_to_engine_dispatch_ms": 897.7264779342804,
+            "ttft_ms": 2276.0084096414503
+          }
+        }
+      ],
+      "physical_gpu_seconds": 14641.25898185838,
+      "allocation_journals": [
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/1018ab5396404702b1bee767d2338c06.jsonl",
+          "released": true,
+          "sha256": "d2365f3ab6f8cdbafa00b59774a733bdf315bc0a3857c5ccf2be6b743ecea108"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/2a1324a3308847ddade3d8d50ebce1b4.jsonl",
+          "released": true,
+          "sha256": "7c203d2d24d399cfbcaffe3fb578ac65738658e71dbafbbdefe1f092e76ae99f"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/72c7b584ddbb4eab86bd153d22673cf2.jsonl",
+          "released": true,
+          "sha256": "77cc10a80d728a4851750079ead1f0e912bd8844a82c09204589128394a65915"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/af0977d5a83b474890048d132079d550.jsonl",
+          "released": true,
+          "sha256": "1a95ba0096e6e6e14853764b4a60df336cbc95119eea7017608c374c66f00e6d"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/c40989342c4542bb83613982ae25c45d.jsonl",
+          "released": true,
+          "sha256": "25c47f3ccc3ab9385cf4293014dc44bb5270fa2857f7ba2ca3f5c74d4f03ba20"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/d8848a89405141f4819b9786e4bee5ff.jsonl",
+          "released": true,
+          "sha256": "f60cb0d8b5f8c2e54a8c33095226eab75e1bf72f1b7f5658b46200aab175942e"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/d904936091314ce7abedb735656954ca.jsonl",
+          "released": true,
+          "sha256": "427975a08b2d3aae13a391b6e6e4f6d1bd543c52aca9aae215db59b1f8291c1e"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/launch.launch/physical_allocations/da31d2995aac4a268cf31a802dc97d2d.jsonl",
+          "released": true,
+          "sha256": "6cc7cfc28c5fae509e06936e908acf8ffa85a342feafde3c5d7cf3db37c6bf9f"
+        }
+      ]
+    },
+    "D598": {
+      "activations": [
+        {
+          "activation_id": "ieee-activation-f504c4a417fb4892beac222c8388577e",
+          "category": "initial",
+          "trigger_offset_s": -46.951718212803826,
+          "ready_offset_s": -0.9843284278176725,
+          "engine_activation_s": 45.96738978498615,
+          "requests": 1445,
+          "first_dispatch_offset_s": 1.2519763552118093,
+          "first_request_ttft_ms": 1462.043120060116
+        },
+        {
+          "activation_id": "ieee-activation-05281ec3b96941e0a2dbc1f713fdc913",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 60.38532538199797,
+          "ready_offset_s": 91.65699759707786,
+          "engine_activation_s": 31.27167221507989,
+          "requests": 1092,
+          "first_dispatch_offset_s": 94.98048547515646,
+          "first_request_ttft_ms": 980.311342747882
+        },
+        {
+          "activation_id": "ieee-activation-3ba2bdaf7b574d81b9c5baf602d1a91f",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 356.48099127900787,
+          "ready_offset_s": 390.4151861912105,
+          "engine_activation_s": 33.934194912202656,
+          "requests": 832,
+          "first_dispatch_offset_s": 397.1034746831283,
+          "first_request_ttft_ms": 467.31385844759643
+        },
+        {
+          "activation_id": "ieee-activation-df7c93f330444a4abf3a7cd4184bc9b0",
+          "category": "natural_scaleout",
+          "trigger_offset_s": 362.1623245230876,
+          "ready_offset_s": 395.18295069714077,
+          "engine_activation_s": 33.02062617405318,
+          "requests": 631,
+          "first_dispatch_offset_s": 411.0919021710288,
+          "first_request_ttft_ms": 2597.355268895626
+        }
+      ],
+      "unready": [],
+      "quarters": [
+        {
+          "quarter": 1,
+          "n": 1000,
+          "joint": 973,
+          "stages_ms": {
+            "arrival_release_ms": 83.20747238700278,
+            "release_to_acquire_ms": 36.03071524389088,
+            "runtime_slot_wait_ms": 273.3126143196132,
+            "admission_to_engine_dispatch_ms": 452.5210830832366,
+            "ttft_ms": 1150.7629281114787
+          }
+        },
+        {
+          "quarter": 2,
+          "n": 1000,
+          "joint": 933,
+          "stages_ms": {
+            "arrival_release_ms": 233.75230649881996,
+            "release_to_acquire_ms": 74.56249248120002,
+            "runtime_slot_wait_ms": 328.7939841086045,
+            "admission_to_engine_dispatch_ms": 562.2320621623658,
+            "ttft_ms": 1468.7906789574772
+          }
+        },
+        {
+          "quarter": 3,
+          "n": 1000,
+          "joint": 838,
+          "stages_ms": {
+            "arrival_release_ms": 455.11000689468347,
+            "release_to_acquire_ms": 130.03648006077856,
+            "runtime_slot_wait_ms": 491.2419445938431,
+            "admission_to_engine_dispatch_ms": 803.3452590946108,
+            "ttft_ms": 2160.7340616032016
+          }
+        },
+        {
+          "quarter": 4,
+          "n": 1000,
+          "joint": 818,
+          "stages_ms": {
+            "arrival_release_ms": 712.2955885543488,
+            "release_to_acquire_ms": 126.02433757600375,
+            "runtime_slot_wait_ms": 479.4756288032513,
+            "admission_to_engine_dispatch_ms": 866.2974208369851,
+            "ttft_ms": 2457.764447906986
+          }
+        }
+      ],
+      "physical_gpu_seconds": 15161.687890082132,
+      "allocation_journals": [
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_allocations/395bbca0c4ef48b1ad9fa490a5d2e1e0.jsonl",
+          "released": true,
+          "sha256": "a90f77725e0da70bcdc8904fb4ce169ff09a3c888f7a73d819e7d79f24adfbc6"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_allocations/5a564452fb11412c8e7405ee8dc4a0dc.jsonl",
+          "released": true,
+          "sha256": "f36d4250a6a5d6e369c9d35477d3a101115372817e936470945537c159037cd0"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_allocations/90ef0a8cce6f428da72572e1d160eca3.jsonl",
+          "released": true,
+          "sha256": "90e1a1b9c2ae67446c10c3ad335cde8ec2eefbbf1a391def6e8912f118eeca48"
+        },
+        {
+          "events": 5,
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_allocations/bbbacb49fecb4468b850bec98dee9ad8.jsonl",
+          "released": true,
+          "sha256": "e828edaa35b92a29e0821837b4f08584b43b0423ee23dad9595231b6976777ea"
+        }
+      ]
+    }
+  },
+  "matched": [
+    {
+      "cohort": "all",
+      "n": 4000,
+      "good_to_bad": 159,
+      "bad_to_good": 139,
+      "mean_delta_ms": {
+        "arrival_release_ms": 51.37205554993125,
+        "release_to_acquire_ms": 16.364930298062973,
+        "runtime_slot_wait_ms": 33.28637468232773,
+        "admission_to_engine_dispatch_ms": -43.09765157755464,
+        "ttft_ms": 51.925357175117824
+      }
+    },
+    {
+      "cohort": "same_tier",
+      "n": 3186,
+      "good_to_bad": 102,
+      "bad_to_good": 105,
+      "mean_delta_ms": {
+        "arrival_release_ms": 40.4586013599006,
+        "release_to_acquire_ms": 11.283216612195456,
+        "runtime_slot_wait_ms": 28.888174578882474,
+        "admission_to_engine_dispatch_ms": -60.309232612200695,
+        "ttft_ms": 12.62584429975875
+      }
+    },
+    {
+      "cohort": "changed_tier",
+      "n": 814,
+      "good_to_bad": 57,
+      "bad_to_good": 34,
+      "mean_delta_ms": {
+        "arrival_release_ms": 94.08736887847871,
+        "release_to_acquire_ms": 36.254782636114456,
+        "runtime_slot_wait_ms": 50.5009514999894,
+        "admission_to_engine_dispatch_ms": 24.26856116984378,
+        "ttft_ms": 205.74384368727263
+      }
+    }
+  ],
+  "caveat": "Single different-code closed-loop runs; actual cohorts/activation differ. No causal decomposition, repeated-run CI, or counterfactual subtraction."
+}

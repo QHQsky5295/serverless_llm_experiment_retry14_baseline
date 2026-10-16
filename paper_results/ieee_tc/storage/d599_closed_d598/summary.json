@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "result": {
+    "kind": "lossless_closed_outcome_compression_v1",
+    "created_unix": 1792178390.6787264,
+    "before": {
+      "available_bytes": 160557129728
+    },
+    "after": {
+      "available_bytes": 161144389632
+    },
+    "entries": [
+      {
+        "run": "d598_20261017/7b_parallel_pressure_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_deployment/main_outcome.json",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+        "source_sha256": "e11f464e770eba8774d5c617196cbaa88f6d74e08d38194a0fbafdc1beca84fc",
+        "audit_sha256": "e11f464e770eba8774d5c617196cbaa88f6d74e08d38194a0fbafdc1beca84fc",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 109578427,
+          "size": 661617010,
+          "mtime_ns": 1792177861207561771,
+          "ctime_ns": 1792177861207561771,
+          "mode": 33204,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 1292232
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "fd157c091be3e5b250d34e2818e31edbbbf909d82a2cf0162136a0fc5f8e6680",
+        "archive_sha256": "76f2bff66f42b7ef4d71eed62f5a31304b0da0c4fd2ea8a1d84a683232baab13",
+        "archive_bytes": 73220105,
+        "archive_allocated_bytes": 73224192,
+        "first_roundtrip_sha256": "e11f464e770eba8774d5c617196cbaa88f6d74e08d38194a0fbafdc1beca84fc",
+        "second_roundtrip_sha256": "e11f464e770eba8774d5c617196cbaa88f6d74e08d38194a0fbafdc1beca84fc",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 588398592
+      }
+    ],
+    "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+    "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+    "source_archive_round_trip_verified": true
+  },
+  "closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d5990000000000000000000000000001.scope",
+      "invocation_id": "6e0459e14eff4d6787f94cf5e44f2af6",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5990000000000000000000000000001.scope",
+      "inode": 26482189
+    },
+    "actual_recursive_procs_empty": true,
+    "path_gone": true,
+    "resources": {
+      "memory.peak": "94732288",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "3310fb657528b6f83d7dafef290025925823773d7620a8ef154bdb8e40b2f795"
+  },
+  "receipt": {
+    "passed": true,
+    "reused_compressor": true,
+    "result_sha256": "0a4fd7d5bcd66e0804482f4f067f6738e26d12632913b5ec324d27edc12c7177",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "resources": {
+      "memory.peak": "94732288",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    }
+  }
+}
