@@ -1,5 +1,45 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D598 completed and audited — not a performance improvement
+
+SINGLE full W2 completed4000/4000 native contracts,458224 actual target-matched
+tokens; strict input/binding/dispatch/stage/physical and3258 pressure settlement
+checks PASS. Joint3562/4000=89.05%, P95TTFT5644.5569870993495ms,
+U15161.687890082132 GPU-s. Versus D554: joint -0.50pp, P95 -3.14%, U +3.55%.
+Neither joint95% nor W2 budget12086.669343876012 is met; G1/G2 not closed.
+Independent numerical proof UNKNOWN/n_correctnull retained. Read the completed
+D598_PARALLEL_PRESSURE_FULL_W2.md. No inference or remote job remains: actual
+service/GPU/launcher auxiliary/starter/remote units closed; analysis81091 ended0,
+actual analysis scope recursivelyempty/closed/pathgone, peak845910016B/events0.
+NEXT explicit result backup, then reuse D594 offline diagnosis for D554/D598
+barrier/queue/activation paths before accepting/reverting candidate. No repeat
+D598, no baseline search, no second production candidate stacked. Full remaining
+same-config7B W0/W1/G1/G2,3B,dLoRA,A1–A5/S1–S13/cost/docs/figures stays ACTIVE.
+
+## D598 full W2 running — keep the same execution
+
+Continuation live check: tmux pane PID1143940 remains live (python3); the same
+request-terminal journal advanced to2026 rows. Latest watchdog sample has
+high/max/OOM/kill/swap zero, host available88.70GiB, disk144.31GiB. This is a
+verified wait, not completion or a performance result. Disk remains above100GiB
+runtime floor; no cleanup during inference. Recheck/reclaim proven closed data
+before the next heavy launch rather than relaxing150GiB startup floor.
+
+2026-10-17: prelaunch checkpoint fa02740f1a5e16a8823da67ab6abe845e4932296
+pushed and remote-equal; baseline 80e08b4c unchanged. D598 launched ONCE in
+tmux `tc-d598-parallelw2`, raw `p2_backend_qualification/d598_20261017`, run
+`7b_parallel_pressure_full_w2`. Full 4000 W2, frozen D554 input/model/control,
+D595 sole candidate; no new production change or baseline search. Qualification2,
+backup and starter completed and their actual recursive-empty scopes were closed
+with paths gone; all high/max/OOM/swap events zero. Start session53739 finished.
+The service and launcher auxiliary remain LIVE; do not close them or the remote
+published services/owned monitor before actual completion and local GPU release.
+No performance conclusion yet. Continue this SAME run through real terminal,
+then close_launch.py, exact remote stop, run_analysis.py, result save/backup.
+Observation timeouts do not authorize a restart. No builds, tests, compression,
+bulk scans or pushes while inference runs. Full remaining 7B same-config W0/W1
+and G1/G2, 3B, limited dLoRA, A1–A5/S1–S13, costs/docs/final figures are ACTIVE.
+
 ## D598 full W2 binding preparation — sole D595 candidate
 
 D597 checkpoint19c812d pushed andallscopesclosed; no repeats. D598 nowprepares
