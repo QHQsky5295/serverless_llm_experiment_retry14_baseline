@@ -1,5 +1,26 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D557 published; D558 fresh storage maintenance, 2026-10-16
+
+D557 result checkpoint 1e85658f0410c38096ba94534d6af4cc7ebde14b PUSHED,
+remote equality rechecked. BASE aff60bb210c6d1fb9ce94534c5ef37521976bc0a unchanged.
+Publication scope Invocation fb3036a4ff314ef79f9db46a1c89dc0a actually recursive-empty,
+closed/path gone; peak51425280B, high/max/OOM/kill/swap0. No repeat publication,
+performance, audit or input join. Historical publication-next notes below superseded.
+Full PLAN/status/AGENTS/current supplements reread after compaction. Resource skill
+snapshot 02:53:20Z: disk148556570624B, host available112392708096B; below150GiB
+next-heavy disk floor. No GPU compute processes in independent management query.
+D558 cleanup DONE: ONLY closed/published D557 private download objects removed,
+4970files/12889613139payloadB, reclaimed12908007424B; diskafter161463308288B.
+Fresh all-file original/cache SHA, refs, metadata, mounts and actual-closure gates
+PASS. Actual cleanup scope recursive-empty/closed/pathgone,peak3221749760B,
+high10303,max/OOM/kill/swap0; high offline only, no performance overlap.
+Read D558_TARGETED_CACHE_RECLAIM.md. Curation/backup next, no repeat deletion.
+Retain unique assets, raw success/failure evidence, protected147 and user dirt.
+After sufficient reserve, prioritize Loquetier ownership/capacity qualification;
+do not mechanically extend its weak old configuration to W2. Shared k3s untouched;
+HydraServe isolated D510/D546 adaptation remains reusable. Full goal ACTIVE.
+
 ## D557 terminal and strict audit, 2026-10-16
 
 AUTHORITATIVE: the SAME D557 run has now completed, no replay restart.

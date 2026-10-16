@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-d5580000000000000000000000000001.scope",
+    "invocation_id": "04560368bbba4c258ad6e7579f240021",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5580000000000000000000000000001.scope",
+    "inode": 26003614
+  },
+  "recipe": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d558_20261016/reclaim_d557.py",
+    "sha256": "1afbc97a55a59bfc92730d4359f06ea093852297f2e88b734b54c21a23a12d1d"
+  },
+  "before_protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "after_protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "resources": {
+    "memory.peak": "3221749760\n",
+    "memory.events": "low 0\nhigh 10303\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}
