@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D607 qualification passed — backup then launch the same new key
+
+Qualification89899 completed0; actual scope recursively empty/closed/pathgone,
+peak359305216B with memory events/swap0. Input4000 W2, normalized D554 config,
+D606 focused240/extended433 source identities, native build, syntax and147protected
+passed. No repeated tests/GPU experiment; no remote service started. Helpers and
+post-release analyzer prepared with explicit D607 paths, no detailed observer.
+Next backup this checkpoint then launch one ordinary D607 W2; no configuration
+selection or metric change. Full plan remains ACTIVE, not closed by CPU checks.
+
+## D607 ordinary full W2 preregistered — qualification/backup before launch
+
+New key d607_20261017/7b_canonical_files_full_w2 only. D606 CPU qualification
+already complete/pushed71846add; no repeats. D554 normalized configuration
+unchanged, no detailed frame observer, no D595 parallel pressure. Reuse D598/D603
+launch/analysis with unique paths; currently no GPU or remote task started.
+Read D607_CANONICAL_FILES_FULL_W2.md. Next source/input/resource qualification,
+explicit backup, then single ordinary complete W2 and actual closure/analysis.
+Disk last161452195840B near150GiB floor; fresh gate mandatory. Full remaining
+sameconfig7B/G1/G2,3B,dLoRA,A1–A5/S1–S13,cost/docs/figures remain ACTIVE.
+
+## D606 candidate/evidence pushed; next ordinary complete W2 validation
+
+Checkpoint71846add523aa9cc716635df02d604eb6b2310a6 pushed/remote-equal;
+publication67508 completed0 and actual auxiliary recursively empty/closed/pathgone.
+No GPU/remote/auxiliary job or pending tool. D606 CPU qualification, component
+attempts and backup are DONE; do not repeat them. Production candidate is now
+canonical-string fresh file observation, performance acceptance PENDING.
+Next preregister/qualify one new ordinary complete W2 key (D607 available), same
+D554 config apart from unique result/cache paths, existing full runner, no frame
+observer. Read candidate docs/history and frozen V1/single-run V2; check resources
+before launch. Current disk161464365056B near150GiB startup floor; don't lower it.
+This turn made implementation/validation/backup progress, not blocked. Remaining
+sameconfig7B G1/G2,3B,dLoRA,A1-A5/S1-S13,cost/reviewer docs/finalfigures ACTIVE.
+
 ## D606 canonical fresh-observation candidate CPU-qualified — backup next
 
 D606 completed new serving representation candidate, NOT performance adopted.

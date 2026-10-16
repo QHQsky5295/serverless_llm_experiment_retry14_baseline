@@ -584,6 +584,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d607)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d607_20261017/7b_canonical_files_full_w2
+    CONFIG=configs/ieee_tc/20261017_d607_7b_canonical_files_full_w2.yaml
+    TAG=d607_7b_canonical_files_full_w2
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -614,7 +621,7 @@ export FAASLORA_TC_QUALIFICATION=1
 export FAASLORA_TC_EXTERNAL_REPLAY=1
 export FAASLORA_TC_REPLAY_PROFILE=W0
 unset FAASLORA_TC_ADAPTER_MAP FAASLORA_TC_ADAPTER_MAP_SHA256
-if [[ "${1:-d293}" == d554 || "${1:-d293}" == d598 || "${1:-d293}" == d603 ]]; then
+if [[ "${1:-d293}" == d554 || "${1:-d293}" == d598 || "${1:-d293}" == d603 || "${1:-d293}" == d607 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W2
   export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json"
   export FAASLORA_TC_ADAPTER_MAP_SHA256=48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300
