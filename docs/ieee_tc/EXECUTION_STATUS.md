@@ -1,5 +1,23 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D569 original-prefix compatibility prepared, 2026-10-16
+
+D568 maintenance checkpoint69ee965bac4b34c7c140c6e4f81f3e79c986d97b PUSHED/remoteequal;
+publication actual recursive-empty/closed/pathgone, peak26693632 B/events/swap0.
+No repeat cleanup/curation/backup. BASE5486c4d6 unchanged/pushed; user dirt preserved.
+D569 OFFLINE CONTRACT QUALIFIED, no native/remote launch yet. Read
+D569_LOQUETIER_CAPACITY_PREFIX1000.md. Raw loquetier_qualification/d569_20261016.
+Byte-identical D444 HTTP1000 prefix and D566/D567 native configuration; existing
+1000 requests/60 IDs/122510 targets, view0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Existing native/source/population validators PASS. Reuse86 online and69 analysis
+tests by actual SHA, no repeated test suite or native500 qualification. D567
+full500 receipts/closures bound; numerical UNKNOWN and41output differences retained.
+New helpers mechanically reuse D567, not a new framework or performance hypothesis.
+Qualification actual recursive-empty/closed/pathgone; resources in RAW closure.
+NEXT tested explicit prelaunch backup, fresh gated single tmux1000 run, strict
+prefix1000 audit after actual release. Then same config new W0/W1/W2. Fullscope ACTIVE.
+No figures, no old result overwrite, no unrelated k3s changes or HydraServe redo.
+
 ## D568 cleanup complete; publication next, 2026-10-16
 
 AUTHORITATIVE: D568 cleanup and curation COMPLETE; no live inference/remote job.
