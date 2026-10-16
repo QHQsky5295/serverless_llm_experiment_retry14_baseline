@@ -12,7 +12,7 @@ from unittest.mock import patch
 from Loquetier_project.scripts.run_loquetier_trace_gate import (
     _adapter_footprint, _static_capacity_shards, _tensor_header,
     _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward,
-    _capacity_bound, _capacity_mixed_forward, _capacity_score_target, _parse_args)
+    _capacity_bound, _capacity_mixed_forward, _capacity_score_target, _capacity_score_targets, _parse_args)
 
 
 class LoquetierCapacityTests(unittest.TestCase):
@@ -324,6 +324,55 @@ class LoquetierCapacityTests(unittest.TestCase):
                  '--capacity-score-evidence', '/scores', '--capacity-score-evidence-sha256', 'c'*64]
         with patch('sys.argv', common+extra):
             self.assertEqual(_parse_args().capacity_score_evidence, Path('/scores'))
+        with patch('sys.argv', common+extra+['--capacity-score-mode', 'completed_phases_v2']):
+            self.assertEqual(_parse_args().capacity_score_mode, 'completed_phases_v2')
+        with patch('sys.argv', common+['--capacity-score-mode', 'completed_phases_v2']), self.assertRaises(SystemExit):
+            _parse_args()
+
+    def score_phases_fixture(self):
+        cases = [dict(source_request_id=str(i), adapter_id=str(i), prompt_ids=[1, 2],
+                      target_tokens=3, retained_output_ids=[4, 5, 6]) for i in range(2)]
+        inputs = dict(cases=cases, journal_sha256='b'*64)
+        phases = []
+        for phase, changed_id in [('all_prefill', 0), ('mixed_prefill_decode', 1)]:
+            outputs = [dict(source_request_id=str(i), native_adapter_id=str(i),
+                native_output_tokens=3, native_forward_count=3,
+                completion_token_ids=[4, 7, 8] if i == changed_id else [4, 5, 6],
+                matches_retained_output=i != changed_id) for i in range(2)]
+            phases.append(dict(selection=phase, outputs=outputs))
+        return dict(passed=True, forward_capacity=dict(passed=True, input=inputs,
+            cases=[dict(selection='logit_reference_batch2')]+phases)), inputs
+
+    def test_score_targets_include_all_completed_phase_discrepancies(self):
+        prior, inputs = self.score_phases_fixture()
+        original = copy.deepcopy(prior)
+        targets = _capacity_score_targets(prior, inputs)
+        self.assertEqual([t['case']['source_request_id'] for t in targets], ['0', '1'])
+        self.assertEqual([t['prior_phases'] for t in targets], [['all_prefill'], ['mixed_prefill_decode']])
+        self.assertTrue(all((t['token_index'], t['retained_token'], t['observed_token']) == (1, 5, 7)
+                            for t in targets))
+        self.assertEqual(prior, original)
+        prior['forward_capacity']['cases'].reverse()
+        self.assertEqual(_capacity_score_targets(prior, inputs), targets)
+
+    def test_score_targets_reject_missing_duplicate_conflicting_or_incomplete_evidence(self):
+        prior, inputs = self.score_phases_fixture()
+        changes = []
+        bad = copy.deepcopy(prior); bad['passed'] = False; changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'].pop(); changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'].append(bad['forward_capacity']['cases'][-1]); changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'][1]['outputs'].pop(); changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'][1]['outputs'][0]['native_adapter_id'] = 'wrong'; changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'][1]['outputs'][0]['completion_token_ids'] = [4, 7]; changes.append(bad)
+        bad = copy.deepcopy(prior); bad['forward_capacity']['cases'][1]['outputs'][0]['matches_retained_output'] = True; changes.append(bad)
+        bad = copy.deepcopy(prior)
+        bad['forward_capacity']['cases'][2]['outputs'][0].update(completion_token_ids=[4, 5, 7], matches_retained_output=False)
+        changes.append(bad)
+        for bad in changes:
+            with self.subTest(evidence=bad), self.assertRaises(ValueError):
+                _capacity_score_targets(bad, inputs)
+        with self.assertRaisesRegex(ValueError, 'input contract'):
+            _capacity_score_targets(prior, dict(inputs, journal_sha256='c'*64))
 
     def test_capacity_forward_uses_full_target_and_rejects_malformed_native_result(self):
         class Bridge:

@@ -413,6 +413,45 @@ class NativeLoquetierObservationTests(unittest.TestCase):
         self.assertEqual(r._tc_loquetier['output_ids'], [8, 8])
         self.assertEqual(other._tc_loquetier['output_ids'], [9, 9])
 
+    def test_capacity_multi_score_observer_keeps_two_native_rows_and_original_decision(self):
+        from Loquetier_project.scripts.run_loquetier_trace_gate import _capacity_score_observer
+        gen, a, b = self.fixture(), self.request(1, 3, 'a'), self.request(2, 3, 'b')
+        self.register(gen, [a, b])
+        self.step(gen, [8, 9])
+        gen.model.root_context.update(lora_ids=[0, 1])
+        self.observer.loquetier_forward_started(gen, [0, 1], [1, 1])
+        decisions = []
+        def greedy(scores):
+            decisions.append(self.torch.argmax(scores, dim=-1))
+            return decisions[-1]
+        gen.generation_strategy = greedy
+        targets = [dict(case=dict(source_request_id='source-'+aid, adapter_id=aid,
+            prompt_ids=[1, 5, 6], retained_output_ids=[prefix, 8, 8]), token_index=1,
+            retained_token=8, observed_token=9) for aid, prefix in [('a', 8), ('b', 9)]]
+        scores = self.torch.zeros((2, 12), dtype=self.torch.float32)
+        scores[0, 8:10], scores[1, 9] = 2, 3
+        before = scores.clone()
+        with tempfile.TemporaryDirectory() as tmp:
+            records = []
+            with _capacity_score_observer(gen, targets, Path(tmp), 'both', records):
+                chosen = gen.generation_strategy(scores)
+                self.assertIs(chosen, decisions[0])
+                self.assertTrue(self.torch.equal(scores, before))
+            self.assertIs(gen.generation_strategy, greedy)
+            self.assertEqual([r['source_request_id'] for r in records], ['source-a', 'source-b'])
+            self.assertEqual([r['selected_token'] for r in records], [8, 9])
+            self.assertTrue(all(r['prefix_matches_retained'] for r in records))
+            for i, record in enumerate(records):
+                self.assertEqual(Path(record['score_path']).read_bytes(), before[i].numpy().astype('<f4', copy=False).tobytes())
+            for invalid in ([], [targets[0], targets[0]]):
+                with self.assertRaisesRegex(ValueError, 'empty or ambiguous'):
+                    with _capacity_score_observer(gen, invalid, Path(tmp), 'invalid', []):
+                        self.fail('ambiguous target must fail before changing strategy')
+                self.assertIs(gen.generation_strategy, greedy)
+        gen.post_process(chosen)
+        self.assertEqual(a._tc_loquetier['output_ids'], [8, 8])
+        self.assertEqual(b._tc_loquetier['output_ids'], [9, 9])
+
     def test_empty_batch_cleanup_rejects_live_pages_and_leaves_active_batch_unchanged(self):
         gen = self.fixture()
         live = NS(num_pages=1, seqlen=1)
