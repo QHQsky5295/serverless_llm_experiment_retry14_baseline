@@ -1,6 +1,42 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D561 full-input workspace qualification prepared, 2026-10-16
+
+Full PLAN/status/AGENTS/latest supplements and V1/V2 reread after compaction.
+D560 remains closed/published; no repeated owner-forward or serving edits.
+Read D561_LOQUETIER_FORWARD_CAPACITY.md. Existing capacity entry extended with
+explicit opt-in full-input batch2 diagnostic, no online/native/config changes.
+Geometry-only selection reuses D445 req_00015,760input/256output/code_lora_0015;
+max-prefill/context coincide, deduplicated to ONE case with two concurrent copies.
+First CPU run11executed/3skipped preserved, not14PASS. After dedup and explicit
+native-test flag,14affected testsPASS/no skips; actualqualification1/2 closed,
+peak45658112/278208512B,events/swap0. Prepared1 closed45363200B; prepared2 done,
+same D560view reused. No GPU run/result yet. No new weights/pool/trace.
+Next tested explicit checkpoint, actualemptyclosures, fresh guarded capacity run;
+do not change serving batch or claim throughput gains before evidence. FullgoalACTIVE.
+Shared k3s untouched; HydraServe isolated D510/D546 remains reusable, not complete
+W2/3B/mechanism scope. Full7B/G2/3B/ablations/sensitivities/docs/figures retained.
+
 ## D560 native ownership probe prepared, 2026-10-16
+
+RESULT CHECKPOINT DONE: MAINd38502c601ed92e55d28663939c73929af66cb5f,
+BASE93f3f0a05abf1fb1bf48d3594fdffb4ffd550b91 bothPUSHED/remoteequal.
+Explicit7MAIN/1BASEfiles, native/source/archive/protected147/userdirt/secrets/diff
+checksPASS. Resultpublication actualrecursiveempty/closed/pathgone,peak32514048B,
+events/swap0; receipt inRAW. Curated loquetier/d560_native_owner_result.
+Do NOT repeat D560native/CPU/prep/publication/closures. No active inference/
+remote/test/publication job remains. Latestdisk161452122112B, freshgate required.
+Important limit: all125 IDs produced only ONE distinct two-token sequence for
+this short shared prompt; equality is NOT adapter-discriminating numeric proof.
+Wholebase/prepared content+pointer preservation is separate stronger ownership
+evidence. Do not claim all-adapter numerical correctness from these outputs.
+Next capacity qualification must use actual KV/forward workspace and retained
+longer inputs; no automatic batch from5.09GiB, no serving/config edits yet.
+This turn made PROGRESS: testedprobe implemented, native largestshard proof and
+actualclosures completed, both repositories backed up. Fullgoal ACTIVE; all
+remaining7B/G2/3B/ablations/sensitivities/reviewer evidence scope preserved.
+Postpush status/limitation delta reserved next meaningful checkpoint, no repeat
+backup. One failed patch had nonexistent doc context; atomic nochange, corrected.
 
 AUTHORITATIVE TERMINAL: native owner/short-forward probe PASS once, no live job.
 Read D560 doc. All125 IDs two-token before/after outputs identical, base/prepared
