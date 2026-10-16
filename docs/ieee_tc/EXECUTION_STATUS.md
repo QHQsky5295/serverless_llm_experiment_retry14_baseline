@@ -1,5 +1,89 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D603 complete W2 diagnostic analyzed — backup, then fresh-state path audit
+
+D603 finished ONCE: service return0,4000/4000 native contracts,458224 tokens;
+actual GPU/service/launcher auxiliary released, exact owned remote services and
+monitor stopped. Main source SHA69cd88af93a7902acc391d1ea00f18e47683a6cca3d6b886710d0900f57c7322.
+Analysis86931 and quarter-analysis28849 completed0; both actual scopes recursively
+empty/closed/pathgone, peaks830984192/188297216B, events/swap0. No live experiment
+or pending tool. Do NOT repeat D603 or old qualification/closure/storage steps.
+Read D603_FULL_W2_DIAGNOSTIC_RESULT.md. Joint3571/4000=89.275%,U14487.38639524416;
+detailed observer diagnostic only,not a serving candidate/ranking result,n_correct
+null preserved. Four source quarters arrival-release58/156/374/509ms; completion
+return63/164/394/612ms, native prefill211/196/195/191ms. Controller nearest inventory
+frames38/534,52/403,63/376,141/601; actual callers retained. Not CPU-time attribution
+or causal proof. D457 projection optimization remains, double fresh file traversal
+unchanged. Next back up full diagnosis then inspect current ownership/lifecycle and
+history/literature before one new semantic-preserving candidate; no stale-state,
+metadata shortcut or D595 parallel-pressure retry. Disk near startup150GiB; fresh
+safe maintenance before next heavy launch. All remaining full-plan scope ACTIVE.
+
+## D603 complete W2 frame diagnostic LIVE — keep this same execution
+
+Latest verified wait: same pane 1378101/python3 remains live. D603 request
+terminal journal advanced 2675 -> 3044/4000, now in the last source-order quarter.
+Watchdog sample 2751: no abort/warning; high/max/OOM/kill events all zero;
+host available 94740013056 B, disk free 150967652352 B (>100 GiB runtime floor).
+Full PLAN, current execution policies, D603 preregistration and frozen V1/single-run
+V2 reread. No restart, new experiment, serving/config/remote change, heavy analysis,
+compression or push. This is an ongoing verified wait, not a blocker or completed
+performance result. Continue the SAME execution through terminal and actual GPU
+release; then exact local/remote closure and the existing bounded analysis scripts.
+All remaining 7B/G1/G2, 3B, dLoRA, A1-A5/S1-S13 and deliverables stay ACTIVE.
+
+Currentverifiedwait: samepane1378101/python3 live, D603 terminals2055→2507/4000.
+Watchdogsample2308 noabort/warning/high/max/OOM/kill; available95110574080B,
+disk152820064256B (>100GiBruntimefloor). Nointervention/newrun/sourcechange.
+Notterminal, donotclose local/remote resources; continue sameD603 tocompletion.
+
+Mostrecentverifiedwait: pane1378101/python3 live, D603 terminals1557→2026/4000.
+Watchdogsample1964 noabort/warning, high/max/OOM/kill0; available94915100672B,
+disk154419064832B. Nowsecondhalfofactualtrace; noend/cleanup/newresultyet.
+Sameexecutionpreserved, no newrun/source/config/remotechanges. GoalACTIVE.
+
+Latestverifiedwait: D603 samepane1378101/python3 stilllive; terminaljournal
+1035→1540rows. Watchdogsample1610: warningfalse/abortempty,
+high/max/OOM/kill0, hostavailable95096188928B, disk155773087744B.
+Normalfulltracewait, notblocker; no source/service/config/remotechanges.
+Keep currentexecution throughrealterminal. Stillno resultanalysis/cleanup.
+
+Latestcontinuation verifiedwait: samepanePID1378101/python3 live; terminaljournal
+advanced431→1013rows, crossingtheold1000-prefixcoverage. Watchdogsample1137:
+noabort/warning, high/max/OOM/kill0, hostavailable95455895552B,
+disk157682356224B (>100GiB runtimefloor). StillNOterminal/cleanup/resultaudit.
+No newexperiment, sourcechange, baselineoptimization, remotechange orpush.
+Continue originalD603; do notrerunqualification/backup/start/oldcleanup.
+
+Continuation verifiedwait: same tmux panePID1378101 live/python3, terminaljournal
+advanced6→417rows. Watchdogsample556: noabort/warning, high/max/OOM/kill0,
+hostavailable101739347968B, disk159295954944B (>100GiBruntimefloor).
+No newrun, no restart, no serving/config/remotechange. Stayonthisexecution.
+Read-only analyzer review found collect_cpu.py full4000 aggregation ready;
+existing analyze_control_path_overhead.py RPC-boundary reader explicitlyrequires
+diagnostic_prefix_v1. IfusingRPCspananalysisafterrelease, extendits population
+validation with tests for explicit full-source diagnosticmetadata; do NOTfake
+prefix receipt or relabel4000 as1000. Four source-order quarteranalysis still
+postrelease work. Currentturn is verifiedwait, notblocked/performancecompletion.
+
+2026-10-17: checkpointcbd2820d33b145bd011894886beff4921a3cccbb pushed/remoteequal;
+BASE80e08b4c unchanged. D603 launchedONCE in tmux tc-d603-controllerw2, panePID1378101.
+RAW p2_backend_qualification/d603_20261017; run7b_controller_full_w2. RestoredD554
+config/full4000W2 plus explicitpython_frames_v1 full-source observer; no newpolicy.
+qualification2 session2574 completed0,54testsPASS; backup60419/start72439 completed0.
+All threeactual auxiliary scopes recursivelyempty/closed/pathgone,events/swap0.
+Service andlauncher auxiliaryremainLIVE. Controller/frontend/GPUcore framefiles
+and actual request terminals observed; no performanceconclusion yet. RemoteD78/D80
+services andownedmonitor primelora-artifact-monitor-d603-controllerw2.service LIVE;
+actual1000/full, no requestpacking. Do notstop orchangebeforelocalactualrelease.
+Continue SAMErun; no builds/tests/compression/bulkhashes/pushesduringinference.
+After actualterminal: existingclose_launch.py,stop_remote.sh,run_analysis.py in
+boundedauxiliaryscope,then close.py analysis; collect_cpu.py reusesD456full4000
+stackaccounting. Additionalquarteranalysis plannedonlyAFTERrelease, notmidrun.
+No pendingtool; tmux is the liveexperiment. Observationtimeout is not restart
+authority. D602compression alreadyDONE, do not repeat. Currentturn madeprogress,
+notblocked. Fullsameconfig7B/G1/G2,3B,dLoRA,A1–A5/S1–S13/cost/docs/figuresACTIVE.
+
 ## D602 closed monitor compression; D603 complete W2 diagnostic preparation
 
 D603qualification complete:54observer/core/RPC testsPASS11.019s; D601363service
