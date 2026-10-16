@@ -1,5 +1,47 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D570 review and D571 maintenance complete; combined preservation next
+
+2026-10-16 AUTHORITATIVE: no live inference/remote/analysis/cleanup job.
+D570 covers all34W0+21W1 HydraServe workers, each4000nativeIDs, allpp1/batch8;
+12 fixed-native decision-only logical-node cases all returnpp1. This is NOT a
+new performance run or proof all adaptation defects are excluded. Read
+D570_HYDRASERVE_ADAPTATION_REVIEW.md. Next testable question: network_gbps1
+models remoteLoRA link but actual backbone uses localprovider/SHM; reconstruct
+actual load spans and initialization overlap from existing logs before changes.
+Two logical nodes are at most samehost mechanism diagnostic, not real twohost
+scale-out/duplicated NIC capacity. Unrelated k3s remains untouched.
+D571 fresh D569 closed-cache audit/reclaim COMPLETE;5000files/12985984450payloadB,
+observed13004431360B reclaimed,diskafter161240588288B. Protected147/userdirt intact.
+First TLS ref-check failure preserved, no deletion then; second allguardsPASS.
+Actualrecursiveempty/closed/pathgone,peak3221749760B/high7117/maxOOMkillswap0.
+Read D571_TARGETED_CACHE_RECLAIM.md. No repeatcleanup, D569run, or D570analysis.
+NEXT bounded combined curation and explicit checkpoint; then HydraServe load-path
+review, newcapacityLoquetier fullW0W1W2, remaining7B/G2/PrimeLoRA optimization,
+3B/dLoRA/A1-A5/S1-S13/cost/docs/figures. FullgoalACTIVE; no new serving edits.
+Curation COMPLETE: storage/d571_targeted_cache_reclaim and
+hydraserve/d570_adaptation_review; archive3353/16666B, sourceAST/SHA roundtrip,
+protected147/userdirt checksPASS. Two recipe-expansion failures preserved before
+output creation; no experiment/cleanup repeated. Actualcuration2 recursiveempty/
+closed/pathgone. Next explicit tested publication only; do NOT repeat curation.
+
+## D569 published; HydraServe adaptation review active, 2026-10-16
+
+AUTHORITATIVE: D569 result checkpoint cc5ad04d887a4ebf99c55bb4417b80760b9f1bc0
+PUSHED/remoteequal. Explicit ten files; actual publication scope recursively empty,
+closed/path gone, peak27213824B/events/swap0. No live inference/remote/analysis job.
+Do NOT repeat D569 replay, analysis, input join, curation, closure or publication.
+Latest user asks whether one physical host can be split into two logical nodes
+for HydraServe. Review official placement, resource isolation and communication
+first; a logical-node diagnostic cannot establish real two-host scale-out or
+independent NIC/storage capacity. Existing unrelated k3s remains untouched.
+Reuse D510/W0 and D546/W1 native logs and official fixed-source mechanisms;
+distinguish untriggered pipeline from TPOT-dominant violations and adaptation
+overhead. No new defect or performance gain yet established. No new serving edit.
+Resource snapshot06:25:02Z: disk148247355392B below next-heavy150GiB floor,
+hostavailable112696709120B. Offline bounded review may proceed; fresh safe closed
+cache reclamation required before new heavy work. Full remaining scope ACTIVE.
+
 ## D569 strict result and cross-input audit complete, 2026-10-16
 
 AUTHORITATIVE: no live inference/remote/analysis job. SAME1000 run/strictaudit/

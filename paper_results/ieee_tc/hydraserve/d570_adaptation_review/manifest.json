@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "new_gpu_run": false,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-d5700000000000000000000000000005.scope",
+    "invocation_id": "b5bfaea6e054499bb65245e7ba463f93",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5700000000000000000000000000005.scope",
+    "inode": 26114915
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "archive_members": {
+    "00_review_native.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review_native.py",
+      "bytes": 10104,
+      "sha256": "3b94f7e9cd7fc34a479f54e5d43d63bb213ab2eb8ed5772b12f378d5b6addbb3"
+    },
+    "01_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/close.py",
+      "bytes": 1251,
+      "sha256": "e865683cc6f267634b8f8a8cc1e0e6f8fccaada5e51ef3c94f90c87798506315"
+    },
+    "02_review_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review_identity.json",
+      "bytes": 286,
+      "sha256": "702b122cfeb189fc0d585a549d8b46569b39c1d3cc966186b0987b61356637c7"
+    },
+    "03_review_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review_closure.json",
+      "bytes": 646,
+      "sha256": "1034202d0e77c532c51d94ea5368e8795acf12f3d786772f15e40595fb1d9f03"
+    },
+    "04_review2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review2_identity.json",
+      "bytes": 286,
+      "sha256": "292d94678163770ff434e905afaf3f9ebe089a3619a4c6dc90a0535cd6e138d3"
+    },
+    "05_review2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review2_closure.json",
+      "bytes": 647,
+      "sha256": "29b8879ca6cec659bbb383b4ac76e9d00f8150f7d04b98f8735ee0518e939c72"
+    },
+    "06_review_attempt1_failure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review_attempt1_failure.json",
+      "bytes": 493,
+      "sha256": "b793ad13c4144614fe4e84427404ba5b6c3aa8366b83a6cc8174b5f90bd18628"
+    },
+    "07_review_attempt1_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/review_attempt1_source.tar.gz",
+      "bytes": 4148,
+      "sha256": "3556ae70a19f098de15efe29a1f311f56c1d9d0c44c43a2a3a3022a52a03a405"
+    },
+    "08_curation_setup_failure_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_setup_failure_source.tar.gz",
+      "bytes": 1274,
+      "sha256": "25d74a87a4eafc4b5a2f388e049523a671b5190c431d65a5eafba3973cd60ec2"
+    },
+    "09_curation_setup_failure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_setup_failure.json",
+      "bytes": 848,
+      "sha256": "2218760e85cae79295638b8f4ae7af7c3daf6ab02210ee3895b8d0ce628ef340"
+    },
+    "10_curation_attempt1_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_attempt1_source.tar.gz",
+      "bytes": 1299,
+      "sha256": "97d2c47637b803a983b763a1bad307bbe17fa3fe7ae2e295c09af899acfc2177"
+    },
+    "11_curation_attempt1_failure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_attempt1_failure.json",
+      "bytes": 346,
+      "sha256": "34173c955864a6ba828e78411f2a1a4b766e9a4a66789ffad616a76a2b263573"
+    },
+    "12_curation_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_identity.json",
+      "bytes": 286,
+      "sha256": "75ee8de69dc62fd4266584836a3e5676ceb3dcd23b1a36a44c944eac2a8370f8"
+    },
+    "13_curation_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curation_closure.json",
+      "bytes": 646,
+      "sha256": "33d6ba6b13172082875e5a6a4a1b481e850f671b50ea1d8021e370efb7944e38"
+    },
+    "14_close_curation_setup_failure.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/close_curation_setup_failure.py",
+      "bytes": 1328,
+      "sha256": "602453f48735f6fc2a0dadf63b537714aa77c9a2f9e766601e8d16a3a8eb8275"
+    },
+    "15_curate.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d570_20261016/curate.py",
+      "bytes": 3327,
+      "sha256": "930e7dce4d530db87d0f18d8a16fb78947666e3da79a4d212df91625f4682a0e"
+    },
+    "16_curate.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d539_20261015/curate.py",
+      "bytes": 5712,
+      "sha256": "5e02854d6a5abb875a4eaaf22aa517a71e0f47bd1aa1879ce41b29372153d59e"
+    }
+  },
+  "outputs": {
+    "review.json": "9f7793fc7f77dd7de0b91eac3d6b1aea0db3345360e598248066cf4a605ca497",
+    "review_closure.json": "29b8879ca6cec659bbb383b4ac76e9d00f8150f7d04b98f8735ee0518e939c72",
+    "evidence.tar.gz": "ff04e29ed2c26bb9b41a2f5764f48893f0b431b6c137ff0968290cf1640d92f7"
+  },
+  "validation": "Executed assertions plus source AST and archive round-trip; no new serving change or repeated GPU tests"
+}
