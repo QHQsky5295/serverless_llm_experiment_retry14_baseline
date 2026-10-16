@@ -1,0 +1,40 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792169960.7897122,
+  "before_available_bytes": 161036324864,
+  "after_available_bytes": 161096507392,
+  "entries": [
+    {
+      "run": "d591_20261016",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/remote_monitor.log",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/remote_monitor.log.gz",
+      "source_sha256": "7fdb02df032ea9c0908c2f372e96cedd0af7827e838d9bbf1cb50446f3c58631",
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 111295175,
+        "size": 67327382,
+        "mtime_ns": 1792169282228833049,
+        "ctime_ns": 1792169282228833049,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 131504
+      },
+      "archive_sha256": "bf1d23dcb9329ee2455485f7ac9f4ac116bf9e2d13cef459ace3103ffdc8763d",
+      "archive_bytes": 7128917,
+      "archive_allocated_bytes": 7131136,
+      "first_roundtrip_sha256": "7fdb02df032ea9c0908c2f372e96cedd0af7827e838d9bbf1cb50446f3c58631",
+      "second_roundtrip_sha256": "7fdb02df032ea9c0908c2f372e96cedd0af7827e838d9bbf1cb50446f3c58631",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 60198912,
+      "launch_sha256": "babe86d75eed78aa82561853edbf3c8f08e1648941632b96d17be219d27ab1d5",
+      "source_audit_sha256": "a7f1009ad4288013d307c42f726348d80cd14ab3e2a1f1f6c821d4e72fc07d11",
+      "source_matches_published_audit": true,
+      "published_checkpoint": "7140d56fa7822251e346e9a6c7d65d885d6d8a70",
+      "unreadable_processes_not_claimed_visible": true,
+      "recipe_sha256": "3a7d753fc20edbd3d59ddc2dbb86dab688c5105d94026d62cca4cc22ce7d553f"
+    }
+  ],
+  "source_archive_round_trip_verified": true,
+  "protected": "weights, traces, adapter pools, environments, code, curated files and user-owned manifest unchanged."
+}

@@ -1,6 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D592 storage completed — backup, then full 7B comparison and PrimeLoRA
+
+2026-10-17 AUTHORITATIVE: D591 remains complete/audited/pushed7140d56;
+do not repeat its run or qualification. D592 freshly rehashed retained originals
+and D591 downloaded5000files/500IDs, metadata/ref/actualclosure checksPASS;
+removed ONLY /tmp/tc-d591-7bs/remote_artifacts/objects. Reclaimed13004496896B,
+payload12985984450B; raw/unique/failed evidence retained. Cleanup89170COMPLETE,
+actualclosed/pathgone; peak3221950464B,high12237,max/OOM/kill/swap0.
+Then D591 closed remote_monitor.log losslesslycompressed; source+two roundtripSHA
+match published7fdb02df...; gzip7128917B,SHA bf1d23dc...,reclaimed60198912B.
+Compression12574COMPLETE,actualclosed/pathgone,peak26714112B,events/swap0.
+No oldcleanup/compression repeated. Combined13064695808B,postfree161096507392B
+(~150.03GiB); not a future admission guarantee. Restore/stream.gz with sourceSHA,
+do not change historicalrawrefs or treatgzipbytes asplainSHA.
+Curated paper_results/ieee_tc/storage/d592_closed_slora_cache/archive11305B,
+147protected+3userdirtguardsPASS. ReadD592_STORAGE_MAINTENANCE.md.
+NEXT explicitbackup, then completeavailable7B W0/W1/W2 comparison/commonreference
+review beforePrimeLoRA evidence-drivenoptimization. No morebaselineparametersearch
+solelyforlowSLO. Full3B/dLoRA/G1/G2/A1–A5/S1–S13/cost/docs/figures remainACTIVE.
+No liveinference/remotejob; this was storage maintenance, not performanceimprovement.
+
 ## D591 S-LoRA W2 audited and curated — checkpoint, storage, complete comparison
+
+Checkpoint7140d56fa7822251e346e9a6c7d65d885d6d8a70 PUSHED/remoteequal,
+9explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged.
+Publication47257 COMPLETED; exactpublication scope actuallyrecursiveempty/
+closed/pathgone,events/swap0. No pendingtool/liveGPU/remotejob. AuditSHA
+a7f1009ad4288013d307c42f726348d80cd14ab3e2a1f1f6c821d4e72fc07d11.
+NEXT fresh bounded storage maintenance for closed D591 private downloaded
+objects, then completeavailable7B comparison/commonreference review and
+PrimeLoRAoptimization. DoNOT repeat D591 result publication or earlier audits.
 
 2026-10-17 AUTHORITATIVE: SINGLE D591 complete,4000 native-binding/458224native
 target-matched tokens/0failed,497 requestedIDs. Existing strict full4000_w2
