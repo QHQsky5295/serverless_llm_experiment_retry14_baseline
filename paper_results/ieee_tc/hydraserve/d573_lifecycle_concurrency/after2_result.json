@@ -1,0 +1,16 @@
+{
+  "phase": "after2",
+  "tests": 71,
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "successful": true,
+  "sources": {
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/isolated_platform.py": "2c02b76f9d4902f8ae73386e8cc5efcf9db1029e0f51c8aa42dfaae679dc5b7f",
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py": "66ccebcd47dc8e29e7a24f2cf9d0aec98ff526a3efc64df7a9cf5ae27aa06cdb",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d573_20261016/qualify.py": "0b1b0c0f844f1fde7925725c154ef8d8510738a77675a48565eb8c40ac1ad48f"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "cpu_only": true,
+  "gpu_performance_claim": false
+}

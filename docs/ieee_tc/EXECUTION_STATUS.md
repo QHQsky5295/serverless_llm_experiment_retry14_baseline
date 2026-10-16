@@ -1,5 +1,38 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D573 lifecycle adaptation CPU qualification complete; checkpoint then actual qualification
+
+2026-10-16 AUTHORITATIVE: no live inference/remote/test job. D573 confirmed two
+cross-worker serialization failures on original platform; per-worker lifecycle
+locks remove this adapter-induced coupling without changing native policy.
+After2:71 CPU tests PASS,21 platform tests; actualrecursiveempty/closed/pathgone,
+peak51798016B/high/max/OOM/killswap0. Before2:13tests,exact2expectedfailures;
+first import-package and first expanded dependency errors retained,allscopesclosed.
+Read D573_HYDRASERVE_LIFECYCLE_CONCURRENCY.md. No newGPU result/performanceclaim;
+do not repeat D570/D572review,D571cleanup,D569prefix or D573successfulCPUtest.
+NEXT boundedcuration/explicittwo-repo checkpoint,then reuse100request native
+qualification on changed platform and newkey affectedfullW0/W1/W2; original
+controllerstartup waiting and official algorithms preserved. No k3schanges.
+Curation COMPLETE: eachrepository evidence56657B, AST/SHAroundtrip/147protected/
+allthreeuserdirtSHAsPASS; curationactualclosed/pathgone. BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+PUSHED/remoteequal,12explicitfiles; baselinepublicationactualclosed/pathgone.
+Next maincheckpoint then actual100requestqualification; do not repeat curation.
+Loquetiernewfullmatrix/remaining7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/
+figures remainACTIVE. Protected/userdirt checks required beforepublication.
+
+## D572 published; minimal platform-lifecycle test is next
+
+2026-10-16 AUTHORITATIVE: checkpointf1e0b6f507fff9bf48a7557a7aba74de546ebb58
+PUSHED/remoteequal;9explicitfiles, actualpublicationrecursiveemptyclosed/pathgone.
+D570/D571precedingcheckpoint86139f8 also published. BASE5486c4d6 unchanged;
+allthreeuserdirtSHAs andprotected147 preserved. No live inference/remote/analysis/
+publication job. Do NOT repeat D569run, D570/D572analysis, D571cleanup or curation.
+Next minimalCPU-only existing-platform test of global-lock cross-worker blocking;
+if confirmed, preserve sameworker/cancel/actualrelease/close semantics while
+removing only unrelated lifecycle serialization. No serving edit or newGPUrun yet.
+Maintain nativecontroller-policy distinction and logicalnode caveats inD572doc.
+FullremainingmatrixACTIVE; no figures, no k3schanges, no G1/G2 completion claim.
+
 ## D572 startup-path review complete; specific adaptation hypothesis next
 
 2026-10-16 AUTHORITATIVE: no live inference/remote/analysis job. D570/D571 checkpoint

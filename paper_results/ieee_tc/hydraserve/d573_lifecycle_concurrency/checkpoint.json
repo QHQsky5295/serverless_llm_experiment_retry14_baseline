@@ -1,0 +1,22 @@
+{
+  "baseline_commit": "80e08b4c6e7c2874b1b237500a00811ec06cd8c5",
+  "baseline_remote_equal": true,
+  "baseline_publication_actual_closed": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d5730000000000000000000000000006.scope",
+      "invocation_id": "478be66ee6cb4236a4fd5be6fdd0b535",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5730000000000000000000000000006.scope",
+      "inode": 26127390
+    },
+    "actual_recursive_procs_empty": true,
+    "path_gone": true,
+    "resources": {
+      "memory.peak": "26972160",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "8607f523ffb7c2eaaa125a2a7cacb564b61094e107d869c79a9dc1561416cebc"
+  },
+  "qualification": "CPU only; actual affected-path qualification pending"
+}
