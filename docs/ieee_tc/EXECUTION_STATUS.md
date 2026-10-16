@@ -1,5 +1,31 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D596 storage closed; D597 native-prefix preparation
+
+2026-10-17: D596 reused existing closed-outcome compressor for exact D533/D512/
+D519 files, two roundtrip SHA checks/current closure/private-file/open-reference
+checks PASS; reclaimed649056256B, protected147 and3userdirt unchanged. Scope
+actuallyclosed/pathgone, peak802070528B, events/swap0. No performance improvement
+claimed. D597 prepares D595 sole candidate's W1 first100 native qualification:
+W2 loader only permits full4000, so reuse qualified W1 prefix instead of changing
+input semantics merely for a smoke. Model/control config identical D554; fullW2
+identity checked separately. Read D597_PARALLEL_PRESSURE_NATIVE100.md. No newGPU
+run yet. Sharedk3s untouched/HydraServe isolation already done. Entire pending
+7B G1/G2,3B,dLoRA,A1–A5,S1–S13/cost/docs/figures remainsACTIVE.
+
+## D595 tested checkpoint pushed — native validation next, resource gate first
+
+Checkpoint8639ce510fa5fe0d20adfe93e922a280751acf77 pushed/remoteequal;
+baseline80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged. AllD594 scopes and
+D595 focused/regression2/backup scopes actuallyclosed/pathgone; stopped first
+regression alsoexactreleased, noOOM. No pending tool/liveGPU/remote job.
+Do not repeat D594 analysis/publication or D595 tests/backup. Next native-prefix
+qualification must bind final candidate SHA and preserve fullW2 input identity.
+Fresh disk161065787392B is only4513792B above150GiB startupfloor: check again,
+and use proven closed/rebuildable cleanup or lossless evidence compression if
+needed before another heavy launch. Do not relax floor or deleteuniqueevidence.
+Full pending scientificscope below remainsACTIVE; no performance gain claimed.
+
 ## D595 parallel-owner barrier CPU-qualified — backup then native validation
 
 2026-10-17: D594 diagnosis/reference checkpoint023ae0079e0b2ffa537a81bda7855e8a4b8ede95

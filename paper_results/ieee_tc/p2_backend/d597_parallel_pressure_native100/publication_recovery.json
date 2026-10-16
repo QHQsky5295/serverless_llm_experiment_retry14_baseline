@@ -1,0 +1,34 @@
+{
+  "kind": "publisher_filename_correction",
+  "first_publisher_failed_before_staging": true,
+  "wrong_basename": "D597_INITIAL_CONTROL_NATIVE100.md",
+  "actual_basename": "D597_PARALLEL_PRESSURE_NATIVE100.md",
+  "no_gpu_experiment_started": true,
+  "first_publisher_sha256": "6945380c1fbef6cdcef578f30ae5aab52f071b237b2bac6ea13fda89189c3c6c",
+  "first_scope_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d5970000000000000000000000000002.scope",
+      "invocation_id": "2dcb80af5e984acf9e55694c16d69987",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5970000000000000000000000000002.scope",
+      "inode": 26438230
+    },
+    "actual_recursive_procs_empty": true,
+    "path_gone": true,
+    "resources": {
+      "memory.peak": "27037696",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "b168e495dec2c0b707e1473674bcb8d068d351f7cff8a94fa14d6e383d12d515"
+  },
+  "resume_source": "\"\"\"Publish existing verified prelaunch bundle; correct only the stage filename.\n\nThe first publisher stopped before staging on a document basename copied from\nD550. Its source/bundle/scope are retained unchanged; no experiment was started.\n\"\"\"\nimport ast, hashlib, json, os, re, subprocess, sys, tarfile\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d597_parallel_pressure_native100'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\ndef read(path):return json.loads(path.read_text())\ndef save(path,obj):\n    with path.open('x') as stream:json.dump(obj,stream,indent=2)\ndef git(*args):return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()\nidentity=p.scope_identity(p.cg_path().name);cg=Path(identity['path'])\nsave(RAW/'publication_identity.json',identity)\nassert (cg/'memory.high').read_text().strip()==str(3*p.GIB)\nassert (cg/'memory.max').read_text().strip()==str(4*p.GIB)\nassert (cg/'memory.swap.max').read_text().strip()=='0'\nassert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert git('rev-parse','HEAD')=='8639ce510fa5fe0d20adfe93e922a280751acf77'\nassert not git('diff','--cached','--name-only')\nclosed=read(RAW/'backup_closure.json')\nassert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()\nprepared=read(OUT/'prelaunch.json')\nfor path,sha in prepared['source_sha256'].items():assert p.digest(Path(path))==sha,path\nassert p.digest(OUT/'prelaunch_evidence.tar.gz')==prepared['archive_sha256']\ntoken=Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_bytes().strip()\ndef clean(data):\n    assert token and token not in data\n    assert not re.search(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{25,}|github_pat_[A-Za-z0-9_]{20,}',data)\nwith tarfile.open(OUT/'prelaunch_evidence.tar.gz') as bundle:\n    assert set(bundle.getnames())==set(prepared['archive_members'])\n    for name,ref in prepared['archive_members'].items():\n        data=bundle.extractfile(name).read();clean(data)\n        assert hashlib.sha256(data).hexdigest()==ref['sha256']\nbinding=read(RAW/'qualification.json')\nfor path,sha in {**binding['refs'],**binding['preserved']}.items():assert p.digest(Path(path))==sha,path\nprotected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')\nassert protected['pass'] and protected['entry_count']==147\nsave(OUT/'publication_recovery.json',dict(kind='publisher_filename_correction',\n    first_publisher_failed_before_staging=True,wrong_basename='D597_INITIAL_CONTROL_NATIVE100.md',\n    actual_basename='D597_PARALLEL_PRESSURE_NATIVE100.md',no_gpu_experiment_started=True,\n    first_publisher_sha256=p.digest(RAW/'backup.py'),first_scope_closure=closed,\n    resume_source=Path(__file__).read_text(),protected=protected))\nnames=['docs/ieee_tc/D597_PARALLEL_PRESSURE_NATIVE100.md','docs/ieee_tc/EXECUTION_STATUS.md',\n    'configs/ieee_tc/20261017_d597_7b_parallel_pressure_validation_100.yaml',\n    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh']\nnames += [str((OUT/name).relative_to(ROOT)) for name in ('prelaunch.json','prelaunch_evidence.tar.gz','publication_recovery.json')]\nfor name in names:\n    if not name.endswith('.tar.gz'):clean((ROOT/name).read_bytes())\nsubprocess.run(['git','diff','--check'],cwd=ROOT,check=True)\nsubprocess.run(['git','add','--',*names],cwd=ROOT,check=True)\nassert set(git('diff','--cached','--name-only').splitlines())==set(names)\nfor name in names:assert subprocess.check_output(['git','show',':'+name],cwd=ROOT)==(ROOT/name).read_bytes()\nsubprocess.run(['git','diff','--cached','--check'],cwd=ROOT,check=True)\nsubprocess.run(['git','commit','-m','tc: qualify native pressure-barrier validation and archive closed evidence (D596/D597)'],cwd=ROOT,check=True)\nsubprocess.run(['git','push','faaslora_origin','retry14_continuous_queue_v2'],cwd=ROOT,check=True)\nhead=git('rev-parse','HEAD');remote=git('ls-remote','faaslora_origin','refs/heads/retry14_continuous_queue_v2').split()[0]\nassert head==remote\nsave(RAW/'backup_receipt.json',dict(passed=True,head=head,remote=remote,files=names,identity=identity,\n    publisher_recovery_sha256=p.digest(OUT/'publication_recovery.json')))\nprint(json.dumps(dict(passed=True,head=head,files=len(names),remote_equal=True)))\n",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  }
+}

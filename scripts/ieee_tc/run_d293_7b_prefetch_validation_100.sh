@@ -563,6 +563,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d597)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100
+    CONFIG=configs/ieee_tc/20261017_d597_7b_parallel_pressure_validation_100.yaml
+    TAG=d597_7b_parallel_pressure_validation_100
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=100
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -600,7 +607,7 @@ if [[ "${1:-d293}" == d554 ]]; then
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
 fi
-if [[ "${1:-d293}" == d533 || "${1:-d293}" == d550 || "${1:-d293}" == d551 ]]; then
+if [[ "${1:-d293}" == d533 || "${1:-d293}" == d550 || "${1:-d293}" == d551 || "${1:-d293}" == d597 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W1
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
