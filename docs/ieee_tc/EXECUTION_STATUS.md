@@ -1,5 +1,24 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D598 full W2 binding preparation — sole D595 candidate
+
+D597 checkpoint19c812d pushed andallscopesclosed; no repeats. D598 nowprepares
+full4000 W2 usingD554sameconfig, existingD293 runner/fullanalyzer andoriginal
+frozenadaptermap. ReadD598_PARALLEL_PRESSURE_FULL_W2.md. No newproductionchange,
+inputgeneration orbaselineoptimization; D597native qualificationreused. NoGPU
+run startedyet. Freshresourcegate andexplicitprelaunchbackup precedeexecution.
+Fullpendinggoal intact; previousgoalturn classifiedprogress, notblocked.
+
+## D597 result checkpoint pushed — full W2 next
+
+Checkpoint19c812d63579701bafe35a8a88da96b29e715ed5 pushed/remoteequal;
+publication2 session58261 completed, exactscope recursivelyempty/closed/pathgone,
+peak27475968B/events/swap0. No pendingtool/liveGPU/remotejob. Do not repeat D596
+compression or D597 qualification/performance/analysis/publication. Full W2 next
+as D598newkey usingD554config plusD595candidate; existingfullrunner andanalyzer,
+samefrozenW2map/source/generation. Freshdisk161684865024B (~150.58GiB), checkagain
+beforelaunch; noautomaticreuse ofoldcleanup lists. Entiregoal remainsACTIVE.
+
 ## D597 native prefix audited and closed — save, then full W2
 
 2026-10-17: SINGLE D597 W1first100 native validation completed100/100,
