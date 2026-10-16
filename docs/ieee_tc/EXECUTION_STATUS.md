@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D563 diagnostic identity fix CPU-qualified, 2026-10-16
+
+D562failed/partial result PRESERVED/PUSHED: MAIN9b68e76128e6835f8eef28f6487792b50e45acf5,
+BASE08321ad37ecab9cc379a2558032ea3b093960af9 bothremoteequal. Resultpublication
+actualrecursiveempty/closed/pathgone,peak28073984B,events/swap0; no repeatbackup.
+D562watchdog231samples,servicepeak6962421760B,minhost105127018496B,events/swap0.
+D563 one new actual-native CPUregression reproduced duplicateIDfailure beforefix;
+source/archive/log retained. Existingcapacityhelper now phase-qualifieddiagnostic
+requestIDs, unchangedsource IDs/prompt/adapter/target/nativeguard/servingconfig.
+Afterfix17capacity+16actualnativeobservationtests=33PASS/no skips. Repeating SAME
+schedule still rejected, realKVdrained, nativehistoryretained. Bothboundedscopes
+actualrecursiveempty/closed/pathgone,peak284299264/284540928B,events/swap0.
+Read D563_LOQUETIER_CAPACITY_REQUEST_ID.md. No GPU/nativearithmetic performance
+qualification thisturn; D562outputdifference remainsUNKNOWN. Next testedexplicit
+codecheckpoint, then same-prefix native logit/margin witness under NEWdiagnostic
+key, retaining originalinputs/generation/counts and not replaying for equality.
+Logitobserver NOTimplemented yet. Do not rerunD562 or claimbatch8qualified.
+CurrentlocalGPUempty/no remotejob; disk161432854528B, freshgatebeforeheavyrequired.
+FullPLAN/V1/V2 and currentrules fullyread/currentSHAs unchanged. This turnPROGRESS:
+failure/partialresultanalysis+backup and reproduced/testedminimaldiagnosticfix.
+Allremaining7B/G2/3B/ablations/sensitivities/docs/figures remainACTIVE.
+
 ## D562 terminal failure/partial evidence, 2026-10-16 — authoritative
 
 SAME native run has terminated; serviceRC1/watchdogRC0, actualGPUrelease and
