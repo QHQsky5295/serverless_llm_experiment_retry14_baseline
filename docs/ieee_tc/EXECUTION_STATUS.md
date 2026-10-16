@@ -1,5 +1,22 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D591 S-LoRA W2 input/measurement qualified — checkpoint then one replay
+
+2026-10-16 AUTHORITATIVE: D590maintenance pushed a76ed14159edff7ebed7db29804dd61ab503f2ab;
+allmaintenance/curation/publication scopesclosed. No repeatedcleanup.
+D591 retains D542 nativeS-LoRA values,only measurementviewidentity refreshed after
+unrelated sharedhelper changes;16nativefunctionASTs andgeneratedsourceSHA unchanged.
+51nativeCPUtests+60analysis/inputtestsPASS,qualification scopeactualclosed/pathgone,
+peak622231552B,events/swap0. D433500ID/D4341000/D435W0/D542W1 retained, noGPUrepeat.
+SameD557W2view5734bd88.../map48c72e39...,4000requests/497IDs/458224targets.
+NativecfgSHA53d249d2ec23d3d8ede25a3aa01c183288514efc40b0ff88f58e4266d4a313ba;
+viewmanifest6f377417a35860757cb0627d7b71d008278b04afd21fea4d0f90db4e34c20fba.
+ReadD591_SLORA_FULL_W2.md. NEXT prelaunchbackup thenfresh150GiB/102GiB/growth
+gate,exactownedremotestart,SINGLE tmux tc-d591-slora-full-w2. NoGPUstarted yet.
+All launch/postterminal helpers prepared;analysis explicitlyqualifiedvenv/full4000_w2.
+DoNOTrerunLoquetier/maintenance oroldS-LoRAqualification. Full7Bcomparison then
+PrimeLoRAoptimization;allremainingG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/figuresACTIVE.
+
 ## D590 storage completed — publish, then S-LoRA W2
 
 2026-10-16 AUTHORITATIVE: D589 result102bdb6c79dad8c17c598068481593332725bda8
