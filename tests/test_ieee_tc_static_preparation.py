@@ -146,17 +146,17 @@ class StaticPreparationOwner(unittest.TestCase):
         fixture, owner, raw, frozen, limits = self.make()
         owner.preparation_snapshot(manifests=frozen, limits=limits)
         file = next(p for p in (fixture.nvme/'a').rglob('*') if p.is_file())
-        original = Path.lstat
+        original = os.stat
         count = 0
         def changing(path, *args, **kwargs):
             nonlocal count
-            if path == file:
+            if kwargs.get('follow_symlinks') is False and Path(path) == file:
                 count += 1
                 if count == 2:
                     info = original(path)
                     os.utime(path, ns=(info.st_atime_ns, info.st_mtime_ns + 1_000_000_000))
             return original(path, *args, **kwargs)
-        with patch.object(Path, 'lstat', changing), self.assertRaisesRegex(RuntimeError, 'changed while collecting'):
+        with patch.object(os, 'stat', changing), self.assertRaisesRegex(RuntimeError, 'changed while collecting'):
             owner.preparation_snapshot(manifests=frozen, limits=limits)
 
     def test_pending_writer_capacity_still_changes_after_template_compilation(self):

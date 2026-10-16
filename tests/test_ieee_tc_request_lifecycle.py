@@ -2581,17 +2581,17 @@ class LocalSourceOwnership(unittest.TestCase):
 
     def test_noncooperative_file_change_invalidates_footprint_scan(self):
         from unittest.mock import patch
-        original = Path.lstat
+        original = os.stat
         weights = self.source / 'weights'
         observed = 0
         def changing(path, *args, **kwargs):
             nonlocal observed
-            if path == weights:
+            if kwargs.get('follow_symlinks') is False and Path(path) == weights:
                 observed += 1
                 if observed == 2:
                     weights.write_bytes(b'changed-during-scan')
             return original(path, *args, **kwargs)
-        with patch.object(Path, 'lstat', changing):
+        with patch.object(os, 'stat', changing):
             with self.assertRaisesRegex(RuntimeError, 'changed while collecting'):
                 self.manager.local_file_inventory()
 
@@ -3041,11 +3041,11 @@ class ConfirmedFilePublication(unittest.TestCase):
         stale planning epochs must still be rejected after each refresh.
         """
         state, file, info, bound = self._published_source_with_unsettled_allocation()
-        original = Path.lstat
+        original = os.stat
         reported_blocks = [info.st_blocks + 8]
         def allocation_observation(path, *args, **kwargs):
             actual = original(path, *args, **kwargs)
-            if path != file:
+            if kwargs.get('follow_symlinks') is not False or Path(path) != file:
                 return actual
             fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
             fields['st_blocks'] = reported_blocks[0]
@@ -3053,7 +3053,7 @@ class ConfirmedFilePublication(unittest.TestCase):
         before = self.owner._file_inventory()
         charged = self.owner._charged_file_bytes(before, 'nvme')
         original_bound = dict(bound)
-        with patch.object(Path, 'lstat', allocation_observation):
+        with patch.object(os, 'stat', allocation_observation):
             for index, blocks in enumerate((info.st_blocks + 8, info.st_blocks)):
                 reported_blocks[0] = blocks
                 source = state['sources'][0]
@@ -3080,16 +3080,16 @@ class ConfirmedFilePublication(unittest.TestCase):
 
     def test_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope(self):
         state, file, info, bound = self._published_source_with_unsettled_allocation()
-        original = Path.lstat
+        original = os.stat
         def excessive_allocation(path, *args, **kwargs):
             actual = original(path, *args, **kwargs)
-            if path != file:
+            if kwargs.get('follow_symlinks') is not False or Path(path) != file:
                 return actual
             fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
             fields['st_blocks'] = bound['ceiling_bytes'] // 512 + 8
             return SimpleNamespace(**fields)
         source = state['sources'][0]
-        with patch.object(Path, 'lstat', excessive_allocation):
+        with patch.object(os, 'stat', excessive_allocation):
             with self.assertRaisesRegex(RuntimeError, 'exceeds its reserved envelope'):
                 self.owner.acquire_confirmed(path=source['path'], adapter_id='a', lease_id='overflow',
                     expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
@@ -3106,11 +3106,11 @@ class ConfirmedFilePublication(unittest.TestCase):
         reader's observation), in both allocation directions.
         """
         state, file, info, bound = self._published_source_with_unsettled_allocation()
-        original = Path.lstat
+        original = os.stat
         blocks = [info.st_blocks]
         def allocation_observation(path, *args, **kwargs):
             actual = original(path, *args, **kwargs)
-            if path != file:
+            if kwargs.get('follow_symlinks') is not False or Path(path) != file:
                 return actual
             fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
             return SimpleNamespace(**(fields | {'st_blocks': blocks[0]}))
@@ -3118,7 +3118,7 @@ class ConfirmedFilePublication(unittest.TestCase):
         charged = self.owner._charged_file_bytes(before, 'nvme')
         original_bound = dict(bound)
         original_contents = file.read_bytes()
-        with patch.object(Path, 'lstat', allocation_observation):
+        with patch.object(os, 'stat', allocation_observation):
             for preobserve in (False, True):
                 for extra_blocks in (8, 0):
                     held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a',
@@ -3150,14 +3150,14 @@ class ConfirmedFilePublication(unittest.TestCase):
     def test_file_demand_witness_rejects_allocation_outside_reserved_envelope(self):
         state, file, info, bound = self._published_source_with_unsettled_allocation()
         held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a', lease_id='demand-overflow')
-        original = Path.lstat
+        original = os.stat
         def excessive_allocation(path, *args, **kwargs):
             actual = original(path, *args, **kwargs)
-            if path != file:
+            if kwargs.get('follow_symlinks') is not False or Path(path) != file:
                 return actual
             fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
             return SimpleNamespace(**(fields | {'st_blocks': bound['ceiling_bytes'] // 512 + 8}))
-        with patch.object(Path, 'lstat', excessive_allocation):
+        with patch.object(os, 'stat', excessive_allocation):
             with self.assertRaisesRegex(RuntimeError, 'exceeds its reserved envelope'):
                 self.owner.demand_witness(held, content_sha256=held['confirmed_source']['content_sha256'])
         self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)

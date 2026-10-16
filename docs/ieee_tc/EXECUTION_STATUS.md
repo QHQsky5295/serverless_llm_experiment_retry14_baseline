@@ -1,5 +1,37 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D606 canonical fresh-observation candidate CPU-qualified — backup next
+
+D606 completed new serving representation candidate, NOT performance adopted.
+Private stat map producer/sole consumer share normalized strings; both fresh stat
+passes, owner locks/epochs/capacity/writer/reference/publication checks unchanged.
+Read D606_CANONICAL_FRESH_FILE_OBSERVATIONS.md. Focused240 PASS; extended433 PASS
+in seven sequential module processes using D549/D601 CPU interpreter. First broad
+regression used wrong environment: sustained high56293/peak3451527168B, safely
+stopped143, exact-owned scope released; preserve unresolved result. Wrapper syntax
+failure before tests also retained/actual empty scope closed. Final extended peak
+2509357056B/events/swap0; focused peak3270184960B/high1312 (not zero-pressure).
+Component attempt1 failed at provenance persistence; no recoverable timing values.
+Repair only path-variable shadowing; attempt2 passed13 assertions/1003paths×2stat,
+same CLOSED D557 metadata tree (not LoRA payload). Capture-required mean16.534→
+9.772ms; no GPU/TTFT improvement claim. All actual scopes closed/pathgone, no live
+job/pending tool. Candidate code/source still uncommitted pending explicit backup.
+Next archive/push, then new ordinary full4000 W2 key with frozen D554 configuration
+and existing runner; no detailed observer, no D595 parallel pressure, no repeated
+D603/D605. Full7B sameconfig G1/G2,3B,dLoRA,A1-A5/S1-S13/cost/docs/figures ACTIVE.
+
+## D604/D605 checkpoint pushed; no pending experiment
+
+Checkpoint161a246195bd9b46f9e396c8e7156de7f52250ab pushed/remote-equal;
+publication9087 completed0 and actual scope recursively empty/closed/pathgone.
+D604 compression and D605 two component attempts/publication are DONE; do not
+repeat them. Production serving source remains161fa069; only archive interface
+and tests changed. No current GPU/remote/auxiliary job or pending tool. This turn
+made evidence and storage progress,not blocked. Next bounded caller/API audit of
+ephemeral fresh-stat map representation; D605 prototype NOT adopted and not GPU
+qualified. Do not revive D595/D529 or launch an unchanged repeat. Frozen goals and
+all remaining 7B/3B/baseline/ablation/sensitivity/reviewer deliverables remain ACTIVE.
+
 ## D604 storage closed; D605 isolated traversal prototype not adopted
 
 D604 completed once: five explicit closed D554/D598/D603 evidence files losslessly

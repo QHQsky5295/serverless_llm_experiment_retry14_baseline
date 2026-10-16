@@ -83,13 +83,14 @@ class FreshFileObservation(unittest.TestCase):
         self.assertTrue(all(b['settled'] for b in owner._file_allocations.values()))
         manifests.update({f'absent-{i}': dict(manifests['a']) for i in range(496)})
         stats = []
-        original = Path.lstat
+        original = os.stat
         def observed(path, *args, **kwargs):
-            stats.append(path)
+            if kwargs.get('follow_symlinks') is False:
+                stats.append(Path(path))
             return original(path, *args, **kwargs)
         with (patch.object(owner, '_file_inventory', wraps=owner._file_inventory) as inventory,
               patch.object(owner, '_source_observation', side_effect=AssertionError('duplicate scan')),
-              patch.object(Path, 'lstat', observed)):
+              patch.object(os, 'stat', observed)):
             owner.preparation_snapshot(manifests=manifests, limits=limits)
         self.assertEqual(inventory.call_count, 1)
         self.assertTrue(stats)
@@ -174,20 +175,58 @@ class FreshFileObservation(unittest.TestCase):
         owner.preparation_snapshot(manifests=manifests, limits=limits)
         file = next(p for p in (fixture.nvme/'a').rglob('*') if p.is_file())
         count = 0
-        original = Path.lstat
+        original = os.stat
         def changing(path, *args, **kwargs):
             nonlocal count
-            if path == file:
+            if kwargs.get('follow_symlinks') is False and Path(path) == file:
                 count += 1
                 if count == 2:
                     stat = original(path)
                     os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns+1_000_000_000))
             return original(path, *args, **kwargs)
         stats = {}
-        with owner.lock, patch.object(Path, 'lstat', changing):
+        with owner.lock, patch.object(os, 'stat', changing):
             with self.assertRaisesRegex(RuntimeError, 'changed while collecting footprint'):
                 owner.inventory(_observed_stats=stats)
         self.assertEqual(stats, {})
+
+    def test_private_observations_use_inventory_strings_and_are_fresh_per_call(self):
+        fixture, owner, manifests, limits = self.make()
+        with owner.lock:
+            first = {}
+            inventory = owner.inventory(_observed_stats=first)
+            names = {name for row in inventory['allocations'] for name in row['paths']}
+            self.assertEqual(set(first), names)
+            self.assertTrue(all(type(name) is str for name in first))
+            file = next(p for p in (fixture.nvme/'a').rglob('*') if p.is_file())
+            previous = first[str(file)]
+            os.utime(file, ns=(previous.st_atime_ns, previous.st_mtime_ns + 1_000_000_000))
+            second = {}
+            owner.inventory(_observed_stats=second)
+            self.assertEqual(first[str(file)].st_mtime_ns, previous.st_mtime_ns)
+            self.assertEqual(second[str(file)].st_mtime_ns, file.stat().st_mtime_ns)
+            self.assertNotEqual(first[str(file)].st_mtime_ns, second[str(file)].st_mtime_ns)
+
+    def test_inventory_preserves_normalized_root_and_sibling_order(self):
+        from contextlib import chdir
+        from faaslora.memory.residency_manager import _local_file_inventory
+        fixture, owner, manifests, limits = self.make()
+        # Reuse tiny fixture; no model weights or trace are generated.
+        for name in ('index-a', 'index-ab', 'index-中文'):
+            (fixture.nvme/name).mkdir()
+        with chdir(fixture.nvme):
+            for root in ('.', './', '././', str(fixture.nvme) + '//./'):
+                normalized = Path(root)
+                expected, pending = [], [normalized]
+                while pending:
+                    path = pending.pop()
+                    expected.append(str(path))
+                    if path.is_dir():
+                        pending.extend(sorted(path.iterdir(), reverse=True))
+                captured = {}
+                actual = _local_file_inventory({'nvme': root}, _observed_stats=captured)
+                self.assertEqual(list(captured), expected)
+                self.assertEqual([p for row in actual['allocations'] for p in row['paths']], expected)
 
     def test_nested_cross_tree_and_cross_tier_alias_projection_is_exact(self):
         fixture, owner, manifests, limits = self.make()

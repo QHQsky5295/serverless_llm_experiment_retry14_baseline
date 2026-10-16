@@ -135,6 +135,10 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
     data. Keep both. Hard links share one inode allocation; equal content alone
     does not. Directory blocks are included, but inode/journal overhead, reflink
     extent sharing, page cache and unlinked-open files are outside this scope.
+
+    The optional private observation map uses the same normalized string keys
+    as allocation paths. It exists only for this locked call and its projection;
+    neither it nor directory-entry metadata is reused by a later observation.
     """
     allocations, observations = {}, []
     captured = {} if _observed_stats is not None else None
@@ -149,11 +153,11 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
         return (info.st_mode, info.st_size, 0 if bound is not None else info.st_blocks, info.st_nlink,
                 *((0, 0) if key in writing_inodes else (info.st_mtime_ns, info.st_ctime_ns)))
     for tier, root in roots.items():
-        root = Path(root)
+        root = str(Path(root))
         pending = [root]
         while pending:
             path = pending.pop()
-            info = path.lstat()  # Do not silently follow links outside the owner.
+            info = os.stat(path, follow_symlinks=False)
             if stat_types.S_ISREG(info.st_mode):
                 kind = 'file'
             elif stat_types.S_ISDIR(info.st_mode):
@@ -174,16 +178,21 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
                 signature=signature, paths=[], path_tiers=[], tiers=[]))
             if item['signature'] != signature:
                 raise RuntimeError('managed inode changed while collecting footprint')
-            item['paths'].append(str(path))
+            item['paths'].append(path)
             item['path_tiers'].append(tier)
             if tier not in item['tiers']:
                 item['tiers'].append(tier)
             if kind == 'directory':
-                pending.extend(sorted(path.iterdir(), reverse=True))
+                # Names of siblings have the same ordering as their Path parts.
+                # Do not use DirEntry.stat: the second pass must query fresh state.
+                with os.scandir(path) as entries:
+                    names = sorted((entry.name for entry in entries), reverse=True)
+                pending.extend(os.path.join(path, name) if path != '.' else name
+                               for name in names)
     # Detect noncooperative mutation during the scan. This is not a lock against
     # external writers; only the managed owner supplies that synchronization.
     for path, key, signature in observations:
-        info = path.lstat()
+        info = os.stat(path, follow_symlinks=False)
         if ((info.st_dev, info.st_ino) != key or
                 signature_for(info, key) != signature):
             raise RuntimeError('managed inode changed while collecting footprint')
@@ -1322,7 +1331,7 @@ class LocalSourceReferences:
         individual source inventory. No index survives the planning call.
         """
         from ..storage.http_artifact_store import _verified_file_signature
-        if any(not stat_types.S_ISDIR(observed_stats[root].st_mode)
+        if any(not stat_types.S_ISDIR(observed_stats[str(root)].st_mode)
                for root in self.roots.values()):
             raise RuntimeError('managed source root is unavailable')
         # Inventory paths are normalized by Path during the fresh scan. Retain
@@ -1330,7 +1339,6 @@ class LocalSourceReferences:
         # walking its ancestors twice. This index never survives this call.
         roots = {tier: (root, str(root), str(root).rstrip(os.sep) + os.sep)
                  for tier, root in self.roots.items()}
-        stats_by_name = {str(path): info for path, info in observed_stats.items()}
         indexed, trees = {}, {}
         for allocation in inventory['allocations']:
             inode = allocation['device'], allocation['inode']
@@ -1351,7 +1359,7 @@ class LocalSourceReferences:
                     tree = trees[key] = signatures, footprint, set()
                     indexed[root / child] = signatures, footprint
                 signatures, footprint, source_inodes = tree
-                info = stats_by_name[name]
+                info = observed_stats[name]
                 signature = _verified_file_signature(info)
                 signatures[relative if separator else '.'] = (
                     signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
