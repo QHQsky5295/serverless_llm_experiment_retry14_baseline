@@ -1,0 +1,99 @@
+{
+  "campaign": "d579_20261016",
+  "status": "prepared_not_launched",
+  "system": "HydraServe",
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "n_plan": 4000,
+  "plan_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "formal_run": false,
+  "qualification_only": true,
+  "performance_result": false,
+  "interpretation": "one complete known-trace W1 development observation after necessary platform adaptation; not independent holdout or numerical qualification",
+  "reuse_from": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d574_20261016",
+  "reuse_audit_sha256": "37a23410b7954af37ebee4855fcd58300c7df0f85afba29045f6136b5b658794",
+  "references": {
+    "plan": {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "metric_protocol": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    "single_run_amendment": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    "slo_eval": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  },
+  "runtime_registration_sha256": "927babb8512c937fb31634021727d6f1c2ad9f0e93bd92290ff722093b231f88",
+  "runtime_model_info": [
+    13,
+    9000,
+    200,
+    1000000,
+    1
+  ],
+  "runtime_thresholds_are_not_evaluation_thresholds": true,
+  "generation_contract": "fixed_length_greedy_v1",
+  "native_batch": 8,
+  "native_use_cache": 0,
+  "native_slow_expr": 0,
+  "native_idle_retirement_s": 30,
+  "deployment_notice_s": 60,
+  "request_guard_s": 1800,
+  "predicted_growth_gib": 20,
+  "physical_nodes": 1,
+  "physical_gpus": 4,
+  "physical_ledger": "hydraserve_container_union_v1",
+  "pp1_claim_to_create_boundary_qualified": true,
+  "multirank_boundary_audit_if_exercised": true,
+  "no_runtime_policy_change": false,
+  "no_config_search": true,
+  "repeat_count": 1,
+  "numerical_lora_qualified": false,
+  "n_correct": null,
+  "pipeline_migration_consolidation_qualification": "not established; record actual triggers, no forced events",
+  "source_heads": {
+    "baseline": "80e08b4c6e7c2874b1b237500a00811ec06cd8c5",
+    "main": "c1cd00e3d2c2d30fc515a1734c288a40410907b4"
+  },
+  "container_lifetime_owner": "native controller; bounded campaign and external watchdog on abnormal exit",
+  "per_container_wall_clock_expiry": false,
+  "adaptation_change": "D573 per-worker platform lifecycle locks; official scheduling/configuration unchanged",
+  "no_native_policy_change": true,
+  "adaptation_checkpoint": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d508_20261013",
+  "adaptation_summary_sha256": "a9de127542906a7887dcd95fd983c9b5392abfb69ae6c24ae2196689a5ba82c4",
+  "no_native_scheduling_policy_change": true,
+  "cancellation_ownership": true,
+  "lora_admission_capacity": true,
+  "acceptance": [
+    "4000 native contract responses; no failures; exactly 458224 output tokens and 132 observed adapter IDs",
+    "source, canonical prompt, native token/adapter, real remote content and clock binding",
+    "actual source-derived batch and unchanged D509 overlays",
+    "actual physical lifecycle closure and explicit resource events",
+    "evaluate frozen common SLO only after full audit; nonfeasibility is retained, not rejected"
+  ],
+  "cancellation_gpu_coverage": "only if naturally triggered; prior CPU ownership tests separately retained",
+  "full_config_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d546_20261015/http_7b_4000.json",
+  "full_config_sha256": "22e533264ed007c56777cd1da3c9ff7b3d7a45a6c2628a9b54b9e77216be19f7",
+  "same_backend_output_audit": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d574_20261016/same_backend_output_comparison.json",
+    "sha256": "f50c23d65e93146d2f2d660bcee206af3fd8ac4b44b872e6f9cbddf0f4b3048a",
+    "equal_sequences": 100,
+    "changed_sequences": 0,
+    "cause_independently_proved": false
+  }
+}

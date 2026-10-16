@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D579 full W1 prepared; checkpoint then one replay
+
+2026-10-16 AUTHORITATIVE: D579 preparation passed; exact D546 full4000 W1
+input/config, D574/D576 shared sources and16overlays unchanged; no new native
+policy, weights or trace. prepare actualrecursiveempty/closed/pathgone,
+peak138293248B/high/max/OOM/killswap0. No live inference/remote/maintenancejob.
+RAW results/ieee_tc/hydraserve_qualification/d579_20261016; read D579prereg doc.
+NEXT bounded curation and explicit checkpoint, remote/prelaunch freshgate,
+then once via tmux/run_and_close.sh; no repeated D574/D576 or D577/D578 cleanup.
+Full remaining HydraServeW2/Loquetiernewfullmatrix/7B/G2/PrimeLoRA/3B/dLoRA/
+A1–A5/S1–S13/cost/docs/figures ACTIVE. No finalG1/G2/numericqualification claim.
+
+## D578 checkpoint published and closed; resume affected full W1 next
+
+2026-10-16 AUTHORITATIVE: MAINc1cd00e3d2c2d30fc515a1734c288a40410907b4
+PUSHED/remoteequal,17explicitfiles; publicationactualrecursiveemptyclosed/pathgone,
+peak27205632B/events/swap0. BASE80e08b4 unchanged. No liveGPU/remote/analysis/
+maintenance/publicationjob. Freshdisk161338884096B. Do notrepeat D576fullrun,
+audits/curation/publication, D577reclaim or D578compression/checkpoint.
+NEXT reread PLAN/status, reuseD546 W1 recipe with D576 qualifiedsources/native
+config and newexecutionkey, freshresourcegate; then remainingfullbaseline matrix.
+Fullgoal staysACTIVE; no finalG1/G2 or independentnumericqualification claim.
+
 ## D576 published; D577/D578 maintenance complete; next affected HydraServe W1
 
 2026-10-16 AUTHORITATIVE: D576checkpoint97994d5345bd541ec649f48855a56e8e303a6974

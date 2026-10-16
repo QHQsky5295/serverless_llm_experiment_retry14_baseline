@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "n_plan": 4000,
+  "source_trace_seed": 42,
+  "prepared_not_launched": true,
+  "performance_result": false,
+  "full_config_equal": true,
+  "plan_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "native_overlays_unchanged": true,
+  "reuse_inspection_sha256": "37a23410b7954af37ebee4855fcd58300c7df0f85afba29045f6136b5b658794",
+  "preregistration_sha256": "dd017c34102ebc4f5834dd53bea71c6348fb3047871cd6f2fd8a04dbe505ac90",
+  "source_manifest_sha256": "7c6cf373df32d532e3edc9b619c11a95f715edd473a56d4910e118b69a6d3271"
+}
