@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "n_plan": 4000,
+  "source_trace_seed": 42,
+  "prepared_not_launched": true,
+  "performance_result": false,
+  "native_config_preserved": true,
+  "common_w2_plan_equal": true,
+  "plan_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300"
+  },
+  "native_overlays_unchanged": true,
+  "reuse_inspection_sha256": "37a23410b7954af37ebee4855fcd58300c7df0f85afba29045f6136b5b658794",
+  "preregistration_sha256": "ef54121a33157f9f06f6f759c7679ede0b821ee936d96f9895bf78d091efebc8",
+  "source_manifest_sha256": "6c790d6059e41843e524c5c7d0701d85b756ecf5cb08f711688a97d92731f404"
+}

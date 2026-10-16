@@ -1,5 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D582 common W2 prepared and preserved; checkpoint then one replay
+
+2026-10-16 AUTHORITATIVE: D582 preparation PASS: exact4000 shared W2 entries,
+497 observed adapters/458224 target tokens, same D57416overlays and D576/D579
+shared serving sources. No regenerated weights/trace or native policy change.
+prepare actually closed/path-gone, peak304775168B, events/swap0; curation PASS,
+archive267276B, AST/shell/SHA round-trip/protected147/user-dirt checks passed.
+No live GPU/remote job. Read D582_HYDRASERVE_LIFECYCLE_FULL_W2.md.
+NEXT exact-path checkpoint, fresh remote/resource gate, once through existing
+tmux/run_and_close.sh; do not repeat prior qualifications, replay or maintenance.
+Remaining Loquetier full matrix/7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/
+final figures stay ACTIVE. W2 has no performance result yet.
+
+## D581 published and closed; D582 W2 preparation next
+
+2026-10-16 AUTHORITATIVE: MAIN cef1218e4d8b4e3dfae5c59d82af85b0310d0a48
+pushed/remote-equal; D580/D581 maintenance, curation and publication all actually
+closed/path-gone. Publication peak26845184B, memory events/swap0. No active GPU
+run or remote service. Do not repeat D579, cache deletion, compression or publish.
+Next D582: reuse D576/D579 native configuration and existing D553/D557 W2 map
+(497 observed adapters,458224 output tokens), qualify exact shared inputs, then
+checkpoint and fresh resource gate before one full replay. Existing unrelated
+k3s remains untouched; isolated rootless Podman is the qualified platform.
+Full remaining scope and goal remain ACTIVE; no performance improvement claim.
+
 ## D580/D581 storage complete; preserve then prepare HydraServe W2
 
 2026-10-16 AUTHORITATIVE: freshD579 cache/originalSHA/reference audit passed,
