@@ -1,5 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D580/D581 storage complete; preserve then prepare HydraServe W2
+
+2026-10-16 AUTHORITATIVE: freshD579 cache/originalSHA/reference audit passed,
+132objects/1320files/3300789780payloadB; onlydownloadobjectsremoved,
+3305709568B reclaimed. Uniqueassets/raw/journals/receipts retained. D581exact
+D576+D579closedremote_monitor.log losslesslygzipped,tworeadbackSHAverified,
+95956992B reclaimed,diskafter161094758400B(~150.03GiB). Protected147PASS.
+Bothmaintenance scopesactualrecursiveemptyclosed/pathgone;high/max/OOM/killswap0,
+peaks1708535808B/31424512B. Threeunreadable sameUIDproc entries recorded,not
+claimed globalvisibility. No liveGPU/remote/maintenancejob. ReadD580_D581doc.
+NEXT boundedcuration/checkpoint,then D582 or nextunique HydraServeW2 preparation
+using D579 qualifiednativeconfig and sharedW2 traceview; freshresourcegate.
+DoNOTrepeatD579run/audits, D580deletion orD581compression. FullgoalACTIVE.
+
+## D579 full W1 published and closed; storage then remaining baseline matrix
+
+2026-10-16 AUTHORITATIVE: MAIN4b5276a219a5e213d86a941dfc7837f9fedf5c09
+PUSHED/remoteequal,15explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. D579 fullreplay/strictaudit/exact4000inputjoin/resultcuration COMPLETE.
+Actualservice/auxiliary/remote/audit/join/result/publication allclosed/pathgone;
+no liveGPU/remote/analysis/publicationjob. Firstpublication wrapper assertion
+beforeidentity/staging preserved withsource+failure+closure; v2metadata-only
+entry published successfully. No experiment, audit or curation repeated.
+Joint49.425%,U8202.347262414GPU-s,P95TTFT8750.468757ms; stillnonfeasible,
+65changedoutputsequences retained/independentnumericUNKNOWN. ReadD579resultdoc.
+NEXT freshverified D579 private-downloadcache maintenance (currentdiskbelow
+150GiB newheavyfloor),retainoriginalpool/allraw/journals/receipts/failed evidence;
+then HydraServeW2 and LoquetiernewfullW0/W1/W2,remaining7Bbaseline comparison.
+No repeatedD579/D576/D574 or previouslydonecleanup. PrimeLoRA G1/G2/crossscenario,
+3B/dLoRA,A1–A5,S1–S13,cost/CE/docs/finalfigures stayACTIVE. No finalsuccessclaim.
+
 ## D579 full W1 complete and strictly audited; preserve/checkpoint then storage
 
 Resultcuration COMPLETE: hydraserve/d579_lifecycle_full_w1_result,archive828067B,

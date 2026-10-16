@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "new_gpu_run": false,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-d5810000000000000000000000000002.scope",
+    "invocation_id": "bab486e983c74c5f9bc05ac59fdfa5db",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5810000000000000000000000000002.scope",
+    "inode": 26214286
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "archive_members": {
+    "00_run_cleanup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/run_cleanup.py",
+      "bytes": 1062,
+      "sha256": "abc19982c1c5ee2647c38438e16bedab8da08b8b48b4bc17aa763c7b002db121"
+    },
+    "01_reclaim_d579.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/reclaim_d579.py",
+      "bytes": 898,
+      "sha256": "7865bd3c352adc0efb68e079f7fe76ea67d85cbfe7fff0ee9981a4478e47e3cc"
+    },
+    "02_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/close.py",
+      "bytes": 290,
+      "sha256": "c61b293adc9955e5f66e5ed4cf8569b3bac3072b21d5e494b8abdb4a0f2309c3"
+    },
+    "03_cleanup_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/cleanup_identity.json",
+      "bytes": 286,
+      "sha256": "2fe25628f1abc5e3bc24b991e676bf91626162912acafd52c728a772aa55991b"
+    },
+    "04_cleanup_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/cleanup_receipt.json",
+      "bytes": 1361,
+      "sha256": "dd577b57c802b6a974968ef79d9b5583e5ca688d96a25130e0670c078f187788"
+    },
+    "05_cleanup_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/cleanup_closure.json",
+      "bytes": 648,
+      "sha256": "6431973178126c24b6f935f5277c372f60e50c50c8b6cc5279cae8a02c7bc90e"
+    },
+    "06_retained_metadata.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d580_20261016/retained_metadata.tar.gz",
+      "bytes": 266898,
+      "sha256": "631b3e54d40eed70c553612436ddd59298ccead9a71ca24d0b91fab56f338395"
+    },
+    "07_cache_cleanup_before.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/cache_cleanup_before.json",
+      "bytes": 1954,
+      "sha256": "ed96c56d765450e0606e871385faba61e3f76d1d0699627b4c5066a57941abb6"
+    },
+    "08_cache_cleanup_after.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d579_20261016/cache_cleanup_after.json",
+      "bytes": 562,
+      "sha256": "01fec1b88499f244e6722f476cc4b241291484ae8f820594c23379e157f3d175"
+    }
+  },
+  "outputs": {
+    "cleanup_receipt.json": "dd577b57c802b6a974968ef79d9b5583e5ca688d96a25130e0670c078f187788",
+    "cleanup_closure.json": "6431973178126c24b6f935f5277c372f60e50c50c8b6cc5279cae8a02c7bc90e",
+    "cache_cleanup_after.json": "01fec1b88499f244e6722f476cc4b241291484ae8f820594c23379e157f3d175",
+    "evidence.tar.gz": "965034154cc9aaa0328ff2940ba4950c8e52a83ca6bb5114737222916ff50440"
+  },
+  "validation": "Executed assertions plus source AST and archive round-trip; no new serving change or repeated GPU tests"
+}
