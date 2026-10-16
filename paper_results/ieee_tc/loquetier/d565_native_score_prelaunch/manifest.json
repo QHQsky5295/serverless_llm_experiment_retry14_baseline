@@ -1,0 +1,133 @@
+{
+  "passed": true,
+  "tests": 39,
+  "baseline_checkpoint": {
+    "head": "6a0217766f3bde57f5ed9072135fdb58428eb271",
+    "remote_equal": true,
+    "files": [
+      "tests/test_loquetier_static_capacity.py",
+      "tests/test_ieee_tc_loquetier_measurement.py",
+      "Loquetier_project/scripts/run_loquetier_trace_gate.py",
+      "docs/ieee_tc/D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md"
+    ]
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_revision_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "qualification_sha256": "5e6e0d3e1ae238a35ebb1555ffa42d1cde310691afda5dfa2563e9ed2156fdae",
+  "archive_sha256": "4d57b80b3a8a92802293b41c455d4a1c3cbba79772a9c9afb1931dc22ce19f45",
+  "archive_members": {
+    "00_run_tests.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/run_tests.py",
+      "sha256": "7ac47af726642ddee32c03b3ef0c771ac3dcf22de910347d12a6db125b1f9812",
+      "bytes": 3557
+    },
+    "01_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/close.py",
+      "sha256": "69ab7c7a05a2af16880bea472438688c40ff3d91d0bbb73093254e29dd681ed6",
+      "bytes": 1341
+    },
+    "02_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/publish.py",
+      "sha256": "56c638f861b751c2f49e2b2d3a590b830bdd078cf6426e4f7ccb350c7a6a2269",
+      "bytes": 8840
+    },
+    "03_qualification.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/qualification.log",
+      "sha256": "5d3960b6975c4c2951ad642b9ecf743bcd70917d15c3ff6549f09eb382eb86e3",
+      "bytes": 21629
+    },
+    "04_qualification_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/qualification_identity.json",
+      "sha256": "37a606b9bcdbb22bc30b8f7ba240db12bf8756e931d36654bd504e83e9b83147",
+      "bytes": 286
+    },
+    "05_qualification_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/qualification_closure.json",
+      "sha256": "553c73084c600be961669620d88f1cd969a9a08d4efceeb653439a395ddc2194",
+      "bytes": 647
+    },
+    "06_qualification_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/qualification_receipt.json",
+      "sha256": "f1d258f1e1edde1e145c5bd70e1063119d3a12f1c5ac8d6fd8db3c9703476047",
+      "bytes": 3415
+    },
+    "07_qualification_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/qualification_source.tar.gz",
+      "sha256": "bce522a629178fe43b958cb728712b6668f69873aba2a5737d318722b6a149b7",
+      "bytes": 86982
+    },
+    "08_prepare.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/prepare.py",
+      "sha256": "64f3eccb7980b837f6957453e845962efa7198920127fdee44a55ef3c630dad3",
+      "bytes": 3462
+    },
+    "09_prepare_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/prepare_identity.json",
+      "sha256": "054c80c16dca399b3d3dcfc2f72fc5869f134505a1c2c4f6a1d2efbf29c13161",
+      "bytes": 286
+    },
+    "10_prepare_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/prepare_closure.json",
+      "sha256": "86a42cd1e7da6d1cd3489bf371c8a824cd6f79f8ea9363ed9d131b180a5c715c",
+      "bytes": 646
+    },
+    "11_prepare_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/prepare_receipt.json",
+      "sha256": "925507efaeb74b219fd8c3973725b18ef7db5baf9471bae93f874eff4ceea157",
+      "bytes": 168386
+    },
+    "12_launch.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/launch.py",
+      "sha256": "029f5cf306ac9620c03ff5b82bfa6d6beefdaf24caa192eb936c4252a6f5999b",
+      "bytes": 2284
+    },
+    "13_run_capacity.sh": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d565_20261016/run_capacity.sh",
+      "sha256": "bc093026dc22c271e61285d4e00098bbb9ca3d4a1372b2496837b5fb5712530b",
+      "bytes": 753
+    },
+    "14_test_loquetier_native_generation.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py",
+      "sha256": "87e45df99b36a969a95428f155fff18ae64fc1370237d100f9c76aea02c1083d",
+      "bytes": 11375
+    },
+    "15_test_loquetier_static_capacity.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_loquetier_static_capacity.py",
+      "sha256": "6ccd00b251ac3e9da02e6d63de0a5265a18a4c133ab667c8d40aeaeab90c999a",
+      "bytes": 24800
+    },
+    "16_test_ieee_tc_loquetier_measurement.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_loquetier_measurement.py",
+      "sha256": "9fbb1cef639f9d0fc85825c6d11b16d78c3bb8a6bb7e28c349a1b33e42de7bfd",
+      "bytes": 27278
+    },
+    "17_run_loquetier_trace_gate.py": {
+      "path": "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py",
+      "sha256": "4efcfbd54814d22b8662ccb9d40ea77bf5cff908cec87797f98555dadcb98141",
+      "bytes": 77993
+    },
+    "18_D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md": {
+      "path": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md",
+      "sha256": "8bab7c1f74631e010cdae3880d764c5f5c6fe4b206e41199923155169bd5ef82",
+      "bytes": 3716
+    },
+    "19_D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md",
+      "sha256": "8bab7c1f74631e010cdae3880d764c5f5c6fe4b206e41199923155169bd5ef82",
+      "bytes": 3716
+    },
+    "20_result_publication_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/result_publication_receipt.json",
+      "sha256": "8648450e29e56358dca27b7132e62fac0f7150fa4318247e5f6d1a52236a4b2a",
+      "bytes": 1161
+    },
+    "21_result_publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/result_publication_closure.json",
+      "sha256": "229543c7e13eeef0a8e3d3845ebe2a77200a3592861b8cfbdb28aa86e2c3d4c3",
+      "bytes": 646
+    }
+  },
+  "preparation_only": true,
+  "no_inference_started": true
+}

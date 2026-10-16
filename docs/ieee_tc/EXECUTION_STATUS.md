@@ -1,6 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D565 bounded multi-target numerical witness prepared, 2026-10-16
+
+Full PLAN/status/AGENTS/rules and frozen V1/single-run V2 reread; identities unchanged.
+Read D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md. Existing capacity probe ONLY gets
+explicit completed_phases_v2 score binding; all first differences from D564 retained.
+Same8inputs,125-IDshard,b8 estimate, no serving/kernel/config/weight/trace change.
+Two known targets req_00015/index131 and req_00104/index54, each batch2 reference,
+then all8/mixed4/4; original greedy untouched. No numerical tolerance/new performance.
+39CPUtests PASS/no skips (21capacity+18nativeobservations); actual qualification
+recursiveempty/closed/pathgone,peak284426240B/events/swap0. Preparation underway,
+NO GPUresult yet. Next tested explicit checkpoint, fresh protected single native
+diagnostic, actualclosure/audit/preserve; then faithful serving/full500/W0W1W2.
+Avoid serial per-token retries/local sweep; all old output differences/failures stay.
+HydraServe isolated adaptation already done; unrelated k3s untouched. No remotejob.
+FullgoalACTIVE: remaining7B/G2/3B/ablations/S1–S13/docs/cost/figures all retained.
+
 ## D564 native score/mixed capacity diagnostic prepared, 2026-10-16
+
+RESULT CHECKPOINT DONE: MAIN180168c287c8b792c9b919d72c203be8b75e7587,
+BASE6ac20b085ed613c24fcd75f7b89b7b4b4cf7b7aa bothPUSHED/remoteequal.
+Explicit7MAIN/1BASEfiles,36CPUtests/source/score/archive/protected147/userdirt/
+secrets/diffchecksPASS. Resultpublicationactualrecursiveempty/closed/pathgone,
+peak40124416B/events/swap0. Curated loquetier/d564_native_score_result includes
+4fullvectors, alloriginaloutputs, closures and directtie/remainingdifference.
+ScoreLinf vsbatch2: all8=.0546875,mixed=.0546875; meanabsolute .0143573048115/
+.00954254245758. Refcopiesbyteidentical. These are observederrors, NOTchosen
+acceptancetolerances or independenthighprecisiontruth. Do NOTdeclareallcorrect.
+No liveGPU/test/publication/remotejob; latestdisk161411358720B, freshgate next.
+Do NOTrepeatD564run/tests/prep/backup. This turnPROGRESS: nativecapacity execution
+and directsameprefixargmax explanation plus two-repo backup, notfullgoalclosure.
+Next ONE bounded remaining mixed-difference numerical witness using existingprobe
+and retained req_00104/index54 (plus knownreq_00015 control); qualify multi-target
+evidence binding/observer, preservealloutputs. Avoid serial winnerretries or new
+performance sweeps. Then faithful onlineowner/capacity integration+full500/W0W1W2
+once justified; full7B/G2/3B/ablation/sensitivity/document/figure scope retained.
+No D565code/test/run yet. Postpushstatusdelta reservednextmeaningfulcheckpoint.
 
 AUTHORITATIVE TERMINAL: SAME native run completed, service/watchdogRC0,
 actualGPUreleased/servicepathgone; launcheractualrecursiveempty/closed/pathgone,
