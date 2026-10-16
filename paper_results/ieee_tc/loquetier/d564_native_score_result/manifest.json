@@ -1,0 +1,193 @@
+{
+  "passed": true,
+  "publication_validation_passed": true,
+  "native_capacity_execution_passed": true,
+  "numerical_qualification_complete": false,
+  "tests": 36,
+  "baseline_checkpoint": {
+    "head": "6ac20b085ed613c24fcd75f7b89b7b4b4cf7b7aa",
+    "remote_equal": true,
+    "files": [
+      "docs/ieee_tc/D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md"
+    ]
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_revision_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "qualification_sha256": "458ce98736cfa7ec84c6c508b4818069a6d4e76a876bfff687ea0866e0c1ad8c",
+  "archive_sha256": "7153753730eeaf90ee2e8f36c31a6551abd7c917c34977d001eaa0c58e98776a",
+  "archive_members": {
+    "00_run_tests.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/run_tests.py",
+      "sha256": "7ac47af726642ddee32c03b3ef0c771ac3dcf22de910347d12a6db125b1f9812",
+      "bytes": 3557
+    },
+    "01_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/close.py",
+      "sha256": "69ab7c7a05a2af16880bea472438688c40ff3d91d0bbb73093254e29dd681ed6",
+      "bytes": 1341
+    },
+    "02_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/publish.py",
+      "sha256": "6c3019b5e8bc1dd0ee6d8c2ee31e814520073bc067c89c74aa3b1dd92a0e329e",
+      "bytes": 8827
+    },
+    "03_publish_result.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/publish_result.py",
+      "sha256": "574233f1d4742f8c747565bb4b4391511b8d5d655a6f3784b879517865b451ce",
+      "bytes": 16232
+    },
+    "04_native_capacity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/native_capacity.json",
+      "sha256": "df285778ee270b6ae5d988bb732f87300fe8f2bed8e948a76c1389b1274bdf7d",
+      "bytes": 729673
+    },
+    "05_capacity_launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/capacity_launch.json",
+      "sha256": "267d7b79e1700f706957702e1c6da5f45331d51cb8b788c7984967f3d73e5766",
+      "bytes": 12410
+    },
+    "06_exec_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/capacity_launch.launch/exec_receipt.json",
+      "sha256": "2662ddcb2d231e2c667f443494521ac7dd9fe06fc98f46c73c2c08a18de4219f",
+      "bytes": 11863
+    },
+    "07_service.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/capacity_launch.launch/service.log",
+      "sha256": "287f12e743e4a694e9da74465e8f64b7791b1d44b83916c5a78b28d784828851",
+      "bytes": 4799
+    },
+    "08_launcher_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/launcher_identity.json",
+      "sha256": "8d7a46d453bfe8a0449b5c043e7a064606a75a60d3079c882805d4597c156e3a",
+      "bytes": 286
+    },
+    "09_launcher_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/launcher_closure.json",
+      "sha256": "456342e39f1feecab74c9d5a99421558f1287e4a78ecc78e029f9ea5a5e716e8",
+      "bytes": 646
+    },
+    "10_publication_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/publication_receipt.json",
+      "sha256": "a1db85abd020e7fde782aa9b085b618092ab891da73123a898b8b012227ce254",
+      "bytes": 1260
+    },
+    "11_publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/publication_closure.json",
+      "sha256": "6c36c297428e8195f6678e4ac9676ff873d2850b99f9cc0c63fd01fcc29e6dbb",
+      "bytes": 646
+    },
+    "12_qualification.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/qualification.log",
+      "sha256": "a67d3ea800d444d1cf002403f12278b63566ea0948ab5a43e1c564a73ab03dc2",
+      "bytes": 18971
+    },
+    "13_qualification_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/qualification_identity.json",
+      "sha256": "9b4440d2b1150d10eca48fb3b5fff8d746e4d97fe72103c2bc9e33fc4e910e6b",
+      "bytes": 286
+    },
+    "14_qualification_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/qualification_closure.json",
+      "sha256": "84ebf67a3694c9a479ff5e2fa589067dafa63d5f413325492bf64869064c1447",
+      "bytes": 647
+    },
+    "15_qualification_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/qualification_receipt.json",
+      "sha256": "e92d45f2293225fb037a2031167f611d65b4bb9e33790eb1af63797eea7a02cb",
+      "bytes": 3415
+    },
+    "16_qualification_source.tar.gz": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/qualification_source.tar.gz",
+      "sha256": "b45334caaa4e7418f1104828bcc6c2937533f025a275e8e609bbc0a78c077805",
+      "bytes": 85281
+    },
+    "17_prepare.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/prepare.py",
+      "sha256": "cdc54faec1ba31a1f97729f2debbbbf152a863edd65915a81d9404b8dc7859a1",
+      "bytes": 3460
+    },
+    "18_prepare_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/prepare_receipt.json",
+      "sha256": "e9df8d97423bec71ebc078105621785366ad2080862d902f8d9140c7b683accf",
+      "bytes": 149634
+    },
+    "19_prepare_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/prepare_identity.json",
+      "sha256": "da3b57eefc78daaaaf7936f22a30ff491df67e0004be4d1b8d7d0ea3810a51ec",
+      "bytes": 286
+    },
+    "20_prepare_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/prepare_closure.json",
+      "sha256": "fcf9935251963ab574cf586f052157d59034adea2380606ef7a2dcfc5eb023ec",
+      "bytes": 646
+    },
+    "21_launch.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/launch.py",
+      "sha256": "c5db3a1d7cc65926b1de710fb6b073bb2413fd05cbb54463a1a86e3b62fab7e9",
+      "bytes": 2233
+    },
+    "22_run_capacity.sh": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/run_capacity.sh",
+      "sha256": "d7731f81ab74fa0bb46464d6e0b047e81d0f5e72f380263e03576a7cea3b29c2",
+      "bytes": 753
+    },
+    "23_test_loquetier_native_generation.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py",
+      "sha256": "87e45df99b36a969a95428f155fff18ae64fc1370237d100f9c76aea02c1083d",
+      "bytes": 11375
+    },
+    "24_test_loquetier_static_capacity.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_loquetier_static_capacity.py",
+      "sha256": "a23ddfd2a6131b8d941744c6f0542951c452da95bbb560ffc0942c32658f352e",
+      "bytes": 21303
+    },
+    "25_test_ieee_tc_loquetier_measurement.py": {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_loquetier_measurement.py",
+      "sha256": "eaebc0e6fa4daef55928c04cb4142b0fe31945b9999b17d7e29396d19f74fa3b",
+      "bytes": 24849
+    },
+    "26_run_loquetier_trace_gate.py": {
+      "path": "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py",
+      "sha256": "34114c5c3120b813d998cb8b86b87dfde1fc76d599487e3afa041f3044c97aec",
+      "bytes": 73663
+    },
+    "27_D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md": {
+      "path": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md",
+      "sha256": "f8cfbae125325ee6c55d9e2592d27fb5e2f2d9ebbc61f9f97cea94434c0b581d",
+      "bytes": 7218
+    },
+    "28_D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md",
+      "sha256": "f8cfbae125325ee6c55d9e2592d27fb5e2f2d9ebbc61f9f97cea94434c0b581d",
+      "bytes": 7218
+    },
+    "29_backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d531_20261015/backup.py",
+      "sha256": "a4d4a812c4185358541980005a7e30847618b0d1ce8746b09827f9ffe25e4d03",
+      "bytes": 5745
+    },
+    "30_logit_reference_batch2-0-131.f32": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/native_capacity.scores/logit_reference_batch2-0-131.f32",
+      "sha256": "3cbb0324eb5fcf491dc56bd7d3085eb512bad59b9cd967c9653587ae7d82b3f9",
+      "bytes": 128000
+    },
+    "31_logit_reference_batch2-1-131.f32": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/native_capacity.scores/logit_reference_batch2-1-131.f32",
+      "sha256": "3cbb0324eb5fcf491dc56bd7d3085eb512bad59b9cd967c9653587ae7d82b3f9",
+      "bytes": 128000
+    },
+    "32_all_prefill-2-131.f32": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/native_capacity.scores/all_prefill-2-131.f32",
+      "sha256": "0177f442c6a5195bcfb8e7a9b49c25fab62b9ded2845ec1023646205d1c72607",
+      "bytes": 128000
+    },
+    "33_mixed_prefill_decode-10-131.f32": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d564_20261016/native_capacity.scores/mixed_prefill_decode-10-131.f32",
+      "sha256": "c1c05e8037f17c96c164b936063f1129ef4ba649efaceac1947e91158fe0d93d",
+      "bytes": 128000
+    }
+  },
+  "preparation_only": false,
+  "performance_run": false
+}

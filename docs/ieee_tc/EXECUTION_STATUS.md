@@ -2,6 +2,39 @@
 
 ## D564 native score/mixed capacity diagnostic prepared, 2026-10-16
 
+AUTHORITATIVE TERMINAL: SAME native run completed, service/watchdogRC0,
+actualGPUreleased/servicepathgone; launcheractualrecursiveempty/closed/pathgone,
+peak90214400B/events/swap0. No liveGPU/remotejob. 262watchdogsamples,servicepeak
+6966071296B/minhost105148612608B/events/swap0. Do NOTrepeatlaunch/qualification.
+Reference2+allprefill8+mixed4/4 completed256tokens each; samples257/257/259,
+KVdrained/max4GiB; final8full1024KVallocationPASS. Rawownerbytes5469372416 freed,
+base/prepared content/pointers unchanged. CapacityexecutionPASS, NOTallnumeric.
+Four32000-score vectors saved. req_00015 index131 sameprefix: batch2
+11029=13.734375>1024=13.7109375; all8both13.703125,tie2/nativeargmax1024;
+mixed11029=13.734375>1024=13.71875. Thus directD562firstdivergencecause observed;
+all8outputs exactlymatchD562, no forcedtokens/no performancegain claim.
+NEWpartiallimit: mixed req_00104 firstdiffindex54,10894->5936,192/256positions;
+no scoreatthatindexinthispreregisteredprobe, causeUNKNOWN. Other7matchD445.
+No globalnumerical/servingcapacityqualification; preserve thisdifference, not
+blanket roundingexcuse. Next strictscore/source/closure curation/checkpoint,
+then bounded remaining same-prefix evidence, not winnerreplays/parametersearch.
+This turnPROGRESS: testedobserver/36tests/push, actualnativequalification and
+directargmax evidence; fullgoalACTIVE. HistoricalLIVE notes below superseded.
+
+AUTHORITATIVE LIVE: prelaunchMAINfdbc8ba89497e977f5f002e9a410b67b240d6263,
+BASE8bd91658af775e1eec5183f4b08cb42b71b01409 bothPUSHED/remoteequal.
+Explicit6MAIN/4BASEfiles;36tests/source/archive/protected147/userdirt/secrets/
+diffchecksPASS. Prepare/publicationactualrecursiveemptyclosed/pathgone,
+peak45621248/27353088B,events/swap0. Single tmux tc-d564-native-score running;
+freshgatedlaunch passed. Actualserviceprimelora-tc-svc-a9087f8062304a4581581fd14182904b.scope.
+Launcherauxd5640000000000000000000000000006 Invocation020279fcaa1148df861a659cf309deb9,
+inode26047976. Sample19host111903842304B,events/swap0/noabort. No nativeoutcome yet.
+Initial immediate pathcheck preceded launcher startup; not failure/restart.
+Monitor SAMErun only; no tests/build/scans/backup/cleanup/remotechanges. On actual
+terminal inspect capacity_launch/native_capacity, close.py launcher ONLYafter
+actualrecursiveempty; then audit exactscores/outputs/nativecapacity and preserve.
+Do NOTrestart on observationtimeout or repeat prelaunch/qualification.
+
 Read D564_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md. Existingcapacityprobe extended
 ONLY opt-in scoreevidenceSHA and read-only nativegreedy observation at retained
 D562firstdivergence. Same8inputs/125-IDshard, batch2reference+all8+mixed4/4,
