@@ -1,6 +1,46 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D566 online ownership/capacity CPU qualification, 2026-10-16
+
+Read D566_LOQUETIER_ONLINE_CAPACITY.md. Existing BASE replay engine now has explicit
+prepared_only_observed_capacity_v1, bound to D565 evidence/D560 view/D437 placement.
+New config loquetier_7b_prepared_capacity_v1.json: nativebatch8, pure-inference raw
+owner release at deployment, actual byte/device/registry receipts, prequeue760prompt
+bound. Old config/native kernels/staticshards/sequentialstartup/FIFO unchanged.
+86CPUtests PASS/no skips (41service/worker/HTTP+27nativeCPU/capacity+18observation).
+Finalactualscope recursiveempty/closed/pathgone,peak286515200B/events/swap0.
+First affinity-driver failure beforetests, subsequentPath/SHAidentity bugs retained
+with originalsource/log/closure; fixedactualcauses, no GPU retry/evidencechange.
+RAW loquetier_qualification/d566_20261016; finalqualification3_receipt/closure.
+No GPU/remote/performance run yet. Next testedexplicit checkpoint, then reuse
+full500 realremote service qualification under NEWkey, newW0/W1/W2 sameconfig.
+Do NOTrepeatD565short/numericaldiagnostics, oldperformance or unrelatedHydraServe
+adaptation. IndependentnumericUNKNOWN; no G1/G2/wholegoal closure. Fullremaining
+7B/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/figures scopeACTIVE. FullPLAN/status/AGENTS/
+rules/V1/V2/skills read; sourceidentities unchanged; no uniqueassets overwritten.
+
 ## D565 bounded multi-target numerical witness prepared, 2026-10-16
+
+RESULT CHECKPOINT DONE: MAIN067c897d057615515a948b266e81820964157c26,
+BASE0d7a56254b3df35f977be4944658d33208f0f5ae bothPUSHED/remoteequal.
+Explicit7MAIN/1BASEfiles;39tests/source/scores/archive/protected147/userdirt/secrets/
+diffchecksPASS. Resultpublicationactualrecursiveempty/closed/pathgone; fullresource
+receipt RAWresult_publication_closure.json. No liveGPU/test/publication/remotejob.
+Curated loquetier/d565_native_score_result, all8vectors preserved. All8 andmixed
+completeoutputs exactlyequalD564; refsduplicatesbyteidentical. req00104 vsbatch2:
+all8Linf.06640625/meanabs.00821533596516, mixedLinf.0390625/meanabs.00649718677998.
+These are observations, NOTerroracceptancetolerances. IndependentnumericUNKNOWN.
+Do NOTrepeatD565native/tests/prep/analysis/backup or serialindividualtokendiagnostics.
+This turnPROGRESS: multi-targetproof39tests/nativecapacity/argmaxevidence/backup.
+Next faithful onlineowner/capacity integration in existingBASE replay engine:
+currently load_loquetier_static_plan and validate_loquetier_service_config require
+legacybatch2; workercontext requiresv1schema; _load_loquetier_native_bridge retains
+models through bridge.native_models. Add explicit new lifecycle/config identity
+bound to evidence, not weakenlegacyguards or mutateoldstaticplan. Preserve native
+SMLM/generation/staticshards/sequentialstartup, actualcapacity/owner receipts and
+physical safeguards. CPUqualify then nativefull500/newW0W1W2; no batchsweep.
+No D566implementation/tests/config yet. Fullremaining7B/G2/3B/A1–A5/S1–S13/docs/
+cost/figures scopeACTIVE. Postpushstatusdelta reservednextmeaningfulcheckpoint.
 
 AUTHORITATIVE TERMINAL: SAME native run complete, service/watchdogRC0, actual
 GPUreleased/servicepathgone; launcherrecursiveempty/closed/pathgone,
