@@ -1,5 +1,65 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D576 strict audit and result preservation complete; checkpoint then storage
+
+2026-10-16 AUTHORITATIVE: SAME fullW0 completed and strictauditPASS;4000native
+contract responses,458224tokens,132adapters/fetches,131480060wireB,packing0.
+JointSLO2729/4000=68.225%;U9866.3806885113GPU-s;P95TTFT9455.933985ms.
+VersusD510:joint−0.500pp,U+2.114%,P95TTFT+6.828%;no performance improvement
+claim. Exact4000inputjoinPASS;3942same/58different outputsequences, differences
+retained and independentnumericalqualificationUNKNOWN,rawn_correctnull.
+Actual35workers allpp1/batch8;finalscheduler3 not fullworker count. R1comparison_v2
+corrects that label only and retains firstanalysis; no metric/replay changed.
+Allactualservice/launcher/remote/audit/outputcomparison/result scopesclosed;
+servicepeak51656892416B/events/swap0. No liveinference/remote/analysis job.
+Curatedhydraserve/d576_lifecycle_full_w0_result COMPLETE,archive827930B;
+AST/SHAroundtrip/protected147/userdirtchecksPASS. ReadD576resultdoc.
+NEXT explicitcheckpoint,then freshverified D576private-downloadcache reclaim
+(diskbelow150GiB newheavyfloor),then affectedHydraServeW1/W2 andLoquetierfullmatrix.
+DoNOTrepeatD576replay/audit/join/curation or priorqualification. Full remaining
+7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/figures staysACTIVE.
+
+## D576 replay and cleanup complete; strict full audit running
+
+2026-10-16 AUTHORITATIVE: the SAME D576 W0 replay completed once:4000 planned,
+arrived,terminal and response events,0 failed. Actual service and launcher scopes
+are recursively empty/stopped/pathgone; owned remote services/monitor stopped,
+ports18080/18081 absent, remote log download hashes verified. Service peak
+51656892416B, high/max/OOM/kill/swap0; all GPU allocations released. No live
+inference or remote task. Do not repeat replay/remote handling or prior qualification.
+Strict preregistered full audit now runs in CPU-only3/4GiB swap0 scope ending0006;
+final SLO and resource comparison are not yet qualified. Next audit closure,
+exact D510 input/output join, result preservation and explicit checkpoint.
+Current disk157116813312B below150GiB heavy-launch floor: only bounded offline
+audit/preservation now, then fresh verified rebuildable-cache maintenance before
+new GPU/build work. RemainingHydraServeW1/W2,Loquetierfullmatrix,7B/G2/PrimeLoRA,
+3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures remainACTIVE. Existing k3s untouched.
+
+## D576 LIVE — same full W0 running; monitor only
+
+2026-10-16 AUTHORITATIVE: D576 full4000 W0 launched once in tmux primelora-d576,
+pane3756465. Actualservice primelora-tc-svc-40f274d68dc248159cae1f678c9b2b7f.scope,
+Invocationbeb22166186d460c90454f29fec15a07,inode26142186; launcher auxiliary
+primelora-tc-aux-d5760000000000000000000000000009.scope. Raw directory
+/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d576_20261016.
+Verifiedwaitcontinuation:12 spaced passivepolls confirmed SAME actualInvocation
+active/running and responseprogress141→711. Atwatchdogsample846,711 response
+terminals observed;peak48929050624B,high/max/OOM/killswap0,hostavailable64717037568B,
+diskfree158740783104B. No full audit or final SLO/resource result yet.
+no warning/abort. Not yet final metrics/completion. Do NOTrepeat launch/remote
+start/preparation/curation/publication/cleanup. No tests/builds/maintenance/push
+or other inference while live; only bounded passive observation/status.
+Remoteowned3b/7b and monitor d576-hydraremote ACTIVE; link1000Mb/s/full.
+Wrapper closesexactlocalresources andcollects/stopsownedremoteafterterminal;
+verify actual closure before postrun run_audit.py underCPU/memorylimits.
+D575+D576prereg checkpoint fb03630b9ffa8e3f38a5056e964db585cc8c41a7 PUSHED/
+remoteequal,14explicitfiles;BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5.
+Preparation/curation/curation2/publication/remote_prelaunch allactualclosed;
+firstcuration namespacefailure beforeoutputcreation preserved, no replayrepeat.
+Next finishsameD576→actualrelease/remoteclosure→strictfullaudit→inputjoin/save;
+then remainingHydraServeW1/W2,Loquetierfullmatrix and completePLAN mainline.
+All G1/G2,3B/dLoRA,A1–A5,S1–S13,cost/docs/finalfigures remainACTIVE.
+
 ## D576 full W0 prepared, not launched; preservation then actual replay
 
 2026-10-16 AUTHORITATIVE: D576 preparation PASS; exact D510 full4000 W0 config,
