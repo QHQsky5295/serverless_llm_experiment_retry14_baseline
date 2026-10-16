@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792159389.0114934,
+  "before": {
+    "available_bytes": 161187954688
+  },
+  "after": {
+    "available_bytes": 161569964032
+  },
+  "entries": [
+    {
+      "run": "d551_20261015/7b_initial_control_full_w1",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d551_20261015/7b_initial_control_full_w1/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d551_20261015/7b_initial_control_full_w1/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "4c4f9da6a874019bbad5e43edda4a738b12c02ebfe7fe48194c757f21a414298",
+      "audit_sha256": "4c4f9da6a874019bbad5e43edda4a738b12c02ebfe7fe48194c757f21a414298",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 106203300,
+        "size": 429988647,
+        "mtime_ns": 1792060476113324826,
+        "ctime_ns": 1792060476113324826,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 839832
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "058378e52f599f599755dfab35ad9026c00deaf36fbcb16b17d87ba99b7f97bb",
+      "archive_sha256": "04c8b79534e76c17ebae803fa234f037c7830a6d15282c6e982c8bb8abf38b56",
+      "archive_bytes": 47933128,
+      "archive_allocated_bytes": 47935488,
+      "first_roundtrip_sha256": "4c4f9da6a874019bbad5e43edda4a738b12c02ebfe7fe48194c757f21a414298",
+      "second_roundtrip_sha256": "4c4f9da6a874019bbad5e43edda4a738b12c02ebfe7fe48194c757f21a414298",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 382058496
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

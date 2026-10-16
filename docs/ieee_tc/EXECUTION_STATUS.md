@@ -1,5 +1,44 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D588 storage completed — publish then fixed Loquetier W2
+
+2026-10-16 AUTHORITATIVE: D587 remains complete/audited/pushed8b072ac, no repeat.
+D588 freshly validated500download objects/5000files/current originals/fullSHA/
+metadata/ref and actualclosure; removed ONLY /tmp/tc-d587-7bl/remote_artifacts/objects.
+Reclaimed13004480512B, payload12985984450B, allraw/originalpool/failed evidence kept.
+Readable-process visibility caveat retained. Cleanup peak3221749760B,high4547,
+max/OOM/killswap0; actuallyclosed/pathgone. D551 closed/published main_outcome
+losslessly gzipped; original+two roundtripSHA match historical4c4f9da6...,
+reclaimed382058496B, peak500035584B,events/swap0,actuallyclosed/pathgone.
+Total13386539008B, postfree161569964032B(~150.47GiB). Protected147 andthree
+userdirt unchanged. CurationPASSED/closed,archive16190B. No liveGPU/remote/
+maintenancejob or pendingunifiedhandle. ReadD588_STORAGE_MAINTENANCE.md.
+NEXT explicitD588checkpoint, then SAME frozen Loquetier fullW2, reuse500/1000
+qualification bycurrentSHA. Fresh150GiB/102GiB gate and20GiBgrowth estimate
+beforelaunch. DoNOT rerunD587orD585 orrepeatD586/D588cachecleanup/compression.
+Remaining7Bcomparison thenPrimeLoRA optimization; full3B/dLoRA/G1/G2/A1–A5/
+S1–S13/cost/docs/finalfigures ACTIVE. Boundedbaseline rule remains in force.
+
+## D587 checkpoint published and fully closed — storage then W2
+
+2026-10-16 AUTHORITATIVE: MAIN8b072ac01022194efaf7a064ea4714f39f46d95a
+PUSHED/remoteequal,11explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. D587 result/archive/source/secrets/protected147/userdirt checks PASS.
+All actualservice/launcheraux/remote/analysis/cross/result/publication scopes
+closed/pathgone; no liveGPU/remotejob or pendingunifiedobserver/toolhandle.
+Observer2717, analysis36532, cross43761, publication73017 all completed.
+Result preserved once; do NOT repeat D587 launch/qualification/audit/join/curation
+or publication. New bounded-baseline rule and AGENTS link now backed up.
+NEXT fresh current-state bounded storage audit/reclaim of proven rebuildable
+D587 private download objects, preserving originals/raw/receipts/failed evidence;
+lossless closed-log compression if required. Disk remains below150GiB newheavy
+floor; do not launch W2 before fresh gate and actual next-growth allowance.
+Do NOT repeat D586 deleted objects or compression as new recovered space.
+Then SAME frozen Loquetier W2, remaining necessary7B comparison, PrimeLoRA
+optimization; fullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures ACTIVE.
+See D587_LOQUETIER_CAPACITY_FULL_W1_RESULT.md for45.05% joint/8039.400667GPU-s,
+349changed common outputs and numericUNKNOWN limitation. No finalgoalclaim.
+
 ## D587 W1 complete, audited and curated — checkpoint then storage/W2
 
 2026-10-16 AUTHORITATIVE: SAME D587 full W1 completed 4000 native-binding
