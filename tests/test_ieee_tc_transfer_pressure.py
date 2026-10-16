@@ -607,6 +607,132 @@ class TransferPressure(unittest.TestCase):
         asyncio.run(run())
 
 
+class SharedPressureFanout(unittest.IsolatedAsyncioTestCase):
+    """Deterministic barriers: parallel owner delivery, never unjoined RPCs."""
+
+    async def fixture(self, count=4):
+        runner, first, left = TransferPressure().runner()
+        engines, ledgers = [first], [left]
+        for _ in range(count-1):
+            _, engine, ledger = TransferPressure().runner()
+            engines.append(engine)
+            ledgers.append(ledger)
+        for engine in engines:
+            await runner._attach_ieee_file_pressure(engine)
+        return runner, engines, ledgers
+
+    def gate(self, engines, operation, *, fail_index=None):
+        entered = [asyncio.Event() for _ in engines]
+        releases = [asyncio.Event() for _ in engines]
+        for index, engine in enumerate(engines):
+            original = engine.ieee_transfer_event
+            async def rpc(*, _index=index, _original=original, **command):
+                if command['operation'] == operation and _index == fail_index:
+                    entered[_index].set()
+                    raise RuntimeError('lost-'+operation)
+                result = await _original(**command)
+                if command['operation'] == operation:
+                    entered[_index].set()
+                    await releases[_index].wait()
+                return result
+            engine.ieee_transfer_event = rpc
+        return entered, releases
+
+    async def entered_all(self, events):
+        # A sequential sender cannot pass this barrier before any ack is freed.
+        await asyncio.wait_for(asyncio.gather(*(e.wait() for e in events)), 2)
+
+    async def test_parallel_start_and_finish_retain_both_all_owner_barriers(self):
+        runner, engines, ledgers = await self.fixture()
+        starts, start_release = self.gate(engines, 'start')
+        finishes, finish_release = self.gate(engines, 'finish')
+        body = AsyncMock(return_value='one-copy')
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a','remote','nvme',engines[0],body))
+        await self.entered_all(starts)
+        self.assertTrue(all(l.snapshot()['active_transfers']==1 for l in ledgers))
+        body.assert_not_awaited()
+        for event in start_release[:-1]: event.set()
+        await asyncio.sleep(0)
+        body.assert_not_awaited()
+        start_release[-1].set()
+        await self.entered_all(finishes)
+        body.assert_awaited_once()
+        self.assertFalse(task.done())
+        self.assertTrue(runner._shared_file_pressure.lock.locked())
+        for event in finish_release[:-1]: event.set()
+        await asyncio.sleep(0)
+        self.assertFalse(task.done())
+        finish_release[-1].set()
+        self.assertEqual(await task,'one-copy')
+        self.assertTrue(all(l.snapshot()['active_transfers']==0 for l in ledgers))
+        self.assertFalse(runner._shared_file_pressure.active)
+
+        self.assertEqual(runner._adapter_transfer_pressure_evidence[0]['projection_policy'],
+                         'parallel_owner_barrier_v1')
+
+    async def test_repeated_start_cancellation_settles_all_and_skips_io(self):
+        runner, engines, ledgers = await self.fixture()
+        entered, release = self.gate(engines,'start')
+        body = AsyncMock()
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a','remote','nvme',engines[0],body))
+        await self.entered_all(entered)
+        task.cancel(); await asyncio.sleep(0); task.cancel(); await asyncio.sleep(0)
+        self.assertFalse(task.done())
+        self.assertTrue(all(l.snapshot()['active_transfers']==1 for l in ledgers))
+        for event in release: event.set()
+        with self.assertRaises(asyncio.CancelledError): await task
+        body.assert_not_awaited()
+        self.assertTrue(all(l.snapshot()['active_transfers']==0 for l in ledgers))
+        self.assertFalse(runner._shared_file_pressure.active)
+
+    async def test_start_error_waits_for_other_committed_owners_before_cleanup(self):
+        runner, engines, ledgers = await self.fixture()
+        entered, release = self.gate(engines,'start',fail_index=0)
+        body = AsyncMock()
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a','remote','nvme',engines[0],body))
+        await self.entered_all(entered)
+        self.assertFalse(task.done())
+        body.assert_not_awaited()
+        self.assertTrue(all(l.snapshot()['active_transfers']==1 for l in ledgers[1:]))
+        for event in release: event.set()
+        with self.assertRaisesRegex(RuntimeError,'lost-start'): await task
+        self.assertTrue(all(l.snapshot()['active_transfers']==0 for l in ledgers))
+        self.assertFalse(runner._shared_file_pressure.active)
+        self.assertEqual(len(runner._adapter_transfer_pressure_evidence[0]['participants']),4)
+
+    async def test_finish_error_still_joins_every_sibling_and_remains_unresolved(self):
+        runner, engines, ledgers = await self.fixture()
+        entered, release = self.gate(engines,'finish',fail_index=0)
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a','remote','nvme',engines[0],AsyncMock()))
+        await self.entered_all(entered)
+        self.assertFalse(task.done())
+        self.assertTrue(runner._shared_file_pressure.lock.locked())
+        for event in release: event.set()
+        with self.assertRaisesRegex(RuntimeError,'lost-finish'): await task
+        self.assertEqual(ledgers[0].snapshot()['active_transfers'],1)
+        self.assertTrue(all(l.snapshot()['active_transfers']==0 for l in ledgers[1:]))
+        self.assertTrue(runner._shared_file_pressure.active)
+        record=runner._adapter_transfer_pressure_evidence[0]
+        self.assertEqual(record['state'],'finish_pending')
+        self.assertEqual(sum(r['state']=='finished' for r in record['participants'].values()),3)
+
+    async def test_finish_cancellation_does_not_release_membership_early(self):
+        runner, engines, ledgers = await self.fixture()
+        entered, release = self.gate(engines,'finish')
+        task = asyncio.create_task(runner._run_ieee_file_transfer('a','remote','nvme',engines[0],AsyncMock()))
+        await self.entered_all(entered)
+        task.cancel(); await asyncio.sleep(0); task.cancel(); await asyncio.sleep(0)
+        _, new_engine, new_ledger = TransferPressure().runner()
+        join=asyncio.create_task(runner._attach_ieee_file_pressure(new_engine))
+        await asyncio.sleep(0)
+        self.assertFalse(task.done()); self.assertFalse(join.done())
+        for event in release: event.set()
+        with self.assertRaises(asyncio.CancelledError): await task
+        await join
+        self.assertFalse(runner._shared_file_pressure.active)
+        self.assertTrue(all(l.snapshot()['active_transfers']==0 for l in ledgers+[new_ledger]))
+
+
 class SharedPressure(unittest.IsolatedAsyncioTestCase):
     """Actual runner/domain/native journals, no GPU or performance claims."""
     def make(self):

@@ -1,5 +1,23 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D595 parallel-owner barrier CPU-qualified — backup then native validation
+
+2026-10-17: D594 diagnosis/reference checkpoint023ae0079e0b2ffa537a81bda7855e8a4b8ede95
+pushed/remoteequal; its publication actuallyclosed/pathgone, peak43233280B/events0.
+D595 sole candidate parallelizes independent native pressure start/finish while
+retaining membership lock/all acknowledgements/cancel joins and IEEE formulas.
+Read D595_PARALLEL_PRESSURE_BARRIERS.md. Focused31PASS; final regression368PASS
+in93.421s using D549-qualified CPU environment, peak2539442176B/events/swap0.
+Both actualscopes recursiveempty/closed/pathgone. First full CPU attempt in new
+analysis env was safely stopped for high pressure, peak3519606784B/high32808,
+max/OOM/kill/swap0; all evidence retained, NOT countedPASS or performancefailure.
+No native GPU or full-performance gain established. No inference/remote/pending
+tool now. NEXT explicit tested-candidate backup, then same-runner W2 first100
+native validation and new-key full replay if qualification passes. Check fresh
+disk (near150GiB floor) and memory before launch; do not relax resource limits.
+Full7B same-configW0/W1/W2 G1/G2,3B,dLoRA,A1–A5,S1–S13,cost/docs/finalfigures
+remainACTIVE. Shared k3s untouched, baseline adaptation completed, no newsearch.
+
 ## D594 remote-preparation diagnosis complete — one PrimeLoRA candidate next
 
 2026-10-17: D593 checkpoint a7da3b32f28def306a04dd98e5dddec91c63c87c pushed/
