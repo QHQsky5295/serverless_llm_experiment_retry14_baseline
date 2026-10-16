@@ -1,0 +1,25 @@
+{
+  "phase": "before2",
+  "tests": 13,
+  "failures": [
+    [
+      "test_ieee_tc_hydraserve_isolated_platform.PlatformChecks.test_unrelated_create_does_not_wait_for_worker_deletion",
+      "Traceback (most recent call last):\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 64, in _callTestMethod\n    self._callMaybeAsync(method)\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 87, in _callMaybeAsync\n    return self._asyncioTestLoop.run_until_complete(fut)\n  File \"/usr/lib/python3.10/asyncio/base_events.py\", line 649, in run_until_complete\n    return future.result()\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 101, in _asyncioLoopRunner\n    ret = await awaitable\n  File \"/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py\", line 200, in test_unrelated_create_does_not_wait_for_worker_deletion\n    await self._unrelated_operation_during_delete('create')\n  File \"/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py\", line 190, in _unrelated_operation_during_delete\n    self.assertTrue(progressed.is_set(),\nAssertionError: False is not true : unrelated create blocked by another worker deletion\n"
+    ],
+    [
+      "test_ieee_tc_hydraserve_isolated_platform.PlatformChecks.test_unrelated_lookup_does_not_wait_for_worker_deletion",
+      "Traceback (most recent call last):\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 64, in _callTestMethod\n    self._callMaybeAsync(method)\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 87, in _callMaybeAsync\n    return self._asyncioTestLoop.run_until_complete(fut)\n  File \"/usr/lib/python3.10/asyncio/base_events.py\", line 649, in run_until_complete\n    return future.result()\n  File \"/usr/lib/python3.10/unittest/async_case.py\", line 101, in _asyncioLoopRunner\n    ret = await awaitable\n  File \"/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py\", line 197, in test_unrelated_lookup_does_not_wait_for_worker_deletion\n    await self._unrelated_operation_during_delete('lookup')\n  File \"/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py\", line 190, in _unrelated_operation_during_delete\n    self.assertTrue(progressed.is_set(),\nAssertionError: False is not true : unrelated lookup blocked by another worker deletion\n"
+    ]
+  ],
+  "errors": [],
+  "skipped": [],
+  "successful": false,
+  "sources": {
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/isolated_platform.py": "81e65982bc40e35fbcb6dbd6ea55c457d2c16a4028d6d4bed36f9304576a0103",
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py": "dfd5fca73ceab898775223639a82a71913ea77323a5e0591612d87c7af71d3a0",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d573_20261016/qualify.py": "c492eda859e93c878ae113ee58fb550e8dcf83de94a73652fd913db3c0311e73"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "cpu_only": true,
+  "gpu_performance_claim": false
+}

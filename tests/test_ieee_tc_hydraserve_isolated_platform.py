@@ -154,6 +154,235 @@ class PlatformChecks(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((p.output/'000001.stdout').read_text().strip(),'command-finished')
         self.assertTrue((p.output/'000001.command.json').exists())
 
+    async def _unrelated_operation_during_delete(self, operation):
+        """Event ordering, not a wall-clock speed threshold or GPU benchmark."""
+        p = self.make()
+        p.storage = OwnedWorker('storage','storage','127.77.49.10',None,
+                                self.root,cid='b'*64)
+        for name in ('old', 'other'):
+            p.workers[name] = OwnedWorker(name,name,'127.77.49.20',
+                                          'GPU-1234',self.root)
+        deleting, release, progressed = (asyncio.Event() for _ in range(3))
+
+        async def delete(worker):
+            deleting.set()
+            await release.wait()
+            worker.removed = True
+
+        async def inspect(worker):
+            progressed.set()
+            return {'State': {'Running': True}}
+
+        async def create(worker, env, ipc, mounts):
+            progressed.set()
+
+        p._delete, p._inspect, p._create = delete, inspect, create
+        old = asyncio.create_task(p.delete_worker('old'))
+        await deleting.wait()
+        other = asyncio.create_task(
+            p.worker_ip('other') if operation == 'lookup' else
+            p.create_worker('new','native-image',{},node=p.node,gpu_id=0,
+                            nas_path='/mnt',gpu=(24,100)))
+        try:
+            # The newly scheduled task reaches its first actual await. The
+            # external operation stubs above contain no unrelated awaits.
+            await asyncio.sleep(0)
+            self.assertTrue(progressed.is_set(),
+                f'unrelated {operation} blocked by another worker deletion')
+        finally:
+            release.set()
+            await asyncio.gather(old, other)
+
+    async def test_unrelated_lookup_does_not_wait_for_worker_deletion(self):
+        await self._unrelated_operation_during_delete('lookup')
+
+    async def test_unrelated_create_does_not_wait_for_worker_deletion(self):
+        await self._unrelated_operation_during_delete('create')
+
+    def with_storage(self):
+        p = self.make()
+        p.storage = OwnedWorker('storage','storage','127.77.49.10',None,
+                                self.root,cid='b'*64)
+        return p
+
+    def create(self, p, name='new'):
+        return p.create_worker(name,'native-image',{},node=p.node,gpu_id=0,
+                               nas_path='/mnt',gpu=(24,100))
+
+    async def test_same_worker_delete_waits_for_create(self):
+        p = self.with_storage()
+        entered, release = asyncio.Event(), asyncio.Event()
+        calls = []
+        async def create(worker, env, ipc, mounts):
+            entered.set()
+            await release.wait()
+            calls.append('created')
+        async def delete(worker):
+            calls.append('deleted')
+            worker.removed = True
+        p._create, p._delete = create, delete
+        creation = asyncio.create_task(self.create(p))
+        await entered.wait()
+        deletion = asyncio.create_task(p.delete_worker('new'))
+        try:
+            await asyncio.sleep(0)
+            self.assertEqual(calls, [])
+            self.assertFalse(p.workers['new'].removed)
+        finally:
+            release.set()
+            await asyncio.gather(creation, deletion)
+        self.assertEqual(calls, ['created', 'deleted'])
+
+    async def test_close_waits_for_create_and_rejects_new_admissions(self):
+        p = self.with_storage()
+        entered, release = asyncio.Event(), asyncio.Event()
+        calls = []
+        async def create(worker, env, ipc, mounts):
+            entered.set()
+            await release.wait()
+            calls.append('created')
+        async def delete(worker):
+            calls.append('deleted:'+worker.name)
+            worker.removed = True
+        p._create, p._delete = create, delete
+        creation = asyncio.create_task(self.create(p))
+        await entered.wait()
+        closing = asyncio.create_task(p.close())
+        try:
+            await asyncio.sleep(0)
+            self.assertTrue(p.closing)
+            self.assertEqual(calls, [])
+            for operation in (self.create(p,'late'),
+                    p.start_provider('late','127.77.49.11',{}),
+                    p.start_storage({},shm_bytes=1024)):
+                with self.assertRaisesRegex(RuntimeError,'closing'):
+                    await operation
+            self.assertEqual(list(p.workers), ['new'])
+        finally:
+            release.set()
+            await asyncio.gather(creation, closing)
+        self.assertEqual(calls, ['created','deleted:new','deleted:storage'])
+
+    async def test_duplicate_create_is_rejected_while_first_is_in_flight(self):
+        p = self.with_storage()
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def create(worker, env, ipc, mounts):
+            entered.set()
+            await release.wait()
+        p._create = create
+        first = asyncio.create_task(self.create(p))
+        await entered.wait()
+        try:
+            with self.assertRaisesRegex(ValueError,'duplicate'):
+                await self.create(p)
+        finally:
+            release.set()
+            await first
+        self.assertEqual(len(p.workers),1)
+
+    async def test_same_worker_lookup_and_double_delete_are_serialized(self):
+        p = self.with_storage()
+        p.workers['old'] = OwnedWorker('old','old','127.77.49.20',None,self.root)
+        entered, release = asyncio.Event(), asyncio.Event()
+        deletions = []
+        async def delete(worker):
+            if not worker.removed:
+                entered.set()
+                await release.wait()
+                deletions.append(worker.name)
+                worker.removed = True
+        p._delete = delete
+        first = asyncio.create_task(p.delete_worker('old'))
+        await entered.wait()
+        second = asyncio.create_task(p.delete_worker('old'))
+        lookup = asyncio.create_task(p.worker_ip('old'))
+        try:
+            await asyncio.sleep(0)
+            self.assertFalse(second.done())
+            self.assertFalse(lookup.done())
+        finally:
+            release.set()
+            await asyncio.gather(first, second, lookup)
+        self.assertEqual(deletions, ['old'])
+        self.assertIsNone(lookup.result())
+
+    async def test_failed_create_remains_owned_and_can_be_closed(self):
+        p = self.with_storage()
+        async def create(worker, env, ipc, mounts):
+            raise RuntimeError('failed creation')
+        deleted = []
+        async def delete(worker):
+            deleted.append(worker.name)
+            worker.removed = True
+        p._create, p._delete = create, delete
+        with self.assertRaisesRegex(RuntimeError,'failed creation'):
+            await self.create(p)
+        self.assertIn('new', p.workers)
+        await p.close()
+        self.assertEqual(deleted, ['new','storage'])
+
+    async def test_cancelled_create_finishes_cli_before_close(self):
+        p = self.with_storage()
+        p.base = [sys.executable,'-c',
+                  "import time; time.sleep(.1); print('command-finished')"]
+        entered = asyncio.Event()
+        async def create(worker, env, ipc, mounts):
+            entered.set()
+            await p._call([])
+        deleted = []
+        async def delete(worker):
+            self.assertEqual((p.output/'000001.stdout').read_text().strip(),
+                             'command-finished')
+            deleted.append(worker.name)
+            worker.removed = True
+        p._create, p._delete = create, delete
+        creation = asyncio.create_task(self.create(p))
+        await entered.wait()
+        creation.cancel()
+        closing = asyncio.create_task(p.close())
+        with self.assertRaises(asyncio.CancelledError):
+            await creation
+        await closing
+        self.assertEqual(deleted, ['new','storage'])
+
+    async def test_concurrent_close_never_overlaps_container_deletion(self):
+        p = self.with_storage()
+        p.workers['old'] = OwnedWorker('old','old','127.77.49.20',None,self.root)
+        entered, release = asyncio.Event(), asyncio.Event()
+        active, calls = set(), []
+        async def delete(worker):
+            self.assertNotIn(worker.name, active)
+            active.add(worker.name)
+            if worker.name == 'old' and not worker.removed:
+                entered.set()
+                await release.wait()
+            calls.append(worker.name)
+            active.remove(worker.name)
+            worker.removed = True
+        p._delete = delete
+        first = asyncio.create_task(p.close())
+        await entered.wait()
+        second = asyncio.create_task(p.close())
+        try:
+            await asyncio.sleep(0)
+            self.assertEqual(calls, [])
+        finally:
+            release.set()
+            await asyncio.gather(first, second)
+        self.assertEqual(calls, ['old','storage','old','storage'])
+
+    async def test_removal_not_published_before_actual_release(self):
+        p = self.with_storage()
+        worker = OwnedWorker('old','old','127.77.49.20',None,self.root)
+        p.workers['old'] = worker
+        async def missing(worker):
+            return None
+        p._inspect = missing
+        with patch.object(p,'_actual_gone',return_value=False):
+            with self.assertRaisesRegex(RuntimeError,'owned processes remain'):
+                await p.delete_worker('old')
+        self.assertFalse(worker.removed)
+
 
 if __name__=='__main__':
     unittest.main()

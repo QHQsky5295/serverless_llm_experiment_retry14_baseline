@@ -6,7 +6,7 @@ the image/source/dependencies and run the external resource watchdog. No model
 readiness, placement decision, resource share or Kubernetes object is invented.
 """
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 from pathlib import Path
@@ -51,6 +51,8 @@ class OwnedWorker:
     owner: Optional[dict] = None
     child_group: Optional[Path] = None
     removed: bool = False
+    lifecycle_lock: asyncio.Lock = field(default_factory=asyncio.Lock,
+                                         repr=False, compare=False)
 
 
 class IsolatedPodmanPlatform:
@@ -58,8 +60,9 @@ class IsolatedPodmanPlatform:
 
     process_identity returns the existing preflight gpu_process_identity schema.
     A failed create is retained for exact-owned cleanup, never silently retried.
-    All mutation methods are serialized, while native model init remains outside
-    this lock and is still performed/awaited by the original ResourceManager.
+    Registration is atomic; container operations serialize only for the same
+    worker. An unrelated retiring worker must not block create or address lookup.
+    Native model init is still performed/awaited by the original ResourceManager.
     """
     def __init__(self, *, campaign: str, output: Path, parent: Path,
                  parent_invocation: str, parent_inode: int,
@@ -107,6 +110,8 @@ class IsolatedPodmanPlatform:
         self.storage: Optional[OwnedWorker] = None
         self.serial = 0
         self.lock = asyncio.Lock()
+        self.close_lock = asyncio.Lock()
+        self.closing = False
         self.lifecycle_observer = lifecycle_observer
         self._check_parent()
 
@@ -271,6 +276,7 @@ class IsolatedPodmanPlatform:
 
     async def start_storage(self, environment, *, shm_bytes, mounts=()):
         async with self.lock:
+            self._require_open()
             if self.storage is not None:
                 raise RuntimeError('storage creation already attempted')
             if not 0 < shm_bytes < self.recipe.memory_bytes:
@@ -285,6 +291,7 @@ class IsolatedPodmanPlatform:
 
     async def create_worker(self, name, image, env, *, node, gpu_id, nas_path, gpu):
         async with self.lock:
+            self._require_open()
             if node != self.node or not 0 <= gpu_id < len(self.uuids):
                 raise ValueError('unknown physical GPU/node')
             if image not in self.recipe.native_images:
@@ -306,12 +313,23 @@ class IsolatedPodmanPlatform:
             self._save(cname+'.native-request.json', dict(name=name,image=image,
                 env=env,node=node,gpu_id=gpu_id,gpu=gpu,nas_path=nas_path,
                 native_gpu_request_is_not_a_physical_partition=True))
+            # Acquire the new record's uncontended lock before publishing the
+            # registration lock. close/delete must wait for this exact create,
+            # including a cancelled but still-running bounded Podman CLI.
+            await worker.lifecycle_lock.acquire()
+        try:
             if self.lifecycle_observer is not None:
                 self.lifecycle_observer.before_create(worker)
             await self._create(worker,{**env,**address_environment(address)},
                                'container:'+self.storage.cid, ())
             if self.lifecycle_observer is not None:
                 self.lifecycle_observer.after_create(worker)
+        finally:
+            worker.lifecycle_lock.release()
+
+    def _require_open(self):
+        if self.closing:
+            raise RuntimeError('platform is closing; new containers are not admitted')
 
     async def start_provider(self, name, address, environment):
         """Local CPU backbone provider, charged to the same service parent.
@@ -320,6 +338,7 @@ class IsolatedPodmanPlatform:
         Native provider protocol/CPU packing executes in its own actual container.
         """
         async with self.lock:
+            self._require_open()
             if name in self.providers or not re.fullmatch(r'[a-z0-9-]{1,40}',name):
                 raise ValueError('duplicate/invalid provider identity')
             if self.storage is None or self.storage.cid is None or self.storage.removed:
@@ -332,8 +351,8 @@ class IsolatedPodmanPlatform:
                                'container:'+self.storage.cid,())
 
     async def worker_ip(self, name):
-        async with self.lock:
-            worker = self.workers[name]
+        worker = self.workers[name]
+        async with worker.lifecycle_lock:
             if worker.removed:
                 return None
             state = await self._inspect(worker)
@@ -368,25 +387,32 @@ class IsolatedPodmanPlatform:
         worker.removed = True
 
     async def delete_worker(self, name):
-        async with self.lock:
-            await self._delete(self.workers[name])
+        worker = self.workers[name]
+        async with worker.lifecycle_lock:
+            await self._delete(worker)
 
     async def worker_deleted(self, name):
-        async with self.lock:
-            worker = self.workers[name]
+        worker = self.workers[name]
+        async with worker.lifecycle_lock:
             return (worker.removed and await self._inspect(worker) is None
                     and self._actual_gone(worker))
 
     async def close(self):
-        async with self.lock:
+        async with self.close_lock:
+            # Stop registration and snapshot all owned records, including failed
+            # or in-flight creates. Do not hold the registration lock while
+            # awaiting container termination. Retain records for cleanup retry.
+            async with self.lock:
+                self.closing = True
+                sequence = list(reversed(list(self.workers.values())))
+                sequence += list(reversed(list(self.providers.values())))
+                if self.storage:
+                    sequence.append(self.storage)
             errors = []
-            sequence = list(reversed(list(self.workers.values())))
-            sequence += list(reversed(list(self.providers.values())))
-            if self.storage:
-                sequence.append(self.storage)
             for worker in sequence:
                 try:
-                    await self._delete(worker)
+                    async with worker.lifecycle_lock:
+                        await self._delete(worker)
                 except Exception as exc:
                     errors.append(f'{worker.container_name}: {type(exc).__name__}: {exc}')
             if errors:
