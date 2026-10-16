@@ -1,5 +1,52 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D608 existing-log diagnosis complete — backup then bounded preparation audit
+
+No inference/remote/serving change. First offline attempt44042 refused compression
+receipt ambiguity before request parsing; preserved/closed. Correct exact audit
+source reader55985 passed all8000 request/stage/threshold/physical checks, closed
+analysis2 peak257904640B/events/swap0. Transport31745 passed497 client/server pairs
+per run, closed peak29483008B/events/swap0. No pending tool or live GPU/auxiliary job.
+D607 residual238:201 predispatchRemote,212 largestTTFTstage admission→engine;
+quarters joint975/960/919/908. Matched228 improved/48 worsened/190 remainbad.
+ArrivalGPU increase451.491 entirely firsttwoquarters; lasttwo bothhold4. D607
+fourGPU continuous from748.387s; samples show TTFT low-condition blocks retirement,
+not a missing release after an eligible decision. Do not loosen limits as a fix.
+Transferclientmean1034.595ms, including receive/reserve/write285.285 and
+verified→publish436.168; serverread.383/socketwrite269.633 overlap client spans.
+Do not label preparation as wiretime or subtract it from TTFT. Next targeted
+history/official-source/call-boundary audit of fresh-file preparation observation
+organization/serialization; no speculative production change/new GPU run yet.
+Read D608_W2_RESIDUAL_AND_GPU_HOLDING.md. Curate/back up this evidence now.
+G1/G2 still open; sameconfig7B,3B,dLoRA,A1–A5/S1–S13,cost/docs/figures ACTIVE.
+
+## D608 bounded existing-log diagnosis registered — no new inference
+
+Read full PLAN (continued through EOF), status, V1/single-run V2 and latest scope/
+safety rules. D607/D554 are closed; D608 only streams retained requests, control
+samples and physical GPU union intervals. Questions: residual joint violations,
+matched-request changes and why fewer activations accompanied greater arrival-
+window holding. Reuse common stage/physical auditors and D603 source quarters;
+no serving/config edits, figures, new data or remote operation. Auxiliary 3/4GiB,
+swap0, four CPUs, 32MiB output cap. Host disk160254312448B is below new-heavy150GiB
+gate: this does NOT authorize another GPU/build run; bounded read-only analysis
+uses existing stop-floor/resource checks. Full scope and frozen G1/G2 ACTIVE.
+
+## D607 result checkpoint pushed — no live job, next existing-log diagnosis
+
+Checkpoint22f29d56b38a5bdd1ae705f5f3defb43ee3308eb pushed/remote-equal.
+Publication95305 completed0; actual publication scope recursively empty/closed/
+pathgone. D607 complete4000 replay, contract/physical/remote audit, result document
+and backup are DONE. No pending tool/GPU/remote/auxiliary job. Do not rerun D607,
+D606 tests/components or D603 observer. This turn made full result/analysis/backup
+progress, not a blocker. Read D607_CANONICAL_FILES_FULL_W2.md and curated result1.
+Joint94.05%/P95TTFT4275.382ms/U15078.910657: quality improved but U increased;
+below95% and above75%budget. Candidate retained for diagnosis, not G1/G2 closure.
+Next bounded reuse of existing request/physical/control logs to explain remaining
+TTFT violations and arrival-window GPU holding increase; historical code/negative
+candidates plus official sources required before any new production optimization.
+Full7B sameconfig/G1/G2,3B,dLoRA,A1–A5/S1–S13,cost/reviewer docs/figures ACTIVE.
+
 ## D607 complete W2 audited — quality gain/resource trade-off, backup next
 
 Analysis32800 completed0; actual auxiliary empty/closed/pathgone,
