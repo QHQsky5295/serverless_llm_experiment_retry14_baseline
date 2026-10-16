@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "files": 3,
+  "reclaimed_bytes": 1098645504,
+  "free_bytes": 161162350592,
+  "receipts": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261016_d584_closed_development_outcomes.json": "9312815d96df7ecaf27d6dc769990b2b7767450ba17606f188dc3e3e46d16929",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261016_d584_closed_hydraserve_monitor.json": "452e8d4a7b13e353ec817a8ec8f7c3054581ea87becdf21d330d005e8dbd0d81"
+  },
+  "protected_unchanged": true,
+  "core_recipe_sha256": "3fbe720eaca01f6451a028ece71eba9600df420f1d233fdd669b3e2822e1f33b"
+}

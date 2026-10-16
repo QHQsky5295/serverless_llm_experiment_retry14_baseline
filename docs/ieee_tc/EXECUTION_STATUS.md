@@ -1,5 +1,38 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D583/D584 maintenance complete — checkpoint then Loquetier full W0
+
+2026-10-16 AUTHORITATIVE: D583 fresh497object/4970file current-cache/original
+SHA/reference/closure audit PASS; onlyD582 downloadobjects removed,
+12889613139payloadB/12908072960B reclaimed. Raw/receipts/journals/originalpool
+retained. Maintenance peak3222224896B,high13198,max/OOM/killswap0; actualclosed.
+D584 D516+D529closeddevelopment main_outcome andD582remote_monitor losslessly
+gzipped, two independentreadbackSHA each,1098645504B reclaimed. Peak1270345728B,
+events/swap0,actualclosed. Free161162350592B(~150.09GiB); freshgate stillrequired.
+Protected147/userdirtPASS; no newGPUrun orservingchange. Curatedarchives286259/
+9191B,AST/SHAroundtrip/secretsPASS. ReadD583_D584_STORAGE_MAINTENANCE.md;
+old uncompressed paths restorefromreceipt-verifiedgz ifneeded,notmissing evidence.
+NEXT exactcheckpoint,then LoquetiernewfullW0/W1/W2 usingD569qualifiedconfig;
+doNOTrepeatD582/D583/D584 or completedqualifications. Remaining7B/G2/PrimeLoRA/
+3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures ACTIVE. Unrelatedk3s untouched.
+
+## D582 full W2 published and closed — storage then Loquetier full matrix
+
+2026-10-16 AUTHORITATIVE: MAINa350fd0366f5e3ea9ba024ff3b70325ea02d950e
+PUSHED/remoteequal,13explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. D582singlefullW2/strictaudit/exact4000inputjoin/curation/publication
+COMPLETE. Localservice/aux/remote/audit/bothjoinattempts/result/publication all
+actuallyclosed/pathgone; no liveGPU/remote/analysis/publicationjob. Original
+offlineaffinityfailure retained; no inference repeat. Joint66%,U9909.915261428105,
+P95TTFT11435.1287370082ms; nativecontract4000,independentnumericUNKNOWN.
+ReadD582resultdoc. NEXT freshboundedmaintenance of provenrebuildableD582
+downloadobjects, retainingoriginalpool/allraw/receipts/failed evidence; disk
+below150GiB newheavyfloor. Then LoquetiernewfullW0/W1/W2 and remaining7B
+baseline comparison before nextPrimeLoRA optimization. DoNOTrepeatD582run,
+audits/curation/publication or priorD580/D581cleanup. AllremainingG1/G2/
+crossscenario/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures stayACTIVE.
+This continuation completed scientific evidence and backup, not the full goal.
+
 ## D582 complete and audited — preserve, checkpoint, storage, Loquetier next
 
 Resultcuration COMPLETE: hydraserve/d582_lifecycle_full_w2_result,

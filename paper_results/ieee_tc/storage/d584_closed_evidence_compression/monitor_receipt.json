@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792150731.3332083,
+  "before": {
+    "available_bytes": 161101496320
+  },
+  "after": {
+    "available_bytes": 161162350592
+  },
+  "entries": [
+    {
+      "run": "d582_20261016/launch_gate.launch",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_monitor.log",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d582_20261016/remote_monitor.log.gz",
+      "source_sha256": "74361ea39145c35091a04243a4fb278242e40b3db7f3437f09ef0240ccf2f473",
+      "audit_sha256": "74361ea39145c35091a04243a4fb278242e40b3db7f3437f09ef0240ccf2f473",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 111308337,
+        "size": 68076948,
+        "mtime_ns": 1792149678332228088,
+        "ctime_ns": 1792149678332228088,
+        "mode": 33152,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 132968
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "260f68253c8c6e5734260a3cabbdf473342ef5e7f3e105dbf228e464df2a1d5b",
+      "archive_sha256": "6995b6ed0b6112fa8078d8caf774800a5f5e05e9833673b6b117a617fbca9945",
+      "archive_bytes": 7221206,
+      "archive_allocated_bytes": 7221248,
+      "first_roundtrip_sha256": "74361ea39145c35091a04243a4fb278242e40b3db7f3437f09ef0240ccf2f473",
+      "second_roundtrip_sha256": "74361ea39145c35091a04243a4fb278242e40b3db7f3437f09ef0240ccf2f473",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 60858368
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
