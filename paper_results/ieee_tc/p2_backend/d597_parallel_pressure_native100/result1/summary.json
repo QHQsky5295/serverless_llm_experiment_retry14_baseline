@@ -1,0 +1,1406 @@
+{
+  "passed": true,
+  "native_prefix_qualified": true,
+  "full_performance_complete": false,
+  "independent_numerical_correctness": "unknown",
+  "raw_n_correct": null,
+  "ranking_eligible": false,
+  "audit": {
+    "kind": "d597_actual_initial_control_prefix100_qualification_v1",
+    "passed": true,
+    "gpu_preparation": {
+      "plans": 47,
+      "attempts": 71,
+      "receipts": 71,
+      "acquired": 48,
+      "deferred": 23
+    },
+    "gpu_attempt_states": {
+      "deferred": 23,
+      "completed": 48
+    },
+    "stats": {
+      "completed": 100,
+      "mean_ttft_ms": 2045.7607245794497,
+      "p95_ttft_ms": 4062.31824378483,
+      "mean_queue_ms": 1115.2150247362442,
+      "p95_queue_ms": 3032.4072919320315,
+      "mean_service_ms": 930.5456998432055,
+      "p95_service_ms": 2891.993063967675,
+      "mean_tpot_ms": 36.21995563979902,
+      "p95_tpot_ms": 50.110612378808334,
+      "initial_preload_wall_s": 65.61759802582674,
+      "physical_gpu_seconds": 398.75248700007796,
+      "n_correct": null,
+      "mean_e2e_ms": 8474.410547986627
+    },
+    "evidence": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d597_7b_parallel_pressure_validation_100.json",
+      "source_sha256": "45418e6d5745284cabd988cc03434a903c81833ed4e27d3488ebeb966105bedb",
+      "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+      "physical_sha256": "09ab8c373c30ce4c126678076a866e4251f7fd3f0d3c78788a35412ef48a8552",
+      "max_native_ttft_error_ms": 0.0,
+      "max_native_tpot_error_ms": 0.0,
+      "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+    },
+    "protocol_bound_count": 100,
+    "numerical_correctness_qualified": false,
+    "fixed_workload_complete4000": false,
+    "ranking_eligible": false,
+    "replicates": 1,
+    "confidence_interval": null,
+    "host_queue_trigger_reasons": {
+      "residency": 41,
+      "handoff": 7
+    },
+    "native_tokens": 17369,
+    "dispatch_tiers": {
+      "remote": 33,
+      "gpu": 55,
+      "host": 4,
+      "nvme": 8
+    },
+    "activation_categories": {
+      "initial": 1,
+      "natural_scaleout": 3
+    },
+    "activation_state_counts": {
+      "initial": {
+        "runtime_ready": 1
+      },
+      "natural_scaleout": {
+        "runtime_ready": 3
+      }
+    },
+    "initial_activation_s": [
+      65.47704154415987
+    ],
+    "common_threshold_joint_count": 91,
+    "common_threshold_ttft_count": 91,
+    "common_threshold_tpot_count": 100,
+    "source_order_phases": [
+      {
+        "phase": 0,
+        "count": 100,
+        "joint": 91,
+        "p95_ttft_ms": 4062.31824378483
+      }
+    ],
+    "workload_identity": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "1d28435540b9e462276596b75097a20286cbccc1fda626dcdaa781eeda8ac1a0",
+      "count": 100,
+      "source_count": 4000,
+      "profile": "W1",
+      "rate_scale": 1.0
+    },
+    "window_gpu_seconds": {
+      "arrival": 300.17600916023366,
+      "cleanup": 37.67201687092893,
+      "drain": 27.500239350833,
+      "pre_arrival": 33.404221618082374
+    },
+    "stage_means_ms": {
+      "arrival_release_ms": 21.422686288133264,
+      "release_to_acquire_ms": 643.0689829285257,
+      "acquire_to_resume_ms": 245.9831924783066,
+      "runtime_slot_wait_ms": 204.74016304127872,
+      "runtime_to_controller_admission_ms": 0.0,
+      "admission_to_engine_dispatch_ms": 546.7853176686913,
+      "engine_entry_to_queue_ms": 153.02434604382142,
+      "native_engine_queue_ms": 13.087109518237412,
+      "native_prefill_ms": 217.6489266124554,
+      "native_decode_ms": 6274.979051584378,
+      "worker_completion_notification_ms": 116.16583404829726,
+      "worker_to_controller_completion_ms": 37.50493777450174
+    },
+    "max_e2e_identity_error_ms": 0.0,
+    "remote_transfers": 29,
+    "remote_wire_bytes": 50650865,
+    "request_time_pack_count": 0,
+    "resources": {
+      "samples": 173,
+      "peak_bytes": 20366635008,
+      "max_swap_bytes": 0,
+      "events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      }
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d597_7b_parallel_pressure_validation_100.json",
+        "sha256": "45418e6d5745284cabd988cc03434a903c81833ed4e27d3488ebeb966105bedb"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.launch/physical_deployment/main_outcome.json",
+        "sha256": "f21b6f79592bd24ec1d5d3d326eef89510e08735e4c236135b88ef748caaf1d6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.json",
+        "sha256": "80f46c0e8377dd112be2c92d4979889b0d88d39ccf13655368508da3a6ba4560"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_transfers.jsonl",
+        "sha256": "86cda14aa6908575818c3588616a02fdf5665183ca3acf3f1ed60d6874295b69"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_monitor.log",
+        "sha256": "fa99d9930724b987e4d1d28adb9da48ccfd725909a92c81d3fbd31acd1cf71e8"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_stop.json",
+        "sha256": "11808c6e91e21b6ab2117371d70ede7f9436a9e5f382a5d3b3f1cfc77123f233"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/local_cleanup.json",
+        "sha256": "abc5751b243344e6b6e62d401e578c0cd8b104600da38f5199b99c3913b6fb66"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/completion_receipt.json",
+        "sha256": "82be83d4c1ceae0141a20221a585b05120e3dabe8c386989992039b7c9a0a8e2"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_health.json",
+        "sha256": "d72d86ad16e94fa94c36b461de3891d57b0cf47e44f82db79a83c0675b50b9ad"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.launch/watchdog.jsonl",
+        "sha256": "6f343c701be29914fe22754a52b1387b92ab56c56e31217370227a3c06aa9d06"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+        "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+        "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analyze_prefix.py",
+        "sha256": "2316e7fa0760a3e4f2d02aa65d42c4b084fb9fcac364f211519abd371cf58b42"
+      }
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-d5970000000000000000000000000005.scope",
+      "invocation_id": "dff57caff6c843168b20cce5a975593a",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5970000000000000000000000000005.scope",
+      "inode": 26440731
+    }
+  },
+  "mechanism": {
+    "passed": true,
+    "policy": "parallel_owner_barrier_v1",
+    "records": 133,
+    "states": {
+      "completed": 132,
+      "cancelled": 1
+    },
+    "participant_counts": {
+      "1": 23,
+      "2": 8,
+      "4": 102
+    },
+    "late_attach_receipts": 0,
+    "multi_owner_triggered": true,
+    "rows": [
+      {
+        "transfer_id": "0f569c0ba1f84b58b9d0b95ee634c311",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "bcc89cc1c98d4655a5183bb85cfc6290",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "8fb19e08ea914b0dbe4deedd982dd884",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "d6226cfe870e4d2e96015810e5b51cb3",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "10a958e465b94189a9a28b0e366e23ef",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "7a8477e0d43a44689f1fe234c50507f6",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "host"
+      },
+      {
+        "transfer_id": "ad16ecd9e9584ca28646f8afe7103ac4",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "0b85ae833c42401b811f97a888e31485",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "54dfca6d7f02468f9c47755988e342cc",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "host"
+      },
+      {
+        "transfer_id": "14cd71eb9aca47c5b7b5e2851c816744",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "efe8296080f84d49be5a04c8e7f0c453",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "9c72d2c86e6d44d79725434f630a0699",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "c7da340925c04fdd94c5191cf02d3bd3",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "a0e7e3adde2144348cb68e22482cf436",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "87ee102868ab4c16b3e38d131dd885df",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e6db0d1bef814c3a825afd7de209a342",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "bd27c15925ab43fbb6ef0282a844444d",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "35c3476f3824412686a8e41ac5a0a5bb",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "92319b25c12845318a8c7cfe391fcc78",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "2a1977826c8f439194340200dc03345d",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "d677d73eda4841cd8db0f5473209701a",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "9cbd53508a634dfaa438b6f72c4ea162",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "122afc406a634d84b844ff84db2400f7",
+        "participants": 1,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "f93c31965baf463da2cbaf3acdffe2ba",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "3802f0356094450283585d70aa6698c4",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "3faa154c84a6412fae13253c59e67ba5",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "d81682b7f4874091b1a8d8d38c6f5320",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "9e49ff4e20b84b3680ec57efe5a8f7b4",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "f6b89fbddd754fc59e0d50f330a3f84e",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "71ff77f6aad143eead811edabd7d9501",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "665f6bcd7a70487481656ef43b001336",
+        "participants": 2,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "5028d79cac234e19895d11aee0d87d7d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "af760aef47e34895aea59978519c1292",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "9ce20fd98fb8429dadf2b3d4d04ee5c0",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "45b3bffce9f24768bf2b97e9610d05ae",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "751cb94b3e2242daab86b596238844fe",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "3d8e77fe5a15481fb57c425eefcd3f88",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8a516ddfd132439b996d09ec5a30ea6b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "dd99cde4685c475a895f170451c8794b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "604eaab16373405883cd7686bd041c3f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "ee4c55e04fee49f3ac16bb87c650cba7",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "a258427f9bc047b9afb282d1dd9c6f45",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "d746b5f64d1d4e5e917f81f9cf95ff48",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "d906dbdae34147c2ab2a3c59a8e449da",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8581de0bf9ae40cb94feebd4d09ef088",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "55e5bb47978446729ef606b8de20815b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "fcd34e1b55ac4a9db9fa04c3a495ccbf",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "a6bd643acf704402a77c60029410261f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8ed2a6e5c0bc4129adbe20b3e9507d97",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "3b434c761fa94543b268c2c6c2f07fad",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "e3357748d1e64125a090abe8ce03f03e",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "2bb17b8e757940b2be05ff6e416ff26f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "dff5ca9c91d642779b32ef78ba498c93",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "b159a22742fc46f5a420faae2199ee0c",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "0a9fc4b2286f4c18a3326258aa3ac6f5",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "a086b658d3ee4205806a8937830c55cb",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "72cc27997ba842e0a302bedbe0782482",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "bd826750322544cda01f3cfda276eb50",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "451c239d93554a50bff2a467a6a5ee99",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e755e5cea1d54cbabd4e5fffc29b4aa6",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "ec56f746c9544d12b07ce5ff3a97cc49",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e228b4f4e7924b7390d9eaf2f1b4d23d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "5489a2c2b24e4949bdba21afdb79b328",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "c802735b502749a6bef714e7f51dbbed",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "b7aa03321ce04240b6102d9b24dec8b1",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "9f39a35b25a143eeb0f5b8a2980fd65f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "a9f5dfe2f20d49738da43cf58eef2c16",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "b2d83c4461f144e3a32d896890e24242",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "71b27964453046b0a8b29b809774345f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "cdc2eba6214044bea6bc2d3d03d36903",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "2975c0615854418ca3ce8710b8046a04",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "016b860f5e8f4865a9c18d638ebacb2a",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "f3dc994831af42e79b8292e19ee04070",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "0d3dd90dc99c4d2ea3b45b5b8abe6d75",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "40b11d4995fb4d1b9edcfdf71396ffea",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "fe7729f60ba74e8fada7f51af2c2a28a",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "dd268e1c331a426e803405b0bc4419b5",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "35b865def98144ada06e137d14f51684",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "d676fa330d3b41669fd4852024ff8489",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "499782d7453a44468c9bc887ea32777c",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "86f1890e39fa4a439203d533a023a862",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "faea5f606e9648f0aa1eda8139f61b9b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "4f0f080de8dd401b8b7e1398766b02e1",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "ce6a4ecbd38842369adfda68c0f959e1",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "05182675bd3441a983e9e04e60436185",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "c6c15b719211403c854c091abb5b1e4e",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "86bc91e9d0744b818ca4298774e1c91d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "63db1b258efc4afe869a8e9544bb9e2d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "943ce4e5f5894c29bacbb542176d38f6",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "89bfdd05d2f5435a8b241136ca45dc8a",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "4d07fead003b40d89a297961c09f548e",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "78cf170bd8154319aa942c6c27262942",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "5343862f288641bc93fcb343355cd0d2",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "a228fc1fb772401db4fc72511408867e",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "81fbd5e5a11d4d61a059a6aed6407d52",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "be435c7576f54acaad03838735500cba",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "37708e0ab2e14922b376e5ef63095c5d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "16a64b45f2804ecbb9751d8b12c8dbc9",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e556270f1a3e45dba12521b86ffa3747",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "0eca27105f4d4c58bb244a1c81d855c6",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "a7ad3ed96f1d42c798780274bc135e0c",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "eb617197788c4aab8c6e1e50f993765a",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "2a0abad5aa6f4d6c8193d3e13af726d4",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "2ac4e56b2c044e92b93f148e2ca00efe",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "f823acd716e74030a73ee73420a12567",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "614837a86b924ae59d7a51365bffdf02",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "01933585aaeb4280b077263e6091c0e3",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "29ba173393574380a9d5ca8074b1ce10",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8cb2b26226794ddb8ca96e5e4f0bd29b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "d7a56c37b0fe4575af16461db33d4287",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "2e8808a81ee94d9e8ef916e3a5112440",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e0331e3918af41438d47b9d1bcbb60a7",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "host",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "466c4d6f44274071b4f299c650da08b5",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "remote",
+        "target_tier": "nvme"
+      },
+      {
+        "transfer_id": "2885ad1feee14211ae0ce9e9371526d7",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "fe5c585a972a4170ae49e056e6bce465",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "b57deb1bdd0f466780344815837a8040",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "e348876a88cc46f4a441be43c59b7640",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8d83fd23bfa04adb9d749c1985fb2b85",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "19e562bd68064e67b836077f65f4780f",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "1f5bb2869ab7422a87b48147c1ffe3f0",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "babbba6c4f0e465794be3e2147981b50",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "7eb853a762dc492ca81a98bb676ef0a5",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "37d836b7048645d6b4327791bc6aadb6",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "8e59f789b8214a83b042b60232b59ebb",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "f992e9fb76be4a2bafb3243cc2a53908",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "15a54026f1024514993f49363c90889b",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "0831bcfdd2a34338a7d2dbd7b25b0479",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "336f4c34beb84f34994ea46215ff8caa",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "17baddb7ca274d11879ce4044679f4ff",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "93a1507c91fa418b9a5d90cfa6653328",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "5e7df4178478499b8242001d9634a50c",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "0a5ab1e2dfeb4d798728b2821cb4757d",
+        "participants": 4,
+        "operation_outcome": "completed",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      },
+      {
+        "transfer_id": "6add596b7c654220a727774c8a5dd520",
+        "participants": 4,
+        "operation_outcome": "cancelled",
+        "source_tier": "nvme",
+        "target_tier": "native_host"
+      }
+    ],
+    "source_sha256": "45418e6d5745284cabd988cc03434a903c81833ed4e27d3488ebeb966105bedb",
+    "caveat": "Native identity/order/settlement checks plus D595 deterministic concurrency tests; no independent RPC-send overlap timestamps or causal performance claim."
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "execution_commit": "985bb34cfa556124fedcceb468c1d306d855915b",
+  "archive_members": {
+    "00_actual_qualification.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/actual_qualification.json",
+      "sha256": "aa6d2267a03804654c64f58b6046c60ad6a3bc0a2fa2052118f5b72a816d22c8",
+      "bytes": 8205
+    },
+    "01_analysis1.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analysis1.log",
+      "sha256": "3362bd065900d37fac612cff3d77263de11996a6106426d9ea0a9daedfa5c301",
+      "bytes": 1009
+    },
+    "02_analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analysis_closure.json",
+      "sha256": "c746477b064e2d2c1a812dd5efab5a9eee31a51e7fb3b9d9da0a7501707eb3e0",
+      "bytes": 647
+    },
+    "03_analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analysis_identity.json",
+      "sha256": "389b49726b0156781612e1ff6be17e54ff69be653d34e3d92e603d5479dd2e42",
+      "bytes": 286
+    },
+    "04_analysis_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analysis_receipt.json",
+      "sha256": "defdedd1b7b2296118e040c04ff0f271bfe654c875135626280b49327727dbd9",
+      "bytes": 1085
+    },
+    "05_analyze.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analyze.py",
+      "sha256": "ee6b46c781dbe1f298da1b2296000ec74361f8f911ccd56d321ff18e44e8f58d",
+      "bytes": 5113
+    },
+    "06_analyze_prefix.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/analyze_prefix.py",
+      "sha256": "2316e7fa0760a3e4f2d02aa65d42c4b084fb9fcac364f211519abd371cf58b42",
+      "bytes": 9357
+    },
+    "07_backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/backup.py",
+      "sha256": "6945380c1fbef6cdcef578f30ae5aab52f071b237b2bac6ea13fda89189c3c6c",
+      "bytes": 6505
+    },
+    "08_backup_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/backup_closure.json",
+      "sha256": "e8a33ae0ff53f8b34f10f91ba75ecdcfb6545b2ae2fe079b6f205aafa0588edd",
+      "bytes": 646
+    },
+    "09_backup_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/backup_identity.json",
+      "sha256": "74391c6e7cb45001c4de4644e14ce4c6f27b90631a8b773d5ff26c7dd3c6b850",
+      "bytes": 286
+    },
+    "10_backup_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/backup_receipt.json",
+      "sha256": "0ee19081f9c33e5988263caa51c859a48b3898bf1db69846f053d6621a949e89",
+      "bytes": 1080
+    },
+    "11_backup_resume.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/backup_resume.py",
+      "sha256": "16435357ab16b99b81f264bcccddabfb3a46a35f4baa0fab9bc9136efaf74329",
+      "bytes": 4537
+    },
+    "12_check_remote_health_stdlib.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/check_remote_health_stdlib.py",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+      "bytes": 1395
+    },
+    "13_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/close.py",
+      "sha256": "b168e495dec2c0b707e1473674bcb8d068d351f7cff8a94fa14d6e383d12d515",
+      "bytes": 243
+    },
+    "14_close_launch.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/close_launch.py",
+      "sha256": "54a87c354841cb86bec2ac04b05ed7a5961d6e6c5e75a10e0de1247d6470681b",
+      "bytes": 1739
+    },
+    "15_collect_closure.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/collect_closure.py",
+      "sha256": "cc26ba3b09c61bd526c499963bd550eb85c6a9da8e3018e0de8c627714409cde",
+      "bytes": 5326
+    },
+    "16_collection1.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/collection1.log",
+      "sha256": "f1e8169b8c0a5f24089e2fdef0b1c72144b7ab1923e8d972595aa11ea120c9e1",
+      "bytes": 1188
+    },
+    "17_collection_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/collection_receipt.json",
+      "sha256": "22cf86299abd600f5dbc61b4db0d691dd4f56361ba52f4dea7dce6344a108bbf",
+      "bytes": 7842
+    },
+    "18_completion_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/completion_receipt.json",
+      "sha256": "82be83d4c1ceae0141a20221a585b05120e3dabe8c386989992039b7c9a0a8e2",
+      "bytes": 2094
+    },
+    "19_cpu_preparation_evidence.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/cpu_preparation_evidence.json",
+      "sha256": "56dcd0f3501cbd463246482e27579cad3cb0e368e7b3821637bdf1f5b24ac828",
+      "bytes": 33425
+    },
+    "20_initial_control_evidence.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/initial_control_evidence.json",
+      "sha256": "799623f72621ee189832974c1aa3cdd0df1e0b89e7c5f2af812d30300237e451",
+      "bytes": 23147
+    },
+    "21_launch_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/launch_gate.json",
+      "sha256": "4ca98cfeacae56e4497f753b7355836b44cdb85c50e32c8802ac6845bb171dcb",
+      "bytes": 63343
+    },
+    "22_local_cleanup.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/local_cleanup.json",
+      "sha256": "abc5751b243344e6b6e62d401e578c0cd8b104600da38f5199b99c3913b6fb66",
+      "bytes": 1068
+    },
+    "23_model_cache_metadata_before.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/model_cache_metadata_before.json",
+      "sha256": "8f8977315fc5094f63a58f14311d2d9435edb0a479859d1507c766369ac8e0b3",
+      "bytes": 189854
+    },
+    "24_parallel_pressure_evidence.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/parallel_pressure_evidence.json",
+      "sha256": "656785260df6ec1a5c3891d2eefa169094b305446ac5ee7dedbb8a9f27ec5a3f",
+      "bytes": 26851
+    },
+    "25_publication2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/publication2_identity.json",
+      "sha256": "1b6acca3049dbea323c9011d745cc2adda7b5f9a01499ab451f4882ec9f54f53",
+      "bytes": 286
+    },
+    "26_publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/publication_closure.json",
+      "sha256": "5f57a7287a3b71a9f19c2d3ff3afe1fbd004737deb793cd7da20b336c93dc25c",
+      "bytes": 646
+    },
+    "27_publication_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/publication_identity.json",
+      "sha256": "21db21f28bb700dd5afbe5e5055ef69429c9ca90b86f8b93f58d5f4cbc244614",
+      "bytes": 286
+    },
+    "28_publish_result.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/publish_result.py",
+      "sha256": "239bc044c1d8ed4c9f740eb09d57f71c5292dfc509676e0622107e1807480094",
+      "bytes": 5931
+    },
+    "29_qualification.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/qualification.json",
+      "sha256": "8a1250807678492178cc8e69c0ae399fc6107367de724da152cfba3c861723f5",
+      "bytes": 14558
+    },
+    "30_qualification2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/qualification2_closure.json",
+      "sha256": "db7c9cce1c62fe92e28e113af733c609e227c8a9103e77ec52faaf5a16a2e33e",
+      "bytes": 647
+    },
+    "31_qualification2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/qualification2_identity.json",
+      "sha256": "f41fa74b8c266cee0d8ee1dc6134671d508769cabbe3d193c50e33ae4f4838a7",
+      "bytes": 286
+    },
+    "32_qualify.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/qualify.py",
+      "sha256": "b3adf75111ca2e1ecf1a2b65a39294f199b880304d12ecd3ff6f90c49b3faf05",
+      "bytes": 5585
+    },
+    "33_remote_health.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_health.json",
+      "sha256": "d72d86ad16e94fa94c36b461de3891d57b0cf47e44f82db79a83c0675b50b9ad",
+      "bytes": 624
+    },
+    "34_remote_start.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_start.log",
+      "sha256": "48649d25854b77227800dd81221e84bd546a9b86b34dd01a8cbdd86e9580afd4",
+      "bytes": 675
+    },
+    "35_remote_stop.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_stop.json",
+      "sha256": "11808c6e91e21b6ab2117371d70ede7f9436a9e5f382a5d3b3f1cfc77123f233",
+      "bytes": 470
+    },
+    "36_remote_stop.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/remote_stop.log",
+      "sha256": "6505eec00856d7dcc5194df2b632a64786d029291a8566e1453a955c80dc476a",
+      "bytes": 493
+    },
+    "37_run_analysis.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/run_analysis.py",
+      "sha256": "b1e656c2390d956a63d456d88b89d86593671aea182efc0a23db65aacb0c1512",
+      "bytes": 2056
+    },
+    "38_service_aux_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/service_aux_identity.json",
+      "sha256": "759a6caa6c524694b77a0d7fe534e2aae10fe5d9ef2d794ffd3f2bc096c27f7e",
+      "bytes": 286
+    },
+    "39_start.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/start.py",
+      "sha256": "1d23e66d610e2f5c78a4ede600f745c993f439830a25fb6af2790c84301e9688",
+      "bytes": 5615
+    },
+    "40_start_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/start_closure.json",
+      "sha256": "cdc8799ece7fcceeb819f9bbc5c0c317488756a86486d673c2db573fcfb52ee3",
+      "bytes": 646
+    },
+    "41_start_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/start_identity.json",
+      "sha256": "d2d7df9aa00cf15c7f680d338b6c7f8e7f4e3c048304028b58a3676913118b95",
+      "bytes": 286
+    },
+    "42_start_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/start_receipt.json",
+      "sha256": "0ead2ed22942c48288444ebdcb90818afde0c75a570766558d1ab308f49df643",
+      "bytes": 813
+    },
+    "43_start_remote.sh": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/start_remote.sh",
+      "sha256": "f50a9bbb0361b9b96ce28d4a034dcd8a600f141a605dcd4b0554c17123c0bd92",
+      "bytes": 1937
+    },
+    "44_stop_remote.sh": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/stop_remote.sh",
+      "sha256": "88d82f7862bed086a762d52c967a97181ac5c33f0ed65442e015c78559d32092",
+      "bytes": 2006
+    },
+    "45_launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.json",
+      "sha256": "80f46c0e8377dd112be2c92d4979889b0d88d39ccf13655368508da3a6ba4560",
+      "bytes": 12423
+    },
+    "46_summary.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.launch/physical_deployment/summary.json",
+      "sha256": "e4208f36b17ae1786ffc4ef425444987121206f675f44bd9290f8021f2cc7397",
+      "bytes": 3246
+    },
+    "47_D597_PARALLEL_PRESSURE_NATIVE100.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D597_PARALLEL_PRESSURE_NATIVE100.md",
+      "sha256": "cc6f143e069c4bfaae9bf7924222ba14d87964f069d3d1b5c3c7b7bfe810445f",
+      "bytes": 4735
+    }
+  },
+  "archive_sha256": "a721b9113e7c232b136dd46c4504e3dd20d84f7a4b228882e900fd1ea4ff1cff"
+}

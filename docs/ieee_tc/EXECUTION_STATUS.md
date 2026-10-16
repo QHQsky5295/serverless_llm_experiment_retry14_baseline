@@ -1,5 +1,35 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D597 native prefix audited and closed — save, then full W2
+
+2026-10-17: SINGLE D597 W1first100 native validation completed100/100,
+17369targetmatched native tokens, allbinding/stage/physicalclosure checksPASS.
+Joint91/100, P95TTFT4062.31824378483ms, U398.75248700007796GPU-s; diagnostic
+not95%-feasible, notfull4000/G1/G2. IndependentnumericalUNKNOWN/n_correctnull.
+133pressure records allfinished,132completed/1cancelled; participants1:23,2:8,4:102;
+multiownertriggered110, no lateattach. 29bilateraltransfers/50650865wireB/pack0.
+Actualservice/GPU/launcheraux/starter/remote3units closed; analysis92837complete,
+scopeactuallyrecursiveempty/closed/pathgone, peak140660736B/events/swap0.
+No pendingtool or liveinference/remotejob. Read D597_PARALLEL_PRESSURE_NATIVE100.md.
+NEXT explicit resultbackup then D598new-key fullW2 usingD554sameconfig/D595candidate
+and existingrunner; no newworkload/pool or W2prefixloader change. Prior D550short
+startuptrajectory differs, no causal fullperformance gain inferred. Whole pending
+7Bsame-configW0/W1/W2 G1/G2,3B,dLoRA,A1–A5/S1–S13/cost/docs/figures remainsACTIVE.
+
+## D597 native W1 prefix running — do not restart
+
+Checkpoint985bb34cfa556124fedcceb468c1d306d855915b pushed/remoteequal;
+BASE80e08b4c unchanged. Native D597 started once in tmux tc-d597-parallel100,
+RAW p2_backend_qualification/d597_20261017, run7b_parallel_pressure_validation_100.
+100-request W1 diagnostic, D554 model/control config, D595 sole candidate; no
+new performance conclusion yet. Remote published services/ownedmonitor active;
+do not modify/stop before actual localrelease. First publisher basename typo
+stopped before staging; original bundle retained, publication_recovery.json records
+explicit corrected-name publication. Allqualification/backup/publication/start
+auxiliary scopes actuallyclosed/pathgone, events/swap0. Observe SAME run to real
+terminal, exact cleanup→remote stop→existing run_analysis.py→save; no rerun.
+FullW2 thensame-configW0/W1/G1/G2,3B,dLoRA,A1–A5/S1–S13/cost/docs/figures remain.
+
 ## D596 storage closed; D597 native-prefix preparation
 
 2026-10-17: D596 reused existing closed-outcome compressor for exact D533/D512/
