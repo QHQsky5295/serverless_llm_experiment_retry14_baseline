@@ -1,5 +1,19 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D585 full Loquetier W0 prepared — checkpoint then one replay
+
+2026-10-16 AUTHORITATIVE: D583/D584 checkpointd8dd6cf371bd7f29e412421fe7357c9c5c355eff
+PUSHED/remoteequal,19explicitfiles; allmaintenance/curation/publication actually
+closed/pathgone. No repeatedcleanup. D585 input/config qualification PASS:
+exactD445full4000W0,132observedIDs/458224targets; full500pool andD569batch8/native
+config unchanged. D567coverage/D5691000compatibility/86online+69analysis tests
+reusedbySHA; no repeatedGPUqualification/tests or newservingcode. Qualification
+actualclosed/pathgone. ReadD585_LOQUETIER_CAPACITY_FULL_W0.md. NoGPU/remotejob.
+NEXT explicitprelaunchbackup,then freshresourcegate andone tmux fullW0; no
+parametersearch. Preserve numericalUNKNOWN/failedpoints/developmentidentity.
+Then sameconfigLoquetierW1/W2,remaining7Bbaselinecomparison,PrimeLoRAoptimization,
+3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures. Fullgoal ACTIVE; no finalresultyet.
+
 ## D583/D584 maintenance complete — checkpoint then Loquetier full W0
 
 2026-10-16 AUTHORITATIVE: D583 fresh497object/4970file current-cache/original
