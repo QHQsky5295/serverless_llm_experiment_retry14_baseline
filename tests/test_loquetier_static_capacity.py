@@ -12,7 +12,7 @@ from unittest.mock import patch
 from Loquetier_project.scripts.run_loquetier_trace_gate import (
     _adapter_footprint, _static_capacity_shards, _tensor_header,
     _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward,
-    _capacity_bound, _capacity_mixed_forward, _parse_args)
+    _capacity_bound, _capacity_mixed_forward, _capacity_score_target, _parse_args)
 
 
 class LoquetierCapacityTests(unittest.TestCase):
@@ -281,6 +281,49 @@ class LoquetierCapacityTests(unittest.TestCase):
             self.assertEqual(('mixed', 2) in samples, staggered)
         with self.assertRaisesRegex(ValueError, 'distinct'):
             _capacity_mixed_forward(Bridge(), [cases[0]]*4, lambda *_:None, False)
+
+    def test_score_target_binds_exact_retained_inputs_and_first_difference(self):
+        cases = [dict(source_request_id=str(i), adapter_id=str(i), prompt_ids=[1, 2],
+                      target_tokens=3, retained_output_ids=[4, 5, 6]) for i in range(2)]
+        inputs = dict(cases=cases, journal_sha256='b'*64)
+        outputs = [dict(source_request_id=str(i), native_adapter_id=str(i),
+            native_output_tokens=3, native_forward_count=3,
+            completion_token_ids=[4, 7, 8] if i == 0 else [4, 5, 6],
+            matches_retained_output=i == 1) for i in range(2)]
+        prior = dict(forward_capacity=dict(input=inputs,
+            cases=[dict(selection='all_prefill', outputs=outputs)]))
+        target = _capacity_score_target(prior, inputs)
+        self.assertEqual(target, dict(case=cases[0], token_index=1, retained_token=5, observed_token=7))
+        with self.assertRaisesRegex(ValueError, 'input contract'):
+            _capacity_score_target(prior, dict(inputs, journal_sha256='c'*64))
+        changed = copy.deepcopy(prior)
+        changed['forward_capacity']['cases'][0]['outputs'][0]['matches_retained_output'] = True
+        with self.assertRaisesRegex(ValueError, 'inconsistent'):
+            _capacity_score_target(changed, inputs)
+        changed = copy.deepcopy(prior)
+        changed['forward_capacity']['cases'][0]['outputs'][1] = outputs[0]
+        with self.assertRaisesRegex(ValueError, 'duplicated'):
+            _capacity_score_target(changed, inputs)
+        changed = copy.deepcopy(prior)
+        changed['forward_capacity']['cases'][0]['outputs'][0]['completion_token_ids'] = [4, 5, 6]
+        changed['forward_capacity']['cases'][0]['outputs'][0]['matches_retained_output'] = True
+        with self.assertRaisesRegex(ValueError, 'exactly one'):
+            _capacity_score_target(changed, inputs)
+
+    def test_score_cli_requires_derived_capacity_and_source_sha(self):
+        common = ['gate', '--base-model', '/m', '--adapter-root', '/a', '--output', '/o',
+            '--native-capacity-probe', '--forward-capacity-probe',
+            '--static-capacity-plan', '/plan', '--measurement-view', '/view',
+            '--measurement-view-sha256', 'a'*64, '--physical-gpu-id', '0', '--main-repo', '/main',
+            '--ownership-input-journal', '/j', '--ownership-input-sha256', 'b'*64]
+        for extra in (['--capacity-score-evidence', '/scores'],
+                      ['--capacity-score-evidence', '/scores', '--capacity-score-evidence-sha256', 'c'*64]):
+            with patch('sys.argv', common+extra), self.assertRaises(SystemExit):
+                _parse_args()
+        extra = ['--capacity-evidence', '/capacity', '--capacity-evidence-sha256', 'd'*64,
+                 '--capacity-score-evidence', '/scores', '--capacity-score-evidence-sha256', 'c'*64]
+        with patch('sys.argv', common+extra):
+            self.assertEqual(_parse_args().capacity_score_evidence, Path('/scores'))
 
     def test_capacity_forward_uses_full_target_and_rejects_malformed_native_result(self):
         class Bridge:

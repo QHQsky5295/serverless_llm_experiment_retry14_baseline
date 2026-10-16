@@ -5,6 +5,7 @@ with TC_TEST_LOQUETIER_NATIVE=1; skipping those tests is not qualification.
 """
 import ast
 import copy
+import hashlib
 import importlib.util
 import os
 from pathlib import Path
@@ -351,6 +352,66 @@ class NativeLoquetierObservationTests(unittest.TestCase):
         self.assertEqual(gen.kvpool.num_pages, 0)
         self.assertEqual(gen._tc_loquetier_active, {})
         self.assertEqual(bridge.close(), [])
+
+    def test_capacity_score_observer_preserves_actual_greedy_tensor_and_native_prefix(self):
+        from Loquetier_project.scripts.run_loquetier_trace_gate import _capacity_score_observer
+        gen, r, other = self.fixture(), self.request(1, 3, 'a'), self.request(2, 3, 'b')
+        self.register(gen, [r, other])
+        self.step(gen, [8, 9])
+        gen.model.root_context.update(lora_ids=[0, 1])
+        self.observer.loquetier_forward_started(gen, [0, 1], [1, 1])
+        outputs = []
+        def greedy(scores):
+            result = self.torch.argmax(scores, dim=-1)
+            outputs.append(result)
+            return result
+        gen.generation_strategy = greedy
+        scores = self.torch.zeros((2, 12), dtype=self.torch.float32)
+        scores[0, 8:10], scores[1, 9] = 2, 3
+        before = scores.clone()
+        target = dict(case=dict(source_request_id='source-a', adapter_id='a',
+            prompt_ids=[1, 5, 6], retained_output_ids=[8, 8, 8]), token_index=1,
+            retained_token=8, observed_token=9)
+        with tempfile.TemporaryDirectory() as tmp:
+            records = []
+            with _capacity_score_observer(gen, target, Path(tmp), 'case', records):
+                chosen = gen.generation_strategy(scores)
+                self.assertIs(chosen, outputs[0])
+                self.assertTrue(self.torch.equal(scores, before))
+                self.assertEqual(chosen.tolist(), [8, 9])
+            self.assertIs(gen.generation_strategy, greedy)
+            self.assertEqual(len(records), 1)
+            record = records[0]
+            self.assertTrue(record['prefix_matches_retained'])
+            self.assertEqual(record['actual_prefix_token_ids'], [8])
+            self.assertEqual(record['native_segments'], [0, 1])
+            self.assertEqual(record['maximum_tie_count'], 2)
+            self.assertEqual(record['top_two_margin'], 0)
+            payload = Path(record['score_path']).read_bytes()
+            self.assertEqual(payload, before[0].numpy().astype('<f4', copy=False).tobytes())
+            self.assertEqual(hashlib.sha256(payload).hexdigest(), record['score_sha256'])
+            self.assertEqual(record['score_bytes'], 48)
+            # Same path cannot silently overwrite the first observed vector.
+            with self.assertRaises(FileExistsError):
+                with _capacity_score_observer(gen, target, Path(tmp), 'case', []):
+                    gen.generation_strategy(scores)
+            self.assertIs(gen.generation_strategy, greedy)
+            # Native input/prefix inconsistency is rejected, not repaired.
+            r._tc_loquetier['output_ids'][0] = 10
+            with self.assertRaisesRegex(ValueError, 'identity/prefix'):
+                with _capacity_score_observer(gen, target, Path(tmp), 'bad-prefix', []):
+                    gen.generation_strategy(scores)
+            self.assertIs(gen.generation_strategy, greedy)
+            r._tc_loquetier['output_ids'][0] = 8
+            bad = scores.clone()
+            bad[0, 1] = float('nan')
+            with self.assertRaisesRegex(ValueError, 'nonfinite'):
+                with _capacity_score_observer(gen, target, Path(tmp), 'nonfinite', []):
+                    gen.generation_strategy(bad)
+            self.assertIs(gen.generation_strategy, greedy)
+        gen.post_process(chosen)
+        self.assertEqual(r._tc_loquetier['output_ids'], [8, 8])
+        self.assertEqual(other._tc_loquetier['output_ids'], [9, 9])
 
     def test_empty_batch_cleanup_rejects_live_pages_and_leaves_active_batch_unchanged(self):
         gen = self.fixture()

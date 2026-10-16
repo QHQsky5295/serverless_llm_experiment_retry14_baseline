@@ -18,6 +18,7 @@ import struct
 import sys
 import time
 from collections import Counter
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -444,7 +445,99 @@ def _capacity_forward(bridge, case, sample):
             for _, row in sorted(completed.items())]
 
 
-def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, stage, capacity_model=None):
+def _capacity_score_target(prior, inputs):
+    """Bind a diagnostic to an existing output discrepancy, not a chosen winner."""
+    forward = prior['forward_capacity']
+    if forward['input'] != inputs:
+        raise ValueError('score diagnostic input contract differs')
+    completed = forward['cases'][0]
+    if completed['selection'] != 'all_prefill' or len(completed['outputs']) != len(inputs['cases']):
+        raise ValueError('complete retained all-prefill output evidence required')
+    by_id = {c['source_request_id']: c for c in inputs['cases']}
+    differences, seen = [], set()
+    for row in completed['outputs']:
+        rid = row['source_request_id']
+        case = by_id[rid]
+        target = case['target_tokens']
+        if (rid in seen or row['native_adapter_id'] != case['adapter_id']
+                or row['native_output_tokens'] != target or row['native_forward_count'] != target
+                or len(row['completion_token_ids']) != target):
+            raise ValueError('retained score evidence is incomplete or duplicated')
+        seen.add(rid)
+        changed = [i for i, (a, b) in enumerate(zip(case['retained_output_ids'], row['completion_token_ids'])) if a != b]
+        if row['matches_retained_output'] != (not changed):
+            raise ValueError('retained output comparison is inconsistent')
+        if changed:
+            index = changed[0]
+            differences.append(dict(case=case, token_index=index,
+                retained_token=case['retained_output_ids'][index],
+                observed_token=row['completion_token_ids'][index]))
+    if len(differences) != 1 or seen != set(by_id):
+        raise ValueError('this bounded score diagnostic requires exactly one retained discrepancy')
+    return differences[0]
+
+
+@contextmanager
+def _capacity_score_observer(gen, target, directory, phase, records):
+    """Read native greedy scores at one retained divergence; never force a token."""
+    import torch
+    original = gen.generation_strategy
+    case, index = target['case'], target['token_index']
+    seen = set()
+    def observe(scores):
+        # Compute the ORIGINAL decision first and return that exact tensor.
+        chosen = original(scores)
+        if scores.ndim != 2 or scores.shape[0] != len(gen.requests) or chosen.shape != (len(gen.requests),):
+            raise ValueError('native score/request row geometry differs')
+        for row_index, request in enumerate(gen.requests):
+            state = request._tc_loquetier
+            if (state['adapter_id'] != case['adapter_id']
+                    or state['native_prompt_token_ids'] != case['prompt_ids']
+                    or len(state['output_ids']) != index):
+                continue
+            if (request.mark_id in seen or state['forward_count'] != index+1
+                    or state['adapter_index'] != request.lora_id or request.logits_processor is None
+                    or len(request.logits_processor) != 0
+                    or request.input_ids.tolist() != case['prompt_ids']+state['output_ids']):
+                raise ValueError('native score observation identity/prefix differs')
+            seen.add(request.mark_id)
+            values = scores[row_index].detach().to(device='cpu', dtype=torch.float32).contiguous()
+            if values.numel() < 2 or not torch.isfinite(values).all().item():
+                raise ValueError('native scores are nonfinite or incomplete')
+            selected = chosen[row_index].item()
+            if selected != values.argmax().item():
+                raise ValueError('native strategy is not the fixed greedy contract')
+            payload = values.numpy().astype('<f4', copy=False).tobytes()
+            path = directory / f'{phase}-{request.mark_id}-{index}.f32'
+            with path.open('xb') as handle:
+                handle.write(payload)
+            top = torch.topk(values, min(8, values.numel()))
+            records.append(dict(source_request_id=case['source_request_id'],
+                native_request_id=state['request_id'], native_mark=request.mark_id,
+                native_adapter_id=request.lora_name, native_adapter_index=request.lora_id,
+                token_index=index, row_index=row_index, batch_rows=len(gen.requests),
+                prefix_matches_retained=state['output_ids'] == case['retained_output_ids'][:index],
+                actual_prefix_token_ids=list(state['output_ids']),
+                native_segments=list(gen.model.root_context.lora_ids),
+                native_request_order=[dict(mark=r.mark_id, adapter_index=r.lora_id,
+                    next_input_tokens=len(r.next_input_ids)) for r in gen.requests],
+                selected_token=selected, selected_score=values[selected].item(),
+                top_token_ids=top.indices.tolist(), top_scores=top.values.tolist(),
+                top_two_margin=(top.values[0]-top.values[1]).item(),
+                maximum_tie_count=(values == values.max()).sum().item(),
+                prior_pair={str(t):values[t].item() for t in (target['retained_token'], target['observed_token'])},
+                score_path=str(path), score_sha256=hashlib.sha256(payload).hexdigest(),
+                score_bytes=len(payload), score_elements=values.numel(), score_dtype='little_endian_float32'))
+        return chosen
+    gen.generation_strategy = observe
+    try:
+        yield
+    finally:
+        gen.generation_strategy = original
+
+
+def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, stage, capacity_model=None,
+                                   score_probe=None, score_directory=None):
     """Long-input witness at batch2 or one capacity-derived candidate, no sweep."""
     import gc
     import torch
@@ -487,6 +580,12 @@ def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, sta
     witness['kv_page_tokens'] = gen.kvpool.page_len
     cases = (inputs['cases'] if capacity_model is None else
              [dict(selection='all_prefill'), dict(selection='mixed_prefill_decode')])
+    if score_probe:
+        if capacity_model is None or score_directory is None:
+            raise ValueError('score observation requires derived capacity and an explicit output directory')
+        score_directory.mkdir(exist_ok=False)
+        cases.insert(0, dict(score_probe['case'], selection='logit_reference_batch2'))
+        witness['score_probe'] = score_probe
     if capacity_model:
         free, total = torch.cuda.mem_get_info(0)
         current_outside = total-free-torch.cuda.memory_reserved(0)
@@ -500,8 +599,11 @@ def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, sta
     for case in cases:
         if gen.kvpool.num_pages or bridge.generator.requests_len or bridge.objects:
             raise ValueError('capacity case began with live native requests/KV')
-        row = dict(selection=case['selection'], batch_size=batch, samples=[])
-        if capacity_model is None:
+        reference = case['selection'] == 'logit_reference_batch2'
+        bridge.batch_size = 2 if reference else batch
+        stage('capacity_'+case['selection']+'_start')
+        row = dict(selection=case['selection'], batch_size=bridge.batch_size, samples=[])
+        if capacity_model is None or reference:
             row.update(source_request_id=case['source_request_id'], adapter_id=case['adapter_id'],
                 prompt_tokens=len(case['prompt_ids']), target_tokens=case['target_tokens'])
         else:
@@ -525,9 +627,17 @@ def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, sta
                 native_decode_requests=len(gen.requests),
                 live_kv_pages=gen.kvpool.num_pages,
                 live_kv_bytes=gen.kvpool.num_pages*gen.kvpool.page_nbytes))
-        row['outputs'] = (_capacity_forward(bridge, case, sample) if capacity_model is None else
-            _capacity_mixed_forward(bridge, inputs['cases'], sample,
-                staggered=case['selection'] == 'mixed_prefill_decode'))
+        observer = nullcontext()
+        if score_probe:
+            row['score_observations'] = []
+            observer = _capacity_score_observer(gen, score_probe, score_directory,
+                                               case['selection'], row['score_observations'])
+        with observer:
+            row['outputs'] = (_capacity_forward(bridge, case, sample) if capacity_model is None or reference else
+                _capacity_mixed_forward(bridge, inputs['cases'], sample,
+                    staggered=case['selection'] == 'mixed_prefill_decode'))
+        if score_probe and len(row['score_observations']) != (2 if reference else 1):
+            raise ValueError('required native divergence score observations missing')
         if gen.kvpool.num_pages:
             raise ValueError('native KV pages remain after capacity case')
         stage('capacity_'+case['selection']+'_complete')
@@ -742,6 +852,17 @@ def native_capacity_probe(args) -> int:
             if capacity_model and any(len(c['prompt_ids']) != capacity_model['prompt_tokens']
                                       or c['target_tokens'] != 256 for c in capacity_inputs['cases']):
                 raise ValueError('candidate distinct inputs do not cover measured worst geometry')
+            score_probe = None
+            if args.capacity_score_evidence:
+                if stream_sha(args.capacity_score_evidence) != args.capacity_score_evidence_sha256:
+                    raise ValueError('prior score evidence identity differs')
+                score_prior = _load_json(args.capacity_score_evidence)
+                if (score_prior['measurement_manifest_sha256'] != args.measurement_view_sha256
+                        or score_prior['static_plan_sha256'] != result['static_plan_sha256']
+                        or score_prior['capacity_model'] != capacity_model):
+                    raise ValueError('prior score evidence source/geometry differs')
+                score_probe = _capacity_score_target(score_prior, capacity_inputs)
+                result['capacity_score_evidence_sha256'] = args.capacity_score_evidence_sha256
             sys.path.insert(0, str(args.measurement_view))
             os.environ['TRANSFORMERS_OFFLINE'] = '1'
             os.environ['HF_DATASETS_OFFLINE'] = '1'
@@ -811,7 +932,8 @@ def native_capacity_probe(args) -> int:
                     if capacity_model else
                     'Full retained geometry-extreme inputs, duplicate batch2 copies; '
                     'not an increased batch, mixed-prefill/decode, all-ID numerical or four-worker qualification.')
-                _native_forward_capacity_probe(base, mixed, models, gen, capacity_inputs, result, stage, capacity_model)
+                _native_forward_capacity_probe(base, mixed, models, gen, capacity_inputs, result, stage, capacity_model,
+                    score_probe, args.output.with_suffix('.scores') if score_probe else None)
             stage('full_context_kv_allocation')
             caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(
                 capacity_model['candidate_batch_size'] if capacity_model else plan['batch_size'])]
@@ -950,6 +1072,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--forward-capacity-probe', action='store_true')
     parser.add_argument('--capacity-evidence', type=Path)
     parser.add_argument('--capacity-evidence-sha256')
+    parser.add_argument('--capacity-score-evidence', type=Path)
+    parser.add_argument('--capacity-score-evidence-sha256')
     parser.add_argument('--ownership-input-journal', type=Path)
     parser.add_argument('--ownership-input-sha256')
     parser.add_argument('--static-capacity-plan', type=Path)
@@ -966,6 +1090,10 @@ def _parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.inference_owner_probe and args.forward_capacity_probe:
         parser.error('owner equivalence and forward capacity are separate diagnostic execution keys')
+    if args.capacity_score_evidence is not None or args.capacity_score_evidence_sha256 is not None:
+        if (args.capacity_evidence is None or args.capacity_score_evidence is None
+                or not re.fullmatch('[0-9a-f]{64}', args.capacity_score_evidence_sha256 or '')):
+            parser.error('score observation requires derived capacity and explicit prior evidence path/SHA')
     if args.capacity_evidence is not None or args.capacity_evidence_sha256 is not None:
         if (not args.forward_capacity_probe or args.capacity_evidence is None
                 or not re.fullmatch('[0-9a-f]{64}', args.capacity_evidence_sha256 or '')):
