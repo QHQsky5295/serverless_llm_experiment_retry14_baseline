@@ -1,6 +1,86 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D569 strict result and cross-input audit complete, 2026-10-16
+
+AUTHORITATIVE: no live inference/remote/analysis job. SAME1000 run/strictaudit/
+cross-input join completed once; do NOTrepeat run, qualification, collection,
+analysis, closure or remote stop. Read D569_LOQUETIER_CAPACITY_PREFIX1000_RESULT.md.
+1000nativebindings/122510tokens/0failure; joint370=37.0%,TTFT48.2%,TPOT74.7%.
+U3214.9488512936514 GPU-s,meanTTFT115073.056021/P95419604.895030ms,
+meanTPOT70.169332/P9591.391899ms. n_correctnull/independentnumericUNKNOWN.
+OldD444exactinputjoin PASS;916outputsidentical/84different, all preserved.
+RelativeoldprefixU47.5031%lower,joint+30.4pp,meanTPOT11.0945%higher;
+notfullW0/G1/G2, initial/cache equalitynotproved, noisolatedcausalclaim.
+Actualcapacity8allfour, native1000enqueue/complete/noerrors/cancel. Workerready
+business+280.163169/380.004544/482.124202/578.209218s; routerqueue77182.818ms,
+nativequeue37573.897ms/registerfirst266.535ms. Startupstillincluded.
+500fetch420740410wireB/12985984450materializedB/packing0;servicepeak40214732800B,
+events/swap0. Analysis/crossactualrecursiveemptyclosed/pathgone,peaks292151296/
+208416768B,events/swap0. Source/sharedk3sunchanged; no GPUreplay thisturn.
+NEXT boundedcuration/testedexplicitresultpush, includinglatestHydraServe review
+extension. Aftersealedresult, freshclosed-cacheaudit (disk148253450240B below
+150GiBnextheavyfloor) andHydraServe history/officialmechanismreview, thenremaining
+sameconfigLoquetierfullW0W1W2/7B/G2/3B/ablations/sensitivities/docs/figures.
+Curated loquetier/d569_capacity_prefix1000/result1 COMPLETE, evidence179365B;
+source/archive/protected147/userdirt checksPASS. Curationactualrecursiveempty/
+closed/pathgone,peak26886144B,events/swap0. Only explicitresultcheckpointnext;
+do NOTrepeatcuration. FullgoalACTIVE; historicalLIVE/analysisnotes superseded.
+
+## D569 terminal; strict analysis running, 2026-10-16
+
+AUTHORITATIVE: SAME1000 replay completed with1000 responses/0failed events.
+Service/replay/watchdogRC0, actual GPUrelease and servicepathgone confirmed.
+Exactlauncheraux recursiveempty/closed/pathgone,peak274239488 B,events/swap0.
+All3exactownedremoteunitsinactive/MainPID0/portsabsent; remote_stop.log retainsIDs.
+No live inference or remote experiment remains. Do NOTrepeat run/start/closure/stop.
+Bounded run_analysis.py --outcome success RUNNING auxd5690000000000000000000000000006;
+raw loquetier_qualification/d569_20261016. It preserves bilateral evidence then
+uses existing strict loquetier_static_shards_v1/prefix1000/D394SLO analyzer.
+No final audited SLO/native counts yet. Next actualanalysisclosure, existing
+cross_contract.py adapted to oldD444 prefix for input/output/stage join, then
+document/curate/push. Preserve unknown numeric and every output difference.
+After result preservation follow latest HydraServe adaptation-review extension
+and remaining Loquetier full W0/W1/W2/7B/G2/3B/ablation/sensitivity mainline.
+FullgoalACTIVE; no figures or repeated qualifications. HistoricalLIVE superseded.
+
+## Latest user extension while D569 runs, 2026-10-16
+
+HydraServe also requires evidence-based adaptation review for its poor results.
+Read updated LOQUETIER_OPTIMIZATION_AND_STORAGE_20261016.md. This is not a request
+to stop/restart SAME D569, redo unchanged Podman basis qualification, or touch k3s.
+After actual Loquetier release/save, use existing HydraServe logs/history and
+official primary sources to distinguish untriggered mechanism/scenario limitation
+from adaptation defect; repair/replay only justified affected paths. No arbitrary
+baseline parameter sweep or frozen-metric change. Existing all-pp1 W0/W1 observations
+do not prove pipeline/consolidation benefit or intrinsically bad design.
+Full remaining scope and ongoing safe-storage rules retained; no serving change yet.
+D569 SAME actual Invocation06ac2922eb7b447db8d0f1506680fc49 recheckedactive atsample670;
+fourworkerready,503created/322responses/0failures,host86413099008 B,events/swap0.
+These are progress counts, not final native/SLO qualification. Monitor SAMErun;
+no tests/build/scans/cleanup/backup/remotechanges. Full goal ACTIVE.
+
 ## D569 original-prefix compatibility prepared, 2026-10-16
+
+AUTHORITATIVE LIVE: prelaunchc9c6cf1e07918206a2a59c9597b2200428ca79f2
+PUSHED/remoteequal,4 explicit MAIN files; BASE5486c4d6 unchanged/pushed.
+Source/archive/protected147/userdirt/secrets/diff checksPASS. Qualification,
+backup/start actualrecursiveemptyclosed/pathgone, peaks147947520/28246016/
+129757184 B,high/max/OOM/kill/swap0. No repeated tests or performance.
+Single tmux tc-d569-loquetier-compatibility RUNNING; fresh gated launch passed.
+Actualserviceprimelora-tc-svc-709e819c2a974a82b6bfbd998a4528d8.scope,
+Invocation06ac2922eb7b447db8d0f1506680fc49,inode26088304; recheckedactive.
+Launcherauxd5690000000000000000000000000005 Invocation7689c31808f24b6aad8b55b0e9565e48.
+Remote own servicesLIVE, actual1000Mb/s/full, prepublished_gzip_v1/timing_v2PASS.
+7bclockremote-process-monotonic:c5338e1a0e9445db9ad43d0d59aae7bb;
+monitorprimelora-artifact-monitor-d569-compatibility.service; exact3IDsremote_start.log.
+Sample20 host112833437696 B,events/swap0/noabort; no final performance yet.
+NEXT monitor SAME actual run only; no tests/build/hashscan/backup/cleanup/remote
+changes during inference. After actualterminal close_launch.py ->stop_remote.sh
+->boundedrun_analysis.py with actualoutcome, then close.py analysis and strict
+input/output join/curation/push. Do not guessrelease or use successoutcome forfailure.
+This turn PROGRESS: D568 finished/pushed plus D569 new contract qualified/pushed
+and launched once. FullscopeACTIVE, no G1/G2/whole-goal closure. Historical
+offline-next notes below are superseded; do NOTrepeatstart/qualification/backup.
 
 D568 maintenance checkpoint69ee965bac4b34c7c140c6e4f81f3e79c986d97b PUSHED/remoteequal;
 publication actual recursive-empty/closed/pathgone, peak26693632 B/events/swap0.
