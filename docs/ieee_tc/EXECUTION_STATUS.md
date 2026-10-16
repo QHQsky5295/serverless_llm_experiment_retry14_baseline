@@ -1,5 +1,91 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D607 complete W2 audited — quality gain/resource trade-off, backup next
+
+Analysis32800 completed0; actual auxiliary empty/closed/pathgone,
+peak863895552B/events/swap0.4000native contracts/458224tokens, independent
+numerical N_correct remains null. SourceSHAc91e4819923fadf32d3d95376a1d94bfa435ed894204f9bf197f3d47e7474853.
+Joint3762/4000=94.05% vsD55489.55%; P95TTFT4275.382ms vs5827.475;
+U15078.910657 vs14641.258982 (+2.99%). Below95%, U/B1.247565; not G1/G2 achieved.
+Remote497/418365205B unchanged, request packing0; service high/max/OOM/kill/swap0.
+Read D607_CANONICAL_FILES_FULL_W2.md for full stages/caveats. Actual GPU/local/
+remote all released/stopped. No running experiment or pending tool; do NOT rerun.
+Next explicit result backup, then bounded existing-log diagnosis of remaining
+TTFT violations and arrival-window held-GPU increase before a new candidate.
+Retain D606 candidate for diagnosis, not final performance acceptance. Full plan
+ACTIVE: sameconfig7B/G1/G2,3B,dLoRA,A1–A5/S1–S13,cost/docs/finalfigures.
+
+## D607 full W2 terminal and actually released — bounded analysis now
+
+SAME4000 run completed ONCE: service/watchdog return0, launch pass, actual service
+path removed and native GPU context release confirmed. Local launcher auxiliary
+recursively empty and closed, peak399294464B/events/swap0. Exact-owned remote
+3B/7B services and monitor stopped successfully; ports absent. No GPU/remote job.
+Read-only monitoring cells2203/2204 completed; no restart, config/source change,
+build/push/clean or parallel inference occurred. This turn moved from verified
+wait to complete replay/closure evidence; not a blocker. Existing run_analysis.py
+now started in bounded d607...0004 auxiliary scope; inspect its live tool/status
+before any other analysis. No metrics acceptance yet; retain n_correct unknown.
+Next full contract/physical/remote audit, compare D554 same-config observations,
+save result and back up. Full7B/3B/G1/G2,A1–A5/S1–S13/dLoRA/docs stay ACTIVE.
+
+## D607 verified wait through1205 terminals — SAME experiment remains LIVE
+
+Actual tmux tc-d607-filesw2 pane1643966/python3 remained live throughout13
+lightweight polls; journal517→1205/4000. Watchdog sample1348: no warning/abort,
+memory high/max/OOM/kill/swap0, peak21185515520B, host available95267053568B,
+disk157114843136B (>100GiB runtime floor). Read-only monitor cell2200 completed
+its bounded13-poll loop normally; it did not stop or alter the experiment.
+No pending tool. No serving/config edits, new run, resource cleanup/build/push
+or remote changes. Verified wait, not a blocker. Next keep SAME-run monitoring
+through terminal/native release, then existing exact-owned closure/remote-stop
+and full analysis. Do not repeat D607 or shrink remaining full-plan scope.
+
+## D607 verified wait through first ~500 terminals — SAME run remains LIVE
+
+This continuation polled the actual tmux pane1643966/python3 and growing terminal
+journal60→497/4000. Watchdog sample666: no warning/abort; memory high/max/OOM/kill
+and swap0, peak20202676224B, host available95696957440B, disk159303892992B.
+Read-only monitor cell2197 was stopped after this bounded observation interval;
+that did NOT stop the tmux/service/watchdog/remote. No pending tool remains.
+No serving/config edits, restart, new qualification, compression, build or push.
+Current turn is a verified wait, not no-progress/blocker. Continue lightweight
+monitoring SAME tc-d607-filesw2 until terminal and actual release; then existing
+exact-owned closure/stop_remote/run_analysis helpers. All experiment scope remains
+ACTIVE; do not infer performance from partial completion or repeat D607.
+
+## D607 verified continuing — wait on SAME live run, no new preparation
+
+Latest lightweight observation: request terminal journal5→38/4000; watchdog
+sample157, no warning/abort, memory high/max/OOM/kill/swap0, service peak13061050368B,
+host available102067597312B, disk161020846080B (>100GiB runtime floor).
+tmux tc-d607-filesw2 pane1643966/python3 still live. Qualification, preregistration,
+backup56112dd and launch are DONE; do not repeat them. No pending tool session.
+Current action is verified wait for this SAME full replay, not a blocker or
+performance conclusion. Do not start a new campaign, change source/config/remote,
+push/build/scan/compress while live. After terminal use existing exact-owned
+closure/remote-stop/analysis helpers. Full remaining plan stays ACTIVE.
+
+## D607 ordinary complete W2 LIVE — preserve this execution
+
+Checkpoint56112dd710eb67bed0ac4803f7dba5ca508c0d72 pushed/remote-equal.
+Starter43150 completed0; actual starter scope empty/closed/pathgone, peak27918336B,
+events/swap0. SAME tmux tc-d607-filesw2, pane1643966/python3; run directory
+results/ieee_tc/p2_backend_qualification/d607_20261017/7b_canonical_files_full_w2.
+Service primelora-tc-svc-b12822cd5dbf42988fc7a302f0c057b5.scope;
+aux primelora-tc-aux-8fa234140aab46dc89419ec002243f60.scope. Actual identities saved
+in launch.launch/exec_receipt.json and service_aux_identity.json. No pending tool.
+Remote services started once; current link1000/full, prepublished_gzip_v1 health
+verified. No request packing or local-sim; no detailed frame observer. Watchdog
+sample13 events/swap0, disk161450086400B, host111522783232B available.
+Do not restart/repeat, edit serving/config, clean/compress, build/push or change
+remote while live. Continue lightweight SAME-run observation through terminal
+and actual GPU release, then existing close_launch.py/stop_remote.sh/run_analysis.py.
+Do not mistake empty-looking old systemd units for running work; actual identity
+and recursive membership are authoritative. This turn made preregistration,
+qualification/backup and actual full-replay launch progress; not a blocker.
+All full-plan remaining scope stays ACTIVE; no G1/G2/performance conclusion yet.
+
 ## D607 qualification passed — backup then launch the same new key
 
 Qualification89899 completed0; actual scope recursively empty/closed/pathgone,
