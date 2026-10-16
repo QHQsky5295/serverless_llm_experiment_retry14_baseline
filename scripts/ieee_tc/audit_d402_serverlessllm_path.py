@@ -573,6 +573,19 @@ def validate_loquetier_ready_row(row, cfg, control, service, clock_id, observati
     return index
 
 
+def loquetier_deployment_description(cfg):
+    """Describe the executed lifecycle, not the historical unoptimized default."""
+    common = ('Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. '
+              'Full500 preparation follows common notice; native SMLM and static125-ID workers retained. ')
+    if cfg.get('inference_capacity') is None:
+        return common + 'No baseline optimization or PrimeLoRA policy added.'
+    if cfg['inference_capacity'].get('policy') != 'prepared_only_observed_capacity_v1':
+        raise ValueError('unknown Loquetier capacity policy in analysis')
+    return common + ('Authorized pure-inference owner release and evidence-derived capacity optimization applied; '
+                     'actual worker receipts are validated. Native kernels, static routing and sequential startup retained. '
+                     'No PrimeLoRA policy added; this is not independent numerical correctness or a global capacity bound.')
+
+
 def audit_loquetier_receipts(root, cfg, qualifier, ready, config_path, native):
     from replay_vllm_engine_trace import (validate_loquetier_service_config,
         verify_loquetier_source_view, load_loquetier_static_plan, validate_loquetier_ready_receipt)
@@ -923,7 +936,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
              'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
-            ('Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. No baseline optimization or PrimeLoRA policy added.' if is_loquetier else
+            (loquetier_deployment_description(cfg) if is_loquetier else
              'S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.' if is_slora else
              'Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.' if is_vllm else
              'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.'),

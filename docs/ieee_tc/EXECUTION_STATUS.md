@@ -1,6 +1,39 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D567 new-capacity full500 preparation, 2026-10-16
+
+OFFLINE preparation PASS; no GPU/remote run yet. Read D567_LOQUETIER_CAPACITY_FULL500.md.
+Existing D443 coverage/input bytes and D566 native config bytes reused:500IDs/
+500requests/68925targets, view286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d.
+D56686 online tests reused bySHA, not repeated. Existing analyzer already calls
+new strict native ready/owner/device validation. Only optimization disclosure
+corrected conditionally; legacyunchanged.69 affectedCPUmethodsPASS:67serviceenv+
+2existingijsonenv. Initial6subtest environment errors/originalsource retained;
+no production/dependency changes to pass. Qualification/contract actualclosed,
+resources inRAW closures. Newhelpers reuse D544 gates/remote/closure/analyzer,
+exactsource corrections recorded, no new framework/weights/trace/kernelchange.
+RAW loquetier_qualification/d567_20261016. Next testedexplicit prelaunchcheckpoint,
+freshgated single nativefull500 run, preserveunknownnumeric/outputdifferences.
+Do not repeat D565/D566/CPUtests or HydraServe basis adaptation; sharedk3s untouched.
+FullgoalACTIVE: newLoquetierW0/W1/W2,7B/G2/3B/ablations/S1–S13/docs/cost/figures.
+
 ## D566 online ownership/capacity CPU qualification, 2026-10-16
+
+CHECKPOINT DONE: MAIN953aea6353ddfb3594f88fb2f3824d98fed0b42e,
+BASE5486c4d6a8417ef67484d2b1dbb65d0cd938ff27 bothPUSHED/remoteequal.
+Explicit6MAIN/6BASEfiles;86tests/source/archive/protected147/userdirt/secrets/
+diffchecksPASS. Publication actualrecursiveempty/closed/pathgone, fullreceipt
+RAWpublication_closure.json. No liveGPU/test/publication/remotejob. Do NOTrepeat
+CPUqualification or backup. This turnPROGRESS: actualonlineintegration plus86CPU
+checks and two-repo checkpoint; not native500/performance qualification.
+NEXT reuse D443 adapter_coverage_v1/view286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d
+under NEWD567key with same500/68925targettokens and D566newnativeconfig. Reuse newer
+D544 gated-launch/start/ownedremote/closure recipes, not old --collect launcher.
+D566 newcapacitycfg uses existingD560measurementview unchanged; no newviewneeded.
+D567 nofiles/config/preparation/launch yet. Existing analyzer batch assumptions and
+newactualowner/device receipts must be checked beforeperformance, preserveunknown
+numeric andsamebackendoutputdifferences; no newshortper-token diagnostic.
+Postpushstatusdelta reserved next meaningfulcheckpoint, no status-onlypush.
 
 Read D566_LOQUETIER_ONLINE_CAPACITY.md. Existing BASE replay engine now has explicit
 prepared_only_observed_capacity_v1, bound to D565 evidence/D560 view/D437 placement.

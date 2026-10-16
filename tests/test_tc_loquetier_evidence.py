@@ -11,11 +11,23 @@ from unittest.mock import patch
 
 from scripts.ieee_tc.audit_d402_serverlessllm_path import (
     audit_loquetier_receipts, validate_loquetier_ready_row, validate_slora_allocation,
-    validate_slora_preparation, compare_reference_row, digest)
+    validate_slora_preparation, compare_reference_row, digest, loquetier_deployment_description)
 from tests import test_tc_serverless_qualification_population as fixtures
 
 
 class LoquetierEvidenceTests(unittest.TestCase):
+    def test_capacity_optimization_disclosure_does_not_relabel_legacy(self):
+        self.assertIn('No baseline optimization', loquetier_deployment_description({}))
+        text = loquetier_deployment_description({'inference_capacity': {
+            'policy': 'prepared_only_observed_capacity_v1'}})
+        self.assertIn('evidence-derived capacity optimization', text)
+        self.assertNotIn('No baseline optimization', text)
+        self.assertIn('not independent numerical correctness', text)
+
+    def test_unknown_capacity_description_is_not_silently_accepted(self):
+        with self.assertRaisesRegex(ValueError, 'unknown Loquetier capacity'):
+            loquetier_deployment_description({'inference_capacity': {'policy': 'unknown'}})
+
     def fixture(self):
         cfg = dict(gpu_ids=[2,3], deployment_notice_s=1.,
             remote_config={'cache_dir':'/cache'},
