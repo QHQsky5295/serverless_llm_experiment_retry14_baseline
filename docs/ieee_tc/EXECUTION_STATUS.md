@@ -27,9 +27,20 @@ original SHA/size/inode/refs/metadata/actual-release gates. Actual total reclaim
 evidence/protected147/userdirt preserved. Cleanup1/2actualrecursive-empty/closed/
 pathgone, peaks3222200320/3221889024B,high21918/3757,max/OOM/kill/swap0.
 Only offline maintenance, no concurrent inference/build/remotechanges. Curation
-DONE with archive9044B in storage/d556_targeted_cache_reclaim. Next close its
-actual empty scope and publish exact paths; then vLLM7BW2 using D536 unchanged
-native config plus D553 approved input map. No D555 repeat or baseline tuning.
+DONE with archive9044B in storage/d556_targeted_cache_reclaim. Publication
+ae784785ca73e6e10767b315b9a7a93c954d8497 PUSHED/remoteequal,17explicitfiles;
+curation/publicationactualemptyclosed/pathgone,events0/swap0. No repeatmaintenance.
+
+D557 vLLM7BW2 OFFLINEINPUTQUALIFICATION PASS; read D557_VLLM_W2_REFERENCE.md.
+RAW vllm_qualification/d557_20261016. UnchangedD536nativevLLMconfig/source bytes;
+D553W2same4000/497IDs/458224tokens. Reuse386W2+53D541lifecycle tests/D535build;
+2newcontractchecks, noGPUqualification/performance repeat. Initial reuse driver
+had wrong historical test filename; originalfailure/driverretained, corrected
+only toD554-verifiedtest_ieee_tc_preflight.py. Actualqualification1/2closed,
+peaks57634816/210534400B,events0/swap0. No servingcodechange orbaseline tuning.
+Launcher/freeze/remote/closure/analysis helpers reusedfromD536 with newkey/W2.
+NEXT exactprelaunchbackup.py thenclosebackup; freshgatedstart.py thenclosestarter.
+No newperformance run orremote service started yet. FullgoalACTIVE.
 
 ## Historical pause handoff (superseded by explicit resume above)
 
