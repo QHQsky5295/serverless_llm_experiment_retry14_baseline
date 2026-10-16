@@ -2,6 +2,34 @@
 
 ## D565 bounded multi-target numerical witness prepared, 2026-10-16
 
+AUTHORITATIVE TERMINAL: SAME native run complete, service/watchdogRC0, actual
+GPUreleased/servicepathgone; launcherrecursiveempty/closed/pathgone,
+peak90701824B/events/swap0. No liveGPU/remotejob. 280watchdogsamples,
+servicepeak6998581248B/minhost105170944000B/events/swap0. No repeatqualification/run.
+4cases20requests5120nativeoutputs complete; samples257/257/257/259, mixed4/4,
+full8context1024KVpass. Rawowners5469372416B released, base/prepared unchanged.
+8fullscorevectors; alltargetprefixes equal retained. req00104/index54: batch2
+10894=5936=17.0 chooses5936; all8 17.0>16.984375 chooses10894; mixedboth16.984375
+chooses5936. req00015 prior tie evidence unchanged. Direct native argmax decision
+paths explained, NOT independenthighprecisiontruth/all500 proof. Batch2req00104
+both188/256positions differfromD445, mixed192; all8req00015diff116. Preserveall.
+No repeatedper-token diagnostics or equality target. Next strictcuration/push,
+then faithful onlineowner/capacity integration/full500/newW0W1W2. FullscopeACTIVE.
+HistoricalLIVE notes below superseded. No serving/kernel/frozenconfig change yet.
+
+AUTHORITATIVE LIVE: prelaunchMAIN8366c9180498013c2d4eed8f97e24387a4d6080d,
+BASE6a0217766f3bde57f5ed9072135fdb58428eb271 bothPUSHED/remoteequal.
+Explicit6MAIN/4BASEfiles;39tests/source/archive/protected147/userdirt/secrets/diff
+checksPASS. Prepare/publicationactualrecursiveemptyclosed/pathgone,
+peak45621248/27017216B,events/swap0. Single tmux tc-d565-native-score RUNNING,
+freshgatedlaunch passed. Serviceprimelora-tc-svc-1beda564c9ef4a1e9a230ef7ab900061.scope,
+Invocationc9681d88d69d442c8cbde70ff1c573ce,inode26057197.
+Launcherauxd5650000000000000000000000000006 Invocation762d6d339ab243979b46b837b47e16db,
+inode26057155. Sample14host112137019392B,events/swap0/noabort; no GPUresult yet.
+Monitor SAMErun only; no tests/build/scans/backup/remotechanges. After actualterminal
+inspect capacity_launch/native_capacity, exactrecursiveempty close.py launcher,
+then strict multi-target score/output/closure audit and preserve/push. No restart.
+
 Full PLAN/status/AGENTS/rules and frozen V1/single-run V2 reread; identities unchanged.
 Read D565_LOQUETIER_NATIVE_SCORE_DIAGNOSTIC.md. Existing capacity probe ONLY gets
 explicit completed_phases_v2 score binding; all first differences from D564 retained.
