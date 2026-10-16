@@ -1,5 +1,24 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D589 W2 input qualification passed — prelaunch checkpoint then one replay
+
+2026-10-16 AUTHORITATIVE: D588pusheda1f687be2c4e2b82d69f95341e3701645f2ab141;
+allmaintenance/publication actuallyclosed. D589 reuses SAME nativeconfig455ef31c...
+from D585/D587, batch8/four125-ID staticshards/SMLM/sequentialstartup. Existing
+D557W2 view5734bd88.../map48c72e39...,4000requests/497IDs/458224targets; no newdata.
+First offlinequalifier omitted existing tc_adapter_rotation in its constructed
+contract; unchanged analyzer rejected it BEFORE GPU/remote launch. Failedsource,
+error/returncode and actualclosure retained. qualify2 includes exactsource field,
+passes W2 derivation/current-source checks;69analysis+86online tests andD567/D569
+GPUqualification reused, no repeatGPUtest. Bothqualification scopesclosed;
+qual2 finalreceipt authoritative. ReadD589_LOQUETIER_CAPACITY_FULL_W2.md.
+NEXT prelaunchbackup, fresh150GiB/102GiB/20GiBgrowthgate, exactownedremote start
+and SINGLE tmux tc-d589-loquetier-full-w2. No inference launched yet. Follow
+existingstart/run/postterminalhelpers; postanalysis qualifiedvenv/full4000_w2.
+No baseline tuning/no winnerfilter; independentnumericUNKNOWN, formalfalse.
+Then remaining7Bcomparison/PrimeLoRAoptimization; all3B/dLoRA/G1/G2/A1–A5/
+S1–S13/cost/docs/finalfigures ACTIVE. Do NOT repeat D588 maintenance orD587W1.
+
 ## D588 storage completed — publish then fixed Loquetier W2
 
 2026-10-16 AUTHORITATIVE: D587 remains complete/audited/pushed8b072ac, no repeat.
