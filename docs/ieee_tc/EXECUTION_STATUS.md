@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D594 remote-preparation diagnosis complete — one PrimeLoRA candidate next
+
+2026-10-17: D593 checkpoint a7da3b32f28def306a04dd98e5dddec91c63c87c pushed/
+remoteequal; its analysis and publication actually closed/pathgone. D594 now
+completed 8000 streamed request stage checks and numerical W1/W2 Resident
+reference review, preserving raw n_correct=null/development/unknown independent
+numerical proof. Uref W1=9008.761400188087, W2=16115.559125168016; no G2 closure.
+Read D594_REFERENCE_AND_REMOTE_PREPARATION.md and d594_reference_and_ttft/.
+W2 remote cohort owns313/418 joint violations; native load ~51ms, not4s.
+620 own-transfer/loaded requests joined across W1/W2; W2 pressure start/finish
+means493.998/758.819ms, sequential acknowledgements across3.541 native owners.
+Candidate: parallel independent-owner projections with all-settled barriers,
+same membership lock/native safety/formulas; not assumed1.253s E2E gain.
+All3 analysis scopes actually recursiveempty/closed/pathgone, events/swap0,
+peak661110784/65777664/37085184B. No live inference/remote job/pending handle.
+NEXT explicit D594 backup, then sole concurrency candidate/tests/minimal native
+validation/full new-key replay. No repeated baseline tuning, no stale-state
+cache shortcuts. Full3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures remainACTIVE.
+Shared k3s untouched; HydraServe isolated adaptation already done.
+
 ## D593 complete 7B comparison — reference review and PrimeLoRA bottleneck next
 
 2026-10-17: reused 18 sealed observations, six systems × W0/W1/W2; no GPU
