@@ -1,5 +1,179 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D557 terminal and strict audit, 2026-10-16
+
+AUTHORITATIVE: the SAME D557 run has now completed, no replay restart.
+4000responses/0fail/458224 native tokens; service/replay/watchdogRC0,
+actualnativeGPUrelease confirmed/servicepathgone. close_launch.py DONE,
+ownedlauncherauxrecursiveempty/closed/pathgone,peak556736512B/events0/swap0.
+All3exactownedremoteunits stopped/inactive/MainPID0/portsabsent; collected
+bilateraltransfer/monitorSHA. No live inference or remote experimentaljob.
+Terminalwatchdogrecord has nohostsample; the final lightjq sample projection
+reportednull division, NOT a watchdog/service failure. ActualreceiptRC0.
+
+Existing resident_rr_v1/full4000_w2 strictaudit PASS. joint3929/4000=98.225%,
+TTFT3929/TPOT4000. U16115.559125168016GPU-s,R4.028889781292004/bindingvalid,
+meanTTFT732.5341274724924ms/P951751.2954722624272ms;
+meanTPOT24.893208337248737/P9527.335380190983415ms;
+meanE2E3568.9212727206177ms. IndependentnumericUNKNOWN/n_correctnull,
+notglobal/crossscenarioG1/G2closure. 497fetch/418365205wireB/packing0;
+servicepeak39726452736B/high/max/OOM/kill/swap0. All4nativeworkersready.
+Source-orderjoint448/495/498/500/497/494/497/500;71violationsallTTFT.
+Analysisaux0010 actualrecursiveempty/closed/pathgone,peak755740672B/events0/swap0.
+
+Reused D555 streaming input join under new D557 helper: full4000 join to D554
+and D555 PASS, startupdiagnostics saved. Contractaux0011 actuallyrecursiveempty/
+closed/pathgone,peak601804800B/events0/swap0. No live analysis job remains.
+PrimeLoRAvsvLLM U9.1483%lower but joint8.675pp lower/P953.3275x; no G1/G2 closure.
+FourvLLMreadybusiness+80.4725–80.6352s, allAOTcachehit; cacheinitialstate equality
+notproved. Same497fetch/418365205B asD554/D555: no downloadreduction claim.
+Curation COMPLETE at main_comparison/d557_vllm_w2/result1, evidence81800B.
+Source/archive/protected147/userdirt checksPASS;439 prior W2/lifecycle tests reused,
+not repeated. Resultscope actualrecursiveempty/closed/pathgone. Next explicit
+testedcheckpointpush using RAW publish_result.py; no further inference.
+Do NOTrepeatperformance/analysis/inputjoin/curation/
+collection/localclosure/remotestop. W2reference NOTformallyfrozen yet.
+After preservation: NEW safecloseddata storage maintenance, then prioritized
+Loquetier lifetime/capacity hypothesis qualification per latest supplement.
+Full7B/G2/3B/ablations/sensitivities/docs/figures scope remainsACTIVE.
+This turn madePROGRESS: fullrunterminal, exactclosure and strictaudit completed.
+
+## Latest verified continuation, 2026-10-16
+
+FULL PLAN/status, both AGENTS, latest rule supplements, frozen V1/single-run V2
+and Loquetier priority document reread after compaction; PLAN/V1/V2 SHAs unchanged.
+The latest cluster reply is already addressed by D510/D546 isolated rootless
+Podman adaptation. Do NOT change unrelated k3s, request its credentials, or redo
+completed HydraServe base qualification. All remaining HydraServe W2/3B/mechanism
+scope is retained, not declared complete by these two results.
+
+D557 SAME actual service Invocationedd6f36969384770b792ff3d11052e46 rechecked
+active atsample2670/1624175.975322425; terminal receipt absent at this check.
+2947created/2944responses/0failed,available93.155117GiB,disk141.483345GiB,
+high/max/OOM/kill/swap0,noabort. Progress counts are NOT final native correctness
+or SLO evidence. Continue SAME run once; no restart/config change/secondheavyjob.
+Previous and current turns are VERIFIED WAIT, not a blocker. Fullgoal ACTIVE.
+Same actual Invocation also rechecked at2419/2529/2604 this turn; no restart.
+Existing close_launch/run_analysis/close/stop_remote helpers inspected read-only,
+not executed while the service remains live. Full PLAN/V1/V2 remain read in
+current context; unchanged PLAN SHA reverified. Resource skill/reference read
+for post-release maintenance; no detector or storage scan run during inference.
+
+Read-only Loquetier ownership review added to LOQUETIER_OPTIMIZATION_AND_STORAGE_20261016.md:
+virtual model retains shared base; saved bound methods can form cycles; prepared
+tensors have their own retained owners. This is a falsifiable lifetime hypothesis,
+not proof that deleting a list frees GPU memory or preserves all outputs. Fixed
+official raw source fetch failed; local fixedcheckout used and limitation stated.
+No tests/GPUdiagnostics/serving edits/cleanup/build/hashscan/backup/remotechanges.
+Use existing post-release closure/audit/save/push helpers, then fresh safe storage
+maintenance and prioritized Loquetier qualification; don't mechanically run its
+old weak W2 point. No unrelated scope reduction. Docs-only delta saved locally
+for the next meaningful tested checkpoint, not a push during live inference.
+
+## NEW USER PRIORITY: Loquetier optimization and storage, 2026-10-16
+
+Read LOQUETIER_OPTIMIZATION_AND_STORAGE_20261016.md. User explicitly reopens
+Loquetier diagnosis AND evidence-based optimization; this is a Loquetier-specific
+exception to the older no-baseline-optimization rule, not a general sweep or a
+metric change. After SAME D557 completes/releases/audits/saves, do fresh safe
+closed-data storage maintenance, then prioritize Loquetier's documented capacity/
+queue/deployment issues before mechanically extending its old point to W2.
+All older results/failures/unique assets remain protected; full remaining scope
+continues. No deletion/build/test/serving edit/remote change during active D557.
+
+Read-only history/code/official-source review: D437/D438/D439/D441/D445/D544;
+native run_inference retrieved online; official paper A6000-48GiB/4-adapter
+inference setting differs from125-ID-per24GiB-GPU adaptation. Local official
+example default batch16, current frozenbatch2. Measured original+prepared LoRA
+co-residency is a concrete memory-capacity hypothesis, not a proven safe removal
+or performance improvement. Native MixedLoraLinear retains prepared tensors/
+pointers; shared-storage/base-model ownership and numerical behavior need tests
+AFTER current run. Sequential startup is separate from persistent queue overload.
+No Loquetier code changed or new qualification performed; no storage reclaimed.
+
+D557 same actual Invocation active atsample1849/1623343.302938124,
+1900created/1896responses/0failed,available93.786171GiB,disk144.604828GiB,
+high/max/OOM/kill/swap0/noabort. No final audited performance yet. Existing PLAN/
+metrics remain read in current context. This new priority overrides only the
+old next-baseline order/Loquetier tuning prohibition, not the live run contract.
+
+## Current monitoring turn, 2026-10-16
+
+Latest objective edit removes the trailing all-metric-first/near-best discussion
+and retains the full execution goal. No pause/cancel, new threshold or mid-run
+change was requested. Continue original G1/G2 mainline; previous turn and this
+turn are VERIFIED WAIT on D557's SAME actual live service Invocation, not a
+blocker or another performance attempt. monitor-experiment reread and used;
+full PLAN/status/V1/V2 remain read in this context, unchanged SHAs reverified.
+At sample1483/1622972.078770301 the SAME actual service Invocation was rechecked
+active (also at1351/1406); tmux was live at1351. Latest1399created/1394responses/
+0failed,available93.598984GiB,disk146.156784GiB,high/max/OOM/kill/swap0,noabort. These
+counts are progress, not full native/correctness audit. No terminal receipt then.
+Existing post-release close_launch.py/run_analysis.py inspected read-only;
+not executed, no source/config changes, no new test/build/maintenance/backup.
+The same run must finish once; then actual release, owned remote stop, strict
+W2 audit/input join/curation and backup. All remaining scope is still ACTIVE.
+
+## Latest objective clarification, 2026-10-16
+
+User refinement after the comparative report: strive for all-metric leadership;
+if objectively not attainable, consider whether a near-best tradeoff is strong
+enough for the paper, and do not close optimization prematurely. This does NOT
+relax frozen G1/G2, set an arbitrary tolerated regression, or make rank2 alone
+an acceptance criterion. A convincing tradeoff needs the common correctness/SLO/
+resource constraints, material contribution-aligned benefits, disclosed losses,
+and mechanism evidence. Nondomination by available measured points is useful
+but not sufficient; single-run observations do not prove significance, global
+optimality or impossibility of further improvement. W2 below95%, G2 unfinished,
+3B unclosed and same-config cross-scenario validation remain concrete open work.
+If a future proposed completion requires relaxing the approved constraints,
+present the evidence and obtain user direction rather than silently changing
+the evaluation. Finishing optimization would still not finish remaining
+ablations, sensitivities, reviewer evidence and deliverables.
+The user's subsequent clarification explicitly requests independent judgment,
+not automatic acceptance of this ambition as scientifically correct. Conclusion:
+all-workload/all-metric first place is not a justified mandatory scientific
+completion rule; retain it as a stretch objective. Rank2 alone is likewise not
+an adequate stopping rule. Keep frozen constraints and evaluate the magnitude,
+scope, fairness and mechanism support of any proposed contribution. No change
+to G1/G2, baseline configurations or live D557 is authorized by this discussion.
+
+No run/configuration changes for this refinement. Same D557 actual Invocation
+active at sample922/1622403.054448323, available93.925171GiB,disk147.904469GiB,
+high/max/OOM/kill/swap0,noabort; no terminal receipt. FULL PLAN/V1/V2 still read
+in current context and unchanged SHAs reverified. Continue light monitoring;
+no cleanup until actual release and no new heavy job below the start gate.
+
+The latest user objective asks whether PrimeLoRA can attain highest joint SLO,
+lowest physical GPU-s and lowest P95 in every workload, and whether the current
+evidence is convincing. This is an optimization ambition, not authorization to
+change the frozen evaluation, tune baselines, select winning repeats or restart
+the live run. Simultaneous improvement is possible when avoidable work/queues
+are removed, but neither the IEEE equations nor these observations guarantee
+three-way dominance. Retain G1/G2 and all raw metrics; baseline SLO below95% is
+an observed result, not a reason to exclude it or force baseline optimization.
+
+Full PLAN/status, both metric protocols and latest execution rules reread after
+compaction. Rechecked D513/W0, D551/W1, D554-D555/W2 and D274 historical3B.
+W0 resource saving is not raw latency/SLO leadership; W1 has best observed SLO
+and P95 among available points but more GPU-s than S-LoRA and over the candidate
+75% budget; W2 has lower U/P95 than ServerlessLLM but lower joint attainment.
+Independent numerical correctness remains unknown; W0 and W1/W2 candidate
+configurations differ, so no cross-scenario unified configuration claim.
+Current primary USENIX Llumnix/DistServe/dLoRA pages checked for constrained
+efficiency and request/adapter scheduling context; no new causal mechanism or
+implementation candidate inferred merely from literature or aggregate results.
+
+D557 SAME service Invocationedd6f36969384770b792ff3d11052e46 remains active,
+sample795 at1622274.25409395: hostavailable93.953793GiB,disk148.439236GiB,
+high/max/OOM/kill/swap0,noabort. No terminal receipt yet. Above100GiB ongoing
+disk stop, below150GiB next-heavy start; no cleanup during performance. Latest
+light input progress reached request index667, not an audited completion count.
+Continue SAME W2 vLLM run; then actual release/audit/save, remaining W2 baselines
+and evidence-driven PrimeLoRA optimization. No code/config/remote changes,
+tests/build/hashscan/backup or second heavy job in this reporting turn. Fullgoal
+ACTIVE; next meaningful checkpoint will include this status delta.
+
 ## Authoritative resume, 2026-10-16
 
 The user resumed the active goal after the RelayServe migration pause; the
@@ -31,7 +205,52 @@ DONE with archive9044B in storage/d556_targeted_cache_reclaim. Publication
 ae784785ca73e6e10767b315b9a7a93c954d8497 PUSHED/remoteequal,17explicitfiles;
 curation/publicationactualemptyclosed/pathgone,events0/swap0. No repeatmaintenance.
 
-D557 vLLM7BW2 OFFLINEINPUTQUALIFICATION PASS; read D557_VLLM_W2_REFERENCE.md.
+D557 vLLM7BW2 RUNNING; do NOT repeatstart/backup/qualification. Read
+D557_VLLM_W2_REFERENCE.md. Prelaunch271e5948e355c601417251b4d73e0e3e11fd3b00
+PUSHED/remoteequal,4explicitfiles;BASEaff60bbunchanged/pushed. Backup/startactual
+recursive-empty/closed/pathgone,peaks26738688/240033792B,events0/swap0.
+Tmux tc-d557-vllm-w2. Serviceprimelora-tc-svc-82a9291e4b2c43c9b278cbca7dac14cf.scope,
+Invocationedd6f36969384770b792ff3d11052e46,inode25963746.
+Launcherauxprimelora-tc-aux-d5570000000000000000000000000001.scope,
+Invocation952fa320946b431fabeefb1de55813c3,inode25963309.
+FreshgatesPASS; actualserviceInvocationrecheckedactive. Atwatchdog47,
+hostavailable110464196608B,service2817978368B,high/max/OOM/kill/swap0,noabort.
+Replayready with exactD553W2map; no terminalreceipt orfinalperformanceyet.
+RemoteownservicesLIVE,actual1000Mb/s/full,prepublished_gzip_v1/timing_v2healthPASS.
+7bclockremote-process-monotonic:6373705a390d43e499851ed198378836;
+3bInvocationb0952b49badd4154811c66a1a5824f63,7b8de5075e060e40d49591a5484027aea4;
+monitorprimelora-artifact-monitor-d557-w2.serviceInvocation70c97633465e4308b164bfe2ee82fe9e.
+NEXT lightmonitor SAMEactualservice/tmux untilterminal; no tests/build/hashscan/
+compression/backup/cleanup/remotechanges during inference. Then close_launch.py,
+stop_remote.sh, boundedrun_analysis.py --outcome success ONLYifactualsuccess;
+else preservefailure. Existingresident_rr_v1/full4000_w2analyzer/D394SLO.
+ThenfullinputjoinD554/D555,interpret/curate/push,not merelyHTTPsuccessqualification.
+Do NOTrepeatD556maintenance,D555resultoroldnativequalification. FullgoalACTIVE.
+
+Latest user objective update (2026-10-16): asks why new vLLM high-churn run is
+mainline and requests detailed scientific progress/comparison. This is a report
+request, not a pause/cancel/restart or baseline-tuning instruction. Keep SAME
+D557 running unchanged. Rechecked full-result docs D513/W0,D551/W1,D554-D555/W2
+and source PLAN mainline/M1/M2 clauses. W0 has resource advantage at95% but not
+best raw latency/SLO; W1 latestD55198.075%/8263.640850GPU-s/P952414.409330ms,
+best observedSLO/P95 among frozenpoints but U2.7475%aboveS-LoRA and above W1
+candidatebudget. W2D55489.55% vsD55593.90%; cannot claim optimal/G1/G2closure.
+W0D476 differsfromnewD551/D554configuration: no cross-scenario unifiedfreezeyet.
+3Bcurrent-protocoloptimization/comparisonstillOPEN; D274/D138historical12.589s
+meanTTFTisnotanewqualified3Bpoint. Independent numerical correctness unknowns,
+baselineadaptation/untriggeredmechanism limits and allremaining scope retained.
+Previous goal turn PROGRESS: D556closedbackup+D557newlaunch; current turn
+verified SAMEactualserviceInvocationlive and request progress while reporting.
+Latestlivepoll: sample311 at1621783.403793146,hostavailable100744630272B,
+service26559418368B,events0/swap0/noabort.154created/151responses/0failed sofar;
+notfinalauditedcorrectcounts. Four native-readyreceipts exist around1621609.52-
+1621609.69. Notice1621469.051592297,business1621529.051592297.
+Later objective edit retained the full execution goal and removed the trailing
+status-question wording; it did not request pause/cancel or authorize mid-run
+changes. Continue sameD557; detailedprogressreport does not close the goal.
+
+The following D557 qualification/prelaunch notes are historical, now running:
+OFFLINEINPUTQUALIFICATION PASS.
 RAW vllm_qualification/d557_20261016. UnchangedD536nativevLLMconfig/source bytes;
 D553W2same4000/497IDs/458224tokens. Reuse386W2+53D541lifecycle tests/D535build;
 2newcontractchecks, noGPUqualification/performance repeat. Initial reuse driver
@@ -39,8 +258,8 @@ had wrong historical test filename; originalfailure/driverretained, corrected
 only toD554-verifiedtest_ieee_tc_preflight.py. Actualqualification1/2closed,
 peaks57634816/210534400B,events0/swap0. No servingcodechange orbaseline tuning.
 Launcher/freeze/remote/closure/analysis helpers reusedfromD536 with newkey/W2.
-NEXT exactprelaunchbackup.py thenclosebackup; freshgatedstart.py thenclosestarter.
-No newperformance run orremote service started yet. FullgoalACTIVE.
+Prelaunchbackup/closebackup/freshgatedstart/closestarter are now DONE above.
+All3B/remainingW2/G2/ablations/sensitivities/docsandfigures scope retained.
 
 ## Historical pause handoff (superseded by explicit resume above)
 

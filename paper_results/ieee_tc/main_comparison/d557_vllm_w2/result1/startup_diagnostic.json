@@ -1,0 +1,142 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d5570000000000000000000000000011.scope",
+    "invocation_id": "5c0ac806c4d241c8855ffbbf7a25f953",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5570000000000000000000000000011.scope",
+    "inode": 25997642
+  },
+  "ready_offsets_from_business_s": [
+    80.47254361608066,
+    80.47515002801083,
+    80.63515152409673,
+    80.47253803699277
+  ],
+  "log_evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_0.log",
+      "line": 27,
+      "text": "(EngineCore pid=2925016) INFO 10-16 09:32:12 [model_runner.py:428] Model loading took 13.78 GiB memory and 40.997529 seconds"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_0.log",
+      "line": 31,
+      "text": "(EngineCore pid=2925016) INFO 10-16 09:32:23 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/a52d5fba6d4e2d3a318cc68b34578fb8d938847af1fc32975adf57946e498eae/rank_0_0/model"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_0.log",
+      "line": 32,
+      "text": "(EngineCore pid=2925016) INFO 10-16 09:32:23 [monitor.py:53] torch.compile took 1.11 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_0.log",
+      "line": 69,
+      "text": "(EngineCore pid=2925016) INFO 10-16 09:32:41 [core.py:372] init engine (profile, create kv cache, warmup model) took 28.98 s (compilation: 1.11 s)"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_1.log",
+      "line": 27,
+      "text": "(EngineCore pid=2925017) INFO 10-16 09:32:12 [model_runner.py:428] Model loading took 13.78 GiB memory and 40.992789 seconds"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_1.log",
+      "line": 31,
+      "text": "(EngineCore pid=2925017) INFO 10-16 09:32:23 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/a52d5fba6d4e2d3a318cc68b34578fb8d938847af1fc32975adf57946e498eae/rank_0_0/model"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_1.log",
+      "line": 32,
+      "text": "(EngineCore pid=2925017) INFO 10-16 09:32:23 [monitor.py:53] torch.compile took 1.12 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_1.log",
+      "line": 70,
+      "text": "(EngineCore pid=2925017) INFO 10-16 09:32:41 [core.py:372] init engine (profile, create kv cache, warmup model) took 28.98 s (compilation: 1.12 s)"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_2.log",
+      "line": 27,
+      "text": "(EngineCore pid=2925018) INFO 10-16 09:32:12 [model_runner.py:428] Model loading took 13.78 GiB memory and 41.028023 seconds"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_2.log",
+      "line": 31,
+      "text": "(EngineCore pid=2925018) INFO 10-16 09:32:23 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/a52d5fba6d4e2d3a318cc68b34578fb8d938847af1fc32975adf57946e498eae/rank_0_0/model"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_2.log",
+      "line": 32,
+      "text": "(EngineCore pid=2925018) INFO 10-16 09:32:23 [monitor.py:53] torch.compile took 1.12 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_2.log",
+      "line": 68,
+      "text": "(EngineCore pid=2925018) INFO 10-16 09:32:41 [core.py:372] init engine (profile, create kv cache, warmup model) took 29.22 s (compilation: 1.12 s)"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_3.log",
+      "line": 27,
+      "text": "(EngineCore pid=2925015) INFO 10-16 09:32:12 [model_runner.py:428] Model loading took 13.78 GiB memory and 41.002589 seconds"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_3.log",
+      "line": 31,
+      "text": "(EngineCore pid=2925015) INFO 10-16 09:32:23 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/a52d5fba6d4e2d3a318cc68b34578fb8d938847af1fc32975adf57946e498eae/rank_0_0/model"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_3.log",
+      "line": 32,
+      "text": "(EngineCore pid=2925015) INFO 10-16 09:32:23 [monitor.py:53] torch.compile took 1.12 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_3.log",
+      "line": 69,
+      "text": "(EngineCore pid=2925015) INFO 10-16 09:32:41 [core.py:372] init engine (profile, create kv cache, warmup model) took 28.98 s (compilation: 1.12 s)"
+    }
+  ],
+  "source_order_joint": [
+    448,
+    495,
+    498,
+    500,
+    497,
+    494,
+    497,
+    500
+  ],
+  "queue_mean_fraction_of_ttft": 0.3377525198715635,
+  "causal_attribution_complete": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_0.log",
+      "sha256": "34a607962d5dd4915b197d2307237900f8d9ba027742832b0a7ad5fcc1cb6936"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_1.log",
+      "sha256": "15a24eefef2249d99af47b708ada6690a3f86b021879dc47d9713e87cb824387"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_2.log",
+      "sha256": "eceaa586bb3072c34b7a0844f08db084eb0e0bb7c081912d931fc5e5bcb787bc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_3.log",
+      "sha256": "aba4b77d20ee422a9a7c76e225dbec1a7315a4d4ad79872d3b8800f955ef602c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_receipts/3cca5878a99b47b783f0126038d085f7.json",
+      "sha256": "2b8ab7e0783f3a78e4de82c5d6b6993bf92857093dc176f7f9a9f65041ae5409"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_receipts/5509d0600505478f9858b152c7529bd7.json",
+      "sha256": "4612e27ebaf312ebff0eaa11a644b29eb134d4b3d0fae9b580ac6c4e03d9eed4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_receipts/d2ad9fa952e24283872802c93b7e2bb0.json",
+      "sha256": "8c4f5fe54b8a9381aa3f10ae04d21c0083f9fea27bcd3048c6d9707632d93d8b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d557_20261016/model7b/worker_receipts/f07beaa0e25846dba7e2ee559108f10a.json",
+      "sha256": "5b41ba2a763a59c16e5524227b9db70ca4bb103233d753fdb87a38dea1b316e5"
+    }
+  ]
+}
