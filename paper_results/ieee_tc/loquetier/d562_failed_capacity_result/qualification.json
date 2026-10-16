@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "tests": 17,
+  "refs": {
+    "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py": "87e45df99b36a969a95428f155fff18ae64fc1370237d100f9c76aea02c1083d",
+    "/home/qhq/serverless_llm_baselines/tests/test_loquetier_static_capacity.py": "cbb640c37a860d9255d404185cb3459df7e085477355ce2fc536f7eea764f395",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "cbfbca88beb1602534dcc5e4368374dcc700b61899da35c3916c1de621c77d19",
+    "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py": "c98e3dd2151d74f2b1a3b062978bb6f0ed689a62657f8dd2c96e99a527a1fc0f",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/virtual_model.py": "d1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/models/mixed_lora.py": "93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e",
+    "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/model_generation.py": "31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/run_tests.py": "7186b9b6d31d300f67052ba4b70c93f9d5e79f81b9844da4303f586ee163003d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/qualification.log": "5ffeac992a4c6ff68d264e043c272091d4134858d4ac9ad0e05d29183591ea79",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/qualification_source.tar.gz": "96e07aa16dcf756b13857e0f64dc043805cefd902ad1001584fe62c96f1e3264"
+  },
+  "cpu_only": true,
+  "native_gpu_forward_qualified": false,
+  "production_changed": false,
+  "receipt": {
+    "passed": true,
+    "phase": "qualification",
+    "command": [
+      "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "tests.test_loquetier_static_capacity",
+      "tests.test_loquetier_native_generation.NativeGenerationRules.test_prepared_fp16_copy_survives_fp32_peft_owner_collection",
+      "tests.test_loquetier_native_generation.NativeGenerationRules.test_prepared_alias_retains_storage_after_fp16_parameter_collection",
+      "tests.test_loquetier_native_generation.NativeGenerationRules.test_owner_inventory_tracks_content_storage_and_releases_input",
+      "-v"
+    ],
+    "returncode": 0,
+    "identity": {
+      "unit": "primelora-tc-aux-d5620000000000000000000000000001.scope",
+      "invocation_id": "d30372dee670426f9390f0c0301e9772",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5620000000000000000000000000001.scope",
+      "inode": 26035464
+    },
+    "sources": {
+      "/home/qhq/serverless_llm_baselines/tests/test_loquetier_native_generation.py": "87e45df99b36a969a95428f155fff18ae64fc1370237d100f9c76aea02c1083d",
+      "/home/qhq/serverless_llm_baselines/tests/test_loquetier_static_capacity.py": "cbb640c37a860d9255d404185cb3459df7e085477355ce2fc536f7eea764f395",
+      "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "cbfbca88beb1602534dcc5e4368374dcc700b61899da35c3916c1de621c77d19",
+      "/home/qhq/serverless_llm_baselines/Loquetier_project/scripts/run_loquetier_trace_gate.py": "c98e3dd2151d74f2b1a3b062978bb6f0ed689a62657f8dd2c96e99a527a1fc0f",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/virtual_model.py": "d1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/models/mixed_lora.py": "93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e",
+      "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520/src/loquetier_src/model_generation.py": "31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/run_tests.py": "7186b9b6d31d300f67052ba4b70c93f9d5e79f81b9844da4303f586ee163003d",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/qualification.log": "5ffeac992a4c6ff68d264e043c272091d4134858d4ac9ad0e05d29183591ea79",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d562_20261016/qualification_source.tar.gz": "96e07aa16dcf756b13857e0f64dc043805cefd902ad1001584fe62c96f1e3264"
+    },
+    "resources": {
+      "memory.peak": "277954560\n",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "memory.swap.current": "0\n"
+    }
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  }
+}

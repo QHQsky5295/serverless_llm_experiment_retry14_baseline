@@ -1,6 +1,44 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D562 terminal failure/partial evidence, 2026-10-16 — authoritative
+
+SAME native run has terminated; serviceRC1/watchdogRC0, actualGPUrelease and
+servicepathgone confirmed. Launcher actualrecursiveempty/closed/pathgone,
+peak89219072B/events/swap0. CurrentGPUcomputeempty; no livejob/remoteoperation.
+Do NOTrepeat native/qualification/preparation or follow historical LIVE below.
+All-prefill8distinct requests completed256tokens each;257samples,KVdrained,
+peakallocated22187018240B/peakreserved24956108800B,no observedOOM.
+Mixedcase rejected beforefirstsample: diagnostic reuses capacity-mixed-sourceID
+acrosscases, violating nativehistoricalrequestIDuniqueness. Fix diagnostic phase
+namespace, never weaken nativeguard. Full8contextKV witness not reached.
+7/8outputs matchD445;req_00015/code_lora_0015 differs first atzeroindex131
+(old11029/new1024),116/256positions unequal. D561batch2 matchedD445. CauseUNKNOWN,
+not automatically numericalnoise or wrongadapter. Inspect same-prefix logits/
+candidate margin and nativebinding before accepting higherbatch. No servingchange.
+Full PLAN/status/AGENTS/rules/skills reread aftercompaction, currentHEADs match
+D562prelaunch. OfficialPyTorch2.1numericalaccuracy/Loquetierrepo checked; documentation
+permits batchshape differences but DOES NOT explain this specific discrepancy.
+Next failure-aware curation/checkpoint, then strict CPUdiagnosticID regression and
+bounded numerical/mixed qualification under a NEWkey. Never retry for winner.
+Alloldresults/147protected/userdirt retained; fullgoalACTIVE. Sharedk3s untouched,
+HydraServeD510/D546 adaptation alreadydone. All remainingW2/G2/3B/ablations/
+sensitivities/reviewer evidence and laterfigures retained, no scope reduction.
+
 ## D562 derived native concurrency qualification prepared, 2026-10-16
+
+AUTHORITATIVE LIVE: prelaunch MAIN35ae7c3ecc16eb282b128ce17025e9e716d957c2,
+BASE8da16a8d1415180607dfbb41ea7c0ef3731db703 bothPUSHED/remoteequal.
+Explicit6MAIN/3BASEfiles;17tests/source/archive/protected147/userdirt/secrets/diffPASS.
+Prepare/publicationactualrecursiveempty/closed/pathgone,peak45613056/27279360B,
+events/swap0. Single tmux tc-d562-derived-capacity; freshgated-launchpassed.
+Actualserviceprimelora-tc-svc-acce546d1fea4f6bb9cfb4f10cae37a9.scope,
+Invocationa852858291e24f5fa5f5e09d12964df6,inode26036659; recheckedactive.
+Launcherauxd5620000000000000000000000000006 identity saved inRAW.
+Sample8hostavailable112443244544B,events/swap0/noabort; nativeoutcomeunknown.
+Monitor SAMErun, no secondheavyjob/tests/build/scans/backup/remotechanges/cleanup.
+On actualterminal inspect capacity_launch/native_capacity, close.py launcher only
+after actualrecursiveempty, then strict output/mixed-transition audit/save/push.
+No restart on observationtimeout, no batch decrease/OOM retry withoutnewcause.
 
 Previous turn PROGRESS: D561actualcapacity/closures/two-repopush; do not repeat.
 Full PLAN/V1/V2/AGENTS/supplements remain fullyread in current context, unchanged
