@@ -1,5 +1,52 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D610 CPU/component qualification complete — backup before ordinary full W2
+
+D609 three exact closed D607 logs losslessly compressed,1004847104B reclaimed;
+source/two decompression hashes and147protected/user-dirty checks passed, actual
+scope closed. D610 integrates live per-inode settlement into one double-checked
+inventory, no stale capacity cache, formula/config/remote/publication-lock change.
+16 focused +215/178/13 regression tests passed (422); allactualclosed, events/swap0.
+Component attempts1/2 failed before timing; preserved. Attempt2 exposed AST-parent
+FIEMAP binding not patched alongside candidate. Attempt3 uses asserted same input
+function, both complete snapshots/bounds exact;8 checks passed. Metadata1003paths:
+uninitialized19.752→10.046ms,initialized19.080→9.528ms; settled9.892→9.943ms.
+These are controlled metadata components, not inference gains. Production source
+unchanged throughout tests. Allcomponenttools terminal, noGPU/remote/liveaux job.
+Read D610_INVENTORY_EXTENT_SETTLEMENT.md; publish checked candidate/evidence now,
+then storage/start gates and one new ordinary complete W2 using D554/D607 config.
+Do not repeat D607, D603 observer, D608 diagnosis or completed D610 tests. G1/G2
+not closed; sameconfig7B/3B/dLoRA/A1–A5/S1–S13/cost/docs/figures remain ACTIVE.
+
+## D609 storage maintenance registered; bounded source audit identifies next hypothesis
+
+Full PLAN/status and frozen V1/single-run V2 reread; no serving change or inference.
+D608 preparation audit + D603 retained caller summary identifies duplicate global
+inventory during unsettled-allocation checks (41/141 Q4 inventory caller samples;
+samples are not CPU attribution). Investigate integrating per-inode live extent
+settlement into one double-checked inventory, not reusing old physical snapshots.
+Do not remove fresh second-stat, capacity bounds, source verification or locking.
+Before tests/heavy work, D609 reuses D604 compressor for exact closed D607 outcome,
+request result and remote monitor only: closure, source SHA, no-active, two gzip
+roundtrips and protected/user-dirty checks. No unique evidence/assets removed.
+Disk160227000320B <150GiB startup; maintenance only, no new GPU/build. Full scope
+and G1/G2 remain ACTIVE. Existing unrelated k3s untouched; HydraServe adaptation
+and baseline observations already completed, not restarted by this continuation.
+
+## D608 result checkpoint pushed — no live job; preparation-path audit next
+
+Checkpoint388923911568748a96e67d90c240527a78baead3 pushed and remote-equal.
+Publication82432 exit0; actual scope recursively empty/closed/pathgone. All D608
+analysis/transport/publication tools terminal; no GPU/remote/auxiliary job live.
+Source/protocol/protected147/user-dirty SHA checks and archive roundtrip passed.
+This continuation completed bounded8000request diagnosis,497×2 transfer audit,
+result interpretation and backup: meaningful progress, not a blocker. Do not
+repeat D607 performance run, D606 CPU tests, D603 observer or D608 log analysis.
+Next bounded history/official-source/call-boundary audit of fresh-file preparation
+and publication serialization, preserving all freshness/capacity/identity rules;
+no new GPU/build before storage maintenance and150GiB start gate. G1/G2 open;
+full sameconfig7B/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures ACTIVE unchanged.
+
 ## D608 existing-log diagnosis complete — backup then bounded preparation audit
 
 No inference/remote/serving change. First offline attempt44042 refused compression

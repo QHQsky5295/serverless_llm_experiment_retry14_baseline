@@ -158,7 +158,9 @@ class FreshFileObservation(unittest.TestCase):
             bound['settled'] = False
         with patch.object(owner, '_file_inventory', wraps=owner._file_inventory) as inventory:
             owner.preparation_snapshot(manifests=manifests, limits=limits)
-        self.assertEqual(inventory.call_count, 2)
+        # Extent settlement is now part of that same fresh double-checked view,
+        # not a separate global scan followed by another capacity observation.
+        self.assertEqual(inventory.call_count, 1)
         manifests['pending'] = dict(manifests['a'])
         target = fixture.nvme/'pending'
         with owner.materializing(target, budgeted=True) as transfer:
@@ -169,6 +171,74 @@ class FreshFileObservation(unittest.TestCase):
                 self.assertEqual(without_capture_times(after), without_capture_times(before))
                 self.assertEqual(after['artifacts']['pending']['sources'], [])
                 self.assertEqual(after['budgets']['tiers']['nvme']['active_transfers'], 1)
+
+    def unsettled(self):
+        fixture, owner, manifests, limits = self.make()
+        file = next(p for p in (fixture.nvme/'a').rglob('*') if p.is_file() and p.stat().st_size)
+        info = file.stat()
+        bound = owner._file_allocations[info.st_dev, info.st_ino]
+        self.assertTrue(bound['writer_closed'])
+        # Restore the conservative ext4 ceiling of this existing tiny fixture.
+        bound.update(data_bytes=512*info.st_blocks, ceiling_bytes=6*512*info.st_blocks, settled=False)
+        return fixture, owner, manifests, limits, file, bound
+
+    def test_uninitialized_extent_keeps_envelope_in_single_fresh_inventory(self):
+        fixture, owner, manifests, limits, file, bound = self.unsettled()
+        before = dict(bound)
+        with (patch('faaslora.memory.residency_manager._file_extents_initialized', return_value=False),
+              patch.object(owner, '_file_inventory', wraps=owner._file_inventory) as inventory):
+            snapshot = owner.preparation_snapshot(manifests=manifests, limits=limits)
+        self.assertEqual(inventory.call_count, 1)
+        self.assertEqual(bound, before)
+        self.assertGreater(snapshot['budgets']['tiers']['nvme']['pending_increment_bytes'], 0)
+
+    def test_successful_settlement_reobserves_path_then_checks_every_path_again(self):
+        from collections import Counter
+        fixture, owner, manifests, limits, file, bound = self.unsettled()
+        counts = Counter()
+        original = os.stat
+        def observe(path, *args, **kwargs):
+            if kwargs.get('follow_symlinks') is False:
+                counts[str(path)] += 1
+            return original(path, *args, **kwargs)
+        with (patch('faaslora.memory.residency_manager._file_extents_initialized', return_value=True),
+              patch.object(os, 'stat', observe)):
+            owner.preparation_snapshot(manifests=manifests, limits=limits)
+        self.assertTrue(bound['settled'])
+        self.assertEqual(counts.pop(str(file)), 3)
+        self.assertEqual(set(counts.values()), {2})
+        self.assertEqual(bound['data_bytes'], bound['ceiling_bytes'])
+
+    def test_mutation_during_extent_probe_cannot_escape_as_successful_observation(self):
+        fixture, owner, manifests, limits, file, bound = self.unsettled()
+        stats = {}
+        def mutate(*args):
+            info = file.stat()
+            os.utime(file, ns=(info.st_atime_ns, info.st_mtime_ns + 1_000_000_000))
+            return True
+        with (owner.lock,
+              patch('faaslora.memory.residency_manager._file_extents_initialized', side_effect=mutate)):
+            with self.assertRaisesRegex(RuntimeError, 'changed during extent settlement'):
+                owner.inventory(_observed_stats=stats, _settle_allocations=True)
+        self.assertEqual(stats, {})
+
+    def test_final_stat_still_rejects_change_after_successful_settlement(self):
+        fixture, owner, manifests, limits, file, bound = self.unsettled()
+        original, count = os.stat, 0
+        def mutate(path, *args, **kwargs):
+            nonlocal count
+            if kwargs.get('follow_symlinks') is False and str(path) == str(file):
+                count += 1
+                if count == 3:
+                    info = original(path)
+                    os.utime(path, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+            return original(path, *args, **kwargs)
+        stats = {}
+        with (owner.lock, patch.object(os, 'stat', mutate),
+              patch('faaslora.memory.residency_manager._file_extents_initialized', return_value=True)):
+            with self.assertRaisesRegex(RuntimeError, 'changed while collecting footprint'):
+                owner.inventory(_observed_stats=stats, _settle_allocations=True)
+        self.assertEqual(stats, {})
 
     def test_second_stat_change_is_still_rejected_before_observations_escape(self):
         fixture, owner, manifests, limits = self.make()

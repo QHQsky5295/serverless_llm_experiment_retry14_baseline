@@ -126,7 +126,7 @@ def _file_extents_initialized(fd, size):
 
 
 def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
-                          _observed_stats=None):
+                          _observed_stats=None, _settle_allocation=None):
     """Inventory linked storage, not RSS, content hashes, or reclaimable bytes.
 
     Call under the cooperative file owner. Active writers must be listed and
@@ -168,6 +168,15 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
                 raise RuntimeError('managed file inventory requires allocated block observations')
             key = (info.st_dev, info.st_ino)
             signature = signature_for(info, key)
+            if (_settle_allocation is not None and key not in allocations and
+                    _settle_allocation(path, info)):
+                # Settlement changes the charged envelope, not content identity.
+                # Bind its new allocation observation to this same path before
+                # collecting it; the full second pass still follows all probes.
+                info = os.stat(path, follow_symlinks=False)
+                if ((info.st_dev, info.st_ino) != key or
+                        signature_for(info, key) != signature):
+                    raise RuntimeError('managed inode changed during extent settlement')
             observations.append((path, key, signature))
             if captured is not None:
                 captured[path] = info
@@ -995,7 +1004,7 @@ class LocalSourceReferences:
                 lora_path=reference['path'], content_sha256=content_sha256)
             return witness
 
-    def inventory(self, *, _observed_stats=None):
+    def inventory(self, *, _observed_stats=None, _settle_allocations=False):
         """Owner snapshot, including retained and private-stage paths.
 
         A transfer writes outside this lock. Unqualified transfers have unknown
@@ -1005,19 +1014,23 @@ class LocalSourceReferences:
         with self.lock:
             if set(self.materializations) - set(self._prepared_transfers) - self._budgeted_materializations:
                 raise RuntimeError('file inventory requires quiescent managed writes')
-            view = self._file_inventory(_observed_stats=_observed_stats)
+            view = self._file_inventory(_observed_stats=_observed_stats,
+                                        _settle_allocations=_settle_allocations)
             held = {key for record in self._prepared_transfers.values() for key in record['files']}
             view['transfer_held_file_bytes'] = sum(item['allocated_bytes'] for item in view['allocations']
                 if (item['device'], item['inode']) in held)
             return dict(owner_id=self.owner_id, **view)
 
-    def _file_inventory(self, *, after_managed_root_deletion=False, _observed_stats=None):
+    def _file_inventory(self, *, after_managed_root_deletion=False, _observed_stats=None,
+                        _settle_allocations=False):
         writing = {key for record in self._prepared_transfers.values() for key in record['files']}
         roots = ({tier: root for tier, root in self.roots.items() if root.exists()}
                  if after_managed_root_deletion else self.roots)
         view = _local_file_inventory(roots, writing_inodes=writing,
                                      allocation_bounds=self._file_allocations,
-                                     _observed_stats=_observed_stats)
+                                     _observed_stats=_observed_stats,
+                                     _settle_allocation=(self._settle_file_allocation
+                                         if _settle_allocations else None))
         actual = {(item['device'], item['inode']): item for item in view['allocations']}
         for transfer_id, record in self._prepared_transfers.items():
             for key, expected in record['files'].items():
@@ -1075,26 +1088,35 @@ class LocalSourceReferences:
             # Nothing can settle. The caller's subsequent inventory still
             # validates every path/bound; this skips no capacity observation.
             return
-        view = self._file_inventory()
-        for item in view['allocations']:
-            key = item['device'], item['inode']
-            bound = self._file_allocations.get(key)
-            if bound is None or not bound['writer_closed'] or bound['settled']:
-                continue
-            if bound['data_bytes'] == bound['ceiling_bytes']:
-                bound['settled'] = True
-                continue
-            path = item['paths'][0]
-            with open(path, 'rb') as file:
-                info = os.fstat(file.fileno())
-                if (info.st_dev, info.st_ino, info.st_size) != (*key, bound['size_bytes']):
-                    raise RuntimeError('extent observation lost its reserved inode')
-                if bound['filesystem'] == 'ext4' and not _file_extents_initialized(file.fileno(), info.st_size):
-                    continue
-                allocated = 512 * os.fstat(file.fileno()).st_blocks
-                if not bound['data_bytes'] <= allocated <= bound['ceiling_bytes']:
-                    raise RuntimeError('closed file allocation exceeds its reserved envelope')
-                bound.update(ceiling_bytes=allocated, data_bytes=allocated, settled=True)
+        self._file_inventory(_settle_allocations=True)
+
+    def _settle_file_allocation(self, path, observed):
+        """Probe one freshly discovered inode during a locked inventory.
+
+        The inventory validates the original envelope before this callback and
+        re-stats the path after a successful settlement. Its second full pass
+        follows all probes. No old path/stat map or allocation snapshot is kept.
+        """
+        key = observed.st_dev, observed.st_ino
+        bound = self._file_allocations.get(key)
+        if bound is None or not bound['writer_closed'] or bound['settled']:
+            return False
+        if not stat_types.S_ISREG(observed.st_mode) or observed.st_size != bound['size_bytes']:
+            raise RuntimeError('extent observation lost its reserved inode')
+        if bound['data_bytes'] == bound['ceiling_bytes']:
+            bound['settled'] = True
+            return False  # No allocation or envelope change.
+        with open(path, 'rb') as file:
+            info = os.fstat(file.fileno())
+            if (info.st_dev, info.st_ino, info.st_size) != (*key, bound['size_bytes']):
+                raise RuntimeError('extent observation lost its reserved inode')
+            if bound['filesystem'] == 'ext4' and not _file_extents_initialized(file.fileno(), info.st_size):
+                return False
+            allocated = 512 * os.fstat(file.fileno()).st_blocks
+            if not bound['data_bytes'] <= allocated <= bound['ceiling_bytes']:
+                raise RuntimeError('closed file allocation exceeds its reserved envelope')
+            bound.update(ceiling_bytes=allocated, data_bytes=allocated, settled=True)
+        return True
 
     @contextmanager
     def transfer_workspace(self, transfer_id):
@@ -1186,8 +1208,7 @@ class LocalSourceReferences:
             data_required = sum(((size + unit - 1) // unit) * unit for size in paths.values())
             required = sum(_file_allocation_ceiling(size, unit, filesystem) for size in paths.values())
             payload_required = data_required - (((archive_bytes + unit - 1)//unit)*unit if archive_bytes else 0)
-            self._settle_file_allocations()
-            before_view = self._file_inventory()
+            before_view = self._file_inventory(_settle_allocations=True)
             before = self._charged_file_bytes(before_view, tier)
             effective_limit = limit_bytes
             if tier == 'host' and self._host_limit is not None:
@@ -1264,8 +1285,7 @@ class LocalSourceReferences:
         A snapshot grants no permission to copy; execution rechecks/preallocates.
         """
         with self.lock:
-            self._settle_file_allocations()
-            view = self.inventory()
+            view = self.inventory(_settle_allocations=True)
             return self._file_budget_from_inventory(limits, view)
 
     def _file_budget_from_inventory(self, limits, view):
@@ -1386,7 +1406,6 @@ class LocalSourceReferences:
         """
         from ..storage.http_artifact_store import FrozenPreparationDescriptions
         with self.lock:
-            self._settle_file_allocations()
             units = {tier: os.statvfs(root).f_frsize for tier, root in self.roots.items()}
             if any(type(unit) is not int or unit <= 0 for unit in units.values()):
                 raise RuntimeError('preparation requires actual destination allocation units')
@@ -1398,7 +1417,7 @@ class LocalSourceReferences:
             if any(path.name not in manifests for path in self._confirmed_sources):
                 raise ValueError('confirmed file owner contains adapters outside the frozen universe')
             observed_stats = {}
-            inventory = self.inventory(_observed_stats=observed_stats)
+            inventory = self.inventory(_observed_stats=observed_stats, _settle_allocations=True)
             observations = self._planning_source_observations(inventory, observed_stats)
             artifacts = {}
             for aid, description in manifests.descriptions.items():
@@ -1542,8 +1561,7 @@ class LocalSourceReferences:
             # rename and remain until ordinary non-sync extent observations settle.
             for key in self._prepared_transfers[transfer_id]['files']:
                 self._file_allocations[key]['writer_closed'] = True
-            self._settle_file_allocations()
-            self._file_inventory()  # Last capacity check before publication.
+            self._file_inventory(_settle_allocations=True)  # Last capacity check before publication.
             expected = self._prepared_transfers[transfer_id]['expected_files']
             if verified_files is not None:
                 if not isinstance(verified_files, dict) or set(verified_files) != set(expected):
