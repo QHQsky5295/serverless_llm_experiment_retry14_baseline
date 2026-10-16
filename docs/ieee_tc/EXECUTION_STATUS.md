@@ -1,5 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D572 startup-path review complete; specific adaptation hypothesis next
+
+2026-10-16 AUTHORITATIVE: no live inference/remote/analysis job. D570/D571 checkpoint
+86139f8a501bf06ac3e502ee5586b9ba96faa0b6 PUSHED/remoteequal; publication actualclosed,
+recursiveempty/pathgone,peak26730496B/events/swap0. Do NOT repeat those tasks.
+D572 reused all55startup/provider/storage logs and each4000unique request assignments.
+Actual localbackbone preloads mean5.483/5.372s; nativecoldstart9.865/10.338s,
+not104s predictedby13GB/1G. SuccessfulallocationRnetsall1; unsuccessfulattempts
+notlogged, so bandwidth-input mismatch NOTyetisolatedperformancecause.
+Duringstartup32/34W0 and20/21W1 intervals had369/261 existinggenerationsfinish,
+but0newassignments. Original check_model_loop awaits startup; do NOT silently
+rewrite nativepolicy. Separately isolatedplatformgloballock coversstop~11s as
+well asunrelatedcreate/IP; nextsinglehypothesis is avoidableadaptationlockcontention.
+Read D572_HYDRASERVE_STARTUP_PATH_REVIEW.md; next reuseplatformtests for delayed
+delete vs unrelatedcreate/IP and sameworker/close/cancellation safety. Only if
+verified, scope lifecycle locks without weakeningactualrelease or changingnativealg.
+D572review3 actualrecursiveemptyclosed/pathgone,peak27267072B/events/swap0.
+Two offlineparsererrors preserved; nonewGPUrun/servingedit or changedmetric.
+NEXT boundedcuration/explicitcheckpoint then minimalplatformconcurrencyqualification.
+Curated hydraserve/d572_startup_review COMPLETE, evidence19183B; sourceAST/archive
+SHA roundtrip/protected147/userdirt checksPASS. Curation actualclosed/pathgone,
+recursiveempty; no repeatanalysis/curation. Next explicitpublication only.
+LoquetiernewfullW0W1W2/remaining7B/G2/PrimeLoRA/3B/dLoRA/A1-A5/S1-S13/cost/docs/
+figures remainACTIVE. Disklast161238294528B; freshgrowthgatebeforeheavywork.
+
 ## D570 review and D571 maintenance complete; combined preservation next
 
 2026-10-16 AUTHORITATIVE: no live inference/remote/analysis/cleanup job.
