@@ -1,5 +1,32 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D611 ordinary full W2 registered — qualification and backup before launch
+
+Full PLAN/status/V1/single-run V2 reread. Reuse D610 tested source and422 CPU tests,
+component3 equivalence; no production edit. Register single new4000 W2 key, same
+normalized D554/D607 configuration, no detailed observer. Reuse D607 launch/closure/
+analysis helpers and D78/D80 immutable remote cache; no input regeneration.
+D609 maintenance already completed; recheck150GiB/32GiB-growth/102GiB/GPU idle
+before launch, do not lower limits. Read D611_INVENTORY_EXTENT_FULL_W2.md.
+Next qualify exact bindings/closures, back up explicit paths, then ordinary replay.
+G1/G2 and all sameconfig7B/3B/dLoRA/A1–A5/S1–S13/cost/docs/figures remain ACTIVE.
+No new baseline tuning, no unrelated k3s change, no performance claim yet.
+
+## D610 checkpoint pushed — candidate qualified, full replay next
+
+Checkpoint50df74df844435c1a09bef3eaea1c2150e34eaee pushed and remote-equal.
+Publication33385 exit0; actual publication scope recursively empty/closed/pathgone.
+All D609/D610 tools terminal; no GPU/remote/auxiliary job live. Production SHA
+fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f tested and backed up.
+This continuation made implementation/422tests/component/storage/backup progress,
+not a blocking turn. Do not rerun D610 qualification or D607 performance point.
+Next register new ordinary full4000 W2, same normalized D554/D607 config, D610-only
+candidate, no detailed observer. First full PLAN/status/V1/V2 and storage-growth/
+102GiB host gates; current disk only just exceeds150GiB, do not relax the floor.
+Reuse D607 qualified launch/analysis and immutable remote cache, exact new run key.
+No performance acceptance yet. G1/G2 plus sameconfig7B/3B/dLoRA/A1–A5/S1–S13,
+cost/reviewer docs/finalfigures remain ACTIVE; no new baseline tuning or figures.
+
 ## D610 CPU/component qualification complete — backup before ordinary full W2
 
 D609 three exact closed D607 logs losslessly compressed,1004847104B reclaimed;
