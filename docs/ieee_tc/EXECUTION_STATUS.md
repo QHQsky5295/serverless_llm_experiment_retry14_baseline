@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D576 published; D577/D578 maintenance complete; next affected HydraServe W1
+
+2026-10-16 AUTHORITATIVE: D576checkpoint97994d5345bd541ec649f48855a56e8e303a6974
+PUSHED/remoteequal,15explicitfiles; publicationactualclosed/pathgone. BASE80e08b4
+unchanged. D576fullW0/audit/inputjoin/curation complete; doNOTrepeat.
+D577freshcurrentSHA/source/reference audit removedonlyD576132downloadobjects,
+1320files/3300789780payloadB,3305705472B reclaimed. Receipts/journals/contract
+retained. D578sixclosedremote monitors losslesslycompressed withtworeadbackSHA,
+940769280B reclaimed;diskafter161339940864B(~150.26GiB). Protected147/userdirtPASS.
+Bothstorage scopesactualrecursiveemptyclosed/pathgone,events/swap0. Curated
+d577_targeted_cache_reclaim andd578_closed_monitor_compression COMPLETE,
+archives271500/9739B,SHAroundtrip/AST/protectionchecksPASS. No liveGPU/remote/
+maintenancejob. Next explicitmaintenancecheckpoint,then freshgate andsamefrozen
+D573/D574 nativeconfig for affectedHydraServeW1 (reuse D546 fullW1input), followed
+byW2/Loquetierfullmatrix. No newruntimechange or figure, no k3s involvement.
+Allremaining7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/figures ACTIVE.
+SeeD576resultdoc for68.225%joint/U9866.380689GPU-s/58outputdifferences; no claimed
+performance improvement or independentnumericalproof. Storage receipts not a
+new performance result. Do notrepeat D577deletion orD578compression.
+
 ## D576 strict audit and result preservation complete; checkpoint then storage
 
 2026-10-16 AUTHORITATIVE: SAME fullW0 completed and strictauditPASS;4000native

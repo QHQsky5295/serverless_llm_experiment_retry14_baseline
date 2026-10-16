@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "files": 6,
+  "reclaimed_bytes": 940769280,
+  "free_bytes": 161339940864,
+  "receipt_sha256": "59f2c26395003ef7c948bc6e2664937d52bdb2ff651051b0c854d4083b353924",
+  "protected_unchanged": true
+}
