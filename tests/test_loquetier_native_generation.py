@@ -4,6 +4,8 @@ Run in loquetier_20260520 with TC_TEST_LOQUETIER_NATIVE=1. These tests do not
 perform model arithmetic, qualify GPU memory, or supply latency measurements.
 """
 import os
+import gc
+import weakref
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -86,6 +88,89 @@ class NativeGenerationRules(unittest.TestCase):
         self.assertEqual(model._get_lora_id('missing'), 0)
         self.assertNotIn('missing', model.lora_name_to_id)
         self.assertEqual(model._get_lora_id('other'), 1)
+
+    def _prepared_owner_witness(self, raw_dtype, expect_storage_alias):
+        """Actual virtual/PEFT/preparation ownership, CPU synthetic tensors only.
+
+        The reference products below are NOT SMLM or model-forward qualification.
+        In particular, releasing a Python Parameter need not free its storage:
+        native preparation can keep an FP16 view of the same allocation.
+        """
+        from peft import LoraConfig, get_peft_model
+        from transformers import LlamaConfig, LlamaForCausalLM
+        from loquetier_src import create_virtual_model
+        t = self.torch
+        with t.random.fork_rng(devices=[]):
+            t.manual_seed(559)
+            base = LlamaForCausalLM(LlamaConfig(vocab_size=32, hidden_size=16,
+                intermediate_size=32, num_hidden_layers=1, num_attention_heads=2,
+                num_key_value_heads=2, max_position_embeddings=32)).to(dtype=t.float16)
+            original_base = {n: (p.data_ptr(), p.detach().clone())
+                             for n, p in base.named_parameters()}
+
+            def make_model(rank):
+                model = get_peft_model(create_virtual_model(base), LoraConfig(
+                    task_type='CAUSAL_LM', r=rank, lora_alpha=2*rank,
+                    target_modules=['q_proj'], bias='none', inference_mode=True))
+                # Explicit nonzero synthetic fixture; no experimental pool changes.
+                for name, parameter in model.named_parameters():
+                    if '.lora_' in name:
+                        parameter.data = t.randn(parameter.shape, dtype=raw_dtype)
+                return model
+
+            models = [make_model(1), make_model(2)]
+            def owner_refs():
+                objects = [obj for model in models
+                    for obj in (model, model.base_model, model.base_model.model)]
+                parameters = [p for model in models for n, p in model.named_parameters()
+                              if '.lora_' in n]
+                self.assertEqual(len(parameters), 4)
+                self.assertTrue(all(p.dtype == raw_dtype for p in parameters))
+                return ([weakref.ref(x) for x in objects],
+                        [weakref.ref(x) for x in parameters],
+                        {p.untyped_storage().data_ptr() for p in parameters})
+            object_refs, parameter_refs, raw_storage = owner_refs()
+            mixed = self.MixedLoraModel(create_virtual_model(base),
+                {f'adapter-{i}': m.base_model for i, m in enumerate(models)},
+                dtype=t.float16, device=t.device('cpu'), apply_scaling='A')
+            self.assertEqual(mixed.lora_name_to_id, {'adapter-0': 0, 'adapter-1': 1})
+            self.assertFalse(mixed.training_loras)
+            layers = mixed.target_module_saves['model.layers.0.self_attn.q_proj']
+            prepared = [w for layer in layers for w in (layer.wa, layer.wb)]
+            pointers = [w.data_ptr() for w in prepared]
+            contents = [w.clone() for w in prepared]
+            aliases = raw_storage & {w.untyped_storage().data_ptr() for w in prepared}
+            self.assertEqual(bool(aliases), expect_storage_alias)
+            linear = mixed.model.model.layers[0].self_attn.q_proj
+            self.assertEqual(linear.wa_ptrs.tolist(), [a.wa.data_ptr() for a in layers])
+            self.assertEqual(linear.wb_ptrs.tolist(), [a.wb.data_ptr() for a in layers])
+            x = t.randn((3, 16), dtype=t.float32)
+            def reference_products():
+                # CPU reference arithmetic only; GPU native forward is a later gate.
+                return [t.nn.functional.linear(x, linear.base_layer.weight.float())
+                    + t.nn.functional.linear(t.nn.functional.linear(x, a.wa.float()),
+                                              a.wb.float()) for a in layers]
+            before = reference_products()
+            models.clear()
+            gc.collect()  # Native virtual wrappers retain bound-method cycles.
+            self.assertTrue(all(ref() is None for ref in object_refs))
+            self.assertTrue(all(ref() is None for ref in parameter_refs))
+            self.assertEqual([w.data_ptr() for w in prepared], pointers)
+            self.assertTrue(all(t.equal(w, old) for w, old in zip(prepared, contents)))
+            self.assertTrue(all(t.equal(a, b) for a, b in zip(before, reference_products())))
+            self.assertEqual(linear.wa_ptrs.tolist(), [a.wa.data_ptr() for a in layers])
+            self.assertEqual(linear.wb_ptrs.tolist(), [a.wb.data_ptr() for a in layers])
+            self.assertEqual(set(dict(base.named_parameters())), set(original_base))
+            for name, parameter in base.named_parameters():
+                ptr, content = original_base[name]
+                self.assertEqual(parameter.data_ptr(), ptr)
+                self.assertTrue(t.equal(parameter, content))
+
+    def test_prepared_fp16_copy_survives_fp32_peft_owner_collection(self):
+        self._prepared_owner_witness(self.torch.float32, expect_storage_alias=False)
+
+    def test_prepared_alias_retains_storage_after_fp16_parameter_collection(self):
+        self._prepared_owner_witness(self.torch.float16, expect_storage_alias=True)
 
 
 if __name__ == '__main__':
