@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D560 native ownership probe prepared, 2026-10-16
+
+FULL PLAN/status/AGENTS/current rule supplements reread after compaction.
+Existing capacity entry extended ONLY with explicit inference-owner probe;
+online serving/native kernel/config unchanged. Reuse D437 largest125-ID shard,
+FP16/batch2; all-ID two-token forward before/after raw owner collection,
+base/prepared content+pointer hashes, weakrefs and actual allocated/reserved.
+Input is D445 first native completion req_00002 first32 input tokens, not a new
+performance trace. Read D560_LOQUETIER_NATIVE_OWNER_PROBE.md. No GPU result yet.
+11 affected CPU tests PASS2.500s/no skips; qualification actualemptyclosed/pathgone,
+peak278552576B/events0/swap0. Two diagnostic prep import failures retained, both
+before GPU/view creation; namespace path fixed only in prep driver. Actualfailed
+scopes closed, peaks22671360/12816384B/events0/swap0. Successfulprepare actualclosed,
+peak36892672B/events0/swap0. Original/measured source bytes equal old view;
+newviewSHA58a57e6be6027e40b2c06fc324e0f50c56ffba496bb64ecd3dc78790e0525c0c.
+RAW loquetier_qualification/d560_20261016. Existing D438 gated-launch recipe reused,
+fresh safety/idle gate still required. Next tested explicit checkpoint, then one
+tmux native diagnostic; no serving batch increase or old weak W2 replay.
+D558/D559 remain closed; no repeat cleanup/old qualification. Fullscope ACTIVE.
+
 ## D557 published; D558 fresh storage maintenance, 2026-10-16
 
 D557 result checkpoint 1e85658f0410c38096ba94534d6af4cc7ebde14b PUSHED,
@@ -33,8 +53,18 @@ peak578465792B,events/swap0. Read D559_LOQUETIER_OWNER_QUALIFICATION.md.
 Original FP32 objects collect while prepared copies survive; FP16 alias case
 keeps required storage despite Parameter collection. Base/prepared pointers/content
 and CPUreferenceproducts unchanged; NOT GPU/native-forward or memory saving proof.
-Next tested two-repository checkpoint, then extend existing native capacity probe
-with explicit opt-in ownership/forward witness before production batch changes.
+Tested two-repository checkpoint DONE: MAINfe3d2960a5846823ef26e327042b8ba0cbe887f5,
+BASE03c0a6ee455a71a679acd6ac6900a781d4c4a74f both PUSHED/remoteequal;
+explicit6MAIN/2BASEfiles, archive/source/protected147/userdirt/secrets/diff checksPASS.
+Publication actualrecursiveempty/closed/pathgone,peak27504640B,events/swap0;
+RAWpublication_receipt/closure retain identity. No live GPU/remote/test/publication
+job. No repeat backup. Latestdisk161461350400B, fresh next-job gate still required.
+Next extend existing native capacity probe with explicit opt-in ownership/forward
+witness before production batch changes. Existing probe guard selects D437 largest
+125-ID static shard; new view identity may need refresh after D553 helper changes.
+Reuse D438 gated capacity launch and D544 source-view generation; do not bypass
+stale source SHA, rebuild native kernels, create new pools or use alias collection
+as a GPU-free-byte proof. Native full-shard forward/capacity NOT yet implemented.
 No D559 test repeat without affected edits, no old low-performance W2 replay.
 History D437/D438/D439/D441/D445/D544 and current code reviewed. Official fixed
 run_inference fetched; mixed_lora/virtual_model raw URLs returned Cache miss,
