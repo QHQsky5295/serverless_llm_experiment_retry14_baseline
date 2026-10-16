@@ -19,7 +19,7 @@ from dataclasses import dataclass
 _diagnostic_stack_state = None
 
 
-def diagnostic_service_receipt(label):
+def diagnostic_service_receipt(label, *, allow_full_source=False):
     """Shared read-only gate for explicitly nonformal, bounded replay observers."""
     import os
     if os.environ.get('FAASLORA_FORMAL_RUN') != '0':
@@ -30,11 +30,23 @@ def diagnostic_service_receipt(label):
     actual = Path('/sys/fs/cgroup') / unified[0].lstrip('/') if len(unified) == 1 else None
     expected = Path(receipt['service_identity']['path'])
     replay = receipt.get('external_replay', {})
+    prefix = (replay.get('replay_scope') == 'diagnostic_prefix_v1'
+              and type(replay.get('diagnostic_prefix_count')) is int
+              and replay['diagnostic_prefix_count'] > 0)
+    plan = replay.get('plan', {})
+    # Full-length observation is a separate, explicit diagnostic population.
+    # Do not relabel a full trace as a prefix or enable native-core profiling.
+    full = (allow_full_source
+            and replay.get('replay_scope', 'full_source_v1') == 'full_source_v1'
+            and replay.get('diagnostic_prefix_count') is None
+            and replay.get('tiny_witness') is False
+            and type(plan.get('count')) is int
+            and plan['count'] > 0 and plan['count'] == plan.get('source_count')
+            and plan.get('rate_scale') == 1.0
+            and plan.get('profile') in ('W0', 'W1', 'W2'))
     if (receipt.get('allow_exec') is not True or actual is None
             or not actual.is_relative_to(expected)
-            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
-            or type(replay.get('diagnostic_prefix_count')) is not int
-            or replay['diagnostic_prefix_count'] <= 0):
+            or not (prefix or full)):
         raise ValueError(f'{label} is outside its gated diagnostic service')
     return receipt_path, actual, replay
 
@@ -118,7 +130,13 @@ def enable_diagnostic_stack_sampling():
         if _diagnostic_stack_state[0] != pid:
             raise ValueError('fork-inherited diagnostic observer is not active in this process')
         return
-    receipt_path, actual, _ = diagnostic_service_receipt('stack sampling')
+    scope = os.environ.get('FAASLORA_TC_STACK_REPLAY_SCOPE', 'diagnostic_prefix_v1')
+    if scope not in ('diagnostic_prefix_v1', 'full_source_v1'):
+        raise ValueError('invalid stack diagnostic replay scope')
+    receipt_path, actual, replay = diagnostic_service_receipt(
+        'stack sampling', allow_full_source=scope == 'full_source_v1')
+    if replay.get('replay_scope', 'full_source_v1') != scope:
+        raise ValueError('stack diagnostic replay scope differs from actual launch')
     import atexit
     ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
     directory = receipt_path.parent/'diagnostic_stacks'
@@ -135,6 +153,8 @@ def enable_diagnostic_stack_sampling():
             cpu_time_profile=False, formal_performance_result=False,
             gil_scheduling_bias=True, final_partial_line_possible=True,
             control_boundaries='request_source_control_boundary_v1',
+            replay_scope=scope, replay_count=(replay.get('plan', {}).get('count')
+                if scope == 'full_source_v1' else replay['diagnostic_prefix_count']),
             control_overhead_included=True), stream, indent=2)
     output = stem.with_suffix('.stacks.jsonl').open('xb', buffering=0)
     control_output = stem.with_suffix('.control.jsonl').open('xb', buffering=0)

@@ -1,5 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D602 closed monitor compression; D603 complete W2 diagnostic preparation
+
+D603qualification complete:54observer/core/RPC testsPASS11.019s; D601363service
+regression reused, fullW2identity andD554normalizedconfigequal. Qualification2
+session2574completed0, actualrecursiveempty/closed/pathgone. Back up preregistered
+diagnostic gate/config/helpers beforelaunch. No performance resultyet.
+
+D602 compressed only D598 remote_monitor.log, reclaimed61607936B; originalSHA
+83b2e40cb917bf704cf83206ebb8945f4bb13148d18d99b479d02321cc338eac retained in gzip.
+Two roundtrips/currentclosure/reference/protected147/threeuserdirt PASS; actual
+storage scopeclosed/pathgone, peak27701248B/events0. No repeatedoldcleanup.
+D603 new diagnostic key is being qualified: D554 restored config, full4000W2,
+existing low-frequency Python frames plus explicit full-source nonformal gate.
+No new serving candidate, no threshold/profile/inputchange. Fullscope needed
+becauseD456oldW0prefix1000 cannotexplaincurrentlateW2growth afterD457/D473.
+ReadD603_FULL_W2_CONTROLLER_DIAGNOSTIC.md. NoGPUrunstarted; CPUtests,qualification
+andprelaunchbackup first. No currentbaseline tuning; allpendinggoal staysACTIVE.
+
+## D601 rollback checkpoint pushed and closed — no pending experiment
+
+Checkpointd7358f43c197f34d22906290970067cdaca7800e pushed/remoteequal;
+backup70167completed0,actualrecursiveempty/closed/pathgone,peak30932992B/events0.
+BASE80e08b4c unchanged. No liveGPU/remotejob orpendingtool. D599compression,
+D600diagnosis/publication,D601363tests/rollbackbackup areDONE; do not repeat.
+Previousgoalturn madeprogress,notblocked. Next inspect currentW2controller waits
+againstD456/D457/D473/D530/D600andcurrentcallpaths; ifnewprofilingneeded, explicit
+diagnosticidentity,not repeat ordinaryD554/D598 orclaimoldCPUfractionscurrent.
+Freshdisk161125777408B only~64.5MB above150GiBfloor: freshsafeclosure/reference/SHA
+maintenance before newheavylaunch ifneeded; do not repeatpriorcompressionlists.
+FullremaininggoalACTIVE. No globalperformanceimprovement inferredfromrollback.
+
 ## D601 exact D595 rollback tested — back up, then global wait/control diagnosis
 
 D599/D600 checkpointbc43982913924eacebbf63243b43162a753bff82 pushed/remoteequal;

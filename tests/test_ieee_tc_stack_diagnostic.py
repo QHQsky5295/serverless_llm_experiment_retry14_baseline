@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class StackDiagnostic(unittest.TestCase):
-    def invoke(self, directory, code, *, flag='python_frames_v1', formal='0', change=None):
+    def invoke(self, directory, code, *, flag='python_frames_v1', formal='0', change=None,
+               stack_scope='diagnostic_prefix_v1'):
         directory = Path(directory)
         group = next(row[3:] for row in Path('/proc/self/cgroup').read_text().splitlines()
                      if row.startswith('0::'))
@@ -24,7 +25,8 @@ class StackDiagnostic(unittest.TestCase):
         path = directory/'receipt.json'
         path.write_text(json.dumps(receipt))
         env = dict(os.environ, PYTHONPATH='', FAASLORA_TC_STACK_SAMPLING=flag,
-                   FAASLORA_FORMAL_RUN=formal, FAASLORA_TC_LAUNCH_RECEIPT=str(path))
+                   FAASLORA_FORMAL_RUN=formal, FAASLORA_TC_LAUNCH_RECEIPT=str(path),
+                   FAASLORA_TC_STACK_REPLAY_SCOPE=stack_scope)
         return subprocess.run([sys.executable, '-c',
             'import sys; sys.path.insert(0, '+repr(str(ROOT))+'); '+code],
             cwd=directory, env=env, capture_output=True, text=True, timeout=20)
@@ -86,6 +88,57 @@ os._exit(23)
                 self.assertGreaterEqual(row['process_cpu_delta_seconds'], 0)
                 self.assertTrue(any(f[1]=='busy_witness' for t in row['threads'] for f in t['frames']))
                 self.assertNotIn('f_locals', body)
+
+    def test_full_source_observation_requires_explicit_scope_and_complete_plan(self):
+        def full(receipt):
+            receipt['external_replay'] = dict(tiny_witness=False, plan=dict(
+                count=4000, source_count=4000, profile='W2', rate_scale=1.0))
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.invoke(tmp, 'import faaslora', change=full)
+            self.assertNotEqual(r.returncode, 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.invoke(tmp, 'import faaslora', change=full, stack_scope='full_source_v1')
+            self.assertEqual(r.returncode, 0, r.stderr)
+            paths = list((Path(tmp)/'diagnostic_stacks').glob('*.json'))
+            self.assertEqual(len(paths), 1)
+            meta = json.loads(paths[0].read_text())
+            self.assertEqual(meta['replay_scope'], 'full_source_v1')
+            self.assertEqual(meta['replay_count'], 4000)
+            self.assertFalse(meta['formal_performance_result'])
+        invalid = [
+            lambda r:r['external_replay']['plan'].update(count=1000),
+            lambda r:r['external_replay']['plan'].update(count=True, source_count=True),
+            lambda r:r['external_replay']['plan'].update(rate_scale=2.0),
+            lambda r:r['external_replay'].update(tiny_witness=True),
+            lambda r:r['external_replay'].update(diagnostic_prefix_count=1000),
+            lambda r:r['service_identity'].update(path='/sys/fs/cgroup/unrelated'),
+            lambda r:r.update(allow_exec=False),
+        ]
+        for edit in invalid:
+            def changed(r):
+                full(r)
+                edit(r)
+            with self.subTest(edit=edit), tempfile.TemporaryDirectory() as tmp:
+                r = self.invoke(tmp, 'import faaslora', change=changed, stack_scope='full_source_v1')
+                self.assertNotEqual(r.returncode, 0)
+                self.assertFalse((Path(tmp)/'diagnostic_stacks').exists())
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.invoke(tmp, 'import faaslora', change=full, stack_scope='full_source_v1', formal='1')
+            self.assertNotEqual(r.returncode, 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.invoke(tmp, 'import faaslora', stack_scope='full_source_v1')
+            self.assertNotEqual(r.returncode, 0)
+
+    def test_full_stack_permission_does_not_enable_full_native_core_observer(self):
+        def full(receipt):
+            receipt['external_replay'] = dict(tiny_witness=False, plan=dict(
+                count=4000, source_count=4000, profile='W2', rate_scale=1.0))
+        code = ('import faaslora; from faaslora.utils.logger import diagnostic_service_receipt; '
+                'diagnostic_service_receipt("native core timing")')
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.invoke(tmp, code, change=full, stack_scope='full_source_v1')
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn('ValueError', r.stderr)
 
     def test_preexisting_output_is_not_overwritten(self):
         code = '''import os
