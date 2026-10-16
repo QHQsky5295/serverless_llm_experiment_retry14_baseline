@@ -2,6 +2,52 @@
 
 ## D567 new-capacity full500 preparation, 2026-10-16
 
+AUTHORITATIVE TERMINAL: SAMEfull500run complete,500nativebindings/68925tokens/
+0failure; all4capacity8 workers each125IDs, ownerrelease/layout/device checksPASS.
+Service/replay/watchdogRC0,actualGPUrelease/servicepathgone; launcherauxactually
+recursiveemptyclosed/pathgone,peak273076224B/events/swap0. Threeexactownedremote
+unitsinactive/MainPID0/portsabsent. No liveinference/remote/analysisjob remains.
+Strictadapter_coverage_v1auditPASS: joint182/500=36.4%,TTFT43.6/TPOT73.8%;meanTTFT
+84144.000394/P95303646.294619ms,meanTPOT69.826447/P9585.739785ms,
+U1750.1082748938352GPU-s. This is coverageNOTW0/G1/G2;numericUNKNOWN/n_correctnull.
+500fetch420740410wireB/packing0;servicepeak38288211968B/events/swap0.
+Full500oldD443input/nativeprompt/target/arrivaljoinPASS;459outputsidentical/41
+different, allfirstdifferences/hashes preserved; no blanketrounding/oracle claim.
+Eachworker125enqueue/complete,0cancel/nativeerrors. Readybusiness+144.966528/
+241.608799/343.354022/445.406855s. Meanrouterqueue59142.699ms,nativequeue24652.438ms,
+register->first302.553ms; don'tcallqueuepurecompute. Analysis/crossactualclosed,
+peaks1508270080/118927360B,events/swap0. ReadD567_LOQUETIER_CAPACITY_FULL500_RESULT.md.
+NEXT curate/testedresultcheckpointpush then sameconfig1000compatibility/newfull
+W0W1W2; no repeat500/CPU/per-token diagnostics or oldHydraServebasisqualification.
+CurrentturnPROGRESS: sameactualrunfinished, strictfull500audit/outputjoin/closures.
+FullgoalACTIVE; allremaining7B/G2/3B/ablations/S1–S13/cost/docs/figures retained.
+HistoricalLIVE notes below superseded.
+
+AUTHORITATIVE LIVE: prelaunch e0a9cbde3290132ea1028d5182dfa0c469ee8ee9 PUSHED/
+remoteequal,6explicitMAINfiles; BASE5486c4d6a8417ef67484d2b1dbb65d0cd938ff27
+unchanged/pushed.69CPUchecks/source/archive/protected147/userdirt/secrets/diffPASS.
+Backup/start actualrecursiveemptyclosed/pathgone,peaks31035392/129966080B,events/swap0.
+Single tmux tc-d567-loquetier-coverage RUNNING, freshgatedlaunchPASS.
+Actualserviceprimelora-tc-svc-8a7919d2853d4ca6b8dbfe549467060e.scope,
+Invocation85ad12e55473468caba84d194d31d715,inode26073659.
+Launcherauxd5670000000000000000000000000005 identity inRAWservice_aux_identity.json.
+Notice1635125.329776689,business1635185.329776689;coverage500sameview/targets.
+RemoteownservicesLIVE,actual1000/full,published_gzip_v1/timing_v2healthPASS;
+7bclockremote-process-monotonic:bcdc1e2adfc347f191bbe22fe2953831,
+monitorprimelora-artifact-monitor-d567-coverage.service. Exact3IDsremote_start.log.
+Sample22host112213614592B,events/swap0/noabort; no finalnativeoutcome yet.
+Latest sample204host105953447936B,events0/noabort; SAMEactualInvocationrechecked
+active atsample155. Worker0ready1635330.296304775,capacity8; actualrawallocated
+reduction5469372416B,weakowners/parameters0,layoutunchanged,GC4.589279843s.
+This is ONEonlineworker proof, not allfour/full500/numerical/performance closure.
+CurrentturnPROGRESS: qualified69checks/preregistered/pushed and launched NEW
+full500 service once. No secondheavyjob or remotechange duringnativeexecution.
+NEXT monitor SAMEactualrun only, no tests/build/hashscan/backup/cleanup/remotechanges.
+Afteractualterminal close_launch.py ->stop_remote.sh ->boundedrun_analysis.py
+with actualoutcome; existingstrictadapter_coverage_v1/D394SLO. Preservefailure,
+unknownnumeric andoutputdifferences. No repeatCPUqualification/start/oldperformance.
+Historicaloffline-next notes below superseded by this actualLIVE state.
+
 OFFLINE preparation PASS; no GPU/remote run yet. Read D567_LOQUETIER_CAPACITY_FULL500.md.
 Existing D443 coverage/input bytes and D566 native config bytes reused:500IDs/
 500requests/68925targets, view286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d.
