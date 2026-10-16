@@ -1,0 +1,146 @@
+[
+  {
+    "system": "PrimeLoRA",
+    "run": "D476",
+    "workload": "W0",
+    "source_kind": "published_w0",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d513_published_7b_w0/comparison.json",
+    "sha256": "044c04d6bb5b894761628146a65de248a53436cdd4ba23346837eccb3473b17b"
+  },
+  {
+    "system": "vLLM",
+    "run": "D423",
+    "workload": "W0",
+    "source_kind": "published_w0",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d513_published_7b_w0/comparison.json",
+    "sha256": "044c04d6bb5b894761628146a65de248a53436cdd4ba23346837eccb3473b17b"
+  },
+  {
+    "system": "ServerlessLLM",
+    "run": "D414",
+    "workload": "W0",
+    "source_kind": "published_w0",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d513_published_7b_w0/comparison.json",
+    "sha256": "044c04d6bb5b894761628146a65de248a53436cdd4ba23346837eccb3473b17b"
+  },
+  {
+    "system": "S-LoRA",
+    "run": "D435",
+    "workload": "W0",
+    "source_kind": "published_w0",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d513_published_7b_w0/comparison.json",
+    "sha256": "044c04d6bb5b894761628146a65de248a53436cdd4ba23346837eccb3473b17b"
+  },
+  {
+    "system": "PrimeLoRA",
+    "run": "D551",
+    "workload": "W1",
+    "source_kind": "prime_summary",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d551_initial_control_full_w1/result2/summary.json",
+    "sha256": "0e75c66461f1f3ff979fe52a5142234f499220b12baae8b9eadfb76c3d98e6a5"
+  },
+  {
+    "system": "PrimeLoRA",
+    "run": "D554",
+    "workload": "W2",
+    "source_kind": "prime_summary",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d554_initial_control_full_w2/result1/summary.json",
+    "sha256": "d20738cceeede7c76412e06b9a265df421494a416eea8c736deb5b8c299a9f68"
+  },
+  {
+    "system": "vLLM",
+    "run": "D536",
+    "workload": "W1",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d536_vllm_w1/result1/audit.json",
+    "sha256": "3a7a7fba27734b2ac5bed3eeca3a29cce2a25f69984443fb56226ac90ecf63f2"
+  },
+  {
+    "system": "vLLM",
+    "run": "D557",
+    "workload": "W2",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d557_vllm_w2/result1/audit.json",
+    "sha256": "a4c1471467d33e9b6333c0ae882752438be562f5e413b21c33a16c72a0335fd8"
+  },
+  {
+    "system": "ServerlessLLM",
+    "run": "D537",
+    "workload": "W1",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d537_serverlessllm_w1/result1/audit.json",
+    "sha256": "23cb0f2b3296458e375147baae125d553a7cb1d78d30d62a3d3d7ffec1c70800"
+  },
+  {
+    "system": "ServerlessLLM",
+    "run": "D555",
+    "workload": "W2",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d555_serverlessllm_w2/result1/audit.json",
+    "sha256": "27c3b9e6dbf93236105c814c8f9591bccf88fa4e966cc19ee7f7aec50010f7dd"
+  },
+  {
+    "system": "S-LoRA",
+    "run": "D542",
+    "workload": "W1",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d542_slora_w1/result1/audit.json",
+    "sha256": "6e650c1c9b6357944c8d0215540e57d1dd5cefa586b057bad4a527eacb52489a"
+  },
+  {
+    "system": "S-LoRA",
+    "run": "D591",
+    "workload": "W2",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d591_slora_w2/result1/audit.json",
+    "sha256": "a7f1009ad4288013d307c42f726348d80cd14ab3e2a1f1f6c821d4e72fc07d11"
+  },
+  {
+    "system": "Loquetier",
+    "run": "D585",
+    "workload": "W0",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/loquetier/d585_capacity_full_w0/result1/audit.json",
+    "sha256": "84ffa84a02450883c4e2c74721e7b96573e8ea5e17352b23b5c8b69dcc33c955"
+  },
+  {
+    "system": "Loquetier",
+    "run": "D587",
+    "workload": "W1",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/loquetier/d587_capacity_full_w1/result1/audit.json",
+    "sha256": "3645c39143339125af504da01d51be8d4adfc3e539cd7b4075c4754a1a1655b1"
+  },
+  {
+    "system": "Loquetier",
+    "run": "D589",
+    "workload": "W2",
+    "source_kind": "native_audit",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/loquetier/d589_capacity_full_w2/result1/audit.json",
+    "sha256": "69ca2da9ba4340caa09cb79a127722b5d702cbab55fe7c8246ec061d613330db"
+  },
+  {
+    "system": "HydraServe",
+    "run": "D576",
+    "workload": "W0",
+    "source_kind": "hydra_evaluation",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/hydraserve/d576_lifecycle_full_w0_result/full_w0_evaluation.json",
+    "sha256": "cd87563103cd04b786275f8b87b888b69a9118bdb0a97b37ef9879181880680d"
+  },
+  {
+    "system": "HydraServe",
+    "run": "D579",
+    "workload": "W1",
+    "source_kind": "hydra_evaluation",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/hydraserve/d579_lifecycle_full_w1_result/full_w1_evaluation.json",
+    "sha256": "55e4669060c162b527db2c819dc1ec58d08c85d05cb60ed8420729d72edf3140"
+  },
+  {
+    "system": "HydraServe",
+    "run": "D582",
+    "workload": "W2",
+    "source_kind": "hydra_evaluation",
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/hydraserve/d582_lifecycle_full_w2_result/full_w2_evaluation.json",
+    "sha256": "e9518e38884310f76fddfafe182d0a3231a36c81362bb04f899e5cc05efdaef3"
+  }
+]

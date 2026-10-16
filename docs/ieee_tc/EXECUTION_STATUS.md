@@ -1,6 +1,31 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## D592 storage completed — backup, then full 7B comparison and PrimeLoRA
+## D593 complete 7B comparison — reference review and PrimeLoRA bottleneck next
+
+2026-10-17: reused 18 sealed observations, six systems × W0/W1/W2; no GPU
+rerun, baseline parameter search, input generation or figure. 19 CPU tests PASS;
+analysis session 50636 completed, peak 58236928 B, events/swap zero. Source bytes
+equal pushed 79fdd411 checkpoint; 147 protected + 3 user-dirt checks PASS.
+Read D593_COMPLETE_7B_COMPARISON.md and main_comparison/d593_complete_7b/.
+PrimeLoRA joint SLO W0/W1/W2 = 97.425/98.075/89.55%; W0 configuration differs
+from W1/W2. W1/W2 candidate-budget ratios 1.223052/1.211356; G1/G2 not closed.
+W0 existing reference unchanged; W1 D536/W2 D557 reference review remains open,
+not silently frozen by this table. Independent numerical proof unknown throughout.
+NEXT exact analysis closure, tested checkpoint, reference qualification review and
+streamed D554 TTFT/control/preparation diagnosis, then one falsifiable PrimeLoRA
+candidate. No further baseline search solely for low SLO. Full 3B/dLoRA/A1–A5/
+S1–S13/cost/docs/final figures remain active. Shared k3s untouched.
+
+## D592 backed up and closed — full 7B comparison and PrimeLoRA next
+
+Checkpoint 79fdd4115b7a94d4173ba2434a81597a54bcf098 pushed/remoteequal.
+Publication session 60895 completed; exact publication scope recursively empty,
+stopped and path gone. Peak 26963968 B, all high/max/OOM/kill/swap zero.
+No pending tool or inference/remote job. Read-only discovery session 27502 also
+completed; do not repeat D592 cleanup/compression/publication. Current task is
+the complete six-system 7B W0/W1/W2 evidence table and common reference review,
+then a falsifiable PrimeLoRA optimization, preserving the full remaining scope.
+Shared k3s remains untouched; HydraServe isolated adaptation already completed.
 
 2026-10-17 AUTHORITATIVE: D591 remains complete/audited/pushed7140d56;
 do not repeat its run or qualification. D592 freshly rehashed retained originals

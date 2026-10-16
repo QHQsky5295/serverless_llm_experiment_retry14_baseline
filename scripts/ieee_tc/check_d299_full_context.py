@@ -1548,6 +1548,155 @@ def published_w0_view(report, registry):
     return view, mechanism
 
 
+def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
+    """Project an already audited full observation, without upgrading its proof.
+
+    Source SHA and retained join receipts are checked by the caller. This is an
+    offline aggregation, NOT another execution audit or a configuration selector.
+    Missing values fail closed; no HTTP-success-to-correctness inference.
+    """
+    if workload not in ('W0', 'W1', 'W2'):
+        raise ValueError('explicit workload required')
+    plan = None
+    if source_kind == 'published_w0':
+        if workload != 'W0' or payload['common_slo_sha256'] != slo_sha:
+            raise ValueError('W0/common SLO identity mismatch')
+        source = payload['results'][system]
+        counts = source['counts']
+        n = counts['N'] if 'N' in counts else counts['n']
+        joint, ttft, tpot = (counts[k] for k in ('joint_pass', 'ttft_pass', 'tpot_pass'))
+        tokens = payload['native_tokens']
+        u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['metrics'])
+        unknown, proof = source['raw_n_correct'], source['independent_numerical_proof']
+        plan = payload['common_input']
+    elif source_kind == 'native_audit':
+        source = payload
+        if (source['measurement_complete'] is not True or source['workload_passed'] is not True
+                or source['counts']['N_failed'] != 0 or source['native_revalidated_requests'] != 4000
+                or source['common_slo']['freeze_sha256'] != slo_sha
+                or any(source['counts'][k] != 4000 for k in
+                       ('N_plan', 'N_arrived', 'N_submitted', 'N_terminal', 'N_response'))):
+            raise ValueError('complete sealed native audit required')
+        n = source['common_slo']['binding_valid']
+        joint, ttft, tpot = (source['common_slo'][k] for k in ('joint_good', 'ttft_good', 'tpot_good'))
+        tokens = source['actual_native_output_tokens']
+        u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['conditional_metrics'])
+        unknown, proof = source['n_correct'], source['independent_lora_numerical_correctness']
+        plan = source['source_plan']
+    elif source_kind == 'prime_summary':
+        source = payload['actual_audit']
+        if (payload['passed'] is not True or source['passed'] is not True
+                or source['fixed_workload_complete4000'] is not True
+                or source['stats']['completed'] != 4000
+                or not any(r['sha256'] == slo_sha for r in source['refs'])):
+            raise ValueError('complete sealed PrimeLoRA audit required')
+        n = source['protocol_bound_count']
+        joint, ttft, tpot = (source[k] for k in ('common_threshold_joint_count',
+            'common_threshold_ttft_count', 'common_threshold_tpot_count'))
+        tokens, u = source['native_tokens'], source['stats']['physical_gpu_seconds']
+        metrics = {name: dict(mean=source['stats']['mean_'+name], n=n)
+                   for name in ('ttft_ms', 'tpot_ms', 'e2e_ms')}
+        for name in ('ttft_ms', 'tpot_ms'):
+            metrics[name]['p95_type1'] = source['stats']['p95_'+name]
+        unknown, proof = source['stats']['n_correct'], source['numerical_correctness_qualified']
+        plan = source['workload_identity']
+    elif source_kind == 'hydra_evaluation':
+        source = payload
+        if (source['full_audit_pass'] is not True or source['n_failed'] != 0
+                or source['references']['slo_eval']['sha256'] != slo_sha
+                or any(source[k] != 4000 for k in ('n_plan', 'n_arrived', 'n_terminal'))):
+            raise ValueError('complete sealed HydraServe audit required')
+        n, joint = source['n_v1_contract_complete'], source['n_joint']
+        # The source retains the marginal ratios. Do not round an invalid ratio
+        # into an integer count; demand an exact population-consistent value.
+        ttft = round(source['ttft_attainment'] * n)
+        tpot = round(source['tpot_conditional_attainment'] * n)
+        if (source['tpot_conditional_denominator'] != n
+                or ttft/n != source['ttft_attainment']
+                or tpot/n != source['tpot_conditional_attainment']):
+            raise ValueError('HydraServe marginal counts inconsistent')
+        tokens, u = source['native_output_tokens'], source['physical_gpu_seconds']
+        metrics = {name: {('p95_type1' if k == 'p95' else k): v for k, v in values.items()}
+                   for name, values in source['metrics'].items()}
+        unknown, proof = source['raw_n_correct_preserved'], source['independent_numerical_qualification']
+    else:
+        raise ValueError('unregistered sealed source schema')
+    if plan is not None and (plan['profile'] != workload or plan['count'] != 4000):
+        raise ValueError('source workload identity mismatch')
+    if n != 4000 or tokens != 458224 or unknown is not None or proof is not False:
+        raise ValueError('full fixed-work observation and explicit unknown numerical proof required')
+    if (any(type(x) is not int or not 0 <= x <= n for x in (joint, ttft, tpot))
+            or not max(0, ttft+tpot-n) <= joint <= min(ttft, tpot)):
+        raise ValueError('joint/marginal population mismatch')
+    for value in (u, metrics['ttft_ms']['mean'], metrics['ttft_ms']['p95_type1'],
+                  metrics['tpot_ms']['mean'], metrics['tpot_ms']['p95_type1'], metrics['e2e_ms']['mean']):
+        if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
+            raise ValueError('finite positive sealed observation required')
+    return dict(system=system, run=run, workload=workload, n_binding_valid=n,
+        native_tokens=tokens, counts=dict(N=n, joint_pass=joint, ttft_pass=ttft, tpot_pass=tpot),
+        joint_slo=joint/n, observed_protocol_feasible=joint >= 3800,
+        physical_gpu_seconds=u, gpu_seconds_per_protocol_valid_request=u/n,
+        metrics={k: metrics[k] for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')},
+        raw_n_correct=None, independent_numerical_proof=False,
+        formal_run=False, independent_holdout=False, source_plan=copy.deepcopy(plan))
+
+
+def sealed_matrix_view(rows, registry, references):
+    """Retain all 18 fixed points, including failures of the latency requirement.
+
+    Reference candidates stay candidates. A descriptive ratio is never a
+    reference-freeze receipt, numerical proof or cross-scenario optimum.
+    """
+    names = {'PrimeLoRA', 'vLLM', 'S-LoRA', 'ServerlessLLM', 'HydraServe', 'Loquetier'}
+    by_workload = {w: {} for w in ('W0', 'W1', 'W2')}
+    for row in rows:
+        name, workload = row['system'], row['workload']
+        fact = registry['systems'][name]
+        if name not in names or name in by_workload[workload]:
+            raise ValueError('unexpected or duplicate matrix point')
+        if name != 'PrimeLoRA' and (fact['role'] != 'external_baseline' or fact['published'] is not True):
+            raise ValueError('published external baseline required')
+        by_workload[workload][name] = copy.deepcopy(row)
+    if any(set(group) != names for group in by_workload.values()):
+        raise ValueError('complete six-system three-workload matrix required')
+    differences, sensitivity = {}, {}
+    for w, group in by_workload.items():
+        ref = references[w]
+        if (ref['workload'] != w or ref['source_run'] != group['vLLM']['run']
+                or ref['U_ref_gpu_seconds'] != group['vLLM']['physical_gpu_seconds']
+                or ref['Q_ref_p95_ttft_ms'] != group['vLLM']['metrics']['ttft_ms']['p95_type1']):
+            raise ValueError('scenario-matched Resident reference required')
+        differences[w] = {name: matched_relative_observation(group['PrimeLoRA'], row)
+                          for name, row in group.items() if name != 'PrimeLoRA'}
+        sensitivity[w] = []
+        for q in (.9, .95, .99):
+            eligible = sorted((name for name, r in group.items() if r['counts']['joint_pass'] >= math.ceil(q*4000)),
+                              key=lambda name: (group[name]['physical_gpu_seconds'], name))
+            sensitivity[w].append(dict(attainment=q, observed_resource_order=eligible,
+                budget_slices=[dict(fraction=rho, budget_gpu_seconds=rho*ref['U_ref_gpu_seconds'],
+                    observed_feasible_names=[name for name in eligible
+                        if group[name]['physical_gpu_seconds'] <= rho*ref['U_ref_gpu_seconds']],
+                    reference_frozen=ref['reference_frozen']) for rho in (.5, .75, 1.)]))
+    return dict(schema='sealed_7b_three_workload_observation_matrix_v1', results=by_workload,
+        references=copy.deepcopy(references), PrimeLoRA_relative_observations=differences,
+        fixed_configuration_sensitivity=sensitivity, new_gpu_runs=0,
+        performance_runs_per_key=1, confidence_interval=None, formal_m1_m2_complete=False,
+        same_PrimeLoRA_configuration_across_all_scenarios=False,
+        PrimeLoRA_same_configuration_pair=['W1', 'W2'],
+        independent_numerical_qualification=False, independent_holdout=False,
+        caveats=['Existing SHA-bound full audits and input joins reused; not a new raw-data re-audit.',
+            'PrimeLoRA W0 D476 differs from W1 D551/W2 D554; no cross-scenario optimum.',
+            'Known source42/development41; no independent holdout or statistical superiority.',
+            'All rows retain unknown independent numerical proof; denominator is binding-valid work.',
+            'W1/W2 reference ratios are descriptive candidates until separate reference review closes.',
+            'Different startup/compiler cache histories are disclosed, not isolated algorithm effects.',
+            'S-LoRA/Loquetier full-pool sequential deployment is a disclosed adaptation, not intrinsic algorithm latency.',
+            'HydraServe observed pp1 only; pipeline/consolidation benefit not established.',
+            'No baseline configuration search; measured points are not their global optima.',
+            'PrimeLoRA controller completion and baseline HTTP completion differ; E2E endpoints retained.',
+            'SLO and budget sensitivity classifies fixed points, not reoptimized fronts.'])
+
+
 def export_published_w0(source, expected_sha, registry_path, output):
     if sha256(source) != expected_sha:
         raise ValueError('sealed source report SHA mismatch')
