@@ -1,6 +1,38 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D562 derived native concurrency qualification prepared, 2026-10-16
+
+Previous turn PROGRESS: D561actualcapacity/closures/two-repopush; do not repeat.
+Full PLAN/V1/V2/AGENTS/supplements remain fullyread in current context, unchanged
+SHAs reverified; currentHEAD/state rechecked. Read D562_LOQUETIER_DERIVED_BATCH_CAPACITY.md.
+Existing capacity probe extended with prior-evidence-SHA opt-in, derived b=8 from
+warm_live+fullKV+measuredscratch+largestdenseallocationheadroom+observedfragmentation/
+nonallocator. Estimate NOT theoreticalbound or qualifiednewservingconfiguration.
+Reuse D4458distinctadapter760input/256output records, no prompt/target/mappingchanges.
+One all-prefill and one actual4decode+4prefill transition planned, notthroughputruns.
+17CPUchecksPASS/no skips, qualificationactualclosedpeak277954560B/events/swap0;
+offlinepreparePASS, candidate8/sourceview unchanged. No GPUrun/serving/configchange.
+Next actualprepareclosure, explicit testedcheckpoint and freshgated nativequalification.
+No higherbatchperformance claim, oldD445/D544 retained; no blindOOM/samekeyretry.
+FullgoalACTIVE: Loquetierfullnativequalification/W0W1W2, remaining7B/G2/3B,
+allablations/sensitivities/reviewer evidence/docs/figures retained. Sharedk3s untouched.
+
 ## D561 full-input workspace qualification prepared, 2026-10-16
+
+RESULT CHECKPOINT DONE: MAINc30a288890abf530498fb1dfd51b1eb045172a56,
+BASEa3d4fbdd6c9bf00cbf3536ab72ce29a322668c15 bothPUSHED/remoteequal.
+Explicit7MAIN/1BASEfiles, actualnative/source/archive/protected147/userdirt/
+secrets/diffchecksPASS. Resultpublicationactualrecursiveempty/closed/pathgone,
+peak27725824B,events/swap0. Curated loquetier/d561_forward_capacity_result.
+No live GPU/remote/test/publication job remains. Latestdisk161437220864B;
+fresh next-heavygate required. Do NOTrepeatD561native/CPU/preparation/backup.
+This turn PROGRESS: existingprobe extended, fullretainedinput/nativeKV/workspace
+observed and actualclosed; two repositories backedup. Next derive bounded
+higher-concurrency qualification from live weights/KV/forward/allocator evidence,
+including mixedprefill/decode and distinctadapter segments; then faithfulnative
+serving integration and full500/W0W1W2 qualification. No safebatch yet chosen.
+This result doesNOT close Loquetier performance or wholegoal. FullscopeACTIVE.
+Postpush status delta reserved next meaningful checkpoint, no status-onlypush.
 
 AUTHORITATIVE TERMINAL: D561 native long-input capacity PASS once; no livejob.
 Read D561 doc. One deduplicated760input/256output case in2slots; both256native
