@@ -1,5 +1,39 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D587 qualified for full W1 — backup then launch once
+
+2026-10-16 AUTHORITATIVE: D586storageDONE/pushed94cd69d; no recleanup.
+D587prepared SAME D585Loquetiernativeconfig455ef31c.../batch8/SMLM/four125-ID
+staticshards/FIFO/sequentialstartup. HTTPvalues reusedD544W1; onlyterminalLF
+diff recorded45403636...; exactW1view103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3,
+4000requests/132observedIDs/458224targettokens, full500pool unchanged.
+QualificationPASSED: current-source-bound86online+69analysis tests reused;
+D567coverage/D569compatibility reused, no repeatedGPUqualification orsource
+change. Qualificationresource domainactuallyclosed/pathgone. NoGPU/remote
+jobstarted. ReadD587_LOQUETIER_CAPACITY_FULL_W1.md. NEXT prelaunchbackup,
+then fresh20GiBgrowth resourcegate andexactownedremotestart, singleD587tmux.
+Usequalifiedprimelora_vllm0300_tc_20260925 foranalysis; wrapperexplicitlybinds it.
+IndependentnumericUNKNOWN, formalfalse, no winnerfilter. PreserveD544/D585.
+Then sameW2/remaining7Bcomparison beforePrimeLoRAoptimization; all3B/dLoRA/
+A1–A5/S1–S13/cost/docs/figures remainACTIVE. DoNOTrerunD585orD586maintenance.
+
+## D586 checkpoint published — resume Loquetier full W1/W2
+
+2026-10-16 AUTHORITATIVE: MAIN94cd69decdb13877433a7e5f71fb9fda975ddbf4
+PUSHED/remoteequal,15explicitfiles; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5
+unchanged. D586publication actuallyclosed/pathgone; all result/publication
+checksumsPASS. No pendingunifiedsession, GPU, remote ormaintenancejob.
+D585 fullW0 andD586maintenance areDONE; no rerun/recleanup/recompression.
+ReadD586_STORAGE_MAINTENANCE.md. NEXT prepare/qualify/backup samefrozen
+Loquetier config fullW1, reusingexistingW1view/nativeconfig/environment/runners;
+doNOT redo unchanged500/1000qualification. Recheck150GiB disk/102GiB host
+memory/actualworker limits andnewpeak estimate beforelaunch. Then sameW2,
+remaining7Bbaseline comparison, PrimeLoRAoptimization andallremainingPLAN.
+D585analysis firstattempt usedwrong/usr/bin/python3(missingnumpy); future
+analyzer must use existing qualifiedprimelora_vllm0300_tc_20260925 environment.
+Preserve that failedattempt and373old/newnativeoutputdifferences; independent
+numericproof remainsUNKNOWN. No fullgoalclosure ornewperformanceclaim.
+
 ## D586 storage complete — checkpoint then same-config Loquetier W1/W2
 
 2026-10-16 AUTHORITATIVE: D585 fullW0 remains complete/audited/pushed at
