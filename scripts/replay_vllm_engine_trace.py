@@ -407,12 +407,14 @@ class LoquetierStaticRouter:
         return index, dict(body, _sllm_internal_metrics=control)
 
 
-def validate_loquetier_input(request_id, adapter_id, prompt_ids, target, adapter_ids):
+def validate_loquetier_input(request_id, adapter_id, prompt_ids, target, adapter_ids,
+                             max_prompt_tokens=None):
     if (not isinstance(request_id, str) or not request_id or adapter_id not in adapter_ids
             or type(prompt_ids) is not list or not prompt_ids
             or any(type(i) is not int or i < 0 for i in prompt_ids)
             or type(target) is not int or not 1 <= target <= 256
-            or len(prompt_ids)+target > 1024):
+            or len(prompt_ids)+target > 1024
+            or (max_prompt_tokens is not None and len(prompt_ids) > max_prompt_tokens)):
         raise ValueError('Loquetier fixed native input/static adapter differs')
 
 
@@ -423,13 +425,16 @@ class LoquetierNativeBatchBridge:
     construction. The approved historical batch bound stays explicit. No future
     trace, queue priority, dynamic placement or performance configuration search.
     """
-    def __init__(self, generator, request_factory, batch_size):
+    def __init__(self, generator, request_factory, batch_size, *, max_prompt_tokens=None):
         from ieee_tc_serverless_measurement import _slora_process_identity
         if (type(batch_size) is not int or batch_size <= 0
                 or not getattr(generator, '_tc_loquetier_registry', None)
-                or generator.requests_len != 0):
+                or generator.requests_len != 0
+                or (max_prompt_tokens is not None and
+                    (type(max_prompt_tokens) is not int or not 1 <= max_prompt_tokens < 1024))):
             raise ValueError('empty verified native generator and explicit batch bound required')
         self.generator, self.factory, self.batch_size = generator, request_factory, batch_size
+        self.max_prompt_tokens = max_prompt_tokens
         self.adapters = frozenset(generator._tc_loquetier_registry)
         self.process = _slora_process_identity(os.getpid())
         self.thread = threading.get_ident()
@@ -441,7 +446,7 @@ class LoquetierNativeBatchBridge:
 
     def add(self, rid, aid, ids, target):
         self._owner()
-        validate_loquetier_input(rid, aid, ids, target, self.adapters)
+        validate_loquetier_input(rid, aid, ids, target, self.adapters, self.max_prompt_tokens)
         if self.generator.requests_len >= self.batch_size:
             raise ValueError('native batch capacity exceeded')
         mark = self.next_mark
@@ -514,7 +519,8 @@ class LoquetierOnlineRequests:
     async def submit(self, rid, aid, ids, target):
         if self.bridge is None or self.closing or self.failure is not None:
             raise RuntimeError('native online service is not available')
-        validate_loquetier_input(rid, aid, ids, target, self.bridge.adapters)
+        validate_loquetier_input(rid, aid, ids, target, self.bridge.adapters,
+                                getattr(self.bridge, 'max_prompt_tokens', None))
         if rid in self.seen:
             raise ValueError('duplicate online request; no hidden retry')
         self.seen.add(rid)
@@ -669,6 +675,106 @@ LOQUETIER_ENV_KEYS = ('PATH', 'LD_LIBRARY_PATH', 'PYTHONPATH', 'PYTHONNOUSERSITE
     'MAX_JOBS', 'TRANSFORMERS_OFFLINE', 'HF_DATASETS_OFFLINE')
 
 
+def loquetier_capacity_evidence(cfg, plan):
+    """Opt-in measured envelope; legacy placement/configuration stays unchanged.
+
+    A largest-shard diagnostic is a capacity witness, not an all-ID numerical
+    oracle or performance qualification. No batch sweep or OOM fallback here.
+    """
+    policy = cfg.get('inference_capacity')
+    if policy is None:
+        if cfg['native_args']['batch_size'] != plan['batch_size']:
+            raise ValueError('legacy Loquetier batch differs from static plan')
+        return None
+    if (not isinstance(policy, dict) or set(policy) != {'policy', 'evidence', 'evidence_sha256'}
+            or policy['policy'] != 'prepared_only_observed_capacity_v1'
+            or not isinstance(policy['evidence'], str) or not Path(policy['evidence']).is_absolute()
+            or _sha(policy['evidence']) != policy['evidence_sha256']):
+        raise ValueError('explicit SHA-bound Loquetier inference capacity policy required')
+    proof = _load_json(Path(policy['evidence']))
+    forward, model = proof.get('forward_capacity', {}), proof.get('capacity_model', {})
+    largest = max(plan['shards'], key=lambda s: (s['weights_and_kv_accounted_bytes'], -s['index']))
+    if (proof.get('schema') != 'ieee_tc_loquetier_native_capacity_probe_v1'
+            or proof.get('passed') is not True or proof.get('phase') != 'weights_and_kv_ready'
+            or proof.get('performance_run') is not False or forward.get('passed') is not True
+            or proof.get('static_plan_sha256') != cfg['static_plan_sha256']
+            or proof.get('measurement_manifest_sha256') != cfg['source_view_manifest_sha256']
+            or proof.get('native_kernel_sha256') != cfg['native_kernel_sha256']
+            or plan.get('base_config_sha256') != _sha(Path(plan['base_model'])/'config.json')
+            or proof.get('shard') != largest or proof.get('loaded_adapter_count') != largest['adapter_count']
+            or proof.get('verified_adapter_count') != largest['adapter_count']
+            or model.get('schema') != 'loquetier_observed_capacity_bound_v1'
+            or forward.get('capacity_model') != model
+            or model.get('candidate_batch_size') != cfg['native_args']['batch_size']
+            or forward.get('batch_size') != model.get('candidate_batch_size')
+            or model.get('context_tokens') != cfg['native_args']['context_tokens']):
+        raise ValueError('Loquetier measured capacity/source/placement identity differs')
+    integer_keys = ('candidate_batch_size', 'context_tokens', 'prompt_tokens', 'kv_page_bytes',
+        'kv_page_tokens', 'device_total_bytes', 'warm_live_bytes', 'per_request_kv_bytes',
+        'per_request_scratch_bytes', 'per_request_largest_allocation_headroom_bytes',
+        'per_request_accounted_bytes', 'available_budget_bytes', 'predicted_total_bytes')
+    if (any(type(model.get(k)) is not int or model[k] <= 0 for k in integer_keys)
+            or any(type(model.get(k)) is not int or model[k] < 0 for k in
+                   ('observed_nonallocator_bytes', 'observed_fragmentation_bytes'))):
+        raise ValueError('invalid measured capacity byte/geometry accounting')
+    b = model['candidate_batch_size']
+    per = sum(model[k] for k in ('per_request_kv_bytes', 'per_request_scratch_bytes',
+                                'per_request_largest_allocation_headroom_bytes'))
+    budget = model['device_total_bytes'] - sum(model[k] for k in
+        ('warm_live_bytes', 'observed_nonallocator_bytes', 'observed_fragmentation_bytes'))
+    if (per != model['per_request_accounted_bytes'] or budget != model['available_budget_bytes']
+            or b != budget//per or b <= plan['batch_size']
+            or model['predicted_total_bytes'] != model['device_total_bytes']-budget+b*per
+            or model['prompt_tokens']+256 > model['context_tokens']
+            or any(s[k] > largest[k] for s in plan['shards'] for k in
+                   ('adapter_count', 'native_max_rank', 'peft_original_fp32_bytes',
+                    'prepared_fp16_bytes', 'pointer_bytes', 'backbone_fp16_bytes'))):
+        raise ValueError('Loquetier batch is not the measured bounded capacity')
+    release = forward.get('release', {})
+    if (release.get('remaining_owners') != 0 or release.get('remaining_parameters') != 0
+            or release.get('allocated_reduction_bytes') != largest['peft_original_fp32_bytes']
+            or release.get('raw_storage_bytes') != largest['peft_original_fp32_bytes']):
+        raise ValueError('measured raw-owner release missing')
+    inputs = forward.get('input', {}).get('cases', [])
+    if (len(inputs) != b or len({c['source_request_id'] for c in inputs}) != b
+            or any(len(c.get('prompt_ids', [])) != model['prompt_tokens']
+                   or c.get('target_tokens') != 256 for c in inputs)):
+        raise ValueError('measured capacity input geometry incomplete')
+    for phase in ('all_prefill', 'mixed_prefill_decode'):
+        cases = [c for c in forward.get('cases', []) if c.get('selection') == phase]
+        if len(cases) != 1:
+            raise ValueError('complete native all/mixed capacity cases required')
+        case = cases[0]
+        samples, outputs = case.get('samples', []), case.get('outputs', [])
+        if (case.get('batch_size') != b or len(outputs) != b or not samples
+                or samples[-1].get('live_kv_pages') != 0
+                or len({r['native_adapter_id'] for r in outputs}) != b
+                or any(r.get('native_output_tokens') != 256 or len(r.get('completion_token_ids', [])) != 256
+                       for r in outputs)
+                or not any(s.get('native_prefill_requests') == (b if phase == 'all_prefill' else b//2)
+                           and s.get('native_decode_requests') == (0 if phase == 'all_prefill' else b-b//2)
+                           for s in samples)):
+            raise ValueError('native capacity execution/geometry incomplete')
+    return model
+
+
+def loquetier_capacity_device_guard(model, *, allocated, reserved, free, total,
+                                    kv_page_bytes, kv_page_tokens):
+    """Reuse the diagnostic's byte budget on the actual worker, before ready."""
+    values = (allocated, reserved, free, total, kv_page_bytes, kv_page_tokens)
+    outside = total-free-reserved
+    slack = model['available_budget_bytes'] - model['candidate_batch_size']*model['per_request_accounted_bytes']
+    if (any(type(v) is not int or v < 0 for v in values) or allocated > reserved
+            or free > total or outside < 0 or total < model['device_total_bytes']
+            or allocated > model['warm_live_bytes']
+            or outside > model['observed_nonallocator_bytes']+slack
+            or kv_page_bytes != model['kv_page_bytes'] or kv_page_tokens != model['kv_page_tokens']):
+        raise ValueError('actual worker exceeds measured Loquetier capacity envelope')
+    return dict(allocated_bytes=allocated, reserved_bytes=reserved, device_free_bytes=free,
+        device_total_bytes=total, nonallocator_bytes=outside,
+        kv_page_bytes=kv_page_bytes, kv_page_tokens=kv_page_tokens)
+
+
 def load_loquetier_static_plan(cfg, pool_ids=None):
     """Reuse the frozen input-only placement, never reconstruct from a trace."""
     path = Path(cfg['static_plan'])
@@ -680,7 +786,6 @@ def load_loquetier_static_plan(cfg, pool_ids=None):
     if (plan.get('schema') != 'ieee_tc_loquetier_static_capacity_v1'
             or plan.get('no_trace_read') is not True or plan.get('adapter_count') != 500
             or plan.get('sharding_rule') != 'descending_static_bytes_then_ID_least_bytes_count_index_v1'
-            or plan.get('batch_size') != cfg['native_args']['batch_size']
             or plan.get('context_tokens') != cfg['native_args']['context_tokens']
             or plan.get('base_model') != cfg['native_args']['model_dir']
             or len(shards) != len(cfg['gpu_ids']) or len(ids) != 500 or len(set(ids)) != 500
@@ -689,6 +794,7 @@ def load_loquetier_static_plan(cfg, pool_ids=None):
             or any(not isinstance(a, str) or not a or Path(a).name != a for a in ids)
             or (pool_ids is not None and set(ids) != set(pool_ids))):
         raise ValueError('Loquetier complete static shards differ from frozen input-only plan')
+    loquetier_capacity_evidence(cfg, plan)
     return plan
 
 
@@ -699,7 +805,10 @@ def validate_loquetier_service_config(cfg, http):
     endpoint = urlsplit(http['url'])
     devices = cfg.get('gpu_ids', [])
     ports = [endpoint.port, cfg.get('router_port'), *cfg.get('worker_ports', [])]
-    required = dict(model_dir=http['backbone'], dtype='float16', batch_size=2,
+    plan = load_loquetier_static_plan(cfg)
+    capacity = loquetier_capacity_evidence(cfg, plan)
+    required = dict(model_dir=http['backbone'], dtype='float16',
+                    batch_size=capacity['candidate_batch_size'] if capacity else 2,
                     context_tokens=1024, apply_scaling='A')
     if (cfg.get('schema') != 'ieee_tc_loquetier_native_service_v1'
             or http.get('schema') != 'ieee_tc_loquetier_http_replay_v1'
@@ -720,7 +829,6 @@ def validate_loquetier_service_config(cfg, http):
     for key in ('python', 'native_python', 'source_view', 'static_plan', 'native_kernel'):
         if not isinstance(cfg.get(key), str) or not Path(cfg[key]).is_absolute():
             raise ValueError('explicit Loquetier interpreter/source/placement/kernel paths required')
-    plan = load_loquetier_static_plan(cfg)
     if (plan['pool_index'] != http['pool_index']
             or plan['pool_index_sha256'] != http['pool_index_sha256']):
         raise ValueError('Loquetier placement and common remote pool differ')
@@ -811,10 +919,80 @@ def loquetier_worker_context(config_path, index):
     return cfg, guard, plan, prepared
 
 
+def _loquetier_layout(base, mixed):
+    """Primitive-only live storage/pointer inventory; no weight copies or owners."""
+    def prepared():
+        for name, adapters in sorted(mixed.target_module_saves.items()):
+            layer = mixed.model.get_submodule(name)
+            if (layer.wa_ptrs.detach().cpu().tolist() != [a.wa.data_ptr() for a in adapters]
+                    or layer.wb_ptrs.detach().cpu().tolist() != [a.wb.data_ptr() for a in adapters]):
+                raise ValueError('Loquetier prepared SMLM pointer table differs')
+            yield name+'.wa_ptrs', layer.wa_ptrs
+            yield name+'.wb_ptrs', layer.wb_ptrs
+            for adapter in adapters:
+                yield name+'.'+adapter.adapter_name+'.A', adapter.wa
+                yield name+'.'+adapter.adapter_name+'.B', adapter.wb
+    def inventory(items):
+        rows, storages = [], {}
+        for name, tensor in items:
+            storage = tensor.untyped_storage()
+            pointer = storage.data_ptr()
+            storages[pointer] = storage.nbytes()
+            rows.append((name, str(tensor.dtype), str(tensor.device), tuple(tensor.shape),
+                         tuple(tensor.stride()), tensor.data_ptr(), pointer, storage.nbytes()))
+        if not rows:
+            raise ValueError('Loquetier retained tensor inventory missing')
+        return rows, storages
+    return inventory(base.named_parameters()), inventory(prepared()), dict(mixed.lora_name_to_id)
+
+
+def release_loquetier_inference_owners(models, base, mixed):
+    """Drop only obsolete PEFT wrappers after native preparation, once at deploy.
+
+    No cpu()/to(), parameter deletion, precision change, or per-request GC.
+    Aliased prepared storage remains owned by native SMLM; weak Parameter death
+    alone is not a freed-byte claim. Actual CUDA accounting is checked by caller.
+    """
+    import gc
+    import weakref
+    if type(models) is not list or not models or mixed.training_loras:
+        raise ValueError('only prepared pure-inference Loquetier owners may be released')
+    before = _loquetier_layout(base, mixed)
+    def inventory():
+        owners, parameters, storages = [], [], {}
+        for model in models:
+            owners.extend(weakref.ref(x) for x in (model, model.base_model, model.base_model.model))
+            for name, tensor in model.named_parameters():
+                if '.lora_' in name:
+                    parameters.append(weakref.ref(tensor))
+                    storage = tensor.untyped_storage()
+                    storages[storage.data_ptr()] = storage.nbytes()
+        return owners, parameters, storages
+    owners, parameters, raw = inventory()
+    if not owners or not parameters or not raw:
+        raise ValueError('raw Loquetier owner/parameter inventory missing')
+    retained = set(before[0][1]) | set(before[1][1])
+    releasable = sum(size for ptr, size in raw.items() if ptr not in retained)
+    started = time.perf_counter()
+    models.clear()
+    collected = gc.collect()  # Original virtual wrappers contain bound-method cycles.
+    remaining_owners = sum(ref() is not None for ref in owners)
+    remaining_parameters = sum(ref() is not None for ref in parameters)
+    if remaining_owners or remaining_parameters or before != _loquetier_layout(base, mixed):
+        raise ValueError('Loquetier raw owners remain or retained layout/registry changed')
+    return dict(policy='prepared_only_observed_capacity_v1', collected_objects=collected,
+        seconds=time.perf_counter()-started, raw_storage_bytes=sum(raw.values()),
+        releasable_storage_bytes=releasable, aliased_storage_bytes=sum(raw.values())-releasable,
+        owner_count=len(owners), parameter_count=len(parameters), remaining_owners=remaining_owners,
+        remaining_parameters=remaining_parameters, retained_layout_unchanged=True,
+        runtime_content_hash_checked=False)
+
+
 def _load_loquetier_native_bridge(cfg, index, plan, emit):
     """Exact previously capacity-tested native load sequence; single owner thread."""
     from prepare_ieee_tc_serverless_stack import load_guard
     load_guard(Path(cfg['main_repo'])).verify_current_service()
+    capacity = loquetier_capacity_evidence(cfg, plan)
     import torch
     from transformers import LlamaConfig, GenerationConfig, LogitsProcessorList
     from loquetier_src import LoquetierFramework, create_virtual_model
@@ -853,12 +1031,35 @@ def _load_loquetier_native_bridge(cfg, index, plan, emit):
             logits_processor=LogitsProcessorList(), max_length=len(ids)+target)
         request._tc_request_id = rid
         return request
-    bridge = LoquetierNativeBatchBridge(generator, request_factory, cfg['native_args']['batch_size'])
-    bridge.native_models = models  # Preserve original and prepared representation; no offload/dedup.
+    capacity_receipt = None
+    if capacity is not None:
+        torch.cuda.synchronize()
+        allocated_before = torch.cuda.memory_allocated(0)
+        release = release_loquetier_inference_owners(models, base, mixed)
+        torch.cuda.synchronize()
+        release['allocated_reduction_bytes'] = allocated_before-torch.cuda.memory_allocated(0)
+        if (release['allocated_reduction_bytes'] < release['releasable_storage_bytes']
+                or release['raw_storage_bytes'] != plan['shards'][index]['peft_original_fp32_bytes']):
+            raise ValueError('actual Loquetier raw-owner allocation release differs')
+        free, total = torch.cuda.mem_get_info(0)
+        device_guard = loquetier_capacity_device_guard(capacity,
+            allocated=torch.cuda.memory_allocated(0), reserved=torch.cuda.memory_reserved(0),
+            free=free, total=total, kv_page_bytes=generator.kvpool.page_nbytes,
+            kv_page_tokens=generator.kvpool.page_len)
+        capacity_receipt = dict(binding=cfg['inference_capacity'], model=capacity,
+            release=release, device_guard=device_guard)
+        emit(dict(event='loquetier_inference_owner_release', index=index,
+                  at=time.perf_counter(), capacity=capacity_receipt))
+    bridge = LoquetierNativeBatchBridge(generator, request_factory, cfg['native_args']['batch_size'],
+        max_prompt_tokens=capacity['prompt_tokens'] if capacity else None)
+    if capacity is None:
+        bridge.native_models = models  # Legacy behavior and execution identity preserved.
     bridge.startup = dict(registry=registry, adapter_ids=dict(generator._tc_loquetier_registry),
         adapter_paths=paths, cuda_device_count=torch.cuda.device_count(),
         model_dir=basepath, allocated_bytes=torch.cuda.memory_allocated(0),
         reserved_bytes=torch.cuda.memory_reserved(0), native_kernel_sha256=_sha(_kernels.__file__))
+    if capacity_receipt is not None:
+        bridge.startup['inference_capacity'] = capacity_receipt
     return bridge
 
 
@@ -950,6 +1151,31 @@ def validate_loquetier_ready_receipt(receipt, *, cfg, index, plan, identity,
             or any(type(receipt.get(k)) is not int or receipt[k] <= 0
                    for k in ('allocated_bytes','reserved_bytes'))):
         raise ValueError('actual Loquetier worker/static registry/preparation differs from ready receipt')
+    model = loquetier_capacity_evidence(cfg, plan) if cfg.get('inference_capacity') is not None else None
+    if model is not None:
+        capacity = receipt.get('inference_capacity', {})
+        release = capacity.get('release', {})
+        guard = capacity.get('device_guard', {})
+        if (capacity.get('binding') != cfg['inference_capacity'] or capacity.get('model') != model
+                or release.get('policy') != cfg['inference_capacity']['policy']
+                or release.get('remaining_owners') != 0 or release.get('remaining_parameters') != 0
+                or release.get('retained_layout_unchanged') is not True
+                or release.get('raw_storage_bytes') != plan['shards'][index]['peft_original_fp32_bytes']
+                or type(release.get('releasable_storage_bytes')) is not int
+                or type(release.get('allocated_reduction_bytes')) is not int
+                or not 0 < release['releasable_storage_bytes'] <= release['raw_storage_bytes']
+                or release.get('aliased_storage_bytes') != release['raw_storage_bytes']-release['releasable_storage_bytes']
+                or release['allocated_reduction_bytes'] < release['releasable_storage_bytes']
+                or guard.get('allocated_bytes') != receipt['allocated_bytes']
+                or guard.get('reserved_bytes') != receipt['reserved_bytes']):
+            raise ValueError('Loquetier actual owner release/capacity receipt missing or inconsistent')
+        checked = loquetier_capacity_device_guard(model, allocated=guard['allocated_bytes'],
+            reserved=guard['reserved_bytes'], free=guard['device_free_bytes'], total=guard['device_total_bytes'],
+            kv_page_bytes=guard['kv_page_bytes'], kv_page_tokens=guard['kv_page_tokens'])
+        if checked != guard:
+            raise ValueError('Loquetier capacity receipt byte accounting differs')
+    elif 'inference_capacity' in receipt:
+        raise ValueError('legacy Loquetier receipt unexpectedly changed ownership policy')
 
 
 class NativeSloraRequestHandler:

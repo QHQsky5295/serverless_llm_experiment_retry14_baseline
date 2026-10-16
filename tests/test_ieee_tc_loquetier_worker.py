@@ -49,6 +49,113 @@ def configs():
 
 
 class ConfigurationAndGuard(unittest.TestCase):
+    def capacity_config(self):
+        cfg = json.loads((ROOT/'configs/ieee_tc/loquetier_7b_prepared_capacity_v1.json').read_text())
+        _, http, plan = configs()
+        cfg.update(router_port=18091, worker_ports=[18092,18093,18094,18095])
+        return cfg, http, plan
+
+    def test_new_capacity_config_binds_real_evidence_without_changing_static_placement(self):
+        cfg, http, plan = self.capacity_config()
+        self.assertEqual(service.validate_native_service_config(cfg, http), 18090)
+        self.assertEqual(service.load_loquetier_static_plan(cfg), plan)
+        self.assertEqual(plan['batch_size'], 2)
+        model = service.loquetier_capacity_evidence(cfg, plan)
+        self.assertEqual(model['candidate_batch_size'], 8)
+        self.assertEqual(model['prompt_tokens'], 760)
+        self.assertFalse(model['runtime_qualified'])
+        with self.assertRaises(ValueError):
+            service.validate_native_service_config(dict(cfg, inference_capacity=None), http)
+        for key, value in [('policy', 'automatic_retry'), ('evidence_sha256', '0'*64)]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                service.validate_native_service_config(dict(cfg, inference_capacity=dict(
+                    cfg['inference_capacity'], **{key:value})), http)
+
+    def test_capacity_rejects_incomplete_or_rebound_diagnostic_even_with_new_sha(self):
+        cfg, http, _ = self.capacity_config()
+        proof = json.loads(Path(cfg['inference_capacity']['evidence']).read_text())
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'evidence.json'
+            for kind in ('partial', 'kernel', 'view', 'plan', 'release', 'batch', 'geometry',
+                         'missing_mixed', 'kv_not_drained', 'one_output_missing', 'no_actual_mixed'):
+                bad = copy.deepcopy(proof)
+                if kind == 'partial': bad['passed'] = False
+                elif kind in ('kernel','view','plan'):
+                    key = dict(kernel='native_kernel_sha256',view='measurement_manifest_sha256',
+                               plan='static_plan_sha256')[kind]
+                    bad[key] = '0'*64
+                elif kind == 'release': bad['forward_capacity']['release']['remaining_owners'] = 1
+                elif kind == 'batch': bad['capacity_model']['candidate_batch_size'] = 9
+                elif kind == 'geometry': bad['forward_capacity']['input']['cases'][0]['prompt_ids'].pop()
+                elif kind == 'missing_mixed': bad['forward_capacity']['cases'].pop()
+                elif kind == 'kv_not_drained': bad['forward_capacity']['cases'][-1]['samples'][-1]['live_kv_pages'] = 1
+                elif kind == 'one_output_missing': bad['forward_capacity']['cases'][-1]['outputs'].pop()
+                else:
+                    for row in bad['forward_capacity']['cases'][-1]['samples']:
+                        row['native_prefill_requests'] = 0
+                path.write_text(json.dumps(bad))
+                changed = dict(cfg, inference_capacity=dict(cfg['inference_capacity'],
+                    evidence=str(path), evidence_sha256=service._sha(path)))
+                with self.subTest(kind=kind), self.assertRaises(ValueError):
+                    service.validate_native_service_config(changed, http)
+
+    def test_actual_capacity_guard_accounts_cached_reservation_not_nvml_free_alone(self):
+        cfg, _, plan = self.capacity_config()
+        model = service.loquetier_capacity_evidence(cfg, plan)
+        args = dict(allocated=model['warm_live_bytes'], reserved=23754440704,
+            free=model['device_total_bytes']-23754440704-model['observed_nonallocator_bytes'],
+            total=model['device_total_bytes'],kv_page_bytes=model['kv_page_bytes'],
+            kv_page_tokens=model['kv_page_tokens'])
+        receipt = service.loquetier_capacity_device_guard(model, **args)
+        self.assertEqual(receipt['nonallocator_bytes'], model['observed_nonallocator_bytes'])
+        self.assertLess(args['free'], 8*model['per_request_kv_bytes'])
+        for key,value in [('allocated',model['warm_live_bytes']+1),('free',0),
+                          ('total',model['device_total_bytes']-1),('kv_page_tokens',32)]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                service.loquetier_capacity_device_guard(model, **dict(args, **{key:value}))
+
+    def test_ready_receipt_requires_actual_owner_and_device_evidence(self):
+        cfg, _, plan = self.capacity_config()
+        cfg['adapters'] = {a:[i,'/remote/'+a] for s in plan['shards'] for i,a in enumerate(s['adapter_ids'])}
+        cfg['native_environment'] = {'verified':'synthetic'}
+        aids = plan['shards'][0]['adapter_ids']
+        model = service.loquetier_capacity_evidence(cfg, plan)
+        guard = service.loquetier_capacity_device_guard(model,
+            allocated=model['warm_live_bytes'], reserved=23754440704,
+            free=model['device_total_bytes']-23754440704-model['observed_nonallocator_bytes'],
+            total=model['device_total_bytes'],kv_page_bytes=model['kv_page_bytes'],
+            kv_page_tokens=model['kv_page_tokens'])
+        raw = plan['shards'][0]['peft_original_fp32_bytes']
+        capacity = dict(binding=cfg['inference_capacity'],model=model,device_guard=guard,
+            release=dict(policy=cfg['inference_capacity']['policy'],remaining_owners=0,
+                remaining_parameters=0,retained_layout_unchanged=True,raw_storage_bytes=raw,
+                releasable_storage_bytes=raw,allocated_reduction_bytes=raw,aliased_storage_bytes=0))
+        row = dict(schema='ieee_tc_loquetier_backend_ready_v1',index=0,identity={'pid':1},
+            adapter_ids={a:i for i,a in enumerate(aids)},adapter_paths={a:cfg['adapters'][a][1] for a in aids},
+            source_view_manifest_sha256=cfg['source_view_manifest_sha256'],
+            static_plan_sha256=cfg['static_plan_sha256'],preparation_sha256='f'*64,
+            native_environment=cfg['native_environment'],native_args=cfg['native_args'],
+            native_kernel_sha256=cfg['native_kernel_sha256'],model_dir=cfg['native_args']['model_dir'],
+            cuda_visible='0',cuda_device_count=1,runner_sha256=service._sha(service.__file__),
+            ready_boundary='native_static_shard_and_model_initialized',
+            registry=dict(adapter_count=125,pointer_tables_verified=True),
+            allocated_bytes=guard['allocated_bytes'],reserved_bytes=guard['reserved_bytes'],
+            inference_capacity=capacity)
+        def validate(value):
+            service.validate_loquetier_ready_receipt(value,cfg=cfg,index=0,plan=plan,
+                identity={'pid':1},preparation_sha256='f'*64)
+        validate(row)
+        for kind in ('missing','owner','layout','freed','allocated','bytes'):
+            bad = copy.deepcopy(row)
+            if kind == 'missing': del bad['inference_capacity']
+            elif kind == 'allocated': bad['allocated_bytes'] += 1
+            elif kind == 'bytes': bad['inference_capacity']['device_guard']['nonallocator_bytes'] += 1
+            else:
+                key = dict(owner='remaining_owners',layout='retained_layout_unchanged',
+                           freed='allocated_reduction_bytes')[kind]
+                bad['inference_capacity']['release'][key] = 1 if kind=='owner' else 0
+            with self.subTest(kind=kind),self.assertRaises(ValueError): validate(bad)
+
     def test_existing_full_500_static_plan_reused_without_trace(self):
         cfg,http,plan=configs()
         self.assertEqual(service.validate_native_service_config(cfg,http),18090)

@@ -89,7 +89,8 @@ class NativeGenerationRules(unittest.TestCase):
         self.assertNotIn('missing', model.lora_name_to_id)
         self.assertEqual(model._get_lora_id('other'), 1)
 
-    def _prepared_owner_witness(self, raw_dtype, expect_storage_alias):
+    def _prepared_owner_witness(self, raw_dtype, expect_storage_alias, *,
+                                reject_training=False, retain_owner=False):
         """Actual virtual/PEFT/preparation ownership, CPU synthetic tensors only.
 
         The reference products below are NOT SMLM or model-forward qualification.
@@ -157,8 +158,31 @@ class NativeGenerationRules(unittest.TestCase):
                     + t.nn.functional.linear(t.nn.functional.linear(x, a.wa.float()),
                                               a.wb.float()) for a in layers]
             before = reference_products()
-            models.clear()
-            gc.collect()  # Native virtual wrappers retain bound-method cycles.
+            from scripts.replay_vllm_engine_trace import release_loquetier_inference_owners
+            if reject_training:
+                mixed.training_loras.add('adapter-0')
+                with self.assertRaisesRegex(ValueError, 'pure-inference'):
+                    release_loquetier_inference_owners(models, base, mixed)
+                self.assertEqual(len(models), 2)
+                mixed.training_loras.clear()
+            if retain_owner:
+                extra_owner = models[0]
+                with self.assertRaisesRegex(ValueError, 'owners remain'):
+                    release_loquetier_inference_owners(models, base, mixed)
+                del extra_owner
+                gc.collect()
+            else:
+                receipt = release_loquetier_inference_owners(models, base, mixed)
+                self.assertEqual(receipt['remaining_owners'], 0)
+                self.assertEqual(receipt['remaining_parameters'], 0)
+                self.assertTrue(receipt['retained_layout_unchanged'])
+                self.assertFalse(receipt['runtime_content_hash_checked'])
+                self.assertEqual(receipt['owner_count'], 6)
+                self.assertEqual(receipt['parameter_count'], 4)
+                self.assertEqual(bool(receipt['aliased_storage_bytes']), expect_storage_alias)
+                self.assertEqual(receipt['raw_storage_bytes'],
+                    receipt['releasable_storage_bytes']+receipt['aliased_storage_bytes'])
+            self.assertEqual(models, [])
             self.assertTrue(all(ref() is None for ref in object_refs))
             self.assertTrue(all(ref() is None for ref in parameter_refs))
             self.assertTrue(all(ref() is None for ref in probed_owners + probed_parameters))
@@ -178,6 +202,12 @@ class NativeGenerationRules(unittest.TestCase):
 
     def test_prepared_alias_retains_storage_after_fp16_parameter_collection(self):
         self._prepared_owner_witness(self.torch.float16, expect_storage_alias=True)
+
+    def test_training_rejected_before_owner_list_mutation(self):
+        self._prepared_owner_witness(self.torch.float32, False, reject_training=True)
+
+    def test_external_raw_owner_fails_closed_instead_of_claiming_release(self):
+        self._prepared_owner_witness(self.torch.float32, False, retain_owner=True)
 
     def test_owner_inventory_tracks_content_storage_and_releases_input(self):
         from Loquetier_project.scripts.run_loquetier_trace_gate import _tensor_inventory

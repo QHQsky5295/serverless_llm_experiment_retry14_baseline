@@ -131,6 +131,18 @@ class OnlineQueueTests(unittest.IsolatedAsyncioTestCase):
     def submit(self, rid, target=3):
         return asyncio.create_task(self.queue.submit(rid, 'a', [1, 2], target))
 
+    async def test_capacity_geometry_rejected_before_queue_and_legacy_unaffected(self):
+        service.validate_loquetier_input('legacy', 'a', [1]*900, 1, {'a'})
+        self.bridge.max_prompt_tokens = 760
+        with self.assertRaisesRegex(ValueError, 'fixed native input'):
+            await self.queue.submit('too-long', 'a', [1]*761, 1)
+        self.assertNotIn('too-long', self.queue.seen)
+        self.assertEqual(len(self.queue.pending), 0)
+        self.assertIsNone(self.queue.failure)
+        self.bridge.allow_step.set()
+        result = await self.queue.submit('valid', 'a', [1]*760, 256)
+        self.assertEqual(result['native_output_tokens'], 256)
+
     async def test_online_arrival_continues_during_native_iteration_and_fifo_bound(self):
         first = self.submit('r0')
         await self.entered_iteration()
