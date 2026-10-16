@@ -201,6 +201,51 @@ class ClosedOutcomeArchive(unittest.TestCase):
             self.assertEqual(source.read_bytes(), payload)
             self.assertFalse(source.with_suffix('.json.gz').exists())
 
+    def test_current_run_result_path_rejects_escape_symlink_and_mixed_types(self):
+        with tempfile.TemporaryDirectory() as directory:
+            raw = Path(directory)/'campaign/run'
+            raw.mkdir(parents=True)
+            for name in ('../experiment_results_x.json', '/tmp/experiment_results_x.json',
+                         'nested/experiment_results_x.json', 'launch.json', 'model.safetensors'):
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    archive.evidence_paths(raw, run_result=name)
+            for extra in ({'legacy_result':'7b_outputs_x/experiment_results_x.json'},
+                          {'remote_monitor_log':'remote_monitor.log'}):
+                with self.assertRaises(ValueError):
+                    archive.evidence_paths(raw, run_result='experiment_results_x.json', **extra)
+            (raw/'experiment_results_x.json').symlink_to(raw/'other.json')
+            with self.assertRaises(ValueError):
+                archive.evidence_paths(raw, run_result='experiment_results_x.json')
+
+    def test_current_result_roundtrip_preserves_launch_and_other_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root/'campaign/run'
+            raw.mkdir(parents=True)
+            source = raw/'experiment_results_x.json'
+            payload = b'{"result":"all fields retained"}\n'*256
+            source.write_bytes(payload)
+            launch = self.launch(True)
+            launch['service_path_removed'] = False
+            launch_path = raw/'launch.json'
+            launch_path.write_text(json.dumps(launch))
+            other_receipt = raw/'compression_receipt.json'
+            other_receipt.write_bytes(b'prior outcome receipt')
+            with patch.object(archive, 'RAW_ROOT', root), patch.object(archive, 'OUT', root/'receipt.json'), \
+                    patch.object(archive, 'TARGETS', [dict(run='campaign/run', audit_sha=None,
+                        run_result=source.name)]), patch.object(archive, 'no_active'):
+                with self.assertRaises(RuntimeError):
+                    archive.main()
+                self.assertEqual(source.read_bytes(), payload)
+                self.assertFalse(source.with_suffix('.json.gz').exists())
+                launch['service_path_removed'] = True
+                launch_path.write_text(json.dumps(launch))
+                original_launch = launch_path.read_bytes()
+                self.assertEqual(archive.main(), 0)
+            self.assertEqual(gzip.decompress(source.with_suffix('.json.gz').read_bytes()), payload)
+            self.assertEqual(launch_path.read_bytes(), original_launch)
+            self.assertEqual(other_receipt.read_bytes(), b'prior outcome receipt')
+
 
 if __name__ == '__main__':
     unittest.main()

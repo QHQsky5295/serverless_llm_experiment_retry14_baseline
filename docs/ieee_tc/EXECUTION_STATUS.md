@@ -1,5 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D604 storage closed; D605 isolated traversal prototype not adopted
+
+D604 completed once: five explicit closed D554/D598/D603 evidence files losslessly
+compressed,1461567488B reclaimed;14tests,double roundtrip/current identities,
+protected147/three user dirt PASS. Actual auxiliary closed/pathgone,peak251961344B,
+events/swap0. Original result JSONs now adjacent.gz with receipts; do not recompress
+or pretend old plain paths exist. Use curated observations or verified streaming gzip.
+D605 did NOT edit production residency_manager. First component attempt47670 failed
+because frozen original pool includes symlinks; parent rejected it. Source/failure/
+actual closure retained. Second attempt73504 completed0 using CLOSED D557 ordinary
+metadata tree,NOT LoRA payload/500-adapter performance.13assertions/output equality,
+1003paths×2freshstats; capture-needed mean16.080→16.620ms. Noncapture old329ms outlier
+retained,not claimed as speedup. Both actual scopesclosed/pathgone/events0. Prototype
+NOT adopted; noGPU replay/no repeat for better numbers. Read D604/D605docs.
+Next backup this evidence,then audit ephemeral observation-map representation
+roundtrips against actual callers before any independent candidate. No production
+policy change,no liveexperiment/pendingtool; this is progress,not blocker. Full7B
+sameconfigG1/G2,3B,dLoRA,A1–A5/S1–S13/cost/reviewer docs/finalfigures stay ACTIVE.
+
+## D603 result checkpoint pushed; all execution and analysis closed
+
+Checkpoint161fa069e004ed54622dbc5922f72ee56f624f02 pushed/remote-equal;
+publication21040 completed0 and exact auxiliary scope recursively empty/closed/
+path gone. No pending tool, no inference or owned remote service remains. D603
+full replay, initial audit, four-quarter caller analysis and publication are DONE;
+do not repeat them. Current turn completed new evidence and backup, not blocked.
+Next current-state ownership/lifecycle audit with D93/D153/D352/D365/D457 history
+and primary sources; no production candidate chosen yet. Fresh safe storage
+maintenance before another heavy launch; latest free space near startup150GiB.
+Full 7B same-config/G1/G2,3B,dLoRA,A1-A5/S1-S13/cost/docs/figures remain ACTIVE.
+
 ## D603 complete W2 diagnostic analyzed — backup, then fresh-state path audit
 
 D603 finished ONCE: service return0,4000/4000 native contracts,458224 tokens;

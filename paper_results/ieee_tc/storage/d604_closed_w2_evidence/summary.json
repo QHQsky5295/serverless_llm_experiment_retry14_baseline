@@ -1,0 +1,227 @@
+{
+  "passed": true,
+  "entries": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/compress.py",
+      "archive_member": "00_compress.py",
+      "sha256": "e8693b459971c1dd496537f3d0ae1d2e8f300972454678757239c02869e26d2d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/close.py",
+      "archive_member": "01_close.py",
+      "sha256": "c046efd4b0dea7becf6c48dc63de52ef98ca57496a283338fe715b59b2dca330"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/storage_identity.json",
+      "archive_member": "02_storage_identity.json",
+      "sha256": "d336c7c4ea28e92622905a38902ac101e3c39c7c7e1a84016b7d26f35ca5ff2d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/prechecks.json",
+      "archive_member": "03_prechecks.json",
+      "sha256": "5d08119ba2106b6f1b91e10783b18ff3af988b417953dfbe1cc8a69ae2940bca"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/tests.log",
+      "archive_member": "04_tests.log",
+      "sha256": "9a82201c1af379bb23680109d732aaf867ed3c0d13589cef2fd014ce0657268e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/storage_result.json",
+      "archive_member": "05_storage_result.json",
+      "sha256": "4630c76aba02a00bfc7b30dd309969d0b993680122e1e41e5c407d2e4bb4c3bc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/receipt.json",
+      "archive_member": "06_receipt.json",
+      "sha256": "ac778e581219f0d878ef551c3343a000ff0377ca9a937db1d923ccd568bf3edc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d604_20261017/storage_closure.json",
+      "archive_member": "07_storage_closure.json",
+      "sha256": "5cfd0f8b8e16d6b0cf297472775296698b7199d14b65034055c115f03ec62545"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d592_20261017/close.py",
+      "archive_member": "08_close.py",
+      "sha256": "6501bbac02ed1012bab3fee3dc4f870d2f36cf2c1fa67c273fafb70613ef69f7"
+    }
+  ],
+  "archive_sha256": "fb4169b99e957dba8154d2f3028309a048968efe15bfdef6ab83d27b47faa667",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "production_serving_change": false,
+  "gpu_experiment": false,
+  "storage": {
+    "kind": "lossless_closed_outcome_compression_v1",
+    "created_unix": 1792184368.408318,
+    "before": {
+      "available_bytes": 160019505152
+    },
+    "after": {
+      "available_bytes": 161480060928
+    },
+    "entries": [
+      {
+        "run": "d603_20261017/7b_controller_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/7b_controller_full_w2/launch.launch/physical_deployment/main_outcome.json",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/7b_controller_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+        "source_sha256": "6818e5667cd97025326190ac901c97f89e189d13beb93355b98b0956e65c1c95",
+        "audit_sha256": "6818e5667cd97025326190ac901c97f89e189d13beb93355b98b0956e65c1c95",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 109578523,
+          "size": 612566738,
+          "mtime_ns": 1792183671000752509,
+          "ctime_ns": 1792183671000752509,
+          "mode": 33204,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 1196432
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "a93bcab2ece83222671587a689932a1020f977c65ddacaa95a943182556c7cb7",
+        "archive_sha256": "b164d91f9e83ce0207b47a45535b2d4528ee42c2c73181bf6bab8a582a57612e",
+        "archive_bytes": 68506457,
+        "archive_allocated_bytes": 68513792,
+        "first_roundtrip_sha256": "6818e5667cd97025326190ac901c97f89e189d13beb93355b98b0956e65c1c95",
+        "second_roundtrip_sha256": "6818e5667cd97025326190ac901c97f89e189d13beb93355b98b0956e65c1c95",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 544059392
+      },
+      {
+        "run": "d603_20261017/7b_controller_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/remote_monitor.log",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/remote_monitor.log.gz",
+        "source_sha256": "eb58fc5cc7abb8291a97987fc8490a1cdd8e30f70dc30ae21402bd6c6ea8bc8f",
+        "audit_sha256": "eb58fc5cc7abb8291a97987fc8490a1cdd8e30f70dc30ae21402bd6c6ea8bc8f",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 109578556,
+          "size": 68287810,
+          "mtime_ns": 1792183719885323484,
+          "ctime_ns": 1792183719885323484,
+          "mode": 33152,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 133384
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "a93bcab2ece83222671587a689932a1020f977c65ddacaa95a943182556c7cb7",
+        "archive_sha256": "86b3f3f97bc8abada53572a07480cfc05151b5bb4b6630a9768a6eb38e2f9d67",
+        "archive_bytes": 7295146,
+        "archive_allocated_bytes": 7299072,
+        "first_roundtrip_sha256": "eb58fc5cc7abb8291a97987fc8490a1cdd8e30f70dc30ae21402bd6c6ea8bc8f",
+        "second_roundtrip_sha256": "eb58fc5cc7abb8291a97987fc8490a1cdd8e30f70dc30ae21402bd6c6ea8bc8f",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 60993536
+      },
+      {
+        "run": "d554_20261015/7b_initial_control_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d554_7b_initial_control_full_w2.json",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d554_20261015/7b_initial_control_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d554_7b_initial_control_full_w2.json.gz",
+        "source_sha256": "bda577e019baf5ff61763a7faaab8814b6be08d4f54283f1675bdae8a054e975",
+        "audit_sha256": "bda577e019baf5ff61763a7faaab8814b6be08d4f54283f1675bdae8a054e975",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 106203448,
+          "size": 334657580,
+          "mtime_ns": 1792069822080648470,
+          "ctime_ns": 1792069822080648470,
+          "mode": 33204,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 653640
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "5da01567b5b0edd8ea7ebdda0b25d26df9c752963d0d63393c63908640a05bb1",
+        "archive_sha256": "5442d5e4c96fcb13bc38973e2d06889101f7b33d9241c4a8d697cadbd679a2c9",
+        "archive_bytes": 48920659,
+        "archive_allocated_bytes": 48922624,
+        "first_roundtrip_sha256": "bda577e019baf5ff61763a7faaab8814b6be08d4f54283f1675bdae8a054e975",
+        "second_roundtrip_sha256": "bda577e019baf5ff61763a7faaab8814b6be08d4f54283f1675bdae8a054e975",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 285741056
+      },
+      {
+        "run": "d598_20261017/7b_parallel_pressure_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d598_7b_parallel_pressure_full_w2.json",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d598_20261017/7b_parallel_pressure_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d598_7b_parallel_pressure_full_w2.json.gz",
+        "source_sha256": "b725a43159759695e8d6a6c8098895b2bced6ef6b05f83d72405358e0782e311",
+        "audit_sha256": "b725a43159759695e8d6a6c8098895b2bced6ef6b05f83d72405358e0782e311",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 109578432,
+          "size": 337657892,
+          "mtime_ns": 1792177874414819967,
+          "ctime_ns": 1792177874414819967,
+          "mode": 33204,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 659504
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "fd157c091be3e5b250d34e2818e31edbbbf909d82a2cf0162136a0fc5f8e6680",
+        "archive_sha256": "ac754f10b9beb2c8594d835220dc395eace4a4c88ca945ad82025cb824e9ab60",
+        "archive_bytes": 49274609,
+        "archive_allocated_bytes": 49274880,
+        "first_roundtrip_sha256": "b725a43159759695e8d6a6c8098895b2bced6ef6b05f83d72405358e0782e311",
+        "second_roundtrip_sha256": "b725a43159759695e8d6a6c8098895b2bced6ef6b05f83d72405358e0782e311",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 288391168
+      },
+      {
+        "run": "d603_20261017/7b_controller_full_w2",
+        "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/7b_controller_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d603_7b_controller_full_w2.json",
+        "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/7b_controller_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d603_7b_controller_full_w2.json.gz",
+        "source_sha256": "69cd88af93a7902acc391d1ea00f18e47683a6cca3d6b886710d0900f57c7322",
+        "audit_sha256": "69cd88af93a7902acc391d1ea00f18e47683a6cca3d6b886710d0900f57c7322",
+        "audit_sha_matches": true,
+        "source_stamp": {
+          "dev": 2050,
+          "ino": 109578547,
+          "size": 330963935,
+          "mtime_ns": 1792183683523922810,
+          "ctime_ns": 1792183683523922810,
+          "mode": 33204,
+          "uid": 1001,
+          "nlink": 1,
+          "blocks": 646424
+        },
+        "launch_pass": true,
+        "closed_failure_explicitly_allowed": false,
+        "launch_sha256": "a93bcab2ece83222671587a689932a1020f977c65ddacaa95a943182556c7cb7",
+        "archive_sha256": "13bf14dd9c3dc0ed1f27abdcd997b2e965b2c2bd6a541713fd86c7b0ea9a28ea",
+        "archive_bytes": 48585854,
+        "archive_allocated_bytes": 48586752,
+        "first_roundtrip_sha256": "69cd88af93a7902acc391d1ea00f18e47683a6cca3d6b886710d0900f57c7322",
+        "second_roundtrip_sha256": "69cd88af93a7902acc391d1ea00f18e47683a6cca3d6b886710d0900f57c7322",
+        "removed_uncompressed_duplicate": true,
+        "allocated_bytes_reclaimed": 282382336
+      }
+    ],
+    "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+    "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+    "source_archive_round_trip_verified": true
+  },
+  "tests": 14
+}
