@@ -1,5 +1,130 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D591 S-LoRA W2 audited and curated — checkpoint, storage, complete comparison
+
+2026-10-17 AUTHORITATIVE: SINGLE D591 complete,4000 native-binding/458224native
+target-matched tokens/0failed,497 requestedIDs. Existing strict full4000_w2
+analyzer PASSED. Joint3642/4000=91.05%,U14783.465377924033GPU-s,
+P95TTFT151375.83369901404ms,meanTTFT17348.26606967015ms. NumericUNKNOWN/
+n_correctnull/formalfalse retained; not95%-feasible or G1/G2complete.
+Read D591_SLORA_W2_RESULT.md and curated
+paper_results/ieee_tc/main_comparison/d591_slora_w2/result1/.
+ExactD557 join4000 request/prompt/nativeprompt/adapter/target/rotation/relative
+arrivalPASS,error0. Cross-backend token equality not required/no independentoracle.
+352of358jointviolations in first500; later500phases99.6–100%joint. Workerready
+business+257.177/355.252/457.753/565.728s; meanrouterqueue14.949854s,
+native register->schedule2.698851ms/schedule->first174.683341ms. Firstworker
+startup219.979s differsfromD542102.762s; internal load/compile attribution not
+isolated. Fullpool/sequentialstartup are disclosed deployment adaptation, not
+intrinsicS-LoRA inference defects. No newbaselineperformance search.
+500deploymentfetches/420740410wire/12985984450materializedB,requestpack0.
+Actualservice/GPU/launcheraux/exactremoteunits closed; analysis3256/cross33837
+completed andactualscopesclosed/pathgone. Analysispeak761573376/cross689471488B,
+events/swap0. CurationPASS/archive186776B,147protected+3userdirt/sourceguardsPASS,
+resultscopeactuallyclosed. No pendingtool or liveinference/remotejob.
+NEXT explicitD591resultbackup then safe bounded storage maintenance (diskbelow
+150GiB newheavyfloor), completeavailable7B comparison/commonreference review,
+thenPrimeLoRA evidence-drivenW2/G2 optimization. DoNOTrepeatD591/qualification/
+analysis/join/curation/remote stop. Full3B/dLoRA/A1–A5/S1–S13/cost/docs/figures
+remainACTIVE; PrimeLoRAW0 vsW1/W2 stilldifferentconfigs, no cross-scenario closure.
+
+## D591 complete and released — strict full W2 audit running
+
+2026-10-17 AUTHORITATIVE: SAME D591 completed4000created/4000responses,
+http_replay_complete N_plan/N_arrived/N_terminal/N_response4000,N_failed0.
+Observer1536 ended after42spacedpolls on actualterminal; service/replay/watchdog
+returncodes0,launchpass=true,nativeGPUreleaseconfirmed/servicepathgone.
+close_launch.py verified recursiveempty launcheraux and stopped exactidentity;
+peak551415808B,high/max/OOM/kill/swap0,actualpathgone. Exact three owned remote
+units nowinactive/MainPID0/portsabsent; remote_stop.log and monitorSHA retained.
+Do not repeat cleanup/remote stop or D591 performance run.
+
+Strict full4000_w2/slora_resident_rr_v1 audit now runs via existing run_analysis.py
+--outcome success in auxd5910000000000000000000000000005, unifiedsession3256.
+It preserves bilateral evidence then invokes the qualified analysisvenv and
+unchanged analyzer/frozen D394 SLO. Final binding/token/SLO result PENDING.
+Resource/run/analysis skills read; PLAN/V1/V2 fullyread in retainedcontext with
+unchangedSHAs. No serving/algorithm/input changes or baselineparametersearch.
+NEXT finish SAME analysis,close.py analysis, exact fullW2 inputjoin/native
+diagnostics, preserve/interpret/checkpoint, then safe storage before anotherheavy
+task. Complete7B comparison thenPrimeLoRAoptimization. AllG1/G2/3B/dLoRA/A1–A5/
+S1–S13/cost/docs/finalfigures remainACTIVE. Older LIVE sections below historical.
+
+## D591 LIVE — same S-LoRA full W2, monitor only
+
+Latest continuation VERIFIED WAIT: same actualInvocation active/running and
+tmux810672 live reverified. Observer1533 completed12spacedpolls1636–2126;
+responses1567->1624->1695->1792->1849->1906->1951->2016->2068->2114->2192->2264.
+At2126:2267created/2264responses,zero observedfailureevent, no terminalreceipt.
+Peak63315730432B,hostavailable61451243520B,disk148234412032B;
+high/max/OOM/kill/swap0,warningfalse/abortempty. ObserverCOMPLETE,experimentLIVE;
+no pending observer/unified handle. PLAN/V1/V2 fullyread in retainedcontext and
+unchanged SHAs reverified; monitor skill reread. Existing close_launch,
+run_analysis,preserve_evidence,stop_remote helpers and D542/D435 reports inspected
+read-only, none executed during inference. No serving/remote/configuration change,
+test/build/scan/cleanup/compression/push or secondheavyjob. SAME nextaction below;
+do not restart/repeat qualification, and do not treat HTTPprogress as finalaudit.
+
+2026-10-17 continuation: VERIFIED WAIT, not a blocker or a new experiment.
+Full PLAN, both AGENTS, latest bounded-baseline/storage/scope rules, frozen V1
+and single-run V2 reread. SAME Invocation064bd0853bc94fed89c8a6c8456d8d64
+active/running throughout observer1528's 12 spaced polls1029–1518;
+responses875->902->952->1042->1112->1143->1165->1201->1261->1318->1373->1452.
+At1518:1457created/1452responses,zero observed failure events; no terminal receipt.
+Servicepeak63269351424B,hostavailable61477146624B,disk148246638592B;
+high/max/OOM/kill/swap0,warningfalse/abortempty. Progress is not final binding,
+token or SLO validation. Observer1528 COMPLETED; experiment STILL LIVE.
+No pending observer/unified handle. No tests/build/scans/compression/cleanup/
+push/remote or serving changes; only passive monitoring and small document reads.
+Continue SAME run to actual terminal, then existing close_launch.py,
+stop_remote.sh, bounded qualified-venv run_analysis.py with ACTUAL outcome,
+actual analysis closure, full W2 input join, interpretation/checkpoint/storage.
+Do not restart, repeat qualification or infer completion from observer completion.
+Finish complete available7B baseline comparison before PrimeLoRA optimization;
+all remaining3B/dLoRA/G1/G2/A1–A5/S1–S13/cost/docs/figures stay ACTIVE.
+
+Continuation VERIFIEDWAIT: same actualInvocation active/running across12spaced
+polls233–722,tmux810672 recheckedlive. Responses0->3->46->67->154->184->258->324
+->365->483->531;at722535created/531responses,zeroobservedfailureevent.
+Servicepeak63216013312B,hostavailable61554352128B,disk148260638720B,
+allhigh/max/OOM/kill/swap0,warningfalse/abortempty. No terminalreceipt.
+Observercell1517 COMPLETED12polls;experimentSTILL LIVE,notrestart/cleanup.
+No pendingobserver/unifiedhandle. PLAN hash unchanged/fullread remains incontext;
+monitor skill reread. No serving/remote/inputchange,test/build/scan/cleanup/push
+orotherheavyjob. Continue SAMErun toactualterminal,thenexistingpostterminalsequence.
+Fullremaining scientificscope and boundedbaseline rule unchanged.
+
+Latest passive check: same Invocation064bd0853bc94fed89c8a6c8456d8d64 active/running,
+tmuxpane810672 live. Watchdogsample146:34request_created,noresponse/failureevent
+yet (native startup),peak13876514816B,hostavailable111346442240B,disk148270792704B,
+high/max/OOM/kill/swap0,warningfalse/abortempty. No launch7b.json terminalreceipt.
+No pendingunifiedsession or observercell. Continue SAME actualrun; doNOT restart
+because the starter ended or beforefirstresponse. Runtime100GiBfloor enforced;
+postdownload diskbelow150GiB is not a new-run admission. All observertools finished,
+not the experiment. No serving/input/remotechange or secondheavyjob afterlaunch.
+Remote actual1000Mb/s/full;3bInvocation0f7a18a7dd1c4d48a27377b65fcf89c3,
+7b32efa38534d441959064f043518bb3c7,monitorb87a6a13c72d4c71acd57c18dcec6f54.
+
+2026-10-16 AUTHORITATIVE: prelaunch d33d73e3da4b92b0479c01c9e2e20acf68ea561f
+PUSHED/remoteequal,BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged.
+D591 launchedONCE,tmux tc-d591-slora-full-w2,pane810672;actualservice
+primelora-tc-svc-fe18d6c6430e4dee8e75120b76f5b63e.scope,
+Invocation064bd0853bc94fed89c8a6c8456d8d64,inode26376834 recheckedlive.
+Launcherauxd5910000000000000000000000000004 identity inservice_aux_identity.json.
+Notice1672404.615216667,business1672464.615216667;freshresourcegatePASS,
+existingW2/497IDs/458224targets,nativevaluesunchanged. Qualification/backup/start
+all actuallyclosed/pathgone;unified57923/44637/51182completed. No pendingstarter.
+Remoteowned3b/7b/monitor d591-w2 live;publishedgzip/timinghealthPASS,
+7bclockremote-process-monotonic:dae9291ce13f4326871e9f4ae1e09106.
+Atwatchdog42 servicepeak5900431360B,hostavailable111427624960B,disk157246607360B,
+high/max/OOM/kill/swap0,warningfalse/abortempty. No terminalreceipt orSLOclaim.
+NEXTpassivemonitoring SAMEInvocation/tmux/append-onlyreplay. No tests/build/hashscan/
+backup/cleanup/compression/remoteadjustment/secondheavyjob. DoNOTrestart orrepeat
+qualification/maintenance. Afteractualterminal close_launch.py thenstop_remote.sh,
+qualifiedvenv run_analysis.py --outcome ACTUAL,strictfull4000_w2,exactinputjoin,
+preserve/interpret/checkpoint. Full7Bcomparison thenPrimeLoRAoptimization;remaining
+G1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures ACTIVE. Sharedk3s untouched.
+
 ## D591 S-LoRA W2 input/measurement qualified — checkpoint then one replay
 
 2026-10-16 AUTHORITATIVE: D590maintenance pushed a76ed14159edff7ebed7db29804dd61ab503f2ab;

@@ -1,0 +1,122 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d5910000000000000000000000000006.scope",
+    "invocation_id": "403ef5e6124f4f128b026bcf31668146",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5910000000000000000000000000006.scope",
+    "inode": 26410493
+  },
+  "deployment_notice_s": 1672404.615216667,
+  "business_start_s": 1672464.615216667,
+  "full_pool_prepare_start_s": 1672407.164154568,
+  "full_pool_prepare_end_s": 1672500.900911561,
+  "full_pool_count": 500,
+  "worker_startup": "sequential_v1",
+  "worker_ready": [
+    {
+      "index": 0,
+      "native_ready_s": 1672721.792344061,
+      "notice_to_ready_s": 317.1771273938939,
+      "business_to_ready_s": 257.1771273938939,
+      "acquire_s": 1672501.813529369,
+      "acquire_to_ready_s": 219.97881469200365,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 1,
+      "native_ready_s": 1672819.867494331,
+      "notice_to_ready_s": 415.2522776639089,
+      "business_to_ready_s": 355.2522776639089,
+      "acquire_s": 1672722.289369974,
+      "acquire_to_ready_s": 97.57812435692176,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 2,
+      "native_ready_s": 1672922.367768494,
+      "notice_to_ready_s": 517.7525518268812,
+      "business_to_ready_s": 457.75255182688124,
+      "acquire_s": 1672820.189972721,
+      "acquire_to_ready_s": 102.17779577290639,
+      "adapter_count": 500,
+      "tp": 1
+    },
+    {
+      "index": 3,
+      "native_ready_s": 1673030.343300701,
+      "notice_to_ready_s": 625.7280840338208,
+      "business_to_ready_s": 565.7280840338208,
+      "acquire_s": 1672922.679388582,
+      "acquire_to_ready_s": 107.66391211887822,
+      "adapter_count": 500,
+      "tp": 1
+    }
+  ],
+  "phase_joint": [
+    148,
+    498,
+    499,
+    499,
+    500,
+    498,
+    500,
+    500
+  ],
+  "queue_mean_fraction_of_ttft": 0.8617491578667678,
+  "native_stages_ms": {
+    "native_register_to_scheduled_ms": {
+      "count": 4000,
+      "mean": 2.6988512917305343,
+      "p50_type1": 1.7481478862464428,
+      "p95_type1": 7.184155052527785
+    },
+    "native_scheduled_to_first_ms": {
+      "count": 4000,
+      "mean": 174.68334066693205,
+      "p50_type1": 182.48312082141638,
+      "p95_type1": 205.2629489917308
+    },
+    "native_decode_ms": {
+      "count": 4000,
+      "mean": 3705.4743616384803,
+      "p50_type1": 2723.365059122443,
+      "p95_type1": 9310.604689177126
+    }
+  },
+  "causal_attribution_complete": false,
+  "limitations": [
+    "Sequential startup is a disclosed frozen deployment adaptation, not a uniquely intrinsic S-LoRA inference cost.",
+    "No subtraction of deployment or queue spans from user latency; no partial request selection."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/worker_receipts/66f6ba3a594049a2a37d187c6252a529.json",
+      "sha256": "824f2d1e2dd4361da1e03355ad9bc34169a0c9b3145c45c8da39cc006f417739"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/worker_receipts/7ae84df44bf648239fc514a7d3cbe792.json",
+      "sha256": "dbcee09cff86663c5622a0e9a9eaff8125a2f9338cacdfd1addad2fe10c3b1ee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/worker_receipts/b6f798290f954adb9fd5628d9f1306a6.json",
+      "sha256": "44af25ad395322f9e2bb027243025b0f77a31fa780ed75db514c7b97d5f402a4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/worker_receipts/be095b0d159742959eb9845a7f725602.json",
+      "sha256": "36a164634c6ba8bf51f1e4f95ffbac1e87df777a45a5cc7f45ef6b473a189a04"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/slora_full_pool_preparation.json",
+      "sha256": "169fb3c197f8627ec86c8f26ca6de727cea1d9a735832eff96f1b54767758c3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/worker_config.json",
+      "sha256": "544d1598fd0d5fb109e615bdbaeb26a52bdf10bce5f4c42795dd8c742a672b11"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d591_20261016/model7b/model_qualification.json",
+      "sha256": "9786f8fb941e80bf0d23ec6902952d8c0ffdbeeb36faac23f041fd549830f614"
+    }
+  ]
+}
