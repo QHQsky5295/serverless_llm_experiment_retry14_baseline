@@ -1,0 +1,90 @@
+{
+  "campaign": "d574_20261016",
+  "status": "prepared_not_launched",
+  "system": "HydraServe",
+  "model": "Llama-2-7B",
+  "workload": "W0_prefix_100_qualification",
+  "n_plan": 100,
+  "plan_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020",
+    "count": 100,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "formal_run": false,
+  "qualification_only": true,
+  "performance_result": false,
+  "interpretation": "affected lifecycle/concurrency qualification, not full workload performance or numerical equivalence",
+  "reuse_from": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d509_20261013",
+  "reuse_audit_sha256": "8508166cf87edccf9be00ed9edf26dfa9119312a196f0b5b37d4416fd9ecd2ca",
+  "references": {
+    "plan": {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "metric_protocol": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    "single_run_amendment": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    "slo_eval": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  },
+  "runtime_registration_sha256": "927babb8512c937fb31634021727d6f1c2ad9f0e93bd92290ff722093b231f88",
+  "runtime_model_info": [
+    13,
+    9000,
+    200,
+    1000000,
+    1
+  ],
+  "runtime_thresholds_are_not_evaluation_thresholds": true,
+  "generation_contract": "fixed_length_greedy_v1",
+  "native_batch": 8,
+  "native_use_cache": 0,
+  "native_slow_expr": 0,
+  "native_idle_retirement_s": 30,
+  "deployment_notice_s": 60,
+  "request_guard_s": 1800,
+  "predicted_growth_gib": 20,
+  "physical_nodes": 1,
+  "physical_gpus": 4,
+  "physical_ledger": "hydraserve_container_union_v1",
+  "pp1_claim_to_create_boundary_qualified": true,
+  "multirank_boundary_audit_if_exercised": true,
+  "no_runtime_policy_change": false,
+  "no_config_search": true,
+  "repeat_count": 1,
+  "numerical_lora_qualified": false,
+  "n_correct": null,
+  "pipeline_migration_consolidation_qualification": "not established; record actual triggers, no forced events",
+  "source_heads": {
+    "baseline": "80e08b4c6e7c2874b1b237500a00811ec06cd8c5",
+    "main": "716b74a0d547bc69daa0f02c7790b8aeb00a74b2"
+  },
+  "container_lifetime_owner": "native controller; bounded campaign and external watchdog on abnormal exit",
+  "per_container_wall_clock_expiry": false,
+  "adaptation_change": "D573 per-worker platform lifecycle locks only; no native scheduling/configuration changes",
+  "no_native_policy_change": true,
+  "adaptation_checkpoint": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d573_20261016",
+  "adaptation_summary_sha256": "e1223be66887ad5a1ca5c74d3b067dda180dd427faddf58eb8e4ab0e507634cc",
+  "no_native_scheduling_policy_change": true,
+  "cancellation_ownership": true,
+  "lora_admission_capacity": true,
+  "acceptance": [
+    "100 native contract responses; no failures",
+    "actual distinct-adapter decode overlap >= 2 on at least one native worker",
+    "actual batch equals source-derived admission; native slots and KV stay within GPU capacity",
+    "source, canonical prompt, native token/adapter, remote content and clock binding",
+    "actual lifecycle closure; no OOM or unresolved native GPU lease"
+  ],
+  "cancellation_gpu_coverage": "only if naturally triggered; prior CPU ownership tests separately retained"
+}

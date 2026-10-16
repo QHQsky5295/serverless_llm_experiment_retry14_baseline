@@ -1,5 +1,42 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D574 native affected-path qualification complete; preserve then reclaim its cache
+
+2026-10-16 AUTHORITATIVE: no live inference/remote/audit job. D574 SAME100 prefix
+ran once after D573;100native/17369tokens/0fail,29unique/fetch,50650865wireB,
+requestpacking0; D509exactinputjoinPASS and100/100outputsequencesidentical.
+2nativeworkers,allpp1,batch8,maxdistinctadapterdecodeoverlap8; actualnativeidle
+release/physicalunion/accounting/recursiveempty/servicepathgone/remoteinactivePASS.
+U424.9945832658559GPU-s;servicepeak46222721024B,high/max/OOM/killswap0.
+Strict audit and outputcomparison scopes closed. n_correctnull/numericUNKNOWN.
+Shortdiagnostic not fullG1/G2:meanTTFT1544.972/P956627.528ms,meanTPOT67.222ms;
+mixedchangesversusD509,not causal performanceimprovement. ReadD574resultdoc.
+Firstprepareimport-packagefailure preserved before anyservice; actualclosed.
+NEXT boundedcuration/checkpoint,then freshverified exactD574download-cache
+reclaim (disk160435585024B below150GiBfloor),then newkeyHydraServefullW0/W1/W2.
+Curated d574_native_lifecycle_qualification_v2 COMPLETE,archive1139823B;
+sourceAST/SHAroundtrip/protected147/userdirtPASS. Initialcuration ASTfragment
+failure/partialarchive preserved; neither inference nor audit repeated.
+Bothcuration scopesactualrecursiveemptyclosed/pathgone. Next explicitcheckpoint.
+Do not repeatD574run/audit/inputjoin or D573tests. No k3s/nativepolicychanges.
+Loquetiernewfullmatrix/remaining7B/G2/PrimeLoRA/3B/dLoRA/A1–A5/S1–S13/cost/docs/
+figures remainACTIVE. No runtime currently holdsGPU; no remote serviceleftactive.
+
+## D573 published; affected native qualification is next
+
+2026-10-16 AUTHORITATIVE: MAIN716b74a0d547bc69daa0f02c7790b8aeb00a74b2 and
+BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 PUSHED/remoteequal,12explicitfiles
+each. Both publication scopes actualrecursiveempty/closed/pathgone; all CPU
+qualification/curation scopes also closed. No live inference/remote/test job.
+Do NOT repeat D573 successful tests/curation/publication or D570–D572 reviews.
+Only task edit is per-worker isolated-platform lifecycle concurrency plus tests;
+original native policy and actualrelease retained. CPU71PASS, not GPUqualification.
+NEXT reuse D509 first100 native recipe with new D574 identity and D573 platform
+source; inspect current history/source provenance and resource gates, preserve
+all previous data. Then affected complete HydraServe points and Loquetier new
+capacity fullW0/W1/W2; full remaining PLAN staysACTIVE. No k3schanges/figures.
+AllthreeuserdirtSHAs unchanged; protected147 verified. No final G1/G2 claim.
+
 ## D573 lifecycle adaptation CPU qualification complete; checkpoint then actual qualification
 
 2026-10-16 AUTHORITATIVE: no live inference/remote/test job. D573 confirmed two

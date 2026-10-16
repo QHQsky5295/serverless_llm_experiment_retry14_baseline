@@ -1,0 +1,15 @@
+{
+  "passed_contract_match": true,
+  "old_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d509_20261013",
+  "new_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d574_20261016",
+  "n": 100,
+  "equal_output_sequences": 100,
+  "changed_sequences": 0,
+  "changes": [],
+  "numerical_equivalence_claim": false,
+  "limitations": "D573 per-worker lifecycle lock changed; native policy and LoRA capacity unchanged; exact input join, no independent numerical reference or full-workload extrapolation",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d509_20261013/launch_gate.launch/replay.jsonl": "87a5cd232432038a98c960655a8fb91d8e880af931f6f71c1cd2460a194e0b96",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d574_20261016/launch_gate.launch/replay.jsonl": "30ff09b83f48542c404cb6948023a9217cf2fb3a9f6e85661575c6523339ccd4"
+  }
+}
