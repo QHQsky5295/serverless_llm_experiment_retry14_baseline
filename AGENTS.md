@@ -7,6 +7,14 @@ historical "plan mode / no execution this turn" sentences describe approval
 time, not the user's subsequent explicit execution authorization.
 
 Latest user update (2026-10-14): read
+`docs/ieee_tc/BASELINE_ADAPTATION_STOP_RULE_20261016.md` first for the newer
+bounded-adaptation rule. Once necessary correctness, measurement and machine
+adaptation are verified and observed performance has mechanism/workload evidence,
+stop baseline performance optimization. Low SLO alone is not a reason for another
+search. Complete the frozen matrix, then focus on PrimeLoRA; retain all limitations
+and unresolved concrete defects. This does not remove any planned experiment.
+
+For the 2026-10-14 baseline scope also read
 `docs/ieee_tc/BASELINE_SCOPE_20261014.md` and
 `docs/ieee_tc/SLO_BUDGET_RATIONALE_20261014.md`.
 External baseline tables contain published-paper systems only. ElasticLocality

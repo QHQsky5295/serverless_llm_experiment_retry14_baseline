@@ -1,5 +1,99 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D587 W1 complete, audited and curated — checkpoint then storage/W2
+
+2026-10-16 AUTHORITATIVE: SAME D587 full W1 completed 4000 native-binding
+responses, 458224 target-matched native tokens, 0 failures. No rerun or serving
+change. Observer2717/cell1365 ended on actual terminal receipt; all older observer
+handles are finished. Service return0, actualGPU release and service path removal
+confirmed; launcheraux and exact three owned remote services also closed.
+Joint1802/4000=45.05%, U8039.400667305803 GPU-s, P95TTFT288957.50591228716ms,
+meanTTFT46166.43946440739ms. IndependentnumericUNKNOWN, n_correctnull,
+formalfalse; nonfeasible95% point retained, not G1/G2 completion.
+Analysis passed unchanged analyzer using qualified venv; source-bound69analysis
+and86native tests reused. Analysis peak604327936B, cross752295936B, events/swap0,
+both actuallyclosed/pathgone. Actualservice peak39357984768B, events/swap0.
+Input join to retained D544 full4000 passed, relative arrival error0. Old156failed
+requests retained;3844 common outputs compared,3495same/349changed. Differences
+and initial-state limitation retained; oldbatch2 not an independent oracle.
+Read D587_LOQUETIER_CAPACITY_FULL_W1_RESULT.md. Startup136.455–429.742s after
+business and nativequeue mean25.931s explain longtail without claiming full
+causality. 500transfers/requestpack0, all raw/remote metadata retained.
+Curation PASS,208517B evidence archive; protected147/userdirt/source/SHA guards
+passed. Result scope actuallyclosed. NEXT explicit result checkpoint (includes
+new BASELINE_ADAPTATION_STOP_RULE_20261016.md and AGENTS link), then fresh bounded
+storage maintenance of only proven rebuildable closed private download objects
+or lossless evidence compression; current disk below150GiB new-heavyfloor.
+Do NOT repeat D587/D585 runs, audit, join, curation or previous D586 maintenance.
+Then SAME frozen Loquetier W2 and remaining necessary7B comparison, followed by
+PrimeLoRA optimization. No new baseline tuning solely for lowSLO. Full3B/dLoRA/
+G1/G2/A1–A5/S1–S13/cost/docs/finalfigures remainACTIVE. No liveGPU/remotejob.
+
+## Latest user direction — bounded baseline adaptation, return to main line
+
+UserupdatedgoalwhileD587isLIVE: baselineadaptationneednotmaximizeperformance;
+oncefaithfulcore/necessarycorrectness+measurement+machineadaptationverified,
+retainandexplaintheobservedperformancewithmechanism/workloadevidence.
+No endlessbaselineoptimization ornewsearch solelybecauseSLOislow.
+ReadBASELINE_ADAPTATION_STOP_RULE_20261016.md beforefurtherbaselinework.
+D587sameW1continues; then audit/save,sameconfigW2andremainingnecessary7B
+comparison,thenfocusPrimeLoRAoptimization. No midrunserving/remote/PLANhash
+change; thisnewdoc/statusnotpushedduringmeasurement. Linkruleintoplanning
+entryatnextsafecheckpoint. Full3B/dLoRA/A1–A5/S1–S13andmetricsunchanged.
+Passiveobserver28823 COMPLETED12observations; prior26259alsoended.
+Latestobservedsample1227,sameInvocation2262c1172a4a43eaad1ddbe7edc39006
+active/running,2332created/2312responses,peak39357984768B,
+hostavailable85727567872B,disk148353970176B,events/swap0,noabortandno
+terminalreceipt. Functions cells1330/1332–1338completed; no pendingobserver
+handle. EXPERIMENT STILL LIVE; continuepassivemonitoringSAMErun, notnewlaunch
+orcleanup. Fourshardsready. Samples735–1227documentcontinuingresponses
+1012→2312. Countsnotfinalcorrectness/SLO. Newstopruledocnotyetpushed;
+backupandlinkexecutionentryonlyatnextsafecheckpointafteractualrelease.
+
+## D587 LIVE — Loquetier full W1, passive observation only
+
+Latest verified wait: SAME Invocation2262c1172a4a43eaad1ddbe7edc39006 remains
+active/running; tmuxpane466392live. Twelvepassiveobservations samples206–696
+showhttp_response5→936,request_created177→1123. Sample696peak39357984768B,
+hostavailable85809872896B,disk148377960448B,high/max/OOM/killswap0,
+warningfalse/abortempty; no launch7b.json. Observerunifiedsession26259 and
+functions cells1319/1320/1322–1327 completed; no pendingobserverhandle.
+The EXPERIMENT REMAINS LIVE. ContinueonlysameD587, notnewlaunch orcleanup.
+PLANhashd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83
+unchangedfromfullreadatD587launch. No serving/config/input/remotechanges,
+tests/builds/hashscans/cleanup/push orsecondheavyjob duringtheseobservations.
+Counts areliveHTTPevents, notvalidatedcorrectness/SLO. Full4000andactual
+release stillpending; postterminal audit/backup sequencebelow unchanged.
+
+2026-10-16 AUTHORITATIVE: prelaunch366bd65297bd344d7322ca7c5ab8e214973e2f5d
+PUSHED/remoteequal; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged.
+Qualified86online/69analysis reused; qualification/backup/starter scopes
+actuallyrecursiveemptyclosed/pathgone. Peaks235851776/29003776/147398656B,
+allhigh/max/OOM/killswap0. D587launchedONCE, tmux tc-d587-loquetier-full-w1,
+pane466392. Actualserviceprimelora-tc-svc-ad3453dcdef4451297fe51fdface4667.scope,
+Invocation2262c1172a4a43eaad1ddbe7edc39006; launcherauxd587...0005,
+Invocation79fd34b8db5845948e1b7a314cbad9c0. Readstart_receipt/exec_receipt.
+Remoteowned3b/7b andmonitorprimelora-artifact-monitor-d587-full-w1.service
+active; exactidentities inremote_start.log. Link1000Mb/s/full; prepublished
+gzip/artifact_timing_v2healthPASS. DoNOTrepeatremote start orlaunch.
+Latest passive sample117: sameInvocationactive/running,52request_created/
+52http_headers_sent, noresponseeventyet (startup), terminalreceiptabsent.
+Peak14806482944B,hostavailable110174728192B,disk149197201408B;
+allhigh/max/OOM/killswap0,warningfalse/abortempty. These arelivecounts,
+notfinalcorrectness/SLO. Diskbelow150GiB afterdownload expected, runtime
+100GiBfloor remains enforced. No cleanup/scans/tests/build/push/remotechanges
+orsecondheavyjobduringthisrun. Observerunifiedsession46873COMPLETED normally;
+the experiment is STILL LIVE. No pendingobservercell orotherunifiedsession.
+Only monitorSAMErun, usingwatchdog+actualserviceInvocation+tmux+replayevents.
+Terminalwatchdogevents mayomitservice; notanexperimentfailure. End-of-file
+partialJSON duringobservation isnotreason torestart; inspectsamehandle.
+Whenactuallyterminal: close_launch.py (actualrecursiveempty), stop_remote.sh
+(exactownership), qualifiedvenv run_analysis.py --outcome ACTUAL(success or
+complete_with_failures), preserveallraw/metadata/failure, full4000_w1audit,
+oldD544input/outputjoin, interpretation andbackup. No preemptive cleanup.
+Then sameLoquetierW2/remaining7Bcomparison beforePrimeLoRAoptimization;
+3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfigures andfullgoal remainACTIVE.
+
 ## D587 qualified for full W1 — backup then launch once
 
 2026-10-16 AUTHORITATIVE: D586storageDONE/pushed94cd69d; no recleanup.
