@@ -2,6 +2,35 @@
 
 ## D561 full-input workspace qualification prepared, 2026-10-16
 
+AUTHORITATIVE TERMINAL: D561 native long-input capacity PASS once; no livejob.
+Read D561 doc. One deduplicated760input/256output case in2slots; both256native
+outputs exactlymatch retainedD445. Rawstorage5469372416B collected, weakrefs0,
+base/preparedcontent/pointers unchanged. Peakallocated18857276928B,
+reserved24746393600B, maxKV1073741824B, prefilltransientdifference304912384B,
+persistentwarmdelta75629568B; minsampledevicefree162922496B. These are observed
+batch2 witnesses, NOT higherbatch/mixedforward/full500numeric/throughput proof.
+Service/watchdogRC0,232samples,actualGPUrelease/servicepathgone; servicepeak
+6998237184B,events/swap0. Launcheractualrecursiveempty/closed/pathgone,
+peak89296896B/events0. No remotejob used. Do NOTrepeatnative/tests/preparation.
+Next preserve/push actualresult, then capacity-derived higherbatch/mixed-forward
+qualification before serving integration and fullreplays. FullgoalACTIVE.
+Initial docappend patch context failed atomically/nochange, corrected; no result
+or experiment changed. Historical live/preparation instructions below superseded.
+
+AUTHORITATIVE LIVE: prelaunch MAIN82a8d125c47d381896935dda211a603feb8b2416,
+BASE9cce860b07dec32ac1ab5ab6f3adbbcd54ac87be bothPUSHED/remoteequal.
+Explicit7MAIN/3BASEfiles,14tests/SHA/archive/protected147/userdirt/secrets/diffPASS.
+Prepare2/publication actualrecursiveempty/closed/pathgone,peak45588480/27287552B,
+events/swap0. One tmux tc-d561-forward-capacity, no repeated launch.
+Actualserviceprimelora-tc-svc-3d5a341b4e354897b59fdb22932f8d68.scope,
+Invocationc4240ba3f7694b93af69b4ca0f0af94f,inode26028191.
+Launcherauxd5610000000000000000000000000006 identity saved inRAW.
+Freshgated-launchPASS; sample139 hostavailable105268367360B,servicepeak6996094976B,
+events/swap0/noabort. Native125-ID preparation complete, long-input result notyetknown.
+Monitor SAMEactualrun; no tests/build/scans/backup/cleanup/remotechanges duringrun.
+On actualterminal inspect capacity_launch/native_capacity, close.py launcher after
+recursiveempty, then interpret/save/push. Do not infer release from idle sample.
+
 Full PLAN/status/AGENTS/latest supplements and V1/V2 reread after compaction.
 D560 remains closed/published; no repeated owner-forward or serving edits.
 Read D561_LOQUETIER_FORWARD_CAPACITY.md. Existing capacity entry extended with

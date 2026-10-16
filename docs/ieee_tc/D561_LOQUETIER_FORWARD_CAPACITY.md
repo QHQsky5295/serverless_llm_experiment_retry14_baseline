@@ -56,3 +56,39 @@ RAW：/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualificatio
 核验执行一次。推理机150/100GiB、主机102/16GiB与72/80GiB服务包络不变；
 实验中不测试/扫描/压缩/备份/修改远端。无remote服务需求：明确local immutable
 pool capacity diagnostic，不冒称真实远程主比较。关键节点按显式路径分别备份。
+
+## 实际结果（同一次运行，已终止并释放）
+
+PASS。最大分片125个ID保持驻留；req_00015的两条并发副本均完成760输入/256输出，
+每条256次原生forward；两条输出均与保留的D445完整256-token序列一致。
+这不是跨系统独立数值正确性或所有adapter可区分性证明。
+
+| 项目 | 实测 |
+|---|---:|
+| 回收原始LoRA活跃storage | 5,469,372,416 B |
+| 回收耗时 | 4.485661 s |
+| 回收后、forward前allocated | 17,671,414,784 B |
+| 长输入forward峰值allocated | 18,857,276,928 B（17.562208 GiB） |
+| 最大实际KV页/字节 | 128 / 1,073,741,824 B |
+| prefill峰值减该步结束allocated | 304,912,384 B |
+| forward后持久allocated增量 | 75,629,568 B |
+| reserved峰值 | 24,746,393,600 B（23.046875 GiB） |
+| 采样最小device free | 162,922,496 B |
+| inactive-split采样最大值 | 342,972,416 B |
+
+“prefill峰值减该步结束allocated”是此路径观察到的瞬时占用差，不是已证明覆盖
+所有混合输入/并发的工作区上界。第一次forward还形成75,629,568B持久状态，
+不能把全部peak-minus-idle都视作可随batch线性增长的KV。reserved含可复用缓存；
+仅看device free也会低估可用于新tensor的容量。下一步需同时核对真实KV几何、
+live权重/持久状态、forward工作区及allocator/驱动余量，不能按空闲显存直接加batch。
+
+两条请求完成后KV池页数为0，随后原两条1024-context KV分配通过。
+Service/watchdog均RC0，232个监测样本，服务主存峰值6,998,237,184B；
+主机可用内存最低105,162,125,312B，high/max/OOM/kill/swap均0。
+实际GPU上下文释放已确认，service路径消失；launcher递归进程为空并关闭，
+峰值89,296,896B、events/swap0。无远端服务操作，无性能运行并发。
+
+结论：长输入batch2在释放冗余表示后可完整运行，并得到下一并发资格所需的
+实际KV/工作区证据；尚未更改正式服务配置、测得更高吞吐或解决完整W0/W1/W2。
+后续使用新执行键验证容量推导出的更高并发及混合prefill/decode，再将合格表示
+生命周期纳入原生服务，进行原全500资格与完整比较。旧D445/D544结果不覆盖。

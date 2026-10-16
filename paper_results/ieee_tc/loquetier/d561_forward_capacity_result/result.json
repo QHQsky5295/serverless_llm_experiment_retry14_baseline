@@ -1,0 +1,143 @@
+{
+  "passed": true,
+  "performance_run": false,
+  "independent_numerical_correctness": false,
+  "all_four_workers_qualified": false,
+  "higher_batch_qualified": false,
+  "mixed_prefill_decode_qualified": false,
+  "adapter_count": 125,
+  "case_count": 1,
+  "request_copies": 2,
+  "input": {
+    "journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d445_20261012/model7b/worker_0.native_events.jsonl",
+    "journal_sha256": "0bc08ab01d8a456ab578d3602d06689724a0a04515233b91098f7eb2b2be32c0",
+    "source_native_completions": 1008,
+    "selection": "max_prefill_and_context_then_first_request_id_v1",
+    "performance_input": false,
+    "duplicate_batch_copies": true
+  },
+  "source_request_id": "req_00015",
+  "adapter_id": "code_lora_0015",
+  "prompt_tokens": 760,
+  "target_tokens": 256,
+  "outputs_match_retained": true,
+  "release": {
+    "collected_objects": 7093245,
+    "seconds": 4.4856613939628005,
+    "allocated_reduction_bytes": 5469372416,
+    "raw_storage_bytes": 5469372416,
+    "raw_dtypes": {
+      "torch.float32": 32000
+    },
+    "remaining_owners": 0,
+    "remaining_parameters": 0
+  },
+  "kv_page_bytes": 8388608,
+  "idle_allocated_bytes": 17671414784,
+  "peak_allocated_bytes": 18857276928,
+  "peak_reserved_bytes": 24746393600,
+  "maximum_live_kv_bytes": 1073741824,
+  "prefill_peak_minus_end_allocated_bytes": 304912384,
+  "persistent_warm_allocated_delta": 75629568,
+  "minimum_sample_device_free_bytes": 162922496,
+  "maximum_sample_inactive_split_bytes": 342972416,
+  "stages": [
+    {
+      "phase": "backbone_loading",
+      "at": 1629550.846991928,
+      "allocated_bytes": 0,
+      "reserved_bytes": 0,
+      "peak_allocated_bytes": 0,
+      "peak_reserved_bytes": 0
+    },
+    {
+      "phase": "adapters_loading",
+      "at": 1629555.769610861,
+      "allocated_bytes": 13476847616,
+      "reserved_bytes": 13478395904,
+      "peak_allocated_bytes": 13476847616,
+      "peak_reserved_bytes": 13478395904
+    },
+    {
+      "phase": "mixed_preparation",
+      "at": 1629636.163273462,
+      "allocated_bytes": 18946220032,
+      "reserved_bytes": 18964545536,
+      "peak_allocated_bytes": 18962997248,
+      "peak_reserved_bytes": 18964545536
+    },
+    {
+      "phase": "native_registry",
+      "at": 1629638.805594975,
+      "allocated_bytes": 23140786176,
+      "reserved_bytes": 23152558080,
+      "peak_allocated_bytes": 23140849664,
+      "peak_reserved_bytes": 23152558080
+    },
+    {
+      "phase": "capacity_before_owner_release",
+      "at": 1629694.578331626,
+      "allocated_bytes": 23140787200,
+      "reserved_bytes": 23152558080,
+      "peak_allocated_bytes": 23140849664,
+      "peak_reserved_bytes": 23152558080
+    },
+    {
+      "phase": "capacity_after_owner_release",
+      "at": 1629755.590173246,
+      "allocated_bytes": 17671414784,
+      "reserved_bytes": 23152558080,
+      "peak_allocated_bytes": 23140849664,
+      "peak_reserved_bytes": 23152558080
+    },
+    {
+      "phase": "capacity_max_prefill+max_context_complete",
+      "at": 1629771.523014423,
+      "allocated_bytes": 17747044352,
+      "reserved_bytes": 24746393600,
+      "peak_allocated_bytes": 18857276928,
+      "peak_reserved_bytes": 24746393600
+    },
+    {
+      "phase": "full_context_kv_allocation",
+      "at": 1629771.52606874,
+      "allocated_bytes": 17747044352,
+      "reserved_bytes": 24746393600,
+      "peak_allocated_bytes": 18857276928,
+      "peak_reserved_bytes": 24746393600
+    },
+    {
+      "phase": "weights_and_kv_ready",
+      "at": 1629771.527477499,
+      "allocated_bytes": 18820787200,
+      "reserved_bytes": 24746393600,
+      "peak_allocated_bytes": 18857276928,
+      "peak_reserved_bytes": 24746393600
+    }
+  ],
+  "limitations": [
+    "One largest static shard only; not all four concurrent workers.",
+    "Full retained geometry-extreme inputs, duplicate batch2 copies; not an increased batch, mixed-prefill/decode, all-ID numerical or four-worker qualification.",
+    "Local immutable pool diagnostic, not real-remote preparation or request timing."
+  ],
+  "watchdog_samples": 232,
+  "service_peak_bytes": 6998237184,
+  "service_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "service_swap_bytes": 0,
+  "minimum_host_available_bytes": 105162125312,
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/native_capacity.json": "6d05b55fda685191f5cb5aea51b913990e7ba6e7c0ed5929f8321ad6999efeea",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/capacity_launch.json": "a395719f56e8117142101750c683e71d85a15fd3c4e16f10ea37336237fe485a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/capacity_launch.launch/watchdog.jsonl": "c98e8335e5ddda0503762df1a818643ff24f6c3c8ed7c733f0ddac62cfe65725",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/capacity_launch.launch/service.log": "be0e74f738f22cb18cd372c9900d00a7909f180d0e1ff4556d0da527a4081b77",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/launcher_closure.json": "53c26e71ad99871ca1b112a36b18c5e4e3e9be3ad97de69ee501ee64414c5a3b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d561_20261016/publish_result.py": "d8ce3e3e205a64e6d34afe1d411014553a52327fbe81998c9c188d59e2a69790"
+  }
+}
