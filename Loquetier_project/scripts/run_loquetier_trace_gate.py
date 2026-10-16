@@ -261,6 +261,151 @@ def _ownership_refs(models):
     return owners, parameters, storages, dict(dtypes)
 
 
+def _capacity_inputs(journal: Path, expected_sha: str) -> dict:
+    """Select retained geometry extrema, never latency winners or new prompts."""
+    digest = hashlib.sha256()
+    with journal.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    if digest.hexdigest() != expected_sha:
+        raise ValueError('capacity input journal SHA differs')
+    candidates, seen = [], set()
+    with journal.open() as handle:
+        for line in handle:
+            row = json.loads(line)
+            if row.get('event') != 'loquetier_native_completed':
+                continue
+            obs = row['observation']
+            ids, target = obs['native_prompt_token_ids'], obs['native_output_tokens']
+            rid, aid = row['request_id'], obs['native_adapter_id']
+            if (obs.get('native_terminal_observed') is not True or row.get('client_cancelled')
+                    or not isinstance(rid, str) or not rid or rid in seen
+                    or not isinstance(aid, str) or not aid
+                    or not isinstance(ids, list) or not ids
+                    or any(type(i) is not int or i < 0 for i in ids)
+                    or type(target) is not int or not 1 <= target <= 256
+                    or len(ids)+target > 1024
+                    or len(obs['completion_token_ids']) != target
+                    or obs['native_forward_count'] != target):
+                raise ValueError('retained capacity input is incomplete or duplicated')
+            seen.add(rid)
+            candidates.append(dict(source_request_id=rid, adapter_id=aid,
+                prompt_ids=ids, target_tokens=target,
+                retained_output_ids=obs['completion_token_ids']))
+    if not candidates:
+        raise ValueError('capacity journal has no native completion')
+    candidates.sort(key=lambda row: row['source_request_id'])
+    keys = {'max_prefill': lambda r: len(r['prompt_ids']),
+            'max_context': lambda r: len(r['prompt_ids'])+r['target_tokens']}
+    cases = [dict(max(candidates, key=key), selection=name) for name, key in keys.items()]
+    if cases[0]['source_request_id'] == cases[1]['source_request_id']:
+        cases = [dict(cases[0], selection='max_prefill+max_context')]
+    return dict(journal=str(journal), journal_sha256=expected_sha,
+        source_native_completions=len(candidates), cases=cases,
+        selection='max_prefill_and_context_then_first_request_id_v1',
+        performance_input=False, duplicate_batch_copies=True)
+
+
+def _capacity_forward(bridge, case, sample):
+    """Complete a full retained request in each slot; sample after actual steps."""
+    pending = {bridge.add('capacity-'+case['selection']+'-'+str(i), case['adapter_id'],
+                         case['prompt_ids'], case['target_tokens'])
+               for i in range(bridge.batch_size)}
+    sample('registered', 0)
+    completed = {}
+    for step in range(case['target_tokens']):
+        for mark, row in bridge.step().items():
+            if (mark not in pending or mark in completed
+                    or row['native_adapter_id'] != case['adapter_id']
+                    or row['native_prompt_token_ids'] != case['prompt_ids']
+                    or row['native_output_tokens'] != case['target_tokens']
+                    or row['native_forward_count'] != case['target_tokens']
+                    or len(row['completion_token_ids']) != case['target_tokens']):
+                raise ValueError('capacity forward native contract mismatch')
+            completed[mark] = row
+        sample('prefill' if step == 0 else 'decode', step+1)
+    if set(completed) != pending or bridge.objects or bridge.generator.requests_len:
+        raise ValueError('capacity forward did not drain exactly')
+    return [dict(native_adapter_id=row['native_adapter_id'],
+                 native_adapter_index=row['native_adapter_index'],
+                 native_output_tokens=row['native_output_tokens'],
+                 native_forward_count=row['native_forward_count'],
+                 completion_token_ids=row['completion_token_ids'],
+                 matches_retained_output=row['completion_token_ids'] == case['retained_output_ids'])
+            for _, row in sorted(completed.items())]
+
+
+def _native_forward_capacity_probe(base, mixed, models, gen, inputs, result, stage):
+    """Long-input workspace witness at the existing batch, not a batch sweep."""
+    import gc
+    import torch
+    from transformers import LogitsProcessorList
+    from loquetier_src.model_generation import InputRequest, InferStatus
+    from replay_vllm_engine_trace import LoquetierNativeBatchBridge
+    witness = dict(passed=False, batch_size=2, input=inputs, cases=[],
+        independent_numerical_correctness=False, performance_run=False)
+    result['forward_capacity'] = witness
+    owners, parameters, storages, dtypes = _ownership_refs(models)
+    before_base = _tensor_inventory(base.named_parameters())
+    before_prepared = _tensor_inventory(_prepared_tensors(mixed))
+    torch.cuda.synchronize()
+    before = torch.cuda.memory_allocated(0)
+    stage('capacity_before_owner_release')
+    started = time.perf_counter()
+    models.clear()
+    collected = gc.collect()
+    torch.cuda.synchronize()
+    witness['release'] = dict(collected_objects=collected, seconds=time.perf_counter()-started,
+        allocated_reduction_bytes=before-torch.cuda.memory_allocated(0),
+        raw_storage_bytes=sum(storages.values()), raw_dtypes=dtypes,
+        remaining_owners=sum(ref() is not None for ref in owners),
+        remaining_parameters=sum(ref() is not None for ref in parameters))
+    if witness['release']['remaining_owners'] or witness['release']['remaining_parameters']:
+        raise ValueError('raw owners remain before full-input qualification')
+    if (before_base != _tensor_inventory(base.named_parameters())
+            or before_prepared != _tensor_inventory(_prepared_tensors(mixed))):
+        raise ValueError('base/prepared content or pointers changed before capacity forward')
+    stage('capacity_after_owner_release')
+    def factory(mark, rid, aid, ids, target):
+        request = InputRequest(status=InferStatus.Prefill, input_ids=torch.tensor(ids, dtype=torch.long),
+            next_input_ids=list(ids), mark_id=mark, lora_name=aid,
+            logits_processor=LogitsProcessorList(), max_length=len(ids)+target)
+        request._tc_request_id = rid
+        return request
+    bridge = LoquetierNativeBatchBridge(gen, factory, 2)
+    witness['kv_page_bytes'] = gen.kvpool.page_nbytes
+    witness['kv_page_tokens'] = gen.kvpool.page_len
+    for case in inputs['cases']:
+        if gen.kvpool.num_pages or bridge.generator.requests_len or bridge.objects:
+            raise ValueError('capacity case began with live native requests/KV')
+        row = dict(selection=case['selection'], source_request_id=case['source_request_id'],
+            adapter_id=case['adapter_id'], prompt_tokens=len(case['prompt_ids']),
+            target_tokens=case['target_tokens'], batch_size=2, samples=[])
+        witness['cases'].append(row)
+        torch.cuda.synchronize()
+        row['idle_allocated_bytes'] = torch.cuda.memory_allocated(0)
+        torch.cuda.reset_peak_memory_stats(0)
+        def sample(phase, step):
+            torch.cuda.synchronize()
+            free, total = torch.cuda.mem_get_info(0)
+            stats = torch.cuda.memory_stats(0)
+            row['samples'].append(dict(phase=phase, step=step,
+                allocated_bytes=torch.cuda.memory_allocated(0),
+                reserved_bytes=torch.cuda.memory_reserved(0),
+                peak_allocated_bytes=torch.cuda.max_memory_allocated(0),
+                peak_reserved_bytes=torch.cuda.max_memory_reserved(0),
+                inactive_split_bytes=stats['inactive_split_bytes.all.current'],
+                device_free_bytes=free, device_total_bytes=total,
+                live_kv_pages=gen.kvpool.num_pages,
+                live_kv_bytes=gen.kvpool.num_pages*gen.kvpool.page_nbytes))
+        row['outputs'] = _capacity_forward(bridge, case, sample)
+        if gen.kvpool.num_pages:
+            raise ValueError('native KV pages remain after capacity case')
+        stage('capacity_'+case['selection']+'_complete')
+    bridge.close()
+    witness['passed'] = True
+
+
 def _tensor_inventory(named_tensors):
     """Bounded CPU content readback; no full GPU clone or retained raw owner."""
     import torch
@@ -447,6 +592,10 @@ def native_capacity_probe(args) -> int:
             result['verified_adapter_count'] = len(selected)
             prompt = (_ownership_prompt(args.ownership_input_journal, args.ownership_input_sha256)
                       if args.inference_owner_probe else None)
+            capacity_inputs = (_capacity_inputs(args.ownership_input_journal, args.ownership_input_sha256)
+                               if args.forward_capacity_probe else None)
+            if capacity_inputs and any(case['adapter_id'] not in selected for case in capacity_inputs['cases']):
+                raise ValueError('capacity input adapter is outside the frozen largest shard')
             sys.path.insert(0, str(args.measurement_view))
             os.environ['TRANSFORMERS_OFFLINE'] = '1'
             os.environ['HF_DATASETS_OFFLINE'] = '1'
@@ -458,7 +607,7 @@ def native_capacity_probe(args) -> int:
             from loquetier_src.model_generation import ModelGeneration
             from loquetier_src.tc_measurement import loquetier_bind_static_registry
             from loquetier.utils import KvCache
-            if args.inference_owner_probe:
+            if args.inference_owner_probe or args.forward_capacity_probe:
                 import inspect
                 from loquetier.ops import _kernels
                 native_cfg_path = Path(__file__).resolve().parents[2]/'configs/ieee_tc/loquetier_7b_static_native_v1.json'
@@ -509,6 +658,10 @@ def native_capacity_probe(args) -> int:
                 result['limitations'][1] = ('Two-token native forward for every ID on one largest shard; '
                     'not full-context forward workspace, four-worker capacity or performance qualification.')
                 _native_ownership_probe(base, mixed, models, gen, shard['adapter_ids'], prompt, result, stage)
+            if args.forward_capacity_probe:
+                result['limitations'][1] = ('Full retained geometry-extreme inputs, duplicate batch2 copies; '
+                    'not an increased batch, mixed-prefill/decode, all-ID numerical or four-worker qualification.')
+                _native_forward_capacity_probe(base, mixed, models, gen, capacity_inputs, result, stage)
             stage('full_context_kv_allocation')
             caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(plan['batch_size'])]
             stage('weights_and_kv_ready')
@@ -643,6 +796,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--context-tokens', type=int, default=1024)
     parser.add_argument('--native-capacity-probe', action='store_true')
     parser.add_argument('--inference-owner-probe', action='store_true')
+    parser.add_argument('--forward-capacity-probe', action='store_true')
     parser.add_argument('--ownership-input-journal', type=Path)
     parser.add_argument('--ownership-input-sha256')
     parser.add_argument('--static-capacity-plan', type=Path)
@@ -657,12 +811,14 @@ def _parse_args() -> argparse.Namespace:
         help="0 compresses all arrivals for smoke gates; 1 preserves trace spacing.",
     )
     args = parser.parse_args()
-    if args.inference_owner_probe:
+    if args.inference_owner_probe and args.forward_capacity_probe:
+        parser.error('owner equivalence and forward capacity are separate diagnostic execution keys')
+    if args.inference_owner_probe or args.forward_capacity_probe:
         if (not args.native_capacity_probe or not args.ownership_input_journal
                 or not re.fullmatch('[0-9a-f]{64}', args.ownership_input_sha256 or '')):
             parser.error('ownership witness requires native capacity and explicit retained input path/SHA')
     elif args.ownership_input_journal is not None or args.ownership_input_sha256 is not None:
-        parser.error('ownership input requires --inference-owner-probe')
+        parser.error('retained input requires an explicit owner or forward-capacity probe')
     if args.native_capacity_probe:
         if (args.static_capacity_only or args.trace is not None or args.adapter_subset is not None
                 or not all((args.static_capacity_plan, args.measurement_view, args.measurement_view_sha256,

@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from Loquetier_project.scripts.run_loquetier_trace_gate import (
     _adapter_footprint, _static_capacity_shards, _tensor_header,
-    _ownership_prompt, _ownership_forward, _parse_args)
+    _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward, _parse_args)
 
 
 class LoquetierCapacityTests(unittest.TestCase):
@@ -147,6 +147,82 @@ class LoquetierCapacityTests(unittest.TestCase):
         self.assertEqual(bridge.groups, [['a', 'b'], ['c']])
         with self.assertRaisesRegex(ValueError, 'mismatch'):
             _ownership_forward(Bridge(wrong=True), ['a'], [1, 2], 'after')
+
+    def test_capacity_inputs_select_geometry_not_latency_and_keep_full_input(self):
+        def row(rid, length, target):
+            return dict(event='loquetier_native_completed', request_id=rid,
+                client_cancelled=False, observation=dict(native_terminal_observed=True,
+                native_adapter_id='a', native_prompt_token_ids=list(range(length)),
+                native_output_tokens=target, native_forward_count=target,
+                completion_token_ids=[7]*target))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'native.jsonl'
+            rows = [row('z', 760, 64), row('a', 760, 64), row('b', 759, 256)]
+            path.write_text('\n'.join(json.dumps(r) for r in rows)+'\n')
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            value = _capacity_inputs(path, digest)
+            self.assertEqual([r['source_request_id'] for r in value['cases']], ['a', 'b'])
+            self.assertEqual([len(r['prompt_ids']) for r in value['cases']], [760, 759])
+            self.assertEqual([r['target_tokens'] for r in value['cases']], [64, 256])
+            self.assertEqual(value['source_native_completions'], 3)
+            self.assertFalse(value['performance_input'])
+            path.write_text(json.dumps(row('both', 760, 256))+'\n')
+            same = _capacity_inputs(path, hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertEqual(len(same['cases']), 1)
+            self.assertEqual(same['cases'][0]['selection'], 'max_prefill+max_context')
+            with self.assertRaisesRegex(ValueError, 'SHA'):
+                _capacity_inputs(path, '0'*64)
+            for invalid in (row('a', 760, 265), dict(rows[0], client_cancelled=True), rows[1]):
+                path.write_text('\n'.join(json.dumps(r) for r in [rows[1], invalid])+'\n')
+                with self.assertRaisesRegex(ValueError, 'incomplete or duplicated'):
+                    _capacity_inputs(path, hashlib.sha256(path.read_bytes()).hexdigest())
+
+    def test_capacity_cli_is_explicit_and_exclusive(self):
+        args = ['gate', '--base-model', '/base', '--adapter-root', '/pool', '--output', '/new',
+                '--native-capacity-probe', '--static-capacity-plan', '/plan',
+                '--measurement-view', '/view', '--measurement-view-sha256', 'a'*64,
+                '--physical-gpu-id', '0', '--main-repo', '/main',
+                '--ownership-input-journal', '/journal', '--ownership-input-sha256', 'b'*64]
+        with patch('sys.argv', args+['--forward-capacity-probe']):
+            value = _parse_args()
+            self.assertTrue(value.forward_capacity_probe)
+            self.assertFalse(value.inference_owner_probe)
+        with patch('sys.argv', args+['--forward-capacity-probe', '--inference-owner-probe']), self.assertRaises(SystemExit):
+            _parse_args()
+
+    def test_capacity_forward_uses_full_target_and_rejects_malformed_native_result(self):
+        class Bridge:
+            batch_size = 2
+            def __init__(self, wrong=False):
+                self.objects, self.generator = {}, SimpleNamespace(requests_len=0)
+                self.calls, self.wrong = 0, wrong
+            def add(self, rid, aid, ids, target):
+                mark = len(self.objects)
+                self.objects[mark] = (aid, ids, target)
+                self.generator.requests_len += 1
+                return mark
+            def step(self):
+                self.calls += 1
+                if self.calls != 5:
+                    return {}
+                rows = {m: dict(native_adapter_id=aid, native_adapter_index=0,
+                    native_prompt_token_ids=ids, native_output_tokens=target,
+                    native_forward_count=target, completion_token_ids=[8]*(target-int(self.wrong)))
+                    for m, (aid, ids, target) in self.objects.items()}
+                self.objects.clear()
+                self.generator.requests_len = 0
+                return rows
+        case = dict(selection='max_prefill', adapter_id='a', prompt_ids=list(range(760)),
+            target_tokens=5, retained_output_ids=[8]*5)
+        samples = []
+        bridge = Bridge()
+        result = _capacity_forward(bridge, case, lambda p, n: samples.append((p, n)))
+        self.assertEqual(bridge.calls, 5)
+        self.assertEqual(samples, [('registered', 0), ('prefill', 1),
+            ('decode', 2), ('decode', 3), ('decode', 4), ('decode', 5)])
+        self.assertTrue(all(r['matches_retained_output'] for r in result))
+        with self.assertRaisesRegex(ValueError, 'mismatch'):
+            _capacity_forward(Bridge(True), case, lambda *_: None)
 
 
 if __name__ == '__main__':
