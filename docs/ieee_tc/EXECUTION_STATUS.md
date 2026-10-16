@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D568 cleanup complete; publication next, 2026-10-16
+
+AUTHORITATIVE: D568 cleanup and curation COMPLETE; no live inference/remote job.
+Read D568_TARGETED_CACHE_RECLAIM.md. Only closed/published D567 private download
+objects removed after fresh full original/cache SHA, metadata and reference checks.
+5000 files/12985984450 payload B; reclaimed13004431360 B, diskafter161344880640 B.
+Unique assets, raw success/failure evidence, user dirt and protected147 unchanged.
+Cleanup actual recursive-empty/closed/pathgone, peak3222007808 B, high10270,
+max/OOM/kill/swap0; offline only. Curation actual closed, peak27127808 B/events0.
+Curated storage/d568_targeted_cache_reclaim, archive7356 B; no repeat maintenance.
+NEXT explicit maintenance checkpoint, then same D566 model configuration under
+NEW D569 1000-request compatibility key before new W0/W1/W2. Full scope ACTIVE.
+Do not repeat D567 coverage/CPU/per-token diagnostics or HydraServe base adaptation.
+
+## D567 published; D568 targeted storage maintenance, 2026-10-16
+
+D567resultcheckpointe24b442aa6f7958f75f59371ede986f955c1de3c PUSHED/remoteequal,
+9explicitfiles;BASE5486c4d6unchanged/pushed. Source/archive/protected147/userdirt/
+secrets/diffchecksPASS; publicationactualemptyclosed/pathgone,peak27234304B/events0.
+Do NOTrepeatcoverage/analysis/inputjoin/curation/backup. Curatedresult1 complete.
+Disk148341145600B below150GiBnext-heavyfloor; no newinferenceauthorized bygate.
+D568freshclosedD567cacheaudit/reclaim RUNNING inauxd5680000000000000000000000000001,
+Invocation7a540830bc144268bd9f34f08e0df9f3. RAWstorage_maintenance/d568_20261016.
+Only/tmp/tc-d567-7bl/remote_artifacts/objects; beforedelete requirefreshfullcurrent
+cache/originalSHA,size/inode,refs/mounts/metadata andactualclosed/publishedchecks.
+ReuseD558/D538/D532recipe,newexacttarget; notolddeletionlist orraw-evidence removal.
+No inference/remotejobactive. NEXT actualcleanupclosure/curation/backup then
+sameD566modelconfig1000compatibility before newW0W1W2. FullscopeACTIVE.
+
 ## D567 new-capacity full500 preparation, 2026-10-16
 
 AUTHORITATIVE TERMINAL: SAMEfull500run complete,500nativebindings/68925tokens/
