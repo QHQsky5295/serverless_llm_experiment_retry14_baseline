@@ -1,5 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D576 full W0 prepared, not launched; preservation then actual replay
+
+2026-10-16 AUTHORITATIVE: D576 preparation PASS; exact D510 full4000 W0 config,
+D574 all shared sources and16overlays unchanged, no new weights/native policy.
+20GiB-growth preflight PASS,no issues. Preparation actualrecursiveempty/closed/
+pathgone; no live inference/remote/cleanup/preparation job. Next preserve D575
+maintenance and D576 preregistration, then authenticated remote/prelaunch and
+one tmux full run. No repeat D574 qualification, D575 cleanup or D576 preparation.
+Read D576_HYDRASERVE_LIFECYCLE_FULL_W0.md; full remaining PLAN active.
+
+## D575 targeted maintenance complete; prepare affected full W0 next
+
+2026-10-16 AUTHORITATIVE: freshly rehashed D574 exact29object/290file download
+cache against retained originals;725774336B reclaimed,diskafter161154916352B.
+No raw/unique artifact removed; receipts/journals/runcontract retained, metadata
+archive SHA roundtrip PASS; protected147 before/afterPASS. SameUID unreadable
+proc entries3 explicitly retained in receipt; no claimed global visibility.
+Cleanup actualrecursiveempty/closed/pathgone,peak617127936B/events/swap0.
+Do not repeat cleanup/D574 qualification. No live inference/remote/cleanup job.
+NEXT D576 same native policy/config/full4000W0 with D573 lifecycle adaptation;
+fresh 20GiB-growth resource gate, unchanged thresholds and known-trace identity.
+Maintenance evidence will accompany next checkpoint; no serving source changed.
+Full remaining scope staysACTIVE, no figures or final superiority claim.
+
+## D574 published; targeted D574 cache reclamation precedes full replay
+
+2026-10-16 AUTHORITATIVE: MAIN5084aff91c06b4397697f5a08edee0b31acc46a3
+PUSHED/remoteequal; BASE80e08b4c6e7c2874b1b237500a00811ec06cd8c5 unchanged.
+15 explicit files, all source/archive/protected147/userdirt guards PASS;
+publication actualrecursiveempty/closed/pathgone, peak34336768B/events/swap0.
+No live inference/remote/audit/publication job. Do not repeat D574 qualification,
+audit, input/output join, curation or publication. Next D575 freshly audits only
+D574 29 downloaded objects (724665100 payloadB), retaining original pool and
+all receipts/journals/results; then resource gate and affected full HydraServe.
+All remaining PLAN scope active; no G1/G2 completion or performance gain claim.
+
 ## D574 native affected-path qualification complete; preserve then reclaim its cache
 
 2026-10-16 AUTHORITATIVE: no live inference/remote/audit job. D574 SAME100 prefix
