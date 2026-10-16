@@ -1,5 +1,21 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D590 storage completed — publish, then S-LoRA W2
+
+2026-10-16 AUTHORITATIVE: D589 result102bdb6c79dad8c17c598068481593332725bda8
+PUSHED/remoteequal,9explicitfiles;publication actualclosed/pathgone. No rerun.
+D590 verifiedcurrent original/download5000fileSHA,500IDs,metadata/references and
+actualclosures;removedONLY /tmp/tc-d589-7bl/remote_artifacts/objects.
+Payload12985984450B,reclaimed13004529664B,postfree161286115328B(~150.21GiB).
+Allraw/failed evidence/uniqueassets retained;protected147PASS. Cleanup40114
+COMPLETE,actualclosed/pathgone;peak3221745664B,high500,max/OOM/kill+swap0.
+No repeatcompression or oldD588cleanup. ReadD590_STORAGE_MAINTENANCE.md.
+NEXT D590checkpoint,then S-LoRA SAME nativeconfig full7BW2;inspect changed common
+helper identity/AST and priorqualification beforeone replay, no baseline search.
+Actual150GiB/102GiB/nextgrowth gates stillrequired. No liveGPU/remotejob.
+Loquetier7BW0/W1/W2closed;remainingS-LoRAW2 thencomplete7Bcomparison then
+PrimeLoRAoptimization. FullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finalfiguresACTIVE.
+
 ## D589 full W2 audited and curated — checkpoint, storage, remaining 7B
 
 2026-10-16 AUTHORITATIVE: D589 SINGLE Loquetier W2 complete;4000 native-binding
