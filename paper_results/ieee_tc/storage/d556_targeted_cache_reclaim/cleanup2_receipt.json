@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-d5560000000000000000000000000002.scope",
+    "invocation_id": "f854bcf6fc01410689f270ed6c8e518a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5560000000000000000000000000002.scope",
+    "inode": 25959855
+  },
+  "recipes": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d556_20261016/reclaim_d414.py",
+      "sha256": "c34addc89d6e869caba999a094e4ff686757c7454d176329f13708c2d087d04b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/storage_maintenance/d556_20261016/reclaim_d419.py",
+      "sha256": "1669daaee92472f5782ef12824552b1f641fd0ecbeff0935d63b7a26582bc246"
+    }
+  ],
+  "before_protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "after_protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "resources": {
+    "memory.peak": "3221889024\n",
+    "memory.events": "low 0\nhigh 3757\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}

@@ -1,4 +1,37 @@
-# IEEE TC execution status — D555 closed; pause for RelayServe migration
+# IEEE TC execution status — resumed; W2 baseline completion
+
+## Authoritative resume, 2026-10-16
+
+The user resumed the active goal after the RelayServe migration pause; the
+historical pause instructions below no longer block plan work. D555 remains
+sealed and must not be repeated. Current MAIN cd534fd/BASE aff60bb and all three
+protected user-file SHAs match the prior handoff. GPU management reports no
+compute process; host available memory is about113GB and disk144794423296B,
+below the unchanged150GiB next-heavy gate. Resource detector used read-only.
+Actual recursive membership of listed running user scopes was checked: only
+the pre-existing Podman pause process3418 was nonempty; no scope was stopped.
+The first text parser encountered multiline historical descriptions and made
+invalid read-only show queries; the corrected .scope-only filter completed.
+This is not a claim about every other project or system service.
+
+HydraServe already uses isolated rootless Podman (D510/W0,D546/W1), consistent
+with the latest reply that shared k3s is unrelated. Do not access/reconfigure
+that cluster or redo completed HydraServe adaptation. First freshly verify and
+reclaim only closed, published, rebuildable download copies (D556 maintenance),
+then resume the missing7B W2 baselines with frozen native configurations.
+All remaining7B/G2,3B,ablations,sensitivities and deliverables remain ACTIVE.
+D556maintenance COMPLETE (not new performance). Read D556_TARGETED_CACHE_RECLAIM.md.
+Only D555/D414/D419 private objects were removed after fresh full cache+retained
+original SHA/size/inode/refs/metadata/actual-release gates. Actual total reclaimed
+16939458560B;diskafter161726795776B(~150.63GiB). Uniqueassets/rawsuccess/failure
+evidence/protected147/userdirt preserved. Cleanup1/2actualrecursive-empty/closed/
+pathgone, peaks3222200320/3221889024B,high21918/3757,max/OOM/kill/swap0.
+Only offline maintenance, no concurrent inference/build/remotechanges. Curation
+DONE with archive9044B in storage/d556_targeted_cache_reclaim. Next close its
+actual empty scope and publish exact paths; then vLLM7BW2 using D536 unchanged
+native config plus D553 approved input map. No D555 repeat or baseline tuning.
+
+## Historical pause handoff (superseded by explicit resume above)
 
 Updated 2026-10-15. Current authoritative handoff; not a new experimental plan.
 Prior status preserved BYTE-FOR-BYTE in EXECUTION_HISTORY_D520_THROUGH_D536_20261015.md
@@ -8,6 +41,25 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Historical running/prepared notes in archives are superseded here.
 
 ## Immediate state / next action
+
+PAUSE HANDOFF VERIFIED: D555 result checkpoint
+cd534fd91b8b7e5ebdff4c28cf7a5e8ca2118ae4 PUSHED/remoteequal,9explicitfiles.
+BASEaff60bb210c6d1fb9ce94534c5ef37521976bc0a unchanged; no baseline code edit.
+Publication exact-owned scope actually recursive-empty/closed/pathgone; receipt
+and closure in RAW result_publication_receipt.json/result_publication_closure.json.
+No local GPU compute process at final check; all D555 owned scopes actually
+closed and all D555 remote units stopped. Historical pre-D555 scope records still
+appear active/running in systemd; their current process membership was not audited
+in this final handoff, and they were not stopped. Do not claim the entire host has
+no running scope merely because this campaign is closed.
+No further experiment/build/optimization/maintenance
+will start until the user explicitly resumes after RelayServe migration.
+Latest disk147039399936B (~136.94GiB), below NEXT-heavy150GiB floor but above100GiB;
+no new heavy task authorized. Retain closed evidence and unique assets. On a later
+explicit resume, FIRST recheck current resources and only then audit proven closed
+rebuildable caches if needed; do not execute old deletion lists or repeat D555.
+All unfinished scientific scope below remains pending, not complete. Post-push
+closure/status delta deliberately retained locally; no duplicate status-only push.
 
 Latest user order (2026-10-15, RelayServe migration window): finish the CURRENT
 D555 replay once, perform actual resource release/owned cleanup and preserve its
