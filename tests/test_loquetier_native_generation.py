@@ -130,6 +130,12 @@ class NativeGenerationRules(unittest.TestCase):
                         [weakref.ref(x) for x in parameters],
                         {p.untyped_storage().data_ptr() for p in parameters})
             object_refs, parameter_refs, raw_storage = owner_refs()
+            from Loquetier_project.scripts.run_loquetier_trace_gate import _ownership_refs
+            probed_owners, probed_parameters, probed_storage, probed_dtypes = _ownership_refs(models)
+            self.assertEqual(len(probed_owners), len(object_refs))
+            self.assertEqual(len(probed_parameters), len(parameter_refs))
+            self.assertEqual(set(probed_storage), raw_storage)
+            self.assertEqual(probed_dtypes, {str(raw_dtype): 4})
             mixed = self.MixedLoraModel(create_virtual_model(base),
                 {f'adapter-{i}': m.base_model for i, m in enumerate(models)},
                 dtype=t.float16, device=t.device('cpu'), apply_scaling='A')
@@ -155,6 +161,7 @@ class NativeGenerationRules(unittest.TestCase):
             gc.collect()  # Native virtual wrappers retain bound-method cycles.
             self.assertTrue(all(ref() is None for ref in object_refs))
             self.assertTrue(all(ref() is None for ref in parameter_refs))
+            self.assertTrue(all(ref() is None for ref in probed_owners + probed_parameters))
             self.assertEqual([w.data_ptr() for w in prepared], pointers)
             self.assertTrue(all(t.equal(w, old) for w, old in zip(prepared, contents)))
             self.assertTrue(all(t.equal(a, b) for a, b in zip(before, reference_products())))
@@ -171,6 +178,27 @@ class NativeGenerationRules(unittest.TestCase):
 
     def test_prepared_alias_retains_storage_after_fp16_parameter_collection(self):
         self._prepared_owner_witness(self.torch.float16, expect_storage_alias=True)
+
+    def test_owner_inventory_tracks_content_storage_and_releases_input(self):
+        from Loquetier_project.scripts.run_loquetier_trace_gate import _tensor_inventory
+        tensor = self.torch.arange(24, dtype=self.torch.float16).reshape(4, 6)
+        ref = weakref.ref(tensor)
+        first = _tensor_inventory([('weight', tensor)])
+        self.assertEqual(first['logical_bytes'], 48)
+        self.assertEqual(first['unique_storage_bytes'], 48)
+        self.assertEqual(first, _tensor_inventory([('weight', tensor)]))
+        clone = _tensor_inventory([('weight', tensor.clone())])
+        self.assertEqual(first['content_sha256'], clone['content_sha256'])
+        self.assertNotEqual(first['layout_sha256'], clone['layout_sha256'])
+        tensor[0, 0] += 1
+        changed = _tensor_inventory([('weight', tensor)])
+        self.assertNotEqual(first['content_sha256'], changed['content_sha256'])
+        self.assertEqual(first['layout_sha256'], changed['layout_sha256'])
+        with self.assertRaisesRegex(ValueError, 'contiguous'):
+            _tensor_inventory([('bad', tensor.T)])
+        del tensor
+        gc.collect()
+        self.assertIsNone(ref())
 
 
 if __name__ == '__main__':

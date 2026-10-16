@@ -215,6 +215,171 @@ def inspect_static_capacity(base_model: Path, adapter_root: Path, pool_index: Pa
             'Only static capacity mapping; no native batch/adapter numerical qualification or performance measurement.'])
 
 
+def _ownership_prompt(journal: Path, expected_sha: str) -> dict:
+    """Reuse a bounded prefix of the first retained native input, not a new trace."""
+    digest = hashlib.sha256()
+    with journal.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    if digest.hexdigest() != expected_sha:
+        raise ValueError('ownership input journal SHA differs')
+    with journal.open() as handle:
+        for line in handle:
+            row = json.loads(line)
+            if row.get('event') != 'loquetier_native_completed':
+                continue
+            observed = row['observation']
+            ids = observed['native_prompt_token_ids']
+            if (observed.get('native_terminal_observed') is not True
+                    or not isinstance(ids, list) or len(ids) < 32
+                    or any(type(i) is not int or i < 0 for i in ids)):
+                raise ValueError('retained native input is incomplete')
+            return dict(journal=str(journal), journal_sha256=expected_sha,
+                source_request_id=row['request_id'], source_prompt_tokens=len(ids),
+                prompt_ids=ids[:32], target_tokens=2,
+                selection='first_native_terminal_input_first32_v1',
+                performance_input=False)
+    raise ValueError('retained journal has no native completion')
+
+
+def _ownership_refs(models):
+    """Return weak references/storage metadata only; never retain raw tensors."""
+    import weakref
+    owners, parameters, storages, dtypes = [], [], {}, Counter()
+    for model in models:
+        owners.extend(weakref.ref(obj) for obj in
+                      (model, model.base_model, model.base_model.model))
+        for name, parameter in model.named_parameters():
+            if '.lora_' not in name:
+                continue
+            parameters.append(weakref.ref(parameter))
+            storage = parameter.untyped_storage()
+            storages[storage.data_ptr()] = storage.nbytes()
+            dtypes[str(parameter.dtype)] += 1
+    if not owners or not parameters or not storages:
+        raise ValueError('raw native owners/LoRA storages missing')
+    return owners, parameters, storages, dict(dtypes)
+
+
+def _tensor_inventory(named_tensors):
+    """Bounded CPU content readback; no full GPU clone or retained raw owner."""
+    import torch
+    content, layout, storages = hashlib.sha256(), hashlib.sha256(), {}
+    count = logical_bytes = 0
+    for name, tensor in named_tensors:
+        if not tensor.is_contiguous():
+            raise ValueError('ownership witness requires contiguous native tensors')
+        size = tensor.numel() * tensor.element_size()
+        descriptor = [name, str(tensor.dtype), list(tensor.shape), list(tensor.stride()), size]
+        content.update(json.dumps(descriptor, separators=(',', ':')).encode())
+        storage = tensor.untyped_storage()
+        layout.update(json.dumps([descriptor, str(tensor.device), tensor.data_ptr(),
+            storage.data_ptr(), storage.nbytes()], separators=(',', ':')).encode())
+        storages[storage.data_ptr()] = storage.nbytes()
+        byte_view = tensor.detach().view(torch.uint8).reshape(-1)
+        for offset in range(0, size, 4 * 1024 * 1024):
+            content.update(byte_view[offset:offset+4*1024*1024].cpu().numpy().tobytes())
+        count += 1
+        logical_bytes += size
+    if count == 0:
+        raise ValueError('empty tensor inventory')
+    return dict(tensor_count=count, logical_bytes=logical_bytes,
+        unique_storage_bytes=sum(storages.values()), storage_pointers=sorted(storages),
+        content_sha256=content.hexdigest(), layout_sha256=layout.hexdigest())
+
+
+def _prepared_tensors(mixed):
+    for name, adapters in sorted(mixed.target_module_saves.items()):
+        layer = mixed.model.get_submodule(name)
+        if (layer.wa_ptrs.detach().cpu().tolist() != [a.wa.data_ptr() for a in adapters]
+                or layer.wb_ptrs.detach().cpu().tolist() != [a.wb.data_ptr() for a in adapters]):
+            raise ValueError('SMLM pointer table changed')
+        yield name+'.wa_ptrs', layer.wa_ptrs
+        yield name+'.wb_ptrs', layer.wb_ptrs
+        for adapter in adapters:
+            yield name+'.'+adapter.adapter_name+'.A', adapter.wa
+            yield name+'.'+adapter.adapter_name+'.B', adapter.wb
+
+
+def _ownership_forward(bridge, adapter_ids, prompt_ids, phase):
+    """Every shard ID, two native tokens, same batch grouping before/after."""
+    rows = []
+    for offset in range(0, len(adapter_ids), bridge.batch_size):
+        pending = {}
+        for aid in adapter_ids[offset:offset+bridge.batch_size]:
+            mark = bridge.add('ownership-'+phase+'-'+aid, aid, prompt_ids, 2)
+            pending[mark] = aid
+        completed = {}
+        for _ in range(2):
+            for mark, row in bridge.step().items():
+                if (mark not in pending or mark in completed
+                        or row['native_adapter_id'] != pending[mark]
+                        or row['native_prompt_token_ids'] != prompt_ids
+                        or row['native_output_tokens'] != 2
+                        or row['native_forward_count'] != 2):
+                    raise ValueError('ownership forward native contract mismatch')
+                completed[mark] = row
+        if set(completed) != set(pending) or bridge.objects or bridge.generator.requests_len:
+            raise ValueError('ownership forward did not drain exactly')
+        for mark in sorted(pending):
+            row = completed[mark]
+            rows.append(dict(adapter_id=pending[mark], native_adapter_index=row['native_adapter_index'],
+                completion_token_ids=row['completion_token_ids'], native_forward_count=2))
+    return rows
+
+
+def _native_ownership_probe(base, mixed, models, gen, adapter_ids, prompt, result, stage):
+    import gc
+    import torch
+    from transformers import LogitsProcessorList
+    from loquetier_src.model_generation import InputRequest, InferStatus
+    from replay_vllm_engine_trace import LoquetierNativeBatchBridge
+    def factory(mark, rid, aid, ids, target):
+        request = InputRequest(status=InferStatus.Prefill, input_ids=torch.tensor(ids, dtype=torch.long),
+            next_input_ids=list(ids), mark_id=mark, lora_name=aid,
+            logits_processor=LogitsProcessorList(), max_length=len(ids)+target)
+        request._tc_request_id = rid
+        return request
+    witness = dict(passed=False, input=prompt, independent_numerical_correctness=False,
+                   performance_run=False, batch_size=2)
+    result['ownership'] = witness
+    bridge = LoquetierNativeBatchBridge(gen, factory, 2)
+    owners, parameters, raw_storage, dtypes = _ownership_refs(models)
+    witness.update(raw_owner_count=len(owners), raw_parameter_count=len(parameters),
+                   raw_unique_storage_bytes=sum(raw_storage.values()), raw_dtypes=dtypes)
+    stage('ownership_forward_before')
+    witness['outputs_before'] = _ownership_forward(bridge, adapter_ids, prompt['prompt_ids'], 'before')
+    witness['base_before'] = _tensor_inventory(base.named_parameters())
+    witness['prepared_before'] = _tensor_inventory(_prepared_tensors(mixed))
+    retained = set(witness['base_before']['storage_pointers'] + witness['prepared_before']['storage_pointers'])
+    witness['raw_shared_storage_bytes'] = sum(size for ptr, size in raw_storage.items() if ptr in retained)
+    torch.cuda.synchronize()
+    stage('ownership_before_release')
+    before = torch.cuda.memory_allocated(0)
+    started = time.perf_counter()
+    models.clear()
+    witness['collected_objects'] = gc.collect()
+    torch.cuda.synchronize()
+    witness['release_seconds'] = time.perf_counter()-started
+    witness['allocated_reduction_bytes'] = before-torch.cuda.memory_allocated(0)
+    witness['remaining_raw_owners'] = sum(ref() is not None for ref in owners)
+    witness['remaining_raw_parameters'] = sum(ref() is not None for ref in parameters)
+    stage('ownership_after_release')
+    if witness['remaining_raw_owners'] or witness['remaining_raw_parameters']:
+        raise ValueError('raw native owners remain reachable')
+    witness['base_after'] = _tensor_inventory(base.named_parameters())
+    witness['prepared_after'] = _tensor_inventory(_prepared_tensors(mixed))
+    if (witness['base_before'] != witness['base_after']
+            or witness['prepared_before'] != witness['prepared_after']):
+        raise ValueError('live base/prepared content or pointer layout changed')
+    stage('ownership_forward_after')
+    witness['outputs_after'] = _ownership_forward(bridge, adapter_ids, prompt['prompt_ids'], 'after')
+    if witness['outputs_before'] != witness['outputs_after']:
+        raise ValueError('native greedy outputs changed after owner collection')
+    bridge.close()
+    witness['passed'] = True
+
+
 def native_capacity_probe(args) -> int:
     """Guarded loading/KV witness, NOT a remote request or performance run.
 
@@ -280,6 +445,8 @@ def native_capacity_probe(args) -> int:
                         if path.stat().st_size != entry['size_bytes'] or stream_sha(path) != entry['sha256']:
                             raise ValueError('selected immutable adapter content differs')
             result['verified_adapter_count'] = len(selected)
+            prompt = (_ownership_prompt(args.ownership_input_journal, args.ownership_input_sha256)
+                      if args.inference_owner_probe else None)
             sys.path.insert(0, str(args.measurement_view))
             os.environ['TRANSFORMERS_OFFLINE'] = '1'
             os.environ['HF_DATASETS_OFFLINE'] = '1'
@@ -291,6 +458,19 @@ def native_capacity_probe(args) -> int:
             from loquetier_src.model_generation import ModelGeneration
             from loquetier_src.tc_measurement import loquetier_bind_static_registry
             from loquetier.utils import KvCache
+            if args.inference_owner_probe:
+                import inspect
+                from loquetier.ops import _kernels
+                native_cfg_path = Path(__file__).resolve().parents[2]/'configs/ieee_tc/loquetier_7b_static_native_v1.json'
+                native_cfg = _load_json(native_cfg_path)
+                if (torch.cuda.device_count() != 1
+                        or Path(_kernels.__file__).resolve() != Path(native_cfg['native_kernel']).resolve()
+                        or stream_sha(Path(_kernels.__file__)) != native_cfg['native_kernel_sha256']
+                        or Path(inspect.getfile(ModelGeneration)).resolve() !=
+                            args.measurement_view.resolve()/'loquetier_src/model_generation.py'):
+                    raise ValueError('ownership witness actual native kernel/source/device differs')
+                result['native_kernel_sha256'] = native_cfg['native_kernel_sha256']
+                result['native_config_source_sha256'] = stream_sha(native_cfg_path)
             result['phase'] = 'cuda_init'
             torch.cuda.set_device(0)
             device, dtype = torch.device('cuda:0'), torch.float16
@@ -325,6 +505,10 @@ def native_capacity_probe(args) -> int:
             gen = ModelGeneration(mixed, LlamaConfig.from_pretrained(str(args.base_model)), cfg, device, dtype=dtype)
             result['registry'] = loquetier_bind_static_registry(gen,
                 {aid: str(args.adapter_root/aid) for aid in shard['adapter_ids']})
+            if args.inference_owner_probe:
+                result['limitations'][1] = ('Two-token native forward for every ID on one largest shard; '
+                    'not full-context forward workspace, four-worker capacity or performance qualification.')
+                _native_ownership_probe(base, mixed, models, gen, shard['adapter_ids'], prompt, result, stage)
             stage('full_context_kv_allocation')
             caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(plan['batch_size'])]
             stage('weights_and_kv_ready')
@@ -458,6 +642,9 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--static-shards', type=int, default=4)
     parser.add_argument('--context-tokens', type=int, default=1024)
     parser.add_argument('--native-capacity-probe', action='store_true')
+    parser.add_argument('--inference-owner-probe', action='store_true')
+    parser.add_argument('--ownership-input-journal', type=Path)
+    parser.add_argument('--ownership-input-sha256')
     parser.add_argument('--static-capacity-plan', type=Path)
     parser.add_argument('--measurement-view', type=Path)
     parser.add_argument('--measurement-view-sha256')
@@ -470,6 +657,12 @@ def _parse_args() -> argparse.Namespace:
         help="0 compresses all arrivals for smoke gates; 1 preserves trace spacing.",
     )
     args = parser.parse_args()
+    if args.inference_owner_probe:
+        if (not args.native_capacity_probe or not args.ownership_input_journal
+                or not re.fullmatch('[0-9a-f]{64}', args.ownership_input_sha256 or '')):
+            parser.error('ownership witness requires native capacity and explicit retained input path/SHA')
+    elif args.ownership_input_journal is not None or args.ownership_input_sha256 is not None:
+        parser.error('ownership input requires --inference-owner-probe')
     if args.native_capacity_probe:
         if (args.static_capacity_only or args.trace is not None or args.adapter_subset is not None
                 or not all((args.static_capacity_plan, args.measurement_view, args.measurement_view_sha256,
