@@ -1,5 +1,43 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D651全500-ID功能覆盖完成并审计；待备份与缓存回收 — 2026-10-18
+
+本轮PROGRESS。500/500完成、恰好500既有ID、68925原生tokens逐条目标一致，
+失败0；内容/请求/worker/owner绑定、时间与物理持卡计量通过。真实获取500，
+线上1160474851B，物化19482573296B，请求内打包0。联合499/500=99.8%，
+P95 TTFT687.878ms、P95 TPOT11.575ms，只是功能视图，不与D650/Full主
+性能点判优。n_correct=null及独立数值证明未知保留。GPU2705.667010s，
+服务峰值33914564608B，host最低97074163712B，事件/swap0。
+start87085、close/remote46404、analysis60201均exit0；GPU释放，全部本轮
+服务/launcher/管理scope空关闭，两个远端服务和monitor停止。见D651文档；
+下一步显式备份后安全回收已核验下载副本，再原1000兼容→4000 Resident
+W0/W1/W2→3B Full/all baseline/dLoRA；完整A1–A5/S1–S13/最终交付ACTIVE。
+当前无GPU/远端pending；不重跑D650/D651、不改基线、不动k3s、不画图。
+
+## D651全500-ID已启动；只监控同一运行 — 2026-10-18
+
+start session87085 exit0；tmux tc-d651-vllm-3b500，服务scope
+primelora-tc-svc-6419fac6b5e54ae4900f5e02f947bf6c.scope。启动器scope
+...d6510002已空关闭，GPU服务和回放仍运行，不重启。执行MAIN87be826/
+BASEe16af33，输入view4a9f63b0，原生配置不变；真实远端两个服务和
+monitor-d651-smoke仅本轮所属。下一步实际释放后沿raw的close_launch.py、
+stop_remote.sh、run_analysis.py --outcome success（有失败则如实改分类）
+收尾/审计并备份。不要重跑D650或基础CPU资格；后续1000/4000与完整计划不变。
+
+## D650已备份并清理下载副本；准备D651全500-ID — 2026-10-18
+
+MAIN六文件已推送87be826ecc75461b52cad43285722b46beca18fe，remote相等；
+BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。publication2 session96991
+exit0/空组关闭，峰值31219712B、事件swap0。首次publication仅因helper误读
+launch的pass字段退出，未生成产物/未stage；原helper、错误记录与closure保留，
+未重跑GPU。D650闭合下载副本232文件经原池/当前副本全SHA及引用核查回收
+1170878464B；原始记录、唯一工件、全部metadata保留。cleanup94370 exit0，
+scope...d6500006空关闭，峰值654696448B/事件0；可用169052590080B。
+3个同UID进程部分/proc不可读，按已有规范披露，不声称全系统可见性。
+当前准备D651同配置500-ID功能覆盖，文档预登记已写；不是主性能点。
+之后1000兼容、4000 Resident W0/W1/W2→3B Full/all baseline/dLoRA，
+完整消融/机制/敏感性/文档图表保持ACTIVE。无关k3s未动；不重复D650。
+
 ## D650当前3B原生100请求已完成并审计；待备份 — 2026-10-18
 
 本轮PROGRESS。原生vLLM四卡Resident真实远端100/100完成、绑定及目标长度
