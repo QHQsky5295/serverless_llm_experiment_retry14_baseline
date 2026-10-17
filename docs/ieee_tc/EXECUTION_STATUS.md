@@ -1,6 +1,20 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## D657：3B三场景数值参考冻结完成，待备份 — 2026-10-18 05:06 CST
+## D658：当前3B Full入口资格通过，待一次短回放 — 2026-10-18
+
+PROGRESS：完整重读PLAN/V1/V2/最新规则，复用既有配置组装及主启动入口，
+生成D659 3B100请求Full配置；D643 child身份及D645两类profile实际loader
+一致，六项CPU测试通过。保留自身8路/min1-max4及历史3B扩缩容参数，不套
+7B14路/min2。D648共同阈值、D657三场景参考不变；没有改运行时算法或九公式。
+历史shell分支逐字节不变，147旧投稿保护通过；qualification scope已递归空
+关闭，peak716099584B/events/swap0。无GPU性能新结论、n_correct未知。
+
+下一项：显式备份D658（含D657发布关闭回执）后，复用D636/D550/D656管理
+入口启动D659一次100请求资格；通过后完整3B W0/W1/W2。不重跑未变化的
+368源用例/89资格/三场景Resident，不把前缀短测当达标。其余3B基线/dLoRA、
+同版本7B/消融、A1–A5/S1–S13、成本/审稿/最终图表全部ACTIVE。
+
+## D657：3B三场景数值参考已冻结并备份 — 2026-10-18 05:09 CST
 
 本轮PROGRESS：完整重读PLAN/V1/V2/六项规则，复用D594/D424检查并重新核验
 D653/W0、D654/W1、D656/W2闭合四设备积分、4000原生合同、输入/配置/来源
@@ -16,8 +30,19 @@ exit0，四个无效物理账目拒绝检查通过，scope已递归空关闭；�
 47423488/43094016/48304128B，events/swap0。无GPU新运行、服务修改、基线
 调参或权重/trace复制；当前无pending。D656后续关闭/回收回执随本检查点备份。
 
-下一主线：D657显式文件保护/秘密/来源检查并推送；然后当前3B Full入口与
-必要资格，复用D645 profile、D643长度、D648阈值和3B8-lane配置。不要套7B
+publication34847 exit0，9个显式文件推送55c3081e59f957304d54b6e88b6c6bb9c7f01a83，
+remote相等；BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。源SHA/归档/
+checksum/秘密/147保护/三处用户修改与diff检查通过。publication域递归空后关闭，
+peak29716480B、events/swap0；D656后续发布/回收回执已在D657归档。D657自身
+publication关闭回执留raw，随下一正常检查点，不重复只写状态提交。无pending。
+
+只读复核D640/D643/D645与当前入口：D641 YAML仅source资格且visible[0]，不能
+直接当作Full配置；D645 manifest提供严格模型/context绑定及service/preparation，
+D643保留5秒窗口/3 movements等历史3B控制参数而非7B min2。下一项需通过
+既有prepare_d298_capacity.py/main runtime组装生成明确3B Full入口；复用D138
+结构但保留R2身份，采用现行控制/所有权/计量，不复制7B参数或改profile校验。
+本轮没有启动3B Full或改变服务源码。之后当前3B Full入口与必要资格，
+复用D645 profile、D643长度、D648阈值和3B8-lane配置。不要套7B
 14-lane/min2，不重跑368源用例/89项资格/已完成Resident。其余3B基线/dLoRA、
 同版本7B/消融、A1–A5/S1–S13、成本/审稿/最终图表全部ACTIVE。
 

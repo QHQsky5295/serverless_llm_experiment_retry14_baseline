@@ -1597,8 +1597,125 @@ def prepare_3b_warm_inputs():
         probe_batches=record['probe_batches'],measure_batches=record['measure_batches'])))
 
 
+def assemble_3b_current_full(previous, contract, profiles, *, output_dir, nvme_dir, host_dir, count):
+    """Assemble the measured 3B runtime, retaining its own controller settings.
+
+    This is migration to the existing current Full path, not a new controller or
+    a performance-selected configuration. Child-only resolution is reproduced by
+    the actual main assembly and checked against the measured model identity.
+    """
+    from scripts.run_all_experiments import (
+        _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    if (contract['model'] != '3b' or profiles['model'] != '3b'
+            or contract['model_config']['max_lora_rank'] != 16
+            or contract['model_config']['runtime_concurrency_cap'] != 8
+            or contract['coordination']['min_instances'] != 1
+            or contract['coordination']['max_instances'] != 4
+            or count not in (100, 4000)):
+        raise ValueError('explicit measured 3B migration point and population required')
+    cfg = copy.deepcopy(previous)
+    cfg['model'] = copy.deepcopy(contract['model_config'])
+    model = cfg['model']
+    # Reverse only main's documented child-resolution bookkeeping. Main must
+    # reproduce the identical measured child configuration below.
+    model['enforce_eager'] = model.pop('requested_enforce_eager')
+    assert model.pop('resolved_enforce_eager') is False
+    assert model.pop('skip_stale_gpu_cleanup') is True
+    model.update(device_id=0, visible_device_ids=[0, 1, 2, 3])
+    cfg['resource_coordination'] = copy.deepcopy(contract['coordination'])
+    coord = cfg['resource_coordination']
+    coord.update(copy.deepcopy(profiles['bindings']))
+    coord.update(ieee_initial_control_policy='observed_arrivals_v1',
+        ieee_cpu_frontend_policy='fixed_uuid_cpu_frontend_v1',
+        ieee_route_confirmed_snapshot_cache=True, ieee_handoff_policy='full')
+    cfg['workload']['total_requests'] = count
+    cfg['workload']['idle_between_phases_s'] = 0.0
+    cfg['experiment'].update(num_runs=1, output_dir=str(output_dir))
+    cfg['storage'].update(nvme_cache_dir=str(nvme_dir), host_cache_dir=str(host_dir))
+    if cfg['workload']['concurrency'] != 8 or cfg['hardware']['gpu_device_ids'] != [0, 1, 2, 3]:
+        raise ValueError('3B eight-lane/four-device envelope changed')
+    if cfg['workload']['generation_contract'] != 'fixed_length_greedy_v1':
+        raise ValueError('frozen generation required')
+    runtime = _prepare_scenario_runtime_model_config(model, cfg['workload'], coord)
+    child, env = _prepare_dedicated_subprocess_model_cfg(runtime, device_id=0, runtime_gpu_ids=[0])
+    if FrozenServiceProfiles.model_identity(child) != FrozenServiceProfiles.model_identity(contract['model_config']):
+        raise ValueError('Full child differs from measured 3B model identity')
+    return cfg, child, env
+
+
+def prepare_3b_full_candidate():
+    """D658: reuse D643/D645 measurements and the main Full loader, no GPU."""
+    from scripts.run_all_experiments import ScenarioRunner, _prepare_scenario_runtime_model_config
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d658_3b_full_entry'
+    config_path = root/'configs/ieee_tc/20261018_d659_3b_full_smoke100.yaml'
+    next_raw = root/'results/ieee_tc/p2_backend_qualification/d659_20261018'
+    if out.exists() or config_path.exists() or next_raw.exists():
+        raise FileExistsError('3B Full preparation is exclusive')
+    source_paths = dict(
+        previous=root/'results/ieee_tc/p2_backend_qualification/d138_20261001/3b_main_config_full1.yaml',
+        contract=root/'paper_results/ieee_tc/p2_backend/d643_3b_initializer/development_contract.json',
+        profiles=root/'paper_results/ieee_tc/p2_backend/d645_3b_profiles/initialization/manifest.json',
+        slo=root/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json',
+        references=root/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json')
+    read = lambda path: json.loads(path.read_text())
+    previous = yaml.safe_load(source_paths['previous'].read_text())
+    contract, profiles = read(source_paths['contract']), read(source_paths['profiles'])
+    assert p.digest(source_paths['profiles']) == '972d8c740f9421a530e064c0449ae8c48b20bf623b66bf0c488e7f3a570fe960'
+    assert profiles['contract']['sha256'] == p.digest(source_paths['contract'])
+    assert profiles['passed'] and profiles['full_qualified'] is False
+    assert p.digest(source_paths['slo']) == 'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8'
+    references = read(source_paths['references'])
+    assert set(references) == {'W0', 'W1', 'W2'}
+    assert all(r['reference_frozen'] and r['model'] == 'llama32_3b_main_modelscope'
+               and r['raw_n_correct'] is None for r in references.values())
+    cfg, child, env = assemble_3b_current_full(previous, contract, profiles,
+        output_dir=next_raw/'3b_full_smoke100', nvme_dir=next_raw/'3b_nvme_smoke100',
+        host_dir=Path('/dev/shm/tc-d659-3b-smoke100'), count=100)
+    runner = ScenarioRunner.__new__(ScenarioRunner)
+    runner.model_cfg = _prepare_scenario_runtime_model_config(cfg['model'], cfg['workload'], cfg['resource_coordination'])
+    runner.coord_cfg = cfg['resource_coordination']
+    runner._initial_runtime_pending = True
+    runner._service_profiles = runner._load_ieee_service_profiles()
+    runner._load_ieee_preparation_profiles()
+    for binding in profiles['bindings'].values():
+        assert p.digest(Path(binding['path'])) == binding['sha256']
+    trace = Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/'
+        '20260509_134259_llama32_3b_main_s8/shared_artifacts/'
+        'llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+    plan = FrozenReplayPlan.load(trace, count=100)
+    assert plan.source_sha256 == '4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+    assert len(plan.entries) == 100 and plan.source_count == 4000
+    protected = p.verify_seal(root/'results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+    assert protected['pass'] and protected['entry_count'] == 147
+    changes = {k:dict(previous=previous['model'].get(k), current=v)
+               for k,v in cfg['model'].items() if previous['model'].get(k) != v}
+    out.mkdir(parents=True, exist_ok=False)
+    with config_path.open('x') as stream:
+        yaml.safe_dump(cfg, stream, sort_keys=False)
+    value = dict(kind='d658_current_3b_full_preparation_v1', passed=True,
+        new_gpu_runs=0, full_qualified=False, n_correct=None, performance_accepted=False,
+        controller_recalibrated=False, copied_7b_capacity_or_minimum=False,
+        requested_point='current measured 3B migration with retained historical 3B controller',
+        profile_loader_passed=True, source_plan=plan.identity(),
+        model_changes_from_d138=changes,
+        inherited_current_control_fields={k:cfg['resource_coordination'][k] for k in
+            ('ieee_initial_control_policy','ieee_cpu_frontend_policy','ieee_route_confirmed_snapshot_cache','ieee_handoff_policy')},
+        planned_child_model_config=child, child_environment=env,
+        sources=[dict(role=k, path=str(path), sha256=p.digest(path)) for k,path in source_paths.items()],
+        configuration=dict(path=str(config_path), sha256=p.digest(config_path)), protected=protected,
+        plan_sha256=p.check_plan(),
+        scope='100-request native Full qualification next; no full-run performance, reference recalibration, or independent numerical proof.')
+    with (out/'preparation.json').open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+    print(json.dumps(dict(passed=True, count=100, config=str(config_path), changes=sorted(changes))))
+
+
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--3b-warm-inputs']:
+    if sys.argv[1:] == ['--3b-full-candidate']:
+        prepare_3b_full_candidate()
+    elif sys.argv[1:] == ['--3b-warm-inputs']:
         prepare_3b_warm_inputs()
     elif sys.argv[1:] == ['--3b-completed-initializer']:
         prepare_3b_completed_initializer()
