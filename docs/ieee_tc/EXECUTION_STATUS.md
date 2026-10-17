@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D643当前3B完成长度初始化通过；待备份后D644 — 2026-10-17
+
+本轮PROGRESS。完整PLAN/V1/V2及最新规则已核查。复用D642 source1原生完成，
+从360测量用例按原请求去重21条；两桶8/13条，均值98.375/171.69230769230768。
+13项严格初始化测试及真实数据/main child绑定通过，CPU无CUDA初始化。
+qualification session3866 exit0，scope...d64300001递归空/pathgone，峰值
+786112512B、high/max/OOM/OOMkill/swap均0，147保护和用户manifest未变。
+新增既有prepare/source runner入口；D644保留D641模型和原46waves/368cases，
+启用对应admission初始化后再测时间，未改九公式/校验器，不转用旧时延。
+D88控制设置明确历史保留，未冒充当前共同SLO或最优配置。见D643文档。
+
+当前无GPU/远端运行；本次代码与小型初始化产物待显式github-sync，然后
+一次D644准入启用source测量。后续当前3B warm/Resident/Full与全部baseline、
+dLoRA/消融/敏感性/审稿文档/最终图表保持ACTIVE。不返回7B/HF反复资格，
+不动无关k3s，接近目标前不画图。
+
+## D642测量已备份，下一主线为3B初始化 — 2026-10-17，备份后
+
+本轮PROGRESS。measurement backup session56773 exit0，5显式文件已推送
+3997f982066ce11060bfbaa0e77ee41ef0164f05，remote相等。checksum/AST/secrets/
+147保护通过，用户manifest未stage。publication2 scope...d64200007递归空/
+pathgone，实际资源见publication2_closure.json。所有工具终态，无GPU/远端
+服务pending；BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5未改。
+磁盘可用169367871488B，仍高于150GiB启动线；新重型运行前继续独立准入。
+下一轮直接读取D642测量/原source spec、现有completed-length审计和initializer，
+派生当前3B初始化身份；不重做已通过368cases、不把source-only冒充Full，
+也不重复7B/HF分支。全部剩余实验及交付ACTIVE。本备份后状态留下一正常
+检查点，不为它另开提交循环。
+
 ## D642当前3B原生来源测量完成；待数据备份 — 2026-10-17 22:44 local
 
 本轮PROGRESS。启动节点a24c655201cfeef1173176a36d3ae8d539e3977a已推送；

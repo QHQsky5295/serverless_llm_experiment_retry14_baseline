@@ -1406,8 +1406,132 @@ def verify_length_candidate(*, smoke=True, attempt=1):
     print(json.dumps(dict(passed=True, campaign=campaign, classes={k:v['classes'] for k,v in profiles.items()})))
 
 
+def prepare_3b_completed_initializer():
+    """D643: reuse D642 completed lengths; require fresh admission-on timing.
+
+    Same cases/configuration and strict initializer as the existing D298 path.
+    The historical 3B controller is retained explicitly, not called recalibrated.
+    """
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d643_3b_initializer'
+    next_raw = root/'results/ieee_tc/p2_backend_qualification/d644_20261017'
+    if out.exists() or next_raw.exists():
+        raise FileExistsError('D643 preparation is append-only')
+    source_path = root/'results/ieee_tc/p2_backend_qualification/d642_20261017/source1.json'
+    if p.digest(source_path) != '753122375a5f3269ba15c2f03c7c90342058546741d6fe519715f49d7ca18c64':
+        raise ValueError('D642 completed source changed')
+    run = json.loads(source_path.read_text())
+    if not (run['pass'] and run['stage'] == 'complete' and run['shutdown_called']
+            and run['profile_workspaces_removed']):
+        raise ValueError('D642 source did not close successfully')
+    old_spec_path = root/'paper_results/ieee_tc/p2_backend/d640_3b_migration/source_spec.json'
+    spec = json.loads(old_spec_path.read_text())
+    if run['source_profile_spec'] != spec:
+        raise ValueError('D642 recorded cases differ from their source specification')
+    measured = {f'source-profile/w{i}/l{lane}'
+        for i, wave in enumerate(spec['waves']) if wave['role'] == 'representative_measurement'
+        for lane in range(len(wave['requests']))}
+    samples = {}
+    for row in run['requests']:
+        if row['request_id'] not in measured:
+            continue
+        timing = row['timing']
+        sample = dict(source_request_id=row['source_request_id'],
+            native_prompt_tokens=timing['actual_prompt_tokens'],
+            completed_output_tokens=timing['native_output_tokens'],
+            prompt_sha256=timing['native_prompt_token_ids_sha256'],
+            content_prompt_tokens=row['input_content_tokens'])
+        if samples.setdefault(row['source_request_id'], sample) != sample:
+            raise ValueError('Repeated source request changed completed lengths or prompt')
+    bounds = run['model_config']['ieee_input_upper_bounds']
+    buckets = [[] for _ in range(len(bounds)+1)]
+    for sample in samples.values():
+        buckets[bisect_left(bounds, sample['native_prompt_tokens'])].append(sample['completed_output_tokens'])
+    if not samples or not all(buckets):
+        raise ValueError('No guessed completion mean for an unobserved native prompt bucket')
+    out.mkdir(parents=True, exist_ok=False)
+    next_raw.mkdir(parents=True, exist_ok=False)
+
+    def ref(path):
+        return dict(path=str(path.relative_to(root)), sha256=p.digest(path))
+
+    def save(name, value):
+        path = out/name
+        with path.open('x') as stream:
+            json.dump(value, stream, indent=2, allow_nan=False)
+        return ref(path)
+
+    audit_ref = save('completed_length_audit.json', dict(
+        kind='native_completed_output_length_initialization_audit_v1', development_only=True,
+        production_profile_frozen=False,
+        aggregation='deduplicate_original_request_identity_not_source_or_round_repetitions',
+        models={'3b': dict(source_run=ref(source_path), model_config=run['model_config'],
+            same_backend='0.30.0', input_upper_bounds=bounds, samples=list(samples.values()),
+            unique_original_requests=len(samples), unobserved_bucket_ids=[],
+            observed_buckets=[dict(bucket=i, unique_requests=len(values),
+                completed_output_mean=sum(values)/len(values)) for i, values in enumerate(buckets)])}))
+    config_path = root/'configs/ieee_tc/20261017_d641_3b_native_source.yaml'
+    if p.digest(config_path) != '0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80':
+        raise ValueError('D641 measured model configuration changed')
+    config = yaml.safe_load(config_path.read_text())['model_profiles']['llama32_3b_main_modelscope']
+    cfg = dict(config['model'])
+    cfg.update(visible_device_ids=[0], device_id=0, timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True, ieee_gpu_references=True, ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759], generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1', max_input_len=759, max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    old_path = root/'paper_results/ieee_tc/p2_backend/20260927_d88_3b_development_contract.json'
+    old = json.loads(old_path.read_text())
+    window = old['coordination']['online_hotness_window_s']
+    if spec['movement_concurrency'] != old['coordination']['max_concurrent_loads']:
+        raise ValueError('Historical movement capacity differs')
+    spec.update(purpose='D644_3b_current_admission_enabled_source_development_only',
+        nvme_parent=str(next_raw.resolve()), admission_initialization=dict(
+            kind='native_completed_length_binding_v1', audit=audit_ref, model='3b', window_s=window))
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    kwargs = dict(backend_version=json.loads(runtime.read_text())['modules']['vllm']['version'],
+        runtime_receipt_sha256=p.digest(runtime), source_trace_sha256=run['trace']['source_sha256'])
+    _, evidence, assembly = p.prepare_admission_source_runtime(cfg, spec, **kwargs)
+    contract = dict(kind='ieee_development_control_runtime_contract_v1', model='3b',
+        development_only=True, model_config=assembly['planned_child_model_config'],
+        runtime_receipt_sha256=p.digest(runtime), coordination=copy.deepcopy(old['coordination']),
+        service_ewma_beta=old['service_ewma_beta'], preparation_ewma_beta=old['preparation_ewma_beta'],
+        derivation=dict(kind='current_3b_completed_lengths_historical_controller_retention_v1',
+            source_configuration=ref(config_path), historical_controller=ref(old_path),
+            old_timings_relabelled=False, controller_recalibrated=False,
+            formal_common_slo=False), source_raw=ref(source_path),
+        completed_length_binding=spec['admission_initialization'], base_config_sha256=p.digest(config_path),
+        source_workload_profile=old['source_workload_profile'], production_profile_frozen=False,
+        full_qualified=False, plan_sha256=p.check_plan())
+    spec['full_development_contract'] = save('development_contract.json', contract)
+    spec_ref = save('source_spec.json', spec)
+    _, _, checked = p.prepare_admission_source_runtime(cfg, spec, **kwargs)
+    plan = FrozenReplayPlan.load(Path(run['trace']['source_path']), count=1000)
+    pool = (root/config['storage']['remote_dir']).resolve(strict=True)
+    _, _, identities, waves, static = p.source_profile_inputs(out/'source_spec.json', plan, cfg, pool)
+    assert spec['waves'] == run['source_profile_spec']['waves']
+    assert spec['representatives'] == run['source_profile_spec']['representatives']
+    assert len(waves) == 46 and sum(map(len, waves)) == 368 and len(identities) == 24
+    record = dict(kind='d643_3b_completed_length_preparation_v1', passed=True,
+        length_initialization=evidence, assembly=checked, spec=spec_ref,
+        waves=len(waves), cases=sum(map(len,waves)), measured_cases=len(measured),
+        unique_original_requests=len(samples), static_adapters=len(static['artifacts']),
+        cases_changed=False, base_model_parameters_changed=False, controller_recalibrated=False,
+        source_refs=[ref(path) for path in (source_path, old_spec_path, config_path, old_path, runtime)],
+        plan_sha256=p.check_plan(), metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        metric_single_run_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+        new_weights=False, new_trace=False, gpu_runs=0, timing_samples_relabelled=False,
+        production_profile_frozen=False, full_qualified=False)
+    save('prepare.json', record)
+    print(json.dumps(dict(passed=True, cases=record['cases'], unique_original_requests=len(samples),
+        observed_buckets=evidence['observed_buckets'], profile_id=contract['model_config']['ieee_admission_profile']['profile_id'])), flush=True)
+
+
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--metadata-profiles']:
+    if sys.argv[1:] == ['--3b-completed-initializer']:
+        prepare_3b_completed_initializer()
+    elif sys.argv[1:] == ['--metadata-profiles']:
         prepare_control_profiles(file_demand=True, metadata=True)
     elif sys.argv[1:] == ['--file-demand-profiles']:
         prepare_control_profiles(file_demand=True)
