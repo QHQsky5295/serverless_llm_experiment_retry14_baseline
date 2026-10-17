@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "kind": "d660_3b_complete_w0_seal_v1",
+  "source_audit_sha256": "31e3a5c042961983fcbfd1bd926141e66b153aab892e1432c8914b1b086e89d9",
+  "source_commit": "24208f8d9bdbbbb2e667060b57d7d6b1f18184c8",
+  "performance_runs": 1,
+  "complete4000": true,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 4000,
+  "joint_slo_count": 3575,
+  "joint_slo_fraction": 0.89375,
+  "joint_slo_pass": false,
+  "native_bound_gpu_seconds_per_request": 3.9755668189270073,
+  "reference_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+  "reference_sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a",
+  "reference_provenance_sha256": "0f17118e12496e6a45b55d446015e0da7ebd662ffe61be3358b20727ef09a15b",
+  "resource_reference_id": "3b_W0_vllm0300_D653",
+  "U_ref": 16119.239769904874,
+  "U_over_reference": 0.9865395330490747,
+  "U_over_75percent_reference": 1.315386044065433,
+  "resource_normalization_only": true,
+  "cross_system_input_map_audit_pending": true,
+  "caveat": "W0 complete native-binding/count/timing observation, not independent numerical qualification, canonical matched cross-system comparison, or G1/G2 success; all 8 phases below .95.",
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "31e3a5c042961983fcbfd1bd926141e66b153aab892e1432c8914b1b086e89d9"
+  },
+  "next_action": "Retained-data diagnosis of persistent 3B wait/preparation/control and scaling occupancy, then one falsifiable candidate if supported; no W1/W2 launch before resolving this W0 shortfall."
+}

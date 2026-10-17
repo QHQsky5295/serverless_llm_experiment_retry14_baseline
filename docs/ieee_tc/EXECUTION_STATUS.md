@@ -1,5 +1,65 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D660：3B完整W0完成并核验，联合89.375%，尚未达标 — 2026-10-18 06:40 CST
+
+本轮PROGRESS，上一轮verified wait。继续同一运行至4000终态，没有重启。
+原生请求/绑定/数量/计时4000通过、458224tokens；平均TTFT918.557517ms、
+P952386.578651ms，平均TPOT17.522706ms/P9533.657365ms，平均E2E2938.857241ms。
+联合3575/4000，TTFT3711、TPOT3834；八阶段联合464/438/457/439/444/444/452/437，
+均低于95%，不是仅启动前缀的问题。U15902.267275708029GPU-s，约3.975567/
+原生合同请求；raw n_correct=null/独立数值未知/ranking false保留。
+
+到达窗口GPU-s15817.286766，约3.99卡；1 initial+3 natural_scaleout均ready。
+dispatch tier remote/GPU/NVMe/HOST=132/1875/552/1441；132次真实远端获取，
+306360162线上B、请求打包0。GPU准备3286完成/1246延后/7 superseded/1 observing，
+不抹掉未完成观察。D657 W0 U归一比.986539533、75%预算比1.315386044；
+资源差不能抵消联合不达标，不称G1/G2最优或跨系统matched比较已经闭口。
+
+service/watchdog0，GPU实际释放/pathgone；close_launch通过，远端stop会话50610
+exit0，三服务inactive。analysis会话75282 exit0、收集/审计均0，scope递归空
+关闭；peak883736576B/high/max/OOM/kill/swap0。服务peak24202543104B，事件0。
+147旧投稿保护通过，审计SHA31e3a5c042961983fcbfd1bd926141e66b153aab892e1432c8914b1b086e89d9。
+观察cell4940/4942均结束；所有上述会话已终态，不再wait它们。
+
+下一步封存备份本轮，再复用日志有界诊断持续等待和近四卡持有，结合历史+
+原始论文/官方源码提出单一可证伪候选。不能仅因平均TTFT低于1秒关闭优化，
+不能直接启动W1/W2/新基线或复制7B参数。无新生产改动、无作图、无性能重复。
+3B后续矩阵/dLoRA、同版本7B与消融、A1–A5/S1–S13、成本/审稿/最终图表仍ACTIVE。
+
+## D660续查：3006条终态，同一完整W0持续运行 — 2026-10-18 06:16 CST
+
+本轮verified wait：完整重读PLAN、当前状态、V1/V2及六份最新执行补充，
+只读核查同一pane904158与InvocationID15a527dc1ed245dda3e865b4f2065880。
+06:06至06:16 journal由2230增至3006条终态；仍active/running，pane非dead，
+尚无launch.json。观察cell4930正常结束，不是实验服务或watchdog结束。
+最后sample2717：主机available93201039360B、servicepeak22895017984B、
+disk163968782336B，high/max/OOM/kill/swap均0，无warning或abort。
+终态条数仅表示进度，不等于已核验正确数，也不构成完整SLO/G1/G2结论。
+
+没有新实验、配置改动、重复运行、构建、哈希扫描、压缩、清理、推送或远端维护。
+用户关于既有k3s非本项目的回复继续按已有隔离适配规则处理；不改该集群，
+不重启已完成的HydraServe基础适配。下一轮继续核查同一D660服务和文件，
+不要wait已完成的cell4930。实际结束并释放后才用已封存close_launch、
+stop_remote、run_analysis、close入口收尾审计。3B后续优化/W1/W2/其余基线/
+dLoRA、同版本7B主表与消融、A1–A5/S1–S13、成本/审稿/最终图表范围保留。
+
+## D660续查：1930条终态，原完整W0仍在运行 — 2026-10-18 06:02 CST
+
+本轮及上一轮均verified wait；更早一轮PROGRESS完成核验/备份/完整启动。继续同一
+pane904158和服务InvocationID15a527dc1ed245dda3e865b4f2065880，权威状态
+active/running；本轮原生终态journal由1200持续增至1930（前轮末1175）；
+未出现终态launch.json。只读检查保持同一运行，没有重启或更换参数。
+PLAN SHA仍d7acd081…；没有新实验、配置修改或重复尝试。sample1882主机可用
+93449728000B、服务peak21589127168B、disk164910809088B，high/max/OOM/
+kill/swap0，无保护告警。终态行数不是已完成正确性/SLO审计，不提前判达标。
+本轮只读观察cell4916正常结束，其不是实验服务或watchdog；实际服务与tmux
+仍在运行。下一轮直接查询同一服务和文件，不尝试恢复已结束的观察cell。
+
+下一轮继续观察同一handle，不能仅因观察超时重启；不在测量中构建、扫描、
+压缩、清理、推送或维护远端。实际结束并释放后使用D660已封存管理/分析入口
+闭合账目及原生合同，再判断3B完整W0与后续优化；W1/W2/基线/dLoRA、同版本
+7B/消融、A1–A5/S1–S13、成本/审稿/图表完整范围均保留。
+
 ## D660：相同3B Full配置的完整W0入口核验通过 — 2026-10-18 05:30 CST
 
 上一轮PROGRESS（D659原生短资格/封存）；本轮PROGRESS：完整重读PLAN并核对
@@ -8,7 +68,20 @@ profile loader、全配置等价及原trace W0view核验通过；复用D658未�
 测试，不重跑GPU资格或Resident。现有shell历史分支逐字节不变，运行时算法
 与九公式不变。qualification1200记录passed，peak715489280B/events/swap0。
 
-待关闭qualification及备份后启动一次完整W0。不得由D659联合91/100宣称
+qualification1200 exit0并关闭；backup40840 exit0，七文件推送
+24208f8d9bdbbbb2e667060b57d7d6b1f18184c8，remote相等，BASE仍e16af33。
+backup域递归空关闭，peak30109696B/events/swap0。D659发布关闭回执已归档。
+D660 start91160 exit0，starter已递归空关闭，peak29507584B/events/swap0。
+
+完整W0已实际启动：tmux tc-d660-3b-w0，pane904158非dead；服务
+primelora-tc-svc-5a24ec6d27bf406d9eb8c2782c33aa0c.scope仍运行。replay_ready
+确认4000条原W0view 0d998f48…，已提交到index4；sample94可用内存
+92201689088B、servicepeak19476172800B、disk168038760448B，high/max/
+OOM/kill/swap0，无告警。下一轮只观察同一handle，不重启、不构建/扫描/压缩/
+清理/推送/远端维护，不另起GPU工作。结束后按已有close_launch、stop_remote、
+run_analysis、close脚本完成释放和全量核验；当前无完整性能结果。
+
+不得由D659联合91/100宣称
 4000必败或达标；不改变共同阈值、不套7Bmin2、不重复同键筛选赢家。完整结果
 决定下一优化假设。随后3B W1/W2/其余基线/dLoRA，同版本7B主表与消融、
 A1–A5/S1–S13、成本/审稿/最终图表仍ACTIVE；当前无性能新结果。
