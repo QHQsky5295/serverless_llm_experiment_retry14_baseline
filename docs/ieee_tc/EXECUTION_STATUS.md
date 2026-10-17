@@ -1,5 +1,48 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D655：3B W2共同输入已核验，封存后启动完整回放 — 2026-10-18 03:36 CST
+
+完整PLAN/V1/V2、最新六项规则及历史D553/D649/D654已核查。复用D553索引
+变换，未修改服务代码或生成新trace/权重。3B map SHA28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23，
+view SHA5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174；
+4000请求/458224目标tokens，实际ID132→497、3900条改变adapter；原arrival、
+prompt/native input-ID/target逐条相同。PrimeLoRA实际输入入口、HTTP、native
+配置、full4000_w2分析人口一致；7项针对性检查通过，D649未变化89项资格复用。
+这是输入资格，不是新GPU性能或独立数值证明。CPU audit35580 exit0；资格
+63096待实际退出与资源域关闭确认，不因已输出passed提前宣称进程释放。
+
+下一步关闭本轮CPU域、备份输入及D654清理/publication关闭回执，再登记
+D656完整3B Resident W2一次运行；原配置/阈值/真实远端/安全门槛不变。
+W0/W1不重跑；未知数值证明保留，资源参考尚未单独冻结。全部后续3B对照、
+同版本7B/消融/敏感性/审稿/最终图表仍ACTIVE。现无GPU实验运行。
+
+## D654已封存/备份/回收，下一主线3B W2输入与完整回放 — 2026-10-18 03:29 CST
+
+本轮PROGRESS：完整W1、八个阶段、原生绑定/计时/生命周期及同源4000输出
+审计完成；8个显式文件推送82e9c4d3c1a49e8d354f05dd0a7b8eae4ecaf1fc，
+remote相等；BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。publication
+67240 exit0，scope...d6540005已空关闭，峰值103178240B/events/swap0。147旧
+投稿保护、来源/校验和/秘密与D649未变化89项资格复用检查通过，三处用户
+修改SHA不变且未stage。归档包含D653清理和publication2关闭/备份回执。
+
+回收37032 exit0：本轮1056个下载文件与保留原池逐文件SHA/大小/独立inode
+以及可读引用、链接/挂载、配置和元数据副本核验后，仅删除本轮objects。
+payload5139892912B，实际回收5143777280B，磁盘可用168458248192B。
+同UID三个/proc部分不可读的限制仍保留，不声称全系统引用穷尽。原池、请求/
+远端测量及失败/输出差异证据未删。回收scope...d6540006已空关闭；当前无GPU、
+远端或离线工具pending。publication与回收关闭回执纳入下一正常检查点，
+不另开只写状态的提交循环。
+
+下一步读取完整PLAN/V1/V2和最新规则，复用D553 audit_map.py、FrozenReplayPlan
+及D649输入资格，为既有3B源trace建立仅adapter索引的W2视图；核验原
+selected_adapters/逐行rank、原arrival/prompt/targets、同两入口视图，不生成
+新trace或权重，不直接套7B map。只做受影响输入接线的最小CPU资格；89项
+未变化既有服务资格继续按SHA复用。然后沿D654同原生配置启动一次完整W2，
+前置同样的旧保护/用户dirt/两仓库备份/资源与独立远端准入；先登记新执行键。
+D653/D654完整W0/W1不重跑，资源参考尚待单独冻结，独立数值证明仍未知。
+之后3B Full/all baseline/dLoRA、同版本7B主表/消融、A1–A5、S1–S13、离线
+成本/两轮审稿文档与最终图表全部ACTIVE。PrimeLoRA尚未跨场景最优。
+
 ## D654完整3B W1已审计；待封存与回收 — 2026-10-18 03:27 CST
 
 本轮PROGRESS：此前verified wait后继续同一运行，03:25:51确认4000响应及
