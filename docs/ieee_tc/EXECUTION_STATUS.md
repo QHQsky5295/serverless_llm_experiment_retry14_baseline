@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D636已备份；D637完成受影响路径复用审计 — 2026-10-17 21:42 local
+
+本轮PROGRESS。D636 result1已推送62836866416c85b8894e79f6d75165f090fe00d5，
+remote相等，5明确文件、checksum/secrets/147保护通过。publication2 session
+87553 exit0，scope9366e3128a8d407b9ea4c06d63600009递归空关闭，peak34549760B，
+events/swap0。先前“准备结果备份”条目21:42是描述时间误写（实际推送前），
+以publication2_receipt和Git时间为执行证据，不影响测量数据或原始事件时间。
+
+D637复用D635审计并比较完整重建source字典：D632 1989plans/2053attempts/
+30288fallback，D633 1113/1606/20640；全部字典差异0、unresolved0，保留
+observing/pending。old→D635 runner只有该构造差异，其他核验源不变。
+R2_with_bounded_affected_path_equivalence，不是R0，不证明时间等价或新版本
+已执行；原值/版本不改，不静默拼成正式点。analysis session36122 exit0，
+scope9366e3128a8d407b9ea4c06d63700001已递归空关闭，peak28176384B/events0。
+
+重要主线纠偏：已完整读取D390/D391/D393，D393已否决全量跨后端exact token
+equality作为冻结V1强制门槛。不能再次因摘要里的“数值资格”自行增设4000条
+HF/PEFT全等要求或反复跑D295。下一步复用D385/D295和真实绑定证据，检查
+后续native加载/计算路径实际变化，再做最小必要补检；原N_correct=null和
+未知数值证明保留，差异原因不虚构。D637说明与原始审计待备份。
+
+当前无GPU/远端/工具pending，不启动新性能点。完整7B→3B/dLoRA→A1–A5/
+S1–S13/成本/审稿文档/图表均ACTIVE；不恢复无限baseline调优，不缩减范围。
+
 ## D636输入/输出比较完成，准备结果备份 — 2026-10-17 21:42 local
 
 本轮PROGRESS；完整PLAN、冻结V1/单轮V2、最新规则和skills已重读。复用D632/

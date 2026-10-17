@@ -1,0 +1,208 @@
+{
+  "passed": true,
+  "production_candidate": false,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "62836866416c85b8894e79f6d75165f090fe00d5",
+  "audit": {
+    "passed": true,
+    "records": [
+      {
+        "run": "D632",
+        "source_summary": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d632_min2_full_w2/result1/summary.json",
+          "sha256": "a37b4949e6fad2c0a750a2870fa44240c87bc05c682949caa38c5e4e7b7d1f22"
+        },
+        "original_execution_commit": "fa3b5eeda2ff395c5c7d6174d4fec32c0bda654e",
+        "counts": {
+          "plans": 1989,
+          "attempts": 2053,
+          "state_completed": 1521,
+          "state_deferred": 524,
+          "fallbacks": 30288,
+          "state_observing": 5,
+          "state_superseded": 3
+        },
+        "full_fallback_payload_mismatch_count": 0,
+        "unresolved_native_outcome_count": 0,
+        "repaired_payload_identical_for_every_recorded_attempt": true,
+        "production_refs": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+            "reference_sha256": "29114576e5c80973efca9672d13628325426af32b11a906e5c9862b7202cfd5c",
+            "current_sha256": "46ddbdd656fcabb3b83218a1ebeac82c30cd06249c001b5b4d79bb3415dd375e"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/coordination/autoscaler.py",
+            "reference_sha256": "57c54231ac790b5fb93a3410d7274db3820e126dc5ef54e1510241926b699463",
+            "current_sha256": "57c54231ac790b5fb93a3410d7274db3820e126dc5ef54e1510241926b699463"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/cpu_frontend.py",
+            "reference_sha256": "08b01c24931d3f9f4985d6d9c11da6292e5b72fc58e7cab29bd5bcd798cb2d49",
+            "current_sha256": "08b01c24931d3f9f4985d6d9c11da6292e5b72fc58e7cab29bd5bcd798cb2d49"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+            "reference_sha256": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f",
+            "current_sha256": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f"
+          }
+        ],
+        "runner_patch": "diff --git a/scripts/run_all_experiments.py b/scripts/run_all_experiments.py\nindex b73ac53..a6d6519 100755\n--- a/scripts/run_all_experiments.py\n+++ b/scripts/run_all_experiments.py\n@@ -19472,2 +19472,7 @@ class ScenarioRunner:\n-                                fallback = dict(fallback, native=False, owner_id=view['owner_id'],\n-                                                footprint_bytes=fallback['allocated_file_bytes'])\n+                                # The read pin revalidates this copy and may\n+                                # refresh its bounded physical allocation. Bind\n+                                # all fallback fields to that single confirmed\n+                                # observation, not the earlier planning view.\n+                                confirmed = held['confirmed_source']\n+                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],\n+                                                footprint_bytes=confirmed['allocated_file_bytes'])\n",
+        "raw_result_unchanged": true,
+        "original_version_preserved": true,
+        "reuse_class": "R2_with_bounded_affected_path_equivalence",
+        "exact_same_execution_contract": false,
+        "new_version_performance_executed": false,
+        "timing_equivalence_proved": false,
+        "independent_numerical_correctness": "unknown"
+      },
+      {
+        "run": "D633",
+        "source_summary": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d633_min2_full_w1/result1/summary.json",
+          "sha256": "bbaeb36d1a708a3e4eefaf86fde04f64ab292082271baa63ddc39ff56feefbcf"
+        },
+        "original_execution_commit": "20602b0aa99eb056eef7f866a7487548656863aa",
+        "counts": {
+          "plans": 1113,
+          "attempts": 1606,
+          "state_completed": 835,
+          "state_deferred": 745,
+          "fallbacks": 20640,
+          "state_superseded": 19,
+          "state_observing": 6,
+          "state_native_pending": 1
+        },
+        "full_fallback_payload_mismatch_count": 0,
+        "unresolved_native_outcome_count": 0,
+        "repaired_payload_identical_for_every_recorded_attempt": true,
+        "production_refs": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+            "reference_sha256": "29114576e5c80973efca9672d13628325426af32b11a906e5c9862b7202cfd5c",
+            "current_sha256": "46ddbdd656fcabb3b83218a1ebeac82c30cd06249c001b5b4d79bb3415dd375e"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/coordination/autoscaler.py",
+            "reference_sha256": "57c54231ac790b5fb93a3410d7274db3820e126dc5ef54e1510241926b699463",
+            "current_sha256": "57c54231ac790b5fb93a3410d7274db3820e126dc5ef54e1510241926b699463"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/cpu_frontend.py",
+            "reference_sha256": "08b01c24931d3f9f4985d6d9c11da6292e5b72fc58e7cab29bd5bcd798cb2d49",
+            "current_sha256": "08b01c24931d3f9f4985d6d9c11da6292e5b72fc58e7cab29bd5bcd798cb2d49"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+            "reference_sha256": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f",
+            "current_sha256": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f"
+          }
+        ],
+        "runner_patch": "diff --git a/scripts/run_all_experiments.py b/scripts/run_all_experiments.py\nindex b73ac53..a6d6519 100755\n--- a/scripts/run_all_experiments.py\n+++ b/scripts/run_all_experiments.py\n@@ -19472,2 +19472,7 @@ class ScenarioRunner:\n-                                fallback = dict(fallback, native=False, owner_id=view['owner_id'],\n-                                                footprint_bytes=fallback['allocated_file_bytes'])\n+                                # The read pin revalidates this copy and may\n+                                # refresh its bounded physical allocation. Bind\n+                                # all fallback fields to that single confirmed\n+                                # observation, not the earlier planning view.\n+                                confirmed = held['confirmed_source']\n+                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],\n+                                                footprint_bytes=confirmed['allocated_file_bytes'])\n",
+        "raw_result_unchanged": true,
+        "original_version_preserved": true,
+        "reuse_class": "R2_with_bounded_affected_path_equivalence",
+        "exact_same_execution_contract": false,
+        "new_version_performance_executed": false,
+        "timing_equivalence_proved": false,
+        "independent_numerical_correctness": "unknown"
+      }
+    ],
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "reused_auditor": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d635_20261017/analyze.py",
+      "sha256": "825b2c594cc63072c1fd24d6592b8e6166b4a23d1af3de211e50645b1ee2ec1a"
+    },
+    "scope": {
+      "unit": "primelora-tc-aux-9366e3128a8d407b9ea4c06d63700001.scope",
+      "invocation_id": "64d5f9bad81f4730a5e13879ed6e6f43",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9366e3128a8d407b9ea4c06d63700001.scope",
+      "inode": 27008589
+    },
+    "no_production_change": true,
+    "no_gpu_run": true,
+    "no_historical_result_rewrite": true,
+    "interpretation": "Payload equivalence is a bounded offline observation on recorded attempts, not an execution of the repaired version or proof of timing equivalence. Retain original versions; no R0 relabeling or final cross-version ranking."
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "1bbcd74d0c077d775e5970a6e6da04876dc246ccc51994cae8639c5ebaff0087",
+  "archive_members": {
+    "audit_reuse.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/audit_reuse.py",
+      "sha256": "2b64ad12785041e0939f59e206a7ff20b77debf2097693ca571c36de02a11a81"
+    },
+    "close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/close.py",
+      "sha256": "26f5ee3ea9c57715f984b85bde7853cf562a770200966a5429abb8eeff73ef43"
+    },
+    "backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/backup.py",
+      "sha256": "1c43695e9945eacb1fe4d1b9f9ebe3f1b97b070a84a88b29c74d081b160010f5"
+    },
+    "analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/analysis_identity.json",
+      "sha256": "fab984cf61bc91a69b44d59159c9760ed058f8a8d599e29a1a975ebad8be6993"
+    },
+    "analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/analysis_closure.json",
+      "sha256": "ce50a73132d520c1e76b41b10cbb5f822ac28e4a887597471a068d08e53b15a1"
+    },
+    "d632_receipt_audit.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/d632_receipt_audit.json",
+      "sha256": "9675a18dab9e3704810bd61fdda16520d255e0cb0612dd372c928ef5cc4c6aa8"
+    },
+    "d633_receipt_audit.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/d633_receipt_audit.json",
+      "sha256": "4769308cd3e27ad3a9c283559c99d2de160c3c792a18051d39e3c8e8e1a4745c"
+    },
+    "reuse_impact.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/reuse_impact.json",
+      "sha256": "803c2c9cba6126aa3344c169b760f2a38e99230415593b8a991920ca25c9e59f"
+    },
+    "backup_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d637_20261017/backup_gate.json",
+      "sha256": "93281742ac2ff31547765850c2d469acc0376f4defd0327dd178abf24f482d3a"
+    },
+    "publication2_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d636_20261017/publication2_receipt.json",
+      "sha256": "4850c76e771acb70bfc836381b98f40aaa857e64653dac619b7524e376a37c3e"
+    },
+    "publication2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d636_20261017/publication2_closure.json",
+      "sha256": "11dfbf0787b0b4bf2fed989f08bdab901993033ceb544316321a4123bc6bc909"
+    },
+    "analyze.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d635_20261017/analyze.py",
+      "sha256": "825b2c594cc63072c1fd24d6592b8e6166b4a23d1af3de211e50645b1ee2ec1a"
+    },
+    "D637_REPAIR_REUSE_AND_CORRECTNESS_SCOPE.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D637_REPAIR_REUSE_AND_CORRECTNESS_SCOPE.md",
+      "sha256": "fdd72498c1355193925940e0d2d6caaef928a3b0270b5cdab013700f9beb1245"
+    },
+    "D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md",
+      "sha256": "d6956812aa9cde04e55334a95f2d814454798e2a3e5e4b10eee634fa3782bf74"
+    }
+  },
+  "caveat": "Bounded equality of recorded fallback payloads, not same-version execution or timing equivalence. Cross-backend exact token equality is not a new V1 correctness requirement; preserve independent numerical uncertainty and old raw identities."
+}
