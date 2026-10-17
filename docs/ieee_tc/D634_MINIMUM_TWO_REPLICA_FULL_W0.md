@@ -44,6 +44,49 @@ G1/G2、单轮描述性和无胜负筛选规则不变；暂不画图。
 Invocation791851a11a3c44708594201f81ab7697/inode26949674递归空关闭、
 path gone，peak612057088B，high/max/OOM/swap0。复用458回归/32控制/192
 状态检查，不新增性能运行。147投稿保护通过；备份与实际启动尚待完成。
+19:40已实际启动：运行前提交301c3411b7e17c016ba3306c28bf1ade9e3a2276已推送，
+tmux tc-d634-min2w0，实际服务Invocationc617d526547e4dbd9b2b92c72208d5ee。
+起始请求已完成且无失败，仍在完整回放；资源保护未触发。远端链路1000Mb/s
+full，实际服务/监控身份详见EXECUTION_STATUS与raw记录。尚无整轮结论。
 本轮结果决定跨场景观测是否完整，不预判胜出。之后继续独立数值验证和
 G1/G2对照；3B、dLoRA3B W1/W2、A1–A5、S1–S13、CE/成本与两轮审稿
 文档及最终图表全部保留。已有 HydraServe/Loquetier 7B 基础适配不重开。
+
+## 本轮中止：HOST 驱逐下层副本确认失败
+
+19:53:40原生worker在主动准备中抛出
+`HOST eviction fallback lacks its held exact file copy`。调用链为
+`ieee_prepare_host → proactive_host_prepare_and_acquire → replacement_cost_provider
+→ native_host_replacement_costs`。这是下层文件引用/内容/表示/footprint等
+严格合同之一不匹配；当前异常消息没有逐字段信息，尚不能断言具体哪一项、
+是否文件确实消失或观察时点过期。不得删除校验或把异常吞掉后继续运行。
+
+| 本轮可核验事实 | 值 |
+|---|---:|
+| 计划请求 | 4,000 |
+| 外部已到达 / 已提交 | 797 / 796 |
+| 原生完成终态 | 774 |
+| 控制器记录的中断 | 3（不等于全部外部未完成请求） |
+| 已观察物理占用 | 2016.6970647417475 GPU-s |
+| 全负载物理占用 / N_correct | N/A / UNKNOWN |
+| 资源采样 / 内存峰值 | 909 / 16213061632 B |
+| high / max / OOM / swap / 外部GPU干扰 | 均0 |
+| 远端获取 / 实际发送字节 / 请求中打包 | 57 / 72610766 / 0 |
+
+原launcher保留`protocol_or_launcher_error`及回放退出1的二次错误；原生
+主动准备异常先出现并沿控制任务传播，随后回放连接失败和保护收尾。
+分析视图将其解释为系统内部准备路径失败，不能仅凭launcher标签归为环境
+干扰或丢弃。未到达的请求不伪作失败；截断U不能与完整运行比较资源效率。
+本轮无整轮TTFT/TPOT/SLO排名，不是同键择优重跑的理由。
+
+实际服务/context与launcher aux已释放；两远端服务和monitor按原Invocation
+关闭。受限分析session69352退出0，scope9346e3128a8d407b9ea4c06d63400004/
+Invocation88a3932579b44373a0117d9ebc8b0907/inode26958416已递归空关闭，
+peak55906304B、events0/swap0。main_outcome、终态账本、4份allocation账本、
+所有被保留worker日志、远端记录与保护清单在raw和failure_analysis.json中。
+147旧投稿文件未变。此次失败不追改D632/D633成功记录，但同配置跨场景
+可行性未成立，不能推进为已接受的最优工作点。
+
+下一步：备份失败→只读定位真实字段差异及引用持有/释放时间线→对照历史
+修改和官方实现→最小可证伪复现，再决定语义保持修复与受影响运行范围。
+当前未改生产代码、未重跑、未新增参数搜索，根因超出异常断言仍待建立。

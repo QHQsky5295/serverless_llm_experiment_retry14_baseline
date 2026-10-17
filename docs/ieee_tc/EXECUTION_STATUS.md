@@ -1,5 +1,98 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D634中止并完成失败审计 — 2026-10-17 19:58 local；待备份
+
+前轮VERIFIED WAIT，本轮PROGRESS：SAME D634在19:53:40主动HOST准备失败，
+native_host_replacement_costs抛出HOST eviction fallback lacks its held exact
+file copy。并非完成4000；797arrived/796submitted/774native terminal，
+控制器interrupted3不是所有外部未完成；Uobs2016.6970647417475，totalU=null，
+N_correct=null、ranking=false。原launcherclassification protocol_or_launcher_error
+和replay退出1保留；实际准备异常在前，连接中断为后续现象，不解释为外部
+干扰。具体不匹配字段/因果根源尚待定位，不删除断言、不盲重跑。
+
+service return-15、pathgone/contextreleased true，local_cleanup已按实际
+launcher aux身份递归空关闭，peak234909696B/events0/swap0。remote_stop
+session12563 exit0，原两服务/monitor均inactive、端口空。受限分析复用D617
+失败协议，session69352 exit0；scope9346e3128a8d407b9ea4c06d63400004/
+Invocation88a3932579b44373a0117d9ebc8b0907/inode26958416已关闭，peak55906304B。
+909资源采样峰16213061632B，high/max/OOM/kill/swap0、foreign0、abort0。
+57fetch/72610766wireB/pack0；remote_transfers SHA
+4dbc3ec0adb8b8991d471f74c5f97b9851da21c9130cd0a2bfbd042094648df2，
+monitor SHA3735806fe3ebd2d79d81abb361a9d98f72643375d6302393779b61adc8aec3e8。
+147保护通过，所有工具会话终态，无GPU/远端live、无pendingexec。
+
+analyze_failure.py/failure_analysis.json/failure_mechanism.json保留来源、实际
+中断、4worker日志/4allocation及未完成分母；未运行成功型collect_closure.py，
+不伪造result文件或全负载指标。下一步明确5文件failure1备份，然后只读核查
+文件fallback证据构造和持有/释放路径、历史同类失败与官方源码，再作最小复现。
+生产代码未改；MAIN仍301c341，BASE不变。D632/D633旧观测不改，但跨场景
+可行性未成立；全部正确性/3B/dLoRA/A1–A5/S1–S13/成本/文档/图表仍ACTIVE。
+
+## D634 verified wait — 2026-10-17 19:49 local
+
+前轮及本轮均VERIFIED WAIT，继续SAME tc-d634-min2w0。完整PLAN已在当前
+上下文读至EOF，本轮复核SHA仍d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83，
+最新状态与monitor-experiment已读；只核实同一实际service Invocation
+c617d526547e4dbd9b2b92c72208d5ee active。最新490arrived/487done/487ok/
+0failed，elapsed09:57，2runtimes，自然up1/down1。watchdog658：available
+101152358400B、peak15893647360B、free170267000832B，high/max/OOM/kill/
+swap0，无abort或foreign。自然扩缩容仅是机制触发事实，未判全程效果。
+连续45秒等待和轻量轮询，所有工具调用已返回、无pending；未改生产/config/
+helper/远端、未扫描/压缩/分析/构建/推送/另跑。剩余请求仍按原时间线到达，
+不可重启或将观察超时当失败。终态后按19:40身份关闭/收集，再完整W0审计，
+后续7B正确性与跨场景判优、3B/dLoRA、A1–A5/S1–S13/成本/文档/图表仍
+ACTIVE。运行前MAIN备份301c341不变，状态追加留正常检查点备份。
+
+## D634 verified wait — 2026-10-17 19:43 local
+
+上一轮PROGRESS（资格/备份/启动），本轮VERIFIED WAIT。完整PLAN1567行和
+最新状态已重读，monitor-experiment检查同一实际服务Invocation
+c617d526547e4dbd9b2b92c72208d5ee仍active。最新114arrived/112done/112ok/
+0failed，elapsed03:21，2runtimes。watchdog263：available101164253184B、
+peak13365321728B、free170678161408B；high/max/OOM/kill/swap0，无abort或
+foreign。只是有效运行前缀，不判整轮SLO、物理U或独立数值正确性。
+每次45秒等待后轻量核实同句柄，无pending工具会话；不重启同键、不改配置/
+源/helper/remote，不扫描/压缩/分析/构建/推送/另开实验。继续SAME
+tc-d634-min2w0至真实终态，再按19:40身份收尾和W0审计。全部7B正确性/
+跨场景评价、3B/dLoRA、A1–A5/S1–S13/成本/文档/图表仍ACTIVE。MAIN运行
+前备份301c341不变；本次状态追加下个正常检查点备份。
+
+## D634同配置完整W0已实际启动 — 2026-10-17 19:40 local
+
+本轮PROGRESS：资格、备份、单次启动均完成，不是最终性能结果。backup
+session19819 exit0，MAIN301c3411b7e17c016ba3306c28bf1ade9e3a2276已推送且
+远端相等，7明确文件，BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。
+backup scope9346e3128a8d407b9ea4c06d63400002/Invocation
+1648b2d90d0a4aa988b8d7decff64931/inode26950032已递归空关闭，peak30154752B。
+starter session57385 exit0，scope9346e3128a8d407b9ea4c06d63400003/
+Invocation99d76b163bef481faedd750d9e1af97a/inode26950153已空关闭，peak29581312B。
+两aux high/max/OOM/swap0，工具会话均终态，无pending exec。
+
+实际性能运行仍LIVE，只继续SAME tmux tc-d634-min2w0；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017
+run7b_min2_full_w0。服务unit primelora-tc-svc-84f59e2428794c3e92c6933b6c711edd.scope，
+Invocationc617d526547e4dbd9b2b92c72208d5ee/inode26950316 active；launcher aux
+5bed2bf9c8ef4cdc9c0e1e3fd3e50531/Invocationb2ea6536596e430cb30809a8ad369d73/
+inode26950274仍属本轮，不能在运行中关闭。最新3arrived/3done/3ok/0failed，
+elapsed00:16，2runtimes。watchdog76：available102227058688B、peak13365321728B、
+free171405688832B、high/max/OOM/swap0，无foreign或abort；前缀不是整体SLO证据。
+
+remote实际链路1000Mb/s/full，D78/D80缓存与无请求打包路径保持不变。
+3B Invocationbd367c474705489680b241aa5b669e40，7B6858a9a5316f466f953bf27b4d45738a；
+monitor primelora-artifact-monitor-d634-min2w0.service Invocation
+63c7125bb14b42d2a2dca1c225738530。7B clock
+remote-process-monotonic:7b0b4c41421c4d1591681f6ee91fb31c；3B
+remote-process-monotonic:0a5af64cf4634aea95638478185af236。原实际身份见
+remote_start.log/remote_health.json。运行中不改服务、配置、helper、远端，
+不扫描/压缩/构建/分析/推送；只轻量监控和45秒等待。
+
+真实终态后按已冻结close_launch.py→stop_remote.sh→受限collect_closure.py→
+close_collection.py收尾，复用D624 W0审计并加D632 min2不变量，之后比较/备份。
+审计脚本尚未创建，不在测量期间创建；旧源先检查压缩回执。W0helper描述已
+正确为W0，无继承D633的W2说明残留。PLAN/V1/V2完整已读并复验SHA一致。
+独立数值、3B/dLoRA、A1–A5、S1–S13、成本/文档/最终图表全部ACTIVE。
+此状态与文档启动追加留下一正常检查点备份，不在推理中推送。
+
 ## D634完整W0资格通过 — 2026-10-17 19:38 local；待备份/启动
 
 session18770退出0，完整4000 W0/source-view与D529冻结身份一致；归一化
