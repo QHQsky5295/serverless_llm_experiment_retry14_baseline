@@ -1,5 +1,32 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D613 storage complete; D614 resource working-point audit ready for qualification
+
+Storage67534 exit0,4explicitclosedlogscompressed with2roundtripSHAchecks, reclaimed
+1335574528B;after161529737216B(~150.436GiB), noassets/oldprotectedfileschanged.
+14archive tests passed;actualscopeclosed/pathgone,peak220766208B/events/swap0.
+No livejob/pendingtool. D614 readactualIEEE§3.1/P1-D48/autoscalerhistory, D380/D386
+negativeconfigevidence, D593/D612, andofficialLlumnix/ServerlessLLM/vLLM sources.
+Nextcandidate: D611implementation withonlymodelmax_instances4→3; allformula,
+threshold/cooldown/profile/14slots/token1024 unchanged, sameconfigacrossW0/W1/W2.
+This is an explicit lawful modelworkingpoint, NOT learnedpolicy/guaranteedbudget.
+No newGPUkey/config createdyet. Next CPUcontract/configqualification, then backup
+andonefullW2, conditional sameconfigW1/W0; no oldresultsplicing/same-keyrerun.
+Read D614_RESOURCE_WORKING_POINT_AUDIT.md. FirstbackupD613receipts/D614audit;
+then recheckfullPLAN/resources beforeheavy. CompleteG1/G2/3B/dLoRA/A1–A5/S1–S13/
+cost/reviewerdocs/finalfiguresACTIVE; independentnumericalcorrectnessunknown.
+
+## D612 diagnosis backed up; D613 exact closed-log compression next
+
+D612 checkpointd99efb86bbb04143ab1826bd26fd5b2d18550f05 pushed/remote-equal;
+publication79097 exit0, actual scopeclosed/pathgone,peak40624128B/events/swap0.
+No liveGPU/remote/auxiliaryjob. D613 storage maintenance registered: exactD611
+outcome/request/monitor andD551 request logs, reuseD604/D609 verifiedcompressor.
+Eachrequiresclosure/SHA/noactive andtwoverifiedgziproundtrips before removing
+uncompressedduplicate. Noassets/history/dirtyfilesdeleted, no newperformancepoint.
+Read D613_CLOSED_EVIDENCE_STORAGE.md. Restore150GiBbeforeanyGPU/build; afterward
+boundedmodelworkingpoint audit, notblindthreshold change. Fullscope/G1/G2ACTIVE.
+
 ## D612 retained-log diagnosis complete — backup then resource working-point audit
 
 Analysis60460 exit0, scopeactuallyclosed/pathgone, peak199897088B/events/swap0.
