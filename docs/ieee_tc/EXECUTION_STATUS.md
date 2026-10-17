@@ -1,5 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D621 qualified — backup then single full W2 launch
+
+Qualification78590exit0,actualscopeclosed/pathgone. Full4000W2view5734bd88587,
+existingadaptermap48c72e39bff, sameD619modelconfiguration/exactprofiles verified.
+60focused+464regression/21controltests and192statechecks reusedbySHA,notrerun.
+147protectedfiles/userdirtunchanged. Production29114576unchanged; shellonly
+newcaseandW2selector. No GPU/remoteexperimentlive,nopendingtool.
+Nextboundedbackup.py,closebackup,thenstart.py once; monitorSAMEnewrun.
+FullremaininggoalACTIVE; nofinalperformance/numerical/G1/G2claims.
+
+## D621 registered — qualify same-model-point W2 before backup/launch
+
+No live experiment. PreviousgoalturnPROGRESS: D619fullW1/audit/nativeoverlap/
+backup,D620losslessstorage. CurrentHEAD4fa914b. D621reusesD619productionand
+modelconfiguration, onlyoutput/cachepaths +existingW2replayselector change.
+No newweights/trace orperformance tuning. FullPLAN/rules/V1/V2reread;
+currentfourGPUsidle,MemAvailable~104GiB,disk~150.08GiB,recheckbeforelaunch.
+Nextboundedqualify.py ->actualclosure ->backup.py/push ->start.py once;
+thenmonitorSAMEtmux tc-d621-domainw2. Rawp2_backend_qualification/d621_20261017.
+AllG1/G2/W0/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure scopeACTIVE.
+
+## D620 checkpoint pushed — next same-source W2/W0; no live run
+
+Checkpoint4fa914baeb62b1a6644f0ab9bae10db475092ce8 pushed/remote-equal.
+Publication62688 exit0,actualclosed/pathgone,peak28844032B/events0.
+AllD619/D620 scopesandownedremoteclosed; fourGPUsidle,nopendingtool.
+Hostavailable104GiB; disk~150.08GiB onlyslightlyabove150GiBnewlaunchfloor,
+recheckbeforeanynewheavyjob. Usergeneratedmanifestpreserved/neverstaged.
+ThisturnPROGRESS: sameD619 fullW1finished,audited,backedup; nativeGPU3overlap
+verified; D620threeclosedlogs losslesslycompressed/tested/backedup.
+FullgoalACTIVE,notcompleteorblocked. NextregisternewfullW2thensame-sourceW0
+withD619unchangedmodelworkingpoint; nooldD615performance splice. RereadPLAN/
+status/rules/V1/V2; reuseD618CPUtests andD619nativequalification byhash,
+retainallfailuresandG1/G2/correctnesslimits.3B/dLoRA/A1–A5/S1–S13/cost/
+reviewerdocs/finalfiguresremainpending; nobaselineperformancesearch.
+
 ## D619 backed up; D620 storage finished — backup maintenance, then W2/W0
 
 D619 checkpoint87f8612647ed0c0c4a093b9dd78924c0a50b4f60 pushed/remote-equal;
