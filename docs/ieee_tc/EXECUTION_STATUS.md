@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D642当前3B原生来源测量完成；待数据备份 — 2026-10-17 22:44 local
+
+本轮PROGRESS。启动节点a24c655201cfeef1173176a36d3ae8d539e3977a已推送；
+最初备份仅新文档EOF空行检查失败，修正后同一显式文件集合提交；原记录保留。
+publication session38189 exit0/递归空pathgone。D642在该版本完成368/368，
+360测量＋8保留预热，40/40服务类、96准备类完整。startup93.584810s，
+单GPU生命周期505.402549s；368受控fetch/854130750线上字节，双端全对应、
+请求内打包0。来源获取均值remote1512.502/NVMe121.469/fileHOST118.762/
+nativeHOST53.700/GPU0ms。不是W0或Full性能点，不套7B SLO，不声称数值证明。
+
+服务峰值5735419904B，memory high/max/OOM/OOMkill/swap均0。gated清理GPU/
+service通过，launcher c0b300d312e24bd4bb27a6b9e8a6238d递归空且pathgone。
+remote两个artifact及monitor-d642-source已关闭，下载SHA一致；start session
+98994、collection81501、analysis57360均终态。collection先调用完整admission
+exporter被缺pending_kv字段拒绝：source-only不够Full，失败保留、未改validator。
+随后仅离线用source覆盖及native计时/token检查通过，未重跑GPU。analysis和
+analysis2均递归空/pathgone，147投稿保护与用户manifest不变。当前无GPU/
+远端pending，native小型证据待备份；详见D642_3B_SOURCE_MEASUREMENT.md。
+
+下一主线：复用本轮完成长度做新3B completed-length/admission初始化身份，
+复用原案例做必要admission-enabled profile，再当前3B warm/Resident与Full。
+不能直接把source-only变Full、不能给旧D89换标签。7B阶段决定不变；3B所有
+baseline/dLoRA、A1–A5、S1–S13、成本/审稿说明/最终图表完整ACTIVE。
+
 ## D642 source入口对齐CPU验证通过；待备份后原生资格 — 2026-10-17
 
 本轮PROGRESS。只新增d642启动键：复用D641模型参数和D640原368cases，绑定
