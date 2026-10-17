@@ -46,6 +46,29 @@ def body(rid='r0'):
 
 
 class ContractTests(unittest.TestCase):
+    def test_3b_reuses_qualified_model_parameters_without_primelora_policy(self):
+        import yaml
+        cfg = json.loads((ROOT/'configs/ieee_tc/vllm_3b_resident_native_compiler_v1.json').read_text())
+        old = json.loads((ROOT/'configs/ieee_tc/vllm_7b_resident_native_compiler_v2.json').read_text())
+        source = yaml.safe_load((MAIN/'configs/ieee_tc/20261017_d641_3b_native_source.yaml').read_text())
+        model = source['model_profiles']['llama32_3b_main_modelscope']['model']
+        engine = cfg['engine_args']
+        model_specific = ('gpu_memory_utilization', 'max_num_seqs', 'max_num_batched_tokens',
+                          'max_loras', 'max_cpu_loras', 'max_lora_rank')
+        for field in model_specific + ('dtype', 'tensor_parallel_size', 'max_model_len',
+                                      'enable_lora', 'enable_chunked_prefill', 'enable_prefix_caching'):
+            self.assertEqual(engine[field], model[field], field)
+        self.assertEqual(engine['model'], model['name'])
+        self.assertEqual(engine['tokenizer'], model['name'])
+        self.assertEqual({k:v for k,v in cfg.items() if k != 'engine_args'},
+                         {k:v for k,v in old.items() if k != 'engine_args'})
+        changed = set(model_specific) | {'model', 'tokenizer'}
+        self.assertEqual({k:v for k,v in engine.items() if k not in changed},
+                         {k:v for k,v in old['engine_args'].items() if k not in changed})
+        self.assertEqual(set(engine), set(old['engine_args']))
+        _, http = configs()
+        service.validate_native_service_config(cfg, dict(http, backbone=model['name']))
+
     def test_declared_venv_tools_not_resolved_python_parent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
