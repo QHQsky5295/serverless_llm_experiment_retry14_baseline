@@ -1,5 +1,211 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D629完整审计通过，但候选性能退化 — 2026-10-17
+
+本轮PROGRESS：重读完整PLAN/最新规则/冻结V1与单轮V2，续接SAME分析session45239
+至exit0。完整4000/4000原生合同、458224token、0失败；联合3727/4000=93.175%，
+不是95%达标。D621父版本3798=94.95%；新P95TTFT4602.710ms（+17.756%），
+U10851.907221（+2.841%），U/B0.897841。独立数值仍UNKNOWN/N_correctnull，
+rankingfalse。候选不接受为性能改进，不重跑同键、不拼接旧W0/W1。
+
+阶段均值中acquire-to-resume新增287.125ms，占平均TTFT新增306.142ms的93.788%；
+许可等待和唤醒尚未分开，不能强作单因果解释。两轮远端均497次/418365205B，
+pack0。自然扩容7→9次；保留完整轨迹、失败假设和全部输出差异。
+analyzer scope primelora-tc-aux-d6290000000000000000000000000005.scope，
+InvocationID 0ab99142d1184e8090b88388168ed3ec/inode26864758，已递归空并关闭，
+pathgone；peak704794624B/events0/swap0。没有pending exec或推理/远端服务。
+此前collector及服务关闭不重复。当前磁盘173164138496B、内存可用112058339328B，
+无GPU计算；用户dirty manifest保留。147保护清单无变化。
+
+正在复用D621 publisher封存D629结果/同输入比较/同后端输出差异，使用明确
+路径和secrets/hash检查备份；不改生产实现。下一步从已保留的早期等待与扩容
+轨迹做有界诊断，结合历史和官方实现决定撤销或新假设，不继续无界锁微测。
+7B完整达标/独立数值、3B、dLoRA、A1–A5、S1–S13、成本与审稿文档、最终图表
+全部保持ACTIVE；HydraServe必要适配已完成，无关k3s不动，不重开基线调参。
+
+publication第一次在preflight返回字段名检查处失败（pass应为preflight_pass）；
+尚未建立curated输出或stage/commit，不影响原实验。失败源和回执保留，scope
+6已按InvocationID a5b6349b181d4ddb8c0e935adaad2a70递归空/关闭，peak28811264B。
+第二入口只修正该字段并使用独立publication2身份，不改性能数据或重跑实验。
+
+## D629完整W2已结束并释放 — 2026-10-17 16:36 local；下一步离线审计
+
+本轮PROGRESS：持续监控SAME D629直到真实终态，4000/4000原生合同完成，
+terminal journal失败0。不是最终联合SLO达标或独立数值正确性证明。
+launch.json：pass=true/service_returncode0/watchdog_returncode0，原生GPU释放
+确认、service路径已移除；tmux正常结束。精确身份local_aux递归空后关闭，
+峰值389439488B、high/max/OOM/kill/swap全0。remote stop工具session2503
+exit0：本轮3b/7b/monitor三个unit均inactive/MainPID0，18080/18081监听消失。
+无重启、配置变动或另一性能运行，旧结果不覆盖。
+
+collection session70295 exit0，复用原collect_closure.py。实际资源域
+primelora-tc-aux-d6290000000000000000000000000004.scope，InvocationID
+c4978e2373af4c29b0f59ffced965664，inode26863373，递归空后已关闭/pathgone；
+peak83980288B/events0/swap0。新close_collection.py复用D550空域关闭逻辑，
+只改collection receipt身份入口，未改生产或预先绑定的实验脚本。
+collection_receipt.json、completion_receipt.json、collection_closure.json均已保存。
+不重复collector！若复用D621 run_analysis.py，必须省去已完成collection步骤，
+先检查现有collection_closure，再只运行新路径绑定的analyze.py。
+
+原结果306374666B，SHA6914a6b886cf161e2766317bf0755553d7e665f449ab301cf020a68d34ea65a3。
+remote transfers SHAba627b0f5090292ef7d265dbc526177a8a2c6ade5ee673661473dd7a7672689a；
+remote monitor SHAb7132cbcfea4d3e899df192b0cb9183a29666480e92a87323fcab10e9745c032，
+与远端文件一致。初始物理summary记录U10851.907220924273 GPU-s，尚待完整
+审计和冻结口径比较，不依据live5000ms的96%显示宣布95%达标。N_correct=null、
+formal_qualification=false、ranking_eligible=false。当前所有GPU计算进程为空，
+磁盘173166317568B；无live服务/远端/工具句柄，关闭回执已保存。
+
+下一步重读冻结V1/单轮V2及analyze-results技能，复用D621/D624 full4000
+分析器，显式绑定D629当前源码/输入/配置与D628改动，完整检查token/timing/
+tier/remote/物理生命周期/资源事件及旧投稿保护，再保存、解释并checked backup。
+不得重复性能键、复做组件、拼接旧W0/W1或提前接受候选。D628源码和D629
+启动前提交已备份；本次结果与最新关闭回执等待审计后正常检查点备份。
+完整7B目标/独立数值、同版本W0/W1、3B、dLoRA、A1–A5、S1–S13、成本/
+审稿文档与最终图表保持ACTIVE；不重做HydraServe/k3s基础适配。
+
+## D629 verified wait — 2026-10-17 16:24 local
+
+继续SAME `tc-d629-verifyw2`、InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`，持续active/running。
+最新3619arrived/3616completed/3616ok/0failed，elapsed57:13，backlog3，
+natural scale_up9/scale_down7，3runtimes。watchdog3447：
+available97163075584B，peak26427019264B，high/max/OOM/kill/swap全0，
+free162369163264B，abort/foreign为空。尚未终态，仍无最终性能结论。
+本轮继续VERIFIED WAIT；只有轻量实际身份/进度/安全轮询和45s等待，无
+pending exec，没有源码/config/remote修改、重型任务/分析/扫描/压缩/推送。
+完整PLAN/规则在当前上下文已读，最新状态复核。继续同run到真实终态；
+不要因最后部分到达稀疏或ETA变化重启。完整后续目标保持ACTIVE。
+
+## D629 verified wait — 2026-10-17 16:16 local
+
+同一tmux `tc-d629-verifyw2`和服务InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`仍active/running。
+最新3228arrived/3226completed/3226ok/0failed，elapsed49:17，backlog2，
+natural scale_up9/scale_down7，3runtimes。watchdog2981：
+available97168207872B，peak25214713856B，high/max/OOM/kill/swap全0，
+free163460390912B，abort/foreign为空。未终态、没有新性能结论。
+本轮与前轮为VERIFIED WAIT；轻量身份/日志检查及45s等待，没有新工作、
+配置/源码/remote修改、分析/扫描/压缩或备份。无pending exec工具会话。
+完整PLAN/规则已读内容仍在当前上下文，状态已核对。继续同run到终态，
+再按既定实际身份释放/收集/审计/备份，所有剩余任务保持ACTIVE。
+
+## D629 verified wait — 2026-10-17 16:11 local
+
+SAME `tc-d629-verifyw2`与InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`持续active/running。
+最新2920arrived/2913completed/2913ok/0failed，elapsed43:30，backlog7，
+natural scale_up9/scale_down7，3runtimes。watchdog2638：
+available97380634624B，peak23992229888B，high/max/OOM/kill/swap全0，
+free164713988096B，abort/foreign为空。原运行仍未终态，无最终SLO/U判断。
+前轮与本轮均VERIFIED WAIT，实际身份/轻量日志轮询及45s等待；无pending
+exec。没有改配置/源码/remote、运行分析/扫描/压缩/备份或另开实验。
+完整PLAN/规则仍在当前上下文已读，最新状态已复核；全目标ACTIVE，继续
+同run至终态，再执行实际身份释放、收集、审计与备份，不能中途重启。
+
+## D629 verified wait — 2026-10-17 16:04 local
+
+原tmux `tc-d629-verifyw2`和服务InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`持续active/running，未更换运行。
+最新2467arrived/2459completed/2459ok/0failed，elapsed37:22，backlog8，
+natural scale_up9/scale_down7，3runtimes。watchdog2276：
+available97542205440B，peak22415454208B，high/max/OOM/kill/swap全0，
+free165943463936B，abort/foreign为空。原回放未终态，无最终SLO/U结论。
+本轮与前轮均VERIFIED WAIT；实际身份/轻量日志核对与45s等待，未执行
+任何重型工作、生产/config/remote变动、分析/扫描/压缩或推送。无pending
+exec工具会话。完整PLAN/规则在当前上下文已读，最新状态已复核。
+继续同run，终态后按既定身份释放/收集/审计/备份，完整目标ACTIVE。
+
+## D629 verified wait — 2026-10-17 15:59 local; halfway passed
+
+SAME tmux `tc-d629-verifyw2`/service InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`已反复核实active/running。
+最新2036arrived/2029completed/2029ok/0failed，elapsed32:13，backlog7，
+natural scale_up9/scale_down7，3runtimes。watchdog1972：
+available97630994432B，peak21333852160B，high/max/OOM/kill/swap全0，
+free167450206208B，abort/foreign为空。没有最终SLO/U或独立数值结论。
+本轮与前轮均VERIFIED WAIT，只做轻量身份/日志轮询、45–50s等待和状态
+记录；完整PLAN/规则仍在当前上下文已读，最新状态已核对。无pending exec。
+仍不改生产/config/remote、不分析/压缩/扫描/备份或另开实验。继续同一run
+到真实终态，再按D629实际身份释放/收集/审计/备份；全目标保持ACTIVE。
+
+## D629 verified wait — 2026-10-17 15:52 local
+
+继续SAME `tc-d629-verifyw2`，服务InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`仍active/running。最新live：
+1483arrived/1478completed/1478ok/0failed，elapsed25:13，backlog5，
+natural scale_up8/scale_down7，2runtimes。watchdog1551：
+available100705103872B，peak19394166784B，high/max/OOM/kill/swap全0，
+free169092378624B，abort/foreign为空。尚无最终结果或性能接受决定。
+前轮、本轮均VERIFIED WAIT；轻量轮询实际身份/日志与<=50s等待，没有
+生产/config/remote变动、新任务、分析、扫描、压缩或备份。无pending exec。
+完整PLAN及最新规则仍在当前上下文已读，最新状态已复核；继续等同run终态。
+终态前不关闭/重启资源，不改输入或阈值；全目标与后续范围仍ACTIVE。
+
+## D629 verified wait — 2026-10-17 15:47 local
+
+本轮继续同一tmux `tc-d629-verifyw2`、同一服务InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0`，反复确认active/running。
+最新1137arrived/1131completed/1131ok/0failed，elapsed19:56，backlog6，
+natural scale_up8/scale_down6，3runtimes。watchdog1240：
+available97726406656B，peak19394166784B，high/max/OOM/kill/swap全0，
+free169938972672B，abort/foreign为空。前轮与本轮均VERIFIED WAIT。
+只有轻量监控/<=50s等待/状态记录；无pending exec，不改代码配置或远端，
+不启动其他实验/分析/扫描/压缩/推送。局部积压出现并自然回落，不作因果
+或最终达标推断。继续同run至实际终态，随后精确释放、收集、审计和备份。
+完整后续目标ACTIVE；不能因等待重新启动、提前关闭或拼接旧性能点。
+
+## D629 verified wait — 2026-10-17 15:42 local
+
+上一轮与本轮均VERIFIED WAIT：多次确认SAME tmux `tc-d629-verifyw2`与
+服务InvocationID `2d1448f89f3a41e89d67129fe5e443b0` active/running。
+当前live830arrived/830completed/830ok/0failed，elapsed15:12，backlog0，
+natural scale_up6/scale_down4，3个runtime；仍只有部分完整回放，不作最终判断。
+watchdog962：available98059436032B，peak18367782912B，high/max/OOM/kill/
+swap全0；free171099639808B，abort/foreign为空。没有pending exec工具会话。
+当前上下文保留完整PLAN/规则已读内容并重读最新状态，按monitor-experiment
+进行轻量实际身份/日志检查及<=50s等待。未更改生产/配置、另开实验、分析/
+压缩/扫描/清理/推送或维护远端。服务仍活跃，继续等待同run，不因等待重启。
+结束后按本页D629释放/收集/审计顺序执行，所有目标和剩余范围保持ACTIVE。
+
+## D629 verified wait — 2026-10-17 15:36 local
+
+上下文恢复后已重读完整PLAN、最新规则和状态头；继续SAME
+`tc-d629-verifyw2`及InvocationID `2d1448f89f3a41e89d67129fe5e443b0`，
+均active/running。只做轻量轮询和<=50s等待，没有启动新工作或改配置。
+最新live：450arrived/447completed/447ok/0failed，elapsed09:16，
+natural scale_up2/scale_down2，当前1个runtime。watchdog608：
+available103898722304B，peak16258396160B，high/max/OOM/kill/swap全0，
+free172118962176B，abort/foreign为空。未计算最终SLO/U，不推断胜负。
+无pending exec；tmux及本轮remote仍运行，不能重启/停止或另开实验。
+下一步继续同run到终态，按下方释放/收集/审计顺序；目标ACTIVE。
+本轮为VERIFIED WAIT，不是阻塞，也不是新完成性能实验。没有因本轮等待
+重做HydraServe/k3s适配；完整剩余实验范围不变。
+
+## D629实际运行中 — 2026-10-17 15:33 local
+
+运行前检查点8127fbc3066530dfe1d79cb08cef41f9c69fb50b已推送、远端一致。
+qualification39727、backup24524、starter46178均exit0，实际资源域已关闭。
+SAME tmux `tc-d629-verifyw2` 持续运行；服务scope
+`primelora-tc-svc-5d21bf69571646339481a70b605e88c4.scope`，InvocationID
+`2d1448f89f3a41e89d67129fe5e443b0` 已反复核对active/running，inode26830230。
+实际aux身份见D629 raw/service_aux_identity.json；没有待续exec工具会话。
+最新watchdog394：available99743064064B，peak13199106048B，所有high/max/
+OOM/kill/swap为0；free172863700992B，abort/foreign为空。回放已提交index233，
+请求终态记录226条；只报告进度，不从前缀推断最终联合SLO或正确性。
+
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d629_20261017，
+run=7b_private_verify_full_w2。启动前真实链路1000/full；D78/D80既有只读
+gzip交付复用，remote timing v2健康，未重新发布或按请求打包。运行中不维护
+远端、不改生产源码/参数、不扫描哈希、不压缩/构建/分析/推送或另开实验。
+本轮完整PLAN及最新执行规则已重读；HydraServe适配不重做、无关k3s不动。
+
+当前PROGRESS（完整W2实际启动）后转VERIFIED WAIT。继续等待同一4000请求
+运行终态；之后按原生GPU释放→精确身份local/remote关闭→收集→完整审计→
+备份的顺序。D628仅验证发布临界区并发前进性，尚无新性能结论。旧W2
+94.95%仍未达标，独立数值UNKNOWN/N_correctnull，不拼接旧W0/W1宣称新点合格。
+完整7B目标/数值、3B、dLoRA、A1–A5、S1–S13、成本/审稿文档及最终图表
+全部保留，目标ACTIVE。
+
 ## D629运行前登记：复用完整W2，只有D628发布实现变化
 
 无GPU资格39727已exit0：4000-entry W2 view、配置归一化一致、D628最终462项
