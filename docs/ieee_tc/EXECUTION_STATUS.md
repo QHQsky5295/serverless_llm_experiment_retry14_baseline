@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D664完成：原生HOST资格通过，下一完整3B W0 — 2026-10-18
+
+同一短回放正常结束，无重启；100/100原生绑定/计量、17369tokens。
+21次受保护HOST新事务、48次GPU-hit旧事务、31次fresh inventory均通过；
+完整前后容量及引用释放验收通过。联合93/100（D659同前缀91），平均TTFT
+723.490996ms/P951811.607010ms，平均TPOT13.916657ms/P9517.869469ms，
+U784.7497594610322GPU-s。不是4000请求资格，n_correct=null/数值未知与
+ranking false保留，不以短样本代替G1/G2。raw result SHA
+d5b2e5f817b1fdde7637144bad0772cda8d24840621ef4b0ec89af487ab3c802。
+29次remote/67350156线上B与服务端对齐，请求打包0；1 initial+3 natural均ready。
+service峰值20661825536B，high/max/OOM/kill/swap0；实际GPU释放和本地
+服务/辅助域递归空关闭，随后3个owned远端服务已停止。
+analysis76460 exit0，peak143073280B、事件/swap0，closure已保存；不要wait。
+147旧投稿保护未变。发布仅新completion子目录，不覆盖prelaunch产物。
+下一D665：同配置完整4000 W0，不再跑相同前缀，不叠加新候选或改阈值。
+3B89.375%旧完整结果尚未闭口；其余场景/基线/dLoRA、同版本7B、消融、
+A1–A5/S1–S13、成本/审稿/图表范围全部保留。当前无活动GPU实验。
+
+## D664续：原生短回放正在运行，禁止重启或并发重型任务 — 2026-10-18
+
+prelaunch已推送76041a4484f4d22f5f54c30693e46a0076cd5c68；tmux
+tc-d664-3b-smoke100，pane PID1178835，服务scope
+primelora-tc-svc-438c905635fe4c3e890b741085ef7c4f.scope，InvocationID
+3b7968239f0a479aafecb90d4a7c1c38。沿用D659的3B前100条与非目标配置。
+启动/备份辅助会话已完成关闭，不再wait64020/73749/52348。
+截至watchdog175仍为同一活动运行：service peak20661825536B，
+host available94990319616B，disk free165802926080B；high/max/OOM/kill/
+swap0，无外部compute进程或abort。不将短回放当作完整G1/G2结果。
+当前只监测本轮；不改运行代码/配置，不维护远端，不压缩清理扫描或再跑GPU。
+下一步真实终态/释放后close_launch.py，再stop_remote.sh核对owned IDs，
+受限辅助域run_analysis.py及close.py analysis，保存完整性与HOST事务触发。
+已有prelaunch产物不得覆盖；收尾以新文件/子目录发布。通过后完整3B W0。
+Kubernetes非本项目事实继续有效，已完成HydraServe隔离适配不重做。
+完整未完成范围与3B联合89.375%未闭口状态保持不变。
+
 ## D664：相同3B配置的原生HOST候选入口核验通过，待一次短回放 — 2026-10-18
 
 本轮PROGRESS：完整PLAN/V1/V2/六项执行补充重读。D663已推送候选与655次

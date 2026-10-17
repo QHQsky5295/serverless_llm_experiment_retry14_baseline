@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "kind": "d664_3b_host_transaction_prefix100_seal_v1",
+  "source_audit_sha256": "33ccd792f8de93a833505402a0daa57c8e10ad7f46281c170bd9de316e0bea32",
+  "source_commit": "76041a4484f4d22f5f54c30693e46a0076cd5c68",
+  "performance_runs": 1,
+  "complete4000": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 100,
+  "joint_slo_count": 93,
+  "host_transaction": {
+    "passed": true,
+    "storage_counts": {
+      "fresh_inventory": 31,
+      "same_transaction_confirmed_gpu_hit_v1": 48,
+      "same_transaction_registered_host_activation_v1": 21
+    },
+    "request_ids": [
+      "req_00043",
+      "req_00045",
+      "req_00047",
+      "req_00050",
+      "req_00052",
+      "req_00055",
+      "req_00056",
+      "req_00067",
+      "req_00070",
+      "req_00071",
+      "req_00073",
+      "req_00074",
+      "req_00075",
+      "req_00078",
+      "req_00080",
+      "req_00085",
+      "req_00088",
+      "req_00092",
+      "req_00093",
+      "req_00097",
+      "req_00099"
+    ]
+  },
+  "immutable_prelaunch_manifest_sha256": "d411cd99730464ae8a7f6625f158ddfc6137427f8c9bb2b4926e4b0b58717f45",
+  "reused_publication_helper": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d659_20261018/publish.py",
+    "sha256": "e34668af9152224ab85f37d21c097362dc66222c8c4fd6e7daa525cc4c159bfb"
+  },
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "33ccd792f8de93a833505402a0daa57c8e10ad7f46281c170bd9de316e0bea32"
+  },
+  "next_action": "Same measured 3B Full configuration complete W0; prefix is not G1/G2 qualification."
+}
