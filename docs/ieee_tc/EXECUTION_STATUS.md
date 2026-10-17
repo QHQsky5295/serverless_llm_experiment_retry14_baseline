@@ -1,5 +1,49 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D638有界输出审计完成 — 2026-10-17 21:54 local；待备份
+
+本轮PROGRESS。完整PLAN、最新规则、V1/单轮V2已复核；使用analyze-results，
+无GPU/远端运行。新D638复用binding_checks/request_vectors，D624与D636各4000
+条十项绑定检查全过，4000输入/native prompt一致，166输出差异与既有集合相同。
+零更新146/3831变化，非零20/169；GPU/HOST/NVMe/remote为93/28/38/7。
+D385既有100参考匹配：D38492、D62497、D63692exact；D636与D384为94exact。
+当前8差异有5条与D384原生相同，另3条不同（1条与D624同）；不把旧top2解释
+外推到全部166。原始n_correct/null、开发身份和未知内核数值原因保留。
+
+已保存native_history，参考8slots与当前14slots并非同配置；runner执行路径
+有变更，不凭两个serving文件不变宣称整个后端未变。没有发现具体身份链失败。
+analysis session70329 exit0，scope9366e3128a8d407b9ea4c06d63800001已递归空/
+pathgone，peak75558912B、events/swap0；147保护与用户manifest通过。
+新增D638文档/审计待github-sync显式文件备份；生产和历史未改，未重跑、未绘图。
+
+下一步结束本次备份，再仅对W1/W2做一次对应离线差异核查和跨场景G1/G2
+观测决策，不重启W0/HF全等诊断、不恢复D391门槛。D637修复影响R2边界继续
+保留，不能悄然拼接成D635正式三场景。随后3B全部系统/dLoRA、A1–A5、S1–S13、
+成本、两轮审稿文档与最终图表全部ACTIVE；范围不删减。
+
+## D637备份与释放完成 — 2026-10-17 21:43 local
+
+本轮PROGRESS，非等待/阻塞。D637 backup session91078 exit0，5明确文件推送
+caf1addb5cf5a78d5893525167ab0c21f22b4970且远端相等；checksum/secrets/AST/
+147保护通过，用户manifest未stage/未改。backup scope
+9366e3128a8d407b9ea4c06d63700002已递归空/pathgone，peak29581312B、events/swap0。
+所有本轮工具终态，无pending/GPU/远端实验。BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5；
+free168938172416B，无清理或新环境安装。D636结果checkpoint6283686已封存。
+
+下一轮先按AGENTS完整PLAN/指标/最新状态核对；主问题为同后端输出变化的有界
+证据收口与7B工作点比较，不恢复D391的全量跨后端exact门槛（D393已纠正）。
+已读取D385/D295/D390/D391/D393和binding_checks：现有100请求HF/PEFT witness
+覆盖4种content class/2个长度组，92exact/8top2近邻，原失败不改写；7B池498
+zero/2nonzero限制不丢。可先将当前差异请求按静态content class核对，并复用
+这100条已有reference匹配canonical输入，检查后续native加载/计算实现历史。
+只有发现具体受影响路径才登记必要补检，不全量exact或重复性能筛结果。
+P2_BACKEND_QUALIFICATION.md是长历史文件，本轮读取输出被截断，未将其视作
+已完整阅读或据此作新资格结论。尚未创建D638或新性能配置。
+
+D632/D633完整消息等价是有界R2而非新版本已运行；仍不静默拼接正式结果。
+7B跨场景G1/G2、3B全部系统/dLoRA、A1–A5、S1–S13、成本/审稿文档/最终图表
+保持ACTIVE。此备份后状态留下一正常检查点，不为它单独启动额外备份循环。
+
 ## D636已备份；D637完成受影响路径复用审计 — 2026-10-17 21:42 local
 
 本轮PROGRESS。D636 result1已推送62836866416c85b8894e79f6d75165f090fe00d5，
