@@ -1,5 +1,39 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D636同配置W0资格完成 — 2026-10-17 20:15 local；待备份启动
+
+前轮PROGRESS（D635已修复/539检查/推送）；本轮PROGRESS，完整PLAN1567行和
+冻结V1/单轮V2、最新规则已复核。只增新run/config/cache/入口，生产保持
+15aa23e。D636资格session60625 exit0，4000W0原trace/view同D634，无参数变化，
+复用539回归、32控制测试、192状态枚举，profile/toolchain/build/147保护全通过。
+qualification scope9366e3128a8d407b9ea4c06d63600002/Invocation
+4d542aeab08e4397a0f6c42ced8a3b77/inode26967800已递归空关闭，peak611123200B，
+events/swap0。初次wrapper构造因旧commit literal出现两处而拒绝，未执行资格
+或启动；setup_failure.json与analysis_closure保留，精确匹配HEAD后修复，不改生产。
+该旧scope也关闭，所有工具终态，无pending/GPU/remote。free169816236032B。
+
+raw results/ieee_tc/p2_backend_qualification/d636_20261017，接着明确6文件备份，
+启动唯一tc-d636-min2w0。不要更改冻结helper/配置/生产，不重建环境/profile，
+不额外短性能试跑；实测链路在remote_start时再次记录。完成/失败都按真实终态
+收尾，N_correct和跨场景达标未证明；所有7B/3B/dLoRA/A1–A5/S1–S13/成本/
+文档/图表仍ACTIVE。推理机150/100GiB及102GiB内存准入不放宽，旧证据零覆盖。
+
+## D635已备份并关闭资源 — 2026-10-17 20:11 local
+
+backup session71697 exit0；MAIN15aa23e2283ba5f469937b5c4aaab447ddbe7b49已推送且
+远端相等，8明确文件；539项CPU检查、checksum/secrets/147保护通过。BASE仍
+80e08b4c6e7c2874b1b237500a00811ec06cd8c5，用户manifest未stage/未改。
+backup实际身份及递归空/pathgone回执在D635backup_closure.json，所有6个辅助
+域均关闭；无GPU、远端或工具会话live，无pending。free169817272320B。
+
+本轮PROGRESS：完成D634根因定位、单一记录构造修复、修前异常复现、修后
+539检查和备份。不是完整性能通过，不改变D634失败或D632/D633开发观测身份。
+下轮先完整PLAN/最新状态和指标协议核对，准备新D636同配置W0资格：复用D634
+输入/参数/启动与收尾框架，只更新生产SHA、新run/cache路径；先核查空间及
+受影响路径资格，再备份启动。无必要不重建profile/环境或增加短性能试跑。
+完成新W0后审计跨场景影响与数值正确性，回既定7B→3B→消融/敏感性主线；
+全部未完成范围保持ACTIVE。本条备份后状态留下一正常检查点提交。
+
 ## D635定位并修正混合fallback观察 — 2026-10-17 20:10 local；待备份
 
 本轮PROGRESS，未新跑GPU。完整PLAN及最新合同已读；流式审计D634的362计划/
