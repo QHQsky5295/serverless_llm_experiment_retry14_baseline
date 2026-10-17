@@ -1,5 +1,82 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D611 full W2 complete and audited — backup next; joint95 met, budget still missed
+
+Actual launch/monitor exit0, service/GPU released; local auxiliary closed and owned
+remote services stopped53511 exit0. Observation2362 completed after terminal poll53;
+its jq error was parsing terminal watchdog event, not an experiment failure.
+Analysis49738 exit0, actual scopeclosed/pathgone, peak880951296B/events/swap0.
+4000 native contracts/458224tokens; joint3819/4000=95.475%, P95TTFT3843.553451ms,
+meanTTFT1227.258293ms, U15159.982436503982. Versus D607 joint+1.425pp/P95-10.10%,
+U+81.071780 (+.53765%). U/B1.2542729518934954, budgetexcess3073.313093.
+Do not declare G1/G2 or independent numerical qualification; n_correctnull retained.
+497remote transfers/418365205B equal parent, packing0; servicepeak30992920576B,
+4081samples/events/swap0. Worker-log BrokenPipe retained with archive; keep_logs
+also produces engine_dead label, which alone is not inference crash evidence.
+Read D611_INVENTORY_EXTENT_FULL_W2.md for complete values/boundaries.
+
+No live GPU/remote/auxiliary job or pending tool. This turn completed full run,
+release, exact remote collection and strict audit = PROGRESS, not a blocker.
+Next explicit-path result publication/backup using prepared publish_result.py,
+then existing-log diagnosis of residual violations/control/GPU holding; no same-key
+rerun or fresh GPU/build before150GiB resource restoration. Preserve testedD610
+candidate pending diagnosis, no new serving edit. All sameconfig7B/3B/dLoRA/A1–A5/
+S1–S13/cost/reviewer docs/finalfigures ACTIVE. No final figures yet.
+
+## D611 verified live wait — 1346/4000, same frozen run continues
+
+Continued SAME monitoring task with full PLAN retained in context and SHA rechecked
+d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83; no new experiment.
+20 successive50s actual tmux/service/watchdog polls confirm advancing D611. Poll
+20: service snapshot1346 successes/0failures,1350arrivals; watchdog1453,4GPU held,
+disk145.727657GiB, high/max/OOM/kill/swap0, no escaped/foreign compute, no abort.
+Observation cell2359 completed normally after20 polls; it was only the observer,
+NOT the experiment. No pending tool; actual tmux tc-d611-extentw2 and known service/
+launcher scopes remain LIVE. Do not confuse observation completion with run end.
+No production/remote/config edit, compression, second job or final metrics/claims.
+Continue exact run monitoring, then actual release→owned remote stop→bounded audit
+and backup. Full7B/3B/G1/G2/dLoRA/A1–A5/S1–S13/cost/docs/figures remain ACTIVE.
+This turn is VERIFIED WAIT, not a recurring blocker. Do not rerun or mark blocked.
+
+## D611 verified live wait — 252/4000 completed, no new experiment
+
+This continuation reread full PLAN (including truncated region separately), status,
+latest scope/adaptation/safety documents and monitoring skills. Repeated actual
+tmux/process/service checks confirm SAME D611 still live; not merely an old lock.
+Watchdog sample415: zero high/max/OOM/kill/swap, no escaped or foreign compute,
+2 GPUs held, disk148.926334GiB. Live service snapshot252 terminal successes,
+0 failures,260 arrivals; not final native-contract or numerical correctness audit.
+Disk below150GiB new-launch gate but above100GiB running stop-floor. No cleaning,
+compression, remote change, code edit, second GPU task or figures while live.
+This is VERIFIED WAIT for exact known process, not stalled/no-progress blocker.
+Same tmux/scopes/paths and release→remote-stop→audit sequence below; do not restart.
+Full G1/G2 and remaining matrix unchanged. No result or acceptance declared.
+
+## D611 ordinary full W2 LIVE — monitor same run, no restart or new candidate
+
+Checkpoint eedcdbbe0615d07987f6b32d39eb466a986eadee pushed/remote-equal; no
+production change since tested D610. Qualification8747 exit0; backup71568 exit0;
+starter16380 exit0. All three auxiliary task scopes actually empty/closed/pathgone;
+launcher's own auxiliary/service scopes remain live by design. No pending tool.
+tmux `tc-d611-extentw2`; RAW p2_backend_qualification/d611_20261017/
+7b_inventory_extent_full_w2. Initial ready and actual serving observed, first live
+snapshot5 completed/0failed (not an accuracy or performance acceptance).
+Service scope primelora-tc-svc-3e73314f5d6a4af9acdecfed7a4133b1.scope;
+launcher auxiliary primelora-tc-aux-81cd37801e6e4a549139b3ba14de6006.scope.
+Watchdog sample102: memory peak12701822976B, high/max/OOM/kill/swap0, no escaped
+or foreign compute; disk161183227904B, host available105111699456B. These are
+time-local samples; continue actual watchdog. Remote startup1000/full, both
+published services and d611-extentw2 monitor live; DO NOT maintain/restart them.
+
+Next continue low-impact monitor of this exact4000 run, no builds/compression,
+extra GPU jobs, figures, tuning or broad scans. When launch.json terminal, inspect
+actual status/release; then close_launch.py, stop_remote.sh and run_analysis.py
+under qualified bounded scope. Reuse existing strict audit; preserve failure if
+any. Do not call start.py again. Analyze G1/G2 against frozen common SLO and W2
+budget12086.669343876012, preserve n_correct numerical-oracle unknown. Afterwards
+save result/back up before next hypothesis. Sameconfig7B/3B/dLoRA/A1–A5/S1–S13/
+cost/docs/finalfigures remain ACTIVE. Expected runtime is not a blocker.
+
 ## D611 ordinary full W2 registered — qualification and backup before launch
 
 Full PLAN/status/V1/single-run V2 reread. Reuse D610 tested source and422 CPU tests,
