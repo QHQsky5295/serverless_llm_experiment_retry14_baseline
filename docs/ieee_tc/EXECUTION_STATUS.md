@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D644当前3B准入启用测量完成；待备份 — 2026-10-17 23:07 local
+
+本轮PROGRESS。D643 11文件已推送143b5ac066a3716ef14dc42d5187a5bfeb4b1f01，
+remote相等；backup34062 exit0/scope...d64300002空且pathgone，147保护未变。
+随后D644同版本一次真实source运行完成368/368，360测量＋8预热，40/40服务
+类别及96准备类别覆盖。既有completed_gap_samples严格pending-KV/原生事件/
+引用释放校验通过；无校验器修改，不用D642缺字段时间冒充Full。
+startup92.776253s，单GPU实际515.976593s，368fetch/854130750线上字节，
+双端SHA/ID/字节匹配，请求内打包0。源获取remote1385.260/NVMe130.734/
+fileHOST127.056/nativeHOST56.093/GPU0ms，非主到达TTFT/Full性能点。
+
+服务峰值5723078656B、最低host available105985019904B，high/max/OOM/OOMkill/
+swap0。start3255、analysis56308均exit0，两个管理scope递归空/pathgone。
+原生launcher0f6c97b471524abea30f60fb7e8bad2c空关闭，service/gpu释放确认；
+remote两个artifact和monitor-d644-source inactive，传输日志下载SHA一致。
+分析峰值663367680B，事件/swap0；147保护、用户manifest未变。当前无实验/
+GPU/远端pending。磁盘可用169262157824B，后续重型仍需重新准入。
+
+下一步备份本轮测量，然后直接复用D644 completed_service_samples及原始
+source1，沿用现有exporter完成当前3B timing profiles/runtime绑定，不再重复
+368用例；之后当前3B warm/Resident及Full。尚不能称3B SLO或G1/G2合格。
+全部3B对照/dLoRA、A1–A5、S1–S13、成本/审稿/最终图表保持ACTIVE；非本项目
+k3s未动，不返回7B/HF重复资格。详见D644_3B_ADMISSION_SOURCE_MEASUREMENT.md。
+
 ## D643当前3B完成长度初始化通过；待备份后D644 — 2026-10-17
 
 本轮PROGRESS。完整PLAN/V1/V2及最新规则已核查。复用D642 source1原生完成，
