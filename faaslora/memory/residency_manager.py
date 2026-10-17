@@ -1759,7 +1759,8 @@ class IEEEBackendGPUReferences:
     """
 
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
-                 file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None):
+                 file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None,
+                 host_activation_storage_witness=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
@@ -1768,8 +1769,10 @@ class IEEEBackendGPUReferences:
         self.host_allocation_check = host_allocation_check
         # Optional qualified native callback, not a general cached budget check.
         # It must read allocator counters again; only HOST storage evidence from
-        # the current no-load confirmed-GPU-hit transaction may be reused.
+        # the current confirmed-GPU-hit or separately witnessed HOST activation
+        # transaction may be reused. Every new transaction starts a full walk.
         self.host_allocation_recheck = host_allocation_recheck
+        self.host_activation_storage_witness = host_activation_storage_witness
         self._native_host_tensor_budget = None
         self._native_host_workspace = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
@@ -2812,6 +2815,17 @@ class IEEEBackendGPUReferences:
             if not host_check['admitted']:
                 return dict(acquired=False, reason='native_host_tensor_budget',
                             allocation=host_check, **self.snapshot())
+        host_storage_witness = None
+        if (host_check is not None and cpu_hit and not gpu_hit and staged is None
+                and required_source_tier == 'host' and expected_source_id is not None
+                and callable(self.host_allocation_recheck)
+                and callable(self.host_activation_storage_witness)
+                and any(self._host_leases[key].get('reference_purpose') == 'demand_preparation'
+                        and self._host_leases[key].get('expected_source_id') == expected_source_id
+                        for key in self._host_references.get(adapter_int_id, ()))):
+            host_storage_witness = self.host_activation_storage_witness(adapter_int_id=adapter_int_id)
+            if not isinstance(host_storage_witness, dict) or not host_storage_witness:
+                raise ValueError('native HOST activation lacks its storage witness')
         start = time.monotonic()
         try:
             if not gpu_hit:
@@ -2842,12 +2856,18 @@ class IEEEBackendGPUReferences:
             if not receipt['acquired']:
                 raise RuntimeError('native demand-load transaction lost its executable slot')
             if host_check is not None:
-                same_transaction = gpu_confirmed and callable(self.host_allocation_recheck)
+                if host_storage_witness is not None:
+                    after_witness = self.host_activation_storage_witness(adapter_int_id=adapter_int_id,
+                        previous=host_storage_witness)
+                    if after_witness != host_storage_witness:
+                        raise RuntimeError('native HOST activation changed its storage witness')
+                same_transaction = ((gpu_confirmed or host_storage_witness is not None)
+                                    and callable(self.host_allocation_recheck))
                 if same_transaction:
                     # Between checks this path only validates, LRU-pins and
-                    # completion-fences the same native copy on its owner
-                    # thread. No HOST mutation or async preparation is yielded
-                    # to. Loads and first confirmations keep both full walks.
+                    # completion-fences the same copy, or executes the qualified
+                    # CPU-read-only HOST activation, without yielding the owner.
+                    # Allocator counters/workspace remain freshly checked.
                     after = self.host_allocation_recheck(before_check=host_check,
                         tensor_budget_bytes=self._native_host_tensor_budget)
                 else:
@@ -2856,8 +2876,10 @@ class IEEEBackendGPUReferences:
                 if after.get('admitted') is not True:
                     raise RuntimeError('native demand exceeded its HOST allowance')
                 receipt['host_allocation'] = dict(before=host_check, after=after,
-                    after_storage_observation=('same_transaction_confirmed_gpu_hit_v1'
-                        if same_transaction else 'fresh_inventory'))
+                    after_storage_observation=(
+                        'same_transaction_registered_host_activation_v1' if host_storage_witness is not None
+                        else 'same_transaction_confirmed_gpu_hit_v1' if same_transaction
+                        else 'fresh_inventory'))
         except BaseException:
             self._poisoned = True
             raise

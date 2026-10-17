@@ -500,6 +500,48 @@ def _ieee_copy_signature(tensor):
             tuple(tensor.stride()), str(tensor.dtype))
 
 
+def _ieee_host_activation_storage_witness(native_loader, manager, adapter_int_id,
+                                          staged_models, *, previous=None):
+    """Qualify one synchronous registered-HOST activation, not a graph cache.
+
+    The audited v0.30 non-inplace LRU branch only touches the registered model
+    then copies it into an existing GPU slot. The existing copy contract checks
+    the exact dense setters/resetters, TP=1 and conversion-free tensor layout.
+    No owner yield, CPU registration, packing or staged publication occurs here.
+    Membership/object identities are a transaction assertion, NOT by themselves
+    proof of immutable storage; the audited execution path supplies that proof.
+    """
+    import vllm
+    from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
+    from vllm.lora.model_manager import LoRAModelManager, LRUCacheLoRAModelManager
+    if (vllm.__version__ != '0.30.0'
+            or type(native_loader) is not LRUCacheWorkerLoRAManager
+            or type(manager) is not LRUCacheLoRAModelManager
+            or native_loader._adapter_manager is not manager
+            or manager.moe_ep_load_spec is not None):
+        raise RuntimeError('HOST activation storage witness requires the qualified native loader')
+    methods = ((native_loader.add_adapter, LRUCacheWorkerLoRAManager.add_adapter),
+               (native_loader.list_adapters, LRUCacheWorkerLoRAManager.list_adapters),
+               (manager.activate_adapter, LRUCacheLoRAModelManager.activate_adapter),
+               (manager.get_adapter, LoRAModelManager.get_adapter),
+               (manager._get_lora_layer_weights, LoRAModelManager._get_lora_layer_weights))
+    if any(getattr(bound, '__func__', None) is not expected for bound, expected in methods):
+        raise RuntimeError('HOST activation storage witness rejects overridden native methods')
+    registered = manager.list_adapters()
+    if adapter_int_id not in registered or adapter_int_id in staged_models:
+        raise ValueError('HOST activation storage witness requires an already registered non-staged source')
+    witness = dict(kind='native_host_activation_storage_transaction_v1',
+        loader_id=id(native_loader), manager_id=id(manager), adapter_int_id=adapter_int_id,
+        registered=tuple(sorted((aid, id(model)) for aid, model in registered.items())),
+        staged=tuple(sorted((aid, id(model)) for aid, model in staged_models.items())),
+        modules=tuple(sorted((name, id(module)) for name, module in manager.modules.items())))
+    if previous is None:
+        _ieee_host_copy_contract(manager, adapter_int_id)
+    elif witness != previous:
+        raise RuntimeError('HOST storage membership changed inside the activation transaction')
+    return witness
+
+
 def _ieee_slot_tensor_comparison(source, actual):
     """Compare one CPU readback, including native zero padding, without tolerance.
 
@@ -1160,7 +1202,7 @@ class IEEEWorkerObservationExtension:
                         include_tensor_views=False))
                 else:
                     if not reuse or proactive or lora_path is not None:
-                        raise ValueError('same-transaction HOST evidence is only for a GPU-hit postcheck')
+                        raise ValueError('same-transaction HOST evidence is only for a qualified postcheck')
                     before = _ieee_reobserve_pinned_host_allocator(_same_transaction_storage)
                 if not before['available']:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
@@ -1185,11 +1227,16 @@ class IEEEWorkerObservationExtension:
                             total_host_memory_covered=False)
             def host_allocation_recheck(*, before_check, tensor_budget_bytes):
                 # Qualified above for this exact native loader. The owner calls
-                # this only across acquire() on an already confirmed GPU copy:
-                # no loader, cache insertion, tensor copy or staging can run.
+                # this across a confirmed hit, or a separately witnessed native
+                # HOST activation. Neither may mutate CPU storage or yield.
                 return host_allocation_check(lora_path=None, reuse=True,
                     tensor_budget_bytes=tensor_budget_bytes,
                     _same_transaction_storage=before_check['before'])
+            def host_activation_storage_witness(*, adapter_int_id, previous=None):
+                if self.model_runner.lora_manager is not native_loader:
+                    raise RuntimeError('native worker loader replaced during HOST activation')
+                return _ieee_host_activation_storage_witness(native_loader, manager,
+                    adapter_int_id, self._ieee_gpu_reference_owner.staged_models(), previous=previous)
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
                 from vllm.lora.request import LoRARequest
@@ -1229,7 +1276,8 @@ class IEEEWorkerObservationExtension:
                 manager, completion_fence, demand_loader=demand_loader,
                 preparation_loader=preparation_loader, file_host_loader=file_host_loader,
                 host_allocation_check=host_allocation_check,
-                host_allocation_recheck=host_allocation_recheck)
+                host_allocation_recheck=host_allocation_recheck,
+                host_activation_storage_witness=host_activation_storage_witness)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

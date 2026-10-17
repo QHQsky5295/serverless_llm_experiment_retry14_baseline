@@ -145,6 +145,148 @@ class HitHostTransaction(unittest.TestCase):
         self.assertEqual(self.full.call_count, 2)
         self.assertEqual(self.recheck.call_count, 2)
 
+    def protected_host(self, hold='host-copy'):
+        self.warm()
+        self.case.manager.deactivate(4)
+        self.owner.snapshot()
+        source_id = self.owner._source_incarnations[4]
+        held = self.owner.hold_host_source(lease_id=hold, adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=self.owner.owner_id, expected_epoch=self.owner.epoch,
+            expected_source_id=source_id)
+        self.assertTrue(held['held'])
+        self.witness = Mock(return_value={'kind': 'test-transaction', 'source': source_id})
+        self.owner.host_activation_storage_witness = self.witness
+        self.reset_counts()
+        return dict(required_source_tier='host', expected_source_id=source_id)
+
+    def test_protected_host_activation_one_walk_two_fresh_allocator_reads(self):
+        args = self.protected_host()
+        loads = len(self.case.loads)
+        result = self.case.demand(lease='host-activate', **args)
+        self.assertTrue(result['acquired'])
+        self.assertTrue(result['native_load_invoked'])
+        self.assertFalse(result['gpu_confirmed_before_acquisition'])
+        self.assertEqual(len(self.case.loads), loads + 1)
+        self.assertEqual(self.full.call_count, 1)
+        self.assertEqual(self.recheck.call_count, 1)
+        self.assertEqual(self.observe.call_count, 2)
+        self.assertEqual(self.witness.call_count, 2)
+        self.assertEqual(self.witness.call_args.kwargs['previous'], self.witness.return_value)
+        self.assertEqual(result['host_allocation']['after_storage_observation'],
+                         'same_transaction_registered_host_activation_v1')
+        self.assertEqual(self.case.demand(lease='host-activate', **args), result)
+        self.assertEqual(self.witness.call_count, 2)  # no work on transport replay
+        self.owner.release_host_source(lease_id='host-copy', expected_owner_id=self.owner.owner_id)
+        self.assertIn(4, self.case.manager._registered_adapters.pinned_items)
+        self.case.release('host-activate')
+        self.assertNotIn(4, self.case.manager._registered_adapters.pinned_items)
+
+    def test_host_without_live_copy_protection_keeps_full_walks(self):
+        args = self.protected_host()
+        self.owner.release_host_source(lease_id='host-copy', expected_owner_id=self.owner.owner_id)
+        result = self.case.demand(lease='unheld', **args)
+        self.assertTrue(result['acquired'])
+        self.witness.assert_not_called()
+        self.assertEqual(self.full.call_count, 2)
+        self.recheck.assert_not_called()
+
+    def test_host_without_source_identity_keeps_full_walks(self):
+        self.protected_host()
+        result = self.case.demand(lease='unqualified', required_source_tier='host')
+        self.assertTrue(result['acquired'])
+        self.witness.assert_not_called()
+        self.assertEqual(self.full.call_count, 2)
+
+    def test_host_without_witness_callback_keeps_full_walks(self):
+        args = self.protected_host()
+        self.owner.host_activation_storage_witness = None
+        self.case.demand(lease='unqualified', **args)
+        self.assertEqual(self.full.call_count, 2)
+        self.recheck.assert_not_called()
+
+    def test_host_pre_witness_failure_precedes_mutation(self):
+        args = self.protected_host()
+        loads = len(self.case.loads)
+        self.witness.side_effect = ValueError('unaudited native path')
+        with self.assertRaisesRegex(ValueError, 'unaudited'):
+            self.case.demand(lease='bad', **args)
+        self.assertEqual(len(self.case.loads), loads)
+        self.case.fence.assert_not_called()
+        self.assertEqual(self.owner.snapshot()['live_leases'], 0)
+
+    def test_host_post_witness_failure_invalidates_owner(self):
+        args = self.protected_host()
+        self.witness.side_effect = [self.witness.return_value, {'kind': 'changed'}]
+        with self.assertRaisesRegex(RuntimeError, 'changed its storage witness'):
+            self.case.demand(lease='bad', **args)
+        self.recheck.assert_not_called()
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            self.owner.snapshot()
+
+    def test_host_fresh_post_allocator_can_reject(self):
+        args = self.protected_host()
+        self.observe.side_effect = [stats(), stats(2048)]
+        with self.assertRaisesRegex(RuntimeError, 'exceeded its HOST'):
+            self.case.demand(lease='bad', **args)
+        self.assertEqual(self.observe.call_count, 2)
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            self.owner.snapshot()
+
+    def test_host_storage_measured_again_on_next_activation(self):
+        args = self.protected_host()
+        first = self.case.demand(lease='first-host', **args)
+        self.case.release('first-host')
+        self.case.manager.deactivate(4)
+        self.rows[0]['allocated_bytes'] = 512
+        second = self.case.demand(lease='second-host', **args)
+        self.assertEqual(first['host_allocation']['after']['before']['accounted_tensor_bytes'], 320)
+        self.assertEqual(second['host_allocation']['after']['before']['accounted_tensor_bytes'], 768)
+        self.assertEqual(self.full.call_count, 2)
+        self.assertEqual(self.recheck.call_count, 2)
+        self.assertEqual(self.witness.call_count, 4)
+
+
+class NativeHostActivationWitness(unittest.TestCase):
+    """Native method binding and transaction identity, no CUDA performance claim."""
+    def setUp(self):
+        from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
+        from vllm.lora.model_manager import LRUCacheLoRAModelManager
+        self.manager = object.__new__(LRUCacheLoRAModelManager)
+        self.manager._registered_adapters = SimpleNamespace(cache={4: object()})
+        self.manager.modules = {'layer': object()}
+        self.manager.moe_ep_load_spec = None
+        self.loader = object.__new__(LRUCacheWorkerLoRAManager)
+        self.loader._adapter_manager = self.manager
+        self.addCleanup(patch.stopall)
+        patch('vllm.__version__', '0.30.0').start()
+        self.copy = patch.object(monitor, '_ieee_host_copy_contract', return_value=[]).start()
+
+    def witness(self, previous=None, staged=None):
+        return monitor._ieee_host_activation_storage_witness(
+            self.loader, self.manager, 4, {} if staged is None else staged, previous=previous)
+
+    def test_native_path_qualified_once_and_membership_rechecked(self):
+        before = self.witness()
+        self.assertEqual(self.witness(previous=before), before)
+        self.copy.assert_called_once_with(self.manager, 4)
+        self.manager._registered_adapters.cache[4] = object()
+        with self.assertRaisesRegex(RuntimeError, 'membership changed'):
+            self.witness(previous=before)
+
+    def test_staged_source_and_overridden_path_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'non-staged'):
+            self.witness(staged={4: object()})
+        self.loader.add_adapter = Mock()
+        with self.assertRaisesRegex(RuntimeError, 'overridden'):
+            self.witness()
+        self.copy.assert_not_called()
+
+    def test_native_copy_contract_failure_not_hidden(self):
+        self.copy.side_effect = ValueError('source needs conversion')
+        with self.assertRaisesRegex(ValueError, 'needs conversion'):
+            self.witness()
+
 
 class AllocatorReobservation(unittest.TestCase):
     def test_exact_graph_projection_with_staging_alias_and_fresh_counters(self):

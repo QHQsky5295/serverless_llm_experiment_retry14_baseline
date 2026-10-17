@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D663：受保护原生HOST事务候选已通过CPU检查，待原生资格 — 2026-10-18
+
+本轮PROGRESS：重读完整PLAN/V1/V2/六份执行补充，核对D329/D352/D333及
+D595/D628历史和联网官方vLLM0.30源码。只扩展本次同步registered HOST激活
+的重复后检查复用；首次全量存储、新鲜allocator/workspace、source保护及
+所有九式不变。不跨请求缓存、不合并pending/HOST操作、不改3B阈值/配置。
+具体证据/适用域见D663_REGISTERED_HOST_TRANSACTION.md。
+
+21定向、619回归、15存储检查执行通过（后者6反例+9导入重复），非GPU性能
+结论。会话72884/81008/5480均exit0、对应scope递归空关闭，peak分别
+637083648/659873792/632664064B，high/max/OOM/kill/swap0。147旧投稿与用户
+修改SHA未变。当前没有活动GPU/辅助检查，不再wait这些已完成会话。
+待github-sync显式备份；D662晚关闭回执并入本检查点。k3s非本项目，继续
+不改全局集群，也不重新开始已完成的HydraServe隔离适配。
+
+下一项：复用D659/D660入口的新版本3B前100原生资格，验证HOST标记实际触发
+及正确域；通过后同非目标配置完整W0。不能以CPU/前缀结果代替完整G1/G2。
+3B现有联合89.375%仍未闭口；其余3B/W1/W2/基线/dLoRA、同版本7B/消融、
+A1–A5/S1–S13、成本/审稿/图表完整范围保持ACTIVE。
+
 ## D662：3B HOST/GPU保留回执已分解；下一候选限定重复HOST后检查 — 2026-10-18
 
 本轮PROGRESS，仅复用D660/D661，无推理重跑/生产改动/阈值改变。全部1441
@@ -13,7 +33,10 @@ dispatch162.587ms。GPU对应snapshot阶段1.106ms；不能把83ms全部当加�
 末条脚本来源路径错误在发布视图单独修正，数值不改，原文件不覆盖。
 分析会话45729/98683均exit0，scope递归空关闭，peak77918208/94105600B，
 high/max/OOM/kill/swap0。147保护文件不变，磁盘约166.5GB，不重复计缓存回收。
-publication待本轮明确路径检查及推送；当前无活动GPU/分析会话，不再wait旧会话。
+publication会话15457 exit0，5个明确路径已推送936fffefd5abd68e706330d2f13a88cf64fcd1f6，
+远端一致；发布域递归空关闭，peak51306496B、事件/swap0。结果SHA在产物目录
+复核通过（第一次手工核查cwd错误未找到相对路径，未改文件）。晚关闭回执随下次
+正常检查点归档。当前无活动GPU/辅助会话，不再wait45729/98683/15457。
 
 结合D329/D352历史和本轮联网官方vLLM0.30源码，下一D663只证明/资格化“受
 保护原生HOST同步激活内复用本次首次HOST storage事实，仍读新鲜allocator与
