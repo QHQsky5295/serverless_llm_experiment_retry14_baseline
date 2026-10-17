@@ -1,5 +1,44 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D615 CPU/config qualified — explicit backup then one complete W2
+
+Qualification3 session93101 exit0:192actualconfigstatechecks and21existingcontrol/
+initial/activationtests passed; D610422checks reused by sourceSHA. Scopeactually
+empty/closed/pathgone;peak2656931840B/high,max,OOM,kill,swap0. Attempts1/2 retained:
+unguardedspawn entry then inference-env CPUtestmemory.high pressure;bothowned
+SIGTERM143,allchildrenclosed/noOOM/noGPU; third reusesD549/D610CPUtest interpreter,
+no test removed and no memorybound increased. Production vLLM0.30.0unchanged.
+Onlymodelmax4→3 plusuniqueoutput/cache paths; 147seal/userdirt/profile/input unchanged.
+NoGPU/remotejoblive. Backup prepared explicitpaths; thenfreshresource/remote checks
+andunique tc-d615-threew2 full4000. If feasible sameconfigW1/W0, no splicing.
+CompleteG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/reviewerdocs/finalfigures stillACTIVE.
+
+## D615 three-replica model point registered — CPU/config qualification next
+
+FullPLAN/status/V1/V2/scope rules reread. D614 audited hypothesis retained; sole
+configuration change max_instances4→3 on D610/D611 implementation, all other
+model/control/profile/input/remote settings unchanged. Same4GPU environment,
+dynamic1–3managed replicas; no assumed75%budget or guaranteedSLO. No production
+edit, no GPUkeyexecuted. ReuseD610422tests, addactualconfig statechecks andexisting
+launch/control tests; backup explicitpaths before onefullW2. Read
+D615_THREE_REPLICA_FULL_W2.md. If feasible sameconfigW1/W0; nooldresultsplicing.
+Old147protected/userdirt retained; storageD613alreadycompleted, donotrepeat.
+AllfullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfiguretasks remainACTIVE.
+
+## D613–D614 checkpoint pushed — next qualify the bounded three-replica candidate
+
+Checkpoint2fa8c026663f7ace1ac187847d7e6a4320a715bf pushed/remote-equal; publication
+44605 exit0, actualscopeempty/closed/pathgone. D611complete result, D612diagnosis,
+D613storage and D614history/paper/sourceaudit backed up. Alltoolsterminal; no live
+GPU/remote/auxiliaryjob. This turn made evidence/storage/backup progress, notblocked.
+Lastdisk161529057280B >150GiB onlyslightly; recheckbeforelaunch. Userdirty3hashes
+andproductionfd783 unchanged. Do not repeatD611/D610/D612/D613 orbaseline adaptation.
+Next fullPLAN/status/V1/V2, thenCPU/configqualification of D611-onlymax_instances3
+modelworkingpoint, no otherpolicychange. Register/backup one newfullW2 key after
+qualification; iffeasible sameconfigW1/W0. D614doc contains hypothesis/negative
+history/officialsources and rejection conditions. No3replicaperformanceresultyet.
+FullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/reviewerdocs/finalfiguresremainACTIVE.
+
 ## D613 storage complete; D614 resource working-point audit ready for qualification
 
 Storage67534 exit0,4explicitclosedlogscompressed with2roundtripSHAchecks, reclaimed
