@@ -1,5 +1,201 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D624 complete/analysed — same-point W0/W1/W2 now available; backup next
+
+SAME D624 ran once to4000/4000 native-contract completion,0failed,458224tokens.
+Service/watchdog exit0;actualGPUrelease/servicepathgone;localauxclosed;
+ownedremote3b/7b/monitor stopped/portsabsent. Analysis71500exit0,actualscope
+closed/pathgone,peak730923008B,high/max/OOM/kill/swap0. No liveexperiment.
+W0observedjoint3810/4000=95.25%;TTFTmean1253.977250/P953090.315312ms;
+TPOTmean34.266840/P9557.571207ms;meanE2E5087.738781ms;U9910.774532972.
+U/offered2.477693633;N_correctnull,independentnumericalUNKNOWN/rankingfalse.
+132remote transfers131480060wireB,pack0;tiers2452GPU/518HOST/898NVMe/132remote.
+4057samples,peak18844667904B,events/swap0;147protectedunchanged.
+CPUprep18records17activated1abandoned/allrc0;initial1/natural14ready2cancelled.
+500-requestwindows joint[491,384,468,495,496,492,491,493];148/190violations
+in source501–1500. Boundeddiagnostic clue, not newcausal attribution.
+
+D619W1joint97.275%/U6519.895815976 and D621W2joint94.95%/U10552.132922540
+remain sameproduction/modelpoint;W2stillinfeasible. W0doesnotcloseG1/G2.
+NewD624publicationhelper reuses sealedD621 with explicit currentidentity,
+cross-workload table and same-config/source checks; no productionedit.
+Resultdoc and numericalboundary note prepared; next boundedcheckedpublication,
+actualclosure,remote-equalverification. No figures/replay/baselineoptimization.
+Then reuseW0/W2stage/lifecycle evidence for onehistory+primary-source-backed
+candidate; do not assume rounded95%success or spliceD615. All7Btargets,
+numericalqualification,3B,dLoRA,A1–A5,S1–S13,cost/reviewer/finalfigure scope ACTIVE.
+CurrentturnPROGRESS (completedfullW0), previouscontinuations VERIFIED WAIT.
+
+## D624 verified wait — 2026-10-17 14:11 local
+
+SAME live tmux tc-d624-domainw0 revalidated; exactserviceInvocationID
+ea9418f2c57940e6ae54bed9e30b0492 alsoactive/running duringthiscontinuation.
+Latestelapsed37:36:2484arrived/2481completed/2481ok/0failed;10up/9down,
+two ready runtimes. Watchdog2283:peak17652051968B,high/max/OOM/kill/swap0,
+noabort/foreigncompute,available100515901440B,free172751007744B.
+Previous/currentturns VERIFIED WAIT; repeated<=50s waits and liveprogress
+checks only. No newcode/config, diagnosis, heavywork, remotechanges or push.
+FullPLAN/frozenprotocol/rules remainread in currentcontext; no scope change.
+No pendingtool. Continue SAME run; terminal sequence and remainingfullgoal
+unchanged. Do not relaunch, compute finalSLO from partialdisplay, or combine
+this partialW0 with completedW1/W2 as a qualified cross-scenario result.
+
+## D624 verified wait — 2026-10-17 14:05 local; halfway passed
+
+Same tmux tc-d624-domainw0 and exactserviceInvocationID
+ea9418f2c57940e6ae54bed9e30b0492 repeatedlyconfirmedlive. Latestelapsed31:57:
+2019arrived/2013completed/2013ok/0failed;10naturalups/8downs,three ready.
+Watchdog1950:peak17652051968B,high/max/OOM/kill/swap0,noabort/foreigncompute,
+MemAvailable97833398272B,free173044666368B. Natural scale-in then scale-out
+and transientqueue observed without intervention; no finalSLO/quality claim.
+This turn only used monitor-experiment checks and <=50s waits; no newdiagnosis,
+production/config edit, remoteoperation, heavyanalysis, cleanup or push.
+Previous/current turns VERIFIED WAIT, notblocked/notcomplete; no pendingtool.
+FullPLAN/rules/frozenprotocols alreadyread in currentcontext remainunchanged.
+Continue SAME run toterminal, then actualrelease/closure/analysis/backup.
+Allremaining7Btargets/numerical/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure
+scope ACTIVE; nofigure or baselineoptimization whilewaiting.
+
+## D624 verified wait — 2026-10-17 13:58 local; startup history rechecked
+
+Same exact serviceInvocationID ea9418f2c57940e6ae54bed9e30b0492 active/running;
+elapsed24:22:1428arrived/1425completed/1425ok/0failed,9up/7down,three ready.
+Watchdog1506:peak17652051968B,high/max/OOM/kill/swap0,noabort/foreigncompute;
+available97961988096B,free173330087936B. No pendingtool or safety trigger.
+Previous/current continuation VERIFIED WAIT; source/run/config unchanged.
+
+Bounded read-only main-line check: reread frozenV1/singleV2 fully, SHA5f0732ef/
+193bf153 unchanged; current autoscaler57c54231 and runner29114576 unchanged.
+IEEEReplicaControl and runner13910–14005 use the paper max-score/all-low rules,
+live ready capacity and observed completedTTFT. No startup cost is input to
+that score; this is the current defined control, not by itself a correctnessbug
+or permission to change the IEEE rule. D614 documents the prior queue8→4
+resource regression. No new control working point or threshold was selected.
+
+Read D337/D338/D467 and D603/D614 history, plus three preserved D619 native
+worker logs (55ue05k0_1792207001,bfokeh_m_1792208052,upexokm0_1792208320).
+Their model-load logs respectively8.630755/8.533140/7.321030s; init logs
+12.22/12.33/11.57s; compilation0.31/0.27/0.29s. All three already use native
+checkpoint prefetch and AOT cache. This subset is not a full-run aggregate;
+rounded/nested spans cannot be summed or subtracted from monotonic TTFT.
+Existing D337/D338 already reject blaming all startup on compile or removing
+sitecustomize alone; D467 already implements the CPU-front-end direction via
+D468/D469, preserves fresh spawn, rejects unsafe fork and hiddenGPU residency.
+Do not repeat these as new optimizations. Core construction remains separate.
+
+Official v0.30.0 core source reread at
+https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py
+confirms model executor initialization and subsequent KV/profile/warmup stages;
+it does not attribute this project's residual times. Multiprocessing raw-page
+lookup errored; do not claim fresh full-text verification from that failure.
+No new startup candidate/diagnostic launched or accepted. Full W0 still comes
+before candidate selection; first inspect its actual stage/lifecycle evidence.
+Only light source/log reads occurred; no imports, scans, builds or remote changes.
+All7Btargets/numerical/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure scope
+remains ACTIVE. Continue SAME run, then terminal closure/analysis/backup below.
+
+## D624 verified wait — 2026-10-17 13:54 local
+
+Same live tmux/service InvocationID revalidated twice; no relaunch. Latest
+elapsed21:01:1172arrived/1169completed/1169ok/0failed,9scale-ups/7scale-downs,
+three ready runtimes. Queue buildup near source1000 and increased partial tail
+observed; retain without intervening or treating live5000ms as final SLO.
+Watchdog1303:peak17652051968B,high/max/OOM/kill/swap0,noabort/foreigncompute,
+MemAvailable97923907584B,free173381095424B. PLAN SHA unchanged; full PLAN and
+rules remain fully read in current context. monitor-experiment governs checks.
+
+Read existing D624 closure/analysis helpers and D621 publication template only;
+no execution of post-run collection, no new publisher, experiment or config.
+Previous and current goal turns VERIFIED WAIT. Exact performance process is
+confirmedlive, so no blocker/no completion. No pendingtool; SAME D624 next.
+Terminal sequence below unchanged. Status and numerical-boundary note remain
+uncommitted until safe post-run checkpoint. Full remaining goal scope ACTIVE.
+
+## D624 verified wait — 2026-10-17 13:51 local; bounded source check saved
+
+Full PLAN (all1567lines), AGENTS and latest baseline/storage/scope/SLO rules
+reread after compaction; PLAN SHA unchanged d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83.
+SAME tmux tc-d624-domainw0 is alive (pane_dead=0,python3); exact service
+InvocationID ea9418f2c57940e6ae54bed9e30b0492 observedactive/running.
+Latest actual service elapsed17:23:908arrived/907completed/907ok/0failed,
+scale_up7/scale_down7,one ready runtime. Partial progress is not frozen-SLO
+qualification; live5000ms display is not the frozen evaluation threshold.
+Watchdogsample1091:peak16798457856B,high/max/OOM/kill/swap0,noabort/foreign
+compute,MemAvailable103732068352B,free173704192000B. No safety trigger.
+
+While waiting, completed only a bounded official vLLM0.30.0 documentation/
+three-small-source-file check. New uncommitted document:
+NUMERICAL_REPRODUCIBILITY_BOUNDARY_20261017.md. Default reproducibility is
+not guaranteed, but this does NOT resolve D623's142outputhashdifferences or
+prove correct adapters/numerical equivalence. N_correct remainsunknown;
+no determinism flags, backend/config, productioncode or result identities
+changed. No GPU qualification or extra performance run was performed.
+research-lookup used with web fallback after Parallel authentication failure;
+monitor-experiment used for actual livehandle/log/resource checks.
+
+This continuation is VERIFIED WAIT with advancing measurements, plus a
+limited source-boundary note; notblocked/notcomplete. No pendingtoolhandle.
+No scan/build/compression/push/remotechange or unrelatedk3s operation.
+Only status and the small note are newly edited; defer backup to post-run.
+Continue SAME D624. Terminal order remains actualGPUrelease -> close_launch.py
+-> stop_remote.sh -> bounded run_analysis.py using qualified vLLM0.30 Python
+-> actual analysis closure -> validate/save/publish. Never relaunch on timeout.
+W2shortfall, independentnumericalqualification,7Btargets,3B,dLoRA,A1–A5,
+S1–S13,cost/reviewer documents/finalfigures allremain ACTIVE.
+
+## D624 monitoring checkpoint — same full W0 still LIVE
+
+Latest service progress10:46:518arrived/517completed/517successful/0failed;
+5natural scale-ups/4scale-downs reported, two ready runtimes. First500-request
+report window passed; remaining workload still required, no final SLO inferred.
+Watchdogsample699,peak15961255936B,high/max/OOM/kill/swap0,noabort orforeign
+compute; free174007967744B,hostavailable101433319424B. Startupfloor is not a
+running-abort threshold. Actualtmux tc-d624-domainw0 remainsalive/python3 and
+exactserviceInvocationID ea9418f2c57940e6ae54bed9e30b0492 wasactive/running.
+
+Previous goal turn VERIFIED WAIT; current continuation also VERIFIED WAIT
+with advancing actual service logs/watchdog and live handle, not just a lock.
+FullPLAN/AGENTS/latestexecutionrules remain fully read in current context;
+PLAN SHA rechecked unchanged d7acd081. monitor-experiment used again.
+Retired worker flbeldua's preserved tail shows ordered SIGTERM/shutdown,
+not a discovered crash; post-run exact process exits/physical release still
+require audit. An attempted optional cpu_frontend_preparation.jsonl tail was
+absent (not a terminal/run failure); use retained outcome after completion.
+No code/config/remote changes, cleanup, scan, build, push or otherexperiment.
+No pendingtool. Continue SAME run; terminal closure/analysis sequence below
+unchanged. Native vLLM0.30 Python and D624 helper identities must be retained.
+Do not relaunch after observation timeout or use live5000ms as frozenSLO.
+All remaining7Btargets/numerical/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure
+scope ACTIVE; W2 shortfall is not removed by monitoring or eventualW0success.
+
+## D624 full W0 LIVE — monitor SAME run, never relaunch
+
+Checkpoint75ccb3a4ff3664ec42d7a90984629c470218518b pushed/remote-equal.
+Qualification23849exit0/actualclosed/peak725401600B/events0; backup65860exit0/
+actualclosed/peak29933568B/events0; starter78013exit0/actualclosed/peak29192192B.
+No pending tool handle. Performance is LIVE in tmux tc-d624-domainw0;
+raw p2_backend_qualification/d624_20261017/7b_device_domain_full_w0.
+Actual service primelora-tc-svc-adc852888bdb41cb9fc4d4945afea0e5.scope,
+invocation ea9418f2c57940e6ae54bed9e30b0492; external aux
+primelora-tc-aux-6a58e732d6ab4be19ceb75cbaf5f397a.scope.
+Remote3b/7b and primelora-artifact-monitor-d624-domainw0.service LIVE;
+7b invocation18bbaf4772f240268593f7b6ed98733e, monitor1b3d42b22da74689bd5fed35f426b472.
+Remote link1000/full; request delivery prepublished_gzip_v1 unchanged.
+Native toolchain receipt verified in service log, build_performed=false.
+First request completed; watchdog sample69, peak13015859200B, high/max/OOM/
+kill/swap0, noabort/foreigncompute; free175147749376B. This is startup/progress,
+not full4000 success or a final performance/SLO/numerical result.
+
+Continue SAME run; no maintenance/build/hashscan/push or remote reconfiguration.
+At terminal actualGPUrelease -> close_launch.py -> stop_remote.sh -> bounded
+run_analysis.py with qualified vLLM0.30 Python -> actual analysis closure ->
+save/publish. All helpers in D624 reuse D621 with W0 input identity; do not use
+old conda Python, relaunch after observation timeout, or treat partial as ranked.
+No production optimization in this turn; no baseline adaptation reopened and
+unrelated k3s untouched. This turn PROGRESS: same-version W0 qualified, backed
+up and launched. Full goal ACTIVE: W2 shortfall, numerical qualification,7B
+targets,3B,dLoRA,A1–A5,S1–S13,cost/reviewer evidence/finalfigures remain.
+
 ## D624 qualified — backup, then one full W0 launch
 
 Qualification23849exit0; full4000 W0 view a5331be2, same D619/D621 model
