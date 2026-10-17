@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D618 qualified device-domain correction — backup, then same-point full W1
+
+D617 failure checkpoint01c36f6d41437d679e67de52cf350c70d0fe081e pushed/remote-equal;
+publication43834 exit0/actualclosed/peak32837632B/events0. All failed evidence kept.
+D618 first CPU launch refused by150GiBdisk floor before tests. Two exact sealed
+D617 logs losslessly compressed via existing compressor,14archive tests/two
+roundtripSHA pass;224239616B reclaimed. Storage30800 exit0/actualclosed.
+
+Parent witness19719:12tests,4domain subtest failures+1overlap claim error retained.
+Production correction removes ONLY max_instances slicing from legal preparation
+devices; AST confirms no other semantic change. CPU pool/selector/autoscaler/
+physical lifecycle unchanged. Newfocused74077:60pass; regression89471:464pass,
+no skips, high/max/OOM/kill/swap0, allactualscopes closed. Native reuse31852 exit0:
+D611 fourUUIDs/five activations/preparedCPU-only/realexit evidence verified from
+sealedgzip. This is mechanism reuse, NOT new-performance or numerical proof.
+CurrentrunnerSHA29114576e5c80973efca9672d13628325426af32b11a906e5c9862b7202cfd5c.
+
+Read D618_CPU_PREPARATION_DEVICE_DOMAIN.md. No live GPU/remote/auxiliary job or
+pending tool. Next explicitpaths tested backup, then registernew fullW1 execution
+using unchangedD617 model/input. Check newversion W2/W0 thereafter; don't splice
+oldD615 as newsource performance. FullPLAN/rules/V1/V2 read; frozen metrics and
+allG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/reviewerdocs/finalfigures remain ACTIVE.
+
 ## D617 terminated — preserve activation failure, not a performance point
 
 Full W1 stopped after 1580 external arrivals / 1579 submissions / 1519 native

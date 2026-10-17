@@ -16108,9 +16108,13 @@ class ScenarioRunner:
             if self.coord_cfg.get('ieee_cpu_frontend_policy') is not None:
                 if not isinstance(self.engine_factory, DedicatedScenarioEngineFactory):
                     raise ValueError('CPU preparation requires the original shared runtime factory')
+                # Replica count bounds ready+pending capacity, not device identity.
+                # A retiring replica still owns its GPU while placement may use
+                # another legal device. Prepare that same complete TP1 domain;
+                # fixed-UUID CPU tickets add no ready capacity or physical lease.
                 self.engine_factory.start_preparation(
                     deployment_notice_s=self._physical_deployment.notice,
-                    devices=self._available_device_ids()[:self.instance_pool.max_instances])
+                    devices=self._available_device_ids())
             await self._start_ieee_initial_deployment()
             return
         await self._stack.start()

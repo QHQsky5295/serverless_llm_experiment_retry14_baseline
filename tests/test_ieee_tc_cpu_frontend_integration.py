@@ -32,6 +32,98 @@ def factory():
 
 
 class FactoryLifecycle(unittest.IsolatedAsyncioTestCase):
+    def preparation_runner(self, devices, maximum):
+        service = object.__new__(runner.ScenarioRunner)
+        service._routing_policy = 'ieee_confirmed'
+        service.coord_cfg = {'ieee_cpu_frontend_policy': CONTRACT}
+        service.model_cfg = dict(model(), visible_device_ids=list(devices))
+        service.hw = {'gpu_device_ids': list(devices)}
+        service.engine = None
+        service._physical_deployment = NS(notice=time.monotonic())
+        service.instance_pool = NS(max_instances=maximum, get_all_slots=Mock(return_value=[]))
+        service._require_ieee_full_qualification = Mock()
+        service._start_ieee_initial_deployment = AsyncMock()
+        service.engine_factory = runner.DedicatedScenarioEngineFactory(
+            model_cfg=service.model_cfg, host_visible_ids=list(devices), cost_cfg={},
+            coord_cfg=service.coord_cfg, hardware_cfg=service.hw,
+            coordination_enabled=True, use_subprocess=True)
+        return service
+
+    async def test_preparation_domain_is_placement_domain_not_replica_count(self):
+        for devices in ([0, 1, 2, 3], [3, 1]):
+            for maximum in range(1, len(devices) + 1):
+                with self.subTest(devices=devices, maximum=maximum):
+                    service = self.preparation_runner(devices, maximum)
+                    tickets = [NS(abandon=AsyncMock()) for _ in devices]
+                    with patch.object(runner.SubprocessInferenceEngineProxy,
+                                      'prepare_cpu_frontend', side_effect=tickets) as prepare:
+                        await service._preload_full_stack()
+                    self.assertEqual(service.engine_factory.pool.devices, tuple(devices))
+                    self.assertEqual([c.kwargs['device_id'] for c in prepare.call_args_list], devices)
+                    self.assertEqual(service.instance_pool.max_instances, maximum)
+                    service._require_ieee_full_qualification.assert_called_once()
+                    service._start_ieee_initial_deployment.assert_awaited_once()
+                    await service.engine_factory.close_preparation()
+
+    async def test_retiring_device_remains_owned_but_free_legal_device_has_ticket(self):
+        service = self.preparation_runner([0, 1, 2, 3], 3)
+        tickets = [NS(abandon=AsyncMock()) for _ in range(4)]
+        with patch.object(runner.SubprocessInferenceEngineProxy,
+                          'prepare_cpu_frontend', side_effect=tickets):
+            await service._preload_full_stack()
+        pool = service.engine_factory.pool
+        for device in (0, 1, 2):
+            self.assertIs(pool.claim(device), tickets[device])
+        slots = [NS(device_id=i, status='draining' if i == 1 else 'ready')
+                 for i in range(3)]
+        service.instance_pool.get_all_slots.return_value = slots
+        selected = service._select_dedicated_device_id()
+        self.assertEqual(selected, 3)
+        self.assertIs(pool.claim(selected), tickets[3])
+        self.assertEqual(set(pool.claimed), {0, 1, 2, 3})
+        self.assertEqual(service.instance_pool.max_instances, 3)
+        self.assertEqual(slots[1].status, 'draining')
+        with self.assertRaisesRegex(RuntimeError, 'already claimed'):
+            pool.claim(1)
+        service._pending_scale_up_device_ids = {selected}
+        self.assertIsNone(service._select_dedicated_device_id())
+        # These are fixture tickets, not real GPU leases. Claimed tickets remain
+        # with runtime cleanup; pool close must not manufacture physical return.
+        await service.engine_factory.close_preparation()
+        for ticket in tickets:
+            ticket.abandon.assert_not_awaited()
+
+    async def test_domain_equality_does_not_override_pending_or_failed_ownership(self):
+        service = self.preparation_runner([0, 1, 2, 3], 3)
+        tickets = [NS(abandon=AsyncMock()) for _ in range(4)]
+        with patch.object(runner.SubprocessInferenceEngineProxy,
+                          'prepare_cpu_frontend', side_effect=tickets):
+            await service._preload_full_stack()
+        service.instance_pool.get_all_slots.return_value = [NS(device_id=0)]
+        service._pending_scale_up_device_ids = {1, 2}
+        service._failed_runtime_device_ids = {3}
+        self.assertIsNone(service._select_dedicated_device_id())
+        await service.engine_factory.close_preparation()
+
+    async def test_qualification_failure_precedes_all_cpu_preparation(self):
+        service = self.preparation_runner([0, 1, 2, 3], 3)
+        service._require_ieee_full_qualification.side_effect = RuntimeError('not qualified')
+        with patch.object(runner.SubprocessInferenceEngineProxy, 'prepare_cpu_frontend') as prepare:
+            with self.assertRaisesRegex(RuntimeError, 'not qualified'):
+                await service._preload_full_stack()
+            prepare.assert_not_called()
+        self.assertIsNone(service.engine_factory.pool)
+        service._start_ieee_initial_deployment.assert_not_awaited()
+
+    async def test_disabled_policy_does_not_introduce_cpu_preparation(self):
+        service = self.preparation_runner([0, 1, 2, 3], 3)
+        service.coord_cfg = {}
+        with patch.object(runner.SubprocessInferenceEngineProxy, 'prepare_cpu_frontend') as prepare:
+            await service._preload_full_stack()
+            prepare.assert_not_called()
+        self.assertIsNone(service.engine_factory.pool)
+        service._start_ieee_initial_deployment.assert_awaited_once()
+
     async def test_runtime_failure_still_joins_cpu_cleanup_and_preserves_failure(self):
         f = factory()
         f.pool = NS(closing=False)
