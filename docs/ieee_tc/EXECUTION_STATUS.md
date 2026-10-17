@@ -1,5 +1,122 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D654完整3B W1已审计；待封存与回收 — 2026-10-18 03:27 CST
+
+本轮PROGRESS：此前verified wait后继续同一运行，03:25:51确认4000响应及
+pass=true、service/watchdog0、实际GPU释放/服务path移除；关闭空launcher及
+本轮三个远端服务，未改其它项目k3s。analysis7490 exit0，scope...d6540003
+已空关闭，峰值534773760B/events/swap0；analysis2 44919 exit0，scope...0004
+已空关闭，峰值539426816B/events/swap0。当前无GPU/远端/离线工具pending。
+
+完整原生绑定核验4000/4000，458224tokens、132ID、失败0，TTFT/TPOT/joint
+均4000=100%；P95 TTFT177.0024048164487ms、TPOT12.484282000783693ms，
+U9006.378086880315s，2.2515945217200786/原生绑定有效请求。审计SHA
+e2ece3bb5486d0d458573e7746285969418f7ac89a11aacb846f356823616cda。
+132次获取/306360162线上字节/5139892912物化字节、3868cache复用、打包0。
+服务peak19101319168B、host最低97019613184B、disk最低163458641920B，
+high/max/OOM/kill/swap0。独立数值证明仍未知，n_correct=null和formal/complete
+资格false不改写，不把W1短窗口较少的GPU总时间称为优化收益。
+
+同源W0/W1完整4000生成合同/prompt/adapter/targets逐条一致，3876输出序列
+相同、124不同，首差异与SHA完整保留；未新增GPU/HF检查、不按exact-match
+筛选、不无证据归因舍入/批处理。复用脚本生成compare_workload.py，仅供结束
+后离线分析，不改已运行的服务/输入。结果文档D654已更新，完整W1参考未冻结。
+
+下一步使用已准备publish.py显式封存本轮与D653清理/publication2关闭回执，
+核验147保护、用户dirt、源SHA和秘密，推送后安全回收仅本轮下载objects。
+之后同配置W2：复用D553变换但需3B专属索引，不能套7B map；不重做未变化
+89项资格或W0/W1性能。完整3B Full/baseline/dLoRA、同版本7B/消融、A1–A5、
+S1–S13、离线成本/审稿/最终图表全部ACTIVE，PrimeLoRA尚未跨全部场景最优。
+
+## D654监控续报：同一3B W1正常推进 — 2026-10-18 02:57 CST
+
+本轮verified wait；上一轮为PROGRESS（真正启动新W1并通过输入/准入）。本轮
+完整PLAN、当前状态、最新六项规则及monitor-experiment均已读取。02:51—02:57
+持续轮询实际tmux/pane512569、service InvocationID455c83e04d8141bfbaf196877e0a36b6
+和watchdog，响应162→303→433→500→575→778→863，确认同一运行持续推进。
+前500响应后的间隔符合预设阶段；没有重启、取消或调整到达时间。
+sample561：host可用97484124160B、服务peak15752683520B、磁盘166353334272B，
+high/max/OOM/kill/swap0，无告警；最终launch3b.json尚不存在。不能从863个响应
+推断完整SLO、物理U、原生绑定全部合格或独立数值证明。
+
+等待期间仅只读定位D553 audit_map.py与D557文档，确认3B W2尚缺专属冻结
+adapter索引；下一阶段可复用既有48-ID/stride12、rotation500→100的保rank
+变换，但必须核验3B原始selected_adapters/逐行rank与prompt/target，不套7B map。
+本轮未生成新索引、未运行资格、未改变服务源码/配置，也未扫描、压缩、清理、
+构建、备份或维护远端。D654预备收尾脚本已在上一轮登记，仍待实际终态后执行。
+
+下一步继续这一轮到真实终态→既有本地释放/远端停止/完整W1分析→结果与D653
+清理回执正常封存→安全回收→同配置W2所需的最小输入核验及完整W2。
+之后3B Full及所有基线/dLoRA、同版本7B/消融、A1–A5/S1–S13、离线成本、
+审稿文档和最终图表全部ACTIVE。当前是测量中的等待，不是阻塞或计划完成。
+
+## D654：3B Resident W1已启动，继续同一运行 — 2026-10-18 02:49 CST
+
+02:50:47续查：同一pane512569非dead，128创建/122响应，持续推进；sample168，
+host可用98900398080B、服务peak13672300544B、磁盘167486013440B，events/
+swap0、无告警。launch3b最终回执尚未生成，继续等待同一实验，不重启。
+
+本轮PROGRESS：启动32645 exit0，tmux tc-d654-vllm-3b4000/pane512569存活；
+四个原生worker已ready，4000条请求合同完整，20条已创建、16条响应，尚无
+完整结果。service为bc867f2435d34dfb8c1b6e79ea216e38，InvocationID
+455c83e04d8141bfbaf196877e0a36b6，inode27157472；不重启、不运行第二任务。
+starter ...d6540002递归为空后关闭，peak199761920B、events/swap0；真正服务/
+launcher仍运行。W1 view SHA8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f，
+窗口2186.9921293258667秒，原4000源行逐条不变；HTTP/config SHA已存input_identity。
+MAIN d9170bb / BASE e16af33与远端备份相等，D649资格/用户dirt/147保护均通过。
+远端本轮实测1000/full，两模型已发布gzip健康；本轮3B clock为
+remote-process-monotonic:0c93a38175d64211a573819fe90a05cc。
+watchdog sample77：host可用99804495872B、服务peak11411537920B、磁盘
+168616480768B，high/max/OOM/kill/swap0、无保护告警。监控技能用于实际tmux/
+原生worker/日志推进核查，不从部分进度推断完整SLO或U；运行中不维护远端、
+压缩扫描、构建或推送。全部计划仍ACTIVE。
+
+下一步继续监控这一轮直到真实终态，复用已登记close_launch→stop_remote→
+run_analysis的full4000_w1入口；之后结果封存和安全回收，再同配置W2。
+D653清理/publication2关闭回执与本轮正常检查点一并封存。完整3B对照、
+同版本7B/消融/敏感性/审稿/最终图表不省略，未知独立数值证明不改写。
+
+## D654：登记同配置3B Resident W1；启动前记录 — 2026-10-18 02:47 CST
+
+完整PLAN/V1/V2、最新六项规则和D653收尾记录已核查。复用D653的运行、远端、
+关闭和分析脚本，只改campaign/W1身份，服务及原生配置不变；原4000行逐行
+校验，只执行既有8×500、间隔减半、段间30秒变换。D649的89项未变化CPU
+资格按SHA复用，不重新跑资格。既有analyzer支持3B/full4000_w1。
+文档D654_3B_NATIVE_RESIDENT_W1.md是运行前登记，不代表已启动或已有结果。
+启动前核验D653所有关闭/回收/备份、用户dirt/147保护与磁盘内存/GPU空闲；
+一次启动，原生真实远端与全部安全门槛不变。无需改变其他项目k3s。
+D653后续清理及publication2关闭回执纳入下一正常封存，不开只写状态的提交。
+之后同配置W2、3B Full/all baseline/dLoRA、同版本7B及A1–A5/S1–S13、成本/
+审稿/最终图表仍完整ACTIVE。W0高SLO不外推W1或PrimeLoRA最优。
+
+## D653已备份并完成安全回收；下一主线3B Resident W1/W2 — 2026-10-18 02:39 CST
+
+本轮PROGRESS：完整4000已审计，结果与8条前缀输出差异保存；七个显式文件
+推送d9170bbad294569ca6bce2a05ac5a12f74355c38并核验remote相等。BASE仍
+e16af33aaf41f02a62ecdce59f6f3227813244c3，未改服务代码或基线配置。
+publication2 18305 exit0，scope...d6530006已空关闭，峰值101601280B、
+事件/swap0；首个封存失败是32MiB成员容量保护，并非测量失败。原helper、
+部分归档与失败回执已保留；仅完整4000记录采用128MiB成员上限，其余仍32MiB，
+归档16MiB限制、秘密/来源/147旧投稿保护检查全部通过。没有GPU重跑。
+
+回收47579 exit0：1056个下载文件与保留原池逐文件SHA、大小、独立inode、
+symlink/mount、可读进程/配置引用和元数据副本检查后，只删除本轮objects。
+payload5139892912B，实际回收5143781376B，磁盘可用168665313280B。
+scope...d6530007已空关闭，峰值1211977728B、事件/swap0；三条同UID /proc
+部分不可读的限制仍保留。唯一工件、测量/失败日志均未删。三处用户修改SHA
+保持不变且未stage。当前无GPU/远端/离线工具pending，不动无关k3s。
+本轮清理回执和publication2关闭回执在raw，下一个正常检查点归档，不另开
+只写状态的提交循环。
+
+下一步直接复用D653完整runner/远端/收尾/分析入口，登记同配置3B Resident
+W1，然后W2；冻结D649原生配置、D648共同SLO、原始输入池及生成/资源口径
+不变。优先复用既有场景变换/分析与7B W1/W2流程，不重做D648/D650–D653或
+89项未变化CPU资格。启动前完整读取PLAN/V1/V2及最新规则，重新核验安全余量、
+源/用户/147保护/备份；新执行键不覆盖旧结果。W0预算尚未单独冻结，W1/W2
+尚未运行；不得从已完成W0声称跨场景G1/G2或完整数值证明。
+之后3B Full/all baseline/dLoRA、同版本7B主表及消融、A1–A5、S1–S13、离线
+成本/审稿文档与最终图表全部ACTIVE。PrimeLoRA尚未跨全部场景最优，目标不缩减。
+
 ## D653完整3B W0已结束并审计；待封存/回收 — 2026-10-18 02:34 CST
 
 本轮PROGRESS：真实终态pass=true、service/watchdog0、GPU释放和服务path移除；
