@@ -1,5 +1,39 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D648当前3B共同warm完成并冻结数值；待备份 — 2026-10-17
+
+本轮PROGRESS。一次原生194批/1552记录（16预热＋1536测量）全部通过严格
+输入/token/引用/GPU-ready/KV/计时/drain/release核验。两组边界506，三轮
+等权warm TTFT293.210160/507.929734ms，TPOT14.960936/18.107758ms；按原
+5×/2×规则冻结共同TTFT1466.050801/2539.648668ms、TPOT29.921872/36.215515ms。
+未改V1/V2、没有正式重复/CI，数值manifest SHA d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8。
+这不是Full、Resident或G1/G2结论。source1 SHA014a9d5ea7baa25f318ecc376a3246fb28eac835eece06086180b617fa68cb79，执行514098d。
+实际GPU787.420238s，服务峰值6468493312B、最低host available105484984320B，
+high/max/OOM/swap/告警/中止0。start49517、analysis17594、publication19168
+均exit0；各管理scope、native launcher36c98023及service递归空/pathgone，
+GPU释放确认；本轮未启动远端。17项旧CPU测试字节不变可复用；147保护、
+用户manifest未变。分析/导出峰值285503488/136704000B，事件swap0。
+见D648_3B_COMMON_WARM_REFERENCE.md。待显式github-sync备份9文件，不提交
+大原始数据或用户修改。之后直接3B Resident→Full W0/W1/W2及all baseline/
+dLoRA；不重跑D644/D647/D648，不回7B/HF基础资格。完整A1–A5/S1–S13、
+同版本主表/消融一致性、成本/审稿文档/最终图表仍ACTIVE。当前磁盘可用
+168335261696B，下一重型需独立准入；不动无关k3s、不画图。
+
+## D646/D647已备份；下一主线D648当前3B共同warm — 2026-10-17，备份后
+
+本轮PROGRESS。D646 ab8be4c与D647 514098deb97107644ae08b1efa15ae0319ad19a0
+均已推送、remote相等；D647 backup session46970 exit0，scope...d64700003
+递归空/pathgone，峰值29380608B/事件swap0。checksum/diff/secrets/147保护
+通过，用户manifest未stage，BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。
+所有本轮工具终态，无GPU/远端pending。可用169212833792B，下一重型独立准入。
+下一轮直接复用D646输入和D647 batch8通过证据，运行既有runner的d648
+native_warm_reference measure（194batch，16预热+1536测量）；尚未启动，
+需沿D647 start helper绑定本检查点并省略远端操作。用显式source1/index/measure
+调用已扩展warm audit，之后单独冻结3B阈值，不继承7B。不要重跑D644或D647。
+随后Resident与Full W0/W1/W2、全部3Bbaseline/dLoRA、消融/机制/敏感性和
+最终文档图表，完整目标ACTIVE。本备份后记录留下一正常检查点，不另开仅
+为状态的备份循环；原k3s未动。
+
 ## D647当前3B batch8 warm探测通过；待备份后D648 — 2026-10-17 23:33 local
 
 本轮PROGRESS。D646输入/runner已推送ab8be4c57b19569f82feba5a83a5c4656ce2ca97，

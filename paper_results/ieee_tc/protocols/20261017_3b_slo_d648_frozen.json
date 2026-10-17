@@ -1,0 +1,42 @@
+{
+  "kind": "common_slo_numeric_freeze_v1",
+  "reference_id": "3b_vllm0300_d648_batch8_native_v1",
+  "date": "2026-10-17",
+  "model": "llama32_3b_main_modelscope",
+  "slo_reference_frozen": true,
+  "resource_reference_frozen": false,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "calibration": {
+    "path": "paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/warm_reference.json",
+    "sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+    "audit_path": "paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/native_audit.json",
+    "audit_sha256": "9fbc599f7558aeef6c20af7dbe9d3d5bc872cfc408ec54fe727fa71f4e48e329",
+    "requests": 1536,
+    "batch_size": 8,
+    "prefix_caching": false,
+    "reuse_existing_completed_calibration": true
+  },
+  "input_group_source": "native actual prompt tokens; duplicate quartile boundaries merged",
+  "groups": [
+    {
+      "lower_exclusive": null,
+      "upper_inclusive": 506,
+      "ttft_ms": 1466.050801101725,
+      "tpot_ms": 29.92187236665917
+    },
+    {
+      "lower_exclusive": 506,
+      "upper_inclusive": null,
+      "ttft_ms": 2539.648668190845,
+      "tpot_ms": 36.21551519318005
+    }
+  ],
+  "minimum_joint_count": 3800,
+  "planned_count": 4000,
+  "thresholds_common_to_all_systems": true,
+  "freeze_after_development_observations": true,
+  "historical_reuse_is_independent_holdout": false,
+  "reference_does_not_certify_test_run_correctness": true,
+  "scope": "Common 3B evaluation thresholds only; not U_ref, G2 budget or system ranking."
+}

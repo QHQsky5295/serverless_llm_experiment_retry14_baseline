@@ -1,0 +1,2261 @@
+{
+  "passed": true,
+  "experiment_pass": true,
+  "native_warm_measurement": true,
+  "full_performance_run": false,
+  "parent_commit": "514098deb97107644ae08b1efa15ae0319ad19a0",
+  "audit": {
+    "passed": true,
+    "kind": "d648_current_3b_warm_measurement_v1",
+    "tests": 17,
+    "native_checked": 1552,
+    "measured": 1536,
+    "warmup": 16,
+    "batch_checked": 194,
+    "batch_size": 8,
+    "batches": [
+      {
+        "serial": 0,
+        "group_id": 0,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 235,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.2146552971098572
+      },
+      {
+        "serial": 1,
+        "group_id": 1,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 473,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5793493220116943
+      },
+      {
+        "serial": 2,
+        "group_id": 0,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 235,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.22027977788820863
+      },
+      {
+        "serial": 3,
+        "group_id": 0,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.353407584130764
+      },
+      {
+        "serial": 4,
+        "group_id": 0,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 189,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.13510524411685765
+      },
+      {
+        "serial": 5,
+        "group_id": 0,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.14722239901311696
+      },
+      {
+        "serial": 6,
+        "group_id": 0,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 160,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.09498401288874447
+      },
+      {
+        "serial": 7,
+        "group_id": 0,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 258,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.1265690699219704
+      },
+      {
+        "serial": 8,
+        "group_id": 0,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07614680682308972
+      },
+      {
+        "serial": 9,
+        "group_id": 0,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 266,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.8001254638656974
+      },
+      {
+        "serial": 10,
+        "group_id": 0,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 225,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12971647595986724
+      },
+      {
+        "serial": 11,
+        "group_id": 0,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 207,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13554084696806967
+      },
+      {
+        "serial": 12,
+        "group_id": 0,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 257,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.692407509079203
+      },
+      {
+        "serial": 13,
+        "group_id": 0,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 198,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.08777216216549277
+      },
+      {
+        "serial": 14,
+        "group_id": 0,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.16063829301856458
+      },
+      {
+        "serial": 15,
+        "group_id": 0,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 262,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.39574631699360907
+      },
+      {
+        "serial": 16,
+        "group_id": 0,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.7298990818671882
+      },
+      {
+        "serial": 17,
+        "group_id": 0,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 248,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10493185184895992
+      },
+      {
+        "serial": 18,
+        "group_id": 0,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 264,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.44310678099282086
+      },
+      {
+        "serial": 19,
+        "group_id": 0,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 157,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.06666102190501988
+      },
+      {
+        "serial": 20,
+        "group_id": 0,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.071468556066975
+      },
+      {
+        "serial": 21,
+        "group_id": 0,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 281,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 1.1894596240017563
+      },
+      {
+        "serial": 22,
+        "group_id": 0,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 286,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.3154566758312285
+      },
+      {
+        "serial": 23,
+        "group_id": 0,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 220,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.10144874290563166
+      },
+      {
+        "serial": 24,
+        "group_id": 0,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 219,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.9714617640711367
+      },
+      {
+        "serial": 25,
+        "group_id": 0,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 221,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.19956819084472954
+      },
+      {
+        "serial": 26,
+        "group_id": 0,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 213,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.08895858190953732
+      },
+      {
+        "serial": 27,
+        "group_id": 0,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 158,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.19828716199845076
+      },
+      {
+        "serial": 28,
+        "group_id": 0,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 246,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.605662195943296
+      },
+      {
+        "serial": 29,
+        "group_id": 0,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 173,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.09607664193026721
+      },
+      {
+        "serial": 30,
+        "group_id": 0,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 252,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.2826768509112298
+      },
+      {
+        "serial": 31,
+        "group_id": 0,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 1.4181195790879428
+      },
+      {
+        "serial": 32,
+        "group_id": 0,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12768134893849492
+      },
+      {
+        "serial": 33,
+        "group_id": 0,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 182,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.06774832494556904
+      },
+      {
+        "serial": 34,
+        "group_id": 1,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 473,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5883164999540895
+      },
+      {
+        "serial": 35,
+        "group_id": 1,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.07373702200129628
+      },
+      {
+        "serial": 36,
+        "group_id": 1,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 429,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10785987111739814
+      },
+      {
+        "serial": 37,
+        "group_id": 1,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 476,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.22508855583146214
+      },
+      {
+        "serial": 38,
+        "group_id": 1,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 438,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.4481846431735903
+      },
+      {
+        "serial": 39,
+        "group_id": 1,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 405,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13899108092300594
+      },
+      {
+        "serial": 40,
+        "group_id": 1,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.06610013102181256
+      },
+      {
+        "serial": 41,
+        "group_id": 1,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 472,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.1027545360848308
+      },
+      {
+        "serial": 42,
+        "group_id": 1,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 421,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.044014756102114916
+      },
+      {
+        "serial": 43,
+        "group_id": 1,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 418,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07330845505930483
+      },
+      {
+        "serial": 44,
+        "group_id": 1,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 469,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1410234561190009
+      },
+      {
+        "serial": 45,
+        "group_id": 1,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07521510496735573
+      },
+      {
+        "serial": 46,
+        "group_id": 1,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13950505596585572
+      },
+      {
+        "serial": 47,
+        "group_id": 1,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.09040030790492892
+      },
+      {
+        "serial": 48,
+        "group_id": 1,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.08067048992961645
+      },
+      {
+        "serial": 49,
+        "group_id": 1,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.07579382695257664
+      },
+      {
+        "serial": 50,
+        "group_id": 1,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.1116174659691751
+      },
+      {
+        "serial": 51,
+        "group_id": 1,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 390,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.13571314699947834
+      },
+      {
+        "serial": 52,
+        "group_id": 1,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.04574478301219642
+      },
+      {
+        "serial": 53,
+        "group_id": 1,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 403,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07886492810212076
+      },
+      {
+        "serial": 54,
+        "group_id": 1,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 442,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.09587238193489611
+      },
+      {
+        "serial": 55,
+        "group_id": 1,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 439,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07551050186157227
+      },
+      {
+        "serial": 56,
+        "group_id": 1,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 426,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.06611788994632661
+      },
+      {
+        "serial": 57,
+        "group_id": 1,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 446,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10802068491466343
+      },
+      {
+        "serial": 58,
+        "group_id": 1,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 443,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.31281188898719847
+      },
+      {
+        "serial": 59,
+        "group_id": 1,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 447,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.1246247561648488
+      },
+      {
+        "serial": 60,
+        "group_id": 1,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.09893083805218339
+      },
+      {
+        "serial": 61,
+        "group_id": 1,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.9104686849750578
+      },
+      {
+        "serial": 62,
+        "group_id": 1,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 512,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 3.830825587036088
+      },
+      {
+        "serial": 63,
+        "group_id": 1,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 477,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.059977367985993624
+      },
+      {
+        "serial": 64,
+        "group_id": 1,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.2754355550277978
+      },
+      {
+        "serial": 65,
+        "group_id": 1,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 454,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.25643920013681054
+      },
+      {
+        "serial": 66,
+        "group_id": 0,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 235,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.21890172199346125
+      },
+      {
+        "serial": 67,
+        "group_id": 0,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.35499883093871176
+      },
+      {
+        "serial": 68,
+        "group_id": 0,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 189,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.1390902530401945
+      },
+      {
+        "serial": 69,
+        "group_id": 0,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.14797491393983364
+      },
+      {
+        "serial": 70,
+        "group_id": 0,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 160,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.09331399505026639
+      },
+      {
+        "serial": 71,
+        "group_id": 0,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 258,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.1458785929717124
+      },
+      {
+        "serial": 72,
+        "group_id": 0,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07674295012839139
+      },
+      {
+        "serial": 73,
+        "group_id": 0,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 266,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.7944273119792342
+      },
+      {
+        "serial": 74,
+        "group_id": 0,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 225,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12376780295744538
+      },
+      {
+        "serial": 75,
+        "group_id": 0,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 207,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13371682004071772
+      },
+      {
+        "serial": 76,
+        "group_id": 0,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 257,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.689282834995538
+      },
+      {
+        "serial": 77,
+        "group_id": 0,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 198,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.08744033705443144
+      },
+      {
+        "serial": 78,
+        "group_id": 0,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.16057400009594858
+      },
+      {
+        "serial": 79,
+        "group_id": 0,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 262,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.40039717592298985
+      },
+      {
+        "serial": 80,
+        "group_id": 0,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.7311721150763333
+      },
+      {
+        "serial": 81,
+        "group_id": 0,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 248,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1079575780313462
+      },
+      {
+        "serial": 82,
+        "group_id": 0,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 264,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.4395926031284034
+      },
+      {
+        "serial": 83,
+        "group_id": 0,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 157,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.0678544829133898
+      },
+      {
+        "serial": 84,
+        "group_id": 0,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.07070925086736679
+      },
+      {
+        "serial": 85,
+        "group_id": 0,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 281,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 1.1911966430488974
+      },
+      {
+        "serial": 86,
+        "group_id": 0,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 286,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.3155572169926018
+      },
+      {
+        "serial": 87,
+        "group_id": 0,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 220,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.10097662592306733
+      },
+      {
+        "serial": 88,
+        "group_id": 0,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 219,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 1.0028139958158135
+      },
+      {
+        "serial": 89,
+        "group_id": 0,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 221,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.20273524499498308
+      },
+      {
+        "serial": 90,
+        "group_id": 0,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 213,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.09016833803616464
+      },
+      {
+        "serial": 91,
+        "group_id": 0,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 158,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.1993403087835759
+      },
+      {
+        "serial": 92,
+        "group_id": 0,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 246,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5810669891070575
+      },
+      {
+        "serial": 93,
+        "group_id": 0,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 173,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.09315006504766643
+      },
+      {
+        "serial": 94,
+        "group_id": 0,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 252,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.285458300029859
+      },
+      {
+        "serial": 95,
+        "group_id": 0,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 1.4182213938329369
+      },
+      {
+        "serial": 96,
+        "group_id": 0,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12789651495404541
+      },
+      {
+        "serial": 97,
+        "group_id": 0,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 182,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.06749446783214808
+      },
+      {
+        "serial": 98,
+        "group_id": 1,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 473,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5761217100080103
+      },
+      {
+        "serial": 99,
+        "group_id": 1,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.07222080999054015
+      },
+      {
+        "serial": 100,
+        "group_id": 1,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 429,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10781987197697163
+      },
+      {
+        "serial": 101,
+        "group_id": 1,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 476,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.2224368609022349
+      },
+      {
+        "serial": 102,
+        "group_id": 1,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 438,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.44828977482393384
+      },
+      {
+        "serial": 103,
+        "group_id": 1,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 405,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13762385887093842
+      },
+      {
+        "serial": 104,
+        "group_id": 1,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.06628324603661895
+      },
+      {
+        "serial": 105,
+        "group_id": 1,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 472,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.0834235269576311
+      },
+      {
+        "serial": 106,
+        "group_id": 1,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 421,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.04614595812745392
+      },
+      {
+        "serial": 107,
+        "group_id": 1,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 418,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07479483587667346
+      },
+      {
+        "serial": 108,
+        "group_id": 1,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 469,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13987192115746439
+      },
+      {
+        "serial": 109,
+        "group_id": 1,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07589292502962053
+      },
+      {
+        "serial": 110,
+        "group_id": 1,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1375730149447918
+      },
+      {
+        "serial": 111,
+        "group_id": 1,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.09145756508223712
+      },
+      {
+        "serial": 112,
+        "group_id": 1,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07922829780727625
+      },
+      {
+        "serial": 113,
+        "group_id": 1,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.07767750299535692
+      },
+      {
+        "serial": 114,
+        "group_id": 1,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.11041944404132664
+      },
+      {
+        "serial": 115,
+        "group_id": 1,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 390,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.13357411208562553
+      },
+      {
+        "serial": 116,
+        "group_id": 1,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.04380257707089186
+      },
+      {
+        "serial": 117,
+        "group_id": 1,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 403,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07942022592760623
+      },
+      {
+        "serial": 118,
+        "group_id": 1,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 442,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.09608732489868999
+      },
+      {
+        "serial": 119,
+        "group_id": 1,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 439,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.0751063609495759
+      },
+      {
+        "serial": 120,
+        "group_id": 1,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 426,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.06155620398931205
+      },
+      {
+        "serial": 121,
+        "group_id": 1,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 446,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10682965395972133
+      },
+      {
+        "serial": 122,
+        "group_id": 1,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 443,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.3030265080742538
+      },
+      {
+        "serial": 123,
+        "group_id": 1,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 447,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.13134935591369867
+      },
+      {
+        "serial": 124,
+        "group_id": 1,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.10105846496298909
+      },
+      {
+        "serial": 125,
+        "group_id": 1,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.9120869790203869
+      },
+      {
+        "serial": 126,
+        "group_id": 1,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 512,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 3.813968988833949
+      },
+      {
+        "serial": 127,
+        "group_id": 1,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 477,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.06283280812203884
+      },
+      {
+        "serial": 128,
+        "group_id": 1,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.2674739300273359
+      },
+      {
+        "serial": 129,
+        "group_id": 1,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 454,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.25486221304163337
+      },
+      {
+        "serial": 130,
+        "group_id": 0,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 235,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.2216183349955827
+      },
+      {
+        "serial": 131,
+        "group_id": 0,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.3530027049127966
+      },
+      {
+        "serial": 132,
+        "group_id": 0,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 189,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.13632366806268692
+      },
+      {
+        "serial": 133,
+        "group_id": 0,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 253,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1518242119345814
+      },
+      {
+        "serial": 134,
+        "group_id": 0,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 160,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.09108794410713017
+      },
+      {
+        "serial": 135,
+        "group_id": 0,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 258,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.1448990509379655
+      },
+      {
+        "serial": 136,
+        "group_id": 0,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.076383117120713
+      },
+      {
+        "serial": 137,
+        "group_id": 0,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 266,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.7930380301550031
+      },
+      {
+        "serial": 138,
+        "group_id": 0,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 225,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12886753003112972
+      },
+      {
+        "serial": 139,
+        "group_id": 0,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 207,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1334844441153109
+      },
+      {
+        "serial": 140,
+        "group_id": 0,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 257,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.6849580979906023
+      },
+      {
+        "serial": 141,
+        "group_id": 0,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 198,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.08499166998080909
+      },
+      {
+        "serial": 142,
+        "group_id": 0,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 223,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.1623309589922428
+      },
+      {
+        "serial": 143,
+        "group_id": 0,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 262,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.3920339939650148
+      },
+      {
+        "serial": 144,
+        "group_id": 0,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.7281584050506353
+      },
+      {
+        "serial": 145,
+        "group_id": 0,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 248,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10473048710264266
+      },
+      {
+        "serial": 146,
+        "group_id": 0,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 264,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.4390397369861603
+      },
+      {
+        "serial": 147,
+        "group_id": 0,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 157,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.0669484930112958
+      },
+      {
+        "serial": 148,
+        "group_id": 0,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.06887452304363251
+      },
+      {
+        "serial": 149,
+        "group_id": 0,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 281,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 1.1967786070890725
+      },
+      {
+        "serial": 150,
+        "group_id": 0,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 286,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 1.3095264548901469
+      },
+      {
+        "serial": 151,
+        "group_id": 0,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 220,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.09916258603334427
+      },
+      {
+        "serial": 152,
+        "group_id": 0,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 219,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.999527526088059
+      },
+      {
+        "serial": 153,
+        "group_id": 0,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 221,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.2001908221282065
+      },
+      {
+        "serial": 154,
+        "group_id": 0,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 213,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.08877877704799175
+      },
+      {
+        "serial": 155,
+        "group_id": 0,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 158,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.19688499998301268
+      },
+      {
+        "serial": 156,
+        "group_id": 0,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 246,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5805970460642129
+      },
+      {
+        "serial": 157,
+        "group_id": 0,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 173,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.0914164858404547
+      },
+      {
+        "serial": 158,
+        "group_id": 0,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 252,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.2896478271577507
+      },
+      {
+        "serial": 159,
+        "group_id": 0,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 274,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 1.3945304811932147
+      },
+      {
+        "serial": 160,
+        "group_id": 0,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 224,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12142970412969589
+      },
+      {
+        "serial": 161,
+        "group_id": 0,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 182,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.06974033499136567
+      },
+      {
+        "serial": 162,
+        "group_id": 1,
+        "batch_index": 0,
+        "full_declared_kv_blocks": 473,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.5750569179654121
+      },
+      {
+        "serial": 163,
+        "group_id": 1,
+        "batch_index": 1,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.07174759800545871
+      },
+      {
+        "serial": 164,
+        "group_id": 1,
+        "batch_index": 2,
+        "full_declared_kv_blocks": 429,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.1071293679997325
+      },
+      {
+        "serial": 165,
+        "group_id": 1,
+        "batch_index": 3,
+        "full_declared_kv_blocks": 476,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.2195607901085168
+      },
+      {
+        "serial": 166,
+        "group_id": 1,
+        "batch_index": 4,
+        "full_declared_kv_blocks": 438,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.4502799338661134
+      },
+      {
+        "serial": 167,
+        "group_id": 1,
+        "batch_index": 5,
+        "full_declared_kv_blocks": 405,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13606286700814962
+      },
+      {
+        "serial": 168,
+        "group_id": 1,
+        "batch_index": 6,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.06615888187661767
+      },
+      {
+        "serial": 169,
+        "group_id": 1,
+        "batch_index": 7,
+        "full_declared_kv_blocks": 472,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 1.0700242349412292
+      },
+      {
+        "serial": 170,
+        "group_id": 1,
+        "batch_index": 8,
+        "full_declared_kv_blocks": 421,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.04388791788369417
+      },
+      {
+        "serial": 171,
+        "group_id": 1,
+        "batch_index": 9,
+        "full_declared_kv_blocks": 418,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07564228400588036
+      },
+      {
+        "serial": 172,
+        "group_id": 1,
+        "batch_index": 10,
+        "full_declared_kv_blocks": 469,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13589051202870905
+      },
+      {
+        "serial": 173,
+        "group_id": 1,
+        "batch_index": 11,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07297818711958826
+      },
+      {
+        "serial": 174,
+        "group_id": 1,
+        "batch_index": 12,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.13982568099163473
+      },
+      {
+        "serial": 175,
+        "group_id": 1,
+        "batch_index": 13,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.09228503401391208
+      },
+      {
+        "serial": 176,
+        "group_id": 1,
+        "batch_index": 14,
+        "full_declared_kv_blocks": 425,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07791059301234782
+      },
+      {
+        "serial": 177,
+        "group_id": 1,
+        "batch_index": 15,
+        "full_declared_kv_blocks": 419,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.07559527200646698
+      },
+      {
+        "serial": 178,
+        "group_id": 1,
+        "batch_index": 16,
+        "full_declared_kv_blocks": 406,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.11096997302956879
+      },
+      {
+        "serial": 179,
+        "group_id": 1,
+        "batch_index": 17,
+        "full_declared_kv_blocks": 390,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.13283130596391857
+      },
+      {
+        "serial": 180,
+        "group_id": 1,
+        "batch_index": 18,
+        "full_declared_kv_blocks": 432,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.04571914300322533
+      },
+      {
+        "serial": 181,
+        "group_id": 1,
+        "batch_index": 19,
+        "full_declared_kv_blocks": 403,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.07825462403707206
+      },
+      {
+        "serial": 182,
+        "group_id": 1,
+        "batch_index": 20,
+        "full_declared_kv_blocks": 442,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.09432517597451806
+      },
+      {
+        "serial": 183,
+        "group_id": 1,
+        "batch_index": 21,
+        "full_declared_kv_blocks": 439,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.07427497091703117
+      },
+      {
+        "serial": 184,
+        "group_id": 1,
+        "batch_index": 22,
+        "full_declared_kv_blocks": 426,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.06455720192752779
+      },
+      {
+        "serial": 185,
+        "group_id": 1,
+        "batch_index": 23,
+        "full_declared_kv_blocks": 446,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.10908004897646606
+      },
+      {
+        "serial": 186,
+        "group_id": 1,
+        "batch_index": 24,
+        "full_declared_kv_blocks": 443,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 7,
+        "all_decode_intersection_s": 0.30631245602853596
+      },
+      {
+        "serial": 187,
+        "group_id": 1,
+        "batch_index": 25,
+        "full_declared_kv_blocks": 447,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 8,
+        "all_decode_intersection_s": 0.12845697603188455
+      },
+      {
+        "serial": 188,
+        "group_id": 1,
+        "batch_index": 26,
+        "full_declared_kv_blocks": 415,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 4,
+        "all_decode_intersection_s": 0.10011260700412095
+      },
+      {
+        "serial": 189,
+        "group_id": 1,
+        "batch_index": 27,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.8929731538519263
+      },
+      {
+        "serial": 190,
+        "group_id": 1,
+        "batch_index": 28,
+        "full_declared_kv_blocks": 512,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 3.8062782771885395
+      },
+      {
+        "serial": 191,
+        "group_id": 1,
+        "batch_index": 29,
+        "full_declared_kv_blocks": 477,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.058171693002805114
+      },
+      {
+        "serial": 192,
+        "group_id": 1,
+        "batch_index": 30,
+        "full_declared_kv_blocks": 491,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 5,
+        "all_decode_intersection_s": 0.2671761291567236
+      },
+      {
+        "serial": 193,
+        "group_id": 1,
+        "batch_index": 31,
+        "full_declared_kv_blocks": 454,
+        "kv_unreserved_free_blocks": 5830,
+        "kv_tokens_per_block": 16,
+        "actual_distinct_adapters": 6,
+        "all_decode_intersection_s": 0.25529732182621956
+      }
+    ],
+    "source_execution_commit": "514098deb97107644ae08b1efa15ae0319ad19a0",
+    "audit": {
+      "kind": "warm_reference_independent_audit_v1",
+      "passed": true,
+      "projection_sha256": "ad1e83d968dd157e25edef742ba527505e1fb5e141ce58261f08be5085eb9825",
+      "projection_filter_sha256": "26b863d7640c1f47ceb0404efcbcbaabe83f81e9fc01f23813202730ddd434bf",
+      "source_archive_sha256": null,
+      "source_file": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1.json",
+        "sha256": "014a9d5ea7baa25f318ecc376a3246fb28eac835eece06086180b617fa68cb79"
+      },
+      "launch_sha256": "cbb857169a002e640c4a0a5c0acd4182824f2a532ca19f2055c30ddd22ea3522",
+      "phase": "measure",
+      "index_ref": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs/warm_input_index.json",
+        "sha256": "5406f0f13dc489a91ae1f2e199217b5ca471a66acd043de474e301d7d5b135a4"
+      },
+      "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "native_checked": 1552,
+      "measured": 1536,
+      "warmup": 16,
+      "capacity_probe": 0,
+      "unique_checked_source_requests": 512,
+      "unique_measured_source_requests": 512,
+      "batch_checked": 194,
+      "round_means": [
+        {
+          "group_id": 0,
+          "round": 0,
+          "count": 256,
+          "ttft_ms": 293.8832193867711,
+          "tpot_ms": 14.957381586294447
+        },
+        {
+          "group_id": 0,
+          "round": 1,
+          "count": 256,
+          "ttft_ms": 292.5192590837469,
+          "tpot_ms": 15.001160774358137
+        },
+        {
+          "group_id": 0,
+          "round": 2,
+          "count": 256,
+          "ttft_ms": 293.22800219051715,
+          "tpot_ms": 14.924266189336167
+        },
+        {
+          "group_id": 1,
+          "round": 0,
+          "count": 256,
+          "ttft_ms": 509.5762493874645,
+          "tpot_ms": 18.133278066705596
+        },
+        {
+          "group_id": 1,
+          "round": 1,
+          "count": 256,
+          "ttft_ms": 507.30617138378875,
+          "tpot_ms": 18.13341203404775
+        },
+        {
+          "group_id": 1,
+          "round": 2,
+          "count": 256,
+          "ttft_ms": 506.90678014325385,
+          "tpot_ms": 18.056582689016732
+        }
+      ],
+      "watchdog_events": {
+        "watchdog_ready": 1,
+        "resource_sample": 824,
+        "gpu_terminal_census": 1,
+        "service_domain_gone": 1
+      },
+      "physical_gpu_s": 787.4202378180344,
+      "census_alone_proves_lease_release": false,
+      "release_journal_verified": true,
+      "resource": {
+        "samples": 824,
+        "peak_bytes": 6468493312,
+        "host_min_available_bytes": 105484984320,
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "max_swap_bytes": 0,
+        "warnings": 0,
+        "aborts": []
+      },
+      "protected_manifest": {
+        "kind": "protected_artifact_verification",
+        "pass": false,
+        "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+        "changed": [
+          "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+        ],
+        "entry_count": 147,
+        "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+      },
+      "protected_scope_ok": true,
+      "known_protected_change": {
+        "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+        "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+      },
+      "common_reference_frozen": false,
+      "formal_g1_g2_qualified": false
+    },
+    "source_sha256": "014a9d5ea7baa25f318ecc376a3246fb28eac835eece06086180b617fa68cb79",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "auditor_sha256": "04e20bcc2123a3085c4917cb4e2b1af3a0005374300a9b84b444bd9524abde98",
+    "tests_sha256": "47c7b7753db594a3928ce2c8401ca5bd104e8cf5bf8c01f1053cb41f60842b6d",
+    "current_warm_measured": true,
+    "thresholds": null,
+    "full_performance_run": false,
+    "formal_g1_g2_qualified": false
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "freeze": {
+    "passed": true,
+    "freeze": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8"
+    },
+    "calibration": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/warm_reference.json",
+      "sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520"
+    },
+    "samples": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/samples.csv",
+      "sha256": "03bee7142570977011a0c67da96f947e8d1b3a38ad2fe374afb2876cbf51c665"
+    },
+    "auditor": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/native_audit.json",
+      "sha256": "9fbc599f7558aeef6c20af7dbe9d3d5bc872cfc408ec54fe727fa71f4e48e329"
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "source": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/freeze.py",
+      "sha256": "6556f45ee7215d7dcb933da5a258415bc6730ec5f64370d5ea367ce1a03aa245"
+    },
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "9ea4dcda357d210dabe52a469496df040d19b3883536f015edfe66ffb14fb328",
+  "source_run": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1.json",
+    "sha256": "014a9d5ea7baa25f318ecc376a3246fb28eac835eece06086180b617fa68cb79"
+  },
+  "archive_members": {
+    "start.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/start.py",
+      "sha256": "bbaf120af6881c3dd515b7c8705582b64767f8fc7e6394fbd65a35ddee114d2a"
+    },
+    "close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/close.py",
+      "sha256": "a469c8ff639fe2f9a8f5c516740050233551bd68554fb596792f31980930cef2"
+    },
+    "collect.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/collect.py",
+      "sha256": "3376d2277b833a6c9ba6b617af61eec9c46141c57ed6182b71a69f6f6123abdb"
+    },
+    "freeze.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/freeze.py",
+      "sha256": "6556f45ee7215d7dcb933da5a258415bc6730ec5f64370d5ea367ce1a03aa245"
+    },
+    "backup.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/backup.py",
+      "sha256": "8f43c5f477a20cb340779aed0bf4ab22d51bcb70ca7c6fc76c2a3c38b16d27c4"
+    },
+    "start_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/start_identity.json",
+      "sha256": "45a0619722a06e9560cb716ef38f6cf0124e90abb3ed714e06f533dbce181765"
+    },
+    "start_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/start_receipt.json",
+      "sha256": "6d44fac62bcb2213b89ca6a660a98a089870e57061aa42c603d5e4b627632ab2"
+    },
+    "start_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/start_closure.json",
+      "sha256": "b578c6f6c125b5173acfc51b1e39e8543b022a760d68aa6e9230fea720604f77"
+    },
+    "launch_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/launch_gate.json",
+      "sha256": "e1a7fee449c9433057e868e93fcdf7a76280a0972e631dcfb29b07f057671eb0"
+    },
+    "preflight.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/preflight.json",
+      "sha256": "3a4f7b58bfd2bdea81d4eb76f24f89c7552c23e37de41dbe1aa7a91f101b6501"
+    },
+    "launcher_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/launcher_identity.json",
+      "sha256": "991886f388a26713c18b00f8015170a7a8e1953d07659ff7f0cf02897c88906b"
+    },
+    "local_cleanup.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/local_cleanup.json",
+      "sha256": "2aeffb98ef56689fcda4da1554cf50d565d3f1ba637de0d9860aa3273a8e45fa"
+    },
+    "analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/analysis_identity.json",
+      "sha256": "3a7813139dc2788b3e554bb24626001a42d6fa5b5cb22679c208c55477a145a9"
+    },
+    "analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/analysis_closure.json",
+      "sha256": "1e3edbdf7bb651fbddc1d204073fc6c2876f6791171095b694e852b4bbb03edf"
+    },
+    "analysis_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/analysis_gate.json",
+      "sha256": "4114cff95123f73756a65ec91d2292d294768abd97519fce04b940e88d7205ab"
+    },
+    "qualification.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/qualification.json",
+      "sha256": "7ed40ab19215906e82e15e0029e52b1eb2e3610025dc9f8fceb355e53fc49ba3"
+    },
+    "native_audit.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/native_audit.json",
+      "sha256": "ac87a5a24e959bc1817426e8440e0de15f2db954357eb7ab03fe767b561dfddc"
+    },
+    "audit.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/audit.log",
+      "sha256": "ac87a5a24e959bc1817426e8440e0de15f2db954357eb7ab03fe767b561dfddc"
+    },
+    "source1_launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launch.json",
+      "sha256": "cbb857169a002e640c4a0a5c0acd4182824f2a532ca19f2055c30ddd22ea3522"
+    },
+    "source_commit.txt": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source_commit.txt",
+      "sha256": "bf2fb8a616ba8fa776339235465b9cc0d5e2fda2c1b14734d3a21a0c6cb756d7"
+    },
+    "source1_launcher.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launcher.log",
+      "sha256": "f4d3580c7a2fc5c374e3cbe5a90a61da512c1f7a82be1ecbae69acc719838c15"
+    },
+    "publication_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/publication_identity.json",
+      "sha256": "b9ba38ff2c22b26d714240a551bd3ea4dd670475ccc7c3349b466df1ac4e2d9f"
+    },
+    "publication_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/publication_gate.json",
+      "sha256": "84c05bf6b6314abb6589a87158728fecf529012697f6ada2353470512235e383"
+    },
+    "publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/publication_closure.json",
+      "sha256": "33aeebd9529212f1d99d17205e7b3c239f43fd0ff0a5170775eded8a92c2c524"
+    },
+    "freeze_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/freeze_receipt.json",
+      "sha256": "afbeef1de74f900cc7cf70dd2809b65f0b61027bb7bd04a82a15b8aded045083"
+    },
+    "backup_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/backup_gate.json",
+      "sha256": "039d17cc0eaa11d7cef6a5cd6954726eeafd672261d389859b8e970e83e33e66"
+    },
+    "service.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launch.launch/service.log",
+      "sha256": "c2e4fdff2487c37c388ccfb0e1314b58a83123e762b991c2a84aa653f0a9ffba"
+    },
+    "exec_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launch.launch/exec_receipt.json",
+      "sha256": "70364d2964389683c5a8391a8e4b8fad4e014f041647b053b5e5c5440e6178a3"
+    },
+    "watchdog.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launch.launch/watchdog.jsonl",
+      "sha256": "719a26c407f5998cb5c2fb7203c6f3a6f61a6e10d09e9726d9e73e5d0567a376"
+    },
+    "watchdog.stderr": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1_launch.launch/watchdog.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "caveat": "Shared 3B SLO calibration; not Full workload, GPU budget reference or system ranking."
+}

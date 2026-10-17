@@ -1,0 +1,112 @@
+{
+  "kind": "warm_reference_independent_audit_v1",
+  "passed": true,
+  "projection_sha256": "ad1e83d968dd157e25edef742ba527505e1fb5e141ce58261f08be5085eb9825",
+  "projection_filter_sha256": "26b863d7640c1f47ceb0404efcbcbaabe83f81e9fc01f23813202730ddd434bf",
+  "source_archive_sha256": null,
+  "source_file": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d648_20261017/source1.json",
+    "sha256": "014a9d5ea7baa25f318ecc376a3246fb28eac835eece06086180b617fa68cb79"
+  },
+  "launch_sha256": "cbb857169a002e640c4a0a5c0acd4182824f2a532ca19f2055c30ddd22ea3522",
+  "phase": "measure",
+  "index_ref": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs/warm_input_index.json",
+    "sha256": "5406f0f13dc489a91ae1f2e199217b5ca471a66acd043de474e301d7d5b135a4"
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "native_checked": 1552,
+  "measured": 1536,
+  "warmup": 16,
+  "capacity_probe": 0,
+  "unique_checked_source_requests": 512,
+  "unique_measured_source_requests": 512,
+  "batch_checked": 194,
+  "round_means": [
+    {
+      "group_id": 0,
+      "round": 0,
+      "count": 256,
+      "ttft_ms": 293.8832193867711,
+      "tpot_ms": 14.957381586294447
+    },
+    {
+      "group_id": 0,
+      "round": 1,
+      "count": 256,
+      "ttft_ms": 292.5192590837469,
+      "tpot_ms": 15.001160774358137
+    },
+    {
+      "group_id": 0,
+      "round": 2,
+      "count": 256,
+      "ttft_ms": 293.22800219051715,
+      "tpot_ms": 14.924266189336167
+    },
+    {
+      "group_id": 1,
+      "round": 0,
+      "count": 256,
+      "ttft_ms": 509.5762493874645,
+      "tpot_ms": 18.133278066705596
+    },
+    {
+      "group_id": 1,
+      "round": 1,
+      "count": 256,
+      "ttft_ms": 507.30617138378875,
+      "tpot_ms": 18.13341203404775
+    },
+    {
+      "group_id": 1,
+      "round": 2,
+      "count": 256,
+      "ttft_ms": 506.90678014325385,
+      "tpot_ms": 18.056582689016732
+    }
+  ],
+  "watchdog_events": {
+    "watchdog_ready": 1,
+    "resource_sample": 824,
+    "gpu_terminal_census": 1,
+    "service_domain_gone": 1
+  },
+  "physical_gpu_s": 787.4202378180344,
+  "census_alone_proves_lease_release": false,
+  "release_journal_verified": true,
+  "resource": {
+    "samples": 824,
+    "peak_bytes": 6468493312,
+    "host_min_available_bytes": 105484984320,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "max_swap_bytes": 0,
+    "warnings": 0,
+    "aborts": []
+  },
+  "protected_manifest": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "protected_scope_ok": true,
+  "known_protected_change": {
+    "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+    "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+  },
+  "common_reference_frozen": false,
+  "formal_g1_g2_qualified": false
+}
