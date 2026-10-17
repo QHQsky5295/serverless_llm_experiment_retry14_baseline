@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "source_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261017_d641_3b_native_source.yaml",
+    "sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80"
+  },
+  "kind": "sealed_source_launch_binding_v1",
+  "source_execution_commit": "143b5ac066a3716ef14dc42d5187a5bfeb4b1f01",
+  "source_run": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d644_20261017/source1.json",
+    "sha256": "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65"
+  },
+  "preparation": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d643_3b_initializer/prepare.json",
+    "sha256": "afbe5cd473b5a87afbf70804acbb0d6db02080c788535f3ce89f33b0d7446896"
+  },
+  "copied_spec_bytes_unchanged": true,
+  "controller_recalibrated": false
+}

@@ -253,6 +253,53 @@ class ControlProfileCounterAudit(unittest.TestCase):
                 source=self.source();mutation(source)
                 with self.assertRaises(ValueError):audit_control_source_run(source)
 
+    def endpoint_source(self):
+        source = self.source()
+        for wave in source['profile_waves']:
+            del wave['capacity_before'], wave['capacity_after']
+        return source
+
+    def test_explicit_endpoints_keep_missing_wave_attribution_unknown(self):
+        source = self.endpoint_source()
+        original = copy.deepcopy(source)
+        result = audit_control_source_run(source, observation_scope='source_run_endpoints')
+        self.assertEqual(source, original)
+        self.assertEqual(len(result['observations']), 2)
+        self.assertEqual(result['complete_wave_count'], 2)
+        self.assertEqual(result['delta']['yields_to_native_loop'], 2)
+        self.assertTrue(result['triggered'])
+        self.assertFalse(result['per_wave_counters_available'])
+        self.assertIsNone(result['waves'])
+        self.assertIsNone(result['zero_yield_waves'])
+        self.assertIsNone(result['causal_speedup'])
+
+    def test_missing_wave_data_never_implicitly_selects_endpoint_audit(self):
+        with self.assertRaises(ValueError):
+            audit_control_source_run(self.endpoint_source())
+        with self.assertRaises(ValueError):
+            audit_control_source_run(self.source(), observation_scope='source_run_endpoints')
+        source = self.endpoint_source()
+        source['source_profile_spec']['capacity_probe_contract'] = {}
+        with self.assertRaises(ValueError):
+            audit_control_source_run(source, observation_scope='source_run_endpoints')
+        with self.assertRaises(ValueError):
+            audit_control_source_run(source, observation_scope='unrecognized')
+
+    def test_endpoint_audit_still_rejects_incomplete_and_wrong_owner(self):
+        for mutate in (
+                lambda x: x['profile_waves'].pop(),
+                lambda x: x['profile_waves'].reverse(),
+                lambda x: x['profile_waves'][0].update(complete=False),
+                lambda x: x['scheduler_after'].update(scheduler_pid=124),
+                lambda x: x['scheduler_after'].update(clock_id='foreign'),
+                lambda x: x['scheduler_after']['control_interleave'].update(handled_controls=-1),
+                lambda x: x['scheduler_after'].update(captured_at=0.5)):
+            with self.subTest(mutation=mutate):
+                source = self.endpoint_source()
+                mutate(source)
+                with self.assertRaises(ValueError):
+                    audit_control_source_run(source, observation_scope='source_run_endpoints')
+
 
 class FileDemandProfileAudit(unittest.TestCase):
     def source(self):

@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "production_candidate": false,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "f9e595b456f48b3f719d3b26e4741dcaa236bd17",
+  "audit": {
+    "passed": true,
+    "tests": 26,
+    "no_cuda_initialized": true,
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "exporter_sha256": "26e6030eba716d095a3d6a5915f0ecdf4f4da6354cf85f8e714424848e7092b3",
+    "tests_sha256": "f0c7e77cba3eb384714890bbd4c996184dcd012d053631502e47200be4bcbe28",
+    "manifest": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d645_3b_profiles/initialization/manifest.json",
+      "sha256": "972d8c740f9421a530e064c0449ae8c48b20bf623b66bf0c488e7f3a570fe960"
+    },
+    "new_gpu_runs": 0,
+    "production_profile_frozen": false,
+    "full_qualified": false,
+    "profiles": {
+      "service": {
+        "kind": "native_service_profiles_v1",
+        "profile_sha256": "87371bee3f7c6af4fea25c9691ba0838938c41a694317e19d0089020cead8a42",
+        "supported_classes": 40,
+        "initial_samples": 360,
+        "source_run_sha256": [
+          "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65"
+        ],
+        "beta": 0.5
+      },
+      "preparation": {
+        "kind": "native_preparation_profiles_v1",
+        "profile_sha256": "a1c38c6dd9f55b0df9310c2adcbde9443b5a2b0b5515907fdc46c3fbde94d6b1",
+        "layout_partition": "exact_content_v1",
+        "supported_classes": 96,
+        "initial_samples": 288,
+        "source_run_sha256": [
+          "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65"
+        ],
+        "beta": 0.5,
+        "size_edges_bytes": [],
+        "activation_layout_available": true
+      }
+    },
+    "summary": {
+      "requests": 368,
+      "representative_requests": 360,
+      "warmup_requests": 8,
+      "preparation_requests": 288,
+      "remote_uuid_pairs": 368,
+      "wire_bytes": 854130750,
+      "physical_gpu_seconds": 515.9765925600659,
+      "measured_source_counts": {
+        "remote": 72,
+        "nvme": 72,
+        "file_host": 72,
+        "native_host": 72,
+        "gpu": 72
+      },
+      "remote_pack_performed": false,
+      "varied_output_groups": 2,
+      "total_output_groups": 24,
+      "resources": {
+        "samples": 523,
+        "peak_bytes": 5723078656,
+        "min_host_available_bytes": 105985019904,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "per_source": [
+        {
+          "source_run": {
+            "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d644_20261017/source1.json",
+            "sha256": "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65"
+          },
+          "requests": 368,
+          "representative_requests": 360,
+          "warmup_requests": 8,
+          "preparation_requests": 288,
+          "measured_source_counts": {
+            "remote": 72,
+            "nvme": 72,
+            "file_host": 72,
+            "native_host": 72,
+            "gpu": 72
+          },
+          "remote_uuid_pairs": 368,
+          "wire_bytes": 854130750,
+          "remote_pack_performed": false,
+          "physical_gpu_seconds": 515.9765925600659,
+          "resources": {
+            "samples": 523,
+            "peak_bytes": 5723078656,
+            "min_host_available_bytes": 105985019904,
+            "max_swap_bytes": 0,
+            "memory_events": {
+              "high": 0,
+              "max": 0,
+              "oom": 0,
+              "oom_kill": 0
+            }
+          }
+        }
+      ]
+    },
+    "initial_schema_failure": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d645_20261017/initial_export_failure.json",
+      "sha256": "62f0b021c1e23a15b33d148756fac0d09d273b942fa15ca81fd2d846dc81a063"
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "bdcdfae82a3db8633bcdc594915fdc192a8483c20416dbd3db3e4ca70c70b23a",
+  "caveat": "Existing 3B measurements exported offline; no new GPU run, per-wave control attribution or Full/SLO claim."
+}

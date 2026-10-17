@@ -140,8 +140,16 @@ def audit_control_interleave_snapshots(observations, *, expected_pid, expected_c
         model_step_count=None, gpu_idle_seconds=None, causal_speedup=None)
 
 
-def audit_control_source_run(raw):
-    """All waves including warmups and zero-trigger intervals; no winner filter."""
+def audit_control_source_run(raw, *, observation_scope='per_wave_capacity_probe'):
+    """Audit the recorded scope, never synthesize absent per-wave counters.
+
+    Ordinary source matrices record scheduler endpoints. Only an explicitly
+    configured capacity probe records each wave's scheduler endpoints as well.
+    Endpoint-only selection is explicit at the caller, not a missing-data fallback.
+    It proves cumulative use, not per-wave activity or latency causality.
+    """
+    if observation_scope not in ('per_wave_capacity_probe', 'source_run_endpoints'):
+        raise ValueError('unknown control observation scope')
     if raw['model_config'].get('ieee_control_interleave') != 'atomic_control_yield_v1':
         raise ValueError('source run does not declare the qualified control policy')
     workers = raw['workers_before']['workers']
@@ -154,11 +162,22 @@ def audit_control_source_run(raw):
     for index, wave in enumerate(waves):
         if wave['wave'] != index or wave.get('complete') is not True:
             raise ValueError('complete, ordered source waves required')
-        observations.extend((f'wave{index}:{side}', wave['capacity_'+side])
-                            for side in ('before', 'after'))
+        if observation_scope == 'per_wave_capacity_probe':
+            if any('capacity_'+side not in wave for side in ('before', 'after')):
+                raise ValueError('per-wave audit requires both recorded snapshots')
+            observations.extend((f'wave{index}:{side}', wave['capacity_'+side])
+                                for side in ('before', 'after'))
+    if observation_scope == 'source_run_endpoints':
+        if ('capacity_probe_contract' in raw['source_profile_spec']
+                or any('capacity_'+side in wave for wave in waves for side in ('before', 'after'))):
+            raise ValueError('endpoint audit cannot discard configured/recorded wave snapshots')
     observations.append(('scheduler_after', raw['scheduler_after']))
     result = audit_control_interleave_snapshots(observations,
         expected_pid=workers[0]['pid'], expected_clock=workers[0]['clock_id'])
+    if observation_scope == 'source_run_endpoints':
+        result.update(observation_scope=observation_scope, complete_wave_count=len(waves),
+            waves=None, zero_yield_waves=None, per_wave_counters_available=False)
+        return result
     keys = tuple(result['delta'])
     result['waves'] = [dict(wave=index, role=spec[index]['role'],
         delta={k:wave['capacity_after']['control_interleave'][k]
@@ -652,6 +671,7 @@ def audited_source_run(raw_dir, curated_dir, config_path, *, health_model=None,
 
 def main(campaign='d298'):
     global RAW, CURATED
+    model = '7b'
     if campaign == 'd298':
         config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
         source_commit = '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
@@ -677,6 +697,12 @@ def main(campaign='d298'):
         CURATED = ROOT/f'paper_results/ieee_tc/p2_backend/{campaign}_metadata_profiles'
         config_path = ROOT/'configs/ieee_tc/20261014_d524_7b_metadata_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
+    elif campaign == 'd644':
+        model = '3b'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d644_20261017'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d645_3b_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261017_d641_3b_native_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
     elif campaign == 'd362':
         RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d362_20261009'
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d362_file_demand_profiles'
@@ -693,17 +719,18 @@ def main(campaign='d298'):
     if campaign in ('d344-merged', 'd356-merged'):
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith(('d344','d356','d362','d524','d526')) else None,
-        require_measurement_seal=campaign.startswith(('d344','d356','d362','d524','d526')),
+        health_model='3b' if campaign == 'd644' else ('7b' if campaign.startswith(('d344','d356','d362','d524','d526')) else None),
+        require_measurement_seal=campaign.startswith(('d344','d356','d362','d524','d526','d644')),
         measurement_dir=CURATED if campaign == 'd526' else None) for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
     metadata_audit = audit_metadata_source_run(raw) if campaign in ('d524','d526') else None
     control_audit = None
-    if campaign.startswith(('d356','d362','d524','d526')):
+    if campaign.startswith(('d356','d362','d524','d526','d644')):
         audits = []
         for run,(raw_dir,_) in zip(runs,directories):
-            audit = audit_control_source_run(run['payload'])
+            audit = audit_control_source_run(run['payload'], observation_scope=(
+                'source_run_endpoints' if campaign == 'd644' else 'per_wave_capacity_probe'))
             assert audit['triggered'], 'enabled mechanism never triggered in calibration'
             assert read(raw_dir/'remote_stop.json')['all_owned_units_inactive']
             assert read(raw_dir/'local_cleanup.json')['native_gpu_release_confirmed']
@@ -712,7 +739,8 @@ def main(campaign='d298'):
             dict(per_source=audits,clock_domains_joined=False,
                  causal_speedup=None,gpu_idle_time=None,native_model_steps=None))
     assert all(r['contract'] == contract for r in runs)
-    profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
+    model_key = 'llama32_3b_main_modelscope' if model == '3b' else 'llama2_7b_main_v2_publicmix'
+    profile = yaml.safe_load(config_path.read_text())['model_profiles'][model_key]
     pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
     index_path = ROOT/spec['content_index']['path']
     assert p.digest(index_path) == spec['content_index']['sha256']
@@ -792,7 +820,7 @@ def main(campaign='d298'):
             memory_events={k:max(r['summary']['resources']['memory_events'][k] for r in runs)
                 for k in ('high','max','oom','oom_kill')}),
         per_source=[dict(source_run=r['source_run'],**r['summary']) for r in runs])
-    result = dict(kind='measured_development_profile_export_v1',model='7b',passed=True,
+    result = dict(kind='measured_development_profile_export_v1',model=model,passed=True,
         source_execution_commit=source_commit,source_run=first['source_run'],
         contract=spec['full_development_contract'],context=context,
         context_definition=dict(backend_environment='SHA256 of qualified native runtime receipt',
@@ -813,13 +841,13 @@ def main(campaign='d298'):
             calibration_executions=len(runs),
             repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
             clock_domains_joined=False)
-    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362', 'd524', 'd526'):
+    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362', 'd524', 'd526', 'd644'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     if control_audit is not None:
         result['control_interleave_audit'] = control_audit
     if metadata_audit is not None:
         result['metadata_publication_audit'] = metadata_audit
-    if campaign in ('d362', 'd524', 'd526'):
+    if campaign in ('d362', 'd524', 'd526', 'd644'):
         result['file_demand_transaction_audit'] = audit_file_demand_source_run(raw)
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -828,11 +856,11 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362'], ['d524'], ['d526']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362'], ['d524'], ['d526'], ['d644']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
     elif sys.argv[1:] == ['--completed-length-candidate']:
         export_completed_length_candidate()
     else:
-        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, d356-merged, d362, d524, d526, --history-length-coverage or --completed-length-candidate')
+        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, d356-merged, d362, d524, d526, d644, --history-length-coverage or --completed-length-candidate')

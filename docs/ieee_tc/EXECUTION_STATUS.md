@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D645当前3B实测时间配置导出通过；待备份 — 2026-10-17
+
+本轮PROGRESS。复用D644，无新增GPU实验；service360样本/40类别、preparation
+288样本/96类别，完整覆盖并通过既有原生加载器的模型/上下文/SHA绑定。
+26项CPU测试通过。首次导出因非capacity-probe记录无逐波capacity_before而
+拒绝；原记录保留。现显式验证实际首尾快照（3150次control yield），逐波计数
+保留未知，不补零、不构造样本；默认逐波审计仍严格，timing/准入校验未变。
+24输出组中2组hash有变化，保留并非逐token数值证明；不影响既定正确性口径。
+
+qualification session63137 exit1、qualification2 34968 exit0均终态且scope
+递归空/pathgone；峰值727191552/726351872B，high/max/OOM/swap0、无CUDA。
+147保护、用户manifest不变；远端只读核验且未启动，无GPU/服务pending。
+小型配置及代码待github-sync检查点；见D645_3B_MEASURED_PROFILE_EXPORT.md。
+下一主线3B共同warm/SLO→Resident资源参考→Full W0/W1/W2；不重跑368源用例，
+不将本导出称Full或G1/G2达标。全部3B对照/dLoRA、A1–A5、S1–S13、成本/
+审稿/最终图表保持ACTIVE；原k3s未动，不恢复7B/HF支线。
+
+## D643/D644已备份；下一主线3B profile导出 — 2026-10-17，备份后
+
+本轮PROGRESS。D644 measurement backup session33160 exit0，5显式文件已推送
+f9e595b456f48b3f719d3b26e4741dcaa236bd17，remote相等。checksum/AST/secrets/
+147保护通过，用户manifest未stage；backup scope...d64400003递归空/pathgone，
+资源见backup_closure.json。D643此前143b5ac也已推送，全部工具终态，无GPU/
+远端服务pending；BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5未改。
+下一轮直接读取D644源/样本和现有export_d298_profiles，完成当前3B timing
+profile及runtime绑定，再共同warm/Resident和Full；不重跑368cases、不把
+source测量冒充主性能，不回7B/HF支线。完整未完成目标保持ACTIVE。本备份后
+状态留下一正常检查点，不为它另开提交循环。
+
 ## D644当前3B准入启用测量完成；待备份 — 2026-10-17 23:07 local
 
 本轮PROGRESS。D643 11文件已推送143b5ac066a3716ef14dc42d5187a5bfeb4b1f01，
