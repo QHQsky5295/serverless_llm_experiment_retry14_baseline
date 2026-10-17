@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "kind": "d659_3b_prefix100_seal_v1",
+  "source_audit_sha256": "7299df3712b77626c316270c1bf37a09e1f1e4ca1c4de7d67c06e0d898ffab1c",
+  "source_commit": "8a30f65fbeeeb8b79e83ad40c4d388a6a080b525",
+  "performance_runs": 1,
+  "complete4000": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 100,
+  "joint_slo_count": 91,
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "7299df3712b77626c316270c1bf37a09e1f1e4ca1c4de7d67c06e0d898ffab1c"
+  },
+  "next_action": "Same measured 3B Full configuration complete W0; prefix is not G1/G2 qualification."
+}

@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D659：3B Full100请求已通过原生核验，联合91% — 2026-10-18 05:25 CST
+
+PROGRESS：D658九文件已推送8a30f65fbeeeb8b79e83ad40c4d388a6a080b525，
+publication44643 exit0及scope关闭，remote相等，peak30670848B/events/swap0。
+随后D659一次短回放：100/100原生绑定/数量/计时通过，17369tokens，联合91，
+TTFT91/TPOT100；平均TTFT755.286570ms/P951935.046071ms，平均TPOT13.898019/
+P9517.320431ms；U792.6366482332814。不是4000完整结果或G1/G2闭口，保留
+n_correct=null及独立数值未知。3次自然扩容均ready，tier remote/gpu/nvme/host
+=29/51/3/17，152成功准备/18延后；29真实获取、67350156线上B、请求打包0。
+
+service/watchdog0、实际GPU释放、service path移除；空launcher关闭、远端3服务
+inactive，analysis96150 exit0及scope关闭，peak143200256B/events/swap0；服务
+peak20599603200B/high/max/OOM/kill/swap0。147旧投稿保护通过，审计SHA
+7299df3712b77626c316270c1bf37a09e1f1e4ca1c4de7d67c06e0d898ffab1c。无pending。
+
+下一项：封存本次短资格，再以相同3B配置完整W0，不因前缀91%调阈值或套7B
+min2；完整数据决定瓶颈与后续优化。随后W1/W2、其余3B基线/dLoRA；同版本
+7B主表/消融、A1–A5/S1–S13、成本/审稿/最终图表仍ACTIVE。D659未改任何
+运行时算法，不重跑368源用例/89资格/已冻结Resident，也不画图。
+
 ## D658：当前3B Full入口资格通过，待一次短回放 — 2026-10-18
 
 PROGRESS：完整重读PLAN/V1/V2/最新规则，复用既有配置组装及主启动入口，
