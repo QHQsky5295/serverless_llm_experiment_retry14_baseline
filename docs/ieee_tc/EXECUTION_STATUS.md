@@ -1,5 +1,174 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D632完整W2完成并审计 — 2026-10-17 18:35 local；待本轮结果备份
+
+前轮VERIFIED WAIT，本轮PROGRESS：SAME原运行完成4000/4000原生合同，
+458224token/0失败；未重启、未改参数。新min2/max3：联合3854=96.35%，
+P95TTFT3553.622003878ms，mean1221.181476503ms，U10914.192405564，
+W2预算12086.669343876。D621为3798=94.95%、P953908.676888561、
+U10552.132922540；SLO+1.4pp/P95下降9.084%但U增加3.431%。只称观测
+SLO/预算可行；N_correct=null、ranking_eligible=false、独立数值UNKNOWN。
+完整结果SHA cdf19be5f5ec3766589cbfd57bf527d01862e8681ae7b860b0e4c9d729c28ce7，
+301662920字节。两initial/四naturalup/三回收，1932控制快照floor2/cap3通过。
+497远端fetch/418365205B/pack0，4000dispatch tier和输入/原生时钟完整；
+4069资源样本、peak28861661184B、high/max/OOM/kill/swap0。完整记录见D632文档。
+
+本地service真实退出/pathgone；actual launcher aux递归空关闭，peak387362816B。
+remote三unit实际身份核对后inactive/ports absent，未碰其他服务。collection
+session55771 exit0，scopebc5e4c0e7b8248668e804f06dbb17d45，Invocation
+28f48932c85c4a7996bdd127781716f1/inode26917723，empty/pathgone，peak85721088B。
+analysis1选旧CPU环境缺ijson，读取结果前失败，原证据保留；scope636f9f52792a422d8a2d403dbb1650f3
+Invocationac41f19114244e9bbe09444816c66716/inode26918397已关闭，peak27750400B。
+analysis2复用既有native分析环境，session42718 exit0，scope
+c7affbd1735a45a3903f27e88b53372d/Invocationaf7a76b93ec3415684dbf6f8c7591b01/
+inode26918755，实际空关闭/pathgone，peak696188928B/events0/swap0。
+无pending工具会话，无运行GPU。空闲磁盘释放后约172143206400B；下一heavy重新gate。
+
+本轮完整PLAN在当前上下文已读且SHA一致、最新状态/冻结V1+单轮V2/规则复核。
+monitor-experiment→analyze-results→github-sync；无生产算法变化，无图。
+下一步先通过既有D621发布流程的D632适配保存全部输入/output-hash差异、五个
+发表baseline和完整失败证据，explicit stage备份，再同配置W1/W0。W1紧预算
+不得忽略；尚未跨场景/独立数值合格，不拼接旧配置。3B/dLoRA/消融A1–A5/
+S1–S13/成本/审稿文档/最终图表全部ACTIVE，不能由一个W2点关闭总目标。
+
+## D632 verified wait — 2026-10-17 18:12 local；超过八成
+
+前轮及本轮VERIFIED WAIT，持续核实SAME tc-d632-min2w2与服务Invocation
+898969b9448642f88d3ade429e09d682 active。最新3271arrived/3267completed/
+3267ok/0failed，elapsed49:45，3runtimes，naturalup3/down2。
+watchdog3011：available97044447232B，peak25455439872B，high/max/OOM/kill/
+swap全0，free162314452992B，无abort/foreign。尚未终态，无最终性能结论。
+压缩后完整重读PLAN、AGENTS及最新状态，monitor-experiment已重读；仅实际
+身份/轻量日志检查及45s等待，无pending exec。没有配置/生产/helper/remote
+更改，没有扫描/分析/压缩/构建/备份/另一实验。所有者、单轮身份不变。
+继续SAME原run至真实终态，再按17:23记录释放/收集/审计；min2与两initial
+须显式核查。独立数值UNKNOWN、ranking_eligible=false，完整7B跨场景/3B/
+基线后续/dLoRA/A1–A5/S1–S13/成本/审稿文档/最终图表仍ACTIVE。
+当前空闲磁盘高于新启动150GiB底线但已接近；不在推理期间清理，亦不把
+150GiB启动线误作100GiB运行中止线。下一重型任务前重新执行安全准入。
+
+## D632 verified wait — 2026-10-17 17:54 local；过半
+
+前轮及本轮VERIFIED WAIT，持续核实SAME tc-d632-min2w2与服务Invocation
+898969b9448642f88d3ade429e09d682 active。最新2018arrived/2006completed/
+2006ok/0failed，elapsed31:48，3runtimes，naturalup3/down2。
+watchdog1946：available97393418240B，peak21648629760B，high/max/OOM/kill/
+swap全0，free166512939008B，无abort/foreign。尚未终态，没有最终性能结论。
+完整PLAN/冻结协议当前上下文已读，PLAN SHA一致，最新状态已核对；使用
+monitor-experiment实际身份/轻量日志检查及45s等待。无pending exec，没有
+生产/config/helper/remote更改或扫描/分析/压缩/构建/备份/另一实验。
+继续SAME回放至真实终态后释放/收集/审计，保持单轮身份和数值UNKNOWN。
+完整7B跨场景/3B/基线后续/dLoRA/A1–A5/S1–S13/成本/审稿文档/最终图表
+仍ACTIVE，不由半程数据接受候选或缩减目标。
+
+## D632 verified wait — 2026-10-17 17:48 local
+
+前轮和本轮均VERIFIED WAIT；持续核实SAME tc-d632-min2w2与服务Invocation
+898969b9448642f88d3ade429e09d682 active。最新1494arrived/1491completed/
+1491ok/0failed，elapsed25:24，2runtimes，naturalup2/down2。
+watchdog1573：available100586651648B，peak18217803776B，high/max/OOM/kill/
+swap全0，free167851048960B，无abort/foreign。未终态、没有最终性能判断。
+完整PLAN及冻结协议仍在当前上下文已读，PLAN SHA一致/最新状态核对。
+monitor-experiment只做实际身份/轻量日志轮询及45s等待，无pending exec。
+没有配置/生产/helper/remote变更、分析/扫描/压缩/构建/推送或新实验。
+继续同run至真实终态，按已有实际身份释放/收集/完整审计；数值UNKNOWN、
+完整7B跨场景/3B/基线后续/消融/敏感性/文档/图表仍ACTIVE。不能依据当前
+前缀达标显示接受候选，也不因等待重启或重复键。
+
+## D632 verified wait — 2026-10-17 17:41 local；超过四分之一
+
+前轮/本轮均VERIFIED WAIT；SAME tc-d632-min2w2、服务Invocation
+898969b9448642f88d3ade429e09d682反复核实active。最新1068arrived/
+1061completed/1061ok/0failed，elapsed18:53，3runtimes，naturalup2/down1。
+watchdog1181：available97485615104B、peak18055491584B，high/max/OOM/kill/
+swap0，free169121763328B，abort/foreign为空。尚未终态或最终性能判断。
+PLAN/冻结协议在当前上下文完整已读，最新状态与PLAN SHA再次核对；使用
+monitor-experiment轻量实际身份/日志检查及45s等待，无pending工具session。
+没有修改生产/config/helper/remote或开展分析/扫描/压缩/构建/备份/另一实验。
+继续SAME原run到终态后释放/收集/审计；独立数值UNKNOWN、完整后续范围和
+目标ACTIVE不变，不依据部分请求接受候选或重复性能键。
+
+## D632 verified wait — 2026-10-17 17:37 local
+
+前轮及本轮VERIFIED WAIT，连续实际状态核实SAME tc-d632-min2w2和服务
+Invocation898969b9448642f88d3ade429e09d682仍active。最新806arrived/
+801completed/801ok/0failed，elapsed14:31，3runtimes，naturalup2/down1。
+已观察一次回收到2后再次扩容；只是触发事实，不作性能或全程不变量结论。
+watchdog922：available97851654144B、peak17665204224B，high/max/OOM/kill/
+swap全0，free170236829696B，无abort/foreign。未终态、无最终SLO/U结论。
+完整PLAN/冻结协议当前上下文已读，PLAN SHA一致、状态已核对。使用
+monitor-experiment，只有实际身份/轻量日志与45s等待；无pending exec。
+不修改生产/config/helper/remote，不分析/扫描/压缩/构建/推送/另开实验。
+继续原run到真实终态，之后按17:23记录释放/收集/审计，不重启或重复性能键。
+独立数值UNKNOWN，完整7B跨场景/3B/后续基线/dLoRA/A1–A5/S1–S13/成本/
+审稿文档/最终图表保持ACTIVE。本运行中的状态在下一正常检查点备份。
+
+## D632 verified wait — 2026-10-17 17:31 local
+
+前轮及本轮VERIFIED WAIT。SAME tc-d632-min2w2/服务Invocation
+898969b9448642f88d3ade429e09d682反复核实active，最新424arrived/
+420completed/420ok/0failed，elapsed08:30，3runtimes，自然扩容1/回收0。
+watchdog572：available97811460096B，peak16535535616B，high/max/OOM/kill/
+swap0，free171151945728B，无abort/foreign。未终态，没有性能达标结论。
+完整PLAN与冻结协议仍在当前上下文已读，PLAN SHA再次核对一致，最新状态
+重读。monitor-experiment只轻量实际身份/日志轮询及45s等待，无pending exec。
+不改生产/config/helper/远端、不分析/扫描/压缩/构建/推送/另起实验；继续
+原run到真实终态。自然扩容观测不等于收益归因，数值UNKNOWN与完整剩余
+7B跨场景/3B/基线后续/消融/敏感性/文档/最终图表仍ACTIVE。
+
+## D632 verified wait — 2026-10-17 17:27 local
+
+前轮PROGRESS已完成资格/备份/启动；本轮VERIFIED WAIT，反复核实SAME
+tc-d632-min2w2和服务Invocation898969b9448642f88d3ade429e09d682仍active。
+最新174arrived/172completed/172ok/0failed，elapsed04:50，2runtimes，
+naturalup0/down0。watchdog349：available101038731264B，peak13751623680B，
+high/max/OOM/kill/swap全0，free171982000128B，无abort/foreign。未终态，
+不据live阈值宣布共同SLO或GPU预算合格。没有pending工具session。
+完整PLAN及冻结协议仍在当前上下文已读，SHA再次一致；最新状态已核对。
+本轮使用monitor-experiment，仅实际身份/轻量日志轮询和45s等待，未改配置/
+生产/helper/远端，未扫描/分析/压缩/备份或另开实验。继续原run至真实终态，
+再按下节既定真实身份释放/收集/完整审计。独立数值UNKNOWN与完整剩余计划
+保持ACTIVE，不缩减、不重复性能键、不因观察等待而重启。
+
+## D632完整W2已启动并开始服务 — 2026-10-17 17:23 local
+
+本轮PROGRESS：min2/max3唯一候选登记、32CPU测试/192状态通过、无改动458项
+复用、备份并实际启动完整4000 W2。不是最终性能达标。本轮读完整PLAN/最新
+规则/冻结V1+单轮V2，run-experiment/github-sync技能按已有受限入口执行。
+qualification1入口失败保留并已关闭；qualification2成功关闭。不重复资格。
+
+backup session39338 exit0，MAIN fa3b5eeda2ff395c5c7d6174d4fec32c0bda654e
+已推送/远端相等，6明确文件；BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。
+backup scope3 Invocation1ef40115eeaf4e90a056be5d04479460/inode26884612，
+递归空关闭/pathgone，peak29478912B/events0/swap0。用户manifest未stage。
+start session37156 exit0；scope4 Invocation6c3677c37116468285db04307ec3727b/
+inode26884654已空关闭/pathgone，peak29605888B/events0/swap0。无待续工具会话。
+
+SAME live tmux tc-d632-min2w2；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d632_20261017
+run7b_min2_full_w2。服务unit primelora-tc-svc-843732fcf3054a009eb12e35dcb8c191.scope，
+Invocation898969b9448642f88d3ade429e09d682/inode26884817仍active。
+实际launcher auxiliary primelora-tc-aux-b20ac4f8fcd64ee38dc19919e70e93b1.scope，
+Invocationcce1608ea1914eedafb4177be5e52f74/inode26884775仍属于本运行，不能关闭。
+两initial现已服务，最新27arrived/25completed/25ok/0failed，elapsed01:04，
+2runtimes/naturalup0/down0。终态尚未到达，live5000ms不用于最终SLO判断。
+watchdog133：available101555220480B、peak13751623680B、high/max/OOM/kill/
+swap全0，free172847235072B，无abort/foreign。当前只轻量观察，不重复启动。
+
+Remote已由start_remote.sh自动启动且health通过，1000Mb/s/full；只读D78/D80
+缓存复用，无请求打包。7bclockremote-process-monotonic:f9971f0051444b32909a2fe6a63d45d2，
+7bunitInvocation81fda9ac1d7c471fb253a11cda5e0cf0；monitor
+primelora-artifact-monitor-d632-min2w2.service Invocation0e7f651ccb4f4d349ebbead97d4e6735。
+完整3unit实际身份保存在remote_start.log，停服只核对这些身份，不碰其他服务。
+
+继续SAME运行至真实终态；推理期间不改生产/config/helper/remote、不扫描/
+压缩/构建/分析/推送。结束后按既有close_launch、stop_remote、collect_closure
+释放/收集，再复用full4000 analyzer（须显式核查min2及两initial，不沿用min1
+默认断言）。实际物理GPU积分、输入/输出合同、阶段等待和共同SLO再判断。
+无独立数值证明，N_correctnull/rankingfalse继续。若W2满足目标再同配置W1/W0，
+不能拼接旧min1结果；W1预算风险保留。所有3B/基线后续/dLoRA/A1–A5/S1–S13/
+成本/两轮审稿文档/最终图表保持ACTIVE。此运行中状态随下一正常检查点备份。
+
 ## D632双副本CPU资格通过，待备份/完整W2 — 2026-10-17 17:20 local
 
 qualification2 session57624 exit0，32测试/192actual-controller状态通过，
