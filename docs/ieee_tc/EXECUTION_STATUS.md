@@ -1,5 +1,59 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D617 terminated — preserve activation failure, not a performance point
+
+Full W1 stopped after 1580 external arrivals / 1579 submissions / 1519 native
+terminal records of 4000 planned. Controller interrupted=16 is a narrower scope,
+not all outstanding external requests. U_observed=2561.3589971910696 GPU-s;
+complete U and N_correct remain null. No incomplete-run resource ranking.
+Actual GPU/service/auxiliary scopes released; exact-owned remote services stopped.
+941 watchdog samples: peak15658774528B, high/max/OOM/kill/swap0, no foreign compute
+or safety abort. All72 remote transfers succeeded,84404434 wire bytes,pack0.
+
+Primary defect: CPU-preparation domain [0,1,2] differs from placement domain
+[0,1,2,3]. During GPU1 retirement, GPUs0/1/2 remain held; the actual selector
+chooses GPU3, which CPUFrontendPool.claim rejects. Device3 is inferred from live
+ownership plus an exact-method CPU witness, not a directly logged target event.
+Retirement physical release follows failed activation by about2.1s. Do not reuse a
+still-held GPU, hide physical occupancy, introduce blind retry, or skip W1.
+
+Failure analysis2 session60436 exit0, actual scope closed/pathgone; peak153522176B,
+events/swap0. First analysis46319 NameError preserved; collection reused, no replay.
+147 protected artifacts and user dirt unchanged. No live experiment or pending
+tool. Next explicit-path failure backup, then bounded D618 device-domain design
+with historical and primary-source review, CPU tests before any new GPU key.
+FullPLAN/latest rules reread after compaction. Full G1/G2/W0/3B/dLoRA/A1–A5/
+S1–S13/cost/reviewer/final figures remain ACTIVE; no performance success claim.
+
+## D617 verified live progress — 117/4000, continue SAME run
+
+Latestserviceprint128arrived/117completed/117successful/0failed at01:52;3ready
+runtimes,2natural scaleup/0scaledown. Watchdogsample170:3heldGPUs, peak
+14.583370GiB, high/max/OOM/kill/swap0, noforeigncompute/noabort; hostavailable
+92.131866GiB, disk149.583088GiB (belowNEWlaunchfloor, above100GiBstop).
+Do not launch secondjob/maintainstorage/remote/push duringperformance.
+This goalturn madePROGRESS: same-configW1qualification, actualclosure, backup,
+launch andobservedforwardprogress. FullPLAN/latest rules/V1/V2fullyread; no new
+optimization orfigure. All tool sessions terminal, no pendingtool; actualD617
+tmux/service/aux/remote listedbelow remainLIVE. NextcontinueSAMErun monitoring,
+thenownedclosure/remote stop/boundedanalysis, not restart/repeat. FullG1/G2/W0/
+3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigures remainACTIVE.
+
+## D617 full W1 LIVE — same D615 model point, no further task during performance
+
+Checkpointdbcb0ef11b3fd0e28f85a3f57d334914668a6572 pushed/remote-equal; backup27616
+exit0/actualclosed/pathgone, peak27742208B/events0. Starter88701exit0/closed/pathgone,
+peak28327936B/events0. SAME tmux tc-d617-threew1 runs full4000 W1 once, raw
+p2_backend_qualification/d617_20261017/7b_three_replica_full_w1. Actualservice
+primelora-tc-svc-98e0d8b4f0ec4025aecc8972d36a2e6e.scope, externalaux
+primelora-tc-aux-9d8ede9d3f0145a4a2e8f89b3d083535.scope. Both LIVE; do not stop,
+restart, compress/scan/build/push or change remote/config while performance runs.
+Remote1000/full, owned3b/7b services and monitor-d617-threew1 live; 7b clock
+remote-process-monotonic:b98b60ff8b2a4847bcbaf24fd8cf4333. PublishedD80delivery
+unchanged. Initialwatchdog events/swap0, noforeigncompute/noabort. No pendingtool.
+Next monitoractualprogress, then close_launch.py → stop_remote.sh → bounded
+run_analysis.py afterterminal. No repeatedkey/partialranking. FullremaininggoalACTIVE.
+
 ## D617 CPU/input/config qualified — backup, then one full W1
 
 Qualification30016 exit0: full4000 W1 identity matches existingview103ac4add35;
