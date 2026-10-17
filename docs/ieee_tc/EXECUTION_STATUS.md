@@ -1,5 +1,43 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D616 storage completed — backup before same-config W1 preparation
+
+51900exit0,3D615logsverified againstsealedSHAandtwoindependentdecompressionSHA;
+reclaimed833380352B,afterfree161342849024B (~150.262GiB).14archive tests pass,
+147protected/userdirtyunchanged. Storage scopeactuallyclosed/pathgone; no newGPU
+orservingedit. Next explicitpathstoragebackup, thensameD615configuration W1,
+freshresource gatebeforeheavy. Do not repeatcompression or countoldreclaimagain.
+FullPLAN/V1/V2readthisturn; allG1/G2/3B/dLoRA/A1–A5/S1–S13/finalscopeACTIVE.
+
+## D616 bounded storage registered — preserve all D615 evidence, then same-config W1
+
+Previousgoalturn PROGRESS: completeD615W2/closure/audit/publication. Current fullPLAN
+read (initial1–120 outputtruncation reread), latestscope/safety rules checked.
+No liveGPU or populatedprojectresource domains; D615checkpoint0c4de94 remains.
+Currentfree160509964288B below150GiBnewheavyfloor. ReuseD604/D613compressor only
+forD615sealedoutcome/request/remote-monitor, withcuratedSHA binding, closed scopes,
+noactive references andtwoverifiedroundtrips. No data deletion by age/name.
+Read D616_CLOSED_EVIDENCE_STORAGE.md. No newGPUkey or serving/config changes;
+afteractualstorage/backup resume unchangedD615modelpointW1/W0. FullgoalACTIVE.
+
+## D615 result checkpoint pushed — storage, then unchanged three-replica W1/W0
+
+Publication76189 exit0; checkpoint0c4de94c67ce654ad06439acdda1b53c35253abb pushed
+and remote-equal. Fiveexplicit paths, archive/source/147protected/userdirty/secrets
+checks passed; no serving/source/config edits. Publication scope actually closed
+after recursiveprocess-empty check; no liveGPU/remote/auxiliaryjob/pendingtool.
+This turn completed SAME W2, actualclosure/collection/audit/publication = PROGRESS,
+notblocked. PLAN fullyreread, unchangedSHA d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83;
+V1/V2 and latest baseline/storage rules checked. Do not repeat D615 orCPUqualification.
+Keep modelmax3 and otherD615 settings fixed for nextW1/W0; W2joint95.425% and
+U/B.882080 are descriptive single-run feasibility, not finalG1/G2orindependent
+correctness. D611latencyregressions retained. Fullscope remainsACTIVE.
+Lastfree160510418944B (~149.48GiB), below150GiBNEW-heavyfloor. Next bounded reuse
+of closed-evidence storage maintenance (no olddeletionlist or uniqueassetremoval),
+then register/backup SAMEworkingpoint W1. Do not retune because a latency metric
+rose; use frozen jointSLO/resource criteria. 3B/dLoRA/A1–A5/S1–S13/cost/reviewer/
+finalfigures allpending as before. Nofiguresbeforeappropriatecomparison stage.
+
 ## D615 complete and audited — W2 observed quality AND budget met; backup next
 
 SAME full run completed once: launch/service/watchdog exit0, actual GPU/service
