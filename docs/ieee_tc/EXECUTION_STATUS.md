@@ -1,5 +1,26 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D662：3B HOST/GPU保留回执已分解；下一候选限定重复HOST后检查 — 2026-10-18
+
+本轮PROGRESS，仅复用D660/D661，无推理重跑/生产改动/阈值改变。全部1441
+HOST与1875 GPU路径同钟/PID/各自owner/lease/时间链验证通过。HOST最后加载
+1426条均值15.680ms，另15条合法复用；acquired→snapshot83.012ms，之后至
+dispatch162.587ms。GPU对应snapshot阶段1.106ms；不能把83ms全部当加载、
+网络或可删除CPU时间。HOST release wait-response75.713ms，与事件链重叠。
+详细观察/边界/原始表见D662_3B_NATIVE_SOURCE_PATH_PARTITION.md。
+
+首次分析的owner/epoch错误假设保留为失败链，第二次修正后完整；后者manifest
+末条脚本来源路径错误在发布视图单独修正，数值不改，原文件不覆盖。
+分析会话45729/98683均exit0，scope递归空关闭，peak77918208/94105600B，
+high/max/OOM/kill/swap0。147保护文件不变，磁盘约166.5GB，不重复计缓存回收。
+publication待本轮明确路径检查及推送；当前无活动GPU/分析会话，不再wait旧会话。
+
+结合D329/D352历史和本轮联网官方vLLM0.30源码，下一D663只证明/资格化“受
+保护原生HOST同步激活内复用本次首次HOST storage事实，仍读新鲜allocator与
+workspace”的候选。尚未实施/接受；不跨请求缓存、不改九式、不合并pending
+与HOST保护，不重做D595/D628。不因组件收益直接宣称G1/G2达标。
+3B W0联合89.375%未闭口，不推进W1/W2/新基线；全部后续范围不变。
+
 ## D661：3B W0稳态短板与无缩容原因已离线核验 — 2026-10-18 06:56 CST
 
 本轮PROGRESS；完整重读PLAN/V1/V2/六份执行补充，复用D612分析D660，未重跑。
@@ -14,7 +35,10 @@ GPU/native HOST/NVMe/remote分别1875/1441/552/132，联合违约127/160/56/82�
 analysis会话61749、analysis2会话95421均exit0，scope已递归空关闭；峰值
 181813248/60923904B，high/max/OOM/kill/swap0。147项旧投稿保护未变。
 存储约166.6GB；D660工作缓存已空，本轮未新删数据、不计虚构回收量。
-无活动GPU/远端/辅助任务、无生产代码/配置改动、无图表。正准备明确路径备份。
+无生产代码/配置改动、无图表。publication会话92795 exit0，5个明确路径已
+推送24a149d821e069c5d24707599af3ef687b1a281b，远端一致；发布域也已递归
+空并关闭，结果SHA复查通过。晚于提交的关闭回执随下次正常检查点保存。
+当前没有活动GPU/辅助任务；不再wait61749/95421/92795。远端保持已关闭。
 
 下一D662仅复用D660 native HOST/GPU回执细分登记/保护/加载/入口，之后
 选一个可证伪且非历史失败方案的候选。不盲合HOST RPC（D333有计数顺序
