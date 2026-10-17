@@ -1,0 +1,161 @@
+{
+  "passed": true,
+  "production_correctness_repair": true,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "e499f12955c8e0ce370fd78cac6b412699bc983e",
+  "test_counts": [
+    180,
+    144,
+    215
+  ],
+  "test_total": 539,
+  "regression": {
+    "returncode": 0,
+    "returncodes": [
+      0,
+      0,
+      0
+    ],
+    "tests": [
+      "tests.test_ieee_tc_transfer_pressure",
+      "tests.test_ieee_tc_gpu_references",
+      "tests.test_ieee_tc_request_lifecycle"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-9356e3128a8d407b9ea4c06d63500005.scope",
+      "invocation_id": "70808edd99484ed0b7c633e978648c66",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9356e3128a8d407b9ea4c06d63500005.scope",
+      "inode": 26964672
+    },
+    "log_sha256": "168f9f98a87bf9b45fb1b713d503ddcf88bc4603cf0b0858d5f1220e210c6437",
+    "sources": {
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "46ddbdd656fcabb3b83218a1ebeac82c30cd06249c001b5b4d79bb3415dd375e",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "b26982d6666c3e7117482f5eadec3f7dafeda1615fd8a7db9060f231d5595d4e",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385"
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "receipt_audit_source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_min2_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "132c623441eeed6ab264c13028e49fae0cf0f9f131e3b301950b014e28b23b01",
+    "bytes": 143116071
+  },
+  "counts": {
+    "plans": 362,
+    "attempts": 387,
+    "state_completed": 294,
+    "state_deferred": 90,
+    "fallbacks": 3552,
+    "state_native_outcome_unresolved": 1,
+    "state_observing": 2
+  },
+  "differences": [
+    {
+      "plan_id": "2ebe256f915147408bf6d40e035ecdcd",
+      "owner_id": "2e4f523fa96c4a4e9b57283bb91d6412",
+      "plan_state": "failed",
+      "attempt_id": "03e3e6f0bcb646c480a0ee50eb874c7d",
+      "attempt_state": "native_outcome_unresolved",
+      "target_adapter_int_id": 928886,
+      "fallback_adapter_int_id": "759642",
+      "differences": {
+        "footprint": {
+          "source": 37748736,
+          "lease": 37752832
+        }
+      },
+      "evidence": {
+        "source": {
+          "adapter_id": "security_lora_0060",
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_nvme_min2_w0/tc_ieee_full/security_lora_0060",
+          "tier": "nvme",
+          "content_sha256": "7bf0ef42d0aa95cb86a84771ca45deaaba3ce2a7afc99cb95b44eae6693c8dc1",
+          "content_verified": true,
+          "representation": "verified_regular_file_tree_v1",
+          "file_path_bytes": 37716318,
+          "allocated_file_bytes": 37748736,
+          "allocated_bytes": 37752832,
+          "unique_file_count": 10,
+          "native": false,
+          "owner_id": "9e8fdc0d44b04cf59d191f43d28ad91c",
+          "footprint_bytes": 37748736
+        },
+        "file_reference": {
+          "owner_id": "9e8fdc0d44b04cf59d191f43d28ad91c",
+          "lease_id": "2bd40ae091824f5a9e9914e05b4febbb",
+          "adapter_id": "security_lora_0060",
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_nvme_min2_w0/tc_ieee_full/security_lora_0060",
+          "tier": "nvme",
+          "device": 2050,
+          "inode": 109581786,
+          "state": "held",
+          "content_verified": true,
+          "capacity_reserved": false,
+          "confirmed_source": {
+            "adapter_id": "security_lora_0060",
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_nvme_min2_w0/tc_ieee_full/security_lora_0060",
+            "tier": "nvme",
+            "content_sha256": "7bf0ef42d0aa95cb86a84771ca45deaaba3ce2a7afc99cb95b44eae6693c8dc1",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 37716318,
+            "allocated_file_bytes": 37752832,
+            "allocated_bytes": 37756928,
+            "unique_file_count": 10
+          },
+          "file_footprint": {
+            "scope": "linked_inode_storage_v1",
+            "logical_file_bytes": 37716318,
+            "file_path_bytes": 37716318,
+            "allocated_bytes": 37756928,
+            "allocated_file_bytes": 37752832,
+            "unique_file_count": 10,
+            "tier_totals_additive": true,
+            "content_verified": false,
+            "capacity_reserved": false,
+            "physical_release_proven": false
+          }
+        }
+      }
+    }
+  ],
+  "before_fix_reproduction": {
+    "returncode": 1,
+    "tests": [
+      "tests.test_ieee_tc_transfer_pressure.IntegratedNativeHostReplacement.test_fallback_uses_pinned_observation_not_earlier_snapshot"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-9356e3128a8d407b9ea4c06d63500004.scope",
+      "invocation_id": "10e26a1996264aef8d1d7f6952807180",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9356e3128a8d407b9ea4c06d63500004.scope",
+      "inode": 26964235
+    },
+    "log_sha256": "4cb0861884452d9deaa285f04f3bf4e7e731194168e04f13f996d435209bc484",
+    "sources": {
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "29114576e5c80973efca9672d13628325426af32b11a906e5c9862b7202cfd5c",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "8dabb6f293cee29aec4b8488cce8edfcbfe4f4e56351f5e3708fde11a39d8f69",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "fd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385"
+    }
+  },
+  "initial_fixture_failures": [
+    "qualification",
+    "analysis2"
+  ],
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "1ef545417d20c6ae024b39d3e326e7122be00c4ddb36948ca08768b9a0a44978",
+  "caveat": "One held confirmation replaces mixed observations; CPU qualification only, exact kernel cause unknown, no performance or numerical-correctness claim."
+}

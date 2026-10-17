@@ -19469,8 +19469,13 @@ class ScenarioRunner:
                                     expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
                                     expected_content_sha256=victim['content_sha256'])
                                 file_holds.append(held)
-                                fallback = dict(fallback, native=False, owner_id=view['owner_id'],
-                                                footprint_bytes=fallback['allocated_file_bytes'])
+                                # The read pin revalidates this copy and may
+                                # refresh its bounded physical allocation. Bind
+                                # all fallback fields to that single confirmed
+                                # observation, not the earlier planning view.
+                                confirmed = held['confirmed_source']
+                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
+                                                footprint_bytes=confirmed['allocated_file_bytes'])
                             else:
                                 fallback, held = victim['remote_fallback'], None
                             file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)

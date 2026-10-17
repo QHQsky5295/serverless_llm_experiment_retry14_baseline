@@ -2655,6 +2655,87 @@ class ProactiveCostFeedback(unittest.TestCase):
 
 
 class IntegratedNativeHostReplacement(unittest.TestCase):
+    def test_fallback_uses_pinned_observation_not_earlier_snapshot(self):
+        """D634 receipt composition, not a reconstruction of a kernel event.
+
+        Give the caller an older allocation observation while the actual pin
+        validates real files. ConfirmedFilePublication separately exercises
+        real owner refresh with controlled stat inside the reserved envelope.
+        """
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        original_snapshot = fixture.owner.source_snapshot
+        stale = []
+
+        def observed(adapter_id):
+            view = original_snapshot(adapter_id)
+            if not stale and owner.staged_models() and adapter_id in ('b', 'c'):
+                source = min(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
+                source['allocated_file_bytes'] += 4096
+                source['allocated_bytes'] += 4096
+                stale.append(dict(source))
+            return view
+
+        async def run():
+            try:
+                with patch.object(fixture.owner, 'source_snapshot', observed):
+                    await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 5)
+                self.assertEqual(len(stale), 1)
+                matching = [item for plan in runner._ieee_gpu_preparation_plans
+                    for attempt in plan['attempts']
+                    for item in attempt.get('host_file_fallbacks', {}).values()
+                    if item['file_reference'] and
+                    item['file_reference']['path'] == stale[0]['path']]
+                self.assertTrue(matching)
+                item = matching[0]
+                for key, value in item['file_reference']['confirmed_source'].items():
+                    self.assertEqual(item['source'][key], value)
+                self.assertEqual(item['source']['footprint_bytes'],
+                    stale[0]['allocated_file_bytes'] - 4096)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_fallback_receipt_identity_and_footprint_checks_remain_strict(self):
+        import copy
+        from faaslora.preloading.preloading_planner import native_host_replacement_costs
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = self.make()
+        original = slot.engine.ieee_prepare_host.side_effect
+        checked = []
+        async def prepare(**kw):
+            evidence = kw.get('host_file_fallbacks')
+            if evidence and not checked:
+                aid = next(a for a, row in evidence.items() if row['file_reference'])
+                mutations = [('source', 'footprint_bytes', 0),
+                    ('file_reference', 'state', 'released'),
+                    ('file_reference', 'content_verified', False),
+                    ('file_reference', 'adapter_id', 'wrong'),
+                    ('file_reference', 'owner_id', 'wrong'),
+                    ('file_reference', 'path', '/wrong/copy'),
+                    ('file_reference', 'tier', 'remote'),
+                    ('confirmed_source', 'content_sha256', '0'*64),
+                    ('confirmed_source', 'representation', 'wrong')]
+                for section, key, value in mutations:
+                    invalid = copy.deepcopy(evidence)
+                    row = (invalid[aid]['file_reference']['confirmed_source']
+                        if section == 'confirmed_source' else invalid[aid][section])
+                    row[key] = value
+                    with self.subTest(section=section, key=key):
+                        with self.assertRaisesRegex(ValueError, 'held exact file copy'):
+                            native_host_replacement_costs(objective=kw['replacement_epoch'],
+                                native_inventory=snapshot()['native_footprints'], file_fallbacks=invalid)
+                    checked.append((section, key))
+            return await original(**kw)
+        async def run():
+            try:
+                slot.engine.ieee_prepare_host.side_effect = prepare
+                await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 5)
+                self.assertEqual(len(checked), 9)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
     def make(self):
         factory = MixedOwnedPreparation()
         self.addCleanup(factory.doCleanups)

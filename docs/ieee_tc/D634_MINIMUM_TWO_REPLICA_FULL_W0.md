@@ -90,3 +90,7 @@ peak55906304B、events0/swap0。main_outcome、终态账本、4份allocation账�
 下一步：备份失败→只读定位真实字段差异及引用持有/释放时间线→对照历史
 修改和官方实现→最小可证伪复现，再决定语义保持修复与受影响运行范围。
 当前未改生产代码、未重跑、未新增参数搜索，根因超出异常断言仍待建立。
+
+失败证据已推送：e499f12955c8e0ce370fd78cac6b412699bc983e（5明确文件），
+curated目录`paper_results/ieee_tc/p2_backend/d634_min2_full_w0/failure1/`。
+发布校验通过，相关实际scope均关闭；原始大日志和唯一现场保留在本机。

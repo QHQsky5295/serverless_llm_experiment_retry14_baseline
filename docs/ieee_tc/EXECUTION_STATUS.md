@@ -1,5 +1,50 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D635定位并修正混合fallback观察 — 2026-10-17 20:10 local；待备份
+
+本轮PROGRESS，未新跑GPU。完整PLAN及最新合同已读；流式审计D634的362计划/
+387尝试/3552fallback，唯一不匹配就是唯一native_outcome_unresolved：
+security_lora_0060 NVMe source37748736B、held confirmed37752832B，相差4096B。
+其余adapter/path/owner/tier/content/representation/held一致。直接原因是
+调用方把pin前source快照和pin内更新的确认混合；具体kernel事件未被记录，
+不宣称已重放。历史D310/4ea7daa、774bd7f、D606/D610/D631及LinuxFIEMAP/
+vLLM0.30官方源码已核查。新构造完全来自held.confirmed_source，严格下游
+校验、预算、九公式和模型配置不改，不增加重试/吞错/容差。
+
+两次初始小夹具未满足合法allocation边界，失败日志保留；随后组合夹具在
+修改生产前复现相同异常。修复后180+144+215=539项检查通过，含9种字段
+破坏拒绝；已有真实文件边界刷新及取消/未知结果保护检查通过。regression
+session99503 exit0，scope9356e3128a8d407b9ea4c06d63500005/
+Invocation70808edd99484ed0b7c633e978648c66/inode26964672已递归空关闭，
+peak574631936B/events0/swap0。analysis26448、fixture46877/80624、witness34162
+均终态、各scope已按身份关闭；工具无pending，GPU/remote均未启动。
+
+raw results/ieee_tc/p2_backend_qualification/d635_20261017，receipt_audit/
+qualification2_receipt及所有失败/closure保留。当前MAIN e499f129，BASE不改，
+用户manifest不stage。下一步明确8文件checkpoint备份，继而资源/同配置资格
+及新键完整W0；D634仍失败、D632/D633不是跨场景已接受点，N_correct未知。
+全部7B正确性/G1/G2、3B/dLoRA/A1–A5/S1–S13/成本/审稿文档/图表仍ACTIVE。
+
+## D634失败证据已推送 — 2026-10-17 19:58 local；下一步定位根因
+
+publication session98591 exit0，MAIN e499f12955c8e0ce370fd78cac6b412699bc983e
+已推送且远端相等，5明确文件；failure1含summary/evidence/result.sha256，
+checksum/secrets/147保护通过。publication scope9346e3128a8d407b9ea4c06d63400005
+已按实际身份递归空关闭/pathgone，详publication_closure.json。BASE仍
+80e08b4c6e7c2874b1b237500a00811ec06cd8c5。所有D634服务/aux/remote均关闭，
+所有工具会话终态、无pending。free169822068736B，失败现场与缓存仍保留，
+不在找出引用/证据差异前删除。旧投稿、用户manifest、生产代码均未改变。
+
+本轮确实从VERIFIED WAIT推进到失败收尾/审计/备份，不是性能达标。
+下一主线先读完整PLAN/状态及相关合同；受限只读检查main_outcome中的
+replacement_epoch/host_file_fallbacks、实际file_reference与source字段，
+对照gpu_monitor.py约1275行、preloading_planner.py约1205行和
+residency_manager.py约3053行及控制器构造/持有/释放路径；追查历史修改与
+同类官方实现后建立最小复现。不删除严格校验、不吞异常、不盲重跑，不把
+旧D624 min1 W0拼入D632/D633 min2成功点。根因尚UNKNOWN，未新建D635，
+未修生产。全部7B正确性/跨场景目标、3B/dLoRA/A1–A5/S1–S13/成本/文档/
+最终图表仍ACTIVE。此备份后状态追加在下一正常检查点提交。
+
 ## D634中止并完成失败审计 — 2026-10-17 19:58 local；待备份
 
 前轮VERIFIED WAIT，本轮PROGRESS：SAME D634在19:53:40主动HOST准备失败，
