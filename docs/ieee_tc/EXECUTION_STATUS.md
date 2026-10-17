@@ -1,5 +1,32 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D641启动前失败已收尾；下一项是source入口合同对齐 — 2026-10-17 22:23 local
+
+本轮PROGRESS。D640节点9文件已推送02f438519d2cca90aa2b710466900dac1daca2a6，
+remote相等，backup session67317 exit0/scope...d64000004递归空/pathgone。
+D641在该版本复用现有source runner启动3B，源case368未改变；真实链路1000/full。
+startup stage失败，0业务请求/0remote fetch，非性能结果。原生编译和graph曾执行，
+外层180秒默认等待内未ready；spawn→release_deferred180.22856s。最终物理lease
+未资格异常遮住启动错误，原owner日志没有release，不补造生命周期合格。
+服务峰值12461797376B，最低host available105258921984B，high/max/OOM/OOMkill0。
+本轮使用monitor-experiment按实际本机tmux/watchdog跟踪，没有外部通知。
+
+保护器已确认本机service路径消失、GPU native context清空；launcher
+424d943b412b4faf92370900d9382e5f按记录身份递归空关闭。remote stop session37384
+exit0，专属两个artifact和monitor已inactive；收集session22641 exit0，原/tmp
+worker.log/payload/process按SHA保留小副本，原文件未删。analysis scope
+9366e3128a8d407b9ea4c06d64100002递归空/pathgone。147保护与用户manifest不变。
+当前无实验/GPU/远端pending；D641失败说明/证据待显式备份，不写成成功。
+
+下一轮直接对齐source入口到现行共同native编译合同、600秒worker启动保护、
+worker日志保留，CPU验证后以新键运行相同3B参数/368cases。旧入口目前未绑定
+D534合同、默认180秒，与主实验不同。具体初始化延迟原因尚未证实，不断言
+600秒必然解决，不改请求SLO/timeout/九公式，不盲重试。不将V2 Model Runner
+未经对照地指认为根因。记录本次生成的编译/page cache变化，避免虚假归因。
+后续严格区分source-only与Full/admission profile；共同3B warm/Resident仍缺。
+7B保留D639决定；3B全部对照/dLoRA、A1–A5、S1–S13、成本/审稿文档/最终图表
+全部ACTIVE。未绘图、未安装，非本项目k3s未动；不回7B反复资格分支。
+
 ## D640：3B资产/旧profile核查完成，当前native资格已准备 — 2026-10-17 22:13 local
 
 本轮PROGRESS，非阻塞。按完整PLAN及D639决定进入3B，不重复7B W0/HF审计。
