@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "production_candidate": false,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "31475e6fa50458ec6478d1a9636869f425e5efa7",
+  "audit": {
+    "passed": true,
+    "tests": 15,
+    "inputs": {
+      "passed": true,
+      "kind": "d646_3b_existing_warm_inputs_v1",
+      "index": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs/warm_input_index.json",
+        "sha256": "5406f0f13dc489a91ae1f2e199217b5ca471a66acd043de474e301d7d5b135a4"
+      },
+      "config": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261017_d641_3b_native_source.yaml",
+        "sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80"
+      },
+      "source_refs": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261001_d138_3b_full_w0_full1.json",
+          "sha256": "b20177aa13cc677fea2c151d752d1ede10a78d01de2d258fc02303c0624d87bb"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d138_20261001/full_full1_request_projection.json",
+          "sha256": "8221aaf5f60fad975eb4ae92bd9b5d2a0a7cc5d9b0e07bc3e00d6389b30322eb"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261017_d641_3b_native_source.yaml",
+          "sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80"
+        }
+      ],
+      "groups": [
+        {
+          "group_id": 0,
+          "lower_exclusive": null,
+          "upper_inclusive": 506,
+          "source_count": 1023,
+          "tpot_eligible_count": 1023,
+          "excluded_single_token_count": 0,
+          "native_prompt_range": [
+            14,
+            506
+          ],
+          "selected_prompt_range": [
+            14,
+            506
+          ],
+          "selected_target_range": [
+            6,
+            232
+          ],
+          "selected_unique_requests": 256,
+          "selected_unique_adapters": 92,
+          "batch8_input_requirements": {
+            "maximum_distinct_adapters": 8,
+            "maximum_declared_context_tokens": 4510,
+            "actual_kv_block_feasibility": null
+          }
+        },
+        {
+          "group_id": 1,
+          "lower_exclusive": 506,
+          "upper_inclusive": null,
+          "source_count": 2977,
+          "tpot_eligible_count": 2977,
+          "excluded_single_token_count": 0,
+          "native_prompt_range": [
+            509,
+            760
+          ],
+          "selected_prompt_range": [
+            509,
+            760
+          ],
+          "selected_target_range": [
+            6,
+            256
+          ],
+          "selected_unique_requests": 256,
+          "selected_unique_adapters": 87,
+          "batch8_input_requirements": {
+            "maximum_distinct_adapters": 8,
+            "maximum_declared_context_tokens": 8128,
+            "actual_kv_block_feasibility": null
+          }
+        }
+      ],
+      "raw_quartiles": [
+        506,
+        760,
+        760
+      ],
+      "finite_upper_bounds": [
+        506
+      ],
+      "current_tokenizer_checked_requests": 4000,
+      "measured_warm_reference": false,
+      "thresholds": null,
+      "probe_batches": 4,
+      "measure_batches": 194,
+      "script_sha256": "f516f86b02fa4255e3001afece429c2543c0d8380ac0e7317552db4194cf5ffd",
+      "new_trace_or_weights": false,
+      "historical_latency_reused": false
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "no_cuda_initialized": true,
+    "helper_sha256": "f516f86b02fa4255e3001afece429c2543c0d8380ac0e7317552db4194cf5ffd",
+    "runner_sha256": "131e9734c8b9ce20e73f5821508eeac9475b3651494bddf44142f7198dc33b2d"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "6a86e160a25b1692136bb2f359bf249d0ff2cffea11c0ffdc05a0c0b13467a55",
+  "caveat": "Existing 3B inputs verified against current tokenizer; no historical latency, new GPU measurement or SLO threshold."
+}

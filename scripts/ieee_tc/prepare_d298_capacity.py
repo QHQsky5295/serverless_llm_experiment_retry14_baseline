@@ -1528,8 +1528,79 @@ def prepare_3b_completed_initializer():
         observed_buckets=evidence['observed_buckets'], profile_id=contract['model_config']['ieee_admission_profile']['profile_id'])), flush=True)
 
 
+def prepare_3b_warm_inputs():
+    """Reuse D138 input identities with D168's existing index/collector rules.
+
+    No historical latency enters selection. Current canonical/native tokenizer
+    hashes must match all 4,000 original inputs before the index can be reused.
+    This creates indices and provenance only, not a new trace or model data.
+    """
+    from transformers import AutoTokenizer
+    from faaslora.datasets.workload_generator import canonical_fixed_prompt, render_role_lines
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs'
+    if out.exists():
+        raise FileExistsError('3B warm input preparation is append-only')
+    summary_path = root/'paper_results/ieee_tc/p2_backend/20261001_d138_3b_full_w0_full1.json'
+    summary = json.loads(summary_path.read_text())
+    assert summary['native_contract_completion_pass'] and summary['model'] == '3b'
+    projection_path = root/'results/ieee_tc/p2_backend_qualification/d138_20261001/full_full1_request_projection.json'
+    expected = '8221aaf5f60fad975eb4ae92bd9b5d2a0a7cc5d9b0e07bc3e00d6389b30322eb'
+    assert any(r['path'] == str(projection_path) and r['sha256'] == expected for r in summary['source_refs'])
+    assert p.digest(projection_path) == expected and projection_path.stat().st_size < 128*1024**2
+    projection = json.loads(projection_path.read_text())
+    source_spec = json.loads((root/'paper_results/ieee_tc/p2_backend/d643_3b_initializer/source_spec.json').read_text())
+    trace = Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+    assert p.digest(trace) == source_spec['trace_sha256'] == '4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+    plan = FrozenReplayPlan.load(trace)
+    assert len(plan.entries) == plan.source_count == len(projection['requests']) == 4000
+    index = p.warm_reference_input_index(plan, projection['requests'])
+    config_path = root/'configs/ieee_tc/20261017_d641_3b_native_source.yaml'
+    cfg = yaml.safe_load(config_path.read_text())['model_profiles']['llama32_3b_main_modelscope']['model']
+    assert cfg['max_num_seqs'] == cfg['max_loras'] == cfg['runtime_concurrency_cap'] == 8
+    assert cfg['enable_prefix_caching'] is False
+    tokenizer = AutoTokenizer.from_pretrained(cfg['name'], trust_remote_code=True, local_files_only=True)
+    measured = {r['request_id']: r for r in projection['requests']}
+    for entry in plan.entries:
+        row, old = json.loads(entry.source_json), measured[entry.request_id]
+        actual = canonical_fixed_prompt(render_role_lines(row['body']['messages']), tokenizer,
+            min(row['expected_output_tokens'], 256), max_model_len=1024, max_input_len=759)
+        assert actual['canonical_prompt_sha256'] == old['canonical_prompt_sha256']
+        assert actual['native_prompt_token_ids_sha256'] == old['native_token_timing']['native_prompt_token_ids_sha256']
+        assert len(actual['input_token_ids']) == old['native_token_timing']['actual_prompt_tokens']
+    p.validate_warm_reference_index(index, plan)
+    def ref(path):return dict(path=str(path),sha256=p.digest(path))
+    index.update(model='3b',source_trace_seed=42,plan_sha256=p.check_plan(),
+        metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        single_run_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+        source_refs=[ref(path) for path in (summary_path,projection_path,trace,config_path)],
+        current_tokenizer_checked_requests=4000,historical_latency_reused=False)
+    groups=[]
+    for group in index['groups']:
+        batches=[group['selected'][i:i+8] for i in range(0,256,8)]
+        group['batch8_input_requirements']=dict(
+            maximum_distinct_adapters=max(len({r['adapter_id'] for r in batch}) for batch in batches),
+            maximum_declared_context_tokens=max(sum(r['native_prompt_tokens']+r['target_tokens'] for r in batch) for batch in batches),
+            actual_kv_block_feasibility=None)
+        groups.append({k:v for k,v in group.items() if k!='selected'})
+    out.mkdir(parents=True,exist_ok=False)
+    with (out/'warm_input_index.json').open('x') as f:json.dump(index,f,indent=2,allow_nan=False)
+    record=dict(passed=True,kind='d646_3b_existing_warm_inputs_v1',
+        index=ref(out/'warm_input_index.json'),config=ref(config_path),source_refs=index['source_refs'],
+        groups=groups,raw_quartiles=index['raw_quartiles'],finite_upper_bounds=index['finite_upper_bounds'],
+        current_tokenizer_checked_requests=4000,measured_warm_reference=False,thresholds=None,
+        probe_batches=len(list(p.warm_reference_batches(index,'probe'))),
+        measure_batches=len(list(p.warm_reference_batches(index,'measure'))),
+        script_sha256=p.digest(Path(__file__)),new_trace_or_weights=False,historical_latency_reused=False)
+    with (out/'prepare.json').open('x') as f:json.dump(record,f,indent=2,allow_nan=False)
+    print(json.dumps(dict(passed=True,groups=groups,index_sha256=record['index']['sha256'],
+        probe_batches=record['probe_batches'],measure_batches=record['measure_batches'])))
+
+
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--3b-completed-initializer']:
+    if sys.argv[1:] == ['--3b-warm-inputs']:
+        prepare_3b_warm_inputs()
+    elif sys.argv[1:] == ['--3b-completed-initializer']:
         prepare_3b_completed_initializer()
     elif sys.argv[1:] == ['--metadata-profiles']:
         prepare_control_profiles(file_demand=True, metadata=True)

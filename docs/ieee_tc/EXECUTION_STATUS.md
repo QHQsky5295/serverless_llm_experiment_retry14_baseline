@@ -1,5 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D646当前3B共同warm输入准备通过；待备份后D647 — 2026-10-17
+
+本轮PROGRESS。复用D138全部4000输入身份，当前tokenizer逐条prompt/token
+SHA及长度一致；旧延迟不复用，不新建trace/权重。四分位506/760/760合并两组，
+各256条；已有collector生成4个probe batch、194个measure batch（16预热+
+1536测量）。15项CPU测试通过，无CUDA初始化。真实batch8/KV可行性仍未知，
+未填写阈值，不称3B SLO或Full/G1/G2达标。见D646_3B_WARM_INPUT_PREPARATION.md。
+session30918 exit0，scope...d64600001递归空/pathgone，峰值741072896B，
+high/max/OOM/swap0；147保护及用户manifest不变。只扩展既有prepare/source
+runner的warm入口，源码待显式备份。随后D647一次原生batch8容量探测→D648
+共同warm→Resident→3B Full W0/W1/W2。全部baseline/dLoRA、消融/机制/
+敏感性和交付仍ACTIVE；不恢复7B/HF支线、不动无关k3s，未达标前不画图。
+
+## D645已备份；下一主线3B共同warm标定 — 2026-10-17，备份后
+
+本轮PROGRESS。14个显式文件已推送31475e6fa50458ec6478d1a9636869f425e5efa7，
+remote相等，backup session34582 exit0；scope...d64500003递归空/pathgone，
+峰值56053760B、high/max/OOM/swap0。checksum/diff/secrets/147保护通过，
+用户manifest未stage。全部工具终态，无GPU/远端服务pending。磁盘可用
+169249894400B，下一重型仍独立准入。BASE未修改；完整目标保持ACTIVE。
+下一轮直接复用D645初始化，沿既有native_warm_reference/输入索引流程准备
+当前3B共同warm，不重跑D644、不复做profile导出。然后Resident和Full
+W0/W1/W2；全部3B对照/dLoRA、消融/机制/敏感性及文档图表仍未完成。
+本备份后记录留下一正常检查点，不另开仅为状态的提交循环。
+
 ## D645当前3B实测时间配置导出通过；待备份 — 2026-10-17
 
 本轮PROGRESS。复用D644，无新增GPU实验；service360样本/40类别、preparation

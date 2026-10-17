@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "kind": "d646_3b_existing_warm_inputs_v1",
+  "index": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs/warm_input_index.json",
+    "sha256": "5406f0f13dc489a91ae1f2e199217b5ca471a66acd043de474e301d7d5b135a4"
+  },
+  "config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261017_d641_3b_native_source.yaml",
+    "sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261001_d138_3b_full_w0_full1.json",
+      "sha256": "b20177aa13cc677fea2c151d752d1ede10a78d01de2d258fc02303c0624d87bb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d138_20261001/full_full1_request_projection.json",
+      "sha256": "8221aaf5f60fad975eb4ae92bd9b5d2a0a7cc5d9b0e07bc3e00d6389b30322eb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261017_d641_3b_native_source.yaml",
+      "sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": 0,
+      "lower_exclusive": null,
+      "upper_inclusive": 506,
+      "source_count": 1023,
+      "tpot_eligible_count": 1023,
+      "excluded_single_token_count": 0,
+      "native_prompt_range": [
+        14,
+        506
+      ],
+      "selected_prompt_range": [
+        14,
+        506
+      ],
+      "selected_target_range": [
+        6,
+        232
+      ],
+      "selected_unique_requests": 256,
+      "selected_unique_adapters": 92,
+      "batch8_input_requirements": {
+        "maximum_distinct_adapters": 8,
+        "maximum_declared_context_tokens": 4510,
+        "actual_kv_block_feasibility": null
+      }
+    },
+    {
+      "group_id": 1,
+      "lower_exclusive": 506,
+      "upper_inclusive": null,
+      "source_count": 2977,
+      "tpot_eligible_count": 2977,
+      "excluded_single_token_count": 0,
+      "native_prompt_range": [
+        509,
+        760
+      ],
+      "selected_prompt_range": [
+        509,
+        760
+      ],
+      "selected_target_range": [
+        6,
+        256
+      ],
+      "selected_unique_requests": 256,
+      "selected_unique_adapters": 87,
+      "batch8_input_requirements": {
+        "maximum_distinct_adapters": 8,
+        "maximum_declared_context_tokens": 8128,
+        "actual_kv_block_feasibility": null
+      }
+    }
+  ],
+  "raw_quartiles": [
+    506,
+    760,
+    760
+  ],
+  "finite_upper_bounds": [
+    506
+  ],
+  "current_tokenizer_checked_requests": 4000,
+  "measured_warm_reference": false,
+  "thresholds": null,
+  "probe_batches": 4,
+  "measure_batches": 194,
+  "script_sha256": "f516f86b02fa4255e3001afece429c2543c0d8380ac0e7317552db4194cf5ffd",
+  "new_trace_or_weights": false,
+  "historical_latency_reused": false
+}

@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d647|d648)
+    # Existing native warm collector; D646 indices select old inputs, not timings.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/${1}_20261017
+    CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d646_3b_warm_inputs/warm_input_index.json
+    ;;
   d644)
     # D642 completed lengths initialize admission; old timing samples stay old.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d644_20261017
@@ -104,12 +110,12 @@ export PRIME_REMOTE_TOKEN
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1 FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18081
 MODEL_PROFILE=llama2_7b_main_v2_publicmix
 REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
-if [[ "${1:-d298}" == d641 || "${1:-d298}" == d642 || "${1:-d298}" == d644 ]]; then
+if [[ "${1:-d298}" == d641 || "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 ]]; then
   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
   MODEL_PROFILE=llama32_3b_main_modelscope
   REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
 fi
-if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 ]]; then
+if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 ]]; then
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
   export FAASLORA_WORKER_START_TIMEOUT_S=600
@@ -123,6 +129,18 @@ export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python
 export FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea
 export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 VLLM_NO_USAGE_STATS=1
+QUALIFICATION_ARGS=(--request-count 1000 --qualification-mode native_source_matrix --source-profile-spec "$SPEC")
+if [[ "${1:-d298}" == d647 || "${1:-d298}" == d648 ]]; then
+  # Pure GPU-ready reference excludes network, router, planner and admission.
+  unset FAASLORA_REMOTE_ARTIFACT_ENABLED FAASLORA_REMOTE_ARTIFACT_ENDPOINT
+  unset FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE PRIME_REMOTE_TOKEN
+  PHASE=probe
+  [[ "$1" != d648 ]] || PHASE=measure
+  INDEX_SHA=$(sha256sum "$SPEC")
+  INDEX_SHA=${INDEX_SHA%% *}
+  QUALIFICATION_ARGS=(--request-count 4000 --qualification-mode native_warm_reference
+    --warm-reference-index "$SPEC" --warm-reference-index-sha256 "$INDEX_SHA" --warm-reference-phase "$PHASE")
+fi
 unit="primelora-tc-aux-$(tr -d '-' < /proc/sys/kernel/random/uuid).scope"
 exec systemd-run --user --scope --collect --unit="$unit" \
   -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
@@ -133,6 +151,5 @@ exec systemd-run --user --scope --collect --unit="$unit" \
   --runtime-receipt results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json \
   --config "$CONFIG" --model-profile "$MODEL_PROFILE" \
   --replay-trace "$REPLAY_TRACE" \
-  --request-count 1000 --qualification-mode native_source_matrix \
-  --source-profile-spec "$SPEC" \
+  "${QUALIFICATION_ARGS[@]}" \
   --output "$RAW/source1.json"
