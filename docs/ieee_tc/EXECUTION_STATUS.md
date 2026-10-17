@@ -1,5 +1,138 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D633备份来源适配 — 2026-10-17 19:30 local
+
+性能与完整审计不变，未新增GPU实验。publication attempt1(session87899)
+退出1：D619原JSON已由D620无损压缩，原路径不存在；attempt2(session42053)
+退出1：per-file压缩回执比curated entry多一个kind字段，全体共享字段相等。
+两次均在归档/提交前退出，资源scope均按实际身份关闭，分别保留failure与
+closure，非性能失败或重跑。修正读取既有gzip，验证两种既有schema的所有
+字段、archive SHA及流式解压SHA，不恢复大JSON副本。待publication3完成
+匹配输入/输出差异审计、5基线比较及明确路径备份；之后仍同配置W0。
+
+## D633完整W1审计完成 — 2026-10-17 19:26 local；待备份
+
+前轮VERIFIED WAIT，本轮PROGRESS：SAME D633完成4000/4000 native合同请求、
+458224tokens、0失败，服务返回0、实际GPU/context与cgroup均释放。当前无GPU
+运行；remote_stop session48598 exit0，按原Invocation关闭本轮两服务和monitor。
+collection session91967 exit0，scopef996a05e80264b5e94aac8efbb31cef0/
+Invocation507fda5b22be41048ef5072fbf0d1724/inode26941801已递归空关闭，
+peak54398976B/events0/swap0。原始结果284295215B，SHA
+0ad986a54fae610c866e4bbde3d440fb4ea6b22ba215a30d16ee061339a218f7。
+remote transfers SHA afcaa5c08da4e385c645bb045841b040bd4d3669ec8c228049adde0b23c9dc3f，
+monitor SHA 785cf3911553a01ae16deda358f5ef1a2a3c240ae1f109efb8713f5c9449509b。
+
+analyze-results复用D619完整W1审计和D632实际min2检查；native分析环境session
+25257 exit0，scoped4c29cdecae441ea8216143c31f2f27b/Invocation
+e194ff078b0a443fac97e72eb90b875f/inode26942554已关闭，peak655466496B，
+events0/swap0。完整输入/原生token/绑定/dispatch/计时/远端/物理积分与147
+投稿保护通过。联合3842=96.05%，平均TTFT1196.185387ms、P953154.104866ms，
+平均TPOT38.356950ms、P9562.706476ms，平均E2E5503.333910ms；U6310.028822237393，
+U/B0.933909934，预算余量446.542228GPU-s。相对D619，U下降3.218870%，
+P95TTFT上升8.832402%、联合下降1.225pp，保留全部取舍，不称全面改善。
+N_correct=null、ranking=false、独立数值UNKNOWN；已知回放单次观测不作CI。
+
+initial2/naturalup3，1084控制记录的ready+pending/target均[2,3]，缩容2；
+dispatch GPU/HOST/NVMe/Remote2676/432/757/135，132fetch、131480060wireB，
+pack0；2266资源样本peak18973417472B，高压/OOM/swap0。原helper的W2
+描述残留按description_correction.json明确实际W1，保留原字节，不重跑。
+完整PLAN已在当前上下文重读且SHA重验，冻结V1/单轮V2本轮再次完整读取。
+
+当前工具会话均终态、无pending。D633结果文档已补，publication复用D632/
+D621明确路径备份器，--check-only源SHA与AST通过，尚未执行备份；下一步
+受限publication补同输入逐请求核查、所有5个发表W1基线、保护/secrets/hash
+并推送，随后精确关闭其scope。MAIN仍20602b0，BASE不变；永不stage用户
+manifest或无关untracked。下一性能任务同min2/max3的W0，不能拼旧min1。
+7B独立数值/3B/dLoRA/A1–A5/S1–S13/成本/两轮审稿文档/最终图表全部ACTIVE。
+
+## D633 verified wait — 2026-10-17 19:01 local
+
+前轮及本轮均VERIFIED WAIT。已完整重读PLAN和最新状态；同一D633服务
+Invocation8d16a4787a2f4a08a1a9f3f5baa807dc仍active。最新2000arrived/
+2000completed/2000ok/0failed，elapsed17:34，3runtimes，naturalup2/down1。
+watchdog1100：available97726468096B、peak16281559040B、free170023710720B；
+high/max/OOM/kill/swap0，无abort或foreign。已完成前四phase，但未终态，
+不计算/预判整轮SLO、U或排名。每次45s等待后轻量核实同句柄，无pending
+工具会话；未改配置/源/远端、未另跑实验、未扫描/压缩/分析/构建/推送。
+继续SAME tc-d633-min2w1；结束后按18:44实际身份收尾并作完整W1审计，
+之后同配置W0。全部3B/dLoRA/独立数值/A1–A5/S1–S13/成本/文档/图表范围
+仍ACTIVE，不因半程native成功宣布正确性已证或目标完成。本次仅追加状态，
+下一正常检查点备份；运行前代码备份20602b0不变。
+
+## D633 verified wait — 2026-10-17 18:56 local
+
+本轮VERIFIED WAIT，继续SAME tc-d633-min2w1，未启动第二次运行。完整重读
+PLAN（1567行、SHA d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83）、
+AGENTS、最新状态及baseline/存储/阈值/次序执行补充，按monitor-experiment
+只核实实际服务身份、日志与资源。service Invocation
+8d16a4787a2f4a08a1a9f3f5baa807dc仍active；最新1364arrived/1348completed/
+1348ok/0failed，elapsed12:52，3runtimes，naturalup2/down1。watchdog821：
+available98052100096B、peak16281559040B、free170305048576B，high/max/OOM/
+kill/swap均0，无abort/foreign。原生返回成功前缀不等于独立数值正确或最终
+G1/G2可行；尚无终态结果。未作比较/选配置，不以live显示判SLO。
+
+仅45s等待和轻量轮询，无pending exec、无源/config/helper/remote修改，
+无扫描/压缩/分析/构建/推送。MAIN备份仍20602b0；状态追加下个正常检查点
+备份。继续同run至真实终态，按18:44记录实际身份释放、收集与W1审计；
+保留原helper描述中W2残留并另行明确W1，不改live脚本。之后同配置W0，
+独立数值验证、3B/dLoRA、A1–A5/S1–S13/成本/文档/最终图表全部ACTIVE。
+
+## D633 verified wait — 2026-10-17 18:50 local
+
+前轮PROGRESS（资格/备份/启动），本轮VERIFIED WAIT。持续核实SAME
+tc-d633-min2w1与service Invocation8d16a4787a2f4a08a1a9f3f5baa807dc active。
+最新581arrived/569completed/569ok/0failed，elapsed06:36，2runtimes，
+naturalup1/down1。watchdog456：available100075974656B、peak15802109952B，
+high/max/OOM/kill/swap0，free170889146368B，无abort/foreign。未终态，
+自然扩容/回收只作触发事实，不推导全程性能。全部原始失败/未知身份保留。
+完整PLAN和冻结协议仍在当前上下文已读，PLAN SHA复核一致、最新状态已读；
+按monitor-experiment轻量身份/日志检查及45s等待，无pending exec。未改
+生产/config/helper/remote，未扫描/分析/压缩/构建/备份/另开实验。
+继续SAME原run到真实终态，再按18:44实际身份/分类注意事项释放/收集/审计。
+W1/W0同配置、独立数值、3B/dLoRA/全部消融/敏感性/文档/图表均仍ACTIVE，
+不能由当前成功前缀宣布G1/G2完成或重启同键。代码已备份20602b0；此运行
+状态追加留下一正常检查点备份，不在推理期间推送。
+
+## D633完整W1已实际启动 — 2026-10-17 18:44 local
+
+本轮PROGRESS：严格同D632模型配置的完整W1资格、备份、实际启动完成。
+backup session73420 exit0，MAIN `20602b0aa99eb056eef7f866a7487548656863aa`
+已推送/远端相等，6明确文件，无用户manifest或旧图变更；BASE仍
+80e08b4c6e7c2874b1b237500a00811ec06cd8c5。backup scope
+6ed372a4e2b9445aaa38fce95944d02d/Invocation2bcd9269c1154be4bf880499ce1410d6/
+inode26923147递归空关闭，peak28659712B/events0/swap0。
+starter session25231 exit0，scope3f08c04182c64f788023403671e874a8/
+Invocationcfe4a279ab4b41f0a8ae2bf557b318d1/inode26923268已关闭，peak29655040B。
+无pending exec工具会话；下面实际performance资源仍live，不能关闭/重启。
+
+SAME tmux `tc-d633-min2w1`；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d633_20261017
+run `7b_min2_full_w1`。服务unit
+primelora-tc-svc-d1eec12617eb4c6aa209e4cc9088f49e.scope，Invocation
+8d16a4787a2f4a08a1a9f3f5baa807dc/inode26923431 active。实际launcher aux
+primelora-tc-aux-08b05884a06b4689a08d1ae24ffe78a2.scope，Invocation
+1ccffac744504b28a4be848e780ad6e2/inode26923389仍属于本运行。
+watchdog79：available102233038848B、peak14252044288B、high/max/OOM/kill/
+swap0，free172114481152B，无abort/foreign。最新4arrived/3completed/
+3ok/0failed，elapsed00:16，2runtimes。只说明已开始服务，不是最终性能结论。
+
+remote start实际1000Mb/s/full，D78/D80发布缓存无请求打包。3b Invocation
+423a448239fb435fae8fa6732974019f，7b44f764d0e811466b80757b76696cf582；
+monitor primelora-artifact-monitor-d633-min2w1.service Invocation
+47fbcd5f719f431b88d68fb22cfe8d32。7b clock
+remote-process-monotonic:2d8c64e56f3e460586a37d3a397a8476，3b clock
+remote-process-monotonic:de882ebb91634d5ea4c1216ac6b04d96。
+实际身份/服务配置在remote_start.log、remote_health.json，禁止运行中改远端。
+
+接下来只轻量检查SAME句柄/日志及45s等待，不改生产/配置/helper，不扫描/
+压缩/构建/分析/推送/另开实验。真实终态后复用close_launch→stop_remote→
+bounded collection→W1完整审计（min2/two-initial，不沿用min1）；实际W1视图
+在资格和启动断言中均强校验。start.py说明串、collect_closure尾部caveat
+仍有模板W2历史字样；这是注释/描述残留，不改live源，收集时须另存明确W1
+说明并以launch的实际profile为准，不让模板标签造成错误结果分类。
+保留原始失败/数值UNKNOWN与122输出差异，不因部分成功宣布G1/G2完成。
+W1后同配置W0，3B/dLoRA/A1–A5/S1–S13/成本/文档/最终图表全范围ACTIVE。
+
 ## D633同配置完整W1资格通过 — 2026-10-17 18:42 local；待备份/启动
 
 前轮PROGRESS（D632完整W2/审计/备份），本轮继续PROGRESS：新键
