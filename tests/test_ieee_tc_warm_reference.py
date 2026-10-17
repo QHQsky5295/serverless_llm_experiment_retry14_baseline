@@ -230,6 +230,28 @@ class CompletedWarmLengthReuse(unittest.TestCase):
                 completed_warm_length_samples(run, self.index)
 
 
+class WarmAuditCohort(unittest.TestCase):
+    def test_measure_counts_follow_merged_groups_not_hardcoded_7b(self):
+        from scripts.ieee_tc.audit_warm_measurement import warm_cohort_counts
+        for lengths, groups in [([100]*1024, 1), ([100]*512+[760]*512, 2),
+                                ([100]*300+[200]*300+[300]*300+[400]*300, 4)]:
+            plan, rows = fixture(lengths)
+            index = warm_reference_input_index(plan, rows)
+            expected, counts = warm_cohort_counts(index, 'measure')
+            self.assertEqual(counts, dict(warmup=8*groups, measurement=768*groups, capacity_probe=0))
+            self.assertEqual(len(expected), 97*groups)
+
+    def test_probe_is_not_measured_reference_and_phase_must_be_explicitly_valid(self):
+        from scripts.ieee_tc.audit_warm_measurement import warm_cohort_counts
+        plan, rows = fixture([100]*1024)
+        index = warm_reference_input_index(plan, rows)
+        expected, counts = warm_cohort_counts(index, 'probe')
+        self.assertEqual(counts, dict(warmup=0, measurement=0, capacity_probe=8))
+        self.assertEqual(len(expected), 1)
+        with self.assertRaises(ValueError):
+            warm_cohort_counts(index, 'unknown')
+
+
 class WarmReferenceExecution(unittest.IsolatedAsyncioTestCase):
     async def exercise(self, free_blocks):
         plan, rows = fixture([100]*1024)

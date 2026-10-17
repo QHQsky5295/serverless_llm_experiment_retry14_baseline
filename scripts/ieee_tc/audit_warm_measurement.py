@@ -13,43 +13,59 @@ sys.path.insert(0, str(ROOT))
 from scripts import ieee_tc_preflight as p
 
 
-def audit(raw_dir, projection_filter, output):
+def warm_cohort_counts(index, phase):
+    """Derive coverage from the sealed selector, never from observed success."""
+    expected = list(p.warm_reference_batches(index, phase))
+    counts = {key: sum(len(b['selected']) for b in expected if b['phase'] == key)
+              for key in ('warmup', 'measurement', 'capacity_probe')}
+    return expected, counts
+
+
+def audit(raw_dir, projection_filter, output, *, source_name='7b_measure1.json.gz',
+          launch_prefix='7b_measure1', index_path=None, phase='measure'):
     """D170 curation checks, with explicit input/output and no old-file overwrite."""
     if output.exists():
         raise FileExistsError(output)
-    archive = raw_dir / '7b_measure1.json.gz'
+    archive = raw_dir / source_name
     projection = raw_dir / 'measurement_projection1.json'
     # The D170 filter removes repeated batch tensor inventories only.
     if not projection.exists():
         with projection.open('xb') as target:
-            inflate = subprocess.Popen(['gzip', '-dc', str(archive)], stdout=subprocess.PIPE)
+            inflate = (subprocess.Popen(['gzip', '-dc', str(archive)], stdout=subprocess.PIPE)
+                       if archive.suffix == '.gz' else None)
+            source = inflate.stdout if inflate is not None else archive.open('rb')
             try:
                 project = subprocess.run(['jq', '--stream', '-n', '-f', str(projection_filter)],
-                                         stdin=inflate.stdout, stdout=target, check=False)
-                inflate.stdout.close()
-                inflate_status = inflate.wait()
+                                         stdin=source, stdout=target, check=False)
+                source.close()
+                inflate_status = inflate.wait() if inflate is not None else 0
                 if project.returncode or inflate_status:
                     raise RuntimeError('stream projection failed; partial evidence retained')
             finally:
-                if inflate.poll() is None:
+                source.close()
+                if inflate is not None and inflate.poll() is None:
                     inflate.terminate()
                     inflate.wait()
     if projection.stat().st_size > 128 * 1024**2:
         raise ValueError('projection exceeds existing D170 analysis bound')
     data = json.loads(projection.read_text())
-    launch = json.loads((raw_dir / '7b_measure1_launch.json').read_text())
-    index_path = ROOT / 'paper_results/ieee_tc/p2_backend/20261002_d168_warm_input_index.json'
+    launch_path = raw_dir / (launch_prefix + '_launch.json')
+    launch = json.loads(launch_path.read_text())
+    if index_path is None:
+        index_path = ROOT / 'paper_results/ieee_tc/p2_backend/20261002_d168_warm_input_index.json'
     index = json.loads(index_path.read_text())
     assert p.digest(index_path) == data['warm_reference_index_sha256']
-    assert data['warm_phase'] == 'measure' and data['batch_size'] == 8
+    assert data['warm_phase'] == phase and data['batch_size'] == 8
     assert launch['pass'] and data['pass'] and data['stage'] == 'complete'
     assert launch['service_returncode'] == launch['watchdog_returncode'] == 0
     assert launch['cleanup']['released'] and data['shutdown_called']
     samples = p.completed_warm_length_samples(data, index)
-    assert len(samples) == 512 and len(data['requests']) == 1552
-    expected = list(p.warm_reference_batches(index, 'measure'))
-    assert len(expected) == len(data['warm_batches']) == 194
-    assert sorted(i for b in data['warm_batches'] for i in b['request_indices']) == list(range(1552))
+    expected, counts = warm_cohort_counts(index, phase)
+    total = sum(counts.values())
+    unique = {r['source_request_id'] for b in expected if b['phase'] != 'warmup' for r in b['selected']}
+    assert set(samples) == unique and len(data['requests']) == total
+    assert len(expected) == len(data['warm_batches'])
+    assert sorted(i for b in data['warm_batches'] for i in b['request_indices']) == list(range(total))
     for serial, (batch, spec) in enumerate(zip(data['warm_batches'], expected)):
         cases = [data['requests'][i] for i in batch['request_indices']]
         assert len(cases) == len(spec['selected']) == 8
@@ -66,7 +82,7 @@ def audit(raw_dir, projection_filter, output):
     assert not data['sources_after_eviction']['sources']
     assert all(v is None for v in data['sources_after_eviction']['slot_adapter_ids'])
     rounds = []
-    for gid in (0, 1):
+    for gid in ([g['group_id'] for g in index['groups']] if phase == 'measure' else []):
         for rid in range(3):
             cases = [c for c in data['requests'] if c['phase'] == 'measurement'
                      and c['group_id'] == gid and c['round'] == rid]
@@ -74,7 +90,7 @@ def audit(raw_dir, projection_filter, output):
             rounds.append(dict(group_id=gid, round=rid, count=len(cases),
                                ttft_ms=statistics.fmean(c['ttft_ms'] for c in cases),
                                tpot_ms=statistics.fmean(c['tpot_ms'] for c in cases)))
-    watch = raw_dir / '7b_measure1_launch.launch/watchdog.jsonl'
+    watch = raw_dir / (launch_prefix + '_launch.launch/watchdog.jsonl')
     event_counts, resource = {}, []
     for line in watch.open():
         event = json.loads(line)
@@ -99,11 +115,16 @@ def audit(raw_dir, projection_filter, output):
                           and p.digest(known_change) == known_change_sha)
     result = dict(kind='warm_reference_independent_audit_v1', passed=True,
         projection_sha256=p.digest(projection), projection_filter_sha256=p.digest(projection_filter),
-        source_archive_sha256=p.digest(archive), launch_sha256=p.digest(raw_dir/'7b_measure1_launch.json'),
+        source_archive_sha256=p.digest(archive) if archive.suffix == '.gz' else None,
+        source_file=dict(path=str(archive), sha256=p.digest(archive)),
+        launch_sha256=p.digest(launch_path), phase=phase,
+        index_ref=dict(path=str(index_path), sha256=p.digest(index_path)),
         source_plan_sha256=data['plan_sha256'], metric_protocol_sha256=p.digest(
             ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
-        native_checked=1552, measured=1536, warmup=16, unique_measured_source_requests=len(samples),
-        batch_checked=194, round_means=rounds, watchdog_events=event_counts,
+        native_checked=total, measured=counts['measurement'], warmup=counts['warmup'],
+        capacity_probe=counts['capacity_probe'], unique_checked_source_requests=len(samples),
+        unique_measured_source_requests=len(samples) if phase == 'measure' else 0,
+        batch_checked=len(expected), round_means=rounds, watchdog_events=event_counts,
         physical_gpu_s=release[0]['at']-acquire[0]['at'],
         census_alone_proves_lease_release=census['proves_physical_lease_release'],
         release_journal_verified=True,
@@ -129,5 +150,10 @@ if __name__ == '__main__':
     parser.add_argument('--raw-dir', type=Path, required=True)
     parser.add_argument('--projection-filter', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--source-name', default='7b_measure1.json.gz')
+    parser.add_argument('--launch-prefix', default='7b_measure1')
+    parser.add_argument('--index-path', type=Path)
+    parser.add_argument('--phase', choices=('probe', 'measure'), default='measure')
     args = parser.parse_args()
-    audit(args.raw_dir, args.projection_filter, args.output)
+    audit(args.raw_dir, args.projection_filter, args.output, source_name=args.source_name,
+          launch_prefix=args.launch_prefix, index_path=args.index_path, phase=args.phase)

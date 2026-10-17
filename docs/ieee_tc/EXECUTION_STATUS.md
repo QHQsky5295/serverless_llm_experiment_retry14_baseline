@@ -1,5 +1,21 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D647当前3B batch8 warm探测通过；待备份后D648 — 2026-10-17 23:33 local
+
+本轮PROGRESS。D646输入/runner已推送ab8be4c57b19569f82feba5a83a5c4656ce2ca97，
+remote相等，backup45799 exit0/scope...d64600002空关闭。随后D647按同索引
+一次原生探测完成4批/32请求；最大所需KV512blocks，可用5830（16tokens/block），
+最多8个不同adapter。全部原生输入/token/驻留/引用/计时/drain检查通过，
+允许继续batch8；不产生SLO阈值，不称Full/G1/G2达标。
+单GPU持有73.991899s，服务峰值7015247872B、最低主机可用105769992192B，
+事件/swap0。start15869、analysis28013均exit0且scope递归空/pathgone；launcher
+e9181b39319a4dde938b79cc43f8568b与service都已释放，无GPU/远端pending。
+现有warm analyzer增加显式索引/文件/phase，按冻结selector推导覆盖；17项
+CPU测试通过，分析峰值75517952B/事件0。147保护和用户manifest不变。
+见D647_3B_WARM_CAPACITY_PROBE.md。代码/小型测量待显式检查点，然后直接
+D648一次共同warm（16预热+1536测量），不重跑D647/D644。随后3B Resident/
+Full W0–W2/all baseline/dLoRA；全部A1–A5/S1–S13及最终交付仍ACTIVE。
+
 ## D646当前3B共同warm输入准备通过；待备份后D647 — 2026-10-17
 
 本轮PROGRESS。复用D138全部4000输入身份，当前tokenizer逐条prompt/token
