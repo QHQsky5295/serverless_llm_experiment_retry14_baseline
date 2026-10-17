@@ -1,5 +1,46 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D619 qualification passed — backup then launch once
+
+Qualification86369 exit0, actual scope closed/pathgone, peak611786752B/events0.
+Full4000W1 identity, sameD617/D615 model point,524CPU tests reused by sources/logs,
+192cap-state checks, actual profiles,147protected files and userdirt all pass.
+No new performance executed. New helper/config hashes frozen inqualification.json;
+only shell case identity added sinceD618, productionrunner unchanged29114576.
+Next backup.py in bounded scope, close backup, start.py then monitor SAME run.
+No live GPU/remote and no pending tool. Complete scope remainsACTIVE.
+
+## D619 registered — qualify and back up before full W1
+
+D618 repaired source610388a retained. New D619 config differs from D617 only in
+output/cold-cache paths; no further algorithm or performance-setting change.
+Reuse D618 524 CPU tests and native four-device preparation evidence by SHA;
+check unchanged full4000 W1, profiles, prior closure,147 protected files and dirt.
+Raw p2_backend_qualification/d619_20261017, run7b_device_domain_full_w1;
+tmux tc-d619-domainw1 not yet launched. No live GPU experiment. Next bounded
+qualification -> actual closure -> explicit-path backup -> launch once.
+FullPLAN/latest rules/V1/V2 reread. All G1/G2/W2/W0/3B/dLoRA/A1–A5/S1–S13/
+cost/reviewer/final figures remain ACTIVE; no new performance result asserted.
+
+## D618 checkpoint pushed — next new-version full W1, no live run
+
+Publication58571 exit0, checkpoint610388a44c0c270b27668f8822fdea1a5128bf96
+pushed and remote-equal. Explicit7paths, SHA/archive/diff/secrets/protected147/
+user-dirt checks pass. Actual publication resource domain closed/pathgone; all
+D617/D618 local/remote/GPU jobs terminal, no pending tool. Latestfree161282301952B,
+recheck before new launch; no old deletion/compression list repeated.
+
+This goalturn made PROGRESS: D617 failure closure/causal evidence/backup, safe
+lossless storage recovery, one semantic production fix, parent failure witness,
+60focused+464regression tests, native four-device mechanism reuse and tested
+backup. Goal remainsACTIVE, notblocked/completed. No new performance or numerical
+qualification asserted. Next register D619 full4000W1 with unchangedD617 model
+config/input, unique output/cache paths and currentsource; reuse524CPU checks by
+SHA and existing native preparation qualification, verify actual overlap in the
+full integrated replay. Subsequent same-source W2/W0 cannot splice D615 oldsource.
+All3B/dLoRA/A1–A5/S1–S13/cost/reviewerdocs/finalfigures stillpending. Reread full
+PLAN/status/rules/V1/V2 before next experiment. No return to baseline search.
+
 ## D618 qualified device-domain correction — backup, then same-point full W1
 
 D617 failure checkpoint01c36f6d41437d679e67de52cf350c70d0fe081e pushed/remote-equal;

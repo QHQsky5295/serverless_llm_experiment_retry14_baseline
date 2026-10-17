@@ -612,6 +612,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d619)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d619_20261017/7b_device_domain_full_w1
+    CONFIG=configs/ieee_tc/20261017_d619_7b_device_domain_full_w1.yaml
+    TAG=d619_7b_device_domain_full_w1
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -649,7 +656,7 @@ if [[ "${1:-d293}" == d554 || "${1:-d293}" == d598 || "${1:-d293}" == d603 || "$
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
 fi
-if [[ "${1:-d293}" == d533 || "${1:-d293}" == d550 || "${1:-d293}" == d551 || "${1:-d293}" == d597 || "${1:-d293}" == d617 ]]; then
+if [[ "${1:-d293}" == d533 || "${1:-d293}" == d550 || "${1:-d293}" == d551 || "${1:-d293}" == d597 || "${1:-d293}" == d617 || "${1:-d293}" == d619 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W1
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
