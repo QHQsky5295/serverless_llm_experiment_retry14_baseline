@@ -1,5 +1,51 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D624 qualified — backup, then one full W0 launch
+
+Qualification23849exit0; full4000 W0 view a5331be2, same D619/D621 model
+configuration and production verified. 60focused/464regression/21control tests
+and192state checks reused by SHA, not rerun. 147protected files unchanged.
+Qualification actualscopeclosed/pathgone. No GPU/remote performance run live.
+Next explicit-path checked backup/push and actual backup closure; then start
+one D624 full W0. No algorithm changes, no W2 rerun or baseline tuning.
+All full PLAN scope remains active; numerical qualification still unknown.
+
+## D624 registered — same-version W0 only; no new optimization
+
+Full PLAN, latest baseline/storage rules and frozen V1/single V2 reread.
+No live experiment; four GPUs idle, MemAvailable104GiB, free~163.15GiB.
+Reuse D619/D621 production/config exactly except unique output/cache paths.
+Existing runner receives only D624 identity and same native toolchain contract;
+W0 is the original4000 source, no W2 adapter map. Qualification/backup/start
+helpers reuse D621 with explicit W0 input binding. No code-policy retuning,
+baseline tuning, new data, same-key rerun, figure or unrelated k3s changes.
+Next bounded qualification and actual closure, checked backup/push, then one
+full W0 launch. D62194.95% remains infeasible. Full remaining goal ACTIVE;
+numerical proof is still unknown, no G1/G2/overall-winner claim.
+
+## D622/D623 checkpoints pushed — no live task; W0 next
+
+LatestHEADf11d44663ac5c1d5f1c59cd9cac4e23ea4439677 pushed/remote-equal.
+D623publication86623exit0,actualclosed/pathgone,peak51945472B/events0.
+D622 storage/publication and D623 analysis/publication all closed. No pending
+tool, no inference/remote service running; fourGPUs15MiBidle. Latestfree
+175176880128B (~163.15GiB), MemAvailable104GiB. Production unchanged,
+protectedgeneratedmanifest remains soletracked dirt beforethisstatusupdate.
+
+ThisgoalturnPROGRESS: safely reclaimed14.30GiB retaining allsourceSHA/failures;
+completed matched D615/D621 W2 stage/rotation/physical diagnosis and backup.
+Notblocked/notcomplete. D621 remains3798/4000joint(94.95%), withinGPUbudget
+butnotSLO-feasible. 142same-backendoutputhashchanges remainunauditednumerically;
+unknownoracle neverimputed. No same-keyreplay or baselineperformance tuning.
+
+Next: readfullPLAN/rules/frozenV1/singleV2, register one same-production/model-
+configuration fullW0 key using existing runner/inputs. No newW0 has been
+created orlaunched yet. PreserveW1D619/W2D621 sameversion, don'tspliceoldW0.
+Then selectone history+official-source supported optimization hypothesis
+from preparation/activation evidence; nophase-specificfutureknowledge,
+noformula/thresholdchange. All remainingnumericalqualification/7Btargets/3B/
+dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure scope staysACTIVE. Nofiguresyet.
+
 ## D623 diagnosis complete — backup, then same-version W0
 
 D622 commit9de424ee19864741e82d8a66a1d3ef26f8169360 pushed/remote-equal;
