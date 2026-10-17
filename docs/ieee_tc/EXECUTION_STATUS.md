@@ -1,5 +1,46 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D626 离线分解完成：准备不是纯网络等待；下一步限定为发布临界区核查
+
+Full PLAN/latest rules/frozen V1+single V2已完整重读，协议与运行身份未改。
+复用D594两项分析器检查D621已封存W2，remote/pressure分析均exit0，实际
+资源域关闭/pathgone；peak47415296/32088064B，high/max/OOM/kill/swap全0。
+147项投稿保护及用户修改保持；无生产改动、新推理运行、远端操作或作图。
+
+506 selected-remote中495自有获取，1 native reused，494具备完整自有获取
+及native load；其中112联合违约、105准备主导。494均值准备2425.967ms，
+接收写入254.432、解包223.218、发布包络317.716、native load50.794ms。
+105条对应3757.909/364.057/248.148/456.236/52.440ms。压力start+finish
+为332.249+362.412ms（105条583.372+577.368），嵌套在总量，不重复相加。
+RPC等待非纯native时间，socket write含接收端背压；不能归为纯网络瓶颈。
+W2仍3798/4000=94.95%；独立数值UNKNOWN/N_correctnull/rankingfalse。
+
+已核对D595失败并行屏障、D601回退、D603采样与D606/D610已实现文件优化，
+以及当前publication持有全局owner锁并重读SHA的路径。官方Python/vLLM/HF
+源码已核查（Parallel未认证，网页fallback）；不移除确认或重试旧方案。
+下一步仅有界组件核查publication锁持有/hash/实时观察，验证私有transfer pin
+下分离内容验证与全局容量提交的可能性。不是已接受优化；如无主要开销或
+不满足并发/取消/内容/容量安全则否决，不开额外GPU诊断。详见D626文档。
+
+当前为PROGRESS；先按github-sync保存两项分析、CSV、来源及关闭回执并推送。
+7B完整G1/G2/数值、3B、dLoRA、A1–A5、S1–S13、成本/审稿文档/最终图表
+仍ACTIVE。HydraServe适配已完成，不改其他项目k3s，不继续baseline调优。
+
+## D625 已备份并关闭：下一步细分已有 W2 准备回执
+
+- 提交 `9392fcab2f07ca973d0452d1aff2af27ff7471b7` 已推送，远端分支一致。
+  仅提交本轮两份文档与三个小型发布产物；用户 manifest 和无关文件未提交。
+- publication session 35115 正常结束；精确身份核验后资源域递归空、已移除。
+  峰值 79552512 B，high/max/OOM/kill/swap 全0。分析两次的资源域也已关闭。
+- 四张 GPU 均无计算进程（各15 MiB、0%）；磁盘可用174205059072 B，
+  约162.24 GiB。没有性能实验、远端服务或待回收工具会话正在运行。
+- 当前轮为 PROGRESS：完成D625离线分解、保留首次分析失败、校验并备份；
+  没有生产改动、重复性能运行或新增结果图。独立数值正确性仍 UNKNOWN。
+- 下一步按下方登记，复用D594/D600拆分D621已有remote准备/压力确认回执。
+  不重开HydraServe隔离适配；现有rootless Podman路径已完成必要实验，
+  其他项目的k3s继续不动。完整未完成范围和冻结评价协议保持不变。
+- 本条为提交后的收尾记录；关闭回执在D625原始目录，随下个正常检查点备份。
+
 ## D625 offline diagnosis complete — bounded preparation audit next
 
 SAME analysis session84041 exited0; analysis2 actualempty-scopeclosure passed,
