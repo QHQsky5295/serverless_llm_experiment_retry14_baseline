@@ -22,6 +22,42 @@ def digest(path):
         return hashlib.file_digest(handle, 'sha256').hexdigest()
 
 
+MODEL_IDENTITIES = {
+    '7b': ('llama2_7b_main_v2_publicmix', 'models/meta-llama--Llama-2-7b-hf'),
+    '3b': ('llama32_3b_main_modelscope', 'models/LLM-Research--Llama-3.2-3B-Instruct'),
+}
+
+
+def audit_layout(root, model_key, scheduler_contract, population):
+    """Explicit model-qualified paths; keep the historical 7B default unchanged."""
+    if model_key not in MODEL_IDENTITIES:
+        raise ValueError('unknown measured model identity')
+    counts = {'prefix100': 100, 'prefix1000': 1000, 'adapter_coverage_v1': 500,
+              'full4000': 4000, 'full4000_w1': 4000, 'full4000_w2': 4000}
+    if population not in counts:
+        raise ValueError('unknown qualification population')
+    if scheduler_contract not in ('original', 'request_identity_v1', 'resident_rr_v1',
+                                  'slora_resident_rr_v1', 'loquetier_static_shards_v1'):
+        raise ValueError('unknown scheduler contract')
+    resident = scheduler_contract in ('resident_rr_v1', 'slora_resident_rr_v1',
+                                      'loquetier_static_shards_v1')
+    suffix = '' if resident else '_repaired'
+    return (root/f'launch{model_key}{suffix}.launch', root/f'model{model_key}{suffix}',
+            root/f'http_{model_key}_{counts[population]}.json')
+
+
+def validate_metric_model(http, model_key, main, frozen_slo=None):
+    """Never apply one model's frozen SLO merely because a caller renamed a file."""
+    if model_key not in MODEL_IDENTITIES:
+        raise ValueError('unknown measured model identity')
+    profile, relative = MODEL_IDENTITIES[model_key]
+    if Path(http['backbone']).resolve() != (main/relative).resolve():
+        raise ValueError('HTTP backbone differs from explicit measured model')
+    if frozen_slo is not None and frozen_slo['model'] != profile:
+        raise ValueError('frozen SLO model differs from measured backbone')
+    return profile
+
+
 async def reproduce_queue(source):
     """Execute the actual control-loop AST with a three-item mocked queue.
 
@@ -157,7 +193,7 @@ def compare_reference_row(observation, contract, source, reference):
         native_token_in_hf_top2=reference['native_token_in_hf_top2'] if reusable_margin else None)
 
 
-def reuse_numerical_reference(root, reference_path, main, scheduler_contract='original'):
+def reuse_numerical_reference(root, reference_path, main, scheduler_contract='original', model_key='7b'):
     """D407 bounded independent-reference reuse; no GPU or new reference data."""
     reference = json.loads(reference_path.read_text())
     source_path = Path(reference['source_native_path'])
@@ -167,12 +203,13 @@ def reuse_numerical_reference(root, reference_path, main, scheduler_contract='or
     sources = next(iter(source_result['detailed_results'].values()))['requests']
     source_index = {r['request_id']: r for r in sources}
     reference_index = {r['request_id']: r for r in reference['requests']}
-    replay = root/('launch7b.launch/replay.jsonl' if scheduler_contract in ('resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1')
-                  else 'launch7b_repaired.launch/replay.jsonl')
+    launch_root, _, config_path = audit_layout(root, model_key, scheduler_contract, 'prefix100')
+    replay = launch_root/'replay.jsonl'
     events = [json.loads(l) for l in replay.read_text().splitlines()]
     contracts = {r['request_id']: r for r in events if r['event'] == 'request_contract'}
     native = {r['request_id']: r['body']['metrics']['ieee_tc'] for r in events if r['event'] == 'http_raw_response'}
-    cfg = json.loads((root/'http_7b_100.json').read_text())
+    cfg = json.loads(config_path.read_text())
+    validate_metric_model(cfg, model_key, main)
     if (len(reference_index) != len(reference['requests']) or len(reference_index) != 100
             or set(contracts) != set(reference_index) or set(native) != set(reference_index)
             or set(source_index) != set(reference_index)
@@ -355,7 +392,7 @@ def validate_vllm_ready_row(row, cfg, control, ordinal, service, clock_id):
     return index
 
 
-def audit_vllm_receipts(root, cfg, qualifier, ready, config_path, native):
+def audit_vllm_receipts(root, cfg, qualifier, ready, config_path, native, *, model_root=None):
     from replay_vllm_engine_trace import validate_native_service_config
     http = json.loads(config_path.read_text())
     validate_native_service_config(cfg, http)
@@ -371,14 +408,15 @@ def audit_vllm_receipts(root, cfg, qualifier, ready, config_path, native):
     plan = native.load_http_replay_plan(http)
     ordinals = {e.request_id: i for i, e in enumerate(plan.entries)}
     receipts, seen_indices = {}, set()
-    worker_path = root/'model7b/worker_config.json'
+    model_root = root/'model7b' if model_root is None else model_root
+    worker_path = model_root/'worker_config.json'
     for request in qualifier['requests']:
         observation = request['response']['metrics']['ieee_tc']
         c = observation['control_observation']
         rid = c['tc_worker_receipt_id']
         if len(rid) != 32 or any(ch not in '0123456789abcdef' for ch in rid):
             raise ValueError('invalid native receipt ID')
-        path = root/'model7b/worker_receipts'/(rid+'.json')
+        path = model_root/'worker_receipts'/(rid+'.json')
         row = json.loads(path.read_text())
         if (path.is_symlink() or digest(path) != c['tc_worker_receipt_sha256']
                 or row['receipt_id'] != rid or row['worker_config_sha256'] != digest(worker_path)
@@ -488,7 +526,7 @@ def validate_slora_allocation(allocation, row, cfg, index, clock_id, completed, 
         raise ValueError('S-LoRA physical release lacks empty native census')
 
 
-def audit_slora_receipts(root, cfg, qualifier, ready, config_path, native):
+def audit_slora_receipts(root, cfg, qualifier, ready, config_path, native, *, model_root=None):
     from replay_vllm_engine_trace import validate_slora_service_config, verify_slora_source_view, SLORA_INPUT_KEYS
     http = json.loads(config_path.read_text())
     validate_slora_service_config(cfg, http)
@@ -510,13 +548,14 @@ def audit_slora_receipts(root, cfg, qualifier, ready, config_path, native):
             raise ValueError('executed S-LoRA adapter source changed')
     ordinals = {e.request_id: i for i, e in enumerate(native.load_http_replay_plan(http).entries)}
     receipts, seen_indices = {}, set()
-    worker_path = root/'model7b/worker_config.json'
+    model_root = root/'model7b' if model_root is None else model_root
+    worker_path = model_root/'worker_config.json'
     for request in qualifier['requests']:
         o = request['response']['metrics']['ieee_tc']
         c, rid = o['control_observation'], o['control_observation']['tc_worker_receipt_id']
         if len(rid) != 32 or set(rid)-set('0123456789abcdef'):
             raise ValueError('invalid S-LoRA receipt ID')
-        path = root/'model7b/worker_receipts'/(rid+'.json')
+        path = model_root/'worker_receipts'/(rid+'.json')
         row = json.loads(path.read_text())
         rpc = Path(cfg['source_view'])/'slora/server/router/model_infer/model_rpc.py'
         runner = str(Path(sys.modules['replay_vllm_engine_trace'].__file__).resolve())
@@ -586,7 +625,7 @@ def loquetier_deployment_description(cfg):
                      'No PrimeLoRA policy added; this is not independent numerical correctness or a global capacity bound.')
 
 
-def audit_loquetier_receipts(root, cfg, qualifier, ready, config_path, native):
+def audit_loquetier_receipts(root, cfg, qualifier, ready, config_path, native, *, model_root=None):
     from replay_vllm_engine_trace import (validate_loquetier_service_config,
         verify_loquetier_source_view, load_loquetier_static_plan, validate_loquetier_ready_receipt)
     validate_loquetier_service_config(cfg, json.loads(config_path.read_text()))
@@ -606,15 +645,16 @@ def audit_loquetier_receipts(root, cfg, qualifier, ready, config_path, native):
     for path, sha in cfg['source_sha256'].items():
         if digest(path) != sha:
             raise ValueError('executed Loquetier adapter source changed')
-    worker_path = root/'model7b/worker_config.json'
-    preparation_sha = digest(root/'model7b/loquetier_full_pool_preparation.json')
+    model_root = root/'model7b' if model_root is None else model_root
+    worker_path = model_root/'worker_config.json'
+    preparation_sha = digest(model_root/'loquetier_full_pool_preparation.json')
     receipts, seen_indices = {}, set()
     for request in qualifier['requests']:
         o = request['response']['metrics']['ieee_tc']
         c, rid = o['control_observation'], o['control_observation']['tc_worker_receipt_id']
         if not isinstance(rid, str) or len(rid) != 32 or set(rid)-set('0123456789abcdef'):
             raise ValueError('invalid Loquetier receipt ID')
-        path = root/'model7b/worker_receipts'/(rid+'.json')
+        path = model_root/'worker_receipts'/(rid+'.json')
         row = json.loads(path.read_text())
         if (path.is_symlink() or digest(path) != c['tc_worker_receipt_sha256']
                 or row['receipt_id'] != rid or row['worker_config_sha256'] != digest(worker_path)
@@ -716,7 +756,7 @@ def validate_slora_resolver_journal(rows, preparation):
 
 
 def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None,
-          outcome='success'):
+          outcome='success', model_key='7b'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
@@ -727,8 +767,9 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     static_native = is_slora or is_loquetier
     resident = is_vllm or static_native
     backend = 'loquetier' if is_loquetier else 'slora' if is_slora else 'vllm'
-    launch_root = root/('launch7b.launch' if resident else 'launch7b_repaired.launch')
-    model_root = root/('model7b' if resident else 'model7b_repaired')
+    launch_root, model_root, config_path = audit_layout(root, model_key, scheduler_contract, population)
+    http = json.loads(config_path.read_text())
+    model_profile = validate_metric_model(http, model_key, main)
     replay = launch_root/'replay.jsonl'
     summary = analyzer.audit_tc_http_journal(replay)
     events = [json.loads(line) for line in replay.read_text().splitlines()]
@@ -736,13 +777,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     index = {k: {e['request_id']: e for e in events if e['event'] == k} for k in kinds}
     ready = summary['ready_identity']
     assert digest(ready['plan']['source_path']) == ready['plan']['source_sha256']
-    config_path = root/{'adapter_coverage_v1': 'http_7b_500.json',
-                       'prefix1000': 'http_7b_1000.json', 'prefix100': 'http_7b_100.json',
-                       'full4000': 'http_7b_4000.json',
-                       'full4000_w1': 'http_7b_4000.json',
-                       'full4000_w2': 'http_7b_4000.json'}[population]
     assert digest(config_path) == ready['config_sha256']
-    count = validate_population(json.loads(config_path.read_text()), ready,
+    count = validate_population(http, ready,
                                 index['request_contract'], native, population)
     cfg = json.loads((model_root/('worker_config.json' if resident else 'configuration.json')).read_text())
     qualifier = json.loads((model_root/'model_qualification.json').read_text())
@@ -758,7 +794,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                        for rid, raw in index['http_raw_response'].items())):
             raise ValueError('resident service and independent publisher responses differ')
         receipt_audit = audit_loquetier_receipts if is_loquetier else audit_slora_receipts if is_slora else audit_vllm_receipts
-        qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native)
+        qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native,
+                                                          model_root=model_root)
     else:
         assert qualifier['physical_lifecycle']['lifecycle_qualified']
         native.audit_backend_receipts(qualifier, cfg['backend_config']['tc_worker_audit'], ready['clock_id'])
@@ -818,7 +855,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             path, receipt = receipts[aid]
             files = {f['path']: (f['size_bytes'], f['sha256']) for f in pool[aid]['files']}
             validate_artifact_transfer(aid, prep, receipt, digest(path), files,
-                remote[prep['tc_artifact_transfer_id']], health['7b']['clock_id'], ready['clock_id'])
+                remote[prep['tc_artifact_transfer_id']], health[model_key]['clock_id'], ready['clock_id'])
             used_transfers.add(prep['tc_artifact_transfer_id'])
         resolver_rows = [json.loads(line) for path in (root/'remote_resolver_evidence/journals').glob('*.jsonl')
                          for line in path.read_text().splitlines()]
@@ -856,7 +893,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         assert server['artifact_id'] == receipt['adapter_id'] == contract['adapter_id']
         assert server['outcome'] == 'sent' and server['pack_performed'] is False and server['temporary_created'] is False
         assert server['delivery_mode'] == evidence['remote_delivery_mode'] == 'prepublished_gzip_v1'
-        assert server['clock_id'] == health['7b']['clock_id']
+        assert server['clock_id'] == health[model_key]['clock_id']
         assert server['transfer_id'] == evidence['http_transfer_id']
         assert server['archive_sha256'] == evidence['remote_archive_sha256']
         assert server['archive_bytes'] == server['bytes_read'] == server['bytes_written'] == evidence['transferred_bytes']
@@ -912,6 +949,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                           'ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
                           else 'ieee_tc_affected_path_audit_v2'), display_name='Loquetier' if is_loquetier else 'S-LoRA' if is_slora else 'vLLM' if is_vllm else 'ServerlessLLM',
         remote_affected_path_qualified=outcome == 'success', complete_system_qualified=False,
+        model_profile=model_profile, model_key=model_key,
         source_plan=ready['plan'], native_revalidated_requests=response_count, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
         n_correct=None, independent_lora_numerical_correctness=False,
@@ -956,8 +994,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         result['limitations'].append('All offered requests reached a terminal, but request failures remain; conditional latency and total resources do not constitute a feasible G1/G2 point. Failure attribution is separate.')
     if slo_freeze is not None:
         frozen_slo = json.loads(slo_freeze.read_text())
-        if (frozen_slo['model'] != 'llama2_7b_main_v2_publicmix'
-                or frozen_slo['slo_reference_frozen'] is not True
+        validate_metric_model(http, model_key, main, frozen_slo)
+        if (frozen_slo['slo_reference_frozen'] is not True
                 or frozen_slo['thresholds_common_to_all_systems'] is not True
                 or frozen_slo['metric_protocol_sha256'] != digest(main/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md')
                 or frozen_slo['single_run_amendment_sha256'] != digest(main/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')):
@@ -1009,18 +1047,19 @@ if __name__ == '__main__':
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000', 'full4000_w1', 'full4000_w2'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)
+    parser.add_argument('--model-key', choices=tuple(MODEL_IDENTITIES), default='7b')
     parser.add_argument('--outcome', choices=('success', 'complete_with_failures'), default='success',
                         help='Explicit diagnostic only; never bypass success qualification or hide failed offered rows.')
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
     report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze,
-                   args.outcome)
+                   args.outcome, args.model_key)
     if args.reference_result:
         if args.population != 'prefix100':
             raise ValueError('independent reference is the unchanged first 100 requests only')
         report['bounded_numerical_reference'] = reuse_numerical_reference(args.root, args.reference_result, args.main,
-                                                                          args.scheduler_contract)
+                                                                          args.scheduler_contract, args.model_key)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)

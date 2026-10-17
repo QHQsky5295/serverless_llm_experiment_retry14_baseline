@@ -13,7 +13,61 @@ from scripts.ieee_tc.audit_d402_serverlessllm_path import (
     validate_population, compare_reference_row, frozen_slo_summary, validate_terminal_outcome,
     validate_vllm_ready_row, validate_slora_ready_row, validate_slora_allocation,
     validate_slora_preparation, validate_slora_preparation_reference, validate_artifact_transfer,
-    audit_slora_receipts, digest, validate_slora_notice, validate_slora_resolver_journal)
+    audit_slora_receipts, digest, validate_slora_notice, validate_slora_resolver_journal,
+    MODEL_IDENTITIES, audit_layout, validate_metric_model)
+
+
+class ModelIdentityTests(unittest.TestCase):
+    def test_explicit_layout_preserves_each_population_and_scheduler(self):
+        root = Path('/owned/run')
+        for model in ('7b', '3b'):
+            for scheduler in ('original', 'request_identity_v1', 'resident_rr_v1',
+                              'slora_resident_rr_v1', 'loquetier_static_shards_v1'):
+                suffix = '_repaired' if scheduler in ('original', 'request_identity_v1') else ''
+                for population, count in [('prefix100', 100), ('prefix1000', 1000),
+                                          ('adapter_coverage_v1', 500), ('full4000', 4000),
+                                          ('full4000_w1', 4000), ('full4000_w2', 4000)]:
+                    with self.subTest(model=model, scheduler=scheduler, population=population):
+                        self.assertEqual(audit_layout(root, model, scheduler, population),
+                            (root/f'launch{model}{suffix}.launch', root/f'model{model}{suffix}',
+                             root/f'http_{model}_{count}.json'))
+
+    def test_historical_entry_points_keep_explicit_7b_default(self):
+        import inspect
+        from scripts.ieee_tc.audit_d402_serverlessllm_path import audit, reuse_numerical_reference
+        for function in (audit, reuse_numerical_reference):
+            self.assertEqual(inspect.signature(function).parameters['model_key'].default, '7b')
+
+    def test_unknown_model_or_population_is_not_a_7b_fallback(self):
+        with self.assertRaises(ValueError):
+            audit_layout(Path('/run'), '13b', 'resident_rr_v1', 'prefix100')
+        with self.assertRaises(ValueError):
+            audit_layout(Path('/run'), '3b', 'resident_rr_v1', 'unknown')
+        with self.assertRaises(ValueError):
+            audit_layout(Path('/run'), '3b', 'unknown', 'prefix100')
+        with self.assertRaises(ValueError):
+            validate_metric_model({}, 'unknown', Path('/main'))
+
+    def test_model_slo_identity_and_symlink_alias_are_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            main = Path(tmp)
+            for profile, relative in MODEL_IDENTITIES.values():
+                (main/relative).mkdir(parents=True)
+            for key, (profile, relative) in MODEL_IDENTITIES.items():
+                with self.subTest(model=key):
+                    http = {'backbone': str(main/relative)}
+                    self.assertEqual(validate_metric_model(http, key, main), profile)
+                    self.assertEqual(validate_metric_model(http, key, main, {'model': profile}), profile)
+                    alias = main/f'alias_{key}'
+                    alias.symlink_to(main/relative, target_is_directory=True)
+                    self.assertEqual(validate_metric_model({'backbone': str(alias)}, key, main), profile)
+                    other = '3b' if key == '7b' else '7b'
+                    with self.assertRaisesRegex(ValueError, 'backbone'):
+                        validate_metric_model(http, other, main)
+                    with self.assertRaisesRegex(ValueError, 'frozen SLO model'):
+                        validate_metric_model(http, key, main, {'model': MODEL_IDENTITIES[other][0]})
+                    with self.assertRaises(KeyError):
+                        validate_metric_model(http, key, main, {})
 
 
 class SloraEvidenceTests(unittest.TestCase):

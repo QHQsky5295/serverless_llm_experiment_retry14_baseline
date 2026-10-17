@@ -1,5 +1,37 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D649当前3B Resident输入与分析器资格完成；待备份 — 2026-10-18
+
+本轮PROGRESS。共享分析器增加显式3B模型/路径/远端记录/SLO身份检查，7B默认
+保留；不改指标与原生服务。baseline新增既有D641模型参数的四卡原生vLLM配置，
+不加入PrimeLoRA策略、不作基线性能搜索。89项CPU测试通过（73分析＋16服务）。
+前两次driver有scripts/tests包路径冲突，日志保留并已空组关闭；第三次复用
+D534显式文件加载方式通过，qualification25546 exit1、qualification2 79684
+exit1、analysis98913 exit0，均终态。没有GPU/远端服务运行，不动无关k3s。
+
+输入复用：100前缀29ID/17369tokens，1000前缀60ID/122510tokens，4000 W0
+132ID/458224tokens；500-ID视图仅功能覆盖。原trace/pool未生成或复制。
+D648 SLO身份不变；尚无当前3B Resident U_ref/Full性能结论。147保护及用户
+修改校验通过。见D649_3B_RESIDENT_INPUT_QUALIFICATION.md；需显式github-sync
+跨仓库备份，再沿D557路径开始3B100/500/1000/4000必要资格，完整Resident
+同时复用于vLLM基线与场景资源参考。然后3B Full/all baseline/dLoRA，再
+完整A1–A5/S1–S13、同版本主表/消融、成本/审稿/最终图表；目标ACTIVE。
+
+## D648已封存备份；下一主线3B Resident资源参考 — 2026-10-17，备份后
+
+本轮PROGRESS。9显式文件已推送06f5f1574352f176b896a2d3c7f4e6f1b26d9a08，
+remote相等。backup20710 exit0；scope...a6480004递归空/pathgone，峰值
+32301056B，事件/swap0。checksum/diff/secrets/147保护通过，用户manifest
+未stage。BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。全部工具终态，
+无GPU/远端pending；磁盘可用168334303232B，下一重型独立安全准入。
+下轮不重跑已完成D648：直接读取冻结3B SLO及D645配置，复用既有vLLM四卡
+Resident路径，先审计3B输入/原生加载/资源计量与冻结配置，取得各场景预算
+参考；参考同合同可同时作为vLLM基线，不能重复运行。沿D423/D424与D557
+已验证主线查找，避免使用D395/D396计量不合格旧参考。再3B Full W0/W1/W2
+和其他基线/dLoRA；完整A1–A5/S1–S13、同版本主表/消融一致性、成本/审稿
+文档/最终图表仍ACTIVE。原k3s未动。本备份后记录留下一正常检查点，不另开
+仅为状态的提交循环。
+
 ## D648当前3B共同warm完成并冻结数值；待备份 — 2026-10-17
 
 本轮PROGRESS。一次原生194批/1552记录（16预热＋1536测量）全部通过严格
