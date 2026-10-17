@@ -1,5 +1,42 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D612 retained-log diagnosis complete — backup then resource working-point audit
+
+Analysis60460 exit0, scopeactuallyclosed/pathgone, peak199897088B/events/swap0.
+D607 sealed projection reused; onlyD611 parsed. Quarterjoint982/970/931/936;
+matched3696 good/good,123 bad/good,115 bad/bad,66 good/bad. Residual181 includes
+159predispatchRemote and162largest admission→engine stages. ArrivalGPUincrease
+76.610597 entirelyQ1;Q2–Q4 bothhold4. D611lastfourGPUcontinuousfrom363.922521s.
+1363/1870samples have lowqueue/active but notlowTTFT; Q3 noalllow,Q4max2.081s.
+No evidence of missed eligible release. Do not bypassTTFT/cooldown or infer3GPU
+results from4GPUlogs. Nextbackupevidence,restorestoragebeforeheavy,andbounded
+history/paper/official-source audit of a lawful model-specific resource working
+point sharedacrossW0/W1/W2. No newcandidatechosenyet; no livejob orpendingtool.
+Read D612_W2_QUALITY_RESOURCE_DIAGNOSIS.md; full G1/G2 and all remaining scopeACTIVE.
+
+## D612 bounded retained-log resource diagnosis registered
+
+Reuse D608 sealed D607 projection/statistics (archive SHA verified), parse only new
+D611 source with identical stage/physical/threshold auditors. No new inference,
+remote service, serving/config edit or figure. Compare all matched transitions,
+source quarters, actual physical holding and frozen low-load conditions. Auxiliary
+3/4GiB/swap0/four CPUs;32MiB output budget. No heavy GPU/build before150GiB restored.
+Read D612_W2_QUALITY_RESOURCE_DIAGNOSIS.md. G1/G2 and full remaining scope ACTIVE.
+
+## D611 result checkpoint pushed — retained-log resource diagnosis next
+
+Publication81338 exit0, checkpointf72091155cd3bb258651fc461db11b9113c72faf pushed
+and remote-equal. All5 explicit result/doc paths backed up; archive roundtrip,
+source/protected147/user-dirty/secrets checks passed. Publication scope actually
+empty/closed/pathgone, peak29216768B, high/max/OOM/kill/swap0. No live GPU/remote/
+auxiliary job or pending tool. Do not repeat D611 or D610 qualification.
+Full PLAN/status/V1/single-run V2 and current scope/safety rules reread. Next reuse
+D608 existing analyzer/parent projections for D611 residual/control/holding audit,
+not another performance run. G1/G2 not closed: latency95.475% but U/B1.254273;
+independent numerical correctness remains unknown. Storage159953915904B below
+150GiB new-heavy floor: no new GPU/build until proven safe recovery. Complete
+sameconfig7B/3B/dLoRA/A1–A5/S1–S13/cost/reviewer docs/finalfigures remain ACTIVE.
+
 ## D611 full W2 complete and audited — backup next; joint95 met, budget still missed
 
 Actual launch/monitor exit0, service/GPU released; local auxiliary closed and owned
