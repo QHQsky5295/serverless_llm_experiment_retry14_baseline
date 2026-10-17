@@ -1,5 +1,67 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D652原1000兼容完成并审计；待备份与缓存回收 — 2026-10-18
+
+本轮PROGRESS。1,000/1,000完成，122510原生tokens逐条目标一致，60ID，失败0；
+绑定/原生计时/真实物理持卡完整。联合999/1000=99.9%，P95 TTFT383.093ms、
+P95 TPOT11.659ms、U4582.450818s；仅兼容前缀，非完整W0或U_ref。
+60真实远端获取/139254428线上字节/2336314960物化字节，940缓存复用、打包0。
+服务峰值15737495552B、host最低97561296896B，服务事件与swap0。
+close/remote91866、analysis79943、prefix20160全部exit0；GPU释放、launcher/
+analysis/analysis2 scope空关闭、远端三个自有服务inactive。独立数值证明未知
+及n_correct=null保留。对D650原100请求contract/prompt逐条相同，98序列一致；
+req_00072/00079首差异位置42/40，原因未知，不据此重跑或宣称舍入已证明。
+新增D652结果文档，待显式小型备份并回收可重建下载副本。无服务源码改动，
+不重复89项CPU资格，不动无关k3s，不重做HydraServe基础适配，不画图。
+下一主线完整3B Resident W0/W1/W2双用途vLLM/U_ref→3B Full/all baseline/
+dLoRA；A1–A5/S1–S13、同版本主表/消融、成本/审稿/最终交付均ACTIVE。
+
+## D652原1000兼容已启动；只监控同一运行 — 2026-10-18
+
+start5816 exit0；tmux tc-d652-vllm-3b1000，实际服务scope
+primelora-tc-svc-743ae0248a454047bc138132af9a6152.scope，launcher
+...d6520001 invocation e4777cdc1985499cbd07bfd3cfd3f58a。
+starter...d6520002已空关闭、峰值120115200B/事件swap0。当前服务和回放
+仍运行，不能把观察超时当结束或重启。MAINd0068d6、BASEe16af33，view7b832120、
+冻结3B配置/D648阈值不变；本轮远端核验1000/full。启动前147保护和用户
+修改核验通过，磁盘约169.0GB，统一资源门槛未改。结束后沿raw close_launch.py
+→stop_remote.sh→run_analysis.py --outcome success（若失败按实际分类）
+保存并备份；随后完整4000 Resident W0/W1/W2与全部剩余主线。目标ACTIVE。
+
+## D652原1000兼容准备完成；待独立准入启动 — 2026-10-18
+
+前轮为PROGRESS：D650/D651实际资格与备份完成，不重复。完整PLAN及最新
+规则已重读，本轮沿D651现有启动/收尾/分析入口机械调整新campaign、1000
+prefix视图和角色；不改服务源码/配置/指标、不调优基线。source与D649
+views['1000']绑定，60ID/122510tokens，显式3b/D648共同SLO。
+预登记D652_3B_NATIVE_1000_COMPATIBILITY.md。启动前仍独立内存/磁盘/
+GPU/147保护/用户修改检查，原k3s不动。之后完整Resident W0/W1/W2双用途
+参考与vLLM基线，再3B Full/其余baseline/dLoRA，完整后续范围ACTIVE。
+
+## D651已备份并安全回收；下一主线3B原1000兼容 — 2026-10-18，备份后
+
+本轮PROGRESS。6显式文件已推送d0068d6d4daf87f8558c28a909cff80cae25a34f，
+remote相等；BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。publication
+21773 exit0，scope...d6510004空关闭，峰值38567936B/事件swap0。
+147保护、checksum/diff/secrets通过；三处用户修改SHA不变、未stage。
+cache cleanup83021 exit0，4000下载副本当前和保留原池全部SHA一致、metadata
+副本一致、无已知运行/配置引用后回收19497308160B；原始请求/源工件未删。
+scope...d6510005空关闭，峰值3221979136B，maintenance high12296、max/
+OOM/OOMkill/swap0；该节流发生在测量结束后，不能混入服务事件。3个同UID
+/proc部分不可读的局限已记录。当前磁盘可用169002602496B，无GPU/远端/
+工具pending；原k3s未动。所有本轮工具均终态，不重复D650/D651或89项CPU资格。
+
+下一轮直接原1000请求兼容D652，尚未准备或启动。沿D651已有run/start/
+remote/close/analysis脚本机械调整新campaign与http_3b_1000.json，复用
+D649 views['1000']（view SHA7b8321203834ea96b9913c3444f99169e6d15ac56878644eaf3617d447d99fd7，
+60ID/122510tokens），request_view回trace_prefix_v1；analyzer显式3b/
+resident_rr_v1/prefix1000、D648 SLO。start绑定本publication_receipt和
+start/analysis/publication/qualification四个closure，勿引用不存在的publication2。
+先保存D651清理回执于下一正常检查点；不另开仅状态的提交循环。
+随后一次完整Resident W0/W1/W2，同键双用途vLLM基线与U_ref→3B Full/
+其他baseline/dLoRA；A1–A5/S1–S13、同版本主表/消融、成本/审稿/最终图表
+完整范围仍ACTIVE。不要回到已结束7B/HydraServe基础资格或无界基线优化。
+
 ## D651全500-ID功能覆盖完成并审计；待备份与缓存回收 — 2026-10-18
 
 本轮PROGRESS。500/500完成、恰好500既有ID、68925原生tokens逐条目标一致，
