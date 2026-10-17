@@ -1,5 +1,22 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D619 backed up; D620 storage finished — backup maintenance, then W2/W0
+
+D619 checkpoint87f8612647ed0c0c4a093b9dd78924c0a50b4f60 pushed/remote-equal;
+publication67776 exit0/actualclosed/pathgone,peak32776192B/events0. Result1 and
+device-domain evidence retained. Allperformance/service/aux/remote areterminal.
+D620 storage54729 exit0;14archive tests,3explicitclosedD619files,2roundtripSHA
+eachpassed;610414592B reclaimed, latestfree161147506688B (~150.08GiB).
+Actualstoragescopeclosed. Neverrerunoldcompressionlist; originalcontentremains
+losslessgzip plusreceipts; usecompressed-aware reads forD619 source/main/monitor.
+
+No activeGPUjob/pendingtool. Next boundedD620publish.py ->actualclosure then
+registersame-source/same-working-pointW2/W0; recheckdisk/memorybeforelaunch,
+freecapacitycurrentlyonlyslightlyabove150GiB. Do notspliceoldD615 W2.
+ReadfullPLAN/status/rules/V1/V2beforethenextperformanceexperiment.
+FullgoalACTIVE: 7Bcross-sceneG1/G2,numericalqualification,3B,dLoRA,A1–A5,S1–S13,
+cost/reviewerdocs/finalfigures remain. No newbaselineoptimizationorplotting.
+
 ## D619 complete and audited — backup next; no live performance run
 
 Full4000/4000 native contract complete,458224tokens. Frozen joint3891/4000
