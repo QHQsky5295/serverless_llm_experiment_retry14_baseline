@@ -1,5 +1,130 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D656完整W2已结束并审计，待封存与回收 — 2026-10-18 04:48 CST
+
+本轮由verified wait进入PROGRESS；上一轮为verified wait。持续观察同一
+pane635688/InvocationID，响应1469→4000；04:46:08终态pass、service/watchdog0，
+实际GPU释放与服务path移除。空launcher已按身份关闭，三个自有远端均inactive；
+分析21618 exit0，analysis资源域已递归空关闭，峰值674254848B/events/swap0。
+
+4000/4000原生绑定计量核验，458224tokens、497ID、失败0；联合4000=100%，
+P95 TTFT441.6348978411406ms、TPOT11.585231064460599ms，物理U
+16110.751826980617GPU-s，4.0276879567451545/原生合同请求。497次真实获取、
+1153526020线上B、19379651180物化B、3503cache复用、打包0；计时重算误差0。
+审计SHAbeb3de7a04dac838e09032e6b71a08c6d65f0d3f5bd6b4954b68cdb30f06a339。
+独立数值证明未知、n_correct=null及formal/complete false不追改，不以不同
+adapter的W0/W1输出作W2正确性门槛。D655输入7项及D649服务89项继续按SHA复用。
+
+服务peak34342580224B，host最低96376709120B，disk最低148970860544B；
+high/max/OOM/kill/swap0。复用D654发布/回收入口，仅调整W2身份/实际审计值，
+取消不适用的W0/W1同adapter输出比较，保留全部来源、保护、关闭及副本检查。
+下一步封存备份（含D655 publication关闭回执），安全回收本轮objects后核定
+3B W0/W1/W2资源参考；然后当前3B Full与剩余baseline/dLoRA，不重跑旧参考。
+完整同版本7B/消融/A1–A5/S1–S13/成本/审稿/最终图表仍ACTIVE。
+
+## D656续查：1426个响应，完整W2仍在运行 — 2026-10-18 04:04 CST
+
+本轮及上一轮均verified wait；上下文恢复后完整重读PLAN、V1/V2、最新六项
+规则与monitor-experiment，沿同一运行继续。pane635688非dead，实际服务
+InvocationID da860462a65444ffa357494ac1813ca4仍active；响应1197→1212→
+1313→1426，尚无launch3b.json终态回执。sample1499：host可用97062940672B、
+服务peak21746958336B、disk161077137408B，high/max/OOM/kill/swap0，无告警。
+没有重启、调参、并行资格、扫描/压缩/清理、构建、推送或远端维护。磁盘
+150GiB是新任务准入线，运行中仍按100GiB停止线；下一任务前重新核查并回收
+本轮已证明可重建的下载对象，不能在当前测量中清理。
+
+只读复核D594参考冻结实现：可复用其closed_physical_integral及四设备/ready/
+原生绑定/SHA检查为之后3B三场景建立数值参考，但D656尚未结束，不提前冻结。
+复核D639的重要口径：0.933910/0.902994是7B的U/共同预算，不是U/U_ref；
+其W1/W2均在75%参考预算内。7B尚不能称所有指标领先，原因是对手取舍、
+未知独立数值证明及版本/比较范围限制，不能误写为资源超预算。
+
+下一步仍为D656实际终态→GPU释放与关闭空launcher→停止本轮自有远端→
+既有full4000_w2分析→封存备份与安全回收；随后3B参考/Full与剩余对照。
+全部同版本7B/消融、A1–A5/S1–S13、成本/审稿/最终图表保持ACTIVE。
+当前是完整到达窗口中的正常等待，不是阻塞或整个计划完成。
+
+## D656续查：830个响应 — 2026-10-18 03:55 CST
+
+本轮及上一轮verified wait：同pane635688存活、服务InvocationID未变且active；
+响应560→629→724→779→830。sample959：host可用97346797568B、服务
+peak18650914816B、disk163603943424B，high/max/OOM/kill/swap0，无告警。
+只读复核D424参考冻结说明与D645初始化manifest：service40类360样本、
+preparation96类288样本可复用，但历史full_qualified/production_profile_frozen
+false不能追改；3B Full需后续实际回放，W2不能用W0/W1输出作数值证明。
+未执行并行任务或维护，仍等待同一D656真实终态，不重启、不把部分进度当
+完整结果。既有收尾顺序及全部后续实验/审稿交付不变，完整目标ACTIVE。
+
+## D656同一运行继续：538个响应 — 2026-10-18 03:51 CST
+
+本轮及上一轮均verified wait。沿已完整读取的同一PLAN继续监控，SHA仍
+d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83。
+pane635688非dead，实际服务InvocationID da860462a65444ffa357494ac1813ca4
+仍active；响应320→369→414→448→500→538。sample728：host可用
+97561427968B、服务peak17110024192B、disk164945932288B，high/max/OOM/
+kill/swap0，无告警。未重启/换配置/暂停到达/清缓存，未执行并行任务或远端
+维护；尚未完成，不外推完整SLO/正确性/GPU-s。继续该运行到实际终态，随后
+按既有收尾、分析、封存、回收顺序；后续完整矩阵和目标保持ACTIVE。
+
+## D656监控续报：W2正常跨过两次热点轮换 — 2026-10-18 03:45 CST
+
+本轮verified wait；上一轮为PROGRESS（D655资格/备份和D656真实启动）。已
+完整重读PLAN、当前状态及monitor-experiment，并核验实际tmux/pane635688
+非dead，服务InvocationID仍da860462a65444ffa357494ac1813ca4。响应数按实际
+采样46→97→154→196→268，03:45:45同一运行仍推进；未重启、取消或换配置。
+watchdog sample412：host可用97885298688B、服务peak15448408064B、磁盘
+166349991936B；high/max/OOM/kill/swap0，无告警。尚无完整终态，不能从
+部分响应推断最终原生绑定/数值正确性、SLO或GPU-s。
+
+等待期间仅只读核对D640/D643/D645/D648：当前3B实测service/preparation
+初始化已在D645导出，共同阈值D648已冻结；之后Full使用这些3B专属测量，
+不能套7B配置或重做原368用例。D656结束后先实际释放/停止自有远端/既有
+full4000_w2分析/封存/回收，再核定三场景资源参考及Full入口。没有启动
+任何并行资格、GPU实验、hash扫描、压缩、清理、构建、推送或远端维护。
+全部3B对照/dLoRA、同版本7B/消融、A1–A5/S1–S13、成本/审稿/最终图表
+保持ACTIVE；不把仍在测量的等待认作阻塞或计划完成。
+
+## D656：完整3B W2已经启动，继续同一回放 — 2026-10-18 03:40 CST
+
+本轮PROGRESS：D655输入资格及9文件备份完成后，真正启动D656一次完整W2。
+69115 exit0；tmux tc-d656-vllm-3b4000、pane635688存活，四个原生worker均ready；
+03:40:24观察5个响应，完整launch3b.json尚未生成。服务unit
+primelora-tc-svc-1bc01497fdfb4608b0527304464d8f8d.scope，InvocationID
+da860462a65444ffa357494ac1813ca4、inode27181987；外置launcher为
+primelora-tc-aux-d6560000000000000000000000000001.scope。starter ...d6560002
+已递归空关闭，峰值203657216B、事件/swap0，不能关闭正在服务的两个域。
+
+MAIN c525115722b27977f3acac796e20ddc02637545a/BASE e16af33的远端备份、
+D655 7项输入资格/D649未变89项服务资格、用户dirt/147保护/资源准入均通过。
+远端本轮1000/full；3B clock remote-process-monotonic:85e0ca3a57a94447812c2c2109fb1502，
+7B clock remote-process-monotonic:3e18bdea05014e1ab754fb9e9c0d21d8。
+自有远端unit InvocationID：3B 91926f4369804d0da17713dbe3940a56，
+7B 4ad89e3bf87a46959e1ab5d6d4041d63，monitor d0837d731957475b9e5c62229e4af8b0。
+watchdog sample90：host可用99709145088B、服务peak11495952384B、磁盘
+168397623296B，high/max/OOM/kill/swap0、无告警。未改其它项目k3s。
+
+下一步只监控这一运行至真实终态，按预存close_launch→stop_remote→
+run_analysis --outcome（实际终态）入口分析full4000_w2，之后封存及安全回收。
+不因等待超时重启；运行中不扫描/构建/压缩/清理/推送或维护远端。D655
+publication关闭回执在raw，纳入下一正常检查点，不开只写状态提交。
+未知独立数值证明、资源参考尚未冻结及全部3B后续/同版本7B/消融/敏感性/
+审稿/最终图表仍保留ACTIVE；不能从5条响应称为完整性能通过或PrimeLoRA最优。
+
+## D655备份完成；D656完整W2启动前登记 — 2026-10-18 03:39 CST
+
+D655输入资格63096实际exit0，scope...d6550002递归为空后关闭，峰值
+959430656B、事件/swap0。9个显式文件已推送c525115722b27977f3acac796e20ddc02637545a，
+remote相等，BASE保持e16af33；publication3181 exit0、scope...0003已空关闭，
+峰值32059392B、事件/swap0。归档包含D654清理与publication关闭回执。
+用户修改/147保护保持不变。当前没有GPU或远端任务运行。
+
+已复用D654脚本登记D656一次完整3B W2：D655输入、同D649原生配置及D648
+阈值；只改campaign/profile/map，不优化baseline。start核验D655全部关闭与
+备份、D654终态/回收、源SHA/资源/旧保护后启动；D656文档仍是预登记，不是
+完成证据。收尾入口预先明确full4000_w2，不拿W0输出证明换adapter的数值正确。
+下一步启动并监控同一回放，到终态后释放→审计→保存→安全回收。未完成矩阵、
+独立数值证明限制和PrimeLoRA尚未跨场景最优的状态不变，完整目标继续ACTIVE。
+
 ## D655：3B W2共同输入已核验，封存后启动完整回放 — 2026-10-18 03:36 CST
 
 完整PLAN/V1/V2、最新六项规则及历史D553/D649/D654已核查。复用D553索引
