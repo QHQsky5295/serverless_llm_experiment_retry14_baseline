@@ -1,5 +1,51 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D632双副本CPU资格通过，待备份/完整W2 — 2026-10-17 17:20 local
+
+qualification2 session57624 exit0，32测试/192actual-controller状态通过，
+复用D631458项，完整W2视图4000/源SHA/profile核查通过。actualscope2
+InvocationIDcbe20344c90a4db0b690843f5ee9bd2d/inode26883701，递归空关闭/
+pathgone，peak1975480320B/events0/swap0。147保护通过。无GPU或remote。
+第一次qualify入口缺multiprocessing主入口保护，spawn重复身份写入失败；
+证据原样保留，确认身份后SIGINT（旧systemd使用--kill-who），scope1
+InvocationID2c42406467754ebcb6efdce51db08b03已空并关闭，peak1691213824B。
+qualify2只修正入口/独立证据名，配置与生产/测试断言未变，不重跑性能。
+成功qualification.json已冻结所有helper SHA，后续不要原地改helper。
+下一步backup.py(scope3)明确6路径备份，再close backup，再start.py(scope4)
+启动唯一tc-d632-min2w2/7b_min2_full_w2；目前未开始。控制/上限/公式不变。
+全计划ACTIVE；不能用CPU资格宣称性能/数值正确或跨场景最优。
+
+## D632已登记单一min2资源候选，尚未运行 — 2026-10-17
+
+完整PLAN/冻结V1+单轮V2及最新规则重读；D631已关闭/备份，不重复458项。
+新配置仅min_instances1→2及唯一结果/cache路径；max3、所有公式/profile/
+控制窗口/后端/14容量/生成合同不变。新增现有runner的d632全W2分支，
+复用D621资格、D615控制枚举与双initial既有测试。Knative/ServerlessLLM
+官方上下限语义已联网核查，只支持设计边界，不证明min2最优。
+准备执行有界CPU资格→关闭→checked备份→唯一完整W2。GPU实验尚未开始。
+W1预算余量仅约236.675GPU-s，必须后续同配置测量，不能拼接旧W1/W0。
+RAW d632_20261017；run7b_min2_full_w2；新doc D632_MINIMUM_TWO_REPLICA_FULL_W2。
+生产无新修改；旧结果/用户manifest/失败证据保留，无关k3s不动。
+全计划ACTIVE，独立数值UNKNOWN、N_correctnull、rankingfalse保持。
+
+## D631已通过并备份；下一步资源下限资格 — 2026-10-17
+
+backup session42538 exit0，6b5a57ce9971b7e3ff5febdae828aec59f552de1已推送
+faaslora_origin/retry14_continuous_queue_v2，远端相等。7个明确路径，458项
+CPU测试、SHA/bundle/diff/secrets通过，未stage用户manifest。baseline未改。
+backup InvocationIDd50c53ab7c5a4ca98f0f0aee2d0efd3f/inode26878166已递归空
+并关闭/pathgone，peak31219712B/events0/swap0。无pending exec/GPU/remote。
+当前disk173135056896B；生产两个撤回文件再次与e12e73f父版本字节核对相等。
+
+本轮PROGRESS：D630完整日志诊断封存+精确撤回D628+458项回归+两次检查点
+备份。不重复这些任务。下一步min2/max3配置/初始双副本/pending/回收边界
+资格，再按新键完整W2；配置尚未创建、性能尚未开始。现有runner支持按
+min_instances创建initial任务，并在第一ready后服务；另一个initial仍计
+pending并由控制/关闭owner持有。已有tests/test_ieee_tc_launch的
+IEEEInitialDeployment包含min2兄弟失败与晚失败病例，优先复用而非重建。
+不能据此假设双副本均在t0前ready。全7B/3B/基线后续/消融/敏感性/文档/
+最终图表与数值UNKNOWN继续保留，目标ACTIVE。本关闭状态随下次正常检查点备份。
+
 ## D631撤回资格通过，待备份后推进单一资源候选 — 2026-10-17
 
 qualification session85800 exit0，215+178+13+16+36=458项通过；实际scope
