@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D650当前3B原生100请求已完成并审计；待备份 — 2026-10-18
+
+本轮PROGRESS。原生vLLM四卡Resident真实远端100/100完成、绑定及目标长度
+逐条有效，17369 tokens；29真实获取/67350156线上字节，请求内打包0。
+共同SLO联合92%，P95 TTFT3741.913ms，P95 TPOT11.491ms；保留启动期
+短前缀身份，不据此调优基线、不与4000请求PrimeLoRA比较。独立数值证明未知
+及n_correct=null保留；不是完整W0/资源参考。实际GPU1006.761163s，
+服务峰值13667549184B、最低host available98677293056B，事件/swap0。
+启动14892、收尾42932、分析70510全部exit0；GPU释放、launcher/管理scope
+空关闭、远端两个服务与本轮monitor停止。D649的89项CPU测试字节不变复用。
+见D650_3B_NATIVE_RESIDENT_SMOKE.md，需小型证据/文档显式备份；未改服务源码。
+随后直接同配置500-ID→1000兼容→4000 Resident W0/W1/W2，后者双用途
+作为vLLM基线及U_ref，不重复。再3B Full/其余baseline/dLoRA，全部A1–A5/
+S1–S13、同版本主表/消融、成本/审稿/最终图表仍ACTIVE。原k3s未动，不画图。
+
+## D649两仓库已备份；下一主线3B原生HTTP100 — 2026-10-18，备份后
+
+本轮PROGRESS。BASE两文件推送e16af33aaf41f02a62ecdce59f6f3227813244c3；
+MAIN八文件推送0b0b044951e8f6246fdf45e058b9a0656a089791，均remote相等。
+backup57496 exit0，scope...d6490004递归空/pathgone，全部工具终态；无GPU/
+远端服务pending。89项CPU检查已封存，两个test-driver失败完整保留；原生服务
+源码字节未改。checksum/diff/secrets/147保护通过，三处用户修改不变、未stage。
+磁盘可用169130721280B，下一重型仍需独立150GiB/内存准入。原k3s未动。
+
+下一轮不要重跑D648 warm或D649 CPU准备；直接复用D649配置/输入，沿D557
+native-http-service受限启动与远端管理做当前3B100请求smoke（新D650目录），
+之后500-ID/1000兼容和4000 Resident W0/W1/W2；必须显式给analyzer
+`--model-key 3b`和D648冻结SLO。尚未启动D650，不把CPU通过称GPU资格。
+D649 raw含http_3b_100.json、qualification.json及闭口记录；curated目录
+paper_results/ieee_tc/vllm/d649_3b_resident_inputs。BASE测试若需重跑，复用
+D534/D649 qualify3.py显式文件加载，避免跨仓库同名scripts/tests导入冲突；
+不因此修改服务或反复基础资格。完整Resident可双用途复用为vLLM基线和U_ref。
+后续3B Full/all baseline/dLoRA、A1–A5/S1–S13、同版本主表/消融、成本/
+审稿/最终图表继续ACTIVE。本备份后状态留下一正常检查点，不开仅状态的提交。
+
 ## D649当前3B Resident输入与分析器资格完成；待备份 — 2026-10-18
 
 本轮PROGRESS。共享分析器增加显式3B模型/路径/远端记录/SLO身份检查，7B默认
