@@ -1,5 +1,53 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D630离线容量诊断完成；撤回候选后验证资源下限 — 2026-10-17
+
+完整PLAN/冻结V1/单轮V2及最新基线/存储规则已重读。使用analyze-results
+复用D342 helper，D621/D629完整4000合同/时钟/物理账目SHA核查通过；
+未新增GPU实验、未改生产代码/配置、未画图。analysis2 InvocationID
+24d5ce289c7a4e2ea92805b9832e4bd9/inode26871562递归空并关闭/pathgone，
+peak322621440B、high/max/OOM/kill/swap0。analysis1 envelope/ledger
+schema错误及关闭回执保留；analysis2显式SHA绑定真实ledger，无兜底值。
+
+许可申请至恢复均值116.336→403.461ms，99.9540%/99.9856%与启动区间
+重叠；有等待的采样13→32，其中确定持有覆盖容量仅3/5，不把其余样本
+解释成空闲，也不把重叠冒称因果。新最长22.877s等待位于缩至一副本后
+两pending期间。D342已见同类现象，本轮不是重新发现新机制。详见D630文档。
+
+具体下一决定：不接受D628、不做其W0/W1，针对性撤回其生产diff及专属
+测试（此刻尚未执行，不能假称已回滚），保留旧结果/失败及D606/D610/
+D618。随后仅考察7B min2/max3模型工作点，保持公式/阈值/profile/backend/
+全部机制和同点跨W0/W1/W2；先边界资格/备份，再一次新键W2，达标后
+同点W1/W0。W1预算余量仅236.675GPU-s，min2可能超预算，不能用固定
+旧轨迹单卡113秒推造成本或SLO。125条输出差异仍UNKNOWN，不宣布排名。
+
+当前无推理/remote或pending exec；磁盘173150539776B，可用内存
+111831957504B；下一重型任务需新gate。D630小型证据准备checked备份，
+不重复D629已发布结果。HydraServe隔离适配已完成，无关k3s不动。
+全目标ACTIVE：7B跨场景/独立数值、3B、dLoRA、A1–A5、S1–S13、成本/
+审稿文档与最终图表全部保留；不是阻塞或完成。
+
+## D629已封存并备份；下一步为有界退化诊断 — 2026-10-17
+
+publication2 session44421 exit0，提交ac5ab5751de32650add8eb70e846535e3c89abf1
+已推送faaslora_origin/retry14_continuous_queue_v2并核对远端相等。5个明确路径，
+bundle逐成员SHA、result.sha256、diff、AST及凭据检查通过；用户manifest未stage。
+baseline仓库80e08b4c6e7c2874b1b237500a00811ec06cd8c5未改。仅离线发布入口
+修正preflight字段名；第一次失败的源/身份/关闭回执一并保留，不影响性能运行。
+publication2实际InvocationID8c40c103422348e2b450b47eb55b118b/inode26868239，
+scope7已递归空后关闭/pathgone，peak55738368B/events0/swap0。无待续工具session，
+无推理或remote服务。分析/collector/旧publication均关闭，不再次执行它们。
+
+逐请求匹配4000条request/adapter/arrival/prompt hash/实际输入长度/目标/生成
+合同/token来源；同后端125条输出hash不同，原因未知，不判为自然数值差异或
+错误adapter。N_correct=null、ranking_eligible=false不变。3727/4000联合
+SLO、U10851.907221及所有退化已封存，candidate_performance_accepted=false。
+源码目前仍为D628已备份候选，未在结果发布中偷偷撤销；不得直接启动其W0/W1
+或把历史结果合并为新版本达标。优先用现有完整日志核查早期gate等待与自然
+收缩/扩容轨迹，再结合修改历史和官方实现决定有证据撤销/下一单一假设。
+不重复性能键、不再扩展同一锁微测、不调阈值、不重开基线性能搜索。
+本轮PROGRESS已完成审计/解释/封存/备份；完整计划及所有后续范围仍ACTIVE。
+
 ## D629完整审计通过，但候选性能退化 — 2026-10-17
 
 本轮PROGRESS：重读完整PLAN/最新规则/冻结V1与单轮V2，续接SAME分析session45239
