@@ -1,5 +1,155 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D636输入/输出比较完成，准备结果备份 — 2026-10-17 21:42 local
+
+本轮PROGRESS；完整PLAN、冻结V1/单轮V2、最新规则和skills已重读。复用D632/
+D633投影核验D624→D636，4000条输入/adapter/prompt/target/arrival/native来源
+完全匹配；166条输出hash变化原因未知，N_correct仍null、ranking=false。
+联合+3.125pp，P95 TTFT降低34.479959%，U减少7.241896%；配置min1→min2且
+生产有D635修复，不能当作单因素因果证据。全部五个W0外部baseline保留。
+comparison session28415 exit0，scope9366e3128a8d407b9ea4c06d63600008峰值
+30060544B，events/swap0，comparison_closure已递归空/pathgone。
+新compare_d624.py复用旧请求投影，publish_result.py复用D621发布器且AST/
+source SHA检查通过；生产未修改，旧结果不覆盖。下一步result1归档、检查
+与显式路径推送，随后D632/D633修复影响审计及数值资格。无GPU/远端运行，
+不提前绘图，不缩减7B/3B/dLoRA/消融/敏感性/成本/文档/最终交付范围。
+
+## D636完整W0结束并通过计量审计 — 2026-10-17 21:30 local；待结果备份
+
+前轮VERIFIED WAIT；本轮从监测推进至终态/收尾/分析，属于PROGRESS。
+service/replay/watchdog均exit0，4000 native-contract终态、458224 tokens、0失败。
+共同阈值3935/4000=98.375%，mean/P95 TTFT860.602218/2024.775860ms，
+mean/P95 TPOT33.376614/55.886742ms，mean E2E4546.686511ms，U9193.046576GPU-s。
+N_correct仍null、ranking_eligible=false，独立数值资格与跨场景G1/G2未完成。
+source SHA d312193a4b321a51aadbac67a0c99732c421f472c96fdcea19864a55b98d0aa8，
+279211691B。dispatch GPU/HOST/NVMe/remote2485/541/842/132；远端132fetch/
+131480060B、pack0。4020资源采样，peak19017797632B、events/swap0；147保护通过。
+
+已按close_launch→stop_remote→collect_closure收尾。collection session22465 exit0，
+scope9366e3128a8d407b9ea4c06d63600005/Invocationfa1d31740ed04d60891cdfc3a8c1cffe/
+inode27001427递归空关闭，peak84942848B。分析session22433 exit0，scope...00006/
+Invocation1922edd71e3d4197824c2baaf7552559/inode27002654递归空关闭，peak643801088B。
+复用D624 W0 analyzer及D633 min2检查；本轮analysis2命名避免覆盖启动期已有
+analysis_identity/closure。追加fallback审计session38334 exit0，scope...00007/
+Invocationd6715c18d3734232af3ac924d56dc036已关闭（publication_closure，实际用途
+为受影响字段审计，非Git推送）。1741 plans/2029 attempts/21792 fallback，
+差异0、native_outcome_unresolved0；保留native_pending3/observing1原快照。
+
+监测cell3826/3827及所有工具会话均终态，无pending；GPU、本轮所有aux与远端
+3服务已关闭。RAW d636_20261017含完整数据、失败setup、closure和分析；新增
+analyze_prefix.py/analyze.py/run_analysis.py/audit_fallbacks.py只复用既有分析，
+生产未变。MAIN仍30ec27aa，BASE仍80e08b4c；本状态与D636文档待下一checkpoint。
+下一步先完成curated result1、与D624逐输入比较及D635修复证据封存/推送；
+再核查D632/D633跨版本复用影响和独立数值资格，不立即另跑GPU或筛结果。
+7B完整目标、3B/dLoRA、A1–A5/S1–S13、成本、文档、最终图表均ACTIVE。
+
+## D636接近四分之三 — 2026-10-17 21:01 local；仍LIVE
+
+前轮及本轮VERIFIED WAIT。完整PLAN仍在当前上下文，SHA复核d7acd081不变；
+按monitor-experiment连续12次观察原服务active及同一Invocation
+1f227ad8a3824e9b88308fb75c136009。21:01:23最新2949 arrived/2946 done/2946 ok/
+0 fail，elapsed44:10，3 runtimes，up6/down5。watchdog2676：MemAvailable
+97538019328B、peak18197651456B、free167164821504B，high/max/OOM/kill/swap0，
+abort/foreign空。仍是部分回放，不作最终指标或数值正确性验收。
+监测cell3823已正常终态，工具无pending；tmux/服务/launcher aux/远端仍LIVE，
+不得重启或提前收尾。下一轮继续同身份观察至真实终态，再按原close_launch→
+stop_remote→成功collect_closure/失败审计。无新运行/代码修改/扫描/压缩/清理/
+推送；全部7B跨场景目标、3B、消融、敏感性、成本、文档和图表仍ACTIVE。
+此状态在下一正常非性能检查点备份。
+
+## D636后半段继续回放 — 2026-10-17 20:51 local；仍LIVE
+
+前轮及本轮VERIFIED WAIT。PLAN SHA仍d7acd081；完整内容已读，monitor-experiment
+再读。连续12次核对同一服务active，Invocation1f227ad8a3824e9b88308fb75c136009。
+20:51:36：2208 arrived/2202 done/2202 ok/0 fail，elapsed34:19，2 runtimes，
+up4/down4。watchdog2097：MemAvailable100415950848B，peak17291751424B，
+free167532044288B；high/max/OOM/kill/swap0，abort/foreign空。尚无完整结果，
+不推断最终SLO/GPU-s/数值正确性。监测cell3820已正常完成，无工具pending。
+原tmux/服务/launcher aux/远端继续LIVE，不重启、不提前收尾；下一轮仍只
+观察原身份，真实终态后依次close_launch→stop_remote→成功collect_closure/
+失败审计。没有生产修改/新运行/扫描/清理/压缩/推送；7B跨场景目标、3B及
+全部消融/敏感性/成本/文档/最终图表仍ACTIVE。状态待非性能检查点备份。
+
+## D636完整回放超过三分之一 — 2026-10-17 20:41 local；仍LIVE
+
+前轮及本轮VERIFIED WAIT；PLAN全量已读、SHA再核仍d7acd081，未改变主线或
+配置。12次轻量观察均确认原服务active/Invocation
+1f227ad8a3824e9b88308fb75c136009。20:41:46最新1441 arrived/1435 done/1435 ok/
+0 fail，elapsed24:31，2 runtimes，up3/down3。watchdog1515：MemAvailable
+100499857408B、peak16761589760B、free167988391936B，high/max/OOM/kill/swap0，
+abort/foreign空。不能由前缀推断全量正确性、最终SLO、GPU-s或G1/G2达标。
+
+监测exec cell3817已正常终态，无工具pending；原实验tmux/服务/launcher aux/
+远端继续LIVE，不关闭、不重启。下一轮继续同身份观察，真实终态后按
+close_launch→stop_remote→成功collect_closure或失败审计收尾。运行中不扫描、
+清理、压缩、推送或启动第二重型任务。7B跨场景核验与独立数值正确性、3B、
+dLoRA、A1–A5、S1–S13、成本、文档和最终图表全部ACTIVE；本条留待正常检查点备份。
+
+## D636原运行仍在推进 — 2026-10-17 20:31 local；继续等待完整W0
+
+前轮及本轮均VERIFIED WAIT。PLAN SHA仍d7acd081，完整内容在当前上下文已读，
+本轮重核SHA/状态并使用monitor-experiment；连续核对同一服务实际active及
+Invocation1f227ad8a3824e9b88308fb75c136009，没有重启或第二实验。20:31:35最近
+798 arrived/792 done/792 ok/0 fail，elapsed14:21，3 runtimes，up2/down1。
+watchdog912：MemAvailable97987186688B、peak16333221888B、free168395415552B，
+high/max/OOM/kill/swap0，abort/foreign空。仍仅是前缀，不宣称完整正确/SLO/
+GPU-s达标，也不因越过D634中止附近就宣布修复已全面验证。
+
+8次轻量监测exec cell3813已正常终态；工具无pending，实验tmux/服务/launcher
+aux/远端仍LIVE且身份不变。下一轮只继续同一运行至真实终态，再执行既定
+close_launch→stop_remote→成功collect_closure或失败专用审计；不在测量中
+扫描、压缩、改配置或推送。7B跨场景目标与数值正确性、3B及全部消融/敏感性/
+成本/文档/最终图表仍ACTIVE，不删范围。本状态在下一正常非性能检查点备份。
+
+## D636同一W0继续观察 — 2026-10-17 20:23 local；未到终态
+
+本轮VERIFIED WAIT，压缩后完整重读PLAN及本状态，按monitor-experiment继续
+原运行；没有新实验、配置变化、后台扫描/压缩/推送。20:23:15实测服务仍为
+primelora-tc-svc-736bad07d3c74558bf517a1c6b18e6a9.scope，Invocation
+1f227ad8a3824e9b88308fb75c136009，active。最近289 arrived/274 done/274 ok/
+0 fail，elapsed06:03，2 runtimes，up0/down0。watchdog419：MemAvailable
+101136683008B、peak13804863488B、free168778334208B，high/max/OOM/kill/swap0，
+abort/foreign均空。只是完整回放的前缀，不作最终SLO、GPU-s或正确性结论。
+
+工具无pending；tmux tc-d636-min2w0、其launcher aux与远端服务继续原身份。
+下一轮仍只轮询同一运行，等待真实终态；不得因观察窗口结束而重启或收尾。
+终态后严格close_launch→stop_remote→成功collect_closure/失败审计。原始
+失败与候选全部保留，7B数值正确性/跨场景G1/G2、3B/dLoRA、A1–A5、S1–S13、
+离线成本、文档、最终图表仍ACTIVE。本条留到下一正常非性能检查点备份。
+
+## D636完整W0已实际启动 — 2026-10-17 20:17 local；继续同一运行
+
+本轮PROGRESS：资格/备份/启动完成，未完成性能评价。backup session57101
+exit0，MAIN30ec27aad193bc3b0c672f54a4e609f597fec3fe已推送且远端相等，6明确文件，
+BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。backup实际scope
+9366e3128a8d407b9ea4c06d63600003/Invocationc24c1735447541f9a1b83ff6a2a022c9/
+inode26968316关闭，peak29749248B。starter session18568 exit0，scope...00004/
+Invocationb28d4adc2fee4acb925ce3960f63e0e3/inode26968437也递归空关闭，
+peak29593600B；events/swap0，工具会话均终态，无pending。
+
+性能运行LIVE：仅继续SAME tmux tc-d636-min2w0，RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d636_20261017，
+run7b_min2_full_w0。实际服务unit primelora-tc-svc-736bad07d3c74558bf517a1c6b18e6a9.scope，
+Invocation1f227ad8a3824e9b88308fb75c136009/inode26968600 active；launcher aux
+d82760356608487a8866dbff30bfaa5f/Invocation6e355a3c397d4ee99ed3cf2b61b35d70/
+inode26968558仍属本轮live，不可提前关闭。业务已开始，最近1 arrived/1 done/
+1 ok/0 fail，2 runtimes；只是早期前缀，不能判断最终SLO或资源效果。
+watchdog72：MemAvailable101949943808B、peak13804863488B、free169793396736B，
+high/max/OOM/kill/swap0，无abort/foreign。没有后台扫描/分析/压缩/构建/第二运行。
+
+远端实际1000Mb/s/full，复用只读已发布交付、请求中不打包。3BInvocation
+9544c441cb65477abc3d1f1c3e1709d2，7B6dfdd8cafcdd404fa3979617109ba04d，monitor
+primelora-artifact-monitor-d636-min2w0.service/Invocation797d9342d1d4476397173fa678c9688f。
+7Bclock remote-process-monotonic:0f89c97b7c264ed0a93c36fc492b32d4，3Bclock
+remote-process-monotonic:a264356e25de496cbde2049c249f8c92。原身份见exec_receipt/
+service_aux_identity/start_receipt/remote_start/remote_health；不重启或改动服务。
+
+下一轮先核对完整PLAN/状态与同一live身份，只监测至真实终态。终态后按
+close_launch→stop_remote→成功collect_closure或失败专用审计顺序收尾，再
+完整W0校验。D634失败与D632/D633观测保留，独立数值正确性、跨场景G1/G2
+尚未证明；3B/dLoRA/A1–A5/S1–S13/成本/文档/最终图表全部ACTIVE。
+本条备份后状态留下一正常检查点提交，运行中不推送。
+
 ## D636同配置W0资格完成 — 2026-10-17 20:15 local；待备份启动
 
 前轮PROGRESS（D635已修复/539检查/推送）；本轮PROGRESS，完整PLAN1567行和
