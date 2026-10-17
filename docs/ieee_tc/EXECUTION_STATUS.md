@@ -1,5 +1,77 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D619 complete and audited — backup next; no live performance run
+
+Full4000/4000 native contract complete,458224tokens. Frozen joint3891/4000
+(97.275%), meanTTFT1148.845ms/P952898.130ms, U6519.895815976197 GPU-s.
+W1 budget6756.571050141065; U/B0.964971103. RelativeD551 U-21.101%,
+P95TTFT+20.035%, joint-0.800pp: keepregressions, notsingle-factorcausality.
+IndependentnumericalcorrectnessUNKNOWN,N_correctnull,rankingfalse; notfinalG1/G2.
+GPU3 nativeactivation/service nowobserved whileother3GPUsheld; overlap10.911271s
+includedinU. CPUdomain4devices,6prepared/5activated/1unused,allprocessesexit0.
+132remote transfers/131480060B/pack0; dispatchtiers4000complete. Peak19032580096B,
+high/max/OOM/kill/swap0.147protected/userdirtunchanged.
+
+Performance,service,auxandownedremoteallclosed. Analysis96926failedonlywrong
+interpretermissingijsonaftercollection; preservefailure. Analysis2session31769
+sameanalyzerinexistingqualifiedenvpassed, actualclosed/pathgone,peak664301568B.
+No GPU rerun/downloadrepeat ormetricchange; nopendingtool. FullPLAN/rules/V1/V2
+rereadthisturn. Nextboundedpublish_result.py (D615templateadapted) ->actualclosure,
+thenstorage-firstbeforeanynewheavylaunch; diskbelow150GiBnewlaunchfloor.
+Same-sourceW2/W0then3B,dLoRA,A1–A5,S1–S13,cost/reviewer/finalfiguresremainACTIVE.
+No renewedbaselineoptimization. ThisturnPROGRESS: fullW1closure/audit/native
+overlapvalidation; goalnotcompleteandnotblocked.
+
+## D619 live GPU3 service observed — do not terminate or restart
+
+Verified SAMEtmux alive andwatchdogadvance throughsample972. Latestservice
+1679arrived/1670completed/1670successful/0failed,elapsed15:22,
+3scaleup/1scaledown. Newactivation8d4ba5e1bd1e4f818e7ca35af2eff0c2
+is visibly serving onGPU3; currentdevices0/1/3. This provesdevice3activation
+andservice inthisrun, NOT yet exactretirement overlap or finalperformance;
+postrun correlateCPUpreparation/control/physicallease timestamps.
+Peak17738313728B,high/max/OOM/kill/swap0,noabort/foreigncompute;
+free159343046656B above100GiBstop, below150GiBnewlaunchfloor.
+Continue SAMErun to4000/terminal; no maintenance/extraexperiments/push.
+PreviousgoalturnPROGRESS; currentturnverifiedlivewait plusnewdevice3native
+evidence. No pending tool handles; realservice/aux/remoteLIVE asbelow.
+FullgoalACTIVE; neither G1/G2 norcross-scenecompletion asserted.
+
+## D619 observed forward progress — continue SAME live run
+
+Latestservice59arrived/53completed/53successful/0failed, elapsed01:04,
+3runtimes/2natural scaleup/0scaledown. Watchdogsample132:3heldGPUs,
+peak16043692032B,high/max/OOM/kill/swap0,noabort/foreigncompute;
+hostavailable98914430976B. Latestdf160603435008B, belowNEWlaunch150GiB
+floor but above100GiBstop; no maintenance while performance isLIVE.
+Not finalSLO, not completephysicalU, no numerical/ranking claim.
+All preparatory tool sessions terminal/closed; actualD619 service/aux/remote
+remainLIVE asidentifiedbelow. Next monitor SAMEtmux/logs; do not relaunch.
+This turn PROGRESS includes qualifiedinput/config binding, testedbackup,push,
+nativefullW1launch andforwardprogress. GoalACTIVE, allremaining scope retained.
+
+## D619 full W1 LIVE — same working point, corrected device domain
+
+Checkpoint1d897b82dfb605f10eaaa7c1c4c40d702b5f64e7 pushed/remote-equal;
+backup95090 exit0/actualclosed/peak27815936B/events0. Starter73440 exit0,
+actualclosed/peak28332032B/events0. No pending tool session.
+SAME tmux tc-d619-domainw1; raw p2_backend_qualification/d619_20261017/
+7b_device_domain_full_w1. Production source29114576 unchanged fromD618.
+Service primelora-tc-svc-88335030df7c4ddea7a958c7cd45dd85.scope;
+aux primelora-tc-aux-e2bc9ae1c41e469c8f88b08b608a17c6.scope. Exact identities
+inexec_receipt.json/service_aux_identity.json. Common business start1713370.595875337.
+Remote services3b/7b plusmonitor primelora-artifact-monitor-d619-domainw1.service
+LIVE; invocation identities inremote_start.log; link1000/full,deliverypublishedgzip.
+No request-time packing or remote reconfiguration. Initialwatchdognoabort/events0.
+
+Next continue SAMErun monitoring to terminal. No secondjob, storage maintenance,
+hash scan/build/push/remotechanges during performance. Then verify actualGPU/
+service release, close_launch.py, stop_remote.sh, boundedrun_analysis.py, actual
+analysisclosure and sealedbackup. Failedcase must retain all4000planned andonly
+U_observed, not usepartial asrankedresult. Do not restart on observationtimeout.
+This goalturn madePROGRESS: same-inputqualified,backedupandlaunchedfullW1.
+Fullscope G1/G2/W2/W0/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigures ACTIVE.
+
 ## D619 qualification passed — backup then launch once
 
 Qualification86369 exit0, actual scope closed/pathgone, peak611786752B/events0.
