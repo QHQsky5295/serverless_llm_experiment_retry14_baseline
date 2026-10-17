@@ -1,5 +1,45 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D627/D628：发布临界区组件完成，候选通过410项回归；备份后再完整回放
+
+FullPLAN/latest rules已重读，HydraServe已完成隔离适配，不改无关k3s。
+D627实际32MiB私有发布六次：hash81.556–90.323ms全在全局owner锁内；
+持锁89.783–216.844ms。实际关闭peak360173568B/events0，原文件及147保护不变。
+据此结合D626分解、D595退化/D601回退、D606/D610已实现优化、官方HF/Python/
+vLLM资料，登记D628“私有完整hash、锁内实时容量与发布”唯一生产候选。
+remote/local copy均适用；保留source pin、cancel、实时extent观察、最终
+private签名检查及rename+registry原子性。无新参数、弱校验、陈旧状态或fallback。
+
+D628首次focused33项1失败为新断言误识别预分配阶段，失败源码/日志保留；
+修正后focused2全通过。最终源码另确保前后物理观察持owner锁；完整回归
+219+178+13=410通过，peak1660764160B/events0。组件六次33589802B全部hash
+在owner锁外，空库存持锁1.932/2.562/1.472ms，元数据库存14.117/125.899/
+13.003ms；发布总量未显示降低，较慢库存样本全部保留。只有并发前进性证据，
+没有新SLO/GPU-s收益结论。component已实际关闭peak326213632B/events0。
+附加inventory/HTTP回归52项通过（最终源码合计462），peak518823936B/events0，
+实际空资源域已关闭；没有GPU或远端实验。
+
+当前为PROGRESS；候选生产SHA3bf7490deff8c917bbad46b79526772a3803f9b030f559b8e63e976052d99407。
+测试SHA4bd8e5141ea50765faca2edf0065a96245843cc6492521821f145a58ec057910。
+下一步完整资格检查/明确路径备份推送，再复用已有runner登记一次新W2完整
+回放，不重复组件诊断或按胜负重跑。性能接受false；W0/W1旧值不能与新W2
+拼为同版本点。保留原W295%未达（94.95%）、数值UNKNOWN/N_correctnull。
+7B完整目标、3B、dLoRA、A1–A5、S1–S13、成本/审稿文档/最终图表仍ACTIVE。
+
+## D626 已推送且实际关闭：准备进入有界 publication 组件核查
+
+提交6625a7eb05e95391d3a52d7da22046a4a5733bcc已推送且远端一致。五个明确
+路径通过diff/checksum/AST/源SHA/secret与147保护检查；没有stage用户manifest。
+publication71597exit0，递归空后按精确身份关闭/pathgone；峰值30748672B，
+high/max/OOM/kill/swap全0。两项分析也已实际关闭，无待续tool会话。
+当前仅保留受保护用户manifest的既有tracked dirt；本条是提交后收尾记载。
+磁盘174190440448B（约162.23GiB），GPU计算进程为空；无服务/远端重型任务。
+
+本轮PROGRESS：D626两项已存结果解释、官方资料核查和完整备份完成。
+下一项限定在下方documented publication临界区假设的组件核查，不重跑
+全阶段诊断、不恢复并行压力屏障、不立即开GPU回放。关闭回执保留在D626
+原始目录，随下一正常检查点备份。目标仍ACTIVE，完整未完成范围不缩减。
+
 ## D626 离线分解完成：准备不是纯网络等待；下一步限定为发布临界区核查
 
 Full PLAN/latest rules/frozen V1+single V2已完整重读，协议与运行身份未改。
