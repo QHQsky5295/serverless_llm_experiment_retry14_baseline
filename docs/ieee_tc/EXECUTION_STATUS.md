@@ -1,5 +1,24 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D623 diagnosis complete — backup, then same-version W0
+
+D622 commit9de424ee19864741e82d8a66a1d3ef26f8169360 pushed/remote-equal;
+publication27043closed/peak28020736B/events0. D623analysis6196exit0,
+actualclosed/pathgone,peak264114176B/highmaxOOMkillswap0. No live experiment.
+Reused D612 streaming stage/holding auditor on archived D615 and D621 sources;
+4000 matched inputs, counts/stages/physical integrals match original audits.
+D621202jointviolations:181TTFTonly/15TPOTonly/6both. 64bad→good/83good→bad,
+119bothbad/3734bothgood. 142outputhashchanges retained; independentoracle
+UNKNOWN,notimputedcorrect. Most violations preparation/dispatch or gate wait;
+rotation100 index6 (source601–700)37/100joint, not a500-requestphase.
+76violations overlap naturalstartup;126do not. Theseareconditional temporal
+diagnostics,notcausalproof. No newonlinecode/config/thresholds or GPU run.
+Next D623 checked publication/push/actualclosure, then complete same-version
+W0 once before selecting a new evidence-based cross-scene candidate. D621
+94.95% remainsinfeasible; no rerun samekey orsplicingoldW0. All fullPLAN
+scope ACTIVE including numericalqualification,3B,dLoRA,A1–A5,S1–S13,cost/
+reviewer/finalfigures. Currentfree~163GiB; rechecklaunchfloor/memory.
+
 ## D622 storage complete — backup then bounded D623 W2 diagnosis
 
 Storage15747exit0; actualscopeclosed/pathgone. Four explicit closed logs
