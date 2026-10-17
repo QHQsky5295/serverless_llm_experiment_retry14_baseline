@@ -1,5 +1,54 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D634完整W0资格通过 — 2026-10-17 19:38 local；待备份/启动
+
+session18770退出0，完整4000 W0/source-view与D529冻结身份一致；归一化
+配置精确等于D633（亦即D632），不按场景调参。复用458回归、32控制、192
+状态检查，生产未改。资格scope9346e3128a8d407b9ea4c06d63400001实际
+Invocation791851a11a3c44708594201f81ab7697/inode26949674已递归空关闭，
+peak612057088B/events0/swap0，147投稿保护通过。无GPU/remote运行，无
+pending工具会话。下一步github-sync明确7文件备份（含D633备份后文档），
+随后再gate并启动一次D634；所有未完成范围保持ACTIVE，不提前宣称达标。
+
+## D634同配置完整W0已登记 — 2026-10-17；资格前
+
+本轮PROGRESS：完整PLAN（1567行）、AGENTS、最新状态、冻结V1/单轮V2及
+执行补充已重读。复用D624 W0和D633真实远端/启动/关闭入口，登记D634
+独立配置、run及cache路径；min2/max3与D632/D633精确相同，仅三目录不同，
+不改生产算法、公式、输入、阈值或模型profile。当前无GPU运行/remote服务。
+下一步受限资格核验→明确路径备份→单次完整W0；尚未完成资格或启动，
+不能声称W0已达标。只做同候选的缺失场景验证，不新开调参或baseline适配。
+磁盘171409108992B、MemAvailable112024317952B；启动前再gate。复用已有
+回归/控制证据、已发布工件，不新增池/负载，不压缩活动结果。全部独立数值、
+3B/dLoRA/A1–A5/S1–S13/成本/文档/最终图表仍ACTIVE，目标范围不缩减。
+
+## D633完整结果已推送 — 2026-10-17 19:30 local；下一步同配置W0
+
+本轮PROGRESS完成D633全程等待、释放、审计和备份。publication3 session17547
+exit0，MAIN `1ef5e5f58d4db141395e8a7acac812779c4af35f`已推送且远端相等，
+仅5明确文件。BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。最终scope
+e0ec80168cc94631bd645874bb6788c2已按publication3_closure.json实际身份递归
+空关闭/pathgone，peak45379584B/events0/swap0。全部D633 service、aux、
+remote已关闭，工具会话均终态，无pending或GPU运行。可用171413340160B，
+下一heavy须重新gate；不在本轮重复压缩或删除数据。
+
+curated `paper_results/ieee_tc/p2_backend/d633_min2_full_w1/result1/` 已封存
+summary/evidence/result.sha256；raw仍d633_20261017。147投稿文件未变，用户
+manifest SHA仍3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df。
+直接读取D620验证的D619 gzip，未恢复大型JSON；逐请求输入合同4000匹配。
+177个同后端输出hash变化保留ID，原因UNKNOWN，不升级独立数值正确性。
+唯一归一化模型配置差异min_instances 1→2；D633与D632 W2模型配置完全相同。
+五个已发表W1基线均保留；D633本轮的SLO/P95/U观测均优于这些既定点，但
+没有同预算优化对手或独立数值证明，不称全局最优。W1相对旧D619尾延迟/SLO
+退化与资源减少均保留；四卡重叠0。两次发布流程失败均封存，不是性能重跑。
+
+下一主线：读完整PLAN/最新状态和冻结V1+单轮V2；复用D624 W0执行/审计路径，
+登记新的同min2/max3完整W0键，仅输出/NVMe/HOST目录不同，资格/安全/备份后
+单次运行。尚未创建/启动W0，不能拼旧min1结果。读取旧源先核验是否已无损
+压缩，使用原SHA和压缩回执，避免再次假定旧JSON原路径仍在。所有独立数值/
+3B/dLoRA/A1–A5/S1–S13/成本/文档/最终图表仍ACTIVE。本段和D633文档的备份
+后状态追加留下一正常检查点备份；完整结果已在上述提交，主线无缩减。
+
 ## D633备份来源适配 — 2026-10-17 19:30 local
 
 性能与完整审计不变，未新增GPU实验。publication attempt1(session87899)
