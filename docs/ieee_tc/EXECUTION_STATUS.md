@@ -1,5 +1,75 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D621 complete and audited — W2 joint SLO below frozen gate; backup next
+
+Full4000/4000 native contract complete,458224tokens. Joint3798/4000=94.95%,
+below3800 by2; NEVERround up or rerun same key. TTFT3813/TPOT3979 passes;
+meanTTFT1360.525732ms/P953908.676889ms, U10552.132922539953 GPU-s,
+U/B0.873038934 atunchangedW2B12086.669343876012. RelativeD615 U-1.0250%,
+P95TTFT-0.5974%,joint-0.475pp; alltradeoffs retained,notcausal/significant.
+IndependentnumericalcorrectnessUNKNOWN,N_correctnull,rankingfalse; notG1/G2.
+497remote/418365205wireB/pack0;4000dispatchtierscomplete. CPU9prepared/8activated/
+1unused(allrc0),GPU3preparedbutunused;notnewfour-deviceoverlapproof.
+Peak28959105024B,high/max/OOM/kill/swap0;147protected/userdirtunchanged.
+
+SAMEperformance terminalpass,service/watchdogrc0,physicalGPUreleaseconfirmed.
+close_launch.py andexactremote stop complete; allownedservice/aux/remoteclosed.
+Analysis44808exit0,actualclosed/pathgone,peak768540672B/events0. Nopendingtool.
+Newpublish_result.py reusesD619; reviewed/adaptedW2identity,observedSLOfailure,
+genericnaturaldevicecounts. Nextboundedpublication/check/push ->actualclosure.
+Thenstorage-first,boundedviolationdiagnosis andsame-versionW0; do notskipW2
+failure ornewversioncross-scenevalidation. FullgoalACTIVEincluding3B,dLoRA,
+A1–A5,S1–S13,cost/reviewer/finalfigures. Previousturnverifiedwait; thisturn
+PROGRESS: samefullW2finished,actualclosure,completeaudit andretainedshortfall.
+FullPLAN/rules/frozenV1/singleV2 incontextread; skillsmonitor/analyze/gpu/sync
+checked. Noperformancecodechanges orbaselineoptimizationthisturn.
+
+## D621 monitoring checkpoint — SAME full W2 remains LIVE
+
+Latest observed replay elapsed50:31:3311arrived/3307completed/3307successful/0failed;
+6scaleup/4scaledown,3live runtimes. Watchdogsample3046,peak25688633344B,
+high/max/OOM/kill/swap0,noabort,noforeigncompute;free150228086784B.
+tmux tc-d621-domainw2 remains alive,commandpython3. No terminal launch.json
+was used or inferred; do not restart this run. Current disk is below the150GiB
+new-heavy-launch floor but above100GiB running-stop threshold; maintenance waits
+until actual release. No code/config/remote changes, scans, builds, push or extra
+experiments during this performance run.
+
+FullPLAN,AGENTS,latestexecutionrules,andfrozenV1/singleV2 reread thisturn.
+Existing close_launch.py/stop_remote.sh/run_analysis.py/analyzers inspected only;
+they were not executed or edited. Next poll SAME service log/watchdog/tmux; at
+terminal follow exact-identity closure and bounded analysis below. All qualified
+helpers and checkpointc2289327 remain unchanged. No pending tool handle.
+Previous goal turn was a verified wait; this continuation likewise directly
+confirmed advancing service logs, watchdog samples and live tmux, not just a lock.
+This is ongoing monitoring, not a completed new experiment or final G1/G2 claim.
+FullgoalACTIVE: same-versionW0,numericalqualification,3B,dLoRA,A1–A5,S1–S13,
+cost/reviewer evidence and final figures remain. No baseline performance search.
+
+## D621 full W2 LIVE — monitor SAME run, never relaunch
+
+Checkpointc2289327aeb3dc6cd086dfce2455ab2fb99924e7 pushed/remote-equal.
+Qualification78590exit0/actualclosed/peak727359488B/events0; backup99259exit0/
+actualclosed/peak29847552B/events0; starter94900exit0/actualclosed/peak29540352B.
+No pendingtool. ActualperformanceLIVE in tmux tc-d621-domainw2;
+rawp2_backend_qualification/d621_20261017/7b_device_domain_full_w2.
+Serviceprimelora-tc-svc-ae4eb2377c314ae8b63f123a6be3c1e9.scope,
+invocation4f25a33129c24ccfbb5ecf4205d22f50; externalaux
+primelora-tc-aux-505a6bd5b0e24b7f9930e1d004032a6b.scope.
+Remote3b/7b andprimelora-artifact-monitor-d621-domainw2.service LIVE;
+7binvocation1460a92df8a440648a0f5966af729f5c,monitorb190282a46a841509e536e82b1de487e.
+Exactidentitiesinexec_receipt/service_aux_identity/remote_start.log.
+Remote1000/full,7bclockremote-process-monotonic:e807094bee1f4ca4bae991fc7fd7e115,
+publishedgzipunchanged. Initialwatchdogsample30,noabort/events0,peak11046928384B.
+
+Continue SAMErun; nosecondjob/maintenance/hashscan/build/push/remotechanges.
+Atterminal actualGPUrelease ->close_launch.py ->stop_remote.sh ->bounded
+run_analysis.py using /home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
+(NOT oldcondaenvmissingijson). Thenactualanalysisclosure/save/backup.
+IfincompletepreserveNplan4000/Uobs,notrankedresult; observationtimeoutnotrestart.
+ThisturnPROGRESS: same-input/configqualified,backedup,fullW2launched. Fullgoal
+ACTIVEincludingW0/G1/G2/numerical/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigures.
+
 ## D621 qualified — backup then single full W2 launch
 
 Qualification78590exit0,actualscopeclosed/pathgone. Full4000W2view5734bd88587,
