@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D639三场景有界审计完成；下一主线3B — 2026-10-17 22:02 local
+
+本轮PROGRESS。D638已推送fa75de67c7b64ed8264992105bb12abc7de2e7f7，remote
+相同；backup session98787 exit0，scope...d63800002递归空/pathgone，peak32043008B，
+events/swap0。D639复用D638projection及gzip流读，不恢复旧大文件。D619/D633、
+D621/D632合计16000记录十项绑定全过；两对4000输入完全匹配，变化177/122，
+与旧发布集合一致。既有HF参考匹配输入各100，exact为92/95，数值原因未知。
+analysis session57264 exit0，scope9366e3128a8d407b9ea4c06d63900001已递归空/
+pathgone，peak99938304B/events0。147保护与用户manifest不变，无GPU/远端pending。
+
+三场景joint98.375/96.050/96.350%；U9193.046576/6310.028822/10914.192406，
+W1/W2预算比0.933910/0.902994。15个baseline点全保留，vLLM的W0/W2原始尾延迟
+更低/联合更高，HydraServe W2资源更少但SLO66%；不声称所有指标第一。
+D637跨版本R2边界和原始n_correct/null保持；本次不引入全量HFexact门槛。
+阶段决定详见D639文档：封存7B当前版本标注开发观测，完成此有界输出分支，
+不再重复W0资格/HF诊断。最终同版本主表/消融来源要求仍待后续对照核实。
+
+下一步备份D639后进入3B主线。已完整读D274历史瓶颈文档：D138平均12.589s，
+主要为控制/准备路径但不是当前配置；先核查最新3B IEEE Full完整合同、历史
+已有资格与profile，复用池/trace/环境，不能直接将7B14slots当3B最优。
+重型任务前先存储/内存护栏，优先最小必要资格与共同warm/Resident缺口。
+3B全部系统/dLoRA、A1–A5、S1–S13、成本、审稿文档和最终图表完整ACTIVE。
+目前D639文档/产物待显式备份；生产未修改，无图、无安装、无数据删除。
+
 ## D638有界输出审计完成 — 2026-10-17 21:54 local；待备份
 
 本轮PROGRESS。完整PLAN、最新规则、V1/单轮V2已复核；使用analyze-results，
