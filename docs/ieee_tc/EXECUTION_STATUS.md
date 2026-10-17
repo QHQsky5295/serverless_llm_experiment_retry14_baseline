@@ -1,5 +1,18 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D660：相同3B Full配置的完整W0入口核验通过 — 2026-10-18 05:30 CST
+
+上一轮PROGRESS（D659原生短资格/封存）；本轮PROGRESS：完整重读PLAN并核对
+当前状态，D660仅将已测配置人口改为4000及独立输出目录。实际child、两类
+profile loader、全配置等价及原trace W0view核验通过；复用D658未变化六项
+测试，不重跑GPU资格或Resident。现有shell历史分支逐字节不变，运行时算法
+与九公式不变。qualification1200记录passed，peak715489280B/events/swap0。
+
+待关闭qualification及备份后启动一次完整W0。不得由D659联合91/100宣称
+4000必败或达标；不改变共同阈值、不套7Bmin2、不重复同键筛选赢家。完整结果
+决定下一优化假设。随后3B W1/W2/其余基线/dLoRA，同版本7B主表与消融、
+A1–A5/S1–S13、成本/审稿/最终图表仍ACTIVE；当前无性能新结果。
+
 ## D659：3B Full100请求已通过原生核验，联合91% — 2026-10-18 05:25 CST
 
 PROGRESS：D658九文件已推送8a30f65fbeeeb8b79e83ad40c4d388a6a080b525，
@@ -15,7 +28,12 @@ inactive，analysis96150 exit0及scope关闭，peak143200256B/events/swap0；服
 peak20599603200B/high/max/OOM/kill/swap0。147旧投稿保护通过，审计SHA
 7299df3712b77626c316270c1bf37a09e1f1e4ca1c4de7d67c06e0d898ffab1c。无pending。
 
-下一项：封存本次短资格，再以相同3B配置完整W0，不因前缀91%调阈值或套7B
+publication33650 exit0，六个显式文件推送9fe8ffc78ce338b80c5836d1bd4d5a82511b5d48，
+remote相等；BASE仍e16af33。发布scope递归空关闭，peak30060544B/events/swap0，
+源SHA/旧投稿/用户修改/秘密/diff检查通过。D658发布关闭回执随本检查点归档；
+D659自身发布关闭回执留raw，随下一正常检查点，不单开状态提交。无pending。
+
+下一项：以相同3B配置完整W0，不因前缀91%调阈值或套7B
 min2；完整数据决定瓶颈与后续优化。随后W1/W2、其余3B基线/dLoRA；同版本
 7B主表/消融、A1–A5/S1–S13、成本/审稿/最终图表仍ACTIVE。D659未改任何
 运行时算法，不重跑368源用例/89资格/已冻结Resident，也不画图。
