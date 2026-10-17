@@ -1,5 +1,63 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D625 offline diagnosis complete — bounded preparation audit next
+
+SAME analysis session84041 exited0; analysis2 actualempty-scopeclosure passed,
+pathgone,peak182812672B/events0/swap0. First failed analysis (cancelled activation
+missing ready key) preserved with closure157384704B/events0. Only strict offline
+schema handling changed; no production/config/input/performance change.
+Full PLAN/latest rules/frozenV1+singleV2 reread, identities unchanged.
+
+D624W0 190violations:141largeststage globalpermit-acquire→resume; source501–1500
+148violations,138largestglobalwait,meanTTFT10479.516ms/globalwait7762.188ms.
+D621W2 retained202violations:114largestselected-admission→engine-entry,
+107of114remote-tier; meanof114 stage3621.854ms/TTFT4657.490ms.
+W0startup-overlap521requests/160bad versus3479/30; W2 260/76 versus3740/126.
+Conditional association only; stage envelopes not pure network/CPU/permit time.
+Cancelledready unknown retained; no paired causal comparison across W0/W2.
+Native4000 contracts rechecked; numericalUNKNOWN,N_correctnull,rankingfalse.
+
+Next close/save/push D625 explicit evidence (github-sync checks), then ONE bounded
+offline reuse of D594/D600 transfer/barrier decomposition on retained D621 to
+separate remote preparation spans. No extraGPUdiagnostic or repeated full-stage
+audit. Do not retry rejectedD595 parallelbarrier, alreadycompletedD606/D610
+inventory or CPUfront-end/AOTcache ideas; no arbitrary concurrency/queue change.
+Only choose a new optimization after exact current bottleneck/history/official
+source support. Prior service snapshots cannot identify grant→resume separately.
+
+HydraServe isolated adaptation/W0W1W2 alreadycompleted; latest userk3s permission
+does not reopen deployment or change unrelatedcluster. No remote service live.
+Goalturn PROGRESS (closed4000 offlineaudit); no finalG1/G2success or scope removal.
+7Btargets/numerical,3B,dLoRA,A1–A5,S1–S13,cost/reviewer/finalfigures ACTIVE.
+
+## D624 checkpoint pushed and closed — next: bounded cross-scene bottleneck diagnosis
+
+Commitc9047ff05f8bfecbdc93c9219c2ae3396a2a6e1b pushed/remote-equal.
+Publication81403exit0;actualempty-scopeclosure/pathgone,peak33832960B/events0.
+Analysis71500alsoalreadyclosed. No liveperformance/remotejob orpendingtoolhandle.
+AllfourGPUs15MiB/0%idle;free174240202752B(~162.28GiB),above150GiBstartfloor.
+Device-domainpublicationaudit passed:18CPUrecords,17physicalleases,1abandoned,
+allCPUprocessesrc0,threephysicaldevicesused,four-deviceoverlap0. Cancelled
+activations'actualleasesremainincludedinU. Protectedusergeneratedmanifest was
+theonlytracked dirt aftercommit; no unrelateduntrackedfilesstaged.
+
+CurrentturnPROGRESS: monitored SAME D624 tocompletion, released allowned
+resources, auditedfull4000/nativeinput/token/tier/remote/lifecycle, saved
+cross-workloadsame-configview and numericalboundarynote, checkedbackup.
+No onlineoptimization,newperformanceattempt,figure orbaselineadaptation.
+W0joint3810=95.25%;W13891=97.275%;W23798=94.95% remainsinfeasible.
+NumericalcorrectnessUNKNOWN,allfinalG1/G2claimsfalse. No rounding/replay/splicing.
+
+Next readfullPLAN/latestexecutionrules/frozenV1+singleV2; reuse D624 retained
+request/activation/stage evidence for source501–1500 alongside existingD623
+W2diagnosis, and historicalD337/D338/D467/D603/D614 evidence. Bound the
+analysis to choosing one falsifiable cause before newcode; don't repeat
+alreadyimplementedCPUfront-end/prefetch/AOTcache or arbitraryqueue4 tuning.
+Reviewprimarypaper/officialsource for any selected change; no candidateyet.
+Full7Btargets/numericalqualification,3B,dLoRA,A1–A5,S1–S13,cost/reviewer/final
+figures remainACTIVE. Goalnotcomplete/notblocked. Publicationclosure rawreceipt
+retained for next normalbackup; thissmallpostpushstatusupdate isuncommitted.
+
 ## D624 complete/analysed — same-point W0/W1/W2 now available; backup next
 
 SAME D624 ran once to4000/4000 native-contract completion,0failed,458224tokens.
