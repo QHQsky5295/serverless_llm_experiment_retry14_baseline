@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D617 CPU/input/config qualified — backup, then one full W1
+
+Qualification30016 exit0: full4000 W1 identity matches existingview103ac4add35;
+same modelconfig asD615 after onlyoutput/cachepath normalization, exactprofile
+load passed, production/sourceSHA unchanged. D610406+16 andD61521tests/192state
+checks reused, not rerun. No GPU experiment yet. Qualificationactualscope closed/
+pathgone, peak611590144B, high/max/OOM/kill/swap0. Next explicitpaths backup and
+freshresource/remotegate.
+Nofigures/newtuning/old4capsplicing; allremaining G1/G2/3B/dLoRA/A1–A5/S1–S13
+cost/reviewer/finalscope remainsACTIVE. FullPLANreadthisturn.
+
+## D616 backed up; D617 same-working-point full W1 registered
+
+D616 checkpoint2d19bd2bfffa2b07ee0c92376ea6646ea211ea20 pushed/remote-equal;
+storage51900/publication9879 terminal0 and actual scopes closed/pathgone. No live
+GPU/remote/auxiliary job. FullPLAN/status/latest rules/V1/V2 reread aftercompaction.
+D617 adds only existingrunner case/W1 selection plus unique config/cache/output
+paths; model configuration exactlyD615, no production edit or W1-specific tuning.
+CPU/input/profile/source qualification next; reuse D610422 tests and D61521/192
+only through unchanged sources. Full4000W1 once after explicit backup/fresh gate.
+Read D617_THREE_REPLICA_FULL_W1.md. Disk~150.26GiB, recheckbeforeheavy; no repeated
+D615 or compression. FullG1/G2/3B/dLoRA/A1–A5/S1–S13/finalscope remainsACTIVE.
+
 ## D616 storage completed — backup before same-config W1 preparation
 
 51900exit0,3D615logsverified againstsealedSHAandtwoindependentdecompressionSHA;
