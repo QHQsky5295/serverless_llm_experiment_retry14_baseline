@@ -1,5 +1,55 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D622 storage complete — backup then bounded D623 W2 diagnosis
+
+Storage15747exit0; actualscopeclosed/pathgone. Four explicit closed logs
+losslessly archived, both roundtrip/original auditSHAs match. Reclaimed
+15351848960B; free175196168192B (~163.16GiB). 14tests/147protected passed,
+userdirtunchanged. Maintenancepeak3222003712B/high72540/maxOOMkillswap0;
+these are storage-only events, no performance overlap or qualification change.
+D145four failures and D62194.95% SLO failure retained. No production changes.
+Next bounded D622 publication/push, actualclosure; then D623 reuse of D612
+streaming stage/holding diagnosis on D615/D621, distinct rotation100 versus
+500-request reporting windows. No same-key replay or baseline tuning.
+All full PLAN scope remains ACTIVE; same-versionW0 still pending.
+
+## D622 registered — bounded lossless storage before W2 diagnosis
+
+No live performance run; four GPUs idle. Free disk159846350848B is below
+the150GiB new-heavy-run floor. Explicit targets: D621 main_outcome, request
+result and remote monitor, plus D145 historical14.869GB result. Reuse shared
+streaming compressor; no inference/model/config change. Verify original SHA,
+closed service/aux, no active source, gzip integrity and two independent
+roundtrip SHAs before removing uncompressed duplicates. D145 historical
+publication-closure JSON is unavailable; retain this limitation, original
+3996 successes/four RuntimeErrors, and actual launch release/current path
+checks. Do not fabricate a historical receipt or promote failure to success.
+Next close storage, verify/backup receipts, then bounded request-level D621
+SLO diagnosis. SAME-version W0 and full remaining PLAN remain active.
+
+## D621 result checkpoint pushed — storage first; no live experiment
+
+Commit3c65d6706ce521243e1b0311e02990e09ea8c4ef pushed/remote-equal.
+Publication50696exit0,actualclosed/pathgone,peak33038336B/events0.
+AllD621performance/service/aux/remote/analysis/publication nowterminal;
+fourGPUsidle. No pendingtool. Only pre-existinggeneratedmanifesttracked dirt
+beforethisstatusupdate; neverstaged. Source/resultbundles/protectedchecks passed.
+
+W2 is VALIDbutJOINT-SLO-INFEASIBLE:3798/4000=94.95%,2short;U10552.132923
+withinB12086.669344. No same-key rerun, rounding orreplacementwitholdD615.
+No GPU3activation/four-cardoverlap inthisW2 (0s); D619positiveevidence remains
+separate. Allnativecounts,transferbindings,physicalrelease andregressions saved.
+Independentnumericalproofstillunknown; nofinalG1/G2/cross-sceneleaderclaim.
+
+Nextstorage-first (latestfree159849115648B~148.87GiB,below150GiBlaunchfloor):
+reuseexistingclosed-evidencecompression framework,newidentity/explicitD621files,
+neverrerunD620list. Preserveuniqueassets/rawcontent viaverifiedlosslessarchive.
+Thenboundedrequest-levelSLOviolationdiagnosis andsame-versionW0/nextqualified
+cross-scenecandidate perfullPLAN. Do notjump to3B ornewbaseline tuning yet.
+FullgoalACTIVEincludingnumericalqualification,3B,dLoRA,A1–A5,S1–S13,cost,
+reviewer evidence/finalfigures. ThisgoalturnPROGRESS: sameW2completed,audited,
+closedandbackedup;notblocked/notcomplete. RereadfullPLAN/rules before nexttask.
+
 ## D621 complete and audited — W2 joint SLO below frozen gate; backup next
 
 Full4000/4000 native contract complete,458224tokens. Joint3798/4000=94.95%,
