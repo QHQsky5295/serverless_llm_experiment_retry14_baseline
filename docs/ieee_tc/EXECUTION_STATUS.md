@@ -1,5 +1,66 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D615 complete and audited — W2 observed quality AND budget met; backup next
+
+SAME full run completed once: launch/service/watchdog exit0, actual GPU/service
+release confirmed; localaux closed, exact-owned remote stopped4089 exit0. Analysis
+14012 exit0, actual scopeclosed/pathgone, peak775442432B/events/swap0. No live GPU/
+remote/auxiliary job or pending tool. Monitoring2485finished; NOT another replay.
+4000 native contracts/458224tokens; joint3817/4000=95.425%, TTFT3831/TPOT3980;
+P95TTFT3932.166645ms, mean1389.078092ms, U10661.413645949913 GPU-s,
+U/offered2.665353411, U/B0.88208035999. RelativeD611 U-29.67397%, joint-.05pp,
+P95TTFT+2.3055%; preserve all regressions. Independent numerical correctness
+unknown/n_correctnull/rankingfalse. This is not final cross-workload G1/G2.
+497transfers/418365205B/pack0;1928controlstatesmax3;1initial+8naturalready;
+servicepeak28276375552B,4072samples/events/swap0. Protected147/userdirt unchanged.
+Read D615_THREE_REPLICA_FULL_W2.md. Next explicit result backup usingD611 pattern,
+then safe storage restoration before SAMEconfig W1/W0. No candidate retuning,
+no old4replica resultsplicing, no repeated D615 key. Disk160581537792B atclosure
+below150GiBNEW-heavyfloor; no newGPU/build until safe recovery. Full3B/dLoRA/
+A1–A5/S1–S13/cost/reviewerdocs/finalfiguresremainACTIVE. No figures yet.
+
+## D615 same-run verified wait — 1098/4000, no restart or new key
+
+This continuation fullyrereadPLAN/status (firstoutput235–265truncation reread),
+monitor/gpu skills; previousgoalturn wasPROGRESS (qualification/backup/launch).
+20successive45s tmux+actualservice+watchdogpolls show sameD615 advancing122→1098
+successfulreturns,0failures; latest1101arrivals,elapsed19:15,3readyruntimes,
+6natural scaleups/4scaledowns. Dynamic1–3holding observed, notfixed3resident.
+Watchdogpeak18523582464B/high,max,OOM,kill,swap0/noforeigncompute/noabort;
+disk146.688416GiB (belowNEWlaunchfloor,above100stop). No maintenance/secondjob.
+Monitoringcell2474completed after20polls; no pendingtoolcall. GPU/remote services
+below are STILL LIVE. This turn isVERIFIED_WAIT, notblocked or finalperformance.
+Next resumeSAME tmux tc-d615-threew2 and actualscopechecks; afterterminal doowned
+closure/remote stop/analysis. No samekeyrerun, partialranking or earlySLOclaim.
+All fullG1/G2/3B/dLoRA/A1–A5/S1–S13/cost/reviewer/finalfigure scope remainsACTIVE.
+
+## D615 verified live progress — 90/4000, continue SAME run
+
+Latestserviceprint92arrived/90completed/90successful/0failed, elapsed2:57;
+2readyruntimes,2natural scaleup/1scaledown events. Actualwatchdog2heldGPUs,
+peak13233672192B, high/max/OOM/kill/swap0, noforeigncompute/noabort.
+Disk149.811184GiB belowNEW-start150floor butabove100stop; do not launchanything
+else ormaintain/compress whileperformancecontinues. This is an earlypartial,
+not finalSLO/U/result. Same tmux/service/remote identities below; allqualification,
+backup andstartertool sessions terminal/closed. No pendingtoolcall. No additional
+GPUkey or source/configedit. Nextactualprogressmonitoring, thenownedclosure/
+remote stop/boundedanalysis afterterminal. FullgoalACTIVE, notblocked/completed.
+
+## D615 full W2 LIVE — do not start another experiment or alter serving paths
+
+Checkpointdebf08196597a23892c448453e02e038116e8861 pushed/remoteequal. Backup9073
+exit0, scopeclosed/pathgone/peak29786112B/events0. Starter60177exit0, actualscope
+closed/pathgone/peak32145408B/events0. tc-d615-threew2 is the SAME active4000W2
+run. Serviceprimelora-tc-svc-01bd9406f64a4d7f8c51f300b31f5616.scope; auxiliary
+primelora-tc-aux-d77017a43c8849de9b18dc457e5c0798.scope. Rawd615_20261017/
+7b_three_replica_full_w2. Remote1000/full atlaunch; readonlyD80delivery reused,
+3b/7b services and primelora-artifact-monitor-d615-threew2.service owned/live.
+Remote7bclockbc2d01ef6a664db0a1b9b4963278c9f5. No remote maintenance/hash scan/
+compression/build/push duringperformance. Watchdoginitialevents/swap0, noforeign
+compute/noabort. Nextmonitoractualprogress≤60s checks; onterminalcloseownedlocal,
+stop_remote.sh, boundedrun_analysis.py, saveallresults. Do not restarttimeout or
+rerunkey. Max3isnotassumedGPUbudget; fullG1/G2andcompleteremaining scopeACTIVE.
+
 ## D615 CPU/config qualified — explicit backup then one complete W2
 
 Qualification3 session93101 exit0:192actualconfigstatechecks and21existingcontrol/
