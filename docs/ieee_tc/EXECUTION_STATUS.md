@@ -1,6 +1,44 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## D639三场景有界审计完成；下一主线3B — 2026-10-17 22:02 local
+## D640：3B资产/旧profile核查完成，当前native资格已准备 — 2026-10-17 22:13 local
+
+本轮PROGRESS，非阻塞。按完整PLAN及D639决定进入3B，不重复7B W0/HF审计。
+D640在53MB峰值受限CPU域完成500配置SHA核查：rank8=350/rank16=150；
+冻结权重清单只有2种safetensors SHA，24文件内容类不能当24独立权重。
+本次权重仅复用冻结索引SHA/当前文件大小，未声称重新哈希全部权重。
+D138旧Full保留4000原生数量合同完成、均值TTFT12.5886s和原n_correct=null。
+旧profile/完整结果为R2，不能把较早测量换标签为当前结果。
+
+D641独立3B迁移配置已创建：原8 lanes/.72/4096预算，按实际池maxrank16，
+显式当前V1/chunked及既有control/file-demand策略，不复制7B14 lanes/min2。
+使用analyze-results和vLLM官方源码/文档；experiment-audit共享规则缺失，
+未冒称完整独立审计。源码算法/九公式未改，现有source runner只加3B入口。
+复用D88原24代表/46waves/368cases；新索引移除不匹配的旧Full/admission绑定。
+既有source_profile_inputs CPU检查通过，无CUDA模型加载/HTTP；shell语法通过。
+当前共同3B warm/Resident未在curated找到，不能套7B阈值或旧5000ms。
+
+分析session41481、输入检查49654均exit0；analysis/analysis2递归空/pathgone。
+存储session34960 exit0：D634失败/D636成功main_outcome分别无损gzip，两次
+解压SHA一致后删除未压缩重复件，回收540532736B；qualification scope已空关闭。
+147投稿保护及用户manifest不变；当前无GPU/远端服务pending。具体见D640文档。
+本轮文档/脚本/小型证据待github-sync显式备份，然后启动D641 source-only原生
+资格；它不是Full计时或主性能点，完成后按新身份补必要初始化与Full测量。
+3B全部基线/dLoRA、核心消融/状态/first-service、S1–S13、成本/审稿说明/最终
+图表完整ACTIVE；未绘图、未安装、未改论文/权重/负载、未接入无关k3s。
+
+## D639备份完成；下一主线3B — 2026-10-17 22:01 local
+
+本轮PROGRESS，D638/D639均完成并推送。D639 backup session80960 exit0，5明确
+文件checkpoint f62db6e4ff582e203908290bf89a32d067c4c51a，remote相等；checksum/
+AST/secrets/147保护通过，用户manifest未stage。backup scope
+9366e3128a8d407b9ea4c06d63900002已核验递归空/pathgone，资源见backup_closure。
+所有本轮工具终态，无GPU/远端实验pending，无生产修改、安装、清理或绘图。
+BASE仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。下一轮按完整PLAN/V1/V2和
+D639阶段决定直接进入3B历史/当前配置及必要资格缺口核查，不再重启7B的
+W0/HF全等诊断，也不把7B已知回放/跨版本观察写成正式全局最优。
+全部未完成实验及交付ACTIVE；此备份后状态留待下一正常检查点，不另开循环。
+
+## D639三场景有界审计完成；下一主线3B — 2026-10-17，备份前
 
 本轮PROGRESS。D638已推送fa75de67c7b64ed8264992105bb12abc7de2e7f7，remote
 相同；backup session98787 exit0，scope...d63800002递归空/pathgone，peak32043008B，

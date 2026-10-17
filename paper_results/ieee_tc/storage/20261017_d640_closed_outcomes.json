@@ -1,0 +1,73 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792246295.583987,
+  "before": {
+    "available_bytes": 168927703040
+  },
+  "after": {
+    "available_bytes": 169468215296
+  },
+  "entries": [
+    {
+      "run": "d634_20261017/7b_min2_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_min2_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d634_20261017/7b_min2_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "132c623441eeed6ab264c13028e49fae0cf0f9f131e3b301950b014e28b23b01",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109581624,
+        "size": 143116071,
+        "mtime_ns": 1792238039174945830,
+        "ctime_ns": 1792238039174945830,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 279536
+      },
+      "launch_pass": false,
+      "closed_failure_explicitly_allowed": true,
+      "launch_sha256": "d5b345ddf7c173dd53d893d9053a9bdcf1cda85ae2effa04833c09411eb28e53",
+      "archive_sha256": "6e74d0c286e689c3fe51f5f5d62acef54393906dd1c1e44bddca64b3ca1d08f4",
+      "archive_bytes": 19408408,
+      "archive_allocated_bytes": 19410944,
+      "first_roundtrip_sha256": "132c623441eeed6ab264c13028e49fae0cf0f9f131e3b301950b014e28b23b01",
+      "second_roundtrip_sha256": "132c623441eeed6ab264c13028e49fae0cf0f9f131e3b301950b014e28b23b01",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 123711488
+    },
+    {
+      "run": "d636_20261017/7b_min2_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d636_20261017/7b_min2_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d636_20261017/7b_min2_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "f1b22f268d44b3f1ccdf836554f7e761c4a3f463115679793a479ffa27b533c6",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109581886,
+        "size": 472218166,
+        "mtime_ns": 1792243430217603737,
+        "ctime_ns": 1792243430217603737,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 922312
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": true,
+      "launch_sha256": "7ebb7029f3fedb10ed851a7eaf1b9b414e619d2be7f9aab5a60643cc64634db7",
+      "archive_sha256": "340623cb384f40a5eca7e04009ff7cb29ba8ec7bcaf70544adbb9b8f05c15a7c",
+      "archive_bytes": 55400007,
+      "archive_allocated_bytes": 55402496,
+      "first_roundtrip_sha256": "f1b22f268d44b3f1ccdf836554f7e761c4a3f463115679793a479ffa27b533c6",
+      "second_roundtrip_sha256": "f1b22f268d44b3f1ccdf836554f7e761c4a3f463115679793a479ffa27b533c6",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 416821248
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

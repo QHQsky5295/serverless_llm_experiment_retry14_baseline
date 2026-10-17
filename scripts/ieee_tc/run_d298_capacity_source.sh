@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d641)
+    # 3B current-runtime migration. Cases come from D88; no old timings reused.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d641_20261017
+    CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d640_3b_migration/source_spec.json
+    ;;
   d526)
     # D525 fixes the native integer contract; reuse frozen cases, not old timings.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d526_20261014
@@ -84,6 +90,13 @@ export CUDA_HOME=/usr/local/cuda-13.0 FLASHINFER_NVCC=/usr/local/cuda-13.0/bin/n
 IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
 export PRIME_REMOTE_TOKEN
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1 FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18081
+MODEL_PROFILE=llama2_7b_main_v2_publicmix
+REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+if [[ "${1:-d298}" == d641 ]]; then
+  export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
+  MODEL_PROFILE=llama32_3b_main_modelscope
+  REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+fi
 export FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE=prepublished_gzip_v1
 export FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1
 export PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True
@@ -100,8 +113,8 @@ exec systemd-run --user --scope --collect --unit="$unit" \
   --exec /home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python \
   scripts/ieee_tc_preflight.py backend-model-check \
   --runtime-receipt results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json \
-  --config "$CONFIG" --model-profile llama2_7b_main_v2_publicmix \
-  --replay-trace /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json \
+  --config "$CONFIG" --model-profile "$MODEL_PROFILE" \
+  --replay-trace "$REPLAY_TRACE" \
   --request-count 1000 --qualification-mode native_source_matrix \
   --source-profile-spec "$SPEC" \
   --output "$RAW/source1.json"
