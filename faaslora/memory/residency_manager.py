@@ -1524,16 +1524,16 @@ class LocalSourceReferences:
                         verified_files[name] = dict(size_bytes=size, sha256=digest,
                             signature=_verified_file_signature(target_file.lstat()))
                     cancelled()
-                    def check_source_before_publish():
+                    with self.lock:
                         # References exclude cooperative reclamation. Detect any
                         # externally changed identity before the target is visible.
                         if self._validated_source(source) is not record:
                             raise RuntimeError('confirmed source identity changed during copy')
                         cancelled()
-                    receipt['confirmed_file_publication'] = self.publish_transfer(
-                        transfer_id, staging, target,
-                        lambda src, dst: publish(src, dst, transfer_id=transfer_id),
-                        verified_files=verified_files, before_publish=check_source_before_publish)
+                        receipt['confirmed_file_publication'] = self.publish_transfer(
+                            transfer_id, staging, target,
+                            lambda src, dst: publish(src, dst, transfer_id=transfer_id),
+                            verified_files=verified_files)
                     receipt['ready_at'] = time.monotonic()
                     receipt['state'] = 'published'
             return receipt
@@ -1550,51 +1550,25 @@ class LocalSourceReferences:
             self.release(lease_id=lease_id, expected_owner_id=self.owner_id)
             receipt.update(finished_at=time.monotonic(), source_reference_released=True)
 
-    def publish_transfer(self, transfer_id, staging, target, publish, *, verified_files=None,
-                         before_publish=None):
-        """Verify private bytes, then atomically recheck capacity and publish.
-
-        The synchronous caller owns the workspace lifetime and has closed its
-        writers. Materialization pins exclude cooperative mutation of the private
-        tree; unrelated readers need not wait for its full content hash. No
-        verification result is cached across transfers or used before commit.
-        """
-        staging, target = Path(staging), Path(target).resolve()
+    def publish_transfer(self, transfer_id, staging, target, publish, *, verified_files=None):
         with self.lock:
-            if (self._transfer_workspaces.get(transfer_id) != staging or
-                    self.materializations.get(transfer_id) != target or
+            if (self._transfer_workspaces.get(transfer_id) != Path(staging) or
+                    self.materializations.get(transfer_id) != Path(target).resolve() or
                     transfer_id not in self._prepared_transfers):
                 raise ValueError('publication requires a prepared transfer on its original target')
-            prepared = self._prepared_transfers[transfer_id]
-            expected = dict(prepared['expected_files'])
-            if verified_files is not None:
-                if not isinstance(verified_files, dict) or set(verified_files) != set(expected):
-                    raise ValueError('source publication requires complete verified file evidence')
-                verified_files = copy.deepcopy(verified_files)
-            else:
-                # Unconfirmed legacy publication retains its original locked path.
-                for key in prepared['files']:
-                    self._file_allocations[key]['writer_closed'] = True
-                self._file_inventory(_settle_allocations=True)
-                if before_publish is not None:
-                    before_publish()
-                return publish(staging, target)
-        verified = self._verify_publication_payload(staging, expected, verified_files=verified_files)
-        with self.lock:
-            if (self._transfer_workspaces.get(transfer_id) != staging or
-                    self.materializations.get(transfer_id) != target or
-                    self._prepared_transfers.get(transfer_id) is not prepared or
-                    prepared['expected_files'] != expected):
-                raise RuntimeError('prepared transfer changed during source confirmation')
             # The fetch/copy caller has closed all body writers before this
             # synchronous publication. Reservations follow inode identity through
             # rename and remain until ordinary non-sync extent observations settle.
-            for key in prepared['files']:
+            for key in self._prepared_transfers[transfer_id]['files']:
                 self._file_allocations[key]['writer_closed'] = True
             self._file_inventory(_settle_allocations=True)  # Last capacity check before publication.
-            if before_publish is not None:
-                before_publish()
-            return self._commit_verified_source(staging, target, expected, publish, verified)
+            expected = self._prepared_transfers[transfer_id]['expected_files']
+            if verified_files is not None:
+                if not isinstance(verified_files, dict) or set(verified_files) != set(expected):
+                    raise ValueError('source publication requires complete verified file evidence')
+                return self._publish_verified_source(staging, target, expected, publish,
+                                                     verified_files=verified_files)
+            return publish(staging, target)  # Legacy publication is not confirmed.
 
     def publish_copy(self, source, staging, target, publish):
         """Preserve content identity across an existing cooperative tier copy.
@@ -1609,18 +1583,12 @@ class LocalSourceReferences:
             return self._publish_verified_source(staging, target, record['expected_files'], publish)
 
     def _publish_verified_source(self, staging, target, expected, publish, *, verified_files=None):
-        """Legacy synchronous copy; caller retains the owner throughout."""
-        verified = self._verify_publication_payload(staging, expected, verified_files=verified_files)
-        return self._commit_verified_source(staging, target, expected, publish, verified)
-
-    def _verify_publication_payload(self, staging, expected, *, verified_files=None):
-        """Read every private payload byte without publishing or changing owner state."""
         from ..storage.http_artifact_store import _verified_file_signature
-        # Physical extent envelopes are shared owner state even for a private
-        # tree. Keep these brief observations synchronized; only byte I/O/hash
-        # runs outside the owner in the managed-transfer path.
-        with self.lock:
-            before_signatures, _ = self._source_observation(Path(staging))
+        path = Path(target).resolve()
+        tiers = [tier for tier, root in self.roots.items() if path.parent == root]
+        if len(tiers) != 1:
+            raise ValueError('confirmed publication requires one managed tier')
+        before_signatures, before_footprint = self._source_observation(Path(staging))
         expected_paths = {'.', *expected}
         expected_paths.update(str(parent) for name in expected for parent in Path(name).parents)
         if set(before_signatures) != expected_paths:
@@ -1645,29 +1613,17 @@ class LocalSourceReferences:
                     actual.update(chunk)
             if actual.hexdigest() != digest:
                 raise RuntimeError('verified payload content changed before source publication')
-        with self.lock:
-            if self._source_observation(Path(staging))[0] != before_signatures:
-                raise RuntimeError('verified payload changed during source confirmation')
+        if self._source_observation(Path(staging))[0] != before_signatures:
+            raise RuntimeError('verified payload changed during source confirmation')
         contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
             for name, (size, digest) in sorted(expected.items())],
             sort_keys=True, separators=(',', ':')).encode()
-        return before_signatures, hashlib.sha256(contents).hexdigest()
-
-    def _commit_verified_source(self, staging, target, expected, publish, verified):
-        """Caller holds owner: revalidate private identity, rename and confirm together."""
-        path = Path(target).resolve()
-        tiers = [tier for tier, root in self.roots.items() if path.parent == root]
-        if len(tiers) != 1:
-            raise ValueError('confirmed publication requires one managed tier')
-        before_signatures, content_sha256 = verified
-        if self._source_observation(Path(staging))[0] != before_signatures:
-            raise RuntimeError('verified payload changed before source publication commit')
         publish(staging, target)
         signatures, footprint = self._source_observation(path)
         if signatures != before_signatures:
             raise RuntimeError('published source differs from verified transfer')
         public = dict(adapter_id=path.name, path=str(path), tier=tiers[0],
-                      content_sha256=content_sha256, content_verified=True,
+                      content_sha256=hashlib.sha256(contents).hexdigest(), content_verified=True,
                       representation='verified_regular_file_tree_v1', **footprint)
         self._confirmed_sources[path] = dict(signatures=signatures, footprint=footprint,
             public=public, expected_files={name: tuple(value) for name, value in expected.items()})

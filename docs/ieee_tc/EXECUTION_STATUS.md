@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D631撤回资格通过，待备份后推进单一资源候选 — 2026-10-17
+
+qualification session85800 exit0，215+178+13+16+36=458项通过；实际scope
+InvocationID1f09de3f3c424e32aadba22729adcb25/inode26877334递归空并关闭，
+pathgone，peak1660514304B，high/max/OOM/kill/swap0。源码前后SHA一致、
+147保护清单通过。未新跑GPU、未改模型配置、未碰无关k3s/remote或用户manifest。
+现生产已精确恢复D628父语义，不再是D628候选；D629退化和D630诊断全部保留。
+下一步checked备份D631，再准备min2/max3唯一模型级候选；其资格/回放尚未
+执行，不能拼接旧W0/W1/W2达标。完整计划和所有后续范围保持ACTIVE。
+
+## D630备份完成；D631精确撤回执行中 — 2026-10-17
+
+D630 checked publication session88157 exit0，8d7e2b6ec3a272aff84b6f909106b094dc2390fa
+已推送且远端相等，5个明确文件，bundle/result SHA、diff/secrets/用户保护
+通过。publication scope3按实际身份递归空关闭/pathgone，peak38285312B，
+events/swap0。所有D630辅助资源已释放；不再执行其analyzer/publisher。
+
+D631已用apply_patch仅撤回e12e73f的生产/专属测试差异，两文件与父版本
+完全一致：residency_manager SHAfd783131934664f1dee49f78b21366c2aff7264d60a15c2a9bcb975e207bec4f；
+request_lifecycle测试SHAd0495b859a863cfd223e8f471fbde3b07e5531061b9864b4d42348e7ced42232。
+没有删除任何历史数据或文档、没有撤回D606/D610/D618。下一步复用有界CPU
+回归并备份本次撤回；min2尚未建配置/资格/启动，不能宣称新工作点已通过。
+当前无GPU/remote实验，不重新运行D621/D629；完整剩余范围和数值UNKNOWN保留。
+
 ## D630离线容量诊断完成；撤回候选后验证资源下限 — 2026-10-17
 
 完整PLAN/冻结V1/单轮V2及最新基线/存储规则已重读。使用analyze-results
