@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D642 source入口对齐CPU验证通过；待备份后原生资格 — 2026-10-17
+
+本轮PROGRESS。只新增d642启动键：复用D641模型参数和D640原368cases，绑定
+现行共同native编译合同、主实验600秒worker启动保护并保留日志。历史入口
+逐字重构检查通过；8项CPU测试及实际导入/父子绑定通过，CUDA未初始化。
+qualification session26134 exit0，资源域已递归空/pathgone，147保护未变。
+未改变请求SLO/timeout/九公式，无新权重/trace/安装/图表。D641失败及缓存
+变化保留，不能把后续启动改善全部归因本次对齐。详见D642文档。
+下一步显式备份当前入口后，新键一次原生3B source资格；不是Full性能实验。
+全部未完成3B/消融/敏感性/审稿交付ACTIVE，不操作无关k3s。
+
+## D640/D641已备份；3B启动入口对齐为下一主线 — 2026-10-17，备份后
+
+本轮PROGRESS。D640准备及D641失败证据均完成封存推送；当前HEAD
+32d545acf43485c1a1db65fef05fc9f5b6ad69f6与faaslora_origin相等。
+D641 backup session86771 exit0，5显式文件；checksum/AST/secrets/147保护通过，
+用户manifest未stage。backup scope9366e3128a8d407b9ea4c06d64100003已递归空/
+pathgone，资源见backup_closure。所有工具终态，无GPU/远端服务pending。
+BASE未改，仍80e08b4c6e7c2874b1b237500a00811ec06cd8c5。
+下一轮按下节直接对齐现行source启动/编译合同并做新键资格；不重做D640全盘
+资产审计、不重复7B/HF资格、不以本次0请求失败作性能点或关闭3B。
+本备份后状态留下一正常检查点，不为它另开备份循环。完整目标仍ACTIVE。
+
 ## D641启动前失败已收尾；下一项是source入口合同对齐 — 2026-10-17 22:23 local
 
 本轮PROGRESS。D640节点9文件已推送02f438519d2cca90aa2b710466900dac1daca2a6，

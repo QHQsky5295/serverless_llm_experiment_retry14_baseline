@@ -1,0 +1,108 @@
+{
+  "passed": true,
+  "production_candidate": false,
+  "native_gpu_validation": false,
+  "full_performance_run": false,
+  "parent_commit": "32d545acf43485c1a1db65fef05fc9f5b6ad69f6",
+  "audit": {
+    "passed": true,
+    "tests": 8,
+    "legacy_source_unchanged": true,
+    "actual_entry_import_pass": true,
+    "no_cuda_initialized": true,
+    "toolchain": {
+      "schema": "ieee_tc_native_toolchain_v1",
+      "contract": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/native_toolchain_cuda130_v1.json",
+      "contract_sha256": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+      "helper_sha256": "24c35bb480fb9c9ee402cec7115254ff8f9af7695d95ad06935e51b3e8498699",
+      "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+      "environment": {
+        "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda-13.0/bin:/usr/local/bin:/usr/bin:/bin",
+        "CC": "/usr/bin/gcc",
+        "CXX": "/usr/bin/c++",
+        "CUDA_HOME": "/usr/local/cuda-13.0",
+        "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc",
+        "MAX_JOBS": "2",
+        "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+        "FLASHINFER_NVCC_THREADS": "1",
+        "FLASHINFER_WORKSPACE_BASE": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c"
+      },
+      "absent_environment": [
+        "CUDA_PATH",
+        "FLASHINFER_EXTRA_CFLAGS",
+        "FLASHINFER_EXTRA_CUDAFLAGS",
+        "FLASHINFER_EXTRA_LDFLAGS",
+        "FLASHINFER_CXX_LAUNCHER",
+        "FLASHINFER_NVCC_LAUNCHER",
+        "FLASHINFER_DISABLE_JIT",
+        "FLASHINFER_DISABLE_VERSION_CHECK",
+        "FLASHINFER_CUBIN_DIR",
+        "FLASHINFER_JIT_DEBUG",
+        "FLASHINFER_JIT_LINEINFO",
+        "NVCC_PREPEND_FLAGS",
+        "NVCC_APPEND_FLAGS",
+        "CFLAGS",
+        "CXXFLAGS",
+        "LDFLAGS",
+        "CPATH",
+        "CPLUS_INCLUDE_PATH",
+        "LIBRARY_PATH"
+      ],
+      "executables": {
+        "cc": {
+          "path": "/usr/bin/gcc",
+          "resolved": "/usr/bin/x86_64-linux-gnu-gcc-11",
+          "sha256": "821af3c74506283c179ca413bb33e6b528805a4dd8a5c09df125e5ad560a9e89"
+        },
+        "cxx": {
+          "path": "/usr/bin/c++",
+          "resolved": "/usr/bin/x86_64-linux-gnu-g++-11",
+          "sha256": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0"
+        },
+        "nvcc": {
+          "path": "/usr/local/cuda-13.0/bin/nvcc",
+          "resolved": "/usr/local/cuda-13.0/bin/nvcc",
+          "sha256": "b8e2347d9d7fcadf8812a27324d515de99d033d3e48611811ece7e66d7895f8a"
+        },
+        "ninja": {
+          "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+          "resolved": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+          "sha256": "08639e194fffa7f08b259fc4abfa4803aff66b64de52549cee42ec527d55cea6"
+        }
+      },
+      "cache_policy": "compiler_identity_namespace_v1",
+      "build_performed": false
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "runner_sha256": "5e2bb80cc3253909762e05d545291cfaf53a7c17fdbcd54e261d1b38f5678bff",
+    "config_sha256": "0e7d5453ebaa07da43c69531a009c7ab8279e7c5ce066386449e7fa799117f80",
+    "spec_sha256": "812429a1f270f062b2689c062be8227f53344e697e4e36dcdaa7076c0ab65e58",
+    "cases": 368,
+    "model_parameters_changed": false,
+    "initialization_timeout_seconds": 600,
+    "request_timeout_changed": false,
+    "caveat": "Launch qualification only. D641 may have warmed model/compiler/page caches; no performance attribution."
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "archive_sha256": "c0ce959b398e5ef0eccf497e63faa831357345d220dd7af1c07bac0790473150",
+  "caveat": "CPU launch identity only; same model/cases, no performance conclusion."
+}
