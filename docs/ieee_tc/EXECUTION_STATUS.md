@@ -1,5 +1,21 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D665准备：进入同配置完整3B W0，D664已推送 — 2026-10-18
+
+D664已推送c77a161ae80cdefb5eb21f62c2a21ea2a295acae，远端一致；publication
+90105 exit0，peak29749248B、事件/swap0，递归空关闭。晚关闭回执随D665
+下一正常检查点归档，不另开纯状态提交，不再wait90105。
+D665直接复用D660完整入口/D664候选检查，配置只换输出/cache路径。
+无GPU入口核验通过，4000条原W0/实际child/profile loader/旧shell分支通过；
+655次旧CPU执行和D664原生资格按SHA复用。92425 exit0、递归空关闭，peak
+715321344B，high/max/OOM/kill/swap0，147保护文件未变。未启动正式推理。
+下一：显式备份→一次完整W0；不再wait92425。
+首个备份辅助因文档名清单不匹配退出1，未stage/commit/启动GPU；原bundle与
+checksum保留，失败域递归空关闭。backup2只修正发布清单、复核旧bundle，
+另存resume证据；start2只引用成功备份回执，原qualification/配置/helper不改。
+仍以完整4000合同、冻结联合SLO和物理GPU-s评价；不重跑同前缀、不换尺子。
+所有未完成范围保持ACTIVE，非本项目k3s与已完成HydraServe适配不动。
+
 ## D664完成：原生HOST资格通过，下一完整3B W0 — 2026-10-18
 
 同一短回放正常结束，无重启；100/100原生绑定/计量、17369tokens。

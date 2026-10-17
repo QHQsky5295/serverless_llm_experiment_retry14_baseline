@@ -1,0 +1,33 @@
+{
+  "kind": "d665_prelaunch_publication_resume_v1",
+  "original_failure": "FileNotFoundError: publication document name mismatch; no stage, commit or GPU launch",
+  "original_helper_sha256": "937a74f3ade7d231db71f7fc99e328998d09e915b216498b7dfb5d3183a63221",
+  "original_bundle_sha256": "5c5e6f6cf10b1b3c65af28b9b3512e73792a86d7619089c5dc13ffb021bb30b7",
+  "original_result_manifest_sha256": "ef3e2addf8c7bb5fb01ce3d3bcbfa06216ef649400bb162242092f41435e1e65",
+  "failed_scope_closed": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d6650000000000000000000000000002.scope",
+      "invocation_id": "d688c16c93f24814a0e557dbb83c7b6f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d6650000000000000000000000000002.scope",
+      "inode": 27295136
+    },
+    "actual_recursive_procs_empty": true,
+    "path_gone": true,
+    "resources": {
+      "memory.peak": "28631040",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "2275f5fb7959fb2df7bf13a67cce7f4ebcd226a232ca9d6ecb5ec00d013ca68a"
+  },
+  "unchanged_runtime_configuration": true,
+  "unchanged_qualification": true,
+  "helpers": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d665_20261018/backup2.py": "2c8b2405dd5811798b290f1924b834b286d0456f08ed333a4ea2a04857a64584",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d665_20261018/start2.py": "5a89b2e4dc4eca1b86aae1d43f868912580b53298b9a3b6f0b3b7a2dee104cdc",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d665_20261018/close_extra.py": "8eed72f6c0ccafdda372018c1240fd2cf617f2154f775a0d3e7f30c01446a53c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d665_20261018/backup_identity.json": "8d97a1c2d47c287311f0e236cd5dc63d91c91658ef2c7b1a645aae3e5e1cb11f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d665_20261018/backup_closure.json": "68f8745f82a71c781286d621c34909546dc036a7d3d4ddd0c0fcf4841e7db55a"
+  }
+}
