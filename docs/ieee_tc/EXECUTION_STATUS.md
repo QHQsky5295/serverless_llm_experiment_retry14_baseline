@@ -1,5 +1,47 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D633同配置完整W1资格通过 — 2026-10-17 18:42 local；待备份/启动
+
+前轮PROGRESS（D632完整W2/审计/备份），本轮继续PROGRESS：新键
+d633_20261017/7b_min2_full_w1已登记，未启动GPU。重读完整PLAN、最新状态/
+规则，冻结V1+单轮V2在当前上下文完整已读且SHA重验一致。run-experiment
+复用D619 W1与D632管理流程；仅新配置/入口键，生产九公式与机制不变。
+配置除输出/NVMe/HOST目录之外严格等于D632 min2/max3；W1不使用W2remap。
+资格session68833 exit0：4000请求W1 view103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3，
+profile加载、前轮关闭、147旧投稿和源SHA通过；复用32控制测试/192状态/
+458回归，没有重新运行无变化GPU smoke。实际资格域已递归空关闭/pathgone，
+scope/Invocation/inode/resources见d633/qualification_closure.json。
+当前无pending工具会话或GPU运行；磁盘约172GB，安全gate通过，启动前仍重验。
+下一步github-sync明确路径备份，再由现有start.py实际启动同配置完整W1。
+W1预算6756.571050141GPU-s，不因D632 W2通过而预判W1可行；后续W0/独立数值/
+3B/dLoRA/A1–A5/S1–S13/成本/文档/图表全部仍ACTIVE。未知122输出差异保留，
+不拼接旧min1结果、不重跑同键、不画图、不重新优化基线。
+
+## D632结果已备份 — 2026-10-17 18:37 local；下一步同配置W1
+
+publication session97475 exit0：MAIN `333e707826a44fee2758a6d74b97b18b397af490`
+已推送faaslora_origin/retry14_continuous_queue_v2且远端相等，仅5明确文件。
+147旧投稿SHA通过，用户manifest仍3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df，
+未stage；baseline仓库本轮没有改动。新summary与evidence归档均验SHA及secrets。
+publication scopea166ca9f8b81473685354a36cbe0dfbc已按actual identity递归空关闭/
+pathgone，peak56340480B/high/max/OOM/kill/swap0，实际身份见publication_closure。
+所有本轮服务/aux/remote关闭，工具会话均终态，无运行GPU或pending任务。
+
+保存了4000逐请求同输入合同：adapter/prompt/arrival/target/token-source一致；
+相同后端122个output-hash变化保留ID，原因UNKNOWN，不视为已证明的数值正确。
+唯一模型配置差异确认为resource_coordination.min_instances 1→2，生产关键源
+与D621相同。观测U/B=.9029942075，预算余量1172.476938312GPU-s，较resident
+少32.2754%；无四卡重叠。五个已发表W2基线全部保留，不以95%删行。
+vLLM尾延迟/SLO仍更好但超预算，HydraServe更省GPU但SLO未达；不得称全指标
+第一、同预算尾部支配或全局最优。此点只支持继续同配置跨场景验证。
+
+下一动作：先读计划/状态/冻结协议，复用D619 W1路径与D632 min2配置，登记
+新的完整W1键（尚未创建/启动），核对输出/冷缓存路径之外配置相同；资格和
+安全门槛通过、备份后运行一次。W1旧min1预算余量仅约236.675GPU-s，不预判
+新点一定通过；随后同配置W0，不拼接历史min1。独立数值验证及全部3B/dLoRA/
+A1–A5/S1–S13/成本/文档/最终图表未完成。空闲172138336256B，下一heavy重新gate。
+本段为收尾后状态追加，下一正常代码检查点备份；D632完整结果已在上述commit。
+
 ## D632完整W2完成并审计 — 2026-10-17 18:35 local；待本轮结果备份
 
 前轮VERIFIED WAIT，本轮PROGRESS：SAME原运行完成4000/4000原生合同，
