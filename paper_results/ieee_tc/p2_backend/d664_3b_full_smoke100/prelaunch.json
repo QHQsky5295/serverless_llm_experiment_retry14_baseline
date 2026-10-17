@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "count": 100,
+  "full_performance_complete": false,
+  "qualification_sha256": "ac13210f562066541bc22bf1ff3239b9983a4278f450929673f7aa1bec769467",
+  "configuration": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261018_d664_3b_full_smoke100.yaml",
+    "sha256": "ff11ab055593b4f6f51169a5448a6cd2c6fdf81d857bd4101c6be4de90847087"
+  },
+  "candidate_parent": "7492ee71932491dec90f64e34213094a1769d21e",
+  "no_new_input_or_profile": true
+}

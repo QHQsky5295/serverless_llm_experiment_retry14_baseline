@@ -1,5 +1,17 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D664：相同3B配置的原生HOST候选入口核验通过，待一次短回放 — 2026-10-18
+
+本轮PROGRESS：完整PLAN/V1/V2/六项执行补充重读。D663已推送候选与655次
+检查按SHA复用；D664只扩展既有runner身份及输出路径，100条原W0view、实际
+child配置、profile loader和旧shell分支字节一致性通过，没有新性能阈值。
+qualification52348 exit0且递归空关闭，peak697987072B、high/max/OOM/kill/
+swap0；147保护文件不变。准备按显式路径备份后启动同一D664原生短回放。
+初版backup.py的check-only因替换字符串非唯一而拒绝，未执行commit或GPU；
+原文件保留，backup2.py改用唯一OUT匹配并通过check-only，实验配置/源码不变。
+下一项原生HOST触发及完整绑定/计时/资源验收；成功后同非目标配置完整3B W0。
+3B联合89.375%尚未闭口，全部后续矩阵/机制/敏感性/文档图表范围仍ACTIVE。
+
 ## D663：受保护原生HOST事务候选已通过CPU检查，待原生资格 — 2026-10-18
 
 本轮PROGRESS：重读完整PLAN/V1/V2/六份执行补充，核对D329/D352/D333及
@@ -12,8 +24,10 @@ D595/D628历史和联网官方vLLM0.30源码。只扩展本次同步registered H
 结论。会话72884/81008/5480均exit0、对应scope递归空关闭，peak分别
 637083648/659873792/632664064B，high/max/OOM/kill/swap0。147旧投稿与用户
 修改SHA未变。当前没有活动GPU/辅助检查，不再wait这些已完成会话。
-待github-sync显式备份；D662晚关闭回执并入本检查点。k3s非本项目，继续
-不改全局集群，也不重新开始已完成的HydraServe隔离适配。
+backup会话83773 exit0，8个明确路径已推送7492ee71932491dec90f64e34213094a1769d21e，
+远端一致；发布域递归空关闭，结果SHA复核通过。D662晚关闭回执已并入本检查点，
+D663自身晚关闭回执留raw随下一正常检查点归档，不另开纯状态提交。
+k3s非本项目，继续不改全局集群，也不重新开始已完成的HydraServe隔离适配。
 
 下一项：复用D659/D660入口的新版本3B前100原生资格，验证HOST标记实际触发
 及正确域；通过后同非目标配置完整W0。不能以CPU/前缀结果代替完整G1/G2。
