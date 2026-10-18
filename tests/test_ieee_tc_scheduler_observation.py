@@ -333,6 +333,12 @@ class NativeHookWiring(unittest.TestCase):
             qualified=command | {'expected_content_sha256':'a'*64,'file_source_witness':witness}
             self.assertTrue(engine_core.ieee_admit_and_demand_load(qualified)['acquired'])
             self.assertEqual(captured[-1]['file_source_witness'],witness)
+            transfer = command | {'required_source_tier': 'host',
+                'expected_source_id': 'host-source', 'release_host_lease_id': 'host-lease'}
+            self.assertTrue(engine_core.ieee_admit_and_demand_load(transfer)['acquired'])
+            self.assertEqual(captured[-1]['release_host_lease_id'], 'host-lease')
+            with self.assertRaisesRegex(ValueError, 'fields'):
+                engine_core.ieee_admit_and_demand_load(qualified | {'release_host_lease_id': 'host-lease'})
             with self.assertRaisesRegex(ValueError,'fields'):
                 engine_core.ieee_admit_and_demand_load(command | {'file_source_witness':witness})
             with self.assertRaisesRegex(ValueError, 'capacity_only=True'):

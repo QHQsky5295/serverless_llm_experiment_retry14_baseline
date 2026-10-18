@@ -17444,7 +17444,10 @@ class ScenarioRunner:
         use_native_capacity_witness = bool(
             admission_request_plan is not None and pending_request_plan is None
             and native_witness_enabled and reservation.ieee_pending_admission is not None)
-        from faaslora.memory.residency_manager import IEEE_FILE_DEMAND_TRANSACTION
+        from faaslora.memory.residency_manager import IEEE_FILE_DEMAND_TRANSACTION, IEEE_HOST_LEASE_TRANSFER
+        host_transfer_policy = self.model_cfg.get('ieee_host_lease_transfer')
+        if host_transfer_policy not in (None, IEEE_HOST_LEASE_TRANSFER):
+            raise ValueError('unknown native HOST lease transfer policy')
         file_demand_policy = self.model_cfg.get('ieee_file_demand_transaction')
         if file_demand_policy not in (None, IEEE_FILE_DEMAND_TRANSACTION):
             raise ValueError('unknown native file-demand transaction policy')
@@ -17576,6 +17579,8 @@ class ScenarioRunner:
             intent['expected_source_id'] = guarded_source['source_id']
         elif held_host_source is not None:
             intent['expected_source_id'] = held_host_source['expected_source_id']
+        if held_host_source is not None and host_transfer_policy is not None:
+            intent['release_host_lease_id'] = held_host_source['lease_id']
         if use_native_capacity_witness:
             # The core utility receives one exact command schema even when the
             # selected source is a remote/NVMe file with no native copy ID.
@@ -17698,6 +17703,31 @@ class ScenarioRunner:
                 if (type(acquired_at) not in (int, float) or not math.isfinite(acquired_at)
                         or acquired_at <= 0 or acquired_at > time.monotonic()):
                     raise ValueError('native acquisition receipt has invalid completion time')
+                if 'release_host_lease_id' in intent:
+                    transfer = receipt.get('host_lease_transfer', {})
+                    released_at = transfer.get('released_monotonic_s')
+                    acquired_epoch = transfer.get('acquired_epoch')
+                    if (receipt.get('release_host_lease_id') != intent['release_host_lease_id']
+                            or transfer.get('kind') != IEEE_HOST_LEASE_TRANSFER
+                            or transfer.get('released') is not True
+                            or transfer.get('lease_id') != held_host_source['lease_id']
+                            or transfer.get('gpu_lease_id') != intent['lease_id']
+                            or transfer.get('owner_id') != receipt['owner_id']
+                            or transfer.get('clock_id') != clock_id
+                            or any(transfer.get(k) != intent[k] for k in
+                                   ('adapter_int_id', 'lora_name', 'lora_path'))
+                            or transfer.get('host_source_id') != held_host_source['expected_source_id']
+                            or type(acquired_epoch) is not int
+                            or acquired_epoch <= held_host_source['epoch']
+                            or transfer.get('epoch') != receipt['epoch']
+                            or transfer['epoch'] <= acquired_epoch
+                            or type(released_at) not in (int, float)
+                            or not math.isfinite(released_at)
+                            or not acquired_at <= released_at <= time.monotonic()):
+                        raise ValueError('native HOST lease transfer lacks matching acknowledgement')
+                    host = evidence['native_host_source']
+                    host.update(state='released', release_receipt=dict(transfer))
+                    self._settle_native_reference_intent(reservation, 'host', 'released')
                 evidence.update(state='acquired', receipt=dict(receipt))
                 self._complete_ieee_pending_load(reservation)
                 # The backend acknowledged completed loading/copying. File input

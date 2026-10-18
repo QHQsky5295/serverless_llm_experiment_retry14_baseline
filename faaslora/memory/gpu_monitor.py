@@ -1198,6 +1198,16 @@ class IEEEWorkerObservationExtension:
         if not hasattr(self, '_ieee_host_allocator_policy'):
             # Capture once, not a full allocator snapshot on every request.
             self._ieee_host_allocator_policy = _ieee_native_host_allocator_policy()
+        def completed_reference_reply(value):
+            # Fresh and replayed acknowledgements share the same transport
+            # identity. The cached transaction keeps its original epochs and
+            # times; a replay does not repeat loading, fencing or releasing.
+            diagnostic_control_event(diagnostic_id, 'native_ready')
+            return {**value, 'clock_id': local_monotonic_clock_id(),
+                    'native_host_allocator_policy': self._ieee_host_allocator_policy,
+                    'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
+                    'completion_fence_scope': 'current_worker_cuda_stream',
+                    'production_launch_authorized': False}
         if not hasattr(self, '_ieee_gpu_reference_owner'):
             def completion_fence():
                 with torch.cuda.device(self.device):
@@ -1477,7 +1487,8 @@ class IEEEWorkerObservationExtension:
                        'expected_owner_id', 'expected_epoch', 'required_source_tier',
                        'expected_source_id'}
             content_allowed = allowed | {'expected_content_sha256'}
-            if set(kwargs) not in (allowed, content_allowed, content_allowed | {'file_source_witness'}):
+            if set(kwargs) not in (allowed, content_allowed, content_allowed | {'file_source_witness'},
+                    allowed | {'release_host_lease_id'}, content_allowed | {'release_host_lease_id'}):
                 raise ValueError('native demand admission payload differs from the contract')
             request_key = tuple((key, repr(kwargs[key])) for key in sorted(kwargs)) + (
                 ('capacity_only', repr(capacity_only)),)
@@ -1493,7 +1504,7 @@ class IEEEWorkerObservationExtension:
                 if owner._poisoned or cached['owner_epoch'] != owner.epoch:
                     cached_requests.pop(kwargs['lease_id'], None)
                 else:
-                    return copy.deepcopy(cached['receipt'])
+                    return completed_reference_reply(copy.deepcopy(cached['receipt']))
             pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
             free, total = map(int, torch.cuda.mem_get_info(self.device))
             slot_bytes = pool['slot_capacity_bytes']
@@ -1645,12 +1656,7 @@ class IEEEWorkerObservationExtension:
             # a different physical GPU with a coincidentally equal index.
             device_uuid = torch.cuda.get_device_properties(self.device).uuid
             result['device_uuid'] = 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes)))
-        diagnostic_control_event(diagnostic_id, 'native_ready')
-        return {**result, 'clock_id': local_monotonic_clock_id(),
-                'native_host_allocator_policy': self._ieee_host_allocator_policy,
-                'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
-                'completion_fence_scope': 'current_worker_cuda_stream',
-                'production_launch_authorized': False}
+        return completed_reference_reply(result)
 
     def ieee_worker_observation(self, *, synchronize: bool = False,
                                 audit_adapter_ids: Optional[List[int]] = None,

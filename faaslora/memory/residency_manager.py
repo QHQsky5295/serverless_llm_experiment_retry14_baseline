@@ -33,6 +33,7 @@ from ..utils.logger import get_logger
 
 
 IEEE_FILE_DEMAND_TRANSACTION = 'protected_file_owner_turn_v1'
+IEEE_HOST_LEASE_TRANSFER = 'same_owner_host_to_gpu_v1'
 
 
 def validate_file_demand_witness(witness, *, lora_name, lora_path, content_sha256):
@@ -2651,12 +2652,13 @@ class IEEEBackendGPUReferences:
                                 required_source_tier: Optional[str] = None,
                                 expected_source_id: Optional[str] = None,
                                 expected_content_sha256: Optional[str] = None,
-                                file_source_witness: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                                file_source_witness: Optional[Dict[str, Any]] = None,
+                                release_host_lease_id: Optional[str] = None) -> Dict[str, Any]:
         return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
             lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
             expected_epoch=expected_epoch, required_source_tier=required_source_tier,
             expected_source_id=expected_source_id, expected_content_sha256=expected_content_sha256,
-            file_source_witness=file_source_witness,
+            file_source_witness=file_source_witness, release_host_lease_id=release_host_lease_id,
             loader=self.demand_loader)
 
     def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
@@ -2665,6 +2667,7 @@ class IEEEBackendGPUReferences:
                          loader, expected_source_id: Optional[str] = None,
                          expected_content_sha256: Optional[str] = None,
                          file_source_witness: Optional[Dict[str, Any]] = None,
+                         release_host_lease_id: Optional[str] = None,
                          proactive_storage_witness=None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
@@ -2692,6 +2695,11 @@ class IEEEBackendGPUReferences:
             raise ValueError('demand load requires adapter name and absolute materialized path')
         if required_source_tier not in (None, 'gpu', 'host'):
             raise ValueError('required source must be a native GPU or HOST source')
+        if release_host_lease_id is not None and (
+                not isinstance(release_host_lease_id, str) or not release_host_lease_id
+                or required_source_tier not in ('host', 'gpu')
+                or file_source_witness is not None or proactive_storage_witness is not None):
+            raise ValueError('HOST lease transfer requires a selected native demand source')
         if expected_source_id is not None and (
                 not isinstance(expected_source_id, str) or not expected_source_id
                 or required_source_tier not in ('gpu', 'host')):
@@ -2720,7 +2728,8 @@ class IEEEBackendGPUReferences:
                     or receipt.get('required_source_tier') != required_source_tier
                     or receipt.get('expected_source_id') != expected_source_id
                     or receipt.get('expected_content_sha256') != expected_content_sha256
-                    or receipt.get('file_source_witness') != file_source_witness):
+                    or receipt.get('file_source_witness') != file_source_witness
+                    or receipt.get('release_host_lease_id') != release_host_lease_id):
                 raise ValueError('lease ID reused for a different demand load')
             return dict(receipt)
         if lease_id in self._released:
@@ -2730,6 +2739,18 @@ class IEEEBackendGPUReferences:
         # binding so a future snapshot remains a typed stale result.
         if expected_epoch > self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        held_transfer_source = None
+        if release_host_lease_id is not None:
+            held = self._host_leases.get(release_host_lease_id)
+            if (not isinstance(held, dict)
+                    or held.get('adapter_int_id') != adapter_int_id
+                    or (held.get('lora_name'), held.get('lora_path')) != source
+                    or held.get('owner_id') != self.owner_id
+                    or held.get('reference_purpose') != 'demand_preparation'
+                    or held.get('expected_source_id') != self._source_incarnations.get(adapter_int_id)
+                    or release_host_lease_id not in self._host_references.get(adapter_int_id, ())):
+                raise ValueError('HOST lease transfer lacks the exact held demand source')
+            held_transfer_source = dict(held)
         if file_source_witness is not None:
             path = Path(lora_path)
             info = path.lstat()
@@ -2933,6 +2954,33 @@ class IEEEBackendGPUReferences:
                     owner_epoch_advance=live_validation_epoch-expected_epoch,
                     live_native_constraints_checked=True,
                     controller_capacity_snapshot_reused=False))
+        if held_transfer_source is not None:
+            # The GPU lease has fenced the copy and owns both native pins.
+            # Retire only this request's source lease, within the SAME owner
+            # turn. Never defer it to a background task or release before the
+            # load/fence/post-allocation checks have succeeded. Uncertain
+            # outcomes remain owned/poisoned and cannot become GPU-ready.
+            try:
+                if self._host_leases.get(release_host_lease_id) != held_transfer_source:
+                    raise RuntimeError('held HOST source changed during native acquisition')
+                acquired_epoch = receipt['epoch']
+                released = self.release_host_source(lease_id=release_host_lease_id,
+                    expected_owner_id=self.owner_id)
+                if released.get('released') is not True or released.get('already_released') is not False:
+                    raise RuntimeError('HOST lease transfer lacks a fresh release acknowledgement')
+                from ..clock import local_monotonic_clock_id
+                transfer = dict(kind=IEEE_HOST_LEASE_TRANSFER, released=True,
+                    lease_id=release_host_lease_id, gpu_lease_id=lease_id,
+                    owner_id=self.owner_id, adapter_int_id=adapter_int_id,
+                    lora_name=lora_name, lora_path=lora_path,
+                    host_source_id=held_transfer_source['expected_source_id'],
+                    acquired_epoch=acquired_epoch, epoch=self.epoch,
+                    released_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id())
+                receipt.update(release_host_lease_id=release_host_lease_id,
+                    host_lease_transfer=transfer, epoch=self.epoch)
+            except BaseException:
+                self._poisoned = True
+                raise
         # Publish the post-transaction native identity as part of the same
         # serialized owner acknowledgement.  The controller may use this
         # immutable event frontier to answer *absence* queries for other

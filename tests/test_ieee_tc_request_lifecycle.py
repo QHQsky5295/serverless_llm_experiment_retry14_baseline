@@ -839,6 +839,61 @@ def native_reference_fixture():
 
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
+    def test_host_transfer_uses_one_ack_and_no_separate_release_rpc(self):
+        runner, slot, trace, plan, owner, rpc = self.build('host')
+        runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'host')
+        evidence = result.gpu_reference_evidence
+        self.assertEqual(evidence['native_host_source']['state'], 'released')
+        self.assertEqual(evidence['native_host_source']['release_receipt'],
+                         evidence['receipt']['host_lease_transfer'])
+        calls = slot.engine.ieee_gpu_reference.await_args_list
+        self.assertFalse(any(c.kwargs['operation'] == 'release_host_source' for c in calls))
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_host_transfer_lost_or_corrupt_ack_keeps_request_unresolved(self):
+        for corrupt in (False, True):
+            with self.subTest(corrupt=corrupt):
+                runner, slot, trace, plan, owner, rpc = self.build('host')
+                runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+                async def uncertain(*, operation, **kwargs):
+                    value = await rpc(operation=operation, **kwargs)
+                    if operation == 'demand_load_and_acquire' and value.get('acquired'):
+                        if not corrupt:
+                            raise ConnectionError('lost transfer reply')
+                        value = dict(value, host_lease_transfer={})
+                    return value
+                slot.engine.ieee_gpu_reference.side_effect = uncertain
+                with self.assertRaises((ConnectionError, ValueError)):
+                    asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertIn(trace.request_id, runner._unsettled_runtime_reservations)
+                self.assertEqual(slot.status, 'draining')
+                slot.engine.generate_prepared.assert_not_awaited()
+                self.assertEqual(owner.snapshot()['live_leases'], 1)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_host_transfer_after_concurrent_promotion_keeps_original_dispatch_tier(self):
+        runner, slot, trace, plan, owner, rpc = self.build('host')
+        runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+        attempts = []
+        async def promote(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(dict(kwargs))
+                if len(attempts) == 1:
+                    self.promote_held_host(owner, kwargs)
+            return await rpc(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = promote
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(len(attempts), 2)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'host')
+        self.assertEqual(result.gpu_reference_evidence['receipt']['required_source_tier'], 'gpu')
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
     """Real request/router/owner and event path; tiny fixtures, no GPU timing claim."""
     def test_source_selection_and_acquisition_use_fresh_validated_projection(self):
         for tier in ('gpu', 'host', 'nvme', 'remote'):

@@ -192,6 +192,134 @@ class HitHostTransaction(unittest.TestCase):
         self.assertEqual(self.full.call_count, 2)
         self.recheck.assert_not_called()
 
+    def test_host_lease_transfer_fences_before_release_and_retains_gpu_pins(self):
+        args = self.protected_host()
+        def fence():
+            self.assertIn('host-copy', self.owner._host_leases)
+        self.case.fence.side_effect = fence
+        result = self.case.demand(lease='transfer', release_host_lease_id='host-copy', **args)
+        ack = result['host_lease_transfer']
+        self.assertEqual(ack['kind'], 'same_owner_host_to_gpu_v1')
+        self.assertEqual(ack['gpu_lease_id'], 'transfer')
+        self.assertEqual(ack['host_source_id'], args['expected_source_id'])
+        self.assertLess(ack['acquired_epoch'], ack['epoch'])
+        self.assertEqual(result['epoch'], ack['epoch'])
+        self.assertEqual(result['post_load_source_snapshot']['epoch'], ack['epoch'])
+        self.assertGreaterEqual(ack['released_monotonic_s'], result['acquired_monotonic_s'])
+        self.assertEqual(self.owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(self.owner.snapshot()['live_leases'], 1)
+        for cache in self.owner._caches():
+            self.assertIn(4, cache.pinned_items)
+        self.case.fence.side_effect = None
+        self.case.release('transfer')
+        for cache in self.owner._caches():
+            self.assertNotIn(4, cache.pinned_items)
+
+    def test_host_lease_transfer_replay_does_not_load_fence_or_release_twice(self):
+        args = self.protected_host() | {'release_host_lease_id': 'host-copy'}
+        result = self.case.demand(lease='transfer', **args)
+        loads, fences, epoch = len(self.case.loads), self.case.fence.call_count, self.owner.epoch
+        self.assertEqual(self.case.demand(lease='transfer', **args), result)
+        self.assertEqual((len(self.case.loads), self.case.fence.call_count, self.owner.epoch),
+                         (loads, fences, epoch))
+        for changed in (None, 'another-lease'):
+            with self.assertRaisesRegex(ValueError, 'different demand load'):
+                self.case.demand(lease='transfer', **(args | {'release_host_lease_id': changed}))
+
+    def test_host_lease_transfer_retires_only_its_own_source_reader(self):
+        args = self.protected_host()
+        other = self.owner.hold_host_source(lease_id='other-reader', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=self.owner.owner_id, expected_epoch=self.owner.epoch,
+            expected_source_id=args['expected_source_id'])
+        self.assertTrue(other['held'])
+        self.case.demand(lease='transfer', release_host_lease_id='host-copy', **args)
+        self.case.release('transfer')
+        self.assertIn(4, self.case.manager._registered_adapters.pinned_items)
+        self.assertEqual(self.owner.snapshot()['live_host_source_leases'], 1)
+        self.owner.release_host_source(lease_id='other-reader', expected_owner_id=self.owner.owner_id)
+        self.assertNotIn(4, self.case.manager._registered_adapters.pinned_items)
+
+    def test_host_lease_transfer_failure_preserves_source_until_known_outcome(self):
+        for failure in ('precheck', 'fence'):
+            with self.subTest(failure=failure):
+                # Fresh fixture; poison is intentionally irreversible.
+                other = HitHostTransaction()
+                other.setUp()
+                try:
+                    args = other.protected_host() | {'release_host_lease_id': 'host-copy'}
+                    if failure == 'precheck':
+                        other.observe.return_value = stats(2048)
+                        result = other.case.demand(lease='transfer', **args)
+                        self.assertFalse(result['acquired'])
+                    else:
+                        other.case.fence.side_effect = RuntimeError('copy failed')
+                        with self.assertRaisesRegex(RuntimeError, 'copy failed'):
+                            other.case.demand(lease='transfer', **args)
+                    self.assertIn('host-copy', other.owner._host_leases)
+                    self.assertNotIn('host-copy', other.owner._host_released)
+                finally:
+                    other.doCleanups()
+
+    def test_host_lease_transfer_rejects_wrong_source_before_loading(self):
+        args = self.protected_host()
+        loads = len(self.case.loads)
+        for lease in ('unknown', '', 7):
+            with self.subTest(lease=lease), self.assertRaises(ValueError):
+                self.case.demand(lease='transfer', release_host_lease_id=lease, **args)
+        self.assertEqual(len(self.case.loads), loads)
+        self.assertIn('host-copy', self.owner._host_leases)
+
+    def test_host_lease_transfer_can_follow_same_copy_gpu_promotion(self):
+        args = self.protected_host()
+        self.case.demand(lease='concurrent', **args)
+        self.case.release('concurrent')
+        stale = self.case.demand(lease='transfer', release_host_lease_id='host-copy', **args)
+        self.assertFalse(stale['acquired'])
+        self.assertIn('host-copy', self.owner._host_leases)
+        result = self.case.demand(lease='transfer', required_source_tier='gpu',
+            expected_source_id=self.owner._gpu_source_incarnations[4],
+            release_host_lease_id='host-copy')
+        self.assertTrue(result['acquired'])
+        self.assertFalse(result['native_load_invoked'])
+        self.assertEqual(result['host_lease_transfer']['host_source_id'], args['expected_source_id'])
+
+    def test_worker_capacity_witness_transfers_and_replays_complete_ack(self):
+        from faaslora.scheduling.resource_coordinator import (
+            CompletedLengthSnapshot, NativeIterationObservation, NativeTransferObservation)
+        from tests import test_ieee_tc_scheduler_observation as fixture
+        args = self.protected_host()
+        worker = monitor.IEEEWorkerObservationExtension()
+        worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(
+            _adapter_manager=self.case.manager))
+        worker._ieee_gpu_reference_owner = self.owner
+        steps = NativeIterationObservation()
+        steps.scheduled(fixture.iteration(r=32))
+        scheduler = fixture.scheduler()
+        scheduler._ieee_transfers = NativeTransferObservation(steps, 2)
+        scheduler._ieee_transfers.event(operation='attach_domain', transfer_id='files')
+        observation = fixture.observe(scheduler, steps)
+        lengths = CompletedLengthSnapshot('model/backend', 'profile',
+            observation['captured_at'], {0: 64., 1: 128., 2: 256.})
+        pool = dict(slot_adapter_ids=list(self.case.manager.lora_index_to_id),
+            pool_allocated_bytes=200, slot_capacity_bytes=100, occupied_slot_capacity_bytes=100)
+        monitor.torch.cuda.mem_get_info = lambda _: (100, 1000)
+        command = dict(operation='admit_and_demand_load', lease_id='transfer', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=self.owner.owner_id, expected_epoch=self.owner.epoch,
+            capacity_only=True, scheduler_observation=observation, lengths=lengths,
+            release_host_lease_id='host-copy', **args)
+        with patch.object(monitor, '_ieee_lora_pool_inventory', return_value=pool):
+            result = worker.ieee_gpu_reference(**command)
+            replay = worker.ieee_gpu_reference(**command)
+        self.assertTrue(result['acquired'])
+        self.assertEqual(result['admission']['backend_receipt_epoch'], result['epoch'])
+        self.assertEqual(result['admission']['post_observation_owner_epoch'], result['epoch'])
+        self.assertEqual(result['host_lease_transfer']['epoch'], result['epoch'])
+        self.assertEqual(replay, result)
+        self.assertEqual(self.owner.snapshot()['live_host_source_leases'], 0)
+
     def test_host_without_source_identity_keeps_full_walks(self):
         self.protected_host()
         result = self.case.demand(lease='unqualified', required_source_tier='host')
