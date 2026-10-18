@@ -1,0 +1,709 @@
+{
+  "passed": true,
+  "kind": "d692_retained_preparation_contention_and_cpu_probe_v1",
+  "diagnosis": {
+    "passed": true,
+    "kind": "d692_preparation_journal_audit_v1",
+    "inference_runs_added": 0,
+    "production_changed": false,
+    "configuration_changed": false,
+    "n_correct": null,
+    "ranking_eligible": false,
+    "planned_requests": 1000,
+    "source_scope": "D684 diagnostic prefix, not complete W0 performance",
+    "by_journal": {
+      "_ieee_residency_epochs": {
+        "records": 1200,
+        "states": {
+          "cancelled": 4,
+          "completed": 907,
+          "superseded": 289
+        },
+        "triggers": {
+          "residency": 1200
+        },
+        "registrations": {
+          "None": 1200
+        },
+        "registration_reasons": {
+          "None": 1200
+        },
+        "supersession_stages": {
+          "None": 911,
+          "native_registration": 289
+        },
+        "supersession_reasons": {
+          "None": 911,
+          "stale_preparation_epoch": 289
+        },
+        "attempt_count": 0,
+        "attempt_states": {},
+        "receipt_count": 0,
+        "receipt_reasons": {},
+        "gpu_reuse_count": 0,
+        "load_invoked": {},
+        "acquired": {},
+        "held": {},
+        "admission_evaluated": {},
+        "source_tiers": {},
+        "zero_attempt_records": 1200,
+        "targets": 0,
+        "duration_ms": {
+          "n": 1200,
+          "mean": 2427.3007360841925,
+          "p50": 1625.5223979242146,
+          "p95": 7151.2661119923,
+          "maximum": 36826.970821013674
+        }
+      },
+      "_ieee_file_preparation_plans": {
+        "records": 1204,
+        "states": {
+          "cancelled": 4,
+          "completed": 911,
+          "superseded": 289
+        },
+        "triggers": {
+          "handoff": 4,
+          "residency": 1200
+        },
+        "registrations": {
+          "True": 1204
+        },
+        "registration_reasons": {
+          "None": 1204
+        },
+        "supersession_stages": {
+          "None": 915,
+          "native_registration": 289
+        },
+        "supersession_reasons": {
+          "None": 915,
+          "stale_preparation_epoch": 289
+        },
+        "attempt_count": 0,
+        "attempt_states": {},
+        "receipt_count": 0,
+        "receipt_reasons": {},
+        "gpu_reuse_count": 0,
+        "load_invoked": {},
+        "acquired": {},
+        "held": {},
+        "admission_evaluated": {},
+        "source_tiers": {},
+        "zero_attempt_records": 1204,
+        "targets": 0,
+        "duration_ms": {
+          "n": 1204,
+          "mean": 1497.347127423433,
+          "p50": 249.20983519405127,
+          "p95": 6203.3259968739,
+          "maximum": 47356.75082006492
+        }
+      },
+      "_ieee_gpu_preparation_plans": {
+        "records": 803,
+        "states": {
+          "cancelled": 4,
+          "completed": 510,
+          "superseded": 289
+        },
+        "triggers": {
+          "handoff": 2,
+          "residency": 801
+        },
+        "registrations": {
+          "False": 289,
+          "True": 514
+        },
+        "registration_reasons": {
+          "None": 514,
+          "stale_preparation_epoch": 289
+        },
+        "supersession_stages": {
+          "None": 514,
+          "native_registration": 289
+        },
+        "supersession_reasons": {
+          "None": 514,
+          "stale_preparation_epoch": 289
+        },
+        "attempt_count": 1513,
+        "attempt_states": {
+          "completed": 1030,
+          "deferred": 482,
+          "observing": 1
+        },
+        "receipt_count": 1512,
+        "receipt_reasons": {
+          "None": 1030,
+          "no_eligible_host_replacement_victim": 7,
+          "replacement_benefit_not_greater_than_loss": 1,
+          "stale_snapshot": 474
+        },
+        "gpu_reuse_count": 12,
+        "load_invoked": {
+          "False": 12,
+          "None": 482,
+          "True": 1018
+        },
+        "acquired": {
+          "False": 482,
+          "True": 1030
+        },
+        "held": {
+          "None": 1512
+        },
+        "admission_evaluated": {
+          "False": 20,
+          "None": 474,
+          "True": 1018
+        },
+        "source_tiers": {
+          "None": 482,
+          "gpu": 12,
+          "host": 1018
+        },
+        "zero_attempt_records": 289,
+        "targets": 1623,
+        "duration_ms": {
+          "n": 803,
+          "mean": 2029.7292115976907,
+          "p50": 998.0691419914365,
+          "p95": 6953.687243862078,
+          "maximum": 35052.75246896781
+        }
+      },
+      "_ieee_native_host_preparations": {
+        "records": 361,
+        "states": {
+          "None": 361
+        },
+        "triggers": {
+          "handoff": 3,
+          "residency": 358
+        },
+        "registrations": {
+          "None": 361
+        },
+        "registration_reasons": {
+          "None": 361
+        },
+        "supersession_stages": {
+          "None": 361
+        },
+        "supersession_reasons": {
+          "None": 361
+        },
+        "attempt_count": 676,
+        "attempt_states": {
+          "completed": 356,
+          "deferred": 319,
+          "file_held": 1
+        },
+        "receipt_count": 675,
+        "receipt_reasons": {
+          "None": 356,
+          "stale_snapshot": 319
+        },
+        "gpu_reuse_count": 0,
+        "load_invoked": {
+          "None": 319,
+          "True": 356
+        },
+        "acquired": {
+          "None": 675
+        },
+        "held": {
+          "False": 319,
+          "True": 356
+        },
+        "admission_evaluated": {
+          "None": 675
+        },
+        "source_tiers": {
+          "None": 675
+        },
+        "zero_attempt_records": 3,
+        "targets": 0,
+        "duration_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    "by_gpu_state": {
+      "cancelled": {
+        "records": 4,
+        "states": {
+          "cancelled": 4
+        },
+        "triggers": {
+          "residency": 4
+        },
+        "registrations": {
+          "True": 4
+        },
+        "registration_reasons": {
+          "None": 4
+        },
+        "supersession_stages": {
+          "None": 4
+        },
+        "supersession_reasons": {
+          "None": 4
+        },
+        "attempt_count": 28,
+        "attempt_states": {
+          "completed": 9,
+          "deferred": 18,
+          "observing": 1
+        },
+        "receipt_count": 27,
+        "receipt_reasons": {
+          "None": 9,
+          "stale_snapshot": 18
+        },
+        "gpu_reuse_count": 1,
+        "load_invoked": {
+          "False": 1,
+          "None": 18,
+          "True": 8
+        },
+        "acquired": {
+          "False": 18,
+          "True": 9
+        },
+        "held": {
+          "None": 27
+        },
+        "admission_evaluated": {
+          "False": 1,
+          "None": 18,
+          "True": 8
+        },
+        "source_tiers": {
+          "None": 18,
+          "gpu": 1,
+          "host": 8
+        },
+        "zero_attempt_records": 0,
+        "targets": 18,
+        "duration_ms": {
+          "n": 4,
+          "mean": 6002.292276185472,
+          "p50": 2690.48167206347,
+          "p95": 12261.073699919507,
+          "maximum": 12261.073699919507
+        }
+      },
+      "completed": {
+        "records": 510,
+        "states": {
+          "completed": 510
+        },
+        "triggers": {
+          "handoff": 2,
+          "residency": 508
+        },
+        "registrations": {
+          "True": 510
+        },
+        "registration_reasons": {
+          "None": 510
+        },
+        "supersession_stages": {
+          "None": 510
+        },
+        "supersession_reasons": {
+          "None": 510
+        },
+        "attempt_count": 1485,
+        "attempt_states": {
+          "completed": 1021,
+          "deferred": 464
+        },
+        "receipt_count": 1485,
+        "receipt_reasons": {
+          "None": 1021,
+          "no_eligible_host_replacement_victim": 7,
+          "replacement_benefit_not_greater_than_loss": 1,
+          "stale_snapshot": 456
+        },
+        "gpu_reuse_count": 11,
+        "load_invoked": {
+          "False": 11,
+          "None": 464,
+          "True": 1010
+        },
+        "acquired": {
+          "False": 464,
+          "True": 1021
+        },
+        "held": {
+          "None": 1485
+        },
+        "admission_evaluated": {
+          "False": 19,
+          "None": 456,
+          "True": 1010
+        },
+        "source_tiers": {
+          "None": 464,
+          "gpu": 11,
+          "host": 1010
+        },
+        "zero_attempt_records": 0,
+        "targets": 1021,
+        "duration_ms": {
+          "n": 510,
+          "mean": 3096.6243648020477,
+          "p50": 2325.855040922761,
+          "p95": 8015.744805103168,
+          "maximum": 35052.75246896781
+        }
+      },
+      "superseded": {
+        "records": 289,
+        "states": {
+          "superseded": 289
+        },
+        "triggers": {
+          "residency": 289
+        },
+        "registrations": {
+          "False": 289
+        },
+        "registration_reasons": {
+          "stale_preparation_epoch": 289
+        },
+        "supersession_stages": {
+          "native_registration": 289
+        },
+        "supersession_reasons": {
+          "stale_preparation_epoch": 289
+        },
+        "attempt_count": 0,
+        "attempt_states": {},
+        "receipt_count": 0,
+        "receipt_reasons": {},
+        "gpu_reuse_count": 0,
+        "load_invoked": {},
+        "acquired": {},
+        "held": {},
+        "admission_evaluated": {},
+        "source_tiers": {},
+        "zero_attempt_records": 289,
+        "targets": 584,
+        "duration_ms": {
+          "n": 289,
+          "mean": 91.98948705591468,
+          "p50": 60.822091065347195,
+          "p95": 261.14809000864625,
+          "maximum": 878.8521417882293
+        }
+      }
+    },
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json",
+        "sha256": "d2235bf4c1c17f7ee2960f126cee898805f0538caa69d2683cfa992738dfcc39"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnose.py",
+        "sha256": "7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_tests.txt",
+        "sha256": "d23611a134f794288a9d3c95c20a7e47c8241ff59a29263983a050e69d551fbd"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/diagnose.py",
+        "sha256": "5b4bb87a29f386d69d2429cdb397d1765420782d0b0e34c0516168b8fa80ccbb"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/preparation_projection.json",
+        "sha256": "37f8bdf8be9902a323ec220d0a14d5d108613d16d5780b1934b36e1b1b662950"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+        "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D104_PREPARATION_SOURCE_DOMAIN.md",
+        "sha256": "469c9da9648235ec3712080fdeaf620be201267b2eb0d55f9ee0d33d1be1ffac"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D329_HOST_STORAGE_DEPENDENCY_AUDIT.md",
+        "sha256": "7fe40268c53373a269eccd1fb5b0a7629cf0deeae454ef54124ecf4177edb821"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D691_STATE_QUERY_CONSUMER_AUDIT.md",
+        "sha256": "0f31c5c250582ee206171de2aae37485f3889f4a1791910d5896db16fe54585c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+        "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+        "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "sha256": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "f677e6010ee9a3ba9bfbd391bad03eace9719acce23e3d7e036d0dbf921ad0e4"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+        "sha256": "44994e3ca7a8ff3daefabb10063303a1bfab10df332a1388702736802b2b62a5"
+      },
+      {
+        "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+        "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+      }
+    ],
+    "caveats": [
+      "Plan registration protects against proactive replacement, not ordinary demand eviction; it is not a physical pin.",
+      "GPU reuse requires live owner revalidation; received registration does not prove readiness at later execution.",
+      "Attempts, plan targets, actual loads and useful later service are distinct quantities.",
+      "Missing receipt fields remain unknown, not zero or false.",
+      "Preparation durations overlap other work; no counterfactual TTFT or GPU time is derived.",
+      "Operation-level profile labels do not identify a plan/attempt caller."
+    ]
+  },
+  "owner_probe": {
+    "passed": true,
+    "kind": "d692_cpu_owner_eligibility_probe_v1",
+    "parent": {
+      "attempts": 3,
+      "loads": 1,
+      "completed_targets": 2,
+      "reused_targets": 1,
+      "reasons": {
+        "None": 2,
+        "stale_snapshot": 1
+      },
+      "source_queries": 3,
+      "prepare_calls": 3,
+      "live_leases": 0,
+      "pending_targets": 0
+    },
+    "candidate": {
+      "attempts": 2,
+      "loads": 1,
+      "completed_targets": 2,
+      "reused_targets": 1,
+      "reasons": {
+        "None": 2
+      },
+      "source_queries": 2,
+      "prepare_calls": 2,
+      "live_leases": 0,
+      "pending_targets": 0
+    },
+    "tests_passed": 40,
+    "production_changed": false,
+    "inference_runs_added": 0,
+    "performance_gain_unknown": true,
+    "independent_numerical_qualification_unknown": true,
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/diagnosis.json",
+        "sha256": "75b31c5c4163f15e74f750229a6e1cd5ae7fb3b389a1eb1317aed4b89df6ca96"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/owner_probe.py",
+        "sha256": "13207882ec28b200e1e1f251ba021d396257a38d3178898f3068a75af01c4e6a"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/owner_probe_tests.txt",
+        "sha256": "8cb2e8de1b66ff119a1fb977948bd381791de26bf3946c22f9cc520eb12f9a81"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+        "sha256": "825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+        "sha256": "44994e3ca7a8ff3daefabb10063303a1bfab10df332a1388702736802b2b62a5"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_execution_projection.py",
+        "sha256": "213760a0f2571826680d5696d3a901c3aca44cd97f6f90311e160c484d95f7e7"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+        "sha256": "b26982d6666c3e7117482f5eadec3f7dafeda1615fd8a7db9060f231d5595d4e"
+      }
+    ],
+    "caveats": [
+      "CPU native-cache fixtures prove operation order, not GPU latency or numerical correctness.",
+      "The probe does not identify which recorded stale attempts were caused by siblings versus ordinary demand.",
+      "Other-owner and HOST/NVMe work remains concurrent; this is not max_concurrent=1.",
+      "Registration conflicts and ordinary-demand conflicts are not eliminated.",
+      "No production acceptance or full regression/GPU qualification is implied."
+    ]
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_commit": "8a40221a27aa1080bf12fe613d4efc24a4502f9a",
+  "archive_members": {
+    "00_analysis2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis2_closure.json",
+      "sha256": "6fb0700cd11fe7f76605cd4bd2e7063e00e70c91dfb1b96818766c72fbc21270",
+      "bytes": 647
+    },
+    "01_analysis2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis2_identity.json",
+      "sha256": "b791ba3d10ae4e0f6c7967f7dd056c1d2355b33c93f045438f545ccb5a3a6c96",
+      "bytes": 286
+    },
+    "02_analysis2_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis2_receipt.json",
+      "sha256": "625dc731be9b6afa59198d0ad15a4b0a279435cb7e1e96ee6e0a8b8e7c24c568",
+      "bytes": 586
+    },
+    "03_analysis2_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis2_resource_gate.json",
+      "sha256": "3a4908d9b4e7cac21745d5feeef341fbaeca3293c448ab00b7ca4ffb7af49515",
+      "bytes": 6468
+    },
+    "04_analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_closure.json",
+      "sha256": "486db8f1a05bd029ff6dadb6166fea068b94c24d608c302cce1fc82637267c83",
+      "bytes": 647
+    },
+    "05_analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_identity.json",
+      "sha256": "7aa2ab899db96b1a5fdd4c25e5c1e2e32249872ca1dd32857ef3f2f04644abe1",
+      "bytes": 286
+    },
+    "06_analysis_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_receipt.json",
+      "sha256": "43d11737da25ae6e4a43d9832ddab8d1cb4335cd00b17a498a37ba8414e72c2d",
+      "bytes": 589
+    },
+    "07_analysis_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_resource_gate.json",
+      "sha256": "504514033f20e2553261cdfb9a76e44ed787c171e0b6a5a09da1e39be2552be6",
+      "bytes": 6469
+    },
+    "08_analysis_tests.txt": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/analysis_tests.txt",
+      "sha256": "d23611a134f794288a9d3c95c20a7e47c8241ff59a29263983a050e69d551fbd",
+      "bytes": 8392
+    },
+    "09_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/close.py",
+      "sha256": "fe5de6ec5f7196c479dd15a2ada7001261ccbe426efc6a83042ce3f1ca2779a0",
+      "bytes": 408
+    },
+    "10_diagnose.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/diagnose.py",
+      "sha256": "5b4bb87a29f386d69d2429cdb397d1765420782d0b0e34c0516168b8fa80ccbb",
+      "bytes": 11016
+    },
+    "11_diagnosis.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/diagnosis.json",
+      "sha256": "75b31c5c4163f15e74f750229a6e1cd5ae7fb3b389a1eb1317aed4b89df6ca96",
+      "bytes": 13324
+    },
+    "12_owner_probe.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/owner_probe.json",
+      "sha256": "56649ce1e33c807f408432749b61ef9909d6be2dee02c6528b74c2e4c78a45d2",
+      "bytes": 3058
+    },
+    "13_owner_probe.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/owner_probe.py",
+      "sha256": "13207882ec28b200e1e1f251ba021d396257a38d3178898f3068a75af01c4e6a",
+      "bytes": 10992
+    },
+    "14_owner_probe_tests.txt": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/owner_probe_tests.txt",
+      "sha256": "8cb2e8de1b66ff119a1fb977948bd381791de26bf3946c22f9cc520eb12f9a81",
+      "bytes": 7904
+    },
+    "15_preparation_projection.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/preparation_projection.json",
+      "sha256": "37f8bdf8be9902a323ec220d0a14d5d108613d16d5780b1934b36e1b1b662950",
+      "bytes": 6888969
+    },
+    "16_publication_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/publication_identity.json",
+      "sha256": "f3baf62921ccb0aeab5b72065b1010cc61c73248ef009a689a7b3c4f8b0deda1",
+      "bytes": 286
+    },
+    "17_publication_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/publication_resource_gate.json",
+      "sha256": "6ba39f35492132f2999910f0f8bfec9b82d94d92331ac746149f668eca443c5b",
+      "bytes": 6468
+    },
+    "18_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/publish.py",
+      "sha256": "913987569c4a1f56b6d119cd0ab19ce611a784b341a3b07317701097cff67675",
+      "bytes": 2627
+    },
+    "19_D692_PREPARATION_CONTENTION_AUDIT.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D692_PREPARATION_CONTENTION_AUDIT.md",
+      "sha256": "a103ca30b5ce1f609532fe9018d063384151d4f57c3009b18b55f0723d8ca055",
+      "bytes": 8136
+    },
+    "20_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/close.py",
+      "sha256": "2275f5fb7959fb2df7bf13a67cce7f4ebcd226a232ca9d6ecb5ec00d013ca68a",
+      "bytes": 1295
+    },
+    "21_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d612_20261017/publish.py",
+      "sha256": "a1bcd9f18e9f483fd171b8be75f6169848f0c7f00135fda2b17ff47625028cf9",
+      "bytes": 6407
+    },
+    "22_diagnose.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnose.py",
+      "sha256": "7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc",
+      "bytes": 11745
+    }
+  },
+  "archive_sha256": "2250f4a96a4b2047d0450a1122cd810a870693d1c518de53a0ad3a5d2d7ce2f2",
+  "production_changed": false,
+  "inference_runs_added": 0,
+  "ranking_eligible": false
+}

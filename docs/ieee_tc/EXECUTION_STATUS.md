@@ -1,5 +1,37 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D692准备竞争核查与CPU因果对照完成 — 2026-10-18
+
+PROGRESS。复用D684闭合outcome，1512有回执GPU attempt中仅12已GPU复用，
+474 stale_snapshot；803GPU计划中289在注册时过期。HOST675回执中319过期。
+不再优化小占比的已就绪流程；register只保护主动替换、不pin物理存储，不能
+当作普通请求驱逐后的就绪保证。D104/D134/D176/D514历史与官方vLLM已核对。
+
+仅在CPU测试进程应用同owner GPU action互斥的queue候选，保持跨owner及
+HOST/NVMe并行，不占等待slot、不改全局并发3或epoch guard。真实runner/owner
+fixture两目标由3次观察/prepare变2次、stale1变0，加载仍1、GPU复用1，引用
+全部清空。40项相关测试通过（包含先前21项，不累加）。这不证明实际474次
+过期的具体原因分布，也不是GPU/SLO/资源收益。生产文件完全未改。
+
+27637分析、77915组件检查exit0；analysis/analysis2均递归空关闭，峰值
+535871488/523026432B，事件/swap0，不再wait或重复分析。147保护文件、用户
+manifest未变，无GPU/remote/k3s操作、无清理回收或图表。当前准备D692明确
+五路径备份，建议未用a692...0003。下一将同owner资格作为唯一新候选做完整
+queue/混合准备回归→最小原生资格→一次3B W0；不再加GPU前缀诊断，不放宽
+epoch、不顺带改HOST并发/阈值。n_correct未知，全部后续范围ACTIVE。
+
+## D691备份与关闭完成，继续单次事务发起原因审计 — 2026-10-18
+
+PROGRESS。五个明确路径已推送8a40221a27aa1080bf12fe613d4efc24a4502f9a，
+远端一致；9239exit0，publication递归空关闭peak35450880B、事件swap0。
+19141/9239及全部D691资源域终态，不重复wait/分析/发布。生产原样，GPU空闲，
+无remote/k3s操作；用户manifest未stage。最终磁盘161908527104B、主机可用
+111823847424B，本轮没有清理回收。下一仍须实时磁盘150GiB及峰值检查。
+已有新证据：work-entry utility轮次9670个均单utility并随后step；禁止把
+当前瓶颈再写成旧多utility堆积，也不重做已撤回D514。下一复用准备计划/
+attempt记录查单次事务工作量与重复发起原因；3B未达标、独立数值证明未知，
+其他完整范围ACTIVE，不改尺子、不新增无依据GPU回放或画图。
+
 ## D691实时查询消费者与控制交错审计完成 — 2026-10-18
 
 PROGRESS。核对完整PLAN/六补充/V1/V2、D514/D516/D519历史与官方vLLM源码。
