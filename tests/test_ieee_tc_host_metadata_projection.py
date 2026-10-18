@@ -1,4 +1,9 @@
-"""D687: render descriptions only at publication, never cache physical facts."""
+"""Retain D687 candidate checks after D688 rejected its system-level adoption.
+
+Physical/semantic assertions exercise the current production function and the
+frozen candidate. Candidate-only operation counts are historical assertions,
+not performance requirements imposed on the restored production implementation.
+"""
 import ast
 import builtins
 import hashlib
@@ -15,17 +20,23 @@ from tests.test_ieee_tc_worker_observation import NativeHostFootprint
 
 def parent_inventory():
     """Exact frozen parent function; dependencies remain the same live module."""
+    return historical_inventory('5bb08ffb1af21acd50e2fea728335fcae6587a99',
+        '213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32')
+
+
+def historical_inventory(commit, expected_sha):
+    """Load one immutable experiment implementation without editing production."""
     root=Path(__file__).resolve().parents[1]
     source=subprocess.check_output(['git','show',
-        '5bb08ffb1af21acd50e2fea728335fcae6587a99:faaslora/memory/gpu_monitor.py'],cwd=root)
-    if hashlib.sha256(source).hexdigest()!='213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32':
+        commit+':faaslora/memory/gpu_monitor.py'],cwd=root)
+    if hashlib.sha256(source).hexdigest()!=expected_sha:
         raise RuntimeError('D687 reference changed')
     nodes=[node for node in ast.parse(source).body
            if isinstance(node,ast.FunctionDef) and node.name=='_ieee_lora_host_inventory']
     if len(nodes)!=1:
         raise RuntimeError('D687 reference function missing')
     namespace=dict(monitor.__dict__)
-    exec(compile(ast.Module(body=nodes,type_ignores=[]),'<D687-exact-parent>','exec'),namespace)
+    exec(compile(ast.Module(body=nodes,type_ignores=[]),'<D687-history:'+commit+'>','exec'),namespace)
     return namespace['_ieee_lora_host_inventory']
 
 
@@ -33,6 +44,9 @@ class HostMetadataProjection(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parent=staticmethod(parent_inventory())
+        cls.candidate=staticmethod(historical_inventory(
+            'cbdf7ecdf05d09677105618e51668de34cc55cc3',
+            '0aa4f68c93bbb1c3ee65e4acf9b8a8b0b2b92ecfb2dcee4f382c4a3a31b31c5e'))
 
     def test_exact_parent_graph_full_projected_requested_staged(self):
         for case in ('base','packed','mixed_dtype','shared','empty'):
@@ -50,10 +64,13 @@ class HostMetadataProjection(unittest.TestCase):
                     {'include_tensor_views':False,'requested_adapter_ids':[7]}):
                 with self.subTest(case=case,options=options):
                     self.assertEqual(self.parent(native,**options),monitor._ieee_lora_host_inventory(native,**options))
+                    self.assertEqual(self.parent(native,**options),self.candidate(native,**options))
             if models:
                 staged={9:SimpleNamespace(id=9,rank=4,loras=models[8].loras)}
                 self.assertEqual(self.parent(native,staged_models=staged,include_tensor_views=False),
                     monitor._ieee_lora_host_inventory(native,staged_models=staged,include_tensor_views=False))
+                self.assertEqual(self.parent(native,staged_models=staged,include_tensor_views=False),
+                    self.candidate(native,staged_models=staged,include_tensor_views=False))
 
     def test_runtime_reads_device_once_and_no_shape_description(self):
         native,_=NativeHostFootprint().native_models()
@@ -64,7 +81,7 @@ class HostMetadataProjection(unittest.TestCase):
             return getter.__get__(tensor)
         with patch.object(torch.Tensor,'device',property(device)), \
              patch.object(torch.Tensor,'shape',property(lambda tensor: (_ for _ in ()).throw(AssertionError('unused shape')))):
-            result=monitor._ieee_lora_host_inventory(native,include_tensor_views=False)
+            result=self.candidate(native,include_tensor_views=False)
         self.assertEqual(result['host_tensor_storage_bytes'],768)
         self.assertEqual(len(observed),6)
 
@@ -77,8 +94,8 @@ class HostMetadataProjection(unittest.TestCase):
                 if isinstance(value,torch.dtype):observed.append(value)
                 return builtins.str(value)
         class ObservedString(metaclass=Render):pass
-        with patch.object(monitor,'str',ObservedString,create=True):
-            result=monitor._ieee_lora_host_inventory(native,include_tensor_views=False)
+        with patch.dict(self.candidate.__globals__,{'str':ObservedString}):
+            result=self.candidate(native,include_tensor_views=False)
         self.assertEqual(observed,[torch.float16,torch.float16])
         self.assertEqual([row['dtypes'] for row in result['host_adapter_footprints']],
                          [['torch.float16'],['torch.float16']])
@@ -89,10 +106,11 @@ class HostMetadataProjection(unittest.TestCase):
             native,models=NativeHostFootprint().native_models()
             models[8].loras={'specific_module':SimpleNamespace(lora_a=tensor,lora_b=torch.empty((2,2)))}
             errors=[]
-            for function in (self.parent,monitor._ieee_lora_host_inventory):
+            for function in (self.parent,monitor._ieee_lora_host_inventory,self.candidate):
                 with self.assertRaises(ValueError) as caught:function(native,include_tensor_views=False)
                 errors.append(str(caught.exception))
             self.assertEqual(errors[0],errors[1])
+            self.assertEqual(errors[0],errors[2])
             self.assertIn('specific_module.lora_a[0]',errors[0])
 
 

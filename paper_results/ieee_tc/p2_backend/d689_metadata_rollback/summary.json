@@ -1,0 +1,33 @@
+{
+  "kind": "d689_exact_candidate_rollback_v1",
+  "passed": true,
+  "parent_commit": "16a5f6943110dfef33eb1c35e2e6b672a9ef50c8",
+  "production_restored_sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+  "rollback_of": "cbdf7ecdf05d09677105618e51668de34cc55cc3",
+  "candidate_system_performance_accepted": false,
+  "reason": "D688 complete single observation did not improve joint SLO or physical GPU time over D682",
+  "d688_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d688_3b_full_w0/completion/audit.json",
+    "sha256": "8ae706f20336ae99e4368482b8dfffd77d7b453b7cafc2dfd2e7a14e4b746f8e"
+  },
+  "d688_joint_count": 3645,
+  "d682_joint_count": 3694,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "new_performance_runs": 0,
+  "cpu_test_executions": 297,
+  "qualification_sha256": "38dceebc64a1efffadae102e8297243703b320fb8bbc4dc1bedd882fe5827cf4",
+  "historical_candidate_tests_retained": true,
+  "current_production_semantic_assertions_retained": true,
+  "storage_receipt": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261018_d689_closed_outcomes.json",
+    "sha256": "6f6fe04229fb447eca4770a3999af7afc8d81bbcb4bd411606ead5ad78bdc2b4"
+  },
+  "allocated_bytes_reclaimed": 1005232128,
+  "storage_after": {
+    "available_bytes": 161965191168
+  },
+  "next_action": "Reuse complete request/stage evidence to identify an unresolved 3B bottleneck; no same-key replay, pin/GC/metadata-format microtuning, threshold change or new baseline search.",
+  "no_figures": true,
+  "full_plan_active": true
+}

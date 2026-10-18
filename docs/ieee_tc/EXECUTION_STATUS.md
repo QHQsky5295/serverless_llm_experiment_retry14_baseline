@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D688已封存，D689精确回退及存储维护通过 — 2026-10-18 18:55 CST
+
+PROGRESS。D688九路径已推送16a5f6943110dfef33eb1c35e2e6b672a9ef50c8，远端
+一致；42908exit0，publication递归空关闭peak50008064B。所有D688会话终态，
+不要再wait/launch/publish。完整结果91.125%/15897.107082 GPU-s，不接受
+D687候选为系统改进，保留全部退化；独立数值证明未知。
+
+D689仅撤回D687生产函数差异，gpu_monitor完整SHA恢复213cc94b…6eeb32。
+保留并明确分离历史候选的操作次数断言，生产/候选图结构与错误检查仍执行。
+55582CPU回归exit0，297项通过，qualification关闭peak602521600B、事件swap0。
+32009精确关闭日志无损压缩exit0，qualification2关闭peak202952704B；
+只压缩D688已关闭main_outcome，两次解压SHA一致，实际回收1005232128B。
+原请求结果保留，outcome后续读.gz及compression_receipt映射；旧审计SHA不改。
+维护后可用161965191168B（约150.84GiB），新重型仍先重检门槛。
+
+当前准备D689明确路径备份，建议未用a689...0003。下一只复用完整请求/阶段
+证据定位进入引擎前等待、短decode干扰和持卡原因；不继续pin/GC/格式微调、
+不重跑已恢复实现的同键，不堆叠未验证补丁。全部剩余范围ACTIVE，无新GPU
+实验/图表，用户修改与147保护文件未变，原共享k3s不动。
+
 ## D688完整完成但未改善，准备封存后撤回唯一候选 — 2026-10-18 18:51 CST
 
 PROGRESS。4000/4000原生合同、458224tokens、0失败，完整计时/绑定/实际释放
