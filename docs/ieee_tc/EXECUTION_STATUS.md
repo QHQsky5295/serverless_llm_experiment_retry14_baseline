@@ -1,5 +1,31 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D695完整3B W0准备 — 2026-10-18
+
+PROGRESS。上一轮D694已闭合/备份；本轮直接登记唯一新4000 W0，复用D682
+配置和D694同一D693候选，不增加优化/阈值/1000前缀。完整PLAN、六补充和
+V1/V2已读。新配置/runner仅D695路径及4000模式，生产代码原样。尚无GPU
+启动或远端操作；当前参数/原生资格来源核验中。
+
+先按存储规则无损压缩已闭合D684 main_outcome，双解压SHA相同，回收
+259760128B，原审计映射保留。17822终态、qualification2已递归空关闭；
+147保护和用户manifest不变。D694所有旧session不重复wait。下一核验通过
+后明确路径备份→实时安全gate→唯一tc-d695-3b-w0。n_correct未知，不排名；
+3B完整仍未95%，其他全部实验范围ACTIVE。共享k3s不动，不再适配HydraServe。
+
+## D694已封存关闭，下一完整3B W0 — 2026-10-18
+
+PROGRESS。完成6路径已推送0a8a458a050f42762d6ff3e246e382b2343b3deb，远端
+一致；5232终态，publication实际递归空关闭。D694全部阶段均终态，不再
+wait旧session、重复分析或重跑100请求。GPU空闲、owned远端停，共享k3s
+未动。除用户manifest外tracked生产代码清洁；当前状态新增记录留待下个
+checkpoint，用户manifest从未stage。最终盘161860632576B，MemAvailable
+111924924416B，下一重型按实时值重新gate。
+
+下一直接准备未用身份的一次完整3B W0（建议D695），复用D682完整框架及
+D694同一候选配置/合同；不先再做另一前缀。97/100仅短资格，当前3B完整
+指标仍未达95%，整体目标及所有后续实验ACTIVE。数值资格仍未知、不可排名。
+
 ## D694原生100请求资格通过，准备封存 — 2026-10-18
 
 PROGRESS。100/100原生合同、17369tokens、dispatch完整；4owner的162次

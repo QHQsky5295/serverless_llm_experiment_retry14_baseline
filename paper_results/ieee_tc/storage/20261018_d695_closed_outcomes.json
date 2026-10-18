@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792325222.153816,
+  "before": {
+    "available_bytes": 161858928640
+  },
+  "after": {
+    "available_bytes": 162118631424
+  },
+  "entries": [
+    {
+      "run": "d684_20261018/3b_full_w0_prefix1",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "d2235bf4c1c17f7ee2960f126cee898805f0538caa69d2683cfa992738dfcc39",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109583500,
+        "size": 299739541,
+        "mtime_ns": 1792313436793689666,
+        "ctime_ns": 1792313436793689666,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 585440
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "f5bc34ff603ea46c30c042cb61a4f7338fe3fa67ced91a024e47907a2d73509f",
+      "archive_sha256": "04421e1d703df21bca6f83696a23f1c4ffcffdea0bec8164cf8137aa881e4733",
+      "archive_bytes": 39983376,
+      "archive_allocated_bytes": 39985152,
+      "first_roundtrip_sha256": "d2235bf4c1c17f7ee2960f126cee898805f0538caa69d2683cfa992738dfcc39",
+      "second_roundtrip_sha256": "d2235bf4c1c17f7ee2960f126cee898805f0538caa69d2683cfa992738dfcc39",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 259760128
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
