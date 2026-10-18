@@ -1,5 +1,32 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D667：当前HOST清点的有界观测已通过检查，未改变服务策略 — 2026-10-18
+
+本轮PROGRESS，实际新增默认关闭的fresh_inventory_v1诊断入口：只测原生核心
+活动span内完整HOST inventory及allocator stats两个函数，父子时钟/线程CPU
+与scope/数量标量；不逐tensor打点，不改查询次数、缓存或九公式，不以RPC
+等待冒充函数耗时。详见D667_BOUNDED_HOST_INVENTORY_DIAGNOSTIC.md。
+本轮没有GPU实验/新性能候选，D665联合88.75%、U15896.448的缺口未关闭。
+
+原生环境22项focused通过；误用原生环境跑旧大套件的qualification2产生
+memory.high，已精确身份停止，max/OOM/kill/swap0。首次停止入口缺pidfd_open，
+保留回执后改用系统Python完成；78044 exit143、19751 exit0，均不再wait。
+大范围CPU测试必须用已验证的anaconda sllm_vllm0102环境及launch-first顺序；
+清理用/usr/bin/python3。原环境下237项中1条旧D456断言把unset误判为启用，
+已只修测试并保留失败。analysis2同237项全过（合计259最终通过），peak
+1935835136B、事件/swap0；2146 exit0并递归空关闭。3197/49094也已结束关闭，
+不再wait。147旧保护文件及三项用户修改不变，无活动GPU/分析任务。
+
+下一步先备份此观测检查点，再沿用D665配置进行一次3B W0前1000条原生
+定位测量（新增唯一D668路径，尚未创建或启动），不改输入/生成/SLO/扩缩容。
+复用现有D351/D519观测wrapper与D664/D665受限启动/远端管理；只换路径、
+前缀数量及显式观察开关。诊断不进入正式性能排名、不重跑同键。先分离新鲜
+清点内的CPU工作与外部等待，再选有证据的语义保持候选；无storage生命周期
+证明不跨请求缓存，不复活D333/D595/D628失败方案，不调评价尺子。
+生产gpu_monitor/residency_manager仍D663原SHA；D663局部目标段有效，整体
+性能未获接受。3B W1/W2/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/
+图表全部ACTIVE；不重开已完成HydraServe适配，不动非项目k3s。
+
 ## D666：HOST目标段确已缩短，但3B整体缺口仍在 — 2026-10-18
 
 本轮PROGRESS，无新推理/生产代码/配置改动。复用D661/D612与修正后的D662，
@@ -13,10 +40,19 @@ TPOT违约中148条输出≤31，GPU就绪亦有95条TPOT违约，不能只归�
 
 analysis37188 exit0，峰值317120512B、事件/swap0，scope递归空关闭，不再wait。
 147保护文件不变，检查磁盘可用164936921088B；没有新清理/回收声称。详细表和
-边界见D666_3B_HOST_EFFECT_AND_RESIDUAL_SLO.md。准备显式路径备份，同时归档
-D665晚publication_closure；不覆盖旧结果，不stage用户manifest。
+边界见D666_3B_HOST_EFFECT_AND_RESIDUAL_SLO.md。5个明确路径已推送
+30164bf97420a62d9ae1091d462713d7d1c9da55，远端一致，checksum复核通过；
+D665晚publication_closure已归档。publication78207 exit0，峰值84033536B、
+事件/swap0，递归空关闭，不再wait；D666晚关闭回执随下次正常检查点归档，
+不另开纯状态提交。用户manifest和baseline两项保护修改未stage/未改变。
 下一只做已测共同等待路径与历史/官方实现的有界调用审计，先明确可证伪假设
 和适用域再选新候选；不盲叠改动、不重跑同键、不放宽阈值或开oracle支线。
+已只读核查D329/D610/D635、host inventory及_load_and_acquire入口，并联网
+读取vLLM官方CPU开销说明、v0.30 worker_manager/core；尚未形成新候选或
+运行D667。下一审计须区分每次fresh HOST allocation check的实际成本与
+RPC队列等待，不能由pending→acquired约90ms直接把它全归于inventory，也
+不能用owner/epoch/TTL缓存绕过D329反例。D333已否决的pending/HOST盲融合
+及D595/D628已撤销方案不重复；不将D663局部收益改写为整体性能验收。
 3B W0尚未闭口，其余3B/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/
 图表全部ACTIVE。当前无活动GPU/分析任务，原k3s和已完成HydraServe适配不动。
 

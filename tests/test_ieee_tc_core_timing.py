@@ -300,5 +300,152 @@ class StepComponents(unittest.TestCase):
         self.assertIsNone(observer.component_rows)
 
 
+class HostInventoryTiming(unittest.TestCase):
+    def fixture(self, **options):
+        _, scheduler, _ = fixture()
+        output = io.BytesIO()
+        observer = CoreHostTiming(output, scheduler, host_inventory=True, **options)
+        calls = []
+        result = dict(host_footprint_scope='native_registered_tensor_storage_capacity',
+                      host_allocations=[{'private_pointer': object()}],
+                      host_adapter_footprints=[{'private_id': 'secret-adapter'}],
+                      host_tensor_storage_bytes=4096)
+        def inventory(*args, **kwargs):
+            calls.append(('inventory', args, kwargs))
+            return result
+        def allocator(*args, **kwargs):
+            calls.append(('allocator', args, kwargs))
+            return (1, 2, 3, 4)
+        module = NS(_ieee_lora_host_inventory=inventory,
+                    _ieee_pinned_host_allocator_stats=allocator)
+        return observer, output, module, calls, result
+
+    def test_whole_function_timings_nested_under_client_with_scalar_projection(self):
+        observer, output, module, calls, result = self.fixture()
+        observer.attach_host_inventory(module)
+        def client():
+            self.assertIs(module._ieee_lora_host_inventory('private', token='secret'), result)
+            self.assertEqual(module._ieee_pinned_host_allocator_stats(), (1, 2, 3, 4))
+            return result
+        self.assertIs(observer.call('client', client, (), {}), result)
+        rows = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual([r['boundary'] for r in rows],
+                         ['host_inventory', 'host_allocator_stats', 'client'])
+        for row in rows[:2]:
+            self.assertEqual(row['parent'], rows[2]['id'])
+            self.assertGreaterEqual(row['begin_ns'], rows[2]['begin_ns'])
+            self.assertLessEqual(row['end_ns'], rows[2]['end_ns'])
+        self.assertEqual(rows[0]['details'], dict(
+            scope='native_registered_tensor_storage_capacity', allocation_count=1,
+            adapter_count=1, host_tensor_storage_bytes=4096))
+        self.assertEqual(len(calls), 2)
+        self.assertNotIn(b'private', output.getvalue())
+        self.assertNotIn(b'secret', output.getvalue())
+
+    def test_outside_owner_span_and_foreign_thread_are_untouched(self):
+        observer, output, module, calls, result = self.fixture()
+        observer.attach_host_inventory(module)
+        self.assertIs(module._ieee_lora_host_inventory(), result)
+        observer.stack.append(123)
+        returned = []
+        thread = threading.Thread(target=lambda: returned.append(module._ieee_lora_host_inventory()))
+        thread.start(); thread.join()
+        with patch('faaslora.utils.core_timing.os.getpid', return_value=observer.pid+1):
+            self.assertIs(module._ieee_lora_host_inventory(), result)
+        observer.stack.pop()
+        self.assertEqual(returned, [result])
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(output.getvalue(), b'')
+
+    def test_exception_identity_result_and_originals_restored(self):
+        observer, output, module, calls, _ = self.fixture()
+        failure = RuntimeError('secret-error')
+        def failed():
+            calls.append('failed')
+            raise failure
+        module._ieee_lora_host_inventory = failed
+        original_stats = module._ieee_pinned_host_allocator_stats
+        observer.attach_host_inventory(module)
+        with self.assertRaises(RuntimeError) as caught:
+            observer.call('client', module._ieee_lora_host_inventory, (), {})
+        self.assertIs(caught.exception, failure)
+        self.assertEqual(calls, ['failed'])
+        rows = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual([row['outcome'] for row in rows], ['raised', 'raised'])
+        self.assertNotIn(b'secret', output.getvalue())
+        observer.close()
+        self.assertIs(module._ieee_lora_host_inventory, failed)
+        self.assertIs(module._ieee_pinned_host_allocator_stats, original_stats)
+
+    def test_invalid_target_or_collision_cannot_partially_patch(self):
+        observer, _, module, _, _ = self.fixture()
+        original = module._ieee_lora_host_inventory
+        stats = module._ieee_pinned_host_allocator_stats
+        module._ieee_pinned_host_allocator_stats = None
+        with self.assertRaises(ValueError): observer.attach_host_inventory(module)
+        self.assertIs(module._ieee_lora_host_inventory, original)
+        module._ieee_pinned_host_allocator_stats = stats
+        observer.attach_host_inventory(module)
+        second, _, _, _, _ = self.fixture()
+        with self.assertRaises(ValueError): second.attach_host_inventory(module)
+        with self.assertRaises(ValueError): observer.attach_host_inventory(module)
+        later = lambda: 'later'
+        module._ieee_lora_host_inventory = later
+        observer.restore_host_inventory()
+        self.assertIs(module._ieee_lora_host_inventory, later)
+        self.assertIs(module._ieee_pinned_host_allocator_stats, stats)
+
+    def test_cap_preserves_all_native_calls(self):
+        observer, output, module, calls, result = self.fixture(max_spans=0)
+        observer.attach_host_inventory(module)
+        for _ in range(3):
+            self.assertIs(observer.call('client', module._ieee_lora_host_inventory, (), {}), result)
+        self.assertEqual(len(calls), 3)
+        self.assertTrue(observer.truncated)
+        self.assertEqual(len(output.getvalue().splitlines()), 1)
+
+    def test_flag_rejects_unregistered_and_missing_main_diagnostic(self):
+        for flag, main in [('fresh_inventory_v1', None), ('fresh_inventory_v1', '0'),
+                           ('typo', 'host_spans_v1')]:
+            cls, scheduler, _ = fixture()
+            before = dict(vars(cls))
+            with patch.dict(os.environ, {}, clear=True):
+                os.environ['FAASLORA_TC_HOST_INVENTORY_TIMING'] = flag
+                if main is not None: os.environ['FAASLORA_TC_CORE_TIMING'] = main
+                with self.assertRaises(ValueError): install_core_host_timing(cls, scheduler)
+            self.assertEqual(dict(vars(cls)), before)
+
+    def test_install_requires_existing_diagnostic_resource_gate_and_closes(self):
+        from faaslora.memory import gpu_monitor
+        original = gpu_monitor._ieee_lora_host_inventory
+        group = next(r[3:] for r in Path('/proc/self/cgroup').read_text().splitlines() if r.startswith('0::'))
+        with tempfile.TemporaryDirectory() as tmp:
+            receipt = Path(tmp)/'receipt.json'
+            good = dict(allow_exec=True, service_identity=dict(path='/sys/fs/cgroup'+group),
+                external_replay=dict(replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=1000))
+            receipt.write_text(json.dumps(good))
+            env = dict(FAASLORA_FORMAL_RUN='0', FAASLORA_TC_CORE_TIMING='host_spans_v1',
+                       FAASLORA_TC_HOST_INVENTORY_TIMING='fresh_inventory_v1',
+                       FAASLORA_TC_LAUNCH_RECEIPT=str(receipt))
+            cls, scheduler, _ = fixture()
+            with patch.dict(os.environ, dict(env, FAASLORA_FORMAL_RUN='1')):
+                with self.assertRaises(ValueError): install_core_host_timing(cls, scheduler)
+            self.assertIs(gpu_monitor._ieee_lora_host_inventory, original)
+            with patch.dict(os.environ, env):
+                observer = install_core_host_timing(cls, scheduler)
+                self.assertIs(install_core_host_timing(cls, scheduler), observer)
+                self.assertIsNot(gpu_monitor._ieee_lora_host_inventory, original)
+                with patch.dict(os.environ, FAASLORA_TC_HOST_INVENTORY_TIMING='0'):
+                    with self.assertRaisesRegex(ValueError, 'identity changed'):
+                        install_core_host_timing(cls, scheduler)
+                cls(scheduler).shutdown()
+            self.assertTrue(observer.closed)
+            self.assertIs(gpu_monitor._ieee_lora_host_inventory, original)
+            path, = (Path(tmp)/'diagnostic_core').glob('*.jsonl')
+            rows = [json.loads(line) for line in path.read_text().splitlines()]
+            self.assertEqual(rows[0]['host_inventory_timing'], 'fresh_inventory_v1')
+            self.assertFalse(rows[0]['formal_performance_result'])
+
+
 if __name__ == '__main__':
     unittest.main()

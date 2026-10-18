@@ -256,4 +256,7 @@ class D456DiagnosticContract(unittest.TestCase):
         branch = re.search(r'if \[\[ (.*?)\]\]; then\n(.*?)\nelse', shell, re.S)
         self.assertIn('d456_7b_full_w0_prefix1', branch.group(1))
         self.assertIn('FAASLORA_TC_STACK_SAMPLING=python_frames_v1', branch.group(2))
-        self.assertNotIn('CORE_TIMING', branch.group(2))
+        # D603 explicitly unsets the core observer in the stack-only branch.
+        # Disabling it is required isolation, not an enabled second observer.
+        self.assertIn('unset FAASLORA_TC_CORE_TIMING', branch.group(2))
+        self.assertNotIn('export FAASLORA_TC_CORE_TIMING', branch.group(2))

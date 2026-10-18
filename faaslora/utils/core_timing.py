@@ -54,7 +54,7 @@ class CoreHostTiming:
     RESERVE_BYTES = 4096
 
     def __init__(self, stream, scheduler, *, max_bytes=MAX_BYTES, max_spans=MAX_SPANS,
-                 step_components=False):
+                 step_components=False, host_inventory=False):
         self.stream, self.scheduler = stream, scheduler
         self.pid, self.thread = os.getpid(), threading.get_ident()
         self.max_bytes, self.max_spans = max_bytes, max_spans
@@ -67,6 +67,46 @@ class CoreHostTiming:
         self.component_rows = None
         self.component_targets = []
         self.host_stats = None
+        self.host_inventory = host_inventory
+        self.inventory_targets = []
+
+    def attach_host_inventory(self, module):
+        """Time two whole functions, never each tensor or an RPC wait interval.
+
+        These module-level functions may also be used outside the native core.
+        Observe only this owner's active spans; other calls execute untouched.
+        No storage, model, pointer, request payload or returned tensor is retained.
+        """
+        if not self.host_inventory or self.inventory_targets:
+            raise ValueError('HOST inventory diagnostic absent or already installed')
+        names = (('_ieee_lora_host_inventory', 'host_inventory'),
+                 ('_ieee_pinned_host_allocator_stats', 'host_allocator_stats'))
+        originals = [(name, label, getattr(module, name)) for name, label in names]
+        if any(not callable(method) or hasattr(method, '_ieee_inventory_timing_owner')
+               for _, _, method in originals):
+            raise ValueError('invalid or already observed HOST inventory boundary')
+
+        def wrapper(original, label):
+            @wraps(original)
+            def observed(*args, **kwargs):
+                if (self.closed or self.truncated or not self.stack
+                        or os.getpid() != self.pid or threading.get_ident() != self.thread):
+                    return original(*args, **kwargs)
+                return self.call(label, original, args, kwargs)
+            observed._ieee_inventory_timing_owner = self
+            return observed
+
+        for name, label, original in originals:
+            observed = wrapper(original, label)
+            setattr(module, name, observed)
+            self.inventory_targets.append((module, name, original, observed))
+
+    def restore_host_inventory(self):
+        # Never overwrite an unrelated later change, including on failed install.
+        for module, name, original, observed in self.inventory_targets:
+            if getattr(module, name) is observed:
+                setattr(module, name, original)
+        self.inventory_targets.clear()
 
     def attach_step_components(self, core):
         """Observe the actual V2 worker only, after native engine initialization.
@@ -212,6 +252,22 @@ class CoreHostTiming:
                 # >1 token allocations are not labelled pure GPU prefill.
             elif outcome == 'returned' and name == 'step':
                 details['model_executed'] = result if type(result) is bool else None
+            elif outcome == 'returned' and name == 'host_inventory' and type(result) is dict:
+                # Scalar projection only; do not traverse or serialize tensors.
+                scopes = ('native_registered_tensor_storage_capacity',
+                          'native_registered_and_staged_tensor_storage_capacity',
+                          'native_requested_tensor_storage_capacity')
+                scope = result.get('host_footprint_scope')
+                details['scope'] = scope if scope in scopes else 'other'
+                for field, label in (('host_allocations', 'allocation_count'),
+                                     ('host_adapter_footprints', 'adapter_count')):
+                    value = result.get(field)
+                    if type(value) is list:
+                        details[label] = len(value)
+                for field in ('host_tensor_storage_bytes', 'requested_host_storage_bytes'):
+                    value = result.get(field)
+                    if type(value) is int and value >= 0:
+                        details[field] = value
             row = dict(event='native_core_host_span_v1', id=sequence, parent=parent,
                 boundary=name, begin_ns=begin, end_ns=end,
                 thread_cpu_begin_ns=cpu_begin, thread_cpu_end_ns=cpu_end,
@@ -239,6 +295,7 @@ class CoreHostTiming:
             write_ns=self.write_ns, bytes_before_close=self.byte_count))
         self.closed = True
         self.stream.close()
+        self.restore_host_inventory()
 
     def attach(self, core_class):
         existing = getattr(core_class, '_ieee_core_host_timing', None)
@@ -287,12 +344,16 @@ class CoreHostTiming:
 def install_core_host_timing(core_class, scheduler):
     flag = os.environ.get('FAASLORA_TC_CORE_TIMING')
     component_flag = os.environ.get('FAASLORA_TC_CORE_STEP_TIMING')
+    inventory_flag = os.environ.get('FAASLORA_TC_HOST_INVENTORY_TIMING')
+    if inventory_flag not in (None, '0', 'fresh_inventory_v1'):
+        raise ValueError('unsupported HOST inventory diagnostic')
+    inventory = inventory_flag == 'fresh_inventory_v1'
     if component_flag not in (None, '0', 'v2_components_v1'):
         raise ValueError('unsupported native step component diagnostic')
     components = component_flag == 'v2_components_v1'
     if flag is None or flag == '0':
-        if components:
-            raise ValueError('step components require host_spans_v1 diagnostic')
+        if components or inventory:
+            raise ValueError('component observations require host_spans_v1 diagnostic')
         return None
     if flag != 'host_spans_v1':
         raise ValueError('unsupported native core timing diagnostic')
@@ -304,6 +365,8 @@ def install_core_host_timing(core_class, scheduler):
             raise ValueError('native core timing already has another scheduler')
         if existing.step_components != components:
             raise ValueError('native step diagnostic identity changed')
+        if existing.host_inventory != inventory:
+            raise ValueError('HOST inventory diagnostic identity changed')
         return existing
     directory = receipt_path.parent/'diagnostic_core'
     directory.mkdir(mode=0o700, exist_ok=True)
@@ -312,7 +375,8 @@ def install_core_host_timing(core_class, scheduler):
     ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
     path = directory/f'{os.getpid()}-{ticks}.jsonl'
     stream = path.open('xb', buffering=0)
-    observer = CoreHostTiming(stream, scheduler, step_components=components)
+    observer = CoreHostTiming(stream, scheduler, step_components=components,
+                              host_inventory=inventory)
     try:
         observer._write(dict(event='native_core_host_timing_v1', pid=observer.pid,
             start_ticks=ticks, thread_ident=observer.thread, cgroup=str(actual),
@@ -324,11 +388,19 @@ def install_core_host_timing(core_class, scheduler):
             observer_overhead_included=True, abrupt_exit_may_lose_active_spans=True,
             **({'step_components': 'v2_components_v1',
                 'allocator_counter_units': {'count': 'blocks', 'time': 'microseconds'},
-                'component_times_nested_not_additive': True} if components else {})))
+                'component_times_nested_not_additive': True} if components else {}),
+            **({'host_inventory_timing': 'fresh_inventory_v1',
+                'inventory_scope': 'owner_thread_calls_inside_observed_core_spans',
+                'inventory_timing': 'whole_function_no_per_tensor_instrumentation'}
+               if inventory else {})))
         # The original header/schema stays unchanged for the default diagnostic.
         # Optional component payloads have their own explicit versioned key.
+        if inventory:
+            from faaslora.memory import gpu_monitor
+            observer.attach_host_inventory(gpu_monitor)
         observer.attach(core_class)
     except BaseException:
+        observer.restore_host_inventory()
         stream.close()
         raise
     atexit.register(observer.close)

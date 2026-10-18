@@ -243,7 +243,8 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
                 request_types=EngineCoreRequestType, native_version=vllm.__version__)
         # Diagnostic-only host spans. Default leaves every native method intact.
         if (os.environ.get('FAASLORA_TC_CORE_TIMING') not in (None, '0')
-                or os.environ.get('FAASLORA_TC_CORE_STEP_TIMING') not in (None, '0')):
+                or os.environ.get('FAASLORA_TC_CORE_STEP_TIMING') not in (None, '0')
+                or os.environ.get('FAASLORA_TC_HOST_INVENTORY_TIMING') not in (None, '0')):
             from vllm.v1.engine.core import EngineCoreProc
             from faaslora.utils.core_timing import install_core_host_timing
             install_core_host_timing(EngineCoreProc, self)
