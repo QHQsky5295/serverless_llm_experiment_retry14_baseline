@@ -1,5 +1,42 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D681配置归属修正通过，准备备份和唯一GPU资格 — 2026-10-18
+
+PROGRESS。首装配34714exit1在profile匹配前阻止启动；原model开关配置保留
+failed_model_policy_config.yaml和qualification_failure.json，qualification域
+已递归空关闭，peak497545216B/事件swap0。定位为控制器策略误入后端模型身份，
+不是标定错误。开关迁至resource_coordination，组装拒绝model/override误放；
+不放宽FrozenServiceProfiles、不改D645标定、公式/控制/SLO不变。
+71项受影响控制器/装配测试通过，13297exit0，analysis域关闭peak2143924224B；
+55772exit0修正装配通过，qualification2域关闭peak584712192B，事件swap0。
+D680未变底层527/72证据复用但不冒充新版本全回归；原错误和旧源码SHA保留。
+尚无GPU/远端启动，下一明确路径备份后唯一tc-d681-3b-smoke100；同候选全W0
+随后。最新完整D677仍未达G1/G2，完整其他范围ACTIVE。
+
+## D681真实资格入口已准备，尚未启动 — 2026-10-18
+
+PROGRESS。完整PLAN/补充/V1V2重新核查，非项目k3s不动。复用D676的原100请求
+3B配置，仅新增same_owner_host_to_gpu_v1及独占输出路径；D293现有入口增加
+明确d681分支，原历史分支保持。D680的527/72项复用，不再运行CPU回归。
+已准备D676复用管理/关闭及D660备份helper；尚未执行资格、push或GPU启动。
+下步受限配置/profile装配核查→明确路径备份→唯一真实100请求→关闭/分析。
+最新完整性能仍D677联合90.700%，不将候选或资格视为改善。全后续范围ACTIVE。
+
+## D680已备份，下一项为真实3B资格 — 2026-10-18
+
+PROGRESS。12明确路径推送da30cb2f2e002bdd53ec9b163cb4e71af8fb8c07，远端一致；
+52777exit0、publication域递归空关闭。第一次发布因单项test/tests解析中止，
+92838exit1、backup域关闭，未产生commit/push；原中间归档保留。修正仅发布
+工具，在qualified子目录完成，不重跑测试。CPU526初始/1失败/原生环境72/
+最终527的源版本和回执均按SHA封存；147旧文件、3用户SHA、PLAN/V1/V2未变。
+不再wait以上session。当前没有GPU任务；最新完整性能仍D677，不将D680资格
+宣称为SLO或GPU-s改善。开关默认关闭，尚未创建/启动D681。
+下一复用D676/D664原100请求3B真实资格入口，配置只新增
+ieee_host_lease_transfer=same_owner_host_to_gpu_v1及独占输出路径；检查实际
+HOST交接、取消/引用归零、epoch和原生token，再完整W0。不得重复CPU验证或
+开展指标阈值搜索。其余3B场景/基线/dLoRA、同版本7B、消融、机制/敏感性、
+成本/CE和最终交付全部ACTIVE。非项目k3s未动，远端未启动，尚无新图表。
+
 ## D680 CPU与原生方法资格完成，准备备份 — 2026-10-18
 
 PROGRESS。唯一候选same_owner_host_to_gpu_v1已实现。526项初始回归通过；

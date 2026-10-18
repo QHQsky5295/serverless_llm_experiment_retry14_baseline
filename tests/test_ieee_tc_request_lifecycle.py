@@ -839,9 +839,26 @@ def native_reference_fixture():
 
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
+    def test_host_transfer_is_controller_policy_not_backend_profile_configuration(self):
+        from scripts.run_all_experiments import _prepare_scenario_runtime_model_config
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        model = {'backend': 'vllm', 'max_num_seqs': 8, 'runtime_concurrency_cap': 8}
+        workload = {'generation_contract': 'fixed_length_greedy_v1'}
+        policy = {'ieee_host_lease_transfer': 'same_owner_host_to_gpu_v1'}
+        old = _prepare_scenario_runtime_model_config(model, workload, {})
+        new = _prepare_scenario_runtime_model_config(model, workload, policy)
+        self.assertEqual(new, old)
+        self.assertEqual(FrozenServiceProfiles.model_identity(new), FrozenServiceProfiles.model_identity(old))
+        self.assertNotIn('ieee_host_lease_transfer', new)
+        for config, coord in ((dict(model, **policy), {}),
+                              (model, {'instance_model_overrides': policy}),
+                              (model, {'ieee_host_lease_transfer': 'unknown'})):
+            with self.subTest(coord=coord), self.assertRaises(ValueError):
+                _prepare_scenario_runtime_model_config(config, workload, coord)
+
     def test_host_transfer_uses_one_ack_and_no_separate_release_rpc(self):
         runner, slot, trace, plan, owner, rpc = self.build('host')
-        runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+        runner.coord_cfg = {'ieee_host_lease_transfer': 'same_owner_host_to_gpu_v1'}
         result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
         self.assertTrue(result.success, result.error)
         self.assertEqual(result.readiness_tier_before_dispatch, 'host')
@@ -858,7 +875,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         for corrupt in (False, True):
             with self.subTest(corrupt=corrupt):
                 runner, slot, trace, plan, owner, rpc = self.build('host')
-                runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+                runner.coord_cfg = {'ieee_host_lease_transfer': 'same_owner_host_to_gpu_v1'}
                 async def uncertain(*, operation, **kwargs):
                     value = await rpc(operation=operation, **kwargs)
                     if operation == 'demand_load_and_acquire' and value.get('acquired'):
@@ -877,7 +894,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
 
     def test_host_transfer_after_concurrent_promotion_keeps_original_dispatch_tier(self):
         runner, slot, trace, plan, owner, rpc = self.build('host')
-        runner.model_cfg['ieee_host_lease_transfer'] = 'same_owner_host_to_gpu_v1'
+        runner.coord_cfg = {'ieee_host_lease_transfer': 'same_owner_host_to_gpu_v1'}
         attempts = []
         async def promote(*, operation, **kwargs):
             if operation == 'demand_load_and_acquire':

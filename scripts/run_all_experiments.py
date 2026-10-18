@@ -1221,6 +1221,13 @@ def _prepare_scenario_runtime_model_config(model_cfg, workload_cfg, coord_cfg):
         configured['max_input_len'] = max(1, int(workload_cfg.get('fixed_prompt_max_tokens', 759) or 759))
         configured['max_output_tokens_cap'] = max(1, int(workload_cfg.get('fixed_output_max_tokens', 256) or 256))
     overrides = copy.deepcopy(coord_cfg.get('instance_model_overrides', {}))
+    # HOST lease handoff is a controller/request ownership decision, not a
+    # backend model option. Keep strict measured-model/profile identity intact.
+    if 'ieee_host_lease_transfer' in configured or 'ieee_host_lease_transfer' in overrides:
+        raise ValueError('HOST lease transfer belongs in resource_coordination, not model configuration')
+    from faaslora.memory.residency_manager import IEEE_HOST_LEASE_TRANSFER
+    if coord_cfg.get('ieee_host_lease_transfer') not in (None, IEEE_HOST_LEASE_TRANSFER):
+        raise ValueError('unknown native HOST lease transfer policy')
     if 'runtime_concurrency_cap' in overrides:
         configured.pop('requested_runtime_concurrency_cap', None)
     configured.update(overrides)
@@ -17445,7 +17452,7 @@ class ScenarioRunner:
             admission_request_plan is not None and pending_request_plan is None
             and native_witness_enabled and reservation.ieee_pending_admission is not None)
         from faaslora.memory.residency_manager import IEEE_FILE_DEMAND_TRANSACTION, IEEE_HOST_LEASE_TRANSFER
-        host_transfer_policy = self.model_cfg.get('ieee_host_lease_transfer')
+        host_transfer_policy = getattr(self, 'coord_cfg', {}).get('ieee_host_lease_transfer')
         if host_transfer_policy not in (None, IEEE_HOST_LEASE_TRANSFER):
             raise ValueError('unknown native HOST lease transfer policy')
         file_demand_policy = self.model_cfg.get('ieee_file_demand_transaction')
