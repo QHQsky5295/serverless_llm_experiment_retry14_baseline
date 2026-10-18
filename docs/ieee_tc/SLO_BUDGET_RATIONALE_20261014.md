@@ -109,3 +109,114 @@ S-LoRA、Loquetier、HydraServe的未达标行。未知独立数值正确性继�
 控制开销证据选择语义保持改动，不改九公式、不改尺子、不盲调baseline。
 仍保留7B W1/W2/G2、3B、dLoRA B6、A1–A5、S1–S13、成本/CE、审稿文档和
 最终图表。可观测状态驱动的优化可能同时提高SLO与降低U，但不存在保证。
+
+## 六、2026-10-18补充核查：95%的直接先例与75%的准确定位
+
+回应用户再次要求“对标同类论文通常设置”。本节是新增原文证据，不追改
+D513当时的检索范围，不修改冻结V1/V2、实际阈值、在线策略或历史实验身份。
+本次采用research-lookup的原始来源核验；默认Parallel服务仍无认证，改用
+网页工具。OpenReview直接入口出现验证页，改读同论文的ICLR官方会议版本，
+未绕过访问控制。没有新增GPU实验、baseline、工件或负载。
+
+### 6.1 新增和复核的来源
+
+| 原文与位置 | 已核实的实际设置 | 可以引用的范围 |
+|---|---|---|
+| Cascadia，ICLR 2026，§4.1 Evaluation metrics、Fig.5（PDF第7页） | 以单请求处理时延标定SLO并扫描倍数，明确寻找达到95%达成率的最小SLO scale | 95%作为LLM serving评估档位有直接已发表先例；它是响应时延，不是本项目TTFT/TPOT联合事件 |
+| DistServe，OSDI 2024，§6.1、附录C | 主结果90%达成，另报99% | 同领域并无唯一达成比例，支持预登记多档检查，不把90%改称95% |
+| HydraServe，NSDI 2026，§8.3、附录A | warm TTFT的5倍、TPOT的2倍；多数场景TPOT超过95%是观测结果 | 支持5/2标定思路，不提供“95%联合门槛”的原样先例 |
+| Llumnix，OSDI 2024，§6.5、Fig.15 | 比较P99 prefill时延与平均实例数的关系，在相近尾时延下量化节省 | 支持质量–资源曲线，不提供统一75%生命周期GPU时间预算 |
+
+新增直接来源：[Cascadia会议原文](https://proceedings.iclr.cc/paper_files/paper/2026/file/b76105b94a8c1286c860ad885ec588f1-Paper-Conference.pdf)。
+复核来源：[DistServe](https://www.usenix.org/system/files/osdi24-zhong-yinmin.pdf)、
+[HydraServe](https://www.usenix.org/system/files/nsdi26-lou.pdf)、
+[Llumnix](https://www.usenix.org/system/files/osdi24-sun-biao.pdf)。
+
+另核对[AdaServe作者提供的EuroSys2026终稿](https://www.cs.cmu.edu/~zhihaoj2/papers/AdaServe_EuroSys26.pdf)：
+§6.1明确只评价TPOT、排除TTFT。检索中旧预印本的95%表述不能偷换成终稿
+采用本项目联合95%协议的证据；本次不以它支撑该具体主张。
+
+因此，“95%没有任何同类论文依据”过于绝对；准确结论是“95%这一档位有
+已发表先例，但联合定义和本项目具体服务要求由我们明确规定”。本次有界
+检索没有找到可直接支持75%生命周期GPU时间预算为通用设置的原始来源。
+这不是证明所有文献均不存在，而是不应为75%制造引用。
+
+### 6.2 为什么采用联合达成，而不是分别达成或平均分数
+
+对全部正确完成的多token请求，定义仅用于解释的归一化超限量：
+
+\[
+m_r=\max\{TTFT_r/\theta_r^T,\ TPOT_r/\theta_r^P\}.
+\]
+
+单token只取第一项。已有联合事件恰为m_r≤1，未增加新的加权评分。
+在N=4000、Type-1经验分位数下，至少3800条同时达标等价于P95(m)≤1。
+因此95%是在约束请求尾部：允许最多200条时延违约，但不允许200条失败。
+要求每个阶段各95%只能保证联合至少90%，不能替代现有联合规则。
+这解释了事件定义，但不证明5%的容忍量是所有应用的唯一正确选择。
+
+本项目分长度组、同模型共同warm参考的5/2阈值解决硬件/工作量差异；
+不能说它证明了真实用户体验SLA。所有系统共用阈值，不由各自慢速warm
+结果给自己放宽SLO。若未来得到应用SLA，需新协议及影响说明，不能改旧数据。
+
+### 6.3 75%约束的研究问题与公平边界
+
+75%不参加G1的必要条件。G1先共同SLO，再比较实际U/N_correct；G2才另加
+U≤0.75U_ref，用来问“至少节省25%物理GPU时间时，扩容/churn尾延迟如何”。
+它是预先规定的节省档位，而不是最优常数、行业惯例或永远只准用三张卡。
+短时四卡与其他时段少卡可以满足累计预算；startup/drain/cleanup仍计入。
+
+保留完整baseline结果与实际U/U_ref，不以超预算为由删行。某常驻四卡点
+不满足75%只证明该点不可行，不能据此宣布该系统在所有同预算配置下落败。
+在用户既定的baseline有界适配规则下，不为此无限搜索对手配置，也不凭一条
+合格PrimeLoRA点声称已经证明同预算支配所有系统。
+
+既有90/95/99%服务档位、50/75/100%预算档位及原始质量–资源关系必须保留。
+纯离线重评只改变资格标签，不产生新的在线工作点，不证明某系统已针对
+各档预算优化。没有多个实际配置时只画观测点，不插值出未测的最优前沿。
+
+### 6.4 可供实验章节采用的措辞（写作建议，未修改论文）
+
+We evaluate resource efficiency under explicit service-quality constraints.
+We use 95% as our primary attainment level, a level also used in prior LLM
+serving evaluation (Cascadia), and require each qualifying request to satisfy
+both its TTFT and TPOT limits. This joint event is our explicit evaluation
+contract, rather than an industry-wide SLA. For budget-constrained experiments,
+we set the GPU-time cap to 75% of the common resident reference, representing
+a target of at least 25% resource saving. We additionally examine 90% and 99%
+attainment requirements and 50% and 100% budget caps to expose sensitivity
+to these choices.
+
+最后一句须在相应敏感性实际完成后使用；目前属于已批准但未完成的工作，
+不能提前写成结果。来源用于支持设置依据，不保证PrimeLoRA领先或替代测量。
+
+主线不变：最新完整3B仍D677的联合90.700%、U=15894.960797 GPU-s，未达标；
+不因新找到95%先例而改变结果身份。下一继续有界定位稳态请求进入引擎前
+等待与短decode干扰，不扫阈值、不重复HOST局部清点优化，其余计划不删减。
+
+## 七、对“依据不足则自适应调阈值或换指标”的客观判断
+
+2026-10-18用户追加此建议。本次裁决为**部分接受其方法要求，不据此修改
+当前评价协议**：设置确应适应模型/工作量/硬件，但评价准则必须独立于被测
+系统想取得的名次。引用先例是依据之一，不替代定义、共同条件和敏感性。
+
+| 项目 | 本次判断 | 执行边界 |
+|---|---|---|
+| 按模型、输入长度、硬件校准实际TTFT/TPOT毫秒值 | 合理，当前共同warm标定已经采用 | 同条件所有系统共用；参考独立于PrimeLoRA结果，正式前冻结 |
+| 在线按真实队列、KV、负载调整资源决策 | 合理，是系统优化而非评价尺子改变 | 保持IEEE公式和可观测语义，验证新实现，不把在线控制阈值与离线SLO混同 |
+| 因当前3B仅90.700%而调低95% | 无效归因，不接受 | 这只能改变标签，不能证明服务质量改善 |
+| 根据PrimeLoRA实际U动态提高75% | 不能作为共同预算的公正定义 | 保留固定参考及全部既定预算档位，不选刚好让PrimeLoRA胜出的预算 |
+| 不让75%单点支撑全部结论 | 接受，原计划已有此要求 | G1本来不要求75%；并列原始U、SLO、尾延迟和多档预算，报告观测边界 |
+| 用CE或N_good/U取代所有约束 | 当前没有充分理由 | 二者可补充，但不能让低达成率/失败通过低资源或价格得到主排名优势 |
+
+95%是一项明确、有文献先例的研究服务档位，不是自然定律；75%是一项
+可解释但没有普适文献数值依据的节省目标。二者是否让结论过于依赖工作点，
+应由已经批准的完整敏感性来检验，而不是由当前某系统是否达标判断。
+目前没有发现要求更换核心指标的单位错误、共同参考失效或应用语义变化，
+故不启动新协议、不自动调整阈值。仍须完成对独立数值正确性的证据核验，
+不能因时延达标就自动宣布G1/G2全部资格通过。
+
+若后续发现真实测量错误、参考条件不匹配或获得外部应用SLA，应保留旧协议，
+说明错误/新事实及所有系统的影响，另建版本后共同重评；日志足够时离线复用。
+若改变在线控制或输入/生成条件，才重跑受影响执行键。不能只重评PrimeLoRA，
+也不能按观察到的胜负改变指标。这是有依据的修订路径，不是禁止修正错误。
