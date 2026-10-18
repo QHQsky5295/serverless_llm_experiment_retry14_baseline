@@ -1,5 +1,32 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D694真实推理资格准备 — 2026-10-18
+
+PROGRESS。复用D681的100请求前缀配置/runner，仅换D694路径；候选为已推送
+D693同owner最终GPU action派发。非目标参数、profile、工件、输入和共同
+SLO不变。D693最终712+3检查按SHA复用，不重复回归。先做参数核验和备份，
+再真实远端资格；当前尚未启动GPU/远端。共享k3s不动、HydraServe不重适配。
+
+存储维护仅无损压缩已闭合D681 main_outcome，双重解压SHA相同，回收
+25,640,960B；旧审计SHA通过归档回执映射，保护147文件不变。D681/D682
+临时NVMe缓存为空。70481终态、qualification2递归空关闭，peak30543872B，
+事件/swap0；72548正在核验D694参数来源，不重复启动。后续以实际回执更新。
+下一100请求原生资格通过后一次完整3B W0，仍无性能接受、n_correct未知。
+
+## D693候选已备份关闭，下一真实推理资格 — 2026-10-18
+
+PROGRESS。8个明确路径已推送4cda40b9cf9792cb7a15e0e8fbc53d9b1ecd3ad5，
+远端一致；18892exit0，publication递归空关闭peak40980480B，事件/swap0。
+D693全部会话与资源域终态，不重复wait/回归/发布。生产候选保留，除用户
+manifest外tracked代码清洁，用户文件未stage。GPU空闲、owned远端未启动、
+共享k3s不动。最终磁盘161888194560B、内存111893438464B，无清理回收。
+
+下一直接准备新身份的100请求原生资格（建议D694，先查未使用），复用D681
+既有runner/配置及D682非目标参数，验证D693同owner资格；先实时资源/安全
+与旧结果保护检查，再启动真实远端。不是重做1000前缀或另一局部CPU诊断。
+通过后一次完整3B W0评价，失败保留并明确处理；不改共同SLO/控制阈值。
+715项检查不代表GPU性能或独立数值正确性，3B仍未达标。完整后续范围ACTIVE。
+
 ## D693同owner GPU准备候选已通过CPU/方法检查，准备备份 — 2026-10-18
 
 PROGRESS。唯一生产变化为OwnedMovementQueue._pump按native owner派发最终

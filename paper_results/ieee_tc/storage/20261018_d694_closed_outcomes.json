@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792324567.3788545,
+  "before": {
+    "available_bytes": 161885032448
+  },
+  "after": {
+    "available_bytes": 161910665216
+  },
+  "entries": [
+    {
+      "run": "d681_20261018/3b_full_smoke100",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d681_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d681_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "672fee53724b16c21535de90ffd4dec6f9c89caac9e96587abfb5dd80ad84f61",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109583316,
+        "size": 29862568,
+        "mtime_ns": 1792306202637075832,
+        "ctime_ns": 1792306202637075832,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 58328
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "bc20e51fe88350bf8fc5094c576f2ae7899fc52c208a54f4586ee534fcb47d95",
+      "archive_sha256": "873319ff040d48789d55099259d2fe85f306bdb87c96a4e7add72f98b8f913cd",
+      "archive_bytes": 4221218,
+      "archive_allocated_bytes": 4222976,
+      "first_roundtrip_sha256": "672fee53724b16c21535de90ffd4dec6f9c89caac9e96587abfb5dd80ad84f61",
+      "second_roundtrip_sha256": "672fee53724b16c21535de90ffd4dec6f9c89caac9e96587abfb5dd80ad84f61",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 25640960
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
