@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D679完成：缩容必要条件可持续，但TTFT gate阻断 — 2026-10-18 14:09 CST
+
+PROGRESS。唯一受限离线分析exit0，analysis递归空关闭；peak104321024B，
+事件/swap0。D672/D677分别1888/1889控制样本；除TTFT外的低条件、无pending、
+超minimum连续≥48s各12段，最长123.261/172.608s，实际三项全低仍0。
+这不预测缩容后的资源/延迟，也不选新阈值。D677短输出1106条中141 TPOT
+违约，decode超额P5072.590ms/P95428.278ms；70条dispatch为GPU。
+diagnosis SHA cb445b838ceb0f5975376d3b315ea92489c79bdfa06b60fb05ea201b476a48fd。
+
+文档明确：source标定与overall观测范围不同，不自动证明下阈数值错误；
+共同D653参考本来已有P95170.577ms/99.975%联合观测。未修改5000/219.518
+或共同SLO，未去掉冷启动样本、未新增GPU运行。当前准备D679五路径备份，
+尚未执行；随后有界核对稳态admission→engine及短decode的控制干扰证据，
+结合历史避免重复HOST局部优化，不进入阈值扫描。所有后续范围仍ACTIVE。
+
+## D678备份完成，D679只读控制口径审计准备 — 2026-10-18 14:08 CST
+
+PROGRESS。D678五明确路径已推送5f18f6727accd93ec201c8f82066b10237135e95，
+远端一致；42462exit0、publication递归空关闭，peak97370112B/事件swap0。
+不再wait。完整PLAN/六补充/V1V2已重读，SHA不变。确认既有HydraServe隔离
+适配已完成，本次用户澄清不触发重新部署，不改非项目k3s。
+
+只读核查D88→D48→D549→D645/D648及当前代码和IEEE PDF：旧下阈对应
+source-only acquisition→first，在线却观察overall TTFT。未改阈值或删样本。
+新D679仅复用已封存控制/请求投影，核对非TTFT必要条件是否能持续48s及短
+decode违约幅度；脚本/文档已准备，尚未执行分析或GPU运行。参考Knative
+官方源码/文档和Llumnix原文，不能照搬其不同信号或宣称新参数已合格。
+3B仍未过G1/G2；其余完整矩阵、基线、消融/敏感性和最终交付继续ACTIVE。
+
 ## D678完成：资源回退来自早扩容，稳态SLO缺口仍在 — 2026-10-18 13:57 CST
 
 PROGRESS。D677八明确路径已推送d1922c176f53d2ebdee70462c236377229495256，
