@@ -1,5 +1,97 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D672完成：3B联合91.175%，资源下降但仍未达95% — 2026-10-18
+
+PROGRESS。唯一4000条回放已真实终态，不再wait原tmux或启动同键。4,000条
+原生绑定/计数/计时通过、458224tokens；联合3647=91.175%，TTFT3772、TPOT3860，
+U14931.314879785059 GPU-s。相对D665联合+2.425pp、U降低6.071%、P95 TTFT
+2377.615→2220.770ms；仍差153条联合达标，n_correct=null/排名false不升级。
+8区段联合477/458/461/450/450/451/455/445，第六区段退化保留。132次远端
+传输及306360162字节与D665相同，请求中打包0；不把单轮差值全归因到复制。
+
+11:42前service/watchdog均exit0，GPU释放、服务域消失；close_launch.py已
+递归空关闭aux，远端三owned服务inactive。连续观察cell5551因末日志变为
+service_domain_gone而jq缺字段，已停止只读观察器；不是运行失败。原starter
+空JSON读取异常及同一launch的capture回执保留，未重启。remote停止84927
+exit0、analysis5939 exit0；均不再wait。分析域已递归空关闭，peak863383552B、
+事件/swap0；服务峰值24193757184B、4050样本high/max/OOM/kill/swap0。
+analysis1.log SHA df21f561a8122fce11fe76b44562ead36dd09eab3e8a503e5e1201a0130523b6。
+
+已复用D665 collector/analyzer完成核查，D672新completion封存/推送helper
+已准备并语法检查，尚待执行成功回执。只发布文档和小型curated结果；不改
+生产源码、不画图、不覆盖prelaunch result.sha256、旧结果或用户修改。
+终态后已有临时工作缓存由原runner清理，可用164776345600B；没有把期间
+149.99GiB误判为运行停止线。下一重型任务前仍重新存储/内存准入。
+
+下一先完成这一可回退备份，再只对D665/D672保留的请求级TTFT/TPOT违约及
+控制等待做有界比较，结合既有修改/原始实现证据选一个新假设，不重放同键或
+提前进入3B W1/W2。保留本次候选为分析起点，不称G1/G2闭口。其余3B场景/
+基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、审稿与图表全部ACTIVE。
+非项目k3s与已完成HydraServe必要适配不动，baseline不因低SLO继续无限调优。
+
+## D672继续：同一次完整3B回放仍在推进 — 2026-10-18 10:45 CST
+
+10:41–10:45连续低扰动复查同一tmux，pane仍1621247/dead=0；service/aux
+InvocationID再次读回与下文相同。最近arrived509/4000、done505、ok505、fail0，
+live报告3次自然scale-up、4个runtime、尚无scale-down；不据此判断最终资源
+或联合SLO。watchdog sample684：available93950763008B，service peak20211544064B，
+high/max/OOM/kill/swap0，disk free164365180928B，无warning/abort。sample559
+也确认4个实际持卡UUID且无外来计算进程。仅过程计数，不是4000条完成证据。
+本轮只读核查D665 collect_closure.py/run_analysis.py/analyze.py，未创建或执行
+D672分析helper；收尾须替换campaign/preparation/远端日志路径，保留原4000条
+检查及冻结D648阈值，不覆盖D665。分析只能在实际释放和远端停止后进行。
+
+VERIFIED WAIT，不是阻塞或新实验。本轮完整重读PLAN、六补充规则及当前状态，
+使用monitor-experiment只读观察。tc-d672-3b-w0仍为pane PID1621247、dead=0；
+service/aux的InvocationID仍分别为f446b2c93aab4a748bb9da02c5fbc507和
+f4615f73ecfe474c98be5d275578125a，未重启。原starter JSON读写竞态不变成
+推理失败；不要再次执行start.py。没有launch.json终态文件。
+
+10:40日志arrived242/4000、done236、ok236、fail0，仅为过程计数，不是最终
+原生正确性或联合SLO。watchdog sample403：available95460966400B，service
+peak17964228608B，high/max/OOM/kill/swap均0，磁盘free164504219648B，
+无warning/abort。本轮未扫描/压缩/构建/推送，未改源码、配置或远端服务；
+只追加此交接记录。非项目k3s和已完成HydraServe适配不动。
+
+下一继续同一运行至真实终态，然后close_launch.py→stop_remote.sh→新completion
+目录复用D665 collector/analyzer；本轮收尾helper尚未创建。不能用Live5000ms
+或中途平均延迟代替D648冻结联合阈值。完整3B证据仍为D665联合88.75%，
+尚未闭口。其余3B W1/W2/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、
+审稿与图表完整ACTIVE。状态与晚管理回执在终态后的正常检查点备份。
+
+## D672已启动：独立HOST图复制的完整3B W0正在运行 — 2026-10-18
+
+本轮PROGRESS后进入VERIFIED WAIT。8个明确路径已推送
+e5135ad0488ce256bc1ab33edeb3eab4d760f5af，远端一致；BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。
+45568 exit0、backup域递归空关闭，peak28655616B、事件/swap0，不再wait。
+唯一tmux为tc-d672-3b-w0，pane PID1621247、pane_dead=0，10:33 CST启动。
+RAW为results/ieee_tc/p2_backend_qualification/d672_20261018/3b_full_w0。
+service primelora-tc-svc-3345c477157045aa9dc6377eaa6a26e2.scope，
+InvocationID f446b2c93aab4a748bb9da02c5fbc507、inode27380788；aux
+primelora-tc-aux-5c9bdc46e4cd48a08b8051f68a17600d.scope，
+InvocationID f4615f73ecfe474c98be5d275578125a、inode27380746。
+
+原starter1842 exit1：创建tmux之后读刚出现但尚未写完的exec_receipt.json，
+JSONDecodeError；不是推理终态，不重启。实际同一tmux/服务持续存活，专用
+capture_live_launch.py只补身份回执，无新启动/请求重试/配置变更。原starter
+与capture域均已递归空关闭，峰值27738112/10301440B、事件/swap0。异常及
+新管理脚本保留，收尾审计再确认完整合同；不因此丢弃/重跑正在执行的键。
+start_receipt.json和service_aux_identity.json现已存在且绑定同一实际服务。
+
+远端三owned服务active，健康为prepublished_gzip_v1，实际1000Mbps/full；
+请求中不打包。原生core PID1622592/start_ticks179810779，已检查无core/
+step/HOST inventory/stack诊断环境标志。首次请求已完成，尚无完整性能结果。
+watchdog sample87：host available104288161792B，service peak13182910464B，
+high/max/OOM/kill/swap0，无warning/abort，pane仍live。不能引用live5000ms
+达成率替代冻结D648联合阈值，D665完整88.75%的缺口仍开放。
+
+下一只低扰动观察同一运行至真实终态，不改源码/配置，不构建/扫描/压缩/
+清理/推送或另启GPU。终态后复用close_launch.py→stop_remote.sh，再用新
+completion目录复用D665 collector/analyzer（尚未创建本轮收尾helper），核对
+4000原生计数/绑定/计时、真实持卡释放、同合同差值及远端记录。此晚状态与
+capture/关闭证据随下一正常检查点备份。3B W1/W2/基线/dLoRA、同版本7B、
+A1–A5/S1–S13、成本/CE、审稿和图表完整ACTIVE；不动非项目k3s/已完成基线适配。
+
 ## D672：同配置完整3B W0准备通过，待备份和启动 — 2026-10-18
 
 PROGRESS。完整PLAN/V1/V2及六补充规则已重读。复用D665配置仅换三路径，

@@ -1,0 +1,197 @@
+{
+  "kind": "d672_vs_d665_complete_w0_single_observation_v1",
+  "previous_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d665_3b_full_w0/completion/audit.json",
+    "sha256": "2495a30a67e16936c79c24601ecee62d6c77f580fed15932ab668e40cfb6225d"
+  },
+  "current_audit_sha256": "df21f561a8122fce11fe76b44562ead36dd09eab3e8a503e5e1201a0130523b6",
+  "workload_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "native_tokens": 458224,
+  "previous_joint_count": 3550,
+  "current_joint_count": 3647,
+  "joint_delta_percentage_points": 2.425,
+  "metrics": [
+    {
+      "metric": "mean_ttft_ms",
+      "previous": 887.7585093531525,
+      "current": 873.8045573313138,
+      "lower_better_improvement_percent": 1.5718184477900303
+    },
+    {
+      "metric": "p95_ttft_ms",
+      "previous": 2377.6154697407037,
+      "current": 2220.7696044351906,
+      "lower_better_improvement_percent": 6.596771736289987
+    },
+    {
+      "metric": "mean_tpot_ms",
+      "previous": 17.596357134608578,
+      "current": 17.087645398283698,
+      "lower_better_improvement_percent": 2.8910059760286635
+    },
+    {
+      "metric": "p95_tpot_ms",
+      "previous": 33.3086334048184,
+      "current": 31.424348164970677,
+      "lower_better_improvement_percent": 5.657047579667874
+    },
+    {
+      "metric": "mean_e2e_ms",
+      "previous": 2891.130034703645,
+      "current": 2836.295969480474,
+      "lower_better_improvement_percent": 1.8966308870569937
+    },
+    {
+      "metric": "physical_gpu_seconds",
+      "previous": 15896.447804512922,
+      "current": 14931.314879785059,
+      "lower_better_improvement_percent": 6.071374791378652
+    }
+  ],
+  "previous_stage_means_ms": {
+    "arrival_release_ms": 129.8912499838625,
+    "release_to_acquire_ms": 45.76275569287827,
+    "acquire_to_resume_ms": 0.06368497392395511,
+    "runtime_slot_wait_ms": 268.8003346727928,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 270.35757004929474,
+    "engine_entry_to_queue_ms": 59.11715969914803,
+    "native_engine_queue_ms": 5.181072707986459,
+    "native_prefill_ms": 108.5846815732657,
+    "native_decode_ms": 1820.6030546613038,
+    "worker_completion_notification_ms": 38.36178461101372,
+    "worker_to_controller_completion_ms": 144.40668607817497
+  },
+  "current_stage_means_ms": {
+    "arrival_release_ms": 134.750642213854,
+    "release_to_acquire_ms": 46.50293768104166,
+    "acquire_to_resume_ms": 4.485078296274878,
+    "runtime_slot_wait_ms": 258.3469902210054,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 258.45343733619666,
+    "engine_entry_to_queue_ms": 59.48270563449478,
+    "native_engine_queue_ms": 3.5293007745058276,
+    "native_prefill_ms": 108.25346517394064,
+    "native_decode_ms": 1782.6717272885726,
+    "worker_completion_notification_ms": 38.80797992955195,
+    "worker_to_controller_completion_ms": 141.01170493103564
+  },
+  "previous_phases": [
+    {
+      "phase": 0,
+      "count": 500,
+      "joint": 451,
+      "p95_ttft_ms": 2023.5291288699955
+    },
+    {
+      "phase": 1,
+      "count": 500,
+      "joint": 454,
+      "p95_ttft_ms": 2128.4486453514546
+    },
+    {
+      "phase": 2,
+      "count": 500,
+      "joint": 457,
+      "p95_ttft_ms": 1990.4536800459027
+    },
+    {
+      "phase": 3,
+      "count": 500,
+      "joint": 434,
+      "p95_ttft_ms": 2516.2372668273747
+    },
+    {
+      "phase": 4,
+      "count": 500,
+      "joint": 429,
+      "p95_ttft_ms": 2523.114562034607
+    },
+    {
+      "phase": 5,
+      "count": 500,
+      "joint": 454,
+      "p95_ttft_ms": 2245.170569512993
+    },
+    {
+      "phase": 6,
+      "count": 500,
+      "joint": 434,
+      "p95_ttft_ms": 2511.9368268642575
+    },
+    {
+      "phase": 7,
+      "count": 500,
+      "joint": 437,
+      "p95_ttft_ms": 2732.530633220449
+    }
+  ],
+  "current_phases": [
+    {
+      "phase": 0,
+      "count": 500,
+      "joint": 477,
+      "p95_ttft_ms": 1414.9872998241335
+    },
+    {
+      "phase": 1,
+      "count": 500,
+      "joint": 458,
+      "p95_ttft_ms": 2202.0053893793374
+    },
+    {
+      "phase": 2,
+      "count": 500,
+      "joint": 461,
+      "p95_ttft_ms": 1787.0246262755245
+    },
+    {
+      "phase": 3,
+      "count": 500,
+      "joint": 450,
+      "p95_ttft_ms": 2249.79580193758
+    },
+    {
+      "phase": 4,
+      "count": 500,
+      "joint": 450,
+      "p95_ttft_ms": 2190.5234765727073
+    },
+    {
+      "phase": 5,
+      "count": 500,
+      "joint": 451,
+      "p95_ttft_ms": 2247.4534104112536
+    },
+    {
+      "phase": 6,
+      "count": 500,
+      "joint": 455,
+      "p95_ttft_ms": 2417.2869632020593
+    },
+    {
+      "phase": 7,
+      "count": 500,
+      "joint": 445,
+      "p95_ttft_ms": 2464.942712103948
+    }
+  ],
+  "previous_remote_transfers": 132,
+  "current_remote_transfers": 132,
+  "previous_remote_wire_bytes": 306360162,
+  "current_remote_wire_bytes": 306360162,
+  "observed_joint_and_resource_improvement": true,
+  "performance_goal_met": false,
+  "accepted_as_final": false,
+  "confidence_interval": null,
+  "independent_holdout": false,
+  "caveat": "Known fixed workload, one observation per version; joint SLO and physical GPU time improved, but joint SLO remains below .95. No causal percentage attribution, numerical-proof upgrade or final ranking; retain every phase including regression."
+}
