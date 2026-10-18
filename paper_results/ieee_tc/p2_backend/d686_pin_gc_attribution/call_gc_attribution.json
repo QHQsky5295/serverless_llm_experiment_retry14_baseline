@@ -1,0 +1,787 @@
+[
+  {
+    "index": 0,
+    "variant": "native",
+    "wall_ns": 8914244,
+    "cpu_ns": 9304982,
+    "begin_ns": 1822365133484403,
+    "end_ns": 1822365142398647,
+    "gc_overlap_ns": 68704,
+    "gc_wall_fraction": 0.007707215552995857,
+    "events": [
+      {
+        "event_index": 370,
+        "overlap_ns": 68704,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "variant": "direct",
+    "wall_ns": 8857132,
+    "cpu_ns": 9233867,
+    "begin_ns": 1822365142410140,
+    "end_ns": 1822365151267272,
+    "gc_overlap_ns": 526829,
+    "gc_wall_fraction": 0.05948076646029437,
+    "events": [
+      {
+        "event_index": 371,
+        "overlap_ns": 98120,
+        "generation": 0
+      },
+      {
+        "event_index": 372,
+        "overlap_ns": 43365,
+        "generation": 0
+      },
+      {
+        "event_index": 373,
+        "overlap_ns": 385344,
+        "generation": 1
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "variant": "direct",
+    "wall_ns": 109359295,
+    "cpu_ns": 114142075,
+    "begin_ns": 1822365151279487,
+    "end_ns": 1822365260638782,
+    "gc_overlap_ns": 100577834,
+    "gc_wall_fraction": 0.9197008265278228,
+    "events": [
+      {
+        "event_index": 374,
+        "overlap_ns": 100545234,
+        "generation": 2
+      },
+      {
+        "event_index": 375,
+        "overlap_ns": 32600,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "variant": "native",
+    "wall_ns": 8835525,
+    "cpu_ns": 9219514,
+    "begin_ns": 1822365260662344,
+    "end_ns": 1822365269497869,
+    "gc_overlap_ns": 86337,
+    "gc_wall_fraction": 0.009771575543049225,
+    "events": [
+      {
+        "event_index": 376,
+        "overlap_ns": 86337,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "variant": "native",
+    "wall_ns": 9015712,
+    "cpu_ns": 9395526,
+    "begin_ns": 1822365269508234,
+    "end_ns": 1822365278523946,
+    "gc_overlap_ns": 82075,
+    "gc_wall_fraction": 0.00910355166624666,
+    "events": [
+      {
+        "event_index": 377,
+        "overlap_ns": 82075,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "variant": "direct",
+    "wall_ns": 8176468,
+    "cpu_ns": 8522828,
+    "begin_ns": 1822365278531537,
+    "end_ns": 1822365286708005,
+    "gc_overlap_ns": 161674,
+    "gc_wall_fraction": 0.019773085395796815,
+    "events": [
+      {
+        "event_index": 378,
+        "overlap_ns": 134514,
+        "generation": 0
+      },
+      {
+        "event_index": 379,
+        "overlap_ns": 27160,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "variant": "direct",
+    "wall_ns": 8138130,
+    "cpu_ns": 8477391,
+    "begin_ns": 1822365286718764,
+    "end_ns": 1822365294856894,
+    "gc_overlap_ns": 171803,
+    "gc_wall_fraction": 0.021110869450352846,
+    "events": [
+      {
+        "event_index": 380,
+        "overlap_ns": 143438,
+        "generation": 0
+      },
+      {
+        "event_index": 381,
+        "overlap_ns": 28365,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "variant": "native",
+    "wall_ns": 9262640,
+    "cpu_ns": 9656577,
+    "begin_ns": 1822365294866368,
+    "end_ns": 1822365304129008,
+    "gc_overlap_ns": 88699,
+    "gc_wall_fraction": 0.00957599561248197,
+    "events": [
+      {
+        "event_index": 382,
+        "overlap_ns": 88699,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "variant": "native",
+    "wall_ns": 9242644,
+    "cpu_ns": 9693146,
+    "begin_ns": 1822365304138410,
+    "end_ns": 1822365313381054,
+    "gc_overlap_ns": 83403,
+    "gc_wall_fraction": 0.00902371659018783,
+    "events": [
+      {
+        "event_index": 383,
+        "overlap_ns": 83403,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "variant": "direct",
+    "wall_ns": 8513377,
+    "cpu_ns": 8868255,
+    "begin_ns": 1822365313389158,
+    "end_ns": 1822365321902535,
+    "gc_overlap_ns": 173514,
+    "gc_wall_fraction": 0.02038133633692012,
+    "events": [
+      {
+        "event_index": 384,
+        "overlap_ns": 144177,
+        "generation": 0
+      },
+      {
+        "event_index": 385,
+        "overlap_ns": 29337,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "variant": "direct",
+    "wall_ns": 8719461,
+    "cpu_ns": 9088815,
+    "begin_ns": 1822365321913222,
+    "end_ns": 1822365330632683,
+    "gc_overlap_ns": 260202,
+    "gc_wall_fraction": 0.029841523461140544,
+    "events": [
+      {
+        "event_index": 386,
+        "overlap_ns": 229433,
+        "generation": 1
+      },
+      {
+        "event_index": 387,
+        "overlap_ns": 30769,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "variant": "native",
+    "wall_ns": 8901391,
+    "cpu_ns": 9275698,
+    "begin_ns": 1822365330642413,
+    "end_ns": 1822365339543804,
+    "gc_overlap_ns": 89713,
+    "gc_wall_fraction": 0.010078537163461306,
+    "events": [
+      {
+        "event_index": 388,
+        "overlap_ns": 89713,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "native",
+    "wall_ns": 8643530,
+    "cpu_ns": 9009028,
+    "begin_ns": 1822365339552811,
+    "end_ns": 1822365348196341,
+    "gc_overlap_ns": 78982,
+    "gc_wall_fraction": 0.009137701841724388,
+    "events": [
+      {
+        "event_index": 389,
+        "overlap_ns": 78982,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "direct",
+    "wall_ns": 8401810,
+    "cpu_ns": 8754717,
+    "begin_ns": 1822365348204275,
+    "end_ns": 1822365356606085,
+    "gc_overlap_ns": 170875,
+    "gc_wall_fraction": 0.020337879575948514,
+    "events": [
+      {
+        "event_index": 390,
+        "overlap_ns": 141293,
+        "generation": 0
+      },
+      {
+        "event_index": 391,
+        "overlap_ns": 29582,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "direct",
+    "wall_ns": 8344538,
+    "cpu_ns": 8697076,
+    "begin_ns": 1822365356617043,
+    "end_ns": 1822365364961581,
+    "gc_overlap_ns": 175901,
+    "gc_wall_fraction": 0.0210797769750704,
+    "events": [
+      {
+        "event_index": 392,
+        "overlap_ns": 145833,
+        "generation": 0
+      },
+      {
+        "event_index": 393,
+        "overlap_ns": 30068,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "native",
+    "wall_ns": 8911830,
+    "cpu_ns": 9285379,
+    "begin_ns": 1822365364971258,
+    "end_ns": 1822365373883088,
+    "gc_overlap_ns": 90535,
+    "gc_wall_fraction": 0.010158968472244196,
+    "events": [
+      {
+        "event_index": 394,
+        "overlap_ns": 90535,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "native",
+    "wall_ns": 9096268,
+    "cpu_ns": 9477752,
+    "begin_ns": 1822365373892700,
+    "end_ns": 1822365382988968,
+    "gc_overlap_ns": 85590,
+    "gc_wall_fraction": 0.009409353374372875,
+    "events": [
+      {
+        "event_index": 395,
+        "overlap_ns": 85590,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "direct",
+    "wall_ns": 8274590,
+    "cpu_ns": 8630126,
+    "begin_ns": 1822365382996938,
+    "end_ns": 1822365391271528,
+    "gc_overlap_ns": 168937,
+    "gc_wall_fraction": 0.020416358997847626,
+    "events": [
+      {
+        "event_index": 396,
+        "overlap_ns": 141079,
+        "generation": 0
+      },
+      {
+        "event_index": 397,
+        "overlap_ns": 27858,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "variant": "direct",
+    "wall_ns": 8283361,
+    "cpu_ns": 8630231,
+    "begin_ns": 1822365391281901,
+    "end_ns": 1822365399565262,
+    "gc_overlap_ns": 274666,
+    "gc_wall_fraction": 0.03315876248783555,
+    "events": [
+      {
+        "event_index": 398,
+        "overlap_ns": 243783,
+        "generation": 1
+      },
+      {
+        "event_index": 399,
+        "overlap_ns": 30883,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "variant": "native",
+    "wall_ns": 8499323,
+    "cpu_ns": 8858905,
+    "begin_ns": 1822365399574518,
+    "end_ns": 1822365408073841,
+    "gc_overlap_ns": 85963,
+    "gc_wall_fraction": 0.010114099675938895,
+    "events": [
+      {
+        "event_index": 400,
+        "overlap_ns": 85963,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "native",
+    "wall_ns": 8715368,
+    "cpu_ns": 9165807,
+    "begin_ns": 1822365408082476,
+    "end_ns": 1822365416797844,
+    "gc_overlap_ns": 78705,
+    "gc_wall_fraction": 0.009030599740596152,
+    "events": [
+      {
+        "event_index": 401,
+        "overlap_ns": 78705,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "direct",
+    "wall_ns": 8137187,
+    "cpu_ns": 8476799,
+    "begin_ns": 1822365416805377,
+    "end_ns": 1822365424942564,
+    "gc_overlap_ns": 165880,
+    "gc_wall_fraction": 0.020385423119807865,
+    "events": [
+      {
+        "event_index": 402,
+        "overlap_ns": 136209,
+        "generation": 0
+      },
+      {
+        "event_index": 403,
+        "overlap_ns": 29671,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "direct",
+    "wall_ns": 8119182,
+    "cpu_ns": 8466533,
+    "begin_ns": 1822365424952761,
+    "end_ns": 1822365433071943,
+    "gc_overlap_ns": 176302,
+    "gc_wall_fraction": 0.021714256436177932,
+    "events": [
+      {
+        "event_index": 404,
+        "overlap_ns": 146980,
+        "generation": 0
+      },
+      {
+        "event_index": 405,
+        "overlap_ns": 29322,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "native",
+    "wall_ns": 9007726,
+    "cpu_ns": 9386429,
+    "begin_ns": 1822365433080845,
+    "end_ns": 1822365442088571,
+    "gc_overlap_ns": 92204,
+    "gc_wall_fraction": 0.010236101764196646,
+    "events": [
+      {
+        "event_index": 406,
+        "overlap_ns": 92204,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "variant": "native",
+    "wall_ns": 8779915,
+    "cpu_ns": 9146053,
+    "begin_ns": 1822365442097917,
+    "end_ns": 1822365450877832,
+    "gc_overlap_ns": 79154,
+    "gc_wall_fraction": 0.00901534923743567,
+    "events": [
+      {
+        "event_index": 407,
+        "overlap_ns": 79154,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "variant": "direct",
+    "wall_ns": 8530144,
+    "cpu_ns": 8890307,
+    "begin_ns": 1822365450885643,
+    "end_ns": 1822365459415787,
+    "gc_overlap_ns": 177344,
+    "gc_wall_fraction": 0.020790270363548375,
+    "events": [
+      {
+        "event_index": 408,
+        "overlap_ns": 147470,
+        "generation": 0
+      },
+      {
+        "event_index": 409,
+        "overlap_ns": 29874,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "variant": "direct",
+    "wall_ns": 8834425,
+    "cpu_ns": 9210874,
+    "begin_ns": 1822365459426880,
+    "end_ns": 1822365468261305,
+    "gc_overlap_ns": 274753,
+    "gc_wall_fraction": 0.031100269683652305,
+    "events": [
+      {
+        "event_index": 410,
+        "overlap_ns": 243263,
+        "generation": 1
+      },
+      {
+        "event_index": 411,
+        "overlap_ns": 31490,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "variant": "native",
+    "wall_ns": 9226608,
+    "cpu_ns": 9620781,
+    "begin_ns": 1822365468271205,
+    "end_ns": 1822365477497813,
+    "gc_overlap_ns": 92431,
+    "gc_wall_fraction": 0.010017874391108844,
+    "events": [
+      {
+        "event_index": 412,
+        "overlap_ns": 92431,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "variant": "native",
+    "wall_ns": 9098425,
+    "cpu_ns": 9486768,
+    "begin_ns": 1822365477507625,
+    "end_ns": 1822365486606050,
+    "gc_overlap_ns": 82839,
+    "gc_wall_fraction": 0.009104762637489456,
+    "events": [
+      {
+        "event_index": 413,
+        "overlap_ns": 82839,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "variant": "direct",
+    "wall_ns": 8664885,
+    "cpu_ns": 9040892,
+    "begin_ns": 1822365486614136,
+    "end_ns": 1822365495279021,
+    "gc_overlap_ns": 175870,
+    "gc_wall_fraction": 0.020296864874721363,
+    "events": [
+      {
+        "event_index": 414,
+        "overlap_ns": 148616,
+        "generation": 0
+      },
+      {
+        "event_index": 415,
+        "overlap_ns": 27254,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "variant": "direct",
+    "wall_ns": 8682352,
+    "cpu_ns": 9054723,
+    "begin_ns": 1822365495289874,
+    "end_ns": 1822365503972226,
+    "gc_overlap_ns": 202351,
+    "gc_wall_fraction": 0.023306012011491815,
+    "events": [
+      {
+        "event_index": 416,
+        "overlap_ns": 171285,
+        "generation": 0
+      },
+      {
+        "event_index": 417,
+        "overlap_ns": 31066,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "variant": "native",
+    "wall_ns": 9349872,
+    "cpu_ns": 9747657,
+    "begin_ns": 1822365503982335,
+    "end_ns": 1822365513332207,
+    "gc_overlap_ns": 95669,
+    "gc_wall_fraction": 0.010232118685688959,
+    "events": [
+      {
+        "event_index": 418,
+        "overlap_ns": 95669,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "variant": "native",
+    "wall_ns": 9367870,
+    "cpu_ns": 9813714,
+    "begin_ns": 1822365513342232,
+    "end_ns": 1822365522710102,
+    "gc_overlap_ns": 87543,
+    "gc_wall_fraction": 0.009345027204690074,
+    "events": [
+      {
+        "event_index": 419,
+        "overlap_ns": 87543,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "variant": "direct",
+    "wall_ns": 8740807,
+    "cpu_ns": 9132136,
+    "begin_ns": 1822365522718627,
+    "end_ns": 1822365531459434,
+    "gc_overlap_ns": 182159,
+    "gc_wall_fraction": 0.02084006659796973,
+    "events": [
+      {
+        "event_index": 420,
+        "overlap_ns": 152192,
+        "generation": 0
+      },
+      {
+        "event_index": 421,
+        "overlap_ns": 29967,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "variant": "direct",
+    "wall_ns": 8936972,
+    "cpu_ns": 9317910,
+    "begin_ns": 1822365531476768,
+    "end_ns": 1822365540413740,
+    "gc_overlap_ns": 270391,
+    "gc_wall_fraction": 0.03025532585309655,
+    "events": [
+      {
+        "event_index": 422,
+        "overlap_ns": 238406,
+        "generation": 1
+      },
+      {
+        "event_index": 423,
+        "overlap_ns": 31985,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "variant": "native",
+    "wall_ns": 9155130,
+    "cpu_ns": 9557808,
+    "begin_ns": 1822365540429899,
+    "end_ns": 1822365549585029,
+    "gc_overlap_ns": 99995,
+    "gc_wall_fraction": 0.010922291655061152,
+    "events": [
+      {
+        "event_index": 424,
+        "overlap_ns": 99995,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "variant": "native",
+    "wall_ns": 9259709,
+    "cpu_ns": 9664461,
+    "begin_ns": 1822365549599775,
+    "end_ns": 1822365558859484,
+    "gc_overlap_ns": 93474,
+    "gc_wall_fraction": 0.010094701680149991,
+    "events": [
+      {
+        "event_index": 425,
+        "overlap_ns": 93474,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "variant": "direct",
+    "wall_ns": 9043241,
+    "cpu_ns": 9439631,
+    "begin_ns": 1822365558873319,
+    "end_ns": 1822365567916560,
+    "gc_overlap_ns": 193746,
+    "gc_wall_fraction": 0.02142439861991956,
+    "events": [
+      {
+        "event_index": 426,
+        "overlap_ns": 162809,
+        "generation": 0
+      },
+      {
+        "event_index": 427,
+        "overlap_ns": 30937,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "variant": "direct",
+    "wall_ns": 9055221,
+    "cpu_ns": 9437555,
+    "begin_ns": 1822365567935560,
+    "end_ns": 1822365576990781,
+    "gc_overlap_ns": 201991,
+    "gc_wall_fraction": 0.022306578712987787,
+    "events": [
+      {
+        "event_index": 428,
+        "overlap_ns": 171056,
+        "generation": 0
+      },
+      {
+        "event_index": 429,
+        "overlap_ns": 30935,
+        "generation": 0
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "variant": "native",
+    "wall_ns": 9253215,
+    "cpu_ns": 9657175,
+    "begin_ns": 1822365577012466,
+    "end_ns": 1822365586265681,
+    "gc_overlap_ns": 102642,
+    "gc_wall_fraction": 0.011092577012422168,
+    "events": [
+      {
+        "event_index": 430,
+        "overlap_ns": 102642,
+        "generation": 0
+      }
+    ]
+  }
+]

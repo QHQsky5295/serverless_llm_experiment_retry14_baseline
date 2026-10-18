@@ -2403,7 +2403,8 @@ def backend_frontend_check(runtime_receipt: Path, config: Path) -> dict:
     return result
 
 
-def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None = None) -> dict:
+def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None = None,
+                            gc_observer=None) -> dict:
     """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
 
     Small tensor fixtures are not a new adapter pool. No model, input trace,
@@ -2504,6 +2505,8 @@ def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None 
         del registered
         backing.close()
         # Dense/packed/aliased/shared/staged and scoped observations, same graphs.
+        if gc_observer is not None:
+            gc_observer.mark('fixtures_and_semantics', -1, 'neither')
         models = {}
         for aid in range(1, 9):
             layers = {}
@@ -2530,17 +2533,26 @@ def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None 
             tensor_views=8*32*6, small_in_memory_only=True, workload_performance=False))
         # Single preregistered alternating schedule, not repeated workload runs/CI.
         options = dict(include_tensor_views=False)
-        for function in (inventory, candidate):
+        for warm_index, function in enumerate((inventory, candidate)):
+            if gc_observer is not None:
+                gc_observer.mark('warmup', warm_index, 'native' if warm_index == 0 else 'direct')
             function(manager, **options)
         torch.cuda.synchronize()
         measurements = []
         for index in range(20):
             for label, function in ([('native', inventory), ('direct', candidate)] if index % 2 == 0
                                     else [('direct', candidate), ('native', inventory)]):
+                if gc_observer is not None:
+                    gc_observer.mark('measurement', index, label)
                 start_cpu, start = time.process_time_ns(), time.perf_counter_ns()
                 value = function(manager, **options)
                 elapsed, cpu = time.perf_counter_ns()-start, time.process_time_ns()-start_cpu
-                measurements.append(dict(index=index, variant=label, wall_ns=elapsed, cpu_ns=cpu))
+                row = dict(index=index, variant=label, wall_ns=elapsed, cpu_ns=cpu)
+                if gc_observer is not None:
+                    row.update(begin_ns=start, end_ns=start+elapsed)
+                measurements.append(row)
+        if gc_observer is not None:
+            gc_observer.mark('finalization', -1, 'neither')
         torch.cuda.synchronize()  # No async CUDA work was enqueued by the queries.
         guard()
         def mean(label, field):
@@ -6374,6 +6386,8 @@ def main():
     parser.add_argument('--runtime-receipt', type=Path)
     parser.add_argument('--pin-bulk-library', type=Path,
                         help='Diagnostic-only prebuilt per-view native pin batch; no serving integration')
+    parser.add_argument('--pin-gc-observation', action='store_true',
+                        help='One diagnostic attribution pass; does not change GC policy or serving code')
     parser.add_argument('--native-observation', type=Path,
                         help='Completed existing native numeric control result for independent PEFT reference')
     parser.add_argument('--native-result', type=Path,
@@ -6528,7 +6542,18 @@ def main():
     elif args.action == 'backend-pin-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-pin-check requires the native runtime receipt and new output')
-        result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library)
+        if args.pin_gc_observation:
+            if not args.pin_bulk_library:
+                parser.error('pin GC attribution requires the already-qualified bulk library')
+            sys.path.insert(0, str(ROOT))
+            from scripts.ieee_tc.gc_observation import GCObservation
+            with GCObservation() as observer:
+                result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library,
+                                                gc_observer=observer)
+            result['gc_observation'] = observer.report()
+            result['kind'] = 'native_live_pin_gc_attribution_d686_v1'
+        else:
+            result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')

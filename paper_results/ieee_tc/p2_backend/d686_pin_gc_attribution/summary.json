@@ -1,0 +1,127 @@
+{
+  "passed": true,
+  "kind": "d686_single_gc_attribution",
+  "semantics_passed": true,
+  "performance_candidate_accepted": false,
+  "production_modified": false,
+  "formal_performance": false,
+  "ci": false,
+  "cpu_tests": 61,
+  "native_pin_cases": 9,
+  "full_graph_equality_cases": 4,
+  "measurements_per_variant": 20,
+  "gc_policy_unchanged": true,
+  "gc_events": 431,
+  "gc_by_stage": {
+    "setup/neither/generation0": {
+      "count": 308,
+      "wall_ns": 28996972,
+      "thread_cpu_ns": 28776472
+    },
+    "setup/neither/generation1": {
+      "count": 27,
+      "wall_ns": 22134755,
+      "thread_cpu_ns": 22124261
+    },
+    "setup/neither/generation2": {
+      "count": 2,
+      "wall_ns": 63020538,
+      "thread_cpu_ns": 63016369
+    },
+    "fixtures_and_semantics/neither/generation1": {
+      "count": 3,
+      "wall_ns": 3278604,
+      "thread_cpu_ns": 3277963
+    },
+    "fixtures_and_semantics/neither/generation0": {
+      "count": 27,
+      "wall_ns": 1245840,
+      "thread_cpu_ns": 1237790
+    },
+    "warmup/native/generation0": {
+      "count": 1,
+      "wall_ns": 98522,
+      "thread_cpu_ns": 82243
+    },
+    "warmup/direct/generation0": {
+      "count": 2,
+      "wall_ns": 161801,
+      "thread_cpu_ns": 161133
+    },
+    "measurement/native/generation0": {
+      "count": 20,
+      "wall_ns": 1744657,
+      "thread_cpu_ns": 1734525
+    },
+    "measurement/direct/generation0": {
+      "count": 35,
+      "wall_ns": 2797559,
+      "thread_cpu_ns": 2785939
+    },
+    "measurement/direct/generation1": {
+      "count": 5,
+      "wall_ns": 1340229,
+      "thread_cpu_ns": 1338727
+    },
+    "measurement/direct/generation2": {
+      "count": 1,
+      "wall_ns": 100545234,
+      "thread_cpu_ns": 100536498
+    }
+  },
+  "longest_measurement": {
+    "index": 1,
+    "variant": "direct",
+    "wall_ns": 109359295,
+    "cpu_ns": 114142075,
+    "begin_ns": 1822365151279487,
+    "end_ns": 1822365260638782,
+    "gc_overlap_ns": 100577834,
+    "gc_wall_fraction": 0.9197008265278228,
+    "events": [
+      {
+        "event_index": 374,
+        "overlap_ns": 100545234,
+        "generation": 2
+      },
+      {
+        "event_index": 375,
+        "overlap_ns": 32600,
+        "generation": 0
+      }
+    ]
+  },
+  "wall_ms": {
+    "native": {
+      "mean": 9.02684725,
+      "median": 9.05599,
+      "min": 8.499323,
+      "max": 9.36787
+    },
+    "direct": {
+      "mean": 13.5906289,
+      "median": 8.5975145,
+      "min": 8.119182,
+      "max": 109.359295
+    }
+  },
+  "candidate_faster_pairs": 19,
+  "paired_ratio_median": 0.9549221707133969,
+  "stop_decision": "close pin-query interface direction; do not integrate or run prefix/full workload for this candidate",
+  "inference_limits": [
+    "observed GC overlap explains this diagnostic pause, not historical D685 pause",
+    "observer can shift collection timing; no call deleted and no adjusted performance score",
+    "native EngineCore freezes startup heap; this no-EngineCore fixture is not its GC state",
+    "tiny native tensor correctness, not full model numerical proof"
+  ],
+  "source_sha256": "4cb48ca7fd84749e6f37eb127d4233c07f8d7782ccb01b827266cf25d94fe955",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "latest_full_3b": {
+    "run": "D682",
+    "joint_slo": 0.9235,
+    "native_bound_count": 4000,
+    "n_correct": null,
+    "physical_gpu_seconds": 15896.253912474262,
+    "ranking_eligible": false
+  }
+}
