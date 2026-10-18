@@ -89,34 +89,41 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
             return any(contains_tensor(v) for v in value.values())
         return False
 
-    def add(tensor, aid, name):
-        if (not torch.is_tensor(tensor) or tensor.device.type != 'cpu'
-                or tensor.layout != torch.strided or len(tensor.shape) != 2
+    def add(tensor, aid, module_name, side, index):
+        if not torch.is_tensor(tensor):
+            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {module_name}.{side}[{index}]')
+        # Read current metadata for EVERY view. The local device value and
+        # dtype set are this observation's values, never a cached tensor graph.
+        # Runtime physical consumers do not need per-view descriptive strings.
+        device = tensor.device
+        if (device.type != 'cpu'
+                or tensor.layout != torch.strided or tensor.ndim != 2
                 or tensor.numel() <= 0):
-            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {name}')
+            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {module_name}.{side}[{index}]')
         storage = tensor.untyped_storage()
         pointer, capacity = int(storage.data_ptr()), int(storage.nbytes())
         if pointer <= 0 or capacity <= 0:
-            raise ValueError(f'empty native CPU LoRA storage: {name}')
-        key = (str(tensor.device), pointer)
+            raise ValueError(f'empty native CPU LoRA storage: {module_name}.{side}[{index}]')
+        device_name = str(device)
+        key = (device_name, pointer)
         # One fresh query per view in this serialized observation. Repeating
         # the native pointer query for a new allocation adds no independent
         # evidence; other aliased views still undergo their own consistency check.
         pinned = bool(tensor.is_pinned())
         if key not in allocations:
-            allocations[key] = {'allocation_id': len(allocations), 'device': str(tensor.device),
+            allocations[key] = {'allocation_id': len(allocations), 'device': device_name,
                 'allocated_bytes': capacity, 'pinned': pinned, 'adapter_ids': []}
         allocation = allocations[key]
         if allocation['allocated_bytes'] != capacity or allocation['pinned'] != pinned:
             raise ValueError('aliased native CPU storage has inconsistent capacity/pinning')
         if aid not in allocation['adapter_ids']:
             allocation['adapter_ids'].append(aid)
-        dtype = str(tensor.dtype)
+        dtype = tensor.dtype
         adapter_dtypes[aid].add(dtype)
         if include_tensor_views:
-            views.append({'adapter_int_id': aid, 'name': name,
+            views.append({'adapter_int_id': aid, 'name': f'{module_name}.{side}[{index}]',
                 'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),
-                'stride': list(tensor.stride()), 'dtype': dtype,
+                'stride': list(tensor.stride()), 'dtype': str(dtype),
                 'view_bytes': int(tensor.numel()) * int(tensor.element_size()),
                 'storage_offset_elements': int(tensor.storage_offset())})
         return allocation['allocation_id']
@@ -154,8 +161,8 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
                 if left is None or right is None:
                     raise ValueError('native HOST adapter has an incomplete A/B pair')
                 present = True
-                used.add(add(left, aid, f'{name}.lora_a[{index}]'))
-                used.add(add(right, aid, f'{name}.lora_b[{index}]'))
+                used.add(add(left, aid, name, 'lora_a', index))
+                used.add(add(right, aid, name, 'lora_b', index))
             if not present:
                 raise ValueError('native HOST module contains no usable A/B pair')
             packed |= is_packed
@@ -169,7 +176,7 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         # registered adapter. Actual release also depends on execution references.
         adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
                                                 if len(row['adapter_ids']) == 1)
-        adapter['dtypes'] = sorted(adapter_dtypes[adapter['adapter_int_id']])
+        adapter['dtypes'] = sorted(str(dtype) for dtype in adapter_dtypes[adapter['adapter_int_id']])
     result = {'host_allocations': physical,
             **({'host_tensor_views': views} if include_tensor_views else {}),
             'host_adapter_footprints': adapters,

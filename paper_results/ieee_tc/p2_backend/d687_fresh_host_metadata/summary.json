@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "kind": "d687_fresh_host_metadata_qualification",
+  "semantics_passed": true,
+  "performance_candidate_accepted": false,
+  "production_modified": true,
+  "reason": "fresh metadata candidate supports one full W0 validation; no system performance acceptance yet",
+  "measurements_per_variant": 20,
+  "ci": false,
+  "formal_performance": false,
+  "wall_ms": {
+    "native": {
+      "mean": 8.261667,
+      "median": 8.2934685,
+      "min": 7.673983,
+      "max": 8.545444
+    },
+    "direct": {
+      "mean": 7.17939475,
+      "median": 7.1895675,
+      "min": 6.746055,
+      "max": 7.599719
+    }
+  },
+  "paired_ratio_median": 0.8670911567147304,
+  "candidate_faster_pairs": 20,
+  "source_sha256": "8fab00958d24662922e486768b3a981559345209d8c30cf361f39ff0c5fd7614",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "production_sha256": "0aa4f68c93bbb1c3ee65e4acf9b8a8b0b2b92ecfb2dcee4f382c4a3a31b31c5e",
+  "correctness_scope": "tiny actual native tensors, not full model numerical correctness",
+  "latest_full_3b": {
+    "run": "D682",
+    "joint_slo": 0.9235,
+    "native_bound_count": 4000,
+    "n_correct": null,
+    "physical_gpu_seconds": 15896.253912474262,
+    "ranking_eligible": false
+  },
+  "full_replay_validation_supported": true,
+  "measurement_variant_mapping": {
+    "native": "exact_parent_inventory",
+    "direct": "current_metadata_rendering"
+  }
+}

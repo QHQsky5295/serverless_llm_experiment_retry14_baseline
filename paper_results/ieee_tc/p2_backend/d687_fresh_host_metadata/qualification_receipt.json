@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "tests": [
+    "tests.test_ieee_tc_host_metadata_projection",
+    "tests.test_ieee_tc_worker_observation",
+    "tests.test_ieee_tc_host_observation_freshness",
+    "tests.test_ieee_tc_request_footprints",
+    "tests.test_ieee_tc_gpu_references",
+    "tests.test_ieee_tc_hit_host_transaction.HitHostTransaction"
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-a6870000000000000000000000000001.scope",
+    "invocation_id": "38639e23736a43c09e3ad626293ebc94",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a6870000000000000000000000000001.scope",
+    "inode": 27580920
+  },
+  "log_sha256": "03dc35ab82b9dbdae5b3d65d81fb8b7b185b057120dbcd4a7946ba5eceb7e100",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "0aa4f68c93bbb1c3ee65e4acf9b8a8b0b2b92ecfb2dcee4f382c4a3a31b31c5e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_metadata_projection.py": "ae23b06119945e4083d3722d18e23646de8bb06cd2fc73d43f5b51ce04c0e769",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py": "c3b4fdb256d0847fb1fe6c2d3dda2e8c656a389e72b800242d236b6210c4e5e6",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py": "b67b3fbf5b60a208bfdf476ee3af60d9c5180648045ed8f66094f13cf331e46f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "f677e6010ee9a3ba9bfbd391bad03eace9719acce23e3d7e036d0dbf921ad0e4"
+  },
+  "resources": {
+    "memory.peak": "600137728",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "no_gpu_run": true,
+  "performance_conclusion": false
+}

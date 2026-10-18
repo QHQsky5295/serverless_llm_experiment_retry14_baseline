@@ -742,6 +742,9 @@ class FakeTensor:
         self.shape = shape
         self.pointer, self.size, self.offset = pointer, size, offset
         self.contiguous = contiguous
+    @property
+    def ndim(self):
+        return len(self.shape)
     def untyped_storage(self):
         return SimpleNamespace(nbytes=lambda: self.size, data_ptr=lambda: self.pointer)
     def numel(self):

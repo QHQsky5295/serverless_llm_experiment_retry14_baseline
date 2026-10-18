@@ -1,0 +1,469 @@
+{
+  "kind": "native_fresh_host_metadata_rendering_d687_v1",
+  "service": {
+    "service_identity": {
+      "unit": "primelora-tc-svc-45ee375ee7864d3a9fc30ba2451321c7.scope",
+      "invocation_id": "9278ba32d4df4e41b3506a9134febdce",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-45ee375ee7864d3a9fc30ba2451321c7.scope",
+      "inode": 27581636
+    },
+    "pid": 2613748,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-45ee375ee7864d3a9fc30ba2451321c7.scope",
+    "affinity": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "production_launch_authorized": false
+  },
+  "runtime_receipt_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "check_source_sha256": "db4099bd3104b4dd31fb8aab4a1b9533515fd0b2ad0f86ab11e5badf6147f105",
+  "environment": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925",
+  "production_launch_authorized": false,
+  "formal_performance_result": false,
+  "stage": "complete",
+  "cases": [
+    {
+      "case": "pageable",
+      "native": false,
+      "direct": false,
+      "expected": false,
+      "offset": 0,
+      "storage_capacity": 512,
+      "storage_base_equals_view_pointer": true
+    },
+    {
+      "case": "pinned",
+      "native": true,
+      "direct": true,
+      "expected": true,
+      "offset": 0,
+      "storage_capacity": 512,
+      "storage_base_equals_view_pointer": true
+    },
+    {
+      "case": "pinned_offset",
+      "native": true,
+      "direct": true,
+      "expected": true,
+      "offset": 32,
+      "storage_capacity": 512,
+      "storage_base_equals_view_pointer": false
+    },
+    {
+      "case": "pageable_offset",
+      "native": false,
+      "direct": false,
+      "expected": false,
+      "offset": 32,
+      "storage_capacity": 512,
+      "storage_base_equals_view_pointer": false
+    },
+    {
+      "case": "pinned_alias_transpose",
+      "native": true,
+      "direct": true,
+      "expected": true,
+      "offset": 0,
+      "storage_capacity": 512,
+      "storage_base_equals_view_pointer": true
+    },
+    {
+      "case": "before_register",
+      "native": false,
+      "direct": false,
+      "expected": false,
+      "offset": 256,
+      "storage_capacity": 4096,
+      "storage_base_equals_view_pointer": false
+    },
+    {
+      "case": "after_register",
+      "native": true,
+      "direct": true,
+      "expected": true,
+      "offset": 0,
+      "storage_capacity": 4096,
+      "storage_base_equals_view_pointer": true
+    },
+    {
+      "case": "registered_offset",
+      "native": true,
+      "direct": true,
+      "expected": true,
+      "offset": 256,
+      "storage_capacity": 4096,
+      "storage_base_equals_view_pointer": false
+    },
+    {
+      "case": "after_unregister",
+      "native": false,
+      "direct": false,
+      "expected": false,
+      "offset": 0,
+      "storage_capacity": 4096,
+      "storage_base_equals_view_pointer": true
+    }
+  ],
+  "pass": true,
+  "torch_version": "2.13.0+cu130",
+  "cuda_python_version": "13.4.3",
+  "runtime_version": 13040,
+  "driver_version": 13000,
+  "context": 283170832,
+  "primary_flags": 0,
+  "inventory_source_sha256": "0aa4f68c93bbb1c3ee65e4acf9b8a8b0b2b92ecfb2dcee4f382c4a3a31b31c5e",
+  "candidate_source": "def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,\n                              include_tensor_views: bool = True,\n                              requested_adapter_ids=None) -> Dict[str, Any]:\n    \"\"\"Storage reachable from dense native CPU adapters, without materialization.\n\n    A LoRAModel clone/packed layer may share a storage. Charge its capacity once\n    per worker, retain adapter-to-allocation edges, and do not confuse a view's\n    numel with the backing storage. This excludes allocator overhead, staging,\n    tmpfs files and page cache; it is not process RSS or a HOST-budget lease.\n\n    Runtime consumers use the complete storage/alias graph, not the descriptive\n    tensor-view table retained for isolated qualification. The projection still\n    visits and validates EVERY current\n    tensor; it neither caches a previous inventory nor relocates frontend graph\n    validation into the serialized GPU execution loop.\n\n    An explicit requested_adapter_ids scope measures only those current native\n    objects. Its induced union/exclusive edges have distinct field names: they\n    are never a complete-cache footprint or reclaimable-memory observation.\n    \"\"\"\n    if type(include_tensor_views) is not bool:\n        raise ValueError('native HOST tensor-view projection requires an explicit boolean')\n    models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.\n    if requested_adapter_ids is not None:\n        if (not isinstance(requested_adapter_ids, (list, tuple))\n                or any(type(aid) is not int or aid <= 0 for aid in requested_adapter_ids)\n                or list(requested_adapter_ids) != sorted(set(requested_adapter_ids))\n                or staged_models or include_tensor_views):\n            raise ValueError('request-scoped HOST observation needs explicit sorted IDs and no staging/views')\n        models = {aid: models[aid] for aid in requested_adapter_ids if aid in models}\n    if staged_models:\n        if set(models) & set(staged_models):\n            raise ValueError('native CPU object cannot be both staged and registered')\n        models = {**models, **staged_models}\n    allocations = {}\n    views = []\n    adapters = []\n    adapter_dtypes = {}\n\n    def contains_tensor(value):\n        if torch.is_tensor(value):\n            return True\n        if isinstance(value, (list, tuple)):\n            return any(contains_tensor(v) for v in value)\n        if isinstance(value, dict):\n            return any(contains_tensor(v) for v in value.values())\n        return False\n\n    def add(tensor, aid, module_name, side, index):\n        if not torch.is_tensor(tensor):\n            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {module_name}.{side}[{index}]')\n        # Read current metadata for EVERY view. The local device value and\n        # dtype set are this observation's values, never a cached tensor graph.\n        # Runtime physical consumers do not need per-view descriptive strings.\n        device = tensor.device\n        if (device.type != 'cpu'\n                or tensor.layout != torch.strided or tensor.ndim != 2\n                or tensor.numel() <= 0):\n            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {module_name}.{side}[{index}]')\n        storage = tensor.untyped_storage()\n        pointer, capacity = int(storage.data_ptr()), int(storage.nbytes())\n        if pointer <= 0 or capacity <= 0:\n            raise ValueError(f'empty native CPU LoRA storage: {module_name}.{side}[{index}]')\n        device_name = str(device)\n        key = (device_name, pointer)\n        # One fresh query per view in this serialized observation. Repeating\n        # the native pointer query for a new allocation adds no independent\n        # evidence; other aliased views still undergo their own consistency check.\n        pinned = bool(tensor.is_pinned())\n        if key not in allocations:\n            allocations[key] = {'allocation_id': len(allocations), 'device': device_name,\n                'allocated_bytes': capacity, 'pinned': pinned, 'adapter_ids': []}\n        allocation = allocations[key]\n        if allocation['allocated_bytes'] != capacity or allocation['pinned'] != pinned:\n            raise ValueError('aliased native CPU storage has inconsistent capacity/pinning')\n        if aid not in allocation['adapter_ids']:\n            allocation['adapter_ids'].append(aid)\n        dtype = tensor.dtype\n        adapter_dtypes[aid].add(dtype)\n        if include_tensor_views:\n            views.append({'adapter_int_id': aid, 'name': f'{module_name}.{side}[{index}]',\n                'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),\n                'stride': list(tensor.stride()), 'dtype': str(dtype),\n                'view_bytes': int(tensor.numel()) * int(tensor.element_size()),\n                'storage_offset_elements': int(tensor.storage_offset())})\n        return allocation['allocation_id']\n\n    if torch is None:\n        raise RuntimeError('native HOST inventory requires torch')\n    for aid, model in sorted(models.items()):\n        if (type(aid) is not int or aid <= 0 or type(model.id) is not int or model.id != aid\n                or type(model.rank) is not int or model.rank <= 0\n                or not isinstance(model.loras, dict) or not model.loras):\n            raise ValueError('native HOST model identity/rank/modules are invalid')\n        if getattr(model, 'is_3d_lora_weight', False):\n            raise ValueError('3D native HOST representation is not qualified')\n        used, packed = set(), False\n        adapter_dtypes[aid] = set()\n        for name, layer in sorted(model.loras.items()):\n            if not isinstance(name, str) or not name:\n                raise ValueError('native HOST module name is invalid')\n            if not hasattr(layer, 'lora_a') or not hasattr(layer, 'lora_b'):\n                raise ValueError('native HOST representation lacks A/B tensors')\n            for key, value in vars(layer).items():\n                if key not in ('lora_a', 'lora_b') and contains_tensor(value):\n                    raise ValueError(f'unsupported native HOST tensor field: {key}')\n            a, b = layer.lora_a, layer.lora_b\n            is_packed = isinstance(a, (list, tuple))\n            if is_packed != isinstance(b, (list, tuple)):\n                raise ValueError('native packed HOST A/B representations disagree')\n            aa, bb = (a, b) if is_packed else ([a], [b])\n            if not aa or len(aa) != len(bb):\n                raise ValueError('native packed HOST A/B lengths disagree')\n            present = False\n            for index, (left, right) in enumerate(zip(aa, bb)):\n                if left is None and right is None and is_packed:\n                    continue  # Official packed missing submodule, not a zero-size adapter.\n                if left is None or right is None:\n                    raise ValueError('native HOST adapter has an incomplete A/B pair')\n                present = True\n                used.add(add(left, aid, name, 'lora_a', index))\n                used.add(add(right, aid, name, 'lora_b', index))\n            if not present:\n                raise ValueError('native HOST module contains no usable A/B pair')\n            packed |= is_packed\n        adapters.append({'adapter_int_id': aid, 'rank': model.rank, 'allocation_ids': sorted(used),\n                         'representation': 'native_cpu_dense_ab_v1', 'has_packed_modules': packed})\n    physical = list(allocations.values())\n    for adapter in adapters:\n        used = [physical[index] for index in adapter['allocation_ids']]\n        adapter['storage_bytes'] = sum(row['allocated_bytes'] for row in used)\n        # A single eviction cannot reclaim storage still referenced by another\n        # registered adapter. Actual release also depends on execution references.\n        adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used\n                                                if len(row['adapter_ids']) == 1)\n        adapter['dtypes'] = sorted(str(dtype) for dtype in adapter_dtypes[adapter['adapter_int_id']])\n    result = {'host_allocations': physical,\n            **({'host_tensor_views': views} if include_tensor_views else {}),\n            'host_adapter_footprints': adapters,\n            'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),\n            'host_footprint_scope': ('native_registered_and_staged_tensor_storage_capacity'\n                                     if staged_models else 'native_registered_tensor_storage_capacity'),\n            'host_staged_adapter_ids': sorted(staged_models or ()),\n            'host_allocator_overhead_included': False, 'host_budget_reserved': False}\n    if requested_adapter_ids is not None:\n        # A target-induced graph is NOT the global union or an eviction credit.\n        result['host_footprint_scope'] = 'native_requested_tensor_storage_capacity'\n        result['host_requested_adapter_ids'] = list(requested_adapter_ids)\n        result['requested_host_storage_bytes'] = result.pop('host_tensor_storage_bytes')\n        for adapter in adapters:\n            adapter['within_observation_exclusive_bytes'] = adapter.pop('exclusive_storage_bytes')\n    return result\n",
+  "candidate_is_diagnostic_clone": false,
+  "device_name": "NVIDIA GeForce RTX 3090",
+  "capability": [
+    8,
+    6
+  ],
+  "inventory_equality": [
+    {
+      "options": [],
+      "equal": true,
+      "allocations": 512,
+      "adapters": 8
+    },
+    {
+      "options": [
+        "include_tensor_views"
+      ],
+      "equal": true,
+      "allocations": 512,
+      "adapters": 8
+    },
+    {
+      "options": [
+        "include_tensor_views",
+        "requested_adapter_ids"
+      ],
+      "equal": true,
+      "allocations": 128,
+      "adapters": 2
+    },
+    {
+      "options": [
+        "staged_models",
+        "include_tensor_views"
+      ],
+      "equal": true,
+      "allocations": 512,
+      "adapters": 9
+    }
+  ],
+  "fixture": {
+    "adapters": 8,
+    "layers_per_adapter": 32,
+    "tensor_views": 1536,
+    "small_in_memory_only": true,
+    "workload_performance": false
+  },
+  "measurements": [
+    {
+      "index": 0,
+      "variant": "native",
+      "wall_ns": 8243283,
+      "cpu_ns": 8621325
+    },
+    {
+      "index": 0,
+      "variant": "direct",
+      "wall_ns": 7238882,
+      "cpu_ns": 7549283
+    },
+    {
+      "index": 1,
+      "variant": "direct",
+      "wall_ns": 7334844,
+      "cpu_ns": 7642240
+    },
+    {
+      "index": 1,
+      "variant": "native",
+      "wall_ns": 8545444,
+      "cpu_ns": 8913924
+    },
+    {
+      "index": 2,
+      "variant": "native",
+      "wall_ns": 8525465,
+      "cpu_ns": 8909798
+    },
+    {
+      "index": 2,
+      "variant": "direct",
+      "wall_ns": 7334226,
+      "cpu_ns": 7651791
+    },
+    {
+      "index": 3,
+      "variant": "direct",
+      "wall_ns": 7337979,
+      "cpu_ns": 7713441
+    },
+    {
+      "index": 3,
+      "variant": "native",
+      "wall_ns": 8388093,
+      "cpu_ns": 8750742
+    },
+    {
+      "index": 4,
+      "variant": "native",
+      "wall_ns": 8219714,
+      "cpu_ns": 8575506
+    },
+    {
+      "index": 4,
+      "variant": "direct",
+      "wall_ns": 7132725,
+      "cpu_ns": 7442239
+    },
+    {
+      "index": 5,
+      "variant": "direct",
+      "wall_ns": 7190459,
+      "cpu_ns": 7505770
+    },
+    {
+      "index": 5,
+      "variant": "native",
+      "wall_ns": 8299007,
+      "cpu_ns": 8657057
+    },
+    {
+      "index": 6,
+      "variant": "native",
+      "wall_ns": 8516602,
+      "cpu_ns": 8885517
+    },
+    {
+      "index": 6,
+      "variant": "direct",
+      "wall_ns": 7213327,
+      "cpu_ns": 7527497
+    },
+    {
+      "index": 7,
+      "variant": "direct",
+      "wall_ns": 7188676,
+      "cpu_ns": 7500569
+    },
+    {
+      "index": 7,
+      "variant": "native",
+      "wall_ns": 8508506,
+      "cpu_ns": 8877723
+    },
+    {
+      "index": 8,
+      "variant": "native",
+      "wall_ns": 8489584,
+      "cpu_ns": 8860064
+    },
+    {
+      "index": 8,
+      "variant": "direct",
+      "wall_ns": 7402705,
+      "cpu_ns": 7725668
+    },
+    {
+      "index": 9,
+      "variant": "direct",
+      "wall_ns": 7296213,
+      "cpu_ns": 7683844
+    },
+    {
+      "index": 9,
+      "variant": "native",
+      "wall_ns": 8391982,
+      "cpu_ns": 8754605
+    },
+    {
+      "index": 10,
+      "variant": "native",
+      "wall_ns": 8287930,
+      "cpu_ns": 8654871
+    },
+    {
+      "index": 10,
+      "variant": "direct",
+      "wall_ns": 7035253,
+      "cpu_ns": 7335682
+    },
+    {
+      "index": 11,
+      "variant": "direct",
+      "wall_ns": 6746055,
+      "cpu_ns": 7035453
+    },
+    {
+      "index": 11,
+      "variant": "native",
+      "wall_ns": 8136261,
+      "cpu_ns": 8487879
+    },
+    {
+      "index": 12,
+      "variant": "native",
+      "wall_ns": 8098858,
+      "cpu_ns": 8442728
+    },
+    {
+      "index": 12,
+      "variant": "direct",
+      "wall_ns": 7103902,
+      "cpu_ns": 7410197
+    },
+    {
+      "index": 13,
+      "variant": "direct",
+      "wall_ns": 6923501,
+      "cpu_ns": 7218790
+    },
+    {
+      "index": 13,
+      "variant": "native",
+      "wall_ns": 8085157,
+      "cpu_ns": 8430082
+    },
+    {
+      "index": 14,
+      "variant": "native",
+      "wall_ns": 7912552,
+      "cpu_ns": 8249030
+    },
+    {
+      "index": 14,
+      "variant": "direct",
+      "wall_ns": 6933960,
+      "cpu_ns": 7232084
+    },
+    {
+      "index": 15,
+      "variant": "direct",
+      "wall_ns": 7111408,
+      "cpu_ns": 7417347
+    },
+    {
+      "index": 15,
+      "variant": "native",
+      "wall_ns": 7673983,
+      "cpu_ns": 8003859
+    },
+    {
+      "index": 16,
+      "variant": "native",
+      "wall_ns": 7890400,
+      "cpu_ns": 8276067
+    },
+    {
+      "index": 16,
+      "variant": "direct",
+      "wall_ns": 7216299,
+      "cpu_ns": 7531749
+    },
+    {
+      "index": 17,
+      "variant": "direct",
+      "wall_ns": 7599719,
+      "cpu_ns": 7927865
+    },
+    {
+      "index": 17,
+      "variant": "native",
+      "wall_ns": 8399768,
+      "cpu_ns": 8760950
+    },
+    {
+      "index": 18,
+      "variant": "native",
+      "wall_ns": 8383320,
+      "cpu_ns": 8744009
+    },
+    {
+      "index": 18,
+      "variant": "direct",
+      "wall_ns": 7179952,
+      "cpu_ns": 7492276
+    },
+    {
+      "index": 19,
+      "variant": "direct",
+      "wall_ns": 7067810,
+      "cpu_ns": 7375728
+    },
+    {
+      "index": 19,
+      "variant": "native",
+      "wall_ns": 8237431,
+      "cpu_ns": 8588638
+    }
+  ],
+  "means": {
+    "native": {
+      "wall_ns": 8261667.0,
+      "cpu_ns": 8622218.7
+    },
+    "direct": {
+      "wall_ns": 7179394.75,
+      "cpu_ns": 7495975.65
+    }
+  },
+  "direct_to_native_wall_ratio": 0.8690007416178841,
+  "mapped_cuda_runtime_files": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/nvidia/cu13/lib/libcudart.so.13",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torchvision.libs/libcudart.faf08d9a.so.13"
+  ],
+  "reference_commit": "5bb08ffb1af21acd50e2fea728335fcae6587a99",
+  "reference_module_sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+  "measurement_variant_mapping": {
+    "native": "exact_parent_inventory",
+    "direct": "current_metadata_rendering"
+  },
+  "per_view_native_pinning_unchanged": true,
+  "gc_policy_modified": false,
+  "candidate_label": "fresh_metadata_rendering_not_pin_interface",
+  "harness_source_sha256": "3fb3af637c4215f5944e55509406ec7e89a81145b64875d1482896332fe8bc72"
+}
