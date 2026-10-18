@@ -15277,6 +15277,7 @@ class ScenarioRunner:
         handoff_plan: Optional[Dict[str, Any]],
         reserved_device_id: Optional[int],
         pending_sequence_id: Optional[int],
+        pending_scale_up_instances: int = 0,
     ) -> None:
         try:
             scale_event = await self._add_dedicated_instance_slot(
@@ -15287,6 +15288,17 @@ class ScenarioRunner:
             )
             if not scale_event:
                 return
+            # Preserve submission-side ordering evidence with the ready-side
+            # event so concurrent activation decisions remain auditable.
+            scale_event = dict(scale_event)
+            scale_event.update({
+                "activation_submission_sequence": pending_sequence_id,
+                "pending_scale_up_instances_at_submit": max(
+                    0, int(pending_scale_up_instances or 0)
+                ),
+                "submission_request_index": max(0, int(request_index or 0)),
+                "submission_timestamp": time.time(),
+            })
             self._register_scale_up_event(
                 result,
                 decision=decision_snapshot,
@@ -15354,6 +15366,13 @@ class ScenarioRunner:
         if available_startup_slots <= 0:
             return 0
         create_count = min(create_count, available_startup_slots)
+        if getattr(self, "_routing_policy", None) == "ieee_confirmed":
+            # A confirmed-tier router observes a replica only after activation
+            # is ready.  Multiple submissions from one control evaluation race
+            # their ready order against the same request frontier.  Preserve
+            # background parallelism across later evaluations while making each
+            # evaluation single-flight.
+            create_count = min(create_count, 1)
         if runtime_handoff_plans:
             consume_plan = getattr(self._stack, "consume_scaleup_gpu_plan", None) if self._stack is not None else None
             if callable(consume_plan):
@@ -15411,6 +15430,9 @@ class ScenarioRunner:
                     handoff_plan=handoff_plan,
                     reserved_device_id=reserved_device_id,
                     pending_sequence_id=pending_sequence_id,
+                    pending_scale_up_instances=max(
+                        0, int(pending_scale_up_instances or 0)
+                    ),
                 )
             )
             tasks.add(task)

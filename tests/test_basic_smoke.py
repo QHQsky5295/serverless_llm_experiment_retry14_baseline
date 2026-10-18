@@ -7835,6 +7835,52 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         asyncio.run(run_case())
 
+    def test_ieee_confirmed_scale_up_is_single_flight_per_control_evaluation(self) -> None:
+        async def run_case() -> None:
+            runner = ScenarioRunner.__new__(ScenarioRunner)
+            runner.instance_pool = SimpleNamespace(max_instances=4)
+            runner._routing_policy = "ieee_confirmed"
+            runner._stack = None
+            runner._pending_scale_up_tasks = set()
+            runner._pending_scale_up_device_ids = set()
+            runner._pending_scale_up_sequences = set()
+            runner._next_pending_scale_up_sequence = 0
+            runner._handle_pending_scale_up_task_done = lambda task: None
+            reserved_ids = iter([1, 2, 3])
+            runner._select_dedicated_device_id = lambda: next(reserved_ids, None)
+            scheduled_calls = []
+
+            async def fake_execute_background_scale_up(**kwargs):
+                scheduled_calls.append(kwargs)
+                return None
+
+            runner._execute_background_scale_up = fake_execute_background_scale_up
+            result = ScenarioResult("demo", "faaslora_full", total=0)
+            decision = SimpleNamespace(reason="scale", target_instances=4)
+            scheduled = runner._schedule_background_scale_up_instance_pool(
+                result=result,
+                coord_enabled=True,
+                decision=decision,
+                current_instances=1,
+                pending_scale_up_instances=0,
+                request_index=1,
+                completed_request_count=1,
+                queue_visible_request_count=1,
+                arrived_request_count=1,
+                target_instances=4,
+                runtime_handoff_plans=[{}, {}, {}],
+                startup_parallelism_limit=3,
+            )
+            self.assertEqual(scheduled, 1)
+            await asyncio.gather(
+                *list(runner._pending_scale_up_tasks),
+                return_exceptions=True,
+            )
+            self.assertEqual(len(scheduled_calls), 1)
+            self.assertEqual(scheduled_calls[0]["pending_scale_up_instances"], 0)
+
+        asyncio.run(run_case())
+
     def test_live_scale_control_eval_counts_pending_scaleups_against_max_instances(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.baseline_type = "faaslora_full"
