@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D669：3B继续优化前的安全归档已完成 — 2026-10-18
+
+PROGRESS。D668完成证据21个明确路径已推送b91906fb285db98ca97a4c05664d14d95327af4c，
+远端一致。CSV采用原始CRLF，Git仅识别cr-at-eol，其余空白检查保留；没有更改
+数据或SHA。第一次大监控归档拦截、第二次CSV格式拦截均只影响发布，未重跑。
+26761 exit1、37616 exit0均终态，三个publication资源域均已递归空关闭，
+最终peak40521728B、事件/swap0，不再wait。晚发布脚本/关闭证据随D669备份。
+
+D669只无损压缩D660/D665已关闭的两个main_outcome，原SHA与两次解压SHA一致，
+14项测试通过；回收1821405184B，可用166175784960B（154.76GiB）。11009 exit0，
+storage域递归空关闭，peak299786240B、high/max/OOM/kill/swap0，不再wait。
+请求级结果、D668原始观测、所有失败、模型/工件/trace不变；后续读两份gzip流。
+147项旧保护及三项用户修改未变。新重型任务仍重新准入，不把清理作为性能成果。
+
+已核对D329/D202/D610/D635/D667与官方vLLM/PyTorch/CPython原始实现。
+新线索：source_snapshot无staging分支对已新鲜验证的HOST图作通用deepcopy，
+历史组件证明其仍有开销。直接共享对象违反既有独立返回合同，故不采用；
+下一仅验证按已知图结构独立复制能否保持全部字段/错误/隔离且减少复制开销。
+当前尚无D670组件结果或生产候选，不减少fresh inventory/pinning查询，不开
+GPU重跑，不用旧7B组件代替3B原生证据。3B完整联合88.75%的缺口仍开放；
+其余3B/基线/dLoRA、同版本7B、消融/敏感性/成本/审稿/图表全部ACTIVE。
+
 ## D668完成：3B HOST清点是实测CPU热点，未宣称整体达标 — 2026-10-18
 
 本轮PROGRESS；此前唯一tmux已终态，不能再启动/等待原运行。1000/1000原生
