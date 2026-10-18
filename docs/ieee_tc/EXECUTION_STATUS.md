@@ -1,6 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D672：同配置完整3B W0准备通过，待备份和启动 — 2026-10-18
+
+PROGRESS。完整PLAN/V1/V2及六补充规则已重读。复用D665配置仅换三路径，
+D658装配、4000请求SHA、SLO/资源参考及D671代码/测试回执一致；只新增
+既有runner的D672分支，历史入口逐字不变。详细core/stack/HOST观察关闭。
+75178 exit0，资格域递归空关闭，peak715124736B、事件/swap0，不再wait。
+147旧保护未变；D671已推送f8e95a1且备份域也关闭。非项目k3s不动。
+本轮没有重跑D671测试，没有新GPU结果；D665联合88.75%仍未闭口。
+
+下一立即按封存backup.py检查并推送准备，再按start.py启动唯一tc-d672-3b-w0。
+当前远端两服务inactive、旧tmux均pane_dead=1，GPU无计算作业；尚未启动
+D672，不允许另起同键。启动再查资源，运行时只低扰动观察，不构建/压缩/
+扫描/推送。实际终态后close_launch.py→stop_remote.sh→复用D665收尾分析。
+3B W1/W2/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、审稿与图表
+完整ACTIVE，不以局部复制或一次W0代替完整目标。
+
 ## D671：独立HOST图复制候选已实现并验证，尚无新性能结果 — 2026-10-18
+
+备份已完成：9个明确路径推送f8e95a1edc4d4602f92c091dfdecc0e9d5028018，
+远端一致。40911 exit0，backup域递归空关闭，peak30380032B、事件/swap0；
+不再wait。D670组件证据及D669晚关闭回执已随检查点归档。本次晚关闭记录
+随下一正常检查点备份，不为状态文字单开提交。当前无GPU或远端服务运行；
+磁盘166170046464B可用，正式启动仍须新准入。下一是D672同配置完整3B W0
+的准备/检查/备份/一次执行，尚未创建D672或声称已启动；不得重复D671资格。
 
 PROGRESS。只改无staging的source_snapshot复制，所有live tensor/pinning/
 capacity/allocator检查与独立返回保留；新增5项测试，不改策略/公式/配置。
