@@ -377,6 +377,85 @@ class NativeHostRoutingProjection(unittest.TestCase):
                 monitor._ieee_lora_host_inventory(native, include_tensor_views=invalid)
 
 
+class NativeHostIndependentGraphCopy(unittest.TestCase):
+    def graph(self):
+        native, _ = NativeHostFootprint().native_models()
+        return monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+
+    def test_exact_values_and_all_mutable_containers_are_independent(self):
+        import copy
+        original = self.graph()
+        expected = copy.deepcopy(original)
+        cloned = monitor._ieee_clone_registered_host_inventory(original)
+        self.assertEqual(cloned, expected)
+
+        def containers(value):
+            if type(value) is dict:
+                yield value
+                for child in value.values():
+                    yield from containers(child)
+            elif type(value) is list:
+                yield value
+                for child in value:
+                    yield from containers(child)
+
+        source_objects = list(containers(original))
+        copied_objects = list(containers(cloned))
+        self.assertEqual(len(source_objects), len(copied_objects))
+        self.assertTrue({id(v) for v in source_objects}.isdisjoint(id(v) for v in copied_objects))
+        for value in copied_objects:
+            if type(value) is dict:
+                value['mutation_witness'] = True
+            else:
+                value.append('mutation_witness')
+        self.assertEqual(original, expected)
+        self.assertEqual(monitor._ieee_clone_registered_host_inventory(original), expected)
+
+    def test_empty_registered_inventory_remains_an_independent_zero_graph(self):
+        native = SimpleNamespace(list_adapters=lambda: {})
+        original = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        cloned = monitor._ieee_clone_registered_host_inventory(original)
+        self.assertEqual(cloned, original)
+        self.assertEqual(cloned['host_tensor_storage_bytes'], 0)
+        for key in ('host_allocations', 'host_adapter_footprints', 'host_staged_adapter_ids'):
+            self.assertIsNot(cloned[key], original[key])
+
+    def test_only_registered_runtime_projection_is_accepted(self):
+        native, models = NativeHostFootprint().native_models()
+        incompatible = [
+            monitor._ieee_lora_host_inventory(native),
+            monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                requested_adapter_ids=[7]),
+            monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                staged_models={9: SimpleNamespace(id=9, rank=4, loras=models[8].loras)}),
+            {**self.graph(), 'extra_field': 1},
+            {**self.graph(), 'host_staged_adapter_ids': [9]},
+            {**self.graph(), 'host_staged_adapter_ids': ()},
+            {**self.graph(), 'host_footprint_scope': 'native_requested_tensor_storage_capacity'},
+        ]
+        for graph in incompatible:
+            with self.subTest(scope=graph['host_footprint_scope']), self.assertRaises(ValueError):
+                monitor._ieee_clone_registered_host_inventory(graph)
+
+    def test_unknown_nested_mutable_or_custom_schema_is_not_shallow_copied(self):
+        class CustomList(list):
+            pass
+        class CustomInt(int):
+            pass
+        for value in ({'nested': []}, [[]], [dict()], (1,), None, 1.5,
+                      CustomList([1]), CustomInt(1)):
+            graph = self.graph()
+            graph['host_allocations'][0]['unqualified_field'] = value
+            with self.subTest(type=type(value).__name__), self.assertRaises(ValueError):
+                monitor._ieee_clone_registered_host_inventory(graph)
+        for table in ('host_allocations', 'host_adapter_footprints'):
+            for value in ({}, (), [None], [[1]], [{1: []}]):
+                graph = self.graph()
+                graph[table] = value
+                with self.subTest(table=table, value=value), self.assertRaises(ValueError):
+                    monitor._ieee_clone_registered_host_inventory(graph)
+
+
 class NativeHostPhysicalProjection(unittest.TestCase):
     """Actual extension/CPU inventory path; CUDA and native owner are separate fixtures."""
     def setUp(self):
@@ -407,6 +486,23 @@ class NativeHostPhysicalProjection(unittest.TestCase):
 
     def snapshot(self):
         return self.worker.ieee_gpu_reference(operation='source_snapshot')
+
+    def test_independent_copy_is_only_used_for_physical_no_staging_observation(self):
+        clone = monitor._ieee_clone_registered_host_inventory
+        with self.observations(), \
+             patch.object(monitor, '_ieee_clone_registered_host_inventory', wraps=clone) as copied, \
+             patch.object(monitor, '_ieee_lora_host_inventory',
+                          wraps=monitor._ieee_lora_host_inventory) as inventory:
+            self.snapshot()
+            self.assertEqual(copied.call_count, 1)
+            self.assertEqual(inventory.call_count, 1)
+            self.worker.ieee_gpu_reference(operation='routing_source_snapshot')
+            self.assertEqual(copied.call_count, 1)
+            self.assertEqual(inventory.call_count, 2)
+            self.staged[9] = SimpleNamespace(id=9, rank=4, loras=self.models[8].loras)
+            self.snapshot()
+            self.assertEqual(copied.call_count, 1)
+            self.assertEqual(inventory.call_count, 4)  # Registered and combined graphs are both fresh.
 
     def test_physical_snapshot_preserves_graph_allocator_and_independent_returns(self):
         from faaslora.experiment.instance_pool import NativeSourceSnapshot

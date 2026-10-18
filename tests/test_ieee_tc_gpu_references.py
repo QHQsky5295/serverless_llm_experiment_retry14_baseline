@@ -1619,9 +1619,18 @@ class NativeDemandTransactions(unittest.TestCase):
         torch = SimpleNamespace(cuda=SimpleNamespace(device=lambda _: nullcontext(),
             Event=Mock(return_value=event), current_stream=Mock(return_value='native-stream'),
             get_device_properties=Mock(return_value=SimpleNamespace(uuid=SimpleNamespace(bytes=list(range(16)))))))
+        host_graph = dict(host_tensor_storage_bytes=16,
+            host_allocations=[dict(allocated_bytes=16, allocation_id=0, device='cpu',
+                                  pinned=False, adapter_ids=[4])],
+            host_adapter_footprints=[dict(adapter_int_id=4, rank=4, allocation_ids=[0],
+                representation='native_cpu_dense_ab_v1', has_packed_modules=False,
+                storage_bytes=16, exclusive_storage_bytes=16, dtypes=['torch.float16'])],
+            host_footprint_scope='native_registered_tensor_storage_capacity',
+            host_staged_adapter_ids=[], host_allocator_overhead_included=False,
+            host_budget_reserved=False)
         with patch.object(gpu_monitor, 'torch', torch), \
              patch.object(gpu_monitor, '_ieee_lora_pool_inventory') as inventory, \
-             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={'host_tensor_storage_bytes': 16}) as host_inventory, \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value=host_graph) as host_inventory, \
              patch.dict('sys.modules', {
             'vllm': SimpleNamespace(__version__='0.30.0'),
             'vllm.lora.request': SimpleNamespace(LoRARequest=lambda **kw: SimpleNamespace(**kw))}):
@@ -1643,14 +1652,17 @@ class NativeDemandTransactions(unittest.TestCase):
             self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
             self.assertEqual(sources['sources'][0]['content_sha256'], 'a' * 64)
             self.assertIn('clock_id', sources)
-            self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,
-                                                           'slot_capacity_bytes': 32})
+            self.assertEqual(sources['native_footprints'], {**host_graph, 'slot_capacity_bytes': 32})
             host_inventory.assert_called_once_with(self.manager, include_tensor_views=False)
-            self.assertEqual(sources['native_staging_footprints'], {'host_tensor_storage_bytes': 16})
+            self.assertEqual(sources['native_staging_footprints'], host_graph)
             # Reuse is bounded to this serialized observation, never another
             # owner epoch; the two returned payloads retain independent values.
-            host_inventory.return_value = {'host_tensor_storage_bytes': 32,
-                                           'host_allocations': [{'allocated_bytes': 32}]}
+            import copy
+            host_inventory.return_value = copy.deepcopy(host_graph)
+            host_inventory.return_value['host_tensor_storage_bytes'] = 32
+            host_inventory.return_value['host_allocations'][0]['allocated_bytes'] = 32
+            host_inventory.return_value['host_adapter_footprints'][0].update(
+                storage_bytes=32, exclusive_storage_bytes=32)
             fresh = worker.ieee_gpu_reference(operation='source_snapshot')
             self.assertEqual(fresh['native_staging_footprints']['host_tensor_storage_bytes'], 32)
             fresh['native_staging_footprints']['host_allocations'][0]['allocated_bytes'] = 999

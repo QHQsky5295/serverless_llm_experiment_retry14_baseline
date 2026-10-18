@@ -188,6 +188,54 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
     return result
 
 
+def _ieee_clone_registered_host_inventory(inventory: Dict[str, Any]) -> Dict[str, Any]:
+    """Independently copy this observation's registered HOST graph.
+
+    The producer has just validated every live tensor/storage. Its runtime
+    projection contains two record tables and immutable scalar/scalar-list
+    fields, not tensors or arbitrary recursive objects. Copy every mutable
+    container without generic deepcopy dispatch/memo work. This is neither a
+    cached inventory nor a substitute for the producer's physical checks.
+
+    Restrict this operation to the no-staging, no-view projection. Reject new
+    nested structures explicitly rather than silently sharing mutable state.
+    """
+    tables = ('host_allocations', 'host_adapter_footprints')
+    fields = {*tables, 'host_tensor_storage_bytes', 'host_footprint_scope',
+              'host_staged_adapter_ids', 'host_allocator_overhead_included',
+              'host_budget_reserved'}
+    if type(inventory) is not dict or set(inventory) != fields:
+        raise ValueError('registered HOST copy requires the runtime inventory schema')
+    if (inventory['host_footprint_scope'] != 'native_registered_tensor_storage_capacity'
+            or type(inventory['host_staged_adapter_ids']) is not list
+            or inventory['host_staged_adapter_ids']):
+        raise ValueError('registered HOST copy cannot include staging or a requested scope')
+
+    def copy_record(record):
+        if type(record) is not dict:
+            raise ValueError('registered HOST copy requires scalar records')
+        copied = {}
+        for key, value in record.items():
+            if type(key) is not str:
+                raise ValueError('registered HOST copy requires string field names')
+            if type(value) is list:
+                if any(type(item) not in (str, int, bool) for item in value):
+                    raise ValueError('registered HOST copy scalar-list schema changed')
+                copied[key] = value.copy()
+            elif type(value) in (str, int, bool):
+                copied[key] = value
+            else:
+                raise ValueError('registered HOST copy scalar-record schema changed')
+        return copied
+
+    result = copy_record({key: value for key, value in inventory.items() if key not in tables})
+    for key in tables:
+        if type(inventory[key]) is not list:
+            raise ValueError('registered HOST copy requires record-list tables')
+        result[key] = [copy_record(record) for record in inventory[key]]
+    return result
+
+
 def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
     """Account allocator-retained pinned blocks, not just reachable LoRA views.
 
@@ -1573,7 +1621,7 @@ class IEEEWorkerObservationExtension:
                 # This reuse is within one observation, never across calls.
                 result['native_staging_footprints'] = (
                     _ieee_lora_host_inventory(manager, staged_models=staged, include_tensor_views=False)
-                    if staged else copy.deepcopy(host))
+                    if staged else _ieee_clone_registered_host_inventory(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
                 publisher = getattr(self, '_ieee_metadata_publisher', None)
                 if publisher is not None:
