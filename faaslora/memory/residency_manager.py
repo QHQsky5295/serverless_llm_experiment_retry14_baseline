@@ -1760,7 +1760,7 @@ class IEEEBackendGPUReferences:
 
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
                  file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None,
-                 host_activation_storage_witness=None):
+                 host_activation_storage_witness=None, proactive_host_activation_storage_witness=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
@@ -1773,6 +1773,7 @@ class IEEEBackendGPUReferences:
         # transaction may be reused. Every new transaction starts a full walk.
         self.host_allocation_recheck = host_allocation_recheck
         self.host_activation_storage_witness = host_activation_storage_witness
+        self.proactive_host_activation_storage_witness = proactive_host_activation_storage_witness
         self._native_host_tensor_budget = None
         self._native_host_workspace = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
@@ -2663,7 +2664,8 @@ class IEEEBackendGPUReferences:
                          expected_epoch: int, required_source_tier: Optional[str],
                          loader, expected_source_id: Optional[str] = None,
                          expected_content_sha256: Optional[str] = None,
-                         file_source_witness: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                         file_source_witness: Optional[Dict[str, Any]] = None,
+                         proactive_storage_witness=None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -2816,14 +2818,33 @@ class IEEEBackendGPUReferences:
                 return dict(acquired=False, reason='native_host_tensor_budget',
                             allocation=host_check, **self.snapshot())
         host_storage_witness = None
+        storage_witness_callback = None
+        storage_witness_kind = None
         if (host_check is not None and cpu_hit and not gpu_hit and staged is None
                 and required_source_tier == 'host' and expected_source_id is not None
-                and callable(self.host_allocation_recheck)
-                and callable(self.host_activation_storage_witness)
-                and any(self._host_leases[key].get('reference_purpose') == 'demand_preparation'
+                and callable(self.host_allocation_recheck)):
+            if proactive_storage_witness is not None:
+                # Only the private proactive caller supplies this callback,
+                # after CPU victim removal/staged registration. Its worker
+                # closure also checks the exact loader binding and native copy
+                # contract; a boolean or earlier cost-provider graph cannot
+                # authorize reuse. The fresh budget precheck above is the start
+                # of this serialized, CPU-read-only activation transaction.
+                if (proactive_storage_witness is not self.proactive_host_activation_storage_witness
+                        or loader is not self.preparation_loader
+                        or not callable(proactive_storage_witness)):
+                    raise ValueError('unqualified proactive HOST storage witness')
+                def storage_witness_callback(**kwargs):
+                    return proactive_storage_witness(loader=loader, **kwargs)
+                storage_witness_kind = 'same_transaction_proactive_host_activation_v1'
+            elif (callable(self.host_activation_storage_witness)
+                    and any(self._host_leases[key].get('reference_purpose') == 'demand_preparation'
                         and self._host_leases[key].get('expected_source_id') == expected_source_id
                         for key in self._host_references.get(adapter_int_id, ()))):
-            host_storage_witness = self.host_activation_storage_witness(adapter_int_id=adapter_int_id)
+                storage_witness_callback = self.host_activation_storage_witness
+                storage_witness_kind = 'same_transaction_registered_host_activation_v1'
+        if storage_witness_callback is not None:
+            host_storage_witness = storage_witness_callback(adapter_int_id=adapter_int_id)
             if not isinstance(host_storage_witness, dict) or not host_storage_witness:
                 raise ValueError('native HOST activation lacks its storage witness')
         start = time.monotonic()
@@ -2857,9 +2878,10 @@ class IEEEBackendGPUReferences:
                 raise RuntimeError('native demand-load transaction lost its executable slot')
             if host_check is not None:
                 if host_storage_witness is not None:
-                    after_witness = self.host_activation_storage_witness(adapter_int_id=adapter_int_id,
+                    after_witness = storage_witness_callback(adapter_int_id=adapter_int_id,
                         previous=host_storage_witness)
-                    if after_witness != host_storage_witness:
+                    if (after_witness != host_storage_witness
+                            or self._source_incarnations.get(adapter_int_id) != expected_source_id):
                         raise RuntimeError('native HOST activation changed its storage witness')
                 same_transaction = ((gpu_confirmed or host_storage_witness is not None)
                                     and callable(self.host_allocation_recheck))
@@ -2877,7 +2899,7 @@ class IEEEBackendGPUReferences:
                     raise RuntimeError('native demand exceeded its HOST allowance')
                 receipt['host_allocation'] = dict(before=host_check, after=after,
                     after_storage_observation=(
-                        'same_transaction_registered_host_activation_v1' if host_storage_witness is not None
+                        storage_witness_kind if host_storage_witness is not None
                         else 'same_transaction_confirmed_gpu_hit_v1' if same_transaction
                         else 'fresh_inventory'))
         except BaseException:
@@ -3200,6 +3222,9 @@ class IEEEBackendGPUReferences:
                 adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
                 expected_owner_id=self.owner_id, expected_epoch=self.epoch,
                 required_source_tier='host', loader=self.preparation_loader,
+                expected_source_id=(self._source_incarnations.get(adapter_int_id)
+                    if self.proactive_host_activation_storage_witness is not None else None),
+                proactive_storage_witness=self.proactive_host_activation_storage_witness,
                 expected_content_sha256=expected_content_sha256)
             if not receipt['acquired']:
                 self._poisoned = True

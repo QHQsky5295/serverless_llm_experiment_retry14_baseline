@@ -1285,6 +1285,17 @@ class IEEEWorkerObservationExtension:
                     raise RuntimeError('native worker loader replaced during HOST activation')
                 return _ieee_host_activation_storage_witness(native_loader, manager,
                     adapter_int_id, self._ieee_gpu_reference_owner.staged_models(), previous=previous)
+            def proactive_host_activation_storage_witness(*, adapter_int_id, loader, previous=None):
+                # Object identities alone do not prove immutable HOST storage.
+                # Qualify the exact synchronous pitched-copy closure, then the
+                # native non-inplace dense activation path/method bindings.
+                # The precheck already includes any preceding CPU replacement
+                # or staging registration; no such mutation is allowed here.
+                owner = self._ieee_gpu_reference_owner
+                if (loader is not preparation_loader or owner.preparation_loader is not preparation_loader
+                        or owner.demand_loader is not demand_loader):
+                    raise RuntimeError('proactive HOST activation loader binding changed')
+                return host_activation_storage_witness(adapter_int_id=adapter_int_id, previous=previous)
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
                 from vllm.lora.request import LoRARequest
@@ -1325,7 +1336,8 @@ class IEEEWorkerObservationExtension:
                 preparation_loader=preparation_loader, file_host_loader=file_host_loader,
                 host_allocation_check=host_allocation_check,
                 host_allocation_recheck=host_allocation_recheck,
-                host_activation_storage_witness=host_activation_storage_witness)
+                host_activation_storage_witness=host_activation_storage_witness,
+                proactive_host_activation_storage_witness=proactive_host_activation_storage_witness)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

@@ -2,6 +2,7 @@
 
 CPU contract tests; no claim about CUDA correctness or Full replay performance.
 """
+import asyncio
 import copy
 from types import SimpleNamespace
 import unittest
@@ -247,6 +248,192 @@ class HitHostTransaction(unittest.TestCase):
         self.assertEqual(self.witness.call_count, 4)
 
 
+class ProactiveHostTransaction(unittest.TestCase):
+    """D675: private proactive transaction, not an unprotected demand hit."""
+    def setUp(self):
+        self.accounting = HitHostTransaction()
+        self.accounting.setUp()
+        self.addCleanup(self.accounting.doCleanups)
+        self.accounting.warm()
+        self.case = self.accounting.case
+        self.owner = self.case.owner
+        self.case.manager.deactivate(4)
+        self.owner.snapshot()
+        self.owner.preparation_loader = self.case.loader
+        self.witness = Mock(return_value={'kind': 'test-proactive-transaction'})
+        self.owner.proactive_host_activation_storage_witness = self.witness
+        self.accounting.reset_counts()
+
+    def prepare(self, lease='prepare-4', decide=None):
+        before = self.owner.snapshot()
+        return self.owner.proactive_host_prepare_and_acquire(
+            lease_id=lease, adapter_int_id=4, lora_name='adapter-4',
+            lora_path='/existing/adapter-4', expected_owner_id=before['owner_id'],
+            expected_epoch=before['epoch'],
+            capacity_only=False, decide=decide or (lambda *args: dict(admit=True, reason='test-admit')))
+
+    def test_proactive_uses_fresh_precheck_then_rechecks_allocator_and_witness(self):
+        self.assertFalse(self.owner._host_references)
+        loads = len(self.case.loads)
+        result = self.prepare()
+        self.assertTrue(result['acquired'])
+        self.assertEqual(result['host_allocation']['after_storage_observation'],
+                         'same_transaction_proactive_host_activation_v1')
+        self.accounting.full.assert_called_once()
+        self.accounting.recheck.assert_called_once()
+        self.assertEqual(self.accounting.observe.call_count, 2)
+        self.assertEqual(self.witness.call_count, 2)
+        self.assertIs(self.witness.call_args.kwargs['loader'], self.case.loader)
+        self.assertEqual(result['expected_source_id'], self.owner._source_incarnations[4])
+        self.assertEqual(len(self.case.loads), loads + 1)
+        self.assertEqual(self.prepare(), result)  # no work on transport retry
+        self.assertEqual(self.witness.call_count, 2)
+        self.assertIn(4, self.case.manager._active_adapters.pinned_items)
+        self.assertIn(4, self.case.manager._registered_adapters.pinned_items)
+        self.case.release('prepare-4')
+        self.assertEqual(self.owner.snapshot()['live_leases'], 0)
+
+    def test_demand_cannot_use_proactive_callback_even_with_same_loader(self):
+        result = self.case.demand(lease='ordinary', required_source_tier='host',
+            expected_source_id=self.owner._source_incarnations[4])
+        self.assertTrue(result['acquired'])
+        self.witness.assert_not_called()
+        self.accounting.recheck.assert_not_called()
+        self.assertEqual(self.accounting.full.call_count, 2)
+
+    def test_no_qualified_proactive_callback_keeps_full_walks(self):
+        self.owner.proactive_host_activation_storage_witness = None
+        result = self.prepare()
+        self.assertEqual(result['host_allocation']['after_storage_observation'], 'fresh_inventory')
+        self.accounting.recheck.assert_not_called()
+        self.assertEqual(self.accounting.full.call_count, 2)
+
+    def test_no_recheck_keeps_full_walks(self):
+        self.owner.host_allocation_recheck = None
+        self.prepare()
+        self.witness.assert_not_called()
+        self.assertEqual(self.accounting.full.call_count, 2)
+
+    def test_precheck_is_after_policy_not_cost_provider_inventory(self):
+        def decide(*args):
+            self.accounting.rows[0]['allocated_bytes'] = 512
+            return dict(admit=True, reason='test-admit')
+        result = self.prepare(decide=decide)
+        self.assertEqual(result['host_allocation']['before']['before']['accounted_tensor_bytes'], 768)
+        self.assertEqual(result['host_allocation']['after']['before']['accounted_tensor_bytes'], 768)
+
+    def test_each_new_activation_takes_new_graph(self):
+        self.prepare()
+        self.case.release('prepare-4')
+        self.case.manager.deactivate(4)
+        self.accounting.rows[0]['allocated_bytes'] = 512
+        result = self.prepare(lease='prepare-again')
+        self.assertEqual(result['host_allocation']['after']['before']['accounted_tensor_bytes'], 768)
+        self.assertEqual(self.accounting.full.call_count, 2)
+        self.assertEqual(self.accounting.recheck.call_count, 2)
+
+    def test_pre_witness_failure_precedes_copy(self):
+        loads = len(self.case.loads)
+        self.witness.side_effect = RuntimeError('unqualified copy')
+        with self.assertRaisesRegex(RuntimeError, 'unqualified copy'):
+            self.prepare()
+        self.assertEqual(len(self.case.loads), loads)
+        self.accounting.recheck.assert_not_called()
+
+    def test_post_witness_change_invalidates_owner(self):
+        self.witness.side_effect = [self.witness.return_value, {'kind': 'changed'}]
+        with self.assertRaisesRegex(RuntimeError, 'changed its storage witness'):
+            self.prepare()
+        self.accounting.recheck.assert_not_called()
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            self.owner.snapshot()
+
+    def test_post_allocator_growth_still_rejects(self):
+        self.accounting.observe.side_effect = [stats(), stats(2048)]
+        with self.assertRaisesRegex(RuntimeError, 'exceeded its HOST'):
+            self.prepare()
+        self.assertEqual(self.accounting.observe.call_count, 2)
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            self.owner.snapshot()
+
+    def test_copy_failure_invalidates_without_reusing_evidence(self):
+        self.owner.preparation_loader = Mock(side_effect=RuntimeError('copy failed'))
+        with self.assertRaisesRegex(RuntimeError, 'copy failed'):
+            self.prepare()
+        self.accounting.recheck.assert_not_called()
+        with self.assertRaisesRegex(RuntimeError, 'invalidated'):
+            self.owner.snapshot()
+
+
+class RegisteredProactiveHostTransaction(unittest.TestCase):
+    def test_registered_objective_replacement_keeps_exact_victim_and_fallback(self):
+        case = references.NativeObjectiveReplacement()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        owner = case.owner
+        owner.host_allocation_check = Mock(return_value={'admitted': True, 'before': {'fixture': 1}})
+        owner.host_allocation_recheck = Mock(return_value={'admitted': True})
+        owner.proactive_host_activation_storage_witness = Mock(return_value={'kind': 'fixture'})
+        owner.configure_host_budget(expected_owner_id=owner.owner_id, tensor_budget_bytes=1024)
+        epoch = case.epoch()
+        owner.register_preparation_plan(plan_id='registered', objective=epoch,
+            target_adapter_ids=[4], expected_owner_id=owner.owner_id)
+        fallback = case.manager._registered_adapters.cache[3]
+        result = case.prepare(epoch, preparation_plan_id='registered')
+        self.assertTrue(result['acquired'])
+        self.assertEqual(result['replacement']['victim_adapter_ids'], [3])
+        self.assertIs(case.manager._registered_adapters.cache[3], fallback)
+        self.assertEqual(result['host_allocation']['after_storage_observation'],
+                         'same_transaction_proactive_host_activation_v1')
+        owner.release(lease_id='objective-prepare', expected_owner_id=owner.owner_id)
+        owner.close_preparation_plan(plan_id='registered', expected_owner_id=owner.owner_id)
+
+    def test_staged_registration_precedes_fresh_graph_and_readonly_activation(self):
+        from tests import test_ieee_tc_transfer_pressure as pressure
+        # Reuse the fixture's serialized inline planner, not its optional real
+        # process startup. This test concerns storage/reference ownership;
+        # process placement and startup are separate existing qualifications.
+        pressure.setUpModule()
+        self.addCleanup(pressure.tearDownModule)
+        case = pressure.IntegratedNativeHostReplacement()
+        self.addCleanup(case.doCleanups)
+        factory, (fixture, runner, queue, slot, owner, snapshot, loads) = case.make()
+        def graph():
+            return {'registered': tuple(sorted(owner.manager._registered_adapters)),
+                    'staged': tuple(sorted(owner.staged_models()))}
+        def check(**kwargs):
+            return {'admitted': True, 'before': graph()}
+        def recheck(*, before_check, **kwargs):
+            self.assertEqual(before_check['before'], graph())
+            return {'admitted': True}
+        def witness(*, adapter_int_id, loader, previous=None):
+            self.assertIs(loader, owner.preparation_loader)
+            self.assertIn(adapter_int_id, owner.manager._registered_adapters)
+            self.assertNotIn(adapter_int_id, owner.staged_models())
+            current = dict(graph(), source_id=owner._source_incarnations[adapter_int_id])
+            if previous is not None:
+                self.assertEqual(previous, current)
+            return current
+        owner.host_allocation_check = Mock(side_effect=check)
+        owner.host_allocation_recheck = Mock(side_effect=recheck)
+        owner.proactive_host_activation_storage_witness = Mock(side_effect=witness)
+        async def run():
+            try:
+                await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 5)
+                receipts = [a['receipt'] for p in runner._ieee_gpu_preparation_plans for a in p['attempts']]
+                staged = [r for r in receipts if r['transaction_scope'] == 'budgeted_staging_joint_cpu_gpu_commit']
+                self.assertTrue(staged)
+                self.assertTrue(any(r['replacement']['host_victim_adapter_ids'] for r in staged))
+                for row in staged:
+                    self.assertEqual(row['host_allocation']['after_storage_observation'],
+                                     'same_transaction_proactive_host_activation_v1')
+                self.assertGreater(owner.host_allocation_recheck.call_count, 0)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+
 class NativeHostActivationWitness(unittest.TestCase):
     """Native method binding and transaction identity, no CUDA performance claim."""
     def setUp(self):
@@ -349,6 +536,23 @@ class NativeWorkerRecheck(unittest.TestCase):
              patch.object(monitor, '_ieee_lora_host_inventory',
                           wraps=monitor._ieee_lora_host_inventory) as inventory:
             worker.ieee_gpu_reference(operation='snapshot')
+            proactive = factory.call_args.kwargs['proactive_host_activation_storage_witness']
+            owner.preparation_loader = factory.call_args.kwargs['preparation_loader']
+            owner.demand_loader = factory.call_args.kwargs['demand_loader']
+            with patch.object(monitor, '_ieee_host_activation_storage_witness',
+                              return_value={'kind': 'native-fixture'}) as witness:
+                saved = proactive(adapter_int_id=4, loader=owner.preparation_loader)
+                self.assertEqual(proactive(adapter_int_id=4, loader=owner.preparation_loader,
+                                           previous=saved), saved)
+                self.assertEqual(witness.call_count, 2)
+                with self.assertRaisesRegex(RuntimeError, 'loader binding changed'):
+                    proactive(adapter_int_id=4, loader=Mock())
+                original = owner.preparation_loader
+                owner.preparation_loader = Mock()
+                with self.assertRaisesRegex(RuntimeError, 'loader binding changed'):
+                    proactive(adapter_int_id=4, loader=owner.preparation_loader)
+                owner.preparation_loader = original
+                self.assertEqual(witness.call_count, 2)
             full = factory.call_args.kwargs['host_allocation_check']
             recheck = factory.call_args.kwargs['host_allocation_recheck']
             before = full(lora_path=None, reuse=True, tensor_budget_bytes=2048)

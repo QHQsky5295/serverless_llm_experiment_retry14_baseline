@@ -1,6 +1,33 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D675：主动HOST事务候选已实现，资格通过，尚无GPU性能结果 — 2026-10-18
+
+PROGRESS。完整PLAN/六补充承接当前执行；实现D674唯一候选：只在已完成HOST
+注册/替换后的同一同步主动激活中复用预算前存储图，仍新读allocator/workspace，
+检查实际loader闭包、原生方法/复制合同和source incarnation。最早cost-provider
+图不复用；九公式、决策、配置、SLO不改。详情D675_PROACTIVE_HOST_TRANSACTION.md。
+
+旧CPU环境692项通过，实际vLLM0.30最终33项通过。首次fixture误带plan_id、
+旧环境3项模块缺失，以及跨模块fixture遗漏setup造成的两次planner启动超时
+均保留；只修正测试调用/完整setup，不提高超时或改生产planner。五域已精确
+身份递归空关闭，high/max/OOM/kill/swap0。21763/62704/84216/36272/59427
+均已终态，不再wait；没有GPU或远端实验服务。147旧保护和3用户SHA通过。
+
+正在执行显式路径备份，未声称已推送。最新完整3B仍D672联合91.175%，
+U14931.314879785059，差153条达标、数值证明unknown。下一先复用D664/D659
+的100请求原生GPU smoke，核对新增主动回执，再一次新版本4000请求W0；
+尚未创建下一campaign或启动GPU。不能将本次正确性检查称为新增性能结果。
+非项目k3s/既有HydraServe不动。3B后续/基线/dLoRA、同版本7B、A1–A5/
+S1–S13、成本/CE、审稿与图表完整ACTIVE；不在此处重做D674或宽泛profiling。
+
 ## D674：主动HOST准备重复清点已定位，生产尚未改动 — 2026-10-18
+
+备份完成：5个明确路径推送b0150348462c7811e3a572aae0df237d99f125bc，
+远端一致；34389 exit0，publication2域递归空关闭、peak28921856B、事件/swap0，
+不再wait。BASE仍e16af33a，147旧保护和3用户SHA通过；无GPU计算进程，
+磁盘free164649914368B。晚发布/关闭回执与本段随下一正常检查点保存。
+下文“准备备份”已由此成功回执取代。下一是唯一主动HOST postcheck候选的
+实现/定向正确性验证；尚无D675，不再重做本审计或宽泛profiling。
 
 PROGRESS。完整PLAN、六补充及V1/V2已重读；复用D668既存CSV/统计函数，
 无新GPU或profiling。1425次ieee_prepare_host中982次有3次清点；942次
