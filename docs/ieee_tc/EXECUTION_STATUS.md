@@ -1,6 +1,121 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D677完成：平均时延下降，联合SLO/资源未改善 — 2026-10-18 13:54 CST
+
+PROGRESS。唯一tc-d677-3b-w0终态；launch/service/watchdog通过、4000原生合同
+完整、458224tokens。3628/4000=90.700%，相对D672少19条/−0.475百分点；
+平均TTFT844.659ms(降3.335%)、P952188.599ms(降1.449%)，GPU-s15894.960797
+(增6.454%)。缺172条达到冻结3800门槛，不封为最优，不以平均改善替代G1/G2。
+新主动HOST事务3460，远端132次/306360162字节与D672一致，packing0。
+完整细节见D677_3B_FULL_W0.md；n_correct=null/排名false不升级。
+
+13:51 service真实释放，local_cleanup通过且aux关闭；97273远端停止exit0，
+三个owned服务inactive。管理...0004域InvocationID1731bba519104855814507ff1797d2f4，
+populated0/事件0已再次核验并停止，path消失。20326collector/analyzer exit0，
+analysis...0005域5fc9a92797794640bf302b67a3e976a4递归空关闭，peak882479104B，
+事件/swap0。不再wait以上会话。服务4055样本、peak24237522944B、事件/swap0。
+audit SHA f05af02c00646b113528718420915b9d62167538f1eb240f1ddbed5ebf62357c，
+原始结果d8074668058863c57e157e66f53e9dbf557c90ecc09f5629918326d85034f611。
+
+已准备D677独立completion封存适配，复用D660并加入主动事务、D672对照及
+新文献说明；仅check-only通过，尚未执行备份，不声称已推送。初次文书适配
+TypeError已记录并修复，不影响性能运行。接下来封存备份，再用既有数据
+核查实际扩容时序和违约集合，解释资源增量；未启动新GPU运行或重跑同键。
+3B后续/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、审稿与图表仍ACTIVE。
+
+## D677继续及GPU资源指标文献核查 — 2026-10-18 13:44 CST
+
+VERIFIED WAIT；用户新增指标问题不是取消实验。上下文恢复后完整读取PLAN、
+六补充、V1/V2及research-lookup/monitor-experiment。PLAN/V1/V2 SHA仍分别
+d7acd081…/5f0732ef…/193bf153…，未修改。13:43:52同一pane1927642/dead0，
+终态journal3736条，sample3624：available92930236416B、peak24002887680B、
+disk159593865216B；high/max/OOM/kill/swap0，无warning/abort。未终态、未重启。
+此前只读观察functions5757因接收问题已停止，不是GPU运行停止，不再wait它。
+
+新增解释性文献记录GPU_RESOURCE_METRIC_PRECEDENTS_20261018.md：FaaScale
+MLSys2026§7.4/Fig.10直接使用累计GPU时间；Llumnix平均实例数、DistServe
+SLO约束每GPU容量、HydraServe显存时间、ServerlessLLM资源–时延曲线分别
+列出且不混称。ServerlessLoRA公开稿确有CE公式先例，但不恢复CE主排名。
+不改变冻结尺子或新增baseline；原文核查采用网页工具（Parallel未认证）。
+仅新增小文档及状态，不扫描/压缩/推送或分析正在运行的数据。后续仍观察
+同一D677，真实释放后close_launch→stop_remote→受限run_analysis→封存备份。
+三个分析helper已准备但尚未执行；新文献说明随安全检查点备份。完整3B最新
+结果仍D672联合91.175%；其余场景/基线/dLoRA、同版本7B、A1–A5/S1–S13、
+成本/CE、审稿文档和最终图表全部ACTIVE。
+
+## D677持续观察：已过三分之二，尚未终态 — 2026-10-18 13:25 CST
+
+VERIFIED WAIT，非阻塞。承接同一未压缩上下文/同一实验任务，核对PLAN SHA
+仍d7acd081…，重读当前状态与monitor-experiment。13:00读回service/aux均active，
+InvocationID与启动一致；此后连续低扰动观察，同一pane1927642/dead0。
+13:24:57终态journal2764条，sample2504：available93268688896B、
+peak22721839104B、disk160514854912B，high/max/OOM/kill/swap0、无warning/abort。
+无launch.json，不再次启动；磁盘低于新任务150GiB启动线不等于运行100GiB停止线。
+functions观察5754/5755均正常完成，不再wait它们；GPU实验仍未结束。
+未改源码、配置、远端或统计口径；未扫描/压缩/推送/分析，未新增GPU运行。
+此前已准备的三个D677分析helper仅语法通过，必须真实释放并停止owned远端后
+执行。下一继续观察同一回放；结束按既有close_launch/stop_remote/run_analysis
+及封存顺序。完整3B最新结果仍D672，所有后续场景/基线/消融/敏感性保持ACTIVE。
+
+## D677继续：全量回放及收尾分析准备 — 2026-10-18 12:59 CST
+
+上一轮VERIFIED WAIT，本轮仍为同一运行的VERIFIED WAIT；无新GPU实验或生产改动。
+承接未压缩上下文中已完整读取的PLAN/六补充，本轮核对PLAN SHA仍d7acd081…，
+读取当前状态及monitor-experiment。12:59:44同一pane1927642/dead0，service/aux
+仍active、InvocationID与启动一致。终态journal865条，最近live
+arrived865/done864/ok864/fail0；不是完整正确性/SLO结论。sample1012：available
+93938962432B、peak20475858944B、disk162281836544B，high/max/OOM/kill/swap0，
+无warning/abort。无launch.json；functions只读观察cell5750已结束，不再wait它，
+这不表示GPU实验结束。不得再次执行start.py或启动下一个性能点。
+
+在raw d677中新建了尚未执行的analyze.py、collect_closure.py、run_analysis.py：
+逐字复用D665完整4000校验/collector及D676主动事务核查，仅运行身份变化；
+不要求制造额外D663触发，仍逐条验证所有已有请求侧证据，新主动触发必须>0。
+保留原生计数/绑定/计时、8×500分段、D648 SLO、实际GPU积分与远端关联检查。
+三文件仅AST语法通过，未读取/分析当前全量outcome，未修改运行中的脚本。
+SHA分别992350f38f65b84cae8d0dd7174d88c777f2892528dd73581564dbe1a1f72019、
+9d213af54f4f20968ae6c7a33d85b5b17b1c021ef0018c3ea14cf4f990ed17c4、
+b1e656c2390d956a63d456d88b89d86593671aea182efc0a23db65aacb0c1512。
+收尾仍为真实终态/释放→close_launch→stop_remote→受限run_analysis→封存备份；
+没有提前分析、推送、扫描压缩或图表工作。3B最新完整结果仍D672联合91.175%，
+其余3B场景/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、审稿和图表全部ACTIVE。
+
+## D677继续：同一完整回放正常推进 — 2026-10-18 12:51 CST
+
+上一轮为PROGRESS（D676封存、D677资格/备份/唯一启动）；本轮VERIFIED WAIT。
+完整PLAN、六补充和monitor-experiment已重读。12:44–12:51只作低扰动观察，
+functions观察cell5744已正常结束，不是实验结束，不再wait该观察cell。
+12:51:20同一tmux pane1927642/dead0；service/aux ActiveState=active，
+InvocationID仍分别9074a4a4812d4db6b82bb4409ba3d08c和70ecb55e5ead4770834e3a5d80b8d9d8。
+终态journal389条，最近live为arrived391/done387/ok387/fail0；只是过程计数。
+watchdog sample514：available94105911296B、service peak20475858944B，
+high/max/OOM/kill/swap0、disk162857816064B、无warning/abort。尚无launch.json。
+未改源码/配置/远端、未启动第二轮或做扫描压缩。仅只读核对D672的三个复用
+分析入口，尚未生成/运行D677分析helper。下一仍观察同一运行；真实终态后
+close_launch→stop_remote→完整collector/analyzer（加D676主动事务审计）→备份。
+在线5000ms/CE显示不用于最终判优；完整3B最新仍D672的91.175%，G1/G2未闭口。
+3B后续/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、审稿与图表均ACTIVE。
+
 ## D677准备：进入同候选完整4000请求验证 — 2026-10-18
+
+12:42 CST已唯一启动tc-d677-3b-w0，pane1927642/dead0。service为
+primelora-tc-svc-7c4ad21fd7354eeda6f56fdd2076b831.scope，InvocationID
+9074a4a4812d4db6b82bb4409ba3d08c、inode27442604；aux为
+primelora-tc-aux-3610a8f377b1455a90472b246274463b.scope，InvocationID
+70ecb55e5ead4770834e3a5d80b8d9d8、inode27442562。实际身份见exec_receipt。
+qualification67975exit0（peak602112000B）；backup16579exit0、8路径推送
+cdb1211b75b9667c666d2c383be2b245cc6737b4远端一致（peak29110272B）；
+start21104exit0（peak27996160B）。三管理域递归空关闭、事件/swap0，均不再wait。
+远端1000Mbps/full，3B clock remote-process-monotonic:2cc46ae6bb0f4f069f8320bedb6f45b8；
+prepublished_gzip_v1、请求中不打包。sample11可用内存111340863488B、disk
+164586885120B、事件/swap0、无warning/abort。仅启动观察，尚无性能结论。
+本轮PROGRESS→VERIFIED WAIT；只观察同一次运行，不再次执行start.py。
+12:43:43复查同一pane仍1927642/dead0；sample64服务峰值13081006080B，
+MemAvailable104431157248B、disk164585865216B、事件/swap0，无warning/abort。
+replay已创建并提交req_00000，无launch.json终态；继续同一运行的低扰动观察。
+终态后复用close_launch.py→stop_remote.sh，再适配D672完整collector/analyzer
+并加入D676主动事务检查；目前尚未生成本轮分析helper。不扫描/压缩/推送。
+下文“尚未启动”为预启动历史；后续仍全部ACTIVE，不用短前缀结果关闭目标。
 
 D676完成备份a3d1d455d6023d4dc3f66209b8698c380331053f，6路径远端一致，
 36186exit0、publication递归空关闭，peak28807168B、事件/swap0，不再wait。
