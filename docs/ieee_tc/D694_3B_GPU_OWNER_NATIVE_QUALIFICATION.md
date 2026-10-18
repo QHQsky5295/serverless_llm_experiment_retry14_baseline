@@ -35,10 +35,51 @@ main_outcome无损gzip归档，双重解压SHA一致，释放25,640,960B；原SH
 
 ## 结果与下一步
 
-当前为启动前准备，尚无本轮原生结果。原始记录位于
+本轮100请求原生资格已通过。原始记录位于
 `results/ieee_tc/p2_backend_qualification/d694_20261018/`，小型证据位于
 `paper_results/ieee_tc/p2_backend/d694_3b_full_smoke100/`。
-100请求仅判定集成资格，不排名、不外推4000请求SLO或GPU-s；通过后登记
+100请求仅判定集成资格，不排名、不外推4000请求SLO或GPU-s；下一登记
 一次完整3B W0新执行键，不追加1000请求前缀、不重跑同键选择胜者。
 当前3B仍未达到共同95%联合SLO，其余W1/W2/G2、基线、消融、敏感性和交付
 完整保留；本轮不画图，也不修改论文。
+
+### 本轮结果
+
+| 检查/观测 | 结果 |
+|---|---:|
+| 请求及原生生成合同 | 100/100，17,369 tokens |
+| 原生owner / GPU准备尝试 | 4 / 162 |
+| 同owner最终GPU动作重叠 | 0 |
+| 最终movement状态 | 268 completed，无活动订阅 |
+| GPU准备获取 / 延后 | 153 / 9 |
+| HOST→GPU租约转移核验 | 19/19 |
+| dispatch tier完整性 | 100/100：GPU49、HOST19、NVMe3、Remote29 |
+| 冻结共同联合SLO | 97/100；TTFT97，TPOT100 |
+| 平均 / P95 TTFT | 654.713 / 1603.218 ms |
+| 平均 / P95 TPOT | 13.942 / 17.139 ms |
+| 平均E2E | 3116.397 ms |
+| 物理生命周期GPU-s | 793.585321 |
+| 真实远端传输 | 29次，67,350,156 wire bytes，0次请求打包 |
+| activation类别 | initial1、natural_scaleout3 |
+| 服务内存峰值 | 20,739,088,384 B |
+| high/max/OOM/OOMkill/服务swap | 全0 |
+| E2E分解最大误差 | 0 ms |
+
+重叠检查来自已保留的`coordination_after_shutdown.ieee_movements`中完整
+started_at/finished_at区间，不新增在线探针、不将ready时间代替动作时间。
+确认执行互斥，并不证明全部快照过期已消除，更不是完整性能收益。
+
+启动时远端实际链路1000Mbit/s/full，部署后无额外远端调整。launch与watchdog
+均exit0；全部本机服务和辅助进程实际释放，本项目远端两服务及监控已停止。
+日志中的`engine_dead`目录名来自启用KEEP_DEDICATED_WORKER_LOGS的收尾保留
+分支，不单凭目录名推断请求失败；原始日志保留，launch/cleanup及生成审计通过。
+旧InfraGPU/折扣成本显示不作为本轮物理积分：采用真实allocation/release的
+793.585321 GPU-s；各互斥时间窗求和一致。
+
+首次离线分析误用旧环境，因缺少ijson在导入处失败；收集已成功。保留失败
+analysis1.log和回执，仅切换既有vLLM0.30.0环境对同一原始结果离线审计，
+不重跑GPU。最终分析通过，实际峰值139,182,080B，事件/swap0；各scope均
+递归空关闭。独立数值资格仍未知，n_correct=null，不进入G1/G2排名。
+
+启动前9路径已推送45f4a3d07044e5bafc39d563d899fb31291308c5；本节与完成证据
+随后以独立checkpoint发布，不覆盖启动前manifest或D681历史数字。

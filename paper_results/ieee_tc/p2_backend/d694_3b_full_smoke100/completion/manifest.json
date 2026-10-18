@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "kind": "d694_3b_gpu_owner_dispatch_prefix100_seal_v1",
+  "source_audit_sha256": "0efd570c73ae3ddfa9e8befeb5f9dc8ba9c16ed5af9b0315daf60dd3d4f09b3b",
+  "source_commit": "45f4a3d07044e5bafc39d563d899fb31291308c5",
+  "performance_runs": 1,
+  "complete4000": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 100,
+  "joint_slo_count": 97,
+  "host_lease_transfer": {
+    "passed": true,
+    "count": 19,
+    "request_ids": [
+      "req_00045",
+      "req_00047",
+      "req_00050",
+      "req_00052",
+      "req_00055",
+      "req_00070",
+      "req_00071",
+      "req_00075",
+      "req_00076",
+      "req_00078",
+      "req_00080",
+      "req_00083",
+      "req_00085",
+      "req_00088",
+      "req_00089",
+      "req_00092",
+      "req_00095",
+      "req_00097",
+      "req_00099"
+    ],
+    "source_tiers": {
+      "host": 19
+    },
+    "same_owner_ack_verified": true
+  },
+  "gpu_owner_dispatch": {
+    "passed": true,
+    "owners": 4,
+    "attempts": 162,
+    "attempts_by_owner": {
+      "649ca4baedaf427cbd272e9982313b95": 46,
+      "b3d43952993f447380f71a6638bed546": 44,
+      "7cb94b936c6f4b7caeb5e7871aa316da": 41,
+      "d5527099c2854205a6d7e035de1d0e09": 31
+    },
+    "same_owner_gpu_action_overlaps": 0,
+    "movement_states": {
+      "completed": 268
+    },
+    "source": "coordination_after_shutdown.ieee_movements; full attempt intervals",
+    "no_online_measurement_change": true
+  },
+  "immutable_prelaunch_manifest_sha256": "596042d5dc3781bcc30b6003c62d3b1a6809fcece63f531ab28820bbcdf0ca81",
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "0efd570c73ae3ddfa9e8befeb5f9dc8ba9c16ed5af9b0315daf60dd3d4f09b3b"
+  },
+  "next_action": "Same measured 3B Full configuration complete W0; prefix is not G1/G2 qualification."
+}
