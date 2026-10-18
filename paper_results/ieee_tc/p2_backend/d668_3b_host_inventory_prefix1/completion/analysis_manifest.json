@@ -1,0 +1,24 @@
+{
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/analyze2.py": "50587f588b09b1d40c4873311eeab1fa08c7e907a55a7851f72e81a16866c3cf",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/analyze.py": "0663768088159d5a0313e0bbfde19932957e2dddc7878fdaafe01a77d6899b18",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/collect_closure.py": "40a5024784f71c65e7dfe5c76a46a456566df7268bf3afbc713eef9a5900b1fc",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/postrelease.py": "33c6a7027cbd8436a598358b283087d258a2a510b2145ae97cb08e8844129148",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/postrelease2.py": "f461f047fe31879e78e78254efc39d872adc8334e7ec9e56640422c6811ff4e9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_timing_analysis.py": "686823797997e595ce783c6a88d027bfcfe3028a7b228e53beefaeaf9dd05e26",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "outputs": {
+    "completion.json": "a50cb5c46ca73cfd217f0eae8f01f597d1cf65223735604fdb6de1741dd3c1f7",
+    "core_timing/boundaries.csv": "0efbf752aa10fc2410e44f391933c4039978f7636725f00e4b45ab9e382cac7e",
+    "core_timing/decode_windows.csv": "a28c2fa2270838b69122930f58e0a29252f8a45c7d5db775910fe7c58f36f2b3",
+    "core_timing/groups.csv": "6c8fa8610afa6aff12324e8695a025bfa5665da2a9770e0e0000d30a5a0d6b3e",
+    "core_timing/host_inventory.csv": "7704f5e8e0bc11bb87423a87d2d8fffa424349a85c25df58448f6ba55d9ee902",
+    "core_timing/processes.csv": "70778dd8409fbbad7bac765be3e49d59dc9bcee18e0f82d72a21ba412a79a3d0",
+    "core_timing/summary.json": "9d865d78e610d8550b34d9c22a166e82cd73122801e3aed1e912ac1e50763e09",
+    "native_audit.json": "bc18330ad561de914a3a40ea8b454ac42a7593e0ba9159ae7cb2897624023b77"
+  }
+}

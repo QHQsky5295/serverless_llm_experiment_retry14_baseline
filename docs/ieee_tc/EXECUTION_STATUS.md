@@ -1,5 +1,70 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D668完成：3B HOST清点是实测CPU热点，未宣称整体达标 — 2026-10-18
+
+本轮PROGRESS；此前唯一tmux已终态，不能再启动/等待原运行。1000/1000原生
+绑定、生成与计时通过，122510tokens；联合901、TTFT949、TPOT945，U4369.905970
+GPU-s，仅带仪器前缀诊断。n_correct=null/正式排名false，不能外推4000条。
+4/4核心、287670spans和1000decode窗口完整，无截断。9233次库存清点平均
+69.830ms/P95100.034ms，CPU/wall99.21%；7096次allocator查询平均0.0719ms。
+49条短输出TPOT违约窗口均值538.305ms，与清点交叠216.372ms；不是可直接
+删除的延迟或因果改善。详细嵌套归因与观测开销见D668文档及completion表。
+
+actual service/aux GPU释放及递归空关闭；远端三owned服务inactive；服务峰值
+20587184128B、high/max/OOM/kill/swap0。分析183项中旧环境缺ijson造成2项
+导入失败，仅这2项在既有原生环境复查通过；第一份失败保留。core分析旧helper
+假定3B有group_id导致一次中止，native audit已保存；仅恢复未完分析，不改
+阈值、不重跑GPU、不覆盖结果。所有analysis/postrelease/operations域已关闭，
+33714/53298失败及50458成功会话均终态，不再wait。无活动GPU或远端服务。
+
+现先显式备份本轮分析脚本/测试/文档/小型数据。147旧保护与三项用户修改未变。
+推理磁盘最新可用164358561792B（约153.1GiB），新重型任务前须完成存储审计/
+可证安全回收与重新准入，尚未声称本轮释放磁盘。下一只选一个有证据的HOST
+新鲜清点优化：先核查历史及官方原始实现，不用跨请求身份缓存绕过物理图，
+不复活D333/D595/D628失败路径、不调尺子。当前未改生产策略或选择新候选。
+D665完整3B联合88.75%仍未闭口；3B W1/W2/基线/dLoRA、同版本7B、A1–A5/
+S1–S13、成本/CE、审稿文档和图表全部ACTIVE。非项目k3s及已完成HydraServe
+适配不动；主线仍是共同服务要求下优化PrimeLoRA，而非再做基线调参。
+
+## D668已启动：同配置3B W0前1000条定位测量进行中，禁止重启 — 2026-10-18
+
+本轮PROGRESS后进入VERIFIED WAIT。9个明确路径已提交并推送
+e760eadb040c74f284fa345859db7bd482d0a138，远端一致；BASE仍
+e16af33aaf41f02a62ecdce59f6f3227813244c3。原生/旧资格均通过且SHA绑定，
+13775备份、9487启动辅助exit0并递归空关闭，不再wait；各peak28905472/
+28106752B，high/max/OOM/kill/swap0。17089资格同样已关闭。
+唯一运行tmux tc-d668-3b-w0-prefix1，09:31 CST实际启动，RAW为
+results/ieee_tc/p2_backend_qualification/d668_20261018/3b_full_w0_prefix1。
+服务scope primelora-tc-svc-3277d54fb0e74d33b39f7d73fd8343a9.scope，
+InvocationID8cce9032f28c460eaa038ea68db29725，inode27350444；外置
+primelora-tc-aux-25c4b7aabba2404ebdbbae7c59662f88.scope。
+远端3B/7B与本轮monitor均active，当前1000Mbps/full，已发布缓存不变。
+原生core PID1477753/start_ticks179434354已实际写出fresh_inventory_v1
+header及host_inventory span；formal_performance_result=false、嵌套不可加。
+watchdog sample101：host available92572069888B，无warning/abort；此前
+事件high/max/OOM/kill均0。已开始处理请求，尚无完整结果或新性能结论。
+
+下一仅低扰动观察同一tmux至真实终态，不改源码/配置，不构建、哈希扫描、
+压缩、清理、推送或第二GPU任务。完成后按已封存close_launch.py→
+stop_remote.sh清理自己的资源；/usr/bin/python3用于精确关闭。收尾分析在
+新completion子目录，不能覆盖prelaunch/result.sha256；复用D665 collector/
+D351 core-span analyzer，补整函数HOST库存与父操作的嵌套归因，分析本轮
+实际时间而非RPC等待猜测。尚未创建分析helper，不误称已完成分析。
+终态之前不得重启或因观察超时判失败。下一仍3B W0优化，其他3B/基线/
+dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/图表完整ACTIVE。
+此启动状态是晚追加文档，下一正常检查点备份，不在当前测量中推送。
+
+09:36 CST续查为VERIFIED WAIT：tmux pane1476038仍live（pane_dead=0），
+同一运行已到达168/1000、完成161、失败0；watchdog sample333，host
+available94067539968B，servicepeak20218249216B，high/max/OOM/kill/swap0，
+无warning/abort。四个core观测文件持续写入，当前各3.4–8.3MB，未作全量扫描。
+磁盘最近轻量检查可用163579969536B；未运行清理/压缩/推送/另一实验。
+完整PLAN与当前状态重读。只读复核发现旧core analyzer仅接受四个基础边界，
+收尾时须在现有分析器中显式支持host_inventory/host_allocator_stats的嵌套
+身份、包含关系与独立计数；不能将新span直接加进原互斥时间分解、不能静默
+丢弃它们或修改原始footer冒充旧schema。尚未编辑/执行分析代码；等同一运行
+终态后按上面的真实释放和分析顺序推进，不能据观察超时/中间值重启。
+
 ## D668准备：3B HOST清点单次诊断入口已通过，尚未启动GPU — 2026-10-18
 
 本轮PROGRESS。延续D665完整3B W0未达标的问题，仅增加D667默认关闭的

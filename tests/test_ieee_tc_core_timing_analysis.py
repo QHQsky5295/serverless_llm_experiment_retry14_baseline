@@ -22,6 +22,110 @@ def events():
              unfinished_span_ids=[],observer_ns=1,write_ns=1,bytes_before_close=0)]
 
 
+class NativeHostInventoryAnalysis(unittest.TestCase):
+    @staticmethod
+    def fixture():
+        rows=events()
+        inventory=copy.deepcopy(rows[0])
+        inventory.update(id=3,parent=2,boundary='host_inventory',begin_ns=3,end_ns=4,
+            thread_cpu_begin_ns=1,thread_cpu_end_ns=2,details=dict(
+                scope='native_registered_tensor_storage_capacity',allocation_count=2,
+                adapter_count=1,host_tensor_storage_bytes=64))
+        allocator=copy.deepcopy(inventory)
+        allocator.update(id=4,boundary='host_allocator_stats',begin_ns=4,end_ns=5,
+            thread_cpu_begin_ns=2,thread_cpu_end_ns=2,details={})
+        rows[2].update(id=6,parent=5);rows[3]['id']=5
+        rows[-1]['completed_spans']=6
+        return [inventory,allocator]+rows
+
+    def test_exact_nested_counts_and_original_partition_unchanged(self):
+        rows=self.fixture();before=copy.deepcopy(rows)
+        with self.assertRaises(ValueError):summarize_core_host_spans(rows)
+        value=summarize_core_host_spans(rows,host_inventory=True,include_iterations=True,
+                                         include_input_turns=True)
+        original=summarize_core_host_spans(events())
+        self.assertEqual(rows,before)
+        self.assertEqual(value['spans'],6)
+        self.assertTrue(value['complete'])
+        for key in ('client','input_nonclient','input_queue','step'):
+            self.assertEqual(value['index'][key],original['index'][key])
+        self.assertEqual(value['index']['host_inventory']['total_ns'],1)
+        self.assertEqual(value['index']['host_allocator_stats']['total_ns'],1)
+        self.assertEqual(value['host_inventory_records'][0]['allocation_count'],2)
+        self.assertEqual(value['host_inventory_records'][0]['root'],1)
+        self.assertEqual(value['iterations']['records'][0]['step_ns'],20)
+        self.assertEqual(value['input_turns']['records'][0]['client_count'],1)
+
+    def test_direct_root_inventory_does_not_subtract_input_nonclient(self):
+        rows=events()
+        rows[0].update(boundary='host_inventory',details=self.fixture()[0]['details'])
+        value=summarize_core_host_spans(rows,host_inventory=True)
+        self.assertEqual(value['index']['input_nonclient']['total_ns'],10)
+        self.assertNotIn('client',value['index'])
+        self.assertEqual(value['host_inventory_records'][0]['label'],'input_queue')
+
+    def test_scope_fields_times_and_parent_contract_rejected(self):
+        changes=[lambda r:r[0]['details'].update(scope='other'),
+            lambda r:r[0]['details'].update(adapter_count=True),
+            lambda r:r[0]['details'].update(host_tensor_storage_bytes=-1),
+            lambda r:r[0]['details'].update(pointer=123),
+            lambda r:r[1]['details'].update(count=1),
+            lambda r:r[0].update(parent=None),
+            lambda r:r[1].update(parent=3),
+            lambda r:r[0].update(begin_ns=1),
+            lambda r:r[1].update(begin_ns=3),
+            lambda r:r[-1].update(completed_spans=4)]
+        for change in changes:
+            with self.subTest(change=change):
+                rows=self.fixture();change(rows)
+                with self.assertRaises(ValueError):summarize_core_host_spans(rows,host_inventory=True)
+
+    def test_requested_raised_and_partial_are_not_invented_full_scope(self):
+        rows=self.fixture()
+        rows[0]['details'].update(scope='native_requested_tensor_storage_capacity',
+                                  requested_host_storage_bytes=64)
+        rows[0]['details'].pop('host_tensor_storage_bytes')
+        value=summarize_core_host_spans(rows,host_inventory=True)
+        self.assertEqual(value['host_inventory_records'][0]['storage_bytes'],64)
+        self.assertEqual(value['host_inventory_records'][0]['scope'],
+                         'native_requested_tensor_storage_capacity')
+        rows[0].update(outcome='raised',details={})
+        value=summarize_core_host_spans(rows[:-1],host_inventory=True)
+        self.assertFalse(value['complete'])
+        self.assertEqual(value['host_inventory_records'][0]['scope'],'raised')
+        self.assertIsNone(value['host_inventory_records'][0]['storage_bytes'])
+        orphan=summarize_core_host_spans(rows[:1],host_inventory=True)
+        self.assertEqual(orphan['orphan_span_ids'],[3])
+        self.assertIsNone(orphan['host_inventory_records'][0]['root'])
+
+    def test_file_header_and_decode_subsets_do_not_double_count(self):
+        import csv
+        for flag in ('fresh_inventory_v1','unknown',None):
+            with self.subTest(flag=flag),tempfile.TemporaryDirectory() as tmp:
+                args=NativeCoreAnalysis().write_fixture(Path(tmp))
+                header=json.loads(args[5].read_text().splitlines()[0])
+                header.update(host_inventory_timing=flag,thread_ident=42,
+                    nested_spans_not_additive=True,
+                    inventory_scope='owner_thread_calls_inside_observed_core_spans',
+                    inventory_timing='whole_function_no_per_tensor_instrumentation')
+                args[5].write_text(''.join(json.dumps(r)+'\n' for r in [header]+self.fixture()))
+                if flag != 'fresh_inventory_v1':
+                    with self.assertRaises(ValueError):analyze_core_host_timing(*args[:5])
+                    self.assertFalse(args[4].exists())
+                    continue
+                result=analyze_core_host_timing(*args[:5])
+                self.assertEqual(result['host_inventory_observations'],2)
+                self.assertEqual(result['complete_request_observations'],1)
+                with (args[4]/'decode_windows.csv').open() as f:row,=csv.DictReader(f)
+                self.assertAlmostEqual(float(row['host_allocator_stats_ms']),.000001)
+                self.assertEqual(float(row['host_inventory_ms']),0)
+                self.assertAlmostEqual(sum(float(row[k]) for k in
+                    ('client_ms','input_nonclient_ms','step_ms','other_or_unobserved_ms')),
+                    float(row['decode_ms']))
+                with (args[4]/'host_inventory.csv').open() as f:
+                    self.assertEqual(len(list(csv.DictReader(f))),2)
+
+
 class NativeStepComponentAnalysis(unittest.TestCase):
     def test_explicit_partial_keeps_true_roots_without_inventing_footer(self):
         from scripts.analyze_control_path_overhead import summarize_core_step_components

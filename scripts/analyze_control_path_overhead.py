@@ -1054,13 +1054,19 @@ def analyze_control_boundaries(directory: Path, receipt_path: Path,
     return result
 
 
-def summarize_core_host_spans(events, *, include_input_turns=False, include_iterations=False):
+def summarize_core_host_spans(events, *, include_input_turns=False, include_iterations=False,
+                              host_inventory=False):
     """Validate one completed diagnostic stream; host spans are not GPU time.
 
     Missing close/truncated tails remain explicitly incomplete. Disjoint root
     spans partition time; client is a subset of input, schedule a subset of step.
     The returned interval index supports clipping to existing decode windows.
     """
+    if type(host_inventory) is not bool:
+        raise ValueError('explicit HOST inventory analysis contract required')
+    inventory_names = ('host_inventory', 'host_allocator_stats')
+    base_names = ('input_queue', 'client', 'step', 'schedule')
+    allowed_names = base_names + inventory_names if host_inventory else base_names
     rows, close, limit = {}, None, None
     previous_end = 0
     fields = {'event','id','parent','boundary','begin_ns','end_ns',
@@ -1082,7 +1088,7 @@ def summarize_core_host_spans(events, *, include_input_turns=False, include_iter
         identity, parent = row['id'], row['parent']
         if (type(identity) is not int or identity <= 0 or identity in rows
                 or (parent is not None and (type(parent) is not int or not 0 < parent < identity))
-                or row['boundary'] not in ('input_queue','client','step','schedule')
+                or row['boundary'] not in allowed_names
                 or row['outcome'] not in ('returned','raised') or type(row['details']) is not dict):
             raise ValueError('invalid native core span identity')
         for name in ('begin_ns','end_ns','thread_cpu_begin_ns','thread_cpu_end_ns',
@@ -1113,20 +1119,31 @@ def summarize_core_host_spans(events, *, include_input_turns=False, include_iter
                 raise ValueError('client/schedule missing root parent')
             roots.append(row)
         elif parent is not None:
+            inventory_child = row['boundary'] in inventory_names
             expected = {'client':'input_queue','schedule':'step'}.get(row['boundary'])
-            if (expected != parent['boundary'] or parent['parent'] is not None
+            valid_parent = (parent['boundary'] in base_names if inventory_child else
+                            expected == parent['boundary'] and parent['parent'] is None)
+            if (not valid_parent
                     or not parent['begin_ns'] <= row['begin_ns'] <= row['end_ns'] <= parent['end_ns']
                     or not parent['thread_cpu_begin_ns'] <= row['thread_cpu_begin_ns']
                         <= row['thread_cpu_end_ns'] <= parent['thread_cpu_end_ns']):
                 raise ValueError('invalid native core nesting')
             children[parent['id']].append(row)
+    for siblings in children.values():
+        siblings.sort(key=lambda r:r['begin_ns'])
+        if any(a['end_ns'] > b['begin_ns'] for a,b in zip(siblings,siblings[1:])):
+            raise ValueError('overlapping native core siblings')
+    # Inventory spans are observations INSIDE the original partition. Keep
+    # them in the original count/tree; never edit IDs or a source close record.
+    base_children = defaultdict(list, {identity:[r for r in nested
+        if r['boundary'] not in inventory_names] for identity,nested in children.items()})
     roots.sort(key=lambda r:r['begin_ns'])
     if any(a['end_ns'] > b['begin_ns'] for a,b in zip(roots,roots[1:])):
         raise ValueError('overlapping native core roots')
     intervals = defaultdict(list)
     samples = defaultdict(list)
     for root in roots:
-        nested = sorted(children[root['id']],key=lambda r:r['begin_ns'])
+        nested = sorted(base_children[root['id']],key=lambda r:r['begin_ns'])
         if any(a['end_ns'] > b['begin_ns'] for a,b in zip(nested,nested[1:])):
             raise ValueError('overlapping native core siblings')
         begin, end = root['begin_ns'], root['end_ns']
@@ -1149,6 +1166,47 @@ def summarize_core_host_spans(events, *, include_input_turns=False, include_iter
                 intervals['input_nonclient'].append((cursor,child['begin_ns']))
                 cursor = child['end_ns']
             intervals['input_nonclient'].append((cursor,end))
+    inventory_records = []
+    if host_inventory:
+        scopes = ('native_registered_tensor_storage_capacity',
+                  'native_registered_and_staged_tensor_storage_capacity',
+                  'native_requested_tensor_storage_capacity')
+        for row in sorted(rows.values(), key=lambda r:r['begin_ns']):
+            name, details = row['boundary'], row['details']
+            if name not in inventory_names:
+                continue
+            if name == 'host_inventory' and row['outcome'] == 'returned':
+                scope = details.get('scope')
+                byte_field = ('requested_host_storage_bytes' if scope == scopes[2]
+                              else 'host_tensor_storage_bytes')
+                expected_fields = {'scope','allocation_count','adapter_count',byte_field}
+                if (scope not in scopes or set(details) != expected_fields
+                        or any(type(details[k]) is not int or details[k] < 0
+                               for k in expected_fields-{'scope'})):
+                    raise ValueError('invalid HOST inventory scalar projection')
+            elif details:
+                raise ValueError('unexpected HOST allocator/raised inventory payload')
+            parent = rows.get(row['parent'])
+            root = parent
+            while root is not None and root['parent'] is not None:
+                root = rows.get(root['parent'])
+            # Partial streams keep missing context unknown, not invented.
+            state = ('work' if root['details']['unfinished_before'] else 'idle_at_entry') if root else 'unknown'
+            label = ('/'.join(str(parent['details'].get(k,'')) for k in
+                ('request_type','utility','worker_method','operation'))
+                if parent and parent['boundary']=='client' else parent['boundary'] if parent else 'unknown')
+            scope = details.get('scope', 'raised' if row['outcome']=='raised' else 'process_allocator')
+            wall = (row['end_ns']-row['begin_ns'])/1e6
+            cpu = (row['thread_cpu_end_ns']-row['thread_cpu_begin_ns'])/1e6
+            samples[name,label+'/'+scope,state].append((wall,cpu))
+            intervals[name].append((row['begin_ns'],row['end_ns']))
+            inventory_records.append(dict(id=row['id'],parent=row['parent'],
+                root=root['id'] if root else None,boundary=name,label=label,state=state,
+                outcome=row['outcome'],scope=scope,begin_ns=row['begin_ns'],end_ns=row['end_ns'],
+                wall_ms=wall,thread_cpu_ms=cpu,
+                parent_wall_ms=(parent['end_ns']-parent['begin_ns'])/1e6 if parent else None,
+                allocation_count=details.get('allocation_count'),adapter_count=details.get('adapter_count'),
+                storage_bytes=details.get('host_tensor_storage_bytes',details.get('requested_host_storage_bytes'))))
     def stats(values):
         values = sorted(values)
         return dict(count=len(values),total_ms=math.fsum(values),mean_ms=math.fsum(values)/len(values),
@@ -1161,6 +1219,8 @@ def summarize_core_host_spans(events, *, include_input_turns=False, include_iter
     index = {}
     for name, spans in intervals.items():
         spans.sort()
+        if any(a[1] > b[0] for a,b in zip(spans,spans[1:])):
+            raise ValueError('overlapping native core category intervals')
         prefix, total = [], 0
         for a,b in spans:
             prefix.append(total); total += b-a
@@ -1171,14 +1231,16 @@ def summarize_core_host_spans(events, *, include_input_turns=False, include_iter
         observer_ns=close['observer_ns'] if close else max((r['preceding_observer_ns'] for r in rows.values()),default=0),
         write_ns=close['write_ns'] if close else max((r['preceding_write_ns'] for r in rows.values()),default=0),
         overhead_is_lower_bound=close is None)
+    if host_inventory:
+        result['host_inventory_records'] = inventory_records
     if include_input_turns:
         if not complete:
             raise ValueError('input-turn audit requires a complete native core stream')
-        result['input_turns'] = _summarize_core_input_turns(roots, children)
+        result['input_turns'] = _summarize_core_input_turns(roots, base_children)
     if include_iterations:
         if not complete:
             raise ValueError('iteration audit requires a complete native core stream')
-        result['iterations'] = _summarize_core_iterations(roots, children)
+        result['iterations'] = _summarize_core_iterations(roots, base_children)
     return result
 
 
@@ -1434,6 +1496,7 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
     paths = sorted(directory.glob('*.jsonl'))
     if not paths or len(paths)>256: raise ValueError('invalid native core process population')
     source_refs, processes, metrics, by_pid = [], [], [], {}
+    inventory_records, inventory_modes = [], set()
     for path in paths:
         before=path.stat()
         if path.is_symlink() or not stat.S_ISREG(before.st_mode) or before.st_size>64*1024**2:
@@ -1469,13 +1532,31 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
                 or not Path(header['cgroup']).is_relative_to(owner)
                 or header['pid'] in by_pid):
             raise ValueError('native core identity/clock mismatch or ambiguous PID reuse')
-        result=summarize_core_host_spans(events)
+        inventory_mode = header.get('host_inventory_timing')
+        if inventory_mode not in (None, 'fresh_inventory_v1'):
+            raise ValueError('unknown native HOST inventory observation contract')
+        inventory_enabled = inventory_mode == 'fresh_inventory_v1'
+        if inventory_enabled and (
+                header.get('inventory_scope') != 'owner_thread_calls_inside_observed_core_spans'
+                or header.get('inventory_timing') != 'whole_function_no_per_tensor_instrumentation'
+                or header.get('nested_spans_not_additive') is not True
+                or type(header.get('thread_ident')) is not int or header['thread_ident'] <= 0):
+            raise ValueError('invalid native HOST inventory observation contract')
+        if not inventory_enabled and any(key in header for key in ('inventory_scope','inventory_timing')):
+            raise ValueError('HOST inventory payload without explicit contract')
+        inventory_modes.add(inventory_enabled)
+        if len(inventory_modes) != 1:
+            raise ValueError('mixed native HOST inventory contracts in one diagnostic')
+        result=summarize_core_host_spans(events,host_inventory=inventory_enabled)
+        inventory_records.extend(dict(process=path.stem,**r)
+            for r in result.pop('host_inventory_records',[]))
         result['complete']=result['complete'] and not partial
         by_pid[header['pid']]=result
         processes.append(dict(process=path.stem,pid=header['pid'],start_ticks=header['start_ticks'],
             **{k:result[k] for k in ('complete','truncated','closed','spans','first_ns','last_ns',
                 'observer_ns','write_ns','overhead_is_lower_bound')},
-            orphan_spans=len(result['orphan_span_ids']),partial_last_line=partial))
+            orphan_spans=len(result['orphan_span_ids']),partial_last_line=partial,
+            **({'host_inventory_timing':inventory_mode} if inventory_enabled else {})))
         for metric in result['metrics']: metrics.append(dict(process=path.stem,**metric))
         source_refs.append(dict(path=str(path.resolve()),bytes=before.st_size,sha256=digest.hexdigest()))
     records=[]
@@ -1499,6 +1580,12 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
             covered+=value
         if covered>b-a: raise ValueError('native core decode partition double counts time')
         row['other_or_unobserved_ms']=(b-a-covered)/1e6
+        if inventory_enabled:
+            for name in ('host_inventory','host_allocator_stats'):
+                index=core['index'].get(name,dict(starts=[],ends=[],prefix=[]))
+                # Nested intersections are explanatory subsets, not extra time
+                # in the mutually exclusive client/input/step partition above.
+                row[name+'_ms']=core_interval_overlap(index,a,b)/1e6
         records.append(row)
     groups=[]
     for name, choose in [('all',lambda r:True),('short_2_32',lambda r:r['tokens']<=32),
@@ -1508,7 +1595,8 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
             groups.append(dict(group=name,timing_tpot_miss=miss,count=len(selected),
                 complete_observations=sum(r['observation_complete'] for r in selected),
                 **{f'mean_{key}':math.fsum(r[key] for r in selected)/len(selected) if selected else None
-                    for key in ('tpot_ms','decode_ms','client_ms','input_nonclient_ms','step_ms','other_or_unobserved_ms')}))
+                    for key in ('tpot_ms','decode_ms','client_ms','input_nonclient_ms','step_ms','other_or_unobserved_ms')
+                    + (('host_inventory_ms','host_allocator_stats_ms') if inventory_enabled else ())}))
     for path in (receipt_path,deployment_path,Path(__file__)):
         source_refs.append(dict(path=str(path.resolve()),sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
     summary=dict(kind='diagnostic_native_core_host_audit_v1',formal_performance_result=False,
@@ -1521,12 +1609,21 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
             'Host spans include GPU waits and overlap asynchronous GPU execution; they are not kernel durations or GPU idle time.',
             'Input nonclient includes legitimate queue idle wait. Per-request intersections differ from whole-process idle totals.',
             'Other/unobserved includes wrapper/loop gaps and missing observation; it is not an inferred kernel category.',
-            'TPOT groups are descriptive, use the same provisional ruler, and do not establish numerical correctness or causality.'])
+            'TPOT groups are descriptive and use caller-supplied thresholds; they do not establish numerical correctness or causality.'])
+    if inventory_enabled:
+        summary.update(host_inventory_timing='fresh_inventory_v1',
+                       host_inventory_observations=len(inventory_records))
+        summary['caveats'].extend([
+            'HOST inventory/allocator spans are nested subsets; do not add them to client/input/step totals or subtract them from request latency.',
+            'Only owner-thread calls within observed native core spans are measured; this is not all-process HOST work.',
+            'Parent durations include nested observation overhead. Function CPU/wall ratios locate work but do not establish a counterfactual speedup.'])
     output.mkdir(parents=True,exist_ok=False)
     write_csv(processes,output/'processes.csv')
     write_csv(metrics,output/'boundaries.csv')
     write_csv(records,output/'decode_windows.csv')
     write_csv(groups,output/'groups.csv')
+    if inventory_enabled:
+        write_csv(inventory_records,output/'host_inventory.csv')
     with (output/'summary.json').open('x') as handle:json.dump(summary,handle,indent=2,allow_nan=False)
     return summary
 

@@ -1,0 +1,376 @@
+{
+  "kind": "d668_control_operation_aggregation_v1",
+  "processes": 4,
+  "total_completed_spans": 287670,
+  "client_wall_ms": {
+    "work": 245179.164208,
+    "idle_at_entry": 781251.8781519999
+  },
+  "total_observer_s": 60.368162773,
+  "total_write_s": 49.174953131,
+  "summed_process_envelope_s": 4169.059097006,
+  "operation_rows": [
+    {
+      "label": "ADD///",
+      "state": "idle_at_entry",
+      "count": 386,
+      "total_wall_ms": 184.665209,
+      "total_thread_cpu_ms": 152.470561,
+      "mean_wall_ms": 0.47840727720207255,
+      "thread_cpu_over_wall": 0.8256593747444869,
+      "max_single_call_ms": 7.74561
+    },
+    {
+      "label": "ADD///",
+      "state": "work",
+      "count": 614,
+      "total_wall_ms": 204.005762,
+      "total_thread_cpu_ms": 187.543023,
+      "mean_wall_ms": 0.3322569413680782,
+      "thread_cpu_over_wall": 0.9193025783261946,
+      "max_single_call_ms": 2.347875
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+      "state": "idle_at_entry",
+      "count": 218,
+      "total_wall_ms": 30178.498485,
+      "total_thread_cpu_ms": 29721.484333,
+      "mean_wall_ms": 138.43347928899084,
+      "thread_cpu_over_wall": 0.9848562991884054,
+      "max_single_call_ms": 344.962599
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+      "state": "work",
+      "count": 352,
+      "total_wall_ms": 45507.523725,
+      "total_thread_cpu_ms": 44922.881069,
+      "mean_wall_ms": 129.28273785511362,
+      "thread_cpu_over_wall": 0.9871528352205458,
+      "max_single_call_ms": 574.397892
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+      "state": "idle_at_entry",
+      "count": 3650,
+      "total_wall_ms": 62608.908788,
+      "total_thread_cpu_ms": 62182.359344,
+      "mean_wall_ms": 17.153125695342467,
+      "thread_cpu_over_wall": 0.9931870806845661,
+      "max_single_call_ms": 305.043665
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+      "state": "work",
+      "count": 2644,
+      "total_wall_ms": 15598.627271,
+      "total_thread_cpu_ms": 15529.263572,
+      "mean_wall_ms": 5.899632099470499,
+      "thread_cpu_over_wall": 0.9955532177418615,
+      "max_single_call_ms": 296.483078
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/release",
+      "state": "idle_at_entry",
+      "count": 1228,
+      "total_wall_ms": 1759.2238539999998,
+      "total_thread_cpu_ms": 1431.184869,
+      "mean_wall_ms": 1.4325927149837132,
+      "thread_cpu_over_wall": 0.8135319821555808,
+      "max_single_call_ms": 14.355715
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/release",
+      "state": "work",
+      "count": 779,
+      "total_wall_ms": 4377.630176,
+      "total_thread_cpu_ms": 4361.632243999999,
+      "mean_wall_ms": 5.619550931964056,
+      "thread_cpu_over_wall": 0.9963455268360247,
+      "max_single_call_ms": 39.653383
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/request_source_snapshot",
+      "state": "idle_at_entry",
+      "count": 124,
+      "total_wall_ms": 1339.613196,
+      "total_thread_cpu_ms": 1251.1818680000001,
+      "mean_wall_ms": 10.803332225806452,
+      "thread_cpu_over_wall": 0.9339874164691343,
+      "max_single_call_ms": 48.908421
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/request_source_snapshot",
+      "state": "work",
+      "count": 336,
+      "total_wall_ms": 2755.808144,
+      "total_thread_cpu_ms": 2733.046586,
+      "mean_wall_ms": 8.201809952380952,
+      "thread_cpu_over_wall": 0.9917405142845096,
+      "max_single_call_ms": 31.910502
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+      "state": "idle_at_entry",
+      "count": 742,
+      "total_wall_ms": 59918.816224,
+      "total_thread_cpu_ms": 59637.227842,
+      "mean_wall_ms": 80.75312159568733,
+      "thread_cpu_over_wall": 0.9953005015828865,
+      "max_single_call_ms": 160.231392
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+      "state": "work",
+      "count": 400,
+      "total_wall_ms": 30468.334576,
+      "total_thread_cpu_ms": 30423.157738,
+      "mean_wall_ms": 76.17083644,
+      "thread_cpu_over_wall": 0.9985172527928197,
+      "max_single_call_ms": 137.414313
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/snapshot",
+      "state": "idle_at_entry",
+      "count": 4,
+      "total_wall_ms": 1.318463,
+      "total_thread_cpu_ms": 1.303953,
+      "mean_wall_ms": 0.32961575,
+      "thread_cpu_over_wall": 0.9889947613243603,
+      "max_single_call_ms": 0.409956
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_identity_snapshot",
+      "state": "idle_at_entry",
+      "count": 994,
+      "total_wall_ms": 1302.398399,
+      "total_thread_cpu_ms": 1298.854427,
+      "mean_wall_ms": 1.310259958752515,
+      "thread_cpu_over_wall": 0.9972788879326625,
+      "max_single_call_ms": 4.202506
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_identity_snapshot",
+      "state": "work",
+      "count": 403,
+      "total_wall_ms": 397.8563,
+      "total_thread_cpu_ms": 397.189285,
+      "mean_wall_ms": 0.9872364764267989,
+      "thread_cpu_over_wall": 0.9983234775973134,
+      "max_single_call_ms": 2.59289
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+      "state": "idle_at_entry",
+      "count": 2005,
+      "total_wall_ms": 321665.81964999996,
+      "total_thread_cpu_ms": 315410.197093,
+      "mean_wall_ms": 160.43183024937653,
+      "thread_cpu_over_wall": 0.9805524175250991,
+      "max_single_call_ms": 679.289696
+    },
+    {
+      "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+      "state": "work",
+      "count": 457,
+      "total_wall_ms": 69948.474244,
+      "total_thread_cpu_ms": 69670.146489,
+      "mean_wall_ms": 153.06011869584245,
+      "thread_cpu_over_wall": 0.9960209603138861,
+      "max_single_call_ms": 294.631245
+    },
+    {
+      "label": "UTILITY/collective_rpc/other/other",
+      "state": "idle_at_entry",
+      "count": 4,
+      "total_wall_ms": 57.122339,
+      "total_thread_cpu_ms": 57.107085,
+      "mean_wall_ms": 14.28058475,
+      "thread_cpu_over_wall": 0.9997329591142968,
+      "max_single_call_ms": 18.410154
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//bind",
+      "state": "idle_at_entry",
+      "count": 382,
+      "total_wall_ms": 68.47016500000001,
+      "total_thread_cpu_ms": 67.43137,
+      "mean_wall_ms": 0.17924126963350787,
+      "thread_cpu_over_wall": 0.9848285015816742,
+      "max_single_call_ms": 0.525217
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//bind",
+      "state": "work",
+      "count": 618,
+      "total_wall_ms": 82.642252,
+      "total_thread_cpu_ms": 81.883796,
+      "mean_wall_ms": 0.13372532686084143,
+      "thread_cpu_over_wall": 0.9908224185371909,
+      "max_single_call_ms": 0.403824
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//register",
+      "state": "idle_at_entry",
+      "count": 228,
+      "total_wall_ms": 55.247619,
+      "total_thread_cpu_ms": 54.450545,
+      "mean_wall_ms": 0.24231411842105263,
+      "thread_cpu_over_wall": 0.9855726995221278,
+      "max_single_call_ms": 1.52336
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//register",
+      "state": "work",
+      "count": 345,
+      "total_wall_ms": 54.518485,
+      "total_thread_cpu_ms": 54.1189,
+      "mean_wall_ms": 0.15802459420289855,
+      "thread_cpu_over_wall": 0.9926706510644967,
+      "max_single_call_ms": 0.446776
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//withdraw",
+      "state": "idle_at_entry",
+      "count": 10,
+      "total_wall_ms": 2.005487,
+      "total_thread_cpu_ms": 1.968475,
+      "mean_wall_ms": 0.2005487,
+      "thread_cpu_over_wall": 0.9815446323012814,
+      "max_single_call_ms": 0.282301
+    },
+    {
+      "label": "UTILITY/ieee_pending_admission//withdraw",
+      "state": "work",
+      "count": 13,
+      "total_wall_ms": 1.6350149999999999,
+      "total_thread_cpu_ms": 1.621188,
+      "mean_wall_ms": 0.12577038461538462,
+      "thread_cpu_over_wall": 0.9915431968514051,
+      "max_single_call_ms": 0.181943
+    },
+    {
+      "label": "UTILITY/ieee_pending_gpu_reference//",
+      "state": "idle_at_entry",
+      "count": 195,
+      "total_wall_ms": 15807.32702,
+      "total_thread_cpu_ms": 15558.257882,
+      "mean_wall_ms": 81.06321548717949,
+      "thread_cpu_over_wall": 0.9842434373828751,
+      "max_single_call_ms": 170.163076
+    },
+    {
+      "label": "UTILITY/ieee_pending_gpu_reference//",
+      "state": "work",
+      "count": 255,
+      "total_wall_ms": 19942.110668,
+      "total_thread_cpu_ms": 19681.046951,
+      "mean_wall_ms": 78.20435556078432,
+      "thread_cpu_over_wall": 0.986908922463312,
+      "max_single_call_ms": 149.872849
+    },
+    {
+      "label": "UTILITY/ieee_prepare_host//",
+      "state": "idle_at_entry",
+      "count": 1113,
+      "total_wall_ms": 285131.485443,
+      "total_thread_cpu_ms": 282350.325239,
+      "mean_wall_ms": 256.1828260943396,
+      "thread_cpu_over_wall": 0.9902460431555675,
+      "max_single_call_ms": 618.130421
+    },
+    {
+      "label": "UTILITY/ieee_prepare_host//",
+      "state": "work",
+      "count": 312,
+      "total_wall_ms": 55142.214316,
+      "total_thread_cpu_ms": 54598.405578,
+      "mean_wall_ms": 176.73786639743588,
+      "thread_cpu_over_wall": 0.9901380685424849,
+      "max_single_call_ms": 626.734998
+    },
+    {
+      "label": "UTILITY/ieee_request_retirement//",
+      "state": "idle_at_entry",
+      "count": 782,
+      "total_wall_ms": 333.020445,
+      "total_thread_cpu_ms": 331.017287,
+      "mean_wall_ms": 0.42585734654731455,
+      "thread_cpu_over_wall": 0.9939848798172136,
+      "max_single_call_ms": 1.759276
+    },
+    {
+      "label": "UTILITY/ieee_request_retirement//",
+      "state": "work",
+      "count": 1218,
+      "total_wall_ms": 411.044838,
+      "total_thread_cpu_ms": 409.39610500000003,
+      "mean_wall_ms": 0.337475236453202,
+      "thread_cpu_over_wall": 0.9959889217730549,
+      "max_single_call_ms": 1.251427
+    },
+    {
+      "label": "UTILITY/ieee_transfer_event//",
+      "state": "idle_at_entry",
+      "count": 3684,
+      "total_wall_ms": 836.489721,
+      "total_thread_cpu_ms": 823.732846,
+      "mean_wall_ms": 0.2270601848534202,
+      "thread_cpu_over_wall": 0.9847495137361048,
+      "max_single_call_ms": 1.192171
+    },
+    {
+      "label": "UTILITY/ieee_transfer_event//",
+      "state": "work",
+      "count": 1924,
+      "total_wall_ms": 286.738436,
+      "total_thread_cpu_ms": 284.283961,
+      "mean_wall_ms": 0.14903245114345112,
+      "thread_cpu_over_wall": 0.9914400209674018,
+      "max_single_call_ms": 1.106693
+    },
+    {
+      "label": "UTILITY/other//",
+      "state": "idle_at_entry",
+      "count": 4,
+      "total_wall_ms": 1.398619,
+      "total_thread_cpu_ms": 1.387868,
+      "mean_wall_ms": 0.34965475,
+      "thread_cpu_over_wall": 0.9923131317392371,
+      "max_single_call_ms": 0.60705
+    },
+    {
+      "label": "WAKEUP///",
+      "state": "idle_at_entry",
+      "count": 4,
+      "total_wall_ms": 0.049026,
+      "total_thread_cpu_ms": 0.037867,
+      "mean_wall_ms": 0.0122565,
+      "thread_cpu_over_wall": 0.7723860808550564,
+      "max_single_call_ms": 0.01412
+    }
+  ],
+  "formal_performance_result": false,
+  "n_correct": null,
+  "caveats": [
+    "Client sums are host time across distinct process lifetimes, not added request latency or GPU time.",
+    "Idle-at-entry describes the parent input entry, not each child call. Concurrent request intervals overlap.",
+    "Observer includes write, not their sum; the totals are not subtracted from latency.",
+    "No pooled P95 inferred from process-level P95. Detailed per-process Type-1 P95 remains in boundaries.csv."
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/summarize_operations.py",
+      "sha256": "19b885cb354ee2b7ba19957dc6852997cc6ec78afc0753ea074692a7a837551c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d668_3b_host_inventory_prefix1/completion/core_timing/boundaries.csv",
+      "sha256": "0efbf752aa10fc2410e44f391933c4039978f7636725f00e4b45ab9e382cac7e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d668_3b_host_inventory_prefix1/completion/core_timing/processes.csv",
+      "sha256": "70778dd8409fbbad7bac765be3e49d59dc9bcee18e0f82d72a21ba412a79a3d0"
+    }
+  ]
+}
