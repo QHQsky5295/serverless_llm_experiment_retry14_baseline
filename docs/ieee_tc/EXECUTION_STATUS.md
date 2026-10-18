@@ -1,6 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D676完成：主动HOST路径原生验证通过，准备完整回放 — 2026-10-18
+
+PROGRESS。唯一tmux已终态，launch/service/watchdog均成功，100条原生绑定/
+计数/计时通过、17369tokens；新主动事务139次、请求侧HOST17/GPU49/fresh34。
+联合93/100、P95TTFT1699.850437ms、U785.535585；仅短前缀，不是完整性能资格，
+n_correct=null/排名false。远端29次67350156字节、请求打包0；147保护未变。
+服务峰值20168671232B、262样本事件/swap0。服务/aux/GPU真实释放，三个owned
+远端服务inactive；96960exit0。84644分析exit0、analysis域递归空关闭，
+peak143060992B、事件/swap0；这些会话不再wait。start2为实际启动，第一次
+备份失败/启动拒绝均保留，不重复同键。当前正在保存完成材料及备份，尚未
+声称结果提交成功。上一段“尚无终态”已是历史状态。
+
+完整PLAN/指标/六补充继续生效；下一备份后同配置一次4000请求W0，尚未创建
+D677或新GPU运行。最新完整3B仍D672联合91.175%、U14931.314879785059。
+非项目k3s/已完成HydraServe不动；3B后续/基线/dLoRA、同版本7B、A1–A5/
+S1–S13、成本/CE、审稿文档和图表全部ACTIVE。
+
 ## D676准备：复用100请求原生路径验证主动HOST候选 — 2026-10-18
+
+12:33 CST已启动唯一tmux tc-d676-3b-smoke100，pane1904290/dead0。
+服务primelora-tc-svc-b4da62c87cbc4758a127f9e71fef2bc0.scope，InvocationID
+56d60de6a79648d0a71eb8ab6436d84d、inode27437607；aux为
+primelora-tc-aux-1080a347cbf84934a70dc039225541e7.scope，身份已保存。
+真实远端1000Mbps/full，prepublished_gzip_v1；sample7事件/swap0。
+备份首推TLS失败，首次start在缺少成功回执处、远端/GPU启动前被拒绝；
+两域已关闭。resume_backup仅重推同一4d5c011b8ce9eea45ee9bf39fe685e9b2d2dbed6，
+8路径远端一致；64291exit0，backup_retry域关闭。start2实际成功，65041exit0、
+start2域关闭；25504/96605也已终态，不再wait。原失败记录不覆盖。
+尚无launch.json终态；不能再次启动。收尾用close_launch.py→stop_remote.sh→
+run_analysis2.py（collect_closure2绑定实际start2_closure），其余分析不变。
+下文准备状态保留历史；本轮进入同一运行的VERIFIED WAIT，无新性能结论。
 
 上一轮D675为PROGRESS。本轮完整读取PLAN、六补充、冻结V1/单轮V2；新增
 独立d676分支/路径，生产源码仍4989dbf，模型/负载/profile不变。复用D664

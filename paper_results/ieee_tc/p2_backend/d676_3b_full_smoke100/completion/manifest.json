@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "kind": "d676_3b_proactive_host_transaction_prefix100_seal_v1",
+  "source_audit_sha256": "c45dca3ba33aa6a3ec3433d9e87da034423da6a6791be43e90a348488940d2db",
+  "source_commit": "4d5c011b8ce9eea45ee9bf39fe685e9b2d2dbed6",
+  "performance_runs": 1,
+  "complete4000": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 100,
+  "joint_slo_count": 93,
+  "host_transaction": {
+    "passed": true,
+    "storage_counts": {
+      "fresh_inventory": 34,
+      "same_transaction_confirmed_gpu_hit_v1": 49,
+      "same_transaction_registered_host_activation_v1": 17
+    },
+    "request_ids": [
+      "req_00045",
+      "req_00047",
+      "req_00055",
+      "req_00056",
+      "req_00071",
+      "req_00074",
+      "req_00075",
+      "req_00078",
+      "req_00080",
+      "req_00083",
+      "req_00085",
+      "req_00088",
+      "req_00089",
+      "req_00092",
+      "req_00093",
+      "req_00097",
+      "req_00099"
+    ]
+  },
+  "proactive_host_transaction": {
+    "passed": true,
+    "storage_counts": {
+      "same_transaction_proactive_host_activation_v1": 139
+    }
+  },
+  "rejected_start_before_gpu_preserved": true,
+  "backup_same_commit_retry_preserved": true,
+  "immutable_prelaunch_manifest_sha256": "11b83eadf47e76a5e24e478fc8663f719de7700c6f9adfe31f59ffa456a8daf9",
+  "reused_publication_helper": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d659_20261018/publish.py",
+    "sha256": "e34668af9152224ab85f37d21c097362dc66222c8c4fd6e7daa525cc4c159bfb"
+  },
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "c45dca3ba33aa6a3ec3433d9e87da034423da6a6791be43e90a348488940d2db"
+  },
+  "next_action": "Same measured 3B Full configuration complete W0; prefix is not G1/G2 qualification."
+}
