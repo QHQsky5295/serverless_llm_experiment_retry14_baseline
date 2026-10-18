@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D696 3B 单飞候选短资格已闭环：通过合同、未触发扩容 — 2026-10-18 22:05
+
+PROGRESS。D696 的 100 请求短前缀已完成完整收尾：100/100 原生终态、生成
+合同和 adapter 绑定审计通过，远端 3B/7B 工件服务与 monitor 已停止，owned
+scope 已释放，共享 k3s 未触碰。请求路径打包为0；29次远端传输共67,350,156
+bytes，26次 HOST→GPU lease transfer，物理 GPU 观察值231.625 GPU-s。
+
+这次短资格只有一个 initial activation，没有 natural/controlled scale-out，
+也没有触发 proactive host activation。因此单飞提交限制未被实际执行，不能
+据此判断 D696 是否改善 D695 暴露的完整 W0 扩容顺序问题；该点明确标记为
+`qualification_only`、`ranking_eligible=false`、独立数值正确性未知，不进入
+PrimeLoRA性能排名。专用短资格分析拒绝强制“必须触发机制”的不适用条件，仍
+严格检查请求、生成、绑定、传输、资源释放和监控合同；原通用分析因短前缀
+未触发 proactive 机制而失败的日志完整保留。
+
+分析在4 GiB MemoryMax、MemorySwapMax=0、CPU 2,3,26,27的独立scope中完成，
+峰值137,277,440 bytes，high/max/OOM/oom_kill/swap均为0；分析scope已显式
+关闭，递归进程为空且cgroup路径消失。机器可读汇总为
+`paper_results/ieee_tc/p2_backend/d696_3b_singleflight_smoke100/qualification.json`，
+详细说明见 `docs/ieee_tc/D696_3B_SINGLEFLIGHT_SMOKE100.md`。下一步仍是同一
+冻结配置的一次完整3B W0；在其完成前不叠加新的优化候选、不把短资格当作性能
+结果。D695回退结论、全部后续场景/基线/消融/敏感性和最终交付保持ACTIVE。
+
 ## D695完整3B W0已收尾：候选回退 — 2026-10-18 21:18
 
 PROGRESS。D695已完成4,000/4,000请求并通过资源释放、远端服务关闭、SHA下载
