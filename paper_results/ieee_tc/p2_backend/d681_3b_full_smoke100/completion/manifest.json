@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "kind": "d681_3b_host_lease_transfer_prefix100_seal_v1",
+  "source_audit_sha256": "1f42a9bab7ccfafc7a67b951af12788115f9acef673b402ded2f7565a671cfd4",
+  "source_commit": "69e6da68f9a0d0337a1dbbd70f0a3edee4772121",
+  "performance_runs": 1,
+  "complete4000": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "numerical_proof_unknown": true,
+  "ranking_eligible": false,
+  "n_native_bound": 100,
+  "joint_slo_count": 94,
+  "host_lease_transfer": {
+    "passed": true,
+    "count": 23,
+    "request_ids": [
+      "req_00037",
+      "req_00042",
+      "req_00043",
+      "req_00045",
+      "req_00047",
+      "req_00050",
+      "req_00052",
+      "req_00056",
+      "req_00067",
+      "req_00070",
+      "req_00075",
+      "req_00076",
+      "req_00078",
+      "req_00080",
+      "req_00083",
+      "req_00085",
+      "req_00088",
+      "req_00089",
+      "req_00092",
+      "req_00093",
+      "req_00095",
+      "req_00097",
+      "req_00099"
+    ],
+    "source_tiers": {
+      "host": 23
+    },
+    "same_owner_ack_verified": true
+  },
+  "immutable_prelaunch_manifest_sha256": "538dc7086e6267fbc353ea8b8a4d2d7a4cd04bd654a2984ac876a1a0d0afd360",
+  "no_figures": true,
+  "no_runtime_source_change": true,
+  "outputs": {
+    "audit.json": "1f42a9bab7ccfafc7a67b951af12788115f9acef673b402ded2f7565a671cfd4"
+  },
+  "next_action": "Same measured 3B Full configuration complete W0; prefix is not G1/G2 qualification."
+}

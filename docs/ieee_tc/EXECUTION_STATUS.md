@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D681真实资格完成，准备封存并转全量3B — 2026-10-18
+
+PROGRESS。唯一100请求回放完成，100原生合同/17369tokens/0失败；新HOST交接
+23次，全部源/lease/epoch/clock核验通过，主动HOST事务148。联合94/100，
+均值TTFT677.526472/P951552.455366ms，U785.667071，不能推断完整W0达标。
+远端29次/67350156B/packing0；实际1000Mb/s/full。service261样本，peak
+20470063104B，high/max/OOM/swap0。实际GPU释放，local_cleanup完成；60528
+exit0远端三个owned服务inactive，management域关闭。不再wait旧session。
+42605exit1：collector成功，随后缺ijson；分析失败保存，不重跑GPU或下载。
+19090exit0：已有native环境仅重做离线analyzer，analysis3递归空关闭，peak
+138104832B/事件swap0；analysis2失败域亦已关闭。源5144b0b8…、audit1f42a9ba…。
+准备D681completion明确路径发布，尚未执行。下一同候选一次4000请求W0；
+完整D677仍90.700%/U15894.960797是前一完整点，G1/G2不闭口，不以94%短前缀
+改尺子或筛运行。最新目标再次强调持续主线，已汇报；不重开HydraServe/Loquetier
+基础适配或扩展指标文献。全计划其他场景/基线/机制/敏感性/交付保持ACTIVE。
+
+## D681唯一真实100请求运行中 — 2026-10-18 14:48 CST
+
+PROGRESS。10明确路径推送69e6da68f9a0d0337a1dbbd70f0a3edee4772121，远端一致；
+16035exit0、backup域关闭。29785exit0唯一启动tc-d681-3b-smoke100，pane2220162
+尚未终态；start域递归空关闭。真实远端1Gbps/full、prepublished_gzip_v1复用，
+未重新发布或请求中打包。14:47采样109 peak20470063104B/high/max/OOM/swap0。
+最新live24到达21完成0失败只是过程计数，不宣称100资格通过。尚无launch.json。
+不得重启或重复start.py；实际终态后close_launch→受限stop_services.py→
+close_management management→受限run_analysis.py→close analysis2→publish。
+分析/collector/publisher仅准备，未分析活动结果。analyze.py新增逐HOST交接源/
+lease/epoch/clock检查并要求触发>0；旧完整原生/远端/生命周期审计保留。
+当前实验3B资格；最新完整性能仍D677，其他全量/场景/基线/机制范围ACTIVE。
+
 ## D681配置归属修正通过，准备备份和唯一GPU资格 — 2026-10-18
 
 PROGRESS。首装配34714exit1在profile匹配前阻止启动；原model开关配置保留

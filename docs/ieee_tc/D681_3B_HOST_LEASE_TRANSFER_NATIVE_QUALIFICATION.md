@@ -57,3 +57,35 @@ LoRARequest按请求指定，max_loras/max_lora_rank/max_cpu_loras属于全局�
 71项受影响测试通过（实际vLLM0.30环境、15.577s），资源事件/swap全0；
 修正后真实装配与两份profile加载通过，完整子进程配置等于既有测量身份。
 未生成新输入/profile，旧147文件和三用户修改SHA均不变。尚未GPU运行。
+
+## 实际完成（后续记录，2026-10-18）
+
+源版本69e6da68f9a0d0337a1dbbd70f0a3edee4772121已在启动前推送。
+唯一tc-d681-3b-smoke100完成；100原生合同、17369输出tokens、0失败。
+新同owner交接23次，均为HOST路径，lease/owner/adapter/源incarnation/
+epoch/clock和release-before-dispatch全部核验；主动HOST准备148次。
+独立数值正确性仍未知，n_correct=null，不能升级正式排名资格。
+
+| 指标 | 单轮100请求观测 |
+|---|---:|
+| 联合SLO / TTFT / TPOT达成数 | 94 / 94 / 100 |
+| 平均TTFT / P95 TTFT (ms) | 677.526472 / 1552.455366 |
+| 平均TPOT / P95 TPOT (ms) | 14.240084 / 18.502474 |
+| 平均E2E (ms) | 3191.197322 |
+| 物理GPU-s | 785.667071 |
+| 远端fetch / 线上字节 | 29 / 67350156 |
+| 请求中打包 | 0 |
+
+分层remote29/GPU46/HOST23/NVMe2；共同时间分解通过1ms门槛。
+服务261资源样本，峰值20470063104B，high/max/OOM/swap全0。
+真实GPU释放、服务/外置域关闭，三个owned远端服务inactive且端口关闭。
+远端实际1000Mb/s/full，复用D78/D80发布缓存，不重建工件或trace。
+
+第一次收尾collector已完成，但分析误选缺ijson的既有环境而中止；保留
+analysis1.log及analysis2回执/关闭。只换到已有vLLM环境离线读取同一结果，
+不安装依赖、不重复下载/推理；analysis3通过并关闭，峰值138104832B、事件swap0。
+原始结果SHA5144b0b8a94a56316de79584d335c012c9025b9415bdd63cae5c3859049faea6，
+分析SHA1f42a9bab7ccfafc7a67b951af12788115f9acef673b402ded2f7565a671cfd4。
+
+这证明新路径在真实短前缀运行可用，不证明完整W0联合SLO达标或性能领先。
+94%也不触发改阈值或同键重跑。下一同候选唯一完整3B W0，再判断收益/退化。
