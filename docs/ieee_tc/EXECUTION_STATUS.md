@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D666：HOST目标段确已缩短，但3B整体缺口仍在 — 2026-10-18
+
+本轮PROGRESS，无新推理/生产代码/配置改动。复用D661/D612与修正后的D662，
+直接复用D660投影，完整检查D665的1411 HOST/1839 GPU事件链均通过。
+两轮同HOST路径884条的acquired→snapshot均值83.110→1.320ms，TTFT
+986.067→890.117ms；1392实际新事务目标段1.322ms。支持局部重复检查减少，
+不代表整体达标。联合仍3575→3550，297恢复、322新增违约、128始终违约；
+不能以一次观测声称因果退化/显著改善。450新违约均不重叠自然扩容；180条
+TPOT违约中148条输出≤31，GPU就绪亦有95条TPOT违约，不能只归因于remote。
+到达窗1888次控制仍TTFT-low0/all-low0，无缩容；U15896.448仍近常驻参考。
+
+analysis37188 exit0，峰值317120512B、事件/swap0，scope递归空关闭，不再wait。
+147保护文件不变，检查磁盘可用164936921088B；没有新清理/回收声称。详细表和
+边界见D666_3B_HOST_EFFECT_AND_RESIDUAL_SLO.md。准备显式路径备份，同时归档
+D665晚publication_closure；不覆盖旧结果，不stage用户manifest。
+下一只做已测共同等待路径与历史/官方实现的有界调用审计，先明确可证伪假设
+和适用域再选新候选；不盲叠改动、不重跑同键、不放宽阈值或开oracle支线。
+3B W0尚未闭口，其余3B/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/
+图表全部ACTIVE。当前无活动GPU/分析任务，原k3s和已完成HydraServe适配不动。
+
 ## D665完成：原生HOST资格通过，联合88.750%，整体目标仍未达标 — 2026-10-18
 
 本轮PROGRESS：此前为VERIFIED WAIT，持续同一运行至4000终态，没有重启。
@@ -20,8 +40,12 @@ service/watchdog exit0，实际GPU释放及服务/外置域递归空关闭；rem
 audit SHA2495a30a67e16936c79c24601ecee62d6c77f580fed15932ab668e40cfb6225d。
 V1/V2完整重读且SHA一致；PLAN完整内容与已核验SHA未变。
 
-当前无活动GPU或分析任务。下一先显式路径发布新的completion子目录，绝不覆盖
-prelaunch/resume清单；再复用D660/D665作有界HOST事务阶段与联合违约对照，
+publication95842 exit0，7个明确路径已推送f6e07db4c1b4591782a2c621c7ecfe987b8a04c3，
+远端一致。新completion子目录四项checksum复查通过，prelaunch/resume清单未覆盖。
+发布域已递归空关闭，peak29999104B、事件/swap0；晚关闭回执留raw随下一正常
+检查点归档，不另开纯状态提交。当前仅用户manifest原修改保留，未stage。
+当前无活动GPU/分析/发布任务；不再wait53590/95842/85656。下一先核查安全存储
+余量，再复用D660/D665作有界HOST事务阶段与联合违约对照，
 判断局部重复后检查收益及剩余关键路径，不盲叠候选、不改阈值、不重跑同键。
 3B W1/W2/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/图表均保持ACTIVE。
 
