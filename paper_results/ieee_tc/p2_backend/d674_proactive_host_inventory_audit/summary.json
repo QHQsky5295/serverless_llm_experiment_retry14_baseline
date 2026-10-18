@@ -1,0 +1,1955 @@
+{
+  "passed": true,
+  "kind": "d674_proactive_host_inventory_audit_v1",
+  "diagnosis": {
+    "passed": true,
+    "kind": "d674_same_transaction_host_inventory_audit_v1",
+    "inference_runs_added": 0,
+    "production_changed": false,
+    "n_correct": null,
+    "ranking_eligible": false,
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/audit2.py",
+        "sha256": "325c73ed2408de2f9411cfb5134f4b5cd4ac3b71c42de01e0c11b4da9988cced"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/summarize_operations.py",
+        "sha256": "19b885cb354ee2b7ba19957dc6852997cc6ec78afc0753ea074692a7a837551c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d668_3b_host_inventory_prefix1/completion/core_timing/host_inventory.csv",
+        "sha256": "7704f5e8e0bc11bb87423a87d2d8fffa424349a85c25df58448f6ba55d9ee902"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d668_3b_host_inventory_prefix1/completion/operation_detail1/operations.csv",
+        "sha256": "e497bea1dcf5479263236b0d8cfd4bb2cf33a3fec5cea3546a07c84fe9c331a6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "sha256": "0bec753ca9c5c04805f89940d83f75894a6c7f5b1a06d405d59389ce1cbea607"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "sha256": "0bfc67d521627b803acd95f876bf2387cf0033c7caee0f4684e87f23035bded9"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+        "sha256": "8d862e8af56c3f4d70283c5d34d1800af9108a3be5d29dfc5b72ddc803b9f1c9"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+        "sha256": "1589b725320adf9dc3746d59a6d696ac736363ed514bbccebfc603cc356cc52a"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D329_HOST_STORAGE_DEPENDENCY_AUDIT.md",
+        "sha256": "7fe40268c53373a269eccd1fb5b0a7629cf0deeae454ef54124ecf4177edb821"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D352_TRANSACTION_LOCAL_HOST_EVIDENCE.md",
+        "sha256": "ed861e78f85893499216ebe409b7430e164f3f610284c0709b28f56dbf021b80"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D663_REGISTERED_HOST_TRANSACTION.md",
+        "sha256": "de58702489222730ca67e84b063413d92f1b913dda115ed79697eba20747629a"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D671_INDEPENDENT_HOST_GRAPH_COPY.md",
+        "sha256": "a9db8c1db4511608dd5858d67619dc43f2b3f78eb127009b925db9d2b6e5604b"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D673_3B_RESIDUAL_SLO_AND_SCALING_PATH.md",
+        "sha256": "2093ddd15e9029ec93ac6879af7830c20ceed834e95387639ef5fd4ed5318c96"
+      },
+      {
+        "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+        "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+        "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+        "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+      },
+      {
+        "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py",
+        "sha256": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522"
+      },
+      {
+        "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+        "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302"
+      },
+      {
+        "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+        "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+      },
+      {
+        "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+        "sha256": "3cb039b80fe9b03dc1122f93c1f8a4098ef1355104b317ff6df25358f4349494"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/audit.py",
+        "sha256": "71b7192c565f144063c169ee65b88f12b035969506ba6f88f04749eff252e3af"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/repair_provenance.py",
+        "sha256": "fecc26dc22b4edceb15985ec7359f7464ea97282378ee877c2d31795e5a77efc"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/diagnosis2.json",
+        "sha256": "3b15163251519783e35f2de35e134fcf518edddc61643dc592cc2422430a155c"
+      }
+    ],
+    "processes": 4,
+    "inventory_rows": 9233,
+    "sequences": [
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 9,
+        "all_inventory": {
+          "count": 9,
+          "total_wall_ms": 719.051163,
+          "total_cpu_ms": 718.299672,
+          "mean_wall_ms": 79.89457366666666,
+          "p50_ms": 79.132403,
+          "p95_ms": 97.091091,
+          "max_ms": 97.091091,
+          "cpu_over_wall": 0.9989548852172568,
+          "unique_parents": 9,
+          "parent_wall_ms": 969.143695
+        },
+        "ordinal_inventory": [
+          {
+            "count": 9,
+            "total_wall_ms": 719.051163,
+            "total_cpu_ms": 718.299672,
+            "mean_wall_ms": 79.89457366666666,
+            "p50_ms": 79.132403,
+            "p95_ms": 97.091091,
+            "max_ms": 97.091091,
+            "cpu_over_wall": 0.9989548852172568,
+            "unique_parents": 9,
+            "parent_wall_ms": 969.143695
+          }
+        ],
+        "counts_and_bytes_equal": 9
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 1,
+        "all_inventory": {
+          "count": 2,
+          "total_wall_ms": 185.933916,
+          "total_cpu_ms": 185.847251,
+          "mean_wall_ms": 92.966958,
+          "p50_ms": 89.838535,
+          "p95_ms": 96.095381,
+          "max_ms": 96.095381,
+          "cpu_over_wall": 0.9995338935366692,
+          "unique_parents": 1,
+          "parent_wall_ms": 292.073877
+        },
+        "ordinal_inventory": [
+          {
+            "count": 1,
+            "total_wall_ms": 96.095381,
+            "total_cpu_ms": 96.080874,
+            "mean_wall_ms": 96.095381,
+            "p50_ms": 96.095381,
+            "p95_ms": 96.095381,
+            "max_ms": 96.095381,
+            "cpu_over_wall": 0.9998490354078516,
+            "unique_parents": 1,
+            "parent_wall_ms": 292.073877
+          },
+          {
+            "count": 1,
+            "total_wall_ms": 89.838535,
+            "total_cpu_ms": 89.766377,
+            "mean_wall_ms": 89.838535,
+            "p50_ms": 89.838535,
+            "p95_ms": 89.838535,
+            "max_ms": 89.838535,
+            "cpu_over_wall": 0.9991968034652392,
+            "unique_parents": 1,
+            "parent_wall_ms": 292.073877
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 3,
+        "all_inventory": {
+          "count": 6,
+          "total_wall_ms": 480.623244,
+          "total_cpu_ms": 480.07901400000003,
+          "mean_wall_ms": 80.103874,
+          "p50_ms": 72.870158,
+          "p95_ms": 103.440897,
+          "max_ms": 103.440897,
+          "cpu_over_wall": 0.9988676577614711,
+          "unique_parents": 3,
+          "parent_wall_ms": 591.25773
+        },
+        "ordinal_inventory": [
+          {
+            "count": 3,
+            "total_wall_ms": 271.94858999999997,
+            "total_cpu_ms": 271.434003,
+            "mean_wall_ms": 90.64952999999998,
+            "p50_ms": 88.505136,
+            "p95_ms": 103.440897,
+            "max_ms": 103.440897,
+            "cpu_over_wall": 0.9981077783856135,
+            "unique_parents": 3,
+            "parent_wall_ms": 591.25773
+          },
+          {
+            "count": 3,
+            "total_wall_ms": 208.674654,
+            "total_cpu_ms": 208.645011,
+            "mean_wall_ms": 69.558218,
+            "p50_ms": 70.426569,
+            "p95_ms": 72.870158,
+            "max_ms": 72.870158,
+            "cpu_over_wall": 0.9998579463320927,
+            "unique_parents": 3,
+            "parent_wall_ms": 591.25773
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 120,
+        "all_inventory": {
+          "count": 120,
+          "total_wall_ms": 9735.211564,
+          "total_cpu_ms": 9650.759006,
+          "mean_wall_ms": 81.12676303333333,
+          "p50_ms": 76.730034,
+          "p95_ms": 104.965571,
+          "max_ms": 304.917762,
+          "cpu_over_wall": 0.9913250413260357,
+          "unique_parents": 120,
+          "parent_wall_ms": 12789.397735
+        },
+        "ordinal_inventory": [
+          {
+            "count": 120,
+            "total_wall_ms": 9735.211564,
+            "total_cpu_ms": 9650.759006,
+            "mean_wall_ms": 81.12676303333333,
+            "p50_ms": 76.730034,
+            "p95_ms": 104.965571,
+            "max_ms": 304.917762,
+            "cpu_over_wall": 0.9913250413260357,
+            "unique_parents": 120,
+            "parent_wall_ms": 12789.397735
+          }
+        ],
+        "counts_and_bytes_equal": 120
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 84,
+        "all_inventory": {
+          "count": 168,
+          "total_wall_ms": 11253.03221,
+          "total_cpu_ms": 11221.952359,
+          "mean_wall_ms": 66.98233458333333,
+          "p50_ms": 72.57018,
+          "p95_ms": 92.360066,
+          "max_ms": 114.687182,
+          "cpu_over_wall": 0.9972380909944984,
+          "unique_parents": 84,
+          "parent_wall_ms": 15536.005734
+        },
+        "ordinal_inventory": [
+          {
+            "count": 84,
+            "total_wall_ms": 5857.627893,
+            "total_cpu_ms": 5845.908469,
+            "mean_wall_ms": 69.73366539285715,
+            "p50_ms": 75.552922,
+            "p95_ms": 95.572149,
+            "max_ms": 114.687182,
+            "cpu_over_wall": 0.9979992884126346,
+            "unique_parents": 84,
+            "parent_wall_ms": 15536.005734
+          },
+          {
+            "count": 84,
+            "total_wall_ms": 5395.404317,
+            "total_cpu_ms": 5376.04389,
+            "mean_wall_ms": 64.23100377380953,
+            "p50_ms": 69.364972,
+            "p95_ms": 89.55328,
+            "max_ms": 110.889577,
+            "cpu_over_wall": 0.996411681893978,
+            "unique_parents": 84,
+            "parent_wall_ms": 15536.005734
+          }
+        ],
+        "counts_and_bytes_equal": 39
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 13,
+        "all_inventory": {
+          "count": 13,
+          "total_wall_ms": 1033.061968,
+          "total_cpu_ms": 1031.580108,
+          "mean_wall_ms": 79.46630523076922,
+          "p50_ms": 75.342675,
+          "p95_ms": 98.053142,
+          "max_ms": 98.053142,
+          "cpu_over_wall": 0.9985655652362571,
+          "unique_parents": 13,
+          "parent_wall_ms": 1387.011505
+        },
+        "ordinal_inventory": [
+          {
+            "count": 13,
+            "total_wall_ms": 1033.061968,
+            "total_cpu_ms": 1031.580108,
+            "mean_wall_ms": 79.46630523076922,
+            "p50_ms": 75.342675,
+            "p95_ms": 98.053142,
+            "max_ms": 98.053142,
+            "cpu_over_wall": 0.9985655652362571,
+            "unique_parents": 13,
+            "parent_wall_ms": 1387.011505
+          }
+        ],
+        "counts_and_bytes_equal": 13
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 1,
+        "all_inventory": {
+          "count": 2,
+          "total_wall_ms": 148.731691,
+          "total_cpu_ms": 148.65605299999999,
+          "mean_wall_ms": 74.3658455,
+          "p50_ms": 70.058156,
+          "p95_ms": 78.673535,
+          "max_ms": 78.673535,
+          "cpu_over_wall": 0.9994914466480447,
+          "unique_parents": 1,
+          "parent_wall_ms": 182.929484
+        },
+        "ordinal_inventory": [
+          {
+            "count": 1,
+            "total_wall_ms": 70.058156,
+            "total_cpu_ms": 69.992913,
+            "mean_wall_ms": 70.058156,
+            "p50_ms": 70.058156,
+            "p95_ms": 70.058156,
+            "max_ms": 70.058156,
+            "cpu_over_wall": 0.9990687308412742,
+            "unique_parents": 1,
+            "parent_wall_ms": 182.929484
+          },
+          {
+            "count": 1,
+            "total_wall_ms": 78.673535,
+            "total_cpu_ms": 78.66314,
+            "mean_wall_ms": 78.673535,
+            "p50_ms": 78.673535,
+            "p95_ms": 78.673535,
+            "max_ms": 78.673535,
+            "cpu_over_wall": 0.9998678717055233,
+            "unique_parents": 1,
+            "parent_wall_ms": 182.929484
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 231,
+        "all_inventory": {
+          "count": 231,
+          "total_wall_ms": 18112.424097,
+          "total_cpu_ms": 18069.957433,
+          "mean_wall_ms": 78.40876232467532,
+          "p50_ms": 73.776008,
+          "p95_ms": 95.388782,
+          "max_ms": 462.859585,
+          "cpu_over_wall": 0.9976553848467454,
+          "unique_parents": 231,
+          "parent_wall_ms": 23780.741249
+        },
+        "ordinal_inventory": [
+          {
+            "count": 231,
+            "total_wall_ms": 18112.424097,
+            "total_cpu_ms": 18069.957433,
+            "mean_wall_ms": 78.40876232467532,
+            "p50_ms": 73.776008,
+            "p95_ms": 95.388782,
+            "max_ms": 462.859585,
+            "cpu_over_wall": 0.9976553848467454,
+            "unique_parents": 231,
+            "parent_wall_ms": 23780.741249
+          }
+        ],
+        "counts_and_bytes_equal": 231
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/demand_load_and_acquire",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 103,
+        "all_inventory": {
+          "count": 206,
+          "total_wall_ms": 14739.579586,
+          "total_cpu_ms": 14711.123739,
+          "mean_wall_ms": 71.55135721359223,
+          "p50_ms": 73.400879,
+          "p95_ms": 93.948289,
+          "max_ms": 104.818213,
+          "cpu_over_wall": 0.9980694261438076,
+          "unique_parents": 103,
+          "parent_wall_ms": 20154.149656
+        },
+        "ordinal_inventory": [
+          {
+            "count": 103,
+            "total_wall_ms": 7417.122184,
+            "total_cpu_ms": 7403.157093,
+            "mean_wall_ms": 72.01089499029126,
+            "p50_ms": 74.493599,
+            "p95_ms": 90.409331,
+            "max_ms": 104.818213,
+            "cpu_over_wall": 0.998117182021064,
+            "unique_parents": 103,
+            "parent_wall_ms": 20154.149656
+          },
+          {
+            "count": 103,
+            "total_wall_ms": 7322.457402,
+            "total_cpu_ms": 7307.966646,
+            "mean_wall_ms": 71.0918194368932,
+            "p50_ms": 71.584579,
+            "p95_ms": 95.843894,
+            "max_ms": 103.359427,
+            "cpu_over_wall": 0.9980210528782261,
+            "unique_parents": 103,
+            "parent_wall_ms": 20154.149656
+          }
+        ],
+        "counts_and_bytes_equal": 59
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 6,
+        "all_inventory": {
+          "count": 12,
+          "total_wall_ms": 999.25053,
+          "total_cpu_ms": 995.701289,
+          "mean_wall_ms": 83.2708775,
+          "p50_ms": 78.685945,
+          "p95_ms": 102.23591,
+          "max_ms": 102.23591,
+          "cpu_over_wall": 0.996448096955225,
+          "unique_parents": 6,
+          "parent_wall_ms": 1289.923036
+        },
+        "ordinal_inventory": [
+          {
+            "count": 6,
+            "total_wall_ms": 521.731352,
+            "total_cpu_ms": 520.8340069999999,
+            "mean_wall_ms": 86.95522533333333,
+            "p50_ms": 81.955357,
+            "p95_ms": 102.23591,
+            "max_ms": 102.23591,
+            "cpu_over_wall": 0.9982800631080341,
+            "unique_parents": 6,
+            "parent_wall_ms": 1289.923036
+          },
+          {
+            "count": 6,
+            "total_wall_ms": 477.519178,
+            "total_cpu_ms": 474.867282,
+            "mean_wall_ms": 79.58652966666666,
+            "p50_ms": 76.219981,
+            "p95_ms": 97.303896,
+            "max_ms": 97.303896,
+            "cpu_over_wall": 0.9944465141460769,
+            "unique_parents": 6,
+            "parent_wall_ms": 1289.923036
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 4,
+        "all_inventory": {
+          "count": 4,
+          "total_wall_ms": 0.180145,
+          "total_cpu_ms": 0.171265,
+          "mean_wall_ms": 0.04503625,
+          "p50_ms": 0.038356,
+          "p95_ms": 0.055271,
+          "max_ms": 0.055271,
+          "cpu_over_wall": 0.9507063754198007,
+          "unique_parents": 4,
+          "parent_wall_ms": 33.442514
+        },
+        "ordinal_inventory": [
+          {
+            "count": 4,
+            "total_wall_ms": 0.180145,
+            "total_cpu_ms": 0.171265,
+            "mean_wall_ms": 0.04503625,
+            "p50_ms": 0.038356,
+            "p95_ms": 0.055271,
+            "max_ms": 0.055271,
+            "cpu_over_wall": 0.9507063754198007,
+            "unique_parents": 4,
+            "parent_wall_ms": 33.442514
+          }
+        ],
+        "counts_and_bytes_equal": 4
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 193,
+        "all_inventory": {
+          "count": 386,
+          "total_wall_ms": 31120.115913,
+          "total_cpu_ms": 31074.21585,
+          "mean_wall_ms": 80.62206195077721,
+          "p50_ms": 78.185671,
+          "p95_ms": 99.966655,
+          "max_ms": 118.729145,
+          "cpu_over_wall": 0.9985250677366266,
+          "unique_parents": 193,
+          "parent_wall_ms": 37847.036169
+        },
+        "ordinal_inventory": [
+          {
+            "count": 193,
+            "total_wall_ms": 16240.855122,
+            "total_cpu_ms": 16203.141632,
+            "mean_wall_ms": 84.14950840414508,
+            "p50_ms": 80.058726,
+            "p95_ms": 101.160047,
+            "max_ms": 110.084128,
+            "cpu_over_wall": 0.997677863036355,
+            "unique_parents": 193,
+            "parent_wall_ms": 37847.036169
+          },
+          {
+            "count": 193,
+            "total_wall_ms": 14879.260791,
+            "total_cpu_ms": 14871.074218,
+            "mean_wall_ms": 77.09461549740934,
+            "p50_ms": 74.143465,
+            "p95_ms": 94.47127,
+            "max_ms": 118.729145,
+            "cpu_over_wall": 0.999449799750472,
+            "unique_parents": 193,
+            "parent_wall_ms": 37847.036169
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 74,
+        "all_inventory": {
+          "count": 148,
+          "total_wall_ms": 5632.08882,
+          "total_cpu_ms": 5626.078548,
+          "mean_wall_ms": 38.054654189189186,
+          "p50_ms": 36.145352,
+          "p95_ms": 74.13751,
+          "max_ms": 118.014467,
+          "cpu_over_wall": 0.9989328520568326,
+          "unique_parents": 74,
+          "parent_wall_ms": 7994.71749
+        },
+        "ordinal_inventory": [
+          {
+            "count": 74,
+            "total_wall_ms": 3025.701424,
+            "total_cpu_ms": 3021.719106,
+            "mean_wall_ms": 40.88785708108108,
+            "p50_ms": 39.777389,
+            "p95_ms": 79.821188,
+            "max_ms": 118.014467,
+            "cpu_over_wall": 0.9986838364260228,
+            "unique_parents": 74,
+            "parent_wall_ms": 7994.71749
+          },
+          {
+            "count": 74,
+            "total_wall_ms": 2606.387396,
+            "total_cpu_ms": 2604.359442,
+            "mean_wall_ms": 35.2214512972973,
+            "p50_ms": 33.766752,
+            "p95_ms": 69.607102,
+            "max_ms": 82.264275,
+            "cpu_over_wall": 0.9992219291717293,
+            "unique_parents": 74,
+            "parent_wall_ms": 7994.71749
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 43,
+        "all_inventory": {
+          "count": 86,
+          "total_wall_ms": 6729.485039,
+          "total_cpu_ms": 6722.731194,
+          "mean_wall_ms": 78.24982603488372,
+          "p50_ms": 74.197099,
+          "p95_ms": 100.706146,
+          "max_ms": 150.805755,
+          "cpu_over_wall": 0.9989963801151412,
+          "unique_parents": 43,
+          "parent_wall_ms": 8235.939342
+        },
+        "ordinal_inventory": [
+          {
+            "count": 43,
+            "total_wall_ms": 3452.241169,
+            "total_cpu_ms": 3448.591471,
+            "mean_wall_ms": 80.2846783488372,
+            "p50_ms": 74.851456,
+            "p95_ms": 100.706146,
+            "max_ms": 150.805755,
+            "cpu_over_wall": 0.9989428032917361,
+            "unique_parents": 43,
+            "parent_wall_ms": 8235.939342
+          },
+          {
+            "count": 43,
+            "total_wall_ms": 3277.24387,
+            "total_cpu_ms": 3274.139723,
+            "mean_wall_ms": 76.21497372093023,
+            "p50_ms": 72.436574,
+            "p95_ms": 96.718324,
+            "max_ms": 106.592002,
+            "cpu_over_wall": 0.9990528178179184,
+            "unique_parents": 43,
+            "parent_wall_ms": 8235.939342
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/other",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 15,
+        "all_inventory": {
+          "count": 30,
+          "total_wall_ms": 1410.762899,
+          "total_cpu_ms": 1409.747619,
+          "mean_wall_ms": 47.02542996666667,
+          "p50_ms": 45.679405,
+          "p95_ms": 75.274747,
+          "max_ms": 76.603514,
+          "cpu_over_wall": 0.9992803326478746,
+          "unique_parents": 15,
+          "parent_wall_ms": 1859.35309
+        },
+        "ordinal_inventory": [
+          {
+            "count": 15,
+            "total_wall_ms": 712.979484,
+            "total_cpu_ms": 712.136207,
+            "mean_wall_ms": 47.5319656,
+            "p50_ms": 47.539412,
+            "p95_ms": 65.17814,
+            "max_ms": 65.17814,
+            "cpu_over_wall": 0.9988172492772598,
+            "unique_parents": 15,
+            "parent_wall_ms": 1859.35309
+          },
+          {
+            "count": 15,
+            "total_wall_ms": 697.783415,
+            "total_cpu_ms": 697.611412,
+            "mean_wall_ms": 46.518894333333336,
+            "p50_ms": 45.679405,
+            "p95_ms": 76.603514,
+            "max_ms": 76.603514,
+            "cpu_over_wall": 0.9997535008767727,
+            "unique_parents": 15,
+            "parent_wall_ms": 1859.35309
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/request_source_snapshot",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_requested_tensor_storage_capacity"
+        ],
+        "transactions": 124,
+        "all_inventory": {
+          "count": 124,
+          "total_wall_ms": 578.460519,
+          "total_cpu_ms": 522.598069,
+          "mean_wall_ms": 4.665004185483871,
+          "p50_ms": 5.041017,
+          "p95_ms": 7.386862,
+          "max_ms": 15.657916,
+          "cpu_over_wall": 0.9034291050725971,
+          "unique_parents": 124,
+          "parent_wall_ms": 1339.613196
+        },
+        "ordinal_inventory": [
+          {
+            "count": 124,
+            "total_wall_ms": 578.460519,
+            "total_cpu_ms": 522.598069,
+            "mean_wall_ms": 4.665004185483871,
+            "p50_ms": 5.041017,
+            "p95_ms": 7.386862,
+            "max_ms": 15.657916,
+            "cpu_over_wall": 0.9034291050725971,
+            "unique_parents": 124,
+            "parent_wall_ms": 1339.613196
+          }
+        ],
+        "counts_and_bytes_equal": 124
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/request_source_snapshot",
+        "state": "work",
+        "inventory_scopes": [
+          "native_requested_tensor_storage_capacity"
+        ],
+        "transactions": 336,
+        "all_inventory": {
+          "count": 336,
+          "total_wall_ms": 1068.387689,
+          "total_cpu_ms": 1046.583555,
+          "mean_wall_ms": 3.179725264880952,
+          "p50_ms": 2.896067,
+          "p95_ms": 4.919596,
+          "max_ms": 20.459914,
+          "cpu_over_wall": 0.9795915525567237,
+          "unique_parents": 336,
+          "parent_wall_ms": 2755.808144
+        },
+        "ordinal_inventory": [
+          {
+            "count": 336,
+            "total_wall_ms": 1068.387689,
+            "total_cpu_ms": 1046.583555,
+            "mean_wall_ms": 3.179725264880952,
+            "p50_ms": 2.896067,
+            "p95_ms": 4.919596,
+            "max_ms": 20.459914,
+            "cpu_over_wall": 0.9795915525567237,
+            "unique_parents": 336,
+            "parent_wall_ms": 2755.808144
+          }
+        ],
+        "counts_and_bytes_equal": 336
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 742,
+        "all_inventory": {
+          "count": 742,
+          "total_wall_ms": 55710.589646,
+          "total_cpu_ms": 55685.226586,
+          "mean_wall_ms": 75.08165720485175,
+          "p50_ms": 78.475866,
+          "p95_ms": 101.734214,
+          "max_ms": 142.900318,
+          "cpu_over_wall": 0.9995447353876316,
+          "unique_parents": 742,
+          "parent_wall_ms": 59918.816224
+        },
+        "ordinal_inventory": [
+          {
+            "count": 742,
+            "total_wall_ms": 55710.589646,
+            "total_cpu_ms": 55685.226586,
+            "mean_wall_ms": 75.08165720485175,
+            "p50_ms": 78.475866,
+            "p95_ms": 101.734214,
+            "max_ms": 142.900318,
+            "cpu_over_wall": 0.9995447353876316,
+            "unique_parents": 742,
+            "parent_wall_ms": 59918.816224
+          }
+        ],
+        "counts_and_bytes_equal": 742
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 400,
+        "all_inventory": {
+          "count": 400,
+          "total_wall_ms": 28650.38944,
+          "total_cpu_ms": 28621.367941,
+          "mean_wall_ms": 71.6259736,
+          "p50_ms": 73.900077,
+          "p95_ms": 94.844112,
+          "max_ms": 131.678122,
+          "cpu_over_wall": 0.9989870469628074,
+          "unique_parents": 400,
+          "parent_wall_ms": 30468.334576
+        },
+        "ordinal_inventory": [
+          {
+            "count": 400,
+            "total_wall_ms": 28650.38944,
+            "total_cpu_ms": 28621.367941,
+            "mean_wall_ms": 71.6259736,
+            "p50_ms": 73.900077,
+            "p95_ms": 94.844112,
+            "max_ms": 131.678122,
+            "cpu_over_wall": 0.9989870469628074,
+            "unique_parents": 400,
+            "parent_wall_ms": 30468.334576
+          }
+        ],
+        "counts_and_bytes_equal": 400
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 1726,
+        "all_inventory": {
+          "count": 1726,
+          "total_wall_ms": 132956.916764,
+          "total_cpu_ms": 129007.856836,
+          "mean_wall_ms": 77.0318173603708,
+          "p50_ms": 77.300041,
+          "p95_ms": 108.923439,
+          "max_ms": 276.804702,
+          "cpu_over_wall": 0.9702981986637851,
+          "unique_parents": 1726,
+          "parent_wall_ms": 273667.156632
+        },
+        "ordinal_inventory": [
+          {
+            "count": 1726,
+            "total_wall_ms": 132956.916764,
+            "total_cpu_ms": 129007.856836,
+            "mean_wall_ms": 77.0318173603708,
+            "p50_ms": 77.300041,
+            "p95_ms": 108.923439,
+            "max_ms": 276.804702,
+            "cpu_over_wall": 0.9702981986637851,
+            "unique_parents": 1726,
+            "parent_wall_ms": 273667.156632
+          }
+        ],
+        "counts_and_bytes_equal": 1726
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 279,
+        "all_inventory": {
+          "count": 558,
+          "total_wall_ms": 44698.037398,
+          "total_cpu_ms": 44595.726581,
+          "mean_wall_ms": 80.10400967383512,
+          "p50_ms": 76.829172,
+          "p95_ms": 100.097134,
+          "max_ms": 163.045271,
+          "cpu_over_wall": 0.9977110669068308,
+          "unique_parents": 279,
+          "parent_wall_ms": 47998.663018
+        },
+        "ordinal_inventory": [
+          {
+            "count": 279,
+            "total_wall_ms": 22526.756026,
+            "total_cpu_ms": 22437.75825,
+            "mean_wall_ms": 80.7410610250896,
+            "p50_ms": 78.366031,
+            "p95_ms": 97.218631,
+            "max_ms": 124.005041,
+            "cpu_over_wall": 0.9960492413600396,
+            "unique_parents": 279,
+            "parent_wall_ms": 47998.663018
+          },
+          {
+            "count": 279,
+            "total_wall_ms": 22171.281372,
+            "total_cpu_ms": 22157.968331,
+            "mean_wall_ms": 79.46695832258065,
+            "p50_ms": 74.524607,
+            "p95_ms": 100.935161,
+            "max_ms": 163.045271,
+            "cpu_over_wall": 0.9993995366899806,
+            "unique_parents": 279,
+            "parent_wall_ms": 47998.663018
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 375,
+        "all_inventory": {
+          "count": 375,
+          "total_wall_ms": 26750.489656,
+          "total_cpu_ms": 26643.068994,
+          "mean_wall_ms": 71.33463908266667,
+          "p50_ms": 72.543649,
+          "p95_ms": 94.44148,
+          "max_ms": 190.458923,
+          "cpu_over_wall": 0.9959843478238573,
+          "unique_parents": 375,
+          "parent_wall_ms": 56422.765706
+        },
+        "ordinal_inventory": [
+          {
+            "count": 375,
+            "total_wall_ms": 26750.489656,
+            "total_cpu_ms": 26643.068994,
+            "mean_wall_ms": 71.33463908266667,
+            "p50_ms": 72.543649,
+            "p95_ms": 94.44148,
+            "max_ms": 190.458923,
+            "cpu_over_wall": 0.9959843478238573,
+            "unique_parents": 375,
+            "parent_wall_ms": 56422.765706
+          }
+        ],
+        "counts_and_bytes_equal": 375
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 82,
+        "all_inventory": {
+          "count": 164,
+          "total_wall_ms": 12653.952668,
+          "total_cpu_ms": 12637.075894,
+          "mean_wall_ms": 77.15824797560975,
+          "p50_ms": 73.709301,
+          "p95_ms": 97.788889,
+          "max_ms": 138.717033,
+          "cpu_over_wall": 0.9986662844059249,
+          "unique_parents": 82,
+          "parent_wall_ms": 13525.708538
+        },
+        "ordinal_inventory": [
+          {
+            "count": 82,
+            "total_wall_ms": 6316.545066,
+            "total_cpu_ms": 6305.504333,
+            "mean_wall_ms": 77.0310373902439,
+            "p50_ms": 74.197349,
+            "p95_ms": 97.788889,
+            "max_ms": 138.717033,
+            "cpu_over_wall": 0.9982520930533009,
+            "unique_parents": 82,
+            "parent_wall_ms": 13525.708538
+          },
+          {
+            "count": 82,
+            "total_wall_ms": 6337.407602,
+            "total_cpu_ms": 6331.571561,
+            "mean_wall_ms": 77.28545856097561,
+            "p50_ms": 73.336547,
+            "p95_ms": 94.77941,
+            "max_ms": 101.069139,
+            "cpu_over_wall": 0.9990791122543295,
+            "unique_parents": 82,
+            "parent_wall_ms": 13525.708538
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/collective_rpc/other/other",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 4,
+        "all_inventory": {
+          "count": 4,
+          "total_wall_ms": 0.099701,
+          "total_cpu_ms": 0.09243,
+          "mean_wall_ms": 0.02492525,
+          "p50_ms": 0.01992,
+          "p95_ms": 0.035556,
+          "max_ms": 0.035556,
+          "cpu_over_wall": 0.9270719451158965,
+          "unique_parents": 4,
+          "parent_wall_ms": 57.122339
+        },
+        "ordinal_inventory": [
+          {
+            "count": 4,
+            "total_wall_ms": 0.099701,
+            "total_cpu_ms": 0.09243,
+            "mean_wall_ms": 0.02492525,
+            "p50_ms": 0.01992,
+            "p95_ms": 0.035556,
+            "max_ms": 0.035556,
+            "cpu_over_wall": 0.9270719451158965,
+            "unique_parents": 4,
+            "parent_wall_ms": 57.122339
+          }
+        ],
+        "counts_and_bytes_equal": 4
+      },
+      {
+        "label": "UTILITY/ieee_pending_gpu_reference//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 10,
+        "all_inventory": {
+          "count": 10,
+          "total_wall_ms": 872.294088,
+          "total_cpu_ms": 844.574147,
+          "mean_wall_ms": 87.2294088,
+          "p50_ms": 82.372095,
+          "p95_ms": 119.053527,
+          "max_ms": 119.053527,
+          "cpu_over_wall": 0.9682217942534078,
+          "unique_parents": 10,
+          "parent_wall_ms": 967.533357
+        },
+        "ordinal_inventory": [
+          {
+            "count": 10,
+            "total_wall_ms": 872.294088,
+            "total_cpu_ms": 844.574147,
+            "mean_wall_ms": 87.2294088,
+            "p50_ms": 82.372095,
+            "p95_ms": 119.053527,
+            "max_ms": 119.053527,
+            "cpu_over_wall": 0.9682217942534078,
+            "unique_parents": 10,
+            "parent_wall_ms": 967.533357
+          }
+        ],
+        "counts_and_bytes_equal": 10
+      },
+      {
+        "label": "UTILITY/ieee_pending_gpu_reference//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 178,
+        "all_inventory": {
+          "count": 178,
+          "total_wall_ms": 13789.271561,
+          "total_cpu_ms": 13616.1632,
+          "mean_wall_ms": 77.46781775842696,
+          "p50_ms": 77.976656,
+          "p95_ms": 108.929744,
+          "max_ms": 154.955094,
+          "cpu_over_wall": 0.9874461562212178,
+          "unique_parents": 178,
+          "parent_wall_ms": 14831.170961
+        },
+        "ordinal_inventory": [
+          {
+            "count": 178,
+            "total_wall_ms": 13789.271561,
+            "total_cpu_ms": 13616.1632,
+            "mean_wall_ms": 77.46781775842696,
+            "p50_ms": 77.976656,
+            "p95_ms": 108.929744,
+            "max_ms": 154.955094,
+            "cpu_over_wall": 0.9874461562212178,
+            "unique_parents": 178,
+            "parent_wall_ms": 14831.170961
+          }
+        ],
+        "counts_and_bytes_equal": 178
+      },
+      {
+        "label": "UTILITY/ieee_pending_gpu_reference//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 15,
+        "all_inventory": {
+          "count": 15,
+          "total_wall_ms": 1283.078444,
+          "total_cpu_ms": 1272.697606,
+          "mean_wall_ms": 85.53856293333334,
+          "p50_ms": 77.074488,
+          "p95_ms": 107.53325,
+          "max_ms": 107.53325,
+          "cpu_over_wall": 0.9919094284152746,
+          "unique_parents": 15,
+          "parent_wall_ms": 1419.38732
+        },
+        "ordinal_inventory": [
+          {
+            "count": 15,
+            "total_wall_ms": 1283.078444,
+            "total_cpu_ms": 1272.697606,
+            "mean_wall_ms": 85.53856293333334,
+            "p50_ms": 77.074488,
+            "p95_ms": 107.53325,
+            "max_ms": 107.53325,
+            "cpu_over_wall": 0.9919094284152746,
+            "unique_parents": 15,
+            "parent_wall_ms": 1419.38732
+          }
+        ],
+        "counts_and_bytes_equal": 15
+      },
+      {
+        "label": "UTILITY/ieee_pending_gpu_reference//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 232,
+        "all_inventory": {
+          "count": 232,
+          "total_wall_ms": 17033.301693,
+          "total_cpu_ms": 16994.308634,
+          "mean_wall_ms": 73.41940384913794,
+          "p50_ms": 74.082997,
+          "p95_ms": 94.585457,
+          "max_ms": 135.837725,
+          "cpu_over_wall": 0.99771077506271,
+          "unique_parents": 232,
+          "parent_wall_ms": 18515.733556
+        },
+        "ordinal_inventory": [
+          {
+            "count": 232,
+            "total_wall_ms": 17033.301693,
+            "total_cpu_ms": 16994.308634,
+            "mean_wall_ms": 73.41940384913794,
+            "p50_ms": 74.082997,
+            "p95_ms": 94.585457,
+            "max_ms": 135.837725,
+            "cpu_over_wall": 0.99771077506271,
+            "unique_parents": 232,
+            "parent_wall_ms": 18515.733556
+          }
+        ],
+        "counts_and_bytes_equal": 232
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 37,
+        "all_inventory": {
+          "count": 111,
+          "total_wall_ms": 8809.956832,
+          "total_cpu_ms": 8790.398069,
+          "mean_wall_ms": 79.36898046846846,
+          "p50_ms": 73.598747,
+          "p95_ms": 105.404059,
+          "max_ms": 120.737328,
+          "cpu_over_wall": 0.9977799252172319,
+          "unique_parents": 37,
+          "parent_wall_ms": 13724.924612
+        },
+        "ordinal_inventory": [
+          {
+            "count": 37,
+            "total_wall_ms": 2932.107916,
+            "total_cpu_ms": 2925.54373,
+            "mean_wall_ms": 79.24615989189189,
+            "p50_ms": 73.521757,
+            "p95_ms": 107.278453,
+            "max_ms": 120.737328,
+            "cpu_over_wall": 0.9977612740771987,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          },
+          {
+            "count": 37,
+            "total_wall_ms": 2876.299625,
+            "total_cpu_ms": 2868.190835,
+            "mean_wall_ms": 77.7378277027027,
+            "p50_ms": 73.590562,
+            "p95_ms": 102.018036,
+            "max_ms": 104.1611,
+            "cpu_over_wall": 0.997180825693707,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          },
+          {
+            "count": 37,
+            "total_wall_ms": 3001.549291,
+            "total_cpu_ms": 2996.663504,
+            "mean_wall_ms": 81.1229538108108,
+            "p50_ms": 73.728735,
+            "p95_ms": 106.557489,
+            "max_ms": 116.174883,
+            "cpu_over_wall": 0.9983722449554137,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 785,
+        "all_inventory": {
+          "count": 2355,
+          "total_wall_ms": 164977.441779,
+          "total_cpu_ms": 164760.372373,
+          "mean_wall_ms": 70.05411540509553,
+          "p50_ms": 70.699756,
+          "p95_ms": 98.998836,
+          "max_ms": 130.75043,
+          "cpu_over_wall": 0.998684247957422,
+          "unique_parents": 785,
+          "parent_wall_ms": 264803.614335
+        },
+        "ordinal_inventory": [
+          {
+            "count": 785,
+            "total_wall_ms": 56158.444835,
+            "total_cpu_ms": 56041.469514,
+            "mean_wall_ms": 71.53942017197453,
+            "p50_ms": 71.673226,
+            "p95_ms": 100.675533,
+            "max_ms": 130.75043,
+            "cpu_over_wall": 0.997917048427112,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          },
+          {
+            "count": 785,
+            "total_wall_ms": 54366.417797,
+            "total_cpu_ms": 54285.473582,
+            "mean_wall_ms": 69.25658318089172,
+            "p50_ms": 69.906795,
+            "p95_ms": 97.155199,
+            "max_ms": 122.2474,
+            "cpu_over_wall": 0.9985111357657912,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          },
+          {
+            "count": 785,
+            "total_wall_ms": 54452.579147,
+            "total_cpu_ms": 54433.429277,
+            "mean_wall_ms": 69.36634286242038,
+            "p50_ms": 70.468722,
+            "p95_ms": 96.157011,
+            "max_ms": 125.232885,
+            "cpu_over_wall": 0.999648320239372,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          }
+        ],
+        "counts_and_bytes_equal": 713
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 3,
+        "all_inventory": {
+          "count": 9,
+          "total_wall_ms": 665.434807,
+          "total_cpu_ms": 661.890086,
+          "mean_wall_ms": 73.93720077777778,
+          "p50_ms": 71.08037,
+          "p95_ms": 88.317949,
+          "max_ms": 88.317949,
+          "cpu_over_wall": 0.9946730754647766,
+          "unique_parents": 3,
+          "parent_wall_ms": 1008.696454
+        },
+        "ordinal_inventory": [
+          {
+            "count": 3,
+            "total_wall_ms": 221.777563,
+            "total_cpu_ms": 221.749525,
+            "mean_wall_ms": 73.92585433333333,
+            "p50_ms": 71.08037,
+            "p95_ms": 82.764039,
+            "max_ms": 82.764039,
+            "cpu_over_wall": 0.999873576029871,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          },
+          {
+            "count": 3,
+            "total_wall_ms": 220.517354,
+            "total_cpu_ms": 217.031509,
+            "mean_wall_ms": 73.50578466666667,
+            "p50_ms": 67.433247,
+            "p95_ms": 88.317949,
+            "max_ms": 88.317949,
+            "cpu_over_wall": 0.9841924232412111,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          },
+          {
+            "count": 3,
+            "total_wall_ms": 223.13989,
+            "total_cpu_ms": 223.10905200000002,
+            "mean_wall_ms": 74.37996333333334,
+            "p50_ms": 71.755851,
+            "p95_ms": 81.292398,
+            "max_ms": 81.292398,
+            "cpu_over_wall": 0.9998617996988347,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 157,
+        "all_inventory": {
+          "count": 471,
+          "total_wall_ms": 31943.569745,
+          "total_cpu_ms": 31903.883875,
+          "mean_wall_ms": 67.82074255838641,
+          "p50_ms": 69.344616,
+          "p95_ms": 90.439507,
+          "max_ms": 127.921669,
+          "cpu_over_wall": 0.9987576257031757,
+          "unique_parents": 157,
+          "parent_wall_ms": 51082.074695
+        },
+        "ordinal_inventory": [
+          {
+            "count": 157,
+            "total_wall_ms": 10698.720862,
+            "total_cpu_ms": 10671.760447999999,
+            "mean_wall_ms": 68.14471886624204,
+            "p50_ms": 70.072143,
+            "p95_ms": 90.144245,
+            "max_ms": 126.052464,
+            "cpu_over_wall": 0.9974800338893073,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          },
+          {
+            "count": 157,
+            "total_wall_ms": 10644.018695,
+            "total_cpu_ms": 10635.456245,
+            "mean_wall_ms": 67.79629742038217,
+            "p50_ms": 68.609868,
+            "p95_ms": 89.817372,
+            "max_ms": 127.921669,
+            "cpu_over_wall": 0.9991955622922737,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          },
+          {
+            "count": 157,
+            "total_wall_ms": 10600.830188,
+            "total_cpu_ms": 10596.667182,
+            "mean_wall_ms": 67.52121138853504,
+            "p50_ms": 68.878792,
+            "p95_ms": 92.013018,
+            "max_ms": 112.906459,
+            "cpu_over_wall": 0.9996072943414646,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          }
+        ],
+        "counts_and_bytes_equal": 142
+      }
+    ],
+    "candidate_registered_proactive": [
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 785,
+        "all_inventory": {
+          "count": 2355,
+          "total_wall_ms": 164977.441779,
+          "total_cpu_ms": 164760.372373,
+          "mean_wall_ms": 70.05411540509553,
+          "p50_ms": 70.699756,
+          "p95_ms": 98.998836,
+          "max_ms": 130.75043,
+          "cpu_over_wall": 0.998684247957422,
+          "unique_parents": 785,
+          "parent_wall_ms": 264803.614335
+        },
+        "ordinal_inventory": [
+          {
+            "count": 785,
+            "total_wall_ms": 56158.444835,
+            "total_cpu_ms": 56041.469514,
+            "mean_wall_ms": 71.53942017197453,
+            "p50_ms": 71.673226,
+            "p95_ms": 100.675533,
+            "max_ms": 130.75043,
+            "cpu_over_wall": 0.997917048427112,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          },
+          {
+            "count": 785,
+            "total_wall_ms": 54366.417797,
+            "total_cpu_ms": 54285.473582,
+            "mean_wall_ms": 69.25658318089172,
+            "p50_ms": 69.906795,
+            "p95_ms": 97.155199,
+            "max_ms": 122.2474,
+            "cpu_over_wall": 0.9985111357657912,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          },
+          {
+            "count": 785,
+            "total_wall_ms": 54452.579147,
+            "total_cpu_ms": 54433.429277,
+            "mean_wall_ms": 69.36634286242038,
+            "p50_ms": 70.468722,
+            "p95_ms": 96.157011,
+            "max_ms": 125.232885,
+            "cpu_over_wall": 0.999648320239372,
+            "unique_parents": 785,
+            "parent_wall_ms": 264803.614335
+          }
+        ],
+        "counts_and_bytes_equal": 713
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity",
+          "native_registered_tensor_storage_capacity"
+        ],
+        "transactions": 157,
+        "all_inventory": {
+          "count": 471,
+          "total_wall_ms": 31943.569745,
+          "total_cpu_ms": 31903.883875,
+          "mean_wall_ms": 67.82074255838641,
+          "p50_ms": 69.344616,
+          "p95_ms": 90.439507,
+          "max_ms": 127.921669,
+          "cpu_over_wall": 0.9987576257031757,
+          "unique_parents": 157,
+          "parent_wall_ms": 51082.074695
+        },
+        "ordinal_inventory": [
+          {
+            "count": 157,
+            "total_wall_ms": 10698.720862,
+            "total_cpu_ms": 10671.760447999999,
+            "mean_wall_ms": 68.14471886624204,
+            "p50_ms": 70.072143,
+            "p95_ms": 90.144245,
+            "max_ms": 126.052464,
+            "cpu_over_wall": 0.9974800338893073,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          },
+          {
+            "count": 157,
+            "total_wall_ms": 10644.018695,
+            "total_cpu_ms": 10635.456245,
+            "mean_wall_ms": 67.79629742038217,
+            "p50_ms": 68.609868,
+            "p95_ms": 89.817372,
+            "max_ms": 127.921669,
+            "cpu_over_wall": 0.9991955622922737,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          },
+          {
+            "count": 157,
+            "total_wall_ms": 10600.830188,
+            "total_cpu_ms": 10596.667182,
+            "mean_wall_ms": 67.52121138853504,
+            "p50_ms": 68.878792,
+            "p95_ms": 92.013018,
+            "max_ms": 112.906459,
+            "cpu_over_wall": 0.9996072943414646,
+            "unique_parents": 157,
+            "parent_wall_ms": 51082.074695
+          }
+        ],
+        "counts_and_bytes_equal": 142
+      }
+    ],
+    "other_prepare_sequences": [
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "idle_at_entry",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 37,
+        "all_inventory": {
+          "count": 111,
+          "total_wall_ms": 8809.956832,
+          "total_cpu_ms": 8790.398069,
+          "mean_wall_ms": 79.36898046846846,
+          "p50_ms": 73.598747,
+          "p95_ms": 105.404059,
+          "max_ms": 120.737328,
+          "cpu_over_wall": 0.9977799252172319,
+          "unique_parents": 37,
+          "parent_wall_ms": 13724.924612
+        },
+        "ordinal_inventory": [
+          {
+            "count": 37,
+            "total_wall_ms": 2932.107916,
+            "total_cpu_ms": 2925.54373,
+            "mean_wall_ms": 79.24615989189189,
+            "p50_ms": 73.521757,
+            "p95_ms": 107.278453,
+            "max_ms": 120.737328,
+            "cpu_over_wall": 0.9977612740771987,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          },
+          {
+            "count": 37,
+            "total_wall_ms": 2876.299625,
+            "total_cpu_ms": 2868.190835,
+            "mean_wall_ms": 77.7378277027027,
+            "p50_ms": 73.590562,
+            "p95_ms": 102.018036,
+            "max_ms": 104.1611,
+            "cpu_over_wall": 0.997180825693707,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          },
+          {
+            "count": 37,
+            "total_wall_ms": 3001.549291,
+            "total_cpu_ms": 2996.663504,
+            "mean_wall_ms": 81.1229538108108,
+            "p50_ms": 73.728735,
+            "p95_ms": 106.557489,
+            "max_ms": 116.174883,
+            "cpu_over_wall": 0.9983722449554137,
+            "unique_parents": 37,
+            "parent_wall_ms": 13724.924612
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      },
+      {
+        "label": "UTILITY/ieee_prepare_host//",
+        "state": "work",
+        "inventory_scopes": [
+          "native_registered_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity",
+          "native_registered_and_staged_tensor_storage_capacity"
+        ],
+        "transactions": 3,
+        "all_inventory": {
+          "count": 9,
+          "total_wall_ms": 665.434807,
+          "total_cpu_ms": 661.890086,
+          "mean_wall_ms": 73.93720077777778,
+          "p50_ms": 71.08037,
+          "p95_ms": 88.317949,
+          "max_ms": 88.317949,
+          "cpu_over_wall": 0.9946730754647766,
+          "unique_parents": 3,
+          "parent_wall_ms": 1008.696454
+        },
+        "ordinal_inventory": [
+          {
+            "count": 3,
+            "total_wall_ms": 221.777563,
+            "total_cpu_ms": 221.749525,
+            "mean_wall_ms": 73.92585433333333,
+            "p50_ms": 71.08037,
+            "p95_ms": 82.764039,
+            "max_ms": 82.764039,
+            "cpu_over_wall": 0.999873576029871,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          },
+          {
+            "count": 3,
+            "total_wall_ms": 220.517354,
+            "total_cpu_ms": 217.031509,
+            "mean_wall_ms": 73.50578466666667,
+            "p50_ms": 67.433247,
+            "p95_ms": 88.317949,
+            "max_ms": 88.317949,
+            "cpu_over_wall": 0.9841924232412111,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          },
+          {
+            "count": 3,
+            "total_wall_ms": 223.13989,
+            "total_cpu_ms": 223.10905200000002,
+            "mean_wall_ms": 74.37996333333334,
+            "p50_ms": 71.755851,
+            "p95_ms": 81.292398,
+            "max_ms": 81.292398,
+            "cpu_over_wall": 0.9998617996988347,
+            "unique_parents": 3,
+            "parent_wall_ms": 1008.696454
+          }
+        ],
+        "counts_and_bytes_equal": 0
+      }
+    ],
+    "decision": "qualify_registered_proactive_postcheck_reuse_only",
+    "excluded": [
+      "cross_call_epoch_or_ttl_cache",
+      "changed_staged_registration",
+      "file_to_host_mutation",
+      "cost_provider_precheck_fusion_in_this_candidate",
+      "repeat_D668_profiling",
+      "change_metric_thresholds"
+    ],
+    "caveats": [
+      "D668 is a profiled 1000-request prefix, not D672 full-run call frequency.",
+      "Counts/bytes equality does not prove tensor or pinning immutability.",
+      "Ordinal wall totals overlap parent and request intervals; never subtract them from latency.",
+      "The third scan is selected for path qualification, not yet eliminated or measured faster.",
+      "Storage must be newly observed on every transaction; allocator and workspace must remain fresh.",
+      "D663 demand witness does not by itself qualify the proactive pitched-copy path.",
+      "87 same-registered-scope operations changed observed counts/bytes between scans one and two; no reuse across this boundary."
+    ],
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "ordinal_signature_crosscheck": {
+      "transactions": 982,
+      "first_second_same": 855,
+      "second_third_same": 982,
+      "three_registered_scope": 942,
+      "three_registered_scope_but_first_second_changed": 87
+    },
+    "provenance_correction": {
+      "original": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/diagnosis2.json",
+      "reason": "audit2 expansion reused the source variable for D668; last path paired with audit.py SHA",
+      "old_pair": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/summarize_operations.py",
+        "sha256": "71b7192c565f144063c169ee65b88f12b035969506ba6f88f04749eff252e3af"
+      },
+      "corrected_pair": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/audit.py",
+        "sha256": "71b7192c565f144063c169ee65b88f12b035969506ba6f88f04749eff252e3af"
+      },
+      "observations_or_counts_changed": false,
+      "production_changed": false
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_commit": "a3dab155b8aa2d90cd1ecd27fa26d7f19aefc20c",
+  "archive_members": {
+    "00_analysis2_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis2_closure.json",
+      "sha256": "9ed7f5223f00ba4e811233d8b02d27a76104836156c4cbdc368450a714d75543",
+      "bytes": 646
+    },
+    "01_analysis2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis2_identity.json",
+      "sha256": "6eec10c53a8950286b01b1547fea5e47bfdd89a08ad74f3e5fbd501088f76703",
+      "bytes": 286
+    },
+    "02_analysis2_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis2_receipt.json",
+      "sha256": "b6813e7805bb1e63b9de6d28a021f8418fbec37e4d159e4011c88c2e0de6a10f",
+      "bytes": 588
+    },
+    "03_analysis2_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis2_resource_gate.json",
+      "sha256": "10d8cadbc4191e4b727fdf4285b680998572daaf4f68e819b733d7ab23997eb7",
+      "bytes": 6468
+    },
+    "04_analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis_closure.json",
+      "sha256": "a4b267c6124e0302e35b00f77d7ef3859a9223da72834da93aa3e07b5ebd88ab",
+      "bytes": 646
+    },
+    "05_analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis_identity.json",
+      "sha256": "81f46e66cbce46d1d443f2010f030f2f2a956dac5878ef16e090041e78aa313e",
+      "bytes": 286
+    },
+    "06_analysis_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis_receipt.json",
+      "sha256": "e3c775e2ae353a9530e41d19dcaf67d810c7d374453ef4ef599b8ddc4b136b11",
+      "bytes": 588
+    },
+    "07_analysis_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/analysis_resource_gate.json",
+      "sha256": "6654c51f59bd8f9944e8d9380d5a40dc64f5f5189d73213f89dca7dfb0a1b6e6",
+      "bytes": 6468
+    },
+    "08_audit.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/audit.py",
+      "sha256": "71b7192c565f144063c169ee65b88f12b035969506ba6f88f04749eff252e3af",
+      "bytes": 6870
+    },
+    "09_audit2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/audit2.py",
+      "sha256": "325c73ed2408de2f9411cfb5134f4b5cd4ac3b71c42de01e0c11b4da9988cced",
+      "bytes": 2347
+    },
+    "10_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/close.py",
+      "sha256": "d2654253d81eeec1b38235b66cb85a184430f9053a9bd59273c1b6b1945e6c6f",
+      "bytes": 371
+    },
+    "11_diagnosis.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/diagnosis.json",
+      "sha256": "dbffdb31d9fcdd60689550c6e3de61c07b1f5f9e5b2061a71cd8c86d86b000a3",
+      "bytes": 55992
+    },
+    "12_diagnosis2.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/diagnosis2.json",
+      "sha256": "3b15163251519783e35f2de35e134fcf518edddc61643dc592cc2422430a155c",
+      "bytes": 56571
+    },
+    "13_diagnosis3.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/diagnosis3.json",
+      "sha256": "0d9d3524f0d280600c24ed7d177b87131d7516d8e58387e32bf2f72e2b5fea11",
+      "bytes": 57815
+    },
+    "14_publication2_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publication2_identity.json",
+      "sha256": "2dc043b156619e1e86ba545f7fe38e9139779b32ddf5183fa04f3c257b698bba",
+      "bytes": 286
+    },
+    "15_publication2_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publication2_resource_gate.json",
+      "sha256": "4d074fa3d6daa7ec3791832969e8c9bb5edad802281f488405ea0f9316667fb6",
+      "bytes": 6472
+    },
+    "16_publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publication_closure.json",
+      "sha256": "b670770fc17ec714279883ef995107b3f501d0ef8647b0656b4b880b92e9bf6c",
+      "bytes": 646
+    },
+    "17_publication_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publication_identity.json",
+      "sha256": "8d3ef767add215115379292784db05fca2a3df4eff6b82713cf19a10d8cbc55a",
+      "bytes": 286
+    },
+    "18_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publish.py",
+      "sha256": "df846fc86e50e3148f2b08a5698221632a5253edac4a0590e810c558cb62e75a",
+      "bytes": 2558
+    },
+    "19_publish2.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/publish2.py",
+      "sha256": "f4a747a300d924cef93f01409e11e5de0b094a68f682a40b720ada7eb318e434",
+      "bytes": 1835
+    },
+    "20_qualification_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/qualification_closure.json",
+      "sha256": "9de6b40d3a420ca5ef758be0f2f73cde1f192bf83ded4c0d24eaa9b5b9dfa00e",
+      "bytes": 646
+    },
+    "21_qualification_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/qualification_identity.json",
+      "sha256": "a82634d096fdec0699c0c52a922e9b3676d3e6ba31ce4434c99e34c93ece328c",
+      "bytes": 286
+    },
+    "22_qualification_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/qualification_receipt.json",
+      "sha256": "4d484d1c3ddb936d5861a934ae2ecc7df70c4909f5dc9349a25302466a6bb995",
+      "bytes": 588
+    },
+    "23_repair_provenance.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d674_20261018/repair_provenance.py",
+      "sha256": "fecc26dc22b4edceb15985ec7359f7464ea97282378ee877c2d31795e5a77efc",
+      "bytes": 2369
+    },
+    "24_D674_PROACTIVE_HOST_INVENTORY_AUDIT.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D674_PROACTIVE_HOST_INVENTORY_AUDIT.md",
+      "sha256": "6dab5ae88998fcf733d697f38ed9dfb28cd3fe0d848024c37a98f65a930eb931",
+      "bytes": 8678
+    },
+    "25_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d660_20261018/close.py",
+      "sha256": "2275f5fb7959fb2df7bf13a67cce7f4ebcd226a232ca9d6ecb5ec00d013ca68a",
+      "bytes": 1295
+    },
+    "26_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d612_20261017/publish.py",
+      "sha256": "a1bcd9f18e9f483fd171b8be75f6169848f0c7f00135fda2b17ff47625028cf9",
+      "bytes": 6407
+    },
+    "27_summarize_operations.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/summarize_operations.py",
+      "sha256": "19b885cb354ee2b7ba19957dc6852997cc6ec78afc0753ea074692a7a837551c",
+      "bytes": 3872
+    },
+    "28_publication_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d673_20261018/publication_receipt.json",
+      "sha256": "759d2b40caf0745388eb902f258d25533365d91ff246ceff89d91768a82927cd",
+      "bytes": 816
+    },
+    "29_publication_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d673_20261018/publication_closure.json",
+      "sha256": "6b0f84403beeb8a4ed9b800e203b9f411196f9c906c2ada3f799e534cf5a747b",
+      "bytes": 646
+    }
+  },
+  "archive_sha256": "9fb33ae23e6b63c61601e0e1a98701fd213e710e31aa496867e96bb7137a2325",
+  "production_changed": false,
+  "inference_runs_added": 0,
+  "ranking_eligible": false
+}

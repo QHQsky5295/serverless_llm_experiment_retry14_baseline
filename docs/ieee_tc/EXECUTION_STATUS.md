@@ -1,6 +1,38 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D674：主动HOST准备重复清点已定位，生产尚未改动 — 2026-10-18
+
+PROGRESS。完整PLAN、六补充及V1/V2已重读；复用D668既存CSV/统计函数，
+无新GPU或profiling。1425次ieee_prepare_host中982次有3次清点；942次
+registered三清点，40次registered→registered+staged→registered+staged。
+第一/二次范围/数量/字节相同855，第二/三次相同982；同registered范围内
+仍有87次前两次改变，不能整次复用第一份图。相同签名也不是不可变性证明。
+已核对D329/D352/D663/D671历史、当前调用链、本机和联网官方vLLM0.30源码。
+
+唯一下一候选为已注册主动HOST激活的第3次postcheck事务内复用第2次存储
+事实，仍新读allocator/workspace，验证实际pitched-copy/owner/source身份；
+不合并cost-provider前图，不做epoch/TTL缓存，不弱化错误检测。D663请求驱动
+资格不能直接代替本候选；先现有CPU fixture/原生资格，随后一次新版本Full。
+本轮尚未修改生产代码或创建D675；不重复D668/D672或宽泛profiling。
+
+analysis/analysis2均exit0，精确身份递归空关闭，peak43610112/43319296B、
+high/max/OOM/kill/swap0；147旧保护通过。第一次发布被source_refs误配拦截，
+尚未stage/commit；修正仅来源path/SHA配对，原统计/失败保留。最终diagnosis3 SHA
+0d9d3524f0d280600c24ed7d177b87131d7516d8e58387e32bf2f72e2b5fea11，23源SHA通过。
+publication/qualification均已递归空关闭，事件/swap0；不再执行原publish.py。
+当前准备显式路径备份，未声称推送完成。最新完整3B仍D672联合91.175%，
+U14931.314879785059，差153达标、数值证明未知；本轮未新增性能结论。
+非项目k3s/已完成HydraServe不动；3B后续/基线/dLoRA、同版本7B、A1–A5/
+S1–S13、成本/CE、审稿与图表完整ACTIVE。详见D674文档，备份后实施唯一候选。
+
 ## D673：剩余违约和资源差来源已离线核查 — 2026-10-18
+
+备份已完成：5个明确路径推送a3dab155b8aa2d90cd1ecd27fa26d7f19aefc20c，
+远端一致；39259 exit0，publication域递归空关闭、peak97468416B、事件/swap0，
+不再wait。D672晚回执随包归档，147旧保护和3用户SHA未变，BASE仍e16af33a。
+无GPU或远端实验服务；磁盘可用164655620096B。下文“正在备份”为发布前状态，
+已由此完成回执取代。本次晚发布/关闭回执及本段随下一正常检查点备份；不为
+状态文字单开提交。下一项仍为有界HOST观察调用审计，尚无D674或新候选。
 
 PROGRESS。复用D666/D661/D612阶段与D662回执分析，只新增D673独立输出，
 无GPU、生产代码或配置改动。16954 exit0、analysis域递归空关闭，峰值
