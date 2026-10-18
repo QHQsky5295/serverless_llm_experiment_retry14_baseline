@@ -1,5 +1,14 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D677准备：进入同候选完整4000请求验证 — 2026-10-18
+
+D676完成备份a3d1d455d6023d4dc3f66209b8698c380331053f，6路径远端一致，
+36186exit0、publication递归空关闭，peak28807168B、事件/swap0，不再wait。
+本次新增d677分支/YAML/复用管理helper，生产源码未改；D672配置仅路径差。
+下一资格校验及明确路径备份后唯一tc-d677-3b-w0。当前尚未GPU/远端启动。
+详细预登记见D677_3B_FULL_W0.md；D676晚回执随本检查点归档，不覆盖旧seal。
+完整3B仍D672联合91.175%，不是本次新结果。所有未完成范围继续ACTIVE。
+
 ## D676完成：主动HOST路径原生验证通过，准备完整回放 — 2026-10-18
 
 PROGRESS。唯一tmux已终态，launch/service/watchdog均成功，100条原生绑定/
