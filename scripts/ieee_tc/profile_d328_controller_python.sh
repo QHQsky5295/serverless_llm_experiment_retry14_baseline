@@ -23,6 +23,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d668_3b_full_w0_prefix1)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018
     ;;
+  d684_3b_full_w0_prefix1)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018
+    ;;
   *) echo 'Unregistered diagnostic observer campaign' >&2; exit 2 ;;
 esac
 test "$1" = "$ROOT/scripts/run_all_experiments.py"
@@ -49,7 +52,7 @@ else
   unset FAASLORA_TC_CORE_STEP_TIMING
 fi
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
-if [[ "$FAASLORA_RESULTS_TAG" == d668_3b_full_w0_prefix1 ]]; then
+if [[ "$FAASLORA_RESULTS_TAG" == d668_3b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d684_3b_full_w0_prefix1 ]]; then
   export FAASLORA_TC_HOST_INVENTORY_TIMING=fresh_inventory_v1
 else
   unset FAASLORA_TC_HOST_INVENTORY_TIMING

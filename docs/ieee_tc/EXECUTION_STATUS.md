@@ -1,5 +1,35 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D684当前3B前缀诊断已资格，准备备份启动 — 2026-10-18
+
+PROGRESS。只复用D682配置＋现有CoreHostTiming/fresh_inventory观察器，前
+1000原请求view7b832120…，YAML4000来源不变；无生产逻辑/阈值/工件变化。
+16540exit0，44项当前观察器/入口检查通过；527/71/72生产证据按SHA复用。
+qualification域递归空关闭，peak1944125440B/事件swap0。5989exit0压缩仅
+D677/D682已关闭main_outcome，原audit SHA＋两次解压校验通过，释放
+1957076992B；qualification2（storage）关闭peak327688192B/事件swap0。
+147旧保护文件和用户修改未变。不要重复压缩或wait上述终态session。
+
+尚无GPU/remote启动。D684协议文档、配置、原runner两个显式入口和管理/
+关闭helper已准备，下一明确路径backup→唯一tc-d684-3b-w0-prefix1。
+当前3B完整结果仍D682联合92.350%/U15896.253912，G1/G2未闭口；这次诊断
+不替代完整成绩、不选赢家、不重复全W0。完成后分析当前控制与短decode交叠。
+完整PLAN、六补充、V1/V2核验，其他全部范围ACTIVE；共享k3s不动，不画图。
+
+## D683已封存，下一项为当前版本稳态控制定位 — 2026-10-18
+
+PROGRESS。5明确路径推送2e4dd669f2255bf44461aff65604a067831152be，远端
+一致；68428exit0、publication域递归空关闭，不再wait或重发。D682原生
+4000完整性能与D683派生诊断均已封存；本轮无生产改动/新GPU/远端操作。
+已核查D682目录不含diagnostic_core，普通回执有阶段边界但没有当前核心
+函数CPU时长，不能以D668旧仪器值直接说明D682剩余干扰。下一复用现成
+CoreHostTiming及D668前1000条诊断入口，在D682冻结配置上仅新增独占路径
+和显式观察器，回答当前完整事务与短decode交叠；不新增instrumentation框架，
+不凭前缀选择赢家、不重复全W0、不开阈值扫描。尚无D684文件/启动。
+若既有当前回执已有足够证据则先复用；新重型定位前完整PLAN/安全/存储复核。
+当前3B仍92.350%/U15896.253912，G1/G2未闭口，数值资格未知；其余完整
+范围保留，先不画图。非项目k3s不动，HydraServe已完成隔离适配不重启。
+
 ## D683剩余违约/资源诊断完成，准备备份 — 2026-10-18
 
 PROGRESS。0新增GPU；D661/D612流式投影与D679冷却/短decode分析复用通过。
