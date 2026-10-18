@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "production_unchanged": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "native_result_sha256": "e7dd6b39dab3b9eaed32755b2bb742542daef07e7c33c9fbdc861455556b4944",
+  "native_launch_sha256": "bbfcb7253b36636704258bbe5065e24b80e43c9ff01f1d887a822ecdae1dd55d",
+  "evidence_members": {
+    "analyze.py": "be03e7d6a1f7f7dc26d4e31184a471bb279dde44ac4721dc951a9ae021ee3e16",
+    "analyze2.py": "2d576163d03123449cc04685d9f531036750c07c0bf5cf5c318b3cdaefc2a512",
+    "close.py": "279ff5b10269904a7ecdea8e134539f2804b0b71fea08804f2172f654aeb4665",
+    "launch.py": "35a4e9044157cf631f0116eb50e88e21ef0240ce080c6725cbe6d1d4ca6faa03",
+    "publish.py": "b5903874299ef735136a71cca64b56c6dfded2fb058f8d348d0e3e7d80f17c16",
+    "publish2.py": "593990e91d590d61a0f0a3d774a297a824dd6c8a447c9c15267992f7969b8b7a",
+    "qualify.py": "e8423e44f5cf573c46413dadef39f29bc119b3f177a1de923f4079e1e8182f61",
+    "analysis2_closure.json": "ab14d7003427d8fc1123d3358bf72774054ab14e0d65f5d5b1ed3b17c69e81b0",
+    "analysis2_identity.json": "0f91be0f5f504d93d8620f8ebe561f6d813a384e46c6c57e5aebbd0afb0989b6",
+    "analysis_closure.json": "4705e064b2798f060408b09951f4a47a03d2a602ca12fc0b3576226e452342c2",
+    "analysis_identity.json": "ff76f5624da2fe6c2b500a6ae0141e2a0a2c0fb99d0ae46232f2a15b03475761",
+    "build_receipt.json": "092dc763801e8782f6d592ab04002dfb2c298456e21e450db68ce0f6b7222cab",
+    "native_launch.json": "bbfcb7253b36636704258bbe5065e24b80e43c9ff01f1d887a822ecdae1dd55d",
+    "native_pin.json": "e7dd6b39dab3b9eaed32755b2bb742542daef07e7c33c9fbdc861455556b4944",
+    "publication2_identity.json": "58d90a4fe0774d84f80c48a4e47c70fca84a7bec6534d13a53da01298e50d7b2",
+    "publication_closure.json": "2f7d81398400cf55e73e7aebc640e5c0587be088b819c80495a6aa90e84b6cd3",
+    "publication_identity.json": "0edfa402d1348da6dba22c2e1557e61748d7beb48106df65bc19056049e4aae0",
+    "qualification.json": "55f88f64e173f627de8126862012cc206fa38d3f9ff7eb606aea6a849247045d",
+    "qualification_closure.json": "c3534645308bb740f7c8d2feca4cd62f9a076ae254839fca5f10bc68fb6a4d55",
+    "qualification_identity.json": "e69cc2e4db5692214d864455cbc281c96aa6d2f6468d363cbf48bb0d3fc01053",
+    "resource_gate.json": "145d33a6abd7798cb04371876bb51efe71d6c107e005fffc1c0f762d6587aac6",
+    "start_closure.json": "2576b89636dc8b008d11125ad782f4bdd954b7823ba36e23fbf585b2338dd573",
+    "start_identity.json": "ebb9bb7a20b515b3f13c7a75b9d8716d451c1ac8ffe31e3779160e87501364a6",
+    "test_receipt.json": "46f519aeb3998fce616c403232c8da11f6243afbf389e274f40d7f9fa2345f6a",
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests.log": "d056edee602edcbcfbf4a94d87c6cc70de96cc077467e8e499592fa887f55fe2",
+    "native_launch.launch/exec_receipt.json": "9c25e5e0905a66bc50777743802db5034bbac7c216b258211ff0497392e6e35e",
+    "native_launch.launch/service.log": "2a54623183300cc244b40ebb6fb5619bc569735212c82d181dcdd592757e8739",
+    "native_launch.launch/watchdog.jsonl": "c58efc50cc5da33975d57f167e33c19680b354a62104268890eeafd8e891898d",
+    "native_launch.launch/watchdog.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "analysis_attempt1": {
+    "exit_code": 1,
+    "error": "incorrect assumption about sign of median and majority; preserved"
+  },
+  "analysis_attempt2": {
+    "exit_code": 0,
+    "no_native_rerun": true
+  },
+  "no_figure": true,
+  "no_backbone_or_remote_operation": true
+}

@@ -2403,7 +2403,7 @@ def backend_frontend_check(runtime_receipt: Path, config: Path) -> dict:
     return result
 
 
-def backend_pin_query_check(runtime_receipt: Path) -> dict:
+def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None = None) -> dict:
     """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
 
     Small tensor fixtures are not a new adapter pool. No model, input trace,
@@ -2454,7 +2454,18 @@ def backend_pin_query_check(runtime_receipt: Path) -> dict:
             if type(tensor) is not torch.Tensor or tensor.device.type != 'cpu':
                 raise ValueError('live pin witness excludes tensor subclasses and non-CPU tensors')
             return _direct_pin_query(runtime, pointer)
-        candidate, candidate_source = _pin_inventory_witness(inventory, query, guard)
+        if bulk_library is None:
+            candidate, candidate_source = _pin_inventory_witness(inventory, query, guard)
+        else:
+            from scripts.ieee_tc.host_pin_batch_witness import inventory_witness, load_query
+            bulk_query = load_query(bulk_library, torch)
+            candidate, candidate_source = inventory_witness(inventory, bulk_query, guard)
+            def query(tensor, pointer):
+                return bulk_query([(tensor, ('cpu', pointer))])[0]
+            result.update(kind='native_batched_live_pin_query_d685_v1',
+                bulk_library_sha256=digest(bulk_library), bulk_library=str(bulk_library),
+                candidate_label='native_batch_not_d462_python_binding',
+                per_view_query_retained=True, cross_call_state_cache=False)
         result.update(stage='semantics', torch_version=str(torch.__version__),
             cuda_python_version=importlib.metadata.version('cuda-bindings'),
             runtime_version=checked(runtime.cudaRuntimeGetVersion())[0],
@@ -6361,6 +6372,8 @@ def main():
     parser.add_argument('--requirements', type=Path)
     parser.add_argument('--install-receipt', type=Path)
     parser.add_argument('--runtime-receipt', type=Path)
+    parser.add_argument('--pin-bulk-library', type=Path,
+                        help='Diagnostic-only prebuilt per-view native pin batch; no serving integration')
     parser.add_argument('--native-observation', type=Path,
                         help='Completed existing native numeric control result for independent PEFT reference')
     parser.add_argument('--native-result', type=Path,
@@ -6515,7 +6528,7 @@ def main():
     elif args.action == 'backend-pin-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-pin-check requires the native runtime receipt and new output')
-        result = backend_pin_query_check(args.runtime_receipt)
+        result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')

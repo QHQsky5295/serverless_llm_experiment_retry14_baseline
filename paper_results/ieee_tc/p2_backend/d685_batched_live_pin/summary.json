@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "kind": "d685_batched_pin_single_microqualification",
+  "semantics_passed": true,
+  "performance_candidate_accepted": false,
+  "production_modified": false,
+  "reason": "modest median gain with unexplained large pause and worse total time; no workload authorized",
+  "measurements_per_variant": 20,
+  "ci": false,
+  "formal_performance": false,
+  "wall_ms": {
+    "native": {
+      "mean": 9.47497975,
+      "median": 9.2507615,
+      "min": 9.075108,
+      "max": 12.792508
+    },
+    "direct": {
+      "mean": 15.4519557,
+      "median": 8.8588715,
+      "min": 8.533456,
+      "max": 137.280433
+    }
+  },
+  "paired_ratio_median": 0.951719618063511,
+  "candidate_faster_pairs": 19,
+  "source_sha256": "e7dd6b39dab3b9eaed32755b2bb742542daef07e7c33c9fbdc861455556b4944",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "production_sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+  "correctness_scope": "tiny actual native tensors, not full model numerical correctness",
+  "latest_full_3b": {
+    "run": "D682",
+    "joint_slo": 0.9235,
+    "native_bound_count": 4000,
+    "n_correct": null,
+    "physical_gpu_seconds": 15896.253912474262,
+    "ranking_eligible": false
+  },
+  "interpretation": "19/20 pairs faster but one unexplained long pause; no production acceptance"
+}

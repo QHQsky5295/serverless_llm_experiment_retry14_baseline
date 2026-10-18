@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-a6850000000000000000000000000001.scope",
+    "invocation_id": "127ed5d346d74e49852bfd26e966a842",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a6850000000000000000000000000001.scope",
+    "inode": 27568287
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "8ef31c57786622b9c99a01a18934159e51b1d30cdc506cce4fa2bed2fce7aaed",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/host_pin_batch_witness.py": "8e91b4554dd28a5eeeeff6b43309bef7516766eb134bb8389b870c35ceaa3b37",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_pin_batch.cpp": "b8fc41f5a764d75faebe59584c51977124df78f8df798c0c0302480fe6cfdcea",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_pin_batch_witness.py": "cccf674fe2d89ba58c826658a85985b7271ccfd06dcd04c96564de35b8a80a2e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d685_20261018/native_pin_batch.so": "96013836bcecf8cb984489ff00d826dafc1e8f4db85d6c02ffcd879c7006b4cb",
+    "/usr/bin/c++": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/nvidia/cu13/include/cuda_runtime_api.h": "3f91d3f84f1aafb17cccc475803f9c489b6474f2a3bf0fbc75a5380821c966e0",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/nvidia/cu13/lib/libcudart.so.13": "96c42e418cec19054186b9429c321603cc190bf26a18104e19408117a2a817b0",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "production_modified": false,
+  "model_loaded": false
+}
