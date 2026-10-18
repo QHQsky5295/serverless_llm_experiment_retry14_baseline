@@ -1,6 +1,24 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D676准备：复用100请求原生路径验证主动HOST候选 — 2026-10-18
+
+上一轮D675为PROGRESS。本轮完整读取PLAN、六补充、冻结V1/单轮V2；新增
+独立d676分支/路径，生产源码仍4989dbf，模型/负载/profile不变。复用D664
+assembler、管理及分析；新增主动事务标识验收，保留请求侧D663逐条检查。
+已见D672启动回执写入竞态仅改成原观察窗口内重读同一文件，不重启服务。
+当前仅准备/资格，尚未GPU启动；下一先资格/明确路径备份，再唯一100请求。
+最新完整3B仍D672联合91.175%、U14931.314879785059、数值证明unknown。
+非项目k3s不动；3B后续/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/CE、
+审稿与图表完整ACTIVE。详见D676_3B_HOST_TRANSACTION_NATIVE_QUALIFICATION.md。
+
 ## D675：主动HOST事务候选已实现，资格通过，尚无GPU性能结果 — 2026-10-18
+
+备份完成：8个明确路径推送4989dbf33bd47a283efa32c752a7fc15beec7430，远端一致。
+97336 exit0、backup域递归空关闭，peak见backup_closure.json、事件/swap0；不再wait。
+失败阶段测试源码按原回执SHA精确重建归档，原始日志/失败和D674晚回执完整保存。
+BASE仍e16af33a，用户修改与旧保护未动；无GPU计算进程，磁盘free164644802560B。
+此晚回执和状态文字随下一正常检查点备份，不为文字单开提交。下文“正在备份”
+现由本成功回执取代。下一是一次100请求GPU smoke；尚无D676，无新性能数据。
 
 PROGRESS。完整PLAN/六补充承接当前执行；实现D674唯一候选：只在已完成HOST
 注册/替换后的同一同步主动激活中复用预算前存储图，仍新读allocator/workspace，
