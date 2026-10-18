@@ -1,0 +1,18 @@
+{
+  "kind": "lossless_compression_receipt_v1",
+  "run": "d695_20261018/3b_full_w0",
+  "reason": "closed D695 full replay; offline analysis and completion receipt already sealed",
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d695_20261018/3b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+  "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d695_20261018/3b_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+  "compression": "gzip -1",
+  "source_bytes": 1122756467,
+  "archive_bytes": 147256984,
+  "reclaimed_bytes": 975499483,
+  "source_sha256": "16e43e734a2ebeb891b316662d162e1dd5953f53268d640e9d6c089e82dbd491",
+  "archive_sha256": "49798f7e741731774626fa838374c947ba0f27ce5ceee3349693c3483d7b3c4a",
+  "decompressed_sha256": "16e43e734a2ebeb891b316662d162e1dd5953f53268d640e9d6c089e82dbd491",
+  "verified": true,
+  "restore_command": "gzip -cd main_outcome.json.gz > main_outcome.json",
+  "historical_source_removed_after_sha_check": true,
+  "user_manifest_touched": false
+}
