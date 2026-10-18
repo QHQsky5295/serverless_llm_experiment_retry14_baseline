@@ -1,5 +1,91 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D688完整完成但未改善，准备封存后撤回唯一候选 — 2026-10-18 18:51 CST
+
+PROGRESS。4000/4000原生合同、458224tokens、0失败，完整计时/绑定/实际释放
+通过；联合3645（91.125%）低于D682的3694（92.350%），U15897.107082，
+未省资源。P95 TTFT2042.660546ms、平均804.422670ms；不接受D687描述物化
+作为生产性能优化，不以组件13.1%改善代替系统效果，不重跑同键挑结果。
+独立数值正确性仍未知。详情D688文档，比较同时保留D682/D677/D672。
+
+6292观察已终态；实际launch pass/returncode0、service消失/GPU已释放。
+local_cleanup通过；55233远端管理exit0，management递归空关闭，精确三个
+owned服务停止。25948收集/分析exit0，analysis关闭peak907780096B、事件/
+swap0；75330结果hash检查已终态。不要再wait或重启这些任务。
+
+当前准备明确路径发布，建议未用a688...0006。先封存当前生产身份和退化证据，
+再仅撤回D687生产函数改动、保留测试与所有历史；不得在封存前改变资格引用。
+下一重型前存储维护；不继续pin/GC/元数据格式微调。以完整日志重新排序
+请求进入引擎前等待、短decode干扰和持卡原因，不堆叠没有新证据的补丁。
+完整3B目标未达成，全部其他场景/模型/基线/dLoRA/A1–A5/S1–S13/CE/审稿
+交付ACTIVE。原共享k3s不动；未画图、未清理或压缩，不虚报回收空间。
+
+## D688同一完整回放持续推进 — 2026-10-18 18:37 CST
+
+VERIFIED WAIT。重读完整PLAN/六补充/V1/V2及现有收尾脚本；只读监测同一
+PID2635180、service Invocation74f0effbef1a4eef8978c78cb979614a，未重启。
+最后live arrived3553/done3553/ok3553/fail0，仍为4000计划的部分进度。
+sample3340：service peak23925567488B，high/max/OOM/swap0；主机可用
+92346171392B，磁盘157678399488B，无watchdog告警/停止原因。
+
+观察cell6276仅主动结束其等待循环，实际回放未受影响；6285/6287/6289
+均观察结束，不再wait。没有新性能点、代码/配置改变、测试、图表、清理、
+压缩或推送。下一继续同一次回放，终态后按既定关闭→收集→分析→封存。
+磁盘低于下一重型启动150GiB门槛，收尾后先安全维护；n_correct未知保持。
+所有其余完整范围ACTIVE，原共享k3s不动。
+
+## D688同轮观察继续 — 2026-10-18 18:05 CST
+
+VERIFIED WAIT。完整PLAN及monitor-experiment已读；18次间隔观察均确认
+同一PID2635180与service Invocation74f0effbef1a4eef8978c78cb979614a存活。
+最后live arrived1340/done1338/ok1338/fail0；sample1442，service peak
+21109506048B、high/max/OOM/swap0，MemAvailable93099855872B、磁盘
+159778189312B，无watchdog停止原因。仍是部分进度，不是最终SLO/资源成绩。
+观察cell6274已终态，不再wait；实际tmux继续，不重启服务。只读监测和状态
+记录，未测试/绘图/清理/压缩/推送。收尾及下一重型前存储维护要求同下节。
+
+## D688持续推进，已核验同一实际进程 — 2026-10-18 17:49 CST
+
+VERIFIED WAIT。前轮为实际准备/备份/启动PROGRESS；本轮完整重读PLAN，
+按monitor-experiment只读取现有tmux/进程/标准日志。六次间隔观察确认同一
+pane PID2635180和service Invocation74f0effbef1a4eef8978c78cb979614a持续
+active，非仅凭旧状态文件判断。最后live arrived344/done344/ok344/fail0，
+仍是4000计划内的部分进展，不是新完整成绩或联合SLO验收。
+
+sample476：service peak20317777920B、high/max/OOM/swap0；主机可用
+93394968576B，磁盘160870060032B，watchdog无告警/停止原因。磁盘已略低于
+下一重型任务150GiB启动门槛，仍高于本轮100GiB停止线；不在运行中清理，
+收尾后先按保护规则核验可压缩/重建缓存，再允许下一重型任务。
+
+观察cell6269已终态，仅结束观察，不是结束实验；不要再wait该cell，也不要
+重复D688启动。真实tmux tc-d688-3b-w0继续，同一执行键不重跑。
+本轮没有新代码/配置/远端修改，没有图表/压缩/扫描/推送。下一继续观察，
+实际launch.json终态后执行下节既定关闭→收集→分析→封存。完整目标ACTIVE。
+
+## D688唯一普通完整3B W0已启动 — 2026-10-18 17:41 CST
+
+PROGRESS。8明确路径推送82adc6f3bc256299c6b8491cc541900624709931，远端
+一致；10474备份exit0、backup递归空关闭peak49254400B。47195启动exit0，
+tmux tc-d688-3b-w0、pane2635180存活；start域递归空关闭peak47075328B。
+不要再wait上述终态会话，不重复start/backup。实际service
+287fc08301214445818c23078813fb21，Invocation74f0effbef1a4eef8978c78cb979614a；
+aux86c673d0cecb496abad97726a89cc9a2，完整身份在exec_receipt与service_aux_identity。
+启动前远端实测1000Mb/s/full，复用D78/D80，原共享k3s未触碰。
+
+当前同一4000请求回放正在进行，尚无launch.json或完整性能结果。标准监控
+sample20时service peak3635101696B/high/max/OOM/swap0，主机可用
+107945615360B、磁盘162597273600B。继续低开销观察；运行时不测试/扫描/
+压缩清理/备份，也不改服务或远端。D687组件结论不冒充SLO改善。
+
+仅准备了D682原生全量analyzer的路径适配，未运行。结束后依次
+close_launch.py→受限stop_services.py→close_management.py management→
+native分析环境run_analysis.py（有ijson）→close.py analysis→解释/封存。
+建议后续aux身份a688...0004/0005/0006用于管理/分析/发布，先核实未用。
+主比较需并列D682/D677/D672，不只挑慢参照；n_correct未知保持。
+
+完整范围ACTIVE：3B各场景/基线、同版本7B、G2/dLoRA、A1–A5、S1–S13、
+CE与两轮审稿交付均未由本次W0关闭；接近目标前不画图。
+
 ## D687已备份关闭；D688准备唯一普通完整3B W0 — 2026-10-18
 
 PROGRESS。D687明确12路径已推送cbdf7ecdf05d09677105618e51668de34cc55cc3，

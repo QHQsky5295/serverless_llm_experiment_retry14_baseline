@@ -1,0 +1,196 @@
+{
+  "kind": "d688_vs_d672_complete_w0_single_observation_v1",
+  "previous_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d672_3b_full_w0/completion/audit.json",
+    "sha256": "df21f561a8122fce11fe76b44562ead36dd09eab3e8a503e5e1201a0130523b6"
+  },
+  "current_audit_sha256": "8ae706f20336ae99e4368482b8dfffd77d7b453b7cafc2dfd2e7a14e4b746f8e",
+  "workload_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "native_tokens": 458224,
+  "previous_joint_count": 3647,
+  "current_joint_count": 3645,
+  "joint_delta_percentage_points": -0.05,
+  "metrics": [
+    {
+      "metric": "mean_ttft_ms",
+      "previous": 873.8045573313138,
+      "current": 804.422670086904,
+      "lower_better_improvement_percent": 7.940206612827596
+    },
+    {
+      "metric": "p95_ttft_ms",
+      "previous": 2220.7696044351906,
+      "current": 2042.66054648906,
+      "lower_better_improvement_percent": 8.020150203353904
+    },
+    {
+      "metric": "mean_tpot_ms",
+      "previous": 17.087645398283698,
+      "current": 17.218944249794575,
+      "lower_better_improvement_percent": -0.7683846922763558
+    },
+    {
+      "metric": "p95_tpot_ms",
+      "previous": 31.424348164970677,
+      "current": 32.90976551827043,
+      "lower_better_improvement_percent": -4.726963135405872
+    },
+    {
+      "metric": "mean_e2e_ms",
+      "previous": 2836.295969480474,
+      "current": 2760.7050495432923,
+      "lower_better_improvement_percent": 2.6651280666956554
+    },
+    {
+      "metric": "physical_gpu_seconds",
+      "previous": 14931.314879785059,
+      "current": 15897.107082320843,
+      "lower_better_improvement_percent": -6.468232773279286
+    }
+  ],
+  "previous_stage_means_ms": {
+    "arrival_release_ms": 134.750642213854,
+    "release_to_acquire_ms": 46.50293768104166,
+    "acquire_to_resume_ms": 4.485078296274878,
+    "runtime_slot_wait_ms": 258.3469902210054,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 258.45343733619666,
+    "engine_entry_to_queue_ms": 59.48270563449478,
+    "native_engine_queue_ms": 3.5293007745058276,
+    "native_prefill_ms": 108.25346517394064,
+    "native_decode_ms": 1782.6717272885726,
+    "worker_completion_notification_ms": 38.80797992955195,
+    "worker_to_controller_completion_ms": 141.01170493103564
+  },
+  "current_stage_means_ms": {
+    "arrival_release_ms": 121.43935525714187,
+    "release_to_acquire_ms": 43.25861699000234,
+    "acquire_to_resume_ms": 0.060804570734035224,
+    "runtime_slot_wait_ms": 248.4817092511803,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 225.1753447363153,
+    "engine_entry_to_queue_ms": 54.50312404782744,
+    "native_engine_queue_ms": 3.298374881793279,
+    "native_prefill_ms": 108.2053403519094,
+    "native_decode_ms": 1779.9054102941882,
+    "worker_completion_notification_ms": 37.30918397678761,
+    "worker_to_controller_completion_ms": 139.0677851854125
+  },
+  "previous_phases": [
+    {
+      "phase": 0,
+      "count": 500,
+      "joint": 477,
+      "p95_ttft_ms": 1414.9872998241335
+    },
+    {
+      "phase": 1,
+      "count": 500,
+      "joint": 458,
+      "p95_ttft_ms": 2202.0053893793374
+    },
+    {
+      "phase": 2,
+      "count": 500,
+      "joint": 461,
+      "p95_ttft_ms": 1787.0246262755245
+    },
+    {
+      "phase": 3,
+      "count": 500,
+      "joint": 450,
+      "p95_ttft_ms": 2249.79580193758
+    },
+    {
+      "phase": 4,
+      "count": 500,
+      "joint": 450,
+      "p95_ttft_ms": 2190.5234765727073
+    },
+    {
+      "phase": 5,
+      "count": 500,
+      "joint": 451,
+      "p95_ttft_ms": 2247.4534104112536
+    },
+    {
+      "phase": 6,
+      "count": 500,
+      "joint": 455,
+      "p95_ttft_ms": 2417.2869632020593
+    },
+    {
+      "phase": 7,
+      "count": 500,
+      "joint": 445,
+      "p95_ttft_ms": 2464.942712103948
+    }
+  ],
+  "current_phases": [
+    {
+      "phase": 0,
+      "count": 500,
+      "joint": 473,
+      "p95_ttft_ms": 1601.2049906421453
+    },
+    {
+      "phase": 1,
+      "count": 500,
+      "joint": 460,
+      "p95_ttft_ms": 1732.2811339981854
+    },
+    {
+      "phase": 2,
+      "count": 500,
+      "joint": 463,
+      "p95_ttft_ms": 1979.2967264074832
+    },
+    {
+      "phase": 3,
+      "count": 500,
+      "joint": 456,
+      "p95_ttft_ms": 1834.009976591915
+    },
+    {
+      "phase": 4,
+      "count": 500,
+      "joint": 451,
+      "p95_ttft_ms": 2153.6201210692525
+    },
+    {
+      "phase": 5,
+      "count": 500,
+      "joint": 450,
+      "p95_ttft_ms": 2048.818251118064
+    },
+    {
+      "phase": 6,
+      "count": 500,
+      "joint": 449,
+      "p95_ttft_ms": 2205.02143423073
+    },
+    {
+      "phase": 7,
+      "count": 500,
+      "joint": 443,
+      "p95_ttft_ms": 2489.9964164942503
+    }
+  ],
+  "previous_remote_transfers": 132,
+  "current_remote_transfers": 132,
+  "previous_remote_wire_bytes": 306360162,
+  "current_remote_wire_bytes": 306360162,
+  "observed_joint_and_resource_improvement": false,
+  "accepted_as_final": false,
+  "confidence_interval": null,
+  "independent_holdout": false,
+  "caveat": "Known fixed workload, one observation per version. Retain all gains and regressions. No causal percentage attribution, numerical-proof upgrade or complete G1/G2 claim."
+}
