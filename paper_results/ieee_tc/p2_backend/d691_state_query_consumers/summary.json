@@ -1,0 +1,628 @@
+{
+  "passed": true,
+  "kind": "d691_retained_state_consumer_and_interleave_audit_v1",
+  "diagnosis": {
+    "passed": true,
+    "kind": "d691_current_source_consumers_and_native_turns_v1",
+    "production_changed": false,
+    "configuration_changed": false,
+    "inference_runs_added": 0,
+    "n_correct": null,
+    "ranking_eligible": false,
+    "caller_inventory": [
+      {
+        "line": 5073,
+        "function": "InferenceEngine.ieee_routing_sources",
+        "operation": "routing_source_snapshot",
+        "classification": "physical",
+        "reason": "routing preparation class requires registered allocation graph and GPU geometry",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 14045,
+        "function": "ScenarioRunner._refresh_ieee_deferred_host_capacity",
+        "operation": "source_snapshot",
+        "classification": "physical",
+        "reason": "deferred HOST wake consumes actual allocator and exclusive storage accounting",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 15196,
+        "function": "ScenarioRunner._add_ieee_dedicated_instance",
+        "operation": "source_snapshot",
+        "classification": "physical",
+        "reason": "activation validates actual initialized native GPU layout",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 19442,
+        "function": "ScenarioRunner._run_ieee_gpu_preparation_plan.execute",
+        "operation": "source_snapshot",
+        "classification": "historical_rejected",
+        "reason": "same exact callsite as D514, reverted after complete D516; do not repeat",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 19923,
+        "function": "ScenarioRunner._plan_ieee_preparation_for_slot",
+        "operation": "routing_source_snapshot",
+        "classification": "physical",
+        "reason": "planner uses whole registered capacity/alias graph and publishes routing evidence",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 20026,
+        "function": "ScenarioRunner.run_ieee_proactive_admission_diagnostic",
+        "operation": "routing_source_snapshot",
+        "classification": "diagnostic_physical",
+        "reason": "explicit proactive diagnostic preserves physical before-state",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 20336,
+        "function": "ScenarioRunner._execute_ieee_file_preparation_plan.protect_native_fallbacks",
+        "operation": "source_snapshot",
+        "classification": "proof_required",
+        "reason": "file fallback lifetime boundary; hold_host_source is not a new physical graph check",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 20451,
+        "function": "ScenarioRunner._execute_ieee_file_preparation_plan.prepare_gpu_source",
+        "operation": "source_snapshot",
+        "classification": "identity_only_unattributed",
+        "reason": "staging identity consumer, but D684 has no per-caller timing attribution",
+        "changed": false,
+        "attributed_wall_ms": null
+      },
+      {
+        "line": 20491,
+        "function": "ScenarioRunner._execute_ieee_file_preparation_plan.execute_gpu",
+        "operation": "source_snapshot",
+        "classification": "physical",
+        "reason": "post-startup objective requires actual layout and capacity",
+        "changed": false,
+        "attributed_wall_ms": null
+      }
+    ],
+    "caller_timing_identifiable": false,
+    "historical_repeat_check": {
+      "commit": "cab2a4a",
+      "production_ast_change": "one source_snapshot -> source_identity_snapshot string",
+      "historical_parent_sha256": "fd646b0faa1879064bff76f3f3effaea11360154e4488e650a55889e6e214ddf",
+      "historical_candidate_sha256": "f60ce71039fab27a0ea9c1ab13ba3a4e2bf85b998bce6475484ad2fea09d93d5",
+      "replayed": false,
+      "accepted": false
+    },
+    "tests_passed": 23,
+    "processes": [
+      {
+        "process": "2476716-181954028",
+        "spans": 61528,
+        "input_turns": 17031,
+        "nonempty_input_turns": 1787,
+        "empty_input_turns": 15244,
+        "work_input_turns": 16770
+      },
+      {
+        "process": "2478921-181958601",
+        "spans": 101393,
+        "input_turns": 30168,
+        "nonempty_input_turns": 3612,
+        "empty_input_turns": 26556,
+        "work_input_turns": 29701
+      },
+      {
+        "process": "2479037-181958836",
+        "spans": 96515,
+        "input_turns": 28550,
+        "nonempty_input_turns": 3592,
+        "empty_input_turns": 24958,
+        "work_input_turns": 28093
+      },
+      {
+        "process": "2479133-181959039",
+        "spans": 52724,
+        "input_turns": 14166,
+        "nonempty_input_turns": 1715,
+        "empty_input_turns": 12451,
+        "work_input_turns": 13937
+      }
+    ],
+    "span_count": 312160,
+    "input_turn_groups": {
+      "all_nonempty": {
+        "n": 10706,
+        "utility_count_histogram": {
+          "0": 351,
+          "1": 9882,
+          "2": 1,
+          "3": 2,
+          "4": 3,
+          "5": 2,
+          "6": 4,
+          "7": 12,
+          "8": 23,
+          "9": 36,
+          "10": 40,
+          "11": 29,
+          "12": 27,
+          "13": 17,
+          "14": 19,
+          "15": 12,
+          "16": 10,
+          "17": 12,
+          "18": 21,
+          "19": 6,
+          "20": 6,
+          "21": 5,
+          "22": 10,
+          "23": 10,
+          "24": 6,
+          "25": 5,
+          "26": 6,
+          "27": 5,
+          "28": 5,
+          "29": 3,
+          "30": 5,
+          "31": 3,
+          "32": 1,
+          "33": 4,
+          "34": 2,
+          "35": 1,
+          "36": 2,
+          "37": 4,
+          "38": 1,
+          "39": 4,
+          "40": 2,
+          "41": 1,
+          "42": 5,
+          "43": 7,
+          "44": 4,
+          "45": 1,
+          "46": 2,
+          "47": 2,
+          "48": 7,
+          "50": 1,
+          "51": 2,
+          "52": 3,
+          "53": 1,
+          "54": 4,
+          "55": 2,
+          "57": 2,
+          "58": 2,
+          "59": 4,
+          "60": 2,
+          "62": 1,
+          "64": 1,
+          "66": 1,
+          "67": 1,
+          "68": 1,
+          "69": 1,
+          "70": 1,
+          "73": 1,
+          "74": 2,
+          "77": 1,
+          "78": 2,
+          "79": 1,
+          "81": 1,
+          "84": 1,
+          "86": 2,
+          "90": 1,
+          "91": 1,
+          "94": 1,
+          "101": 1,
+          "103": 2,
+          "104": 1,
+          "105": 1,
+          "107": 1,
+          "109": 1,
+          "111": 1,
+          "113": 1,
+          "116": 1,
+          "120": 1,
+          "126": 1,
+          "130": 1,
+          "136": 1,
+          "142": 1,
+          "149": 1,
+          "159": 1,
+          "160": 1,
+          "164": 1,
+          "166": 1,
+          "170": 1,
+          "171": 1,
+          "181": 1,
+          "187": 1,
+          "191": 1,
+          "206": 1,
+          "212": 1,
+          "217": 1,
+          "264": 1,
+          "268": 1,
+          "317": 1,
+          "332": 1,
+          "367": 1,
+          "506": 1
+        },
+        "multiple_utilities": 473,
+        "following_root": {
+          "step": 10706
+        },
+        "following_step_return": {
+          "True": 10441,
+          "False": 265
+        },
+        "utility_wall_ms": {
+          "n": 10706,
+          "mean": 86.68314462002616,
+          "p50": 0.659514,
+          "p95": 225.533204,
+          "maximum": 30761.086718
+        },
+        "client_after_first_utility_total_ms": 668305.776278
+      },
+      "work_nonempty": {
+        "n": 10020,
+        "utility_count_histogram": {
+          "0": 350,
+          "1": 9670
+        },
+        "multiple_utilities": 0,
+        "following_root": {
+          "step": 10020
+        },
+        "following_step_return": {
+          "True": 9969,
+          "False": 51
+        },
+        "utility_wall_ms": {
+          "n": 10020,
+          "mean": 25.782215726746507,
+          "p50": 0.616381,
+          "p95": 138.962929,
+          "maximum": 1278.086131
+        },
+        "client_after_first_utility_total_ms": 0.0
+      },
+      "work_with_utility": {
+        "n": 9670,
+        "utility_count_histogram": {
+          "1": 9670
+        },
+        "multiple_utilities": 0,
+        "following_root": {
+          "step": 9670
+        },
+        "following_step_return": {
+          "True": 9619,
+          "False": 51
+        },
+        "utility_wall_ms": {
+          "n": 9670,
+          "mean": 26.71538796091003,
+          "p50": 0.662259,
+          "p95": 150.207292,
+          "maximum": 1278.086131
+        },
+        "client_after_first_utility_total_ms": 0.0
+      },
+      "work_with_source_snapshot": {
+        "n": 591,
+        "utility_count_histogram": {
+          "1": 591
+        },
+        "multiple_utilities": 0,
+        "following_root": {
+          "step": 591
+        },
+        "following_step_return": {
+          "True": 585,
+          "False": 6
+        },
+        "utility_wall_ms": {
+          "n": 591,
+          "mean": 112.91788885956007,
+          "p50": 103.942727,
+          "p95": 180.625658,
+          "maximum": 508.889159
+        },
+        "client_after_first_utility_total_ms": 0.0
+      }
+    },
+    "retained_operation_metrics": [
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+        "state": "idle_at_entry",
+        "count": "746",
+        "total_wall_ms": "65087.012277",
+        "total_thread_cpu_ms": "64379.646312000004",
+        "mean_wall_ms": "87.24800573324397",
+        "thread_cpu_over_wall": "0.9891319951515125",
+        "max_single_call_ms": "312.503475"
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/routing_source_snapshot",
+        "state": "work",
+        "count": "454",
+        "total_wall_ms": "37513.060851",
+        "total_thread_cpu_ms": "37299.551509",
+        "mean_wall_ms": "82.62788733700441",
+        "thread_cpu_over_wall": "0.9943083998704331",
+        "max_single_call_ms": "211.510821"
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_identity_snapshot",
+        "state": "idle_at_entry",
+        "count": "983",
+        "total_wall_ms": "1367.835922",
+        "total_thread_cpu_ms": "1364.200047",
+        "mean_wall_ms": "1.3914912736520855",
+        "thread_cpu_over_wall": "0.9973418778220975",
+        "max_single_call_ms": "33.14921"
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_identity_snapshot",
+        "state": "work",
+        "count": "425",
+        "total_wall_ms": "427.882386",
+        "total_thread_cpu_ms": "427.168696",
+        "mean_wall_ms": "1.0067820847058824",
+        "thread_cpu_over_wall": "0.9983320416466034",
+        "max_single_call_ms": "5.270923"
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "idle_at_entry",
+        "count": "1999",
+        "total_wall_ms": "238272.21406700002",
+        "total_thread_cpu_ms": "232987.051916",
+        "mean_wall_ms": "119.19570488594299",
+        "thread_cpu_over_wall": "0.9778188062267559",
+        "max_single_call_ms": "645.865633"
+      },
+      {
+        "label": "UTILITY/collective_rpc/ieee_gpu_reference/source_snapshot",
+        "state": "work",
+        "count": "591",
+        "total_wall_ms": "66734.472316",
+        "total_thread_cpu_ms": "66221.678854",
+        "mean_wall_ms": "112.91788885956007",
+        "thread_cpu_over_wall": "0.9923159134371838",
+        "max_single_call_ms": "508.889159"
+      }
+    ],
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2476716-181954028.jsonl",
+        "sha256": "4f5fa3d17c14082cafb83e13b824e79325a559285fad5df7df59ec24bb1b45be"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2478921-181958601.jsonl",
+        "sha256": "c5e3532fd2017b8c2979b0574f29e15e5d478b0985eb5c485e670871ee456ce7"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2479037-181958836.jsonl",
+        "sha256": "b3c72052aa3dd9fc819a6b9af389b69c9097625ae24571a88e71ba61dcb3bab1"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2479133-181959039.jsonl",
+        "sha256": "2f5e4a5b36ed9f387342bbb4450371bf3e45dc087e44dd299ee237fcdccf8fc6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_tests.txt",
+        "sha256": "2af3f6e2174e237eec1a4f4776504b26048aaff4728ade7222ce55e869396cc6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnose.py",
+        "sha256": "7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/input_turns.json",
+        "sha256": "5aaaa726b25deab1f6a2622db87510e1f3463a099c393ab46130a8f875379075"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+        "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D329_HOST_STORAGE_DEPENDENCY_AUDIT.md",
+        "sha256": "7fe40268c53373a269eccd1fb5b0a7629cf0deeae454ef54124ecf4177edb821"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D333_NATIVE_PENDING_GPU_TURN.md",
+        "sha256": "3992cec0c8c46409b0a631d3c24b4df7eb224efa936af268f701fd19232df410"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D355_ATOMIC_CONTROL_INTERLEAVE.md",
+        "sha256": "854ab0a8f05a5a382f24cf65f55bbbb2a3ce71ab8948691015244cd353aa8e9d"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D514_GPU_EXECUTION_CONSUMER_PROOF.md",
+        "sha256": "6447c0e8b50eb480a64310088a82ca9405f1acf79668fb2d76db7f36c23776da"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D516_FULL_W0_RESULT.md",
+        "sha256": "99b606d696b93898bf802d79c8412a1819a1bcc94e5999c3de2121492d00163c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D519_RESTORED_STEP_DIAGNOSTIC.md",
+        "sha256": "eaaa690ba0e6dcd3901e4d0fa1b1a792e8c81719f80909ad7bab1548b30f9ea9"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+        "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+        "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "sha256": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+        "sha256": "1589b725320adf9dc3746d59a6d696ac736363ed514bbccebfc603cc356cc52a"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+        "sha256": "b67b3fbf5b60a208bfdf476ee3af60d9c5180648045ed8f66094f13cf331e46f"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/core_timing.py",
+        "sha256": "c047beea1c73c750f204d543c299b506b1bca9e1682c598b765583172b79a3ca"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/core_timing/summary.json",
+        "sha256": "fa5c3701d82fbaac93a428f85fa4655fe16f209b2322378bce62b765b1a452a0"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/operation_detail1/operations.csv",
+        "sha256": "d8530b65eed18196e29a144cf98cc6e2806cf4bd4db5d08d10920e0b118ef6cf"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+        "sha256": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "f677e6010ee9a3ba9bfbd391bad03eace9719acce23e3d7e036d0dbf921ad0e4"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_timing_analysis.py",
+        "sha256": "686823797997e595ce783c6a88d027bfcfe3028a7b228e53beefaeaf9dd05e26"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_execution_projection.py",
+        "sha256": "213760a0f2571826680d5696d3a901c3aca44cd97f6f90311e160c484d95f7e7"
+      },
+      {
+        "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+        "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+      }
+    ],
+    "caveats": [
+      "Work is measured at input-turn entry, not at every child operation.",
+      "model_executed is the native step return, not per-request token progress or GPU-kernel time.",
+      "A single synchronous utility can be expensive even when the next step is executed.",
+      "Operation labels do not identify the controller caller, so no per-callsite duration is invented.",
+      "No latency subtraction, counterfactual resource estimate, new performance run or configuration selection.",
+      "D514/D516 rejection is historical single-run evidence, not proof every projection must regress."
+    ]
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_commit": "43ca1d70157c79b6d71b9d769c21e6c69fca3f55",
+  "archive_members": {
+    "00_analysis_closure.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_closure.json",
+      "sha256": "94bd357571671503323d949ce676093a99c07e4e7381dda663c5db6fd2a17c9a",
+      "bytes": 647
+    },
+    "01_analysis_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_identity.json",
+      "sha256": "6989384a36b8f6354844b5b0d9d69bd460954c1c5e95f83390c83dc8df2b6c9a",
+      "bytes": 286
+    },
+    "02_analysis_receipt.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_receipt.json",
+      "sha256": "97bbd7ec662c5a64f4dd812bf35344b924dea9dd9ebf6f60c1c51815b5305d84",
+      "bytes": 589
+    },
+    "03_analysis_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_resource_gate.json",
+      "sha256": "d25f30a148ad9a2066d0820812efb697093424193b18377cf28ffdb9f3ddbb6f",
+      "bytes": 6467
+    },
+    "04_analysis_tests.txt": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/analysis_tests.txt",
+      "sha256": "2af3f6e2174e237eec1a4f4776504b26048aaff4728ade7222ce55e869396cc6",
+      "bytes": 4232
+    },
+    "05_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/close.py",
+      "sha256": "fe5de6ec5f7196c479dd15a2ada7001261ccbe426efc6a83042ce3f1ca2779a0",
+      "bytes": 408
+    },
+    "06_diagnose.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnose.py",
+      "sha256": "7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc",
+      "bytes": 11745
+    },
+    "07_diagnosis.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnosis.json",
+      "sha256": "0aa0007d6908b55c03e5af05dd134029b6f8b8d8f0e9d2285e4336118b55acce",
+      "bytes": 17967
+    },
+    "08_input_turns.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/input_turns.json",
+      "sha256": "5aaaa726b25deab1f6a2622db87510e1f3463a099c393ab46130a8f875379075",
+      "bytes": 6558997
+    },
+    "09_publication_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/publication_identity.json",
+      "sha256": "e35490e9bf51a98938c7a4b9f1b71d30b809feacc86ec91026d180a4785769eb",
+      "bytes": 286
+    },
+    "10_publication_resource_gate.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/publication_resource_gate.json",
+      "sha256": "684c65d8d0456be91511ecfc0be01d856ac2ec2bc29e6f959c69ec5b4f1729f2",
+      "bytes": 6469
+    },
+    "11_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/publish.py",
+      "sha256": "c2f4a7d750c6b81eab872080fdc32d2446825ae1287026fa4d80e06c595ee7ca",
+      "bytes": 2134
+    },
+    "12_D691_STATE_QUERY_CONSUMER_AUDIT.md": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D691_STATE_QUERY_CONSUMER_AUDIT.md",
+      "sha256": "0f31c5c250582ee206171de2aae37485f3889f4a1791910d5896db16fe54585c",
+      "bytes": 7945
+    },
+    "13_close.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/close.py",
+      "sha256": "2275f5fb7959fb2df7bf13a67cce7f4ebcd226a232ca9d6ecb5ec00d013ca68a",
+      "bytes": 1295
+    },
+    "14_publish.py": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d612_20261017/publish.py",
+      "sha256": "a1bcd9f18e9f483fd171b8be75f6169848f0c7f00135fda2b17ff47625028cf9",
+      "bytes": 6407
+    }
+  },
+  "archive_sha256": "1a1bd2e41740bcf3c52980f1111e5ecb0da3e6288ad3c9b44d48a7ce2da27a46",
+  "production_changed": false,
+  "inference_runs_added": 0,
+  "ranking_eligible": false
+}
