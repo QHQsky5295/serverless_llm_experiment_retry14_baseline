@@ -1,5 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D682全量装配通过，准备备份启动 — 2026-10-18 14:59 CST
+
+PROGRESS。42555exit0，原4000请求source/view及D645两个profile匹配；配置
+与D681只差请求数/独占路径，底层测试复用未重跑。qualification域递归空关闭，
+peak602222592B，high/max/OOM/swap0。147旧文件、用户修改和冻结协议未变。
+尚未启动GPU/remote。下一明确路径备份→唯一tc-d682-3b-w0，先不画图；
+以完整联合SLO与物理U判断，不以短前缀通过关闭3B。全部其他范围ACTIVE。
+
+## D681已封存，D682完整W0准备 — 2026-10-18
+
+PROGRESS。D681 completion已推送c0e53d6b0c472fbec109b1ee434c397f7b00117a，
+45300exit0、publication域递归空关闭；不再wait旧session。100原生请求与23次
+HOST交接验证通过，但前缀联合94%不是完整性能成功。完整PLAN、六补充、
+V1/V2复核；共享k3s不动，HydraServe已完成的隔离适配/结果不重做。
+D682只复用同候选、原始4000请求W0和冻结模型配置，独占输出路径；生产
+代码/控制/SLO/工件不变。现有D293入口增加明确d682分支；准备helper尚未执行。
+下一受限装配核查（复用527/71/72测试证据，不重跑）→明确路径备份→唯一
+tc-d682-3b-w0。与D677和D672完整点并列，不能仅比更慢候选或放宽阈值。
+当前无新GPU运行，所有后续3B/同版本7B/基线/dLoRA/消融/敏感性仍ACTIVE。
+
 ## D681真实资格完成，准备封存并转全量3B — 2026-10-18
 
 PROGRESS。唯一100请求回放完成，100原生合同/17369tokens/0失败；新HOST交接
