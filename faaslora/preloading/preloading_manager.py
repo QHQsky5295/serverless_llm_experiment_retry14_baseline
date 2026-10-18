@@ -115,16 +115,31 @@ class OwnedMovementQueue:
     def _pump(self):
         if self._closed:
             return
-        running = sum(j['state'] == 'executing' for j in self._keys.values())
+        running_jobs = [j for j in self._keys.values() if j['state'] == 'executing']
+        running = len(running_jobs)
+        # One final GPU action per native owner: its observe/prepare/release
+        # RPCs share mutable cache state. Sibling actions would invalidate each
+        # other's observation even though each native RPC is serialized.
+        # Staging runs before this action; HOST/NVMe and other owners remain
+        # eligible. A waiting sibling must not occupy a global execution slot.
+        gpu_owners = {j['key'][0] for j in running_jobs if j['key'][1] == 'gpu'}
         candidates = [j for j in self._keys.values() if j['state'] == 'pending'
                       and j['ready'] and j['intents']]
         def order(j):
             intents = tuple(j['intents'].values())
             return (not any(i['demand'] for i in intents), -max(i['density'] for i in intents),
                     j['key'][2], ('gpu', 'host', 'nvme').index(j['key'][1]), j['key'][0])
-        for job in sorted(candidates, key=order)[:max(0, self.max_concurrent-running)]:
+        for job in sorted(candidates, key=order):
+            if running >= self.max_concurrent:
+                break
+            gpu = job['key'][1] == 'gpu'
+            if gpu and job['key'][0] in gpu_owners:
+                continue
             job['state'] = 'executing'
             job['task'] = self._loop.create_task(self._execute(job))
+            running += 1
+            if gpu:
+                gpu_owners.add(job['key'][0])
 
     async def _execute(self, job):
         attempt = dict(attempt_id=uuid.uuid4().hex, started_at=time.monotonic(), state='executing')

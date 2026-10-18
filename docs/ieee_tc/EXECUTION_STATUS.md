@@ -1,5 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D693同owner GPU准备候选已通过CPU/方法检查，准备备份 — 2026-10-18
+
+PROGRESS。唯一生产变化为OwnedMovementQueue._pump按native owner派发最终
+GPU action；仍全局并发3，其他owner/HOST/NVMe并行，全部epoch/物理/准入
+检查原样。生产SHA f4415b48184f5fc6774f23fd526692cf50a771b20f6fd2a0f5ef893bf37a3cc4。
+43定向通过；首次714检查4错误、随后711检查1失败均完整保留。原因是旧
+并发测试屏障及错误环境/错误要求未执行任务失败，不是放宽生产校验。
+最终712回归通过（含1个明确隔离父版本的历史并发收尾回归）、新vLLM环境
+3个原生方法检查通过；普通需求stale仍拒绝。详情D693文档。不是GPU收益。
+
+33530/63890/77388/73375/98088全部终态；qualification/qualification2/
+analysis/analysis2/regression均递归空关闭，所有事件与swap0。不再wait或
+重复执行这些阶段。147保护文件及用户manifest未变、无GPU/remote/k3s操作。
+当前准备明确8路径发布；建议未用a693...0006。无图表/清理回收。磁盘
+161889669120B，内存111940866048B；下一重型实时重查150GiB及新增峰值。
+
+下一备份后复用D681既有100请求真实远端资格，再一次完整3B W0；优先检查
+必要缓存回收/闭合证据，不新增工件或负载，不重复1000前缀，不改阈值、不
+堆新候选。尚无原生推理或性能接受，独立数值证明未知。整体及全部后续
+场景/G2/3B基线/dLoRA/A1–A5/S1–S13/CE/最终交付ACTIVE。
+
+## D692已备份关闭，下一验证同owner GPU准备资格 — 2026-10-18
+
+PROGRESS。五个明确路径已推送9035a3069820ffcb9d78ba7564c139e0ae2b918b，
+远端一致；17547exit0，publication递归空关闭peak42086400B、事件swap0。
+27637/77915/17547和全部D692资源域终态，不再wait/重跑/重复发布。生产原样，
+GPU空闲，owned远端未启动，共享k3s不动；用户manifest未stage。最终可用
+磁盘161894879232B、内存111915560960B，无清理回收。下一重型实时重查150GiB。
+
+新证据是已有日志的过期计数，以及真实runner/owner CPU fixture的兄弟任务
+自竞争3→2次尝试因果对照，不是SLO/GPU-s改进。下一只推进同owner最终GPU
+action资格候选的生产/完整回归和原生资格；保留HOST/NVMe/其他owner并行、
+共同全局并发3、所有epoch/物理/准入检查。先核对当前PLAN与D692全文和原始
+probe，不重新宽泛剖析、重试D514或放宽阈值。3B未达标，n_correct仍未知；
+7B/3B其余场景/G2、3B基线/dLoRA、A1–A5/S1–S13/CE/最终交付均ACTIVE。
+
 ## D692准备竞争核查与CPU因果对照完成 — 2026-10-18
 
 PROGRESS。复用D684闭合outcome，1512有回执GPU attempt中仅12已GPU复用，

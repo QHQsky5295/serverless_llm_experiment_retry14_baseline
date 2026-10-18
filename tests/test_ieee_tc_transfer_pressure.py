@@ -977,6 +977,117 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
                           activation_id='activation' if reason == 'handoff' else None),
             density=density, action=action, demand=reason == 'demand', ready=ready)
 
+    async def test_busy_gpu_owner_leaves_slots_for_other_owners_and_tiers(self):
+        queue, release, started = OwnedMovementQueue(3), asyncio.Event(), []
+        async def action(_, name):
+            started.append(name)
+            await release.wait()
+            return MovementOutcome('completed', name)
+        names = ('a1', 'a2', 'b1', 'ah')
+        for name, owner, tier, density in (
+                ('a1', 'A', 'gpu', 10), ('a2', 'A', 'gpu', 9),
+                ('b1', 'B', 'gpu', 8), ('ah', 'A', 'host', 7)):
+            self.submit(queue, name, lambda attempt, name=name: action(attempt, name),
+                        owner=owner, tier=tier, density=density, ready=False)
+        try:
+            queue.wake(owner_id='A', ready=True)
+            queue.wake(owner_id='B', ready=True)
+            await asyncio.sleep(0)
+            self.assertEqual(set(started), {'a1', 'b1', 'ah'})
+            self.assertEqual(sum(j['state'] == 'executing' for j in queue._keys.values()), 3)
+            release.set()
+            self.assertEqual(set(await asyncio.gather(*(queue.wait(n) for n in names))), set(names))
+        finally:
+            release.set()
+            await queue.close()
+
+    async def test_gpu_deferral_releases_owner_but_does_not_retry_without_wake(self):
+        queue, started, allow = OwnedMovementQueue(3), [], False
+        async def first(_):
+            started.append('first')
+            return (MovementOutcome('completed', 1) if allow
+                    else MovementOutcome('deferred', reason='capacity'))
+        async def second(_):
+            started.append('second')
+            return MovementOutcome('completed', 2)
+        self.submit(queue, 'first', first, owner='A', tier='gpu', density=2, ready=False)
+        self.submit(queue, 'second', second, owner='A', tier='gpu', ready=False)
+        try:
+            queue.wake(owner_id='A', ready=True)
+            self.assertEqual(await queue.wait('second'), 2)
+            self.assertEqual(started, ['first', 'second'])
+            self.assertEqual(queue._intents['first']['state'], 'deferred')
+            allow = True
+            queue.wake(owner_id='A')
+            self.assertEqual(await queue.wait('first'), 1)
+            self.assertEqual(started, ['first', 'second', 'first'])
+        finally:
+            await queue.close()
+
+    async def test_shared_gpu_writer_keeps_owner_until_last_interest_settles(self):
+        queue = OwnedMovementQueue(3)
+        entered, cancelled, settle, sibling = (asyncio.Event() for _ in range(4))
+        async def first(_):
+            entered.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                cancelled.set()
+                await settle.wait()
+                raise
+        async def second(_):
+            sibling.set()
+            return MovementOutcome('completed', 2)
+        first_id = self.submit(queue, 'first', first, owner='A', tier='gpu', adapter='a')
+        await entered.wait()
+        self.assertEqual(first_id, self.submit(queue, 'shared', first,
+                         owner='A', tier='gpu', adapter='a', reason='handoff'))
+        self.submit(queue, 'second', second, owner='A', tier='gpu', adapter='b')
+        await queue.withdraw('first')
+        self.assertFalse(cancelled.is_set())
+        self.assertFalse(sibling.is_set())
+        cancel = asyncio.create_task(queue.withdraw('shared'))
+        try:
+            await cancelled.wait()
+            self.assertFalse(sibling.is_set())
+            settle.set()
+            await cancel
+            self.assertEqual(await queue.wait('second'), 2)
+        finally:
+            settle.set()
+            await asyncio.gather(cancel, return_exceptions=True)
+            await queue.close()
+
+    async def test_gpu_cancel_before_first_instruction_releases_owner_to_pending_sibling(self):
+        queue = OwnedMovementQueue(3)
+        first = AsyncMock(return_value=MovementOutcome('completed', 1))
+        second = AsyncMock(return_value=MovementOutcome('completed', 2))
+        self.submit(queue, 'first', first, owner='A', tier='gpu')
+        self.submit(queue, 'second', second, owner='A', tier='gpu')
+        try:
+            await queue.withdraw('first')
+            first.assert_not_awaited()
+            self.assertEqual(await queue.wait('second'), 2)
+            second.assert_awaited_once()
+        finally:
+            await queue.close()
+
+    async def test_gpu_failure_releases_execution_eligibility_without_resurrecting_failed_key(self):
+        queue = OwnedMovementQueue(3)
+        first = AsyncMock(side_effect=RuntimeError('uncertain publication'))
+        second = AsyncMock(return_value=MovementOutcome('completed', 2))
+        self.submit(queue, 'first', first, owner='A', tier='gpu', adapter='a')
+        self.submit(queue, 'second', second, owner='A', tier='gpu', adapter='b')
+        try:
+            with self.assertRaisesRegex(RuntimeError, 'uncertain publication'):
+                await queue.wait('first')
+            self.assertEqual(await queue.wait('second'), 2)
+            with self.assertRaisesRegex(RuntimeError, 'explicit owner recovery'):
+                self.submit(queue, 'retry', first, owner='A', tier='gpu', adapter='a')
+            first.assert_awaited_once()
+        finally:
+            await queue.close()
+
     async def test_shared_interests_one_operation_and_cancelling_one_does_not_cancel_writer(self):
         queue, entered, proceed = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
         calls = []
@@ -3382,6 +3493,14 @@ class AutomaticGPUReplacement(unittest.TestCase):
         self._check_native_source_expiry(boundary='movement', handoff=True)
 
     def test_superseded_target_cannot_hide_sibling_owned_operation_failure(self):
+        # Preserve the historical concurrently executing sibling failure. It
+        # is not a valid scheduling requirement for the single-owner policy.
+        self._check_superseded_sibling(historical_parallel=True)
+
+    def test_serial_gpu_supersession_cancels_unstarted_sibling_without_fabricated_failure(self):
+        self._check_superseded_sibling(historical_parallel=False)
+
+    def _check_superseded_sibling(self, *, historical_parallel):
         from tests.test_ieee_tc_gpu_references import AdapterCache
         from faaslora.preloading.preloading_planner import (
             FrozenPreparationProfiles, PreparationCostModel, PreparationPlanSuperseded)
@@ -3409,7 +3528,8 @@ class AutomaticGPUReplacement(unittest.TestCase):
                 name = kw['key'][2]
                 async def outcome(attempt):
                     if name == 'a':
-                        await entered.wait()
+                        if historical_parallel:
+                            await entered.wait()
                         raise PreparationPlanSuperseded(dict(reason='controlled absence'), stage='native_gpu_source')
                     entered.set()
                     try:
@@ -3421,16 +3541,42 @@ class AutomaticGPUReplacement(unittest.TestCase):
         queue.submit = crossed
         async def run():
             try:
-                with self.assertRaisesRegex(RuntimeError, 'sibling owned operation failed'):
+                if historical_parallel:
+                    with self.assertRaisesRegex(RuntimeError, 'sibling owned operation failed'):
+                        await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 3)
+                    self.assertTrue(entered.is_set())
+                    self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'failed')
+                    self.assertEqual(sorted(r['state'] for r in queue.snapshot() if r['key'][1]=='gpu'),
+                                     ['failed','superseded'])
+                else:
                     await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 3)
-                self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'failed')
+                    self.assertFalse(entered.is_set())
+                    self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'superseded')
+                    jobs = [r for r in queue.snapshot() if r['key'][1] == 'gpu']
+                    self.assertTrue(jobs)
+                    self.assertTrue(all(r['state'] in ('superseded', 'cancelled') for r in jobs))
                 self.assertTrue(runner._ieee_gpu_preparation_plans[-1]['close_receipt']['closed'])
-                self.assertEqual(sorted(r['state'] for r in queue.snapshot() if r['key'][1]=='gpu'),
-                                 ['failed','superseded'])
                 factory.check_clean(fixture, runner, owner)
             finally:
                 await queue.close()
-        asyncio.run(run())
+        if historical_parallel:
+            import ast
+            import hashlib
+            from types import MethodType
+            root = Path(__file__).resolve().parents[1]
+            old = subprocess.check_output(['git', 'show',
+                '9035a3069820ffcb9d78ba7564c139e0ae2b918b:faaslora/preloading/preloading_manager.py'], cwd=root)
+            self.assertEqual(hashlib.sha256(old).hexdigest(),
+                '825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f')
+            cls = next(n for n in ast.parse(old).body if isinstance(n, ast.ClassDef)
+                       and n.name == 'OwnedMovementQueue')
+            method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_pump')
+            namespace = {}
+            exec(compile(ast.Module(body=[method], type_ignores=[]), '<historical-pump>', 'exec'), namespace)
+            with patch.object(queue, '_pump', MethodType(namespace['_pump'], queue)):
+                asyncio.run(run())
+        else:
+            asyncio.run(run())
 
     def _check_native_source_expiry(self, *, boundary, fail_close=False, handoff=False):
         factory, data = self.make({'a':80})
