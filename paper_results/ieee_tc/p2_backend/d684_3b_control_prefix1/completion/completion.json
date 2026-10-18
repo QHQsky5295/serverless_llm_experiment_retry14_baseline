@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "native_bound_count": 1000,
+  "n_correct": null,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "includes_observer_overhead": true,
+  "complete_processes": 4,
+  "processes": 4,
+  "complete_request_observations": 1000,
+  "inventory_observations": 16032,
+  "thresholds": [
+    {
+      "lower_exclusive": null,
+      "upper_inclusive": 506,
+      "ttft_s": 1.466050801101725,
+      "tpot_s": 0.02992187236665917
+    },
+    {
+      "lower_exclusive": 506,
+      "upper_inclusive": null,
+      "ttft_s": 2.539648668190845,
+      "tpot_s": 0.03621551519318005
+    }
+  ],
+  "not_ready_activations": [],
+  "no_figures": true,
+  "analysis_tests": "Existing D668 analyzer reused with corrected interval-bound selector; no new performance or analysis-regression claim"
+}

@@ -1,5 +1,50 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D684当前版本控制诊断完成，准备封存 — 2026-10-18 16:54 CST
+
+PROGRESS。唯一前1000原W0回放全部原生合同/122510 tokens/0失败；4core、
+312160spans完整无截断，1000窗口覆盖。带观察器联合889/1000，U4380.364347，
+不进入性能主表、不与完整D682直接判优，n_correct未知保持。清点8686次，
+均值74.234/P95107.961ms、CPU/wall99.24%；work控制258.531s中嵌套清点
+183.533s（70.99%）。56个短decode违约平均557.556ms、清点交叠230.076ms；
+条件关联不是可扣减的因果时间。allocator均值0.0751ms，不是当前优先热点。
+
+51295已exit0终态；local_cleanup通过，GPU和aux实际释放；76618exit0远端
+精确3owned服务停止，management关闭；73229exit0 collector/analyzer通过，
+analysis关闭；operations exit0并递归空关闭。不要再wait或重启这些会话。
+各域事件/swap0，服务peak20643287040B。源80e672cb…、audit648ac802…。
+当前准备显式路径publication（建议未用a684...0008），尚未发布完成数据。
+全PLAN/六补充/V1/V2已再读，未改生产/阈值/工件/trace，无新GPU候选。
+
+下一限定新鲜HOST清点本身的表示/查询重复工作，先当前调用链、官方源码和
+D329等反例，最多有界组件验证，不重做已完成的HOST交接/事务合并，不用
+跨请求epoch/TTL缓存，不降低容量/alias/pinning检查，不重跑本prefix。
+下一重型任务前先处理低于150GiB的启动余量；只关闭证据压缩/可重建缓存。
+完整3B仍D682联合92.350%/U15896.253912，其他3B/同版本7B/基线/dLoRA、
+消融/机制/敏感性/CE/审稿交付全部ACTIVE，未闭口、不画图、共享k3s不动。
+
+## D684唯一当前版本前缀诊断运行中 — 2026-10-18 16:33 CST
+
+PROGRESS。10明确路径已推送c1b5dd084b7478f8589364557c64d96510908665，远端
+一致；85515exit0、backup递归空关闭peak29773824B。27703exit0唯一启动
+tc-d684-3b-w0-prefix1，pane2475148存活；start域关闭peak28131328B/事件swap0。
+不要重复start或wait以上终态session。servicebcc5998d8c8e4c94a73d3257f2050200
+Invocation b7f3f5047e134b6baf61360ec08a9cf4；aux3693eaaf8c7b43308be9aab030e96770
+Invocation44293f7bbb994b01b1de7bf960d903ed。实际core2476716/start181954028
+已写host_spans_v1/fresh_inventory_v1前1000观测身份，非正式性能/非GPUkernel计时。
+启动实测1000Mb/s/full，D78/D80交付复用；已开始实际请求，尚无launch.json。
+采样80时peak13221474304B/high/max/OOM/swap0，MemAvailable100278116352B，
+磁盘163168673792B；继续低开销监控同一运行，不清理/测试/扫描/备份。
+
+已仅准备结束后collector/run_analysis与D682原生audit＋D668现成core分析，
+未执行；修复沿用D668已知3B阈值无group_id，按原interval边界，不造字段。
+结束顺序close_launch.py→受限stop_services.py→close_management.py management
+→native环境run_analysis.py（有ijson）→close.py analysis→解释/封存。
+建议后续辅助域a684...0005/0006/0007用于管理/分析/发布，先确认身份未用。
+新helper在启动后准备，不改已冻结服务或prelaunch归档；最终封存时再记录SHA。
+完整成绩仍D682的92.350%/U15896.253912，3B G1/G2尚未达标；不得把此次prefix
+当完整成绩或反复重跑选优。全部后续范围ACTIVE，共享k3s不动、先不画图。
+
 ## D684当前3B前缀诊断已资格，准备备份启动 — 2026-10-18
 
 PROGRESS。只复用D682配置＋现有CoreHostTiming/fresh_inventory观察器，前

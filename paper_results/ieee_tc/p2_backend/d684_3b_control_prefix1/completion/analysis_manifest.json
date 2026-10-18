@@ -1,0 +1,22 @@
+{
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/analyze.py": "779750cb54f0d10a3acbc8700e5ba5e7cafbb3c70b77d9b32b5e4ed2c871810d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/collect_closure.py": "9538e747c2604cf33d497d0acdb946f87923b3f87d52492487586a615d383d0f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/run_analysis.py": "0188a4ba392c1e674c3335212ce1300f43d92929fef22a04c83d7ad7a9a81b98",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_timing_analysis.py": "686823797997e595ce783c6a88d027bfcfe3028a7b228e53beefaeaf9dd05e26",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "outputs": {
+    "completion.json": "6a3427c0e1ead8d162aa525786ba298f53d0d48c10af2521d93a69ebbb7ddbc0",
+    "core_timing/boundaries.csv": "4edced7a9dc98b39c165636cab36f6ca5193244cb39287c0f392847784ff5031",
+    "core_timing/decode_windows.csv": "26e9ce9d8a2df345a9302178f66b2946732e50a6c48661557fef71504921cfcd",
+    "core_timing/groups.csv": "194a6ad37af2222c48b5f85701ef4b02d3cbcc232fb90782aa6d54ee7abaac40",
+    "core_timing/host_inventory.csv": "f43435fc063bf972e7363f48cc02b34a5c27f964f1d6ec9ab8dca322437a40cb",
+    "core_timing/processes.csv": "051b5f96f73ac8dac4197213d6a26e422d63c44a58a8de612563da28f157c675",
+    "core_timing/summary.json": "fa5c3701d82fbaac93a428f85fa4655fe16f209b2322378bce62b765b1a452a0",
+    "native_audit.json": "648ac80228901ccb0787f5fdccb923740172e8a0e5d3ad34e27bc8253c1698ff"
+  }
+}
