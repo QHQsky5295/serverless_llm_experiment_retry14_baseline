@@ -1,5 +1,48 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D682完整运行与审计完成，准备封存 — 2026-10-18 16:11 CST
+
+PROGRESS。上一目标轮完成备份/唯一启动；本轮6006持续核验同一活进程至回放
+结束，6006已终止不要再wait。4000原生合同/458224 tokens/0失败，联合3694
+（92.350%）、TTFT3819/TPOT3858；均值TTFT804.279761/P951992.431960ms，
+U15896.253912。相对D677联合+1.65pp、尾部改善但资源基本不变；与D672比较
+资源仍更高。距共同95%仍106条，8组均未达95%，G1/G2不闭口，数值资格未知。
+HOST交接1551（HOST1534/GPU17）核验通过，主动HOST3524；远端132/306360162B/
+packing0。4053样本service peak24278552576B/high/max/OOM/swap0。
+
+launch pass/退出0，实际GPU释放，local_cleanup通过；38009exit0远端三个
+owned服务inactive，management域关闭。17191exit0 collector/analyzer通过，
+analysis域递归空关闭peak882753536B/事件swap0；不再wait两个旧session。
+源1b8565c6…、audit fbb92203…；没有新代码/阈值/工件改动、没有重复GPU运行。
+完整PLAN、V1/V2与技能核验已完成。publisher已准备双历史完整比较及严格
+来源/保护/凭据检查，尚未执行。下一明确路径封存备份，然后按完整阶段和
+控制证据定位306条剩余违约与高GPU占用；不重复HOST已合并路径的小优化。
+最后磁盘161259134976B，启动下一重型任务前复核并维护可证明可重建空间。
+其他3B场景/基线/dLoRA、同版本7B、消融、机制/敏感性、成本/CE和最终交付
+全部ACTIVE。未接近目标前不画图，不再重开已完成HydraServe基础平台适配。
+
+## D682唯一完整3B W0运行中 — 2026-10-18 15:03 CST
+
+PROGRESS。8明确路径已推送070204ad26af8e9ed4549292108f53fc7f1b9342，远端
+一致；63515exit0、backup域递归空关闭。64761exit0唯一启动tc-d682-3b-w0，
+pane2254247存活；start域递归空关闭，peak27947008B/事件swap0。不再wait
+42555/63515/64761，不重复start.py。service02363b99b6e441f68dffeb71bb8b19d6
+Invocation eb3fa5d9c0004768b9498cb9e91b68ce，aux8b3819b1cb6940ccb48f5419c5ed915d
+Invocation 78bfc799787b4489826629eaafad41b5，实际身份见exec_receipt/start_receipt。
+启动实测1000Mb/s/full，prepublished缓存复用；未触碰共享k3s、未新增工件。
+采样141时service peak20589318144B，high/max/OOM/swap0，主机可用94895898624B，
+磁盘162357952512B。最新live27到达27完成0失败仅过程信息，尚无launch.json。
+
+仅准备了D677全量analyzer＋D681逐HOST交接检查、collector和publisher；未
+分析活动结果、未压缩/清理/构建/推送。完成后close_launch.py→受限
+stop_services.py→close_management.py management→使用已有native vLLM环境的
+run_analysis.py（该环境有ijson，勿用旧CPU环境）→close.py analysis→publish。
+建议后续辅助域a682...0004/0005/0006依次用于管理/分析/发布，先确认未使用。
+publisher同时比较D677和D672，保留数值正确性未知；单轮、未达目标前不画图。
+最新完整性能仍D677联合90.700%/U15894.960797，D682未出结果不能宣称改善。
+全计划ACTIVE，W1/W2、3B其余baseline/dLoRA、同最终版本7B、A1–A5、S1–S13、
+离线成本/CE、两轮审稿文档和最终图表全部保留；当前不重开已完成平台适配。
+
 ## D682全量装配通过，准备备份启动 — 2026-10-18 14:59 CST
 
 PROGRESS。42555exit0，原4000请求source/view及D645两个profile匹配；配置
