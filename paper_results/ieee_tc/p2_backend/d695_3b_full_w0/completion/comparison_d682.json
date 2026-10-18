@@ -1,0 +1,19 @@
+{
+  "kind": "d695_vs_d682_complete_w0_single_observation_v1",
+  "current_audit": "d695_3b_full_w0/completion/audit.json",
+  "reference_audit": "d682_3b_full_w0/completion/audit.json",
+  "current_joint": 3618,
+  "reference_joint": 3694,
+  "joint_delta_percentage_points": -1.9,
+  "metrics": {
+    "mean_ttft_ms": {"current": 844.735410576628, "reference": 804.2797608675319, "lower_better_delta": 40.4556497090961},
+    "p95_ttft_ms": {"current": 2177.3950080387294, "reference": 1992.4319603014737, "lower_better_delta": 184.9630477372557},
+    "mean_tpot_ms": {"current": 17.450452974410403, "reference": 16.778032307859217, "lower_better_delta": 0.672420666551186},
+    "mean_e2e_ms": {"current": 2823.2876528791967, "reference": 2723.519203986798, "lower_better_delta": 99.76844889239866},
+    "physical_gpu_seconds": {"current": 15904.504299027147, "reference": 15896.253912474262, "lower_better_delta": 8.25038655288475}
+  },
+  "accepted_as_final": false,
+  "candidate_decision": "rollback",
+  "confidence_interval": null,
+  "caveat": "One observation per version; no winner screening or causal percentage attribution."
+}

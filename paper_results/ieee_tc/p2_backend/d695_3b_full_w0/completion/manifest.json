@@ -1,0 +1,19 @@
+{
+  "kind": "d695_3b_full_w0_curated_seal_v1",
+  "source_commit": "9cc0baa65a9f977f9619b5867b14baec60ee5cdf",
+  "production_after_rollback_sha256": "825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f",
+  "protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "protocol_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "complete_workload": true,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "candidate_decision": "rollback",
+  "no_figures": true,
+  "outputs": {
+    "audit.json": "2ae5ab48dca0e8040416a361c26c281457b0bb54f635b52a2c5d88b2f983c02f",
+    "comparison_d682.json": "bba993dc237520b58d4e458330c7d8acb5fb20a275b690e5ff78ae0169812671",
+    "comparison_d677.json": "31f1429f4280d58480d126acb7cca2070cd14347298d11a8ffc867c3916d21d3"
+  },
+  "caveat": "The D695 candidate is retained as a complete diagnostic observation, not accepted as an improved PrimeLoRA version."
+}

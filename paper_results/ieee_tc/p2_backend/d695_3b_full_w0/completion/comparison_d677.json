@@ -1,0 +1,19 @@
+{
+  "kind": "d695_vs_d677_complete_w0_single_observation_v1",
+  "current_audit": "d695_3b_full_w0/completion/audit.json",
+  "reference_audit": "d677_3b_full_w0/completion/audit.json",
+  "current_joint": 3618,
+  "reference_joint": 3628,
+  "joint_delta_percentage_points": -0.25,
+  "metrics": {
+    "mean_ttft_ms": {"current": 844.735410576628, "reference": 844.6590066905483, "lower_better_delta": 0.07640388607970373},
+    "p95_ttft_ms": {"current": 2177.3950080387294, "reference": 2188.5991122107953, "lower_better_delta": -11.2041041720659},
+    "mean_tpot_ms": {"current": 17.450452974410403, "reference": 16.93022924637429, "lower_better_delta": 0.520223728036113},
+    "mean_e2e_ms": {"current": 2823.2876528791967, "reference": 2789.6740648828563, "lower_better_delta": 33.61358890434036},
+    "physical_gpu_seconds": {"current": 15904.504299027147, "reference": 15894.960796807893, "lower_better_delta": 9.543502219254067}
+  },
+  "accepted_as_final": false,
+  "candidate_decision": "rollback",
+  "confidence_interval": null,
+  "caveat": "One observation per version; D677 is a prior development observation, not a new independent holdout."
+}

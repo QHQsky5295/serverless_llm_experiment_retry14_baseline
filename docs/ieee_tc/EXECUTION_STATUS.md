@@ -1,5 +1,82 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D695完整3B W0已收尾：候选回退 — 2026-10-18 21:18
+
+PROGRESS。D695已完成4,000/4,000请求并通过资源释放、远端服务关闭、SHA下载
+与native环境离线分析。4,000终态、458,224原生token、4,343次GPU-owner
+动作且同owner重叠0；远端132次、306,360,162字节；所有收尾scope的
+high/max/OOM/oom_kill/swap均0。分析结果位于D695 raw及其收尾回执，尚未
+生成图表，n_correct仍按协议为未知。
+
+完整共同阈值联合达成为3618/4000=90.450%，平均TTFT844.735ms、P95 TTFT
+2177.395ms、平均TPOT17.450ms、平均E2E2823.288ms、生命周期GPU
+15904.504GPU-s。相对D682父候选3694/4000=92.350%、804.280ms、
+1992.432ms、16.778ms、2723.519ms、15896.254GPU-s，D695分别退化
+76个联合达标请求、40.456ms平均TTFT、184.963ms P95 TTFT、0.672ms
+TPOT、99.768ms E2E和8.250GPU-s。它不是可接受的PrimeLoRA改进，也不
+满足95%共同SLO；不进入正式排名。
+
+回归阶段主要是admission→engine dispatch、runtime slot wait及native
+decode；CPU/资格测试中的同owner快照竞争修复没有在完整工作负载上产生
+净收益。按预登记停止规则，不叠加补丁、不重复同键求胜。生产
+`OwnedMovementQueue._pump` 已恢复到父版本SHA
+`825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f`；D693
+候选与D695全部证据保留。恢复后的187项相关CPU回归测试在vLLM0.30.0环境
+全部通过（依赖警告不影响通过）。
+
+下一步是离线比较D682/D677/D695并提出一个新的可证伪瓶颈假设；没有新证据
+前不启动下一轮GPU实验。HydraServe不重新适配，共享k3s未动；7B/3B其他
+场景、G2、baseline、消融、敏感性、CE/成本、独立数值核验和最终交付仍
+ACTIVE。用户manifest未stage，未清理唯一原始证据。
+
+## D695同一完整回放持续推进 — 2026-10-18 20:28
+
+运行中，未完成；本轮仅监测，没有新实验/优化/远端维护。实际终态计数从
+192持续增至1072/4000，watchdog样本1184；service仍active且InvocationID
+100ee05a6fbf4e6f8c84298f3ccbe54b一致，tc-d695-3b-w0 pane_dead=0，PID2983265。
+实际service unit及launcher身份仍使用下节与raw回执，不重启、不新建D696。
+
+最新MemAvailable93145358336B，service峰值20885311488B，high/max/OOM/
+oom_kill/swap均0，无warning/abort；可用磁盘159486517248B，已低于150GiB
+新任务启动线但仍高于100GiB运行安全线。运行中不清理/压缩，不把正常消耗
+当作终止理由；结束后再按存储规则核验可回收项及下一任务实时门槛。
+
+完整PLAN、六补充、V1/V2及监测技能已重读。这里只报请求终态进度，不称
+全部数值正确、共同SLO达标或候选接受；终端5000ms指标仍不是最终共同SLO。
+下一继续守候同一实际进程至终态，再按下节已有close_launch→受限remote
+stop→native环境run_analysis→封存/比较顺序。没有等待旧终态session。
+启动前checkpoint仍9cc0baa65a9f977f9619b5867b14baec60ee5cdf，运行中不推送；
+本地状态文档更新留到正常收尾checkpoint。共享k3s未动，HydraServe已完成
+必要隔离适配不重新开始。整体目标及全部未完成场景/基线/消融/敏感性/交付
+保持ACTIVE；本次监测不删除任何实验范围，不生成图。
+
+## D695完整3B W0正在运行 — 2026-10-18 20:10
+
+PROGRESS。17822存储、76025装配、31303备份、81984启动均终态；各辅助
+scope实际递归空关闭，事件swap0，不再wait这些session。9明确路径推送
+9cc0baa65a9f977f9619b5867b14baec60ee5cdf，远端一致。唯一tc-d695-3b-w0
+运行中；真实远端已发布gzip，链路1000/full。没有生产改动或新增调参。
+
+当前service：primelora-tc-svc-86f8c15b493c42fa917022a61ac5ab9c.scope，
+InvocationID=100ee05a6fbf4e6f8c84298f3ccbe54b，主PID2983333，native PID
+2984684（后续扩容以actual cgroup为准）；launcher辅助域
+primelora-tc-aux-ecb927be014b437f881d8c46ff33c5cf.scope。准确身份已保存
+raw/service_aux_identity.json与3b_full_w0/launch.launch/exec_receipt.json。
+
+最近systemctl确认active且InvocationID一致，终态18/4000，3个自然扩容
+实例已加入；watchdog样本117：MemAvailable94964363264B、service峰值
+20295401472B、事件swap0、盘162040467456B，无警告/中止。这不是完成证据。
+只监视同一实际运行；观察超时不重启、不启动第二轮、不在推理时扫描/压缩/
+构建/推送或维护远端。旧tmux503–510均dead，与本轮无关。
+
+下一先核验actual service/日志；终态后close_launch→stop_services（受限
+aux）→close_management→run_analysis（必须现有vLLM0.30.0 Python，3/4GiB
+scope）→close analysis→封存/比较。D695管理脚本及analyze.py/run_analysis.py
+已准备但未分析；后者复用D682的ijson环境断言，避免D694错误。预留新aux
+身份从a695...0005开始。所有结果不覆盖，失败亦保留；n_correct未知不升级。
+完整SLO和U决定候选去留，未达标不改尺子；全部后续场景/G2/基线/消融/
+敏感性/文档/最终交付ACTIVE。不要把本次启动进展误写成G1/G2达标。
+
 ## D695完整3B W0准备 — 2026-10-18
 
 PROGRESS。上一轮D694已闭合/备份；本轮直接登记唯一新4000 W0，复用D682

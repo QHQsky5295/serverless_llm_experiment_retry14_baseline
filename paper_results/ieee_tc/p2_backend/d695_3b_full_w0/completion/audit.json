@@ -1,0 +1,49 @@
+{
+  "kind": "d695_3b_current_full_w0_qualification_v1",
+  "source_run": "results/ieee_tc/p2_backend_qualification/d695_20261018/3b_full_w0",
+  "source_analysis_sha256": "dd05847e7d7dcc7d3299b2844baa3fb9216ddce10d92f6c0953892396249c75f",
+  "protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "protocol_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "passed": true,
+  "complete_workload": true,
+  "protocol_bound_count": 4000,
+  "native_tokens": 458224,
+  "common_threshold_joint_count": 3618,
+  "common_threshold_joint_fraction": 0.9045,
+  "stats": {
+    "completed": 4000,
+    "mean_ttft_ms": 844.735410576628,
+    "p95_ttft_ms": 2177.3950080387294,
+    "mean_tpot_ms": 17.450452974410403,
+    "p95_tpot_ms": 33.766477284106344,
+    "mean_e2e_ms": 2823.2876528791967,
+    "physical_gpu_seconds": 15904.504299027147,
+    "n_correct": null
+  },
+  "mechanism_evidence": {
+    "gpu_owner_dispatch_attempts": 4343,
+    "gpu_owner_count": 4,
+    "same_owner_gpu_action_overlaps": 0,
+    "movement_completed": 5299,
+    "movement_superseded": 4,
+    "movement_cancelled": 17,
+    "host_lease_transfer_count": 1422,
+    "remote_transfers": 132,
+    "remote_wire_bytes": 306360162
+  },
+  "resource_events": {
+    "service_returncode": 0,
+    "service_path_removed": true,
+    "native_gpu_context_release_confirmed": true,
+    "remote_services_stopped": true,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "swap": 0
+  },
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "n_correct_unknown": true,
+  "caveat": "Complete single observation on the frozen seed-42 W0 trace; independent numerical adapter proof and G1/G2 qualification are not established."
+}
