@@ -29,6 +29,24 @@ decode；CPU/资格测试中的同owner快照竞争修复没有在完整工作�
 场景、G2、baseline、消融、敏感性、CE/成本、独立数值核验和最终交付仍
 ACTIVE。用户manifest未stage，未清理唯一原始证据。
 
+## D695离线归因：下一候选为单飞式扩容 — 2026-10-18 21:35
+
+离线对比 D677/D682/D695 后，D695 的同-owner GPU 动作重叠为 0，故 D693
+的 owner 串行修复在完整工作负载中没有触发目标失效，不能继续叠加该方向。
+D677/D682 的三个 activation 分别在 request index 1/2/3 登记；D695 在
+index 1 同时登记 target=2 和 target=3，随后 index 2 登记 target=4。D695
+初始 device-0 副本仅承接 568 请求（平均 TTFT 928.8 ms），D682 为 1,558
+请求（平均 792.8 ms），同时 D695 的 native decode、admission→engine
+dispatch 均更高。这使“同一控制窗口并发 activation 导致就绪/路由分布不
+稳定”成为新的可证伪假设。
+
+下一候选只允许一个机制变化：单飞式扩容控制（每个控制窗口至多提交一个
+物理 activation，前一 activation 登记 ready 后再提交后续 activation），
+不改论文 autoscaler 公式、预算或 handoff 语义。候选运行必须额外记录控制
+评估、pending、提交和 ready 序列；仍以 4,000/4,000、共同 TTFT/TPOT
+阈值和生命周期 GPU-s 验收。若只改善顺序而不改善联合 SLO 或 GPU-s，则
+拒绝候选。当前不启动新 GPU 任务；D695 保留为失败证据，整体目标仍 ACTIVE。
+
 ## D695同一完整回放持续推进 — 2026-10-18 20:28
 
 运行中，未完成；本轮仅监测，没有新实验/优化/远端维护。实际终态计数从

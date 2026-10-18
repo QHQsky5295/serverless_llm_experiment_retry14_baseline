@@ -128,3 +128,27 @@ D693候选、D695运行及其测试/文档证据仍保留；恢复不是删除�
 新的、可证伪的PrimeLoRA瓶颈假设；在没有新机制假设前不启动下一轮GPU回放。
 7B、3B W1/W2/G2、外部baseline、消融、S1–S13、成本/CE及独立数值正确性仍
 保持ACTIVE，且本轮未生成论文图表。
+
+## 离线归因与下一候选假设 — 2026-10-18 21:35
+
+D695 的完整回放没有复现 D693 所针对的并发失效：GPU-owner 动作 4,343
+次、同-owner 重叠为 0，CPU/资格测试也通过。因此不能把 D695 的回归归因
+为 owner 快照竞争，也不能继续叠加 owner 锁。
+
+三个相邻完整回放显示，主要结构差异出现在扩容控制的提交顺序。D677/D682
+的 activation 事件分别发生在 request index 1、2、3；D695 则在同一个
+request index 1 同时登记 target=2 与 target=3，随后在 index 2 登记
+target=4。相应地，D695 的初始 device-0 副本只接收 568 个请求，平均 TTFT
+928.8 ms；D682 的初始副本接收 1,558 个请求，平均 TTFT 792.8 ms。D695
+后续虽有更多请求落到扩容副本，但平均 native decode 仍比 D682 高 37.8 ms，
+admission→engine dispatch 高 7.8 ms。该证据支持“同一控制窗口的并发
+activation 造成副本就绪/路由分布不稳定”的假设，而非“GPU owner 动作需要
+全局串行化”。
+
+下一候选为**单飞式扩容控制**：保持论文中的 autoscaler 规则、预算、候选
+副本和 handoff 语义不变，只限制同一控制窗口至多提交一个新的物理
+activation；后续 activation 在下一次控制评估、且前一 activation 已登记
+为 ready 后再提交。验收仍为 4,000/4,000、共同 TTFT/TPOT 阈值、生命周期
+GPU-s/request 和阶段分解；若 activation 顺序稳定但联合 SLO 或 GPU-s 不
+改善，则候选立即拒绝，不把“更稳定”当作性能收益。下一轮还必须记录每次
+控制评估的 pending 数、提交序列和 ready 序列，以直接证伪或支持该假设。
