@@ -1,0 +1,92 @@
+{
+  "kind": "d665_vs_d660_complete_w0_single_observation_v1",
+  "previous_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d660_3b_full_w0/audit.json",
+    "sha256": "31e3a5c042961983fcbfd1bd926141e66b153aab892e1432c8914b1b086e89d9"
+  },
+  "current_audit_sha256": "2495a30a67e16936c79c24601ecee62d6c77f580fed15932ab668e40cfb6225d",
+  "workload_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "native_tokens": 458224,
+  "previous_joint_count": 3575,
+  "current_joint_count": 3550,
+  "joint_delta_percentage_points": -0.625,
+  "metrics": [
+    {
+      "metric": "mean_ttft_ms",
+      "previous": 918.5575166892959,
+      "current": 887.7585093531525,
+      "lower_better_improvement_percent": 3.3529753746015274
+    },
+    {
+      "metric": "p95_ttft_ms",
+      "previous": 2386.5786513779312,
+      "current": 2377.6154697407037,
+      "lower_better_improvement_percent": 0.3755661533321976
+    },
+    {
+      "metric": "mean_tpot_ms",
+      "previous": 17.522706157745766,
+      "current": 17.596357134608578,
+      "lower_better_improvement_percent": -0.420317365364567
+    },
+    {
+      "metric": "p95_tpot_ms",
+      "previous": 33.657365219874514,
+      "current": 33.3086334048184,
+      "lower_better_improvement_percent": 1.0361233351985253
+    },
+    {
+      "metric": "mean_e2e_ms",
+      "previous": 2938.857241118676,
+      "current": 2891.130034703645,
+      "lower_better_improvement_percent": 1.6240056082773093
+    },
+    {
+      "metric": "physical_gpu_seconds",
+      "previous": 15902.267275708029,
+      "current": 15896.447804512922,
+      "lower_better_improvement_percent": 0.03659522943622655
+    }
+  ],
+  "previous_stage_means_ms": {
+    "arrival_release_ms": 118.1180154500762,
+    "release_to_acquire_ms": 47.48274947912432,
+    "acquire_to_resume_ms": 0.06590779556427151,
+    "runtime_slot_wait_ms": 272.9066171295708,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 299.68721391877625,
+    "engine_entry_to_queue_ms": 65.342378190835,
+    "native_engine_queue_ms": 5.6796312487567775,
+    "native_prefill_ms": 109.27500347659225,
+    "native_decode_ms": 1829.4539535597432,
+    "worker_completion_notification_ms": 40.47955743945204,
+    "worker_to_controller_completion_ms": 150.36621343018487
+  },
+  "current_stage_means_ms": {
+    "arrival_release_ms": 129.8912499838625,
+    "release_to_acquire_ms": 45.76275569287827,
+    "acquire_to_resume_ms": 0.06368497392395511,
+    "runtime_slot_wait_ms": 268.8003346727928,
+    "runtime_to_controller_admission_ms": 0.0,
+    "admission_to_engine_dispatch_ms": 270.35757004929474,
+    "engine_entry_to_queue_ms": 59.11715969914803,
+    "native_engine_queue_ms": 5.181072707986459,
+    "native_prefill_ms": 108.5846815732657,
+    "native_decode_ms": 1820.6030546613038,
+    "worker_completion_notification_ms": 38.36178461101372,
+    "worker_to_controller_completion_ms": 144.40668607817497
+  },
+  "performance_goal_met": false,
+  "accepted_as_goal_improvement": false,
+  "confidence_interval": null,
+  "independent_holdout": false,
+  "caveat": "Known fixed workload, one observation per version; native HOST proof passed, but joint SLO fell and resource saving was negligible. No causal attribution of run variation, numerical proof or final ranking."
+}

@@ -1,5 +1,55 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## D665完成：原生HOST资格通过，联合88.750%，整体目标仍未达标 — 2026-10-18
+
+本轮PROGRESS：此前为VERIFIED WAIT，持续同一运行至4000终态，没有重启。
+完整请求/绑定/原生数量/计时4000通过、458224tokens；联合3550/4000，TTFT3697、
+TPOT3820。平均TTFT887.758509ms/P952377.615470ms，平均TPOT17.596357ms/
+P9533.308633ms，平均E2E2891.130035ms；U15896.447804512922GPU-s。
+相对D660平均TTFT低3.353%，但联合下降0.625pp，GPU-s只低0.0366%，不接受为
+达标性能改进。不能以局部均值下降关闭3B优化；n_correct=null/数值未知与
+ranking false保留。八阶段联合451/454/457/434/429/454/434/437，全部未到95%。
+
+1392新HOST事务、1864旧GPU-hit事务、744fresh inventory均通过前后容量及
+引用检查；dispatch remote/GPU/HOST/NVMe=135/1839/1411/615。132次remote，
+306360162线上B，请求打包0。1 initial+3自然扩容均ready。
+service/watchdog exit0，实际GPU释放及服务/外置域递归空关闭；remote stop
+85656 exit0、三owned服务inactive。analysis53590 exit0并已递归空关闭，peak
+871923712B、事件/swap0，不再wait。service peak24428347392B，事件/swap0。
+147旧投稿保护未变；raw SHA fe3a27ae3bd4fb6181fbbd18e00675a9c20985b6653025e35bebd0684ea3905b，
+audit SHA2495a30a67e16936c79c24601ecee62d6c77f580fed15932ab668e40cfb6225d。
+V1/V2完整重读且SHA一致；PLAN完整内容与已核验SHA未变。
+
+当前无活动GPU或分析任务。下一先显式路径发布新的completion子目录，绝不覆盖
+prelaunch/resume清单；再复用D660/D665作有界HOST事务阶段与联合违约对照，
+判断局部重复后检查收益及剩余关键路径，不盲叠候选、不改阈值、不重跑同键。
+3B W1/W2/基线/dLoRA、同版本7B、A1–A5/S1–S13、成本/审稿/图表均保持ACTIVE。
+
+## D665已启动：同配置完整3B W0进行中，禁止重启 — 2026-10-18 07:37 CST
+
+本轮PROGRESS：D664原生资格完成并封存；D665完整入口核验、发布恢复与备份
+完成。当前HEAD793b69729233f14ed9db8d07c9efe716177ca05e已推送，远端一致；
+BASE仍e16af33aaf41f02a62ecdce59f6f3227813244c3。
+仅一次D665运行已真实启动：tmux tc-d665-3b-w0，pane PID1205068，
+服务scope primelora-tc-svc-f4ebd9eebb4042c788caeabe3a72e32f.scope，
+InvocationID847de03ac4994f0fbb2fa43e44280ed7，inode27296173；
+外置scope primelora-tc-aux-3bf8726c1e7e4cb287bc359fecad76a8.scope。
+RAW results/ieee_tc/p2_backend_qualification/d665_20261018；实际启动入口
+start2.py只引用成功backup2回执，底层启动/运行仍使用封存start.py与既有runner。
+
+92425资格、82743备份、52302启动辅助均exit0且各scope递归空关闭，禁止再wait。
+备份/启动辅助peak30056448/29257728B、high/max/OOM/kill/swap0。
+watchdog8：host available111608733696B，servicepeak553771008B、events0，
+无abort；仍启动期，没有完整结果。远端当前1000Mbps/full，三项owned服务
+active，具体InvocationID在remote_start.log，禁止运行中维护/重启。
+
+下一：只监测这一运行至真实终态/释放，不改源码/配置、不构建/压缩/扫描/
+清理/第二GPU任务。完成后close_launch.py→stop_remote.sh→受限域
+run_analysis.py→close.py analysis。D665 prelaunch及resume产物均已存在，
+收尾必须写新completion子目录，不覆盖result.sha256或原bundle。
+D665尚无性能结论；完整3B旧结果89.375%尚未闭口。其余3B场景/基线/dLoRA、
+同版本7B、A1–A5/S1–S13、成本/审稿/图表完整范围仍ACTIVE。
+
 ## D665准备：进入同配置完整3B W0，D664已推送 — 2026-10-18
 
 D664已推送c77a161ae80cdefb5eb21f62c2a21ea2a295acae，远端一致；publication
