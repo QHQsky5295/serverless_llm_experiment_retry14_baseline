@@ -23,6 +23,14 @@ case "${1:-d298}" in
     CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
     SPEC=paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/source_spec.json
     ;;
+  d700)
+    # New execution key after D699's launcher identity failure.  The source
+    # specification is unchanged; only the explicit 3B runner selection is
+    # corrected and the raw directory is fresh.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d700_20261019
+    CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/source_spec.json
+    ;;
   d642)
     # Same D641 3B cases/model; align only with the current native launch contract.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d642_20261017
@@ -119,12 +127,12 @@ export PRIME_REMOTE_TOKEN
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1 FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18081
 MODEL_PROFILE=llama2_7b_main_v2_publicmix
 REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
-if [[ "${1:-d298}" == d641 || "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 ]]; then
+if [[ "${1:-d298}" == d641 || "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 || "${1:-d298}" == d699 || "${1:-d298}" == d700 ]]; then
   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
   MODEL_PROFILE=llama32_3b_main_modelscope
   REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
 fi
-if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 ]]; then
+if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "${1:-d298}" == d648 || "${1:-d298}" == d699 || "${1:-d298}" == d700 ]]; then
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
   export FAASLORA_WORKER_START_TIMEOUT_S=600

@@ -23,6 +23,21 @@ qualification。细节见
 `docs/ieee_tc/D699_3B_OUTPUT_PROFILE_GAP_PREPARATION.md`，机器可读产物在
 `paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/`。
 
+## 2026-10-19 D699 launcher identity failure：封存，不重跑同一执行键
+
+D699 的首次动态入口在模型启动前失败。原入口分支只登记了 D699 的 raw/spec
+路径，却没有把 D699 加入 3B 的 `MODEL_PROFILE`、trace 和 native-toolchain
+条件；因此实际命令带入了 7B profile/trace，`source1.json` 在
+`frozen_inputs` 阶段以 `KeyError('llama2_7b_main_v2_publicmix')` 退出。
+`service_returncode=2`，请求数为 0，GPU 仅有既有显示进程，远端 3B 服务没有
+收到请求。watchdog、scope cleanup 和 GPU release 均通过，故这不是模型性能
+结果，也不改变 D698 coverage-only 结论。
+
+该 execution key 保留为 launcher configuration failure，不重复运行。修复已
+登记为新的 D700 execution key：沿用同一 D699 source specification 和既有
+输入，只修正显式 3B 分支，使用新的 raw 目录。D700 在启动前仍须重新通过
+资源、GPU、远端健康和 prepublished delivery 门禁；D699 不能被覆盖。
+
 ## 2026-10-19 存储维护完成：只压缩两份已关闭 outcome，恢复推理机启动余量
 
 为满足推理机既定 `disk_start_floor=150 GiB`，本轮只处理两个已经完成释放、

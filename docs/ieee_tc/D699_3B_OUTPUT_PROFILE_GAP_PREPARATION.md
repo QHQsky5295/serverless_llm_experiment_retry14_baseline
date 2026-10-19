@@ -88,6 +88,12 @@ terminal 不完整、adapter/token 绑定不一致时，动态 collector 必须�
    合并，再重新执行 coverage。直到合并 coverage 完整，3B source profile 才
    能进入后续 runtime qualification；这仍不等于 3B W0/G1/G2 已完成。
 
+首次动态入口 D699 已被单独封存为 launcher configuration failure：入口没有将
+D699 纳入 3B 的 profile/trace 条件，实际传入了 7B profile，随后在
+`frozen_inputs` 以 `KeyError` 退出，未产生请求或 GPU 测量。该执行键不重跑；
+修复后的入口使用新的 D700 execution key、相同 source specification 和新的
+raw 目录。D699 的失败证据仍保留，不能与 D700 合并成一次运行。
+
 ## 解释边界
 
 D699 只解决 D698 明确识别的画像覆盖缺口。它不改变 PrimeLoRA 的九个论文
