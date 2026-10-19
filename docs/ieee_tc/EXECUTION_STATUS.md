@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D701 3B 同规格 profile collection 已完成静态准备，动态运行未开始
+
+为避免把 D700 的 six-identity gap run 与 D645 的 24-identity profile 混合，已
+建立新的 append-only D701 source specification。它保留 D645 的 24 个 exact
+content representatives、原有 46 个 waves 和共同 runtime/input contract，只
+将 output-bin edges 冻结为 `[89,152,179,256]`，并追加 D700 已登记的 30 个
+gap waves。静态 resolver 通过：76 waves、75 个 representative measurement
+waves、423 个已有 request references、24 个 representative identities；没有
+生成新的 trace、LoRA、权重或请求负载，也没有启动 GPU 或访问远端。
+
+D701 目前仍是 `launchable=false`、`gpu_runs=0`、`profile_export_authorized=false`。
+下一步必须经过独立资源/内存/GPU/远端门禁后才可启动唯一的同规格 native
+collection；运行后要由严格 exporter 同时验证类别域、exact-content source
+coverage、同规格 SHA、token/adapter/释放和 loader 证据。任何一项失败都保留
+失败身份，不导出 profile，不推进 3B PrimeLoRA 性能资格。
+
+准备产物位于
+`paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/`，说明见
+`docs/ieee_tc/D701_3B_SAME_SPEC_PROFILE_PREPARATION.md`，已提交并推送
+commit `c0ded03`。该静态准备不是 PrimeLoRA 性能结果，也不改变 D700/D645
+历史结果或用户 dirty manifest。
+
 ## 2026-10-19 D700 3B 类别域已闭合，但同规格 profile 资格仍未闭合
 
 PROGRESS。D700 在新的 execution key 下已安全完成：31 个 native profile
