@@ -1,0 +1,662 @@
+[
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "finance_lora",
+      "declared_output_tokens": 59,
+      "expected_input_tokens": 394,
+      "rank": 8,
+      "source_request_id": "req_00001"
+    },
+    "target_position": 1,
+    "wave": 1,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "medical_lora_0026",
+      "declared_output_tokens": 16,
+      "expected_input_tokens": 91,
+      "rank": 16,
+      "source_request_id": "req_00049"
+    },
+    "target_position": 0,
+    "wave": 2,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "education_lora_0007",
+      "declared_output_tokens": 118,
+      "expected_input_tokens": 181,
+      "rank": 16,
+      "source_request_id": "req_00110"
+    },
+    "target_position": 0,
+    "wave": 3,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 0,
+    "wave": 4,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 1,
+    "wave": 5,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    "source": "gpu",
+    "target": {
+      "adapter_id": "gaming_lora_0010",
+      "declared_output_tokens": 162,
+      "expected_input_tokens": 209,
+      "rank": 16,
+      "source_request_id": "req_00030"
+    },
+    "target_position": 3,
+    "wave": 6,
+    "wave_size": 4
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "finance_lora",
+      "declared_output_tokens": 59,
+      "expected_input_tokens": 394,
+      "rank": 8,
+      "source_request_id": "req_00001"
+    },
+    "target_position": 1,
+    "wave": 7,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "medical_lora_0026",
+      "declared_output_tokens": 16,
+      "expected_input_tokens": 91,
+      "rank": 16,
+      "source_request_id": "req_00049"
+    },
+    "target_position": 0,
+    "wave": 8,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "education_lora_0007",
+      "declared_output_tokens": 118,
+      "expected_input_tokens": 181,
+      "rank": 16,
+      "source_request_id": "req_00110"
+    },
+    "target_position": 0,
+    "wave": 9,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 0,
+    "wave": 10,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 1,
+    "wave": 11,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    "source": "native_host",
+    "target": {
+      "adapter_id": "gaming_lora_0010",
+      "declared_output_tokens": 162,
+      "expected_input_tokens": 209,
+      "rank": 16,
+      "source_request_id": "req_00030"
+    },
+    "target_position": 3,
+    "wave": 12,
+    "wave_size": 4
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "finance_lora",
+      "declared_output_tokens": 59,
+      "expected_input_tokens": 394,
+      "rank": 8,
+      "source_request_id": "req_00001"
+    },
+    "target_position": 1,
+    "wave": 13,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "medical_lora_0026",
+      "declared_output_tokens": 16,
+      "expected_input_tokens": 91,
+      "rank": 16,
+      "source_request_id": "req_00049"
+    },
+    "target_position": 0,
+    "wave": 14,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "education_lora_0007",
+      "declared_output_tokens": 118,
+      "expected_input_tokens": 181,
+      "rank": 16,
+      "source_request_id": "req_00110"
+    },
+    "target_position": 0,
+    "wave": 15,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 0,
+    "wave": 16,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 1,
+    "wave": 17,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    "source": "file_host",
+    "target": {
+      "adapter_id": "gaming_lora_0010",
+      "declared_output_tokens": 162,
+      "expected_input_tokens": 209,
+      "rank": 16,
+      "source_request_id": "req_00030"
+    },
+    "target_position": 3,
+    "wave": 18,
+    "wave_size": 4
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "finance_lora",
+      "declared_output_tokens": 59,
+      "expected_input_tokens": 394,
+      "rank": 8,
+      "source_request_id": "req_00001"
+    },
+    "target_position": 1,
+    "wave": 19,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "medical_lora_0026",
+      "declared_output_tokens": 16,
+      "expected_input_tokens": 91,
+      "rank": 16,
+      "source_request_id": "req_00049"
+    },
+    "target_position": 0,
+    "wave": 20,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "education_lora_0007",
+      "declared_output_tokens": 118,
+      "expected_input_tokens": 181,
+      "rank": 16,
+      "source_request_id": "req_00110"
+    },
+    "target_position": 0,
+    "wave": 21,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 0,
+    "wave": 22,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 1,
+    "wave": 23,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    "source": "nvme",
+    "target": {
+      "adapter_id": "gaming_lora_0010",
+      "declared_output_tokens": 162,
+      "expected_input_tokens": 209,
+      "rank": 16,
+      "source_request_id": "req_00030"
+    },
+    "target_position": 3,
+    "wave": 24,
+    "wave_size": 4
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "finance_lora",
+      "declared_output_tokens": 59,
+      "expected_input_tokens": 394,
+      "rank": 8,
+      "source_request_id": "req_00001"
+    },
+    "target_position": 1,
+    "wave": 25,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "medical_lora_0026",
+      "declared_output_tokens": 16,
+      "expected_input_tokens": 91,
+      "rank": 16,
+      "source_request_id": "req_00049"
+    },
+    "target_position": 0,
+    "wave": 26,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "education_lora_0007",
+      "declared_output_tokens": 118,
+      "expected_input_tokens": 181,
+      "rank": 16,
+      "source_request_id": "req_00110"
+    },
+    "target_position": 0,
+    "wave": 27,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 0,
+    "wave": 28,
+    "wave_size": 1
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "translate_lora",
+      "declared_output_tokens": 174,
+      "expected_input_tokens": 64,
+      "rank": 8,
+      "source_request_id": "req_00007"
+    },
+    "target_position": 1,
+    "wave": 29,
+    "wave_size": 2
+  },
+  {
+    "missing_class": {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    "source": "remote",
+    "target": {
+      "adapter_id": "gaming_lora_0010",
+      "declared_output_tokens": 162,
+      "expected_input_tokens": 209,
+      "rank": 16,
+      "source_request_id": "req_00030"
+    },
+    "target_position": 3,
+    "wave": 30,
+    "wave_size": 4
+  }
+]

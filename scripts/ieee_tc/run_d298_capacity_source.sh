@@ -15,6 +15,14 @@ case "${1:-d298}" in
     CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
     SPEC=paper_results/ieee_tc/p2_backend/d643_3b_initializer/source_spec.json
     ;;
+  d699)
+    # D698's 30 missing 3B output/source/rank/admission classes only.  The
+    # source spec is CPU-prepared from existing prefix requests; the native
+    # collector must still close coverage before any profile is accepted.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d699_20261019
+    CONFIG=configs/ieee_tc/20261017_d641_3b_native_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/source_spec.json
+    ;;
   d642)
     # Same D641 3B cases/model; align only with the current native launch contract.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d642_20261017
@@ -99,6 +107,7 @@ case "${1:-d298}" in
 esac
 [[ $# -le 1 ]] || exit 2
 cd "$ROOT"
+mkdir -p "$RAW"
 [[ ! -e "$RAW/source1_launch.json" && ! -e "$RAW/source1.json" ]] || exit 2
 set -o noclobber
 exec >"$RAW/source1_launcher.log" 2>&1

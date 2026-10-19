@@ -1,0 +1,1321 @@
+{
+  "admission_initialization": {
+    "audit": {
+      "path": "paper_results/ieee_tc/p2_backend/d643_3b_initializer/completed_length_audit.json",
+      "sha256": "96ea9b77be21b5cb08ccaaed1e636ab9432e90831287ebc3a7368e175daca7fa"
+    },
+    "kind": "native_completed_length_binding_v1",
+    "model": "3b",
+    "window_s": 5.0
+  },
+  "bins": {
+    "adapter_rank": [
+      8,
+      16,
+      64
+    ],
+    "admitted_requests": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "declared_output_tokens": [
+      89,
+      152,
+      179,
+      256
+    ],
+    "footprint_bytes": [],
+    "prompt_tokens": [
+      759
+    ]
+  },
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "derivation": "D698 frozen quartile edges [89,152,179,256]. One wave per missing source/output/rank/admission class; backgrounds are existing prefix requests and all actual classes remain measured.",
+  "full_development_contract": {
+    "path": "paper_results/ieee_tc/p2_backend/d643_3b_initializer/development_contract.json",
+    "sha256": "4ee6c6c77358dfb13f2b6eae2b52e9bccac7e650831deef4201bdf84260c34b3"
+  },
+  "host_parent": "/dev/shm",
+  "kind": "native_source_profile_spec_v1",
+  "model_overrides": {
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "dtype": "torch.float16",
+      "kind": "native_host_workspace_contract_v1",
+      "max_resident_pinned_bytes": 18350080,
+      "max_transient_tensor_bytes": 36730056,
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+    }
+  },
+  "movement_concurrency": 3,
+  "nvme_budget_bytes": 17179869184,
+  "nvme_parent": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d644_20261017",
+  "order_rule": "Existing first1000 prefix only; target selected by source order within the frozen output/rank class; target is last in a natural wave of size 1/2/4/8; no synthetic request, wait, interpolation or default.",
+  "purpose": "D699_only_D698_missing_3B_declared_output_classes",
+  "representatives": [
+    {
+      "adapter_id": "education_lora_0007",
+      "file_tree_sha256": "25276e77c862165e693ad8e69315316c7694c53fc2108e9000dce34700c065f0",
+      "logical_bytes": 36404524,
+      "rank": 16,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00110"
+    },
+    {
+      "adapter_id": "finance_lora",
+      "file_tree_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7",
+      "logical_bytes": 42695980,
+      "rank": 8,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00001"
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "file_tree_sha256": "b25837cdfe74cb94c002ebd72cf16a4ebfbcfa48e9dbeb3a659112970df4da7d",
+      "logical_bytes": 28015916,
+      "rank": 16,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00030"
+    },
+    {
+      "adapter_id": "medical_lora_0026",
+      "file_tree_sha256": "699bf001f3f1dd4e3512a0647254b1a2fc4485ee8d7427b01c15d543bac51aff",
+      "logical_bytes": 38501676,
+      "rank": 16,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00049"
+    },
+    {
+      "adapter_id": "translate_lora",
+      "file_tree_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f",
+      "logical_bytes": 34307372,
+      "rank": 8,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00007"
+    },
+    {
+      "adapter_id": "writing_lora_0011",
+      "file_tree_sha256": "fbe17e4b9db1e9d39722f7fabee0760661a3490550d0887dc996a7e9337be913",
+      "logical_bytes": 37453100,
+      "rank": 8,
+      "selection": "existing_prefix_gap_wave_identity_only",
+      "source_request_id": "req_00002"
+    }
+  ],
+  "rounds": 1,
+  "runtime_boundary": "dedicated_subprocess_physical_allocation",
+  "selection_window": {
+    "prefix": 1000,
+    "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+  },
+  "supplementation": {
+    "missing_classes": [
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    ],
+    "no_gpu_runs_in_preparation": true,
+    "no_runtime_profile_until_measurement": true,
+    "retained_profile": {
+      "path": "paper_results/ieee_tc/p2_backend/d645_3b_profiles/source_spec.json",
+      "sha256": "0765a54ceca48db3092993912e6f00369068caa93c48b7a63d936881900a34e9"
+    },
+    "source_coverage": {
+      "path": "paper_results/ieee_tc/p2_backend/d698_3b_output_profile_coverage/coverage.json",
+      "sha256": "bfe4783d250c08ad6aea1312362082a2691d49f06a82e19b203ca62dbcd33bfb"
+    }
+  },
+  "trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+  "warmup_policy": "first_wave_retained_separately_not_in_initial_service_means_no_lifecycle_subtraction",
+  "waves": [
+    {
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        },
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        },
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "kernel_warmup_retained",
+      "round": -1,
+      "source": "gpu"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "finance_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00001"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "medical_lora_0026",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00049"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "education_lora_0007",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00110"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 3,
+      "intended_missing_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "target_adapter_id": "gaming_lora_0010",
+      "target_admission_edge": 4,
+      "target_position": 3,
+      "target_source_request_id": "req_00030"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "finance_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00001"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "medical_lora_0026",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00049"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "education_lora_0007",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00110"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 3,
+      "intended_missing_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "native_host",
+      "target_adapter_id": "gaming_lora_0010",
+      "target_admission_edge": 4,
+      "target_position": 3,
+      "target_source_request_id": "req_00030"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "finance_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00001"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "medical_lora_0026",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00049"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "education_lora_0007",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00110"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 3,
+      "intended_missing_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "file_host",
+      "target_adapter_id": "gaming_lora_0010",
+      "target_admission_edge": 4,
+      "target_position": 3,
+      "target_source_request_id": "req_00030"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "finance_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00001"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "medical_lora_0026",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00049"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "education_lora_0007",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00110"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 3,
+      "intended_missing_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "nvme",
+      "target_adapter_id": "gaming_lora_0010",
+      "target_admission_edge": 4,
+      "target_position": 3,
+      "target_source_request_id": "req_00030"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00001"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "finance_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00001"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "medical_lora_0026",
+          "source_request_id": "req_00049"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "medical_lora_0026",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00049"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "education_lora_0007",
+          "source_request_id": "req_00110"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "education_lora_0007",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00110"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 0,
+      "intended_missing_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 1,
+      "target_position": 0,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 1,
+      "intended_missing_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "translate_lora",
+      "target_admission_edge": 2,
+      "target_position": 1,
+      "target_source_request_id": "req_00007"
+    },
+    {
+      "actual_admission_coverage_required": true,
+      "background_request_count": 3,
+      "intended_missing_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      },
+      "requests": [
+        {
+          "adapter_id": "finance_lora",
+          "source_request_id": "req_00000"
+        },
+        {
+          "adapter_id": "writing_lora_0011",
+          "source_request_id": "req_00002"
+        },
+        {
+          "adapter_id": "translate_lora",
+          "source_request_id": "req_00007"
+        },
+        {
+          "adapter_id": "gaming_lora_0010",
+          "source_request_id": "req_00030"
+        }
+      ],
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "remote",
+      "target_adapter_id": "gaming_lora_0010",
+      "target_admission_edge": 4,
+      "target_position": 3,
+      "target_source_request_id": "req_00030"
+    }
+  ],
+  "workspace_derivation": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_native_host_workspace_contracts.json",
+    "sha256": "275efc7e669b958ded47ab1b7dca2724700ad3580583f3331aeebf8028c22453"
+  }
+}

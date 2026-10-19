@@ -1,5 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D699 3B 输出画像缺类已完成 CPU-only 准备，尚未启动动态测量
+
+PROGRESS。D698 明确的 30 个缺失 native service classes 已转换为新的、追加写入
+的 D699 source specification。准备过程只复用既有 1,000-request trace 前缀、
+500-adapter frozen pool、D644/D645 的 source contract 和五种既有 source
+表示；没有生成负载、权重或 adapter，没有连接远端、启动 GPU 或写入新的 raw
+运行目录。
+
+D699 共有 30 个 representative measurement waves 和 1 个不计入覆盖的 GPU
+warmup，计划引用 61 个既有 request references；每个目标类的目标请求放在
+自然 wave 的最后位置，wave 大小为 1/2/4，对应冻结 admission edges 1/2/4，
+背景请求也保留为实际测量对象。静态 `source_profile_inputs` 已验证 31 个
+wave、wave 内 adapter 唯一、最大 wave 为 6、5 个 source 各 6 个 wave、6 个
+distinct adapter identity，以及 trace/content-index SHA 一致。
+
+这不是 profile 或性能结果：`launchable=false`、`gpu_runs=0`、`n_correct=null`。
+静态准备不能证明运行时 source/admission 落入目标类别；后续必须使用新的 D699
+execution key 完成 native collector，再用实际 `class_features` 重新覆盖检查、
+导出 D644/D645+D699 的 development-only profile，之后才可进行 3B runtime
+qualification。细节见
+`docs/ieee_tc/D699_3B_OUTPUT_PROFILE_GAP_PREPARATION.md`，机器可读产物在
+`paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/`。
+
 ## 2026-10-19 存储维护完成：只压缩两份已关闭 outcome，恢复推理机启动余量
 
 为满足推理机既定 `disk_start_floor=150 GiB`，本轮只处理两个已经完成释放、
