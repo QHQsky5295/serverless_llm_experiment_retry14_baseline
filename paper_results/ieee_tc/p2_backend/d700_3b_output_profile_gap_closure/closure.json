@@ -1,0 +1,349 @@
+{
+  "campaign": "D700",
+  "class_domain": {
+    "closed": true,
+    "d700_observed_classes": 49,
+    "missing_classes_after_d700": 0,
+    "missing_classes_before": [
+      [
+        "gpu",
+        0,
+        0,
+        0,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        1
+      ],
+      [
+        "gpu",
+        0,
+        0,
+        1,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        0
+      ],
+      [
+        "gpu",
+        0,
+        1,
+        1,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        0
+      ],
+      [
+        "gpu",
+        0,
+        2,
+        0,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        0
+      ],
+      [
+        "gpu",
+        0,
+        2,
+        0,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        1
+      ],
+      [
+        "gpu",
+        0,
+        2,
+        1,
+        0,
+        "native_gpu_dense_slot_v1:torch.float16",
+        2
+      ],
+      [
+        "host",
+        0,
+        0,
+        0,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        1
+      ],
+      [
+        "host",
+        0,
+        0,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        1
+      ],
+      [
+        "host",
+        0,
+        0,
+        1,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        0
+      ],
+      [
+        "host",
+        0,
+        0,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "host",
+        0,
+        1,
+        1,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        0
+      ],
+      [
+        "host",
+        0,
+        1,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "host",
+        0,
+        2,
+        0,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        0
+      ],
+      [
+        "host",
+        0,
+        2,
+        0,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        1
+      ],
+      [
+        "host",
+        0,
+        2,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "host",
+        0,
+        2,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        1
+      ],
+      [
+        "host",
+        0,
+        2,
+        1,
+        0,
+        "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        2
+      ],
+      [
+        "host",
+        0,
+        2,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        2
+      ],
+      [
+        "nvme",
+        0,
+        0,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        1
+      ],
+      [
+        "nvme",
+        0,
+        0,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "nvme",
+        0,
+        1,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "nvme",
+        0,
+        2,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        0
+      ],
+      [
+        "nvme",
+        0,
+        2,
+        0,
+        0,
+        "verified_regular_file_tree_v1",
+        1
+      ],
+      [
+        "nvme",
+        0,
+        2,
+        1,
+        0,
+        "verified_regular_file_tree_v1",
+        2
+      ],
+      [
+        "remote",
+        0,
+        0,
+        0,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        1
+      ],
+      [
+        "remote",
+        0,
+        0,
+        1,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        0
+      ],
+      [
+        "remote",
+        0,
+        1,
+        1,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        0
+      ],
+      [
+        "remote",
+        0,
+        2,
+        0,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        0
+      ],
+      [
+        "remote",
+        0,
+        2,
+        0,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        1
+      ],
+      [
+        "remote",
+        0,
+        2,
+        1,
+        0,
+        "tar_gzip_verified_file_tree_v1",
+        2
+      ]
+    ],
+    "missing_classes_before_d700": 30,
+    "output_edges": [
+      89,
+      152,
+      179,
+      256
+    ],
+    "required_classes": 160,
+    "retained_observed_classes": 130,
+    "rule": "D698_candidate_output_edges_v1",
+    "union_observed_classes": 160
+  },
+  "d700_validation": {
+    "all_requests_pass": true,
+    "all_transfers_published_without_request_pack": true,
+    "requests": 61,
+    "transfers": 61,
+    "waves": 31
+  },
+  "kind": "d700_3b_output_profile_gap_closure_audit_v1",
+  "launchable": false,
+  "numerical_adapter_correctness_qualified": false,
+  "performance_accepted": false,
+  "production_profile_written": false,
+  "source_execution_sha256": "cff620fe172f3f19ea0a215c76ec5ee3ba818b61441e20f686e21f2c6dc355c5",
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d700_20261019/source1.json",
+      "sha256": "cff620fe172f3f19ea0a215c76ec5ee3ba818b61441e20f686e21f2c6dc355c5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d644_20261017/completed_service_samples.json",
+      "sha256": "d33608e73f7c5795d007e396634f9886d45f54ed0ce31d1cf648a6b9d4cd6aa8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d645_3b_profiles/initialization/service.json",
+      "sha256": "87371bee3f7c6af4fea25c9691ba0838938c41a694317e19d0089020cead8a42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d645_3b_profiles/source_spec.json",
+      "sha256": "0765a54ceca48db3092993912e6f00369068caa93c48b7a63d936881900a34e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d699_3b_output_profile_gaps/source_spec.json",
+      "sha256": "3bb1e4130f3cde14ace16aa5d8878f7be62e1e8e314c3bd231a812970b1522dd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d698_3b_output_profile.py",
+      "sha256": "0bf716e1d1dc2b8a971bed76042d3ead9f5525b0903f2ce643f79c1c2c14f343"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    }
+  ],
+  "status": "class_domain_closed_but_profile_export_pending_same_spec_run",
+  "strict_profile_boundary": {
+    "d645_representatives": 24,
+    "d645_source_spec_sha256": "0765a54ceca48db3092993912e6f00369068caa93c48b7a63d936881900a34e9",
+    "d700_representatives": 6,
+    "d700_source_spec_sha256": "3bb1e4130f3cde14ace16aa5d8878f7be62e1e8e314c3bd231a812970b1522dd",
+    "next_required_evidence": "one same-spec native collection whose service classes and exact-content source coverage both pass",
+    "profile_export_authorized": false,
+    "reason": "D700 and D645 have different source specifications and representative domains; the frozen collector rejects a cross-spec join."
+  }
+}
