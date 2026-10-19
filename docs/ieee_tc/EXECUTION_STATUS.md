@@ -1,5 +1,33 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D700 3B 类别域已闭合，但同规格 profile 资格仍未闭合
+
+PROGRESS。D700 在新的 execution key 下已安全完成：31 个 native profile
+波次、61/61 请求终态，实际 token 与目标完全一致，所有 reservation 已释放，
+GPU/worker/远端 3B 服务均已关闭。61 条交付记录均绑定既有 prepublished gzip
+对象，`remote_pack_performed=false`；因此本轮没有请求期远端打包或需要从
+TTFT/E2E 中扣除的外部运维时间。原始结果保留在
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/
+d700_20261019`。
+
+D700 的严格离线审计将 D644/D645 的既有 130 个类别与 D700 的 49 个新类别按
+D698 预登记的输出边界 `[89,152,179,256]` 合并，得到 160/160 类别覆盖；
+此前 30 个缺口全部闭合。这是“类别域闭合”证据，不是 3B 运行画像或性能结果。
+
+审计同时发现 D700 仅使用 6 个代表 adapter，而 D645 的冻结 source-spec
+使用 24 个代表 adapter，二者 SHA 不同。当前 profile collector 明确要求同一
+source-spec 才能合并，因此没有把两次结果拼接、没有更新 D645 profile，也没有
+授权 production/profile export：`profile_export_authorized=false`、
+`production_profile_written=false`。下一步需在同一 source-spec/runtime/input
+合同下完成 exact-content source coverage 与 service-class coverage，之后才可
+进入 3B PrimeLoRA 新候选的资格或性能回放；不因类别闭合提前宣告 3B 达标。
+
+机器可读审计为
+`paper_results/ieee_tc/p2_backend/d700_3b_output_profile_gap_closure/closure.json`，
+论文语义与边界说明见 `docs/ieee_tc/D700_3B_OUTPUT_PROFILE_GAP_CLOSURE.md`。
+该脚本、审计 receipt 和文档已提交并推送，commit `bb00211`；用户 dirty
+`configs/generated/lora_manifest_1000.json` 未 stage。
+
 ## 2026-10-19 D699 3B 输出画像缺类已完成 CPU-only 准备，尚未启动动态测量
 
 PROGRESS。D698 明确的 30 个缺失 native service classes 已转换为新的、追加写入
