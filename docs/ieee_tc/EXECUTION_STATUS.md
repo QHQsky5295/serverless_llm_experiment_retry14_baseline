@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 远端交付最终计量口径 v4 已冻结
+
+本轮按用户最新澄清，将远端交付边界写入
+`docs/ieee_tc/REMOTE_DELIVERY_METRIC_FREEZE_20261019.md`，协议 ID 为
+`primelora_tc_remote_delivery_metric_freeze_v4_20261019`。后续 PrimeLoRA 与
+全部 baseline 对照必须先核对该文档：请求触发的远端读取、真实网络传输、共享
+带宽竞争、本地 materialize/必要解包和由此产生的请求等待属于在线服务路径，
+保留在冻结的 TTFT/E2E；PrimeLoRA 通过减少 miss/fetch 而降低这些成本是合法的
+系统优势。不同系统的 fetch 次数、并发、字节数和缓存命中不强行相同。
+
+部署前一次性归档、远端管理员打包、整池扫描、日志/备份/清理和其他维护不属于
+研究对象，必须在独立运维日志中记录且不进入请求 E2E、GPU-s 或 cost。若正式
+请求期间发生 `remote_pack_performed=true`，不从 E2E 事后扣除打包时间；运行标记
+为交付合同违规/外部干扰，不进入主排名，修复预发布对象后用新 execution key
+重跑。这样既不把外力错误归因给 PrimeLoRA，也不通过扣时制造有利结果。
+
+当前链路已重新只读核验为本机 `eno1np0` 与远端 `eno1` 均 1000 Mb/s、Full、up，
+远端自动协商开启且 Link detected；历史 100 Mb/s 仍是独立旧协商状态，不与当前
+工作点池化，论文不声称测过更高速网络。制品节点的固定 150 GiB 门槛仅改为
+并发临时打包峰值、日志和安全余量公式；推理机 150/100 GiB、内存、swap、GPU
+和 OOM 门槛不变。当前本机仍约 149.1 GiB，未启动新的重型 GPU 回放。
+
 ## 2026-10-19 D698 3B 输出长度画像覆盖审计：候选不可运行，拒绝伪造缺类
 
 PROGRESS。D697 单飞扩容候选已拒绝后，本轮只做受限 CPU 离线审计，没有启动
