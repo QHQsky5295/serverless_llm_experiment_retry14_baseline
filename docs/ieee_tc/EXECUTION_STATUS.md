@@ -1,5 +1,37 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D697 3B 完整 W0 单飞候选登记与启动前门禁
+
+本节登记一个且仅一个新的完整 3B W0 运行，用于检验 D695 离线归因提出的
+“同一控制评估同时提交多个 activation 造成确认就绪顺序不稳定”假设。D696
+只有 100 条请求且未触发 natural/controlled scale-out，不能替代本次证据。
+
+D697 只复用 D695 的完整配置、W0 trace、500-adapter 子集、固定生成合同、
+资源包络、远端只读 gzip 交付和分析路径；唯一运行差异是已在
+`325fe9822c694eee277f6c2d0fac9101e93cd9a4` 提交的 `ieee_confirmed` 单飞
+扩容提交限制，以及新的独占输出目录。配置为
+`configs/ieee_tc/20261019_d697_3b_full_w0.yaml`，入口为既有
+`scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh d697`，原始结果目录为
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d697_20261019/3b_full_w0`。
+本运行不改变九个论文公式、共同 SLO、95%/75% 判据、输入或阈值，不重复 D695
+执行键，也不与其他 GPU 任务并发。
+
+启动前事实：D697 身份、配置、原始结果目录和 curated 目标均不存在；GPU
+计算进程为空；实际活跃的历史 scope 均无主进程，历史 tmux pane 均已死亡，
+不触碰它们。当前 `/home` 可用空间约 150.35 GiB，刚高于 150 GiB 启动线；
+预估增长仍按 32 GiB 进入既有门禁，若实时检查低于启动线则不启动。本轮只在
+真实远端 3B 服务健康、链路与交付协议核验通过后启动；运行期间不扫描、压缩、
+清理、构建或修改远端服务。
+
+验收仍为 4,000/4,000 原生终态、正确性/adapter 绑定证据、完整 dispatch 与
+GPU allocation/release 账目、无 fallback，以及至少实际触发的扩容提交/ready
+序列证据。若单飞候选不改善联合 SLO、尾延迟或 GPU-s，保留 D697 失败证据并
+回退候选；不叠加第二个补丁、不按胜负重复同键、不生成论文图。若完整运行未
+触发单飞机制，结果仅作资格/机制未触发观察，不能作为性能排名。
+
+本节只登记 D697；启动、收尾、分析和最终裁决将在同一执行身份下追加，其他
+3B/7B 场景、baseline、消融、敏感性和论文交付继续 ACTIVE。
+
 ## 2026-10-19 D695 历史空收尾 scope 清理
 
 复核发现 D695 的三个历史收尾 scope（`a695...0005`、`a695...0007`、
