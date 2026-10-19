@@ -1,0 +1,29 @@
+{
+  "campaign": "D701",
+  "content_index": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "dynamic_measurement_required": true,
+  "gpu_runs": 0,
+  "identity_only_resolver_passed": true,
+  "kind": "d701_3b_same_spec_profile_preparation_v1",
+  "launchable": false,
+  "no_new_trace_or_adapter": true,
+  "planned_requests": 423,
+  "profile_export_authorized": false,
+  "representative_measurement_waves": 75,
+  "representatives": 24,
+  "source_plan": {
+    "count": 1000,
+    "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "profile": "W0",
+    "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_spec": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/source_spec.json",
+    "sha256": "9472c1fd53f3edb99a258cda2454d98e8bcf84957c02b51c0b0b69cd46b268ab"
+  },
+  "waves": 76
+}
