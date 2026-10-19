@@ -1,0 +1,1894 @@
+{
+  "bin_sample_counts": {
+    "0": 180,
+    "1": 240,
+    "2": 120,
+    "3": 180
+  },
+  "campaign": "D698",
+  "coverage_interpretation": "Existing 3B native intervals show output-length heterogeneity, but 30 of 160 required output/non-output classes have no measured interval. Only those classes may be collected; until then no runtime profile or performance claim is authorized.",
+  "kind": "d698_3b_declared_output_profile_coverage_v1",
+  "launchable": false,
+  "missing_classes": [
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "tier": "gpu"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "host"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "verified_regular_file_tree_v1",
+      "tier": "nvme"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 0,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 1,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    {
+      "admitted_bin": 0,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    {
+      "admitted_bin": 1,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 0,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    },
+    {
+      "admitted_bin": 2,
+      "footprint_bin": 0,
+      "output_limit_bin": 2,
+      "prompt_bin": 0,
+      "rank_bin": 1,
+      "representation": "tar_gzip_verified_file_tree_v1",
+      "tier": "remote"
+    }
+  ],
+  "n_correct": null,
+  "new_gpu_runs": 0,
+  "no_default_fills": true,
+  "no_interpolation_or_pooling": true,
+  "numerical_adapter_correctness_qualified": false,
+  "observed_class_counts": [
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 10,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 16,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "tier": "gpu"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 10,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 10,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 14,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 16,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 16,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "host"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 10,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 14,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 16,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "verified_regular_file_tree_v1",
+        "tier": "nvme"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 12,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 10,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 0,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 14,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 16,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 1,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 2,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 6,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 2,
+      "service_class": {
+        "admitted_bin": 0,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 1,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 8,
+      "service_class": {
+        "admitted_bin": 2,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    },
+    {
+      "n": 4,
+      "service_class": {
+        "admitted_bin": 3,
+        "footprint_bin": 0,
+        "output_limit_bin": 3,
+        "prompt_bin": 0,
+        "rank_bin": 1,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "tier": "remote"
+      }
+    }
+  ],
+  "observed_classes": 130,
+  "observed_samples": 720,
+  "output_cap": 256,
+  "output_edges": [
+    89,
+    152,
+    179,
+    256
+  ],
+  "performance_accepted": false,
+  "production_profile_frozen": false,
+  "required_classes": 160,
+  "retained_profile_classes": 40,
+  "rule": "historical_declared_output_type1_quartiles_cap_v1",
+  "source_execution_sha256": "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65",
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d644_20261017/completed_service_samples.json",
+      "sha256": "d33608e73f7c5795d007e396634f9886d45f54ed0ce31d1cf648a6b9d4cd6aa8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d644_20261017/source1.json",
+      "sha256": "d0c6d29b839196c7f96936d5943554e72daf30bd52fb6362fb255304bc995b65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d645_3b_profiles/initialization/service.json",
+      "sha256": "87371bee3f7c6af4fea25c9691ba0838938c41a694317e19d0089020cead8a42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d698_3b_output_profile.py",
+      "sha256": "1178cf1bb5332b8f7cdb74d21acd879461f494a47725d25d3b6e0570be74b16a"
+    }
+  ],
+  "status": "coverage_only_missing_native_measurements"
+}

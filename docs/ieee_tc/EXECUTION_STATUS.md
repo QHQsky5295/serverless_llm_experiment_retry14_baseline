@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D698 3B 输出长度画像覆盖审计：候选不可运行，拒绝伪造缺类
+
+PROGRESS。D697 单飞扩容候选已拒绝后，本轮只做受限 CPU 离线审计，没有启动
+GPU、远端服务或新的 Full 回放。D644 的 360 条已完成原生服务区间和 D645 的
+开发画像均保持原 SHA；依据预登记的声明输出长度 Type-1 四分位规则，得到
+`[89,152,179,256]` 四个输出边界。它把已有 40 个非输出服务类别展开为
+160 个交叉类别；现有样本覆盖 130 个，明确缺少 30 个。
+
+这 30 个缺口不是 D644 的 8 条 warm-up 可以覆盖的组合，且没有使用邻近类别、
+零值、均值或插值。因而 D698 只封存为 `coverage_only`，`launchable=false`、
+`new_gpu_runs=0`、`n_correct=null`，不生成运行画像、性能数字或论文图。后续
+若磁盘门禁和缺类波次静态检查均通过，只能用同一 native collector 测这 30 类；
+完整 coverage 和 loader 验证通过后才允许 100 请求资格 smoke，再决定是否进入
+一次 4000 请求 W0。机器可读回执为
+`paper_results/ieee_tc/p2_backend/d698_3b_output_profile_coverage/coverage.json`，
+设计与当前证据见 `docs/ieee_tc/D698_3B_DECLARED_OUTPUT_COVERAGE.md`。
+
+本轮 CPU 审计在独立 4 GiB、无 swap、2 CPU 的 scope 中完成，退出码为 0；
+scope 已关闭，GPU 与远端服务均未启动。D644/D645、D682、D697 历史结果和
+用户 dirty manifest 均未覆盖或 stage。该候选是否能改善联合 SLO 或生命周期
+GPU-s 尚无证据，不能提前写成优化结果。
+
 ## 2026-10-19 D697 3B 完整 W0 单飞候选已收尾：拒绝并回退
 
 PROGRESS。D697 已完成 4,000/4,000 请求终态，4,000 条原生生成合同完整；
