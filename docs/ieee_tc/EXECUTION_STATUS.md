@@ -1,5 +1,14 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D695 历史空收尾 scope 清理
+
+复核发现 D695 的三个历史收尾 scope（`a695...0005`、`a695...0007`、
+`a695...0009`）虽无主进程、仅残留空 cgroup，却仍显示 active。它们的命令和
+路径均明确属于 D695，本轮只停止这三个空 scope；停止后均为 `inactive/dead`、
+`MainPID=0`、`Result=success`。未停止其他历史 scope、未触碰共享 k3s、GPU 或
+远端服务，也未启动实验。后续以实际资源状态为准，不把历史空 scope 误报为
+正在进行的性能运行。
+
 ## 2026-10-19 远端交付与网络口径冻结补充
 
 本轮完成只读证据核查并新增
