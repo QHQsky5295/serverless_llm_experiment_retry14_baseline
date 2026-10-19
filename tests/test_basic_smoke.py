@@ -7881,6 +7881,39 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         asyncio.run(run_case())
 
+    def test_ieee_confirmed_scale_up_registration_preserves_submission_audit_fields(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._routing_policy = "ieee_confirmed"
+        runner.instance_pool = SimpleNamespace(count=lambda: 2)
+        runner._scaleup_runtime_instance_ids = set()
+        result = ScenarioResult("demo", "faaslora_full", total=0)
+        decision = SimpleNamespace(reason="scale", target_instances=3)
+        runner._register_scale_up_event(
+            result,
+            decision=decision,
+            current_instances=2,
+            request_index=37,
+            completed_request_count=12,
+            queue_visible_request_count=37,
+            submitted_request_count=37,
+            arrived_request_count=37,
+            scale_event={
+                "event_type": "physical_scale_up",
+                "instance_id": "replica-2",
+                "device_id": 2,
+                "runtime_kind": "dedicated",
+                "activation_submission_sequence": 4,
+                "pending_scale_up_instances_at_submit": 0,
+                "submission_request_index": 37,
+                "submission_timestamp": 123.5,
+            },
+        )
+        event = result.scale_up_events[-1]
+        self.assertEqual(event["activation_submission_sequence"], 4)
+        self.assertEqual(event["pending_scale_up_instances_at_submit"], 0)
+        self.assertEqual(event["submission_request_index"], 37)
+        self.assertEqual(event["submission_timestamp"], 123.5)
+
     def test_live_scale_control_eval_counts_pending_scaleups_against_max_instances(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.baseline_type = "faaslora_full"

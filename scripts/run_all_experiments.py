@@ -15602,6 +15602,14 @@ class ScenarioRunner:
             "warmed_adapters",
             "activation_id", "activation_kind", "handoff_plan_sha256",
             "engine_activation_ms", "preparation_state",
+            # Submission-side fields are part of the confirmed-tier audit
+            # contract.  Preserve them when the ready event is registered;
+            # otherwise a single-flight decision cannot be reconstructed from
+            # the sealed outcome.
+            "activation_submission_sequence",
+            "pending_scale_up_instances_at_submit",
+            "submission_request_index",
+            "submission_timestamp",
         ):
             if key in scale_event:
                 event[key] = scale_event.get(key)

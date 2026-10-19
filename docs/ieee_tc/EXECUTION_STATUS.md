@@ -1,5 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D697 3B 完整 W0 单飞候选已收尾：拒绝并回退
+
+PROGRESS。D697 已完成 4,000/4,000 请求终态，4,000 条原生生成合同完整；
+单轮观测包含 458,224 个原生输出 token、132 次远端传输和 306,360,162 bytes，
+请求期远端打包为 0。1 个 initial 与 3 个 natural-scaleout activation 均到达
+`runtime_ready`，所以该候选实际触发了扩容机制。远端 3B/7B/monitor 单元均
+已停止且 `MainPID=0`，本机 GPU 进程为空；watchdog 的 high/max/OOM/
+oom_kill/swap 均为 0。原始结果、远端 journal/monitor 和 SHA 回执保留在
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/
+d697_20261019`，curated 摘要为
+`paper_results/ieee_tc/p2_backend/d697_3b_full_w0/qualification.json`。
+
+严格 native 分析在同一 GPU owner 的最终动作间隔检查处失败：5,005 次动作中
+有 955 个 owner-interval overlap（示例最大重叠 473.019 ms）。随后只放宽这
+一条断言完成数据诊断；阶段恒等式、adapter 绑定、HOST→GPU lease、远端交付、
+物理 GPU 积分和共同 SLO 字段均通过，但 `n_correct` 仍未知，故不具备排名资格。
+诊断得到 D697 联合达标 3683/4000=92.075%、平均 TTFT 791.383 ms、P95
+TTFT 1999.252 ms、平均 TPOT 16.711 ms、平均 E2E 2698.748 ms、生命周期
+GPU 15897.828 GPU-s。相对 D682 父候选（3694/4000、1992.432 ms、
+15896.254 GPU-s），D697 少 11 条联合达标、P95 高 6.820 ms、GPU-s 高
+1.574；虽比 D695 改善均值，但未改善预登记的联合 SLO、尾延迟或资源目标，
+因此按停止规则拒绝，生产候选回退 D693 父版本，不重跑同一执行键，不生成图。
+
+本轮还确认 submission-side 字段未被最终事件注册函数保留；最终结果不能证明
+每个控制评估的 submission/ready 顺序。该缺口与 955 个动作重叠一并作为失败
+证据记录，不能用后处理推断。详细裁决见
+`docs/ieee_tc/D697_3B_FULL_W0_SINGLEFLIGHT.md`。下一步只有在提出新的可
+证伪瓶颈假设并先修复事件可观测性后，才考虑新的候选；D697 不进入正式性能排名。
+
 ## 2026-10-19 D697 3B 完整 W0 单飞候选登记与启动前门禁
 
 本节登记一个且仅一个新的完整 3B W0 运行，用于检验 D695 离线归因提出的
