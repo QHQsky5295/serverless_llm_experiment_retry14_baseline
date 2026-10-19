@@ -1,26 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## 2026-10-19 D701 3B 同规格 profile collection 已完成静态准备，动态运行未开始
+## 2026-10-19 D701 3B 同规格 native profile collection 与严格导出已完成
 
-为避免把 D700 的 six-identity gap run 与 D645 的 24-identity profile 混合，已
-建立新的 append-only D701 source specification。它保留 D645 的 24 个 exact
-content representatives、原有 46 个 waves 和共同 runtime/input contract，只
-将 output-bin edges 冻结为 `[89,152,179,256]`，并追加 D700 已登记的 30 个
-gap waves。静态 resolver 通过：76 waves、75 个 representative measurement
-waves、423 个已有 request references、24 个 representative identities；没有
-生成新的 trace、LoRA、权重或请求负载，也没有启动 GPU 或访问远端。
+PROGRESS。D701 在独立资源、内存、GPU、远端健康和预发布交付门禁后完成了
+423/423 个 native 请求。每个请求均满足固定生成合同、adapter 绑定、lease
+释放和原生 token 终态；GPU allocation 已释放，profile workspace 已删除，
+本地 worker、远端 3B 制品服务和监控均已关闭。423 条远端交付记录全部是
+`prepublished_gzip_v1`，请求期间 `remote_pack_performed=false`，因此没有把
+远端运维打包时间混入请求性能，也没有事后从性能中扣除任何时间。
 
-D701 目前仍是 `launchable=false`、`gpu_runs=0`、`profile_export_authorized=false`。
-下一步必须经过独立资源/内存/GPU/远端门禁后才可启动唯一的同规格 native
-collection；运行后要由严格 exporter 同时验证类别域、exact-content source
-coverage、同规格 SHA、token/adapter/释放和 loader 证据。任何一项失败都保留
-失败身份，不导出 profile，不推进 3B PrimeLoRA 性能资格。
+严格 exporter 重新解析了 D701 的 24 个 exact-content representatives、76
+个 waves 和同一 trace/config/runtime SHA 链，拒绝了插值、邻近类别、池化类别
+和零成本默认值。结果为 160/160 个 reachable service classes、96 个 measured
+preparation classes、415 个 representative service samples 和 332 个
+preparation samples；两个 frozen profile loader 均再次通过。机器可读产物为
+`paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/`，导出脚本为
+`scripts/ieee_tc/export_d701_3b_profile.py`，说明见
+`docs/ieee_tc/D701_3B_PROFILE_COVERAGE_EXPORT.md`。
 
-准备产物位于
-`paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/`，说明见
-`docs/ieee_tc/D701_3B_SAME_SPEC_PROFILE_PREPARATION.md`，已提交并推送
-commit `c0ded03`。该静态准备不是 PrimeLoRA 性能结果，也不改变 D700/D645
-历史结果或用户 dirty manifest。
+该导出仍明确是 `development_only=true`、`full_qualified=false`、
+`numerical_adapter_correctness_qualified=false`，不产生图表、不构成 SLO/GPU-s
+性能排名，也不宣称 3B PrimeLoRA 已达标。它只解决此前 D698/D700 的画像缺类
+和 source-spec provenance 缺口；下一步仍须先完成 3B PrimeLoRA 的数值正确性与
+完整工作负载资格，再依据 G1/G2 评价和优化。D645、D700、旧 profile、旧图表及
+用户 dirty manifest 均未覆盖。
 
 ## 2026-10-19 D700 3B 类别域已闭合，但同规格 profile 资格仍未闭合
 
