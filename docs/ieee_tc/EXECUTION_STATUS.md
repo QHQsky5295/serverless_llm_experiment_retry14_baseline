@@ -1,18 +1,28 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## 2026-10-19 D702 3B D701-profile 短资格已登记，尚未启动
+## 2026-10-19 D702 3B D701-profile 短资格已通过，未获得性能排名资格
 
-在 D701 profile loader 和类别覆盖审计通过后，登记唯一的新执行键 D702，用于
-验证完整 PrimeLoRA runtime 能否在 100-request 前缀中无 fallback 地读取这份
-同规格 profile。D702 只复用既有 W0 trace 前缀、500-adapter 子集、固定生成
-合同、资源包络和 `ieee_confirmed` 控制策略；唯一输入变化是 service/preparation
-profile provenance 指向 D701 的严格导出，输出与缓存路径全新且独占。
+在 D701 profile loader 和类别覆盖审计通过后，D702 使用新的独占执行键完成了
+100-request W0 前缀。它复用既有 trace 前缀、500-adapter 子集、固定生成合同、
+资源包络和 `ieee_confirmed` 控制策略，只把 service/preparation profile provenance
+绑定到 D701 的严格导出；没有生成新的权重、LoRA 或负载。
 
-D702 尚未启动。启动前仍必须重新检查推理机磁盘/内存/swap/GPU、远端 3B
-prepublished service 健康和 1-Gbps/full 链路。短资格通过也只能授权完整 3B
-PrimeLoRA 资格回放，不能作为 G1/G2、SLO 或性能排名证据；失败则保留 raw
-身份并先定位 profile/runtime 合同问题。配置、入口和预先判定见
-`docs/ieee_tc/D702_3B_PROFILE_SMOKE100.md`。
+严格审计确认 100/100 请求终态、`completion_tokens=min(source_expected,256)`、
+vLLM 原生 token-id 计数、adapter/content/lease 绑定和全部释放均通过。D701 的
+160/160 service class 与 96 preparation class 由 frozen loader 精确加载，
+100/100 请求 service class、55 个非 GPU preparation class 全部命中；没有
+nearest-class、插值、零值或默认 profile。29 次远端交付均为
+`prepublished_gzip_v1`，请求期打包为 0。watchdog 的 memory high/max/OOM/
+oom_kill/swap 均为 0，本机 physical allocation journal 已关闭，远端 3B
+制品服务已停止。
+
+机器可读回执为
+`paper_results/ieee_tc/p2_backend/d702_3b_profile_smoke100/qualification.json`，
+详细边界见 `docs/ieee_tc/D702_3B_PROFILE_SMOKE100.md`。D702 的
+平均 TTFT 529.451 ms、P95 TTFT 1191.936 ms 和 232.160 physical GPU-s 只作
+资格诊断，不生成图、不并入 Full 结果，也不支持数值 correctness、4,000-request
+资格、G1/G2、共同 SLO 或排名。下一步为使用同一 D701 profile 的完整 3B
+PrimeLoRA W0；在完整回放通过前，不进入 3B baseline 对比。
 
 ## 2026-10-19 D701 3B 同规格 native profile collection 与严格导出已完成
 

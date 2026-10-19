@@ -1,7 +1,7 @@
 # D702：3B D701-profile 短资格回放
 
 执行键：`D702_20261019`
-状态：已登记，待启动前门禁；不是性能排名运行。
+状态：资格通过，性能与排名不合格（不是性能排名运行）。
 
 ## 科学目的
 
@@ -40,3 +40,30 @@ service classes 上完整且可由 frozen loaders 读取。D702 只检验这份 
 
 若未达到上述合同，保留失败证据并停止在原因定位；若通过，也只授权进入下一
 个完整 3B PrimeLoRA 资格回放，不产生性能图或 baseline 比较结论。
+
+## 实际结果与严格裁决
+
+D702 已在独立的 100-request W0 前缀上完成。严格回执为
+`paper_results/ieee_tc/p2_backend/d702_3b_profile_smoke100/qualification.json`，
+机器可读 manifest 同目录保存；原始结果仍保留在配置指定的 raw 目录，未覆盖
+D645、D697 或历史图表。
+
+| 检查项 | 观测 | 裁决 |
+|---|---:|---|
+| 终态请求 | 100/100 | 通过 |
+| 固定生成契约 | 100/100，`completion_tokens=min(source_expected,256)` | 通过 |
+| 原生 token 来源 | 100/100，vLLM `token_ids`，native terminal | 通过 |
+| adapter/content/lease 绑定 | 100/100，29 个实际 adapter identity，全部 request release 完成 | 通过 |
+| service profile | D701 SHA，160/160 类别，100/100 请求命中 | 通过 |
+| preparation profile | D701 SHA，96 类别，55 个非 GPU 请求命中 | 通过 |
+| profile fallback | 0；无 nearest/interpolation/default | 通过 |
+| 远端交付 | 29 次，全部 `prepublished_gzip_v1`，请求期打包 0 | 通过 |
+| 资源安全 | memory high/max/OOM/oom_kill/swap 全为 0 | 通过 |
+| 生命周期释放 | native contract 100/100，allocation journal closed，远端服务已停止 | 通过 |
+
+该结果只证明 D701 的精确测量 profile 能被完整运行时加载并用于一个短前缀，
+不证明数值 adapter correctness、4,000-request Full W0、G1/G2、共同 SLO 或
+任何系统排名。短前缀的观测值（平均 TTFT 529.451 ms、P95 TTFT
+1191.936 ms、232.160 physical GPU-s）只作为资格诊断，不生成图，不与旧的
+3B Full 结果拼接，也不外推到完整工作负载。下一步仍需使用同一 D701 profile
+执行一次新的完整 3B PrimeLoRA W0；完整运行未通过前不能进入 3B baseline 对比。
