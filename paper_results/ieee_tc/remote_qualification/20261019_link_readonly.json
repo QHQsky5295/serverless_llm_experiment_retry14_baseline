@@ -1,0 +1,33 @@
+{
+  "format": "remote_link_readonly_v2",
+  "observed_at": "2026-10-19T10:00:36+08:00",
+  "local": {
+    "interface": "eno1np0",
+    "address": "192.168.4.178",
+    "speed_mbps": 1000,
+    "duplex": "full",
+    "carrier": 1,
+    "operstate": "up",
+    "source": "/sys/class/net/eno1np0/{speed,duplex,carrier,operstate}"
+  },
+  "remote": {
+    "ssh_alias": "primelora-artifact-174",
+    "address": "192.168.4.174",
+    "interface": "eno1",
+    "speed_mbps": 1000,
+    "duplex": "full",
+    "carrier": 1,
+    "operstate": "up",
+    "autonegotiation": "on",
+    "link_partner_advertised": ["10baseT/Half", "10baseT/Full", "100baseT/Half", "100baseT/Full", "1000baseT/Full"],
+    "link_detected": true,
+    "source": "read-only SSH query; no NIC, switch, qdisc, or service modification"
+  },
+  "historical_100mbps": {
+    "status": "separate historical negotiation state",
+    "evidence": "results/ieee_tc/remote_qualification/d78_20260927/post_reboot_link.json",
+    "cause": "unconfirmed",
+    "pool_with_current_1000_full": false
+  },
+  "formal_use": "Current 1000_full is the verified main link state; 100_full is a separate sensitivity stratum and is never pooled with it."
+}
