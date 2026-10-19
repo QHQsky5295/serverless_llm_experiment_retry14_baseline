@@ -1,5 +1,22 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 存储维护完成：只压缩两份已关闭 outcome，恢复推理机启动余量
+
+为满足推理机既定 `disk_start_floor=150 GiB`，本轮只处理两个已经完成释放、
+有完整分析和独立启动回执的历史 `main_outcome.json`。D697 回收
+994,238,464 bytes，D672 回收 864,284,672 bytes；两份文件均保留为 gzip，
+每份都通过 gzip 完整性检查和两次独立解压 SHA-256 校验，原始 source SHA、
+launch SHA、压缩 SHA 和恢复路径写入：
+
+- `paper_results/ieee_tc/storage/20261019_d697_closed_main_outcome_lossless.json`
+- `paper_results/ieee_tc/storage/20261019_d672_closed_main_outcome_lossless.json`
+
+未删除模型、LoRA、trace、请求日志、失败证据、配置或用户 dirty manifest；未
+触碰远端节点或共享 k3s。维护 scope 已实际关闭，GPU 为空。当前可用空间约
+161.9 GB（约 150.7 GiB），高于推理机正式启动线；下一次重型回放仍需重新做
+启动前资源、内存、swap、GPU idle 和增长量检查，不能把本次维护后的余量当作
+永久保证。
+
 ## 2026-10-19 远端交付最终计量口径 v4 已冻结
 
 本轮按用户最新澄清，将远端交付边界写入
