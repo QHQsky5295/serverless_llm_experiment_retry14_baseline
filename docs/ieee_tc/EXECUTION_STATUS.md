@@ -1,5 +1,19 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-19 D702 3B D701-profile 短资格已登记，尚未启动
+
+在 D701 profile loader 和类别覆盖审计通过后，登记唯一的新执行键 D702，用于
+验证完整 PrimeLoRA runtime 能否在 100-request 前缀中无 fallback 地读取这份
+同规格 profile。D702 只复用既有 W0 trace 前缀、500-adapter 子集、固定生成
+合同、资源包络和 `ieee_confirmed` 控制策略；唯一输入变化是 service/preparation
+profile provenance 指向 D701 的严格导出，输出与缓存路径全新且独占。
+
+D702 尚未启动。启动前仍必须重新检查推理机磁盘/内存/swap/GPU、远端 3B
+prepublished service 健康和 1-Gbps/full 链路。短资格通过也只能授权完整 3B
+PrimeLoRA 资格回放，不能作为 G1/G2、SLO 或性能排名证据；失败则保留 raw
+身份并先定位 profile/runtime 合同问题。配置、入口和预先判定见
+`docs/ieee_tc/D702_3B_PROFILE_SMOKE100.md`。
+
 ## 2026-10-19 D701 3B 同规格 native profile collection 与严格导出已完成
 
 PROGRESS。D701 在独立资源、内存、GPU、远端健康和预发布交付门禁后完成了
