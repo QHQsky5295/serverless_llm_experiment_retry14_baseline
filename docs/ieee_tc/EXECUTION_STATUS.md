@@ -9308,3 +9308,25 @@ Do not rerunrestore or executeD414oldpaths/receipts.
 hierarchy/admission/firstservice;S1–S13tier/mismatch/contention/load/GPU/network/
 workload/KV/control/backend/EOS/design;offlinecost/CE/Pareto;B1/B2/C1/C2/C3/
 formula/novelty/reviewdocs;lateracademicfigures/V2delivery. No goalcompletion.
+## 2026-10-19 D703 3B full W0 with D701 profile registered
+
+REGISTERED. D703 is the next single full 3B W0 execution key after D702's
+qualification-only smoke. It uses the restored D693 production parent
+(`preloading_manager.py` SHA
+`825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f`), the
+same frozen 4,000-request W0 trace, 500-adapter subset, fixed-length greedy
+generation contract, vLLM 0.30.0 toolchain, and scaling/admission settings.
+The only measurement-facing profile change is the strictly exported D701
+same-source-spec service/preparation pair (service SHA
+`c2586bc32df1d9346d7439c2b70f3dac5a8de4e32ed0c7f27ccaaaf8481fb2b2`,
+preparation SHA
+`e56fec47f21d030dcd20a647f604ee1193ae27cb454f5387c767f0cd6f3a6dff`).
+
+The new raw path is
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0`,
+with a unique memory-backed host-cache path. D703 does not repeat D682 or
+D697, does not add a mechanism patch, and does not alter the frozen evaluation
+contract. Its purpose is to determine whether complete native profile coverage
+removes the earlier qualification boundary. No figure or baseline ranking is
+authorized before the strict full-run audit; a W0 result cannot by itself close
+G1/G2 or W1/W2.
