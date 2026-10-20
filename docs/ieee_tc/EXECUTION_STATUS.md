@@ -25,6 +25,11 @@ GPU 时间 14,864.808 GPU-s（3.7162 GPU-s/offered request）。132 次远端交
 key 下完成独立同后端数值参考核对；若无可信参考，继续保持未知，不能以 SLO
 比例替代正确性。
 
+本轮的冻结解释、85%门槛裁决、远端在线/外部运维边界、1000-full 链路事实、
+profile coverage/export 的必要性及当前未完成项，集中记录于
+`docs/ieee_tc/PRIMELORA_PROGRESS_AND_ACCEPTANCE_ANALYSIS_20261020.md`；该文档
+不新增排名，也不改变 V1/V2 指标协议。
+
 ## 2026-10-19 D702 3B D701-profile 短资格已通过，未获得性能排名资格
 
 在 D701 profile loader 和类别覆盖审计通过后，D702 使用新的独占执行键完成了
