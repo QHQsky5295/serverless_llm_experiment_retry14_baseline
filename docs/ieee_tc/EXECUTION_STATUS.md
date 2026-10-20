@@ -1,5 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-20 D703 3B full W0 完成：服务资格通过，数值正确性与正式排名仍未闭合
+
+PROGRESS。D703 在 D701 同规格 native profile 和 D693 生产父版本上完成了完整
+4,000-request W0 回放：4,000/4,000 终态、0 失败、4,000/4,000 固定生成合同
+匹配，联合 SLO 为 3,995/4,000（99.875%），平均 TTFT 734.351 ms，P95 TTFT
+1,784.727 ms，平均 TPOT 16.278 ms，平均 E2E 2,608.428 ms，物理生命周期
+GPU 时间 14,864.808 GPU-s（3.7162 GPU-s/offered request）。132 次远端交付
+全部为 `prepublished_gzip_v1`，请求期打包 0；watchdog、allocation release、
+本地 worker 和远端 3B 服务均正常关闭。
+
+与 D682 的同一 3B W0 观测相比，联合 SLO 提高 7.525 个百分点，P95 TTFT 降低
+10.425%，物理 GPU 时间降低 6.489%。由于 D703 没有叠加新的生产机制补丁，
+这支持“D645 profile 不完整是此前运行资格/性能差距的一部分”这一解释；它不
+证明 profile 本身是全部因果来源，也不把改善写成算法全局最优。
+
+严格审计脚本为 `scripts/ieee_tc/audit_d703_3b_full.py`，机器可读回执为
+`paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile/audit.json`，结果
+语义见 `docs/ieee_tc/D703_3B_FULL_W0_RESULT.md`。审计保持
+`n_correct=null`：固定长度 token 终态和 adapter/content/lease 绑定不是独立的
+数值 LoRA 正确性证明。因此 D703 是完整 native service/SLO qualification，
+但 `numerical_adapter_correctness_qualified=false`、`ranking_eligible=false`，
+不生成图表、不关闭 G1/G2，也不开始 3B baseline 矩阵。下一步应在新 execution
+key 下完成独立同后端数值参考核对；若无可信参考，继续保持未知，不能以 SLO
+比例替代正确性。
+
 ## 2026-10-19 D702 3B D701-profile 短资格已通过，未获得性能排名资格
 
 在 D701 profile loader 和类别覆盖审计通过后，D702 使用新的独占执行键完成了
