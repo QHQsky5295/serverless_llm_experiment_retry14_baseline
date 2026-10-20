@@ -1,5 +1,24 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-20 D704 3B 冻结制品池非零权重审计：数值正确性证据仍未闭合
+
+PROGRESS。D704 对 D703 使用的
+`/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope`
+进行只读 CPU 审计，逐一读取 500 个 `adapter_model.safetensors` 文件，共
+112,000 个 tensor、2,981,888,000 个元素。500/500 文件读取成功，非零元素为
+0，非有限元素为 0，最大绝对值为 0.0。制品清单摘要 SHA 为
+`9b3293bb9c33b3f670f53460b619c79410c99fe82b4e7c818b136199a89df81a`；没有启动
+GPU 或远端服务，也没有修改制品、trace 或结果。
+
+因此，当前 3B 冻结池不能提供区分非零 LoRA 增量的独立数值 oracle。D703 的
+服务终态、生成合同、profile coverage、SLO、远端交付和 GPU 生命周期观测仍然
+有效，但不能把它们改写为 adapter 数值正确性证明。`n_correct` 继续保持
+`null`，`numerical_adapter_correctness_qualified=false`、
+`ranking_eligible=false`；不开始 3B G1/G2 或 baseline 胜负比较。详细结果和
+机器可读回执见
+`docs/ieee_tc/D704_3B_ADAPTER_NONZERO_AUDIT_20261020.md` 与
+`paper_results/ieee_tc/p2_backend/d704_3b_adapter_nonzero_audit/audit.json`。
+
 ## 2026-10-20 D703 3B full W0 完成：服务资格通过，数值正确性与正式排名仍未闭合
 
 PROGRESS。D703 在 D701 同规格 native profile 和 D693 生产父版本上完成了完整
