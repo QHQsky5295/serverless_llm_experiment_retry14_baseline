@@ -1,0 +1,43 @@
+{
+  "campaign_id": "d705_autoscaler_control_diagnosis",
+  "source_run": "d703_20261019/3b_full_w0",
+  "source_result_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d703_3b_full_w0_d701profile.json",
+  "source_control_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+  "analysis_kind": "read_only_offline_diagnosis",
+  "controller_signal": "overall_ttft_ms",
+  "control_interval_s": 2.0,
+  "ttft_window_s": 55.0,
+  "scale_down_cooldown_s": 48.0,
+  "queue_lower": 1,
+  "active_lower": 0.4375,
+  "ttft_lower_ms": 219.51805600110674,
+  "control_event_count": 1936,
+  "scale_up_decision_count": 3,
+  "scale_down_decision_count": 0,
+  "all_low_snapshot_count": 0,
+  "controller_p95_overall_ttft_ms": {
+    "min": 681.6127777565271,
+    "median": 1668.059576768428,
+    "max": 5500.726358266547
+  },
+  "four_ready_replica_controller_p95_overall_ttft_min_ms": 681.6127777565271,
+  "queue_depth": {
+    "median": 0,
+    "p95": 1,
+    "max": 10
+  },
+  "active_requests": {
+    "median": 2,
+    "p95": 6,
+    "max": 18
+  },
+  "physical_gpu_seconds": 14864.807562012225,
+  "physical_gpu_seconds_per_offered_request": 3.7162018905030565,
+  "joint_slo_count": 3995,
+  "planned_requests": 4000,
+  "joint_slo_rate": 0.99875,
+  "correctness_qualified": false,
+  "ranking_eligible": false,
+  "request_time_pack_count": 0,
+  "hypothesis": "align scale-down observation with complete overall TTFT and observed handoff/activation SLO reserve; validate on a new validation execution key before any formal rerun"
+}
