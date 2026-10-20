@@ -17,17 +17,17 @@ performance improvement.
 
 ## Candidate derived reserve
 
-Let (T_{mathrm{SLO}}) be the common TTFT upper bound and let
-(Q_{0.95}(T_{mathrm{scaleup}})) be the P95 overall TTFT of requests affected
-by a scale-up or handoff, measured on a completed validation prefix. The
-candidate lower bound is
+Let the common TTFT upper bound be `T_SLO`, and let
+the P95 overall TTFT of affected requests be `Q_0.95(T_scaleup)`; it is
+measured for requests affected by a scale-up or handoff on a completed
+validation prefix. The candidate lower bound is
 
 \[
   \tau_{\mathrm{auto}}
   = T_{\mathrm{SLO}} - Q_{0.95}(T_{\mathrm{scaleup}}).
 \]
 
-For D703, (T_{mathrm{SLO}}=5000\) ms and the recorded affected-request P95
+For D703, `T_SLO=5000` ms and the recorded affected-request P95
 was 1979.495699 ms, giving
 
 \[
