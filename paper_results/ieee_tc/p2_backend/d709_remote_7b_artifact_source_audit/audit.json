@@ -1,0 +1,28 @@
+{
+  "campaign": "D709_REMOTE_7B_ARTIFACT_SOURCE_AUDIT_20261021",
+  "type": "read_only_remote_source_audit",
+  "remote_host": "192.168.4.174:8122",
+  "remote_root": "/home/lab14/primelora_remote_artifacts/llama2_7b_a500_v2_publicmix",
+  "adapter_count": 500,
+  "remote_safetensors_payload_files": 500,
+  "remote_safetensors_nonzero_payload_files": 2,
+  "remote_safetensors_zero_payload_files": 498,
+  "remote_safetensors_bad_header_files": 0,
+  "remote_safetensors_dtype_sets": ["F16"],
+  "remote_safetensors_payload_bytes": 10905190400,
+  "remote_safetensors_nonzero_payload_bytes": 33428182,
+  "nonzero_adapters": ["finance_lora", "medical_lora"],
+  "nonzero_adapter_full_sha256": {
+    "finance_lora": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+    "medical_lora": "d2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c"
+  },
+  "nonzero_adapter_remote_local_full_sha_match": true,
+  "weights_modified": false,
+  "remote_service_modified": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "structural_comparison_usable": true,
+  "absolute_remote_network_representativeness": false,
+  "result_status": "closed_as_audit; no performance run"
+}
