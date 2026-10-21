@@ -22,6 +22,24 @@
   "numerical_adapter_correctness_qualified": false,
   "n_correct": null,
   "ranking_eligible": false,
+  "fairness_assessment": {
+    "same_frozen_pool_gives_structural_comparability": true,
+    "same_pool_proves_equal_absolute_network_impact": false,
+    "archive_bytes": 1160474851,
+    "logical_file_bytes": 19482573296,
+    "archive_to_logical_ratio": 0.05956,
+    "structural_metrics_usable_if_no_zero_detection": [
+      "cache and residency control",
+      "routing and elasticity control",
+      "file lifecycle accounting"
+    ],
+    "distorted_or_unqualified": [
+      "absolute remote network cost under realistic nonzero weights",
+      "numerical adapter correctness",
+      "domain quality"
+    ],
+    "mainline_decision": "continue 7B PrimeLoRA optimization and baseline qualification; retain 3B structural observations but withhold 3B G1/G2 numerical ranking"
+  },
   "historical_interpretation": {
     "D78_D80": "file/path/byte and HTTP coverage only; no tensor numerical audit",
     "D53_D66": "already recorded current 3B pool as 500/500 all-zero",
