@@ -1,0 +1,41 @@
+{
+  "campaign": "D710_STORAGE_AND_MAINLINE_STATUS_20261021",
+  "date": "2026-10-21",
+  "branch": "retry14_continuous_queue_v2",
+  "base_commit": "efeca418167af61f8d825323ac3e7b4471df6d02",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "storage": {
+    "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d131_20261001/7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d131_7b_full_w0_full1.json",
+    "archive_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d131_20261001/7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d131_7b_full_w0_full1.json.gz",
+    "source_bytes": 13292883550,
+    "archive_bytes": 304767413,
+    "source_sha256": "5e235216fa1364f4c894d7ec53132db49039619883c10bb8e621c141b77fc69a",
+    "archive_sha256": "9954472a73c39cd892d737c792a0bf5e83b5872def50a54cfde66093bb28ae96",
+    "roundtrip_sha256": "5e235216fa1364f4c894d7ec53132db49039619883c10bb8e621c141b77fc69a",
+    "source_removed_after_roundtrip": true,
+    "request_path_affected": false,
+    "available_bytes_after_cleanup": 175966367744
+  },
+  "mainline": {
+    "model_order": ["Llama-2-7B", "Llama-3.2-3B"],
+    "seven_b_first_reason": "Current 7B development evidence provides the next falsifiable capacity hypothesis; 3B remains queued after it.",
+    "zero_artifact_audit_is_blocking": false,
+    "zero_artifact_audit_is_paper_disclosure": false,
+    "formal_g1_g2_closed": false,
+    "figures_deferred_until_prime_lora_is_accepted": true
+  },
+  "next_hypothesis": {
+    "kind": "capacity_envelope",
+    "reference": "D379",
+    "candidate_fields": ["model.max_num_seqs", "model.max_loras", "model.runtime_concurrency_cap"],
+    "fixed_fields": ["trace", "adapter_subset", "generation_contract", "profiles", "routing", "admission", "handoff", "remote_delivery"],
+    "evidence": {
+      "d379_offline_joint_failures": 223,
+      "d379_failures_without_scale_up": 124,
+      "d386_queue_upper_change": "8_to_4",
+      "d386_physical_gpu_seconds_relative_change": 0.235
+    },
+    "status": "hypothesis_registered; no GPU execution started"
+  },
+  "result_status": "progress_checkpoint; no baseline or figure claim"
+}
