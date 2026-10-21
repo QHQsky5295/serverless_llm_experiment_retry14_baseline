@@ -1,0 +1,35 @@
+{
+  "campaign": "D708_REMOTE_3B_ARTIFACT_SOURCE_AUDIT_20261021",
+  "type": "read_only_remote_source_audit",
+  "remote_host": "192.168.4.174:8122",
+  "remote_root": "/home/lab14/primelora_remote_artifacts/llama32_3b_a500_v1_modelscope",
+  "adapter_count": 500,
+  "remote_safetensors_payload_files": 500,
+  "remote_safetensors_nonzero_payload_files": 0,
+  "remote_safetensors_payload_bytes": 5963776000,
+  "remote_adapter_data_files_sampled": 2,
+  "remote_adapter_data_nonzero_files_sampled": 0,
+  "local_remote_sample_full_sha_match": true,
+  "sample_adapters": [
+    "code_lora",
+    "code_lora_0015",
+    "medical_lora",
+    "writing_lora_0491"
+  ],
+  "request_time_packaging": "not involved in audit",
+  "weights_modified": false,
+  "remote_service_modified": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "historical_interpretation": {
+    "D78_D80": "file/path/byte and HTTP coverage only; no tensor numerical audit",
+    "D53_D66": "already recorded current 3B pool as 500/500 all-zero",
+    "D703": "valid service-contract observation, numerical correctness unknown",
+    "D704": "local full tensor audit confirmed 500/500 all-zero"
+  },
+  "source_sha256_examples": {
+    "remote_and_local_code_lora_adapter_model.safetensors": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3"
+  },
+  "result_status": "closed_as_audit; no performance run"
+}
