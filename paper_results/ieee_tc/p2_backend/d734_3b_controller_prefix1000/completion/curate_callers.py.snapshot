@@ -1,0 +1,84 @@
+"""Reuse D200's business-window caller accounting; no inference or figures."""
+import collections
+import importlib.util
+import json
+from pathlib import Path
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0,str(ROOT))
+from scripts.ieee_tc_preflight import digest,verify_seal
+raw=Path(__file__).resolve().parent
+e=raw/'3b_controller_prefix1000/launch.launch'
+out=ROOT/'paper_results/ieee_tc/p2_backend/d734_3b_controller_prefix1000/completion'
+load=lambda p:json.loads(p.read_text())
+assert load(raw/'3b_controller_prefix1000/launch.json')['native_gpu_context_release_confirmed']
+cpu=load(raw/'prefix1000_cpu_samples.json')
+assert cpu['terminal_successes']==cpu['terminal_count']==1000
+receipt=load(e/'exec_receipt.json')
+t0=receipt['external_replay']['replay_t0_s']
+spec=importlib.util.spec_from_file_location('reader',raw/'collect_cpu.py')
+reader=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(reader)
+terminals=[]
+for row,partial in reader.rows(e/'physical_deployment/request_terminals.jsonl'):
+    assert not partial
+    terminals.append(row)
+assert len(terminals)==len({r['request_id'] for r in terminals})==1000
+assert all(r['clock_id']==receipt['external_replay']['clock_id'] for r in terminals)
+end=max(r['at'] for r in terminals)
+details=[]
+roles=collections.Counter()
+for process in cpu['processes']:
+    for ref in process['source_refs']:
+        assert digest(Path(ref['path']))==ref['sha256']
+    labels=process['role_evidence']
+    role='frontend' if 'frontend' in labels else labels[0] if len(labels)==1 else 'unclassified'
+    roles[role]+=1
+    meta_path=Path(process['source_refs'][0]['path'])
+    meta=load(meta_path)
+    inclusive,callers,nearest=collections.Counter(),collections.Counter(),collections.Counter()
+    examples,window,missing,truncated={},0,0,0
+    for row,partial in reader.rows(meta_path.with_suffix('.stacks.jsonl')):
+        if partial:
+            assert partial==process['final_partial_line_bytes']
+            break
+        if not t0<=row['observed_monotonic_s']<=end:continue
+        main=[t for t in row['threads'] if t['ident']==meta['main_thread_ident']]
+        if not main:
+            missing+=1
+            continue
+        main,=main
+        window+=1
+        truncated+=int(main['truncated'])
+        frames=main['frames']
+        local=[(i,f.removeprefix(str(ROOT)+'/'),n,line) for i,(f,n,line) in enumerate(frames)
+            if f.startswith(str(ROOT)+'/')]
+        nearest[(str(ROOT)+'/'+local[0][1],local[0][2]) if local else ('','no_project_frame')]+=1
+        inclusive.update(set((f,n) for _,f,n,_ in local))
+        for i,f,n,line in local:
+            caller=frames[i+1] if i+1<len(frames) else ['','truncated',0]
+            callers[(f,n,line,*caller)]+=1
+            if (f,n) not in examples:
+                examples[(f,n)]=dict(index=row['index'],at=row['observed_monotonic_s'],
+                    truncated=main['truncated'],frames=frames[:min(len(frames),i+5)])
+    assert window==process['main_phase_counts'].get('request_window',0)
+    assert sum(nearest.values())==window and all(v<=window for v in inclusive.values())
+    assert reader.top(nearest,window)==process['request_window_nearest_project']
+    details.append(dict(pid=process['pid'],role=role,window_samples=window,
+        missing_main_samples=missing,truncated_main_samples=truncated,
+        inclusive=[dict(file=k[0],function=k[1],samples=v) for k,v in inclusive.most_common()],
+        callers=[dict(file=k[0],function=k[1],line=k[2],caller_file=k[3],
+            caller_function=k[4],caller_line=k[5],occurrences=v) for k,v in callers.most_common()],
+        examples=[dict(file=k[0],function=k[1],**v) for k,v in examples.items()]))
+q=load(ROOT/'paper_results/ieee_tc/p2_backend/d734_3b_controller_prefix1000/prelaunch/qualification.json')
+for path,sha in q['protected'].items():
+    assert digest(Path(path))==sha,path
+protected=dict(pass_check=True,entry_count=len(q['protected']),changed=[])
+result=dict(kind='d734_current_business_callers_v1',roles=dict(roles),details=details,
+    protected=protected,formal_qualification=False,cpu_time_profile=False,
+    source_refs=[dict(path=str(p),sha256=digest(p)) for p in
+        (Path(__file__),raw/'collect_cpu.py',raw/'prefix1000_cpu_samples.json')],
+    caveats=cpu['caveats'])
+with (out/'business_callers.json').open('x') as f:json.dump(result,f,indent=2,allow_nan=False)
+print(json.dumps(dict(roles=dict(roles),windows={r['pid']:r['window_samples'] for r in details},
+    protected_changed=protected['changed'])))

@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "diagnostic_count": 1000,
+  "native_count": 1000,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "control_attempts": 477,
+  "control_statuses": {
+    "success_complete": 477
+  },
+  "protected_files": 145,
+  "source_head": "94bacfcf85775572bb35336f6560612d395319b4",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.json",
+      "sha256": "cfb96ef62a3311aa177e9f848df4057165e5a8f175214dd7027a6c52d32b0ba6",
+      "bytes": 12370
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/remote_stop.log",
+      "sha256": "c671c0cc0c09cf4c163dec1f60f8396d32972885ddc4066a3b972245e0d9d115",
+      "bytes": 503
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/remote_monitor.log",
+      "sha256": "ead0c990a0182a7fc9dfb37c52425f9017e5c5d73ad13b0ce7eaa0f1dd23a6fa",
+      "bytes": 19299634
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/remote_transfers.jsonl",
+      "sha256": "ffc7f6c96217dbc4fe9e9a1114eff729951c32aa90db2c11f357173fa0c27b04",
+      "bytes": 50194
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/local_cleanup.json",
+      "sha256": "5116ca8f4e004fabc4a4fab19a3cd5718a93471afd34b1ed01900569506b5446",
+      "bytes": 506
+    }
+  ],
+  "resources": {
+    "identity": {
+      "unit": "primelora-tc-aux-d734c06cb49a400cb3f02e2ac3417568.scope",
+      "invocation_id": "5e0d02d7d3bb4374824fb733f5f57244",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d734c06cb49a400cb3f02e2ac3417568.scope",
+      "inode": 30478634
+    },
+    "memory.peak": "745914368",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

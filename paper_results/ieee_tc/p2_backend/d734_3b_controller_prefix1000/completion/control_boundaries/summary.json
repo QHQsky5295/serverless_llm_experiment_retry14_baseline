@@ -1,0 +1,502 @@
+{
+  "kind": "diagnostic_control_boundary_audit_v1",
+  "formal_performance_result": false,
+  "new_experiment": false,
+  "quantile": "Type-1",
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "diagnostic_prefix_count": 1000,
+  "events": 5247,
+  "attempts": 477,
+  "statuses": {
+    "success_complete": 477
+  },
+  "partial_lines": [],
+  "complete_success_coverage": true,
+  "metrics": [
+    {
+      "phase": "all",
+      "field": "parent_begin__to__parent_send",
+      "unit": "ms",
+      "count": 477,
+      "mean": 1.34637174186779,
+      "p50": 0.6845067255198956,
+      "p95": 4.239880014210939,
+      "max": 48.220884054899216
+    },
+    {
+      "phase": "all",
+      "field": "parent_send__to__worker_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 2.208991908513213,
+      "p50": 0.37910789251327515,
+      "p95": 1.6506239771842957,
+      "max": 487.29728488251567
+    },
+    {
+      "phase": "all",
+      "field": "worker_received__to__frontend_begin",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.1392713767443188,
+      "p50": 0.14052633196115494,
+      "p95": 0.19534723833203316,
+      "max": 0.9835860691964626
+    },
+    {
+      "phase": "all",
+      "field": "frontend_begin__to__frontend_native_send",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.09387685083618204,
+      "p50": 0.09476300328969955,
+      "p95": 0.1358496956527233,
+      "max": 0.2012471668422222
+    },
+    {
+      "phase": "all",
+      "field": "frontend_native_send__to__native_begin",
+      "unit": "ms",
+      "count": 477,
+      "mean": 58.18541385467697,
+      "p50": 18.099246080964804,
+      "p95": 237.24402813240886,
+      "max": 503.17766424268484
+    },
+    {
+      "phase": "all",
+      "field": "native_begin__to__native_ready",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.98822429297449,
+      "p50": 8.709925226867199,
+      "p95": 15.94517519697547,
+      "max": 60.08350756019354
+    },
+    {
+      "phase": "all",
+      "field": "native_ready__to__frontend_native_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.764794636111652,
+      "p50": 3.9378879591822624,
+      "p95": 31.167250126600266,
+      "max": 535.605909768492
+    },
+    {
+      "phase": "all",
+      "field": "frontend_native_received__to__frontend_ready",
+      "unit": "ms",
+      "count": 477,
+      "mean": 2.163328532035808,
+      "p50": 2.4326727725565434,
+      "p95": 2.8663682751357555,
+      "max": 7.573760114610195
+    },
+    {
+      "phase": "all",
+      "field": "frontend_ready__to__parent_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 24.98621723772782,
+      "p50": 0.8516102097928524,
+      "p95": 123.47793905064464,
+      "max": 632.0143509656191
+    },
+    {
+      "phase": "all",
+      "field": "parent_received__to__parent_terminal",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.31576201854668073,
+      "p50": 0.2920590341091156,
+      "p95": 0.48994505777955055,
+      "max": 4.755833186209202
+    },
+    {
+      "phase": "all",
+      "field": "parent_total_ms",
+      "unit": "ms",
+      "count": 477,
+      "mean": 109.19225245003493,
+      "p50": 49.041466787457466,
+      "p95": 362.64055827632546,
+      "max": 979.4467343017459
+    },
+    {
+      "phase": "all",
+      "field": "native_thread_cpu_ms",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.25076851781942,
+      "p50": 8.104971999998156,
+      "p95": 15.005059999964487,
+      "max": 29.715318000000934
+    },
+    {
+      "phase": "prebusiness",
+      "field": "parent_begin__to__parent_send",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "parent_send__to__worker_received",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "worker_received__to__frontend_begin",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "frontend_begin__to__frontend_native_send",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "frontend_native_send__to__native_begin",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "native_begin__to__native_ready",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "native_ready__to__frontend_native_received",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "frontend_native_received__to__frontend_ready",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "frontend_ready__to__parent_received",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "parent_received__to__parent_terminal",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "parent_total_ms",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "prebusiness",
+      "field": "native_thread_cpu_ms",
+      "unit": "ms",
+      "count": 0,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    {
+      "phase": "business",
+      "field": "parent_begin__to__parent_send",
+      "unit": "ms",
+      "count": 477,
+      "mean": 1.34637174186779,
+      "p50": 0.6845067255198956,
+      "p95": 4.239880014210939,
+      "max": 48.220884054899216
+    },
+    {
+      "phase": "business",
+      "field": "parent_send__to__worker_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 2.208991908513213,
+      "p50": 0.37910789251327515,
+      "p95": 1.6506239771842957,
+      "max": 487.29728488251567
+    },
+    {
+      "phase": "business",
+      "field": "worker_received__to__frontend_begin",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.1392713767443188,
+      "p50": 0.14052633196115494,
+      "p95": 0.19534723833203316,
+      "max": 0.9835860691964626
+    },
+    {
+      "phase": "business",
+      "field": "frontend_begin__to__frontend_native_send",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.09387685083618204,
+      "p50": 0.09476300328969955,
+      "p95": 0.1358496956527233,
+      "max": 0.2012471668422222
+    },
+    {
+      "phase": "business",
+      "field": "frontend_native_send__to__native_begin",
+      "unit": "ms",
+      "count": 477,
+      "mean": 58.18541385467697,
+      "p50": 18.099246080964804,
+      "p95": 237.24402813240886,
+      "max": 503.17766424268484
+    },
+    {
+      "phase": "business",
+      "field": "native_begin__to__native_ready",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.98822429297449,
+      "p50": 8.709925226867199,
+      "p95": 15.94517519697547,
+      "max": 60.08350756019354
+    },
+    {
+      "phase": "business",
+      "field": "native_ready__to__frontend_native_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.764794636111652,
+      "p50": 3.9378879591822624,
+      "p95": 31.167250126600266,
+      "max": 535.605909768492
+    },
+    {
+      "phase": "business",
+      "field": "frontend_native_received__to__frontend_ready",
+      "unit": "ms",
+      "count": 477,
+      "mean": 2.163328532035808,
+      "p50": 2.4326727725565434,
+      "p95": 2.8663682751357555,
+      "max": 7.573760114610195
+    },
+    {
+      "phase": "business",
+      "field": "frontend_ready__to__parent_received",
+      "unit": "ms",
+      "count": 477,
+      "mean": 24.98621723772782,
+      "p50": 0.8516102097928524,
+      "p95": 123.47793905064464,
+      "max": 632.0143509656191
+    },
+    {
+      "phase": "business",
+      "field": "parent_received__to__parent_terminal",
+      "unit": "ms",
+      "count": 477,
+      "mean": 0.31576201854668073,
+      "p50": 0.2920590341091156,
+      "p95": 0.48994505777955055,
+      "max": 4.755833186209202
+    },
+    {
+      "phase": "business",
+      "field": "parent_total_ms",
+      "unit": "ms",
+      "count": 477,
+      "mean": 109.19225245003493,
+      "p50": 49.041466787457466,
+      "p95": 362.64055827632546,
+      "max": 979.4467343017459
+    },
+    {
+      "phase": "business",
+      "field": "native_thread_cpu_ms",
+      "unit": "ms",
+      "count": 477,
+      "mean": 9.25076851781942,
+      "p50": 8.104971999998156,
+      "p95": 15.005059999964487,
+      "max": 29.715318000000934
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/exec_receipt.json",
+      "bytes": 13332,
+      "sha256": "595e3ebf992d0c2c9610d7021069dad9c85dceef534519b7bbe1d6a588e89087"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/physical_deployment/deployment.json",
+      "bytes": 713,
+      "sha256": "aba17de5599beaa031a7bcb5b56657dcc2958beda5f84f8296645743278bf867"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2992641-218256158.json",
+      "bytes": 815,
+      "sha256": "e8848546a5768910950ad0a49c0c9ab090a0cef43acecbe6f66d3de05670a10e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2992641-218256158.control.jsonl",
+      "bytes": 660240,
+      "sha256": "638367f42ecd05ee8f71501c65bd75e30064b059fb7c825b6113c6d2f8a54988"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993255-218257289.json",
+      "bytes": 815,
+      "sha256": "3eae0428ec3d089915a9f6a122df77f4630127730211f88a17fbafe053b8ad75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993255-218257289.control.jsonl",
+      "bytes": 322270,
+      "sha256": "0a320253f4ba364b080477ef82e0aa0e37888672af6653bddebda8fc5352fccb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993258-218257292.json",
+      "bytes": 815,
+      "sha256": "160454c6f0cef37d61ae80944eb04c0965c63f8cdc661a64fb2d333cb0811a8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993258-218257292.control.jsonl",
+      "bytes": 186277,
+      "sha256": "691df115cecc635907530348d8c8873c4398dedc0102a22123ab6bbeebb761ca"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993260-218257297.json",
+      "bytes": 815,
+      "sha256": "8e9723896be92ad67622babe89cadee3719d6286c8b9968430b055edae0027fb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993260-218257297.control.jsonl",
+      "bytes": 168851,
+      "sha256": "733dcd7b154c523f8ebbb1393ee39d29dc110ebd5f45e0f42794b8d919d119fb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993262-218257300.json",
+      "bytes": 815,
+      "sha256": "96cfeeb1c2065d8be35efde9fe89282fdab0d568f3905b9c29675bc6ddf35619"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993262-218257300.control.jsonl",
+      "bytes": 153190,
+      "sha256": "c9b9b1fe30c8e4a4dfbb390da514384159453a4b80056286c13831f4dcfc1dc4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993264-218257303.json",
+      "bytes": 815,
+      "sha256": "3fb3e52c4f97663743f0a68cb5ebe6fd5b0671b4cef63a8acf7d42012d35eee2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2993264-218257303.control.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2994008-218258928.json",
+      "bytes": 815,
+      "sha256": "76d70d636892b8f1698ad1d7c23bb1481b6e26868de37841af6eab338ae6b9d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/2994008-218258928.control.jsonl",
+      "bytes": 127166,
+      "sha256": "c677744364e7a4a52447f0c1815e4a2545e9955b581442498ca15fde9aed5eda"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3009230-218295046.json",
+      "bytes": 815,
+      "sha256": "2673e9e5e7b845753eb3418985e7fd32fdec8996f8176181085293de9e854df6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3009230-218295046.control.jsonl",
+      "bytes": 73531,
+      "sha256": "5620a3638b2a85dba4129ea729419083b162d44fe18db7426de412e0755e8a1d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3009312-218295250.json",
+      "bytes": 815,
+      "sha256": "670b2e14dc09f2d4c8b0dede7c26519ebe96f1de97bf8866d2440961439fb3c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3009312-218295250.control.jsonl",
+      "bytes": 66657,
+      "sha256": "808bac99a72201edf9cd08d4055b5dce2d736cd8c573f6668a8ac9fef2880e52"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3010692-218297729.json",
+      "bytes": 815,
+      "sha256": "e156358d6c9c1bc22fa64718357c5cfa06e821ac54b8d5e9927c2eb5868fdd3d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/diagnostic_stacks/3010692-218297729.control.jsonl",
+      "bytes": 60484,
+      "sha256": "4341ff107c9727754d0cafe6fcc848e75b9bd7235f3d931c8a088b93227b40a8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e"
+    }
+  ],
+  "caveats": [
+    "Intervals include diagnostic emission overhead; this is not ordinary Full performance or model/SLO qualification.",
+    "Utility-send to native-begin includes transport, serialization and scheduling; it is not isolated queue or network time.",
+    "Native wall interval includes physical inventory and its instrumentation; synchronous native thread CPU is separate, not async request CPU.",
+    "Concurrent replica queries overlap. Do not sum attempts as request latency; RPC IDs are not request IDs.",
+    "Only complete successful chains enter interval summaries. Missing/cancelled/error/partial evidence is retained, not imputed zero.",
+    "Business classification uses parent begin versus arrival start; it includes drain and does not identify a request critical path.",
+    "Within-attempt adjacent means are additive for the same population; their quantiles and overlapping parent totals are not additive."
+  ]
+}

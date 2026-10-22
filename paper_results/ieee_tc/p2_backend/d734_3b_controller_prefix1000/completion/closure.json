@@ -1,0 +1,21 @@
+{
+  "kind": "d734_completion_closure_v1",
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d734c06cb49a400cb3f02e2ac3417568.scope",
+    "invocation_id": "5e0d02d7d3bb4374824fb733f5f57244",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d734c06cb49a400cb3f02e2ac3417568.scope",
+    "inode": 30478634
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "protected_files": 145,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "inference_sources_changed": false,
+  "new_gpu_replays_in_analysis": 0,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "disk_free_bytes": 168268988416
+}

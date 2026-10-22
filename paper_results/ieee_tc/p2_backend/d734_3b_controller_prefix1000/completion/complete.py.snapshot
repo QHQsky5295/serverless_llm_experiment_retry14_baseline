@@ -1,0 +1,140 @@
+"""D734 closure: reuse native/prefix, frame and control-boundary analyzers."""
+import ast
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_controller_prefix1000'
+E = RUN/'launch.launch'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d734_3b_controller_prefix1000/completion'
+PYTHON = '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'completion_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+events_before = (group/'memory.events').read_text()
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+launch = read(RUN/'launch.json')
+assert all(launch[k] is True for k in ('pass','service_path_removed','native_gpu_context_release_confirmed'))
+assert all(launch[k] == 0 for k in ('service_returncode','watchdog_returncode','replay_returncode'))
+receipt = read(E/'exec_receipt.json')
+assert receipt['external_replay']['replay_scope'] == 'diagnostic_prefix_v1'
+assert receipt['external_replay']['diagnostic_prefix_count'] == 1000
+assert not Path(receipt['service_identity']['path']).exists()
+aux = Path(receipt['auxiliary_path'])
+if aux.exists():
+    identity = p.scope_identity(aux.name)
+    assert identity['invocation_id'] == '2b557cd6759040b6bd2097a073aae34e'
+    assert not p.owned_pids(aux)
+    closed = p.stop_scope_identity(identity, grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+else:
+    identity, closed = None, dict(already_removed=True, released=True)
+save(RAW/'local_cleanup.json', dict(passed=True, service_path_gone=True,
+    native_gpu_release_confirmed=True, auxiliary_identity=identity, auxiliary_closure=closed))
+stop = (RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive') == stop.count('MainPID=0') == 3
+paths = [line for line in stop.splitlines() if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(paths) == 1
+for local, remote in [('remote_transfers.jsonl', paths[0]),
+                     ('remote_monitor.log', '/home/lab14/primelora_remote/tc/d734_20261022/remote_monitor.log')]:
+    with (RAW/local).open('xb') as f:
+        subprocess.run(['ssh','-o','BatchMode=yes','primelora-artifact-174','cat',remote],
+            stdout=f, stderr=subprocess.PIPE, check=True, timeout=55)
+monitor_sha = next(line.split()[0] for line in stop.splitlines() if line.endswith('/d734_20261022/remote_monitor.log'))
+assert p.digest(RAW/'remote_monitor.log') == monitor_sha
+OUT.mkdir(parents=True, exist_ok=False)
+metric_path = OUT/'prefix1000.json'
+base = [PYTHON,'-B','-m','scripts.ieee_tc.audit_d703_3b_full','--raw',str(RUN)]
+for name, args in [
+    ('metrics', base+['--reevaluate-common-slo',str(metric_path),'--expected-count','1000']),
+    ('context', base+['--audit-closed-outcome',str(OUT/'closed_outcome.json'),'--metric-audit',str(metric_path)]),
+    ('stacks', [PYTHON,'-B',str(RAW/'collect_cpu.py')]),
+    ('callers', [PYTHON,'-B',str(RAW/'curate_callers.py')]),
+]:
+    with (RAW/('analysis_'+name+'.txt')).open('x') as log:
+        subprocess.run(args, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+
+import ijson
+from scripts.analyze_control_path_overhead import analyze_control_boundaries
+from scripts.ieee_tc.audit_d703_3b_full import partition_common_slo_request, D716_TTFT_STAGES
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+metric = read(metric_path)
+source = next(RUN.glob('experiment_results_full*.json'))
+freeze = read(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json')
+clock = receipt['external_replay']['clock_id']
+rows = []
+with source.open('rb') as f:
+    for request in ijson.items(f, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        row = partition_common_slo_request(request, freeze['groups'], clock_id=clock)
+        ext = request['external_arrival_timing']
+        row.update(submitted=ext['client_submit_s'], received=ext['server_received_s'])
+        assert ext['planned_arrival_s'] <= row['submitted'] <= row['received'] <= row['admitted']
+        row['submitted_to_received_ms'] = (row['received']-row['submitted'])*1000
+        row['received_to_admitted_ms'] = (row['admitted']-row['received'])*1000
+        rows.append(row)
+rows.sort(key=lambda r:r['ordinal'])
+assert len(rows) == len({r['request_id'] for r in rows}) == 1000
+assert [r['ordinal'] for r in rows] == list(range(1000))
+assert sum(r['joint_pass'] for r in rows) == metric['counts']['joint_pass']
+with (OUT/'requests.csv').open('x', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+    writer.writeheader(); writer.writerows(rows)
+keys = (*D716_TTFT_STAGES, 'submitted_to_received_ms','received_to_admitted_ms',
+        'ttft_ms','tpot_ms','e2e_ms')
+groups = {}
+for name, selected in [('all',rows), ('ttft_failed',[r for r in rows if not r['ttft_pass']]),
+                       ('tpot_failed',[r for r in rows if not r['tpot_pass']])]:
+    groups[name] = dict(n=len(selected), stages={key:timing_stats([r[key] for r in selected]) for key in keys})
+save(OUT/'request_stages.json', dict(passed=True, diagnostic_count=1000, groups=groups,
+    source=ref(source), numerical_adapter_correctness_qualified=False,
+    ranking_eligible=False, includes_observer_overhead=True))
+boundaries = analyze_control_boundaries(E/'diagnostic_stacks', E/'exec_receipt.json',
+    E/'physical_deployment/deployment.json', OUT/'control_boundaries')
+save(OUT/'stack_samples.json', read(RAW/'prefix1000_cpu_samples.json'))
+q = read(OUT.parent/'prelaunch/qualification.json')
+for path, sha in q['protected'].items(): assert p.digest(Path(path)) == sha, path
+# Status documents intentionally evolve; verify their prelaunch identity via Git.
+head = read(RAW/'start_receipt.json')['head']
+import hashlib
+for path, sha in q['refs'].items():
+    path = Path(path)
+    if path == ROOT/'docs/ieee_tc/EXECUTION_STATUS.md':
+        content = subprocess.check_output(['git','show',head+':'+str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha
+    else: assert p.digest(path) == sha, path
+assert (group/'memory.events').read_text() == events_before
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'completion.json', dict(passed=True, diagnostic_count=1000, native_count=1000,
+    n_correct=None, ranking_eligible=False, control_attempts=boundaries['attempts'],
+    control_statuses=boundaries['statuses'], protected_files=len(q['protected']),
+    source_head=head, source_refs=[ref(path) for path in (RUN/'launch.json',RAW/'remote_stop.log',
+        RAW/'remote_monitor.log',RAW/'remote_transfers.jsonl',RAW/'local_cleanup.json')],
+    resources=dict(identity=own, **{key:(group/key).read_text().strip()
+        for key in ('memory.peak','memory.events','memory.swap.current')})))
+for name in ('complete.py','collect_cpu.py','curate_callers.py'):
+    path = RAW/name
+    ast.parse(path.read_text())
+    with (OUT/(name+'.snapshot')).open('xb') as f: f.write(path.read_bytes())
+members = [ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+print(json.dumps(dict(passed=True, counts=metric['counts'], groups=groups,
+    physical_gpu_seconds=metric['physical_gpu_seconds'], control_attempts=boundaries['attempts']), indent=2))

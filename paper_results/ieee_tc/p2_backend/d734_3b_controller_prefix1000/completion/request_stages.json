@@ -1,0 +1,227 @@
+{
+  "passed": true,
+  "diagnostic_count": 1000,
+  "groups": {
+    "all": {
+      "n": 1000,
+      "stages": {
+        "arrival_to_admission_ms": {
+          "count": 1000,
+          "mean": 303.9254426518455,
+          "p50_type1": 189.68231650069356,
+          "p95_type1": 916.1806958727539
+        },
+        "admission_to_acquired_ms": {
+          "count": 1000,
+          "mean": 134.76212381199002,
+          "p50_type1": 102.21646726131439,
+          "p95_type1": 560.0360771641135
+        },
+        "executable_to_engine_ms": {
+          "count": 1000,
+          "mean": 67.76478460989892,
+          "p50_type1": 28.914193622767925,
+          "p95_type1": 239.94914395734668
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1000,
+          "mean": 56.367438030429184,
+          "p50_type1": 26.496219914406538,
+          "p95_type1": 218.1150671094656
+        },
+        "native_engine_queue_ms": {
+          "count": 1000,
+          "mean": 3.082881989888847,
+          "p50_type1": 0.03365008160471916,
+          "p95_type1": 0.9518060833215714
+        },
+        "native_prefill_ms": {
+          "count": 1000,
+          "mean": 110.4117644187063,
+          "p50_type1": 111.94725753739476,
+          "p95_type1": 160.07038857787848
+        },
+        "submitted_to_received_ms": {
+          "count": 1000,
+          "mean": 38.50074408855289,
+          "p50_type1": 0.9606410749256611,
+          "p95_type1": 313.318086322397
+        },
+        "received_to_admitted_ms": {
+          "count": 1000,
+          "mean": 262.2567951763049,
+          "p50_type1": 163.89234689995646,
+          "p95_type1": 836.6081169806421
+        },
+        "ttft_ms": {
+          "count": 1000,
+          "mean": 676.3144355127588,
+          "p50_type1": 515.6053542159498,
+          "p95_type1": 1649.1688089445233
+        },
+        "tpot_ms": {
+          "count": 1000,
+          "mean": 17.538881808023774,
+          "p50_type1": 14.833692573010921,
+          "p95_type1": 33.394699554062555
+        },
+        "e2e_ms": {
+          "count": 1000,
+          "mean": 2717.7198824016377,
+          "p50_type1": 2284.323965664953,
+          "p95_type1": 5831.559277139604
+        }
+      }
+    },
+    "ttft_failed": {
+      "n": 26,
+      "stages": {
+        "arrival_to_admission_ms": {
+          "count": 26,
+          "mean": 1074.6127469286037,
+          "p50_type1": 893.0123429745436,
+          "p95_type1": 2062.6485724933445
+        },
+        "admission_to_acquired_ms": {
+          "count": 26,
+          "mean": 900.1535621579163,
+          "p50_type1": 402.28416537865996,
+          "p95_type1": 2565.1019029319286
+        },
+        "executable_to_engine_ms": {
+          "count": 26,
+          "mean": 187.66029483567064,
+          "p50_type1": 129.57141594961286,
+          "p95_type1": 468.3922599069774
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 26,
+          "mean": 119.78421390701372,
+          "p50_type1": 54.18596789240837,
+          "p95_type1": 402.38969260826707
+        },
+        "native_engine_queue_ms": {
+          "count": 26,
+          "mean": 1.0561003851202817,
+          "p50_type1": 0.05179271101951599,
+          "p95_type1": 1.6111209988594055
+        },
+        "native_prefill_ms": {
+          "count": 26,
+          "mean": 151.17318276315928,
+          "p50_type1": 112.79503721743822,
+          "p95_type1": 381.7352410405874
+        },
+        "submitted_to_received_ms": {
+          "count": 26,
+          "mean": 99.84012702121757,
+          "p50_type1": 2.4987682700157166,
+          "p95_type1": 616.3496831431985
+        },
+        "received_to_admitted_ms": {
+          "count": 26,
+          "mean": 972.0189823195911,
+          "p50_type1": 716.7040160857141,
+          "p95_type1": 2060.467128176242
+        },
+        "ttft_ms": {
+          "count": 26,
+          "mean": 2434.440100977484,
+          "p50_type1": 2107.1049608290195,
+          "p95_type1": 3540.782518684864
+        },
+        "tpot_ms": {
+          "count": 26,
+          "mean": 21.815502687931854,
+          "p50_type1": 17.941786193599302,
+          "p95_type1": 43.58396177283592
+        },
+        "e2e_ms": {
+          "count": 26,
+          "mean": 4193.848780392168,
+          "p50_type1": 3606.453743763268,
+          "p95_type1": 7507.192735094577
+        }
+      }
+    },
+    "tpot_failed": {
+      "n": 38,
+      "stages": {
+        "arrival_to_admission_ms": {
+          "count": 38,
+          "mean": 621.1042525246739,
+          "p50_type1": 506.9626113399863,
+          "p95_type1": 1645.70800261572
+        },
+        "admission_to_acquired_ms": {
+          "count": 38,
+          "mean": 149.10371246208487,
+          "p50_type1": 0.0,
+          "p95_type1": 1012.0448470115662
+        },
+        "executable_to_engine_ms": {
+          "count": 38,
+          "mean": 75.39153032887138,
+          "p50_type1": 44.21949991956353,
+          "p95_type1": 239.94914395734668
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 38,
+          "mean": 187.25267301411614,
+          "p50_type1": 162.82259114086628,
+          "p95_type1": 433.76268399879336
+        },
+        "native_engine_queue_ms": {
+          "count": 38,
+          "mean": 15.183201317038192,
+          "p50_type1": 0.1547662541270256,
+          "p95_type1": 245.08256884291768
+        },
+        "native_prefill_ms": {
+          "count": 38,
+          "mean": 114.54614510416593,
+          "p50_type1": 113.46987588331103,
+          "p95_type1": 198.7201338633895
+        },
+        "submitted_to_received_ms": {
+          "count": 38,
+          "mean": 119.72356973657091,
+          "p50_type1": 0.9384509176015854,
+          "p95_type1": 700.0788399018347
+        },
+        "received_to_admitted_ms": {
+          "count": 38,
+          "mean": 499.90976734184903,
+          "p50_type1": 376.72446900978684,
+          "p95_type1": 1585.7044090516865
+        },
+        "ttft_ms": {
+          "count": 38,
+          "mean": 1162.5815147509504,
+          "p50_type1": 927.1579263731837,
+          "p95_type1": 3138.330953195691
+        },
+        "tpot_ms": {
+          "count": 38,
+          "mean": 46.29779514333255,
+          "p50_type1": 45.501201141936086,
+          "p95_type1": 67.12337424978614
+        },
+        "e2e_ms": {
+          "count": 38,
+          "mean": 2004.1508689816844,
+          "p50_type1": 1783.5186100564897,
+          "p95_type1": 3624.966344796121
+        }
+      }
+    }
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d734_3b_controller_prefix1000.json",
+    "sha256": "6921eee4fb817349fd4bc7217854115b1d29e60db27472487020f19c73807b16",
+    "bytes": 81427317
+  },
+  "numerical_adapter_correctness_qualified": false,
+  "ranking_eligible": false,
+  "includes_observer_overhead": true
+}

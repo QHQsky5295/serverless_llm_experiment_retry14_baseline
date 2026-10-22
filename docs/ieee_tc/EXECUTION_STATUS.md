@@ -1,5 +1,67 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D734诊断完成：复用校验结果是下一候选，不重跑前缀
+
+PROGRESS。完整PLAN/V1V2及最新规则已核对。D734已正常结束，不再监测或重启：
+1000/1000原生计数/绑定/计时通过，联合939=93.9%、TTFT974、TPOT962；
+平均/P95 TTFT676.314/1649.169ms，U3406.608804GPU-s。仅诊断，不与完整
+D732作胜负比较或外推U；n_correct=null，独立数值资格仍未知。旧终端100%
+是runtimeTTFT-only，不是共同联合SLO。当前完整3B仍D73292.500%，不闭口。
+
+离线分析完成：controller业务536样本，完整图校验30、JSON解码18、执行副本
+解码14、文件观察8；planning publication inclusive39，包含上述校验，不相加。
+采样频次不是CPU占比；业务缺失/截断0，全程截断3。477条routing-source RPC
+完整：native前等待mean58.185ms、函数体9.988ms、frontend到parent24.986ms，
+不是全部控制调用。TTFT违约26条的接收→admission均972.019ms、引用取得
+900.154ms，仍有多个阶段瓶颈，不把所有违约归于一个函数。
+
+源码/history/官方资料核对：D330发布路径与已有规划worker分别校验同一完整
+native图。下一唯一候选是由现有worker产生已验证的不可变规划+紧凑路由视图，
+parent保留live身份/epoch/原始capture time/迟到及取消检查后发布。尚未实施；
+发布延后可能改变路由时序，须测净效果。不做epoch-only物理缓存、不关发布、
+不删资源重检查、不改九式/SLO/负载，不再重跑同前缀或全owner支线重构。
+
+本机GPU/服务/回放已释放，远端三服务inactive/MainPID0；60fetch139254428B、
+无请求打包，145保护项未变。分析域已结束待按精确身份封存关闭；其Invocation
+5e0d02d7d3bb4374824fb733f5f57244、inode30478634，PID集0。completion目录
+含结果/阶段/栈/RPC/SHA；备份仅明确文件，用户manifest不stage，V2不force。
+详见D734_3B_CONTROLLER_PREFIX_DIAGNOSTIC_20261022.md；封存回执后续保存。
+
+终态分析scope现已按身份关闭、空PID且路径消失。首次备份只在git空白检查处
+停止：Python CSV标准CRLF被默认检查当作行尾空白；不是数据/分析失败。保持
+已封存CSV字节及SHA不变，备份续行仅按命令级cr-at-eol识别CRLF，其余空白、
+保护、来源和敏感信息检查不变，不重新运行分析或推理。
+
+没有新增GPU回放、生产改动或图。7B最终同版本、3BW1/W2与其baseline/dLoRA、
+A1–A5、S1–S13、CE/Pareto、两轮审稿文档及最终图表全部范围不减，goal active。
+共享k3s不是本项目，沿用独立HydraServe适配，不索取配置、不重复基础资格。
+
+## 2026-10-22 21:24 D734已启动：同一1000前缀观察，尚无最终结果
+
+5项针对性配置/observer入口检查通过，145保护项及既有生产源码/profile
+校验通过。14个明确文件提交94bacfcf85775572bb35336f6560612d395319b4，已推送并
+ls-remote核验faaslora_origin/backup/d734-controller-prefix-20261022；V2未force，
+用户manifest未stage。prelaunch refs记录启动前文档身份，后续状态追加用其
+commit读取历史字节，不将状态更新误判为运行中的生产源码变化。
+
+tmux为tc-d734-3b-controller-prefix1000。实际service为
+primelora-tc-svc-cd9c0fd61c1d46daaf9ec26e79c8a455.scope，InvocationID
+516d47c5e8e44e69834e187c621e0812，inode30423292；aux为
+primelora-tc-aux-5739cfdbeb4c466ba35d68f9aac9643e.scope。
+actual receipt确认diagnostic_prefix_v1/count1000，diagnostic_stacks已产生。
+启动管理scope已空并按InvocationID/inode关闭；不影响独立服务/回放域。
+
+最近完整Live行arrived27/1000、done25、ok25、fail0，业务64秒。watchdog127：
+available97.120GiB、service7.894GiB、disk156.600GiB，high/max/OOM/swap0，
+warning=false、abort为空。只是进行中，不是完整SLO/性能结论。远端启动记录
+1000/full；3b/7b服务及本轮monitor身份保存在raw remote_start.log。运行结束
+wrapper自动在本机实际释放后按身份关闭远端；观察超时不能重复启动本键。
+
+下一步只监测同一活运行，结束后收取/核验原始证据，再复用既有stack/control
+analyzer定位剩余请求等待。不得在运行中分析大日志、备份、构建、压缩或维护
+远端。所有未完成矩阵/消融/敏感性/文档图表保留；不触碰共享k3s。本状态
+追加留待正常终态检查点备份，不为状态反复提交，也不据诊断宣布目标完成。
+
 ## 2026-10-22 D734已登记：当前3B controller原1000前缀观察，尚未启动
 
 PROGRESS。完整PLAN/补充/V1V2重读；用户共享k3s归属回复已由既有隔离
