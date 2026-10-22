@@ -1,0 +1,118 @@
+"""Freeze and launch D749 once, reusing D748 qualification and the full runner."""
+import ast, json, os, re, shlex, subprocess, sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+CHECK = ROOT / 'paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d749_3b_fresh_host_descriptor_full_w0/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'start_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not call(['git', 'diff', '--cached', '--name-only'])
+assert not (RAW/'3b_fresh_host_descriptor_full_w0').exists()
+assert not Path('/dev/shm/tc-d749-3b-w0').exists()
+OUT.mkdir(parents=True, exist_ok=False)
+q = read(CHECK/'qualification.json')
+assert q['passed'] and q['default_inventory_ast_identical']
+assert q['fresh_resize'] and q['native_loader_exact_tensor_and_clone']
+assert len(q['graphs']) == 4 and not q['binary_rebuilt'] and q['new_full_runs'] == 0
+for field in ('protected', 'source_shas'):
+    for name, sha in q[field].items(): assert p.digest(Path(name)) == sha, name
+for item in read(CHECK/'manifest.json')['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256'], item['path']
+assert read(CHECK/'qualification_closure.json')['closure']['released']
+closure = read(ROOT/'results/ieee_tc/p2_backend_qualification/d748_20261023/post_backup_release.json')
+assert closure['passed'] and closure['closure']['released']
+descriptor = q['descriptor']
+assert p.digest(Path(descriptor['library'])) == descriptor['sha256']
+native_path = ROOT/'results/ieee_tc/p2_backend_qualification/d747_20261023/native_descriptor.json'
+assert p.digest(native_path) == q['reused_d747_cuda_sha256']
+native = read(native_path)
+assert native['pass'] and len(native['cases']) == 9 and len(native['inventory_equality']) == 4
+save(OUT/'reused_qualification.json', dict(passed=True, qualification_path=str(CHECK/'qualification.json'),
+    qualification_sha256=p.digest(CHECK/'qualification.json'), tests_reused=9, graphs_reused=4,
+    native_cuda_sha256=p.digest(native_path), native_cuda_states_reused=9,
+    library=descriptor, new_component_or_gpu_microtests=0, backup_closure=closure))
+
+previous = read(ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json')
+refs = {}
+for name in ['/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md',
+             str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+             str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+             str(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),
+             str(ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/service.json'),
+             str(ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/preparation.json')]:
+    assert p.digest(Path(name)) == previous['refs'][name], name
+    refs[name] = previous['refs'][name]
+refs.update(q['source_shas'])
+refs[descriptor['library']] = descriptor['sha256']
+files = ['configs/ieee_tc/20261023_d749_3b_fresh_host_descriptor_full_w0.yaml',
+         'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+         'tests/test_ieee_tc_d456_diagnostic_contract.py',
+         'docs/ieee_tc/D749_3B_FRESH_HOST_DESCRIPTOR_FULL_W0_20261023.md',
+         'docs/ieee_tc/EXECUTION_STATUS.md']
+for name in files + ['scripts/run_all_experiments.py', 'faaslora/memory/residency_manager.py',
+                     'scripts/run_all_experiments_user_scope.sh', 'scripts/ieee_tc_preflight.py']:
+    refs[str(ROOT/name)] = p.digest(ROOT/name)
+for path in sorted(RAW.iterdir()):
+    if path.suffix not in ('.py', '.sh'): continue
+    if path.suffix == '.py': ast.parse(path.read_text())
+    else: call(['bash', '-n', str(path)])
+    with (OUT/(path.name+'.snapshot')).open('xb') as f: f.write(path.read_bytes())
+    refs[str(path)] = p.digest(path)
+call(['bash', '-n', str(ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh')])
+tests = call(['/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python', '-B', '-m', 'unittest',
+              'tests.test_ieee_tc_d456_diagnostic_contract.D749FullContract', '-v'])
+save(OUT/'execution_contract_tests.json', dict(passed=True, output=tests))
+save(OUT/'qualification.json', dict(passed=True, identity=own, refs=refs, protected=q['protected'],
+    full_source_count=4000, diagnostic_prefix_count=None, configuration_only_three_paths_changed=True,
+    candidate_environment={'FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY': descriptor['library'],
+                           'FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256': descriptor['sha256']},
+    reused_interface_tests=9, new_execution_contract_tests=2,
+    formal_performance_result=False, numerical_scope='D711 retained; no automatic n_correct certification',
+    resources=p.cgroup_snapshot(group)))
+members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in files: assert not secret.search((ROOT/name).read_text()), name
+assert 'configs/generated/lora_manifest_1000.json' not in files
+call(['git', 'diff', '--check', '--', *files])
+call(['git', 'add', '--', *files])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(files)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: register complete D749 3B replay of fresh HOST descriptor'])
+head = call(['git', 'rev-parse', 'HEAD']); ref = 'refs/heads/backup/d749-fresh-host-descriptor-fullw0-20261023'
+save(RAW/'commit.json', dict(head=head, ref=ref, files=files))
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=ref, files=files, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d749-3b-fresh-host-descriptor-full-w0'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT), shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=ref,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=ref, tmux=session)))

@@ -1,0 +1,4 @@
+{
+  "passed": true,
+  "output": "test_full_trace_and_exact_qualified_descriptor (tests.test_ieee_tc_d456_diagnostic_contract.D749FullContract.test_full_trace_and_exact_qualified_descriptor) ... ok\ntest_parent_configuration_only_changes_three_paths (tests.test_ieee_tc_d456_diagnostic_contract.D749FullContract.test_parent_configuration_only_changes_three_paths) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.023s\n\nOK"
+}

@@ -1,5 +1,29 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D749完整W0入口已登记，待启动
+
+上一轮为PROGRESS。完整重读PLAN/冻结V1/单轮V2并核对当前D748源与资格，
+本轮不另改生产候选。D749复用D742完整配置，仅3目录及显式descriptor库/
+SHA不同；无prefix、CI或新工件/trace。新增两个入口合同检查，原9接口/
+4图/实际构造和D747 CUDA证据复用，不重复微测。下一检查、备份和原资源
+准入后在独立tmux运行一次普通4000请求；尚未声称已运行或达标。
+D74293.175%与D70393.6%、D711数值限制保持；全部剩余范围不变，goal active。
+
+## 2026-10-23 D748已验证备份与释放；下一直接准备完整3B W0
+
+PROGRESS。14个明确路径提交890f1976f9849c038b71a03af638cc9b88fbee14，
+推送并核对backup/d748-fresh-host-descriptor-integration-20261023。V2因分叉
+仍未同步，未force；用户manifest和无关修改未stage。D747发布空域、D748
+资格/发布空域全部按保存身份空核验释放；发布峰值48742400B，events/swap0。
+无GPU任务，收尾disk161836052480B、MemAvailable109845404kB；下次重型
+启动重新核查，接近150GiB门槛但未清理/压缩或虚报回收。
+
+下一完整重读PLAN，复用D742普通runner及其配置，只新增D748描述库/精确SHA
+和唯一输出/cache路径，登记D749一次完整4000请求W0；复用9项接口/4图/
+原生构造与clone、D747 CUDA资格，不再重复微测或profiling前缀。接入当前
+为opt-in，尚无新的完整性能结果。D74293.175%、D70393.6%及D711数值限制
+保持；完整剩余矩阵和goal active不变。本收尾记录随下一正常检查点备份。
+
 ## 2026-10-23 D748实时描述生产接入通过最小检查，待完整W0
 
 PROGRESS。9项新入口/诊断兼容检查0.025秒通过；原清点去掉显式descriptor
