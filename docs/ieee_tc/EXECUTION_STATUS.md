@@ -1,5 +1,94 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 20:40 D732完整结束：92.500%，未达95%，已分析与释放
+
+PROGRESS。核验等待至同一4000请求全部完成；零失败，原生生成/绑定/计时与
+真实远端交付检查通过。共同D648联合3700/4000=92.500%，TTFT3818、TPOT3869；
+平均TTFT768.021038ms、P95 1958.177526ms，U15903.076489GPU-s。相对D729
+联合+1.775pp，但U+2.136709（+0.013438%）；相对D72692.650%/15884.281128
+也未取得联合/资源优势。仍缺100条，候选未最终接受，不启动其W1/W2，不重跑
+同键。数值正确性仍未知、n_correct=null、ranking_eligible=false，不生成CI。
+
+共享字段实际3879epoch/1629轮；观察mean121.002873ms/P95 642.357888ms，
+累计197.114s同步wall time，不是可宣称消除的延迟。completed2547、superseded
+1328、cancelled4。提交至本机接收mean99.536451ms/P95 746.780962ms仍明显；
+GPU pending→acquired97.260971ms接近原值。TTFT不通过182中本地tier106、
+远端76；TPOT-only118中短输出≤64token为114，不能只修远端或删短请求。
+三次扩容仍由首请求5319.016ms驱动，样本1/1/2，1922控制点3up/0down，
+1654低queue/active无pending点all_low0，四卡基本持有至末尾，资源收益未出现。
+
+当前性能/两项分析均已完成、五个本轮空scope按身份收尾；GPU、服务、回放、
+远端3项服务正常释放，132fetch/306360162B且无动态打包。服务峰值24.233GB，
+分析峰值810893312/662106112B，无high/max/OOM/swap；145保护项未变。
+仅终态显示jq对非resource_sample行的null换算报错，不影响原监控与释放证据。
+
+下一主线检查完整文件owner同步事务边界及短输出时间线，复用本轮日志，不
+再围绕已关闭的HOST pin/GC/startup或单独bind小补丁循环。变更前继续对照
+历史/官方资料、保持九式与冻结指标，不简单to_thread后保留其他阻塞锁调用。
+先备份本轮明确文件，V2不force。全部3B后续、7B最终一致性、baseline/dLoRA、
+A1–A5、S1–S13、CE/审稿文档/图表仍未完成且范围不减，goal active。
+
+## 2026-10-22 19:42 D732核验等待；共享轮与阶段分析入口已准备
+
+上一轮分类VERIFIED_WAIT，本轮再次核对完整PLAN、V1/V2与实际tmux/service。
+同一InvocationID 4faef4c48333429ba9bcf51f75db2c41仍active，未重启；19:41:51
+最新完整Live记录770/4000到达、770完成、770正常、0失败，业务13分51秒。
+watchdog885：磁盘156.509739GiB、主机available87.566940GiB，high/max/OOM
+均0，warning=false、abort为空。仍只有partial数据，不判断最终共同SLO或U。
+
+复用D730 raw/analyze.py，保存D732独立raw/analyze.py：仅更新输入/输出路径，
+增加从既有终态journal统计显式round ID、各轮不同目标数、共享观察耗时与
+epoch状态；保留原接收/pending拆分。新清单先枚举文件再打开manifest，避免
+继承D730已知自引用问题。AST和小文件diff已检查，未执行分析、未扫描大日志。
+该入口只在complete.py得到完整结果和物理释放后运行，原始D730文件不修改。
+观察次数/耗时不是CPU耗时或已消除时延；阶段删除算术不称因果上界或预测。
+
+未改生产源码/配置/公式、输入、远端交付或资源限制；不运行第二个GPU任务、
+新资格、构建、备份或压缩。下一步继续同一4000回放，释放后按准备的既有
+分析链保存结果并核对实际机制，再决定是否接受候选。完整3B后续、7B版本
+一致性、baseline/dLoRA、A1–A5、S1–S13、CE/审稿文档/图表仍保留，goal active。
+
+## 2026-10-22 19:35 D732同一运行继续；复用既有隔离适配决定
+
+核查用户关于共享k3s的回复与已保存HYDRASERVE_ISOLATION_DECISION_20261012一致：
+不复用或改动其他项目集群；D480隔离平台接口及随后D574/D576/D579/D582证据
+已存在，不重复部署、资格或7B回放。本轮没有访问集群或调整远端服务。
+
+D732服务InvocationID仍为4faef4c48333429ba9bcf51f75db2c41，tmux仍运行，
+launch.json尚未产生，属于进行中而非失败。最新完整Live记录386到达、383
+完成、383正常、0失败；watchdog509：服务18.256107GiB，峰值19.203613GiB，
+主机available87.714462GiB、磁盘156.936432GiB，high/max/OOM/swap均0，
+warning=false、abort为空、无外部compute任务。不据partial判断最终共同SLO。
+
+仅机械复用D729 complete.py，替换为D732路径及D729比较对象，保存到raw
+d732_20261022/complete.py；diff与AST检查通过，尚未执行。未改变生产源码、
+运行配置、共同指标和输入；分析必须在本轮物理释放及远端关闭后受限执行。
+重读V1/V2，继续使用D648而非终端5000ms；未知数值资格不填正确、无CI或图。
+后续先完成同一4000回放、保存并核对共享观察与全程服务结果，再决定候选。
+全部3B后续、7B最终版本一致性、baseline/dLoRA、A1–A5、S1–S13、CE、审稿
+文档和最终图表范围不减。进度文字与收尾脚本待性能结束后备份，goal active。
+
+## 2026-10-22 19:28 D732已启动完整3B W0，继续同一运行
+
+D731候选、32项相关检查和D732冻结输入已提交ccbefcb48b45e041012c03c00c166a1c4ccc3665，
+推送/ls-remote核验faaslora_origin/backup/d732-round-file-full-20261022；
+V2不force。三个小型测试日志被gitignore挡住第一次add，保留原失败启动记录，
+只对明确审查的三文件force-add后继续；未更改代码/指标、未重复GPU运行。
+
+tmux tc-d732-3b-round-file-full-w0；service unit
+primelora-tc-svc-8fa16374117a44a4bf2ec10e55198572.scope，InvocationID
+4faef4c48333429ba9bcf51f75db2c41。初始实例ready、已开始4000请求原W0。
+实际启动合同为60秒共同通知、原trace SHA4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d，
+真实D80远端服务已按本轮身份启动。watchdog样本74：service8.480GiB、
+available96.052GiB、磁盘158.545GiB，high/max/OOM/swap0、warningfalse、
+abort为空。只能说明已启动和早期资源安全，不代表最终SLO或G1/G2通过。
+
+运行期间不改代码/配置、构建、备份、压缩、重哈希或维护远端，不操作共享k3s。
+按现有监控等待本轮完成，先物理释放/远端停止，再复用D703/D730分析，
+不为partial好坏重启或取消。原D72990.725%仍不达标，独立数值资格未知；
+全部3B后续、7B最终一致性、baseline/dLoRA、A1–A5、S1–S13及论文交付范围不减。
+本启动状态待本轮性能结束后备份，goal active。
+
 ## 2026-10-22 D731同轮共享文件观察候选完成；D732完整W0待启动
 
 PROGRESS。复用D729关闭日志：3699个residency epoch落在1570个控制间隔，
