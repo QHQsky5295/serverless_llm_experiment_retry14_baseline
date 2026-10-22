@@ -1,0 +1,18 @@
+{
+  "kind": "d724_prerequest_build_environment_error_v1",
+  "stage": "engine_initialization",
+  "requests": 0,
+  "classification": "protocol_or_launcher_error",
+  "native_error": "native worker lifetime unqualified; physical lease retained",
+  "missing_executable": "ninja",
+  "qualified_ninja_exists": true,
+  "native_allocation_record": null,
+  "service_path_removed": true,
+  "native_gpu_context_release_confirmed": true,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_execution.json": "e546c5c510e6360e31227891dc71ee7d453b056e5fe8f8befe510bcd44670c6b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch.json": "1bbae32e413c7115cf5ad855a2ae7b8cb7f0fa725e3dc3c1d4f0f2a4addc0dcc",
+    "/tmp/faaslora_worker_mdpxe397/worker.log": "8070d122049faced3da6eecfc5424e9b6b4b150d6409e1b0058ad1dce7f76d5a"
+  },
+  "no_policy_or_input_change": true
+}

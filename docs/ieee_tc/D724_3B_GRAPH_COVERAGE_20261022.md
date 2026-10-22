@@ -63,3 +63,16 @@ high/max/OOM/swap全0；144旧投稿和用户manifest不变。管理脚本CLI复
 初稿将既有参数误写为--trace；初稿尚未执行，保留原文件，实际使用校正的
 launch_checked.py及--replay-trace。不改引擎或资格门槛，不是GPU失败重试。
 GPU资格尚待执行，不能宣布效果改善。
+
+## 首次原生资格：启动环境错误，0条请求
+
+预启动50397f0已备份到backup/d724-graph-coverage-20261022。原生新图触发
+编译时ninja不在PATH，初始化失败，0/16请求；已有合格环境中ninja文件
+存在。完整runner原本设置venv/bin PATH、CUDA_HOME、FLASHINFER_NVCC、
+MAX_JOBS=2及VLLM_CACHE_ROOT，本轮管理入口漏继承它们。这不是算法失败
+或性能结果。失败原始JSON、worker日志及物理释放记录全部保留。
+
+gated-launch服务返回2、watchdog返回0，service路径消失且原生GPU上下文
+已确认释放；资格对象自身没有完整physical_allocation，不能补造它的逻辑
+释放时间或将失败启动计成0资源。第二次资格只恢复上述既有环境，配置/16
+请求/安全门槛完全相同，另存native_execution2/native_launch2，不覆写失败。

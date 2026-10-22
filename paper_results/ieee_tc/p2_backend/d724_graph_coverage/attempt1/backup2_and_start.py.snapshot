@@ -1,0 +1,61 @@
+"""Preserve launch failure; restore only canonical qualified build environment."""
+import ast,json,os,re,shlex,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/attempt1'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup2_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=json.loads((RAW/'qualification.json').read_text())
+for path,sha in q['refs'].items():assert p.digest(Path(path))==sha,path
+failed=json.loads((RAW/'native_launch.json').read_text())
+native=json.loads((RAW/'native_execution.json').read_text())
+assert failed['pass'] is False and failed['service_returncode']==2 and failed['watchdog_returncode']==0
+assert failed['service_path_removed'] and failed['native_gpu_context_release_confirmed']
+assert not native['requests'] and native['stage']=='engine_initialization'
+log=Path('/tmp/faaslora_worker_mdpxe397/worker.log')
+assert "No such file or directory: 'ninja'" in log.read_text()
+OUT.mkdir(parents=True,exist_ok=False)
+for source in (log,RAW/'launch_env2.py',Path(__file__)):
+    with (OUT/(source.name+'.snapshot')).open('xb') as f:f.write(source.read_bytes())
+for source in (RAW/'launch_env2.py',Path(__file__)):ast.parse(source.read_text())
+save(OUT/'failure.json',dict(kind='d724_prerequest_build_environment_error_v1',
+    stage=native['stage'],requests=0,classification='protocol_or_launcher_error',
+    native_error=native['error'],missing_executable='ninja',
+    qualified_ninja_exists=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja').is_file(),
+    native_allocation_record=native.get('physical_allocation'),
+    service_path_removed=True,native_gpu_context_release_confirmed=True,
+    refs={str(f):p.digest(f) for f in (RAW/'native_execution.json',RAW/'native_launch.json',log)},
+    no_policy_or_input_change=True))
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+paths=[str(f.relative_to(ROOT)) for f in sorted(OUT.iterdir())]
+paths+=['docs/ieee_tc/D724_3B_GRAPH_COVERAGE_20261022.md']
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+assert not call(['git','diff','--cached','--name-only'])
+for path in paths:assert not pattern.search((ROOT/path).read_text()),path
+call(['git','add','--',*paths]);call(['git','diff','--cached','--check'])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','commit','-m','tc: preserve graph qualification startup failure and restore qualified tool PATH (D724)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d724-graph-coverage-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup2.json',dict(passed=True,head=head,ref=ref,files=paths,
+    source_sha256={str(RAW/'launch_env2.py'):p.digest(RAW/'launch_env2.py')}))
+gate=p.preflight([ROOT,RAW],2*p.GIB);save(RAW/'start2_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+session='tc-d724-graph-native16-env2'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+command=['systemd-run','--user','--scope','--collect',
+ '--unit=primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope',
+ '-p','MemoryHigh=3G','-p','MemoryMax=4G','-p','MemorySwapMax=0',
+ 'taskset','-c','2,3,26,27','/usr/bin/python3','-B',str(RAW/'launch_env2.py')]
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(command)])
+save(RAW/'start2_receipt.json',dict(launched=True,head=head,tmux=session,command=command,identity=own))
+print(json.dumps(dict(launched=True,tmux=session,head=head)))
