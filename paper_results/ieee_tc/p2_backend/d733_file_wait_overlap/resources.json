@@ -1,0 +1,11 @@
+{
+  "scope": {
+    "unit": "primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+    "invocation_id": "16af9e147a2845d4bb6ac3ba4f851fdc",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+    "inode": 30412891
+  },
+  "peak_bytes": 47456256,
+  "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "swap_bytes": 0
+}

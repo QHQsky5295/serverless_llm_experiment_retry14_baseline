@@ -1,0 +1,558 @@
+{
+  "kind": "d733_observed_file_wait_overlap_v1",
+  "passed": true,
+  "new_gpu_replays": 0,
+  "production_changes": false,
+  "metric_changes": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "scope": {
+    "unit": "primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+    "invocation_id": "16af9e147a2845d4bb6ac3ba4f851fdc",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+    "inode": 30412891
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d733_20261022/analyze.py",
+      "sha256": "c0a316a5449664cf99385004796cf6aff3cfe4ac049c22771833594252e655c8",
+      "bytes": 10327
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/diagnosis/diagnosis.json",
+      "sha256": "71d737ac820364759f6e95ec75ab403fa66572cc6b6c6ca4eaa252ae41fe43e6",
+      "bytes": 45925
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/completion/stages/diagnosis.json",
+      "sha256": "0d18e54644bdb819ece8bc3442ff23c268c02ba4d608db4d7e182ffd8bbcd571",
+      "bytes": 234571
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/completion/stages/requests.csv",
+      "sha256": "95192251a269973f95e415d5d75c2bdb1d07dad3c5bfe60940e66ece50f995cf",
+      "bytes": 2423654
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+      "bytes": 1097243997
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d732_3b_round_file_full_w0.json",
+      "sha256": "bc4d57c1ca67a5524faafde2513047d741a1b26180effa240ffcc386b35726a8",
+      "bytes": 351211957
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "bytes": 1689
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "74c496911cfaa2ee65e2beb3ebae0c7d0f37046b08e9599af6eacefd42d1db00",
+      "bytes": 1347274
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6",
+      "bytes": 258965
+    }
+  ],
+  "groups": [
+    {
+      "label": "all",
+      "n": 4000,
+      "joint_pass": 3700,
+      "ingress_overlapping_requests": 224,
+      "submitted_during_file_observation": 214,
+      "ingress_total_ms": 398145.80266643316,
+      "ingress_file_intersection_total_ms": 75603.71121997014,
+      "ingress_intersection_fraction": 0.18988950960588422,
+      "decode_overlaps_prefill": 1412,
+      "decode_overlaps_demand_load": 812,
+      "decode_overlaps_file_observation": 2246,
+      "metrics": {
+        "ingress_ms": {
+          "count": 4000,
+          "mean": 99.53645066660829,
+          "p50_type1": 1.1687232181429863,
+          "p95_type1": 746.7809622175992
+        },
+        "file_overlap_ingress_ms": {
+          "count": 4000,
+          "mean": 18.900927804992534,
+          "p50_type1": 0,
+          "p95_type1": 16.700585838407278
+        },
+        "receive_after_current_observation_ms": {
+          "count": 214,
+          "mean": 31.146664496633075,
+          "p50_type1": 4.987169057130814,
+          "p95_type1": 125.81041920930147
+        },
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 768.0210382611258,
+          "p50_type1": 546.4818314649165,
+          "p95_type1": 1958.1775260157883
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 16.537580251253008,
+          "p50_type1": 13.968795702299651,
+          "p95_type1": 30.454847030341625
+        },
+        "decode_excess_ms": {
+          "count": 4000,
+          "mean": 5.354725134147763,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 4000,
+          "mean": 52.33576770708896,
+          "p50_type1": 0.0,
+          "p95_type1": 226.941732224077
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 4000,
+          "mean": 6.393670909805223,
+          "p50_type1": 0.0,
+          "p95_type1": 41.67609801515937
+        },
+        "file_overlap_decode_ms": {
+          "count": 4000,
+          "mean": 81.30161544925068,
+          "p50_type1": 40.27285426855087,
+          "p95_type1": 304.9127561971545
+        }
+      }
+    },
+    {
+      "label": "ttft_fail",
+      "n": 182,
+      "joint_pass": 0,
+      "ingress_overlapping_requests": 23,
+      "submitted_during_file_observation": 23,
+      "ingress_total_ms": 68531.93536447361,
+      "ingress_file_intersection_total_ms": 13061.454499140382,
+      "ingress_intersection_fraction": 0.19058931328402745,
+      "decode_overlaps_prefill": 73,
+      "decode_overlaps_demand_load": 47,
+      "decode_overlaps_file_observation": 99,
+      "metrics": {
+        "ingress_ms": {
+          "count": 182,
+          "mean": 376.5490954091957,
+          "p50_type1": 34.30885309353471,
+          "p95_type1": 1356.7905751988292
+        },
+        "file_overlap_ingress_ms": {
+          "count": 182,
+          "mean": 71.76623351176033,
+          "p50_type1": 0,
+          "p95_type1": 827.4953309446573
+        },
+        "receive_after_current_observation_ms": {
+          "count": 23,
+          "mean": 82.97296941442335,
+          "p50_type1": 8.791754022240639,
+          "p95_type1": 260.3552099317312
+        },
+        "ttft_ms": {
+          "count": 182,
+          "mean": 2530.065256810573,
+          "p50_type1": 2439.005358610302,
+          "p95_type1": 4153.265407774597
+        },
+        "tpot_ms": {
+          "count": 182,
+          "mean": 17.539914565112998,
+          "p50_type1": 14.209206846743067,
+          "p95_type1": 32.20163634978235
+        },
+        "decode_excess_ms": {
+          "count": 182,
+          "mean": 14.71211425720984,
+          "p50_type1": 0,
+          "p95_type1": 30.279714556286535
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 182,
+          "mean": 56.54873868071853,
+          "p50_type1": 0.0,
+          "p95_type1": 224.4677934795618
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 182,
+          "mean": 7.130677568736476,
+          "p50_type1": 0.0,
+          "p95_type1": 39.94559869170189
+        },
+        "file_overlap_decode_ms": {
+          "count": 182,
+          "mean": 67.62482529342338,
+          "p50_type1": 34.091006964445114,
+          "p95_type1": 174.90418069064617
+        }
+      }
+    },
+    {
+      "label": "ttft_fail_local_tier",
+      "n": 106,
+      "joint_pass": 0,
+      "ingress_overlapping_requests": 19,
+      "submitted_during_file_observation": 19,
+      "ingress_total_ms": 56470.23685509339,
+      "ingress_file_intersection_total_ms": 10531.725225038826,
+      "ingress_intersection_fraction": 0.18650046133264814,
+      "decode_overlaps_prefill": 46,
+      "decode_overlaps_demand_load": 27,
+      "decode_overlaps_file_observation": 51,
+      "metrics": {
+        "ingress_ms": {
+          "count": 106,
+          "mean": 532.7380835386169,
+          "p50_type1": 297.0889857970178,
+          "p95_type1": 1450.4945809021592
+        },
+        "file_overlap_ingress_ms": {
+          "count": 106,
+          "mean": 99.35589834942289,
+          "p50_type1": 0,
+          "p95_type1": 995.2903101220727
+        },
+        "receive_after_current_observation_ms": {
+          "count": 19,
+          "mean": 92.25728632392068,
+          "p50_type1": 8.791754022240639,
+          "p95_type1": 1090.267198625952
+        },
+        "ttft_ms": {
+          "count": 106,
+          "mean": 2072.3679183393647,
+          "p50_type1": 1842.4557130783796,
+          "p95_type1": 3057.8359230421484
+        },
+        "tpot_ms": {
+          "count": 106,
+          "mean": 18.309169420588592,
+          "p50_type1": 14.70353647445639,
+          "p95_type1": 33.0608217381709
+        },
+        "decode_excess_ms": {
+          "count": 106,
+          "mean": 20.374583776417854,
+          "p50_type1": 0,
+          "p95_type1": 125.68155058543425
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 106,
+          "mean": 60.99503924455142,
+          "p50_type1": 0.0,
+          "p95_type1": 240.72142131626606
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 106,
+          "mean": 7.750525719152306,
+          "p50_type1": 0.0,
+          "p95_type1": 45.04056088626385
+        },
+        "file_overlap_decode_ms": {
+          "count": 106,
+          "mean": 61.289657236797346,
+          "p50_type1": 0,
+          "p95_type1": 154.2784976772964
+        }
+      }
+    },
+    {
+      "label": "tpot_fail",
+      "n": 131,
+      "joint_pass": 0,
+      "ingress_overlapping_requests": 4,
+      "submitted_during_file_observation": 3,
+      "ingress_total_ms": 15476.999871432781,
+      "ingress_file_intersection_total_ms": 1261.2544745206833,
+      "ingress_intersection_fraction": 0.08149218097809048,
+      "decode_overlaps_prefill": 67,
+      "decode_overlaps_demand_load": 44,
+      "decode_overlaps_file_observation": 40,
+      "metrics": {
+        "ingress_ms": {
+          "count": 131,
+          "mean": 118.14503718650978,
+          "p50_type1": 1.0198201052844524,
+          "p95_type1": 900.350437965244
+        },
+        "file_overlap_ingress_ms": {
+          "count": 131,
+          "mean": 9.627896752066285,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "receive_after_current_observation_ms": {
+          "count": 3,
+          "mean": 7.065811815361182,
+          "p50_type1": 8.405483327805996,
+          "p95_type1": 8.791754022240639
+        },
+        "ttft_ms": {
+          "count": 131,
+          "mean": 1139.3593538282369,
+          "p50_type1": 985.9510553069413,
+          "p95_type1": 2283.412997610867
+        },
+        "tpot_ms": {
+          "count": 131,
+          "mean": 49.36745569420521,
+          "p50_type1": 44.778438684131416,
+          "p95_type1": 81.70188709886537
+        },
+        "decode_excess_ms": {
+          "count": 131,
+          "mean": 163.50305753122942,
+          "p50_type1": 97.4890595447514,
+          "p95_type1": 540.6245731894251
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 131,
+          "mean": 79.02663311999262,
+          "p50_type1": 16.83401269838214,
+          "p95_type1": 268.3633887208998
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 131,
+          "mean": 14.760533976901806,
+          "p50_type1": 0.0,
+          "p95_type1": 67.23835924640298
+        },
+        "file_overlap_decode_ms": {
+          "count": 131,
+          "mean": 20.36732636065087,
+          "p50_type1": 0,
+          "p95_type1": 78.34208616986871
+        }
+      }
+    },
+    {
+      "label": "tpot_only_fail",
+      "n": 118,
+      "joint_pass": 0,
+      "ingress_overlapping_requests": 3,
+      "submitted_during_file_observation": 2,
+      "ingress_total_ms": 7818.1876498274505,
+      "ingress_file_intersection_total_ms": 955.0776826217771,
+      "ingress_intersection_fraction": 0.1221610078191019,
+      "decode_overlaps_prefill": 60,
+      "decode_overlaps_demand_load": 39,
+      "decode_overlaps_file_observation": 36,
+      "metrics": {
+        "ingress_ms": {
+          "count": 118,
+          "mean": 66.2558275409106,
+          "p50_type1": 0.9455480612814426,
+          "p95_type1": 677.2700888104737
+        },
+        "file_overlap_ingress_ms": {
+          "count": 118,
+          "mean": 8.093878666286246,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "receive_after_current_observation_ms": {
+          "count": 2,
+          "mean": 6.2028407119214535,
+          "p50_type1": 4.000198096036911,
+          "p95_type1": 8.405483327805996
+        },
+        "ttft_ms": {
+          "count": 118,
+          "mean": 1010.0392927060503,
+          "p50_type1": 900.4701264202595,
+          "p95_type1": 2129.9541061744094
+        },
+        "tpot_ms": {
+          "count": 118,
+          "mean": 49.55193774626824,
+          "p50_type1": 45.24831127907549,
+          "p95_type1": 80.19091160967946
+        },
+        "decode_excess_ms": {
+          "count": 118,
+          "mean": 158.82454018456662,
+          "p50_type1": 93.10298857744885,
+          "p95_type1": 599.9496166274214
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 118,
+          "mean": 78.90527500865697,
+          "p50_type1": 15.032847877591848,
+          "p95_type1": 287.93925140053034
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 118,
+          "mean": 14.133473353113159,
+          "p50_type1": 0.0,
+          "p95_type1": 64.10529278218746
+        },
+        "file_overlap_decode_ms": {
+          "count": 118,
+          "mean": 20.712751401904022,
+          "p50_type1": 0,
+          "p95_type1": 86.57653443515301
+        }
+      }
+    },
+    {
+      "label": "short_tpot_pass",
+      "n": 1416,
+      "joint_pass": 1379,
+      "ingress_overlapping_requests": 70,
+      "submitted_during_file_observation": 67,
+      "ingress_total_ms": 112291.1337018013,
+      "ingress_file_intersection_total_ms": 13502.599913161248,
+      "ingress_intersection_fraction": 0.1202463584437446,
+      "decode_overlaps_prefill": 291,
+      "decode_overlaps_demand_load": 118,
+      "decode_overlaps_file_observation": 244,
+      "metrics": {
+        "ingress_ms": {
+          "count": 1416,
+          "mean": 79.30164809449245,
+          "p50_type1": 1.1833719909191132,
+          "p95_type1": 601.8095752224326
+        },
+        "file_overlap_ingress_ms": {
+          "count": 1416,
+          "mean": 9.535734401950034,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "receive_after_current_observation_ms": {
+          "count": 67,
+          "mean": 16.64839337454803,
+          "p50_type1": 4.5242467895150185,
+          "p95_type1": 68.94110608845949
+        },
+        "ttft_ms": {
+          "count": 1416,
+          "mean": 738.4838901741672,
+          "p50_type1": 544.3200506269932,
+          "p95_type1": 1852.4614595808089
+        },
+        "tpot_ms": {
+          "count": 1416,
+          "mean": 15.953629218979074,
+          "p50_type1": 12.801069248881605,
+          "p95_type1": 30.11959872674197
+        },
+        "decode_excess_ms": {
+          "count": 1416,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1416,
+          "mean": 23.417211196577377,
+          "p50_type1": 0.0,
+          "p95_type1": 115.73309125378728
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1416,
+          "mean": 2.0537775080245892,
+          "p50_type1": 0.0,
+          "p95_type1": 16.489573754370213
+        },
+        "file_overlap_decode_ms": {
+          "count": 1416,
+          "mean": 13.259886658755736,
+          "p50_type1": 0,
+          "p95_type1": 63.11269709840417
+        }
+      }
+    },
+    {
+      "label": "short_tpot_fail",
+      "n": 123,
+      "joint_pass": 0,
+      "ingress_overlapping_requests": 4,
+      "submitted_during_file_observation": 3,
+      "ingress_total_ms": 13026.49104455486,
+      "ingress_file_intersection_total_ms": 1261.2544745206833,
+      "ingress_intersection_fraction": 0.0968222731821471,
+      "decode_overlaps_prefill": 61,
+      "decode_overlaps_demand_load": 40,
+      "decode_overlaps_file_observation": 33,
+      "metrics": {
+        "ingress_ms": {
+          "count": 123,
+          "mean": 105.90643125654357,
+          "p50_type1": 1.0198201052844524,
+          "p95_type1": 864.1473352909088
+        },
+        "file_overlap_ingress_ms": {
+          "count": 123,
+          "mean": 10.254101418867343,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "receive_after_current_observation_ms": {
+          "count": 3,
+          "mean": 7.065811815361182,
+          "p50_type1": 8.405483327805996,
+          "p95_type1": 8.791754022240639
+        },
+        "ttft_ms": {
+          "count": 123,
+          "mean": 1131.6281857870035,
+          "p50_type1": 985.9510553069413,
+          "p95_type1": 2184.1909582726657
+        },
+        "tpot_ms": {
+          "count": 123,
+          "mean": 50.28332700651191,
+          "p50_type1": 45.26219889521599,
+          "p95_type1": 81.70188709886537
+        },
+        "decode_excess_ms": {
+          "count": 123,
+          "mean": 154.68116467092338,
+          "p50_type1": 93.10298857744885,
+          "p95_type1": 517.8989145118985
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 123,
+          "mean": 76.7336849887984,
+          "p50_type1": 0.0,
+          "p95_type1": 268.3633887208998
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 123,
+          "mean": 13.984757149970628,
+          "p50_type1": 0.0,
+          "p95_type1": 64.02942258864641
+        },
+        "file_overlap_decode_ms": {
+          "count": 123,
+          "mean": 18.182342762233525,
+          "p50_type1": 0,
+          "p95_type1": 76.55960507690907
+        }
+      }
+    }
+  ],
+  "file_rounds": 1629,
+  "file_wall_time_ms": 197113.6801210232,
+  "limitations": [
+    "Temporal intersections are not causal savings or a counterfactual SLO.",
+    "Summed per-request overlaps can count one wall-time interval for several requests.",
+    "The file observation envelope includes lock waiting and all synchronous work; CPU and subcall times are not observed.",
+    "Controller file observations do not directly measure native-core utility or CUDA stalls.",
+    "Same-owner prefill/demand-load spans are existing request receipts, not an exhaustive native-control journal.",
+    "No repeated-run inference, new workload or numerical correctness evidence."
+  ]
+}

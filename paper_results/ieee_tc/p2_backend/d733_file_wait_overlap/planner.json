@@ -1,0 +1,138 @@
+{
+  "kind": "d733_planner_existing_interval_partition_v1",
+  "passed": true,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+    "bytes": 1097243997
+  },
+  "script_sha256": "76e81ba80fb4dc70c172055263f0c2c85d0b165d6c552cc650d9a83d90715ade",
+  "scope": {
+    "unit": "primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+    "invocation_id": "89d7b170050048609d89db14ce440021",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+    "inode": 30414513
+  },
+  "events": 3884,
+  "groups": [
+    {
+      "operation": "initialized_gpu_objective",
+      "n": 1,
+      "states": {
+        "completed": 1
+      },
+      "metrics": {
+        "parent_freeze_ms": {
+          "count": 1,
+          "mean": 13.272484764456749,
+          "p50_type1": 13.272484764456749,
+          "p95_type1": 13.272484764456749,
+          "total": 13.272484764456749
+        },
+        "async_wait_for_planner_ms": {
+          "count": 1,
+          "mean": 0.01140683889389038,
+          "p50_type1": 0.01140683889389038,
+          "p95_type1": 0.01140683889389038,
+          "total": 0.01140683889389038
+        },
+        "child_dispatch_ms": {
+          "count": 1,
+          "mean": 3.785196226090193,
+          "p50_type1": 3.785196226090193,
+          "p95_type1": 3.785196226090193,
+          "total": 3.785196226090193
+        },
+        "child_elapsed_ms": {
+          "count": 1,
+          "mean": 32.82430116087198,
+          "p50_type1": 32.82430116087198,
+          "p95_type1": 32.82430116087198,
+          "total": 32.82430116087198
+        },
+        "child_finish_to_parent_join_ms": {
+          "count": 1,
+          "mean": 4.547124728560448,
+          "p50_type1": 4.547124728560448,
+          "p95_type1": 4.547124728560448,
+          "total": 4.547124728560448
+        },
+        "input_bytes": {
+          "count": 1,
+          "mean": 952099,
+          "p50_type1": 952099,
+          "p95_type1": 952099,
+          "total": 952099
+        },
+        "output_bytes": {
+          "count": 1,
+          "mean": 236371,
+          "p50_type1": 236371,
+          "p95_type1": 236371,
+          "total": 236371
+        }
+      }
+    },
+    {
+      "operation": "owned_execution_epoch",
+      "n": 3883,
+      "states": {
+        "completed": 3883
+      },
+      "metrics": {
+        "parent_freeze_ms": {
+          "count": 3883,
+          "mean": 10.074493709947802,
+          "p50_type1": 9.732969105243683,
+          "p95_type1": 13.13911797478795,
+          "total": 39119.259075727314
+        },
+        "async_wait_for_planner_ms": {
+          "count": 3883,
+          "mean": 265.16129317190456,
+          "p50_type1": 172.08079900592566,
+          "p95_type1": 900.1234257593751,
+          "total": 1029621.3013865054
+        },
+        "child_dispatch_ms": {
+          "count": 3883,
+          "mean": 17.925561197172104,
+          "p50_type1": 6.595631130039692,
+          "p95_type1": 22.732806857675314,
+          "total": 69604.95412861928
+        },
+        "child_elapsed_ms": {
+          "count": 3883,
+          "mean": 251.83340500605618,
+          "p50_type1": 192.15465104207397,
+          "p95_type1": 561.6397601552308,
+          "total": 977869.1116385162
+        },
+        "child_finish_to_parent_join_ms": {
+          "count": 3883,
+          "mean": 54.33374193686241,
+          "p50_type1": 7.994426880031824,
+          "p95_type1": 230.87659804150462,
+          "total": 210977.91994083673
+        },
+        "input_bytes": {
+          "count": 3883,
+          "mean": 798647.5848570693,
+          "p50_type1": 807321,
+          "p95_type1": 829185,
+          "total": 3101148572
+        },
+        "output_bytes": {
+          "count": 3883,
+          "mean": 1406954.7939737316,
+          "p50_type1": 1422674,
+          "p95_type1": 1476258,
+          "total": 5463205465
+        }
+      }
+    }
+  ],
+  "new_gpu_replays": 0,
+  "production_changes": false,
+  "limitation": "Only parent capture-to-detach is synchronous input serialization. Queue wait, child work and return delay are not controller CPU. There is no independent parent execution-bundle decode span."
+}

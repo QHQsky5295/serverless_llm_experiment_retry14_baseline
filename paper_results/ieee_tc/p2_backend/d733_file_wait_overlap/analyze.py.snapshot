@@ -1,0 +1,194 @@
+"""D733: join retained D732 file-observation and request time intervals.
+
+Reuse D730/D732 streaming analysis, timing_stats, source identities and bounded
+resource receipts. No new replay, no modified results, no counterfactual SLO.
+"""
+import bisect
+import collections
+import csv
+import json
+import math
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d733_file_wait_overlap'
+BASE = ROOT/'paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+
+def table(path):
+    with path.open(newline='') as f:
+        return {r['request_id']: r for r in csv.DictReader(f)}
+
+
+assert not OUT.exists()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'identity.json', scope)
+prior = read(BASE/'diagnosis/diagnosis.json')
+assert prior['passed'] and prior['new_gpu_replays'] == 0
+refs = {Path(x['path']).name: x for x in prior['sources']}
+for name in ('main_outcome.json', 'requests.csv', '20261017_3b_slo_d648_frozen.json'):
+    assert p.digest(Path(refs[name]['path'])) == refs[name]['sha256']
+outcome = Path(refs['main_outcome.json']['path'])
+result_ref = next(x for x in prior['sources'] if Path(x['path']).name.startswith('experiment_results_full'))
+result = Path(result_ref['path'])
+assert p.digest(result) == result_ref['sha256']
+stages = table(BASE/'completion/stages/requests.csv')
+clock_id = read(BASE/'completion/stages/diagnosis.json')['clock_id']
+freeze = read(Path(refs['20261017_3b_slo_d648_frozen.json']['path']))
+
+rounds = {}
+with outcome.open('rb') as f:
+    for e in ijson.items(f, 'mechanism_events._ieee_residency_epochs.item', use_float=True):
+        o = e['shared_file_observation']
+        previous = rounds.setdefault(o['round_id'], o)
+        assert previous == o
+assert len(rounds) == prior['shared_file_rounds']['file_observation_calls'] == 1629
+windows = sorted((o['started_at'], o['started_at']+o['elapsed_ms']/1000, o['round_id'])
+                 for o in rounds.values())
+assert all(a <= b for a, b, _ in windows)
+assert all(windows[i][1] <= windows[i+1][0] for i in range(len(windows)-1))
+ends = [w[1] for w in windows]
+
+
+def overlap(start, end):
+    assert math.isfinite(start) and math.isfinite(end) and start <= end
+    selected = []
+    index = bisect.bisect_right(ends, start)
+    while index < len(windows) and windows[index][0] < end:
+        a, b, key = windows[index]
+        amount = min(end, b)-max(start, a)
+        if amount > 0:
+            selected.append((key, amount))
+        index += 1
+    return sum(amount for _, amount in selected)*1000, len(selected)
+
+
+# Tiny interval witnesses validate union/intersection edges without a workload replay.
+a, b, _ = windows[0]
+assert overlap(a, b)[1] == 1 and abs(overlap(a, b)[0]-(b-a)*1000) < 1e-7
+assert overlap(a, a) == (0, 0) and overlap(b, b) == (0, 0)
+rows = []
+with result.open('rb') as f:
+    for request in ijson.items(f, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        r = stages[request['request_id']]
+        ext, native = request['external_arrival_timing'], request['native_token_timing']
+        assert native['native_clock_id'] == clock_id
+        arrival, submitted, received = (ext[k] for k in
+            ('planned_arrival_s', 'client_submit_s', 'server_received_s'))
+        first, last = (float(r[k]) for k in ('first', 'last'))
+        assert first == native['native_first_token_monotonic_s']
+        assert last == native['native_last_token_monotonic_s']
+        assert arrival <= submitted <= received <= first <= last
+        ingress_overlap, count = overlap(submitted, received)
+        ttft_overlap, _ = overlap(arrival, first)
+        decode_overlap, _ = overlap(first, last)
+        ingress_ms = (received-submitted)*1000
+        assert 0 <= ingress_overlap <= ingress_ms+1e-6
+        n, prompt = int(r['output_tokens']), int(r['prompt_tokens'])
+        group = next(g for g in freeze['groups'] if
+            (g['lower_exclusive'] is None or prompt > g['lower_exclusive']) and
+            (g['upper_inclusive'] is None or prompt <= g['upper_inclusive']))
+        tp = float(r['tpot_ms'])
+        if n >= 2:
+            assert abs(tp-(last-first)*1000/(n-1)) < 1
+        index = bisect.bisect_right(ends, submitted)
+        during = index < len(windows) and windows[index][0] <= submitted < windows[index][1]
+        tail = (received-windows[index][1])*1000 if during else None
+        # Receiving on the blocked controller cannot precede the observation's
+        # return. This is a same-thread consistency check, not a speedup claim.
+        if during:
+            assert tail >= -1e-6
+        rows.append(dict(request_id=request['request_id'], ordinal=int(r['ordinal']),
+            tier=r['tier'], output_bin=r['output_bin'], output_tokens=n, prompt_tokens=prompt,
+            ttft_pass=r['ttft_pass']=='True', tpot_pass=r['tpot_pass']=='True',
+            joint_pass=r['joint_pass']=='True',
+            ttft_ms=float(r['ttft_ms']), tpot_ms=tp,
+            ingress_ms=ingress_ms, file_overlap_ingress_ms=ingress_overlap,
+            file_overlap_count=count, submit_during_file_observation=during,
+            receive_after_current_observation_ms=tail,
+            file_overlap_ttft_ms=ttft_overlap, file_overlap_decode_ms=decode_overlap,
+            decode_ms=(last-first)*1000,
+            decode_excess_ms=max(0, (last-first)*1000-group['tpot_ms']*(n-1)) if n >= 2 else None,
+            peer_prefill_overlap_ms=float(r['peer_prefill_overlap_ms']),
+            peer_prefill_count=int(r['peer_prefill_count']),
+            peer_demand_load_overlap_ms=float(r['peer_demand_load_overlap_ms']),
+            peer_demand_load_count=int(r['peer_demand_load_count'])))
+assert len(rows) == len(stages) == len({r['request_id'] for r in rows}) == 4000
+assert sum(r['joint_pass'] for r in rows) == 3700
+groups = []
+selections = {'all': rows,
+    'ttft_fail': [r for r in rows if not r['ttft_pass']],
+    'ttft_fail_local_tier': [r for r in rows if not r['ttft_pass'] and r['tier']!='remote'],
+    'tpot_fail': [r for r in rows if not r['tpot_pass']],
+    'tpot_only_fail': [r for r in rows if r['ttft_pass'] and not r['tpot_pass']],
+    'short_tpot_pass': [r for r in rows if 2 <= r['output_tokens'] <= 64 and r['tpot_pass']],
+    'short_tpot_fail': [r for r in rows if 2 <= r['output_tokens'] <= 64 and not r['tpot_pass']]}
+for label, selected in selections.items():
+    total_ingress = sum(r['ingress_ms'] for r in selected)
+    ingress_intersection = sum(r['file_overlap_ingress_ms'] for r in selected)
+    groups.append(dict(label=label, n=len(selected),
+        joint_pass=sum(r['joint_pass'] for r in selected),
+        ingress_overlapping_requests=sum(r['file_overlap_count']>0 for r in selected),
+        submitted_during_file_observation=sum(r['submit_during_file_observation'] for r in selected),
+        ingress_total_ms=total_ingress,
+        ingress_file_intersection_total_ms=ingress_intersection,
+        ingress_intersection_fraction=ingress_intersection/total_ingress if total_ingress else None,
+        decode_overlaps_prefill=sum(r['peer_prefill_count']>0 for r in selected),
+        decode_overlaps_demand_load=sum(r['peer_demand_load_count']>0 for r in selected),
+        decode_overlaps_file_observation=sum(r['file_overlap_decode_ms']>0 for r in selected),
+        metrics={key: timing_stats([r[key] for r in selected if r[key] is not None]) for key in
+            ('ingress_ms', 'file_overlap_ingress_ms', 'receive_after_current_observation_ms',
+             'ttft_ms', 'tpot_ms', 'decode_excess_ms', 'peer_prefill_overlap_ms',
+             'peer_demand_load_overlap_ms', 'file_overlap_decode_ms')}))
+OUT.mkdir(parents=True)
+with (OUT/'requests.csv').open('x', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator='\n')
+    writer.writeheader()
+    writer.writerows(rows)
+source_paths = [Path(__file__), BASE/'diagnosis/diagnosis.json',
+    BASE/'completion/stages/diagnosis.json', BASE/'completion/stages/requests.csv', outcome, result,
+    Path(refs['20261017_3b_slo_d648_frozen.json']['path']),
+    ROOT/'scripts/run_all_experiments.py', ROOT/'faaslora/memory/residency_manager.py']
+save(OUT/'diagnosis.json', dict(kind='d733_observed_file_wait_overlap_v1', passed=True,
+    new_gpu_replays=0, production_changes=False, metric_changes=False,
+    n_correct=None, ranking_eligible=False, confidence_interval=None, scope=scope,
+    sources=[ref(x) for x in source_paths], groups=groups,
+    file_rounds=len(windows), file_wall_time_ms=sum((b-a)*1000 for a,b,_ in windows),
+    limitations=[
+        'Temporal intersections are not causal savings or a counterfactual SLO.',
+        'Summed per-request overlaps can count one wall-time interval for several requests.',
+        'The file observation envelope includes lock waiting and all synchronous work; CPU and subcall times are not observed.',
+        'Controller file observations do not directly measure native-core utility or CUDA stalls.',
+        'Same-owner prefill/demand-load spans are existing request receipts, not an exhaustive native-control journal.',
+        'No repeated-run inference, new workload or numerical correctness evidence.']))
+with (OUT/'analyze.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+cg = p.cg_path()
+save(OUT/'resources.json', dict(scope=scope, peak_bytes=int((cg/'memory.peak').read_text()),
+    events=(cg/'memory.events').read_text(), swap_bytes=int((cg/'memory.swap.current').read_text())))
+files = [ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]
+save(OUT/'manifest.json', dict(kind='d733_derived_evidence_v1', files=files))
+print(json.dumps(dict(passed=True, groups=groups, file_rounds=len(windows)), indent=2))

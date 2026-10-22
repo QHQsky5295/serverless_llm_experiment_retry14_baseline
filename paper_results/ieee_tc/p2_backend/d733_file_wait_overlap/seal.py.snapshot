@@ -1,0 +1,67 @@
+"""Reuse exact-scope closure/protected-file checks and explicit-path backup."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d733_file_wait_overlap'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f: json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def call(args): return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+def ref(path): return dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path),bytes=path.stat().st_size)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'seal_identity.json',own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+for item in read(OUT/'manifest.json')['files']:
+    assert p.digest(Path(item['path']))==item['sha256']
+assert read(OUT/'diagnosis.json')['passed'] and read(OUT/'planner.json')['passed']
+q=read(ROOT/'paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/qualification.json')
+for path,sha in q['protected'].items(): assert p.digest(Path(path))==sha,path
+closures=[]
+for name in ('identity.json','planner_identity.json'):
+    ident=read(RAW/name)
+    path=Path(ident['path'])
+    if path.exists():
+        assert p.scope_still_owned(ident) and not p.owned_pids(path)
+        result=p.stop_scope_identity(ident,grace_seconds=0)
+        assert result['released'] and not result['targets']
+    else: result=dict(already_removed=True,released=True)
+    closures.append(dict(identity=ident,result=result))
+for name in ('analyze.py','planner.py'):
+    path=RAW/name
+    ast.parse(path.read_text())
+    assert p.digest(path)==p.digest(OUT/(name+'.snapshot'))
+ast.parse(Path(__file__).read_text())
+save(OUT/'closure.json',dict(kind='d733_closure_v1',passed=True,closures=closures,
+    protected_files=len(q['protected']),user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json'),
+    inference_sources_changed=False,new_gpu_replays=0,
+    analyzer_resources=[read(OUT/name) for name in ('resources.json','planner_resources.json')],
+    plan_sha256=p.digest(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')),
+    disk_free_bytes=p.shutil.disk_usage(ROOT).free))
+with (OUT/'seal.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+members=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]
+save(OUT/'final_manifest.json',dict(kind='d733_final_manifest_v1',files=members))
+paths=['docs/ieee_tc/D733_FILE_WAIT_AND_PLANNER_INTERVALS_20261022.md','docs/ieee_tc/EXECUTION_STATUS.md']
+paths += [str(x.relative_to(ROOT)) for x in sorted(OUT.iterdir()) if x.is_file()]
+assert not call(['git','diff','--cached','--name-only'])
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths: assert not pattern.search((ROOT/path).read_text()),path
+call(['git','diff','--check','--',*paths])
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: quantify D732 file-observation overlap and planner boundaries (D733)'])
+head=call(['git','rev-parse','HEAD']);branch='refs/heads/backup/d733-overlap-20261022'
+save(RAW/'commit.json',dict(head=head,ref=branch,files=paths,scope=own))
+call(['git','push','faaslora_origin','HEAD:'+branch])
+assert call(['git','ls-remote','faaslora_origin',branch]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=branch,files=paths,v2_synchronized=False))
+print(json.dumps(dict(passed=True,head=head,ref=branch,files=len(paths))))

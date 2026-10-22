@@ -1,0 +1,58 @@
+"""Reuse closed D732 planner receipts; isolate parent freeze from child work."""
+import collections
+import json
+import os
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d733_file_wait_overlap'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'planner_identity.json', identity)
+prior = json.loads((OUT/'diagnosis.json').read_text())
+source = next(x for x in prior['sources'] if Path(x['path']).name=='main_outcome.json')
+path = Path(source['path'])
+assert p.digest(path) == source['sha256']
+with path.open('rb') as f:
+    events = list(ijson.items(f, 'planning_cpu_events.item', use_float=True))
+assert events
+groups = []
+for operation in sorted({e['operation'] for e in events}):
+    rows = [e for e in events if e['operation']==operation]
+    metrics = collections.defaultdict(list)
+    for e in rows:
+        for key, a, b in (
+            ('parent_freeze_ms', 'captured_monotonic_s', 'detached_monotonic_s'),
+            ('async_wait_for_planner_ms', 'detached_monotonic_s', 'submitted_monotonic_s'),
+            ('child_dispatch_ms', 'submitted_monotonic_s', 'worker_started_monotonic_s'),
+            ('child_elapsed_ms', 'worker_started_monotonic_s', 'worker_finished_monotonic_s'),
+            ('child_finish_to_parent_join_ms', 'worker_finished_monotonic_s', 'joined_monotonic_s')):
+            assert e[b] >= e[a]
+            metrics[key].append((e[b]-e[a])*1000)
+        metrics['input_bytes'].append(e['input_bytes'])
+        metrics['output_bytes'].append(e['output_bytes'])
+    groups.append(dict(operation=operation, n=len(rows),
+        states=dict(collections.Counter(e['state'] for e in rows)),
+        metrics={key:dict(timing_stats(values), total=sum(values)) for key,values in metrics.items()}))
+save(OUT/'planner.json', dict(kind='d733_planner_existing_interval_partition_v1', passed=True,
+    source=source, script_sha256=p.digest(Path(__file__)), scope=identity,
+    events=len(events), groups=groups, new_gpu_replays=0, production_changes=False,
+    limitation='Only parent capture-to-detach is synchronous input serialization. Queue wait, child work and return delay are not controller CPU. There is no independent parent execution-bundle decode span.'))
+with (OUT/'planner.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+cg=p.cg_path()
+save(OUT/'planner_resources.json',dict(scope=identity,peak_bytes=int((cg/'memory.peak').read_text()),
+    events=(cg/'memory.events').read_text(),swap_bytes=int((cg/'memory.swap.current').read_text())))
+print(json.dumps(dict(passed=True, groups=groups),indent=2))

@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D733离线区间核对完成：不把文件观察当作主要剩余原因
+
+PROGRESS。先读完整PLAN，复用D732全4000、1629轮文件观察与3884条规划
+回执，不新增推理、生产改动或图。提交→接收与文件观察交集占累计等待
+18.989%，覆盖224请求；182条TTFT违约仅23条在这段等待中与其重叠。
+131条TPOT违约仅40条decode与文件观察重叠；prefill/load关联另报，不作因果
+扣减。3883条owned规划输入冻结mean10.074ms/P95 13.139ms；child工作已有
+独立进程，finish→parent join54.334ms并非纯IPC/解码。原3B92.500%不改，
+独立数值资格未知，未接受最终G1点。
+
+file owner的多条controller同步路径共享RLock，只外移一个调用不足；但当前
+证据也不支持立刻大改整个owner。暂不实施全owner异步化/文件表示小补丁。
+下一有界诊断复用现有controller栈采样器，只跑当前D732配置原1000前缀一次，
+定位未覆盖接收/返回等待；D456/D603为旧7B，D684只有native spans，不重复
+HOST profiling或已关闭局部优化。新的诊断尚未启动，不称性能结果。
+
+两次离线分析均已完成；精确scope关闭、protected检查与备份由D733 closure
+回执记录。前轮最终说明98760405611ccc8172488d89bbf8bc568dd99806已远端核验。
+不操作远端/共享k3s、不删历史/用户修改；3B后续、7B最终一致性、baseline/
+dLoRA、A1–A5、S1–S13、CE/审稿文档/最终图表全部范围不减，goal active。
+详见D733_FILE_WAIT_AND_PLANNER_INTERVALS_20261022.md。
+
 ## 2026-10-22 20:40 D732完整结束：92.500%，未达95%，已分析与释放
 
 PROGRESS。核验等待至同一4000请求全部完成；零失败，原生生成/绑定/计时与

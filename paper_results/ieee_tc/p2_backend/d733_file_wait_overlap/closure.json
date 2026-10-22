@@ -1,0 +1,62 @@
+{
+  "kind": "d733_closure_v1",
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+        "invocation_id": "16af9e147a2845d4bb6ac3ba4f851fdc",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+        "inode": 30412891
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+        "invocation_id": "89d7b170050048609d89db14ce440021",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+        "inode": 30414513
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "protected_files": 145,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "inference_sources_changed": false,
+  "new_gpu_replays": 0,
+  "analyzer_resources": [
+    {
+      "scope": {
+        "unit": "primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+        "invocation_id": "16af9e147a2845d4bb6ac3ba4f851fdc",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733a22246e4454bac37d6d48fa88405.scope",
+        "inode": 30412891
+      },
+      "peak_bytes": 47456256,
+      "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "swap_bytes": 0
+    },
+    {
+      "scope": {
+        "unit": "primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+        "invocation_id": "89d7b170050048609d89db14ce440021",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d733b34cb7844790b4f2a3f38fa88406.scope",
+        "inode": 30414513
+      },
+      "peak_bytes": 49750016,
+      "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "swap_bytes": 0
+    }
+  ],
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "disk_free_bytes": 168646074368
+}
