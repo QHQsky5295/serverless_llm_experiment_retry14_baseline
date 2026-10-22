@@ -28,6 +28,13 @@ GPU pending→acquired97.260971ms接近原值。TTFT不通过182中本地tier106
 先备份本轮明确文件，V2不force。全部3B后续、7B最终一致性、baseline/dLoRA、
 A1–A5、S1–S13、CE/审稿文档/图表仍未完成且范围不减，goal active。
 
+D732数据/分析/解释19个明确文件已提交8f3c783b029ed1e6c6f0288f2334ce4b920238ae，
+推送并ls-remote核验faaslora_origin/backup/d732-complete-20261022；V2未force。
+备份辅助空scope也已按InvocationID/inode/空PID集关闭，当前无GPU计算任务。
+备份前远端monitor下载SHA与停止回执一致；用户manifest未stage。剩余磁盘
+168659869696B（约157GiB）；详细回执在raw/d732_20261022/backup_completion.json
+及post_backup_release.json。未配置Feishu，不发送外部通知。
+
 ## 2026-10-22 19:42 D732核验等待；共享轮与阶段分析入口已准备
 
 上一轮分类VERIFIED_WAIT，本轮再次核对完整PLAN、V1/V2与实际tmux/service。

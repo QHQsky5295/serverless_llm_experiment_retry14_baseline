@@ -120,3 +120,8 @@ resource_sample，临时显示jq遇到null报错；不影响原监控或真实�
 原始结果与失败证据不覆盖、不新增权重或trace，无新图表。主产物为
 paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/{completion,diagnosis}/；
 原始运行SHA、实际profile和分解表随清单保存。后续检查点备份回执另存raw。
+
+完整结果检查点8f3c783b029ed1e6c6f0288f2334ce4b920238ae已推送并远端核验
+faaslora_origin/backup/d732-complete-20261022。V2无force推送，用户manifest
+未stage。备份后的空scope也已核验身份并释放；raw/backup_completion.json
+和post_backup_release.json记录此检查点及清理。不据完成备份宣称目标完成。
