@@ -620,7 +620,12 @@ def _resolve_vllm_safetensors_load(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
     factor is a safety invariant for a read-prefetch plus normal model load,
     not a performance parameter; all observations are recorded in the result.
     """
+    from faaslora.experiment.backbone_loader import validate_backbone_loader
+    policy = validate_backbone_loader(model_cfg)
     requested = model_cfg.get("safetensors_load_strategy")
+    if policy is not None:
+        return {"requested": requested, "resolved": None, "model_bytes": 0,
+                "mem_available_bytes": 0, "decision": policy}
     if requested is None:
         return {
             "requested": None,
@@ -3750,7 +3755,9 @@ class InferenceEngine:
                 if not isinstance(compilation, dict) or not compilation:
                     raise ValueError("compilation_config must be a nonempty native configuration mapping")
                 kwargs["compilation_config"] = copy.deepcopy(compilation)
-            safetensors_strategy = self.model_cfg.get(
+            from faaslora.experiment.backbone_loader import validate_backbone_loader
+            backbone_loader = validate_backbone_loader(self.model_cfg)
+            safetensors_strategy = None if backbone_loader else self.model_cfg.get(
                 "resolved_safetensors_load_strategy",
                 self.model_cfg.get("safetensors_load_strategy"),
             )
@@ -3765,6 +3772,13 @@ class InferenceEngine:
             if (self.model_cfg.get("ieee_worker_observation", False)
                     or self.model_cfg.get("ieee_gpu_references", False)):
                 kwargs["worker_extension_cls"] = "faaslora.memory.gpu_monitor.IEEEWorkerObservationExtension"
+            if backbone_loader is not None:
+                # Public loader registration is also needed in fresh native
+                # worker interpreters; the extension module performs it there.
+                from faaslora.experiment import vllm_bulk_loader  # noqa: F401
+                kwargs['load_format'] = backbone_loader
+                kwargs['worker_extension_cls'] = (
+                    'faaslora.experiment.vllm_bulk_loader.IEEEFastLoaderWorkerExtension')
             if self.model_cfg.get("ieee_scheduler_observation", False):
                 bounds = self.model_cfg["ieee_input_upper_bounds"]
                 if (not isinstance(bounds, (list, tuple)) or not bounds
@@ -26226,6 +26240,7 @@ async def _main_async_impl(
             "max_num_seqs": model_cfg.get("max_num_seqs"),
             "max_num_batched_tokens": model_cfg.get("max_num_batched_tokens"),
             "compilation_config": copy.deepcopy(model_cfg.get("compilation_config")),
+            "ieee_backbone_loader": model_cfg.get("ieee_backbone_loader"),
             "safetensors_load_strategy": model_cfg.get("safetensors_load_strategy"),
             "resolved_safetensors_load_strategy": model_cfg.get(
                 "resolved_safetensors_load_strategy"

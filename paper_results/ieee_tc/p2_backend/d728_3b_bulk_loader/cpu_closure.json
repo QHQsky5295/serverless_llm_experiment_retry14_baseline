@@ -1,0 +1,111 @@
+{
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-8eac1d25cf564ff2b381e24c42b00728.scope",
+        "invocation_id": "a92de7b77f044c208d982f717f8aeeba",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8eac1d25cf564ff2b381e24c42b00728.scope",
+        "inode": 30300236
+      },
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8eac1d25cf564ff2b381e24c42b00728.scope",
+        "memory.current": 790528,
+        "memory.peak": 766029824,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 13863777\nuser_usec 12256499\nsystem_usec 1607278\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-91ac1d25cf564ff2b381e24c42b00728.scope",
+        "invocation_id": "3686f32db46747c8a368b409a08e7a50",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-91ac1d25cf564ff2b381e24c42b00728.scope",
+        "inode": 30300752
+      },
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-91ac1d25cf564ff2b381e24c42b00728.scope",
+        "memory.current": 102400,
+        "memory.peak": 764346368,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 13615998\nuser_usec 12076564\nsystem_usec 1539434\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-a2ac1d25cf564ff2b381e24c42b00728.scope",
+        "invocation_id": "ec479d21bae649dfa1f89b77ada98702",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a2ac1d25cf564ff2b381e24c42b00728.scope",
+        "inode": 30301505
+      },
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a2ac1d25cf564ff2b381e24c42b00728.scope",
+        "memory.current": 385024,
+        "memory.peak": 720453632,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 13330718\nuser_usec 11762574\nsystem_usec 1568143\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "prior_fixture_failures": 2
+}

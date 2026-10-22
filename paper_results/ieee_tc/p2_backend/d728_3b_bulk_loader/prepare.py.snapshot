@@ -1,0 +1,56 @@
+"""D728 bounded CPU tests and immutable qualification input derivation."""
+import json, os, subprocess, sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+if len(sys.argv) == 2:
+    if sys.argv[1] not in ('attempt2', 'attempt3'):raise ValueError('unknown CPU qualification attempt')
+    RAW=RAW/sys.argv[1]
+    RAW.mkdir(exist_ok=False)
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d728_3b_bulk_loader'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,obj):
+    with path.open('x') as f:json.dump(obj,f,indent=2,allow_nan=False)
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json',identity)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'preflight.json',gate)
+assert gate['preflight_pass'],gate['issues']
+old=json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d726_3b_graph_full_w0/prelaunch/qualification.json').read_text())
+for name,sha in old['protected'].items():assert p.digest(Path(name))==sha,name
+assert len(old['protected'])==145
+python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+with (RAW/'tests.log').open('x') as log:
+    result=subprocess.run([python,'-B','-m','pytest','-q','tests/test_ieee_tc_backbone_loader.py',
+        'tests/test_ieee_tc_scheduler_observation.py','--junitxml='+str(RAW/'tests.xml')],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+save(RAW/'test_exit.json',dict(returncode=result.returncode))
+assert result.returncode==0
+source=ROOT/'configs/ieee_tc/20261022_d724_3b_graph_native.yaml'
+target=ROOT/'configs/ieee_tc/20261022_d728_3b_bulk_loader_native.yaml'
+text=source.read_text().replace('# D724: one model-envelope CUDA Graph coverage qualification, not Full.',
+    '# D728: lossless bulk backbone loader, original native lifecycle qualification.').replace(
+    '# Same D641 native backend contract plus explicit native graph capture sizes.',
+    '# D724 backend/graph preserved; only backbone startup loading changes.').replace(
+    '      safetensors_load_strategy: auto',
+    '      safetensors_load_strategy: auto\n      ieee_backbone_loader: fastsafetensors_affinity_preserving_v1')
+assert text!=source.read_text()
+with target.open('x') as f:f.write(text)
+OUT.mkdir(parents=True,exist_ok=False)
+group=Path(identity['path'])
+resources=p.cgroup_snapshot(group)
+assert all(resources['memory.events'][k]==0 for k in ('high','max','oom','oom_kill'))
+assert int(resources['memory.swap.current'])==0
+paths=[p.PLAN,ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+ ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',source,target,
+ ROOT/'faaslora/experiment/backbone_loader.py',ROOT/'faaslora/experiment/vllm_bulk_loader.py',
+ ROOT/'faaslora/experiment/instance_pool.py',ROOT/'scripts/run_all_experiments.py',
+ ROOT/'tests/test_ieee_tc_backbone_loader.py',RAW/'tests.log',RAW/'tests.xml',Path(__file__)]
+save(OUT/'cpu_qualification.json',dict(passed=True,scope=identity,resources=resources,
+    refs={str(f):p.digest(f) for f in paths},protected=old['protected'],
+    native_qualification_complete=False,performance_gain_unknown=True))
+for f in [Path(__file__),RAW/'tests.log',RAW/'tests.xml']:
+    with (OUT/(f.name+'.snapshot')).open('xb') as out:out.write(f.read_bytes())
+print(json.dumps(dict(passed=True,memory_peak=resources['memory.peak'],config=str(target))))

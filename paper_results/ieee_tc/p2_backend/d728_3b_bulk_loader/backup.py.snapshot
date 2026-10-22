@@ -1,0 +1,64 @@
+"""Reuse scoped checkpoint rules; never stage user manifest or force V2."""
+import ast,json,os,re,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d728_3b_bulk_loader'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,obj):
+    with path.open('x') as f:json.dump(obj,f,indent=2,allow_nan=False)
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+save(RAW/'backup_identity.json',p.scope_identity(p.cg_path().name))
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=read(OUT/'cpu_qualification.json')
+for name,sha in (q['refs']|q['protected']).items():assert p.digest(Path(name))==sha,name
+closures=[]
+for identityfile in (RAW/'prepare_identity.json',RAW/'attempt2/prepare_identity.json',RAW/'attempt3/prepare_identity.json'):
+    ident=read(identityfile);path=Path(ident['path'])
+    assert not p.owned_pids(path)
+    resource=p.cgroup_snapshot(path)
+    assert all(resource['memory.events'][k]==0 for k in ('high','max','oom','oom_kill'))
+    closed=p.stop_scope_identity(ident,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=ident,resources=resource,closure=closed))
+save(OUT/'cpu_closure.json',dict(passed=True,closures=closures,prior_fixture_failures=2))
+for label,directory in [('attempt1',RAW),('attempt2',RAW/'attempt2')]:
+    for name in ('tests.log','tests.xml'):
+        with (OUT/(label+'_'+name+'.snapshot')).open('xb') as f:f.write((directory/name).read_bytes())
+for source in (RAW/'launch.py',Path(__file__)):
+    ast.parse(source.read_text())
+    with (OUT/(source.name+'.snapshot')).open('xb') as f:f.write(source.read_bytes())
+installed=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages')
+sources=[installed/f for f in ('vllm/model_executor/model_loader/default_loader.py',
+ 'vllm/model_executor/model_loader/weight_utils.py','vllm/model_executor/model_loader/__init__.py',
+ 'fastsafetensors/parallel_loader.py','fastsafetensors/loader.py','fastsafetensors/cpp/ext.cpp')]
+save(OUT/'upstream_sources.json',dict(installed=[dict(path=str(f),sha256=p.digest(f)) for f in sources if f.is_file()],
+ urls=['https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/model_executor/model_loader/weight_utils.py',
+ 'https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/model_executor/model_loader/__init__.py',
+ 'https://github.com/foundation-model-stack/fastsafetensors'],
+ note='Version-tag fastsafetensors/v0.4.0 raw URL returned 404; local installed source is authoritative for this qualification.'))
+paths=[ROOT/s for s in ('faaslora/experiment/backbone_loader.py','faaslora/experiment/vllm_bulk_loader.py',
+ 'faaslora/experiment/instance_pool.py','scripts/run_all_experiments.py','tests/test_ieee_tc_backbone_loader.py',
+ 'configs/ieee_tc/20261022_d728_3b_bulk_loader_native.yaml',
+ 'docs/ieee_tc/D728_3B_LOSSLESS_BACKBONE_LOADING_20261022.md','docs/ieee_tc/EXECUTION_STATUS.md')]
+paths += sorted(f for f in OUT.iterdir() if f.is_file())
+save(OUT/'prelaunch_manifest.json',dict(files=[dict(path=str(f),sha256=p.digest(f)) for f in paths]))
+paths += [OUT/'prelaunch_manifest.json']
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for f in paths:assert not pattern.search(f.read_text()),f
+relative=[str(f.relative_to(ROOT)) for f in paths]
+assert not call(['git','diff','--cached','--name-only'])
+call(['git','diff','--check','--',*relative])
+call(['git','add','--',*relative])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(relative)
+# Preserved pytest text can contain whitespace produced by upstream warnings.
+call(['git','-c','core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol','diff','--cached','--check'])
+call(['git','commit','-m','tc: add opt-in affinity-preserving lossless backbone loader (D728)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d728-bulk-loader-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,files=relative,v2_synchronized=False))
+print(json.dumps(dict(passed=True,head=head,ref=ref)))

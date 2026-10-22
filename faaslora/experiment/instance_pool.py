@@ -647,6 +647,8 @@ class FrozenServiceProfiles:
         if not isinstance(model_config, Mapping):
             raise ValueError('service profile requires the actual runtime configuration')
         prebuild_policy = model_config.get('ieee_quantization_prebuild_policy')
+        from .backbone_loader import validate_backbone_loader
+        validate_backbone_loader(model_config)
         if prebuild_policy is not None and (
                 prebuild_policy != 'on_demand_v1' or model_config.get('backend') != 'vllm'
                 or model_config.get('dtype') != 'float16'
@@ -665,6 +667,9 @@ class FrozenServiceProfiles:
             # Optional quantization helper prebuild is import-time work, not
             # FP16 service or admission. Exact run/config identity retains it.
             'ieee_quantization_prebuild_policy',
+            # Explicitly validated lossless loading changes startup only. Run
+            # identity keeps this field; measured post-ready profiles do not.
+            'ieee_backbone_loader',
         }
         return {key: value for key, value in model_config.items()
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}

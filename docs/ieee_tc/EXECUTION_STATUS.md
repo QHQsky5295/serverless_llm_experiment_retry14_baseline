@@ -1,5 +1,17 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D728：3B无损backbone加载候选，CPU通过，尚未GPU资格
+
+PROGRESS。针对D727确认的启动反馈，复用原权重，新增显式fastsafetensors
+流水loader；native文件选择/赋值/图/LoRA不改。公开set_numa=False保留本机
+CPU资源集合，nogds=True避免cuFile额外context；无安装目录补丁、无加载重试。
+41项CPU测试通过，峰值720453632B，high/max/OOM/swap0。前两次仅新测试
+fixture缺scheduler/mock原生frontend，各40通过1失败，日志保留。
+144旧投稿与用户manifest未变。下一复用现有四请求native_lifecycle，不加
+Full短前缀、不重测未变的D725 post-ready profile。性能收益未知，D726仍
+92.650%/U15884.281128，不宣称G1/数值正确性通过；全部剩余范围保持。
+共享k3s和远端均不操作，磁盘约161GiB。D728资料见同名文档及d728_3b_bulk_loader。
+
 ## 2026-10-22 D727离线诊断：确认早期扩容反馈与本地等待计时边界
 
 PROGRESS，0新增GPU回放，生产/配置/指标均未改。D726三次14.735/16.818/

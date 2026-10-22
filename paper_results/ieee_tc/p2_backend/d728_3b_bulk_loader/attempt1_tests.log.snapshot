@@ -1,0 +1,65 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 41 items
+
+tests/test_ieee_tc_backbone_loader.py .........F...                      [ 31%]
+tests/test_ieee_tc_scheduler_observation.py ............................ [100%]
+
+=================================== FAILURES ===================================
+_________________ test_default_and_native_constructor_contract _________________
+scripts/run_all_experiments.py:3843: in _try_create_engine
+    raise ValueError('native references require scheduler retirement observation')
+E   ValueError: native references require scheduler retirement observation
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_backbone_loader.py:50: in test_default_and_native_constructor_contract
+    actual = asyncio.run(engine._try_create_engine('local', 1, .72, 1024, False, True, 8, 16))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:3862: in _try_create_engine
+    raise RuntimeError(f"TC backend construction failed without config retry: {detail}") from exc
+E   RuntimeError: TC backend construction failed without config retry: ValueError: native references require scheduler retirement observation
+----------------------------- Captured stdout call -----------------------------
+  [WARN] vLLM engine creation failed (TP=1, LoRA=on): ValueError: native references require scheduler retirement observation
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d728_20261022/tests.xml -
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_backbone_loader.py::test_default_and_native_constructor_contract
+================== 1 failed, 40 passed, 19 warnings in 10.77s ==================

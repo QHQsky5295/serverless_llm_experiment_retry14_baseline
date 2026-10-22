@@ -1,0 +1,47 @@
+"""Reuse existing gated four-request physical lifecycle qualification."""
+import json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d728_3b_bulk_loader'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+def save(path,obj):
+    with path.open('x') as f:json.dump(obj,f,indent=2,allow_nan=False)
+save(RAW/'launch_identity.json',p.scope_identity(p.cg_path().name))
+assert os.sched_getaffinity(0)=={2,3,26,27}
+q=json.loads((OUT/'cpu_qualification.json').read_text())
+for path,sha in (q['refs']|q['protected']).items():assert p.digest(Path(path))==sha,path
+backup=json.loads((RAW/'backup.json').read_text())
+assert backup['passed']
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()==backup['head']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+env,binding=bind_native_toolchain(os.environ,python=python,
+    contract=str(ROOT/'configs/ieee_tc/native_toolchain_cuda130_v1.json'),
+    expected_sha='328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c')
+os.environ.update(env)
+os.environ.update(FAASLORA_WORKER_START_TIMEOUT_S='600',FAASLORA_KEEP_DEDICATED_WORKER_LOGS='1',
+    PYTHONNOUSERSITE='1',PYTHONDONTWRITEBYTECODE='1',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',
+    FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY='uncached_background_v1',VLLM_CACHE_ROOT='/home/qhq/.cache/vllm',
+    FAASLORA_TC_NVML_BINDING='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py',
+    FAASLORA_TC_NVML_SHA256='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea')
+for key in ('FAASLORA_REMOTE_ARTIFACT_ENABLED','FAASLORA_REMOTE_ARTIFACT_ENDPOINT',
+            'FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE','PRIME_REMOTE_TOKEN'):
+    os.environ.pop(key,None)
+save(RAW/'toolchain.json',binding)
+receipt=ROOT/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+trace=Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+assert p.digest(receipt)=='cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf'
+assert p.digest(trace)=='4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+command=['/usr/bin/env','CUDA_VISIBLE_DEVICES=0','VLLM_NO_USAGE_STATS=1','PYTHONUNBUFFERED=1',
+ 'PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True',python,'-B',
+ str(ROOT/'scripts/ieee_tc_preflight.py'),'backend-model-check','--runtime-receipt',str(receipt),
+ '--config',str(ROOT/'configs/ieee_tc/20261022_d728_3b_bulk_loader_native.yaml'),
+ '--model-profile','llama32_3b_main_modelscope','--replay-trace',str(trace),
+ '--request-count','4','--qualification-mode','native_lifecycle','--output',str(RAW/'native.json')]
+result=p.gated_launch(command,RAW/'native_launch.json',predicted_growth=2*p.GIB)
+save(RAW/'native_launch.json',result)
+print(json.dumps(dict(passed=result['pass'],service=result.get('service_unit'))))
+raise SystemExit(0 if result['pass'] else 2)
