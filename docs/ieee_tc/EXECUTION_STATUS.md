@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D745完整W0登记，准备唯一启动
+
+上一goal turn为PROGRESS：D743备份与D744实现、针对性验证、独立备份和
+释放完成。本轮已完整重读PLAN/AGENTS和最新规则，当前生产HEADefe11353
+仍为D744单一候选。新D745复用D742合同，只更改输出/NVMe/HOST三路径；
+4000原3B W0、D725 profile、D648尺子、生成/扩缩/真实remote均不变。
+新入口的2项合同检查待执行，D744的61+1项直接复用；不加GPU短资格。
+
+按run-experiment、github-sync复用已有runner/远端管理/tmux及资源防护，
+先明确路径备份再启动。启动脚本不将D744旧并行观察断言失败隐去；运行
+中按monitor-experiment只读检查同一service，不重启、不叠加候选。
+尚无新GPU结果或已启动声明。原93.175%与历史93.6%未达95%，D711数值
+限制不变，完整后续范围保留、goal active。详见D745执行文档。
+
+## 2026-10-23 D744已备份释放；下一登记一次完整3B W0
+
+PROGRESS。22个明确路径提交efe1135344590b2485b019d8f595e9a496dbff53，
+推送并ls-remote核验faaslora_origin/backup/d744-observe-after-turn-20261023。
+V2未同步、未force；145保护项和用户manifest SHA不变且未stage用户文件。
+61项原检查加1项按新时序修订的取消边界通过；原62项中的1项失败、原测试
+快照及说明全部保存，不能表述为原测试全通过。生产在两次测试间未变。
+
+tests1、tests2、备份域全部按精确身份核对空后释放。备份峰值57917440B，
+high/max/OOM/swap0，raw/d744_20261023/post_backup_release.json保存回执。
+当前无GPU计算进程，磁盘163429011456B、MemAvailable109916200kB；
+下一重型任务仍需新检查。本轮没有删除数据或宣称回收存储。
+
+生产为D744唯一待完整评价候选；下一创建新D745执行键，直接复用D742的
+4000 W0、D725 profile、D648尺子、原工件/生成/真实remote/扩缩规则，
+只换版本与独占输出/缓存路径。不增加短GPU资格或重复前缀，不叠加第二
+候选。D74293.175%、D70393.6%和D711限制全保留，不宣告达标或最优。
+全部3B后续/baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档和最终图表继续；共享k3s不动，goal active。本收尾随下一正常
+检查点备份，不追加仅为备份状态的循环提交。
+
 ## 2026-10-23 D744针对性验证完成，下一备份后直接完整W0
 
 PROGRESS。tests1的62项中61项通过；唯一旧D731断言要求慢native观察不等待

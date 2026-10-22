@@ -1,0 +1,4 @@
+{
+  "passed": true,
+  "output": "test_current_d742_configuration_only_changes_three_paths (tests.test_ieee_tc_d456_diagnostic_contract.D745FullContract.test_current_d742_configuration_only_changes_three_paths) ... ok\ntest_full_original_source_without_observer (tests.test_ieee_tc_d456_diagnostic_contract.D745FullContract.test_full_original_source_without_observer) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.019s\n\nOK"
+}

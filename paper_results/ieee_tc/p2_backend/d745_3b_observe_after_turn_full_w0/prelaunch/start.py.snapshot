@@ -1,0 +1,159 @@
+"""Reuse D736/D738 launch protocol for D744-qualified complete 3B W0."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+TEST = RAW.parent/'d744_20261023'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch'
+PYTHON = '/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not call(['git', 'diff', '--cached', '--name-only'])
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert not (RAW/'3b_observe_after_turn_full_w0').exists()
+assert not Path('/dev/shm/tc-d745-3b-w0').exists()
+OUT.mkdir(parents=True, exist_ok=False)
+
+evidence_path = ROOT/'paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/manifest.json'
+evidence = read(evidence_path)
+for name, sha in evidence['source_shas'].items():
+    assert p.digest(ROOT/name) == sha, name
+for item in evidence['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256'], item['path']
+first = read(TEST/'tests1/result.json')
+result = read(TEST/'tests2/result.json')
+assert first['returncode'] == 1 and result['returncode'] == 0
+assert result['new_gpu_replays'] == first['new_gpu_replays'] == 0
+assert 'Ran 62 tests in 92.331s' in (TEST/'tests1/tests.log').read_text()
+assert 'FAILED (errors=1)' in (TEST/'tests1/tests.log').read_text()
+assert 'Ran 1 test in 0.164s' in (TEST/'tests2/tests.log').read_text()
+for checked in (first, result):
+    resources = checked['resources']
+    assert resources['memory.swap.current'] == 0
+    assert all(resources['memory.events'][k] == 0 for k in ('high','max','oom','oom_kill'))
+closure = read(ROOT/'paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/closure.json')
+assert closure['test_scope_release']['released']
+assert closure['original_suite'] == dict(tests=62, passed=61, errors=1)
+assert closure['retest'] == dict(tests=1, passed=1)
+assert closure['production_changed_between_tests'] is False
+assert read(TEST/'tests1/closure.json')['result']['released']
+backup_close = read(TEST/'post_backup_release.json')
+assert backup_close['passed'] and backup_close['closure']['released']
+save(OUT/'reused_tests.json', dict(
+    evidence_path=str(evidence_path), evidence_sha256=p.digest(evidence_path),
+    targeted_checks=62, original_passed=61, updated_boundary_passed=1,
+    original_failure_preserved=True, reused_without_rerun=True,
+    first_result=first, boundary_result=result,
+    test_closure=closure, backup_closure=backup_close))
+
+previous = read(ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json')
+for name, sha in previous['protected'].items():
+    assert p.digest(Path(name)) == sha, name
+constants = [
+    '/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md',
+    str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    str(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),
+    str(ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/service.json'),
+    str(ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/preparation.json'),
+]
+refs = {}
+for name in constants:
+    assert p.digest(Path(name)) == previous['refs'][name], name
+    refs[name] = previous['refs'][name]
+files = [
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'configs/ieee_tc/20261023_d745_3b_observe_after_turn_full_w0.yaml',
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'docs/ieee_tc/D745_3B_OBSERVE_AFTER_TURN_FULL_W0_20261023.md',
+    'docs/ieee_tc/EXECUTION_STATUS.md',
+    'docs/ieee_tc/D744_OBSERVE_AFTER_PLANNER_TURN_20261023.md',
+]
+source_files = [
+    'AGENTS.md', 'faaslora/preloading/planning_cpu.py', 'faaslora/experiment/experiment_stack.py',
+    'faaslora/preloading/preloading_planner.py', 'scripts/run_all_experiments.py',
+    'tests/test_ieee_tc_planning_cpu.py', 'tests/test_ieee_tc_transfer_pressure.py',
+    'tests/test_ieee_tc_planning_snapshot.py',
+    'docs/ieee_tc/D743_PLANNING_CAPTURE_AGE_20261023.md',
+]
+for name in files + source_files:
+    refs[str(ROOT/name)] = p.digest(ROOT/name)
+refs[str(evidence_path)] = p.digest(evidence_path)
+
+call(['bash', '-n', str(ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh')])
+for directory, prefix in ((RAW, ''),):
+    for path in sorted(directory.iterdir()):
+        if path.suffix not in ('.py', '.sh'):
+            continue
+        if path.suffix == '.py': ast.parse(path.read_text())
+        else: call(['bash', '-n', str(path)])
+        with (OUT/(prefix+path.name+'.snapshot')).open('xb') as f: f.write(path.read_bytes())
+        refs[str(path)] = p.digest(path)
+contracts = call([PYTHON, '-B', '-m', 'unittest',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D745FullContract', '-v'])
+save(OUT/'execution_contract_tests.json', dict(passed=True, output=contracts))
+save(OUT/'qualification.json', dict(passed=True, identity=own, refs=refs,
+    protected=previous['protected'], reused_targeted_checks=62, execution_contract_tests=2,
+    full_source_count=4000, diagnostic_prefix_count=None,
+    native_compute_path_unchanged=True, residency_observation_timing_changed=True,
+    configuration_only_three_paths_changed=True, new_production_instrumentation='planner input timing metadata only',
+    formal_performance_result=False, resources=p.cgroup_snapshot(group)))
+members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+for item in members:
+    assert p.digest(ROOT/item['path']) == item['sha256']
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in files:
+    assert not secret.search((ROOT/name).read_text()), name
+assert 'configs/generated/lora_manifest_1000.json' not in files
+call(['git', 'diff', '--check', '--', *files])
+call(['git', 'add', '--', *files])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(files)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: register D744 observation-order full 3B W0 validation (D745)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+branch = 'refs/heads/backup/d745-observe-after-turn-fullw0-20261023'
+save(RAW/'commit.json', dict(head=head, ref=branch, files=files))
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+branch])
+assert call(['git', 'ls-remote', 'faaslora_origin', branch]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=branch, files=files, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d745-3b-observe-after-turn-full-w0'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT),
+      shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=branch,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=branch, tmux=session)))

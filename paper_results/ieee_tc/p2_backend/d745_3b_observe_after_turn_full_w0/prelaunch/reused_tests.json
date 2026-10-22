@@ -1,0 +1,165 @@
+{
+  "evidence_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/manifest.json",
+  "evidence_sha256": "099dbf7d4d91f8da811f59d115fb9af503becf612e139b675349bd806e112c1a",
+  "targeted_checks": 62,
+  "original_passed": 61,
+  "updated_boundary_passed": 1,
+  "original_failure_preserved": true,
+  "reused_without_rerun": true,
+  "first_result": {
+    "returncode": 1,
+    "tests": [
+      "tests.test_ieee_tc_planning_cpu",
+      "tests.test_ieee_tc_planning_snapshot.PlanningSnapshot",
+      "tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation",
+      "tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation",
+      "tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement"
+    ],
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74420261023000000000000000000001.scope",
+      "memory.current": 39276544,
+      "memory.peak": 1713520640,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=894\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=894",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 100601333\nuser_usec 86254127\nsystem_usec 14347205\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "source_shas": {
+      "faaslora/preloading/planning_cpu.py": "af85860e860196f9c06434728547c92c7c533f9012b5c813c5aade1d282fb18c",
+      "faaslora/experiment/experiment_stack.py": "672cd91fdb2c415b9922d3e309b8e69e6b3d52aad2a2008e1b9f257ddff83234",
+      "scripts/run_all_experiments.py": "614459c381a7373f21ee6b3b3a7d5a7b9f6c287367724d5459c9a39a3cc35fb1",
+      "tests/test_ieee_tc_planning_cpu.py": "da138d912521d3336d34f71f3e8912b93d3f194374b193aaecb3b0d624bea5a8",
+      "tests/test_ieee_tc_planning_snapshot.py": "97594e79db564ae37ee4d4c72e1ca235f6de9e3efd9ae98178b599cf13b6bc0a",
+      "tests/test_ieee_tc_transfer_pressure.py": "23a8ed2fc386b597f797d2d898dfcb9db0dab357c0f4ecea0425c9897a232723",
+      "faaslora/preloading/preloading_planner.py": "91da2378aed5b0e636c4c37dacce72a675b813351f2bfe36a7440baf5f48951c"
+    },
+    "protected_files_unchanged": 145,
+    "new_gpu_replays": 0,
+    "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python"
+  },
+  "boundary_result": {
+    "returncode": 0,
+    "tests": [
+      "tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_current_observation_releases_planner_turn_to_sibling"
+    ],
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74420261023000000000000000000002.scope",
+      "memory.current": 33206272,
+      "memory.peak": 548392960,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 8732135\nuser_usec 7665607\nsystem_usec 1066528\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "source_shas": {
+      "faaslora/preloading/planning_cpu.py": "af85860e860196f9c06434728547c92c7c533f9012b5c813c5aade1d282fb18c",
+      "faaslora/experiment/experiment_stack.py": "672cd91fdb2c415b9922d3e309b8e69e6b3d52aad2a2008e1b9f257ddff83234",
+      "scripts/run_all_experiments.py": "614459c381a7373f21ee6b3b3a7d5a7b9f6c287367724d5459c9a39a3cc35fb1",
+      "tests/test_ieee_tc_planning_cpu.py": "da138d912521d3336d34f71f3e8912b93d3f194374b193aaecb3b0d624bea5a8",
+      "tests/test_ieee_tc_planning_snapshot.py": "d1fbc6d157587274c53b8816737739095453aea9a5181f00df8f53fc72a49515",
+      "tests/test_ieee_tc_transfer_pressure.py": "23a8ed2fc386b597f797d2d898dfcb9db0dab357c0f4ecea0425c9897a232723",
+      "faaslora/preloading/preloading_planner.py": "91da2378aed5b0e636c4c37dacce72a675b813351f2bfe36a7440baf5f48951c"
+    },
+    "protected_files_unchanged": 145,
+    "new_gpu_replays": 0,
+    "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python"
+  },
+  "test_closure": {
+    "passed": true,
+    "original_suite": {
+      "tests": 62,
+      "passed": 61,
+      "errors": 1
+    },
+    "retest": {
+      "tests": 1,
+      "passed": 1
+    },
+    "production_changed_between_tests": false,
+    "changed_boundary": "Slow observation now owns the planning turn; sibling proceeds after cancellation, not before it.",
+    "protected_files": 145,
+    "test_scope_identity": {
+      "unit": "primelora-tc-aux-74420261023000000000000000000002.scope",
+      "invocation_id": "62fac6858bd74e79902639ca2de08649",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74420261023000000000000000000002.scope",
+      "inode": 30655366
+    },
+    "test_scope_release": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74420261023000000000000000000002.scope",
+      "memory.current": 61440,
+      "memory.peak": 548392960,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 8745602\nuser_usec 7676017\nsystem_usec 1069584\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "new_gpu_replays": 0
+  },
+  "backup_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-74420261023000000000000000000003.scope",
+      "invocation_id": "0f7cc1624ee84e4a8b3d52bf10601497",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74420261023000000000000000000003.scope",
+      "inode": 30656119
+    },
+    "resources": {
+      "memory.peak": "57917440",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "backup_head": "efe1135344590b2485b019d8f595e9a496dbff53",
+    "backup_ref": "refs/heads/backup/d744-observe-after-turn-20261023",
+    "v2_synchronized": false,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  }
+}
