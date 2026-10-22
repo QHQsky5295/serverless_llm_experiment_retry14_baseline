@@ -1,0 +1,124 @@
+{
+  "kind": "d726_post_analysis_closure_v1",
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-4d7da262a3954cc990555490b70d0726.scope",
+        "invocation_id": "15d739cc33ab4ffa8c016caf9f7de865",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-4d7da262a3954cc990555490b70d0726.scope",
+        "inode": 30268601
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-66b6179c62ac40f88e2d633599140726.scope",
+        "invocation_id": "533a2320fd444258afa5d37d915b4cde",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-66b6179c62ac40f88e2d633599140726.scope",
+        "inode": 30235690
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-23eabc78d16247ceba278d747e791eb9.scope",
+        "invocation_id": "25b53cf60f04494e96237825204a9346",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-23eabc78d16247ceba278d747e791eb9.scope",
+        "inode": 30235811
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "completion_manifest_sha256": "de1ec93a7a30687b86a6b6a261d41d7c09c63d045be0c8c3d918558abedc1642",
+  "allocation_comparison": [
+    {
+      "run": "D719",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -36.829952247906476,
+          "released_relative_to_arrival_s": 3975.4121523988433,
+          "gpu_seconds": 4012.24210464675
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 273.9703391129151,
+          "released_relative_to_arrival_s": 3974.8182878419757,
+          "gpu_seconds": 3700.8479487290606
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 1076.9860962121747,
+          "released_relative_to_arrival_s": 3976.2049016677774,
+          "gpu_seconds": 2899.2188054556027
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 1078.9870891547762,
+          "released_relative_to_arrival_s": 3974.9790090541355,
+          "gpu_seconds": 2895.9919198993593
+        }
+      ],
+      "gpu_seconds": 13508.300778730772,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d719_20261022/3b_identity_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "81a746b5f7e06e41fae7722dd46387448e3dca1270d2bbf217aef71b0c1d04e5"
+    },
+    {
+      "run": "D726",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -33.63396920496598,
+          "released_relative_to_arrival_s": 3975.580644499976,
+          "gpu_seconds": 4009.214613704942
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 14.9045443800278,
+          "released_relative_to_arrival_s": 3975.2026527770795,
+          "gpu_seconds": 3960.2981083970517
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 16.977665293961763,
+          "released_relative_to_arrival_s": 3975.455305019859,
+          "gpu_seconds": 3958.4776397258975
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 19.046103597152978,
+          "released_relative_to_arrival_s": 3975.3368698027916,
+          "gpu_seconds": 3956.2907662056386
+        }
+      ],
+      "gpu_seconds": 15884.28112803353,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "5eec657b6ee13e4387cb2e20b6183b7ad5e85e953c8802c379a85bf50c17f974"
+    }
+  ],
+  "protected_publication_files": 144,
+  "historical_d703": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d714_common_slo_correction/d703_verified.json",
+    "sha256": "f780b2dce0626649ddb6dc719935ae0957ed602c40c9fa79fb2e28ab060b9c95",
+    "joint_slo_fraction": 0.936,
+    "physical_gpu_seconds": 14864.807562012225
+  },
+  "performance_candidate_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "decision": "Not a feasible G1 point. Preserve all results. Diagnose early expansion and remaining ingress/preparation waits using existing records; no identical-key replay.",
+  "next_experiment_launched": false
+}

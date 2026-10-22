@@ -1,5 +1,67 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D726完整完成：92.650%，GPU占用增加，不能关闭3B目标
+
+PROGRESS。单轮4000/4000原生生成、映射与计量通过；共同D648阈值下TTFT3815、
+TPOT3876、joint3706=92.650%，U15884.281128 GPU-s，P95 TTFT2015.095ms。
+相对D719 joint+1.05pp、P95 TTFT约-5.51%，但U+17.589%，仍差94条联合达标。
+更早D703为93.600%/U14864.807562，也未超过。n_correct仍null，不宣称G1或
+独立数值资格通过；不重复同键、不改阈值、不启动该候选W1/W2。
+
+关键证据：两轮均扩容3/缩容0；D726后三张卡在arrival后14.905/16.978/19.046s
+持有，D719为273.970/1076.986/1078.987s，释放均约3975s，资源增加几乎全由
+提前持卡解释。为何第3条请求即连续触发扩容尚待控制快照/profile核查，不能
+直接归罪于图捕获或新增magic wait。TTFT违约185条中179条最大阶段发生在
+admission/获取之前；另有TPOT-only109条和both15条，不能仅凭图执行资格
+认定主瓶颈解决。下一只复用已有记录作有界定位，不增加诊断GPU回放。
+
+本机物理GPU释放、服务域移除、回放/监控退出0，远端两服务及monitor关闭。
+132fetch、306360162字节、请求打包0；服务峰值24424771584B、分析810827776B，
+high/max/OOM/swap0。144旧投稿与用户manifest不变，磁盘约161GiB。
+原始与completion/closure证据保存于d726_20261022和d726_3b_graph_full_w0；
+现有scope按身份空组收尾，无共享k3s操作。完成检查点使用专用
+backup/d726-complete-20261022分支；实际成功状态和SHA以原始目录
+backup_completion.json回执为准，不force、不宣称既存分歧的V2已同步。
+完整3B后续、baseline/dLoRA、A1–A5、S1–S13、CE、审稿文档和最终图表全部
+保留。goal继续active；本次不是全目标完成，也不是阻塞。
+
+## 2026-10-22 D726运行中核验：继续等待同一完整W0，不重复启动
+
+已重新完整核对PLAN、最新AGENTS及冻结V1/单轮V2。14:57–14:58轻量核验：
+同一tmux仍活跃；实际服务PID2073003、回放2072953、watchdog2073005及原生
+worker存活，最近进度arrived300/4000、done290、ok290、fail0。尚无完整
+结果或release，不能提前判定G1/最终SLO。终端slo@5000ms仅为旧开发显示，
+不替代D648共同阈值。watchdog样本342服务18.199GiB，high/max/OOM均0，
+无警告/中止；磁盘约161GiB。未启动第二实验、未更改配置或远端、未运行
+重型分析/哈希/构建/压缩/推送，也未操作共享k3s。
+
+执行身份：service scope primelora-tc-svc-620b50a5b0b34d368e209c41545f9e86.scope，
+InvocationID070ca94260c14a1d87f8e769d74be4b4；aux scope
+primelora-tc-aux-23eabc78d16247ceba278d747e791eb9.scope。下一检查这一次运行
+的实际终态，释放后复用audit_d703_3b_full.py的common-SLO/阶段分析及
+既有生命周期核查；不重跑数值工件池或添加Full短前缀。全部后续范围保持。
+本记录为verified wait，不是实验完成或阻塞；goal保持active。
+
+## 2026-10-22 D726已启动：单轮完整3B W0，禁止重复启动
+
+D725完成证据与D726配置检查点4731adbd9526ac5e12888085484890ec7bf015f9已
+推送并ls-remote核验faaslora_origin/backup/d726-graph-full-20261022。
+无force、无用户manifest stage，V2既存分歧未宣称同步。D726于本机14:50
+开始，tmux为tc-d726-3b-graph-full-w0；原始目录
+results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0。
+当前已进入既有gated完整回放入口，尚无最终4000结果；不要重启/另开同键。
+
+真实远端仍1000Mb/s/full，复用D80两个服务和本轮monitor；脚本结束后会
+先验证本机GPU释放，再按InvocationID关闭本轮远端。运行期间只轻量监测，
+不得构建、压缩、批量扫描、备份、调整远端或启动另一重型任务。最近磁盘
+162GiB；固定内存/磁盘watchdog保持。共享k3s未操作。
+
+下一：监测这一次完整回放→物理释放与远端收尾→原生输入/计量/交付核验→
+复用共同D648阈值统计G1及阶段诊断→保存全部结果与备份。不要添加Full
+短前缀、重复同键或改阈值。当前完整参照仍D719 joint91.60%、U13508.300779；
+D726效果未定，n_correct既有边界不改。W1/W2/3B其余baseline/dLoRA及全部
+A1–A5、S1–S13、CE、审稿文档和最终图表均未删除，完整goal继续active。
+
 ## 2026-10-22 D725完成，D726直接完整W0准备通过
 
 PROGRESS。D725一次423/423原生真实远端采样完成，160/160 service类、96
