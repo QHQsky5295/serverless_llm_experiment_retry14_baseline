@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D735定向检查通过；D736完整3B W0待备份启动
+
+PROGRESS。完整PLAN/V1V2/AGENTS及最新baseline边界已核对。用户再次明确
+共享k3s非本项目；现有独立HydraServe必要适配及7B W0/W1/W2继续复用，
+不索取kubeconfig、不改共享集群、不重开基础资格。
+
+D735由D734证据指向：同次完整native校验留在现有纯规划进程，返回不可变
+路由投影；controller实时身份/epoch/capture检查后发布，不重复完整图校验。
+九式/物理观察/执行重检查不变，发布延后属于待测闭环时序变化。对照D329、
+D516、D689失败方向及官方Python/vLLM资料后实施，不做epoch-only容量缓存。
+97项CPU/spawn/取消/迟到/目标一致性检查通过，81.807秒。初始三次启动/环境
+问题保留：缺pytest、scope格式拒绝、新版环境额外编译导入触发memory.high；
+最后一项按精确身份中止，无max/OOM/swap，不能当作性能失败或改善。
+
+D736已登记：原3B4000 W0，无详细采样、无新配置参数、原真实remote和D648
+阈值。下一是明确文件备份、现有资源门槛及一次完整启动；此时尚未启动。
+当前完整3B仍D73292.500%/15903.076489 GPU-s，数值资格未知，不闭口。
+7B同版本、3B后续/baseline/dLoRA、A1–A5/S1–S13/CE及审稿图表全部保留。
+
+## 2026-10-22 23:36 D734已备份；最新目标强调不重复无效方向
+
+19个明确文件提交e2e00095eefb0a197864ddba5b19de5b0d47c5e9，已推送
+faaslora_origin/backup/d734-complete-20261022。首次ls-remote网络错误128，
+仅再次只读核验成功，未重复push/分析/回放；原失败保留。V2未同步、不force。
+全部分析/封存空scope均按精确身份释放；最后备份域峰值53768192B、事件/swap0。
+raw backup_completion.json与post_backup_release.json保存回执。用户manifest
+SHA不变、未stage；磁盘约156.7GiB，没有新增推理运行或生产候选。
+
+用户目标新增“避免历史验证无效的优化”：已纳入AGENTS。继续前先对照D329、
+D514/D516、D687/D688及其撤销；只有新证据改变前提才重开。当前下一候选
+依D734新增的实际controller采样，研究同次已验证规划状态的跨消费者复用，
+不是旧epoch-only物理容量缓存或再做HOST局部清点。尚未实施，须先有限代码
+与取消/迟到/输入目标等价验证，再一次完整未插桩W0；不重复D734诊断。
+最新目标不改变G1/G2、95%/75%、单轮、无图、baseline有界适配和剩余矩阵。
+
 ## 2026-10-22 D734诊断完成：复用校验结果是下一候选，不重跑前缀
 
 PROGRESS。完整PLAN/V1V2及最新规则已核对。D734已正常结束，不再监测或重启：

@@ -1,6 +1,7 @@
 """Real spawned pure-planner identity, cancellation, and resource inheritance."""
 import asyncio
 import copy
+import json
 import os
 import pickle
 import time
@@ -23,7 +24,7 @@ class ValidatedPlanMembership(unittest.TestCase):
         self.payload = pickle.dumps(self.bundle, protocol=5)
         self.receipt = dict(operation='owned_execution_epoch', frozen_execution_validated=True,
                             execution_objectives_prepared=True, plan_sha256='fixture-sha',
-                            plan_keys=list(self.plan))
+                            plan_keys=list(self.plan), _native_source_publication=None)
         self.sealed = ValidatedPreparationPlan._from_worker_result(self.payload, self.receipt)
 
     def test_present_absent_and_keys_view_do_not_decode(self):
@@ -314,6 +315,19 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(worker.close)
         sealed = await worker.run('owned_execution_epoch',
             runner._stack.preloading_planner.max_dp_buffer_bytes, args)
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        expected_source = NativeSourceSnapshot.from_native(args['native_snapshot'],
+            expected_clock_id=args['expected_clock_id'], received_monotonic_s=args['received_at'])
+        with patch('faaslora.preloading.planning_cpu.pickle.loads',
+                   side_effect=AssertionError('publication reopened the full execution payload')):
+            source, device = sealed.native_source_publication()
+        self.assertEqual(source, expected_source)
+        self.assertEqual(device, args['native_snapshot'].get('device_uuid'))
+        self.assertIsInstance(source.sources, tuple)
+        with self.assertRaises((AttributeError, TypeError)):
+            source.epoch += 1
+        self.assertNotIn('_native_source_publication', worker.events[0])
+        json.dumps(worker.events, allow_nan=False)
         edges = runner._preparation_profiles.size_edges_bytes
         with patch('faaslora.preloading.planning_cpu.run_planning_cpu',
                    side_effect=AssertionError('second CPU transaction')):

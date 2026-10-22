@@ -1,0 +1,41 @@
+"""Close only D735 test scopes; retain launcher and environment failures."""
+import json
+import subprocess
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+rows = []
+for path, reason in [
+    (RAW/'test_identity.json', 'controller environment has no pytest; no tests started'),
+    (RAW/'attempt3/test_identity.json', 'native environment child startup imports humming compilation; CPU-only test hit memory.high reclaim, not an inference performance failure'),
+]:
+    identity = json.loads(path.read_text())
+    group = Path(identity['path'])
+    resources = p.cgroup_snapshot(group) if p.scope_still_owned(identity) else None
+    processes = p.owned_pids(group) if group.exists() else []
+    closure = p.stop_scope_identity(identity, grace_seconds=5)
+    rows.append(dict(identity=identity, reason=reason, resources=resources,
+                     processes=processes, closure=closure))
+    assert closure['released']
+
+# The second launcher rejected its non-UUID scope before spawning tests.
+unit = 'primelora-tc-aux-d735test2.scope'
+props = dict(line.split('=', 1) for line in subprocess.check_output(
+    ['systemctl', '--user', 'show', unit, '-p', 'InvocationID', '-p', 'ControlGroup',
+     '-p', 'ActiveState'], text=True).splitlines() if '=' in line)
+if props.get('ControlGroup'):
+    group = Path('/sys/fs/cgroup')/props['ControlGroup'].lstrip('/')
+    assert group.name == unit and not p.owned_pids(group)
+    inode = group.stat().st_ino
+    subprocess.run(['systemctl', '--user', 'stop', unit], check=True)
+    assert not group.exists()
+    rows.append(dict(unit=unit, properties=props, inode=inode, released=True,
+                     reason='non-UUID launcher identity rejected before tests'))
+with (RAW/'test_attempt_closures.json').open('x') as f:
+    json.dump(rows, f, indent=2, allow_nan=False)
+    f.write('\n')
+print(json.dumps(dict(closed=len(rows), new_gpu_runs=0)))

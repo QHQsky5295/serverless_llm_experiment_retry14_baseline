@@ -1,5 +1,11 @@
 # PrimeLoRA IEEE TC execution contract
 
+Latest user clarification (2026-10-22): explicitly check prior rejected and
+ineffective optimizations before every new candidate. Do not repeat a closed
+direction unless a concrete new observation changes its premise; document that
+new evidence. Preserve all failed measurements, keep one falsifiable candidate,
+and return to the complete experiment main line after its bounded evaluation.
+
 Latest user update (2026-10-22): avoid excessive defensive decisions and useless
 extra gates. Reuse valid completed checks; choose tests proportional to the changed
 path. Do not repeat broad qualifications or add diagnostic replays without a

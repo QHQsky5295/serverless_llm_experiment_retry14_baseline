@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import time
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
@@ -38,6 +39,16 @@ def without_provenance(value):
 
 
 class PlanningSnapshot(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # This class checks exact input/output and publication, not placement.
+        # The planning_cpu suite separately exercises real spawn and cancellation.
+        fixtures.setUpModule()
+
+    @classmethod
+    def tearDownClass(cls):
+        fixtures.tearDownModule()
+
     def test_real_planner_and_route_collector_share_one_measurement(self):
         from faaslora.experiment.instance_pool import InstanceSlot
         factory, (fixture, runner, queue, template, native) = self.make()
@@ -64,12 +75,61 @@ class PlanningSnapshot(unittest.TestCase):
         self.assertFalse(plan['physical_resources_reserved'])
 
     def test_initialized_planner_publishes_the_same_received_measurement(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
         factory, (fixture, runner, queue, slot, native) = self.make()
-        with patch.object(runner, '_ieee_publish_planning_sources', return_value=True) as publish:
+        expected = NativeSourceSnapshot.from_native(projection(native),
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        with patch.object(runner, '_ieee_publish_planning_sources',
+                          side_effect=AssertionError('controller revalidated the full graph')), \
+             patch.object(runner, '_ieee_publish_validated_planning_sources', return_value=True) as publish:
             plan = factory.plan(runner, slot)
-        publish.assert_called_once_with(slot, projection(native), expected_engine=slot.engine)
+        publish.assert_called_once_with(slot, expected, device_uuid=native.get('device_uuid'),
+                                        expected_engine=slot.engine)
         slot.engine.ieee_gpu_reference.assert_awaited_once_with(operation='routing_source_snapshot')
         self.assertEqual(plan['source_view']['native'], projection(native))
+
+    def test_failed_or_cancelled_planning_never_publishes(self):
+        for error in (ValueError('invalid-plan'), asyncio.CancelledError()):
+            with self.subTest(error=type(error).__name__):
+                factory, (fixture, runner, queue, slot, native) = self.make()
+                with patch.object(runner._stack, 'plan_ieee_owned_preparation_async',
+                                  new=AsyncMock(side_effect=error)), \
+                     patch.object(runner, '_ieee_publish_validated_planning_sources') as publish:
+                    with self.assertRaises(type(error)):
+                        factory.plan(runner, slot)
+                publish.assert_not_called()
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(fixture.owner.materializations)
+
+    def test_state_updated_during_planning_is_not_overwritten(self):
+        from dataclasses import replace
+        from faaslora.experiment.instance_pool import InstanceSlot
+        for advance_epoch in (False, True):
+            with self.subTest(advance_epoch=advance_epoch):
+                factory, (fixture, runner, queue, template, native) = self.make()
+                native['device_uuid'] = 'GPU-planning-fixture'
+                slot = InstanceSlot(template.instance_id, engine=template.engine, coordinator=None,
+                    preparation_cost_model=template.preparation_cost_model)
+                runner.instance_pool = NS(get_slots=lambda: [slot])
+                runner._ieee_route_confirmed_snapshot_cache = True
+                original = runner._stack.plan_ieee_owned_preparation_async
+                observed = []
+                async def planning(**kw):
+                    plan = await original(**kw)
+                    state, _ = plan.native_source_publication()
+                    fresh = replace(state.identity_view(), epoch=state.epoch+int(advance_epoch),
+                                    captured_monotonic_s=time.monotonic())
+                    self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+                    observed.append(fresh)
+                    return plan
+                with patch.object(runner._stack, 'plan_ieee_owned_preparation_async', side_effect=planning):
+                    plan = factory.plan(runner, slot)
+                self.assertEqual(runner._ieee_route_identity_frontier[slot.instance_id], observed[0])
+                self.assertFalse(runner._ieee_route_full_cache)
+                self.assertIsNone(slot.native_source_state)
+                self.assertEqual(plan.native_source_publication()[0].captured_monotonic_s,
+                                 native['captured_monotonic_s'])
 
     def make(self):
         factory = fixtures.OwnedPreparationPlanning()

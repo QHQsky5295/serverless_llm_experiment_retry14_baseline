@@ -44,6 +44,7 @@ class ValidatedPreparationPlan(Mapping):
     _plan_sha256: str
     _keys: tuple
     _key_index: Mapping
+    _native_source_publication: object
 
     @classmethod
     def _from_worker_result(cls, payload, receipt):
@@ -59,7 +60,21 @@ class ValidatedPreparationPlan(Mapping):
         # The same worker emits these keys from the validated frozen plan.
         # No mutable alias escapes; this indexes representation, not live state.
         object.__setattr__(value, '_key_index', MappingProxyType(dict.fromkeys(value._keys)))
+        # Trusted local worker sidecar. Its frozen dataclass/tuple contains no
+        # allocation graph and no mutable aliases into the execution payload.
+        # Never put it in the JSON event journal or turn its timestamp into now.
+        publication = receipt['_native_source_publication']
+        if publication is not None:
+            from ..experiment.instance_pool import NativeSourceSnapshot
+            if (type(publication) is not tuple or len(publication) != 2
+                    or type(publication[0]) is not NativeSourceSnapshot):
+                raise ValueError('invalid validated native source publication')
+        object.__setattr__(value, '_native_source_publication', publication)
         return value
+
+    def native_source_publication(self):
+        """Same-epoch routing projection; current-owner checks remain external."""
+        return self._native_source_publication
 
     def execution_copy(self):
         """One private execution image of the already validated frozen bytes."""
@@ -197,7 +212,9 @@ def execute_planning_message(message):
     if operation == 'owned_execution_epoch':
         receipt.update(frozen_execution_validated=True,
             frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]),
-            execution_objectives_prepared=True, execution_objectives_seconds=objectives_seconds)
+            execution_objectives_prepared=True, execution_objectives_seconds=objectives_seconds,
+            _native_source_publication=(None if inputs['native_source_state'] is None else
+                (inputs['native_source_state'], args['native_snapshot'].get('device_uuid'))))
     return payload, receipt
 
 
@@ -249,7 +266,9 @@ class IEEEPlanningCPU:
             self.events.append(event)
             try:
                 (payload, receipt), cancelled = await _join_without_abandoning(future)
-                event.update(receipt, state='completed', caller_cancelled=cancelled,
+                event.update({key: value for key, value in receipt.items()
+                              if key != '_native_source_publication'},
+                             state='completed', caller_cancelled=cancelled,
                              joined_monotonic_s=time.monotonic())
                 if cancelled:
                     event['state'] = 'cancelled_result_discarded'

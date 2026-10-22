@@ -1,0 +1,304 @@
+{
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d735a9c8b6f84ea4baf6a028b3c5e491.scope",
+        "invocation_id": "fd9f839dd6384f0491d4085091830821",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735a9c8b6f84ea4baf6a028b3c5e491.scope",
+        "inode": 30491795
+      },
+      "reason": "controller environment has no pytest; no tests started",
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735a9c8b6f84ea4baf6a028b3c5e491.scope",
+        "memory.current": 49152,
+        "memory.peak": 50798592,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 307830\nuser_usec 215880\nsystem_usec 91949\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "processes": [],
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+        "invocation_id": "3a8a4fd8f3514ebc8ba26efd86fd48b8",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+        "inode": 30493933
+      },
+      "reason": "native environment child startup imports humming compilation; CPU-only test hit memory.high reclaim, not an inference performance failure",
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+        "memory.current": 3420495872,
+        "memory.peak": 3421020160,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=96.82 avg60=81.51 avg300=31.19 total=112700593\nfull avg10=96.34 avg60=80.85 avg300=30.84 total=111275345",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 81860637\nuser_usec 67964050\nsystem_usec 13896586\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 66693,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      "processes": [
+        {
+          "pid": 3315064,
+          "start_ticks": 219148132,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3315082,
+          "start_ticks": 219148169,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3315678,
+          "start_ticks": 219149224,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3316211,
+          "start_ticks": 219150663,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3316210,
+          "start_ticks": 219150663,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3316263,
+          "start_ticks": 219150720,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3316265,
+          "start_ticks": 219150728,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        },
+        {
+          "pid": 3316434,
+          "start_ticks": 219151199,
+          "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+          "affinity": [
+            2,
+            3,
+            26,
+            27
+          ]
+        }
+      ],
+      "closure": {
+        "targets": [
+          {
+            "pid": 3315064,
+            "start_ticks": 219148132,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3315082,
+            "start_ticks": 219148169,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3315678,
+            "start_ticks": 219149224,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3316211,
+            "start_ticks": 219150663,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3316210,
+            "start_ticks": 219150663,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3316263,
+            "start_ticks": 219150720,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3316265,
+            "start_ticks": 219150728,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          {
+            "pid": 3316434,
+            "start_ticks": 219151199,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735b9c8b6f84ea4baf6a028b3c5e491.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "hard_kill": true,
+        "released": true
+      }
+    },
+    {
+      "unit": "primelora-tc-aux-d735test2.scope",
+      "properties": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735test2.scope",
+        "ActiveState": "active",
+        "InvocationID": "dc0dab4d31be42ecbfa2dd339f512528"
+      },
+      "inode": 30493812,
+      "released": true,
+      "reason": "non-UUID launcher identity rejected before tests"
+    }
+  ],
+  "initial_result": {
+    "returncode": 1,
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d735a9c8b6f84ea4baf6a028b3c5e491.scope",
+      "memory.current": 34000896,
+      "memory.peak": 50798592,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 295602\nuser_usec 206721\nsystem_usec 88880\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "tests": [
+      "tests/test_ieee_tc_planning_cpu.py",
+      "tests/test_ieee_tc_planning_snapshot.py",
+      "tests/test_ieee_tc_route_identity_cache.py",
+      "tests/test_ieee_tc_transfer_pressure.py::OwnedPreparationPlanning",
+      "tests/test_ieee_tc_transfer_pressure.py::MixedOwnedPreparation"
+    ],
+    "protected_files_unchanged": 145,
+    "new_gpu_replays": 0,
+    "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python"
+  },
+  "initial_log": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python: No module named pytest\n",
+  "partial_native_environment_log": "============================= test session starts ==============================\nplatform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/qhq/serverless_llm_experiment_retry14_baseline\nconfigfile: pyproject.toml\nplugins: anyio-4.15.1\ncollected 97 items\n\ntests/test_ieee_tc_planning_cpu.py ......."
+}

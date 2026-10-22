@@ -9084,7 +9084,21 @@ class ScenarioRunner:
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
         state = NativeSourceSnapshot.from_native(native,
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
-        device_uuid = native.get('device_uuid')
+        return self._ieee_publish_validated_planning_sources(slot, state,
+            device_uuid=native.get('device_uuid'), expected_engine=expected_engine)
+
+    def _ieee_publish_validated_planning_sources(self, slot, state, *, device_uuid, expected_engine):
+        """Commit a pure worker's same-observation projection, never live capacity.
+
+        Planning may finish after newer route/identity events. Preserve the
+        current owner/frontier checks and original capture time before exposing
+        any scope. The worker cannot reserve resources or mutate this registry.
+        """
+        if not getattr(self, '_ieee_route_confirmed_snapshot_cache', False):
+            return False
+        if (slot.engine is not expected_engine
+                or not any(current is slot for current in self.instance_pool.get_slots())):
+            return False
         if not isinstance(device_uuid, str) or not device_uuid:
             raise ValueError('planning source publication lacks native physical GPU identity')
         previous_uuid = getattr(slot, 'native_device_uuid', None)
@@ -20019,13 +20033,19 @@ class ScenarioRunner:
         # Physical execution/deferred-capacity checks keep their full reports.
         observed_engine = slot.engine
         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
-        self._ieee_publish_planning_sources(slot, native, expected_engine=observed_engine)
         files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
-        return await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
+        plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
             profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
             expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
+        # The pure worker already validates this full graph. Reuse only its
+        # immutable route projection instead of validating it on the request
+        # loop a second time. Cancelled worker results never reach this point.
+        state, device_uuid = plan.native_source_publication()
+        self._ieee_publish_validated_planning_sources(slot, state,
+            device_uuid=device_uuid, expected_engine=observed_engine)
+        return plan
 
     async def _run_ieee_owned_preparation_plan(self, *, slot, mode, activation_id=None,
                                               capacity_only=False, file_snapshot=None):

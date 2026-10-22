@@ -1,0 +1,9 @@
+"""Use the existing qualified pytest environment; retain the failed launcher."""
+from pathlib import Path
+import sys
+import test
+
+if __name__ == '__main__':
+    test.RAW = Path(__file__).resolve().parent / sys.argv[1]
+    test.RAW.mkdir(exist_ok=False)
+    test.main()

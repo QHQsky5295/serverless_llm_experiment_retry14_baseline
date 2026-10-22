@@ -824,7 +824,11 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
         view.update(activation_id=activation_id, inherited_layout=layout,
                     native_owner_exists=False, gpu_budget_basis='frozen_initialization_layout')
     view, digest = freeze_preparation_source_view(view)
-    return dict(options=tuple(options), budgets=budgets, source_snapshot_id=digest, source_view=view)
+    # Reuse this exact, already validated observation for route publication.
+    # It is an immutable projection, not a second observation or a live lease;
+    # the full graph remains in source_view for selection/execution checks.
+    return dict(options=tuple(options), budgets=budgets, source_snapshot_id=digest,
+                source_view=view, native_source_state=native)
 
 
 def validate_file_replacement_epoch(epoch):
