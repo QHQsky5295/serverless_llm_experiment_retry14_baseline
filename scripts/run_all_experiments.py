@@ -3742,6 +3742,14 @@ class InferenceEngine:
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
             )
+            # Preserve the native default unless a model-level compilation
+            # contract is explicitly frozen. vLLM validates its fields; an
+            # unsupported configuration must fail, never retry with defaults.
+            if self.model_cfg.get("compilation_config") is not None:
+                compilation = self.model_cfg["compilation_config"]
+                if not isinstance(compilation, dict) or not compilation:
+                    raise ValueError("compilation_config must be a nonempty native configuration mapping")
+                kwargs["compilation_config"] = copy.deepcopy(compilation)
             safetensors_strategy = self.model_cfg.get(
                 "resolved_safetensors_load_strategy",
                 self.model_cfg.get("safetensors_load_strategy"),
@@ -26217,6 +26225,7 @@ async def _main_async_impl(
             "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
             "max_num_seqs": model_cfg.get("max_num_seqs"),
             "max_num_batched_tokens": model_cfg.get("max_num_batched_tokens"),
+            "compilation_config": copy.deepcopy(model_cfg.get("compilation_config")),
             "safetensors_load_strategy": model_cfg.get("safetensors_load_strategy"),
             "resolved_safetensors_load_strategy": model_cfg.get(
                 "resolved_safetensors_load_strategy"

@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "initial_draft_executed": false,
+  "corrected_parameter": "--replay-trace",
+  "draft_sha256": "b36594c3b231cdba43b466591dd5ed9c8664caa5292f03cec3c7bd1b69b8d8f5",
+  "checked_sha256": "2f982a84cf1c014e578fbf550256a2a3c3ce16042ae60912ecbb2846762b6661",
+  "new_experiment": false
+}

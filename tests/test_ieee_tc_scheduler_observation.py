@@ -465,6 +465,66 @@ class NativeHookWiring(unittest.TestCase):
                     True, True, 2, 16))
             args.assert_not_called()
 
+    def test_explicit_compilation_config_forwarded_without_mutating_identity(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        compilation = {'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024],
+                       'max_cudagraph_capture_size': 1024}
+        cfg = {'timing_contract': 'ieee_tc_native_v1', 'compilation_config': compilation}
+        engine = runner.InferenceEngine(cfg, {})
+        engine._resolve_vllm_visible_devices = Mock(return_value='0')
+        engine._resolve_vllm_executor_backend = Mock(return_value=None)
+        args_mock = Mock(side_effect=lambda **kw: NS(**kw))
+        native = object()
+        with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+             patch.object(runner, 'AsyncEngineArgs', args_mock), \
+             patch.object(runner, 'AsyncLLMEngine', NS(from_engine_args=Mock(return_value=native))):
+            actual = asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                False, True, 8, 16))
+        self.assertIs(actual, native)
+        forwarded = args_mock.call_args.kwargs['compilation_config']
+        self.assertEqual(forwarded, compilation)
+        self.assertIsNot(forwarded, compilation)
+        forwarded['cudagraph_capture_sizes'].append(2048)
+        self.assertEqual(compilation['cudagraph_capture_sizes'][-1], 1024)
+        self.assertNotEqual(FrozenServiceProfiles.model_identity(cfg),
+                            FrozenServiceProfiles.model_identity({'timing_contract': 'ieee_tc_native_v1'}))
+
+    def test_absent_compilation_config_keeps_native_defaults(self):
+        engine = runner.InferenceEngine({'timing_contract': 'ieee_tc_native_v1'}, {})
+        engine._resolve_vllm_visible_devices = Mock(return_value='0')
+        engine._resolve_vllm_executor_backend = Mock(return_value=None)
+        args_mock = Mock(side_effect=lambda **kw: NS(**kw))
+        with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+             patch.object(runner, 'AsyncEngineArgs', args_mock), \
+             patch.object(runner, 'AsyncLLMEngine', NS(from_engine_args=Mock(return_value=object()))):
+            asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                False, True, 8, 16))
+        self.assertNotIn('compilation_config', args_mock.call_args.kwargs)
+
+    def test_invalid_compilation_mapping_fails_without_retry(self):
+        for value in ({}, [], 'default', False):
+            with self.subTest(value=value):
+                engine = runner.InferenceEngine({'timing_contract': 'ieee_tc_native_v1',
+                                                 'compilation_config': value}, {})
+                with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+                     patch.object(runner, 'AsyncEngineArgs') as args:
+                    with self.assertRaisesRegex(RuntimeError, 'without config retry.*compilation_config'):
+                        asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                            False, True, 8, 16))
+                    args.assert_not_called()
+
+    def test_native_compilation_error_is_not_silently_removed(self):
+        engine = runner.InferenceEngine({'timing_contract': 'ieee_tc_native_v1',
+            'compilation_config': {'unsupported_native_option': True}}, {})
+        engine._resolve_vllm_visible_devices = Mock(return_value='0')
+        engine._resolve_vllm_executor_backend = Mock(return_value=None)
+        with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+             patch.object(runner, 'AsyncEngineArgs', side_effect=ValueError('unsupported native option')) as args:
+            with self.assertRaisesRegex(RuntimeError, 'without config retry.*unsupported native option'):
+                asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                    False, True, 8, 16))
+            self.assertEqual(args.call_count, 1)
+
     def test_real_engine_rpc_checks_clock_and_does_not_swallow_failure(self):
         engine = runner.InferenceEngine({'ieee_scheduler_observation': True}, {})
         payload = {'kind': 'ieee_native_scheduler_observation_v1',

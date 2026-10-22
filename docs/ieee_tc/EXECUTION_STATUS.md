@@ -1,5 +1,23 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D724：图覆盖候选CPU资格通过，原生16请求检查待启动
+
+已核对完整PLAN/V1/V2和历史拒绝候选、官方v0.30源码。实际引擎入口为
+scripts/run_all_experiments.py，不是独立vllm_wrapper。默认图上限由8路
+decode导出16；唯一候选以几何尺寸扩至模型包络1024，保留4096token预算、
+8路并发及九公式，不扫描上限。新增可选原生compilation_config透传和摘要；
+无字段时原生默认不变，严格profile身份自动包含字段，D701不能直接复用。
+
+46项CPU检查通过，峰值630599680B，high/max/OOM/swap0，旧144与用户manifest
+不变。仅计划现有native_execution_metadata前16条资格，单GPU、原工件，
+不启动远端、不触碰共享k3s；含readback观察，不能作性能或n_correct证据。
+管理CLI初稿未执行，--trace已在另存的launch_checked.py改正为--replay-trace，
+旧稿及资格SHA保留。先备份检查点再启动，所有失败保留、不回退eager。
+
+通过后才复用D701采样规格取得匹配profile、最小Full与完整回放；启动与显存
+代价须一并评估。当前完整3B仍D719 joint91.60%、U13508.300779、数值未知；
+全部后续比较、消融、敏感性、CE和审稿交付未删减，接近目标前不画图。
+
 ## 2026-10-22 D723：前100组件诊断完成，定位到图重放覆盖边界
 
 完成证据检查点`191d4ee3e456915adadad83988d984854bddb094`已推送并ls-remote

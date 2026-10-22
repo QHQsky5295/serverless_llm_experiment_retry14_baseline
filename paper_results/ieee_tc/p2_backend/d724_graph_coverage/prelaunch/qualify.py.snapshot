@@ -1,0 +1,80 @@
+"""CPU regression for one native graph configuration; no GPU imports in parent."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',identity)
+group=Path(identity['path'])
+sample=lambda:{k:(group/k).read_text().strip() for k in (
+    'memory.high','memory.max','memory.peak','memory.events','memory.swap.max','memory.swap.current')}
+before=sample()
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert before['memory.high']==str(3*p.GIB) and before['memory.max']==str(4*p.GIB)
+assert before['memory.swap.max']=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()=='8f15ff984913b17774649e330b0869fd051d151f'
+gate=p.preflight([ROOT,RAW],2*p.GIB)
+save(RAW/'resource_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+fixed={p.PLAN:'d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+ ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+ ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+ ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+ ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json':'d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8'}
+seal=json.loads((ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json').read_text())
+protected={Path(k):v['sha256'] for k,v in seal['entries'].items()
+    if '/paper_results/final_v2/' in k or '/figs/paper/' in k}
+assert len(protected)==144
+for path,sha in (fixed|protected).items():assert p.digest(path)==sha,path
+paths=[ROOT/'scripts/run_all_experiments.py',ROOT/'tests/test_ieee_tc_scheduler_observation.py',
+ ROOT/'configs/ieee_tc/20261022_d724_3b_graph_native.yaml',
+ ROOT/'scripts/ieee_tc_preflight.py',ROOT/'faaslora/experiment/instance_pool.py',
+ ROOT/'faaslora/memory/gpu_monitor.py']
+for path in RAW.glob('*.py'):ast.parse(path.read_text())
+with (RAW/'tests.log').open('x') as log:
+    done=subprocess.run(['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python','-B','-m','pytest','-q',
+        'tests/test_ieee_tc_scheduler_observation.py','tests/test_ieee_tc_core_interleave.py',
+        'tests/test_ieee_tc_launch.py::ManagedEngineFailure',
+        '--junitxml='+str(RAW/'tests.xml')],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert done.returncode==0
+# Parsing configuration is light and does not import a second ML stack.
+import yaml
+old=yaml.safe_load((ROOT/'configs/ieee_tc/20261017_d641_3b_native_source.yaml').read_text())
+new=yaml.safe_load(paths[2].read_text())
+candidate=new['model_profiles']['llama32_3b_main_modelscope']['model']
+compilation=candidate.pop('compilation_config')
+assert new==old
+bound=min(candidate['max_model_len'],candidate['max_num_batched_tokens'])
+sizes=[2**i for i in range(bound.bit_length()) if 2**i<=bound]
+assert sizes[-1]==bound==1024
+assert compilation==dict(cudagraph_capture_sizes=sizes,max_cudagraph_capture_size=bound)
+native=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm')
+paths += [native/n for n in ('config/compilation.py','config/vllm.py','v1/worker/gpu/model_runner.py','v1/worker/gpu/cudagraph_utils.py')]
+after=sample()
+assert before['memory.events']==after['memory.events'] and after['memory.swap.current']=='0'
+refs={str(path):p.digest(path) for path in [*fixed,*protected,*paths,*RAW.glob('*.py')]}
+record=dict(kind='d724_graph_candidate_cpu_qualification_v1',passed=True,identity=identity,
+ resources_before=before,resources_after=after,refs=refs,protected_count=144,
+ candidate=compilation,request_count=16,performance_result=False,full_profile_compatible=False,
+ numerical_correctness_qualified=False,remote_service_changes=False)
+save(RAW/'qualification.json',record)
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'qualification.json',record)
+for source in [*RAW.glob('*.py'),RAW/'tests.xml']:
+    with (OUT/(source.name+'.snapshot' if source.suffix=='.py' else source.name)).open('xb') as f:f.write(source.read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+print(json.dumps(dict(passed=True,scope=identity,resources=after)))

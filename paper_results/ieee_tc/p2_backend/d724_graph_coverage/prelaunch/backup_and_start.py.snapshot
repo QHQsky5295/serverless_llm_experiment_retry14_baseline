@@ -1,0 +1,73 @@
+"""Explicit checked checkpoint followed by one bounded native qualification."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def call(args):
+    return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+q=json.loads((RAW/'qualification.json').read_text())
+assert q['passed']
+for path,sha in q['refs'].items():assert p.digest(Path(path))==sha,path
+for item in json.loads((OUT/'manifest.json').read_text())['files']:assert p.digest(ROOT/item['path'])==item['sha256']
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not call(['git','diff','--cached','--name-only'])
+assert call(['git','rev-parse','HEAD'])=='8f15ff984913b17774649e330b0869fd051d151f'
+checked=RAW/'launch_checked.py'
+expected=(RAW/'launch.py').read_text().replace(
+ "'--model-profile','llama32_3b_main_modelscope','--trace',str(trace)",
+ "'--model-profile','llama32_3b_main_modelscope','--replay-trace',str(trace)").replace(
+ '"""One existing native execution qualification; no remote or Full launch."""',
+ '"""Checked CLI: --replay-trace; the initial unexecuted launch draft is retained."""')
+assert checked.read_text()==expected
+for source in (checked,Path(__file__)):
+    ast.parse(source.read_text())
+    with (OUT/(source.name+'.snapshot')).open('xb') as f:f.write(source.read_bytes())
+save(OUT/'launch_command_review.json',dict(passed=True,initial_draft_executed=False,
+    corrected_parameter='--replay-trace',draft_sha256=p.digest(RAW/'launch.py'),
+    checked_sha256=p.digest(checked),new_experiment=False))
+paths=['scripts/run_all_experiments.py','tests/test_ieee_tc_scheduler_observation.py',
+ 'configs/ieee_tc/20261022_d724_3b_graph_native.yaml',
+ 'docs/ieee_tc/D724_3B_GRAPH_COVERAGE_20261022.md','docs/ieee_tc/EXECUTION_STATUS.md']
+paths += [str(f.relative_to(ROOT)) for f in sorted(OUT.iterdir())]
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:assert not pattern.search((ROOT/path).read_text()),path
+assert all('configs/generated/' not in x and not x.startswith('figs/') for x in paths)
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+commit_log=call(['git','commit','-m','tc: qualify native graph-coverage configuration without changing scheduling (D724)'])
+head=call(['git','rev-parse','HEAD'])
+ref='refs/heads/backup/d724-graph-coverage-20261022'
+push=call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+v2=call(['git','ls-remote','faaslora_origin','refs/heads/retry14_continuous_queue_v2']).split()[0]
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,v2_head=v2,v2_synced=v2==head,
+    files=paths,source_sha256={str(checked):p.digest(checked)},commit_log=commit_log,push_log=push))
+gate=p.preflight([ROOT,RAW],2*p.GIB)
+save(RAW/'start_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+session='tc-d724-graph-native16'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+unit='primelora-tc-aux-c2ac17bc09094f2e942757eb3f592724.scope'
+command=['systemd-run','--user','--scope','--collect','--unit='+unit,
+ '-p','MemoryHigh=3G','-p','MemoryMax=4G','-p','MemorySwapMax=0',
+ 'taskset','-c','2,3,26,27','/usr/bin/python3','-B',str(checked)]
+import shlex
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(command)])
+save(RAW/'start_receipt.json',dict(launched=True,tmux=session,launch_scope=unit,head=head,
+    command=command,checked_source_sha256=p.digest(checked),identity=own))
+print(json.dumps(dict(launched=True,tmux=session,head=head,ref=ref,v2_synced=v2==head)))
