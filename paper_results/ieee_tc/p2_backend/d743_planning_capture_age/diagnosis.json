@@ -1,0 +1,482 @@
+{
+  "kind": "d743_closed_planner_capture_registration_v1",
+  "passed": true,
+  "new_gpu_runs": 0,
+  "production_changes": false,
+  "formula_changes": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d742_20261023/3b_execution_view_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "d23b9044cbaf8684ab6a776094bf747c661363eb7f9d4eb565ce5bf5ff97751c",
+    "bytes": 1105091248
+  },
+  "by_journal": {
+    "_ieee_residency_epochs": {
+      "records": 3887,
+      "states": {
+        "cancelled": 4,
+        "completed": 2721,
+        "superseded": 1162
+      },
+      "triggers": {
+        "residency": 3887
+      },
+      "registrations": {
+        "None": 3887
+      },
+      "registration_reasons": {
+        "None": 3887
+      },
+      "supersession_stages": {
+        "None": 2725,
+        "native_file_fallback": 1,
+        "native_gpu_source": 6,
+        "native_registration": 1155
+      },
+      "supersession_reasons": {
+        "None": 2726,
+        "confirmed_native_source_absent": 6,
+        "stale_preparation_epoch": 1155
+      },
+      "attempt_count": 0,
+      "attempt_states": {},
+      "receipt_count": 0,
+      "receipt_reasons": {},
+      "gpu_reuse_count": 0,
+      "load_invoked": {},
+      "acquired": {},
+      "held": {},
+      "admission_evaluated": {},
+      "source_tiers": {},
+      "zero_attempt_records": 3887,
+      "targets": 0,
+      "duration_ms": {
+        "n": 3887,
+        "mean": 2569.3776789746685,
+        "p50": 1364.1603719443083,
+        "p95": 8866.393795236945,
+        "maximum": 27796.869167592376
+      }
+    },
+    "_ieee_file_preparation_plans": {
+      "records": 3891,
+      "states": {
+        "cancelled": 4,
+        "completed": 2725,
+        "superseded": 1162
+      },
+      "triggers": {
+        "handoff": 4,
+        "residency": 3887
+      },
+      "registrations": {
+        "True": 3891
+      },
+      "registration_reasons": {
+        "None": 3891
+      },
+      "supersession_stages": {
+        "None": 2729,
+        "native_file_fallback": 1,
+        "native_gpu_source": 6,
+        "native_registration": 1155
+      },
+      "supersession_reasons": {
+        "None": 2730,
+        "confirmed_native_source_absent": 6,
+        "stale_preparation_epoch": 1155
+      },
+      "attempt_count": 0,
+      "attempt_states": {},
+      "receipt_count": 0,
+      "receipt_reasons": {},
+      "gpu_reuse_count": 0,
+      "load_invoked": {},
+      "acquired": {},
+      "held": {},
+      "admission_evaluated": {},
+      "source_tiers": {},
+      "zero_attempt_records": 3891,
+      "targets": 0,
+      "duration_ms": {
+        "n": 3891,
+        "mean": 1835.7681189673283,
+        "p50": 365.41170068085194,
+        "p95": 8027.672298252583,
+        "maximum": 46253.9597931318
+      }
+    },
+    "_ieee_gpu_preparation_plans": {
+      "records": 2869,
+      "states": {
+        "cancelled": 4,
+        "completed": 1704,
+        "superseded": 1161
+      },
+      "triggers": {
+        "handoff": 3,
+        "residency": 2866
+      },
+      "registrations": {
+        "False": 1155,
+        "True": 1714
+      },
+      "registration_reasons": {
+        "None": 1714,
+        "stale_preparation_epoch": 1155
+      },
+      "supersession_stages": {
+        "None": 1708,
+        "native_gpu_source": 6,
+        "native_registration": 1155
+      },
+      "supersession_reasons": {
+        "None": 1708,
+        "confirmed_native_source_absent": 6,
+        "stale_preparation_epoch": 1155
+      },
+      "attempt_count": 5060,
+      "attempt_states": {
+        "completed": 3555,
+        "deferred": 1497,
+        "observing": 2,
+        "superseded": 6
+      },
+      "receipt_count": 5052,
+      "receipt_reasons": {
+        "None": 3555,
+        "no_eligible_replacement_victim": 1,
+        "replacement_benefit_not_greater_than_loss": 11,
+        "stale_snapshot": 1485
+      },
+      "gpu_reuse_count": 80,
+      "load_invoked": {
+        "False": 80,
+        "None": 1497,
+        "True": 3475
+      },
+      "acquired": {
+        "False": 1497,
+        "True": 3555
+      },
+      "held": {
+        "None": 5052
+      },
+      "admission_evaluated": {
+        "False": 92,
+        "None": 1485,
+        "True": 3475
+      },
+      "source_tiers": {
+        "None": 1497,
+        "gpu": 80,
+        "host": 3475
+      },
+      "zero_attempt_records": 1156,
+      "targets": 6279,
+      "duration_ms": {
+        "n": 2869,
+        "mean": 2335.7836896038793,
+        "p50": 938.8879737816751,
+        "p95": 9301.014851313084,
+        "maximum": 27293.48000185564
+      }
+    },
+    "_ieee_native_host_preparations": {
+      "records": 1325,
+      "states": {
+        "None": 1325
+      },
+      "triggers": {
+        "handoff": 23,
+        "residency": 1302
+      },
+      "registrations": {
+        "None": 1325
+      },
+      "registration_reasons": {
+        "None": 1325
+      },
+      "supersession_stages": {
+        "None": 1325
+      },
+      "supersession_reasons": {
+        "None": 1325
+      },
+      "attempt_count": 2828,
+      "attempt_states": {
+        "completed": 1293,
+        "deferred": 1532,
+        "file_held": 3
+      },
+      "receipt_count": 2825,
+      "receipt_reasons": {
+        "None": 1293,
+        "stale_snapshot": 1532
+      },
+      "gpu_reuse_count": 0,
+      "load_invoked": {
+        "None": 1532,
+        "True": 1293
+      },
+      "acquired": {
+        "None": 2825
+      },
+      "held": {
+        "False": 1532,
+        "True": 1293
+      },
+      "admission_evaluated": {
+        "None": 2825
+      },
+      "source_tiers": {
+        "None": 2825
+      },
+      "zero_attempt_records": 16,
+      "targets": 0,
+      "duration_ms": {
+        "n": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      }
+    }
+  },
+  "file_registered_target_counts": {
+    "0": 2225,
+    "1": 1148,
+    "2": 367,
+    "7": 1,
+    "9": 1,
+    "10": 1,
+    "4": 30,
+    "3": 110,
+    "5": 5,
+    "6": 3
+  },
+  "gpu_plan_groups": [
+    {
+      "state": "cancelled",
+      "n": 4,
+      "unique_linked": 4,
+      "metrics": {
+        "parent_freeze_ms": {
+          "n": 4,
+          "mean": 10.967347770929337,
+          "p50": 9.033405221998692,
+          "p95": 15.067149884998798,
+          "maximum": 15.067149884998798
+        },
+        "planner_queue_ms": {
+          "n": 4,
+          "mean": 318.36726050823927,
+          "p50": 0.012990087270736694,
+          "p95": 897.9560676962137,
+          "maximum": 897.9560676962137
+        },
+        "worker_delivery_ms": {
+          "n": 4,
+          "mean": 11.259019374847412,
+          "p50": 2.9755686409771442,
+          "p95": 20.09764313697815,
+          "maximum": 20.09764313697815
+        },
+        "worker_ms": {
+          "n": 4,
+          "mean": 359.4604453537613,
+          "p50": 198.2703790999949,
+          "p95": 551.1592561379075,
+          "maximum": 551.1592561379075
+        },
+        "worker_cpu_ms": {
+          "n": 4,
+          "mean": 359.40662425002756,
+          "p50": 198.2502690000274,
+          "p95": 551.1057559999699,
+          "maximum": 551.1057559999699
+        },
+        "return_to_parent_ms": {
+          "n": 4,
+          "mean": 11.702927178703249,
+          "p50": 7.870472967624664,
+          "p95": 21.930551156401634,
+          "maximum": 21.930551156401634
+        },
+        "parent_to_register_start_ms": {
+          "n": 4,
+          "mean": 127.37407465465367,
+          "p50": 56.98066158220172,
+          "p95": 249.618471134454,
+          "maximum": 249.618471134454
+        },
+        "capture_to_register_start_ms": {
+          "n": 4,
+          "mean": 839.1310748411343,
+          "p50": 740.4081877321005,
+          "p95": 1204.1218257509172,
+          "maximum": 1204.1218257509172
+        },
+        "owner_epoch_advance": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    {
+      "state": "completed",
+      "n": 1704,
+      "unique_linked": 1704,
+      "metrics": {
+        "parent_freeze_ms": {
+          "n": 1704,
+          "mean": 9.458824337412004,
+          "p50": 9.018328972160816,
+          "p95": 11.915790382772684,
+          "maximum": 85.22824384272099
+        },
+        "planner_queue_ms": {
+          "n": 1704,
+          "mean": 220.31645397704855,
+          "p50": 168.4511830098927,
+          "p95": 838.9333477243781,
+          "maximum": 2079.2936626821756
+        },
+        "worker_delivery_ms": {
+          "n": 1704,
+          "mean": 12.177501003609908,
+          "p50": 3.5560401156544685,
+          "p95": 21.351471077650785,
+          "maximum": 1218.1618097238243
+        },
+        "worker_ms": {
+          "n": 1704,
+          "mean": 239.53594155024797,
+          "p50": 185.73442986235023,
+          "p95": 513.2472100667655,
+          "maximum": 662.7714619971812
+        },
+        "worker_cpu_ms": {
+          "n": 1704,
+          "mean": 239.50121671478922,
+          "p50": 185.71654100003343,
+          "p95": 513.169236000067,
+          "maximum": 662.6772150000306
+        },
+        "return_to_parent_ms": {
+          "n": 1704,
+          "mean": 24.177964444178212,
+          "p50": 8.714978117495775,
+          "p95": 54.31387107819319,
+          "maximum": 1435.1514177396894
+        },
+        "parent_to_register_start_ms": {
+          "n": 1704,
+          "mean": 182.7198856842525,
+          "p50": 46.263687312603,
+          "p95": 516.4286149665713,
+          "maximum": 39095.22116323933
+        },
+        "capture_to_register_start_ms": {
+          "n": 1704,
+          "mean": 688.3865709967491,
+          "p50": 517.6019370555878,
+          "p95": 1335.319235920906,
+          "maximum": 39208.311094436795
+        },
+        "owner_epoch_advance": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    {
+      "state": "superseded",
+      "n": 1161,
+      "unique_linked": 1161,
+      "metrics": {
+        "parent_freeze_ms": {
+          "n": 1161,
+          "mean": 9.605761536803742,
+          "p50": 9.102323092520237,
+          "p95": 12.283201329410076,
+          "maximum": 58.02007019519806
+        },
+        "planner_queue_ms": {
+          "n": 1161,
+          "mean": 286.9632527830591,
+          "p50": 199.91725403815508,
+          "p95": 912.154268939048,
+          "maximum": 2142.028773203492
+        },
+        "worker_delivery_ms": {
+          "n": 1161,
+          "mean": 15.852592550988192,
+          "p50": 14.498271979391575,
+          "p95": 23.993663024157286,
+          "maximum": 1320.0894091278315
+        },
+        "worker_ms": {
+          "n": 1161,
+          "mean": 253.83239739608985,
+          "p50": 188.18961828947067,
+          "p95": 514.5725188776851,
+          "maximum": 791.9569476507604
+        },
+        "worker_cpu_ms": {
+          "n": 1161,
+          "mean": 253.79586721791648,
+          "p50": 188.16922999999974,
+          "p95": 514.4959620000691,
+          "maximum": 791.742341999992
+        },
+        "return_to_parent_ms": {
+          "n": 1161,
+          "mean": 30.501571520007857,
+          "p50": 8.83064093068242,
+          "p95": 91.14922909066081,
+          "maximum": 1482.7115889638662
+        },
+        "parent_to_register_start_ms": {
+          "n": 1161,
+          "mean": 178.69910865325824,
+          "p50": 46.55971238389611,
+          "p95": 731.489481870085,
+          "maximum": 2471.5653457678854
+        },
+        "capture_to_register_start_ms": {
+          "n": 1161,
+          "mean": 775.454684440207,
+          "p50": 690.5575208365917,
+          "p95": 1572.4331410601735,
+          "maximum": 4039.068633224815
+        },
+        "owner_epoch_advance": {
+          "n": 1155,
+          "mean": 5.825974025974026,
+          "p50": 4,
+          "p95": 14,
+          "maximum": 33
+        }
+      }
+    }
+  ],
+  "linked_gpu_plans": 2869,
+  "ambiguous_or_missing_computation_links": 0,
+  "protected_files": 145,
+  "caveats": [
+    "Capture-to-register starts after the native snapshot was received, so it is not its complete age.",
+    "Queue wait is an observed async interval, not independent CPU time or removable request latency.",
+    "Registration staleness is checked by native epochs; plan registration is not a storage lease.",
+    "Completed/superseded groups differ in live demand and state; no causal comparison is inferred.",
+    "Empty file targets do not prove an empty GPU plan; no planning frequency change is justified by counts alone.",
+    "No token correctness, SLO improvement, counterfactual serving result or CI is inferred."
+  ]
+}

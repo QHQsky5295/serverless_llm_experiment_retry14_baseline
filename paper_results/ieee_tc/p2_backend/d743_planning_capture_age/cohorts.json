@@ -1,0 +1,219 @@
+{
+  "passed": true,
+  "groups": [
+    {
+      "trigger": "handoff",
+      "stale_at_registration": false,
+      "n": 3,
+      "states": {
+        "completed": 3
+      },
+      "spans": {
+        "planner_queue_ms": {
+          "n": 3,
+          "mean": 0.004695728421211243,
+          "p50": 0.00466126948595047,
+          "p95": 0.004951842129230499,
+          "maximum": 0.004951842129230499
+        },
+        "worker_ms": {
+          "n": 3,
+          "mean": 99.86049681901932,
+          "p50": 102.25610760971904,
+          "p95": 104.7728187404573,
+          "maximum": 104.7728187404573
+        },
+        "worker_cpu_ms": {
+          "n": 3,
+          "mean": 99.84612166666788,
+          "p50": 102.2436790000043,
+          "p95": 104.75265200000194,
+          "maximum": 104.75265200000194
+        },
+        "parent_to_register_start_ms": {
+          "n": 3,
+          "mean": 38348.89115750169,
+          "p50": 38731.99748899788,
+          "p95": 39095.22116323933,
+          "maximum": 39095.22116323933
+        },
+        "capture_to_register_start_ms": {
+          "n": 3,
+          "mean": 38456.65222421909,
+          "p50": 38841.92283498123,
+          "p95": 39208.311094436795,
+          "maximum": 39208.311094436795
+        },
+        "owner_epoch_advance": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    {
+      "trigger": "handoff",
+      "stale_at_registration": true,
+      "n": 0,
+      "states": {},
+      "spans": {
+        "planner_queue_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        },
+        "worker_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        },
+        "worker_cpu_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        },
+        "parent_to_register_start_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        },
+        "capture_to_register_start_ms": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        },
+        "owner_epoch_advance": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    {
+      "trigger": "residency",
+      "stale_at_registration": false,
+      "n": 1711,
+      "states": {
+        "completed": 1701,
+        "superseded": 6,
+        "cancelled": 4
+      },
+      "spans": {
+        "planner_queue_ms": {
+          "n": 1711,
+          "mean": 220.4870036106463,
+          "p50": 168.4511830098927,
+          "p95": 842.352063395083,
+          "maximum": 2079.2936626821756
+        },
+        "worker_ms": {
+          "n": 1711,
+          "mean": 239.86811357839355,
+          "p50": 185.76757796108723,
+          "p95": 513.9540657401085,
+          "maximum": 662.7714619971812
+        },
+        "worker_cpu_ms": {
+          "n": 1711,
+          "mean": 239.83335109760424,
+          "p50": 185.74752000000672,
+          "p95": 513.8940669999954,
+          "maximum": 662.6772150000306
+        },
+        "parent_to_register_start_ms": {
+          "n": 1711,
+          "mean": 115.64931146281242,
+          "p50": 46.307525131851435,
+          "p95": 496.72376504167914,
+          "maximum": 2709.534297697246
+        },
+        "capture_to_register_start_ms": {
+          "n": 1711,
+          "mean": 621.7751399949215,
+          "p50": 517.3893221653998,
+          "p95": 1326.3294878415763,
+          "maximum": 3136.415056884289
+        },
+        "owner_epoch_advance": {
+          "n": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "maximum": null
+        }
+      }
+    },
+    {
+      "trigger": "residency",
+      "stale_at_registration": true,
+      "n": 1155,
+      "states": {
+        "superseded": 1155
+      },
+      "spans": {
+        "planner_queue_ms": {
+          "n": 1155,
+          "mean": 287.9686284286184,
+          "p50": 200.03026025369763,
+          "p95": 912.6907889731228,
+          "maximum": 2142.028773203492
+        },
+        "worker_ms": {
+          "n": 1155,
+          "mean": 254.19270626563596,
+          "p50": 188.20650223642588,
+          "p95": 515.0024890899658,
+          "maximum": 791.9569476507604
+        },
+        "worker_cpu_ms": {
+          "n": 1155,
+          "mean": 254.15610348571522,
+          "p50": 188.18207300000722,
+          "p95": 514.9407770001062,
+          "maximum": 791.742341999992
+        },
+        "parent_to_register_start_ms": {
+          "n": 1155,
+          "mean": 178.71099676678836,
+          "p50": 46.45610973238945,
+          "p95": 732.5362889096141,
+          "maximum": 2471.5653457678854
+        },
+        "capture_to_register_start_ms": {
+          "n": 1155,
+          "mean": 777.0068473670455,
+          "p50": 691.6638589464128,
+          "p95": 1584.121249616146,
+          "maximum": 4039.068633224815
+        },
+        "owner_epoch_advance": {
+          "n": 1155,
+          "mean": 5.825974025974026,
+          "p50": 4,
+          "p95": 14,
+          "maximum": 33
+        }
+      }
+    }
+  ],
+  "no_registered_file_target_and_no_gpu_plan": 1021,
+  "empty_states": {
+    "completed": 1021
+  },
+  "interpretation": "Empty plans do not establish unchanged inputs or justify skipped fresh observations; stale registration is a definite known rejection, not an execution failure. No inferred serving improvement.",
+  "parent_diagnosis_sha256": "a87cd1f80cb61d9d08e669b6389d9f4035d9ac261e8b086940166def4a4de2ef"
+}

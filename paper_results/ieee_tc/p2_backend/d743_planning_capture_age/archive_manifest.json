@@ -1,0 +1,11 @@
+{
+  "path": "journal_projection.tar.gz",
+  "sha256": "e076db08ccd00f6cfde58c0e764ca5ef28d4e03a40e51a314662be0eb3373ead",
+  "restore_under": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d743_planning_capture_age",
+  "members": {
+    "projection.json": "f9254cc59c185fd48c486c56a386f139e60cfe93bafc7613cdbd7122dbea76ff",
+    "planner_registration_links.json": "8b2f73d46640ff94013459ee208b619b230c3d5cc52f86f81ef200d24fee1c74"
+  },
+  "round_trip_verifications": 2,
+  "original_files_retained": true
+}

@@ -1,0 +1,102 @@
+"""Seal closed D743 evidence; split initial handoff from residency analysis."""
+import ast
+import collections
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+import tarfile
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d743_planning_capture_age'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'seal_identity.json', own)
+parent = RAW.parent/'d691_20261018/diagnose.py'
+assert p.digest(parent) == '7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc'
+node = next(n for n in ast.parse(parent.read_text()).body if isinstance(n, ast.FunctionDef) and n.name=='stats')
+exec(compile(ast.Module(body=[node], type_ignores=[]), str(parent), 'exec'))
+manifest = read(OUT/'manifest.json')
+for item in manifest['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256']
+for item in manifest['sources']:
+    assert p.digest(Path(item['path'])) == item['sha256']
+links = read(OUT/'planner_registration_links.json')
+rows = read(OUT/'projection.json')
+gpu_keys = {(row['planning_sha256'], row['target_replica']) for row in rows
+            if row['journal']=='_ieee_gpu_preparation_plans'}
+files = [row for row in rows if row['journal']=='_ieee_file_preparation_plans']
+empty = [row for row in files if row['registration_projection']['targets']==0
+         and (row['objective_sha256'], row['target_replica']) not in gpu_keys]
+groups = []
+for trigger in sorted({row['trigger_reason'] for row in links}):
+    for stale in (False, True):
+        selected = [row for row in links if row['trigger_reason']==trigger and
+                    (row['registration_reason']=='stale_preparation_epoch')==stale]
+        groups.append(dict(trigger=trigger, stale_at_registration=stale, n=len(selected),
+            states=dict(collections.Counter(row['state'] for row in selected)),
+            spans={key:stats([row[key] for row in selected if key in row]) for key in (
+                'planner_queue_ms','worker_ms','worker_cpu_ms','parent_to_register_start_ms',
+                'capture_to_register_start_ms','owner_epoch_advance')}))
+cohorts = dict(passed=True, groups=groups,
+    no_registered_file_target_and_no_gpu_plan=len(empty),
+    empty_states=dict(collections.Counter(row['state'] for row in empty)),
+    interpretation='Empty plans do not establish unchanged inputs or justify skipped fresh observations; stale registration is a definite known rejection, not an execution failure. No inferred serving improvement.',
+    parent_diagnosis_sha256=p.digest(OUT/'diagnosis.json'))
+save(OUT/'cohorts.json', cohorts)
+archive = OUT/'journal_projection.tar.gz'
+members = [OUT/'projection.json', OUT/'planner_registration_links.json']
+assert not archive.exists()
+with tarfile.open(archive, 'w:gz') as stream:
+    for path in members:
+        stream.add(path, arcname=path.name, recursive=False)
+expected = {path.name:p.digest(path) for path in members}
+for verification in range(2):
+    with tarfile.open(archive, 'r:gz') as stream:
+        assert stream.getnames()==list(expected)
+        for member in stream.getmembers():
+            assert member.isfile()
+            digest = hashlib.sha256()
+            with stream.extractfile(member) as source:
+                for chunk in iter(lambda:source.read(1024*1024), b''):
+                    digest.update(chunk)
+            assert digest.hexdigest()==expected[member.name]
+save(OUT/'archive_manifest.json', dict(path=archive.name, sha256=p.digest(archive),
+    restore_under=str(OUT), members=expected, round_trip_verifications=2,
+    original_files_retained=True))
+closures = []
+identities = [read(RAW/'analysis_identity.json')]
+failed = p.scope_identity('primelora-tc-aux-74320261023000000000000000000001.scope')
+assert failed['invocation_id']=='e7d5d02b17354183aa64acbdc9e20900'
+identities.append(failed)
+for identity in identities:
+    path = Path(identity['path'])
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    resources = {key:(path/key).read_text().strip()
+                 for key in ('memory.peak','memory.events','memory.swap.current')}
+    result = p.stop_scope_identity(identity, grace_seconds=0)
+    assert result['released'] and not result['targets']
+    closures.append(dict(identity=identity, resources=resources, result=result))
+save(OUT/'closure.json', dict(passed=True, closures=closures,
+    first_attempt=dict(state='dependency_error_before_analysis',
+        environment='/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python',
+        error='ModuleNotFoundError: No module named ijson',
+        produced_results=False, gpu_execution=False),
+    completed_environment='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python',
+    protected_user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json')))
+with (OUT/'seal.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+print(json.dumps(cohorts, indent=2), flush=True)

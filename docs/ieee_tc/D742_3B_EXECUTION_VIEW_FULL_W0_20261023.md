@@ -168,3 +168,15 @@ D711既有冻结工件数值区分限制未消失：n_correct=null、ranking_eli
 触发重跑。收尾后磁盘可用163556339712B，已高于150GiB；后续启动仍重查。
 本轮没有删除或压缩原始证据。completion/diagnosis/closure产物将按明确
 路径备份；不force同步有分歧的V2，不stage用户manifest。
+
+## 备份与资源收尾完成
+
+19个明确路径提交`c7872523cb2ef03f5688eff49fce7d264d7e6aa1`，推送至
+`faaslora_origin/backup/d742-complete-20261023`并核验远端SHA。V2尚未同步、
+未force；145保护项、结果manifest、格式/敏感信息与远端日志SHA均通过。
+用户manifest未stage且SHA不变。既有55+2项检查直接复用，无重复资格。
+
+closure及backup域均已核对精确身份、空后释放；备份域峰值61349888B、
+high/max/OOM/swap0，raw/post_backup_release.json保留回执。当前无GPU
+计算进程，远端三项服务已停，磁盘163470823424B可用。本收尾文字随下一
+正常检查点备份，不为记录备份自身而循环提交。下一新假设尚未启动。

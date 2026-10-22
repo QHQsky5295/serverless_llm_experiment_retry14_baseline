@@ -1,5 +1,53 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D743：完整日志揭示规划后注册过期，下一只改采样时机
+
+PROGRESS。完整重读PLAN/AGENTS/最新规则、冻结V1与单轮V2。复用D692流式
+journal投影，在D742全部4000请求对应的关闭outcome中关联2869/2869 GPU
+计划到唯一规划回执；无新GPU、生产修改、配置、工件或阈值调整。3887驻留
+epoch中1155在native registration已过期；占2866驻留GPU计划40.30%。
+该组规划队列均287.969ms、worker254.193ms、冻结→开始注册777.007ms，
+epoch推进中位4/P95 14。其余1711驻留计划队列220.487ms，不能当因果对照。
+handoff3条单独分组；1021全空计划不证明输入等价，不能凭此降低规划频率。
+GPU实际加载3475/复用80、stale attempt1485；HOST held1293/stale1532，
+缺回执全部保留，不相加混用计划/attempt/加载/命中。
+
+历史核查排除D329、D514/D516、D687/D688、D713、D728/D729、D737/D738
+等无新前提方向；D159/D163/D193/D693/D735/D741已做内容不重复。在线核对
+vLLM0.30 EngineCore、controller-runtime level-based读取与Python锁。唯一
+新假设：复用现有规划单worker，在取得执行权之后才采样完整原生状态；
+普通请求/九公式、实时budget/epoch重检查不变。仅拟对initialized residency
+改采样时点，pre-init handoff和原共享file-round时刻保持。尚未实施，不能
+称已减少等待或提高SLO；原生观察不再提前并行及更多准备干扰均需实测。
+下一做该边界的针对性取消/冻结/选择等价检查后直接一次完整W0，不再加无
+新问题的GPU短资格。详见D743_PLANNING_CAPTURE_AGE_20261023.md。
+
+D743分析峰值133632000B、high/max/OOM/swap0，145保护项与用户manifest
+未变。缺ijson环境与封存脚本缺math的两次离线工具错误保留；正确环境完成，
+分析/失败域均按身份空核验释放。25MiB投影只作可还原压缩备份，成员双重
+解压SHA通过；原始副本未删，不虚报回收。下一先完成正常备份及封存域释放。
+生产仍D741开发父版、D742联合93.175%/U14868.152527，未达95%或历史D703，
+D711数值限制保留。共享k3s不动，HydraServe隔离结果复用；完整后续矩阵、
+审稿覆盖和最终图表不删减，goal active。
+
+## 2026-10-23 D742结果已备份并释放，下一为残余瓶颈核查
+
+PROGRESS。19个明确路径提交c7872523cb2ef03f5688eff49fce7d264d7e6aa1，
+推送并ls-remote确认faaslora_origin/backup/d742-complete-20261023。
+V2未同步、未force；145保护项、两个结果manifest、远端日志SHA、格式/
+敏感信息检查通过，D74155项与D742入口2项复用，未重复测试或GPU回放。
+用户manifest SHA仍3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df，
+未stage。closure与backup域均按精确身份核对空后释放；最终备份域峰值
+61349888B、high/max/OOM/swap0，回执raw/post_backup_release.json。
+
+当前无GPU计算进程，远端三项服务已停止；磁盘可用163470823424B，
+MemAvailable109854752kB，仅为当前观察，下一启动需新检查。本轮没有
+删除/压缩数据。最新生产保留D741开发父版，D742为3727/4000、U14868.152527，
+未达到95%、未超过历史D703，不宣告G1/G2关闭。下一依据已封存的完整阶段、
+关闭优化历史与官方实现选一个新假设，优先核查剩余pre-engine等待；
+尚未新增候选、配置或实验，不重跑D742或更改冻结尺子。全部后续范围保留。
+本收尾记录随下一正常检查点备份，不另开仅为备份状态的循环提交；goal active。
+
 ## 2026-10-23 D742完整结束：93.175%，保留开发父版但未达标
 
 PROGRESS。4000/4000正常终态、零运行失败，实际service/GPU和远端三项

@@ -1,0 +1,74 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/analyze.py.snapshot",
+      "sha256": "78c150c39c20e3bfd4537b67a063feafeac56065be96168b87bcb38bab68d02c",
+      "bytes": 10906
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/archive_manifest.json",
+      "sha256": "a0c7e79e05e5caabe46006c35bc6ec16212026bcc1723eebc4ca982b48c14ba7",
+      "bytes": 541
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/closure.json",
+      "sha256": "38ddfe5438d21d6826f93a6267072ced1c51f5de94f6286f6146b70d3af8c359",
+      "bytes": 2562
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/cohorts.json",
+      "sha256": "511d680044cb39d83015d863eac2557f8c13de5c3f803e828f891abb6ac55555",
+      "bytes": 5788
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/diagnosis.json",
+      "sha256": "a87cd1f80cb61d9d08e669b6389d9f4035d9ac261e8b086940166def4a4de2ef",
+      "bytes": 12765
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/journal_projection.tar.gz",
+      "sha256": "e076db08ccd00f6cfde58c0e764ca5ef28d4e03a40e51a314662be0eb3373ead",
+      "bytes": 1923999
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/manifest.json",
+      "sha256": "a4aad2a97975112b1f37451f755ef202d3d52babeba05e8ef35e7844fcb0a829",
+      "bytes": 3590
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/resources.json",
+      "sha256": "85858bc80ff3aed341fcba5ac5c899b90b0d2a348cca06f5ca43e1a61402d70a",
+      "bytes": 433
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/seal.py.snapshot",
+      "sha256": "c1078d185a101ab60246240c9075ea4c7fde850dd2dc25fa484d3dc7219a5e9f",
+      "bytes": 851
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/seal_attempt1.py.snapshot",
+      "sha256": "c02b1a5aacbe429fef76c151471707bb8e1cb7e58a0aa868fba9499554c2c013",
+      "bytes": 5319
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/seal_attempt2.py.snapshot",
+      "sha256": "c1078d185a101ab60246240c9075ea4c7fde850dd2dc25fa484d3dc7219a5e9f",
+      "bytes": 851
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/seal_release.json",
+      "sha256": "fad020af633bf073f11d9a0dc01d59b95108de2cdd7bd868b0deda4f895b13c1",
+      "bytes": 565
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/backup_results.py.snapshot",
+      "sha256": "84d520e1edc6360e604ed17f40c19ade3494b149f2dd183002ae819933d47fba",
+      "bytes": 5607
+    }
+  ],
+  "checks_reused": "D743 five linkage checks and two archive round trips; no production change or GPU replay.",
+  "protected_files": 145,
+  "raw_outcome_sha_verification": "completed seal",
+  "original_projection_retained": true,
+  "reclaimed_bytes": 0
+}

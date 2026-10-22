@@ -1,0 +1,100 @@
+"""Back up D743 closed analysis using the D742 explicit-path procedure."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d743_planning_capture_age'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+previous = read(RAW/'seal2_identity.json')
+assert p.scope_still_owned(previous) and not p.owned_pids(Path(previous['path']))
+resources = {key:(Path(previous['path'])/key).read_text().strip()
+             for key in ('memory.peak', 'memory.events', 'memory.swap.current')}
+closed = p.stop_scope_identity(previous, grace_seconds=0)
+assert closed['released'] and not closed['targets']
+save(OUT/'seal_release.json', dict(identity=previous, resources=resources, result=closed))
+q = read(ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json')
+for name, sha in q['protected'].items():
+    assert p.digest(Path(name)) == sha, name
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+manifest = read(OUT/'manifest.json')
+for item in manifest['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256'], item['path']
+# The 1.1 GiB source outcome was verified by the completed seal; do not rescan it.
+for item in manifest['sources']:
+    if not item['path'].endswith('/main_outcome.json'):
+        assert p.digest(Path(item['path'])) == item['sha256'], item['path']
+archive = read(OUT/'archive_manifest.json')
+assert archive['round_trip_verifications'] == 2
+assert p.digest(OUT/archive['path']) == archive['sha256']
+for name, sha in archive['members'].items():
+    assert p.digest(OUT/name) == sha, name
+for source, target in [('seal.py', 'seal_attempt1.py.snapshot'),
+                       ('seal_attempt2.py', 'seal_attempt2.py.snapshot'),
+                       ('backup_results.py', 'backup_results.py.snapshot')]:
+    ast.parse((RAW/source).read_text())
+    with (OUT/target).open('xb') as stream:
+        stream.write((RAW/source).read_bytes())
+names = ['analyze.py.snapshot', 'archive_manifest.json', 'closure.json', 'cohorts.json',
+         'diagnosis.json', 'journal_projection.tar.gz', 'manifest.json', 'resources.json',
+         'seal.py.snapshot', 'seal_attempt1.py.snapshot', 'seal_attempt2.py.snapshot',
+         'seal_release.json', 'backup_results.py.snapshot']
+files = [OUT/name for name in names]
+save(OUT/'final_manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)),
+    sha256=p.digest(x), bytes=x.stat().st_size) for x in files],
+    checks_reused='D743 five linkage checks and two archive round trips; no production change or GPU replay.',
+    protected_files=len(q['protected']), raw_outcome_sha_verification='completed seal',
+    original_projection_retained=True, reclaimed_bytes=0))
+files += [OUT/'final_manifest.json', ROOT/'docs/ieee_tc/D743_PLANNING_CAPTURE_AGE_20261023.md',
+          ROOT/'docs/ieee_tc/D742_3B_EXECUTION_VIEW_FULL_W0_20261023.md',
+          ROOT/'docs/ieee_tc/EXECUTION_STATUS.md']
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    if not path.name.endswith('.tar.gz'):
+        assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *paths])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.snapshot', '.tar.gz'))]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW/'backup_precommit_check.json', dict(passed=True, files=paths,
+    protected_files=len(q['protected']), checks_reused=True))
+call(['git', 'commit', '-m', 'tc: preserve D743 planning-state age evidence and next hypothesis'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d743-planning-age-20261023'
+call(['git', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup_completion.json', dict(passed=True, head=head, ref=ref,
+    files=paths, v2_synchronized=False, protected_files=len(q['protected']),
+    protected_user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json')))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))

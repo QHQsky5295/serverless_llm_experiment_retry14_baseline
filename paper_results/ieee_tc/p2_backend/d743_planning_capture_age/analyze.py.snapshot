@@ -1,0 +1,207 @@
+"""Reuse D692's journal projection on closed D742; join planner/registration.
+
+No inference, new monitoring, source-state cache or counterfactual performance.
+Only the authoritative journals are read, one record at a time.
+"""
+import ast
+import collections
+import hashlib
+import io
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d743_planning_capture_age'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+PARENTS = {
+    RAW.parent/'d691_20261018/diagnose.py':
+        ('7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc', {'stats'}),
+    RAW.parent/'d692_20261018/diagnose.py':
+        ('5b4bb87a29f386d69d2429cdb397d1765420782d0b0e34c0516168b8fa80ccbb',
+         {'journal_rows', 'project', 'summarize'}),
+}
+for path, (sha, names) in PARENTS.items():
+    assert p.digest(path) == sha
+    nodes = [node for node in ast.parse(path.read_text()).body
+             if isinstance(node, ast.FunctionDef) and node.name in names]
+    assert {node.name for node in nodes} == names
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), str(path), 'exec'))
+
+PREFIXES = {f'mechanism_events.{name}.item': name for name in (
+    '_ieee_residency_epochs', '_ieee_file_preparation_plans',
+    '_ieee_gpu_preparation_plans', '_ieee_native_host_preparations')}
+PREFIXES['planning_cpu_events.item'] = 'planning_cpu_events'
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def link_gpu_plans(plans, cpu):
+    """Only unique same-SHA completed computations may supply timing evidence."""
+    index = collections.defaultdict(list)
+    for event in cpu:
+        if event['operation'] == 'owned_execution_epoch':
+            index[event['plan_sha256']].append(event)
+    linked = []
+    for plan in plans:
+        row = dict(plan_id=plan['plan_id'], state=plan['state'],
+                   trigger_reason=plan.get('trigger_reason'),
+                   planning_sha256=plan.get('planning_sha256'),
+                   registration_reason=plan['registration_reason'],
+                   targets=len(plan['targets']))
+        candidates = index.get(row['planning_sha256'], [])
+        row['matching_computations'] = len(candidates)
+        if len(candidates) == 1:
+            event = candidates[0]
+            points = [event[key] for key in (
+                'captured_monotonic_s', 'detached_monotonic_s', 'submitted_monotonic_s',
+                'worker_started_monotonic_s', 'worker_finished_monotonic_s',
+                'joined_monotonic_s')]+[plan['started_at']]
+            assert all(math.isfinite(t) for t in points) and points == sorted(points)
+            row.update(parent_freeze_ms=1000*(points[1]-points[0]),
+                planner_queue_ms=1000*(points[2]-points[1]),
+                worker_delivery_ms=1000*(points[3]-points[2]),
+                worker_ms=1000*(points[4]-points[3]),
+                worker_cpu_ms=1000*event['worker_cpu_seconds'],
+                return_to_parent_ms=1000*(points[5]-points[4]),
+                parent_to_register_start_ms=1000*(points[6]-points[5]),
+                capture_to_register_start_ms=1000*(points[6]-points[0]))
+            registration = plan['registration_projection']
+            if row['registration_reason'] == 'stale_preparation_epoch':
+                assert registration['registered'] is False
+                assert registration['epoch'] > registration['expected_epoch']
+                row['owner_epoch_advance'] = registration['epoch']-registration['expected_epoch']
+        linked.append(row)
+    return linked
+
+
+def checks():
+    # A duplicate hash is ambiguous: do not choose the most favourable event.
+    event = dict(operation='owned_execution_epoch', plan_sha256='s',
+        captured_monotonic_s=1., detached_monotonic_s=2., submitted_monotonic_s=4.,
+        worker_started_monotonic_s=5., worker_finished_monotonic_s=7.,
+        joined_monotonic_s=8., worker_cpu_seconds=1.5)
+    plan = dict(plan_id='p', state='superseded', planning_sha256='s', targets=[1],
+        started_at=9., registration_reason='stale_preparation_epoch',
+        registration_projection=dict(registered=False, epoch=5, expected_epoch=2))
+    row = link_gpu_plans([plan], [event])[0]
+    assert row['planner_queue_ms'] == 2000 and row['capture_to_register_start_ms'] == 8000
+    assert row['owner_epoch_advance'] == 3
+    assert 'planner_queue_ms' not in link_gpu_plans([plan], [event, event])[0]
+    assert 'planner_queue_ms' not in link_gpu_plans([plan], [])[0]
+    bad = dict(plan, started_at=6.)
+    try:
+        link_gpu_plans([bad], [event])
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError('reversed clock accepted')
+    value = dict(planning_cpu_events=[event], mechanism_events={
+        '_ieee_gpu_preparation_plans':[plan]}, coordination_after_shutdown={
+        '_ieee_gpu_preparation_plans':[plan]})
+    assert len(list(journal_rows(io.BytesIO(json.dumps(value).encode())))) == 2
+
+
+checks()
+assert not OUT.exists()
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json', scope)
+cg = Path(scope['path'])
+assert (cg/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (cg/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (cg/'memory.swap.max').read_text().strip() == '0'
+gate = p.preflight([ROOT], 32*1024*1024)
+save(RAW/'resource_gate.json', gate)
+assert not any('host_memory_below_stop' in issue or 'filesystem_below_stop' in issue
+               for issue in gate['issues'])
+
+source_report = ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/diagnosis/diagnosis.json'
+source = json.loads(source_report.read_text())
+outcome = Path(source['source_run'])/'launch.launch/physical_deployment/main_outcome.json'
+source_entry = next(row for row in source['sources'] if Path(row['path']) == outcome)
+assert p.digest(outcome) == source_entry['sha256']
+qualification = json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json').read_text())
+for path, sha in qualification['protected'].items():
+    assert p.digest(Path(path)) == sha
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+
+rows, cpu = [], []
+with outcome.open('rb') as stream:
+    for name, raw in journal_rows(stream):
+        if name == 'planning_cpu_events':
+            cpu.append(raw)
+            continue
+        row = project(name, raw)
+        registration = raw.get('registration') or {}
+        row['registration_projection'] = {key: registration[key] for key in (
+            'registered', 'reason', 'epoch', 'expected_epoch', 'targets', 'owner_id')
+            if key in registration}
+        row['result_count'] = len(raw['results']) if isinstance(raw.get('results'), list) else None
+        rows.append(row)
+assert len(cpu) == source['planning_output']['events'] == 3894
+by_journal = {name:summarize([row for row in rows if row['journal'] == name])
+              for name in PREFIXES.values() if name != 'planning_cpu_events'}
+assert by_journal['_ieee_residency_epochs']['records'] == 3887
+gpu = [row for row in rows if row['journal'] == '_ieee_gpu_preparation_plans']
+assert len({row['plan_id'] for row in gpu}) == len(gpu)
+links = link_gpu_plans(gpu, cpu)
+groups = []
+metrics = ('parent_freeze_ms','planner_queue_ms','worker_delivery_ms','worker_ms',
+    'worker_cpu_ms','return_to_parent_ms','parent_to_register_start_ms',
+    'capture_to_register_start_ms','owner_epoch_advance')
+for state in sorted({row['state'] for row in links}):
+    group = [row for row in links if row['state'] == state]
+    groups.append(dict(state=state, n=len(group),
+        unique_linked=sum(row['matching_computations']==1 for row in group),
+        metrics={key:stats([row[key] for row in group if key in row]) for key in metrics}))
+file = [row for row in rows if row['journal'] == '_ieee_file_preparation_plans']
+file_targets = collections.Counter(str(row['registration_projection'].get('targets')) for row in file)
+report = dict(kind='d743_closed_planner_capture_registration_v1', passed=True,
+    new_gpu_runs=0, production_changes=False, formula_changes=False,
+    n_correct=None, ranking_eligible=False, source=source_entry,
+    by_journal=by_journal, file_registered_target_counts=dict(file_targets),
+    gpu_plan_groups=groups, linked_gpu_plans=len(links),
+    ambiguous_or_missing_computation_links=sum(row['matching_computations']!=1 for row in links),
+    protected_files=len(qualification['protected']),
+    caveats=[
+        'Capture-to-register starts after the native snapshot was received, so it is not its complete age.',
+        'Queue wait is an observed async interval, not independent CPU time or removable request latency.',
+        'Registration staleness is checked by native epochs; plan registration is not a storage lease.',
+        'Completed/superseded groups differ in live demand and state; no causal comparison is inferred.',
+        'Empty file targets do not prove an empty GPU plan; no planning frequency change is justified by counts alone.',
+        'No token correctness, SLO improvement, counterfactual serving result or CI is inferred.'])
+OUT.mkdir(parents=True)
+save(OUT/'diagnosis.json', report)
+save(OUT/'projection.json', rows)
+save(OUT/'planner_registration_links.json', links)
+with (OUT/'analyze.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'resources.json', dict(scope=scope, peak_bytes=int((cg/'memory.peak').read_text()),
+    events=(cg/'memory.events').read_text(), swap_bytes=int((cg/'memory.swap.current').read_text())))
+refs = [source_report, outcome, Path(__file__), *PARENTS,
+    ROOT/'faaslora/preloading/planning_cpu.py', ROOT/'faaslora/experiment/experiment_stack.py',
+    ROOT/'scripts/run_all_experiments.py', ROOT/'faaslora/memory/residency_manager.py',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
+save(OUT/'manifest.json', dict(sources=[dict(path=str(path), sha256=p.digest(path)) for path in refs],
+    files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in sorted(OUT.iterdir()) if path.is_file()]))
+for path, sha in qualification['protected'].items():
+    assert p.digest(Path(path)) == sha
+print(json.dumps(report, indent=2), flush=True)

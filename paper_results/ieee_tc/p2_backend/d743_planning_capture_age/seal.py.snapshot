@@ -1,0 +1,17 @@
+"""Preserve the failed seal attempt; supply its statistics dependency."""
+import math
+from pathlib import Path
+
+source = Path(__file__).resolve().parent/'seal.py'
+code = source.read_text()
+changes = (
+    ("save(RAW/'seal_identity.json', own)", "save(RAW/'seal2_identity.json', own)"),
+    ("identities = [read(RAW/'analysis_identity.json')]",
+     "identities = [read(RAW/'analysis_identity.json'), read(RAW/'seal_identity.json')]"),
+    ("first_attempt=dict(state='dependency_error_before_analysis',",
+     "seal_attempt1=dict(state='analysis_error_before_cohort_outputs', error='NameError: math is not defined', gpu_execution=False),\n    first_attempt=dict(state='dependency_error_before_analysis',"),
+)
+for before, after in changes:
+    assert code.count(before)==1
+    code = code.replace(before, after)
+exec(compile(code, str(source), 'exec'))

@@ -1,0 +1,74 @@
+{
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/diagnosis/diagnosis.json",
+      "sha256": "d238b9407a2e7bc41039d82848f5bf81184c73e3169e23e32fd87dd0ba2e8dfe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d742_20261023/3b_execution_view_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "d23b9044cbaf8684ab6a776094bf747c661363eb7f9d4eb565ce5bf5ff97751c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d743_20261023/analyze.py",
+      "sha256": "78c150c39c20e3bfd4537b67a063feafeac56065be96168b87bcb38bab68d02c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d691_20261018/diagnose.py",
+      "sha256": "7ffceb6021a6a38bf13b33bafcb8f48ce99569b326b23ddf404be96222cbbbcc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d692_20261018/diagnose.py",
+      "sha256": "5b4bb87a29f386d69d2429cdb397d1765420782d0b0e34c0516168b8fa80ccbb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+      "sha256": "8d304ed00499385c4006c3f1543a46f6acf4893d333acbf46f2d66d2d87d611b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py",
+      "sha256": "0f039f7b4cd99a6c7a3844de83080a561b368a61d909373f16ae0abdc26e01aa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "82bee7a52f9f3887e00d62d92ee525b5b8d6157e6dadd2d9fcc241d931e5772e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    }
+  ],
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/analyze.py.snapshot",
+      "sha256": "78c150c39c20e3bfd4537b67a063feafeac56065be96168b87bcb38bab68d02c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/diagnosis.json",
+      "sha256": "a87cd1f80cb61d9d08e669b6389d9f4035d9ac261e8b086940166def4a4de2ef"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/planner_registration_links.json",
+      "sha256": "8b2f73d46640ff94013459ee208b619b230c3d5cc52f86f81ef200d24fee1c74"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/projection.json",
+      "sha256": "f9254cc59c185fd48c486c56a386f139e60cfe93bafc7613cdbd7122dbea76ff"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d743_planning_capture_age/resources.json",
+      "sha256": "85858bc80ff3aed341fcba5ac5c899b90b0d2a348cca06f5ca43e1a61402d70a"
+    }
+  ]
+}

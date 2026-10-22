@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-74320261023000000000000000000002.scope",
+        "invocation_id": "66d9e3d08aae47adb449abc5790ebbc9",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74320261023000000000000000000002.scope",
+        "inode": 30647651
+      },
+      "resources": {
+        "memory.peak": "133632000",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-74320261023000000000000000000003.scope",
+        "invocation_id": "feccb4b48b63461abbec964f7162b238",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74320261023000000000000000000003.scope",
+        "inode": 30648799
+      },
+      "resources": {
+        "memory.peak": "115482624",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-74320261023000000000000000000001.scope",
+        "invocation_id": "e7d5d02b17354183aa64acbdc9e20900",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74320261023000000000000000000001.scope",
+        "inode": 30647451
+      },
+      "resources": {
+        "memory.peak": "8384512",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "seal_attempt1": {
+    "state": "analysis_error_before_cohort_outputs",
+    "error": "NameError: math is not defined",
+    "gpu_execution": false
+  },
+  "first_attempt": {
+    "state": "dependency_error_before_analysis",
+    "environment": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "error": "ModuleNotFoundError: No module named ijson",
+    "produced_results": false,
+    "gpu_execution": false
+  },
+  "completed_environment": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "protected_user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+}
