@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "failure": "CSV CRLF flagged by default Git whitespace check; no measurement error",
+  "measurement_reruns": 0,
+  "csv_bytes_unchanged": true,
+  "csv_sha256": "8fa4797fa3d2944842215ad265a902b3b9618e92845a75d1dde0c63c81d74374",
+  "prior_backup_identity": {
+    "unit": "primelora-tc-aux-74720261023000000000000000000007.scope",
+    "invocation_id": "4054c41de4a643c482b069582b68b32e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000007.scope",
+    "inode": 30707435
+  },
+  "prior_backup_resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000007.scope",
+    "memory.current": 552960,
+    "memory.peak": 47017984,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 415709\nuser_usec 296652\nsystem_usec 119057\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "prior_backup_closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "protected_files": 145,
+  "failed_script_sha256": "7631bfc4c6c69588d370095f85afcfa6d72d1ca00f0e45563de70adf33ba95e3"
+}

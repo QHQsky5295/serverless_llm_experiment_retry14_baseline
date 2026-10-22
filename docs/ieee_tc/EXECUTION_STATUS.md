@@ -1,5 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D747唯一原生组件对照完成：语义一致，收益与长点同时保留
+
+PROGRESS。完整重读PLAN/规则及V1/单轮V2后，首次启动使用conda监督Python
+缺PID-handle signaling，创建service前拒绝；无性能样本，失败身份/原入口
+完整保留并精确释放。仅改用既有系统Python监督，原生被测命令与限制不变。
+唯一实际native tiny微测service/watchdog均0、GPU真实释放，9种CUDA状态及
+4种图对照一致。原资格49+8检查与二进制直接复用，未重建/重复资格。
+
+20组交替完整清点：原均8.575053ms，候选7.853158ms，平均少8.41855%；
+19/20配对更快，中位8.482596→4.474598ms。候选index3长点71.717910ms
+全部保留、原因未测，不称外力/GC，不重复微测寻找好结果。不是完整系统
+性能或95%达标证据；生产仍D741，D74293.175%与D70393.6%未达标，D711
+数值限制保持。145保护项/用户manifest不变，无remote/共享k3s操作。
+
+完整分析保存在d747_fused_host_descriptor/native_completion，旧CPU
+manifest未改。下一先明确路径备份该结果/释放分析空域；之后D748仅集成
+同一个实时描述读取候选，最小接口验证后普通完整W0，不再开profiling
+前缀、pin-only/格式化/GC支线。3B后续/基线/dLoRA、7B最终同版本、A1–A5/
+S1–S13、CE/Pareto、审稿文档和最终图表全部继续，goal active。
+
+## 2026-10-23 D747 CPU检查点已备份；下一仅一次原生组件核验
+
+PROGRESS。21个明确路径提交24c2f7672e3807f43c080f8a00d30c9dedfccb02，
+推送并ls-remote核对backup/d747-fused-host-descriptor-cpu-20261023。
+V2未同步、无force；用户manifest未stage。原资格/入口核验/备份空域均已
+精确释放，备份峰值52805632B、events/swap0。无运行中的GPU/远端/测试任务。
+收尾disk161847808000B、MemAvailable109900484kB；下次重新核查准入，
+本次未清理/压缩或虚报回收。新生产候选尚未接入，D741继续。
+
+下一完整重读PLAN，执行raw/d747_20261023/launch.py一次已预定native tiny
+对照并保存全部结果；不重建库、不重复49+8CPU检查、不跑profiling前缀。
+该入口复用backend-pin-check，只选--host-descriptor-library；9种真实CUDA
+状态/4图/20组交替完整清点，仍不是完整性能实验。原生资格通过且组件开销
+支持时才讨论生产集成及普通完整W0，否则归档该方向。全部剩余范围、D711
+正确性限制和共同指标不变。此收尾记录随下一正常检查点备份，goal active。
+
 ## 2026-10-23 D747有界生命周期审计与原生描述组件CPU核查完成
 
 PROGRESS。完整重读PLAN/AGENTS、最新规则与冻结V1/单轮V2；沿原生注册/

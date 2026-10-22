@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "kind": "d747_fused_descriptor_single_component_observation_v1",
+  "semantics_passed": true,
+  "production_integrated": false,
+  "full_performance_run": false,
+  "measurements_per_variant": 20,
+  "ci": false,
+  "all_measurements_retained": true,
+  "wall_ms": {
+    "native": {
+      "mean": 8.57505265,
+      "median": 8.482596,
+      "min": 8.376675,
+      "max": 9.086328
+    },
+    "direct": {
+      "mean": 7.85315775,
+      "median": 4.474598,
+      "min": 4.314218,
+      "max": 71.71791
+    }
+  },
+  "cpu_ms": {
+    "native": 8.9517905,
+    "direct": 8.18740445
+  },
+  "paired_ratio_median": 0.5227129974785063,
+  "candidate_faster_pairs": 19,
+  "candidate_mean_wall_ratio": 0.9158145227248254,
+  "candidate_mean_reduction_fraction": 0.08418547727517456,
+  "longest_candidate_sample": {
+    "index": 3,
+    "variant": "direct",
+    "wall_ns": 71717910,
+    "cpu_ns": 74770445
+  },
+  "long_sample_cause": "not_measured_no_posthoc_exclusion_or_additional_microtest",
+  "interpretation": "Component mean and most pairs improve, but one long pause remains; supports bounded production integration and a complete ordinary replay, not a system performance conclusion.",
+  "source_sha256": "70a6845d950dff3073ffbb85395db80a7822c65bb1a39406b152414c8dca22b7",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "production_sha256": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+  "numerical_scope": "tiny native tensors, not full model numeric correctness",
+  "latest_full_3b": {
+    "run": "D742",
+    "joint_timing_slo": 0.93175,
+    "n_correct": null,
+    "physical_gpu_seconds": 14868.152527434286,
+    "ranking_eligible": false
+  }
+}

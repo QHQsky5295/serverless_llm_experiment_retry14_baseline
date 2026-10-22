@@ -1,0 +1,85 @@
+"""Resume publication only; preserve the original CSV bytes and all measurements."""
+import json, os, re, subprocess, sys, tarfile
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT / 'paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor'
+OUT = BASE / 'native_completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+                                   stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+save(RAW / 'native_backup_resume_identity.json', p.scope_identity(p.cg_path().name))
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+identity = read(RAW / 'native_backup_identity.json')
+path = Path(identity['path'])
+assert p.scope_still_owned(identity) and not p.owned_pids(path)
+resources = p.cgroup_snapshot(path)
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not path.exists()
+for directory in (BASE, OUT):
+    for item in read(directory / 'manifest.json')['files']:
+        assert p.digest(ROOT / item['path']) == item['sha256'], item['path']
+protected = read(ROOT / 'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch/qualification.json')['protected']
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+for name, sha in read(BASE / 'preparation.json')['source_shas'].items():
+    assert p.digest(Path(name)) == sha, name
+docs = [ROOT / 'docs/ieee_tc/D747_FUSED_HOST_DESCRIPTOR_20261023.md',
+        ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']
+prior_paths = [str(x.relative_to(ROOT)) for x in OUT.iterdir() if x.is_file()] + [str(x.relative_to(ROOT)) for x in docs]
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(prior_paths)
+csv = (OUT / 'measurements.csv').read_bytes()
+assert csv.count(b'\r\n') == 41 and csv.count(b'\n') == 41
+assert all(line == line.rstrip(b' \t') for line in csv.split(b'\r\n'))
+save(OUT / 'publication_resume.json', dict(
+    passed=True, failure='CSV CRLF flagged by default Git whitespace check; no measurement error',
+    measurement_reruns=0, csv_bytes_unchanged=True, csv_sha256=p.digest(OUT / 'measurements.csv'),
+    prior_backup_identity=identity, prior_backup_resources=resources,
+    prior_backup_closure=closed, protected_files=len(protected),
+    failed_script_sha256=p.digest(RAW / 'backup_native.py')))
+with (OUT / 'backup_native_resume.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+files = sorted(x for x in OUT.iterdir() if x.is_file()) + docs
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert path.stat().st_size < 1024 * 1024
+    if path.suffix == '.gz':
+        with tarfile.open(path, 'r:gz') as archive:
+            for member in archive.getmembers():
+                if member.isfile():
+                    assert member.size < 1024 * 1024
+                    assert not secret.search(archive.extractfile(member).read().decode()), member.name
+    else:
+        assert not secret.search(path.read_text()), str(path)
+paths = [str(x.relative_to(ROOT)) for x in files]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.snapshot', '.csv'))]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+csv_paths = [x for x in paths if x.endswith('.csv')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof', 'diff', '--cached', '--check', '--', *snapshots])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,cr-at-eol', 'diff', '--cached', '--check', '--', *csv_paths])
+call(['git', 'commit', '-m', 'tc: retain complete D747 native descriptor measurements and long pause'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d747-native-descriptor-complete-20261023'
+call(['git', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'native_backup_completion.json', dict(passed=True, head=head, ref=ref,
+                                              files=paths, v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))
