@@ -1,0 +1,29 @@
+{
+  "kind": "d712_calibration_and_d713_launch_checks_v1",
+  "calibration_sha256": "a038f582dd70c8b1d5ca5d40138fffaf71e00db1cdb19093746b9623ad35903f",
+  "candidate_config_sha256": "1ea80cebea8743b9999613a217ee8bb5fe16e9a91d69b27b642c3fc5788f0f9e",
+  "targeted_control_and_calibration_tests_passed": 16,
+  "targeted_scalein_drain_and_retirement_tests_passed": 3,
+  "full_launch_test_module": "incomplete_operator_interrupted",
+  "full_test_interruption": "Existing failed-activation test awaited a process-pool worker importing torch inside the 4-GiB auxiliary scope; only this owned test scope was stopped. No production algorithm change.",
+  "protected_publication_files_checked": 144,
+  "protected_publication_files_changed": [],
+  "user_manifest_sha256_preserved": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "config_changes": ["experiment.output_dir", "resource_coordination.ieee_scaling.ttft_lower_ms", "storage.host_cache_dir", "storage.nvme_cache_dir"],
+  "runner_3b_endpoint_and_trace_checked": true,
+  "shell_syntax_check_passed": true,
+  "diff_check_passed": true,
+  "candidate_secret_pattern_hits": 0,
+  "counterfactual_prefix": {
+    "samples": 499,
+    "all_low": 280,
+    "segments": 24,
+    "cooldown_eligible_segments": 3,
+    "durations_over_cooldown_s": [213.4299032969866, 82.12764212395996, 57.366755629191175],
+    "physical_gpu_seconds": null
+  },
+  "prelaunch_first_check_passed": false,
+  "prelaunch_first_check_reason": "insufficient_physical_startup_headroom_while_tests_running",
+  "prelaunch_after_tests_passed": true,
+  "performance_result": null
+}

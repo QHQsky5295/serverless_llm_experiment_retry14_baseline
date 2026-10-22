@@ -10,6 +10,7 @@ unknown and therefore does not manufacture a G1 ranking result.
 from __future__ import annotations
 
 import collections
+import argparse
 import hashlib
 import json
 import subprocess
@@ -79,6 +80,47 @@ def remote_state() -> dict:
                   "duplex": values[1], "carrier": int(values[2])},
         "command_contract": "read_only_post_run_state_v1",
     }
+
+
+def calibrate_control_lower(output: Path) -> None:
+    """Reuse sealed D703 evidence for the D711 preregistered calibration.
+
+    This mode never contacts the remote machine and never changes the original
+    audit. Stream the large outcome with the existing ijson projection pattern.
+    """
+    import ijson
+    import yaml
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    if output.exists():
+        raise FileExistsError(output)
+    audit = read(OUT / 'audit.json')
+    for key in ('config', 'launch', 'outcome'):
+        source = audit[key]
+        if digest(Path(source['path'])) != source['sha256']:
+            raise ValueError(f'sealed D703 {key} changed')
+    launch = read(LAUNCH)
+    plan = FrozenReplayPlan.load(launch['external_replay']['plan']['source_path'])
+    if plan.identity() != launch['external_replay']['plan'] or len(plan.entries) != 4000:
+        raise ValueError('D703 source trace identity changed')
+    start = launch['external_replay']['replay_t0_s']
+    stop = start + plan.entries[1000].offset_s
+    cfg = yaml.safe_load(CONFIG.read_text())['resource_coordination']
+    with OUTCOME.open('rb') as stream:
+        events = ijson.items(stream, 'mechanism_events._ieee_control_events.item', use_float=True)
+        result = p.derive_ieee_low_load_control(events, cfg['ieee_scaling'],
+            start_s=start, stop_s=stop, min_instances=cfg['min_instances'])
+    result.update(source_campaign='d703_3b_full_w0_d701profile',
+        prefix_count=1000, development_only=True, held_out=False,
+        plan_sha256=p.check_plan(),
+        source_refs=[ref(CONFIG), ref(LAUNCH), ref(OUTCOME), ref(OUT/'audit.json'),
+                     ref(Path(__file__)), ref(Path(p.__file__))],
+        source_trace_sha256=plan.source_sha256,
+        scope=p.scope_identity(p.cg_path().name))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+    print(json.dumps({k:v for k,v in result.items() if k not in ('selected','source_refs','scope')}, indent=2))
 
 
 def main() -> None:
@@ -323,4 +365,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument('--calibrate-control-lower', type=Path)
+    args = parser.parse_args()
+    if args.calibrate_control_lower is not None:
+        calibrate_control_lower(args.calibrate_control_lower)
+    else:
+        main()

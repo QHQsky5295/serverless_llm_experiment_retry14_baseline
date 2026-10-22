@@ -1,0 +1,17 @@
+{
+  "kind": "d711_mainline_correction_v1",
+  "date": "2026-10-21",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "supersedes_d710_next_capacity_candidate": true,
+  "d710_capacity_candidate_executed": false,
+  "stage_decision_source": "docs/ieee_tc/D639_7B_CROSS_WORKLOAD_OBSERVATION_DECISION.md",
+  "current_model": "3B",
+  "current_reference": "d703_3b_full_w0_d701profile",
+  "next_hypothesis": "same_signal_low_load_control_calibration",
+  "d706_slo_reserve_guarantee_supported": false,
+  "new_gpu_runs": 0,
+  "new_figures": 0,
+  "historical_results_modified": false,
+  "independent_numerical_correctness": null,
+  "goal_complete": false
+}

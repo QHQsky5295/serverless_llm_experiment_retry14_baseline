@@ -4751,6 +4751,76 @@ def derive_ieee_capacity_targets(cap, *, min_instances, max_instances, target_ca
                 active_lower=high_active * min_instances / (min_instances + 1))
 
 
+def derive_ieee_low_load_control(events, config, *, start_s, stop_s, min_instances):
+    """Calibrate the existing raw-TTFT lower gate from a completed prefix.
+
+    The measured variable is the controller's rolling P95 overall TTFT, not
+    GPU-only service time. Its Type-1 P95 in observed low-load states defines a
+    model-specific development setting. This is neither an SLO nor a bound on
+    latency after removal. No post-prefix observation can choose the value.
+    """
+    from faaslora.coordination.autoscaler import IEEEReplicaControl
+    # Reuse validation of the existing explicit controller contract.
+    IEEEReplicaControl(config, interval_s=1., min_instances=min_instances,
+                       max_instances=min_instances+1)
+    if (any(isinstance(v, bool) or not isinstance(v, (int, float))
+            or not math.isfinite(v) for v in (start_s, stop_s))
+            or not 0 <= start_s < stop_s):
+        raise ValueError('control calibration needs a finite completed prefix')
+    selected = []
+    previous = -math.inf
+    for event in events:
+        at = event['observed_at']
+        if (isinstance(at, bool) or not isinstance(at, (int, float))
+                or not math.isfinite(at) or at <= previous):
+            raise ValueError('control samples must have strictly increasing observation times')
+        previous = at
+        if at >= stop_s:
+            break
+        # Only full trailing windows within the declared prefix are calibrated.
+        if at < start_s+config['ttft_window_s']:
+            continue
+        for key in ('queue_depth', 'active_requests', 'ready_capacity',
+                    'ready_instances', 'pending_instances', 'ttft_sample_count'):
+            if type(event[key]) is not int or event[key] < 0:
+                raise ValueError('invalid observed control count')
+        cap = event['ready_capacity']
+        if (event['active_requests'] > cap
+                or (event['ready_instances'] > 0) != (cap > 0)):
+            raise ValueError('invalid observed ready capacity')
+        saturation = event['active_requests']/cap if cap else 0.
+        observed_saturation = event['active_saturation']
+        if (isinstance(observed_saturation, bool)
+                or not isinstance(observed_saturation, (int, float))
+                or not math.isfinite(observed_saturation)
+                or abs(saturation-observed_saturation) > 1e-12):
+            raise ValueError('observed saturation does not match active/capacity')
+        value = event['p95_ttft_ms']
+        if value is None:
+            continue
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value < 0 or not event['ttft_sample_count']):
+            raise ValueError('invalid observed full-path TTFT quantile')
+        if (event['ready_instances'] > min_instances and not event['pending_instances']
+                and event['queue_depth'] < config['queue_lower']
+                and saturation < config['active_lower']):
+            selected.append(dict(observed_at=at, p95_ttft_ms=value))
+    if (len(selected) < 20 or selected[-1]['observed_at']-selected[0]['observed_at']
+            < config['scale_down_cooldown_s']):
+        raise ValueError('prefix lacks 20 low-load samples spanning the existing cooldown')
+    lower = sorted(row['p95_ttft_ms'] for row in selected)[math.ceil(.95*len(selected))-1]
+    if not 0 < lower < config['ttft_upper_ms']:
+        raise ValueError('observed lower bound is not below the existing control upper bound')
+    updated = dict(config, ttft_lower_ms=lower)
+    return dict(kind='ieee_same_signal_low_load_calibration_v1',
+        prefix_start_s=start_s, prefix_stop_s_exclusive=stop_s,
+        statistic='type1_p95_of_low_load_rolling_p95_overall_ttft_ms',
+        probability=.95, selected_count=len(selected), selected=selected,
+        prior_ttft_lower_ms=config['ttft_lower_ms'], ieee_scaling=updated,
+        calibration_only=True, common_slo_changed=False,
+        post_removal_slo_guaranteed=False, counterfactual_gpu_seconds=None)
+
+
 def derive_ieee_development_controls(payload, *, window_s, interval_s,
                                      historical_ttft_ms, min_instances, max_instances):
     """Explicit development starting point, not a formal SLO or optimum.

@@ -1124,6 +1124,50 @@ class MeasuredSourceProfileExport(unittest.TestCase):
             with self.subTest(case=len(cases)),self.assertRaises(ValueError):self.collection(sources)
 
 
+class SameSignalControlCalibration(unittest.TestCase):
+    def events(self):
+        return [dict(observed_at=100.+i, queue_depth=0, active_requests=0,
+            ready_capacity=16, ready_instances=2, pending_instances=0,
+            ttft_sample_count=25, active_saturation=0., p95_ttft_ms=300.+i)
+            for i in range(20)]
+
+    def derive(self, events, **kwargs):
+        from scripts.ieee_tc_preflight import derive_ieee_low_load_control
+        return derive_ieee_low_load_control(events, ieee_control_fixture(),
+            start_s=0., stop_s=kwargs.get('stop_s',120.), min_instances=1)
+
+    def test_same_statistic_and_only_lower_limit_changes(self):
+        result = self.derive(self.events())
+        self.assertEqual(result['ieee_scaling'], dict(ieee_control_fixture(), ttft_lower_ms=318.))
+        self.assertEqual(result['selected_count'],20)
+        self.assertFalse(result['post_removal_slo_guaranteed'])
+
+    def test_future_event_cannot_choose_lower_or_enter_samples(self):
+        def events():
+            yield from self.events()
+            yield dict(observed_at=120., p95_ttft_ms=1e9)
+            raise AssertionError('must not consume beyond the first excluded observation')
+        self.assertEqual(self.derive(events())['ieee_scaling']['ttft_lower_ms'],318.)
+
+    def test_pending_queue_and_active_conditions_are_required(self):
+        for changes in (dict(pending_instances=1),dict(queue_depth=1),
+                        dict(active_requests=4,active_saturation=.25),
+                        dict(ready_instances=1),dict(p95_ttft_ms=None)):
+            events=self.events()
+            events[0].update(changes)
+            with self.subTest(changes=changes),self.assertRaises(ValueError):
+                self.derive(events)
+
+    def test_missing_invalid_or_sparse_history_has_no_default(self):
+        for changes in (dict(p95_ttft_ms=float('nan')),dict(active_saturation=.1),
+                        dict(active_saturation=float('nan')),
+                        dict(ttft_sample_count=0),dict(observed_at=-1.)):
+            events=self.events();events[-1].update(changes)
+            with self.subTest(changes=changes),self.assertRaises(ValueError):self.derive(events)
+        with self.assertRaises(ValueError):self.derive([])
+        with self.assertRaises(ValueError):self.derive(self.events(),stop_s=101.)
+
+
 class DevelopmentControlDerivation(unittest.TestCase):
     def test_soft_target_preserves_absolute_load_without_shrinking_native_capacity(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl
