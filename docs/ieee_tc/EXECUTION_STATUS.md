@@ -1,5 +1,38 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D719 已启动：3B Full4000，仍待完整结果
+
+PROGRESS。D718完整资格和退化数据已保存，检查点
+`b314e9aa95addf305cbe1fb6b72d3207072e2c0a` 已推送并ls-remote核验
+`faaslora_origin/backup/d718-d719-identity-validation-20261022`。未强推远端V2
+既存分歧，未stage用户manifest。执行前再次完整核查PLAN/状态，144原投稿
+SHA零变化，生产runner仍6f10f395...；磁盘164GiB、可用RAM104GiB。
+D719 preflight SHA e0d6665ffc514b4bb5d44bf163fd7234e461a4270c4059e4c8c3780fa92c2b1e。
+
+唯一当前重型运行：tmux `primelora-d719`，初始pane PID1607921。
+原始目录 `results/ieee_tc/p2_backend_qualification/d719_20261022/3b_identity_full_w0`。
+实际service `primelora-tc-svc-8b8173dc9a934fd398b7667001c5d672.scope`，
+外置aux `primelora-tc-aux-d80ceea176b248b8b806c542234e9614.scope`。
+第11个watchdog样本无high/max/OOM或abort，启动/回放进程已建立；尚无完整结果。
+源trace仍4000，不因100前缀退化改变本次预登记配置或加入新候选。
+
+远端相同D80预发布只读服务、实测1000Mbps/full，新的监控
+`primelora-artifact-monitor-d719-fullw0.service`；InvocationID和clock见本轮
+remote_start.log/remote_health.json。运行期间禁止批量hash、压缩/清理/构建、
+另一个GPU作业和远端运维。wrapper在launcher结束后验证actual GPU release
+再按InvocationID关闭远端；先观察既有tmux/日志，不重复启动同键。
+
+结束后：核对本机/远端实际关闭→复制本轮remote_monitor并核SHA→复用严格
+共同SLO `audit_d703_3b_full.py --reevaluate-common-slo 新文件 --raw 本轮目录
+--expected-count 4000`→复用D716/D717全部请求阶段/重试分析及完整outcome/
+profile/remote/资源核查。`audit_closed_outcome`旧入口有D713限定，先检查其
+人口/来源约束再小幅扩展，不能盲目对4000运行套用1000验收。全部结果保留。
+
+当前完整3B仍D703=93.60%、14864.807562GPU-s，D719未知；n_correct未知的
+限制不隐藏。不得称优化接受、95%已达标或G1/G2完成。D719结束即回主因，
+不延长罕见状态分支搜索。3B W1/W2/其他baseline/dLoRA、A1–A5、S1–S13、
+CE、两轮审稿文档/图表仍未完成，不因当前回放删减。
+
 ## 2026-10-22 D718 已关闭：100请求功能通过，joint92%，D719尚未开始
 
 100/100原生合同，17369输出token、29实际adapter/29远端获取；无fallback/
