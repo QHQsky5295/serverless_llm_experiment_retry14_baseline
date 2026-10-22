@@ -2,6 +2,12 @@
 
 ## 2026-10-22 D713 已关闭且候选拒绝；D714 更正 3B 真实达成率
 
+关键检查点 `3a3b7f2d401557745c6c65f404a4778239e6d892` 已提交并推送到
+`faaslora_origin/backup/d714-common-slo-correction-20261022`，ls-remote SHA一致。
+这是已验证的备份分支；远端V2跟踪分支的既存双向分歧仍待安全集成，未force
+push，不能称V2已同步。当前无运行中的本轮GPU实验或远端服务。暂存/提交未
+包含用户 `configs/generated/lora_manifest_1000.json`，敏感模式检查0命中。
+
 PROGRESS。D713 完成1000/1000原生生成合同请求，launch/service/watchdog/replay
 均正常结束，本机物理 GPU 已释放，远端两个制品服务与监控均关闭。
 共同 D648 阈值重算得到 **833/1000=83.30%**，未通过其预登记95%验收；
