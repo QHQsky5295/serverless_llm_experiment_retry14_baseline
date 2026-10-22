@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/d747_backup_closure.json",
+      "sha256": "b397f78a1a1cf594bcc9c196693c33c0feb8e8a622863be2eac5189fc4a7d373",
+      "bytes": 2820
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualification.json",
+      "sha256": "92f7bdd87688ef7fa577572dbd9eb21c2c8b7b441485e00d166b2740e047262c",
+      "bytes": 30776
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualify.py.snapshot",
+      "sha256": "4a9ca031b063efded2437a133988f785035032128ba32a8d21833d700b442f20",
+      "bytes": 7133
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/test_receipt.json",
+      "sha256": "a02d222e1be4a3d356cac5372aa177b9048c9baaa90b42f86d8cfae4569f1286",
+      "bytes": 21
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/tests.txt",
+      "sha256": "7708a0e0c98ea09345a96b1c4b7f5ba2b4d04223756401e27005648ec4039bcd",
+      "bytes": 1640
+    }
+  ]
+}

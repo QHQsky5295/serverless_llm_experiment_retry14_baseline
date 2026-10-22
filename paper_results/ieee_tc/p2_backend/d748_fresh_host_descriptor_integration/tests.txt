@@ -1,0 +1,15 @@
+W1023 07:27:00.702000 214477 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_bad_hash_rejected_before_loading (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_bad_hash_rejected_before_loading) ... ok
+test_incomplete_configuration_rejected (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_incomplete_configuration_rejected) ... ok
+test_unconfigured_path_does_not_import_library (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_unconfigured_path_does_not_import_library) ... ok
+test_unsupported_abi_has_no_fallback (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_unsupported_abi_has_no_fallback) ... ok
+test_full_runtime_and_requested_graphs_equal (tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath.test_full_runtime_and_requested_graphs_equal) ... ok
+test_native_error_is_not_hidden_by_original_path (tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath.test_native_error_is_not_hidden_by_original_path) ... ok
+test_errors_not_converted_to_cached_results (tests.test_ieee_tc_host_descriptor_witness.DescriptorSubstitution.test_errors_not_converted_to_cached_results) ... ok
+test_full_graph_and_each_view_observed (tests.test_ieee_tc_host_descriptor_witness.DescriptorSubstitution.test_full_graph_and_each_view_observed) ... ok
+test_unknown_source_rejected (tests.test_ieee_tc_host_descriptor_witness.DescriptorSubstitution.test_unknown_source_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.025s
+
+OK

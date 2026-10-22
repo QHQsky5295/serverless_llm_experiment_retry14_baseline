@@ -38,9 +38,22 @@ if pointer <= 0 or capacity <= 0:
 key = (str(tensor.device), pointer)
 pinned = bool(tensor.is_pinned())
 ''').body
-    if [ast.dump(n) for n in adds[0].body[:len(prefix)]] != [ast.dump(n) for n in prefix]:
+    # D748 preserves the exact original path under an explicit descriptor
+    # selection. Accept that known structure without weakening the source guard.
+    body = adds[0].body
+    count = len(prefix)
+    if (isinstance(body[0], ast.If)
+            and ast.dump(body[0].test) == ast.dump(ast.parse('descriptor is None', mode='eval').body)):
+        native = ast.parse("pointer, capacity, pinned = descriptor(tensor, name)\nkey = ('cpu', pointer)").body
+        if [ast.dump(n) for n in body[0].orelse] != [ast.dump(n) for n in native]:
+            raise RuntimeError('descriptor witness native visitor source changed')
+        checked = body[0].body
+        count = 1
+    else:
+        checked = body[:count]
+    if [ast.dump(n) for n in checked] != [ast.dump(n) for n in prefix]:
         raise RuntimeError('descriptor witness tensor visitor source changed')
-    adds[0].body[:len(prefix)] = ast.parse('''
+    adds[0].body[:count] = ast.parse('''
 pointer, capacity, pinned = _fresh_descriptor(tensor, name)
 key = ('cpu', pointer)
 ''').body

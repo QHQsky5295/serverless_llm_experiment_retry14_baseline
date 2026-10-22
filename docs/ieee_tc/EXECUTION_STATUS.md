@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D748实时描述生产接入通过最小检查，待完整W0
+
+PROGRESS。9项新入口/诊断兼容检查0.025秒通过；原清点去掉显式descriptor
+选择后的AST与父版完全相同，实际Torch下4图一致，storage resize即时反映。
+实际vLLM CPU构造和clone输入兼容；其pinning关闭，仅复用D747原生9状态，
+不伪称新CUDA资格。复用旧库，无新微测/短回放，未改变SLO/公式/控制策略。
+资源峰值654299136B、events/swap0，145保护项和用户manifest不变。
+D747备份空域已精确释放，当前先备份D748并释放资格域；下一登记启动普通
+完整3B W0，不重复资格。D74293.175%与D70393.6%仍是未达标完整证据；
+D711数值范围保持。完整剩余矩阵、共享k3s保护和goal active均不变。
+
+## 2026-10-23 D747完整备份完成；D748仅接入同一实时描述候选
+
+PROGRESS。D747全部40样本含长点已提交19a5ec5360870c36c02a2100e7d83fd9b241fd01，
+推送并核对backup/d747-native-descriptor-complete-20261023；V2未同步，无force。
+CSV CRLF发布lint失败保留，仅调整对应文件的换行检查，不改数据、不重跑。
+当前D748将相同实时descriptor显式接入HOST清点，无跨调用状态缓存/GC/策略
+变化，复用原库与9种CUDA状态。新增有界接口核查已准备，尚未声称通过或
+完成系统性能。下一最小验证、备份、冻结一次普通完整W0，不做profiling前缀。
+共享k3s不改，HydraServe已有隔离7B W0/W1/W2继续复用，全部剩余矩阵保持。
+共同G1/G2与D711限制不变，3B仍未达到95%，goal active。
+
 ## 2026-10-23 D747唯一原生组件对照完成：语义一致，收益与长点同时保留
 
 PROGRESS。完整重读PLAN/规则及V1/单轮V2后，首次启动使用conda监督Python

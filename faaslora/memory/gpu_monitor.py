@@ -39,6 +39,7 @@ def _cuda_available() -> bool:
 
 from ..utils.config import Config
 from ..utils.logger import get_logger, diagnostic_control_event
+from .native_host_descriptor import native_host_descriptor
 
 
 def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
@@ -79,6 +80,7 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
     views = []
     adapters = []
     adapter_dtypes = {}
+    descriptor, _ = native_host_descriptor()
 
     def contains_tensor(value):
         if torch.is_tensor(value):
@@ -90,19 +92,21 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         return False
 
     def add(tensor, aid, name):
-        if (not torch.is_tensor(tensor) or tensor.device.type != 'cpu'
-                or tensor.layout != torch.strided or len(tensor.shape) != 2
-                or tensor.numel() <= 0):
-            raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {name}')
-        storage = tensor.untyped_storage()
-        pointer, capacity = int(storage.data_ptr()), int(storage.nbytes())
-        if pointer <= 0 or capacity <= 0:
-            raise ValueError(f'empty native CPU LoRA storage: {name}')
-        key = (str(tensor.device), pointer)
-        # One fresh query per view in this serialized observation. Repeating
-        # the native pointer query for a new allocation adds no independent
-        # evidence; other aliased views still undergo their own consistency check.
-        pinned = bool(tensor.is_pinned())
+        if descriptor is None:
+            if (not torch.is_tensor(tensor) or tensor.device.type != 'cpu'
+                    or tensor.layout != torch.strided or len(tensor.shape) != 2
+                    or tensor.numel() <= 0):
+                raise ValueError(f'expected nonempty dense native CPU LoRA tensor: {name}')
+            storage = tensor.untyped_storage()
+            pointer, capacity = int(storage.data_ptr()), int(storage.nbytes())
+            if pointer <= 0 or capacity <= 0:
+                raise ValueError(f'empty native CPU LoRA storage: {name}')
+            key = (str(tensor.device), pointer)
+            # Every aliased view still receives its own current pinning query.
+            pinned = bool(tensor.is_pinned())
+        else:
+            pointer, capacity, pinned = descriptor(tensor, name)
+            key = ('cpu', pointer)
         if key not in allocations:
             allocations[key] = {'allocation_id': len(allocations), 'device': str(tensor.device),
                 'allocated_bytes': capacity, 'pinned': pinned, 'adapter_ids': []}
@@ -1205,6 +1209,7 @@ class IEEEWorkerObservationExtension:
             diagnostic_control_event(diagnostic_id, 'native_ready')
             return {**value, 'clock_id': local_monotonic_clock_id(),
                     'native_host_allocator_policy': self._ieee_host_allocator_policy,
+                    'native_host_descriptor': native_host_descriptor()[1],
                     'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
                     'completion_fence_scope': 'current_worker_cuda_stream',
                     'production_launch_authorized': False}
@@ -1731,6 +1736,7 @@ class IEEEWorkerObservationExtension:
             'production_admission_snapshot': False,
             'native_host_allocator': host_allocator,
             'native_host_allocator_policy': self._ieee_host_allocator_policy,
+            'native_host_descriptor': native_host_descriptor()[1],
             **pool,
             **host,
             **content,

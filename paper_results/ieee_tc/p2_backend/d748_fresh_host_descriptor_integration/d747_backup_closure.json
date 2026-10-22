@@ -1,0 +1,57 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-74720261023000000000000000000008.scope",
+    "invocation_id": "fe28ebe200844c5dbfece8463cd49780",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000008.scope",
+    "inode": 30709215
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000008.scope",
+    "memory.current": 1069056,
+    "memory.peak": 49528832,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 706032\nuser_usec 447020\nsystem_usec 259011\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "backup": {
+    "passed": true,
+    "head": "19a5ec5360870c36c02a2100e7d83fd9b241fd01",
+    "ref": "refs/heads/backup/d747-native-descriptor-complete-20261023",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/analysis_closure.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/analyze.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/backup_native.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/backup_native_resume.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/completion.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/execution_evidence.tar.gz",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/measurements.csv",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/native_descriptor.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/publication_resume.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/start_closure.json",
+      "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/native_completion/summary.json",
+      "docs/ieee_tc/D747_FUSED_HOST_DESCRIPTOR_20261023.md",
+      "docs/ieee_tc/EXECUTION_STATUS.md"
+    ],
+    "v2_synchronized": false
+  }
+}
