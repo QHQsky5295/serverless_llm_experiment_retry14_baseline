@@ -1,0 +1,605 @@
+{
+  "kind": "d722_reused_d684_iteration_composition_v1",
+  "new_gpu_runs": 0,
+  "production_changed": false,
+  "configuration_changed": false,
+  "formal_performance_result": false,
+  "gpu_kernel_timing": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "source_contract": "D684 intrusive 1000-request prefix, not D719 Full",
+  "processes": 4,
+  "spans": 312160,
+  "steps": 89915,
+  "requests": 1000,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "slo_thresholds_verified": true,
+  "step_summary": [
+    {
+      "category": "single_token_allocations",
+      "steps": 87527,
+      "model_executed_true": 87527,
+      "scheduled_tokens": {
+        "count": 87527,
+        "total": 120585.0,
+        "mean": 1.37768917019891,
+        "p50": 1,
+        "p95": 3,
+        "maximum": 7
+      },
+      "step_ms": {
+        "count": 87527,
+        "total": 1051494.230741,
+        "mean": 12.013369940029934,
+        "p50": 12.055485,
+        "p95": 20.682325,
+        "maximum": 237.987521
+      },
+      "step_thread_cpu_ms": {
+        "count": 87527,
+        "total": 407518.628021,
+        "mean": 4.655919065214163,
+        "p50": 4.138797,
+        "p95": 6.438021,
+        "maximum": 237.833173
+      },
+      "schedule_ms": {
+        "count": 87527,
+        "total": 13660.506119,
+        "mean": 0.15607191059901515,
+        "p50": 0.143789,
+        "p95": 0.249347,
+        "maximum": 3.993027
+      },
+      "step_non_schedule_ms": {
+        "count": 87527,
+        "total": 1037833.724622,
+        "mean": 11.857298029430918,
+        "p50": 11.821034,
+        "p95": 20.518547,
+        "maximum": 237.810608
+      },
+      "preceding_client_ms": {
+        "count": 87527,
+        "total": 253691.097327,
+        "mean": 2.898432453151599,
+        "p50": 0.0,
+        "p95": 0.765203,
+        "maximum": 1278.086131
+      }
+    },
+    {
+      "category": "has_multi_token_allocations",
+      "steps": 974,
+      "model_executed_true": 974,
+      "scheduled_tokens": {
+        "count": 974,
+        "total": 671375.0,
+        "mean": 689.2967145790554,
+        "p50": 760,
+        "p95": 764,
+        "maximum": 3040
+      },
+      "step_ms": {
+        "count": 974,
+        "total": 62869.130761,
+        "mean": 64.54736217761807,
+        "p50": 60.870128,
+        "p95": 77.464721,
+        "maximum": 383.406355
+      },
+      "step_thread_cpu_ms": {
+        "count": 974,
+        "total": 62544.669593,
+        "mean": 64.21423982854209,
+        "p50": 60.629628,
+        "p95": 76.273447,
+        "maximum": 381.794002
+      },
+      "schedule_ms": {
+        "count": 974,
+        "total": 297.397085,
+        "mean": 0.3053358162217659,
+        "p50": 0.267895,
+        "p95": 0.573433,
+        "maximum": 2.403956
+      },
+      "step_non_schedule_ms": {
+        "count": 974,
+        "total": 62571.733676,
+        "mean": 64.24202636139631,
+        "p50": 60.595788,
+        "p95": 76.939202,
+        "maximum": 382.813713
+      },
+      "preceding_client_ms": {
+        "count": 974,
+        "total": 668800.071813,
+        "mean": 686.6530511427105,
+        "p50": 9.052625,
+        "p95": 3184.719002,
+        "maximum": 30761.443872
+      }
+    },
+    {
+      "category": "zero_tokens",
+      "steps": 941,
+      "model_executed_true": 0,
+      "scheduled_tokens": {
+        "count": 941,
+        "total": 0.0,
+        "mean": 0.0,
+        "p50": 0,
+        "p95": 0,
+        "maximum": 0
+      },
+      "step_ms": {
+        "count": 941,
+        "total": 2979.289916,
+        "mean": 3.166089177470776,
+        "p50": 1.739239,
+        "p95": 10.066682,
+        "maximum": 12.908361
+      },
+      "step_thread_cpu_ms": {
+        "count": 941,
+        "total": 849.132536,
+        "mean": 0.90237251434644,
+        "p50": 0.862512,
+        "p95": 1.466496,
+        "maximum": 4.851526
+      },
+      "schedule_ms": {
+        "count": 941,
+        "total": 71.633242,
+        "mean": 0.0761245929861849,
+        "p50": 0.070085,
+        "p95": 0.113643,
+        "maximum": 0.39976
+      },
+      "step_non_schedule_ms": {
+        "count": 941,
+        "total": 2907.656674,
+        "mean": 3.0899645844845907,
+        "p50": 1.683932,
+        "p95": 10.004442,
+        "maximum": 12.831998
+      },
+      "preceding_client_ms": {
+        "count": 941,
+        "total": 2708.575125,
+        "mean": 2.8784007704569605,
+        "p50": 0.0,
+        "p95": 0.617142,
+        "maximum": 298.485187
+      }
+    },
+    {
+      "category": "no_schedule",
+      "steps": 473,
+      "model_executed_true": 0,
+      "scheduled_tokens": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_ms": {
+        "count": 473,
+        "total": 115.339812,
+        "mean": 0.24384738266384776,
+        "p50": 0.197513,
+        "p95": 0.508152,
+        "maximum": 1.860549
+      },
+      "step_thread_cpu_ms": {
+        "count": 473,
+        "total": 114.683926,
+        "mean": 0.24246073150105707,
+        "p50": 0.196063,
+        "p95": 0.506634,
+        "maximum": 1.85937
+      },
+      "schedule_ms": {
+        "count": 473,
+        "total": 0.0,
+        "mean": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "maximum": 0.0
+      },
+      "step_non_schedule_ms": {
+        "count": 473,
+        "total": 115.339812,
+        "mean": 0.24384738266384776,
+        "p50": 0.197513,
+        "p95": 0.508152,
+        "maximum": 1.860549
+      },
+      "preceding_client_ms": {
+        "count": 473,
+        "total": 3238.133662,
+        "mean": 6.8459485454545455,
+        "p50": 0.0,
+        "p95": 0.714336,
+        "maximum": 1132.869625
+      }
+    },
+    {
+      "category": "schedule_raised",
+      "steps": 0,
+      "model_executed_true": 0,
+      "scheduled_tokens": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_thread_cpu_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "schedule_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_non_schedule_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "preceding_client_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      }
+    },
+    {
+      "category": "step_raised",
+      "steps": 0,
+      "model_executed_true": 0,
+      "scheduled_tokens": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_thread_cpu_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "schedule_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "step_non_schedule_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      },
+      "preceding_client_ms": {
+        "count": 0,
+        "total": 0.0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "maximum": null
+      }
+    }
+  ],
+  "groups": [
+    {
+      "group": "all",
+      "timing_tpot_miss": false,
+      "count": 938,
+      "mean_tpot_ms": 16.193835710312783,
+      "mean_decode_ms": 2025.722439010661,
+      "mean_client_ms": 358.4002742995736,
+      "mean_input_nonclient_ms": 9.694579591684436,
+      "mean_step_ms": 1607.906005846482,
+      "mean_other_or_unobserved_ms": 49.721579272921105,
+      "mean_host_inventory_ms": 256.6902002878465,
+      "mean_host_allocator_stats_ms": 0.23845509808102347,
+      "mean_single_token_allocations_ms": 1548.1658405714286,
+      "mean_has_multi_token_allocations_ms": 57.7046392771855,
+      "mean_zero_tokens_ms": 2.0355259978678037,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 21.825099957356073,
+      "mean_step_non_schedule_ms": 1586.0809058891257
+    },
+    {
+      "group": "all",
+      "timing_tpot_miss": true,
+      "count": 62,
+      "mean_tpot_ms": 48.78555632046669,
+      "mean_decode_ms": 724.237667967742,
+      "mean_client_ms": 413.914143,
+      "mean_input_nonclient_ms": 8.389952338709678,
+      "mean_step_ms": 290.76566948387097,
+      "mean_other_or_unobserved_ms": 11.16790314516129,
+      "mean_host_inventory_ms": 300.7382381451613,
+      "mean_host_allocator_stats_ms": 0.3187572096774194,
+      "mean_single_token_allocations_ms": 191.50164870967743,
+      "mean_has_multi_token_allocations_ms": 98.94021717741936,
+      "mean_zero_tokens_ms": 0.32380359677419357,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 3.2468679677419354,
+      "mean_step_non_schedule_ms": 287.51880151612903
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": false,
+      "count": 256,
+      "mean_tpot_ms": 17.191889304848424,
+      "mean_decode_ms": 216.225553640625,
+      "mean_client_ms": 39.3842954609375,
+      "mean_input_nonclient_ms": 1.29393619140625,
+      "mean_step_ms": 171.9767591015625,
+      "mean_other_or_unobserved_ms": 3.5705628867187498,
+      "mean_host_inventory_ms": 28.96735107421875,
+      "mean_host_allocator_stats_ms": 0.0299220625,
+      "mean_single_token_allocations_ms": 152.25687149609374,
+      "mean_has_multi_token_allocations_ms": 18.1399059609375,
+      "mean_zero_tokens_ms": 1.57998164453125,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 2.19398422265625,
+      "mean_step_non_schedule_ms": 169.78277487890625
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": true,
+      "count": 56,
+      "mean_tpot_ms": 49.185569948829695,
+      "mean_decode_ms": 557.5563553928571,
+      "mean_client_ms": 306.4628389464286,
+      "mean_input_nonclient_ms": 5.836299535714287,
+      "mean_step_ms": 235.632980875,
+      "mean_other_or_unobserved_ms": 9.624236035714286,
+      "mean_host_inventory_ms": 230.075627125,
+      "mean_host_allocator_stats_ms": 0.2504208392857143,
+      "mean_single_token_allocations_ms": 148.85626935714285,
+      "mean_has_multi_token_allocations_ms": 86.41821467857143,
+      "mean_zero_tokens_ms": 0.3584968392857143,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 2.6031325892857144,
+      "mean_step_non_schedule_ms": 233.02984828571428
+    },
+    {
+      "group": "short_2_64",
+      "timing_tpot_miss": false,
+      "count": 353,
+      "mean_tpot_ms": 16.97004188532215,
+      "mean_decode_ms": 374.7509506260623,
+      "mean_client_ms": 69.51485300566573,
+      "mean_input_nonclient_ms": 2.009988983002833,
+      "mean_step_ms": 294.5638895354108,
+      "mean_other_or_unobserved_ms": 8.662219101983004,
+      "mean_host_inventory_ms": 49.410491739376766,
+      "mean_host_allocator_stats_ms": 0.048382966005665724,
+      "mean_single_token_allocations_ms": 269.60192226628897,
+      "mean_has_multi_token_allocations_ms": 23.332312512747876,
+      "mean_zero_tokens_ms": 1.6296547563739379,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 3.878954478753541,
+      "mean_step_non_schedule_ms": 290.6849350566572
+    },
+    {
+      "group": "short_2_64",
+      "timing_tpot_miss": true,
+      "count": 61,
+      "mean_tpot_ms": 48.81443418980914,
+      "mean_decode_ms": 682.9193275409835,
+      "mean_client_ms": 387.2569851967213,
+      "mean_input_nonclient_ms": 8.051783573770491,
+      "mean_step_ms": 276.82051316393444,
+      "mean_other_or_unobserved_ms": 10.790045606557376,
+      "mean_host_inventory_ms": 282.1163594098361,
+      "mean_host_allocator_stats_ms": 0.30154727868852454,
+      "mean_single_token_allocations_ms": 180.8210990491803,
+      "mean_has_multi_token_allocations_ms": 95.67030226229508,
+      "mean_zero_tokens_ms": 0.32911185245901636,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 3.1016774918032786,
+      "mean_step_non_schedule_ms": 273.71883567213115
+    },
+    {
+      "group": "long_65_256",
+      "timing_tpot_miss": false,
+      "count": 585,
+      "mean_tpot_ms": 15.725458308982345,
+      "mean_decode_ms": 3021.949679010256,
+      "mean_client_ms": 532.7191695418804,
+      "mean_input_nonclient_ms": 14.331606061538462,
+      "mean_step_ms": 2400.4013341504274,
+      "mean_other_or_unobserved_ms": 74.49756925641026,
+      "mean_host_inventory_ms": 381.7666739931624,
+      "mean_host_allocator_stats_ms": 0.35314819658119656,
+      "mean_single_token_allocations_ms": 2319.6753502495726,
+      "mean_has_multi_token_allocations_ms": 78.44554756410255,
+      "mean_zero_tokens_ms": 2.2804363367521368,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 32.654141588034186,
+      "mean_step_non_schedule_ms": 2367.747192562393
+    },
+    {
+      "group": "long_65_256",
+      "timing_tpot_miss": true,
+      "count": 1,
+      "mean_tpot_ms": 47.02400629057725,
+      "mean_decode_ms": 3244.656434,
+      "mean_client_ms": 2040.000769,
+      "mean_input_nonclient_ms": 29.018247,
+      "mean_step_ms": 1141.420205,
+      "mean_other_or_unobserved_ms": 34.217213,
+      "mean_host_inventory_ms": 1436.672841,
+      "mean_host_allocator_stats_ms": 1.368563,
+      "mean_single_token_allocations_ms": 843.015178,
+      "mean_has_multi_token_allocations_ms": 298.405027,
+      "mean_zero_tokens_ms": 0.0,
+      "mean_no_schedule_ms": 0.0,
+      "mean_schedule_raised_ms": 0.0,
+      "mean_step_raised_ms": 0.0,
+      "mean_schedule_ms": 12.103487,
+      "mean_step_non_schedule_ms": 1129.316718
+    }
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2476716-181954028.jsonl",
+      "bytes": 23311772,
+      "sha256": "4f5fa3d17c14082cafb83e13b824e79325a559285fad5df7df59ec24bb1b45be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2478921-181958601.jsonl",
+      "bytes": 38367152,
+      "sha256": "c5e3532fd2017b8c2979b0574f29e15e5d478b0985eb5c485e670871ee456ce7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2479037-181958836.jsonl",
+      "bytes": 36503455,
+      "sha256": "b3c72052aa3dd9fc819a6b9af389b69c9097625ae24571a88e71ba61dcb3bab1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018/3b_full_w0_prefix1/launch.launch/diagnostic_core/2479133-181959039.jsonl",
+      "bytes": 19986788,
+      "sha256": "2f5e4a5b36ed9f387342bbb4450371bf3e45dc087e44dd299ee237fcdccf8fc6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/analysis_manifest.json",
+      "sha256": "04ecdee758e8071a1f0b69e5ab06c2258e6066aa7ae118a855a3d3d2d2d1b385",
+      "bytes": 2195
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/completion.json",
+      "sha256": "6a3427c0e1ead8d162aa525786ba298f53d0d48c10af2521d93a69ebbb7ddbc0",
+      "bytes": 803
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/core_timing/decode_windows.csv",
+      "sha256": "26e9ce9d8a2df345a9302178f66b2946732e50a6c48661557fef71504921cfcd",
+      "bytes": 202440
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion/core_timing/summary.json",
+      "sha256": "fa5c3701d82fbaac93a428f85fa4655fe16f209b2322378bce62b765b1a452a0",
+      "bytes": 6577
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d722_20261022/audit_iterations.py",
+      "sha256": "8ed329b749fd6d7fa1e9d328cb5f38c086f08bd55fe255125642dda29448b4f9",
+      "bytes": 14163
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "bytes": 82192
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd",
+      "bytes": 1343307
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e",
+      "bytes": 124274
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_timing_analysis.py",
+      "sha256": "686823797997e595ce783c6a88d027bfcfe3028a7b228e53beefaeaf9dd05e26",
+      "bytes": 24828
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+      "bytes": 113724
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "bytes": 1689
+    }
+  ],
+  "caveats": [
+    "Allocation shape is not GPU prefill/decode phase; single-token can be final prefill and multi-token can include recomputation.",
+    "Asynchronous step may retire a previous batch; scheduled-token count does not identify all work awaited in this span.",
+    "Step host span includes executor/output/host waits, not isolated GPU kernel time.",
+    "Schedule is nested within step; categories partition step but nested metrics cannot all be added.",
+    "HOST inventory is nested in control, not additive to the request partition.",
+    "Observer overhead is included; no latency subtraction, causal savings or production4000 extrapolation.",
+    "Same-owner intersections across requests overlap; they cannot be summed as service-exclusive time.",
+    "Short2-32 and short2-64 are overlapping descriptive strata, not independent replications.",
+    "D684 predates D703/D719 changes; this is historical mechanism evidence, not current configuration qualification."
+  ]
+}

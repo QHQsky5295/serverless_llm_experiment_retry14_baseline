@@ -1,0 +1,52 @@
+"""Close the exact empty offline scope and curate only small D722 artifacts."""
+import json
+from pathlib import Path
+import resource
+import shutil
+import subprocess
+import sys
+
+resource.setrlimit(resource.RLIMIT_AS, (512*1024**2,512*1024**2))
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+
+identity = json.loads((RAW/'identity.json').read_text())
+assert not p.owned_pids(Path(identity['path']))
+closed = p.stop_scope_identity(identity,grace_seconds=0)
+assert closed['released'] and not closed['targets']
+state = subprocess.check_output(['systemctl','--user','show',identity['unit'],
+    '-p','ActiveState','--value'],text=True).strip()
+assert state == 'inactive'
+execution = json.loads((RAW/'execution.json').read_text())
+assert execution['passed']
+for name,sha in execution['source_refs'].items():
+    assert p.digest(Path(name)) == sha
+manifest = json.loads((RAW/'analysis1/manifest.json').read_text())
+for name,sha in manifest['outputs'].items():
+    assert p.digest(RAW/'analysis1'/name) == sha
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+    '--format=csv,noheader'],text=True).strip()
+OUT.mkdir(parents=True,exist_ok=False)
+for source,name in [(RAW/'analysis1'/n,n) for n in
+    ('summary.json','allocation_shapes.csv','groups.csv','processes.csv')]+[
+    (RAW/'analysis1/manifest.json','raw_manifest.json'),
+    (RAW/'execution.json','execution.json'),(RAW/'tests.xml','tests.xml'),
+    (RAW/'audit_iterations.py','analysis_driver.py.snapshot'),
+    (RAW/'finalize.py','finalize.py.snapshot')]:
+    with (OUT/name).open('xb') as handle:
+        handle.write(source.read_bytes())
+save(OUT/'closure.json',dict(passed=True,identity=identity,closed=closed,unit_state=state,
+    gpu_compute_processes=[],disk_available_bytes=shutil.disk_usage(ROOT).free,
+    production_changed=False,configuration_changed=False,new_gpu_runs=0))
+files = sorted(OUT.iterdir())+[ROOT/'docs/ieee_tc/D722_3B_NATIVE_ITERATION_REUSE_20261022.md']
+save(OUT/'manifest.json',dict(files=[dict(path=str(path.relative_to(ROOT)),
+    bytes=path.stat().st_size,sha256=p.digest(path)) for path in files]))
+print(json.dumps(dict(passed=True,files=len(files),unit_state=state)))

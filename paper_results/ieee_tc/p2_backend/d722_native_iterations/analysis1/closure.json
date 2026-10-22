@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-7b8f236117254e41ae2e791c15561022.scope",
+    "invocation_id": "d0f518c7a2be47bf877c589b9c2eabbd",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7b8f236117254e41ae2e791c15561022.scope",
+    "inode": 30195041
+  },
+  "closed": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "unit_state": "inactive",
+  "gpu_compute_processes": [],
+  "disk_available_bytes": 173854769152,
+  "production_changed": false,
+  "configuration_changed": false,
+  "new_gpu_runs": 0
+}

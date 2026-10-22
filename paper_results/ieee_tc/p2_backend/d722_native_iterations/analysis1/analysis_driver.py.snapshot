@@ -1,0 +1,229 @@
+"""D722: reuse D517/D691 iteration audit on sealed D684, without replay.
+
+Only offline orchestration changes. The production observer and existing
+strict analyzer are unchanged. Allocation shape is not a GPU kernel phase.
+"""
+import collections
+import csv
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = RAW/'analysis1'
+BASE = ROOT/'paper_results/ieee_tc/p2_backend/d684_3b_control_prefix1/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.analyze_control_path_overhead import (
+    summarize_core_host_spans, core_interval_overlap, write_csv)
+
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+
+def describe(values):
+    values = sorted(values)
+    return dict(count=len(values), total=math.fsum(values),
+        mean=math.fsum(values)/len(values) if values else None,
+        p50=values[math.ceil(.5*len(values))-1] if values else None,
+        p95=values[math.ceil(.95*len(values))-1] if values else None,
+        maximum=values[-1] if values else None)
+
+
+def main():
+    identity = p.scope_identity(p.cg_path().name)
+    save(RAW/'identity.json', identity)
+    group = Path(identity['path'])
+    sample = lambda: {k:(group/k).read_text().strip() for k in (
+        'memory.high','memory.max','memory.peak','memory.events',
+        'memory.swap.max','memory.swap.current')}
+    before = sample()
+    assert before['memory.high'] == str(3*p.GIB)
+    assert before['memory.max'] == str(4*p.GIB)
+    assert before['memory.swap.max'] == '0'
+    assert os.sched_getaffinity(0) == {2,3,26,27}
+    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+        '--format=csv,noheader'], text=True).strip()
+    gate = p.preflight([ROOT], 128*1024**2)
+    assert gate['preflight_pass'], gate['issues']
+    assert not OUT.exists()
+    bindings = {
+        Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'):
+            'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':
+            '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':
+            '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+        ROOT/'scripts/run_all_experiments.py':
+            '6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd',
+        ROOT/'scripts/analyze_control_path_overhead.py':
+            'b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e',
+        ROOT/'tests/test_ieee_tc_core_timing_analysis.py':
+            '686823797997e595ce783c6a88d027bfcfe3028a7b228e53beefaeaf9dd05e26',
+        ROOT/'configs/generated/lora_manifest_1000.json':
+            '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+        ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json':
+            'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8',
+    }
+    seal = json.loads((ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json').read_text())
+    protected = {Path(k):v['sha256'] for k,v in seal['entries'].items()
+                 if '/paper_results/final_v2/' in k or '/figs/paper/' in k}
+    assert len(protected) == 144
+    for path, sha in (bindings | protected).items():
+        assert p.digest(path) == sha, path
+    passed = False
+    try:
+        with (RAW/'tests.log').open('x') as log:
+            done = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q',
+                'tests/test_ieee_tc_core_timing_analysis.py',
+                'tests/test_ieee_tc_core_timing.py',
+                '--junitxml='+str(RAW/'tests.xml')], cwd=ROOT,
+                stdout=log, stderr=subprocess.STDOUT)
+        assert done.returncode == 0
+        manifest = json.loads((BASE/'analysis_manifest.json').read_text())
+        for name, sha in manifest['outputs'].items():
+            assert p.digest(BASE/name) == sha, name
+        summary = json.loads((BASE/'core_timing/summary.json').read_text())
+        assert summary['processes'] == summary['complete_processes'] == 4
+        assert summary['diagnostic_count'] == summary['complete_request_observations'] == 1000
+        completion = json.loads((BASE/'completion.json').read_text())
+        slo = json.loads((ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json').read_text())
+        expected_thresholds = [dict(lower_exclusive=g['lower_exclusive'],
+            upper_inclusive=g['upper_inclusive'],ttft_s=g['ttft_ms']/1000,
+            tpot_s=g['tpot_ms']/1000) for g in slo['groups']]
+        assert completion['thresholds'] == expected_thresholds
+        with (BASE/'core_timing/decode_windows.csv').open() as f:
+            windows = list(csv.DictReader(f))
+        assert len(windows) == len({w['request_id'] for w in windows}) == 1000
+        assert all(w['observation_complete'] == 'True' for w in windows)
+        streams = [s for s in summary['sources'] if Path(s['path']).suffix == '.jsonl']
+        assert len(streams) == 4
+        steps, requests, processes = [], [], []
+        sources = []
+        for source in streams:
+            path = Path(source['path'])
+            before_stat = path.stat()
+            assert not path.is_symlink() and before_stat.st_size == source['bytes'] <= 64*1024**2
+            events, digest = [], hashlib.sha256()
+            with path.open('rb') as f:
+                for i, line in enumerate(f):
+                    assert len(line) <= 8192 and line.endswith(b'\n') and i <= 200002
+                    digest.update(line)
+                    row = json.loads(line)
+                    if i == 0:
+                        header = row
+                    else:
+                        events.append(row)
+            after_stat = path.stat()
+            assert (before_stat.st_ino,before_stat.st_size,before_stat.st_mtime_ns) == (
+                after_stat.st_ino,after_stat.st_size,after_stat.st_mtime_ns)
+            assert digest.hexdigest() == source['sha256']
+            assert header['event'] == 'native_core_host_timing_v1'
+            assert header['clock_id'] == summary['clock_id']
+            assert header['diagnostic_prefix_count'] == 1000
+            assert header['formal_performance_result'] is False and header['gpu_kernel_timing'] is False
+            assert header['host_inventory_timing'] == 'fresh_inventory_v1'
+            pid = header['pid']
+            assert path.stem == f"{pid}-{header['start_ticks']}"
+            audit = summarize_core_host_spans(events, include_iterations=True, host_inventory=True)
+            assert audit['complete'] and not audit['truncated'] and audit['closed']
+            iteration = audit['iterations']
+            index, categories = iteration['index'], iteration['categories']
+            assert sum(index[k]['total_ns'] for k in categories) == audit['index']['step']['total_ns']
+            assert index['schedule']['total_ns'] + index['step_non_schedule']['total_ns'] == audit['index']['step']['total_ns']
+            steps.extend(dict(process=path.stem,pid=pid,**r) for r in iteration['records'])
+            processes.append(dict(process=path.stem,pid=pid,spans=audit['spans'],
+                steps=iteration['step_count'],observer_ns=audit['observer_ns'],write_ns=audit['write_ns'],
+                **{k+'_ms':v['total_ns']/1e6 for k,v in index.items()}))
+            for w in (r for r in windows if r['worker_pid'] == str(pid)):
+                a, b = int(w['first_ns']), int(w['last_ns'])
+                assert audit['first_ns'] <= a <= b <= audit['last_ns']
+                assert w['timing_tpot_miss'] in ('True','False')
+                for key in ('client','input_nonclient','step','host_inventory','host_allocator_stats'):
+                    measured = core_interval_overlap(audit['index'][key],a,b)/1e6
+                    assert math.isclose(measured,float(w[key+'_ms']),abs_tol=1e-9,rel_tol=1e-12)
+                record = dict(request_id=w['request_id'],worker_pid=pid,tokens=int(w['tokens']),
+                    timing_tpot_miss=w['timing_tpot_miss'] == 'True',first_ns=a,last_ns=b,
+                    **{k:float(w[k]) for k in w if k.endswith('_ms')})
+                assert abs(record['decode_ms']/(record['tokens']-1)-record['tpot_ms']) < .001
+                overlaps = {key:core_interval_overlap(value,a,b) for key,value in index.items()}
+                assert sum(overlaps[k] for k in categories) == core_interval_overlap(audit['index']['step'],a,b)
+                assert overlaps['schedule'] + overlaps['step_non_schedule'] == sum(overlaps[k] for k in categories)
+                record.update({key+'_ms':value/1e6 for key,value in overlaps.items()})
+                requests.append(record)
+            sources.append(source)
+            del events, audit, iteration, index
+        assert sum(r['spans'] for r in processes) == 312160
+        assert len(requests) == len({r['request_id'] for r in requests}) == 1000
+        assert sum(r['timing_tpot_miss'] for r in requests) == 62
+        groups = []
+        for label, choose in [('all',lambda r:True),('short_2_32',lambda r:r['tokens'] <= 32),
+                ('short_2_64',lambda r:r['tokens'] <= 64),('long_65_256',lambda r:r['tokens'] > 64)]:
+            for miss in (False,True):
+                rows = [r for r in requests if choose(r) and r['timing_tpot_miss'] == miss]
+                groups.append(dict(group=label,timing_tpot_miss=miss,count=len(rows),
+                    **{'mean_'+k:math.fsum(r[k] for r in rows)/len(rows) if rows else None
+                       for k in requests[0] if k.endswith('_ms')}))
+        def step_stats(rows):
+            return dict(steps=len(rows),model_executed_true=sum(r['model_executed'] is True for r in rows),
+                scheduled_tokens=describe([r['scheduled_tokens'] for r in rows if r['scheduled_tokens'] is not None]),
+                **{key[:-3]+'_ms':describe([r[key]/1e6 for r in rows]) for key in
+                    ('step_ns','step_thread_cpu_ns','schedule_ns','step_non_schedule_ns','preceding_client_ns')})
+        step_summary = [dict(category=c,**step_stats([r for r in steps if r['category'] == c])) for c in categories]
+        shapes = []
+        for category in categories:
+            rows = [r for r in steps if r['category'] == category]
+            for n in sorted({r['scheduled_requests'] for r in rows},key=lambda v:-1 if v is None else v):
+                values = step_stats([r for r in rows if r['scheduled_requests'] == n])
+                shapes.append(dict(category=category,scheduled_requests=n,steps=values['steps'],
+                    **{key+'_'+stat:value for key,stats in values.items() if isinstance(stats,dict)
+                       for stat,value in stats.items()}))
+        for path in [BASE/'analysis_manifest.json',BASE/'completion.json',
+                BASE/'core_timing/decode_windows.csv',BASE/'core_timing/summary.json',Path(__file__),
+                *bindings.keys()]:
+            sources.append(dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size))
+        OUT.mkdir(exist_ok=False)
+        for name, rows in [('processes',processes),('steps',steps),('allocation_shapes',shapes),
+                ('decode_windows',sorted(requests,key=lambda r:r['request_id'])),('groups',groups)]:
+            write_csv(rows, OUT/(name+'.csv'))
+        report = dict(kind='d722_reused_d684_iteration_composition_v1',new_gpu_runs=0,
+            production_changed=False,configuration_changed=False,formal_performance_result=False,
+            gpu_kernel_timing=False,n_correct=None,ranking_eligible=False,
+            source_contract='D684 intrusive 1000-request prefix, not D719 Full',
+            processes=4,spans=312160,steps=len(steps),requests=1000,clock_id=summary['clock_id'],
+            slo_thresholds_verified=True,step_summary=step_summary,groups=groups,sources=sources,
+            caveats=[
+                'Allocation shape is not GPU prefill/decode phase; single-token can be final prefill and multi-token can include recomputation.',
+                'Asynchronous step may retire a previous batch; scheduled-token count does not identify all work awaited in this span.',
+                'Step host span includes executor/output/host waits, not isolated GPU kernel time.',
+                'Schedule is nested within step; categories partition step but nested metrics cannot all be added.',
+                'HOST inventory is nested in control, not additive to the request partition.',
+                'Observer overhead is included; no latency subtraction, causal savings or production4000 extrapolation.',
+                'Same-owner intersections across requests overlap; they cannot be summed as service-exclusive time.',
+                'Short2-32 and short2-64 are overlapping descriptive strata, not independent replications.',
+                'D684 predates D703/D719 changes; this is historical mechanism evidence, not current configuration qualification.'])
+        save(OUT/'summary.json',report)
+        save(OUT/'manifest.json',dict(outputs={x.name:p.digest(x) for x in sorted(OUT.iterdir()) if x.is_file()}))
+        for path, sha in (bindings | protected).items():
+            assert p.digest(path) == sha, path
+        assert not any(p.counters(group/'memory.events')[k] for k in ('high','max','oom','oom_kill'))
+        assert (group/'memory.swap.current').read_text().strip() == '0'
+        passed = True
+        print(json.dumps(dict(steps=len(steps),step_summary=step_summary,groups=groups)),flush=True)
+    finally:
+        save(RAW/'execution.json',dict(passed=passed,identity=identity,before=before,after=sample(),
+            gate=gate,protected_files=144,cpu_affinity=sorted(os.sched_getaffinity(0)),
+            source_refs={str(k):v for k,v in bindings.items()},new_gpu_runs=0))
+
+
+if __name__ == '__main__':
+    main()

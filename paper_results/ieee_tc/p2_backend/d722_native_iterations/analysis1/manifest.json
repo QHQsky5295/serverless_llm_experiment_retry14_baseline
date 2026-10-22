@@ -1,0 +1,59 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/allocation_shapes.csv",
+      "bytes": 6774,
+      "sha256": "71eaa77370fff6273679a580313868fae26fb63d3bdae7b1b98cd4c50bf23301"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/analysis_driver.py.snapshot",
+      "bytes": 14163,
+      "sha256": "8ed329b749fd6d7fa1e9d328cb5f38c086f08bd55fe255125642dda29448b4f9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/closure.json",
+      "bytes": 601,
+      "sha256": "bb57ac5017fafc92263a484626b94336d35ef9fa75259c0ad36e50ff5be88d88"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/execution.json",
+      "bytes": 9245,
+      "sha256": "275ec6e28a6c4884a833aa5832a106f9ee2fec8d6f4ce64e451c1e1156edb757"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/finalize.py.snapshot",
+      "bytes": 2533,
+      "sha256": "c92e0e81062489fc5ebff2b6af6b2ea532ecd76264ee60ad3b4071b88fbe9e20"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/groups.csv",
+      "bytes": 2438,
+      "sha256": "7c3d97e56bb8d00120f0f496050d23fa50df966812abbf0346c461f8369bde30"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/processes.csv",
+      "bytes": 779,
+      "sha256": "c5ee2edce34b9fa6f637eb3f312002063c6715eadfc0f4fd54b94437aaaa30de"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/raw_manifest.json",
+      "bytes": 561,
+      "sha256": "46886884175bbbcc64e6d5307d8ebbe5dbe748c34ba61a64d572c3b25c16a401"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/summary.json",
+      "bytes": 20066,
+      "sha256": "d2f92502ba4c92224cd1c8758d3075d1504361cd8e7b7ba09a072512d9c7a19f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d722_native_iterations/analysis1/tests.xml",
+      "bytes": 7064,
+      "sha256": "572b5324f4f35fca2766b224636d865db5f028284efabc7148e499107f8ffa37"
+    },
+    {
+      "path": "docs/ieee_tc/D722_3B_NATIVE_ITERATION_REUSE_20261022.md",
+      "bytes": 5155,
+      "sha256": "844ff39b4a919e02a77f7abf606d8ed6c8f4a44690513f620ada9dd40f5f13e9"
+    }
+  ]
+}

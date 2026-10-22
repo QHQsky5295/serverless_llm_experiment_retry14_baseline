@@ -1,5 +1,23 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D722：复用原生迭代，不凭prefill包络选择token预算
+
+PROGRESS。复用D684完整4进程、312160span和1000请求，恢复89915个step；
+原观察器／analyzer未改，45测试通过，原D648共同阈值核对一致。974个含
+多token分配step平均wall64.547ms／线程CPU64.214ms，scheduler仅0.305ms；
+87527个单token分配step平均12.013ms。异步step可回收旧batch，形状不等于
+GPU阶段；此数据不能直接证明GPU prefill瓶颈，也不支持照抄512／2048。
+短2–64输出的61个TPOT违约decode均值682.919ms，其中client交叠387.257ms、
+多token分配step95.670ms；嵌套HOST282.116ms不另加，不能事后相减造收益。
+资料位于D722_3B_NATIVE_ITERATION_REUSE_20261022.md及d722_native_iterations。
+
+没有GPU新回放、生产/Full配置或指标改动；实际CPU2/3/26/27，峰值503541760B，
+high/max/OOM/swap0，144旧投稿与用户manifest不变。保留D721所有限制。
+当前完整仍D719 joint91.60%、U13508.300779、n_correct未知，3B不能关闭。
+下一只做当前3B前100条组件诊断，复用v2_components_v1区分模型调用内主机
+工作；不重跑D684原1000、无新同步/参数、避免D519截断，不恢复D529拒绝候选。
+全部3B后续、消融、敏感性、CE、审稿交付不删减；不触碰共享k3s。
+
 ## 2026-10-22 D721：完整请求解码重叠复核完成；未改Full配置
 
 检查点`cf397825a595d705b97f2fb85a5f5c42b01c6d21`已推送并ls-remote核验
