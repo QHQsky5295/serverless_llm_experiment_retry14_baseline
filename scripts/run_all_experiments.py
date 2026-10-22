@@ -20350,7 +20350,9 @@ class ScenarioRunner:
         # missing-profile fallback: a GPU target without classes is rejected.
         plan, selected, objectives = await execution_preparation_bundle(self._stack, plan,
             size_edges_bytes=(self._preparation_profiles.size_edges_bytes
-                              if 'source_view' in plan else None))
+                              if 'source_view' in plan else None),
+            initialized_execution=(activation_ready is None and replacement_costs is None
+                                   and 'source_view' in plan))
         preinit = activation_ready is not None
         if preinit and (plan['source_view']['native'] is not None
                 or plan['source_view']['activation_id'] != activation_id

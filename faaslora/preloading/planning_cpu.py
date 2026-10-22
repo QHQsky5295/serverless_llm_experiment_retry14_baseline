@@ -45,6 +45,7 @@ class ValidatedPreparationPlan(Mapping):
     _keys: tuple
     _key_index: Mapping
     _native_source_publication: object
+    _initialized_execution_payload: bytes | None
 
     @classmethod
     def _from_worker_result(cls, payload, receipt):
@@ -70,6 +71,10 @@ class ValidatedPreparationPlan(Mapping):
                     or type(publication[0]) is not NativeSourceSnapshot):
                 raise ValueError('invalid validated native source publication')
         object.__setattr__(value, '_native_source_publication', publication)
+        execution = receipt['_initialized_execution_payload']
+        if execution is not None and type(execution) is not bytes:
+            raise ValueError('initialized execution image must be immutable bytes')
+        object.__setattr__(value, '_initialized_execution_payload', execution)
         return value
 
     def native_source_publication(self):
@@ -83,6 +88,17 @@ class ValidatedPreparationPlan(Mapping):
     def execution_bundle_copy(self):
         """Detached plan, selection and pure objectives from the SAME epoch."""
         return pickle.loads(self._payload)
+
+    def initialized_execution_bundle_copy(self):
+        """Private consumer view, NOT an exportable or re-plannable full plan.
+
+        The complete validated epoch remains in _payload. This image contains
+        the same selection and complete objectives, including unselected sources
+        needed when physical victims are priced later. It certifies no live state.
+        """
+        if self._initialized_execution_payload is None:
+            raise ValueError('initialized execution requires an initialized owned plan')
+        return pickle.loads(self._initialized_execution_payload)
 
     def snapshot(self):
         return self.execution_copy()[0]
@@ -157,6 +173,33 @@ def _execution_objectives(plan, selected, size_edges_bytes):
     return bundle
 
 
+def _initialized_execution_view(bundle):
+    """Project a fully validated epoch for the initialized physical executor.
+
+    Run only inside the existing computation transaction, after the unchanged
+    selector, validator and objective construction. Pre-init GPU binding and
+    explicit file-only replacement still consume full plans. This is neither a
+    state cache nor a partial plan that can be resubmitted with a certificate.
+    """
+    plan, selected, objectives = bundle
+    view = plan.get('source_view')
+    if view is None or view['native'] is None:
+        raise ValueError('initialized execution requires an initialized owned plan')
+    picked = {(candidate.artifact_id, tier) for tier in ('host', 'nvme')
+              for candidate in selected[tier]}
+    execution = {key: plan[key] for key in ('mode', 'profile_id', 'plan_sha256')}
+    if 'replacement_policy' in plan:
+        execution['replacement_policy'] = plan['replacement_policy']
+    execution['options'] = [row for row in plan['options']
+        if (row['artifact_id'], row['target']['tier']) in picked]
+    execution['source_view'] = dict(native=dict(owner_id=view['native']['owner_id']),
+        sources={candidate.artifact_id: dict(
+            selected_source=view['sources'][candidate.artifact_id]['selected_source'])
+            for candidate in selected['gpu']})
+    # Do not prune objectives: future GPU/HOST victims may be unselected IDs.
+    return execution, selected, objectives
+
+
 def execute_planning_message(message):
     """Pure worker entry. All branches use the original formulas/checks."""
     from .preloading_planner import (
@@ -166,6 +209,7 @@ def execute_planning_message(message):
     planner = _pure_selector(max_dp_buffer_bytes)
     validation_seconds = None
     objectives_seconds = None
+    execution_payload = None
     if operation in ('owned_epoch', 'owned_execution_epoch'):
         args = dict(args)
         mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
@@ -187,6 +231,8 @@ def execute_planning_message(message):
             objectives = _execution_objectives(value, selected, profiles.size_edges_bytes)
             objectives_seconds = time.monotonic()-began
             value = (value, selected, objectives)
+            if inputs['source_view']['native'] is not None:
+                execution_payload = pickle.dumps(_initialized_execution_view(value), protocol=5)
     elif operation == 'validate_execution':
         plan = copy_ieee_preparation_plan(args['plan'])
         value = (plan, planner.validate_ieee_execution_plan(plan))
@@ -194,6 +240,8 @@ def execute_planning_message(message):
         plan = copy_ieee_preparation_plan(args['plan'])
         selected = planner.validate_ieee_execution_plan(plan)
         value = (plan, selected, _execution_objectives(plan, selected, args['size_edges_bytes']))
+        if args.get('initialized_execution', False):
+            value = _initialized_execution_view(value)
     elif operation == 'initialized_gpu_objective':
         from .preloading_planner import owned_gpu_execution_objective
         plan = args['plan']
@@ -206,13 +254,16 @@ def execute_planning_message(message):
     receipt = dict(operation=operation, worker_pid=os.getpid(),
         worker_started_monotonic_s=start, worker_finished_monotonic_s=time.monotonic(),
         worker_cpu_seconds=time.process_time()-cpu, input_bytes=len(message),
-        output_bytes=len(payload), plan_sha256=plan['plan_sha256'],
+        output_bytes=len(payload), initialized_execution_bytes=(
+            0 if execution_payload is None else len(execution_payload)),
+        plan_sha256=plan['plan_sha256'],
         cpu_affinity=sorted(os.sched_getaffinity(0)),
         cgroup=cgroup)
     if operation == 'owned_execution_epoch':
         receipt.update(frozen_execution_validated=True,
             frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]),
             execution_objectives_prepared=True, execution_objectives_seconds=objectives_seconds,
+            _initialized_execution_payload=execution_payload,
             _native_source_publication=(None if inputs['native_source_state'] is None else
                 (inputs['native_source_state'], args['native_snapshot'].get('device_uuid'))))
     return payload, receipt
@@ -267,7 +318,7 @@ class IEEEPlanningCPU:
             try:
                 (payload, receipt), cancelled = await _join_without_abandoning(future)
                 event.update({key: value for key, value in receipt.items()
-                              if key != '_native_source_publication'},
+                              if key not in ('_native_source_publication', '_initialized_execution_payload')},
                              state='completed', caller_cancelled=cancelled,
                              joined_monotonic_s=time.monotonic())
                 if cancelled:
@@ -317,17 +368,20 @@ async def execution_preparation_input(stack, plan):
     return await run_planning_cpu(stack, 'validate_execution', {'plan': plan})
 
 
-async def execution_preparation_bundle(stack, plan, *, size_edges_bytes):
+async def execution_preparation_bundle(stack, plan, *, size_edges_bytes,
+                                      initialized_execution=False):
     """Open the fused private result, or validate an ordinary imported plan.
 
     No live resources cross into the worker. Callers must retain their normal
     registration, epoch, cancellation, reservation and commit checks afterwards.
     """
     if type(plan) is ValidatedPreparationPlan:
-        result = plan.execution_bundle_copy()
+        result = (plan.initialized_execution_bundle_copy() if initialized_execution
+                  else plan.execution_bundle_copy())
     else:
         result = await run_planning_cpu(stack, 'validate_execution_bundle',
-            dict(plan=plan, size_edges_bytes=size_edges_bytes))
+            dict(plan=plan, size_edges_bytes=size_edges_bytes,
+                 initialized_execution=initialized_execution))
     expected_edges = None if size_edges_bytes is None else tuple(size_edges_bytes)
     if expected_edges != result[2]['size_edges_bytes']:
         raise ValueError('execution profile size classes differ from frozen planning')

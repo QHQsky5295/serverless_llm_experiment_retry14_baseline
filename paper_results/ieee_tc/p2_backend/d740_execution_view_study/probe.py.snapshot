@@ -1,0 +1,141 @@
+"""D740 CPU-only initialized execution-view study; reuse D193 fixtures/method.
+
+No serving edits, new inference replay, weights, trace, or remote operation.
+"""
+import asyncio
+import csv
+import json
+import os
+from pathlib import Path
+import pickle
+import statistics
+import subprocess
+import sys
+import time
+import unittest
+from unittest.mock import patch
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False)
+        f.write('\n')
+
+def project(bundle):
+    plan,selected,objectives=bundle
+    view=plan.get('source_view')
+    if view is None or view['native'] is None:
+        raise ValueError('projection is only for initialized owned execution')
+    picked={(c.artifact_id,t) for t in ('host','nvme') for c in selected[t]}
+    # These are fields consumed by the initialized executor, not an alternate
+    # plan to be resubmitted to the selector. All original objectives survive.
+    execution={k:plan[k] for k in ('mode','profile_id','plan_sha256')}
+    if 'replacement_policy' in plan:
+        execution['replacement_policy']=plan['replacement_policy']
+    execution['options']=[r for r in plan['options'] if (r['artifact_id'],r['target']['tier']) in picked]
+    execution['source_view']=dict(native=dict(owner_id=view['native']['owner_id']),
+        sources={c.artifact_id:dict(selected_source=view['sources'][c.artifact_id]['selected_source'])
+                 for c in selected['gpu']})
+    return execution,selected,objectives
+
+def main():
+    assert os.sched_getaffinity(0)=={2,3,26,27}
+    assert os.environ['CUDA_VISIBLE_DEVICES']==''
+    save(RAW/'identity.json',p.scope_identity(p.cg_path().name))
+    assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+    q=json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d738_3b_planning_wire_full_w0/prelaunch/qualification.json').read_text())
+    for name,sha in q['protected'].items(): assert p.digest(Path(name))==sha,name
+    sources={name:p.digest(ROOT/name) for name in (
+        'faaslora/preloading/planning_cpu.py','faaslora/preloading/preloading_planner.py',
+        'scripts/run_all_experiments.py','tests/test_ieee_tc_planning_cpu.py',
+        'tests/test_ieee_tc_transfer_pressure.py')}
+    from tests.test_ieee_tc_planning_cpu import PlanningCPU
+    from faaslora.preloading.planning_cpu import execute_planning_message
+    import faaslora.preloading.planning_cpu as cpu
+    import torch
+    rows,checks=[],[]
+    for mode in ('handoff','residency'):
+        fixture=PlanningCPU()
+        try:
+            args,runner,slot=fixture.inputs(mode)
+            try:
+                payload,receipt=execute_planning_message(pickle.dumps(
+                    ('owned_execution_epoch',runner._stack.preloading_planner.max_dp_buffer_bytes,args),protocol=5))
+                original=pickle.loads(payload)
+                selected_payload=pickle.dumps(project(original),protocol=5)
+                compact=pickle.loads(selected_payload)
+                assert compact[1:]==original[1:]
+                assert compact[0]['plan_sha256']==original[0]['plan_sha256']
+                assert compact[0]['source_view']['native']['owner_id']==original[0]['source_view']['native']['owner_id']
+                assert len(compact[0]['options'])==sum(len(original[1][t]) for t in ('host','nvme'))
+                with patch('faaslora.preloading.planning_cpu.pickle.loads',
+                           side_effect=AssertionError('source objects already provided')):
+                    project(original)
+                # Public resubmission must not accept a partial execution view.
+                try: runner._stack.preloading_planner.validate_ieee_execution_plan(compact[0])
+                except (KeyError,ValueError,TypeError) as error:
+                    rejection=dict(type=type(error).__name__,message=str(error))
+                else: raise AssertionError('projection accepted as full plan')
+                checks.append(dict(mode=mode,logical_adapters=len(args['identities']),
+                    full_payload_bytes=len(payload),execution_payload_bytes=len(selected_payload),
+                    objectives_equal=True,selections_equal=True,source_hash_unchanged=True,
+                    partial_plan_rejected=rejection,
+                    candidate_extra_ipc_bytes=len(selected_payload),
+                    immutable_audit_payload_retained=True))
+                for round_id in range(3):
+                    for variant in (('full','selected') if round_id%2==0 else ('selected','full')):
+                        encoded=payload if variant=='full' else selected_payload
+                        start,tcpu=time.perf_counter(),time.process_time()
+                        for _ in range(100): decoded=pickle.loads(encoded)
+                        elapsed,spent=time.perf_counter()-start,time.process_time()-tcpu
+                        assert decoded[1:]==original[1:]
+                        rows.append(dict(mode=mode,round=round_id,variant=variant,
+                            iterations=100,bytes=len(encoded),
+                            wall_us_per_decode=elapsed*10000,cpu_us_per_decode=spent*10000,
+                            fixture_not_serving_measurement=True))
+                start,tcpu=time.perf_counter(),time.process_time()
+                for _ in range(100): pickle.dumps(project(original),protocol=5)
+                checks[-1].update(extra_project_encode_wall_us=(time.perf_counter()-start)*10000,
+                    extra_project_encode_cpu_us=(time.process_time()-tcpu)*10000)
+            finally:
+                asyncio.run(runner._stack.preloading_manager.ieee_movements.close())
+        finally: fixture.doCleanups()
+
+    baseline=cpu.execution_preparation_bundle
+    counts=dict(projected=0,preinit_or_file_only=0)
+    async def opened(*args,**kw):
+        bundle=await baseline(*args,**kw)
+        view=bundle[0].get('source_view')
+        if view is None or view['native'] is None:
+            counts['preinit_or_file_only']+=1
+            return bundle
+        counts['projected']+=1
+        return pickle.loads(pickle.dumps(project(bundle),protocol=5))
+    tests=[
+        'tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation',
+        'tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement',
+        'tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_native_commit_rejects_selected_sibling_change_before_pricing',
+    ]
+    suite=unittest.defaultTestLoader.loadTestsFromNames(tests)
+    with (RAW/'tests.log').open('x') as log, patch.object(cpu,'execution_preparation_bundle',opened):
+        result=unittest.TextTestRunner(stream=log,verbosity=2).run(suite)
+    assert not torch.cuda.is_initialized()
+    for name,sha in sources.items(): assert p.digest(ROOT/name)==sha,name
+    for name,sha in q['protected'].items(): assert p.digest(Path(name))==sha,name
+    save(RAW/'result.json',dict(passed=result.wasSuccessful(),test_count=result.testsRun,
+        failures=len(result.failures),errors=len(result.errors),tests=tests,counts=counts,
+        components=checks,measurements=rows,source_shas=sources,
+        resources=p.cgroup_snapshot(p.cg_path()),protected_files=len(q['protected']),
+        production_changed=False,new_gpu_replays=0,
+        caveat='Small existing CPU fixtures; no measured current 500-adapter bundle, IPC contention, or end-to-end benefit. Candidate needs extra serialized execution bytes while retaining full immutable audit bytes.'))
+    with (RAW/'measurements.csv').open('x',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(rows[0]),lineterminator='\n')
+        writer.writeheader();writer.writerows(rows)
+    print(json.dumps(dict(passed=result.wasSuccessful(),test_count=result.testsRun,
+        counts=counts,components=checks)))
+    raise SystemExit(0 if result.wasSuccessful() else 1)
+
+if __name__=='__main__': main()

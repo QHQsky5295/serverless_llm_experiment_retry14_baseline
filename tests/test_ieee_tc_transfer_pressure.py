@@ -29,7 +29,7 @@ def setUpModule():
     async def inline(worker, operation, limit, args):
         value, receipt = execute_planning_message(pickle.dumps((operation, limit, args), protocol=5))
         worker.events.append({key: value for key, value in receipt.items()
-                              if key != '_native_source_publication'})
+                              if key not in ('_native_source_publication', '_initialized_execution_payload')})
         if operation == 'owned_execution_epoch':
             return ValidatedPreparationPlan._from_worker_result(value, receipt)
         return pickle.loads(value)

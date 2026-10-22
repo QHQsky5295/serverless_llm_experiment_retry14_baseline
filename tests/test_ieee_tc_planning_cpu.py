@@ -24,7 +24,8 @@ class ValidatedPlanMembership(unittest.TestCase):
         self.payload = pickle.dumps(self.bundle, protocol=5)
         self.receipt = dict(operation='owned_execution_epoch', frozen_execution_validated=True,
                             execution_objectives_prepared=True, plan_sha256='fixture-sha',
-                            plan_keys=list(self.plan), _native_source_publication=None)
+                            plan_keys=list(self.plan), _native_source_publication=None,
+                            _initialized_execution_payload=None)
         self.sealed = ValidatedPreparationPlan._from_worker_result(self.payload, self.receipt)
 
     def test_present_absent_and_keys_view_do_not_decode(self):
@@ -327,6 +328,8 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises((AttributeError, TypeError)):
             source.epoch += 1
         self.assertNotIn('_native_source_publication', worker.events[0])
+        self.assertNotIn('_initialized_execution_payload', worker.events[0])
+        self.assertGreater(worker.events[0]['initialized_execution_bytes'], 0)
         json.dumps(worker.events, allow_nan=False)
         edges = runner._preparation_profiles.size_edges_bytes
         with patch('faaslora.preloading.planning_cpu.run_planning_cpu',
@@ -340,6 +343,15 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(bundle['file'], owned_file_execution_objective(
                     plan=plan, selected=selected, file_plan_id=bundle['file_plan_id']))
             self.assertFalse(bundle['gpu']['physical_resources_reserved'])
+            execution, execution_selected, execution_objectives = await execution_preparation_bundle(
+                runner._stack, sealed, size_edges_bytes=edges, initialized_execution=True)
+            self.assertEqual(execution_selected, selected)
+            self.assertEqual(execution_objectives, bundle)
+            self.assertEqual(execution['plan_sha256'], plan['plan_sha256'])
+            self.assertNotIn('allocations', execution['source_view']['native'])
+            self.assertEqual(worker.events[0]['output_bytes'], len(sealed._payload))
+            self.assertEqual(worker.events[0]['initialized_execution_bytes'],
+                             len(sealed._initialized_execution_payload))
             bundle['gpu']['owner_id'] = 'mutated-private-copy'
             _, _, again = await execution_preparation_bundle(runner._stack, sealed,
                 size_edges_bytes=edges)
@@ -347,6 +359,9 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(ValueError, 'size classes'):
                 await execution_preparation_bundle(runner._stack, sealed,
                     size_edges_bytes=tuple(edges)+(99999999,))
+            with self.assertRaisesRegex(ValueError, 'size classes'):
+                await execution_preparation_bundle(runner._stack, sealed,
+                    size_edges_bytes=tuple(edges)+(99999999,), initialized_execution=True)
         self.assertEqual(len(worker.events), 1)
         self.assertTrue(worker.events[0]['execution_objectives_prepared'])
         self.assertGreaterEqual(worker.events[0]['execution_objectives_seconds'], 0)
@@ -355,11 +370,64 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
         bad['source_view']['native']['owner_id'] = 'tampered'
         with self.assertRaisesRegex(ValueError, 'physical owner view'):
             await execution_preparation_bundle(runner._stack, bad, size_edges_bytes=edges)
+        with self.assertRaisesRegex(ValueError, 'physical owner view'):
+            await execution_preparation_bundle(runner._stack, bad, size_edges_bytes=edges,
+                                               initialized_execution=True)
         plain, chosen, rebuilt = await execution_preparation_bundle(runner._stack,
             sealed.snapshot(), size_edges_bytes=edges)
         self.assertEqual((plain, chosen), (plan, selected))
         self.assertEqual(rebuilt['gpu'], again['gpu'])
         self.assertNotEqual(rebuilt['file_plan_id'], again['file_plan_id'])
+
+    async def test_initialized_view_preserves_full_selection_objectives_and_exports(self):
+        for mode in ('handoff', 'residency'):
+            with self.subTest(mode=mode):
+                args, runner, _ = await asyncio.to_thread(self.inputs, mode)
+                limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+                payload, receipt = execute_planning_message(
+                    pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
+                sealed = ValidatedPreparationPlan._from_worker_result(payload, receipt)
+                full, selected, objectives = sealed.execution_bundle_copy()
+                execution, chosen, prepared = sealed.initialized_execution_bundle_copy()
+                self.assertEqual((chosen, prepared), (selected, objectives))
+                self.assertEqual(execution['source_view']['native'],
+                                 {'owner_id': full['source_view']['native']['owner_id']})
+                wanted = {(c.artifact_id, tier) for tier in ('host', 'nvme') for c in selected[tier]}
+                self.assertEqual(execution['options'], [r for r in full['options']
+                    if (r['artifact_id'], r['target']['tier']) in wanted])
+                self.assertEqual(set(execution['source_view']['sources']),
+                                 {c.artifact_id for c in selected['gpu']})
+                self.assertLess(len(sealed._initialized_execution_payload), len(payload))
+                # An ordinary imported full plan still validates before its
+                # consumer projection; it does not inherit the envelope seal.
+                compact_payload, _ = execute_planning_message(pickle.dumps(
+                    ('validate_execution_bundle', limit, dict(plan=full,
+                     size_edges_bytes=args['profiles'].size_edges_bytes,
+                     initialized_execution=True)), protocol=5))
+                ordinary, ordinary_selected, ordinary_objectives = pickle.loads(compact_payload)
+                self.assertEqual((ordinary, ordinary_selected), (execution, chosen))
+                self.assertEqual(ordinary_objectives['gpu'], objectives['gpu'])
+                # The projected view is explicitly not a full planner input.
+                with self.assertRaises((KeyError, ValueError)):
+                    execute_planning_message(pickle.dumps(('validate_execution_bundle', limit,
+                        dict(plan=execution, size_edges_bytes=args['profiles'].size_edges_bytes,
+                             initialized_execution=True)), protocol=5))
+                execution['source_view']['native']['owner_id'] = 'mutated-private-view'
+                execution['options'].clear()
+                prepared['gpu']['sources'].clear()
+                self.assertEqual(sealed.execution_bundle_copy(), (full, selected, objectives))
+                self.assertEqual(copy.deepcopy(sealed), full)
+                self.assertNotEqual(sealed.initialized_execution_bundle_copy()[0], execution)
+                self.assertEqual(sealed.initialized_execution_bundle_copy()[2], objectives)
+                # Only local immutable bytes are eligible, never an object graph
+                # supplied as a sidecar. Absence is a distinct pre-init contract.
+                absent = ValidatedPreparationPlan._from_worker_result(payload,
+                    dict(receipt, _initialized_execution_payload=None))
+                with self.assertRaisesRegex(ValueError, 'initialized owned plan'):
+                    absent.initialized_execution_bundle_copy()
+                with self.assertRaisesRegex(ValueError, 'immutable bytes'):
+                    ValidatedPreparationPlan._from_worker_result(payload,
+                        dict(receipt, _initialized_execution_payload=bytearray(b'x')))
 
     async def test_objective_validation_failure_does_not_publish_a_sealed_plan(self):
         args, runner, _ = await asyncio.to_thread(self.inputs)

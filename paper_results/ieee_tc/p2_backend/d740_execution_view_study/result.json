@@ -1,0 +1,206 @@
+{
+  "passed": true,
+  "test_count": 27,
+  "failures": 0,
+  "errors": 0,
+  "tests": [
+    "tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_native_commit_rejects_selected_sibling_change_before_pricing"
+  ],
+  "counts": {
+    "projected": 30,
+    "preinit_or_file_only": 1
+  },
+  "components": [
+    {
+      "mode": "handoff",
+      "logical_adapters": 4,
+      "full_payload_bytes": 13998,
+      "execution_payload_bytes": 3828,
+      "objectives_equal": true,
+      "selections_equal": true,
+      "source_hash_unchanged": true,
+      "partial_plan_rejected": {
+        "type": "KeyError",
+        "message": "'source_snapshot_id'"
+      },
+      "candidate_extra_ipc_bytes": 3828,
+      "immutable_audit_payload_retained": true,
+      "extra_project_encode_wall_us": 18.922300077974796,
+      "extra_project_encode_cpu_us": 18.923170000002543
+    },
+    {
+      "mode": "residency",
+      "logical_adapters": 4,
+      "full_payload_bytes": 15284,
+      "execution_payload_bytes": 4242,
+      "objectives_equal": true,
+      "selections_equal": true,
+      "source_hash_unchanged": true,
+      "partial_plan_rejected": {
+        "type": "KeyError",
+        "message": "'source_snapshot_id'"
+      },
+      "candidate_extra_ipc_bytes": 4242,
+      "immutable_audit_payload_retained": true,
+      "extra_project_encode_wall_us": 23.685279302299023,
+      "extra_project_encode_cpu_us": 23.686780000007346
+    }
+  ],
+  "measurements": [
+    {
+      "mode": "handoff",
+      "round": 0,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 13998,
+      "wall_us_per_decode": 114.58751279860735,
+      "cpu_us_per_decode": 114.57861000000236,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "handoff",
+      "round": 0,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 3828,
+      "wall_us_per_decode": 24.82096664607525,
+      "cpu_us_per_decode": 24.820290000002743,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "handoff",
+      "round": 1,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 3828,
+      "wall_us_per_decode": 23.029432632029057,
+      "cpu_us_per_decode": 23.02915999999655,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "handoff",
+      "round": 1,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 13998,
+      "wall_us_per_decode": 111.26486118882895,
+      "cpu_us_per_decode": 111.25750999999795,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "handoff",
+      "round": 2,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 13998,
+      "wall_us_per_decode": 110.72761844843626,
+      "cpu_us_per_decode": 110.63809999999563,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "handoff",
+      "round": 2,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 3828,
+      "wall_us_per_decode": 22.783507592976093,
+      "cpu_us_per_decode": 22.78256999999506,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 0,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 15284,
+      "wall_us_per_decode": 137.10534665733576,
+      "cpu_us_per_decode": 137.08637999999775,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 0,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 4242,
+      "wall_us_per_decode": 27.189040556550026,
+      "cpu_us_per_decode": 27.187300000006687,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 1,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 4242,
+      "wall_us_per_decode": 24.763820692896843,
+      "cpu_us_per_decode": 24.76227000000719,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 1,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 15284,
+      "wall_us_per_decode": 126.77168939262629,
+      "cpu_us_per_decode": 126.76352999999807,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 2,
+      "variant": "full",
+      "iterations": 100,
+      "bytes": 15284,
+      "wall_us_per_decode": 135.05708891898394,
+      "cpu_us_per_decode": 135.04647000000426,
+      "fixture_not_serving_measurement": true
+    },
+    {
+      "mode": "residency",
+      "round": 2,
+      "variant": "selected",
+      "iterations": 100,
+      "bytes": 4242,
+      "wall_us_per_decode": 28.892848640680313,
+      "cpu_us_per_decode": 28.892899999997113,
+      "fixture_not_serving_measurement": true
+    }
+  ],
+  "source_shas": {
+    "faaslora/preloading/planning_cpu.py": "f66ad51709f318f1d6889c4fcc19403c232de0c2465acbd6cb153b5de0d2a225",
+    "faaslora/preloading/preloading_planner.py": "91da2378aed5b0e636c4c37dacce72a675b813351f2bfe36a7440baf5f48951c",
+    "scripts/run_all_experiments.py": "20a85d76c35a66b19f3dc2c6950a88c30f1410093e0e78d113c66fd938f70c61",
+    "tests/test_ieee_tc_planning_cpu.py": "0504f44d2294f24999fe1661831fb973b346ec9b1dcc1af5c20af1299885128e",
+    "tests/test_ieee_tc_transfer_pressure.py": "782882a779fa1d096355a92fda4d747f1ac2f9dbb0e7842d69e1f94be4e12358"
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74020261023000000000000000000001.scope",
+    "memory.current": 510377984,
+    "memory.peak": 510738432,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9859828\nuser_usec 8606214\nsystem_usec 1253613\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected_files": 145,
+  "production_changed": false,
+  "new_gpu_replays": 0,
+  "caveat": "Small existing CPU fixtures; no measured current 500-adapter bundle, IPC contention, or end-to-end benefit. Candidate needs extra serialized execution bytes while retaining full immutable audit bytes."
+}

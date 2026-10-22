@@ -1,0 +1,413 @@
+INFO 10-23 03:35:39 [__init__.py:216] Automatically detected platform cuda.
+test_cancel_joins_running_work_queued_cancel_does_not_submit (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_cancel_joins_running_work_queued_cancel_does_not_submit) ... 2026-10-23 03:35:40 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:35:40 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 6.9 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 4.8 ms
+INFO 10-23 03:35:47 [__init__.py:216] Automatically detected platform cuda.
+INFO 10-23 03:35:47 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:35:52 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_exact_plan_validation_detachment_and_actual_process_envelope (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_exact_plan_validation_detachment_and_actual_process_envelope) ... 2026-10-23 03:35:54 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:35:54 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.7 ms
+    remote artifact fetch c: 0.0 MB, 5.2 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 5.0 ms
+2026-10-23 03:35:54 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+INFO 10-23 03:35:59 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:36:03 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_fused_cancel_joins_without_publishing_or_running_queued_work (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_fused_cancel_joins_without_publishing_or_running_queued_work) ... 2026-10-23 03:36:05 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:05 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 4.2 ms
+    remote artifact fetch c: 0.0 MB, 9.5 ms
+    remote artifact fetch d: 0.0 MB, 6.3 ms
+    remote artifact fetch a: 0.0 MB, 8.7 ms
+INFO 10-23 03:36:09 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:36:14 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_fused_epoch_is_equal_immutable_and_has_no_second_cpu_transaction (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_fused_epoch_is_equal_immutable_and_has_no_second_cpu_transaction) ... 2026-10-23 03:36:15 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:15 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.9 ms
+    remote artifact fetch c: 0.0 MB, 7.1 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+INFO 10-23 03:36:20 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:36:24 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_fused_worker_runs_original_validator_before_freezing (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_fused_worker_runs_original_validator_before_freezing) ... 2026-10-23 03:36:25 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:25 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_initialized_objective_uses_detached_snapshot_and_joined_cancellation (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_initialized_objective_uses_detached_snapshot_and_joined_cancellation) ...     remote artifact fetch b: 0.0 MB, 3.7 ms
+    remote artifact fetch c: 0.0 MB, 5.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.2 ms
+2026-10-23 03:36:26 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:26 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 5.6 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+INFO 10-23 03:36:30 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:36:33 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_initialized_view_preserves_full_selection_objectives_and_exports (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_initialized_view_preserves_full_selection_objectives_and_exports) ... 2026-10-23 03:36:34 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:34 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 5.6 ms
+    remote artifact fetch d: 0.0 MB, 4.0 ms
+    remote artifact fetch a: 0.0 MB, 4.6 ms
+2026-10-23 03:36:35 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:35 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_objective_validation_failure_does_not_publish_a_sealed_plan (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_objective_validation_failure_does_not_publish_a_sealed_plan) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+2026-10-23 03:36:35 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:35 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_objectives_equal_original_functions_and_share_single_transaction (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_objectives_equal_original_functions_and_share_single_transaction) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 5.5 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+2026-10-23 03:36:35 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:35 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+INFO 10-23 03:36:39 [__init__.py:216] Automatically detected platform cuda.
+2026-10-23 03:36:43 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_preparation_is_owned_before_validation_yields (tests.test_ieee_tc_planning_cpu.PlanningCPU.test_preparation_is_owned_before_validation_yields) ... 2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_equal_hashable_keys_match_mapping_lookup (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_equal_hashable_keys_match_mapping_lookup) ... ok
+test_exports_do_not_change_membership_or_execution (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_exports_do_not_change_membership_or_execution) ... ok
+test_key_index_is_immutable_and_detached_from_receipt (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_key_index_is_immutable_and_detached_from_receipt) ... ok
+test_member_then_execute_decodes_once_with_identical_output (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_member_then_execute_decodes_once_with_identical_output) ... ok
+test_present_absent_and_keys_view_do_not_decode (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_present_absent_and_keys_view_do_not_decode) ... ok
+test_unhashable_keys_preserve_dict_errors (tests.test_ieee_tc_planning_cpu.ValidatedPlanMembership.test_unhashable_keys_preserve_dict_errors) ... ok
+test_actual_mixed_selector_file_native_and_gpu_chain_with_single_queue_slot (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_actual_mixed_selector_file_native_and_gpu_chain_with_single_queue_slot) ...     remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 5.6 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_during_native_stage_joins_reader_then_closes_both_plans (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_cancel_during_native_stage_joins_reader_then_closes_both_plans) ...     remote artifact fetch b: 0.0 MB, 5.2 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+    remote artifact fetch d: 0.0 MB, 4.4 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_during_superseded_target_join_does_not_cancel_demand (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_cancel_during_superseded_target_join_does_not_cancel_demand) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+    remote artifact fetch a: 0.0 MB, 5.3 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cost_catalog_tampering_and_wrong_slot_fail_before_any_work (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_cost_catalog_tampering_and_wrong_slot_fail_before_any_work) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 5.3 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+    remote artifact fetch a: 0.0 MB, 6.6 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_gpu_supersession_cannot_hide_file_group_failure_on_join (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_gpu_supersession_cannot_hide_file_group_failure_on_join) ...     remote artifact fetch b: 0.0 MB, 6.1 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_missing_positive_demand_native_fallback_class_is_not_guessed (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_missing_positive_demand_native_fallback_class_is_not_guessed) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+    remote artifact fetch d: 0.0 MB, 5.5 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_original_nvme_benefit_is_compared_with_live_victim_frozen_host_loss (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_original_nvme_benefit_is_compared_with_live_victim_frozen_host_loss) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+2026-10-23 03:36:45 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:45 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_preinit_files_and_gpu_staging_overlap_startup_and_preserve_original_benefit (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_preinit_files_and_gpu_staging_overlap_startup_and_preserve_original_benefit) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+    remote artifact fetch d: 0.0 MB, 11.2 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_remote_gpu_target_registered_before_io_and_original_benefit_survives_updates (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_remote_gpu_target_registered_before_io_and_original_benefit_survives_updates) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+    remote artifact fetch a: 0.0 MB, 5.0 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_residency_conflict_ends_epoch_then_next_normal_epoch_uses_fresh_state (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_residency_conflict_ends_epoch_then_next_normal_epoch_uses_fresh_state) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.9 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_stale_initial_native_epoch_rejects_before_remote_gpu_staging (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_stale_initial_native_epoch_rejects_before_remote_gpu_staging) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_superseded_plan_joins_unsubscribed_shared_target_before_close (tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation.test_superseded_plan_joins_unsubscribed_shared_target_before_close) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.8 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_during_negative_hold_ack_stays_cancelled_after_cleanup (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_cancel_during_negative_hold_ack_stays_cancelled_after_cleanup) ...     remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 7.7 ms
+    remote artifact fetch a: 0.0 MB, 12.0 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_waits_for_physical_copy_before_releasing_native_fallback (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_cancel_waits_for_physical_copy_before_releasing_native_fallback) ...     remote artifact fetch b: 0.0 MB, 6.5 ms
+    remote artifact fetch c: 0.0 MB, 4.4 ms
+    remote artifact fetch d: 0.0 MB, 15.2 ms
+    remote artifact fetch a: 0.0 MB, 4.9 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cpu_fallback_lease_does_not_deadlock_same_epoch_gpu_replacement (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_cpu_fallback_lease_does_not_deadlock_same_epoch_gpu_replacement) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_fallback_cpu_reference_protects_cpu_not_gpu_but_external_pin_stays_protected (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_fallback_cpu_reference_protects_cpu_not_gpu_but_external_pin_stays_protected) ...     remote artifact fetch b: 0.0 MB, 4.8 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_file_completion_releases_cpu_fallback_before_deferred_gpu_group_finishes (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_file_completion_releases_cpu_fallback_before_deferred_gpu_group_finishes) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 6.9 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_file_snapshot_does_not_count_external_hardlinks_as_usable_space (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_file_snapshot_does_not_count_external_hardlinks_as_usable_space) ...     remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 4.1 ms
+    remote artifact fetch d: 0.0 MB, 4.5 ms
+    remote artifact fetch a: 0.0 MB, 4.8 ms
+    remote artifact fetch d: 0.0 MB, 5.1 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_lost_fallback_hold_reply_retains_unknown_ownership (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_lost_fallback_hold_reply_retains_unknown_ownership) ...     remote artifact fetch b: 0.0 MB, 3.7 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 4.4 ms
+    remote artifact fetch a: 0.0 MB, 8.9 ms
+2026-10-23 03:36:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_lost_native_source_stops_before_file_io_and_returns_earlier_holds (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_lost_native_source_stops_before_file_io_and_returns_earlier_holds) ...     remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 45.7 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_native_fallback_changes_file_loss_and_actual_automatic_replacement (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_native_fallback_changes_file_loss_and_actual_automatic_replacement) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_stale_native_fallback_closes_epoch_and_next_epoch_serves (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_stale_native_fallback_closes_epoch_and_next_epoch_serves) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_stale_native_fallback_closes_registered_gpu_plan_before_next_epoch (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_stale_native_fallback_closes_registered_gpu_plan_before_next_epoch) ...     remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 4.1 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_unacknowledged_prior_hold_release_overrides_supersession (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_unacknowledged_prior_hold_release_overrides_supersession) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+    remote artifact fetch d: 0.0 MB, 4.3 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_unknown_or_malformed_fallback_rejection_is_not_superseded (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_unknown_or_malformed_fallback_rejection_is_not_superseded) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.6 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.8 ms
+2026-10-23 03:36:47 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:47 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 6.6 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_virtual_lower_fallback_is_updated_after_host_victim_and_native_survives_path_removal (tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement.test_virtual_lower_fallback_is_updated_after_host_victim_and_native_survives_path_removal) ...     remote artifact fetch b: 0.0 MB, 4.8 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_native_commit_rejects_selected_sibling_change_before_pricing (tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_native_commit_rejects_selected_sibling_change_before_pricing) ...     remote artifact fetch b: 0.0 MB, 4.8 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 4.0 ms
+    remote artifact fetch a: 0.0 MB, 4.2 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_actual_copy_reclaims_shortest_loss_prefix_and_keeps_expensive_victim (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_actual_copy_reclaims_shortest_loss_prefix_and_keeps_expensive_victim) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 4.6 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_concurrent_candidates_cannot_double_spend_the_same_victims (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_concurrent_candidates_cannot_double_spend_the_same_victims) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 48.9 ms
+    remote artifact fetch d: 0.0 MB, 4.6 ms
+    remote artifact fetch a: 0.0 MB, 7.0 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch a: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 5.5 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_fallback_read_references_survive_through_actual_publication (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_fallback_read_references_survive_through_actual_publication) ...     remote artifact fetch b: 0.0 MB, 11.0 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch a: 0.0 MB, 4.0 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_frozen_cost_sequence_and_hash_reject_changed_objectives (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_frozen_cost_sequence_and_hash_reject_changed_objectives) ...     remote artifact fetch b: 0.0 MB, 4.4 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch a: 0.0 MB, 4.0 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_invalidated_fallback_does_not_silently_change_frozen_loss (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_invalidated_fallback_does_not_silently_change_frozen_loss) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch a: 0.0 MB, 10.0 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_pending_target_protection_excludes_victim_until_plan_closes (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_pending_target_protection_excludes_victim_until_plan_closes) ...     remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch a: 0.0 MB, 4.0 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_real_allocation_failure_retains_failure_not_fabricated_rollback (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_real_allocation_failure_retains_failure_not_fabricated_rollback) ...     remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 14.1 ms
+    remote artifact fetch a: 0.0 MB, 6.7 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_real_source_reference_release_wakes_deferred_replacement (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_real_source_reference_release_wakes_deferred_replacement) ...     remote artifact fetch b: 0.0 MB, 7.9 ms
+    remote artifact fetch c: 0.0 MB, 13.3 ms
+    remote artifact fetch a: 0.0 MB, 5.9 ms
+2026-10-23 03:36:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:48 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_remote_archive_peak_requires_three_victims_and_keeps_host_fallbacks (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_remote_archive_peak_requires_three_victims_and_keeps_host_fallbacks) ...     remote artifact fetch b: 0.0 MB, 20.8 ms
+    remote artifact fetch c: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 3.9 ms
+2026-10-23 03:36:49 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:49 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_remote_replacement_charges_archive_peak_not_just_final_payload (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_remote_replacement_charges_archive_peak_not_just_final_payload) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 11.0 ms
+    remote artifact fetch d: 0.0 MB, 3.5 ms
+    remote artifact fetch a: 0.0 MB, 8.1 ms
+2026-10-23 03:36:49 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:49 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_selected_plan_builds_frozen_file_objective_at_actual_execution_entry (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_selected_plan_builds_frozen_file_objective_at_actual_execution_entry) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 26.8 ms
+2026-10-23 03:36:49 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 03:36:49 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+
+----------------------------------------------------------------------
+Ran 55 tests in 68.373s
+
+OK
+    remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch a: 0.0 MB, 11.0 ms
