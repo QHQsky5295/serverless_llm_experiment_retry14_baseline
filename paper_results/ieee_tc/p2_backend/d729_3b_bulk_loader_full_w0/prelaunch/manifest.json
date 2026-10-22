@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/qualification.json",
+      "sha256": "fd73f2a2d5763bacbb014e127dd4afdb7589742194fdb5dd0d45e89f2c01e955"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/qualification_closure.json",
+      "sha256": "a173f4f05f315c49f2e594141a4fce617061a0dad7526a75b3d9e37939650193"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/run_and_release.sh.snapshot",
+      "sha256": "b82ff67cebbafc31598b97515ee9d563aea4babd8b9db0b61ee1425f0e4d324a"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/start.py.snapshot",
+      "sha256": "6a89c7eb7c525aed8869ecced46797e0538d9654f882d03ba85b4badc8ddb631"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/start_remote.sh.snapshot",
+      "sha256": "3c2b62fd1d50da4dc8d5c58cf9d82118c45dbcc550d67250d129d943286f332d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/stop_remote.sh.snapshot",
+      "sha256": "fd07b14498d20e979a5a6d06466f21f6286c16c3f5adb7283e3d12d7754b82a9"
+    }
+  ]
+}

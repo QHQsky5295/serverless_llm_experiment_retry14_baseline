@@ -1,0 +1,88 @@
+{
+  "passed": true,
+  "native_requests": 4,
+  "native_target_counts": [
+    152,
+    59,
+    123,
+    217
+  ],
+  "startup_latency_ms": 46602.505911141634,
+  "weights_loading_s": 2.24,
+  "model_loading_s": 4.47033,
+  "max_service_memory_bytes": 6036496384,
+  "events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "swap_peak_bytes": 0,
+  "cpu_affinity_within_envelope": true,
+  "one_gpu_only": true,
+  "physical_release": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-b3ac1d25cf564ff2b381e24c42b00728.scope",
+        "invocation_id": "d98d731a7af841978e1c214659858a4c",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b3ac1d25cf564ff2b381e24c42b00728.scope",
+        "inode": 30302337
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-c4ac1d25cf564ff2b381e24c42b00728.scope",
+        "invocation_id": "90061e5746714030a58bb743b923eae4",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c4ac1d25cf564ff2b381e24c42b00728.scope",
+        "inode": 30302616
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "generation_and_binding_qualified": true,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_performance_runs": 0,
+  "prior_full_model_load_s": 10.677745,
+  "causal_speedup_claim": false,
+  "kv_tokens_observed": 91440,
+  "prior_d726_kv_tokens_observed": 91696,
+  "limitations": [
+    "Native sequential qualification only; no new Full result.",
+    "Historical initialization/cache states are not paired; no causal end-to-end delta.",
+    "Loader allocation changes native KV sizing slightly; admission uses live actual blocks.",
+    "This is not independent numerical correctness certification."
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d728_20261022/native.json",
+      "sha256": "4e56dac6ce3bae3bf75e580a8d80da9848a7f9495b5b1d00f1dcc12ea838aad1",
+      "bytes": 1589443
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d728_20261022/native_launch.json",
+      "sha256": "f65acf023e0b50f91870460f02e85ea5d5593c6857a60a6f55f70fe4aaf55c5c",
+      "bytes": 11754
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_dws2yfmx_engine_dead_1792660232/worker.log",
+      "sha256": "977aeeb560dd9b3412fda58fba3f48abe42a4e0c175844952fb7281182199569",
+      "bytes": 19043
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d728_20261022/native_launch.launch/watchdog.jsonl",
+      "sha256": "46cd4c4d00cefecfdb8750a0ef43ad0882df9bba11dc6cccbec2f02d61ff3d3f",
+      "bytes": 390397
+    }
+  ]
+}

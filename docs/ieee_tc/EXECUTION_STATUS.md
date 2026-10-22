@@ -1,5 +1,20 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D728资格完成，D729完整W0准备通过
+
+PROGRESS。4/4原生请求152/59/123/217 tokens、lease与物理释放通过。D728
+weights2.24s、model4.470330s、proxy startup46.602506s；服务峰值6036496384B，
+high/max/OOM/swap0，单GPU及CPU集合保持。D726 model10.677745s仅历史参照，
+初始化/cache非严格配对，不宣称端到端节省。原生KV91440vs91696，保留实际
+block观测，不调gpu_memory_utilization补齐。独立数值正确性仍未知。
+
+D729相对D726只换lossless loader和输出/cache路径，160类D725 service/
+preparation profile实际加载通过，不重采样，不加Full短前缀。下一单次
+4000真实远端W0，先备份再启动；启动事实以raw/start_receipt.json为准。
+当前G1仍未过（D72692.650%/U15884.281128），全部后续范围不变。
+共享k3s不操作；native资格未访问远端。磁盘约161GiB。D728实现检查点
+f87cf530已推送backup/d728-bulk-loader-20261022；V2未force同步。
+
 ## 2026-10-22 D728：3B无损backbone加载候选，CPU通过，尚未GPU资格
 
 PROGRESS。针对D727确认的启动反馈，复用原权重，新增显式fastsafetensors
