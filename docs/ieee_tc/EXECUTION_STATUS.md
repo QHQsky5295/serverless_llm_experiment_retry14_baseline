@@ -1,5 +1,95 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D745完整结果已核查：拒绝候选，先备份再回退
+
+PROGRESS。完整重读PLAN/AGENTS及最新规则、冻结V1/单轮V2。D7454000请求
+全部正常结束，原生生成/计时、D725 profile和真实远端双边证据通过；D711
+数值限制仍在，n_correct=null/ranking_eligible=false不变。共同联合3687/
+4000=92.175%，较D742低40条/1个百分点；U14857.984540，仅降0.068388%。
+平均/P95 TTFT716.254/1869.597ms、TPOT17.383/32.782ms，均退化；未达95%。
+拒绝D744，保留全部结果，不重跑同键、不改尺子、不以完成运行宣布优化成功。
+
+complete/analyze/close均成功；3491规划回执、3484新采样路径，等待规划器
+均425.803ms、观察与冻结186.775ms、worker244.131ms、排队至join893.140ms。
+采样后时长不含前移等待，不能误称总等待消失。3484驻留epoch中completed
+2648/superseded832/cancelled4；不混同registration-stale，不作因果恢复
+请求数推断。请求分解误差0ms，1924控制事件/natural up3/down0。
+
+四卡真实释放、service/replay/watchdog返回0，远端三服务已停；132fetch/
+306360162B双边一致，无请求打包。4052watchdog、服务峰值24328458240B，
+high/max/OOM/swap0。145保护项与用户manifest不变；两个分析域和回放域
+按精确身份空核验释放，closure域待备份入口收尾。没有新GPU或存储维护。
+
+下一明确路径备份D745完整证据，随后独立D746撤回D744、恢复D741开发父版，
+而非重跑旧父版。当前生产仍D744，备份尚待完成，不提前声称回退/推送成功。
+3B其余/基线/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、两轮审稿
+文档及最终图表继续保留。共享k3s不动，隔离HydraServe复用，goal active。
+
+## 2026-10-23 D745继续同一运行：自然扩容已覆盖，收尾统计入口已准备
+
+VERIFIED_WAIT。完整重读PLAN、AGENTS、最新执行规则及冻结V1/单轮V2；
+同一service InvocationID 5ed652f383d64d8393ce935fa6bbfb50仍active/running。
+业务08:28到达424/4000、完成421、正常421、失败0，4实例，natural
+scale_up=3、scale_down=0。watchdog568：available87.757GiB、service
+18.175GiB、disk150.563GiB，high/max/OOM/swap0，无warning/abort。
+局部进度不是D648共同联合SLO或完整性能结论，不重启、不追加候选。
+
+只复用D742在raw/d745_20261023准备complete.py/analyze.py，未执行、未测试，
+未读取活动大outcome。分析按input_sampling分组，planner_turn_wait与观察/
+输入冻结、pickle、提交、计算分开；普通入口缺acquired时只报原有包含区间。
+保留D741 sidecar字节和取消前未提交事件的覆盖限制，不把时点搬移当性能
+收益。只读diff检查已完成；close.py仍待终态事实再准备，不能运行旧D742
+入口或沿用其接受结论。运行中没有生产/配置修改、推送、维护或第二重型任务。
+
+用户确认共享k3s不属于项目；继续不动其权限/服务，复用已完成的隔离rootless
+Podman HydraServe适配及7B W0/W1/W2，不重复部署/索取其凭据。D711数值
+限制、历史失败、3B其余/基线/dLoRA、7B最终同版本、A1–A5/S1–S13、
+CE/Pareto、审稿文档与图表全部保留。下一继续监测相同任务；释放后才执行
+完整分析、存储维护和正常备份。当前小文档/收尾脚本尚未备份，goal active。
+
+后续goal turn完整重读PLAN并连续12次只读确认同一InvocationID仍active/
+running；上一轮及本轮均为VERIFIED_WAIT。最新业务18:47到达1059、完成
+1055、正常1055、失败0，仍4实例/自然scale_up3/scale_down0。watchdog1180
+available87.369GiB、disk149.761GiB，high/max/OOM/swap0，无warning/abort。
+磁盘低于150GiB新重型任务准入线，但未达到100GiB运行中止线；不因此中断
+当前实验或在性能期间清理。终态后核查可重建缓存/已关闭证据，恢复准入
+余量后才能启动下一重型任务。未执行终态分析、测试、推送或远端维护；
+收尾入口仍仅准备，D711限制和全部剩余范围不变，goal继续active。
+
+再后续24次只读轮询均核验同一service身份active/running；业务39:44到达
+2648、完成2643、失败0，自然scale_up3/scale_down0。watchdog2418：
+available86.978GiB、disk148.511GiB、high/max/OOM/swap0、无保护告警。
+观察工具的一段轮询已正常结束，不是实验终态；继续监测同一D745，不能
+重启或执行收尾分析。未扫描/清理磁盘、维护远端、测试、推送或新增实验。
+
+## 2026-10-23 D745完整3B W0已启动，进入同一运行监测
+
+PROGRESS并进入VERIFIED_WAIT。新增入口2项0.019秒通过，D744既有61+1项
+直接复用，原测试边界失败继续保留。明确路径启动检查点已提交
+ab859b1e445288518644b70e73fc2bf45deafd04，推送并ls-remote确认
+backup/d745-observe-after-turn-fullw0-20261023；V2未同步、无force，
+145旧投稿项和用户manifest未变、未stage用户文件。新配置只三路径不同。
+
+唯一tmux tc-d745-3b-observe-after-turn-full-w0已启动，实际service为
+primelora-tc-svc-836dc5e354bd4bda9fc6fcf3b86d32da.scope，InvocationID
+5ed652f383d64d8393ce935fa6bbfb50，多次读取仍active/running。启动管理域
+已按精确身份空核验释放，峰值52912128B、events/swap0，不触碰运行服务。
+远端启动记录1000Mb/s/full，复用D80只读发布；3b/7b/monitor身份与health
+保存在本轮raw，无请求打包，不以旧100Mbps推断当前链路。
+
+最新Live业务01:21：到达33/4000、完成28、正常28、失败0，单实例，尚无
+自然扩缩容。watchdog142：available97.026GiB、service8.023GiB、磁盘
+151.736GiB，high/max/OOM/swap0，无warning/abort。局部结果不能替代
+D648共同联合SLO，终端5000ms显示不用于验收，尚无完整性能结论。
+
+下一只监测相同service与watchdog；不因观察超时/旧空scope或锁而重启。
+不测试、构建、哈希扫描、压缩清理、备份或维护远端。终态后复用D742
+complete/analyze，新增queued/acquired字段与采样/计算分开解释，保留
+D741附加payload；本轮终态脚本尚未准备，不能直接运行旧目录入口。
+3B后续/基线/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、审稿文档
+与最终图表均保留，D711限制不变，goal active。运行记录在终态正常检查点
+备份，不在性能期推送。共享k3s不操作，HydraServe隔离结果继续复用。
+
 ## 2026-10-23 D745完整W0登记，准备唯一启动
 
 上一goal turn为PROGRESS：D743备份与D744实现、针对性验证、独立备份和

@@ -1,0 +1,324 @@
+{
+  "kind": "d745_post_analysis_closure_v1",
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-74520261023000000000000000000002.scope",
+        "invocation_id": "b7beb41909a943bd9a803327d8a13e90",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74520261023000000000000000000002.scope",
+        "inode": 30690968
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-74520261023000000000000000000003.scope",
+        "invocation_id": "939947b7630b4b95bd03892724529a47",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74520261023000000000000000000003.scope",
+        "inode": 30693222
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-9764cb1d8faa412abeb0d41cff140c6e.scope",
+        "invocation_id": "2d3688ffac7e42689b6fa80a546fb85f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9764cb1d8faa412abeb0d41cff140c6e.scope",
+        "inode": 30658099
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "completion_manifest_sha256": "7867adf33d23531adbf15f56bd5dd8ec3df1e1f261ec9dcc3c2f146da4be6e6f",
+  "diagnosis_manifest_sha256": "70cffbca038b85fa77b1da0b00d6852cea0d728559c94e7f28956f0ba007e5ca",
+  "allocation_comparison": [
+    {
+      "run": "D719",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -36.829952247906476,
+          "released_relative_to_arrival_s": 3975.4121523988433,
+          "gpu_seconds": 4012.24210464675
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 273.9703391129151,
+          "released_relative_to_arrival_s": 3974.8182878419757,
+          "gpu_seconds": 3700.8479487290606
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 1076.9860962121747,
+          "released_relative_to_arrival_s": 3976.2049016677774,
+          "gpu_seconds": 2899.2188054556027
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 1078.9870891547762,
+          "released_relative_to_arrival_s": 3974.9790090541355,
+          "gpu_seconds": 2895.9919198993593
+        }
+      ],
+      "gpu_seconds": 13508.300778730772,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d719_20261022/3b_identity_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "81a746b5f7e06e41fae7722dd46387448e3dca1270d2bbf217aef71b0c1d04e5"
+    },
+    {
+      "run": "D726",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -33.63396920496598,
+          "released_relative_to_arrival_s": 3975.580644499976,
+          "gpu_seconds": 4009.214613704942
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 14.9045443800278,
+          "released_relative_to_arrival_s": 3975.2026527770795,
+          "gpu_seconds": 3960.2981083970517
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 16.977665293961763,
+          "released_relative_to_arrival_s": 3975.455305019859,
+          "gpu_seconds": 3958.4776397258975
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 19.046103597152978,
+          "released_relative_to_arrival_s": 3975.3368698027916,
+          "gpu_seconds": 3956.2907662056386
+        }
+      ],
+      "gpu_seconds": 15884.28112803353,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "5eec657b6ee13e4387cb2e20b6183b7ad5e85e953c8802c379a85bf50c17f974"
+    },
+    {
+      "run": "D729",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -35.2079506078735,
+          "released_relative_to_arrival_s": 3975.997190005146,
+          "gpu_seconds": 4011.2051406130195
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 10.703013366088271,
+          "released_relative_to_arrival_s": 3976.646511141211,
+          "gpu_seconds": 3965.9434977751225
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 12.760833271313459,
+          "released_relative_to_arrival_s": 3975.8472753041424,
+          "gpu_seconds": 3963.086442032829
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 14.86562124826014,
+          "released_relative_to_arrival_s": 3975.570320304949,
+          "gpu_seconds": 3960.7046990566887
+        }
+      ],
+      "gpu_seconds": 15900.93977947766,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d729_20261022/3b_bulk_loader_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "8033bf34384062190b3bcd7206cf02dad8faab83236ed3c23e88a28554cdad55"
+    },
+    {
+      "run": "D732",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -35.9636880219914,
+          "released_relative_to_arrival_s": 3975.012539971154,
+          "gpu_seconds": 4010.9762279931456
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 8.85889842081815,
+          "released_relative_to_arrival_s": 3975.736180344131,
+          "gpu_seconds": 3966.8772819233127
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 10.850058090873063,
+          "released_relative_to_arrival_s": 3974.741520659998,
+          "gpu_seconds": 3963.891462569125
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 12.876138045918196,
+          "released_relative_to_arrival_s": 3974.2076540957205,
+          "gpu_seconds": 3961.3315160498023
+        }
+      ],
+      "gpu_seconds": 15903.076488535386,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "a8202a7199bab923d50cd93ac7ee17b4b57e34b1eaefc9fb02776e637a6874cd"
+    },
+    {
+      "run": "D736",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -35.74845081008971,
+          "released_relative_to_arrival_s": 3976.847837334033,
+          "gpu_seconds": 4012.596288144123
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 324.4147298759781,
+          "released_relative_to_arrival_s": 3977.211973211728,
+          "gpu_seconds": 3652.79724333575
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 326.46642077015713,
+          "released_relative_to_arrival_s": 3977.8468345301226,
+          "gpu_seconds": 3651.3804137599654
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 351.0846556928009,
+          "released_relative_to_arrival_s": 3976.628041537013,
+          "gpu_seconds": 3625.543385844212
+        }
+      ],
+      "gpu_seconds": 14942.31733108405,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d736_20261022/3b_validated_publication_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "c7758e29977f646e816c21b973a4fd9f9ea627f6df5db6f3f34cd44eb0e277c2"
+    },
+    {
+      "run": "D738",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -34.56079630739987,
+          "released_relative_to_arrival_s": 3974.544260750059,
+          "gpu_seconds": 4009.105057057459
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 9.551511539611965,
+          "released_relative_to_arrival_s": 3976.0065574906766,
+          "gpu_seconds": 3966.4550459510647
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 11.580721107777208,
+          "released_relative_to_arrival_s": 3974.8663046979345,
+          "gpu_seconds": 3963.2855835901573
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 13.594163386616856,
+          "released_relative_to_arrival_s": 3974.1190535146743,
+          "gpu_seconds": 3960.5248901280575
+        }
+      ],
+      "gpu_seconds": 15899.370576726738,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d738_20261023/3b_planning_wire_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "7c5fccd0f50a39363409cef57f46a7a6e3c0aea3b2a0aba2ebacbfc52cee0053"
+    },
+    {
+      "run": "D742",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -35.968213371001184,
+          "released_relative_to_arrival_s": 3976.505463385023,
+          "gpu_seconds": 4012.4736767560244
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 350.5755730010569,
+          "released_relative_to_arrival_s": 3976.639970452059,
+          "gpu_seconds": 3626.064397451002
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 360.8063720180653,
+          "released_relative_to_arrival_s": 3977.1190885072574,
+          "gpu_seconds": 3616.312716489192
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 362.90120210312307,
+          "released_relative_to_arrival_s": 3976.20293884119,
+          "gpu_seconds": 3613.301736738067
+        }
+      ],
+      "gpu_seconds": 14868.152527434286,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d742_20261023/3b_execution_view_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "668d1d4e38c28f4c3d3fe15a4003c12dbc5b33be0ed026395f82a961c49f0f24"
+    },
+    {
+      "run": "D745",
+      "spans": [
+        {
+          "gpu": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+          "acquired_relative_to_arrival_s": -35.90578573290259,
+          "released_relative_to_arrival_s": 3975.5568864941597,
+          "gpu_seconds": 4011.4626722270623
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "acquired_relative_to_arrival_s": 350.89722247608006,
+          "released_relative_to_arrival_s": 3975.2582519399,
+          "gpu_seconds": 3624.36102946382
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "acquired_relative_to_arrival_s": 360.90674867806956,
+          "released_relative_to_arrival_s": 3974.126730115153,
+          "gpu_seconds": 3613.2199814370833
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "acquired_relative_to_arrival_s": 365.35246352432296,
+          "released_relative_to_arrival_s": 3974.293320097029,
+          "gpu_seconds": 3608.9408565727063
+        }
+      ],
+      "gpu_seconds": 14857.984539700672,
+      "source_summary": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d745_20261023/3b_observe_after_turn_full_w0/launch.launch/physical_deployment/summary.json",
+      "summary_sha256": "26b3240f20ada350a4fecf5a04228630be651b8cac3be368c010e10a60ae55fd"
+    }
+  ],
+  "protected_publication_files": 145,
+  "historical_d703": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d714_common_slo_correction/d703_verified.json",
+    "sha256": "f780b2dce0626649ddb6dc719935ae0957ed602c40c9fa79fb2e28ab060b9c95",
+    "joint_slo_fraction": 0.936,
+    "physical_gpu_seconds": 14864.807562012225
+  },
+  "observed_latency_feasible": false,
+  "candidate_disposition": "reject_d744_restore_d741_after_backup",
+  "candidate_development_parent_retained": false,
+  "primary_targets_achieved": false,
+  "direct_parent": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/full4000.json",
+    "sha256": "3efa3caba9ae43347ecca1db6c740aafce7412c3bcc799c50ce3aa9bac5e2c10"
+  },
+  "n_correct": null,
+  "ranking_eligible": false,
+  "decision": "Reject D744 after preserving this complete valid development run. D745 joint SLO is 3687/4000 (92.175%), 40 requests and one percentage point below direct parent D742; physical GPU time only falls by 0.0683877%. Neither reaches 3800 and D703 historical 3744/4000 remains visible. TTFT, TPOT and E2E means and P95 all regress. Restore D741 as the development parent in a separate checkpoint after backing up D745; do not rerun this key, change thresholds or discard the failed evidence. Queue/observation relocation does not by itself demonstrate causal performance improvement. No formal G1/G2 completion or statistical inference.",
+  "next_experiment_launched": false
+}
