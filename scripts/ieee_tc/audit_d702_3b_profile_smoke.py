@@ -11,6 +11,7 @@ remote-delivery, and resource-lifecycle contracts close.
 from __future__ import annotations
 
 import collections
+import argparse
 import hashlib
 import json
 import subprocess
@@ -36,6 +37,29 @@ SERVICE_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_pro
 PREPARATION_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/preparation.json"
 PROFILE_MANIFEST = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/manifest.json"
 OUT = ROOT / "paper_results/ieee_tc/p2_backend/d702_3b_profile_smoke100"
+CAMPAIGN = "d702_3b_profile_smoke100"
+
+
+def configure_campaign(campaign: str) -> None:
+    """Reuse the sealed 100-request qualification rules for a registered run."""
+    global RAW, RESULT, LAUNCH, OUTCOME, SUMMARY, PHYSICAL, WATCHDOG, CONFIG, OUT, CAMPAIGN
+    if campaign == 'd702':
+        return
+    if campaign != 'd718':
+        raise ValueError('only registered 3B smoke campaigns are supported')
+    CAMPAIGN = 'd718_3b_identity_smoke100'
+    RAW = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100')
+    results = list(RAW.glob('experiment_results_full*.json'))
+    if len(results) != 1:
+        raise ValueError('exactly one completed source result required')
+    RESULT = results[0]
+    LAUNCH = RAW / 'launch.json'
+    OUTCOME = RAW / 'launch.launch/physical_deployment/main_outcome.json'
+    SUMMARY = RAW / 'launch.launch/physical_deployment/summary.json'
+    PHYSICAL = RAW / 'launch.launch/physical_deployment/physical_resource_summary.json'
+    WATCHDOG = RAW / 'launch.launch/watchdog.jsonl'
+    CONFIG = ROOT / 'configs/ieee_tc/20261022_d718_3b_identity_smoke100.yaml'
+    OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d718_3b_identity_smoke100'
 
 
 def read(path: Path):
@@ -259,10 +283,18 @@ def main() -> None:
         raise ValueError(f"D702 resource gate failed: {event_max}, swap={max_swap}")
 
     remote = remote_state()
+    # Same retained-receipt checks used for the full D716/D717 diagnosis. A zero
+    # trigger count is evidence of no coverage, never a claimed mechanism gain.
+    from scripts.ieee_tc.analyze_d297_full import retained_preparation_row
+    from scripts.ieee_tc.audit_d703_3b_full import retained_routing_attempts
+    retries = []
+    for row in rows:
+        retained_preparation_row(row)
+        retries.extend(retained_routing_attempts(row, clock_id=summary['clock_id']))
     OUT.mkdir(parents=False, exist_ok=False)
     audit = {
-        "kind": "d702_3b_profile_smoke100_qualification_v1",
-        "campaign_id": "d702_3b_profile_smoke100",
+        "kind": f"{CAMPAIGN}_qualification_v1",
+        "campaign_id": CAMPAIGN,
         "passed": True,
         "qualification_only": True,
         "ranking_eligible": False,
@@ -275,6 +307,13 @@ def main() -> None:
         "n_native_contract_complete": 100,
         "native_output_tokens": sum(int(row["completion_tokens"]) for row in rows),
         "request_tier_counts": dict(tier_counts),
+        "routing_retries": {
+            "attempts": len(retries),
+            "requests": len({r['request_id'] for r in retries}),
+            "reasons": dict(collections.Counter(r['reason'] for r in retries)),
+            "repeated_absence_views": sum(r['repeated_absence_view'] for r in retries),
+            "causal_speedup_qualified": False,
+        },
         "profile_class_hits": dict(profile_class_hits),
         "unique_adapter_identities": len(adapters),
         "remote_transfers": len(transfers),
@@ -305,7 +344,7 @@ def main() -> None:
         "metric_protocol_v1_sha256": digest(frozen_v1),
         "metric_protocol_v2_sha256": digest(single_run_v2),
         "interpretation": (
-            "D702 establishes only that the D701 exact measured profiles are loadable and "
+            f"{CAMPAIGN} establishes only that the D701 exact measured profiles are loadable and "
             "used for a clean 100-request PrimeLoRA prefix. It does not establish numerical "
             "adapter correctness, 4,000-request qualification, G1/G2, SLO attainment, or "
             "a comparison/ranking. The observed latency and GPU seconds are retained as a "
@@ -316,7 +355,7 @@ def main() -> None:
         json.dump(audit, stream, indent=2, sort_keys=True, allow_nan=False)
         stream.write("\n")
     with (OUT / "manifest.json").open("x") as stream:
-        json.dump({"kind": "d702_3b_profile_smoke100_audit_manifest_v1",
+        json.dump({"kind": f"{CAMPAIGN}_audit_manifest_v1",
                    "passed": True, "qualification": ref(OUT / "qualification.json"),
                    "raw_evidence": [ref(path) for path in
                                     (RESULT, LAUNCH, OUTCOME, SUMMARY, PHYSICAL, WATCHDOG,
@@ -331,4 +370,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument('--campaign', choices=['d702', 'd718'], default='d702')
+    configure_campaign(parser.parse_args().campaign)
     main()

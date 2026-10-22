@@ -1,0 +1,210 @@
+{
+  "kind": "native_common_slo_reanalysis_d714_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100",
+  "reuse_level": "R1",
+  "passed": true,
+  "counts": {
+    "n": 100,
+    "ttft_pass": 93,
+    "tpot_eligible": 100,
+    "tpot_pass": 98,
+    "joint_pass": 92
+  },
+  "joint_slo_fraction": 0.92,
+  "ttft_marginal_fraction": 0.93,
+  "tpot_conditional_fraction": 0.98,
+  "observed_latency_feasible": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_w0": false,
+  "development_only": true,
+  "confidence_interval": null,
+  "physical_gpu_seconds": 784.1794220162556,
+  "gpu_seconds_per_offered_request": 7.841794220162556,
+  "metrics": {
+    "ttft_ms": {
+      "count": 100,
+      "mean": 684.4146009115502,
+      "p50_type1": 379.4126361608505,
+      "p95_type1": 1595.8603285253048
+    },
+    "tpot_ms": {
+      "count": 100,
+      "mean": 14.076775282080952,
+      "p50_type1": 13.390175658552085,
+      "p95_type1": 17.844104731921107
+    },
+    "e2e_ms": {
+      "count": 100,
+      "mean": 3126.096408655867,
+      "p50_type1": 3471.3460239581764,
+      "p95_type1": 4742.569121997803
+    }
+  },
+  "max_recompute_error_ms": {
+    "ttft_ms": 0.0,
+    "tpot_ms": 0.0,
+    "e2e_ms": 0.0
+  },
+  "phases_500": [
+    {
+      "n": 100,
+      "ttft_pass": 93,
+      "tpot_eligible": 100,
+      "tpot_pass": 98,
+      "joint_pass": 92
+    }
+  ],
+  "slo_violations": [
+    {
+      "request_id": "req_00000",
+      "ordinal": 0,
+      "native_prompt_tokens": 760,
+      "ttft_ms": 8080.045413225889,
+      "tpot_ms": 11.713794867403262,
+      "e2e_ms": 9856.01426102221,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00041",
+      "ordinal": 41,
+      "native_prompt_tokens": 434,
+      "ttft_ms": 1595.8603285253048,
+      "tpot_ms": 14.781031902264623,
+      "e2e_ms": 3146.973134484142,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00049",
+      "ordinal": 49,
+      "native_prompt_tokens": 120,
+      "ttft_ms": 2019.8689857497811,
+      "tpot_ms": 32.91390001152953,
+      "e2e_ms": 2620.78364379704,
+      "ttft_pass": false,
+      "tpot_pass": false,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00054",
+      "ordinal": 54,
+      "native_prompt_tokens": 477,
+      "ttft_ms": 1492.3010929487646,
+      "tpot_ms": 13.06613839671507,
+      "e2e_ms": 2694.373684003949,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00057",
+      "ordinal": 57,
+      "native_prompt_tokens": 302,
+      "ttft_ms": 1584.1002627275884,
+      "tpot_ms": 12.03542126834317,
+      "e2e_ms": 3961.0194587148726,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00081",
+      "ordinal": 81,
+      "native_prompt_tokens": 477,
+      "ttft_ms": 1932.7671392820776,
+      "tpot_ms": 11.641719967004034,
+      "e2e_ms": 3013.9647191390395,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00086",
+      "ordinal": 86,
+      "native_prompt_tokens": 434,
+      "ttft_ms": 2600.513356272131,
+      "tpot_ms": 12.83031764968827,
+      "e2e_ms": 4122.887616511434,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00088",
+      "ordinal": 88,
+      "native_prompt_tokens": 120,
+      "ttft_ms": 622.6936620660126,
+      "tpot_ms": 33.26832360277573,
+      "e2e_ms": 1150.0904643908143,
+      "ttft_pass": true,
+      "tpot_pass": false,
+      "joint_pass": false
+    }
+  ],
+  "legacy_runtime_ttft_only_fraction": 0.99,
+  "legacy_is_common_joint_slo": false,
+  "common_slo_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d718_3b_identity_smoke100.json",
+      "sha256": "807a1a9fc9306c5bdaffd4328a1df1303ad1a856b207befedf9701e11f6a8282",
+      "bytes": 8648120
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.json",
+      "sha256": "fe0c6287f1a81c8a4d6735d1846cddf2d8789c834bf6a67096f6f08508816163",
+      "bytes": 12315
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/summary.json",
+      "sha256": "a949f72d865d67427d4bf2c33bbae1d03dd680b8f204bd88b1babdb2ceefd385",
+      "bytes": 3169
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "0247ad3de0ef2d24228ac08cf2f30478ef5378607f7367956dc51cc647cabff9",
+      "bytes": 2911
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "bytes": 1689
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/warm_reference.json",
+      "sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+      "bytes": 3548
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275",
+      "bytes": 1439334
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "8637f212075c40e9e5b944c96153a17dae088da9cf077409898ac6cacf7f263d",
+      "bytes": 57460
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "4d824ddf98ed93c772da4365c4e4f368684a25f629f314f7d7a6bd5bc0dacba2",
+      "bytes": 117009
+    }
+  ],
+  "note": "No simulation, rerun, threshold change or inference of independent numerical correctness."
+}

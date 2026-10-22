@@ -1,5 +1,42 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D718 已关闭：100请求功能通过，joint92%，D719尚未开始
+
+100/100原生合同，17369输出token、29实际adapter/29远端获取；无fallback/
+请求时打包，profile全命中，dispatch/lease完整，时间重算误差0ms。4个物理
+allocation全部release，本机service已移除、GPU无compute进程，两个远端
+服务/monitor按本轮InvocationID关闭。峰值18.49GiB，high/max/OOM/swap均0。
+
+共同joint92/100，TTFT93、TPOT98；平均/P95 TTFT684.415/1595.860ms，
+物理784.179422GPU-s。旧D703相同前100为99/100，退化明确保留；不同终止
+边界不外推物理资源。更快来源分支1次、GPU来源变化1次，没有重复同一absence。
+功能资格不是性能优势；不筛前缀、不改尺子、不补相同键。n_correct仍null。
+数据 `paper_results/ieee_tc/p2_backend/d718_3b_identity_smoke100/`、
+`d718_common_slo/smoke100.json`；解释见D718_D719登记文档实际结果节。
+
+按预登记下一项为新键D719 Full4000一次：同D703配置/源trace/profile，仅
+D717生产一致性修正；先核查计划/资源/备份。此时D719尚未启动，3B当前完整
+仍D703的93.60%、14864.807562GPU-s；全部后续矩阵/审稿交付不变。
+
+## 2026-10-22 D718 已启动：单一身份传播修正的100请求原生验证
+
+登记见 `D718_D719_3B_IDENTITY_VALIDATION_20261022.md`。120项定向测试通过；
+144投稿文件及用户manifest未改，preflight通过。单元scope峰值616202240B，
+high/max/OOM均0且空进程后关闭。只增加100前缀的严格离线共同SLO入口。
+配置仅更换三处独立结果/缓存路径，生产SHA仍D717，不使用D713缩容候选。
+
+检查点 `5e145133d8bc56739d0a6eebba736524327f0c92` 已推送并ls-remote核验
+`faaslora_origin/backup/d718-d719-identity-validation-20261022`。远端V2既有
+分歧不强推；用户manifest未stage。远端实测1000Mbps/full，原D80只读服务
+通过health；无打包、无池复制、无共享k3s操作。
+
+当前tmux `primelora-d718`，独立目录
+`results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100`。
+启动/安全门槛通过不等于请求完成。结束后wrapper核对GPU实际release再关闭
+本轮远端InvocationID。先验收100终态、native token/content/lease、时钟、
+资源闭合和完整dispatch，再考虑D719 Full4000一次；不自动跳过资格。
+3B当前完整观测仍D703的93.60%、14864.807562 GPU-s；不得把新候选记为达标。
+
 ## 2026-10-22 D717：全量路由重试分析完成，单一一致性修正待性能验证
 
 代码/数据检查点 `ea3d375e9d685a2bb6fa054f64a67a0f67a546ca` 已推送并ls-remote

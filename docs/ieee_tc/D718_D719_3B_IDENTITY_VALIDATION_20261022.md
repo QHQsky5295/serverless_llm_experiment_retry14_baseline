@@ -67,3 +67,38 @@ D719 检查全量触发次数、相同否定观察重复、请求阶段分解与
 144原投稿文件SHA零变化，用户manifest保留原dirty字节。preflight通过，SHA
 `ffb5420e42c0676bba3139d8230694fbb379db8058aa03b53620c60b4ad33260`。
 这些是启动资格，不是性能完成。本次不画图、不改论文源文件。
+
+## D718 实际结果：功能资格通过，未形成性能优越性证据
+
+100/100终态，17369个原生输出token，29个实际adapter；内容、lease、
+dispatch快照与profile全部核验通过。29次真实远端获取，无请求时打包。
+原生TTFT/TPOT/E2E重算误差均0ms，四个物理allocation全部关闭，服务资源域
+已移除；本轮远端两个服务/monitor均按InvocationID停止，端口空闲。
+
+| 100请求诊断指标 | D718 |
+|---|---:|
+| 共同联合SLO | 92/100（92%） |
+| TTFT/TPOT边际达成 | 93/100、98/100 |
+| 平均/P95 TTFT（ms） | 684.414601 / 1595.860329 |
+| 平均/P95 TPOT（ms） | 14.076775 / 17.844105 |
+| 物理GPU-s | 784.179422 |
+| dispatch GPU/HOST/NVMe/remote | 50 / 19 / 2 / 29 |
+| 前序路由尝试 | 2条请求各1次 |
+| 更快来源出现 / GPU来源变更 | 1 / 1 |
+| 相同否定观察重复次数 | 0 |
+
+旧D703全量运行相同前100请求为99达标、1条TTFT-only违约；本次92不能写成
+性能改善。前缀独立终止与完整运行的资源生命周期不同，不拿旧完整GPU-s
+除以40做资源参照。1次分支覆盖不足以证明全量收益，也不据此追加前缀。
+
+服务峰值19852324864B（约18.49GiB），261个资源样本，high/max/OOM/swap
+均0。CPU分析两个scope峰值693907456/666972160B，事件均0，空进程后关闭。
+远端monitor已复制并与停止日志SHA一致：
+`244377c8a53db8c09117dfd6aff7aeec6c107d6404375503f118121f9179aa1b`。
+
+复用 `audit_d702_3b_profile_smoke.py --campaign d718` 作严格短资格检查；
+复用D714共同SLO分析，不读取运行时旧99%的5000ms别名作为joint。
+产物为 `paper_results/ieee_tc/p2_backend/d718_3b_identity_smoke100/` 和
+`paper_results/ieee_tc/p2_backend/d718_common_slo/smoke100.json`。
+数值adapter正确性仍未知、n_correct=null、排名资格false。此处功能通过只
+允许按预登记执行D719，未宣布G1/G2完成或优化被接受。

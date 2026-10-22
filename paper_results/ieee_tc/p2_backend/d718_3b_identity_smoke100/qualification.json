@@ -1,0 +1,125 @@
+{
+  "campaign_id": "d718_3b_identity_smoke100",
+  "config": {
+    "bytes": 5126,
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261022_d718_3b_identity_smoke100.yaml",
+    "sha256": "8e41b4a78ade34032336a75a18d5e7b9ad4b6ecb82ca4488efe0fdeb02001406"
+  },
+  "interpretation": "d718_3b_identity_smoke100 establishes only that the D701 exact measured profiles are loadable and used for a clean 100-request PrimeLoRA prefix. It does not establish numerical adapter correctness, 4,000-request qualification, G1/G2, SLO attainment, or a comparison/ranking. The observed latency and GPU seconds are retained as a qualification observation and must not be plotted as a performance result.",
+  "kind": "d718_3b_identity_smoke100_qualification_v1",
+  "launch": {
+    "bytes": 12315,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.json",
+    "sha256": "fe0c6287f1a81c8a4d6735d1846cddf2d8789c834bf6a67096f6f08508816163"
+  },
+  "mean_tpot_ms": 14.07677528208095,
+  "mean_ttft_ms": 684.4146009115502,
+  "metric_protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "metric_protocol_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "n_native_contract_complete": 100,
+  "n_plan": 100,
+  "n_terminal": 100,
+  "native_output_tokens": 17369,
+  "numerical_adapter_correctness_qualified": false,
+  "outcome": {
+    "bytes": 30524366,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "9b662163c9aa1f12b55a3f3d1b3a0eb790f51ffa22e1ebc66795d2102520c24b"
+  },
+  "p95_ttft_ms": 1612.7056690631425,
+  "passed": true,
+  "performance_4000_complete": false,
+  "physical_gpu_seconds_observed": 784.1794220162556,
+  "physical_resource_summary": {
+    "bytes": 2911,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "sha256": "0247ad3de0ef2d24228ac08cf2f30478ef5378607f7367956dc51cc647cabff9"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "preparation_profile": {
+    "bytes": 5988974,
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/preparation.json",
+    "sha256": "e56fec47f21d030dcd20a647f604ee1193ae27cb454f5387c767f0cd6f3a6dff"
+  },
+  "profile_class_hits": {
+    "preparation": 50,
+    "service": 100
+  },
+  "profile_fallback_used": false,
+  "profile_manifest": {
+    "bytes": 115907,
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/manifest.json",
+    "sha256": "fa2da4261677bd72d36957ee4f2c7d38d6c4c60e0ac48ce47a78ee02bffa3825"
+  },
+  "profile_runtime_qualified": true,
+  "qualification_only": true,
+  "ranking_eligible": false,
+  "remote_post_run": {
+    "command_contract": "read_only_post_run_state_v1",
+    "link": {
+      "carrier": 1,
+      "duplex": "full",
+      "interface": "eno1",
+      "speed_mbps": 1000
+    },
+    "service": {
+      "ActiveState": "inactive",
+      "MainPID": "0",
+      "Result": "success",
+      "SubState": "dead"
+    },
+    "service_unit": "primelora-artifact-tc-3b.service"
+  },
+  "remote_request_preparations": 29,
+  "remote_transfers": 29,
+  "request_tier_counts": {
+    "gpu": 50,
+    "host": 19,
+    "nvme": 2,
+    "remote": 29
+  },
+  "request_time_pack_count": 0,
+  "routing_retries": {
+    "attempts": 2,
+    "causal_speedup_qualified": false,
+    "reasons": {
+      "faster native source appeared before admission": 1,
+      "gpu:required_source_changed": 1
+    },
+    "repeated_absence_views": 0,
+    "requests": 2
+  },
+  "service_profile": {
+    "bytes": 448706,
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/service.json",
+    "sha256": "c2586bc32df1d9346d7439c2b70f3dac5a8de4e32ed0c7f27ccaaaf8481fb2b2"
+  },
+  "source_result": {
+    "bytes": 8648120,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d718_3b_identity_smoke100.json",
+    "sha256": "807a1a9fc9306c5bdaffd4328a1df1303ad1a856b207befedf9701e11f6a8282"
+  },
+  "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+  "summary": {
+    "bytes": 3169,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/summary.json",
+    "sha256": "a949f72d865d67427d4bf2c33bbae1d03dd680b8f204bd88b1babdb2ceefd385"
+  },
+  "unique_adapter_identities": 29,
+  "watchdog": {
+    "max_swap_current": 0,
+    "memory_events_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "samples": 261,
+    "service_memory_peak_bytes": 19852324864
+  },
+  "watchdog_raw": {
+    "bytes": 1670399,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/watchdog.jsonl",
+    "sha256": "d34dfac9f8b027c95af3441551ae37893afc41740c21d9f57779aa899c670b92"
+  }
+}
