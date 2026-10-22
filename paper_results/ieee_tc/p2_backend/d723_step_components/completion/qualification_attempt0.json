@@ -1,0 +1,9 @@
+{
+  "status": "protocol_or_launcher_error",
+  "unit": "primelora-tc-d723-qualification.scope",
+  "reason": "Existing scope_identity requires UUID-named owned TC scopes; non-UUID qualification unit rejected before any tests or GPU activity.",
+  "gpu_started": false,
+  "remote_started": false,
+  "qualification_script_changed": false,
+  "next": "Use the existing primelora-tc-aux-UUID naming contract; do not relax identity checks."
+}

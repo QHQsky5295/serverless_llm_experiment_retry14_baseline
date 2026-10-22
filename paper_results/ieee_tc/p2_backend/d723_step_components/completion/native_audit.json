@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "protocol_bound_count": 100,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_performance_result": false,
+  "includes_observer_overhead": true,
+  "stats": {
+    "completed": 100,
+    "mean_ttft_ms": 726.38449432794,
+    "p95_ttft_ms": 1825.2175250090659,
+    "mean_queue_ms": 254.6415171539411,
+    "p95_queue_ms": 466.8778497725725,
+    "mean_service_ms": 471.74297717399895,
+    "p95_service_ms": 1447.2427819855511,
+    "mean_tpot_ms": 14.347116173306691,
+    "p95_tpot_ms": 18.125941624463188,
+    "initial_preload_wall_s": 56.43918518582359,
+    "physical_gpu_seconds": 781.0145698687993,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d723_3b_step_components100.json",
+    "source_sha256": "c8d80f61d322011173d7f494090a6ef9ce6573827e675a9f9d33f352bd1aa388",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "0a3dddc493f64f45bbae9ca4752a01df281f13488dbfe3669c16601c09a04a06",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "shared_adapter_subset_sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b"
+  },
+  "core_processes": 4,
+  "complete_processes": 4,
+  "complete_request_observations": 100,
+  "component_observations_complete": true,
+  "dispatch_tiers": {
+    "remote": 29,
+    "gpu": 45,
+    "host": 25,
+    "nvme": 1
+  },
+  "activation_categories": {
+    "initial": 1,
+    "natural_scaleout": 3
+  },
+  "not_ready_activations": [],
+  "thresholds": [
+    {
+      "lower_exclusive": null,
+      "upper_inclusive": 506,
+      "ttft_s": 1.466050801101725,
+      "tpot_s": 0.02992187236665917
+    },
+    {
+      "lower_exclusive": 506,
+      "upper_inclusive": null,
+      "ttft_s": 2.539648668190845,
+      "tpot_s": 0.03621551519318005
+    }
+  ],
+  "remote_transfers": 29,
+  "remote_wire_bytes": 67350156,
+  "request_time_pack_count": 0,
+  "resources": {
+    "samples": 263,
+    "peak_bytes": 20011065344,
+    "max_swap_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d723_3b_step_components100.json": "c8d80f61d322011173d7f494090a6ef9ce6573827e675a9f9d33f352bd1aa388",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/main_outcome.json": "ed74db4a96ca186a3f831fe897f49a5f9cdf9dad54810e51cc24485aa2dde864",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/watchdog.jsonl": "9f933ce2c376b6f0583d8ff8b2265a3e34f7e0807023b5ffb76d4bc8915a771f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/remote_transfers.jsonl": "45e9069b16f2a7fd43c25eedd8bd54518a03341ac2f3aba05d642e4f04e80954",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/remote_monitor.log": "c86a4e125d05c943a8c365beafaaa83387ad25bdc46c94a73e0029098db99bb6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/analyze.py": "31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py": "200c63ab8a706761ea68ff8c32a16989dbf791a96707103e4a3db89dbf105d61"
+  }
+}

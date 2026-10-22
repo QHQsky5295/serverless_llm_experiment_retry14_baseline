@@ -1,0 +1,24 @@
+{
+  "launched": true,
+  "head": "35c9683af5cacbe46229a6655bc1d39a38bf8f06",
+  "tmux": "tc-d723-3b-components100",
+  "identity": {
+    "unit": "primelora-tc-aux-7bc395b59d5a42c1b5ce123e15132581.scope",
+    "invocation_id": "d09f02b3475541b2b9917a16a8b057a5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7bc395b59d5a42c1b5ce123e15132581.scope",
+    "inode": 30201529
+  },
+  "backup_ref": "refs/heads/backup/d723-components-20261022",
+  "helpers": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/start.py": "ce5a1bcf29aebb289c17eed7b22ee58fc19ac02dafd478259897c622c5e23e13",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/start_remote.sh": "9cf13383d144fef9bb7873af347056a6c987f68eca0991e8e486d8a9b1ed58b1",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/stop_remote.sh": "e66b4f5f73a28b34f3ceffbbfa7e291d6eaad81e7c034679f0f58250bd1143bb",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/check_remote_health_stdlib.py": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/run_and_release.sh": "cfca476b8336dea93a8d4b6074ccebf0bc6567409db3c6849195721e423a1cc2"
+  },
+  "resources": {
+    "memory.peak": "30195712",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

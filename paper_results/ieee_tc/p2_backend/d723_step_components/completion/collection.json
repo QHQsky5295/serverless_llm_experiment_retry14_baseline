@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-7bc395b59d5a42c1b5ce123e15132581.scope",
+        "invocation_id": "d09f02b3475541b2b9917a16a8b057a5",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7bc395b59d5a42c1b5ce123e15132581.scope",
+        "inode": 30201529
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-695d979905cd4b3ea008ab30ddda9d55.scope",
+        "invocation_id": "546a0cd492da4f26977437b016d279c6",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-695d979905cd4b3ea008ab30ddda9d55.scope",
+        "inode": 30201650
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "remote_inactive": true,
+  "remote_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/remote_transfers.jsonl": "45e9069b16f2a7fd43c25eedd8bd54518a03341ac2f3aba05d642e4f04e80954",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/remote_monitor.log": "c86a4e125d05c943a8c365beafaaa83387ad25bdc46c94a73e0029098db99bb6"
+  },
+  "protected_count": 144,
+  "source_refs_unchanged": true,
+  "launch_sha256": "080c71487e950edace7162f89cbabacdd7430fd9de6ed6eb3b39164ef86e2d20",
+  "identity": {
+    "unit": "primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+    "invocation_id": "3f7fe7eb29024681b3386e779ff54bab",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+    "inode": 30204025
+  }
+}

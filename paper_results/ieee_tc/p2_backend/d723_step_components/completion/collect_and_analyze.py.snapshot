@@ -1,0 +1,70 @@
+"""Reuse D684 owned cleanup/remote SHA collection; then sequential analysis."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'3b_step_components100'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def read(path): return json.loads(path.read_text())
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+launch=read(RUN/'launch.json')
+assert launch['pass'] and launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert launch['service_returncode']==launch['watchdog_returncode']==launch['replay_returncode']==0
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+execution=read(RUN/'launch.launch/exec_receipt.json')
+assert not Path(execution['service_identity']['path']).exists()
+closures=[]
+identities=[read(RAW/'start_identity.json')]
+aux=Path(execution['auxiliary_path'])
+if aux.exists():
+    identities.append(p.scope_identity(aux.name))
+else:
+    assert subprocess.check_output(['systemctl','--user','show',aux.name,'-p','ActiveState','--value'],text=True).strip()=='inactive'
+    closures.append(dict(path=str(aux),already_removed=True,unit_state='inactive'))
+for identity in identities:
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=identity,closure=closed))
+stop=(RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive')==3 and stop.count('MainPID=0')==3
+transfer_paths=[line for line in stop.splitlines() if
+    line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(transfer_paths)==1
+hashes={}
+for name,remote in dict(remote_transfers=transfer_paths[0],
+        remote_monitor='/home/lab14/primelora_remote/tc/d723_20261022/remote_monitor.log').items():
+    target=RAW/(name+('.jsonl' if name=='remote_transfers' else '.log'))
+    assert not target.exists()
+    expected=subprocess.check_output(['ssh','-o','BatchMode=yes','primelora-artifact-174','sha256sum',remote],text=True).split()[0]
+    subprocess.run(['scp','-q','-o','BatchMode=yes','primelora-artifact-174:'+remote,str(target)],check=True)
+    assert p.digest(target)==expected
+    hashes[str(target)]=expected
+qualification=read(RAW/'qualification2.json')
+for path,sha in qualification['refs'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'collection.json',dict(passed=True,closures=closures,remote_inactive=True,
+    remote_sha256=hashes,protected_count=144,source_refs_unchanged=True,
+    launch_sha256=p.digest(RUN/'launch.json'),identity=own))
+python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+for helper in ('analyze.py','analyze_components.py'):
+    with (RAW/(helper+'.log')).open('x') as log:
+        done=subprocess.run([python,'-B',str(RAW/helper)],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+    assert done.returncode==0,(helper,done.returncode)
+save(RAW/'analysis_execution.json',dict(passed=True,identity=own,resources={k:(group/k).read_text().strip()
+    for k in ('memory.peak','memory.events','memory.swap.current')},
+    scripts={str(RAW/f):p.digest(RAW/f) for f in ('collect_and_analyze.py','analyze.py','analyze_components.py')}))
+print(json.dumps(read(RAW/'analysis_execution.json')))

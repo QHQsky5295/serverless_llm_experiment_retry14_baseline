@@ -1,0 +1,188 @@
+{
+  "kind": "native_common_slo_reanalysis_d714_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100",
+  "reuse_level": "R1",
+  "passed": true,
+  "counts": {
+    "n": 100,
+    "ttft_pass": 95,
+    "tpot_eligible": 100,
+    "tpot_pass": 99,
+    "joint_pass": 94
+  },
+  "joint_slo_fraction": 0.94,
+  "ttft_marginal_fraction": 0.95,
+  "tpot_conditional_fraction": 0.99,
+  "observed_latency_feasible": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_w0": false,
+  "development_only": true,
+  "confidence_interval": null,
+  "physical_gpu_seconds": 781.0145698687993,
+  "gpu_seconds_per_offered_request": 7.810145698687993,
+  "metrics": {
+    "ttft_ms": {
+      "count": 100,
+      "mean": 726.38449432794,
+      "p50_type1": 430.8103951625526,
+      "p95_type1": 1825.2175250090659
+    },
+    "tpot_ms": {
+      "count": 100,
+      "mean": 14.347116173306691,
+      "p50_type1": 13.760899010972649,
+      "p95_type1": 18.125941624463188
+    },
+    "e2e_ms": {
+      "count": 100,
+      "mean": 3285.971763525158,
+      "p50_type1": 3621.658630669117,
+      "p95_type1": 5291.114856489003
+    }
+  },
+  "max_recompute_error_ms": {
+    "ttft_ms": 0.0,
+    "tpot_ms": 0.0,
+    "e2e_ms": 0.0
+  },
+  "phases_500": [
+    {
+      "n": 100,
+      "ttft_pass": 95,
+      "tpot_eligible": 100,
+      "tpot_pass": 99,
+      "joint_pass": 94
+    }
+  ],
+  "slo_violations": [
+    {
+      "request_id": "req_00000",
+      "ordinal": 0,
+      "native_prompt_tokens": 760,
+      "ttft_ms": 10254.173292778432,
+      "tpot_ms": 12.456468127618562,
+      "e2e_ms": 12161.625784821808,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00040",
+      "ordinal": 40,
+      "native_prompt_tokens": 760,
+      "ttft_ms": 198.1518156826496,
+      "tpot_ms": 41.061751411429476,
+      "e2e_ms": 574.78316873312,
+      "ttft_pass": true,
+      "tpot_pass": false,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00054",
+      "ordinal": 54,
+      "native_prompt_tokens": 477,
+      "ttft_ms": 2199.2425909265876,
+      "tpot_ms": 11.719390294504363,
+      "e2e_ms": 3272.3059561103582,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00057",
+      "ordinal": 57,
+      "native_prompt_tokens": 302,
+      "ttft_ms": 1642.6580343395472,
+      "tpot_ms": 13.357987502107614,
+      "e2e_ms": 4280.841463245451,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00081",
+      "ordinal": 81,
+      "native_prompt_tokens": 477,
+      "ttft_ms": 2157.9598700627685,
+      "tpot_ms": 11.913708426508602,
+      "e2e_ms": 3250.2939929254353,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    },
+    {
+      "request_id": "req_00096",
+      "ordinal": 96,
+      "native_prompt_tokens": 477,
+      "ttft_ms": 1746.4929278939962,
+      "tpot_ms": 11.855601090747786,
+      "e2e_ms": 2915.664268657565,
+      "ttft_pass": false,
+      "tpot_pass": true,
+      "joint_pass": false
+    }
+  ],
+  "legacy_runtime_ttft_only_fraction": 0.99,
+  "legacy_is_common_joint_slo": false,
+  "common_slo_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d723_3b_step_components100.json",
+      "sha256": "c8d80f61d322011173d7f494090a6ef9ce6573827e675a9f9d33f352bd1aa388",
+      "bytes": 8720152
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.json",
+      "sha256": "080c71487e950edace7162f89cbabacdd7430fd9de6ed6eb3b39164ef86e2d20",
+      "bytes": 12359
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/summary.json",
+      "sha256": "5589bdc902f125324ef62e1960fac61e09102fc8d59290c182a13c0af5871ea0",
+      "bytes": 3174
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "0a3dddc493f64f45bbae9ca4752a01df281f13488dbfe3669c16601c09a04a06",
+      "bytes": 2919
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "bytes": 1689
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d648_3b_warm_measurement/warm_reference.json",
+      "sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+      "bytes": 3548
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275",
+      "bytes": 1439334
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "200c63ab8a706761ea68ff8c32a16989dbf791a96707103e4a3db89dbf105d61",
+      "bytes": 72642
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "4d824ddf98ed93c772da4365c4e4f368684a25f629f314f7d7a6bd5bc0dacba2",
+      "bytes": 117009
+    }
+  ],
+  "note": "No simulation, rerun, threshold change or inference of independent numerical correctness."
+}

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "closed_analysis": {
+    "identity": {
+      "unit": "primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+      "invocation_id": "3f7fe7eb29024681b3386e779ff54bab",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+      "inode": 30204025
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  "gpu_compute_processes": [],
+  "remote_owned_units_inactive": true,
+  "service_path_removed": true,
+  "disk_available_bytes": 173765472256,
+  "run_work_caches_empty": true,
+  "protected_files_unchanged": 144,
+  "user_manifest_unchanged": true,
+  "production_changed": false,
+  "observer_changed": false,
+  "configuration_policy_changed": false,
+  "new_gpu_diagnostics": 1,
+  "new_formal_performance_points": 0,
+  "finalizer_identity": {
+    "unit": "primelora-tc-aux-2546b0b2c22f4b73b9cb7b09a7ab66c0.scope",
+    "invocation_id": "d9a9725541204cfba2563f46f1145c25",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2546b0b2c22f4b73b9cb7b09a7ab66c0.scope",
+    "inode": 30205568
+  },
+  "resources": {
+    "memory.peak": "27250688",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

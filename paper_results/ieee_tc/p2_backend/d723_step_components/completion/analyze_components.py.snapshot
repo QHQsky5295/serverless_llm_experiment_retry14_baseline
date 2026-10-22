@@ -1,0 +1,101 @@
+"""Post-release component summary using the existing strict core-span analyzer."""
+import collections
+import csv
+import gc
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=RAW/'components1'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.analyze_control_path_overhead import summarize_core_step_components
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f: json.dump(value,f,indent=2,allow_nan=False)
+
+def main():
+    own=p.scope_identity(p.cg_path().name)
+    save(RAW/'operation_identity.json',own)
+    group=Path(own['path'])
+    assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+    assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+    assert (group/'memory.swap.max').read_text().strip()=='0'
+    assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+    assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+    assert read(RAW/'collection.json')['passed']
+    analysis=RAW/'analysis1'
+    core=read(analysis/'core_timing/summary.json')
+    assert core['complete_request_observations']==core['diagnostic_count']==100
+    assert core['complete_processes']==core['processes']
+    refs=[r for r in core['sources'] if Path(r['path']).suffix=='.jsonl']
+    assert len(refs)==core['processes']
+    OUT.mkdir(exist_ok=False)
+    samples=collections.defaultdict(list)
+    processes=[]
+    with (OUT/'steps.csv').open('x',newline='') as stream:
+        writer=None
+        for ref in refs:
+            path=Path(ref['path'])
+            assert p.digest(path)==ref['sha256'] and path.stat().st_size<=64*1024**2
+            with path.open() as f:
+                header=json.loads(next(f))
+                assert header['step_components']=='v2_components_v1'
+                events=[json.loads(line) for line in f]
+            value=summarize_core_step_components(events)
+            assert p.digest(path)==ref['sha256']
+            processes.append(dict(process=path.stem,steps=value['step_count'],source_sha256=ref['sha256']))
+            for row in value['records']:
+                measures=dict(step_ms=row['step_ns']/1e6,thread_cpu_ms=row['step_thread_cpu_ns']/1e6,
+                    schedule_ms=row['schedule_ns']/1e6,
+                    num_host_alloc=row['allocator_delta']['num_host_alloc'],
+                    num_host_free=row['allocator_delta']['num_host_free'],
+                    driver_alloc_ms=row['allocator_delta']['host_alloc_time.total']/1000,
+                    driver_free_ms=row['allocator_delta']['host_free_time.total']/1000)
+                for name,v in row['components'].items():
+                    measures[name+'_calls']=v[0]
+                    measures[name+'_wall_ms']=v[1]/1e6
+                    measures[name+'_thread_cpu_ms']=v[2]/1e6
+                    measures[name+'_raised']=v[3]
+                flat=dict(process=path.stem,id=row['id'],category=row['category'],
+                    scheduled_requests=row['scheduled_requests'],scheduled_tokens=row['scheduled_tokens'],**measures)
+                if writer is None:
+                    writer=csv.DictWriter(stream,fieldnames=list(flat),lineterminator='\n');writer.writeheader()
+                writer.writerow(flat)
+                for category in ('all',row['category']):
+                    for key,v in measures.items(): samples[category,key].append(v)
+            del events,value
+            gc.collect()
+    metrics=[]
+    for (category,metric),values in sorted(samples.items()):
+        values.sort()
+        metrics.append(dict(category=category,metric=metric,count=len(values),
+            total=math.fsum(values),mean=math.fsum(values)/len(values),
+            p50=values[math.ceil(.5*len(values))-1],p95=values[math.ceil(.95*len(values))-1],max=values[-1]))
+    with (OUT/'metrics.csv').open('x',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(metrics[0]),lineterminator='\n');writer.writeheader();writer.writerows(metrics)
+    summary=dict(kind='native_v2_step_components_postrelease_v1',processes=processes,
+        total_steps=sum(x['steps'] for x in processes),metrics=metrics,source_refs=refs,
+        formal_performance_result=False,gpu_kernel_timing=False,nested_not_additive=True,
+        allocator_background_frees_possible=True,absent_components_are_zero_calls=True,
+        reused_inputs=True,new_gpu_runs=0,resources={key:(group/key).read_text().strip() for key in
+            ('memory.peak','memory.events','memory.swap.current')},
+        caveats=['Unconditional per-step means include zero calls for absent components.',
+            'Nested component durations must not be added; driver free time can overlap another thread.',
+            'Allocator counts/time are process snapshots, not isolated request or GPU kernel attribution.',
+            'Detailed observation overhead remains in the timeline; no speedup is inferred.'],
+        analyzer_sha256=p.digest(ROOT/'scripts/analyze_control_path_overhead.py'),
+        helper_sha256=p.digest(Path(__file__)),
+        outputs={name:p.digest(OUT/name) for name in ('steps.csv','metrics.csv')})
+    save(OUT/'summary.json',summary)
+    save(RAW/'operation_receipt.json',dict(passed=True,identity=own,summary_sha256=p.digest(OUT/'summary.json'),
+        resources=summary['resources'],total_steps=summary['total_steps']))
+    print(json.dumps(dict(passed=True,total_steps=summary['total_steps'],processes=len(processes),resources=summary['resources'])))
+
+if __name__=='__main__':main()

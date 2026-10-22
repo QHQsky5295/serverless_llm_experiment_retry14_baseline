@@ -1,0 +1,79 @@
+"""Reuse owned preflight, backup, frozen artifact and tmux launch for D723."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d723_step_components/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def call(args):
+    return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=120).strip()
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json',own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+closures=[]
+for name in ('qualification_identity.json','qualification2_identity.json'):
+    identity=json.loads((RAW/name).read_text())
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=identity,closure=closed))
+save(OUT/'qualification_closures.json',dict(passed=True,closures=closures))
+qualification=json.loads((RAW/'qualification2.json').read_text())
+assert qualification['passed']
+for name,sha in qualification['refs'].items(): assert p.digest(Path(name))==sha,name
+manifest=json.loads((OUT/'manifest.json').read_text())
+for item in manifest['files']: assert p.digest(ROOT/item['path'])==item['sha256']
+assert call(['git','rev-parse','HEAD'])==qualification['parent']
+assert not call(['git','diff','--cached','--name-only'])
+paths=['scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'scripts/ieee_tc/profile_d328_controller_python.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'configs/ieee_tc/20261022_d723_3b_step_components100.yaml',
+    'docs/ieee_tc/D723_3B_STEP_COMPONENTS_20261022.md','docs/ieee_tc/EXECUTION_STATUS.md']
+paths += [str(f.relative_to(ROOT)) for f in sorted(OUT.iterdir()) if f.is_file()]
+assert all('configs/generated' not in s and not s.startswith('figs/') for s in paths)
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in paths: assert not pattern.search((ROOT/name).read_text()),name
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+commit_log=call(['git','commit','-m','tc: register bounded current 3B step-component diagnostic (D723)'])
+head=call(['git','rev-parse','HEAD'])
+backup='refs/heads/backup/d723-components-20261022'
+push_log=call(['git','push','faaslora_origin',f'HEAD:{backup}'])
+assert call(['git','ls-remote','faaslora_origin',backup]).split()[0]==head
+v2=call(['git','ls-remote','faaslora_origin','refs/heads/retry14_continuous_queue_v2']).split()[0]
+save(RAW/'backup.json',dict(passed=True,head=head,ref=backup,v2_head=v2,
+    v2_synced=v2==head,paths=paths,commit_log=commit_log,push_log=push_log))
+gate=p.preflight([ROOT],32*p.GIB)
+save(RAW/'launch_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not (RAW/'3b_step_components100').exists()
+assert not Path('/dev/shm/tc-d723-3b-components100').exists()
+session='tc-d723-3b-components100'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode != 0
+call(['bash',str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3',str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),
+    'bash '+str(RAW/'run_and_release.sh')])
+save(RAW/'start_receipt.json',dict(launched=True,head=head,tmux=session,
+    identity=own,backup_ref=backup,helpers={str(f):p.digest(f) for f in [Path(__file__),
+    RAW/'start_remote.sh',RAW/'stop_remote.sh',RAW/'check_remote_health_stdlib.py',RAW/'run_and_release.sh']},
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}))
+print(json.dumps(dict(launched=True,head=head,tmux=session,backup=backup,v2_synced=v2==head)))

@@ -1,0 +1,127 @@
+{
+  "kind": "diagnostic_native_core_host_audit_v1",
+  "formal_performance_result": false,
+  "gpu_kernel_timing": false,
+  "quantile": "Type-1",
+  "diagnostic_count": 100,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "complete_processes": 4,
+  "processes": 4,
+  "complete_request_observations": 100,
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/diagnostic_core/1911764-215489360.jsonl",
+      "bytes": 16406353,
+      "sha256": "920046cdade62255485a65967615f906f9e7a640153f0cf24f42556492f4171c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/diagnostic_core/1914083-215494115.jsonl",
+      "bytes": 3430755,
+      "sha256": "4fb67d2790a8fe6c56e2c55715533d1a25970b294a47f6e1cb7b25a1b71afe3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/diagnostic_core/1914169-215494366.jsonl",
+      "bytes": 1471984,
+      "sha256": "7951a8d20829d0268629aa71c34e3362c1c48b459bcd2f1b9827c2f85532ef8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/diagnostic_core/1914256-215494505.jsonl",
+      "bytes": 3183984,
+      "sha256": "880e84fd9711daf431bf826e01dde3145a25ab1cf427e47e08d170a525234700"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/exec_receipt.json",
+      "sha256": "ba19f237e91191ce704a2682a14c67f31896e3855fb466ff078bbfbf2e5637b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/deployment.json",
+      "sha256": "6e88be2fbe6d158b7cf91ebf1a7e2fd9960a8c5c5cce26b48245abc5958306a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e"
+    }
+  ],
+  "groups": [
+    {
+      "group": "all",
+      "timing_tpot_miss": false,
+      "count": 99,
+      "complete_observations": 99,
+      "mean_tpot_ms": 14.077271372921611,
+      "mean_decode_ms": 2512.7826440909093,
+      "mean_client_ms": 259.5361713434343,
+      "mean_input_nonclient_ms": 10.403025353535353,
+      "mean_step_ms": 2136.8327664040403,
+      "mean_other_or_unobserved_ms": 106.01068098989899
+    },
+    {
+      "group": "all",
+      "timing_tpot_miss": true,
+      "count": 1,
+      "complete_observations": 1,
+      "mean_tpot_ms": 41.061751411429476,
+      "mean_decode_ms": 287.43226,
+      "mean_client_ms": 206.791303,
+      "mean_input_nonclient_ms": 1.062181,
+      "mean_step_ms": 75.324975,
+      "mean_other_or_unobserved_ms": 4.253801
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": false,
+      "count": 8,
+      "complete_observations": 8,
+      "mean_tpot_ms": 12.659903098002374,
+      "mean_decode_ms": 203.779244375,
+      "mean_client_ms": 3.758486375,
+      "mean_input_nonclient_ms": 0.529804875,
+      "mean_step_ms": 190.5579625,
+      "mean_other_or_unobserved_ms": 8.932990625
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": true,
+      "count": 1,
+      "complete_observations": 1,
+      "mean_tpot_ms": 41.061751411429476,
+      "mean_decode_ms": 287.43226,
+      "mean_client_ms": 206.791303,
+      "mean_input_nonclient_ms": 1.062181,
+      "mean_step_ms": 75.324975,
+      "mean_other_or_unobserved_ms": 4.253801
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": false,
+      "count": 91,
+      "complete_observations": 91,
+      "mean_tpot_ms": 14.201875177310118,
+      "mean_decode_ms": 2715.771953956044,
+      "mean_client_ms": 282.0221216703297,
+      "mean_input_nonclient_ms": 11.27100078021978,
+      "mean_step_ms": 2307.933848065934,
+      "mean_other_or_unobserved_ms": 114.54498343956044
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": true,
+      "count": 0,
+      "complete_observations": 0,
+      "mean_tpot_ms": null,
+      "mean_decode_ms": null,
+      "mean_client_ms": null,
+      "mean_input_nonclient_ms": null,
+      "mean_step_ms": null,
+      "mean_other_or_unobserved_ms": null
+    }
+  ],
+  "caveats": [
+    "Detailed observation is intrusive; no speedup versus uninstrumented Full is estimated.",
+    "Client is nested in input; schedule is nested in step. Boundary table totals cannot all be added.",
+    "Host spans include GPU waits and overlap asynchronous GPU execution; they are not kernel durations or GPU idle time.",
+    "Input nonclient includes legitimate queue idle wait. Per-request intersections differ from whole-process idle totals.",
+    "Other/unobserved includes wrapper/loop gaps and missing observation; it is not an inferred kernel category.",
+    "TPOT groups are descriptive and use caller-supplied thresholds; they do not establish numerical correctness or causality."
+  ]
+}

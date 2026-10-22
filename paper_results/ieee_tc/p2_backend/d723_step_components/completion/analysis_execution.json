@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+    "invocation_id": "3f7fe7eb29024681b3386e779ff54bab",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8519f7c181b5427c9f0e19b306902f2b.scope",
+    "inode": 30204025
+  },
+  "resources": {
+    "memory.peak": "761556992",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "scripts": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/collect_and_analyze.py": "39e00d3fab5812fb4b4dd5091c9f813e096d77d9fe1f366f5fcefb05e95d35fb",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/analyze.py": "31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/analyze_components.py": "8d89c825c6f40d136b845d3a8e839a09b19393a7d8404d61f687107a5712b30b"
+  }
+}

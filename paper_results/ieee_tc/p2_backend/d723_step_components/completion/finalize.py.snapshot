@@ -1,0 +1,118 @@
+"""D723 close exact analysis scope, curate small evidence; no serving changes."""
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import re
+import resource
+import shutil
+import subprocess
+import sys
+resource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'3b_step_components100'
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d723_step_components/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def read(path): return json.loads(path.read_text())
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'finalize_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+execution=read(RAW/'analysis_execution.json')
+assert execution['passed']
+identity=execution['identity']
+assert not p.owned_pids(Path(identity['path']))
+closed=p.stop_scope_identity(identity,grace_seconds=0)
+assert closed['released'] and not closed['targets']
+assert subprocess.check_output(['systemctl','--user','show',identity['unit'],'-p','ActiveState','--value'],text=True).strip()=='inactive'
+for name,sha in execution['scripts'].items(): assert p.digest(Path(name))==sha
+qualification=read(RAW/'qualification2.json')
+for name,sha in qualification['refs'].items(): assert p.digest(Path(name))==sha
+assert read(RAW/'collection.json')['passed']
+assert read(RAW/'analysis1/audit.json')['component_observations_complete']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+summary=read(RAW/'components1/summary.json')
+for name,sha in summary['outputs'].items(): assert p.digest(RAW/'components1'/name)==sha
+assert summary['analyzer_sha256']==p.digest(ROOT/'scripts/analyze_control_path_overhead.py')
+assert summary['helper_sha256']==p.digest(RAW/'analyze_components.py')
+core=read(RAW/'analysis1/core_timing/summary.json')
+for item in core['sources']: assert p.digest(Path(item['path']))==item['sha256']
+logpaths=re.findall(r'\[worker-log\] preserved dedicated worker workdir: (\S+)',(RUN/'launch.launch/service.log').read_text())
+logs=[]
+for name in dict.fromkeys(logpaths):
+    path=Path(name)/'worker.log'
+    assert path.is_file() and path.stat().st_size<1024**2
+    text=path.read_text()
+    lines=[line for line in text.splitlines() if 'Initializing a V1 LLM engine' in line]
+    assert len(lines)==1
+    line=lines[0]
+    sizes=json.loads(re.search(r"'cudagraph_capture_sizes': (\[[0-9, ]+\])",line).group(1))
+    maximum=int(re.search(r"'max_cudagraph_capture_size': ([0-9]+)",line).group(1))
+    pid=int(re.search(r'EngineCore pid=([0-9]+)',line).group(1))
+    assert sizes==[1,2,4,8,16] and maximum==16 and 'enforce_eager=False' in line
+    logs.append(dict(path=str(path),sha256=p.digest(path),pid=pid,capture_sizes=sizes,
+        max_capture_size=maximum,enforce_eager=False,
+        compilation_log_identity=line))
+assert len({r['pid'] for r in logs})==core['processes']==4
+counts=collections.Counter()
+multi=[]
+with (RAW/'components1/steps.csv').open() as f:
+    for row in csv.DictReader(f):
+        counts[row['category']]+=1
+        if row['category']=='has_multi_token_allocations':
+            assert int(row['execute_model_calls'])==1
+            assert int(row['fullgraph_calls'])==int(row['piecewise_graph_calls'])==0
+            multi.append(int(row['scheduled_tokens']))
+assert len(multi)==100 and min(multi)>16
+native=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu')
+graph_review=dict(passed=True,step_counts=dict(counts),multi_token_steps=len(multi),
+    multi_token_min_scheduled=min(multi),multi_token_max_scheduled=max(multi),
+    fullgraph_calls_in_multi_token_steps=0,piecewise_graph_calls_in_multi_token_steps=0,
+    worker_logs=logs,source_refs={str(path):p.digest(path) for path in
+        (native/'model_runner.py',native/'cudagraph_utils.py',ROOT/'faaslora/utils/core_timing.py')},
+    interpretation='Observed graph-manager replay does not cover these multi-token steps. This does not prove that all model operations are uncompiled or measure GPU kernel latency.',
+    new_configuration_selected=False,performance_speedup_proved=False)
+save(RAW/'graph_boundary_review.json',graph_review)
+assert not any(Path('/dev/shm/tc-d723-3b-components100').iterdir())
+assert not any((RAW/'3b_nvme_components100').iterdir())
+OUT.mkdir(parents=True,exist_ok=False)
+copies={
+    'native_audit.json':RAW/'analysis1/audit.json',
+    'common_slo.json':RAW/'analysis1/common_slo.json',
+    'core_summary.json':RAW/'analysis1/core_timing/summary.json',
+    'decode_windows.csv':RAW/'analysis1/core_timing/decode_windows.csv',
+    'groups.csv':RAW/'analysis1/core_timing/groups.csv',
+    'processes.csv':RAW/'analysis1/core_timing/processes.csv',
+    'components_summary.json':RAW/'components1/summary.json',
+    'components_metrics.csv':RAW/'components1/metrics.csv',
+    'graph_boundary_review.json':RAW/'graph_boundary_review.json',
+    'collection.json':RAW/'collection.json',
+    'analysis_execution.json':RAW/'analysis_execution.json',
+    'backup_prelaunch.json':RAW/'backup.json',
+    'start_receipt.json':RAW/'start_receipt.json',
+    'qualification_attempt0.json':RAW/'qualification_attempt0.json',
+    'qualification_failed_tests.xml':RAW/'tests.xml',
+}
+copies.update({f.name+'.snapshot':f for f in (RAW/'analyze.py',RAW/'analyze_components.py',
+    RAW/'collect_and_analyze.py',RAW/'finalize.py',RAW/'start.py')})
+for name,source in copies.items():
+    with (OUT/name).open('xb') as f: f.write(source.read_bytes())
+group=Path(own['path'])
+save(OUT/'closure.json',dict(passed=True,closed_analysis=dict(identity=identity,closure=closed),
+    gpu_compute_processes=[],remote_owned_units_inactive=True,service_path_removed=True,
+    disk_available_bytes=shutil.disk_usage(ROOT).free,run_work_caches_empty=True,
+    protected_files_unchanged=144,user_manifest_unchanged=True,production_changed=False,
+    observer_changed=False,configuration_policy_changed=False,new_gpu_diagnostics=1,
+    new_formal_performance_points=0,finalizer_identity=own,
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}))
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f))
+    for f in sorted(OUT.iterdir())],raw_step_table=dict(path=str(RAW/'components1/steps.csv'),
+    sha256=p.digest(RAW/'components1/steps.csv'))))
+print(json.dumps(dict(passed=True,files=len(copies),step_counts=dict(counts),
+    multi_scheduled_min=min(multi),multi_scheduled_max=max(multi),workers=4,
+    disk_available_bytes=shutil.disk_usage(ROOT).free)))

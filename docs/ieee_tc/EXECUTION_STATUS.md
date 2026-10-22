@@ -1,14 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
-## 2026-10-22 D723：前100请求组件诊断资格通过，待启动
+## 2026-10-22 D723：前100组件诊断完成，定位到图重放覆盖边界
 
-按D722的下一动作，D719策略不变，仅新增隔离目录及既有组件观察入口。
-69项CPU测试通过，qualification峰值696946688B，high/max/OOM/swap0，
-旧投稿144文件/用户manifest不变。失败的辅助scope命名和静态测试更新记录
-保留，均发生在GPU启动前。详见D723_3B_STEP_COMPONENTS_20261022.md。
-接下来备份并启动唯一100请求诊断；不是正式4000点、不改SLO/profile/预算。
-当前完整3B仍D719 joint91.60%、U13508.300779、n_correct未知；不关闭目标。
-共享k3s不动；3B后续、消融/敏感性/CE/审稿交付和最终图表全部保留。
+PROGRESS。一次100/100原生生成/绑定/计时通过，4进程及100个decode窗口
+完整、无截断。11497step中100个多token分配平均wall62.501ms、CPU62.121ms，
+execute_model60.418ms，LoRA激活4.204ms、输入准备0.912ms、scheduler0.298ms。
+全部4worker实际capture sizes[1,2,4,8,16]；100个多token分配90–764tokens，
+每step一次execute_model，graph管理器FULL/PIECEWISE入口均0次。不能将
+NONE等同于全模型未经torch.compile，或把host耗时叫GPU kernel时间。
+详见D723_3B_STEP_COMPONENTS_20261022.md与d723_step_components/completion。
+
+诊断共同joint94/100，U781.014570GPU-s，n_correct未知，不是完整性能点。
+生产代码、观察器、Full策略/profile/SLO/token预算均未改；69测试通过。
+服务峰值20011065344B、分析761556992B，high/max/OOM/swap0；GPU释放、
+远端两服务与monitor停止，29fetch/67350156字节/打包0，缓存已空，磁盘162GiB。
+旧投稿144与用户manifest不变。预启动35c9683已备份到专用backup分支，
+本轮完成证据待最终备份；V2既存分歧不强推。首次辅助scope命名和旧静态
+白名单测试失败均保存，不改身份门槛、不重跑GPU。共享k3s未操作。
+
+下一仅核对图捕获覆盖的历史、官方实现和当前接口，提出一个按模型合法
+工作量推导的图范围候选并有界资格；当前尚未选定，不扫token budget，
+不恢复D529/HOST元数据/GC/同owner串行/scale-down拒绝候选。计入新增启动/
+显存和准备成本，正确性、profile匹配后才完整回放，不能由诊断推算胜出。
+当前完整3B仍D719 joint91.60%、U13508.300779、n_correct未知。其TTFT仅
+3791/4000通过，不能只处理TPOT就关闭目标。全部3B后续、A1–A5、S1–S13、
+CE、两轮审稿文档和最终图表保留；接近目标前不画图。
 
 ## 2026-10-22 D722：复用原生迭代，不凭prefill包络选择token预算
 

@@ -1,0 +1,111 @@
+"""D723 native first100 audit; reuse D714 metrics and D684 core-window analysis."""
+import collections
+import hashlib
+import json
+from pathlib import Path
+import sys
+import ijson
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'3b_step_components100'
+OUT=RAW/'analysis1'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.plot_d290_diagnostic import audit_run,binding_checks
+from scripts.ieee_tc.audit_d703_3b_full import reevaluate_common_slo
+from scripts.ieee_tc.analyze_d297_full import (
+    partition_activation_readiness,decode_overlap_summary,native_load_overlap_summary)
+from scripts.analyze_control_path_overhead import analyze_core_host_timing
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+assert read(RAW/'collection.json')['passed']
+OUT.mkdir(exist_ok=False)
+reevaluate_common_slo(RUN,OUT/'common_slo.json',expected_count=100)
+source,=RUN.glob('experiment_results_full*.json')
+stats,evidence,requests=audit_run(source)
+assert len(requests)==100
+index=read(ROOT/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json')
+content={a['id']:hashlib.sha256(json.dumps(sorted(a['files'],key=lambda f:f['path']),
+    sort_keys=True,separators=(',',':')).encode()).hexdigest() for a in index['artifacts']}
+assert len(content)==500
+assert all(all(binding_checks(r,content[r['adapter_id']]).values()) for r in requests)
+E=RUN/'launch.launch'
+outcome_path=E/'physical_deployment/main_outcome.json'
+def selected(prefix):
+    with outcome_path.open('rb') as f: return next(ijson.items(f,prefix,use_float=True))
+for key in ('error','cleanup_errors','measurement_errors'): assert not selected(key)
+assert selected('run_completed') is True
+activations=selected('mechanism_events._ieee_activations')
+transfers=selected('remote_transfers')
+server_rows=[json.loads(line) for line in (RAW/'remote_transfers.jsonl').read_text().splitlines()]
+server={r['transfer_id']:r for r in server_rows}
+assert len(server)==len(server_rows)==len(transfers)
+assert set(server)=={r['http_transfer_id'] for r in transfers}
+clock=read(RAW/'remote_health.json')['3b']['clock_id']
+for row in transfers:
+    peer=server[row['http_transfer_id']]
+    assert row['state']=='published' and row['content_verified'] and row['published_archive_verified']
+    assert row['artifact_id']==peer['artifact_id']
+    assert row['remote_archive_sha256']==peer['archive_sha256']
+    assert row['transferred_bytes']==peer['archive_bytes']==peer['bytes_read']==peer['bytes_written']
+    assert peer['clock_id']==clock and peer['outcome']=='sent'
+    assert not row['remote_pack_performed'] and not peer['pack_performed'] and not peer['temporary_created']
+slo=read(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json')
+thresholds=[dict(lower_exclusive=g['lower_exclusive'],upper_inclusive=g['upper_inclusive'],
+    ttft_s=g['ttft_ms']/1000,tpot_s=g['tpot_ms']/1000) for g in slo['groups']]
+deployment=read(E/'physical_deployment/deployment.json')
+ready,not_ready=partition_activation_readiness(activations,requests,clock_id=deployment['clock_id'])
+decode=decode_overlap_summary(requests,ready,clock_id=deployment['clock_id'],
+    arrival_start=deployment['arrival_start_s'],thresholds=thresholds)
+windows=native_load_overlap_summary(requests,decode['requests'],clock_id=deployment['clock_id'])['requests']
+incarnations={}
+for path in (E/'physical_allocations').glob('*.jsonl'):
+    for line in path.open():
+        event=json.loads(line)
+        if event['event']!='native_workers': continue
+        for worker in event['workers']:
+            matches=[r for device in event['census']['devices'] for r in device['processes']
+                if r['pid']==worker['pid'] and r['kind']=='compute' and r['service_member']
+                and device['gpu_uuid']==worker['device_uuid']]
+            assert len(matches)==1
+            pid,ticks=worker['pid'],matches[0]['identity']['start_ticks']
+            assert pid not in incarnations or incarnations[pid]==ticks
+            incarnations[pid]=ticks
+for w in windows:
+    pid=w['worker_pid']
+    assert pid in incarnations and (E/f'diagnostic_core/{pid}-{incarnations[pid]}.jsonl').is_file()
+core=analyze_core_host_timing(E/'diagnostic_core',E/'exec_receipt.json',
+    E/'physical_deployment/deployment.json',windows,OUT/'core_timing')
+resources=[]
+with (E/'watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row['event']=='resource_sample': resources.append(row)
+assert resources and not any(r['decision']['abort_reasons'] for r in resources)
+assert all(r['service']['memory.high']==72*p.GIB and r['service']['memory.max']==80*p.GIB
+    and r['service']['memory.swap.max']==2*p.GIB for r in resources)
+audit=dict(passed=True,protocol_bound_count=100,n_correct=None,ranking_eligible=False,
+    full_performance_result=False,includes_observer_overhead=True,stats=stats,evidence=evidence,
+    core_processes=core['processes'],complete_processes=core['complete_processes'],
+    complete_request_observations=core['complete_request_observations'],
+    component_observations_complete=core['processes']==core['complete_processes']
+        and core['complete_request_observations']==100,
+    dispatch_tiers=dict(collections.Counter(r['readiness_tier_before_dispatch'] for r in requests)),
+    activation_categories=dict(collections.Counter(r['category'] for r in activations)),
+    not_ready_activations=not_ready,thresholds=thresholds,
+    remote_transfers=len(transfers),remote_wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+    request_time_pack_count=0,
+    resources=dict(samples=len(resources),peak_bytes=max(r['service']['memory.peak'] for r in resources),
+        max_swap_bytes=max(r['service']['memory.swap.current'] for r in resources),
+        events={k:max(r['service']['memory.events'][k] for r in resources) for k in ('high','max','oom','oom_kill')}),
+    source_refs={str(f):p.digest(f) for f in (source,outcome_path,E/'watchdog.jsonl',
+        RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log',Path(__file__),
+        ROOT/'scripts/analyze_control_path_overhead.py',ROOT/'scripts/ieee_tc/audit_d703_3b_full.py')})
+save(OUT/'audit.json',audit)
+print(json.dumps(dict(passed=True,native_bound_count=100,core_processes=core['processes'],
+    complete_processes=core['complete_processes'],complete_requests=core['complete_request_observations'],resources=audit['resources'])))
