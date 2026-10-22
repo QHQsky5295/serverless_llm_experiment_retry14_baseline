@@ -1,0 +1,21 @@
+INFO 10-23 06:53:25 [__init__.py:216] Automatically detected platform cuda.
+test_cancel_observation_never_submits_plan_or_reserves_movement (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement) ... 2026-10-23 06:53:26 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 06:53:26 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling (tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling) ...     remote artifact fetch b: 0.0 MB, 6.5 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-10-23 06:53:26 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 06:53:26 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 6.2 ms
+2026-10-23 06:53:27 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.229s
+
+OK

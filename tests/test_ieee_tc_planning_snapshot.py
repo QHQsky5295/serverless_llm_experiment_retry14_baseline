@@ -224,12 +224,12 @@ class PlanningSnapshot(unittest.TestCase):
                 entered.set()
                 await asyncio.Future()
             slot.engine.ieee_gpu_reference.side_effect = wait
-            with patch('faaslora.preloading.planning_cpu.execute_planning_message') as planner:
+            with patch.object(runner._stack, 'plan_ieee_owned_preparation_async', new_callable=AsyncMock) as planner:
                 task = asyncio.create_task(runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency'))
                 await entered.wait()
                 task.cancel()
                 with self.assertRaises(asyncio.CancelledError): await task
-                planner.assert_not_called()
+                planner.assert_not_awaited()
             self.assertFalse(fixture.owner.leases)
             self.assertFalse(fixture.owner.materializations)
         asyncio.run(run())
@@ -354,7 +354,7 @@ class ControlRoundFileObservation(unittest.TestCase):
                 self.assertTrue(all(r['shared_file_observation']['replicas'] == 4 for r in records))
         asyncio.run(run())
 
-    def test_cancel_current_observation_releases_planner_turn_to_sibling(self):
+    def test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling(self):
         files, runner, slots, _ = self.make(count=2)
 
         async def run():
@@ -372,19 +372,11 @@ class ControlRoundFileObservation(unittest.TestCase):
                 await entered.wait()
                 pending = runner._ieee_residency_tasks[id(slots[0].engine)]
                 sibling = runner._ieee_residency_tasks[id(slots[1].engine)]
-                # D744 deliberately serializes observation under the existing
-                # planning turn. A slow observation delays its sibling; after
-                # cancellation the sibling must continue, not inherit cancel.
-                await asyncio.sleep(0)
-                slots[1].engine.ieee_gpu_reference.assert_not_awaited()
-                self.assertFalse(sibling.done())
+                await asyncio.wait_for(asyncio.shield(sibling), 10)
                 self.assertFalse(pending.done())
                 pending.cancel()
                 with self.assertRaises(asyncio.CancelledError):
                     await pending
-                await asyncio.wait_for(asyncio.shield(sibling), 10)
-                slots[1].engine.ieee_gpu_reference.assert_awaited_once_with(
-                    operation='routing_source_snapshot')
                 self.assertEqual([r['state'] for r in runner._ieee_residency_epochs],
                                  ['cancelled', 'completed'])
                 self.assertFalse(files.owner.leases)

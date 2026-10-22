@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "restored": {
+    "faaslora/experiment/experiment_stack.py": "0f039f7b4cd99a6c7a3844de83080a561b368a61d909373f16ae0abdc26e01aa",
+    "faaslora/preloading/planning_cpu.py": "8d304ed00499385c4006c3f1543a46f6acf4893d333acbf46f2d66d2d87d611b",
+    "scripts/run_all_experiments.py": "82bee7a52f9f3887e00d62d92ee525b5b8d6157e6dadd2d9fcc241d931e5772e",
+    "tests/test_ieee_tc_planning_cpu.py": "a634c724211c7b560fc1b43e3f105cdd21b0411ed2eff57e0828722407c91308",
+    "tests/test_ieee_tc_planning_snapshot.py": "8cbc6923e952f079a4b2cad35df5897e8b9e1e0648b03199e380689842fec077",
+    "tests/test_ieee_tc_transfer_pressure.py": "3e7328d1dd0f8903c7c3f47daf1944d0ae04c176ec602458ea2462772fa4df02"
+  },
+  "parent_commit": "8a707f5b449e970bda6d71a5e8808b9a2f48ce20",
+  "rejected_candidate_commit": "efe1135344590b2485b019d8f595e9a496dbff53",
+  "rejected_performance_backup": {
+    "passed": true,
+    "head": "5b0e223916d4bf25a0dc7d343d72c06e0e49e674",
+    "ref": "refs/heads/backup/d745-complete-20261023",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/actual_profile_binding.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/analysis_resources.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/closed_outcome.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/comparison.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/full4000.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/stages/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/stages/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/diagnosis/analyze.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/diagnosis/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/diagnosis/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/diagnosis/resources.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/diagnosis/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/closure.json",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/close.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/backup_results.py.snapshot",
+      "docs/ieee_tc/D745_3B_OBSERVE_AFTER_TURN_FULL_W0_20261023.md",
+      "docs/ieee_tc/EXECUTION_STATUS.md"
+    ],
+    "v2_synchronized": false,
+    "closed_previous_scope": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "protected_publication_files": 145,
+    "remote_monitor_sha256": "69a100d6e418d23d607f927f0928972f4ca57ab51b638e44f2b091f0f2e63ff3",
+    "csv_check": "CSV CRLF and exact executed snapshot EOF preserved; sealed bytes unchanged.",
+    "protected_user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "reused_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d741_execution_view/result.json",
+    "sha256": "1123d7e3502b0eb3631b38fa7cef7d545ecdbfb34a5faa5525463f40b14e3dd6"
+  },
+  "reused_qualification_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d741_execution_view/manifest.json",
+    "sha256": "ba7c72d8883b69fa9ca5e35bd0840d217d0dbd4fe245b322523d5e57ba4d1985"
+  },
+  "reused_full_run": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/manifest.json",
+    "sha256": "c5ef41caf22aa443f15e1cf2b33778dc0256e99b83e603027c22cd729b7f1113"
+  },
+  "reused_tests": 55,
+  "new_gpu_replays": 0
+}

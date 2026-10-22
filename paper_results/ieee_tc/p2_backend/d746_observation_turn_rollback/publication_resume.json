@@ -1,0 +1,39 @@
+{
+  "reason": "Original git add rejected the explicit curated tests.log under *.log; no test or measurement failed. Other 15 intended paths were already staged. Resume only publication, preserving original script and prepared manifest.",
+  "failed_scope_identity": {
+    "unit": "primelora-tc-aux-74620261023000000000000000000002.scope",
+    "invocation_id": "1307d2c80b814335bbbf049f11e34b89",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74620261023000000000000000000002.scope",
+    "inode": 30695918
+  },
+  "failed_scope_resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74620261023000000000000000000002.scope",
+    "memory.current": 1318912,
+    "memory.peak": 51179520,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 493907\nuser_usec 365191\nsystem_usec 128715\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "failed_scope_release": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "original_manifest_sha256": "0a7c2f0675a46aa7e8836ed0610540adb105dda79531231daa7c15e5d203f52f",
+  "new_gpu_replays": 0,
+  "repeated_tests": 0
+}

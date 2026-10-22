@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "parent_commit": "8a707f5b449e970bda6d71a5e8808b9a2f48ce20",
+  "rejected_candidate_commit": "efe1135344590b2485b019d8f595e9a496dbff53",
+  "restored_sources": {
+    "faaslora/experiment/experiment_stack.py": "0f039f7b4cd99a6c7a3844de83080a561b368a61d909373f16ae0abdc26e01aa",
+    "faaslora/preloading/planning_cpu.py": "8d304ed00499385c4006c3f1543a46f6acf4893d333acbf46f2d66d2d87d611b",
+    "scripts/run_all_experiments.py": "82bee7a52f9f3887e00d62d92ee525b5b8d6157e6dadd2d9fcc241d931e5772e",
+    "tests/test_ieee_tc_planning_cpu.py": "a634c724211c7b560fc1b43e3f105cdd21b0411ed2eff57e0828722407c91308",
+    "tests/test_ieee_tc_planning_snapshot.py": "8cbc6923e952f079a4b2cad35df5897e8b9e1e0648b03199e380689842fec077",
+    "tests/test_ieee_tc_transfer_pressure.py": "3e7328d1dd0f8903c7c3f47daf1944d0ae04c176ec602458ea2462772fa4df02"
+  },
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/identity.json",
+      "sha256": "94d71e286647946e32e51cfc0aa9b5428a6af289b8f413fcba8ca0d94b416b41"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/restoration.json",
+      "sha256": "60e0a7841768d179aa4f54f38572bc4cad215b3e41ff121eb23b1f480ae4dbc4"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/result.json",
+      "sha256": "e7c0b837c2d194b9cfcfc858095d4ded6cfd759c9dafeec52f0dd059b652ac31"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/tests.log",
+      "sha256": "611dfc39f60b61f66de1e4bb54d06da65c45775b7fae5b5cc4a0c6cc7ceb4857"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/qualify.py.snapshot",
+      "sha256": "16f232dac35bbde9660d83ea9ff6870b7c9e3b2669c7acc932f1af774b4af5c2"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/backup.py.snapshot",
+      "sha256": "da86ceba37f51c122dd1083defccd6e4ede66faa6610e849b62b8b856a0fdd74"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback/closure.json",
+      "sha256": "0fb3dbaf7d6dc76e03cd047acf18178f111ee047bd910c3345c616feb6b3595f"
+    }
+  ]
+}

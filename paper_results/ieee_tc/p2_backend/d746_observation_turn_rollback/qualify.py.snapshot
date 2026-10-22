@@ -1,0 +1,92 @@
+"""Exact D741 restoration after D745 regression; reuse D739 verification flow."""
+import ast
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback'
+PARENT = '8a707f5b449e970bda6d71a5e8808b9a2f48ce20'
+REJECTED = 'efe1135344590b2485b019d8f595e9a496dbff53'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def ref(path): return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                   '--format=csv,noheader'], text=True).strip()
+OUT.mkdir(parents=True, exist_ok=False)
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'test_identity.json', own)
+save(OUT/'identity.json', own)
+
+# The preceding backup finished; never stop a populated or different scope.
+previous = RAW.parent/'d745_20261023'
+backup = read(previous/'backup_completion.json')
+assert backup['passed']
+identity = read(previous/'backup_completion_identity.json')
+path = Path(identity['path'])
+if path.exists():
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    resources = p.cgroup_snapshot(path)
+    closed = p.stop_scope_identity(identity, grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+else:
+    resources = None
+    closed = dict(already_removed=True, released=True)
+save(previous/'post_backup_release.json', dict(passed=True, identity=identity,
+    resources=resources, closure=closed, backup_head=backup['head'], backup_ref=backup['ref']))
+
+q = read(ROOT/'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch/qualification.json')
+for name, sha in q['protected'].items(): assert p.digest(Path(name)) == sha, name
+restored = {}
+for name in ('faaslora/experiment/experiment_stack.py', 'faaslora/preloading/planning_cpu.py',
+             'scripts/run_all_experiments.py', 'tests/test_ieee_tc_planning_cpu.py',
+             'tests/test_ieee_tc_planning_snapshot.py', 'tests/test_ieee_tc_transfer_pressure.py'):
+    expected = subprocess.check_output(['git', 'show', PARENT+':'+name], cwd=ROOT)
+    assert (ROOT/name).read_bytes() == expected, name
+    ast.parse(expected, filename=name)
+    restored[name] = hashlib.sha256(expected).hexdigest()
+prior = ROOT/'paper_results/ieee_tc/p2_backend/d741_execution_view'
+old = read(prior/'result.json')
+assert old['returncode'] == 0
+for name, sha in old['source_shas'].items(): assert p.digest(ROOT/name) == sha, name
+for item in read(prior/'manifest.json')['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256'], item['path']
+save(OUT/'restoration.json', dict(passed=True, restored=restored,
+    parent_commit=PARENT, rejected_candidate_commit=REJECTED,
+    rejected_performance_backup=backup, reused_qualification=ref(prior/'result.json'),
+    reused_qualification_manifest=ref(prior/'manifest.json'),
+    reused_full_run=ref(ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/manifest.json'),
+    reused_tests=55, new_gpu_replays=0))
+
+tests = [
+    'tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement',
+    'tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling',
+]
+with (OUT/'tests.log').open('x') as log:
+    result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+                            cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+for name, sha in restored.items(): assert p.digest(ROOT/name) == sha, name
+for name, sha in q['protected'].items(): assert p.digest(Path(name)) == sha, name
+resources = p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+save(OUT/'result.json', dict(returncode=result.returncode, tests=tests, resources=resources,
+    restored=restored, protected_files_unchanged=len(q['protected']),
+    new_gpu_replays=0, reused_tests=55, python=sys.executable))
+with (OUT/'qualify.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+print(json.dumps(dict(returncode=result.returncode, log=str(OUT/'tests.log'),
+                     restored_files=len(restored), reused_tests=55)))
+raise SystemExit(result.returncode)

@@ -956,22 +956,14 @@ class ExperimentStack:
             content_sha_by_adapter=content_sha_by_adapter, profiles=profiles, costs=costs,
             demand=self.hotness_tracker.snapshot())
 
-    async def plan_ieee_owned_preparation_async(self, *, observe=None, **received):
+    async def plan_ieee_owned_preparation_async(self, **received):
         """Freeze one ingress/cost epoch, then compute without blocking requests.
 
         This only changes execution placement. A returned plan is not a claim on
         current storage; unchanged native/file execution rechecks remain required.
         """
-        from ..preloading.planning_cpu import (
-            freeze_owned_planning, run_planning_cpu, run_observed_planning_cpu)
+        from ..preloading.planning_cpu import freeze_owned_planning, run_planning_cpu
         self._require_proactive_file_policy()
-        if observe is not None:
-            if received:
-                raise ValueError('observed preparation cannot also accept a pre-captured epoch')
-            async def capture():
-                current = await observe()
-                return freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **current)
-            return await run_observed_planning_cpu(self, capture)
         args = freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **received)
         return await run_planning_cpu(self, 'owned_execution_epoch', args)
 

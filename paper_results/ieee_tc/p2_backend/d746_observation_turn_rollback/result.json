@@ -1,0 +1,41 @@
+{
+  "returncode": 0,
+  "tests": [
+    "tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement",
+    "tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling"
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74620261023000000000000000000001.scope",
+    "memory.current": 77467648,
+    "memory.peak": 592486400,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9397852\nuser_usec 8194895\nsystem_usec 1202957\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "restored": {
+    "faaslora/experiment/experiment_stack.py": "0f039f7b4cd99a6c7a3844de83080a561b368a61d909373f16ae0abdc26e01aa",
+    "faaslora/preloading/planning_cpu.py": "8d304ed00499385c4006c3f1543a46f6acf4893d333acbf46f2d66d2d87d611b",
+    "scripts/run_all_experiments.py": "82bee7a52f9f3887e00d62d92ee525b5b8d6157e6dadd2d9fcc241d931e5772e",
+    "tests/test_ieee_tc_planning_cpu.py": "a634c724211c7b560fc1b43e3f105cdd21b0411ed2eff57e0828722407c91308",
+    "tests/test_ieee_tc_planning_snapshot.py": "8cbc6923e952f079a4b2cad35df5897e8b9e1e0648b03199e380689842fec077",
+    "tests/test_ieee_tc_transfer_pressure.py": "3e7328d1dd0f8903c7c3f47daf1944d0ae04c176ec602458ea2462772fa4df02"
+  },
+  "protected_files_unchanged": 145,
+  "new_gpu_replays": 0,
+  "reused_tests": 55,
+  "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python"
+}

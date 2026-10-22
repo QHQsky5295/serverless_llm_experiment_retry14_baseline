@@ -1,0 +1,81 @@
+"""D746 explicit rollback checkpoint, reusing D739 closure/backup procedure."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d746_observation_turn_rollback'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+save(RAW/'backup_identity.json', p.scope_identity(p.cg_path().name))
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+identity = read(RAW/'test_identity.json')
+path = Path(identity['path'])
+if path.exists():
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    resources = p.cgroup_snapshot(path)
+    closed = p.stop_scope_identity(identity, grace_seconds=0)
+    assert closed['released'] and not closed['targets'] and not path.exists()
+else:
+    resources = None
+    closed = dict(already_removed=True, released=True)
+result = read(OUT/'result.json')
+assert result['returncode'] == 0 and len(result['tests']) == 2
+assert 'Ran 2 tests in 0.229s' in (OUT/'tests.log').read_text()
+restore = read(OUT/'restoration.json')
+assert restore['passed']
+for name, sha in restore['restored'].items(): assert p.digest(ROOT/name) == sha, name
+q = read(ROOT/'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch/qualification.json')
+for name, sha in q['protected'].items(): assert p.digest(Path(name)) == sha, name
+for name in ('qualify.py', 'backup.py'): ast.parse((RAW/name).read_text())
+with (OUT/'backup.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+save(OUT/'closure.json', dict(passed=True, new_tests=2, reused_tests=55,
+    protected_files=len(q['protected']), identity=identity, resources=resources,
+    closure=closed, new_gpu_replays=0, primary_targets_achieved=False,
+    user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json')))
+files = [OUT/name for name in ('identity.json', 'restoration.json', 'result.json',
+                              'tests.log', 'qualify.py.snapshot', 'backup.py.snapshot', 'closure.json')]
+save(OUT/'manifest.json', dict(passed=True, parent_commit=restore['parent_commit'],
+    rejected_candidate_commit=restore['rejected_candidate_commit'], restored_sources=restore['restored'],
+    files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path)) for path in files]))
+files.append(OUT/'manifest.json')
+files += [ROOT/name for name in restore['restored']]
+files += [ROOT/'docs/ieee_tc/D746_OBSERVATION_TURN_ROLLBACK_20261023.md',
+          ROOT/'docs/ieee_tc/EXECUTION_STATUS.md']
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files: assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *paths])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [path for path in paths if not path.endswith('.snapshot')]
+snapshots = [path for path in paths if path.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW/'backup_precommit.json', dict(passed=True, paths=paths, protected_files=len(q['protected'])))
+call(['git', 'commit', '-m', 'tc: withdraw D744 observation-turn candidate after full D745 regression'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d746-observation-turn-rollback-20261023'
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup_completion.json', dict(passed=True, head=head, ref=ref, files=paths, v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

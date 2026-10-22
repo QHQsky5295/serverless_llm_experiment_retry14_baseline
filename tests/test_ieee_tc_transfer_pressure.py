@@ -33,19 +33,12 @@ def setUpModule():
         if operation == 'owned_execution_epoch':
             return ValidatedPreparationPlan._from_worker_result(value, receipt)
         return pickle.loads(value)
-    async def observed_inline(worker, limit, observe):
-        async with worker._lock:
-            return await inline(worker, 'owned_execution_epoch', limit, await observe())
-    global _planning_cpu_patch, _observed_planning_cpu_patch
+    global _planning_cpu_patch
     _planning_cpu_patch = patch('faaslora.preloading.planning_cpu.IEEEPlanningCPU.run', inline)
     _planning_cpu_patch.start()
-    _observed_planning_cpu_patch = patch(
-        'faaslora.preloading.planning_cpu.IEEEPlanningCPU.run_observed_owned', observed_inline)
-    _observed_planning_cpu_patch.start()
 
 
 def tearDownModule():
-    _observed_planning_cpu_patch.stop()
     _planning_cpu_patch.stop()
 
 
