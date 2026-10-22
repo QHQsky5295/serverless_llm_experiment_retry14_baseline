@@ -1,0 +1,10 @@
+test_current_d732_configuration_only_changes_three_paths (tests.test_ieee_tc_d456_diagnostic_contract.D734DiagnosticContract.test_current_d732_configuration_only_changes_three_paths) ... ok
+test_original_prefix_and_only_existing_stack_observer (tests.test_ieee_tc_d456_diagnostic_contract.D734DiagnosticContract.test_original_prefix_and_only_existing_stack_observer) ... ok
+test_launcher_registers_only_original_prefix (tests.test_ieee_tc_d456_diagnostic_contract.D456DiagnosticContract.test_launcher_registers_only_original_prefix) ... ok
+test_only_exclusive_paths_differ_from_d371 (tests.test_ieee_tc_d456_diagnostic_contract.D456DiagnosticContract.test_only_exclusive_paths_differ_from_d371) ... ok
+test_wrapper_retains_qualification_and_frames_boundary (tests.test_ieee_tc_d456_diagnostic_contract.D456DiagnosticContract.test_wrapper_retains_qualification_and_frames_boundary) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.037s
+
+OK

@@ -191,6 +191,35 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D734DiagnosticContract(unittest.TestCase):
+    def test_current_d732_configuration_only_changes_three_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d732_3b_round_file_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d734_3b_controller_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d734', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_original_prefix_and_only_existing_stack_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d734\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertEqual(shell.count(' || "${1:-d293}" == d734'), 3)
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        tag = 'd734_3b_controller_prefix1000'
+        self.assertEqual(wrapper.count(tag), 2)
+        branch = re.search(r'if \[\[ (.*?)\]\]; then\n(.*?)\nelse', wrapper, re.S)
+        self.assertIn(tag, branch.group(1))
+        self.assertIn('export FAASLORA_TC_STACK_SAMPLING=python_frames_v1', branch.group(2))
+        self.assertIn('unset FAASLORA_TC_CORE_TIMING', branch.group(2))
+        self.assertIn('test "${FAASLORA_FORMAL_RUN:-}" = 0', wrapper)
+
+
 class D723DiagnosticContract(unittest.TestCase):
     def test_current_configuration_only_changes_three_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml').read_text())

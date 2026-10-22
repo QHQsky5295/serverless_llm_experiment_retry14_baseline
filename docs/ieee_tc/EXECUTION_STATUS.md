@@ -1,5 +1,21 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D734已登记：当前3B controller原1000前缀观察，尚未启动
+
+PROGRESS。完整PLAN/补充/V1V2重读；用户共享k3s归属回复已由既有隔离
+决定落实，不重开HydraServe适配或触碰共享集群。D733最后备份scope按
+InvocationID/inode/空PID核验关闭，backup389a6aa已保存，不force V2。
+
+按D733的具体未解问题，只登记一次当前D732配置的原1000前缀stack观察；
+保持所有系统参数、九公式、负载/工件/生成，仅换三个工作路径。复用原2秒
+Python frame/source边界观察器，不增原生HOST/step插桩、不重做广泛资格。
+小范围配置/入口测试、保护文件/资源检查及显式备份后才启动；此时未启动。
+诊断不作性能排名，不将采样频次当CPU时间，不从时延扣除观察开销。
+
+当前3B完整仍D73292.500%，数值正确性未知、n_correct=null；未达标，不关闭
+G1/G2。其他3B/7B版本一致性/baseline/dLoRA/A1–A5/S1–S13/CE/审稿与图表
+范围不减。详见D734_3B_CONTROLLER_PREFIX_DIAGNOSTIC_20261022.md。
+
 ## 2026-10-22 D733离线区间核对完成：不把文件观察当作主要剩余原因
 
 PROGRESS。先读完整PLAN，复用D732全4000、1629轮文件观察与3884条规划

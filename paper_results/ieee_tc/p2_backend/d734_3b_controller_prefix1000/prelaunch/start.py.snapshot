@@ -1,0 +1,110 @@
+"""D734: reuse D732's bounded validation/backup/start sequence, no new runtime."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d734_3b_controller_prefix1000/prelaunch'
+PYTHON = '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+events_before = (group/'memory.events').read_text()
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not call(['git', 'diff', '--cached', '--name-only'])
+assert not call(['git', 'diff', '--name-only', 'HEAD', '--', 'faaslora', 'scripts/run_all_experiments.py'])
+assert not (RAW/'3b_controller_prefix1000').exists()
+assert not Path('/dev/shm/tc-d734-3b-prefix1000').exists()
+OUT.mkdir(parents=True, exist_ok=False)
+previous = read(ROOT/'paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/qualification.json')
+refs = {name: sha for name, sha in previous['refs'].items()
+        if name != str(ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh')}
+for name, sha in (refs | previous['protected']).items():
+    assert p.digest(Path(name)) == sha, name
+files = [
+    'configs/ieee_tc/20261022_d734_3b_controller_prefix1000.yaml',
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'scripts/ieee_tc/profile_d328_controller_python.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'docs/ieee_tc/D734_3B_CONTROLLER_PREFIX_DIAGNOSTIC_20261022.md',
+    'docs/ieee_tc/EXECUTION_STATUS.md',
+]
+for name in files:
+    refs[str(ROOT/name)] = p.digest(ROOT/name)
+for name in ('scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+             'scripts/ieee_tc/profile_d328_controller_python.sh'):
+    call(['bash', '-n', str(ROOT/name)])
+for path in sorted(RAW.iterdir()):
+    if path.suffix not in ('.py', '.sh'):
+        continue
+    if path.suffix == '.py': ast.parse(path.read_text())
+    else: call(['bash', '-n', str(path)])
+    with (OUT/(path.name+'.snapshot')).open('xb') as f: f.write(path.read_bytes())
+    refs[str(path)] = p.digest(path)
+with (OUT/'tests.txt').open('x') as log:
+    subprocess.run([PYTHON, '-B', '-m', 'unittest',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D734DiagnosticContract',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D456DiagnosticContract', '-v'],
+        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=55)
+assert (group/'memory.events').read_text() == events_before
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'qualification.json', dict(passed=True, identity=own, refs=refs,
+    protected=previous['protected'], targeted_tests=5, full_source_count=4000,
+    diagnostic_prefix_count=1000, inference_policy_unchanged=True,
+    new_production_instrumentation=False, cpu_time_profile=False,
+    formal_performance_result=False, resources={key: (group/key).read_text().strip()
+        for key in ('memory.peak', 'memory.events', 'memory.swap.current')}))
+members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in files:
+    assert not secret.search((ROOT/name).read_text()), name
+assert 'configs/generated/lora_manifest_1000.json' not in files
+call(['git', 'diff', '--check', '--', *files])
+call(['git', 'add', '--', *files])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(files)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: register one current 3B controller-prefix diagnostic (D734)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+branch = 'refs/heads/backup/d734-controller-prefix-20261022'
+save(RAW/'commit.json', dict(head=head, ref=branch, files=files))
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+branch])
+assert call(['git', 'ls-remote', 'faaslora_origin', branch]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=branch, files=files, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d734-3b-controller-prefix1000'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT),
+      shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=branch,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=branch, tmux=session)))
