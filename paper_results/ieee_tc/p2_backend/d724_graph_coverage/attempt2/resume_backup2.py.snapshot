@@ -1,0 +1,39 @@
+"""Complete the interrupted backup; preserve native log whitespace byte-for-byte."""
+import json,os,shlex,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/attempt1'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name);save(RAW/'backup2_resume_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+paths=[str(f.relative_to(ROOT)) for f in sorted(OUT.iterdir())]+['docs/ieee_tc/D724_3B_GRAPH_COVERAGE_20261022.md']
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+manifest=json.loads((OUT/'manifest.json').read_text())
+for item in manifest['files']:assert p.digest(ROOT/item['path'])==item['sha256']
+log=str((OUT/'worker.log.snapshot').relative_to(ROOT))
+call(['git','diff','--cached','--check','--',*[s for s in paths if s!=log]])
+assert p.digest(OUT/'worker.log.snapshot')==p.digest(Path('/tmp/faaslora_worker_mdpxe397/worker.log'))
+call(['git','-c','core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol','diff','--cached','--check','--',log])
+call(['git','commit','-m','tc: preserve graph qualification startup failure and restore qualified tool PATH (D724)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d724-graph-coverage-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup2.json',dict(passed=True,head=head,ref=ref,files=paths,
+    native_log_bytes_preserved=True,source_sha256={str(RAW/'launch_env2.py'):p.digest(RAW/'launch_env2.py')}))
+gate=p.preflight([ROOT,RAW],2*p.GIB);save(RAW/'start2_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+session='tc-d724-graph-native16-env2'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+command=['systemd-run','--user','--scope','--collect',
+ '--unit=primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope',
+ '-p','MemoryHigh=3G','-p','MemoryMax=4G','-p','MemorySwapMax=0',
+ 'taskset','-c','2,3,26,27','/usr/bin/python3','-B',str(RAW/'launch_env2.py')]
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(command)])
+save(RAW/'start2_receipt.json',dict(launched=True,head=head,tmux=session,command=command,identity=own))
+print(json.dumps(dict(launched=True,tmux=session,head=head)))

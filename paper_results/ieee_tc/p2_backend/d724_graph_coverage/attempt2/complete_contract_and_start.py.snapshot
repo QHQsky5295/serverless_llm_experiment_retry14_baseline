@@ -1,0 +1,77 @@
+"""Restore the already qualified common launch contract, preserving both failures."""
+import ast,json,os,re,shlex,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/attempt2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name);save(RAW/'contract3_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=json.loads((RAW/'qualification.json').read_text())
+for path,sha in q['refs'].items():assert p.digest(Path(path))==sha,path
+closed=[]
+for name in ('start2_identity.json','backup2_identity.json','backup2_resume_identity.json'):
+    identity=json.loads((RAW/name).read_text())
+    assert not p.owned_pids(Path(identity['path']))
+    receipt=p.stop_scope_identity(identity,grace_seconds=0)
+    assert receipt['released'] and not receipt['targets']
+    closed.append(dict(identity=identity,receipt=receipt))
+save(RAW/'attempt2_scope_closures.json',dict(passed=True,closed=closed))
+launch=json.loads((RAW/'native_launch2.json').read_text());native=json.loads((RAW/'native_execution2.json').read_text())
+assert launch['pass'] is False and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert native['stage']=='engine_initialization' and not native['requests']
+OUT.mkdir(parents=True,exist_ok=False)
+log=Path('/tmp/faaslora_worker_rhhwfqyd/worker.log')
+for source in (log,RAW/'launch_env3.py',Path(__file__),RAW/'resume_backup2.py'):
+    with (OUT/(source.name+'.snapshot')).open('xb') as f:f.write(source.read_bytes())
+for source in (RAW/'launch_env3.py',Path(__file__)):ast.parse(source.read_text())
+toolchain=ROOT/'configs/ieee_tc/native_toolchain_cuda130_v1.json'
+env,binding=bind_native_toolchain(os.environ,python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python',
+    contract=str(toolchain),expected_sha='328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c')
+child,child_binding=bind_native_toolchain(env,python=binding['python'])
+assert child==env and child_binding==binding
+save(OUT/'toolchain_binding.json',binding)
+with (RAW/'toolchain_tests.log').open('x') as f:
+    test=subprocess.run(['/usr/bin/python3','-B','-m','unittest','tests.test_tc_native_toolchain','-v'],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT)
+assert test.returncode==0
+save(OUT/'failure_and_contract.json',dict(passed_contract=True,stage=native['stage'],requests=0,
+    prior_error=native['error'],classification='protocol_or_launcher_error',
+    native_gpu_context_release_confirmed=True,service_path_removed=True,
+    startup_protection_before_s=180,startup_protection_existing_s=600,
+    toolchain_contract_sha256=p.digest(toolchain),policy_changed=False,tests_passed=8,
+    refs={str(f):p.digest(f) for f in (RAW/'native_launch2.json',RAW/'native_execution2.json',log,RAW/'toolchain_tests.log')},
+    scope_closures=closed))
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+paths=[str(f.relative_to(ROOT)) for f in sorted(OUT.iterdir())]+['docs/ieee_tc/D724_3B_GRAPH_COVERAGE_20261022.md']
+assert not call(['git','diff','--cached','--name-only'])
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:assert not pattern.search((ROOT/path).read_text()),path
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+native_log=str((OUT/'worker.log.snapshot').relative_to(ROOT))
+call(['git','diff','--cached','--check','--',*[s for s in paths if s!=native_log]])
+assert p.digest(OUT/'worker.log.snapshot')==p.digest(log)
+call(['git','-c','core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol','diff','--cached','--check','--',native_log])
+call(['git','commit','-m','tc: bind existing shared toolchain and startup contract for graph qualification (D724)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d724-graph-coverage-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup3.json',dict(passed=True,head=head,ref=ref,files=paths,
+    source_sha256={str(RAW/'launch_env3.py'):p.digest(RAW/'launch_env3.py')}))
+gate=p.preflight([ROOT,RAW],2*p.GIB);save(RAW/'start3_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+session='tc-d724-graph-native16-contract3'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+command=['systemd-run','--user','--scope','--collect',
+ '--unit=primelora-tc-aux-8ee77489489449dba10114341bcbd724.scope',
+ '-p','MemoryHigh=3G','-p','MemoryMax=4G','-p','MemorySwapMax=0',
+ 'taskset','-c','2,3,26,27','/usr/bin/python3','-B',str(RAW/'launch_env3.py')]
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(command)])
+save(RAW/'start3_receipt.json',dict(launched=True,head=head,tmux=session,command=command,identity=own))
+print(json.dumps(dict(launched=True,tmux=session,head=head)))

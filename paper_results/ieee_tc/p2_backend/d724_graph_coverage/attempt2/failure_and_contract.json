@@ -1,0 +1,61 @@
+{
+  "passed_contract": true,
+  "stage": "engine_initialization",
+  "requests": 0,
+  "prior_error": "native worker lifetime unqualified; physical lease retained",
+  "classification": "protocol_or_launcher_error",
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "startup_protection_before_s": 180,
+  "startup_protection_existing_s": 600,
+  "toolchain_contract_sha256": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+  "policy_changed": false,
+  "tests_passed": 8,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch2.json": "efde6cf04792633307b14df6b7f2a827a0de638346e2f22d576908df66f0e208",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_execution2.json": "7be5883a65c1122c0cfeac16ce1faebb6235df982e1120a7abf06697ff009118",
+    "/tmp/faaslora_worker_rhhwfqyd/worker.log": "4f7987a699db0f6ce7163ee017a165d45d5bbd95f5759fc2160909c4da3bfad3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/toolchain_tests.log": "698ed10f0d72795ec6e1f1d89a483f53fd653971ff6477386d0c6b7e48468338"
+  },
+  "scope_closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope",
+        "invocation_id": "45180b816c8c43d4bce3a2ec4cf5699e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope",
+        "inode": 30215621
+      },
+      "receipt": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-c9639622cd394b6baf5a8f0790ac3724.scope",
+        "invocation_id": "804fec3f306c4bfbb05242e77695dd2e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c9639622cd394b6baf5a8f0790ac3724.scope",
+        "inode": 30215142
+      },
+      "receipt": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-e12367c42161403c862291a5cbe3a724.scope",
+        "invocation_id": "3eb3e3c3a92a40f7b0e8d123d0917dcb",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-e12367c42161403c862291a5cbe3a724.scope",
+        "inode": 30215579
+      },
+      "receipt": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ]
+}
