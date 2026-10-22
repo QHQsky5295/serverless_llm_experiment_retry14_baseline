@@ -255,11 +255,33 @@ def retained_routing_attempts(request, *, clock_id):
                 if conflict['acquired'] is not False or conflict['clock_id'] != clock_id:
                     raise ValueError('GPU rejection receipt differs from the attempt')
                 reason = 'gpu:' + conflict['reason']
-            else:
+            elif 'file_source_conflict' in attempt:
+                # The controller rejects changed file publications before any
+                # source lease is acquired. This is not a native HOST receipt.
+                # See _ieee_protect_selected_source / acquire_confirmed.
+                conflict = attempt['file_source_conflict']
+                expected_tiers = {
+                    'confirmed file source owner/epoch changed': ('host', 'nvme'),
+                    'Remote source view changed before admission': ('remote',),
+                }
+                if (not isinstance(conflict, str) or conflict not in expected_tiers
+                        or source['native'] is not False
+                        or source['tier'] not in expected_tiers[conflict]
+                        or source['owner_id'] != selected['file_owner_id']
+                        or source['epoch'] != selected['file_epoch']
+                        or not isinstance(source['owner_id'], str) or not source['owner_id']
+                        or type(source['epoch']) is not int or source['epoch'] < 0
+                        or 'local_source_reference' in attempt
+                        or 'native_host_source' in attempt):
+                    raise ValueError('file rejection differs from selected unacquired source')
+                reason = 'file:' + conflict
+            elif 'native_host_source' in attempt:
                 conflict = attempt['native_host_source']['conflict']
                 if conflict['held'] is not False or conflict['clock_id'] != clock_id:
                     raise ValueError('HOST rejection receipt differs from the attempt')
                 reason = 'host:' + conflict['reason']
+            else:
+                raise ValueError('prior routing attempt lacks a recognized rejection receipt')
         pending = attempt['pending_kv_admission']
         opened, closed = pending['receipt'], pending['close_receipt']
         final = closed['receipt']
@@ -361,6 +383,77 @@ def diagnose_routing_retries(raw: Path, output: Path, stage_audit: Path) -> None
     with (output/'diagnosis.json').open('x') as handle:
         json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
     print(json.dumps(dict(output=str(output),attempt_reasons=report['attempt_reasons'],groups=groups)))
+
+
+def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_path: Path) -> None:
+    """Stream the original D703 profile checks after a strict full native audit."""
+    import ijson
+    if output.exists():
+        raise FileExistsError(output)
+    metric = read(metric_audit)
+    if (metric['source_run'] != str(raw) or metric['passed'] is not True
+            or metric['counts']['n'] != 4000):
+        raise ValueError('complete same-run native metric audit required')
+    source = next(x for x in metric['source_refs']
+                  if Path(x['path']).name.startswith('experiment_results_full'))
+    result = Path(source['path'])
+    if digest(result) != source['sha256']:
+        raise ValueError('metric source changed')
+    config = __import__('yaml').safe_load(config_path.read_text())
+    service_sha, preparation_sha = digest(SERVICE_PROFILE), digest(PREPARATION_PROFILE)
+    rc = config['resource_coordination']
+    if (rc['ieee_service_profile']['sha256'] != service_sha
+            or rc['ieee_preparation_profile']['sha256'] != preparation_sha
+            or Path(config['experiment']['output_dir']).resolve() != raw.resolve()
+            or read(PROFILE_MANIFEST)['development_only'] is not True):
+        raise ValueError('config/run/D701 profile binding differs')
+    service_payload, prep_payload = read(SERVICE_PROFILE), read(PREPARATION_PROFILE)
+    service = FrozenServiceProfiles.load(SERVICE_PROFILE, expected_sha256=service_sha,
+        model_config=service_payload['model_config'], expected_context=service_payload['context'], beta=0.5)
+    preparation = FrozenPreparationProfiles.load(PREPARATION_PROFILE, expected_sha256=preparation_sha,
+        model_config=prep_payload['model_config'], expected_context=prep_payload['context'], beta=0.5)
+    if len(service.profiles) != 160 or len(preparation.profiles) != 96:
+        raise ValueError('D701 profile cardinality changed')
+    outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
+    with outcome.open('rb') as handle:
+        contract = next(ijson.items(handle, 'launch_contract', use_float=True))
+    if (contract['contract'] != 'ieee_full_integrated_replay_v1'
+            or contract['replay_scope'] != 'full_source_v1'
+            or contract['service_profile_id'] != service_sha
+            or contract['preparation_profile_id'] != preparation_sha):
+        raise ValueError('launch contract/profile mismatch')
+    ids, service_classes, preparation_classes = set(), set(), set()
+    tiers = collections.Counter()
+    with result.open('rb') as handle:
+        for row in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rid = row['request_id']
+            if rid in ids:
+                raise ValueError('duplicate profile audit request')
+            ids.add(rid)
+            admission = row['gpu_reference_evidence']['source_admission']
+            source = admission['source']
+            key = ServiceObservationClass(**admission['service_class'])
+            if key not in service.profiles or key.tier != source['tier']:
+                raise ValueError('unsupported/mismatched service class')
+            service_classes.add(key)
+            tiers[source['tier']] += 1
+            if source['tier'] != 'gpu':
+                key = FrozenPreparationProfiles.source_class(source, preparation.size_edges_bytes)
+                if key not in preparation.profiles:
+                    raise ValueError('unsupported preparation class')
+                preparation_classes.add(key)
+    if ids != {f'req_{i:05d}' for i in range(4000)}:
+        raise ValueError('full offered profile population required')
+    report = dict(kind='d719_full_profile_binding_audit_v1', passed=True, source_run=str(raw),
+        n=len(ids), tiers=dict(tiers), service_classes=len(service_classes),
+        preparation_classes=len(preparation_classes), numerical_correctness_qualified=False,
+        ranking_eligible=False, performance_execution=False,
+        source_refs=[ref(x) for x in (result, outcome, metric_audit, config_path, SERVICE_PROFILE,
+            PREPARATION_PROFILE, PROFILE_MANIFEST, Path(__file__))])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps({k:v for k,v in report.items() if k != 'source_refs'}))
 
 
 def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
@@ -919,6 +1012,8 @@ if __name__ == "__main__":
     parser.add_argument('--calibrate-control-lower', type=Path)
     parser.add_argument('--reevaluate-common-slo', type=Path)
     parser.add_argument('--audit-closed-outcome', type=Path)
+    parser.add_argument('--audit-profile-bindings', type=Path)
+    parser.add_argument('--config', type=Path)
     parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--stage-audit', type=Path)
@@ -926,9 +1021,13 @@ if __name__ == "__main__":
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.diagnose_common_slo, args.diagnose_routing_retries)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_routing_retries is not None:
+    if args.audit_profile_bindings is not None:
+        if args.metric_audit is None or args.config is None:
+            parser.error('--metric-audit and --config are required for --audit-profile-bindings')
+        audit_profile_bindings(args.raw, args.audit_profile_bindings, args.metric_audit, args.config)
+    elif args.diagnose_routing_retries is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-routing-retries')
         diagnose_routing_retries(args.raw, args.diagnose_routing_retries, args.stage_audit)

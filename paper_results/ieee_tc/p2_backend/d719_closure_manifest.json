@@ -1,0 +1,73 @@
+{
+  "kind": "d719_closure_bundle_manifest_v1",
+  "passed": true,
+  "performance_qualified": false,
+  "numerical_correctness_qualified": false,
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_common_slo/analysis_execution_receipt.json",
+      "sha256": "bec8dc2bf5422b4534a05df10a17e5d0ebae63a161fadf297dd382495cf9e105",
+      "bytes": 3613
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_common_slo/closed_outcome.json",
+      "sha256": "63520259de70bb0a60f7b78cffb518e95b09d881902dcbf043e2c844c4ef5e2e",
+      "bytes": 6622
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_common_slo/full4000.json",
+      "sha256": "eb95ee06a498c435e3af9f548801214e9645a626a332e7f1ec81fa95bcb91006",
+      "bytes": 102734
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_common_slo/profile_bindings.json",
+      "sha256": "39897e07966bf1005ed62f8270b5e27b7ec246aa25027b3dda634b9733d3c3ed",
+      "bytes": 2557
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_stage_diagnosis/diagnosis.json",
+      "sha256": "fc370841216ce478af721fa2fa6d098417e40fbb150da930d775e92c434d951e",
+      "bytes": 236627
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_stage_diagnosis/requests.csv",
+      "sha256": "192d96ca50c576c9300e99ebe03c4974501c891a89d62fb493c613c2ceab8e36",
+      "bytes": 2440100
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_routing_retries/analyzer_source.py.snapshot",
+      "sha256": "9876b9694f6fd438fa2e6e16d59caca714304e6fbada682782697a6f50998bd5",
+      "bytes": 58960
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_routing_retries/attempts.csv",
+      "sha256": "25781dfc0edffe82047a0ea8940b27987280ec156d1d556b7b20b2bfa909a0de",
+      "bytes": 32396
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_routing_retries/diagnosis.json",
+      "sha256": "daf0249f9f6c2506eee85652bb28d583f3f2ab0dd20623e5c15ebfb6f632cce7",
+      "bytes": 14064
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d719_routing_retries/requests.csv",
+      "sha256": "b3cf1e1ea70edd8810f5451427b53833aeb62db0fb9c65bb203f49c25c700e80",
+      "bytes": 436437
+    },
+    {
+      "path": "scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3ae72371c116671a1d7c2b1e7e0cc3297b9f31e5180ca619ca4572c206e49243",
+      "bytes": 63823
+    },
+    {
+      "path": "tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "bee140a0bb7345a2a971ec57e817ac4ffc267fc31f48a16a4568b7842dba5bcd",
+      "bytes": 22807
+    },
+    {
+      "path": "docs/ieee_tc/D718_D719_3B_IDENTITY_VALIDATION_20261022.md",
+      "sha256": "38a65058d5071dfadb1014b3e1303eb7d53512c42cf4efdde63e45aa95650b0f",
+      "bytes": 12032
+    }
+  ]
+}

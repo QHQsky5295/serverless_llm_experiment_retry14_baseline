@@ -1,0 +1,81 @@
+{
+  "kind": "d719_offline_closure_receipt_v1",
+  "recorded_date": "2026-10-22",
+  "performance_execution_added": false,
+  "production_code_changed_during_analysis": false,
+  "prior_analysis_failures": [
+    {
+      "unit": "primelora-tc-d719-retries1.scope",
+      "outcome": "parser_missing_supported_record_shape",
+      "error_excerpt": "KeyError: 'native_host_source'",
+      "location": "retained_routing_attempts, audit_d703_3b_full.py",
+      "actual_record": "file_source_conflict",
+      "memory_peak_bytes": 609107968,
+      "inference_failure": false
+    },
+    {
+      "unit": "primelora-tc-d719-retry-inspect1.scope",
+      "outcome": "invalid_inspection_wrong_nesting",
+      "detail": "Read request.prior_routing_attempts rather than request.gpu_reference_evidence.prior_routing_attempts; empty output is not evidence of zero retries.",
+      "memory_peak_bytes": 7794688
+    },
+    {
+      "unit": "primelora-tc-d719-retry-inspect2.scope",
+      "outcome": "wrong_python_environment",
+      "error_excerpt": "ModuleNotFoundError: No module named 'ijson'",
+      "memory_peak_bytes": 5132288,
+      "inference_failure": false
+    }
+  ],
+  "successful_inspection": {
+    "unit": "primelora-tc-d719-retry-inspect3.scope",
+    "memory_peak_bytes": 7876608,
+    "requests": 4000,
+    "retained_attempts": 144,
+    "record_shapes": {"native_host_source": 43, "last_conflict": 82, "native_source_conflict": 8, "file_source_conflict": 11}
+  },
+  "successful_analysis_memory_peak_bytes": {
+    "metrics1": 712056832,
+    "context1": 595283968,
+    "stages1": 612945920,
+    "retries2": 618737664,
+    "profile1": 626360320
+  },
+  "tests": {
+    "parser_stage": {"passed": 92, "seconds": 8.91, "memory_peak_bytes": 604311552},
+    "final": {
+      "passed": 192,
+      "seconds": 10.34,
+      "memory_peak_bytes": 627007488,
+      "junit": "results/ieee_tc/p2_backend_qualification/d719_20261022/analysis_tests.xml",
+      "junit_sha256": "4aaf6201f81435912a22aeea721c972cb09d5733d692aee2551cab956bb9a6f1"
+    }
+  },
+  "analysis_resource_envelope": {
+    "gpu_visible": false,
+    "cpus": "2,3,26,27",
+    "analysis_memory_high_max_gib": [3, 4],
+    "inspection_memory_high_max_mib": [512, 1024],
+    "swap_max_bytes": 0,
+    "observed_high_max_oom_events": 0,
+    "owned_scopes_empty_before_stop": true
+  },
+  "retry_analyzer_source": {
+    "path": "paper_results/ieee_tc/p2_backend/d719_routing_retries/analyzer_source.py.snapshot",
+    "sha256": "9876b9694f6fd438fa2e6e16d59caca714304e6fbada682782697a6f50998bd5",
+    "detail": "Reconstructed parser-only version after adding the independent profile mode; exact SHA verified against the previously emitted retry report. Existing report not rewritten."
+  },
+  "protection": {
+    "old_publication_files_checked": 144,
+    "changed": 0,
+    "manifest_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "production_runner_sha256": "6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd",
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "decision": "Preserve consistency repair and full regression evidence; not G1 qualified, no same-key rerun or performance acceptance. Return to main pre-engine-wait and short-decode diagnosis.",
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false
+}

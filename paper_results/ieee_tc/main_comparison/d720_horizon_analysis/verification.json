@@ -1,0 +1,36 @@
+{
+  "kind": "d720_closed_csv_horizon_analysis_v1",
+  "passed": true,
+  "unique_runs": ["D703", "D551", "D554", "D598"],
+  "unique_request_rows": 16000,
+  "prefix_rows": 36,
+  "prefix_lengths": [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000],
+  "duplicate_D554_sources_equal": true,
+  "source_sha_all_match": true,
+  "source_refs": [
+    {"path": "paper_results/ieee_tc/p2_backend/d716_common_slo_diagnosis/requests.csv", "sha256": "39b7e2969dfd2d5754c483f271c139dd9ef4728f6a7313a0df73da827c05520a"},
+    {"path": "paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/request_stages.csv", "sha256": "f3946a89b8bd7d23a3861462b49c6cc565d721c4de96e7ca794a5a390a94d62f"},
+    {"path": "paper_results/ieee_tc/main_comparison/d600_parallel_pressure_diagnosis/request_stages.csv", "sha256": "dd9d439055143eddffc72e25f8b9759a81b54c8f856689898b41f73c66acfb45"}
+  ],
+  "prefixes_csv_sha256": "355a17f616e27235314ec8f730e38537e2a7328426e27bbe97517fb747e48dfa",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "new_gpu_runs": 0,
+  "production_changed": false,
+  "formal_workload_length_changed": false,
+  "independent_short_run_measured": false,
+  "prefix_gpu_lifecycle_inferred": false,
+  "full_baseline_short_horizon_ranking_established": false,
+  "independent_numerical_correctness_established": false,
+  "confidence_intervals": false,
+  "scopes": [
+    {"unit": "primelora-tc-d720-prefix-read1.scope", "peak_bytes": 67878912, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "swap_bytes": 0, "recursive_empty_before_stop": true},
+    {"unit": "primelora-tc-d720-prefix-verify1.scope", "peak_bytes": 68984832, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "swap_bytes": 0, "recursive_empty_before_stop": true}
+  ],
+  "limitations": [
+    "Descriptive nested prefixes of four historical PrimeLoRA runs, not independent short-run measurements.",
+    "No universal minimum sample count or complete external-baseline ranking stability is established.",
+    "D719 remains active under its registered 4000-request contract; no early performance decision was made."
+  ]
+}

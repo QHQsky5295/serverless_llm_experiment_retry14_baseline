@@ -44,6 +44,66 @@ def test_d717_rejects_incomplete_or_contradictory_attempt_evidence(fault):
         retained_routing_attempts(request,clock_id='clock')
 
 
+def d719_file_retry(tier='nvme'):
+    request = d717_request()
+    attempt = request['gpu_reference_evidence']['prior_routing_attempts'][0]
+    del attempt['native_source_conflict']
+    attempt['file_source_conflict'] = ('Remote source view changed before admission'
+        if tier == 'remote' else 'confirmed file source owner/epoch changed')
+    selected = attempt['routing_snapshot']['sources']['replica']
+    selected.update(file_owner_id='file-owner', file_epoch=7)
+    selected['source'].update(tier=tier, owner_id='file-owner', epoch=7)
+    return request
+
+
+@pytest.mark.parametrize('tier', ['host', 'nvme', 'remote'])
+def test_d719_counts_file_rejection_without_inventing_native_host_receipt(tier):
+    from scripts.ieee_tc.audit_d703_3b_full import retained_routing_attempts
+    rows = retained_routing_attempts(d719_file_retry(tier), clock_id='clock')
+    assert len(rows) == 1 and rows[0]['reason'].startswith('file:')
+    assert rows[0]['pending_residence_ms'] == pytest.approx(100.)
+
+
+@pytest.mark.parametrize('fault', ['missing', 'unknown', 'native', 'tier', 'owner',
+    'epoch', 'epoch_bool', 'lease', 'host_receipt', 'clock', 'pending'])
+def test_d719_file_rejection_requires_matching_source_and_closed_pending(fault):
+    from scripts.ieee_tc.audit_d703_3b_full import retained_routing_attempts
+    request = d719_file_retry()
+    a = request['gpu_reference_evidence']['prior_routing_attempts'][0]
+    s = a['routing_snapshot']['sources']['replica']['source']
+    if fault == 'missing': del a['file_source_conflict']
+    elif fault == 'unknown': a['file_source_conflict'] = 'unknown'
+    elif fault == 'native': s['native'] = True
+    elif fault == 'tier': s['tier'] = 'remote'
+    elif fault == 'owner': s['owner_id'] = 'different'
+    elif fault == 'epoch': s['epoch'] += 1
+    elif fault == 'epoch_bool': s['epoch'] = True
+    elif fault == 'lease': a['local_source_reference'] = {}
+    elif fault == 'host_receipt': a['native_host_source'] = {}
+    elif fault == 'clock': a['pending_kv_admission']['receipt']['clock_id'] = 'foreign'
+    elif fault == 'pending': a['pending_kv_admission']['state'] = 'pending'
+    with pytest.raises(ValueError):
+        retained_routing_attempts(request, clock_id='clock')
+
+
+@pytest.mark.parametrize('fault', ['count', 'run', 'passed', 'hash', 'output_exists'])
+def test_d719_profile_audit_rejects_unqualified_or_overwritten_sources(tmp_path, monkeypatch, fault):
+    from scripts.ieee_tc import audit_d703_3b_full as audit
+    raw, output = tmp_path/'run', tmp_path/'audit.json'
+    metric = dict(source_run=str(raw), passed=True, counts={'n':4000},
+        source_refs=[dict(path=str(tmp_path/'experiment_results_full.json'), sha256='sealed')])
+    if fault == 'count': metric['counts']['n'] = 100
+    elif fault == 'run': metric['source_run'] = 'other'
+    elif fault == 'passed': metric['passed'] = False
+    elif fault == 'output_exists': output.write_text('protected')
+    monkeypatch.setattr(audit, 'read', lambda _: metric)
+    monkeypatch.setattr(audit, 'digest', lambda _: 'changed')
+    with pytest.raises(FileExistsError if fault == 'output_exists' else ValueError):
+        audit.audit_profile_bindings(raw, output, tmp_path/'metric.json', tmp_path/'config.yaml')
+    if fault == 'output_exists': assert output.read_text() == 'protected'
+    else: assert not output.exists()
+
+
 def d716_request():
     n = dict(timing_contract='ieee_tc_native_v1', native_clock_id='clock',
         controller_admitted_monotonic_s=1., native_dispatch_monotonic_s=2.,
