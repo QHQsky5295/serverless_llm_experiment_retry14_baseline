@@ -1,5 +1,35 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D738完整3B W0已登记，准备唯一启动
+
+完整PLAN/AGENTS/最新状态、冻结V1/单轮V2及baseline规则已核对。复用D736
+输入/生成/后端/D725 profile/D648阈值，YAML仅换三个独占路径。唯一生产差异
+是已备份D737规划wire候选；122项+入口1项+部署环境2项复核沿用，仅补新入口
+两项检查，不追加组件或GPU短资格。D738目录、启动/远端启停及安全回收脚本
+复用D736；不碰共享k3s、不再适配HydraServe。尚未启动或获得性能结果。
+
+接下来检查明确文件、保护SHA/资源门槛、备份到唯一分支并ls-remote核验后，
+tmux执行一次4000 W0；V2分歧不force。最新完整3B仍D736联合92.65%、
+U14942.317331GPU-s，不达标；D711数值限制保留且不阻塞开发。运行期间不
+扫描/压缩/构建/推送/维护远端，既定资源保护不变。完整后续矩阵和图表文档
+范围保持，goal active；本次W0不代替W1/W2/G2或所有baseline比较。
+
+## 2026-10-23 01:47 D737候选检查点已备份；下一为完整D738
+
+22个明确文件已提交0af3cd461c58f2a2cd2fb7515e1b8e76fb5d1c11，并推送及
+ls-remote核验faaslora_origin/backup/d737-planning-wire-20261023。V2未同步、
+未force；145保护项及用户manifest SHA未变，用户manifest未stage。完整
+curated manifest、测试失败/修正、组件记录与脚本快照已保存。此前6项aux和
+封存/备份域均按实际InvocationID/inode核对为空后释放，未杀未知进程。
+raw/post_backup_release.json证明最后备份域peak58617856B、high/max/OOM/
+swap0；本机GPU空闲、磁盘155.36GiB、available104.90GiB，无活重型任务。
+
+下一直接复用D736入口登记并执行D738完整3B W0（新路径/源码身份），不再
+做同组件或额外短GPU检查。启动仍需最新资源检查、冻结profile/trace/工件
+及配置同一性；不是重新做后端资格。D737尚无完整服务结果，当前3B仍92.65%，
+95%/G1/G2未达标。其余完整矩阵与限制按下条保留，goal active。此收尾条目
+在下一正常检查点备份，不另开只为同步状态的提交。
+
 ## 2026-10-23 01:43 D737规划wire候选已实现并通过针对性检查
 
 PROGRESS。完整PLAN/最新状态/V1/单轮V2已核对；确认共享k3s非本项目，已有

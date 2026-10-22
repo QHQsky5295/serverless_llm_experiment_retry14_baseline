@@ -191,6 +191,33 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D738FullContract(unittest.TestCase):
+    def test_current_d736_configuration_only_changes_three_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d736_3b_validated_publication_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d738_3b_planning_wire_full_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d738', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_full_original_source_without_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d738\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        switches = [line for line in shell.splitlines() if '"${1:-d293}" == d738' in line]
+        self.assertEqual(len(switches), 2)
+        self.assertTrue(all('"${1:-d293}" == d659' in line for line in switches))
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertNotIn('d738', wrapper)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+
+
 class D736FullContract(unittest.TestCase):
     def test_current_d732_configuration_only_changes_three_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d732_3b_round_file_full_w0.yaml').read_text())
