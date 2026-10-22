@@ -1,0 +1,3551 @@
+{
+  "kind": "d721_decode_peer_exposure_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0",
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3851,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3884,
+    "joint_pass": 3744
+  },
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "groups": [
+    {
+      "output_length": "all",
+      "tpot_status": "all",
+      "peer_exposure": "all",
+      "n": 4000,
+      "ttft_violations": 149,
+      "tpot_violations": 116,
+      "joint_violations": 256,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 2900,
+        "native_prefill_ms": 190,
+        "admission_to_acquired_ms": 651,
+        "engine_entry_to_queue_ms": 73,
+        "executable_to_engine_ms": 182,
+        "native_engine_queue_ms": 4
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 734.3513196494314,
+          "p50_type1": 543.8031572848558,
+          "p95_type1": 1784.6462689340115
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 16.277835688393356,
+          "p50_type1": 14.107437133241225,
+          "p95_type1": 28.297727500709396
+        },
+        "arrival_to_admission_ms": {
+          "count": 4000,
+          "mean": 381.62971745379036,
+          "p50_type1": 229.0644203312695,
+          "p95_type1": 1175.0600517261773
+        },
+        "admission_to_acquired_ms": {
+          "count": 4000,
+          "mean": 130.99748719250783,
+          "p50_type1": 94.83208693563938,
+          "p95_type1": 423.6075368244201
+        },
+        "executable_to_engine_ms": {
+          "count": 4000,
+          "mean": 71.12652876286302,
+          "p50_type1": 29.12703691981733,
+          "p95_type1": 237.31252900324762
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 4000,
+          "mean": 44.588992375764064,
+          "p50_type1": 21.81574609130621,
+          "p95_type1": 194.61383391171694
+        },
+        "native_engine_queue_ms": {
+          "count": 4000,
+          "mean": 2.6058208404574543,
+          "p50_type1": 0.029738061130046844,
+          "p95_type1": 0.7890730630606413
+        },
+        "native_prefill_ms": {
+          "count": 4000,
+          "mean": 103.40277302404866,
+          "p50_type1": 99.5016589295119,
+          "p95_type1": 165.70940683595836
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 4000,
+          "mean": 67.41516461089486,
+          "p50_type1": 0.0,
+          "p95_type1": 293.30452415160835
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 4000,
+          "mean": 7.596388132544234,
+          "p50_type1": 0.0,
+          "p95_type1": 42.90604195557535
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "all",
+      "peer_exposure": "neither",
+      "n": 2363,
+      "ttft_violations": 78,
+      "tpot_violations": 37,
+      "joint_violations": 111,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 1744,
+        "native_prefill_ms": 98,
+        "admission_to_acquired_ms": 410,
+        "executable_to_engine_ms": 96,
+        "engine_entry_to_queue_ms": 14,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 2363,
+          "mean": 691.0966884994535,
+          "p50_type1": 519.2097737453878,
+          "p95_type1": 1682.2407990694046
+        },
+        "tpot_ms": {
+          "count": 2363,
+          "mean": 14.524108954383465,
+          "p50_type1": 12.696993270633268,
+          "p95_type1": 23.451845922196906
+        },
+        "arrival_to_admission_ms": {
+          "count": 2363,
+          "mean": 360.18843190047704,
+          "p50_type1": 222.99872059375048,
+          "p95_type1": 1126.6318049747497
+        },
+        "admission_to_acquired_ms": {
+          "count": 2363,
+          "mean": 128.9661342424541,
+          "p50_type1": 96.22753597795963,
+          "p95_type1": 422.03536396846175
+        },
+        "executable_to_engine_ms": {
+          "count": 2363,
+          "mean": 64.52120858886236,
+          "p50_type1": 28.61547702923417,
+          "p95_type1": 215.3346580453217
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 2363,
+          "mean": 35.05711190436403,
+          "p50_type1": 21.0930691100657,
+          "p95_type1": 152.95928600244224
+        },
+        "native_engine_queue_ms": {
+          "count": 2363,
+          "mean": 1.6067383462666418,
+          "p50_type1": 0.02860184758901596,
+          "p95_type1": 0.2341310027986765
+        },
+        "native_prefill_ms": {
+          "count": 2363,
+          "mean": 100.75706351702931,
+          "p50_type1": 99.09334685653448,
+          "p95_type1": 162.07794612273574
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 2363,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 2363,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "all",
+      "peer_exposure": "prefill_only",
+      "n": 728,
+      "ttft_violations": 24,
+      "tpot_violations": 30,
+      "joint_violations": 53,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 89,
+        "native_prefill_ms": 40,
+        "arrival_to_admission_ms": 524,
+        "engine_entry_to_queue_ms": 33,
+        "executable_to_engine_ms": 41,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 728,
+          "mean": 804.3220268369264,
+          "p50_type1": 607.3421565815806,
+          "p95_type1": 1901.661643292755
+        },
+        "tpot_ms": {
+          "count": 728,
+          "mean": 18.39760227950713,
+          "p50_type1": 15.947823168929009,
+          "p95_type1": 32.444773871889886
+        },
+        "arrival_to_admission_ms": {
+          "count": 728,
+          "mean": 418.012268264627,
+          "p50_type1": 257.42665329016745,
+          "p95_type1": 1289.615947054699
+        },
+        "admission_to_acquired_ms": {
+          "count": 728,
+          "mean": 123.87547112334836,
+          "p50_type1": 0.0,
+          "p95_type1": 383.39550397358835
+        },
+        "executable_to_engine_ms": {
+          "count": 728,
+          "mean": 79.55928979400586,
+          "p50_type1": 32.111753011122346,
+          "p95_type1": 275.5699211265892
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 728,
+          "mean": 68.95857944235124,
+          "p50_type1": 26.008123066276312,
+          "p95_type1": 241.28395202569664
+        },
+        "native_engine_queue_ms": {
+          "count": 728,
+          "mean": 4.7351578979722255,
+          "p50_type1": 0.033028190955519676,
+          "p95_type1": 6.702234968543053
+        },
+        "native_prefill_ms": {
+          "count": 728,
+          "mean": 109.18126031462164,
+          "p50_type1": 100.79846391454339,
+          "p95_type1": 179.1722469497472
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 728,
+          "mean": 120.34201674492118,
+          "p50_type1": 99.9108508694917,
+          "p95_type1": 263.034749077633
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 728,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "all",
+      "peer_exposure": "demand_load_only",
+      "n": 55,
+      "ttft_violations": 2,
+      "tpot_violations": 12,
+      "joint_violations": 13,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 43,
+        "engine_entry_to_queue_ms": 2,
+        "executable_to_engine_ms": 3,
+        "admission_to_acquired_ms": 6,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 55,
+          "mean": 749.1792583922771,
+          "p50_type1": 572.7369696833193,
+          "p95_type1": 1895.77348344028
+        },
+        "tpot_ms": {
+          "count": 55,
+          "mean": 24.659657095636362,
+          "p50_type1": 21.883678253895294,
+          "p95_type1": 45.83590632925431
+        },
+        "arrival_to_admission_ms": {
+          "count": 55,
+          "mean": 410.6761044018309,
+          "p50_type1": 233.73995115980506,
+          "p95_type1": 1376.1028875596821
+        },
+        "admission_to_acquired_ms": {
+          "count": 55,
+          "mean": 62.17667741108347,
+          "p50_type1": 0.0,
+          "p95_type1": 181.2124599236995
+        },
+        "executable_to_engine_ms": {
+          "count": 55,
+          "mean": 103.67171377451582,
+          "p50_type1": 29.34261388145387,
+          "p95_type1": 484.7492310218513
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 55,
+          "mean": 55.497421557083726,
+          "p50_type1": 24.728525197133422,
+          "p95_type1": 253.93771310336888
+        },
+        "native_engine_queue_ms": {
+          "count": 55,
+          "mean": 15.667525098913096,
+          "p50_type1": 0.027298927307128906,
+          "p95_type1": 117.0417619869113
+        },
+        "native_prefill_ms": {
+          "count": 55,
+          "mean": 101.48981614885005,
+          "p50_type1": 99.15871801786125,
+          "p95_type1": 200.04799193702638
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 55,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 55,
+          "mean": 20.04227885891768,
+          "p50_type1": 15.052026836201549,
+          "p95_type1": 39.55045901238918
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "all",
+      "peer_exposure": "both",
+      "n": 854,
+      "ttft_violations": 45,
+      "tpot_violations": 37,
+      "joint_violations": 79,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 146,
+        "arrival_to_admission_ms": 589,
+        "engine_entry_to_queue_ms": 24,
+        "native_prefill_ms": 51,
+        "executable_to_engine_ms": 42,
+        "native_engine_queue_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 854,
+          "mean": 793.4338511998353,
+          "p50_type1": 564.0555000863969,
+          "p95_type1": 1977.002183906734
+        },
+        "tpot_ms": {
+          "count": 854,
+          "mean": 18.783533600262416,
+          "p50_type1": 16.427974030823233,
+          "p95_type1": 32.65172115956935
+        },
+        "arrival_to_admission_ms": {
+          "count": 854,
+          "mean": 408.07200022902236,
+          "p50_type1": 213.35156727582216,
+          "p95_type1": 1227.8083288110793
+        },
+        "admission_to_acquired_ms": {
+          "count": 854,
+          "mean": 147.12167836031037,
+          "p50_type1": 94.81607377529144,
+          "p95_type1": 485.50422210246325
+        },
+        "executable_to_engine_ms": {
+          "count": 854,
+          "mean": 80.11872591140006,
+          "p50_type1": 31.25835512764752,
+          "p95_type1": 272.6100638974458
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 854,
+          "mean": 49.48689701800088,
+          "p50_type1": 23.214305052533746,
+          "p95_type1": 224.2713151499629
+        },
+        "native_engine_queue_ms": {
+          "count": 854,
+          "mean": 2.7138780087093,
+          "p50_type1": 0.030728057026863098,
+          "p95_type1": 1.3555700425058603
+        },
+        "native_prefill_ms": {
+          "count": 854,
+          "mean": 105.92067167239233,
+          "p50_type1": 99.737101001665,
+          "p95_type1": 173.82085788995028
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 854,
+          "mean": 213.1752579078183,
+          "p50_type1": 160.17308784648776,
+          "p95_type1": 540.6595659442246
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 854,
+          "mean": 34.2894932001598,
+          "p50_type1": 20.181717118248343,
+          "p95_type1": 85.28613997623324
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "all",
+      "n": 3884,
+      "ttft_violations": 140,
+      "tpot_violations": 0,
+      "joint_violations": 140,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 2809,
+        "native_prefill_ms": 187,
+        "admission_to_acquired_ms": 641,
+        "engine_entry_to_queue_ms": 64,
+        "executable_to_engine_ms": 180,
+        "native_engine_queue_ms": 3
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 3884,
+          "mean": 724.9014688492441,
+          "p50_type1": 536.1998153384775,
+          "p95_type1": 1771.5906302910298
+        },
+        "tpot_ms": {
+          "count": 3884,
+          "mean": 15.391767151338675,
+          "p50_type1": 13.983849555167348,
+          "p95_type1": 24.882625532336533
+        },
+        "arrival_to_admission_ms": {
+          "count": 3884,
+          "mean": 376.5278178629615,
+          "p50_type1": 223.678438924253,
+          "p95_type1": 1174.8254459816962
+        },
+        "admission_to_acquired_ms": {
+          "count": 3884,
+          "mean": 131.35524894714877,
+          "p50_type1": 94.92774400860071,
+          "p95_type1": 424.20853790827096
+        },
+        "executable_to_engine_ms": {
+          "count": 3884,
+          "mean": 69.54132186530165,
+          "p50_type1": 28.972275089472532,
+          "p95_type1": 228.23301912285388
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 3884,
+          "mean": 42.0955687080439,
+          "p50_type1": 21.605829941108823,
+          "p95_type1": 179.85743400640786
+        },
+        "native_engine_queue_ms": {
+          "count": 3884,
+          "mean": 2.336094031939101,
+          "p50_type1": 0.02956506796181202,
+          "p95_type1": 0.7137609645724297
+        },
+        "native_prefill_ms": {
+          "count": 3884,
+          "mean": 103.04541743384918,
+          "p50_type1": 99.47517397813499,
+          "p95_type1": 165.23554897867143
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 3884,
+          "mean": 66.24855652696574,
+          "p50_type1": 0.0,
+          "p95_type1": 286.8450051173568
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 3884,
+          "mean": 7.470866391770005,
+          "p50_type1": 0.0,
+          "p95_type1": 42.71923773922026
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "neither",
+      "n": 2326,
+      "ttft_violations": 74,
+      "tpot_violations": 0,
+      "joint_violations": 74,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 1712,
+        "native_prefill_ms": 97,
+        "admission_to_acquired_ms": 406,
+        "executable_to_engine_ms": 96,
+        "engine_entry_to_queue_ms": 14,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 2326,
+          "mean": 685.5514334415238,
+          "p50_type1": 515.7557334750891,
+          "p95_type1": 1680.4357261862606
+        },
+        "tpot_ms": {
+          "count": 2326,
+          "mean": 13.97630564873308,
+          "p50_type1": 12.676775747654485,
+          "p95_type1": 21.216802973006118
+        },
+        "arrival_to_admission_ms": {
+          "count": 2326,
+          "mean": 357.5746405966618,
+          "p50_type1": 219.87288817763329,
+          "p95_type1": 1124.1698174271733
+        },
+        "admission_to_acquired_ms": {
+          "count": 2326,
+          "mean": 128.63902188357054,
+          "p50_type1": 96.04120580479503,
+          "p95_type1": 422.03536396846175
+        },
+        "executable_to_engine_ms": {
+          "count": 2326,
+          "mean": 63.30010416254446,
+          "p50_type1": 28.54115003719926,
+          "p95_type1": 207.1662589441985
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 2326,
+          "mean": 33.98760626549406,
+          "p50_type1": 20.390429068356752,
+          "p95_type1": 145.6646288279444
+        },
+        "native_engine_queue_ms": {
+          "count": 2326,
+          "mean": 1.462926711968802,
+          "p50_type1": 0.028490787371993065,
+          "p95_type1": 0.19179005175828934
+        },
+        "native_prefill_ms": {
+          "count": 2326,
+          "mean": 100.58713382128418,
+          "p50_type1": 99.04804010875523,
+          "p95_type1": 159.95644801296294
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 2326,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 2326,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "prefill_only",
+      "n": 698,
+      "ttft_violations": 23,
+      "tpot_violations": 0,
+      "joint_violations": 23,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 86,
+        "native_prefill_ms": 39,
+        "arrival_to_admission_ms": 501,
+        "engine_entry_to_queue_ms": 30,
+        "executable_to_engine_ms": 41,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 698,
+          "mean": 790.2316901960243,
+          "p50_type1": 598.0484175961465,
+          "p95_type1": 1840.0819406379014
+        },
+        "tpot_ms": {
+          "count": 698,
+          "mean": 17.330146918453234,
+          "p50_type1": 15.689140024949753,
+          "p95_type1": 27.882897993549705
+        },
+        "arrival_to_admission_ms": {
+          "count": 698,
+          "mean": 410.1486560047329,
+          "p50_type1": 249.13641600869596,
+          "p95_type1": 1294.0161156002432
+        },
+        "admission_to_acquired_ms": {
+          "count": 698,
+          "mean": 124.28877364482496,
+          "p50_type1": 85.11415007524192,
+          "p95_type1": 376.64483999833465
+        },
+        "executable_to_engine_ms": {
+          "count": 698,
+          "mean": 78.16406804367762,
+          "p50_type1": 30.44215915724635,
+          "p95_type1": 275.5699211265892
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 698,
+          "mean": 64.04299934409335,
+          "p50_type1": 25.76373005285859,
+          "p95_type1": 230.42299901135266
+        },
+        "native_engine_queue_ms": {
+          "count": 698,
+          "mean": 4.761586032466253,
+          "p50_type1": 0.03285100683569908,
+          "p95_type1": 6.974824937060475
+        },
+        "native_prefill_ms": {
+          "count": 698,
+          "mean": 108.82560712622912,
+          "p50_type1": 100.79007898457348,
+          "p95_type1": 179.1722469497472
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 698,
+          "mean": 117.01451996368033,
+          "p50_type1": 99.79085810482502,
+          "p95_type1": 251.94436474703252
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 698,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "demand_load_only",
+      "n": 43,
+      "ttft_violations": 1,
+      "tpot_violations": 0,
+      "joint_violations": 1,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 33,
+        "engine_entry_to_queue_ms": 2,
+        "executable_to_engine_ms": 2,
+        "admission_to_acquired_ms": 5,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 43,
+          "mean": 646.0903366042171,
+          "p50_type1": 512.5847952440381,
+          "p95_type1": 1599.1615066304803
+        },
+        "tpot_ms": {
+          "count": 43,
+          "mean": 20.18662397958706,
+          "p50_type1": 17.839615458180592,
+          "p95_type1": 33.85686459951103
+        },
+        "arrival_to_admission_ms": {
+          "count": 43,
+          "mean": 337.0441233219449,
+          "p50_type1": 212.58443221449852,
+          "p95_type1": 1242.3715114127845
+        },
+        "admission_to_acquired_ms": {
+          "count": 43,
+          "mean": 66.11647736281157,
+          "p50_type1": 0.0,
+          "p95_type1": 181.2124599236995
+        },
+        "executable_to_engine_ms": {
+          "count": 43,
+          "mean": 89.34869021610466,
+          "p50_type1": 29.34261388145387,
+          "p95_type1": 266.1626748740673
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 43,
+          "mean": 47.58892578700947,
+          "p50_type1": 24.728525197133422,
+          "p95_type1": 195.42152085341513
+        },
+        "native_engine_queue_ms": {
+          "count": 43,
+          "mean": 7.750193886242287,
+          "p50_type1": 0.026300782337784767,
+          "p95_type1": 7.1845389902591705
+        },
+        "native_prefill_ms": {
+          "count": 43,
+          "mean": 98.24192603010424,
+          "p50_type1": 96.97916288860142,
+          "p95_type1": 156.28079907037318
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 43,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 43,
+          "mean": 20.136407906796002,
+          "p50_type1": 15.19607799127698,
+          "p95_type1": 39.55045901238918
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "both",
+      "n": 817,
+      "ttft_violations": 42,
+      "tpot_violations": 0,
+      "joint_violations": 42,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 144,
+        "arrival_to_admission_ms": 563,
+        "engine_entry_to_queue_ms": 18,
+        "native_prefill_ms": 50,
+        "executable_to_engine_ms": 41,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 817,
+          "mean": 785.264463396173,
+          "p50_type1": 554.068808676675,
+          "p95_type1": 1983.5645081475377
+        },
+        "tpot_ms": {
+          "count": 817,
+          "mean": 17.513181513639744,
+          "p50_type1": 16.233483333573012,
+          "p95_type1": 26.57229105315575
+        },
+        "arrival_to_admission_ms": {
+          "count": 817,
+          "mean": 403.8418254072948,
+          "p50_type1": 210.52909130230546,
+          "p95_type1": 1231.4328325446695
+        },
+        "admission_to_acquired_ms": {
+          "count": 817,
+          "mean": 148.55917928868055,
+          "p50_type1": 95.35699291154742,
+          "p95_type1": 490.7129378989339
+        },
+        "executable_to_engine_ms": {
+          "count": 817,
+          "mean": 78.90078172457007,
+          "p50_type1": 30.862226150929928,
+          "p95_type1": 267.5683619454503
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 817,
+          "mean": 46.13914239594218,
+          "p50_type1": 22.687585093080997,
+          "p95_type1": 206.59825205802917
+        },
+        "native_engine_queue_ms": {
+          "count": 817,
+          "mean": 2.4648424727566347,
+          "p50_type1": 0.030301976948976517,
+          "p95_type1": 1.2202400248497725
+        },
+        "native_prefill_ms": {
+          "count": 817,
+          "mean": 105.35869210692877,
+          "p50_type1": 99.68737489543855,
+          "p95_type1": 170.28534808196127
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 817,
+          "mean": 214.9733887589793,
+          "p50_type1": 161.05074202641845,
+          "p95_type1": 552.0469697657973
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 817,
+          "mean": 34.456523287200085,
+          "p50_type1": 20.181717118248343,
+          "p95_type1": 88.35063106380403
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "all",
+      "n": 116,
+      "ttft_violations": 9,
+      "tpot_violations": 116,
+      "joint_violations": 116,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 3,
+        "arrival_to_admission_ms": 91,
+        "engine_entry_to_queue_ms": 9,
+        "native_engine_queue_ms": 1,
+        "admission_to_acquired_ms": 10,
+        "executable_to_engine_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 116,
+          "mean": 1050.7583929936338,
+          "p50_type1": 965.4270943719894,
+          "p95_type1": 2330.8391734026372
+        },
+        "tpot_ms": {
+          "count": 116,
+          "mean": 45.9458546359828,
+          "p50_type1": 42.56100024213083,
+          "p95_type1": 72.97221817342299
+        },
+        "arrival_to_admission_ms": {
+          "count": 116,
+          "mean": 552.4553899605085,
+          "p50_type1": 459.89735936746,
+          "p95_type1": 1193.0882723536342
+        },
+        "admission_to_acquired_ms": {
+          "count": 116,
+          "mean": 119.01863671815151,
+          "p50_type1": 0.0,
+          "p95_type1": 420.66866997629404
+        },
+        "executable_to_engine_ms": {
+          "count": 116,
+          "mean": 124.2036286777624,
+          "p50_type1": 79.12555988878012,
+          "p95_type1": 385.2771590463817
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 116,
+          "mean": 128.07569518115307,
+          "p50_type1": 75.59948111884296,
+          "p95_type1": 434.1691951267421
+        },
+        "native_engine_queue_ms": {
+          "count": 116,
+          "mean": 11.637018463606465,
+          "p50_type1": 0.04722899757325649,
+          "p95_type1": 113.14312787726521
+        },
+        "native_prefill_ms": {
+          "count": 116,
+          "mean": 115.36802399245187,
+          "p50_type1": 101.98690393008292,
+          "p95_type1": 204.0977319702506
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 116,
+          "mean": 106.47642149003865,
+          "p50_type1": 94.16464203968644,
+          "p95_type1": 352.08397498354316
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 116,
+          "mean": 11.799202280536552,
+          "p50_type1": 0.0,
+          "p95_type1": 52.776392083615065
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "neither",
+      "n": 37,
+      "ttft_violations": 4,
+      "tpot_violations": 37,
+      "joint_violations": 37,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 4,
+        "arrival_to_admission_ms": 32,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 37,
+          "mean": 1039.6983983574082,
+          "p50_type1": 861.2405241001397,
+          "p95_type1": 2657.5145211536437
+        },
+        "tpot_ms": {
+          "count": 37,
+          "mean": 48.96168973662114,
+          "p50_type1": 42.63437120243907,
+          "p95_type1": 89.49451567605138
+        },
+        "arrival_to_admission_ms": {
+          "count": 37,
+          "mean": 524.5040689997778,
+          "p50_type1": 399.4608542416245,
+          "p95_type1": 1650.0164095778018
+        },
+        "admission_to_acquired_ms": {
+          "count": 37,
+          "mean": 149.53000847929837,
+          "p50_type1": 112.22220188938081,
+          "p95_type1": 965.2288039214909
+        },
+        "executable_to_engine_ms": {
+          "count": 37,
+          "mean": 141.28577333522608,
+          "p50_type1": 124.58671093918383,
+          "p95_type1": 375.7400820031762
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 37,
+          "mean": 102.29143936413567,
+          "p50_type1": 75.59948111884296,
+          "p95_type1": 426.92653089761734
+        },
+        "native_engine_queue_ms": {
+          "count": 37,
+          "mean": 10.647437302395701,
+          "p50_type1": 0.044723041355609894,
+          "p95_type1": 113.14312787726521
+        },
+        "native_prefill_ms": {
+          "count": 37,
+          "mean": 111.43967087657468,
+          "p50_type1": 104.20204000547528,
+          "p95_type1": 164.2311350442469
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 37,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 37,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "prefill_only",
+      "n": 30,
+      "ttft_violations": 1,
+      "tpot_violations": 30,
+      "joint_violations": 30,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 1,
+        "arrival_to_admission_ms": 23,
+        "engine_entry_to_queue_ms": 3,
+        "admission_to_acquired_ms": 3
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 30,
+          "mean": 1132.157192681916,
+          "p50_type1": 1254.3952411506325,
+          "p95_type1": 2330.8391734026372
+        },
+        "tpot_ms": {
+          "count": 30,
+          "mean": 43.2337303466944,
+          "p50_type1": 40.19865588634275,
+          "p95_type1": 62.59939392012629
+        },
+        "arrival_to_admission_ms": {
+          "count": 30,
+          "mean": 600.9723135114958,
+          "p50_type1": 567.3638272564858,
+          "p95_type1": 1193.0882723536342
+        },
+        "admission_to_acquired_ms": {
+          "count": 30,
+          "mean": 114.25929912365973,
+          "p50_type1": 0.0,
+          "p95_type1": 448.40750889852643
+        },
+        "executable_to_engine_ms": {
+          "count": 30,
+          "mean": 112.02144918497652,
+          "p50_type1": 79.12555988878012,
+          "p95_type1": 361.2575461156666
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 30,
+          "mean": 183.32774306181818,
+          "p50_type1": 147.40185206755996,
+          "p95_type1": 582.6939227990806
+        },
+        "native_engine_queue_ms": {
+          "count": 30,
+          "mean": 4.120263302077849,
+          "p50_type1": 0.03663497045636177,
+          "p95_type1": 0.8720881305634975
+        },
+        "native_prefill_ms": {
+          "count": 30,
+          "mean": 117.45612449788798,
+          "p50_type1": 100.86887096986175,
+          "p95_type1": 259.1286569368094
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 30,
+          "mean": 197.76177518845847,
+          "p50_type1": 197.2505091689527,
+          "p95_type1": 356.6522249020636
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 30,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "demand_load_only",
+      "n": 12,
+      "ttft_violations": 1,
+      "tpot_violations": 12,
+      "joint_violations": 12,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 10,
+        "executable_to_engine_ms": 1,
+        "admission_to_acquired_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 12,
+          "mean": 1118.5812281328253,
+          "p50_type1": 1006.9067585282028,
+          "p95_type1": 1895.77348344028
+        },
+        "tpot_ms": {
+          "count": 12,
+          "mean": 40.688025761479686,
+          "p50_type1": 40.23843389004469,
+          "p95_type1": 49.822104667934276
+        },
+        "arrival_to_admission_ms": {
+          "count": 12,
+          "mean": 674.5240366047559,
+          "p50_type1": 680.1751365419477,
+          "p95_type1": 1376.1028875596821
+        },
+        "admission_to_acquired_ms": {
+          "count": 12,
+          "mean": 48.05906091739113,
+          "p50_type1": 0.0,
+          "p95_type1": 168.41543605551124
+        },
+        "executable_to_engine_ms": {
+          "count": 12,
+          "mean": 154.99588152548918,
+          "p50_type1": 25.778493843972683,
+          "p95_type1": 518.5143749695271
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 12,
+          "mean": 83.83619806651647,
+          "p50_type1": 21.17964602075517,
+          "p95_type1": 325.84656891413033
+        },
+        "native_engine_queue_ms": {
+          "count": 12,
+          "mean": 44.03796194431683,
+          "p50_type1": 1.7571740318089724,
+          "p95_type1": 208.7027512025088
+        },
+        "native_prefill_ms": {
+          "count": 12,
+          "mean": 113.12808907435586,
+          "p50_type1": 101.15181794390082,
+          "p95_type1": 204.0977319702506
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 12,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 12,
+          "mean": 19.704983104020357,
+          "p50_type1": 14.782289043068886,
+          "p95_type1": 36.31264599971473
+        }
+      }
+    },
+    {
+      "output_length": "all",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "both",
+      "n": 37,
+      "ttft_violations": 3,
+      "tpot_violations": 37,
+      "joint_violations": 37,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 1,
+        "arrival_to_admission_ms": 26,
+        "engine_entry_to_queue_ms": 6,
+        "native_engine_queue_ms": 1,
+        "admission_to_acquired_ms": 2,
+        "executable_to_engine_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 37,
+          "mean": 973.8227656752979,
+          "p50_type1": 902.1247725468129,
+          "p95_type1": 1794.439174933359
+        },
+        "tpot_ms": {
+          "count": 37,
+          "mean": 46.83428102649822,
+          "p50_type1": 43.63237536603176,
+          "p95_type1": 72.97221817342299
+        },
+        "arrival_to_admission_ms": {
+          "count": 37,
+          "mean": 501.47883345473656,
+          "p50_type1": 345.878025284037,
+          "p95_type1": 1083.0661528743804
+        },
+        "admission_to_acquired_ms": {
+          "count": 37,
+          "mean": 115.3801038068392,
+          "p50_type1": 0.0,
+          "p95_type1": 327.7716350276023
+        },
+        "executable_to_engine_ms": {
+          "count": 37,
+          "mean": 107.01225025302453,
+          "p50_type1": 71.96309510618448,
+          "p95_type1": 398.33147590979934
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 37,
+          "mean": 123.40893826724307,
+          "p50_type1": 48.41106478124857,
+          "p95_type1": 477.57802507840097
+        },
+        "native_engine_queue_ms": {
+          "count": 37,
+          "mean": 8.212851870150581,
+          "p50_type1": 0.05180086009204388,
+          "p95_type1": 79.961959971115
+        },
+        "native_prefill_ms": {
+          "count": 37,
+          "mean": 118.32978802330389,
+          "p50_type1": 102.3773739580065,
+          "p95_type1": 209.306649165228
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 37,
+          "mean": 173.47058478893862,
+          "p50_type1": 109.63209182955325,
+          "p95_type1": 400.59574600309134
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 37,
+          "mean": 30.601288305243123,
+          "p50_type1": 17.177979927510023,
+          "p95_type1": 63.58607695437968
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "all",
+      "peer_exposure": "all",
+      "n": 1539,
+      "ttft_violations": 54,
+      "tpot_violations": 111,
+      "joint_violations": 156,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 55,
+        "admission_to_acquired_ms": 209,
+        "arrival_to_admission_ms": 1175,
+        "engine_entry_to_queue_ms": 38,
+        "executable_to_engine_ms": 60,
+        "native_engine_queue_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1539,
+          "mean": 762.2974147852825,
+          "p50_type1": 576.6338082030416,
+          "p95_type1": 1889.3254157155752
+        },
+        "tpot_ms": {
+          "count": 1539,
+          "mean": 18.194873865912523,
+          "p50_type1": 13.398473802953959,
+          "p95_type1": 38.59633108815895
+        },
+        "arrival_to_admission_ms": {
+          "count": 1539,
+          "mean": 397.4815962855511,
+          "p50_type1": 248.72792861424387,
+          "p95_type1": 1172.9373794514686
+        },
+        "admission_to_acquired_ms": {
+          "count": 1539,
+          "mean": 127.4697020310422,
+          "p50_type1": 92.69691002555192,
+          "p95_type1": 404.12583388388157
+        },
+        "executable_to_engine_ms": {
+          "count": 1539,
+          "mean": 74.54651256292802,
+          "p50_type1": 30.270442133769393,
+          "p95_type1": 249.08151500858366
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1539,
+          "mean": 54.1524648174094,
+          "p50_type1": 26.625327998772264,
+          "p95_type1": 212.68177102319896
+        },
+        "native_engine_queue_ms": {
+          "count": 1539,
+          "mean": 2.9185536776531955,
+          "p50_type1": 0.0280898530036211,
+          "p95_type1": 1.13152083940804
+        },
+        "native_prefill_ms": {
+          "count": 1539,
+          "mean": 105.72858541069856,
+          "p50_type1": 99.4726528879255,
+          "p95_type1": 166.0107751376927
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1539,
+          "mean": 32.142234220465404,
+          "p50_type1": 0.0,
+          "p95_type1": 163.26177003793418
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1539,
+          "mean": 2.7533010018370985,
+          "p50_type1": 0.0,
+          "p95_type1": 15.786295058205724
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "all",
+      "peer_exposure": "neither",
+      "n": 1096,
+      "ttft_violations": 36,
+      "tpot_violations": 36,
+      "joint_violations": 68,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 40,
+        "admission_to_acquired_ms": 168,
+        "arrival_to_admission_ms": 847,
+        "executable_to_engine_ms": 35,
+        "engine_entry_to_queue_ms": 6
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1096,
+          "mean": 695.7880338742295,
+          "p50_type1": 517.7115758415312,
+          "p95_type1": 1719.7293436620384
+        },
+        "tpot_ms": {
+          "count": 1096,
+          "mean": 15.15973714481621,
+          "p50_type1": 12.53461263452967,
+          "p95_type1": 28.44976889900863
+        },
+        "arrival_to_admission_ms": {
+          "count": 1096,
+          "mean": 361.5727293667091,
+          "p50_type1": 232.20624797977507,
+          "p95_type1": 1092.072653118521
+        },
+        "admission_to_acquired_ms": {
+          "count": 1096,
+          "mean": 126.87678805558372,
+          "p50_type1": 94.14123091846704,
+          "p95_type1": 422.03536396846175
+        },
+        "executable_to_engine_ms": {
+          "count": 1096,
+          "mean": 64.36058665166038,
+          "p50_type1": 28.54115003719926,
+          "p95_type1": 226.16295120678842
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1096,
+          "mean": 39.29560422964469,
+          "p50_type1": 26.160198030993342,
+          "p95_type1": 145.6646288279444
+        },
+        "native_engine_queue_ms": {
+          "count": 1096,
+          "mean": 1.2179541547721537,
+          "p50_type1": 0.026558060199022293,
+          "p95_type1": 0.41723111644387245
+        },
+        "native_prefill_ms": {
+          "count": 1096,
+          "mean": 102.46437141585952,
+          "p50_type1": 99.2369120940566,
+          "p95_type1": 162.51811501570046
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1096,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1096,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "all",
+      "peer_exposure": "prefill_only",
+      "n": 262,
+      "ttft_violations": 7,
+      "tpot_violations": 30,
+      "joint_violations": 36,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 13,
+        "admission_to_acquired_ms": 23,
+        "arrival_to_admission_ms": 191,
+        "engine_entry_to_queue_ms": 20,
+        "executable_to_engine_ms": 14,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 262,
+          "mean": 906.209492969739,
+          "p50_type1": 696.6967668849975,
+          "p95_type1": 2079.0050325449556
+        },
+        "tpot_ms": {
+          "count": 262,
+          "mean": 23.554580081848194,
+          "p50_type1": 20.57980297696452,
+          "p95_type1": 41.81933362269774
+        },
+        "arrival_to_admission_ms": {
+          "count": 262,
+          "mean": 469.73987678705737,
+          "p50_type1": 313.4887882042676,
+          "p95_type1": 1260.3450221940875
+        },
+        "admission_to_acquired_ms": {
+          "count": 262,
+          "mean": 127.66851224573969,
+          "p50_type1": 0.0,
+          "p95_type1": 396.3651091326028
+        },
+        "executable_to_engine_ms": {
+          "count": 262,
+          "mean": 85.83588085407462,
+          "p50_type1": 67.24661099724472,
+          "p95_type1": 258.21862602606416
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 262,
+          "mean": 100.95202008738602,
+          "p50_type1": 49.19094708748162,
+          "p95_type1": 340.3186451178044
+        },
+        "native_engine_queue_ms": {
+          "count": 262,
+          "mean": 6.6784634343739455,
+          "p50_type1": 0.0388899352401495,
+          "p95_type1": 19.19344300404191
+        },
+        "native_prefill_ms": {
+          "count": 262,
+          "mean": 115.33473956110738,
+          "p50_type1": 100.86887096986175,
+          "p95_type1": 185.5959401000291
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 262,
+          "mean": 113.99690674365505,
+          "p50_type1": 100.1976509578526,
+          "p95_type1": 251.94436474703252
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 262,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "all",
+      "peer_exposure": "demand_load_only",
+      "n": 39,
+      "ttft_violations": 2,
+      "tpot_violations": 12,
+      "joint_violations": 13,
+      "dominant_ttft_stage": {
+        "engine_entry_to_queue_ms": 2,
+        "arrival_to_admission_ms": 32,
+        "executable_to_engine_ms": 3,
+        "admission_to_acquired_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 39,
+          "mean": 875.3327522367143,
+          "p50_type1": 688.1489306688309,
+          "p95_type1": 1981.5358479972929
+        },
+        "tpot_ms": {
+          "count": 39,
+          "mean": 28.619703817208283,
+          "p50_type1": 28.16027191389973,
+          "p95_type1": 47.814768785610795
+        },
+        "arrival_to_admission_ms": {
+          "count": 39,
+          "mean": 500.8904402299474,
+          "p50_type1": 292.28002950549126,
+          "p95_type1": 1447.347773006186
+        },
+        "admission_to_acquired_ms": {
+          "count": 39,
+          "mean": 53.16342038508409,
+          "p50_type1": 0.0,
+          "p95_type1": 177.8906260151416
+        },
+        "executable_to_engine_ms": {
+          "count": 39,
+          "mean": 127.05634215560097,
+          "p50_type1": 29.932454926893115,
+          "p95_type1": 518.5143749695271
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 39,
+          "mean": 67.76757041016259,
+          "p50_type1": 27.903062058612704,
+          "p95_type1": 325.84656891413033
+        },
+        "native_engine_queue_ms": {
+          "count": 39,
+          "mean": 22.083218525856353,
+          "p50_type1": 0.039180973544716835,
+          "p95_type1": 208.7027512025088
+        },
+        "native_prefill_ms": {
+          "count": 39,
+          "mean": 104.37176053006297,
+          "p50_type1": 99.54045596532524,
+          "p95_type1": 200.04799193702638
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 39,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 39,
+          "mean": 17.712541700651247,
+          "p50_type1": 14.92181490175426,
+          "p95_type1": 36.31264599971473
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "all",
+      "peer_exposure": "both",
+      "n": 142,
+      "ttft_violations": 9,
+      "tpot_violations": 33,
+      "joint_violations": 39,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 105,
+        "native_prefill_ms": 2,
+        "admission_to_acquired_ms": 16,
+        "engine_entry_to_queue_ms": 10,
+        "native_engine_queue_ms": 1,
+        "executable_to_engine_ms": 8
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 142,
+          "mean": 979.0645896696525,
+          "p50_type1": 755.5089904926717,
+          "p95_type1": 2392.2397636342794
+        },
+        "tpot_ms": {
+          "count": 142,
+          "mean": 28.86880660989758,
+          "p50_type1": 25.40861096349545,
+          "p95_type1": 54.98479842208326
+        },
+        "arrival_to_admission_ms": {
+          "count": 142,
+          "mean": 512.9147211998097,
+          "p50_type1": 312.25851457566023,
+          "p95_type1": 1299.5947275776416
+        },
+        "admission_to_acquired_ms": {
+          "count": 142,
+          "mean": 152.08724023557832,
+          "p50_type1": 0.0,
+          "p95_type1": 423.6075368244201
+        },
+        "executable_to_engine_ms": {
+          "count": 142,
+          "mean": 117.91325166401728,
+          "p50_type1": 55.47095788642764,
+          "p95_type1": 461.6213550325483
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 142,
+          "mean": 78.7344831648663,
+          "p50_type1": 26.59957599826157,
+          "p95_type1": 303.22292796336114
+        },
+        "native_engine_queue_ms": {
+          "count": 142,
+          "mean": 3.8434747462226473,
+          "p50_type1": 0.036972109228372574,
+          "p95_type1": 7.413063896819949
+        },
+        "native_prefill_ms": {
+          "count": 142,
+          "mean": 113.57141865915816,
+          "p50_type1": 100.394292967394,
+          "p95_type1": 209.306649165228
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 142,
+          "mean": 138.02611900322978,
+          "p50_type1": 101.034474093467,
+          "p95_type1": 302.4664372205734
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 142,
+          "mean": 24.975641658464053,
+          "p50_type1": 15.686206053942442,
+          "p95_type1": 56.793980998918414
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "all",
+      "n": 1428,
+      "ttft_violations": 45,
+      "tpot_violations": 0,
+      "joint_violations": 45,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 52,
+        "admission_to_acquired_ms": 199,
+        "arrival_to_admission_ms": 1089,
+        "engine_entry_to_queue_ms": 29,
+        "executable_to_engine_ms": 58,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1428,
+          "mean": 738.758887654087,
+          "p50_type1": 551.5038401354104,
+          "p95_type1": 1814.0300125814974
+        },
+        "tpot_ms": {
+          "count": 1428,
+          "mean": 16.000560537216778,
+          "p50_type1": 13.135512876841757,
+          "p95_type1": 28.685382341167756
+        },
+        "arrival_to_admission_ms": {
+          "count": 1428,
+          "mean": 384.966470268868,
+          "p50_type1": 239.46799244731665,
+          "p95_type1": 1156.1196635011584
+        },
+        "admission_to_acquired_ms": {
+          "count": 1428,
+          "mean": 128.03293925876983,
+          "p50_type1": 93.26800797134638,
+          "p95_type1": 388.42891599051654
+        },
+        "executable_to_engine_ms": {
+          "count": 1428,
+          "mean": 70.46576844318314,
+          "p50_type1": 29.434293042868376,
+          "p95_type1": 228.23301912285388
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1428,
+          "mean": 48.09548079407271,
+          "p50_type1": 26.496150996536016,
+          "p95_type1": 183.86457907035947
+        },
+        "native_engine_queue_ms": {
+          "count": 1428,
+          "mean": 2.2546712047269133,
+          "p50_type1": 0.027695903554558754,
+          "p95_type1": 0.8725400548428297
+        },
+        "native_prefill_ms": {
+          "count": 1428,
+          "mean": 104.9435576844663,
+          "p50_type1": 99.34429195709527,
+          "p95_type1": 165.29890801757574
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1428,
+          "mean": 26.71924623656178,
+          "p50_type1": 0.0,
+          "p95_type1": 114.04996598139405
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1428,
+          "mean": 2.0937726564551458,
+          "p50_type1": 0.0,
+          "p95_type1": 15.203341143205762
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "neither",
+      "n": 1060,
+      "ttft_violations": 32,
+      "tpot_violations": 0,
+      "joint_violations": 32,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 39,
+        "admission_to_acquired_ms": 164,
+        "arrival_to_admission_ms": 816,
+        "executable_to_engine_ms": 35,
+        "engine_entry_to_queue_ms": 6
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1060,
+          "mean": 684.3899231990536,
+          "p50_type1": 506.605671485886,
+          "p95_type1": 1703.0432634055614
+        },
+        "tpot_ms": {
+          "count": 1060,
+          "mean": 13.995636930695701,
+          "p50_type1": 12.504745600745082,
+          "p95_type1": 24.225629732069194
+        },
+        "arrival_to_admission_ms": {
+          "count": 1060,
+          "mean": 356.51253064334355,
+          "p50_type1": 228.44128659926355,
+          "p95_type1": 1086.17223915644
+        },
+        "admission_to_acquired_ms": {
+          "count": 1060,
+          "mean": 126.07223735573122,
+          "p50_type1": 94.05989106744528,
+          "p95_type1": 404.12583388388157
+        },
+        "executable_to_engine_ms": {
+          "count": 1060,
+          "mean": 61.6415438150003,
+          "p50_type1": 28.487354051321745,
+          "p95_type1": 204.64780507609248
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1060,
+          "mean": 37.08712349180132,
+          "p50_type1": 26.04403905570507,
+          "p95_type1": 129.57147997803986
+        },
+        "native_engine_queue_ms": {
+          "count": 1060,
+          "mean": 0.960885281542773,
+          "p50_type1": 0.02646702341735363,
+          "p95_type1": 0.35348208621144295
+        },
+        "native_prefill_ms": {
+          "count": 1060,
+          "mean": 102.11560261163439,
+          "p50_type1": 99.18253007344902,
+          "p95_type1": 160.05710908211768
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1060,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1060,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "prefill_only",
+      "n": 232,
+      "ttft_violations": 6,
+      "tpot_violations": 0,
+      "joint_violations": 6,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 12,
+        "admission_to_acquired_ms": 20,
+        "arrival_to_admission_ms": 168,
+        "engine_entry_to_queue_ms": 17,
+        "executable_to_engine_ms": 14,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 232,
+          "mean": 876.9921180069575,
+          "p50_type1": 681.6127777565271,
+          "p95_type1": 1988.1693664938211
+        },
+        "tpot_ms": {
+          "count": 232,
+          "mean": 21.009862375187048,
+          "p50_type1": 19.686201927610316,
+          "p95_type1": 31.703994399867952
+        },
+        "arrival_to_admission_ms": {
+          "count": 232,
+          "mean": 452.77016514165587,
+          "p50_type1": 289.9234357755631,
+          "p95_type1": 1269.7480430360883
+        },
+        "admission_to_acquired_ms": {
+          "count": 232,
+          "mean": 129.40246221842244,
+          "p50_type1": 0.0,
+          "p95_type1": 383.3680050447583
+        },
+        "executable_to_engine_ms": {
+          "count": 232,
+          "mean": 82.44981598369938,
+          "p50_type1": 63.11315204948187,
+          "p95_type1": 227.4616789072752
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 232,
+          "mean": 90.29998694414049,
+          "p50_type1": 45.44704291038215,
+          "p95_type1": 259.55863599665463
+        },
+        "native_engine_queue_ms": {
+          "count": 232,
+          "mean": 7.009265175619131,
+          "p50_type1": 0.0388899352401495,
+          "p95_type1": 69.38006216660142
+        },
+        "native_prefill_ms": {
+          "count": 232,
+          "mean": 115.06042254342023,
+          "p50_type1": 100.83379689604044,
+          "p95_type1": 185.5959401000291
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 232,
+          "mean": 103.16524272062013,
+          "p50_type1": 99.76181900128722,
+          "p95_type1": 197.73721904493868
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 232,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "demand_load_only",
+      "n": 27,
+      "ttft_violations": 1,
+      "tpot_violations": 0,
+      "joint_violations": 1,
+      "dominant_ttft_stage": {
+        "engine_entry_to_queue_ms": 2,
+        "arrival_to_admission_ms": 22,
+        "executable_to_engine_ms": 2,
+        "admission_to_acquired_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 27,
+          "mean": 767.2223185051095,
+          "p50_type1": 607.2361352853477,
+          "p95_type1": 1981.5358479972929
+        },
+        "tpot_ms": {
+          "count": 27,
+          "mean": 23.25600517530988,
+          "p50_type1": 23.05460772994492,
+          "p95_type1": 34.25908407482963
+        },
+        "arrival_to_admission_ms": {
+          "count": 27,
+          "mean": 423.7199529522547,
+          "p50_type1": 239.7380182519555,
+          "p95_type1": 1447.347773006186
+        },
+        "admission_to_acquired_ms": {
+          "count": 27,
+          "mean": 55.43202459294763,
+          "p50_type1": 0.0,
+          "p95_type1": 177.8906260151416
+        },
+        "executable_to_engine_ms": {
+          "count": 27,
+          "mean": 114.63876910231731,
+          "p50_type1": 29.932454926893115,
+          "p95_type1": 418.8547160010785
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 27,
+          "mean": 60.62595811844976,
+          "p50_type1": 27.903062058612704,
+          "p95_type1": 253.93771310336888
+        },
+        "native_engine_queue_ms": {
+          "count": 27,
+          "mean": 12.325554784318363,
+          "p50_type1": 0.026511959731578827,
+          "p95_type1": 73.50085116922855
+        },
+        "native_prefill_ms": {
+          "count": 27,
+          "mean": 100.48005895482169,
+          "p50_type1": 99.15871801786125,
+          "p95_type1": 156.28079907037318
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 27,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 27,
+          "mean": 16.827012188042755,
+          "p50_type1": 15.052026836201549,
+          "p95_type1": 34.78094912134111
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "both",
+      "n": 109,
+      "ttft_violations": 6,
+      "tpot_violations": 0,
+      "joint_violations": 6,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 83,
+        "admission_to_acquired_ms": 14,
+        "engine_entry_to_queue_ms": 4,
+        "executable_to_engine_ms": 7,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 109,
+          "mean": 966.2128348787819,
+          "p50_type1": 684.2701893765479,
+          "p95_type1": 2607.4754940345883
+        },
+        "tpot_ms": {
+          "count": 109,
+          "mean": 23.038762292030768,
+          "p50_type1": 22.0215123582391,
+          "p95_type1": 33.31892500864342
+        },
+        "arrival_to_admission_ms": {
+          "count": 109,
+          "mean": 507.7588992607737,
+          "p50_type1": 286.9336132425815,
+          "p95_type1": 1413.9458232093602
+        },
+        "admission_to_acquired_ms": {
+          "count": 109,
+          "mean": 162.16908041985894,
+          "p50_type1": 95.49687011167407,
+          "p95_type1": 441.2688249722123
+        },
+        "executable_to_engine_ms": {
+          "count": 109,
+          "mean": 119.83006255948968,
+          "p50_type1": 47.00280516408384,
+          "p95_type1": 481.259121093899
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 109,
+          "mean": 62.21557644392372,
+          "p50_type1": 26.087671983987093,
+          "p95_type1": 276.54095087200403
+        },
+        "native_engine_queue_ms": {
+          "count": 109,
+          "mean": 2.221950293527147,
+          "p50_type1": 0.036939047276973724,
+          "p95_type1": 6.1184498481452465
+        },
+        "native_prefill_ms": {
+          "count": 109,
+          "mean": 112.01726590120875,
+          "p50_type1": 99.737101001665,
+          "p95_type1": 220.00999585725367
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 109,
+          "mean": 130.46557169381973,
+          "p50_type1": 100.3490318544209,
+          "p95_type1": 286.8450051173568
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 109,
+          "mean": 23.262183709548562,
+          "p50_type1": 15.401693060994148,
+          "p95_type1": 52.42348276078701
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "all",
+      "n": 111,
+      "ttft_violations": 9,
+      "tpot_violations": 111,
+      "joint_violations": 111,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 3,
+        "arrival_to_admission_ms": 86,
+        "engine_entry_to_queue_ms": 9,
+        "native_engine_queue_ms": 1,
+        "admission_to_acquired_ms": 10,
+        "executable_to_engine_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 111,
+          "mean": 1065.1173854460687,
+          "p50_type1": 968.7440516427159,
+          "p95_type1": 2330.8391734026372
+        },
+        "tpot_ms": {
+          "count": 111,
+          "mean": 46.42441831075509,
+          "p50_type1": 42.647900271483444,
+          "p95_type1": 72.97221817342299
+        },
+        "arrival_to_admission_ms": {
+          "count": 111,
+          "mean": 558.4870012569334,
+          "p50_type1": 477.0191456191242,
+          "p95_type1": 1193.0882723536342
+        },
+        "admission_to_acquired_ms": {
+          "count": 111,
+          "mean": 120.22373120946524,
+          "p50_type1": 0.0,
+          "p95_type1": 420.66866997629404
+        },
+        "executable_to_engine_ms": {
+          "count": 111,
+          "mean": 127.04473421153789,
+          "p50_type1": 79.67463997192681,
+          "p95_type1": 385.2771590463817
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 111,
+          "mean": 132.07474576628155,
+          "p50_type1": 83.6442750878632,
+          "p95_type1": 434.1691951267421
+        },
+        "native_engine_queue_ms": {
+          "count": 111,
+          "mean": 11.459311978002122,
+          "p50_type1": 0.04691304638981819,
+          "p95_type1": 113.14312787726521
+        },
+        "native_prefill_ms": {
+          "count": 111,
+          "mean": 115.82786102384866,
+          "p50_type1": 102.3773739580065,
+          "p95_type1": 204.0977319702506
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 111,
+          "mean": 101.90824179717147,
+          "p50_type1": 90.01050214283168,
+          "p95_type1": 342.0182482805103
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 111,
+          "mean": 11.23804403972384,
+          "p50_type1": 0.0,
+          "p95_type1": 47.886020969599485
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "neither",
+      "n": 36,
+      "ttft_violations": 4,
+      "tpot_violations": 36,
+      "joint_violations": 36,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 4,
+        "arrival_to_admission_ms": 31,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 36,
+          "mean": 1031.3990704210785,
+          "p50_type1": 855.5694704409689,
+          "p95_type1": 2657.5145211536437
+        },
+        "tpot_ms": {
+          "count": 36,
+          "mean": 49.43602122725344,
+          "p50_type1": 42.63437120243907,
+          "p95_type1": 89.49451567605138
+        },
+        "arrival_to_admission_ms": {
+          "count": 36,
+          "mean": 510.5674695546946,
+          "p50_type1": 379.23646764829755,
+          "p95_type1": 1650.0164095778018
+        },
+        "admission_to_acquired_ms": {
+          "count": 36,
+          "mean": 150.56633644012942,
+          "p50_type1": 108.4233820438385,
+          "p95_type1": 965.2288039214909
+        },
+        "executable_to_engine_ms": {
+          "count": 36,
+          "mean": 144.42129239776276,
+          "p50_type1": 124.58671093918383,
+          "p95_type1": 375.7400820031762
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 36,
+          "mean": 104.32309262169939,
+          "p50_type1": 75.59948111884296,
+          "p95_type1": 426.92653089761734
+        },
+        "native_engine_queue_ms": {
+          "count": 36,
+          "mean": 8.787204310970587,
+          "p50_type1": 0.04076305776834488,
+          "p95_type1": 113.14312787726521
+        },
+        "native_prefill_ms": {
+          "count": 36,
+          "mean": 112.73367509582184,
+          "p50_type1": 104.20204000547528,
+          "p95_type1": 164.2311350442469
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 36,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 36,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "prefill_only",
+      "n": 30,
+      "ttft_violations": 1,
+      "tpot_violations": 30,
+      "joint_violations": 30,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 1,
+        "arrival_to_admission_ms": 23,
+        "engine_entry_to_queue_ms": 3,
+        "admission_to_acquired_ms": 3
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 30,
+          "mean": 1132.157192681916,
+          "p50_type1": 1254.3952411506325,
+          "p95_type1": 2330.8391734026372
+        },
+        "tpot_ms": {
+          "count": 30,
+          "mean": 43.2337303466944,
+          "p50_type1": 40.19865588634275,
+          "p95_type1": 62.59939392012629
+        },
+        "arrival_to_admission_ms": {
+          "count": 30,
+          "mean": 600.9723135114958,
+          "p50_type1": 567.3638272564858,
+          "p95_type1": 1193.0882723536342
+        },
+        "admission_to_acquired_ms": {
+          "count": 30,
+          "mean": 114.25929912365973,
+          "p50_type1": 0.0,
+          "p95_type1": 448.40750889852643
+        },
+        "executable_to_engine_ms": {
+          "count": 30,
+          "mean": 112.02144918497652,
+          "p50_type1": 79.12555988878012,
+          "p95_type1": 361.2575461156666
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 30,
+          "mean": 183.32774306181818,
+          "p50_type1": 147.40185206755996,
+          "p95_type1": 582.6939227990806
+        },
+        "native_engine_queue_ms": {
+          "count": 30,
+          "mean": 4.120263302077849,
+          "p50_type1": 0.03663497045636177,
+          "p95_type1": 0.8720881305634975
+        },
+        "native_prefill_ms": {
+          "count": 30,
+          "mean": 117.45612449788798,
+          "p50_type1": 100.86887096986175,
+          "p95_type1": 259.1286569368094
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 30,
+          "mean": 197.76177518845847,
+          "p50_type1": 197.2505091689527,
+          "p95_type1": 356.6522249020636
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 30,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "demand_load_only",
+      "n": 12,
+      "ttft_violations": 1,
+      "tpot_violations": 12,
+      "joint_violations": 12,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 10,
+        "executable_to_engine_ms": 1,
+        "admission_to_acquired_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 12,
+          "mean": 1118.5812281328253,
+          "p50_type1": 1006.9067585282028,
+          "p95_type1": 1895.77348344028
+        },
+        "tpot_ms": {
+          "count": 12,
+          "mean": 40.688025761479686,
+          "p50_type1": 40.23843389004469,
+          "p95_type1": 49.822104667934276
+        },
+        "arrival_to_admission_ms": {
+          "count": 12,
+          "mean": 674.5240366047559,
+          "p50_type1": 680.1751365419477,
+          "p95_type1": 1376.1028875596821
+        },
+        "admission_to_acquired_ms": {
+          "count": 12,
+          "mean": 48.05906091739113,
+          "p50_type1": 0.0,
+          "p95_type1": 168.41543605551124
+        },
+        "executable_to_engine_ms": {
+          "count": 12,
+          "mean": 154.99588152548918,
+          "p50_type1": 25.778493843972683,
+          "p95_type1": 518.5143749695271
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 12,
+          "mean": 83.83619806651647,
+          "p50_type1": 21.17964602075517,
+          "p95_type1": 325.84656891413033
+        },
+        "native_engine_queue_ms": {
+          "count": 12,
+          "mean": 44.03796194431683,
+          "p50_type1": 1.7571740318089724,
+          "p95_type1": 208.7027512025088
+        },
+        "native_prefill_ms": {
+          "count": 12,
+          "mean": 113.12808907435586,
+          "p50_type1": 101.15181794390082,
+          "p95_type1": 204.0977319702506
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 12,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 12,
+          "mean": 19.704983104020357,
+          "p50_type1": 14.782289043068886,
+          "p95_type1": 36.31264599971473
+        }
+      }
+    },
+    {
+      "output_length": "2-64",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "both",
+      "n": 33,
+      "ttft_violations": 3,
+      "tpot_violations": 33,
+      "joint_violations": 33,
+      "dominant_ttft_stage": {
+        "native_prefill_ms": 1,
+        "arrival_to_admission_ms": 22,
+        "engine_entry_to_queue_ms": 6,
+        "native_engine_queue_ms": 1,
+        "admission_to_acquired_ms": 2,
+        "executable_to_engine_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 33,
+          "mean": 1021.5143251910129,
+          "p50_type1": 965.4270943719894,
+          "p95_type1": 1794.439174933359
+        },
+        "tpot_ms": {
+          "count": 33,
+          "mean": 48.12561965982128,
+          "p50_type1": 44.69641900676138,
+          "p95_type1": 72.97221817342299
+        },
+        "arrival_to_admission_ms": {
+          "count": 33,
+          "mean": 529.9445573014743,
+          "p50_type1": 521.0955736692995,
+          "p95_type1": 1083.0661528743804
+        },
+        "admission_to_acquired_ms": {
+          "count": 33,
+          "mean": 118.78661659659085,
+          "p50_type1": 0.0,
+          "p95_type1": 327.7716350276023
+        },
+        "executable_to_engine_ms": {
+          "count": 33,
+          "mean": 111.58196719109334,
+          "p50_type1": 74.54322814010084,
+          "p95_type1": 398.33147590979934
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 33,
+          "mean": 133.29693263707063,
+          "p50_type1": 49.71013800241053,
+          "p95_type1": 477.57802507840097
+        },
+        "native_engine_queue_ms": {
+          "count": 33,
+          "mean": 9.19941915058051,
+          "p50_type1": 0.05180086009204388,
+          "p95_type1": 79.961959971115
+        },
+        "native_prefill_ms": {
+          "count": 33,
+          "mean": 118.70483231420319,
+          "p50_type1": 102.3773739580065,
+          "p95_type1": 209.306649165228
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 33,
+          "mean": 162.99883587370542,
+          "p50_type1": 106.29029688425362,
+          "p95_type1": 393.8755381386727
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 33,
+          "mean": 30.63524518670006,
+          "p50_type1": 17.177979927510023,
+          "p95_type1": 63.58607695437968
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "all",
+      "peer_exposure": "all",
+      "n": 2461,
+      "ttft_violations": 95,
+      "tpot_violations": 5,
+      "joint_violations": 100,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 1725,
+        "admission_to_acquired_ms": 442,
+        "native_prefill_ms": 135,
+        "engine_entry_to_queue_ms": 35,
+        "executable_to_engine_ms": 122,
+        "native_engine_queue_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 2461,
+          "mean": 716.8750740524891,
+          "p50_type1": 524.8704759869725,
+          "p95_type1": 1737.3796817846596
+        },
+        "tpot_ms": {
+          "count": 2461,
+          "mean": 15.079005231180027,
+          "p50_type1": 14.334701347656342,
+          "p95_type1": 21.093024740018596
+        },
+        "arrival_to_admission_ms": {
+          "count": 2461,
+          "mean": 371.71665710349384,
+          "p50_type1": 212.05943915992975,
+          "p95_type1": 1176.4073374215513
+        },
+        "admission_to_acquired_ms": {
+          "count": 2461,
+          "mean": 133.2036072101818,
+          "p50_type1": 95.98884591832757,
+          "p95_type1": 431.6934240050614
+        },
+        "executable_to_engine_ms": {
+          "count": 2461,
+          "mean": 68.98782292446398,
+          "p50_type1": 28.83768198080361,
+          "p95_type1": 227.35856589861214
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 2461,
+          "mean": 38.60842184033449,
+          "p50_type1": 10.977294063195586,
+          "p95_type1": 174.9683041125536
+        },
+        "native_engine_queue_ms": {
+          "count": 2461,
+          "mean": 2.410251626136347,
+          "p50_type1": 0.030728057026863098,
+          "p95_type1": 0.5457520019263029
+        },
+        "native_prefill_ms": {
+          "count": 2461,
+          "mean": 101.94831334787872,
+          "p50_type1": 99.53553299419582,
+          "p95_type1": 165.23554897867143
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 2461,
+          "mean": 89.47328727276847,
+          "p50_type1": 0.0,
+          "p95_type1": 352.78981062583625
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 2461,
+          "mean": 10.625039532039676,
+          "p50_type1": 0.0,
+          "p95_type1": 52.08059796132147
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "all",
+      "peer_exposure": "neither",
+      "n": 1267,
+      "ttft_violations": 42,
+      "tpot_violations": 1,
+      "joint_violations": 43,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 897,
+        "admission_to_acquired_ms": 242,
+        "native_prefill_ms": 58,
+        "executable_to_engine_ms": 61,
+        "native_engine_queue_ms": 1,
+        "engine_entry_to_queue_ms": 8
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1267,
+          "mean": 687.0385081279029,
+          "p50_type1": 519.366446416825,
+          "p95_type1": 1630.825494416058
+        },
+        "tpot_ms": {
+          "count": 1267,
+          "mean": 13.974267994072264,
+          "p50_type1": 12.90581420239439,
+          "p95_type1": 19.08314399054793
+        },
+        "arrival_to_admission_ms": {
+          "count": 1267,
+          "mean": 358.99096542613574,
+          "p50_type1": 209.4427125994116,
+          "p95_type1": 1153.6265432368964
+        },
+        "admission_to_acquired_ms": {
+          "count": 1267,
+          "mean": 130.77349290134123,
+          "p50_type1": 96.94082802161574,
+          "p95_type1": 423.09056711383164
+        },
+        "executable_to_engine_ms": {
+          "count": 1267,
+          "mean": 64.6601522693465,
+          "p50_type1": 28.65298604592681,
+          "p95_type1": 210.78839804977179
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1267,
+          "mean": 31.390665504594804,
+          "p50_type1": 10.182213969528675,
+          "p95_type1": 156.37703402899206
+        },
+        "native_engine_queue_ms": {
+          "count": 1267,
+          "mean": 1.943050480345536,
+          "p50_type1": 0.030720140784978867,
+          "p95_type1": 0.132064800709486
+        },
+        "native_prefill_ms": {
+          "count": 1267,
+          "mean": 99.28018154613909,
+          "p50_type1": 98.85614202357829,
+          "p95_type1": 159.17961508966982
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1267,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1267,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "all",
+      "peer_exposure": "prefill_only",
+      "n": 466,
+      "ttft_violations": 17,
+      "tpot_violations": 0,
+      "joint_violations": 17,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 66,
+        "native_prefill_ms": 27,
+        "arrival_to_admission_ms": 333,
+        "engine_entry_to_queue_ms": 13,
+        "executable_to_engine_ms": 27
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 466,
+          "mean": 747.0376574661175,
+          "p50_type1": 545.9864570293576,
+          "p95_type1": 1737.3796817846596
+        },
+        "tpot_ms": {
+          "count": 466,
+          "mean": 15.498185575186614,
+          "p50_type1": 14.626029037298208,
+          "p95_type1": 20.813363360991673
+        },
+        "arrival_to_admission_ms": {
+          "count": 466,
+          "mean": 388.92936390223053,
+          "p50_type1": 238.56053710915148,
+          "p95_type1": 1312.3650329653174
+        },
+        "admission_to_acquired_ms": {
+          "count": 466,
+          "mean": 121.74290293865626,
+          "p50_type1": 86.4910390228033,
+          "p95_type1": 347.13283204473555
+        },
+        "executable_to_engine_ms": {
+          "count": 466,
+          "mean": 76.03039095765818,
+          "p50_type1": 28.78617192618549,
+          "p95_type1": 300.5753781180829
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 466,
+          "mean": 50.97085101102267,
+          "p50_type1": 13.557514874264598,
+          "p95_type1": 216.54220996424556
+        },
+        "native_engine_queue_ms": {
+          "count": 466,
+          "mean": 3.6425698066905716,
+          "p50_type1": 0.0320489052683115,
+          "p95_type1": 1.226718071848154
+        },
+        "native_prefill_ms": {
+          "count": 466,
+          "mean": 105.72157884985928,
+          "p50_type1": 100.78441398218274,
+          "p95_type1": 166.4906779769808
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 466,
+          "mean": 123.90943910614807,
+          "p50_type1": 99.79085810482502,
+          "p95_type1": 266.8553499970585
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 466,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "all",
+      "peer_exposure": "demand_load_only",
+      "n": 16,
+      "ttft_violations": 0,
+      "tpot_violations": 0,
+      "joint_violations": 0,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 11,
+        "admission_to_acquired_ms": 4,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 16,
+          "mean": 441.68011714646127,
+          "p50_type1": 311.9254666380584,
+          "p95_type1": 1030.411841114983
+        },
+        "tpot_ms": {
+          "count": 16,
+          "mean": 15.00704321180481,
+          "p50_type1": 13.812480027805648,
+          "p95_type1": 20.63251012004912
+        },
+        "arrival_to_admission_ms": {
+          "count": 16,
+          "mean": 190.77866082079709,
+          "p50_type1": 143.19235947914422,
+          "p95_type1": 482.2585149668157
+        },
+        "admission_to_acquired_ms": {
+          "count": 16,
+          "mean": 84.14649141195696,
+          "p50_type1": 0.0,
+          "p95_type1": 398.6131448764354
+        },
+        "executable_to_engine_ms": {
+          "count": 16,
+          "mean": 46.67168209562078,
+          "p50_type1": 24.620547890663147,
+          "p95_type1": 134.59560717456043
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 16,
+          "mean": 25.58893372770399,
+          "p50_type1": 9.248148882761598,
+          "p95_type1": 193.3491302188486
+        },
+        "native_engine_queue_ms": {
+          "count": 16,
+          "mean": 0.02927237073890865,
+          "p50_type1": 0.025860033929347992,
+          "p95_type1": 0.05450798198580742
+        },
+        "native_prefill_ms": {
+          "count": 16,
+          "mean": 94.46507671964355,
+          "p50_type1": 68.0645948741585,
+          "p95_type1": 358.4053050726652
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 16,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 16,
+          "mean": 25.72101318219211,
+          "p50_type1": 15.685420017689466,
+          "p95_type1": 48.11600502580404
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "all",
+      "peer_exposure": "both",
+      "n": 712,
+      "ttft_violations": 36,
+      "tpot_violations": 4,
+      "joint_violations": 40,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 130,
+        "arrival_to_admission_ms": 484,
+        "engine_entry_to_queue_ms": 14,
+        "native_prefill_ms": 49,
+        "executable_to_engine_ms": 34,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 712,
+          "mean": 756.4119904375965,
+          "p50_type1": 537.5991121400148,
+          "p95_type1": 1909.7653173375875
+        },
+        "tpot_ms": {
+          "count": 712,
+          "mean": 16.772144882048664,
+          "p50_type1": 15.680642643322548,
+          "p95_type1": 24.20956641724854
+        },
+        "arrival_to_admission_ms": {
+          "count": 712,
+          "mean": 387.1623564399046,
+          "p50_type1": 203.63292144611478,
+          "p95_type1": 1206.6503739915788
+        },
+        "admission_to_acquired_ms": {
+          "count": 712,
+          "mean": 146.13135562675973,
+          "p50_type1": 95.35699291154742,
+          "p95_type1": 490.7129378989339
+        },
+        "executable_to_engine_ms": {
+          "count": 712,
+          "mean": 72.58105364051292,
+          "p50_type1": 30.316427117213607,
+          "p95_type1": 246.75550404936075
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 712,
+          "mean": 43.6538110168002,
+          "p50_type1": 21.93349995650351,
+          "p95_type1": 197.42011791095138
+        },
+        "native_engine_queue_ms": {
+          "count": 712,
+          "mean": 2.488593266115346,
+          "p50_type1": 0.029703136533498764,
+          "p95_type1": 1.0525570251047611
+        },
+        "native_prefill_ms": {
+          "count": 712,
+          "mean": 104.39482044750365,
+          "p50_type1": 99.68679188750684,
+          "p95_type1": 168.12930791638792
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 712,
+          "mean": 228.16286707137388,
+          "p50_type1": 166.8313811533153,
+          "p95_type1": 577.9608159791678
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 712,
+          "mean": 36.14703100763282,
+          "p50_type1": 27.59559010155499,
+          "p95_type1": 90.0253220461309
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "all",
+      "n": 2456,
+      "ttft_violations": 95,
+      "tpot_violations": 0,
+      "joint_violations": 95,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 1720,
+        "admission_to_acquired_ms": 442,
+        "native_prefill_ms": 135,
+        "engine_entry_to_queue_ms": 35,
+        "executable_to_engine_ms": 122,
+        "native_engine_queue_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 2456,
+          "mean": 716.8443051467541,
+          "p50_type1": 523.7981262616813,
+          "p95_type1": 1740.8767975866795
+        },
+        "tpot_ms": {
+          "count": 2456,
+          "mean": 15.037794449777628,
+          "p50_type1": 14.328018764910453,
+          "p95_type1": 21.050064631708665
+        },
+        "arrival_to_admission_ms": {
+          "count": 2456,
+          "mean": 371.6213049820028,
+          "p50_type1": 211.5380794275552,
+          "p95_type1": 1176.5106804668903
+        },
+        "admission_to_acquired_ms": {
+          "count": 2456,
+          "mean": 133.28695018290003,
+          "p50_type1": 95.68200493231416,
+          "p95_type1": 431.84901191852987
+        },
+        "executable_to_engine_ms": {
+          "count": 2456,
+          "mean": 69.00381791040965,
+          "p50_type1": 28.83768198080361,
+          "p95_type1": 235.85732700303197
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 2456,
+          "mean": 38.60702047561347,
+          "p50_type1": 10.963039007037878,
+          "p95_type1": 178.5046609584242
+        },
+        "native_engine_queue_ms": {
+          "count": 2456,
+          "mean": 2.383435968933809,
+          "p50_type1": 0.030706170946359634,
+          "p95_type1": 0.5457520019263029
+        },
+        "native_prefill_ms": {
+          "count": 2456,
+          "mean": 101.94177562689427,
+          "p50_type1": 99.53553299419582,
+          "p95_type1": 165.23554897867143
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 2456,
+          "mean": 89.23221088148402,
+          "p50_type1": 0.0,
+          "p95_type1": 352.78981062583625
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 2456,
+          "mean": 10.597287342107798,
+          "p50_type1": 0.0,
+          "p95_type1": 52.08059796132147
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "neither",
+      "n": 1266,
+      "ttft_violations": 42,
+      "tpot_violations": 0,
+      "joint_violations": 42,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 896,
+        "admission_to_acquired_ms": 242,
+        "native_prefill_ms": 58,
+        "executable_to_engine_ms": 61,
+        "native_engine_queue_ms": 1,
+        "engine_entry_to_queue_ms": 8
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1266,
+          "mean": 686.523945966815,
+          "p50_type1": 519.2097737453878,
+          "p95_type1": 1630.825494416058
+        },
+        "tpot_ms": {
+          "count": 1266,
+          "mean": 13.960119899222512,
+          "p50_type1": 12.902442649647128,
+          "p95_type1": 19.027477219424327
+        },
+        "arrival_to_admission_ms": {
+          "count": 1266,
+          "mean": 358.4639269714781,
+          "p50_type1": 208.7798600550741,
+          "p95_type1": 1153.6265432368964
+        },
+        "admission_to_acquired_ms": {
+          "count": 1266,
+          "mean": 130.78814636975508,
+          "p50_type1": 96.89993201754987,
+          "p95_type1": 423.09056711383164
+        },
+        "executable_to_engine_ms": {
+          "count": 1266,
+          "mean": 64.68878818181524,
+          "p50_type1": 28.65298604592681,
+          "p95_type1": 210.78839804977179
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1266,
+          "mean": 31.39243386432052,
+          "p50_type1": 10.165078099817038,
+          "p95_type1": 156.37703402899206
+        },
+        "native_engine_queue_ms": {
+          "count": 1266,
+          "mean": 1.8832773567172942,
+          "p50_type1": 0.030677998438477516,
+          "p95_type1": 0.11891312897205353
+        },
+        "native_prefill_ms": {
+          "count": 1266,
+          "mean": 99.30737322272871,
+          "p50_type1": 98.85614202357829,
+          "p95_type1": 159.17961508966982
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1266,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1266,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "prefill_only",
+      "n": 466,
+      "ttft_violations": 17,
+      "tpot_violations": 0,
+      "joint_violations": 17,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 66,
+        "native_prefill_ms": 27,
+        "arrival_to_admission_ms": 333,
+        "engine_entry_to_queue_ms": 13,
+        "executable_to_engine_ms": 27
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 466,
+          "mean": 747.0376574661175,
+          "p50_type1": 545.9864570293576,
+          "p95_type1": 1737.3796817846596
+        },
+        "tpot_ms": {
+          "count": 466,
+          "mean": 15.498185575186614,
+          "p50_type1": 14.626029037298208,
+          "p95_type1": 20.813363360991673
+        },
+        "arrival_to_admission_ms": {
+          "count": 466,
+          "mean": 388.92936390223053,
+          "p50_type1": 238.56053710915148,
+          "p95_type1": 1312.3650329653174
+        },
+        "admission_to_acquired_ms": {
+          "count": 466,
+          "mean": 121.74290293865626,
+          "p50_type1": 86.4910390228033,
+          "p95_type1": 347.13283204473555
+        },
+        "executable_to_engine_ms": {
+          "count": 466,
+          "mean": 76.03039095765818,
+          "p50_type1": 28.78617192618549,
+          "p95_type1": 300.5753781180829
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 466,
+          "mean": 50.97085101102267,
+          "p50_type1": 13.557514874264598,
+          "p95_type1": 216.54220996424556
+        },
+        "native_engine_queue_ms": {
+          "count": 466,
+          "mean": 3.6425698066905716,
+          "p50_type1": 0.0320489052683115,
+          "p95_type1": 1.226718071848154
+        },
+        "native_prefill_ms": {
+          "count": 466,
+          "mean": 105.72157884985928,
+          "p50_type1": 100.78441398218274,
+          "p95_type1": 166.4906779769808
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 466,
+          "mean": 123.90943910614807,
+          "p50_type1": 99.79085810482502,
+          "p95_type1": 266.8553499970585
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 466,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "demand_load_only",
+      "n": 16,
+      "ttft_violations": 0,
+      "tpot_violations": 0,
+      "joint_violations": 0,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 11,
+        "admission_to_acquired_ms": 4,
+        "native_prefill_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 16,
+          "mean": 441.68011714646127,
+          "p50_type1": 311.9254666380584,
+          "p95_type1": 1030.411841114983
+        },
+        "tpot_ms": {
+          "count": 16,
+          "mean": 15.00704321180481,
+          "p50_type1": 13.812480027805648,
+          "p95_type1": 20.63251012004912
+        },
+        "arrival_to_admission_ms": {
+          "count": 16,
+          "mean": 190.77866082079709,
+          "p50_type1": 143.19235947914422,
+          "p95_type1": 482.2585149668157
+        },
+        "admission_to_acquired_ms": {
+          "count": 16,
+          "mean": 84.14649141195696,
+          "p50_type1": 0.0,
+          "p95_type1": 398.6131448764354
+        },
+        "executable_to_engine_ms": {
+          "count": 16,
+          "mean": 46.67168209562078,
+          "p50_type1": 24.620547890663147,
+          "p95_type1": 134.59560717456043
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 16,
+          "mean": 25.58893372770399,
+          "p50_type1": 9.248148882761598,
+          "p95_type1": 193.3491302188486
+        },
+        "native_engine_queue_ms": {
+          "count": 16,
+          "mean": 0.02927237073890865,
+          "p50_type1": 0.025860033929347992,
+          "p95_type1": 0.05450798198580742
+        },
+        "native_prefill_ms": {
+          "count": 16,
+          "mean": 94.46507671964355,
+          "p50_type1": 68.0645948741585,
+          "p95_type1": 358.4053050726652
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 16,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 16,
+          "mean": 25.72101318219211,
+          "p50_type1": 15.685420017689466,
+          "p95_type1": 48.11600502580404
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_pass",
+      "peer_exposure": "both",
+      "n": 708,
+      "ttft_violations": 36,
+      "tpot_violations": 0,
+      "joint_violations": 36,
+      "dominant_ttft_stage": {
+        "admission_to_acquired_ms": 130,
+        "arrival_to_admission_ms": 480,
+        "engine_entry_to_queue_ms": 14,
+        "native_prefill_ms": 49,
+        "executable_to_engine_ms": 34,
+        "native_engine_queue_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 708,
+          "mean": 757.4065926453194,
+          "p50_type1": 537.5991121400148,
+          "p95_type1": 1909.7653173375875
+        },
+        "tpot_ms": {
+          "count": 708,
+          "mean": 16.66249181753152,
+          "p50_type1": 15.659635815148553,
+          "p95_type1": 23.736013111310324
+        },
+        "arrival_to_admission_ms": {
+          "count": 708,
+          "mean": 387.84329285075637,
+          "p50_type1": 201.43422787077725,
+          "p95_type1": 1206.6503739915788
+        },
+        "admission_to_acquired_ms": {
+          "count": 708,
+          "mean": 146.46386965125336,
+          "p50_type1": 95.09776695631444,
+          "p95_type1": 490.7129378989339
+        },
+        "executable_to_engine_ms": {
+          "count": 708,
+          "mean": 72.59952238699063,
+          "p50_type1": 30.316427117213607,
+          "p95_type1": 246.75550404936075
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 708,
+          "mean": 43.66409817104107,
+          "p50_type1": 21.940261125564575,
+          "p95_type1": 197.42011791095138
+        },
+        "native_engine_queue_ms": {
+          "count": 708,
+          "mean": 2.5022368901803835,
+          "p50_type1": 0.02964097075164318,
+          "p95_type1": 1.0525570251047611
+        },
+        "native_prefill_ms": {
+          "count": 708,
+          "mean": 104.33357269509753,
+          "p50_type1": 99.68679188750684,
+          "p95_type1": 166.42220388166606
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 708,
+          "mean": 227.98377302466065,
+          "p50_type1": 166.60574986599386,
+          "p95_type1": 577.9608159791678
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 708,
+          "mean": 36.179945623307454,
+          "p50_type1": 27.59559010155499,
+          "p95_type1": 90.0253220461309
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "all",
+      "n": 5,
+      "ttft_violations": 0,
+      "tpot_violations": 5,
+      "joint_violations": 5,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 5
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 5,
+          "mean": 731.9887605495751,
+          "p50_type1": 619.1243075300008,
+          "p95_type1": 1338.4742040652782
+        },
+        "tpot_ms": {
+          "count": 5,
+          "mean": 35.32174105603799,
+          "p50_type1": 31.88575607385825,
+          "p95_type1": 43.63237536603176
+        },
+        "arrival_to_admission_ms": {
+          "count": 5,
+          "mean": 418.55361917987466,
+          "p50_type1": 283.0982019659132,
+          "p95_type1": 1026.221649022773
+        },
+        "admission_to_acquired_ms": {
+          "count": 5,
+          "mean": 92.26553901098669,
+          "p50_type1": 112.22220188938081,
+          "p95_type1": 121.78617808967829
+        },
+        "executable_to_engine_ms": {
+          "count": 5,
+          "mean": 61.13108582794666,
+          "p50_type1": 28.407087083905935,
+          "p95_type1": 203.5560419317335
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 5,
+          "mean": 39.29677219130099,
+          "p50_type1": 21.55071310698986,
+          "p95_type1": 129.6849779319018
+        },
+        "native_engine_queue_ms": {
+          "count": 5,
+          "mean": 15.582102444022894,
+          "p50_type1": 0.08056219667196274,
+          "p95_type1": 77.61582499369979
+        },
+        "native_prefill_ms": {
+          "count": 5,
+          "mean": 105.1596418954432,
+          "p50_type1": 74.82320279814303,
+          "p95_type1": 177.53818701021373
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 5,
+          "mean": 207.8900106716901,
+          "p50_type1": 217.56002609618008,
+          "p95_type1": 469.67039396986365
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 5,
+          "mean": 24.256915226578712,
+          "p50_type1": 16.023857053369284,
+          "p95_type1": 52.776392083615065
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "neither",
+      "n": 1,
+      "ttft_violations": 0,
+      "tpot_violations": 1,
+      "joint_violations": 1,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 1,
+          "mean": 1338.4742040652782,
+          "p50_type1": 1338.4742040652782,
+          "p95_type1": 1338.4742040652782
+        },
+        "tpot_ms": {
+          "count": 1,
+          "mean": 31.88575607385825,
+          "p50_type1": 31.88575607385825,
+          "p95_type1": 31.88575607385825
+        },
+        "arrival_to_admission_ms": {
+          "count": 1,
+          "mean": 1026.221649022773,
+          "p50_type1": 1026.221649022773,
+          "p95_type1": 1026.221649022773
+        },
+        "admission_to_acquired_ms": {
+          "count": 1,
+          "mean": 112.22220188938081,
+          "p50_type1": 112.22220188938081,
+          "p95_type1": 112.22220188938081
+        },
+        "executable_to_engine_ms": {
+          "count": 1,
+          "mean": 28.407087083905935,
+          "p50_type1": 28.407087083905935,
+          "p95_type1": 28.407087083905935
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 1,
+          "mean": 29.151922091841698,
+          "p50_type1": 29.151922091841698,
+          "p95_type1": 29.151922091841698
+        },
+        "native_engine_queue_ms": {
+          "count": 1,
+          "mean": 77.61582499369979,
+          "p50_type1": 77.61582499369979,
+          "p95_type1": 77.61582499369979
+        },
+        "native_prefill_ms": {
+          "count": 1,
+          "mean": 64.85551898367703,
+          "p50_type1": 64.85551898367703,
+          "p95_type1": 64.85551898367703
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 1,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 1,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "prefill_only",
+      "n": 0,
+      "ttft_violations": 0,
+      "tpot_violations": 0,
+      "joint_violations": 0,
+      "dominant_ttft_stage": {},
+      "metrics": {
+        "ttft_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "tpot_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "arrival_to_admission_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "admission_to_acquired_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "executable_to_engine_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "native_engine_queue_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "native_prefill_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "demand_load_only",
+      "n": 0,
+      "ttft_violations": 0,
+      "tpot_violations": 0,
+      "joint_violations": 0,
+      "dominant_ttft_stage": {},
+      "metrics": {
+        "ttft_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "tpot_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "arrival_to_admission_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "admission_to_acquired_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "executable_to_engine_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "native_engine_queue_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "native_prefill_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 0,
+          "mean": null,
+          "p50_type1": null,
+          "p95_type1": null
+        }
+      }
+    },
+    {
+      "output_length": "65+",
+      "tpot_status": "tpot_fail",
+      "peer_exposure": "both",
+      "n": 4,
+      "ttft_violations": 0,
+      "tpot_violations": 4,
+      "joint_violations": 4,
+      "dominant_ttft_stage": {
+        "arrival_to_admission_ms": 4
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4,
+          "mean": 580.3673996706493,
+          "p50_type1": 521.7708009295166,
+          "p95_type1": 754.4899052008986
+        },
+        "tpot_ms": {
+          "count": 4,
+          "mean": 36.18073730158293,
+          "p50_type1": 30.54250800050795,
+          "p95_type1": 43.63237536603176
+        },
+        "arrival_to_admission_ms": {
+          "count": 4,
+          "mean": 266.6366117191501,
+          "p50_type1": 257.0242751389742,
+          "p95_type1": 345.878025284037
+        },
+        "admission_to_acquired_ms": {
+          "count": 4,
+          "mean": 87.27637329138815,
+          "p50_type1": 106.35058907791972,
+          "p95_type1": 121.78617808967829
+        },
+        "executable_to_engine_ms": {
+          "count": 4,
+          "mean": 69.31208551395684,
+          "p50_type1": 24.859155993908644,
+          "p95_type1": 203.5560419317335
+        },
+        "engine_entry_to_queue_ms": {
+          "count": 4,
+          "mean": 41.83298471616581,
+          "p50_type1": 8.396913995966315,
+          "p95_type1": 129.6849779319018
+        },
+        "native_engine_queue_ms": {
+          "count": 4,
+          "mean": 0.07367180660367012,
+          "p50_type1": 0.0495431013405323,
+          "p95_type1": 0.14545302838087082
+        },
+        "native_prefill_ms": {
+          "count": 4,
+          "mean": 115.23567262338474,
+          "p50_type1": 74.82320279814303,
+          "p95_type1": 177.53818701021373
+        },
+        "peer_prefill_overlap_ms": {
+          "count": 4,
+          "mean": 259.86251333961263,
+          "p50_type1": 217.56002609618008,
+          "p95_type1": 469.67039396986365
+        },
+        "peer_demand_load_overlap_ms": {
+          "count": 4,
+          "mean": 30.32114403322339,
+          "p50_type1": 16.023857053369284,
+          "p95_type1": 52.776392083615065
+        }
+      }
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d716_common_slo_diagnosis/diagnosis.json",
+      "sha256": "c89370c7b08fb224a4adaff306766a59e659db881086eeafab18f0e69a28a285",
+      "bytes": 234344
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d716_common_slo_diagnosis/requests.csv",
+      "sha256": "39b7e2969dfd2d5754c483f271c139dd9ef4728f6a7313a0df73da827c05520a",
+      "bytes": 2437691
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "200c63ab8a706761ea68ff8c32a16989dbf791a96707103e4a3db89dbf105d61",
+      "bytes": 72642
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "bytes": 82192
+    }
+  ],
+  "limitations": [
+    "Same-owner prefill envelope is scheduled-to-first-token, not GPU kernel time.",
+    "Demand-load exposure excludes proactive preparation and state queries.",
+    "Temporal overlap is not causal latency; no subtraction or counterfactual SLO.",
+    "No-overlap requests can still encounter other unobserved interference.",
+    "Length groups reuse the D716 <=64 boundary; all requests and disjoint cases retained.",
+    "Descriptive single-run cohorts are not independent randomized comparisons."
+  ]
+}

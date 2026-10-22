@@ -1,0 +1,19 @@
+{
+  "kind": "d721_offline_parser_failure_v1",
+  "unit": "primelora-tc-aux-44b6c3b0d59048f991360164329d33c1.scope",
+  "invocation_id": "99e9fc9d7ee54699ba9b17d7a6c37cfd",
+  "source_script_sha256": "d85983bad99af0ef37136521e703e0bc7c22e96c004ff17ffdadba756f5af12d",
+  "error": "ValueError converting empty native load timestamp to float",
+  "cause": "Confirmed GPU hits legitimately have no native-load span; parser required a timestamp for every request.",
+  "tests_passed_before_analysis": 112,
+  "performance_failure": false,
+  "gpu_runs_added": 0,
+  "result_files_written": 0,
+  "actual_cpu_affinity": [2, 3, 26, 27],
+  "memory_peak_bytes": 3286888448,
+  "memory_events_high": 2876,
+  "memory_events_max_oom_kill": 0,
+  "swap_bytes": 0,
+  "tasks_after_exit": 0,
+  "correction": "Keep absent spans null only when native_load_invoked is false. Invoked loads remain fail-closed. Import the large analyzer after the test subprocess exits to avoid overlapping two runtime imports."
+}

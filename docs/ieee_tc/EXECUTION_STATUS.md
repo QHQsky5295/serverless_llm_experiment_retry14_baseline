@@ -1,5 +1,31 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D721：完整请求解码重叠复核完成；未改Full配置
+
+PROGRESS。复用D703/D719各4000请求，按同owner原生区间重算prefill／按需
+加载交叠并给出互斥分组；90组数据已保存，114项检查通过，无新GPU实验。
+D719短输出132条TPOT违约：prefill-only44、demand-load-only16、both40、
+neither32；即84条与prefill包络重叠，48条没有。相关性不当作因果节省；
+控制查询和主动准备不在按需加载包络中，不能将无重叠解释为无竞争。
+全体TTFT最大段arrival→admission2896条、admission→acquired699条，
+服务前等待仍须处理。当前完整仍joint91.60%、U13508.300779、n_correct未知。
+
+文档`D721_3B_DECODE_PEER_EXPOSURE_20261022.md`及
+`paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/`。
+纯离线脚本扩展，生产/config/PLAN/V1/V2/用户manifest和144旧投稿SHA不变。
+最终CPU2/3/26/27、峰值2422059008B，high/max/OOM/swap0，空scope已关闭。
+启动affinity拒绝、GPU-hit空加载时间解析错误及中间分析memory.high保留；
+没有推理失败或重跑同配置。最终将测试与大型分析导入错开，没有放宽资源限制。
+
+下一只做有界原生prefill/decode干扰资格：复用既有观察入口/请求/工件，
+区分实际混合迭代与控制调用，不重复旧无新增观察量前缀。不直接采用文献
+512/2048，也不凭包络推GPU速度；有证据才导出一个模型级预算并匹配新profile。
+当前并未选定新budget或修改Full。最多两轮最小验证，无支持即结束方向。
+不恢复已拒绝的identity-only/HOST元数据/GC/同owner串行/scale-down候选，
+不凭2秒周期认定规划冗余、不缓存旧物理图。备份前核对显式路径及来源。
+HydraServe隔离适配/7B矩阵复用，不触碰共享k3s；全部3B后续、消融/敏感性、
+CE、审稿文档和最终图表范围保持，完整目标仍active。
+
 ## 2026-10-22 D719审计闭合：重复过时状态已消除，但不是性能胜点
 
 检查点`cd10f01601d87b1fc7a38f5494ce92fc0f7e2aff`已推送并ls-remote核验

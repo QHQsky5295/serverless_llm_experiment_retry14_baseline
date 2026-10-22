@@ -1,0 +1,97 @@
+{
+  "kind": "d721_offline_execution_receipt_v1",
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-44784718b75643debac4a19a7ca22370.scope",
+    "invocation_id": "e61b5d9f821a495db6831550860aa0ca",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-44784718b75643debac4a19a7ca22370.scope",
+    "inode": 30188995
+  },
+  "source_script": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d721_20261022/run_analysis.py",
+    "sha256": "19af95ccaceb0b6c3cff667696ef8a1febec1b35ad2bd8d051c7d7145639b441"
+  },
+  "cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "memory_peak_bytes": 2422059008,
+  "memory_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "swap_bytes": 0,
+  "protected_publication_files": 144,
+  "production_changed": false,
+  "gpu_runs_added": 0,
+  "protocol_changed": false,
+  "exploratory_inspection": {
+    "unit": "primelora-tc-aux-469d9295eae34a99932089f72a178125.scope",
+    "invocation_id": "4a2ce6bf407f40b0b18c875c5b2f36be",
+    "peak_bytes": 1090007040,
+    "events_all_zero": true,
+    "swap_bytes": 0,
+    "closed": true,
+    "data_written": false,
+    "cpu_affinity_verified": false
+  },
+  "prior_launch_failure": {
+    "kind": "d721_offline_analysis_launch_failure_v1",
+    "unit": "primelora-tc-aux-764292910dd64d63ae2e403094cf42bf.scope",
+    "invocation_id": "5c63dfd6c29d4e88aa24468a7487ed16",
+    "error": "os.sched_getaffinity(0) != {2,3,26,27}",
+    "cause": "AllowedCPUs was requested, but this delegated scope has no effective cpuset controller; explicit taskset was missing.",
+    "stopped_before_tests_and_analysis": true,
+    "gpu_runs_added": 0,
+    "memory_peak_bytes": 1342185472,
+    "memory_high_max_oom_events": 0,
+    "swap_bytes": 0,
+    "tasks_after_exit": 0,
+    "correction": "Preserve this attempt; launch the same offline analysis with explicit taskset and verify actual affinity."
+  },
+  "prior_parser_failure": {
+    "kind": "d721_offline_parser_failure_v1",
+    "unit": "primelora-tc-aux-44b6c3b0d59048f991360164329d33c1.scope",
+    "invocation_id": "99e9fc9d7ee54699ba9b17d7a6c37cfd",
+    "source_script_sha256": "d85983bad99af0ef37136521e703e0bc7c22e96c004ff17ffdadba756f5af12d",
+    "error": "ValueError converting empty native load timestamp to float",
+    "cause": "Confirmed GPU hits legitimately have no native-load span; parser required a timestamp for every request.",
+    "tests_passed_before_analysis": 112,
+    "performance_failure": false,
+    "gpu_runs_added": 0,
+    "result_files_written": 0,
+    "actual_cpu_affinity": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "memory_peak_bytes": 3286888448,
+    "memory_events_high": 2876,
+    "memory_events_max_oom_kill": 0,
+    "swap_bytes": 0,
+    "tasks_after_exit": 0,
+    "correction": "Keep absent spans null only when native_load_invoked is false. Invoked loads remain fail-closed. Import the large analyzer after the test subprocess exits to avoid overlapping two runtime imports."
+  },
+  "tests": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d721_20261022/attempt3/tests.xml",
+    "sha256": "11c91fbaf6eb637ab57d35c1eae5c838122b423341cbe31d7bf04a304f65079f"
+  },
+  "bindings": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd"
+  },
+  "unchanged": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml": "1d1a91b1fa3f41d764eb92e42f3da6210d3dd45d74203c9064fa31134ee10401"
+  }
+}

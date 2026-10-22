@@ -5,6 +5,67 @@ import json
 import pytest
 
 
+def d721_rows():
+    from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
+    def row(rid, owner, start, first, last, tokens, load=False):
+        return dict(request_id=rid, owner=owner, worker_pid=1 if owner == 'a' else 2,
+            replica=owner, scheduled=start, first=first, last=last, output_tokens=tokens,
+            native_load_invoked=load, load_start=.9 if load else None, load_end=1.15 if load else None,
+            ttft_pass=True, tpot_pass=rid != 'r0', joint_pass=rid != 'r0',
+            ttft_ms=60., tpot_ms=(last-first)*1000/(tokens-1),
+            peer_prefill_count=0, peer_prefill_overlap_ms=0.,
+            peer_demand_load_count=0, peer_demand_load_overlap_ms=0.,
+            **{key:10. for key in D716_TTFT_STAGES})
+    a = row('r0', 'a', .5, 1., 2., 10)
+    b = row('r1', 'a', 1.1, 1.2, 1.8, 100, True)
+    c = row('r2', 'b', 1.1, 1.2, 1.8, 10, True)
+    a.update(peer_prefill_count=1, peer_prefill_overlap_ms=100.,
+             peer_demand_load_count=1, peer_demand_load_overlap_ms=150.)
+    return [a, b, c]
+
+
+def test_d721_disjoint_exposure_counts_and_cross_owner_exclusion():
+    from scripts.ieee_tc.audit_d703_3b_full import decode_overlap_groups
+    groups = decode_overlap_groups(d721_rows())
+    assert len(groups) == 45
+    index = {(g['output_length'], g['tpot_status'], g['peer_exposure']):g for g in groups}
+    assert index['all','all','all']['n'] == 3
+    assert index['all','all','both']['n'] == 1
+    assert index['all','all','neither']['n'] == 2
+    assert index['2-64','tpot_fail','both']['tpot_violations'] == 1
+    empty = index['65+','tpot_fail','all']
+    assert empty['n'] == 0 and empty['metrics']['tpot_ms']['mean'] is None
+    for length in ('all', '2-64', '65+'):
+        for status in ('all', 'tpot_pass', 'tpot_fail'):
+            assert sum(index[length,status,e]['n'] for e in (
+                'neither','prefill_only','demand_load_only','both')) == index[length,status,'all']['n']
+
+
+@pytest.mark.parametrize('fault', ['empty','duplicate','missing','boolean','joint','tokens',
+    'nan','order','tpot','ttft_identity','owner','count','duration','missing_load','missing_span','partial_span'])
+def test_d721_rejects_missing_or_contradictory_overlap_evidence(fault):
+    from scripts.ieee_tc.audit_d703_3b_full import decode_overlap_groups
+    rows = d721_rows()
+    if fault == 'empty': rows = []
+    elif fault == 'duplicate': rows.append(copy.deepcopy(rows[0]))
+    elif fault == 'missing': del rows[0]['last']
+    elif fault == 'boolean': rows[0]['tpot_pass'] = 'False'
+    elif fault == 'joint': rows[0]['joint_pass'] = True
+    elif fault == 'tokens': rows[0]['output_tokens'] = 1
+    elif fault == 'nan': rows[0]['first'] = float('nan')
+    elif fault == 'order': rows[0]['scheduled'] = 3.
+    elif fault == 'tpot': rows[0]['tpot_ms'] += 1.
+    elif fault == 'ttft_identity': rows[0]['ttft_ms'] += 2.
+    elif fault == 'owner': rows[1]['worker_pid'] = 99
+    elif fault == 'count': rows[0]['peer_prefill_count'] = 2
+    elif fault == 'duration': rows[0]['peer_prefill_overlap_ms'] += 2.
+    elif fault == 'missing_load': rows[1]['native_load_invoked'] = False
+    elif fault == 'missing_span': rows[1].update(load_start=None, load_end=None)
+    elif fault == 'partial_span': rows[1]['load_end'] = None
+    with pytest.raises((ValueError, KeyError)):
+        decode_overlap_groups(rows)
+
+
 def d717_request():
     opened = dict(intent_id='p',state='pending',clock_id='clock',scheduler_owner_id='scheduler',observed_at=1.)
     final = dict(opened,state='withdrawn',observed_at=1.1)

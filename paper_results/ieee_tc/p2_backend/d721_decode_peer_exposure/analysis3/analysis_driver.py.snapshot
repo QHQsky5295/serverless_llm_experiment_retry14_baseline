@@ -1,0 +1,80 @@
+"""Bounded offline reuse of D703/D719; no production or GPU execution."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent/'attempt3'
+RAW.mkdir(exist_ok=False)
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+save(RAW/'identity.json', identity)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+bindings = {
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'):
+        'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':
+        '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':
+        '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+    ROOT/'configs/generated/lora_manifest_1000.json':
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    ROOT/'scripts/run_all_experiments.py':
+        '6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd',
+}
+seal = json.loads((ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json').read_text())
+protected = {Path(k):v['sha256'] for k,v in seal['entries'].items()
+             if '/paper_results/final_v2/' in k or '/figs/paper/' in k}
+assert len(protected) == 144
+for path, sha in (bindings | protected).items():
+    assert p.digest(path) == sha, path
+before = {str(path):p.digest(path) for path in (
+    ROOT/'faaslora/memory/gpu_monitor.py', ROOT/'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml')}
+with (RAW/'tests.log').open('x') as log:
+    done = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+        'tests/test_ieee_tc_diagnostic_plot.py',
+        '--junitxml='+str(RAW/'tests.xml')], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+assert done.returncode == 0, 'preserve test failure before running any analyses'
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_decode_overlap
+OUT.mkdir(parents=True, exist_ok=False)
+for run, directory in (
+    ('d703', 'd716_common_slo_diagnosis'), ('d719', 'd719_stage_diagnosis')):
+    diagnose_decode_overlap(ROOT/'paper_results/ieee_tc/p2_backend'/directory/'diagnosis.json',
+                            OUT/(run+'.json'))
+for path, sha in (bindings | protected).items():
+    assert p.digest(path) == sha, path
+assert all(p.digest(Path(path)) == sha for path,sha in before.items())
+events = p.counters(group/'memory.events')
+assert not any(events[k] for k in ('high','max','oom','oom_kill'))
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'execution.json', dict(kind='d721_offline_execution_receipt_v1', passed=True,
+    identity=identity, source_script=dict(path=str(Path(__file__)),sha256=p.digest(Path(__file__))),
+    cpu_affinity=sorted(os.sched_getaffinity(0)), memory_peak_bytes=int((group/'memory.peak').read_text()),
+    memory_events=events, swap_bytes=0, protected_publication_files=144,
+    production_changed=False, gpu_runs_added=0, protocol_changed=False,
+    exploratory_inspection=dict(unit='primelora-tc-aux-469d9295eae34a99932089f72a178125.scope',
+        invocation_id='4a2ce6bf407f40b0b18c875c5b2f36be', peak_bytes=1090007040,
+        events_all_zero=True, swap_bytes=0, closed=True, data_written=False,
+        cpu_affinity_verified=False),
+    prior_launch_failure=json.loads((RAW.parent/'launch_failure.json').read_text()),
+    prior_parser_failure=json.loads((RAW.parent/'attempt2/failure.json').read_text()),
+    tests=dict(path=str(RAW/'tests.xml'),sha256=p.digest(RAW/'tests.xml')),
+    bindings={str(path):sha for path,sha in bindings.items()}, unchanged=before))
+print('D721 two complete source populations audited; no production changes.', flush=True)

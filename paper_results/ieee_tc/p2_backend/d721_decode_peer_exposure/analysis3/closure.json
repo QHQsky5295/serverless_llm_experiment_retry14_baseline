@@ -1,0 +1,15 @@
+{
+  "kind": "d721_offline_closure_v1",
+  "passed": true,
+  "unit_states": {
+    "primelora-tc-aux-469d9295eae34a99932089f72a178125.scope": "inactive",
+    "primelora-tc-aux-764292910dd64d63ae2e403094cf42bf.scope": "inactive",
+    "primelora-tc-aux-44b6c3b0d59048f991360164329d33c1.scope": "inactive",
+    "primelora-tc-aux-44784718b75643debac4a19a7ca22370.scope": "inactive"
+  },
+  "gpu_compute_processes": [],
+  "production_changed": false,
+  "data_bytes": 242523,
+  "prior_attempts_preserved": true,
+  "disk_available_bytes": 173872984064
+}

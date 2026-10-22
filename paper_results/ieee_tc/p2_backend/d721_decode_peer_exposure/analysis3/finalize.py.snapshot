@@ -1,0 +1,59 @@
+"""Verify closed offline scopes and publish small reproducibility artifacts."""
+import hashlib
+import json
+from pathlib import Path
+import resource
+import subprocess
+import sys
+
+resource.setrlimit(resource.RLIMIT_AS, (512*1024**2, 512*1024**2))
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+states = {}
+for suffix in ('469d9295eae34a99932089f72a178125', '764292910dd64d63ae2e403094cf42bf',
+               '44b6c3b0d59048f991360164329d33c1', '44784718b75643debac4a19a7ca22370'):
+    unit = 'primelora-tc-aux-'+suffix+'.scope'
+    state = subprocess.check_output(['systemctl','--user','show',unit,
+                                    '-p','ActiveState','--value'], text=True).strip()
+    assert state == 'inactive', (unit,state)
+    states[unit] = state
+for name in ('d703.json','d719.json'):
+    report = json.loads((OUT/name).read_text())
+    for source in report['source_refs']:
+        assert p.digest(Path(source['path'])) == source['sha256'], source
+    assert report['counts']['n'] == 4000 and len(report['groups']) == 45
+execution = json.loads((OUT/'execution.json').read_text())
+for source, sha in (execution['bindings'] | execution['unchanged']).items():
+    assert p.digest(Path(source)) == sha, source
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+                                    '--format=csv,noheader'],text=True).strip()
+for source, name in (
+    (RAW/'run_analysis.py','analysis_driver.py.snapshot'),
+    (RAW/'finalize.py','finalize.py.snapshot'),
+    (RAW/'attempt3/tests.xml','tests.xml'),
+    (RAW/'launch_failure.json','launch_failure.json'),
+    (RAW/'attempt2/failure.json','parser_failure.json')):
+    with (OUT/name).open('xb') as handle:
+        handle.write(source.read_bytes())
+save(OUT/'closure.json', dict(kind='d721_offline_closure_v1', passed=True,
+    unit_states=states, gpu_compute_processes=[], production_changed=False,
+    data_bytes=sum(x.stat().st_size for x in OUT.iterdir()),
+    prior_attempts_preserved=True, disk_available_bytes=p.disk_sample(ROOT)['free_bytes']
+    if hasattr(p,'disk_sample') else __import__('shutil').disk_usage(ROOT).free))
+paths = [x for x in OUT.iterdir() if x.is_file()]
+paths += [ROOT/'docs/ieee_tc/D721_3B_DECODE_PEER_EXPOSURE_20261022.md',
+          ROOT/'scripts/ieee_tc/audit_d703_3b_full.py',
+          ROOT/'tests/test_ieee_tc_diagnostic_plot.py']
+save(OUT/'manifest.json', dict(kind='d721_publication_bundle_v1', passed=True,
+    files=[dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path),bytes=path.stat().st_size)
+           for path in sorted(paths)]))
+print(json.dumps(dict(passed=True,files=len(paths),closed_scope_count=len(states))))

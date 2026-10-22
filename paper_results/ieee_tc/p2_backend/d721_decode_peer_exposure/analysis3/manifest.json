@@ -1,0 +1,66 @@
+{
+  "kind": "d721_publication_bundle_v1",
+  "passed": true,
+  "files": [
+    {
+      "path": "docs/ieee_tc/D721_3B_DECODE_PEER_EXPOSURE_20261022.md",
+      "sha256": "77b2c7b0afaad5f5b2bd7c04bd24c54568c82a65a1b8d90411b3ac137dbdb93e",
+      "bytes": 8619
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/analysis_driver.py.snapshot",
+      "sha256": "19af95ccaceb0b6c3cff667696ef8a1febec1b35ad2bd8d051c7d7145639b441",
+      "bytes": 4483
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/closure.json",
+      "sha256": "ed1bf3a58ac063be3a818b59e24716061ad37794f4e7ca284703b36797135053",
+      "bytes": 543
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/d703.json",
+      "sha256": "81d5bdfab3aa27fcbdb0582e8de389c5a08881376baa57d86ec60a6be24641e2",
+      "bytes": 105643
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/d719.json",
+      "sha256": "e81b679111bc28993320faf8cc8bc883d0aba68f0a5ef042e11f4ae9ee81df38",
+      "bytes": 106189
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/execution.json",
+      "sha256": "007e677c96a937394efff95a1d03e72bfe2d6c91de2eb2d688ee35f2aa34fb4a",
+      "bytes": 4494
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/finalize.py.snapshot",
+      "sha256": "3b514f2d616c6a6646250af096dc6f4e6ad9a8377d82f30d27b27379cdac664b",
+      "bytes": 3021
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/launch_failure.json",
+      "sha256": "7ede1b606c588976ef8a8ecc3198bc20f1689d531214461174288d008a4f5412",
+      "bytes": 672
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/parser_failure.json",
+      "sha256": "9f472418d054ddf826ffb38ab375dd5da5e1b9b71fd40a5419df7d2635d53ac9",
+      "bytes": 981
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d721_decode_peer_exposure/analysis3/tests.xml",
+      "sha256": "11c91fbaf6eb637ab57d35c1eae5c838122b423341cbe31d7bf04a304f65079f",
+      "bytes": 17040
+    },
+    {
+      "path": "scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "200c63ab8a706761ea68ff8c32a16989dbf791a96707103e4a3db89dbf105d61",
+      "bytes": 72642
+    },
+    {
+      "path": "tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "de2f7ea6f97b6a89c64543543a2177ef5c1f477b4b6c46741ce9a3e58218cd69",
+      "bytes": 26170
+    }
+  ]
+}

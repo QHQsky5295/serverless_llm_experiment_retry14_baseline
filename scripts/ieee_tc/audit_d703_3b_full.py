@@ -224,6 +224,143 @@ def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
                          max_stage_identity_error_ms=report['max_stage_identity_error_ms'])))
 
 
+def decode_overlap_groups(rows):
+    """D721: disjoint exposure cohorts, never counterfactual latency savings.
+
+    Input is the sealed D716 request projection. Recompute both overlapping
+    envelopes from same-owner native timestamps, rather than trusting a count
+    or interpreting concurrent prefill as a GPU stall. No performance run.
+    """
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if not rows or len({r['request_id'] for r in rows}) != len(rows):
+        raise ValueError('nonempty unique request population required')
+    owners = collections.defaultdict(list)
+    for row in rows:
+        for key in ('ttft_pass', 'tpot_pass', 'joint_pass', 'native_load_invoked'):
+            if type(row[key]) is not bool:
+                raise ValueError('explicit boolean evidence required')
+        if row['joint_pass'] != (row['ttft_pass'] and row['tpot_pass']):
+            raise ValueError('joint flags differ from the two native SLO flags')
+        if type(row['output_tokens']) is not int or row['output_tokens'] < 2:
+            raise ValueError('this projection requires measured multi-token outputs')
+        for key in ('first', 'last', 'scheduled',
+                    'ttft_ms', 'tpot_ms', *D716_TTFT_STAGES):
+            if type(row[key]) not in (int, float) or not math.isfinite(row[key]) or row[key] < 0:
+                raise ValueError('finite nonnegative native times required')
+        if not (row['scheduled'] <= row['first'] < row['last']):
+            raise ValueError('native time boundaries are not ordered')
+        load_times = (row['load_start'], row['load_end'])
+        if load_times == (None, None) and not row['native_load_invoked']:
+            pass  # Confirmed GPU hit: absent load span, not a zero-duration load.
+        elif (any(type(v) not in (int, float) or not math.isfinite(v) or v < 0
+                  for v in load_times) or load_times[0] > load_times[1]):
+            raise ValueError('invoked loads need a complete finite ordered span')
+        if abs((row['last']-row['first'])*1000/(row['output_tokens']-1)-row['tpot_ms']) > 1e-6:
+            raise ValueError('native TPOT differs from the retained projection')
+        if abs(math.fsum(row[k] for k in D716_TTFT_STAGES)-row['ttft_ms']) > 1:
+            raise ValueError('TTFT stage identity exceeds 1 ms')
+        owners[row['owner']].append(row)
+    exposures = {}
+    for owner_rows in owners.values():
+        if len({(r['worker_pid'], r['replica']) for r in owner_rows}) != 1:
+            raise ValueError('owner maps to multiple workers or replicas')
+        for row in owner_rows:
+            peers = [r for r in owner_rows if r['request_id'] != row['request_id']]
+            observed = []
+            for name, spans in (
+                ('prefill', [(r['scheduled'], r['first']) for r in peers]),
+                ('demand_load', [(r['load_start'], r['load_end']) for r in peers
+                                 if r['native_load_invoked']])):
+                duration, count = clipped_interval_union(row['first'], row['last'], spans)
+                if (type(row[f'peer_{name}_count']) is not int or
+                        count != row[f'peer_{name}_count'] or
+                        not math.isfinite(row[f'peer_{name}_overlap_ms']) or
+                        abs(duration*1000-row[f'peer_{name}_overlap_ms']) > 1e-6):
+                    raise ValueError('sealed overlap differs from native envelope recomputation')
+                observed.append(count > 0)
+            exposures[row['request_id']] = {
+                (False, False): 'neither', (True, False): 'prefill_only',
+                (False, True): 'demand_load_only', (True, True): 'both',
+            }[tuple(observed)]
+
+    def summarize(selected):
+        return dict(n=len(selected), ttft_violations=sum(not r['ttft_pass'] for r in selected),
+            tpot_violations=sum(not r['tpot_pass'] for r in selected),
+            joint_violations=sum(not r['joint_pass'] for r in selected),
+            dominant_ttft_stage=dict(collections.Counter(
+                max(D716_TTFT_STAGES, key=r.__getitem__) for r in selected)),
+            metrics={key: timing_stats([r[key] for r in selected]) for key in (
+                'ttft_ms', 'tpot_ms', *D716_TTFT_STAGES,
+                'peer_prefill_overlap_ms', 'peer_demand_load_overlap_ms')})
+    groups = []
+    for length, population in (
+        ('all', rows), ('2-64', [r for r in rows if r['output_tokens'] <= 64]),
+        ('65+', [r for r in rows if r['output_tokens'] > 64])):
+        for status, subset in (
+            ('all', population), ('tpot_pass', [r for r in population if r['tpot_pass']]),
+            ('tpot_fail', [r for r in population if not r['tpot_pass']])):
+            for exposure in ('all', 'neither', 'prefill_only', 'demand_load_only', 'both'):
+                selected = subset if exposure == 'all' else [
+                    r for r in subset if exposures[r['request_id']] == exposure]
+                groups.append(dict(output_length=length, tpot_status=status,
+                    peer_exposure=exposure, **summarize(selected)))
+    return groups
+
+
+def diagnose_decode_overlap(stage_audit: Path, output: Path):
+    """Reuse a sealed full D716 table; publish only small derived aggregates."""
+    if output.exists():
+        raise FileExistsError(output)
+    stage = read(stage_audit)
+    if (stage['kind'] != 'd716_all_request_stage_diagnosis_v1' or stage['passed'] is not True
+            or stage['counts']['n'] != 4000 or stage['max_stage_identity_error_ms'] > 1):
+        raise ValueError('complete sealed 4000-request stage audit required')
+    table = Path(stage['request_table']['path'])
+    if digest(table) != stage['request_table']['sha256']:
+        raise ValueError('sealed stage request table changed')
+    bools = ('ttft_pass', 'tpot_pass', 'joint_pass', 'native_load_invoked')
+    ints = ('ordinal', 'output_tokens', 'worker_pid', 'peer_prefill_count', 'peer_demand_load_count')
+    floats = ('first', 'last', 'scheduled', 'load_start', 'load_end', 'ttft_ms', 'tpot_ms',
+              *D716_TTFT_STAGES, 'peer_prefill_overlap_ms', 'peer_demand_load_overlap_ms')
+    rows = []
+    with table.open() as handle:
+        for row in csv.DictReader(handle):
+            for key in bools:
+                if row[key] not in ('True', 'False'):
+                    raise ValueError('missing or nonboolean CSV evidence')
+                row[key] = row[key] == 'True'
+            for key in ints:
+                row[key] = int(row[key])
+            for key in floats:
+                row[key] = None if key in ('load_start', 'load_end') and row[key] == '' else float(row[key])
+            rows.append(row)
+    if sorted(r['ordinal'] for r in rows) != list(range(4000)):
+        raise ValueError('all offered ordinals required')
+    for key in ('ttft_pass', 'tpot_pass', 'joint_pass'):
+        if sum(r[key] for r in rows) != stage['counts'][key]:
+            raise ValueError('stage population flags differ from sealed counts')
+    groups = decode_overlap_groups(rows)
+    report = dict(kind='d721_decode_peer_exposure_v1', passed=True,
+        source_run=stage['source_run'], clock_id=stage['clock_id'], counts=stage['counts'],
+        n_correct=stage['n_correct'], ranking_eligible=False, confidence_interval=None,
+        groups=groups, source_refs=[ref(stage_audit), ref(table), ref(Path(__file__)),
+            ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+            ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+            ref(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'))],
+        limitations=[
+            'Same-owner prefill envelope is scheduled-to-first-token, not GPU kernel time.',
+            'Demand-load exposure excludes proactive preparation and state queries.',
+            'Temporal overlap is not causal latency; no subtraction or counterfactual SLO.',
+            'No-overlap requests can still encounter other unobserved interference.',
+            'Length groups reuse the D716 <=64 boundary; all requests and disjoint cases retained.',
+            'Descriptive single-run cohorts are not independent randomized comparisons.'])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps(dict(passed=True, output=str(output), groups=len(groups),
+        counts=stage['counts'])))
+
+
 def retained_routing_attempts(request, *, clock_id):
     """D717: rejected attempts, not final-acquisition rechecks or saved time."""
     attempts = request['gpu_reference_evidence'].get('prior_routing_attempts', [])
@@ -1016,14 +1153,19 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=Path)
     parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--diagnose-routing-retries', type=Path)
+    parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--stage-audit', type=Path)
     parser.add_argument('--metric-audit', type=Path)
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.audit_profile_bindings is not None:
+    if args.diagnose_decode_overlap is not None:
+        if args.stage_audit is None:
+            parser.error('--stage-audit is required for --diagnose-decode-overlap')
+        diagnose_decode_overlap(args.stage_audit, args.diagnose_decode_overlap)
+    elif args.audit_profile_bindings is not None:
         if args.metric_audit is None or args.config is None:
             parser.error('--metric-audit and --config are required for --audit-profile-bindings')
         audit_profile_bindings(args.raw, args.audit_profile_bindings, args.metric_audit, args.config)
