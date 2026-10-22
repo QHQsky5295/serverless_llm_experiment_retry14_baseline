@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d724_graph_coverage/completion/analysis_receipt.json",
+      "sha256": "ff1f8d8ee815a95cb4bda49b31fcbf9fc86a5b25bf814eba6766a8bedc887f28"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d724_graph_coverage/completion/analyze2.py.snapshot",
+      "sha256": "4b058e3feb234048c30c3e73f65b5398b29206aea28b00b9cbce4b8adfe34273"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d724_graph_coverage/completion/scope_closures.json",
+      "sha256": "38bfd69ac0c64b1e472ff4e2a305f8f5125b2bb25ca0e0885a46ef814f774f83"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d724_graph_coverage/completion/summary.json",
+      "sha256": "52f6ac10ac5fa5aa071e2b21bbb53d5f244d390303ef8400d989af6352a2afae"
+    }
+  ]
+}

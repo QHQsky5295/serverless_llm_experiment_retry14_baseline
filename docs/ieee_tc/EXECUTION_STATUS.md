@@ -1,5 +1,26 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D724完成：图覆盖资格通过，下一为同规格新profile
+
+PROGRESS。16/16原生生成/映射/释放检查通过；2704非空迭代全部通过原有
+journal validator，其中FULL2688、PIECEWISE16，后者实际179–760token rows、
+填充256–1024。实际graph pool0.17GiB；启动99.485秒、资格生命周期164.534216
+GPU-s均不是性能结论（详细观察扰动、初始化cache状态和顺序前缀限制）。
+n_correct仍null，不声称kernel算术、完整池或正式G1合格。
+
+前两次0请求启动失败保留，均为漏继承既有工具链/启动保护的管理错误；
+第三次只恢复D534/D642完整既定环境，无加超时/换eager。离线analyze误用
+event字段已另存analyze2按kind纠正，没有GPU重跑。46+8CPU测试、三attempt
+资源及真实释放审计通过；最终服务峰值5738520576B、分析84353024B，
+high/max/OOM/swap0。旧144与用户manifest不变。当前没有活动GPU实验，
+远端未操作、共享k3s未操作，磁盘约162GiB。
+
+资料：D724_3B_GRAPH_COVERAGE_20261022.md及d724_graph_coverage/completion。
+下一按D701相同24代表/76波次/423请求取得匹配新model identity的profile，
+不能复用旧时间或排除compilation字段；之后最小Full与完整W0。当前完整
+3B仍D719 joint91.60%、U13508.300779，未达95%。3B后续baseline/W1/W2、
+dLoRA、A1–A5、S1–S13、CE与审稿文档/最终图表范围不删，接近目标前不画图。
+
 ## 2026-10-22 D724：图覆盖候选CPU资格通过，原生16请求检查待启动
 
 已核对完整PLAN/V1/V2和历史拒绝候选、官方v0.30源码。实际引擎入口为

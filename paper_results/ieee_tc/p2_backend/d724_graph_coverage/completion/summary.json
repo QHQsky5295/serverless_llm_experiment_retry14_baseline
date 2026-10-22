@@ -1,0 +1,277 @@
+{
+  "kind": "d724_native_graph_coverage_completed_v1",
+  "passed": true,
+  "requests": 16,
+  "native_contract_passed": 16,
+  "validation": {
+    "kind": "native_execution_journal_validation_v1",
+    "metadata_matches": true,
+    "requests": 16,
+    "iterations": 2736,
+    "nonempty_iterations": 2704,
+    "events": 21728,
+    "graph_modes": [
+      "FULL",
+      "PIECEWISE"
+    ],
+    "timing_qualified": false,
+    "kernel_arithmetic_qualified": false,
+    "full_pool_qualified": false,
+    "n_correct": null
+  },
+  "graphs": {
+    "PIECEWISE": {
+      "iterations": 16,
+      "min_real_rows": 179,
+      "max_real_rows": 760,
+      "min_padded_rows": 256,
+      "max_padded_rows": 1024,
+      "total_real_rows": 8984,
+      "total_padded_rows": 12288
+    },
+    "FULL": {
+      "iterations": 2688,
+      "min_real_rows": 1,
+      "max_real_rows": 1,
+      "min_padded_rows": 1,
+      "max_padded_rows": 1,
+      "total_real_rows": 2688,
+      "total_padded_rows": 2688
+    }
+  },
+  "startup_latency_ms": 99485.11645337567,
+  "lifecycle_gpu_seconds": 164.53421552525833,
+  "native_model_config": {
+    "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.72,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_cpu_loras": 32,
+    "max_lora_rank": 16,
+    "enable_lora": true,
+    "enforce_eager": false,
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 4096,
+    "compilation_config": {
+      "cudagraph_capture_sizes": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024
+      ],
+      "max_cudagraph_capture_size": 1024
+    },
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "safetensors_load_strategy": "auto",
+    "ieee_control_interleave": "atomic_control_yield_v1",
+    "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 18350080,
+      "max_transient_tensor_bytes": 36730056
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "ieee_physical_allocation": true,
+    "requested_enforce_eager": "auto",
+    "resolved_enforce_eager": false,
+    "skip_stale_gpu_cleanup": true,
+    "resolved_safetensors_load_strategy": "prefetch",
+    "safetensors_load_decision": "auto_prefetch_memory_safe",
+    "safetensors_model_bytes": 6425529048,
+    "safetensors_mem_available_bytes": 110755971072
+  },
+  "compiler_contract": {
+    "schema": "ieee_tc_native_toolchain_v1",
+    "contract": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/native_toolchain_cuda130_v1.json",
+    "contract_sha256": "328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c",
+    "helper_sha256": "24c35bb480fb9c9ee402cec7115254ff8f9af7695d95ad06935e51b3e8498699",
+    "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "environment": {
+      "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda-13.0/bin:/usr/local/bin:/usr/bin:/bin",
+      "CC": "/usr/bin/gcc",
+      "CXX": "/usr/bin/c++",
+      "CUDA_HOME": "/usr/local/cuda-13.0",
+      "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc",
+      "MAX_JOBS": "2",
+      "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+      "FLASHINFER_NVCC_THREADS": "1",
+      "FLASHINFER_WORKSPACE_BASE": "/home/qhq/.cache/primelora_tc_native/328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c"
+    },
+    "absent_environment": [
+      "CUDA_PATH",
+      "FLASHINFER_EXTRA_CFLAGS",
+      "FLASHINFER_EXTRA_CUDAFLAGS",
+      "FLASHINFER_EXTRA_LDFLAGS",
+      "FLASHINFER_CXX_LAUNCHER",
+      "FLASHINFER_NVCC_LAUNCHER",
+      "FLASHINFER_DISABLE_JIT",
+      "FLASHINFER_DISABLE_VERSION_CHECK",
+      "FLASHINFER_CUBIN_DIR",
+      "FLASHINFER_JIT_DEBUG",
+      "FLASHINFER_JIT_LINEINFO",
+      "NVCC_PREPEND_FLAGS",
+      "NVCC_APPEND_FLAGS",
+      "CFLAGS",
+      "CXXFLAGS",
+      "LDFLAGS",
+      "CPATH",
+      "CPLUS_INCLUDE_PATH",
+      "LIBRARY_PATH"
+    ],
+    "executables": {
+      "cc": {
+        "path": "/usr/bin/gcc",
+        "resolved": "/usr/bin/x86_64-linux-gnu-gcc-11",
+        "sha256": "821af3c74506283c179ca413bb33e6b528805a4dd8a5c09df125e5ad560a9e89"
+      },
+      "cxx": {
+        "path": "/usr/bin/c++",
+        "resolved": "/usr/bin/x86_64-linux-gnu-g++-11",
+        "sha256": "2360901d864cf10bfd6296e261cb2c14053552a80377761ab07146ec9ec9a2c0"
+      },
+      "nvcc": {
+        "path": "/usr/local/cuda-13.0/bin/nvcc",
+        "resolved": "/usr/local/cuda-13.0/bin/nvcc",
+        "sha256": "b8e2347d9d7fcadf8812a27324d515de99d033d3e48611811ece7e66d7895f8a"
+      },
+      "ninja": {
+        "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+        "resolved": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/ninja",
+        "sha256": "08639e194fffa7f08b259fc4abfa4803aff66b64de52549cee42ec527d55cea6"
+      }
+    },
+    "cache_policy": "compiler_identity_namespace_v1",
+    "build_performed": false
+  },
+  "resource_attempts": [
+    {
+      "attempt": "1",
+      "samples": 108,
+      "memory_peak_bytes": 5724020736,
+      "events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      },
+      "swap_peak_bytes": 0,
+      "minimum_host_available_bytes": 106449481728,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch.launch/watchdog.jsonl",
+        "sha256": "62ee3f189d75f0b91db078c3ea3cd4ff4e9422548deb8342a7aceb3bc5ce9551"
+      }
+    },
+    {
+      "attempt": "2",
+      "samples": 190,
+      "memory_peak_bytes": 5992148992,
+      "events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      },
+      "swap_peak_bytes": 0,
+      "minimum_host_available_bytes": 106021982208,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch2.launch/watchdog.jsonl",
+        "sha256": "2ec28c79bc72b5d44e4036211576c2dd6036faa7b8def4e23bd503747d382b61"
+      }
+    },
+    {
+      "attempt": "3",
+      "samples": 175,
+      "memory_peak_bytes": 5738520576,
+      "events": {
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      },
+      "swap_peak_bytes": 0,
+      "minimum_host_available_bytes": 106354450432,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch3.launch/watchdog.jsonl",
+        "sha256": "179d04dea4d6ac2542d68f8efff1519f08cf75b2bf01f048b9611960791c1eb0"
+      }
+    }
+  ],
+  "worker_log": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_bu1j4a88_engine_dead_1792649892/worker.log",
+    "sha256": "09200e0a53433ea7c9a3d4277a8c7b7955e0fc59dd6660bb4de0d544e46574a7"
+  },
+  "native_graph_log_lines": [
+    "(EngineCore pid=1992244) INFO 10-22 14:16:39 [monitor.py:53] torch.compile took 31.54 s in total",
+    "(EngineCore pid=1992244) INFO 10-22 14:16:55 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.27 GiB",
+    "(EngineCore pid=1992244) INFO 10-22 14:16:56 [gpu_worker.py:640] Available KV cache memory: 8.55 GiB",
+    "(EngineCore pid=1992244) INFO 10-22 14:16:56 [kv_cache_utils.py:2395] GPU KV cache size: 80,048 tokens, Maximum concurrency for 1,024 tokens per request: 78.17x",
+    "(EngineCore pid=1992244) INFO 10-22 14:17:04 [model_runner.py:1066] Graph capturing finished in 4 secs, took 0.17 GiB",
+    "(EngineCore pid=1992244) INFO 10-22 14:17:04 [gpu_worker.py:825] CUDA graph pool memory: 0.17 GiB (actual), 0.29 GiB (estimated), difference: 0.12 GiB (75.3%).",
+    "(EngineCore pid=1992244) INFO 10-22 14:17:05 [core.py:372] init engine (profile, create kv cache, warmup model) took 60.23 s (compilation: 31.54 s)"
+  ],
+  "raw_result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_execution3.json",
+    "sha256": "bcfe0537eea18e461d4da476b324478fca26592ab59f4ac8cd9cf3155a3eafa8"
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/native_launch3.json",
+    "sha256": "e8a447f2d2be2c5a539e76ac02d49d177e15d26a9ce4c51905f4c348c042c1cc"
+  },
+  "valid_performance_runs": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "local_frozen_artifacts_qualification_only": true,
+  "remote_service_changes": false,
+  "core_formula_changed": false,
+  "old_profile_compatible": false,
+  "offline_analysis_attempt1": {
+    "error": "KeyError: event",
+    "cause": "journal uses kind; GPU result is valid",
+    "source": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d724_20261022/analyze.py",
+      "sha256": "54b6288d11715dba3f45e681a039cec317bf1668f57b8af849e4436888395bef"
+    }
+  },
+  "limitations": [
+    "synchronizing metadata observer perturbs timing",
+    "sequential prefix is not mixed Full workload",
+    "metadata is not kernel arithmetic or numerical adapter qualification",
+    "two pre-request launch failures retained",
+    "prior compilation/cache state differs; startup is not a causal improvement estimate"
+  ],
+  "next_action": "same D701 source-spec measurements under new compilation identity, then bounded Full and complete W0"
+}

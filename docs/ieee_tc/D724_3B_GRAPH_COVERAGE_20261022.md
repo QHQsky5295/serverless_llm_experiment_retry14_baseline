@@ -88,3 +88,36 @@ D534共同编译合同；D641已有同类入口差异，D642已有完整修正�
 比较；仍只允许该候选的有界资格与后续验证。先以既有工具链8项CPU测试
 及实际helper绑定核验原生编译环境，另存native_execution3/native_launch3。
 若完整既定环境下仍失败，停止当前候选的自动启动，依据实际阶段另行诊断。
+
+## 完成结果：覆盖资格通过，尚无性能结论
+
+第三attempt在既有工具链和600秒保护合同下完成。全部16请求的原生token、
+adapter/lease映射和释放检查通过；2,736迭代中2,704个非空迭代、21,728事件
+通过原有严格journal validator。没有更换配置或回退eager。
+
+| 观察项 | 实测值 |
+|---|---:|
+| FULL图迭代 | 2,688；每次1个实际/填充token row |
+| PIECEWISE图迭代 | 16；实际179–760 rows，填充256–1024 rows |
+| PIECEWISE累计实际/填充rows | 8,984 / 12,288 |
+| 引擎启动 | 99.485116秒 |
+| 本资格物理GPU生命周期 | 164.534216 GPU-s |
+| 最终实际graph pool | 0.17 GiB（原生日志舍入值） |
+| 服务内存峰值 | 5,738,520,576字节 |
+| high/max/OOM/swap | 均0 |
+
+这证明本次顺序前缀的多token执行已走PIECEWISE，支持继续验证覆盖候选。
+它不证明混合Full负载的服务质量改善：详细observer含同步/readback，不能
+拿本次时间与D723直接作性能对照；启动缓存状态不同，也不能把99.485秒
+解释为因果启动改善。原生映射不是kernel算术或独立数值正确性，n_correct
+保持null，valid_performance_runs=0，ranking_eligible=false。
+
+初次离线汇总误用event而非kind字段，保留analyze.py及失败scope身份；
+另存analyze2.py并按原validator格式修正，未重跑GPU、未改变数据。最终
+分析峰值84,353,024字节，无high/max/OOM/swap；144旧投稿与用户manifest
+核对不变。详细来源、三次资源记录及空scope关闭见completion/目录。
+
+下一项只复用D701的24代表/76波次/423既有请求采样规格，测量新编译身份
+匹配的profile。旧测量不能混用，也不能把model identity排除编译配置。
+之后有界Full验证和完整W0；当前完整3B仍D719 joint91.60%、U13508.300779，
+数值资格未知，未达到冻结G1。后续矩阵与两轮审稿问题仍全部保留。

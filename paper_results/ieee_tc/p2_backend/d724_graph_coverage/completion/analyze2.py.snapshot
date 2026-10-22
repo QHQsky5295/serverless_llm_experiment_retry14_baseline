@@ -1,0 +1,112 @@
+"""Seal native graph coverage and containment, not a performance comparison."""
+import collections
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d724_graph_coverage/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def ref(path):return dict(path=str(path),sha256=p.digest(path))
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'analysis2_identity.json',own)
+group=Path(own['path'])
+before={k:(group/k).read_text().strip() for k in ('memory.high','memory.max','memory.events','memory.swap.max')}
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert before['memory.high']==str(3*p.GIB) and before['memory.max']==str(4*p.GIB) and before['memory.swap.max']=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(RAW/'qualification.json')
+for path,sha in q['refs'].items():assert p.digest(Path(path))==sha,path
+closures=[]
+for name in ('qualification_identity.json','backup_identity.json','start_identity.json',
+             'backup2_identity.json','backup2_resume_identity.json','start2_identity.json',
+             'contract3_identity.json','start3_identity.json','analysis_identity.json'):
+    identity=read(RAW/name)
+    assert not p.owned_pids(Path(identity['path']))
+    done=p.stop_scope_identity(identity,grace_seconds=0)
+    assert done['released'] and not done['targets']
+    assert not Path(identity['path']).exists()
+    closures.append(dict(identity=identity,closure=done))
+raw=read(RAW/'native_execution3.json');launch=read(RAW/'native_launch3.json')
+assert raw['pass'] and raw['stage']=='complete' and len(raw['requests'])==16
+assert all(q['pass'] and q['actual_tokens']==q['target_tokens'] and q['release']['released'] for q in raw['requests'])
+assert launch['pass'] and launch['service_returncode']==launch['watchdog_returncode']==0
+assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert raw['shutdown_called'] and raw['physical_allocation']['released']
+validation=p.validate_native_execution_journal(raw['execution_journal'],raw['execution_expected_leases'],
+    raw['workers_before']['workers'][0],raw['scheduler_before'],raw['scheduler_after'])
+assert validation==raw['execution_validation']
+assert validation['graph_modes']==['FULL','PIECEWISE'] and validation['n_correct'] is None
+counts=collections.Counter(); shapes=collections.defaultdict(list)
+for snapshot in raw['execution_journal']:
+    for event in snapshot.get('events',[]):
+        if event['kind']=='forward_before':
+            o=event['observation']; mode=o['cudagraph_runtime_mode']
+            counts[mode]+=1;shapes[mode].append((o['real_token_rows'],o['padded_forward_rows']))
+assert sum(counts.values())==validation['nonempty_iterations']
+alloc=raw['physical_allocation']
+acquire=[e for e in alloc['events'] if e['event']=='acquire']
+release=[e for e in alloc['events'] if e['event']=='release']
+assert len(acquire)==len(release)==len(alloc['gpu_uuids'])==1
+u=release[0]['at']-acquire[0]['at'];assert u>0
+resources=[]
+for suffix in ('','2','3'):
+    watchdog=RAW/('native_launch'+suffix+'.launch/watchdog.jsonl')
+    samples=[]
+    with watchdog.open() as f:
+        for line in f:
+            row=json.loads(line)
+            if row.get('event')=='resource_sample':samples.append(row)
+    assert samples
+    peak=max(s['service']['memory.peak'] for s in samples)
+    event_max={k:max(s['service']['memory.events'][k] for s in samples) for k in ('high','max','oom','oom_kill')}
+    swap=max(s['service']['memory.swap.current'] for s in samples)
+    assert not any(event_max.values()) and swap==0
+    resources.append(dict(attempt=suffix or '1',samples=len(samples),memory_peak_bytes=peak,
+        events=event_max,swap_peak_bytes=swap,minimum_host_available_bytes=min(s['host']['available_bytes'] for s in samples),source=ref(watchdog)))
+worker=ROOT/'results/worker_failures/faaslora_worker_bu1j4a88_engine_dead_1792649892/worker.log'
+assert worker.is_file()
+text=worker.read_text()
+assert "'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]" in text
+assert "'max_cudagraph_capture_size': 1024" in text
+graph_lines=[line for line in text.splitlines() if any(s in line for s in
+    ('Graph capturing finished','CUDA graph pool memory:','Available KV cache memory:',
+     'GPU KV cache size:','init engine (profile','torch.compile took'))]
+result=dict(kind='d724_native_graph_coverage_completed_v1',passed=True,
+    requests=16,native_contract_passed=16,validation=validation,
+    graphs={mode:dict(iterations=counts[mode],min_real_rows=min(a for a,b in rows),
+        max_real_rows=max(a for a,b in rows),min_padded_rows=min(b for a,b in rows),
+        max_padded_rows=max(b for a,b in rows),total_real_rows=sum(a for a,b in rows),
+        total_padded_rows=sum(b for a,b in rows)) for mode,rows in shapes.items()},
+    startup_latency_ms=raw['startup_latency_ms'],lifecycle_gpu_seconds=u,
+    native_model_config=raw['model_config'],compiler_contract=read(RAW/'toolchain3.json'),
+    resource_attempts=resources,worker_log=ref(worker),native_graph_log_lines=graph_lines,
+    raw_result=ref(RAW/'native_execution3.json'),launch=ref(RAW/'native_launch3.json'),
+    valid_performance_runs=0,n_correct=None,ranking_eligible=False,
+    local_frozen_artifacts_qualification_only=True,remote_service_changes=False,
+    core_formula_changed=False,old_profile_compatible=False,
+    offline_analysis_attempt1=dict(error="KeyError: event",cause="journal uses kind; GPU result is valid",source=ref(RAW/'analyze.py')),
+    
+    limitations=['synchronizing metadata observer perturbs timing','sequential prefix is not mixed Full workload',
+      'metadata is not kernel arithmetic or numerical adapter qualification','two pre-request launch failures retained',
+      'prior compilation/cache state differs; startup is not a causal improvement estimate'],
+    next_action='same D701 source-spec measurements under new compilation identity, then bounded Full and complete W0')
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'summary.json',result)
+save(OUT/'scope_closures.json',dict(passed=True,closures=closures))
+with (OUT/'analyze2.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+after={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}
+assert after['memory.events']==before['memory.events'] and after['memory.swap.current']=='0'
+save(OUT/'analysis_receipt.json',dict(passed=True,identity=own,resources=after,
+    protected_count=144,user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json'),
+    scripts_unchanged_from_prelaunch=True,disk_free_bytes=p.os.statvfs(ROOT).f_bavail*p.os.statvfs(ROOT).f_frsize))
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+print(json.dumps({k:result[k] for k in ('passed','requests','validation','graphs','startup_latency_ms','lifecycle_gpu_seconds','resource_attempts')},indent=2))

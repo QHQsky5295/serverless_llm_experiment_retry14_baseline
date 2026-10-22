@@ -1,0 +1,122 @@
+{
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-0e9914fceea9451d99a1bd637a9af724.scope",
+        "invocation_id": "7b9c152516264edfb7404d6d7bcd6e06",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0e9914fceea9451d99a1bd637a9af724.scope",
+        "inode": 30212130
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-166a6db798b44a1594d4ff1734d93724.scope",
+        "invocation_id": "158d1a481cfc4e1b8d6de7022d639dd9",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-166a6db798b44a1594d4ff1734d93724.scope",
+        "inode": 30213199
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-c2ac17bc09094f2e942757eb3f592724.scope",
+        "invocation_id": "e2ca6ebb3120487a85ebe29c6af13190",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c2ac17bc09094f2e942757eb3f592724.scope",
+        "inode": 30213241
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-c9639622cd394b6baf5a8f0790ac3724.scope",
+        "invocation_id": "804fec3f306c4bfbb05242e77695dd2e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c9639622cd394b6baf5a8f0790ac3724.scope",
+        "inode": 30215142
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-e12367c42161403c862291a5cbe3a724.scope",
+        "invocation_id": "3eb3e3c3a92a40f7b0e8d123d0917dcb",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-e12367c42161403c862291a5cbe3a724.scope",
+        "inode": 30215579
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope",
+        "invocation_id": "45180b816c8c43d4bce3a2ec4cf5699e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-481c7b51df724a61a89517ebd315b724.scope",
+        "inode": 30215621
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-25e52f043a034fb6ada4a8fcc17ce724.scope",
+        "invocation_id": "888e7dd63c2449d188e5c817142ccd4f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-25e52f043a034fb6ada4a8fcc17ce724.scope",
+        "inode": 30218549
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-8ee77489489449dba10114341bcbd724.scope",
+        "invocation_id": "58bf9f9092144a9e8246fc4b27dba12b",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8ee77489489449dba10114341bcbd724.scope",
+        "inode": 30218670
+      },
+      "closure": {
+        "already_gone": true,
+        "released": true,
+        "targets": []
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-06710c690d7a42f69442c11f0be8c724.scope",
+        "invocation_id": "a9fc8a00a52444f2a9abce03a79bd82d",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-06710c690d7a42f69442c11f0be8c724.scope",
+        "inode": 30220808
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ]
+}
