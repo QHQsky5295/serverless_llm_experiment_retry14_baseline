@@ -995,7 +995,7 @@ def require_unchanged_reference(recomputed, frozen):
     return frozen
 
 
-def matched_controller_rows(source, scenario, content):
+def matched_controller_rows(source, scenario, content, *, expected_count=4000):
     """Stream native controller requests with the same checks for Full and controls."""
     import ijson
     result = {}
@@ -1017,9 +1017,41 @@ def matched_controller_rows(source, scenario, content):
                 arrival=ext['planned_arrival_s'], submit=ext['client_submit_s'],
                 completed=n['controller_completed_monotonic_s'],
                 stored=dict(ttft_ms=r['overall_ttft_ms'], tpot_ms=r['tpot_ms'], e2e_ms=r['overall_e2e_ms']))
-    if len(result) != 4000:
-        raise ValueError('full controller population required')
+    if type(expected_count) is not int or expected_count <= 0 or len(result) != expected_count:
+        raise ValueError('explicit complete controller population required')
     return result
+
+
+def common_slo_flags(groups, *, prompt_tokens, output_tokens, ttft_ms, tpot_ms):
+    """Frozen per-request joint event; never read a runtime aggregate rate.
+
+    Call only after native generation/binding validation. Failed requests must
+    take the failure branch before this helper; a single token has no TPOT.
+    """
+    if (type(prompt_tokens) is not int or prompt_tokens <= 0
+            or type(output_tokens) is not int or output_tokens <= 0
+            or type(ttft_ms) not in (float, int) or not math.isfinite(ttft_ms)
+            or ttft_ms < 0):
+        raise ValueError('valid native counts and TTFT required')
+    selected = [g for g in groups if
+        (g['lower_exclusive'] is None or prompt_tokens > g['lower_exclusive']) and
+        (g['upper_inclusive'] is None or prompt_tokens <= g['upper_inclusive'])]
+    if len(selected) != 1:
+        raise ValueError('one frozen SLO stratum required')
+    g = selected[0]
+    if any(type(g[k]) not in (float, int) or not math.isfinite(g[k]) or g[k] <= 0
+           for k in ('ttft_ms', 'tpot_ms')):
+        raise ValueError('finite positive frozen thresholds required')
+    if output_tokens == 1:
+        if tpot_ms is not None:
+            raise ValueError('single-token TPOT must be N/A')
+        tp = None
+    else:
+        if type(tpot_ms) not in (float, int) or not math.isfinite(tpot_ms) or tpot_ms < 0:
+            raise ValueError('finite native TPOT required')
+        tp = tpot_ms <= g['tpot_ms']
+    tt = ttft_ms <= g['ttft_ms']
+    return dict(ttft_pass=tt, tpot_pass=tp, joint_pass=tt and (tp is not False))
 
 
 def matched_output_digest_audit(left, right, order):
@@ -1283,13 +1315,9 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False,
                         raise ValueError('single-token TPOT must remain N/A')
                 elif abs(values[key]-r['stored'][key]) > 1:
                     raise ValueError('native metric recomputation exceeds 1 ms')
-            groups = [g for g in freeze['groups'] if
-                (g['lower_exclusive'] is None or r['native_prompt_tokens'] > g['lower_exclusive']) and
-                (g['upper_inclusive'] is None or r['native_prompt_tokens'] <= g['upper_inclusive'])]
-            if len(groups) != 1:
-                raise ValueError('one frozen SLO stratum required')
-            tt = values['ttft_ms'] <= groups[0]['ttft_ms']
-            tp = nt == 1 or values['tpot_ms'] <= groups[0]['tpot_ms']
+            flags = common_slo_flags(freeze['groups'], prompt_tokens=r['native_prompt_tokens'],
+                output_tokens=nt, ttft_ms=values['ttft_ms'], tpot_ms=values['tpot_ms'])
+            tt, tp = flags['ttft_pass'], flags['tpot_pass'] is not False
             cts = dict(n=1, tokens=nt, ttft_pass=int(tt), tpot_pass=int(tp), joint_pass=int(tt and tp))
             good.update(cts); phases[ordinal//500].update(cts)
             for key,value in values.items():

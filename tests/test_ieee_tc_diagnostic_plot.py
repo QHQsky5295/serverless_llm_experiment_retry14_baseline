@@ -123,6 +123,48 @@ def test_type_one_quantile():
         percentile([], 0.95)
 
 
+def test_common_slo_is_joint_and_not_legacy_five_seconds():
+    from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+    groups = [dict(lower_exclusive=None, upper_inclusive=506, ttft_ms=1466., tpot_ms=30.),
+              dict(lower_exclusive=506, upper_inclusive=None, ttft_ms=2540., tpot_ms=36.)]
+    # Both would pass the legacy 5000-ms aggregate; neither passes joint SLO.
+    a = common_slo_flags(groups, prompt_tokens=506, output_tokens=2, ttft_ms=2000., tpot_ms=20.)
+    b = common_slo_flags(groups, prompt_tokens=507, output_tokens=2, ttft_ms=1000., tpot_ms=40.)
+    assert a == dict(ttft_pass=False, tpot_pass=True, joint_pass=False)
+    assert b == dict(ttft_pass=True, tpot_pass=False, joint_pass=False)
+    assert common_slo_flags(groups, prompt_tokens=507, output_tokens=2,
+                            ttft_ms=2540., tpot_ms=36.)['joint_pass']
+
+
+def test_common_slo_single_token_is_not_zero_tpot():
+    from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+    groups = [dict(lower_exclusive=None, upper_inclusive=None, ttft_ms=10., tpot_ms=1.)]
+    assert common_slo_flags(groups, prompt_tokens=1, output_tokens=1, ttft_ms=10., tpot_ms=None) == {
+        'ttft_pass': True, 'tpot_pass': None, 'joint_pass': True}
+    with pytest.raises(ValueError, match='N/A'):
+        common_slo_flags(groups, prompt_tokens=1, output_tokens=1, ttft_ms=10., tpot_ms=0.)
+
+
+@pytest.mark.parametrize('override', [dict(prompt_tokens=0), dict(prompt_tokens=True),
+    dict(output_tokens=0), dict(output_tokens=True), dict(ttft_ms=float('nan')),
+    dict(ttft_ms=-1.), dict(tpot_ms=None), dict(tpot_ms=float('inf'))])
+def test_common_slo_rejects_missing_or_nonfinite_native_values(override):
+    from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+    groups = [dict(lower_exclusive=None, upper_inclusive=None, ttft_ms=10., tpot_ms=1.)]
+    values = dict(prompt_tokens=1, output_tokens=2, ttft_ms=10., tpot_ms=.5)
+    with pytest.raises(ValueError):
+        common_slo_flags(groups, **(values | override))
+
+
+def test_common_slo_rejects_missing_or_overlapping_strata():
+    from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+    g = dict(lower_exclusive=None, upper_inclusive=None, ttft_ms=10., tpot_ms=1.)
+    values = dict(prompt_tokens=1, output_tokens=2, ttft_ms=10., tpot_ms=.5)
+    for groups in ([], [g,g], [g | {'ttft_ms': float('nan')}], [g | {'tpot_ms': 0.}]):
+        with pytest.raises(ValueError):
+            common_slo_flags(groups, **values)
+
+
 def test_incomplete_replay_rejected(tmp_path):
     result = {"metadata": {"total_requests": 1}, "detailed_results": {
         "one": {"completed": 1, "failed": 0, "requests": [request()]}}}

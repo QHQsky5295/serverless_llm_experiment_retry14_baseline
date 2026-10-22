@@ -13,6 +13,7 @@ import collections
 import argparse
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -36,6 +37,231 @@ SERVICE_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_pro
 PREPARATION_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/preparation.json"
 PROFILE_MANIFEST = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/manifest.json"
 OUT = ROOT / "paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile"
+
+
+def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
+    """Join closed remote, control and watchdog evidence after the SLO audit."""
+    import ijson
+    from scripts.ieee_tc.check_d299_full_context import project
+    if output.exists():
+        raise FileExistsError(output)
+    metric = read(metric_audit)
+    if metric['source_run'] != str(raw) or metric['passed'] is not True:
+        raise ValueError('same-run completed native metric audit required')
+    source = next(x for x in metric['source_refs'] if Path(x['path']).name.startswith('experiment_results_full'))
+    result = Path(source['path'])
+    if digest(result) != source['sha256']:
+        raise ValueError('metric source changed')
+    outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
+    meta, transfers = project(outcome)
+    journal = raw.parent/'remote_transfers.jsonl'
+    server_rows = [json.loads(line) for line in journal.read_text().splitlines() if line.strip()]
+    server = {r['transfer_id']:r for r in server_rows}
+    if len(server) != len(server_rows) or len(server) != len(transfers) or set(server) != {r['http_transfer_id'] for r in transfers}:
+        raise ValueError('client/server remote transfer identities differ')
+    health = read(raw.parent/'remote_health.json')
+    clock = health['3b']['clock_id']
+    for r in transfers:
+        s = server[r['http_transfer_id']]
+        if (r['state'] != 'published' or r['content_verified'] is not True
+                or r['published_archive_verified'] is not True
+                or r['artifact_id'] != s['artifact_id'] or r['remote_archive_sha256'] != s['archive_sha256']
+                or not r['transferred_bytes'] == s['archive_bytes'] == s['bytes_read'] == s['bytes_written']
+                or s['clock_id'] != clock or s['outcome'] != 'sent'
+                or r['remote_pack_performed'] is not False or s['pack_performed'] is not False
+                or s['temporary_created'] is not False):
+            raise ValueError('remote published delivery/bytes/no-pack join failed')
+    watchdog = raw/'launch.launch/watchdog.jsonl'
+    events, memory = collections.Counter(), collections.Counter()
+    peak = swap = 0
+    available, free = math.inf, math.inf
+    with watchdog.open() as stream:
+        for line in stream:
+            r = json.loads(line); events[r['event']] += 1
+            if r['event'] != 'resource_sample':
+                continue
+            if r['decision']['abort_reasons']:
+                raise ValueError('watchdog aborted this run')
+            for k, value in r['service']['memory.events'].items():
+                memory[k] = max(memory[k], value)
+            peak = max(peak, r['service']['memory.peak'])
+            swap = max(swap, r['service']['memory.swap.current'])
+            available = min(available, r['host']['available_bytes'])
+            free = min(free, *(x['free_bytes'] for x in r['filesystems']))
+    if not events['resource_sample'] or events['gpu_terminal_census'] != 1 or events['service_domain_gone'] != 1:
+        raise ValueError('complete watchdog closure required')
+    control = {}
+    with result.open('rb') as stream:
+        for prefix, event, value in ijson.parse(stream, use_float=True):
+            if prefix == 'detailed_results.tc_ieee_full.scale_down_events':
+                if event != 'number':
+                    raise ValueError('scalar observed event count required')
+                control[prefix.rsplit('.',1)[1]] = value
+    if 'scale_down_events' not in control:
+        raise ValueError('scale-in count must be recorded')
+    with result.open('rb') as stream:
+        control['scale_up_event_log'] = list(ijson.items(stream,
+            'detailed_results.tc_ieee_full.scale_up_events.item', use_float=True))
+    control['completed_scale_up_events'] = len(control['scale_up_event_log'])
+    with result.open('rb') as stream:
+        control['scale_down_event_log'] = list(ijson.items(stream,
+            'detailed_results.tc_ieee_full.scale_down_event_log.item', use_float=True))
+    if control['scale_down_events'] != len(control['scale_down_event_log']):
+        raise ValueError('scale-in log/count mismatch')
+    for event in control['scale_down_event_log']:
+        times = [event[k] for k in ('observed_monotonic_s', 'withdrawn_monotonic_s',
+                                    'drained_monotonic_s', 'released_monotonic_s')]
+        if (event['reason'] != 'ieee_all_low_through_cooldown'
+                or not all(math.isfinite(x) for x in times)
+                or any(a>b for a,b in zip(times,times[1:]))):
+            raise ValueError('ordered natural scale-in lifecycle required')
+    summary = read(raw/'launch.launch/physical_deployment/summary.json')
+    audit = dict(kind='d713_closed_delivery_and_control_context_v1', passed=True,
+        native_metric_audit=ref(metric_audit), terminal_meta=meta, control=control,
+        physical_allocation_count=len(summary['allocation_journals']),
+        all_allocations_released=all(j['released'] for j in summary['allocation_journals']),
+        remote=dict(transfers=len(transfers), wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+                    all_server_client_ids_bytes_hashes_match=True, request_time_packing=False),
+        resources=dict(events=dict(events), memory_events_max=dict(memory), service_peak_bytes=peak,
+            max_swap_bytes=swap, min_host_available_bytes=available, min_free_disk_bytes=free),
+        source_refs=[ref(x) for x in (result,outcome,journal,watchdog,raw.parent/'remote_health.json',
+            raw.parent/'remote_monitor.log',raw.parent/'remote_stop.log',Path(__file__))])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as stream:
+        json.dump(audit, stream, indent=2, allow_nan=False); stream.write('\n')
+    print(json.dumps({k:v for k,v in audit.items() if k != 'source_refs'}, indent=2))
+
+
+def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> None:
+    """R1: append-only native SLO correction, with bounded streaming memory.
+
+    No remote call, GPU launch, threshold change or modification of v1 evidence.
+    Both D703 full W0 and D713's registered prefix use the SAME D648 thresholds.
+    """
+    import ijson
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
+    from scripts.ieee_tc.check_d299_full_context import (
+        closed_physical_integral, common_slo_flags, matched_controller_rows)
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    if expected_count not in (1000, 4000):
+        raise ValueError('D713 prefix1000 or D703 full4000 only')
+    results = list(raw.glob('experiment_results_full*.json'))
+    if len(results) != 1:
+        raise ValueError('exactly one completed source result required')
+    result = results[0]
+    launch_path = raw/'launch.json'
+    summary_path = raw/'launch.launch/physical_deployment/summary.json'
+    physical_path = raw/'launch.launch/physical_deployment/physical_resource_summary.json'
+    launch, summary, physical = map(read, (launch_path, summary_path, physical_path))
+    if (not all(launch.get(k) is True for k in
+                ('pass', 'service_path_removed', 'native_gpu_context_release_confirmed'))
+            or any(launch.get(k) != 0 for k in
+                   ('service_returncode', 'watchdog_returncode', 'replay_returncode'))):
+        raise ValueError('actual gated release required before offline analysis')
+    result_sha = digest(result)
+    if (physical['result_file']['sha256'] != result_sha
+            or physical['summary_sha256'] != digest(summary_path)
+            or physical['measurement_complete'] is not True or physical['open_lease_ids']):
+        raise ValueError('source-bound complete physical sidecar required')
+    gpu_s = closed_physical_integral(summary, expected_count=expected_count)
+    for j in summary['allocation_journals']:
+        if j['released'] is not True or digest(Path(j['path'])) != j['sha256']:
+            raise ValueError('closed allocation journal SHA mismatch')
+    if digest(Path(summary['request_terminals_path'])) != summary['request_terminals_sha256']:
+        raise ValueError('request terminal journal changed')
+    ext = launch['external_replay']
+    plan = FrozenReplayPlan.load(ext['plan']['source_path'], count=expected_count)
+    if plan.identity() != ext['plan'] or abs(ext['replay_t0_s']-ext['deployment_notice_s']-60) > 1e-6:
+        raise ValueError('frozen source/prefix/arrival contract mismatch')
+    freeze_path = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+    if digest(freeze_path) != 'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8':
+        raise ValueError('frozen D648 evaluation changed')
+    freeze = read(freeze_path)
+    v1, v2 = (ROOT/'docs/ieee_tc'/name for name in
+              ('METRIC_PROTOCOL_FROZEN_V1.md', 'METRIC_PROTOCOL_SINGLE_RUN_V2.md'))
+    if (digest(v1) != freeze['metric_protocol_sha256']
+            or digest(v2) != freeze['single_run_amendment_sha256']):
+        raise ValueError('metric protocol identity mismatch')
+    warm = ROOT/freeze['calibration']['path']
+    if digest(warm) != freeze['calibration']['sha256']:
+        raise ValueError('warm reference identity mismatch')
+    content_path = ROOT/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json'
+    index = read(content_path)
+    content = {a['id']: hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),
+        sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}
+    if len(content) != len(index['artifacts']) or len(content) != 500:
+        raise ValueError('existing full content index required')
+    rows = matched_controller_rows(result, 'tc_ieee_full', content, expected_count=expected_count)
+    if set(rows) != {e.request_id for e in plan.entries}:
+        raise ValueError('offered population mismatch')
+    counts = collections.Counter(n=0, ttft_pass=0, tpot_eligible=0, tpot_pass=0, joint_pass=0)
+    phases, failed_slo = [collections.Counter() for _ in range(math.ceil(expected_count/500))], []
+    metrics = {k:[] for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')}
+    max_error = {k:0. for k in metrics}
+    for ordinal, entry in enumerate(plan.entries):
+        r, source = rows[entry.request_id], json.loads(entry.source_json)
+        n, a, e, d, c = r['native'], r['arrival'], r['submit'], r['native_entry_s'], r['completed']
+        if (r['source_item_sha256'] != entry.source_sha256 or r['adapter_id'] != source['adapter_id']
+                or r['target_tokens'] != min(source['expected_output_tokens'], 256)
+                or abs(a-ext['replay_t0_s']-entry.offset_s) > 1e-6):
+            raise ValueError('source/adapter/target/arrival mismatch')
+        NativeV1TokenTimeline.service_breakdown(n, admitted_at=n['controller_admitted_monotonic_s'],
+            completed_at=c, clock_id=summary['clock_id'])
+        f, l, nt = n['native_first_token_monotonic_s'], n['native_last_token_monotonic_s'], r['target_tokens']
+        if (n['native_terminal_observed'] is not True or n['native_output_tokens'] != nt
+                or not all(math.isfinite(t) for t in (a,e,d,f,l,c)) or not a <= e <= d <= f <= l <= c):
+            raise ValueError('native terminal/count/time mismatch')
+        values = dict(ttft_ms=(f-a)*1000, tpot_ms=(l-f)*1000/(nt-1) if nt>1 else None,
+                      e2e_ms=(c-a)*1000)
+        for key, value in values.items():
+            saved = r['stored'][key]
+            if value is None:
+                if saved is not None:
+                    raise ValueError('single-token TPOT must remain N/A')
+            else:
+                error = abs(value-saved)
+                if not math.isfinite(error) or error > 1:
+                    raise ValueError('native metric recomputation exceeds 1 ms')
+                max_error[key] = max(max_error[key], error)
+                metrics[key].append(value)
+        flags = common_slo_flags(freeze['groups'], prompt_tokens=r['native_prompt_tokens'],
+            output_tokens=nt, ttft_ms=values['ttft_ms'], tpot_ms=values['tpot_ms'])
+        cts = dict(n=1, ttft_pass=int(flags['ttft_pass']), tpot_eligible=int(nt>1),
+                   tpot_pass=int(flags['tpot_pass'] is True), joint_pass=int(flags['joint_pass']))
+        counts.update(cts); phases[ordinal//500].update(cts)
+        if not flags['joint_pass']:
+            failed_slo.append(dict(request_id=entry.request_id, ordinal=ordinal,
+                native_prompt_tokens=r['native_prompt_tokens'], **values, **flags))
+    with result.open('rb') as stream:
+        legacy = next(ijson.items(stream, 'detailed_results.tc_ieee_full.slo_attainment', use_float=True))
+    sources = [result, launch_path, summary_path, physical_path, freeze_path, warm, content_path,
+               v1, v2, Path(__file__), ROOT/'scripts/ieee_tc/check_d299_full_context.py']
+    if raw == RAW:
+        seal = read(OUT/'audit.json')
+        if result_sha != seal['source_result']['sha256'] or digest(launch_path) != seal['launch']['sha256']:
+            raise ValueError('D703 original sealed source changed')
+        sources.append(OUT/'audit.json')
+    audit = dict(kind='native_common_slo_reanalysis_d714_v1', source_run=str(raw),
+        reuse_level='R1', passed=True, counts=dict(counts),
+        joint_slo_fraction=counts['joint_pass']/expected_count,
+        ttft_marginal_fraction=counts['ttft_pass']/expected_count,
+        tpot_conditional_fraction=counts['tpot_pass']/counts['tpot_eligible'] if counts['tpot_eligible'] else None,
+        observed_latency_feasible=counts['joint_pass']*100 >= expected_count*95,
+        numerical_adapter_correctness_qualified=False, n_correct=summary['n_correct'], ranking_eligible=False,
+        full_w0=expected_count==4000, development_only=True, confidence_interval=None,
+        physical_gpu_seconds=gpu_s, gpu_seconds_per_offered_request=gpu_s/expected_count,
+        metrics={k:timing_stats(v) for k,v in metrics.items()}, max_recompute_error_ms=max_error,
+        phases_500=[dict(x) for x in phases], slo_violations=failed_slo,
+        legacy_runtime_ttft_only_fraction=legacy, legacy_is_common_joint_slo=False,
+        common_slo_sha256=digest(freeze_path), source_refs=[ref(x) for x in sources],
+        note='No simulation, rerun, threshold change or inference of independent numerical correctness.')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as stream:
+        json.dump(audit, stream, indent=2, allow_nan=False); stream.write('\n')
+    print(json.dumps({k:v for k,v in audit.items() if k not in ('source_refs','slo_violations')}, indent=2))
 
 
 def read(path: Path):
@@ -367,8 +593,21 @@ def main() -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--calibrate-control-lower', type=Path)
+    parser.add_argument('--reevaluate-common-slo', type=Path)
+    parser.add_argument('--audit-closed-outcome', type=Path)
+    parser.add_argument('--metric-audit', type=Path)
+    parser.add_argument('--raw', type=Path, default=RAW)
+    parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if args.calibrate_control_lower is not None:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome)) != 1:
+        parser.error('select exactly one offline analysis mode')
+    if args.audit_closed_outcome is not None:
+        if args.metric_audit is None:
+            parser.error('--metric-audit is required for --audit-closed-outcome')
+        audit_closed_outcome(args.raw, args.audit_closed_outcome, args.metric_audit)
+    elif args.reevaluate_common_slo is not None:
+        reevaluate_common_slo(args.raw, args.reevaluate_common_slo, expected_count=args.expected_count)
+    elif args.calibrate_control_lower is not None:
         calibrate_control_lower(args.calibrate_control_lower)
     else:
-        main()
+        parser.error('v1 audit is sealed and its SLO alias is withdrawn; use --reevaluate-common-slo OUTPUT')
