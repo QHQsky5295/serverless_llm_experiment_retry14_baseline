@@ -1,0 +1,17 @@
+{
+  "kind": "d742_vs_d736_single_run_observation_v1",
+  "previous": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d736_3b_validated_publication_full_w0/completion/full4000.json",
+    "sha256": "eb57c4b2a99e05d3160d14f61ef9a96992381be3170d866578af0b499f88d081"
+  },
+  "current": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/full4000.json",
+    "sha256": "3efa3caba9ae43347ecca1db6c740aafce7412c3bcc799c50ce3aa9bac5e2c10"
+  },
+  "joint_slo_delta_percentage_points": 0.5249999999999977,
+  "gpu_seconds_reduction_fraction": 0.004963407081141405,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "scope": "Known W0 development workload; not independent held-out or cross-workload superiority."
+}

@@ -1,5 +1,108 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D742完整结束：93.175%，保留开发父版但未达标
+
+PROGRESS。4000/4000正常终态、零运行失败，实际service/GPU和远端三项
+服务均已释放。complete/analyze/close复用入口全部通过：D648共同联合
+3727/4000=93.175%，TTFT3875、TPOT3846；U14868.152527434286 GPU-s，
+U/offered3.717038132。平均/P95 TTFT706.448456/1758.748013ms，平均/P95
+TPOT17.133394/31.427492ms，E2E均2609.141525ms。相对直接父版D736联合
++0.525pp、U减少0.496341%；平均TPOT/E2E退化保留。仍差73条到95%。
+历史D703的93.6%/U14864.807562不删除，本轮也未超过该历史数值。
+n_correct=null、ranking_eligible=false和D711限制保留，不重复既定关闭资格。
+
+D741仅保留为继续开发的父版本，不是G1/G2达标或历史最优，未启动下一
+候选。3887个初始化后epoch实际使用sidecar，额外660881970B计入；完整
+payload5508586893B仍保留。parent-freeze均9.439ms、worker CPU236.376ms，
+worker完成到父接收23.722ms包含通信/调度，不是独立解码。后三卡分配
+350.576/360.806/362.901秒，比父版稍晚；资源差不能归为GPU算力减少。
+请求到准入均343.862ms，原生队列3.052ms；剩余主要耗时仍在引擎之前。
+TTFT-only119、TPOT-only148、both6，不能只按单项TPOT退化判定。
+
+132fetch/306360162wireB双边SHA通过，无请求打包；4054资源样本events/
+swap0，峰值24285093888B，145保护项未变，阶段恒等式误差0ms。两分析域
+与回放aux按身份核对空后释放；closure域待正常备份入口关闭。收尾磁盘
+163556339712B，高于150GiB，本轮未删除/压缩任何证据；下次启动重查。
+一次终态watchdog读取jq空字段错误只属监测显示，实际launch返回码全0。
+
+下一先按github-sync备份明确产物并核验远端（V2不force、用户manifest
+不stage），再查关闭历史/官方资料与剩余pre-engine关键路径，选择唯一
+新假设；不重跑D742、不放宽评价尺子、不新建权重/负载、不盲调扩缩阈值。
+全部3B后续/baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档及最终图表仍保留；goal active。详见D742文档及其新completion/
+diagnosis/closure。当前新结果尚待备份，不能冒称已推送。
+
+## 2026-10-23 D742持续运行：已覆盖自然扩容，终态分析入口已准备
+
+VERIFIED_WAIT，继续同一完整4000请求运行，没有新实验或候选叠加。压缩后
+完整重读PLAN、AGENTS与最新规则；实际service仍为
+primelora-tc-svc-f60f41fef30f49e0a2ff68479a20a6d2.scope，InvocationID
+a6b0d75f44b34beb9052d941b63f85c0，多次核验active/running。
+最新Live业务09:48，到达485、完成482、正常482、失败0，4实例，
+自然scale_up=3、scale_down=0。watchdog641：available87.568GiB、
+service18.388GiB、disk152.042GiB，high/max/OOM/swap0，无warning/abort。
+此为运行进度，不能用Live的5000ms指标判断D648共同联合SLO或G1/G2。
+
+同一任务后续连续8次只读轮询仍核验相同InvocationID处于active/running，
+PLAN SHA仍为d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83。
+最新业务18:38，到达1047、完成1045、正常1045、失败0；scale_up=3、
+scale_down=0。watchdog1165：available87.352GiB、disk151.415GiB，
+high/max/OOM/swap0，无warning/abort。已超过四分之一请求，但仍非终态。
+上一goal turn和本轮均属VERIFIED_WAIT，不是阻塞或性能接受；继续同一
+service，不重启/不执行终态脚本，不因进度观察超时另启实验。
+
+后续同一service已到业务31:57，到达2024、完成2021、正常2021、失败0，
+仍scale_up=3、scale_down=0，InvocationID不变且active/running。
+watchdog1956：available87.139GiB、service20.180GiB、disk150.692GiB，
+high/max/OOM/swap0，无warning/abort。继续VERIFIED_WAIT；未执行任何
+终态分析、测试、备份或维护操作。过半不是完整性能接受，所有后续范围保留。
+
+持续监测至业务45:07，到达3034、完成3031、正常3031、失败0；相同service
+仍active/running，scale_up=3、scale_down=0。watchdog2735：available
+86.687GiB、service21.476GiB、disk149.780GiB，high/max/OOM/swap0，
+无warning/abort。磁盘已低于新重型任务150GiB启动线，但远高于运行100GiB
+停止线；当前不清理/压缩/扫描，结束后核查本轮可重建缓存及关闭证据，下一
+重型任务前恢复启动余量。共同V1和单轮V2已再次完整读取并确认SHA不变；
+尚无终态分析，继续同一运行，不因监测等待重启。
+
+已在raw/d742_20261023准备complete.py和analyze.py，复用D738/D736终态
+流程，但尚未执行；不读取未关闭outcome作性能结论。complete要求真实
+GPU/service释放与远端停止回执，streaming审计完整4000请求及D725绑定。
+analyze另计D741的initialized_execution_bytes：主payload与执行sidecar
+分别统计，并保留编码/worker/父接收时间，避免把额外成本遗漏。其字节和
+包含span均不冒称完整IPC流量或独立解码时间；尚无新统计结果。
+
+当前只做轻量监测与文档记录，不改生产源码、测试/构建、批量哈希、扫描/
+压缩清理、推送或维护远端，不启动第二任务。继续等待同一运行自然终态，
+不得因等待时间或锁而重启。终态后再以受限aux执行分析/关闭与正常备份。
+D742启动检查点71eb43ca已远端确认，运行期文档随终态检查点备份。
+全部3B后续/baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档及最终图表仍保留；D711数值限制不消失，goal active。
+
+## 2026-10-23 D742完整3B W0运行中，检查点已备份
+
+PROGRESS并进入VERIFIED_WAIT。新增入口2项通过（0.023秒），D74155项直接
+复用；145保护项、PLAN/V1/V2/D648/D725和候选源SHA核验通过。16明确路径
+提交71eb43ca1f8e5a075e75321c8e95850fb14e5518，推送/ls-remote确认
+faaslora_origin/backup/d742-execution-view-fullw0-20261023；V2未同步、未
+force，用户manifest未stage。唯一tmux tc-d742-3b-execution-view-full-w0
+已启动，实际service为primelora-tc-svc-f60f41fef30f49e0a2ff68479a20a6d2.scope，
+InvocationID a6b0d75f44b34beb9052d941b63f85c0，多次只读核验active/running。
+
+最新Live到达26/4000、完成25、正常25、失败0，业务01:05；不能用终端
+5000ms的100%当共同联合SLO。watchdog106：available97.164GiB、service
+7.494GiB、磁盘153.651GiB，high/max/OOM/swap0，无warning/abort。
+真实远端链路启动核验1000Mb/s/full；复用D80只读发布、请求不打包。远端
+3b/7b/monitor InvocationID和health保存在raw/remote_start.log/remote_health.json。
+启动管理aux已核对空后释放，峰值52924416B、events/swap0，不影响运行service。
+
+后续只监测同一service/watchdog/service.log，不能凭观察超时或旧锁重启。
+不执行测试、构建、压缩扫描、推送、远端维护或第二重任务。完整终态及
+真实释放后复用D736/D738 complete/analyze流程；D742终态脚本尚未准备，
+不得直接运行旧目录的入口。分析须计入initialized_execution_bytes，结果
+决定接受/撤回，不预设改善。全部其余范围/D711边界保留，goal active。
+本运行中状态在终态正常检查点备份，不在性能期提交/推送。
+
 ## 2026-10-23 D742完整3B W0已登记，准备启动
 
 上一goal turn为PROGRESS：D740证据/D741生产候选、55项通过、独立备份和

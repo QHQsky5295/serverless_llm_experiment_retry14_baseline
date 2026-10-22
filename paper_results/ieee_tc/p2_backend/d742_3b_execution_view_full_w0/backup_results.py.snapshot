@@ -1,0 +1,99 @@
+"""Back up D742 completion and diagnosis, reusing the D732 safe procedure."""
+import ast
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_completion_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+identity = read(RAW / 'closure_identity.json')
+if Path(identity['path']).exists():
+    assert p.scope_still_owned(identity) and not p.owned_pids(Path(identity['path']))
+    closed = p.stop_scope_identity(identity, grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+else:
+    closed = dict(already_removed=True, released=True)
+q = read(OUT / 'prelaunch/qualification.json')
+launch_head = read(RAW / 'start_receipt.json')['head']
+evolving = {ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+            ROOT / 'docs/ieee_tc/D742_3B_EXECUTION_VIEW_FULL_W0_20261023.md'}
+for name, sha in (q['refs'] | q['protected']).items():
+    path = Path(name)
+    if path in evolving:
+        content = subprocess.check_output(['git', 'show', launch_head+':'+str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+files = []
+for manifest in ('completion/manifest.json', 'diagnosis/manifest.json'):
+    for item in read(OUT / manifest)['files']:
+        path = ROOT / item['path']
+        assert p.digest(path) == item['sha256']
+        files.append(path)
+remote_monitor_sha = next(line.split()[0] for line in (RAW / 'remote_stop.log').read_text().splitlines() if line.endswith('/remote_monitor.log'))
+assert p.digest(RAW / 'remote_monitor.log') == remote_monitor_sha
+with (OUT / 'backup_results.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+for name in ('complete.py', 'analyze.py', 'close.py', 'backup_results.py'):
+    ast.parse((RAW / name).read_text())
+files += [OUT / 'completion/manifest.json', OUT / 'diagnosis/manifest.json', OUT / 'closure.json',
+          OUT / 'close.py.snapshot', OUT / 'backup_results.py.snapshot',
+          ROOT / 'docs/ieee_tc/D742_3B_EXECUTION_VIEW_FULL_W0_20261023.md',
+          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *[str(x.relative_to(ROOT)) for x in evolving]])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.csv', '.snapshot'))]
+csvs = [x for x in paths if x.endswith('.csv')]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW / 'backup_precommit_check.json', dict(passed=True, files=paths,
+    protected_files=len(q['protected']), formatting='Sealed CSV CRLF and exact executed snapshot trailing blanks preserved.'))
+call(['git', 'commit', '-m', 'tc: preserve D742 full 3B outcome and execution-view development outcome'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d742-complete-20261023'
+call(['git', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup_completion.json', dict(passed=True, head=head, ref=ref,
+    files=paths, v2_synchronized=False, closed_previous_scope=closed, protected_publication_files=len(q['protected']), remote_monitor_sha256=remote_monitor_sha,
+    csv_check='CSV CRLF and exact executed snapshot EOF preserved; sealed bytes unchanged.',
+    protected_user_manifest_sha256=p.digest(ROOT / 'configs/generated/lora_manifest_1000.json')))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))
+

@@ -1,0 +1,116 @@
+"""Seal D742 by reusing D738 closure; close only empty owned scopes."""
+import hashlib
+import json
+import subprocess
+import math
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'closure_identity.json', own)
+for manifest in ('completion/manifest.json', 'diagnosis/manifest.json'):
+    for item in read(OUT / manifest)['files']:
+        assert p.digest(ROOT / item['path']) == item['sha256']
+q = read(OUT / 'prelaunch/qualification.json')
+head = read(RAW / 'start_receipt.json')['head']
+evolving = {ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+            ROOT / 'docs/ieee_tc/D742_3B_EXECUTION_VIEW_FULL_W0_20261023.md'}
+for name, sha in (q['refs'] | q['protected']).items():
+    path = Path(name)
+    if path in evolving:
+        content = subprocess.check_output(['git', 'show', head+':'+str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+receipt = read(RAW / '3b_execution_view_full_w0/launch.launch/exec_receipt.json')
+identities = [read(RAW / name) for name in ('completion_identity.json', 'diagnosis_identity.json')]
+aux = Path(receipt['auxiliary_path'])
+if aux.exists():
+    identities.append(p.scope_identity(aux.name))
+closures = []
+for identity in identities:
+    path = Path(identity['path'])
+    if path.exists():
+        assert p.scope_still_owned(identity) and not p.owned_pids(path)
+        result = p.stop_scope_identity(identity, grace_seconds=0)
+        assert result['released'] and not result['targets']
+    else:
+        result = dict(already_removed=True, released=True)
+    closures.append(dict(identity=identity, result=result))
+
+allocations = []
+for name, run in (
+    ('D719', RAW.parent / 'd719_20261022/3b_identity_full_w0'),
+    ('D726', RAW.parent / 'd726_20261022/3b_graph_full_w0'),
+    ('D729', RAW.parent / 'd729_20261022/3b_bulk_loader_full_w0'),
+    ('D732', RAW.parent / 'd732_20261022/3b_round_file_full_w0'),
+    ('D736', RAW.parent / 'd736_20261022/3b_validated_publication_full_w0'),
+    ('D738', RAW.parent / 'd738_20261023/3b_planning_wire_full_w0'),
+    ('D742', RAW / '3b_execution_view_full_w0'),
+):
+    launch = read(run / 'launch.json')
+    summary = read(run / 'launch.launch/physical_deployment/summary.json')
+    t0 = launch['external_replay']['replay_t0_s']
+    spans = []
+    for journal in summary['allocation_journals']:
+        path = Path(journal['path'])
+        assert p.digest(path) == journal['sha256']
+        events = [json.loads(line) for line in path.read_text().splitlines()]
+        start = [e for e in events if e['event'] == 'acquire']
+        end = [e for e in events if e['event'] == 'release']
+        assert len(start) == len(end) == 1
+        assert start[0]['gpu_uuids'] == end[0]['gpu_uuids'] and len(start[0]['gpu_uuids']) == 1
+        spans.append(dict(gpu=start[0]['gpu_uuids'][0], acquired_relative_to_arrival_s=start[0]['at']-t0,
+                          released_relative_to_arrival_s=end[0]['at']-t0,
+                          gpu_seconds=end[0]['at']-start[0]['at']))
+    assert len({s['gpu'] for s in spans}) == 4
+    assert abs(math.fsum(s['gpu_seconds'] for s in spans)-summary['gpu_seconds_observed']) < 1e-6
+    spans.sort(key=lambda s:s['acquired_relative_to_arrival_s'])
+    allocations.append(dict(run=name, spans=spans, gpu_seconds=summary['gpu_seconds_observed'],
+                            source_summary=str(run / 'launch.launch/physical_deployment/summary.json'),
+                            summary_sha256=p.digest(run / 'launch.launch/physical_deployment/summary.json')))
+
+historical = ROOT / 'paper_results/ieee_tc/p2_backend/d714_common_slo_correction/d703_verified.json'
+history = read(historical)
+metric = read(OUT / 'completion/full4000.json')
+parent_path = ROOT / 'paper_results/ieee_tc/p2_backend/d736_3b_validated_publication_full_w0/completion/full4000.json'
+parent = read(parent_path)
+local_improvement = (metric['joint_slo_fraction'] > parent['joint_slo_fraction'] and
+                     metric['physical_gpu_seconds'] < parent['physical_gpu_seconds'])
+save(OUT / 'closure.json', dict(
+    kind='d742_post_analysis_closure_v1', passed=True, closures=closures,
+    completion_manifest_sha256=p.digest(OUT / 'completion/manifest.json'),
+    diagnosis_manifest_sha256=p.digest(OUT / 'diagnosis/manifest.json'),
+    allocation_comparison=allocations, protected_publication_files=len(q['protected']),
+    historical_d703=dict(path=str(historical), sha256=p.digest(historical),
+        joint_slo_fraction=history['joint_slo_fraction'], physical_gpu_seconds=history['physical_gpu_seconds']),
+    observed_latency_feasible=metric['observed_latency_feasible'],
+    candidate_disposition='retain_as_development_parent' if local_improvement else 'review_required',
+    candidate_development_parent_retained=local_improvement, primary_targets_achieved=False,
+    direct_parent=dict(path=str(parent_path), sha256=p.digest(parent_path)),
+    n_correct=metric['n_correct'], ranking_eligible=False,
+    decision='Retain D741 only as a development parent: D742 improves joint SLO by 0.525 percentage points and physical GPU time by 0.496341% against direct parent D736, but 3727/4000 is still below 3800. Mean TPOT and mean E2E regress and must remain reported. D703 historical 3744/4000 and slightly lower GPU time also remain visible; this is not historical-best, formal G1/G2 completion, or causal/significant superiority. The sidecar executed in 3887 epochs and adds 660881970 serialized bytes; component speedups are not end-to-end attribution. Preserve all evidence, do not rerun the same key or change thresholds. Next review the remaining pre-engine stages against closed optimization history before any new candidate.',
+    next_experiment_launched=False))
+with (OUT / 'close.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True, closures=len(closures), allocations=allocations), indent=2))
+
