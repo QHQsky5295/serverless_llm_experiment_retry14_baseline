@@ -1,5 +1,21 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D725完成，D726直接完整W0准备通过
+
+PROGRESS。D725一次423/423原生真实远端采样完成，160/160 service类、96
+preparation类、415/332观测通过原有严格exporter/loader。真实远端423次
+交付、请求期打包0，当前链路1000Mb/s/full，不是历史100M。GPU及本机服务
+释放，远端两个服务/monitor关闭。服务峰值5717614592B、分析780734464B，
+high/max/OOM/swap0。144旧投稿和用户manifest不变。不是主性能胜点。
+
+新service/preparation SHA为b0d6d57a…/9080ca04…；完整source SHA
+19f91a2302fa1aae3c33c01d1005983f43103ff8eb3ae1b5bf28812a51dc2fc6。
+D726配置仅相对D719增加图覆盖及其匹配profile/身份和新输出路径，其他
+策略/输入/指标不变。实际Full子模型及两loader已通过，峰值616988672B，
+无额外GPU资格。脚本初稿误入详细observer分支已在CPU检查发现并纠正，
+未启动GPU、不放宽检查。按用户最新规则不再补Full短前缀，下一直接4000
+W0；此时尚未启动。当前完整3B仍91.60%/U13508.300779，全部后续范围保留。
+
 ## 2026-10-22 D725准备通过；最新要求：不增加无用门禁
 
 用户新增规则已写入AGENTS：复用合格证据，仅检查实际变化路径，避免过度

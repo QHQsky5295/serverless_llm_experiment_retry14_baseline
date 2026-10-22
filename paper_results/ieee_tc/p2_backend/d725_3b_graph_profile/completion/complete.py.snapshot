@@ -1,0 +1,72 @@
+"""Use the existing strict profile exporter after actual service release."""
+import json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+CURATED=ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile'
+OUT=CURATED/'completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def ref(path):return dict(path=str(path),sha256=p.digest(path))
+own=p.scope_identity(p.cg_path().name);save(RAW/'completion_identity.json',own)
+group=Path(own['path']);before=(group/'memory.events').read_text()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'source1_launch.json')
+assert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert launch['service_returncode']==launch['watchdog_returncode']==0
+stop=(RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive')==3 and stop.count('MainPID=0')==3
+paths=[line for line in stop.splitlines() if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(paths)==1
+for local,remote in (('remote_transfers.jsonl',paths[0]),('remote_monitor.log',
+    '/home/lab14/primelora_remote/tc/d725_20261022/remote_monitor.log')):
+    with (RAW/local).open('xb') as f:
+        subprocess.run(['ssh','-o','BatchMode=yes','primelora-artifact-174','cat',remote],
+            stdout=f,stderr=subprocess.PIPE,check=True,timeout=60)
+with (RAW/'export.log').open('x') as log:
+    subprocess.run(['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python','-B','-m',
+        'scripts.ieee_tc.export_d701_3b_profile','--preparation-directory',str(CURATED),
+        '--raw-directory',str(RAW),'--config','configs/ieee_tc/20261022_d724_3b_graph_native.yaml'],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+manifest=read(CURATED/'export/manifest.json')
+assert manifest['campaign']=='D725_20261022' and manifest['passed']
+samples=[]
+with (RAW/'source1_launch.launch/watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row.get('event')=='resource_sample':samples.append(row)
+resources=dict(memory_peak_bytes=max(s['service']['memory.peak'] for s in samples),
+    swap_peak_bytes=max(s['service']['memory.swap.current'] for s in samples),
+    events={k:max(s['service']['memory.events'][k] for s in samples) for k in ('high','max','oom','oom_kill')})
+q=read(RAW/'qualification.json')
+for path,sha in (q['refs']|q['protected']).items():assert p.digest(Path(path))==sha,path
+closures=[]
+for identity in (read(RAW/'start_identity.json'),launch['auxiliary_identity'] if 'auxiliary_identity' in launch else None):
+    if identity is None:continue
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=identity,closure=closed))
+OUT.mkdir(parents=True,exist_ok=False)
+raw=read(RAW/'source1.json')
+assert len(raw['requests'])==423 and raw['physical_allocation']['released']
+result=dict(kind='d725_graph_matched_profile_completion_v1',passed=True,
+    requests=423,coverage=manifest['coverage'],remote_delivery=manifest['remote_delivery'],
+    startup_latency_ms=raw['startup_latency_ms'],resources=resources,
+    source=ref(RAW/'source1.json'),launch=ref(RAW/'source1_launch.json'),
+    export_manifest=ref(CURATED/'export/manifest.json'),scope_closures=closures,
+    remote_stopped=True,remote_transfers=ref(RAW/'remote_transfers.jsonl'),
+    remote_monitor=ref(RAW/'remote_monitor.log'),protected_files=144,
+    gpu_performance_runs=0,n_correct=None,ranking_eligible=False,
+    next_action='same D719 Full strategy plus qualified graph/profile; one complete 4000 W0, no redundant prefix')
+save(OUT/'summary.json',result)
+assert (group/'memory.events').read_text()==before and (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'analysis_resources.json',dict(identity=own,
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}))
+with (OUT/'complete.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+print(json.dumps({k:result[k] for k in ('passed','requests','resources','remote_delivery','startup_latency_ms')},indent=2))

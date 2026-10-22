@@ -1,0 +1,75 @@
+"""Resolve the new Full configuration using existing loaders; no extra replay."""
+import copy,json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d726_3b_graph_full_w0/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name);save(RAW/'prepare_identity.json',own)
+group=Path(own['path']);events=(group/'memory.events').read_text()
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+prior=ROOT/'results/ieee_tc/p2_backend_qualification/d725_20261022'
+closures=[]
+for identity in (read(prior/'completion_identity.json'),p.scope_identity('primelora-tc-aux-3a24d5b748cd437dabd73ee758cfb958.scope')):
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=identity,closure=closed))
+import yaml
+from scripts.run_all_experiments import ScenarioRunner,_prepare_scenario_runtime_model_config,_prepare_dedicated_subprocess_model_cfg
+from faaslora.experiment.instance_pool import FrozenServiceProfiles
+oldpath=ROOT/'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml'
+newpath=ROOT/'configs/ieee_tc/20261022_d726_3b_graph_full_w0.yaml'
+old=yaml.safe_load(oldpath.read_text());new=yaml.safe_load(newpath.read_text())
+base=ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile'
+manifest=read(base/'export/manifest.json');contract=read(base/'development_contract.json')
+assert manifest['passed'] and read(base/'completion/summary.json')['passed']
+restored=copy.deepcopy(new)
+graph=restored['model'].pop('compilation_config')
+assert graph==contract['model_config']['compilation_config']
+assert new['model']['ieee_admission_profile']==contract['model_config']['ieee_admission_profile']
+restored['model']['ieee_admission_profile']=old['model']['ieee_admission_profile']
+for name,field in (('service','ieee_service_profile'),('preparation','ieee_preparation_profile')):
+    binding=new['resource_coordination'][field]
+    assert binding['path']==str(base/'export'/f'{name}.json')
+    assert p.digest(Path(binding['path']))==binding['sha256']==manifest[name+'_profile']['profile_sha256']
+    assert binding['context']==manifest['context'] and binding['ewma_beta']==.5
+    restored['resource_coordination'][field]=old['resource_coordination'][field]
+restored['experiment']['output_dir']=old['experiment']['output_dir']
+for key in ('host_cache_dir','nvme_cache_dir'):restored['storage'][key]=old['storage'][key]
+assert restored==old
+assert new['workload']['total_requests']==4000 and new['resource_coordination']['ieee_host_lease_transfer']=='same_owner_host_to_gpu_v1'
+runtime=_prepare_scenario_runtime_model_config(new['model'],new['workload'],new['resource_coordination'])
+child,_=_prepare_dedicated_subprocess_model_cfg(runtime,device_id=0,runtime_gpu_ids=[0])
+assert FrozenServiceProfiles.model_identity(child)==FrozenServiceProfiles.model_identity(contract['model_config'])
+runner=ScenarioRunner.__new__(ScenarioRunner);runner.model_cfg=runtime;runner.coord_cfg=new['resource_coordination']
+runner._initial_runtime_pending=True
+runner._service_profiles=runner._load_ieee_service_profiles()
+runner._load_ieee_preparation_profiles()
+subprocess.run(['bash','-n','scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh'],cwd=ROOT,check=True)
+launcher=(ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+case=launcher.split('  d726)\n',1)[1].split('    ;;',1)[0]
+assert 'PREFIX_COUNT=\n' in case and '3b_graph_full_w0' in case and 'SCENARIO=tc_ieee_full' in case
+assert launcher.count('== d726 ]]')==2
+q=read(prior/'qualification.json')
+for name,sha in q['protected'].items():assert p.digest(Path(name))==sha
+assert (group/'memory.events').read_text()==events and (group/'memory.swap.current').read_text().strip()=='0'
+refs=[p.PLAN,newpath,oldpath,base/'development_contract.json',base/'export/manifest.json',
+ base/'export/service.json',base/'export/preparation.json',base/'completion/summary.json',
+ ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',ROOT/'scripts/run_all_experiments.py',
+ ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+ ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json',Path(__file__)]
+OUT.mkdir(parents=True,exist_ok=False)
+record=dict(passed=True,identity=own,closures=closures,requests=4000,new_gpu_replays=0,
+    only_graph_profiles_and_output_paths_changed=True,extra_full_prefix=False,
+    service_classes=len(runner._service_profiles.profiles),model_identity_matched=True,
+    refs={str(f):p.digest(f) for f in refs},protected=q['protected'],
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')})
+save(OUT/'qualification.json',record)
+with (OUT/'prepare.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True,requests=4000,service_classes=record['service_classes'],resources=record['resources'])))

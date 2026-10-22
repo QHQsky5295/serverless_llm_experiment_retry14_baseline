@@ -64,3 +64,20 @@ native-model/d9d6ede9672526cf67b6570d78207ca90fc023e83b1439550e916dd40b440981。
 W1/W2、其余3B baseline与dLoRA、A1–A5/S1–S13、CE、两轮审稿文档及最终
 图表全部保留；接近目标前不画图。D724已备份至7beb43b0fe49af7b3d9e6da70f826795041b1961，
 backup/d724-graph-coverage-20261022远端核验通过；V2既存分歧不强推。
+
+## 完成结果
+
+一次原生真实远端采样完成423/423请求；160/160 service类、96 preparation类，
+415/332条对应观测。全部原生生成、内容、profile身份和loader检查通过，
+未缺类、未插值、未复用旧时延。423次真实远端交付均为已发布gzip、打包0；
+当前实测链路1000Mb/s/full。原始source SHA为
+19f91a2302fa1aae3c33c01d1005983f43103ff8eb3ae1b5bf28812a51dc2fc6。
+
+引擎启动97.698451秒；服务峰值5717614592B、分析780734464B，high/max/OOM/
+swap均0。服务与原生GPU上下文已释放，远端两个artifact服务及monitor按
+本次InvocationID关闭，服务端传输与监控日志已保存。144旧投稿、用户manifest
+与冻结指标均不变。此处不将采样启动差异或profile均值解释为Full效果改善。
+
+新service/preparation profile分别为b0d6d57a…/9080ca04…，严格绑定新图模型
+身份；完整产物见export/和completion/。下一D726直接完整4000 W0，所有
+非图控制逻辑与D719相同，不新增100请求资格轮。
