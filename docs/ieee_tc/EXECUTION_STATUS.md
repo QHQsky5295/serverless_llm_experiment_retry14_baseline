@@ -1,5 +1,30 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D727离线诊断：确认早期扩容反馈与本地等待计时边界
+
+PROGRESS，0新增GPU回放，生产/配置/指标均未改。D726三次14.735/16.818/
+18.883秒扩容均由首请求11244.304ms进入滚动P95触发，queue0、active未饱和；
+pending正确计入。初始ready业务后8.924s，D719为2.121s，不能将差异全归于
+图捕获。两轮无48秒all-low，故无缩容；不删冷请求或改控制/评价阈值。
+
+D726仍有116条本地tier TTFT违约，后续phase也未全达标。GPU-hit的slot
+包络均值260.004ms，其中pending ack→GPU acquired91.270ms，acquired→
+controller admitted41.202ms。receipt的load_and_acquire仅1.230ms，因为
+计时始于完整HOST precheck之后；不能将差额误写为纯IPC或纯GPU等待。
+未对D726做函数观察，不能直接搬用D684的74.234ms作为本轮实测。
+
+已复核D329/D352/D678/D685–689/D691反例，不重试TTL/ID物理图缓存、批量
+pin/GC/描述物化微调或已解决的同轮utility排空。下一须以新的事务组织或
+实际启动关键路径证据提出不同候选；不新增相同profiling前缀或无变化W0。
+D726 92.650%/U15884.281128仍非最终工作点，独立数值正确性未知。
+
+资料D727_3B_STARTUP_CONTROL_AND_PENDING_DIAGNOSIS_20261022.md及
+d727_control_feedback；分析脚本初版和扩展快照分别保留。按身份关闭本轮
+空分析组、核查144旧投稿/用户manifest、明确路径备份；完成状态和远端SHA
+以final_manifest/closure及raw backup.json回执为准。V2分歧不force；
+不操作共享k3s、远端、不画图。磁盘约161GiB，所有3B后续/最终7B核对/
+baseline/dLoRA/A1–A5/S1–S13/CE/审稿文档与图表范围保留，goal继续active。
+
 ## 2026-10-22 D726完整完成：92.650%，GPU占用增加，不能关闭3B目标
 
 PROGRESS。单轮4000/4000原生生成、映射与计量通过；共同D648阈值下TTFT3815、

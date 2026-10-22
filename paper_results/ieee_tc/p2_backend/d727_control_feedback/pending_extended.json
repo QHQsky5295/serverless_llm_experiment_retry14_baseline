@@ -1,0 +1,634 @@
+{
+  "kind": "d727_native_pending_boundary_partition_v1",
+  "passed": true,
+  "runs": [
+    {
+      "label": "D719",
+      "counts": {
+        "n": 4000,
+        "ttft_pass": 3791,
+        "tpot_eligible": 4000,
+        "tpot_pass": 3856,
+        "joint_pass": 3664
+      },
+      "groups": [
+        {
+          "tier": "all",
+          "n": 4000,
+          "requests_with_retry": 138,
+          "prior_retry_attempts": 144,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 4000,
+              "mean": 146.4261010150658,
+              "p50_type1": 53.70535375550389,
+              "p95_type1": 518.7268098816276
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 4000,
+              "mean": 114.18898071255535,
+              "p50_type1": 86.02440496906638,
+              "p95_type1": 343.6694978736341
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 4000,
+              "mean": 260.61508172762115,
+              "p50_type1": 143.96612206473947,
+              "p95_type1": 846.3674671947956
+            },
+            "routing_nested_ms": {
+              "count": 4000,
+              "mean": 67.812110635,
+              "p50_type1": 4.570403000000001,
+              "p95_type1": 346.058978
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 1854,
+              "mean": 92.17783949687522,
+              "p50_type1": 87.18019491061568,
+              "p95_type1": 123.5121563076973
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 1854,
+              "mean": 49.73186235779448,
+              "p50_type1": 4.990583751350641,
+              "p95_type1": 165.52749183028936
+            },
+            "gpu_reference_operation_ms": {
+              "count": 1854,
+              "mean": 1.185798002587794,
+              "p50_type1": 1.1504762805998325,
+              "p95_type1": 1.27042131498456
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 1854,
+              "mean": 0.13789400521629644,
+              "p50_type1": 0.09480724111199379,
+              "p95_type1": 0.14242902398109436
+            }
+          }
+        },
+        {
+          "tier": "gpu",
+          "n": 1854,
+          "requests_with_retry": 57,
+          "prior_retry_attempts": 57,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 1854,
+              "mean": 132.2892891298859,
+              "p50_type1": 47.900178004056215,
+              "p95_type1": 463.85679906234145
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 1854,
+              "mean": 141.90970185466972,
+              "p50_type1": 97.34853217378259,
+              "p95_type1": 274.1501359269023
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 1854,
+              "mean": 274.1989909845556,
+              "p50_type1": 159.27839558571577,
+              "p95_type1": 802.0399096421897
+            },
+            "routing_nested_ms": {
+              "count": 1854,
+              "mean": 54.1119209811219,
+              "p50_type1": 4.245585,
+              "p95_type1": 295.166428
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 1854,
+              "mean": 92.17783949687522,
+              "p50_type1": 87.18019491061568,
+              "p95_type1": 123.5121563076973
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 1854,
+              "mean": 49.73186235779448,
+              "p50_type1": 4.990583751350641,
+              "p95_type1": 165.52749183028936
+            },
+            "gpu_reference_operation_ms": {
+              "count": 1854,
+              "mean": 1.185798002587794,
+              "p50_type1": 1.1504762805998325,
+              "p95_type1": 1.27042131498456
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 1854,
+              "mean": 0.13789400521629644,
+              "p50_type1": 0.09480724111199379,
+              "p95_type1": 0.14242902398109436
+            }
+          }
+        },
+        {
+          "tier": "host",
+          "n": 1424,
+          "requests_with_retry": 60,
+          "prior_retry_attempts": 66,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 1424,
+              "mean": 184.1961613289222,
+              "p50_type1": 77.59594824165106,
+              "p95_type1": 619.7305186651647
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 1424,
+              "mean": 80.79752133206956,
+              "p50_type1": 22.30704529210925,
+              "p95_type1": 356.6808830946684
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 1424,
+              "mean": 264.99368266099174,
+              "p50_type1": 129.66677779331803,
+              "p95_type1": 901.3462313450873
+            },
+            "routing_nested_ms": {
+              "count": 1424,
+              "mean": 102.08949106530899,
+              "p50_type1": 33.7654,
+              "p95_type1": 397.738851
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        },
+        {
+          "tier": "nvme",
+          "n": 590,
+          "requests_with_retry": 20,
+          "prior_retry_attempts": 20,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 590,
+              "mean": 116.24510024705808,
+              "p50_type1": 40.365554857999086,
+              "p95_type1": 446.16866996511817
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 590,
+              "mean": 107.32104440172346,
+              "p50_type1": 36.02390782907605,
+              "p95_type1": 404.24741385504603
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 590,
+              "mean": 223.56614464878152,
+              "p50_type1": 87.83946232870221,
+              "p95_type1": 782.0810871198773
+            },
+            "routing_nested_ms": {
+              "count": 590,
+              "mean": 42.694302266101694,
+              "p50_type1": 4.315810000000001,
+              "p95_type1": 239.19551199999998
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        },
+        {
+          "tier": "remote",
+          "n": 132,
+          "requests_with_retry": 1,
+          "prior_retry_attempts": 1,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 132,
+              "mean": 72.42514496443398,
+              "p50_type1": 21.47689973935485,
+              "p95_type1": 303.1598119996488
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 132,
+              "mean": 115.75946240742324,
+              "p50_type1": 34.50771514326334,
+              "p95_type1": 646.8487912788987
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 132,
+              "mean": 188.18460737185723,
+              "p50_type1": 57.73677537217736,
+              "p95_type1": 878.1609088182449
+            },
+            "routing_nested_ms": {
+              "count": 132,
+              "mean": 2.7262683863636363,
+              "p50_type1": 1.347013,
+              "p95_type1": 8.306477000000001
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        }
+      ],
+      "source_refs": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d719_stage_diagnosis/diagnosis.json",
+          "sha256": "fc370841216ce478af721fa2fa6d098417e40fbb150da930d775e92c434d951e",
+          "bytes": 236627
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d719_20261022/3b_identity_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d719_3b_identity_full_w0.json",
+          "sha256": "4a9b46e46be9232bdb171cc4f5a616cd48529b66b2c0b4edc6ead6d387045fe7",
+          "bytes": 330481903
+        }
+      ]
+    },
+    {
+      "label": "D726",
+      "counts": {
+        "n": 4000,
+        "ttft_pass": 3815,
+        "tpot_eligible": 4000,
+        "tpot_pass": 3876,
+        "joint_pass": 3706
+      },
+      "groups": [
+        {
+          "tier": "all",
+          "n": 4000,
+          "requests_with_retry": 158,
+          "prior_retry_attempts": 167,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 4000,
+              "mean": 144.6760122939013,
+              "p50_type1": 56.69916467741132,
+              "p95_type1": 520.2484470792115
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 4000,
+              "mean": 111.97198768844828,
+              "p50_type1": 87.42978097870946,
+              "p95_type1": 354.2201928794384
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 4000,
+              "mean": 256.6479999823496,
+              "p50_type1": 146.2537357583642,
+              "p95_type1": 795.539447106421
+            },
+            "routing_nested_ms": {
+              "count": 4000,
+              "mean": 71.21131250225,
+              "p50_type1": 4.459967,
+              "p95_type1": 345.078059
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 1970,
+              "mean": 91.26952041157989,
+              "p50_type1": 86.44252084195614,
+              "p95_type1": 121.40239775180817
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 1970,
+              "mean": 41.202436668117564,
+              "p50_type1": 5.12381037697196,
+              "p95_type1": 160.91389674693346
+            },
+            "gpu_reference_operation_ms": {
+              "count": 1970,
+              "mean": 1.2300835924724183,
+              "p50_type1": 1.1348486877977848,
+              "p95_type1": 1.2655318714678288
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 1970,
+              "mean": 0.1904391362166344,
+              "p50_type1": 0.09499117732048035,
+              "p95_type1": 0.1428523100912571
+            }
+          }
+        },
+        {
+          "tier": "gpu",
+          "n": 1970,
+          "requests_with_retry": 78,
+          "prior_retry_attempts": 82,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 1970,
+              "mean": 127.5320773622787,
+              "p50_type1": 50.01254891976714,
+              "p95_type1": 465.7952068373561
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 1970,
+              "mean": 132.47195707969746,
+              "p50_type1": 96.52995225042105,
+              "p95_type1": 260.300864931196
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 1970,
+              "mean": 260.00403444197616,
+              "p50_type1": 161.92767303436995,
+              "p95_type1": 719.1632771864533
+            },
+            "routing_nested_ms": {
+              "count": 1970,
+              "mean": 57.24458761878173,
+              "p50_type1": 4.2296260000000006,
+              "p95_type1": 313.205516
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 1970,
+              "mean": 91.26952041157989,
+              "p50_type1": 86.44252084195614,
+              "p95_type1": 121.40239775180817
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 1970,
+              "mean": 41.202436668117564,
+              "p50_type1": 5.12381037697196,
+              "p95_type1": 160.91389674693346
+            },
+            "gpu_reference_operation_ms": {
+              "count": 1970,
+              "mean": 1.2300835924724183,
+              "p50_type1": 1.1348486877977848,
+              "p95_type1": 1.2655318714678288
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 1970,
+              "mean": 0.1904391362166344,
+              "p50_type1": 0.09499117732048035,
+              "p95_type1": 0.1428523100912571
+            }
+          }
+        },
+        {
+          "tier": "host",
+          "n": 1325,
+          "requests_with_retry": 55,
+          "prior_retry_attempts": 57,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 1325,
+              "mean": 189.24839312562122,
+              "p50_type1": 76.80985098704696,
+              "p95_type1": 628.5205660387874
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 1325,
+              "mean": 87.6775928094702,
+              "p50_type1": 19.716512877494097,
+              "p95_type1": 387.4653847888112
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 1325,
+              "mean": 276.92598593509143,
+              "p50_type1": 129.6827490441501,
+              "p95_type1": 1011.3600441254675
+            },
+            "routing_nested_ms": {
+              "count": 1325,
+              "mean": 111.28262164,
+              "p50_type1": 34.207997999999996,
+              "p95_type1": 415.52049
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        },
+        {
+          "tier": "nvme",
+          "n": 572,
+          "requests_with_retry": 25,
+          "prior_retry_attempts": 28,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 572,
+              "mean": 120.30799568051121,
+              "p50_type1": 44.12892973050475,
+              "p95_type1": 485.03691609948874
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 572,
+              "mean": 108.53138327325037,
+              "p50_type1": 36.11712297424674,
+              "p95_type1": 427.75930697098374
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 572,
+              "mean": 228.83937895376158,
+              "p50_type1": 103.66855561733246,
+              "p95_type1": 693.3620227500796
+            },
+            "routing_nested_ms": {
+              "count": 572,
+              "mean": 42.55298836188811,
+              "p50_type1": 4.2425429999999995,
+              "p95_type1": 245.30645
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        },
+        {
+          "tier": "remote",
+          "n": 133,
+          "requests_with_retry": 0,
+          "prior_retry_attempts": 0,
+          "metrics": {
+            "before_native_pending_ack_ms": {
+              "count": 133,
+              "mean": 59.3651304602679,
+              "p50_type1": 19.940309692174196,
+              "p95_type1": 275.4432950168848
+            },
+            "native_pending_ack_to_admitted_ms": {
+              "count": 133,
+              "mean": 65.15363610482642,
+              "p50_type1": 29.851450119167566,
+              "p95_type1": 317.61158909648657
+            },
+            "runtime_slot_envelope_ms": {
+              "count": 133,
+              "mean": 124.51876656509431,
+              "p50_type1": 49.475488252937794,
+              "p95_type1": 440.8904267475009
+            },
+            "routing_nested_ms": {
+              "count": 133,
+              "mean": 2.1325517593984964,
+              "p50_type1": 1.500751,
+              "p95_type1": 6.216267
+            },
+            "gpu_pending_ack_to_acquired_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_acquired_to_controller_admitted_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_operation_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            },
+            "gpu_reference_completion_fence_ms": {
+              "count": 0,
+              "mean": null,
+              "p50_type1": null,
+              "p95_type1": null
+            }
+          }
+        }
+      ],
+      "source_refs": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d726_3b_graph_full_w0/completion/stages/diagnosis.json",
+          "sha256": "da70f04b2d9ba4aeaac95fccdf78e0df1fb8e3d4ef6cae4e057f3c9385d8771a",
+          "bytes": 234813
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d726_3b_graph_full_w0.json",
+          "sha256": "6f60ebc97859a604019bad951ae567461f098cf0ebbb71313baf1562cadd400e",
+          "bytes": 350357113
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-6a3f5734a9f243f4986778ad8bb20727.scope",
+    "invocation_id": "db87dcf365eb4cd98896ac076840e783",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-6a3f5734a9f243f4986778ad8bb20727.scope",
+    "inode": 30284468
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d727_20261022/pending.py",
+      "sha256": "f9052686cabaf8031b53166236a93bd987218b5bd339ae44398cd018caf39cc2",
+      "bytes": 4500
+    }
+  ],
+  "limitations": [
+    "The first interval includes routing, native input preprocessing, IPC and core waiting; it is not pure queue or computation.",
+    "The second interval includes source protection/return/publication; it is not one kernel.",
+    "Routing is nested inside the full slot envelope; do not add it to the two-part sum.",
+    "Final pending acknowledgement is used; prior retries remain within the original envelope.",
+    "No counterfactual gains, numerical qualification, or new performance run."
+  ]
+}

@@ -1,0 +1,64 @@
+"""Reuse native pending acknowledgements to partition the pre-engine wait."""
+import collections
+import json
+import math
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts.ieee_tc.audit_d703_3b_full import read, ref, digest, p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d727_control_feedback/pending.json'
+if OUT.exists():
+    raise FileExistsError(OUT)
+reports = []
+for label, stage_rel in [('D719','d719_stage_diagnosis/diagnosis.json'),
+                        ('D726','d726_3b_graph_full_w0/completion/stages/diagnosis.json')]:
+    stage_path = ROOT/'paper_results/ieee_tc/p2_backend'/stage_rel
+    stage = read(stage_path)
+    source = next(x for x in stage['source_refs'] if Path(x['path']).name.startswith('experiment_results_full'))
+    result = Path(source['path'])
+    assert digest(result) == source['sha256']
+    rows = []
+    with result.open('rb') as handle:
+        for r in ijson.items(handle,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+            e = r['gpu_reference_evidence']
+            pending = e['pending_kv_admission']['receipt']
+            admission = e['source_admission']
+            assert pending['clock_id'] == admission['clock_id'] == stage['clock_id']
+            end, middle = admission['admitted_monotonic_s'], pending['observed_at']
+            start = end-r['runtime_slot_wait_ms']/1000
+            assert start <= middle <= end
+            stages = dict(before_native_pending_ack_ms=(middle-start)*1000,
+                          native_pending_ack_to_admitted_ms=(end-middle)*1000,
+                          runtime_slot_envelope_ms=r['runtime_slot_wait_ms'],
+                          routing_nested_ms=r['routing_decision_us']/1000)
+            assert abs(stages['before_native_pending_ack_ms']+
+                       stages['native_pending_ack_to_admitted_ms']-stages['runtime_slot_envelope_ms'])<1
+            rows.append(dict(request_id=r['request_id'],tier=admission['source']['tier'],
+                retry_count=len(e.get('prior_routing_attempts',[])),
+                **stages))
+    assert len(rows) == len({r['request_id'] for r in rows}) == 4000
+    groups = []
+    for tier in ['all','gpu','host','nvme','remote']:
+        selected = rows if tier=='all' else [r for r in rows if r['tier']==tier]
+        groups.append(dict(tier=tier,n=len(selected),
+            requests_with_retry=sum(r['retry_count']>0 for r in selected),
+            prior_retry_attempts=sum(r['retry_count'] for r in selected),
+            metrics={key:timing_stats([r[key] for r in selected]) for key in stages}))
+    reports.append(dict(label=label,counts=stage['counts'],groups=groups,
+                        source_refs=[ref(stage_path),source]))
+report = dict(kind='d727_native_pending_boundary_partition_v1',passed=True,runs=reports,
+    scope=p.scope_identity(p.cg_path().name),
+    source_refs=[ref(Path(__file__))],
+    limitations=['The first interval includes routing, native input preprocessing, IPC and core waiting; it is not pure queue or computation.',
+        'The second interval includes source protection/return/publication; it is not one kernel.',
+        'Routing is nested inside the full slot envelope; do not add it to the two-part sum.',
+        'Final pending acknowledgement is used; prior retries remain within the original envelope.',
+        'No counterfactual gains, numerical qualification, or new performance run.'])
+with OUT.open('x') as handle:
+    json.dump(report,handle,indent=2,allow_nan=False); handle.write('\n')
+with OUT.with_name('pending.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+print(json.dumps(dict(passed=True,runs=reports),indent=2))
