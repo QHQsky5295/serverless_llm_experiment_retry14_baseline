@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/analyze.py.snapshot",
+      "sha256": "f9d36f8d506ad7a224b75eb85e9f7e41af794c009738b09d36d1e2c5ae1bbd21",
+      "bytes": 10704
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/close.py.snapshot",
+      "sha256": "41e13911a15b50d24be3fdcba62435a851d2c1783e4a79f4d658d9ea1870f060",
+      "bytes": 3300
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/close2.py.snapshot",
+      "sha256": "68d8b7c5275f8cdbf5d0b0ab080273f3ec4cbbb6e6d7f4c140444d4168cc904b",
+      "bytes": 3970
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/closure.json",
+      "sha256": "34dbe2ef92d99fb6e64757163368a4d004a46dc0ba7408824b447709bceecb6f",
+      "bytes": 6997
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/diagnosis.json",
+      "sha256": "d5b9bd4694419e596256aa6e36c5d8b09d6f3a44341fe1a39b55ee4cecb766d6",
+      "bytes": 44894
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/manifest.json",
+      "sha256": "07520fd3b93b3d92c0dde622d2d026c39f0c38bfa416dd1487bad190527dc3e8",
+      "bytes": 1390
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/requests.csv",
+      "sha256": "76870f8d72738d070b9ba6d9d3ff94a152baa61274c4421d20ed5a6a209ada6c",
+      "bytes": 1487069
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/resources.json",
+      "sha256": "25fea735c97e041368afd25347ddce6b4a697e7bf7738e52b8328ce9a682adac",
+      "bytes": 432
+    }
+  ]
+}

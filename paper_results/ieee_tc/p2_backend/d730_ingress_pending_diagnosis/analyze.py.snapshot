@@ -1,0 +1,173 @@
+"""Extend D727's closed-run pending analysis with existing ingress timestamps.
+
+No replay, production change, simulated result, or revised SLO. Arithmetic
+stage-removal checks are only a priority diagnostic with all other spans fixed.
+"""
+import collections
+import csv
+import json
+import math
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+import ijson
+import yaml
+from scripts.ieee_tc.audit_d703_3b_full import read, ref, digest, p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis'
+if OUT.exists():
+    raise FileExistsError(OUT)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+scope = p.scope_identity(p.cg_path().name)
+with (RAW/'identity.json').open('x') as f:
+    json.dump(scope, f, indent=2)
+
+stage_path = ROOT/'paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/completion/stages/diagnosis.json'
+stage = read(stage_path)
+assert stage['passed'] and stage['counts']['n'] == 4000
+table = Path(stage['request_table']['path'])
+assert digest(table) == stage['request_table']['sha256']
+with table.open(newline='') as f:
+    retained = {r['request_id']: r for r in csv.DictReader(f)}
+source = next(s for s in stage['source_refs'] if Path(s['path']).name.startswith('experiment_results_full'))
+result = Path(source['path'])
+assert digest(result) == source['sha256']
+freeze_path = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+freeze = read(freeze_path)
+rows, errors = [], []
+with result.open('rb') as f:
+    for r in ijson.items(f, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        old = retained[r['request_id']]
+        ext, native, evidence = (r[k] for k in
+            ('external_arrival_timing', 'native_token_timing', 'gpu_reference_evidence'))
+        pending, admission = evidence['pending_kv_admission']['receipt'], evidence['source_admission']
+        assert pending['clock_id'] == admission['clock_id'] == native['native_clock_id'] == stage['clock_id']
+        times = [ext[k] for k in ('planned_arrival_s', 'task_created_s', 'client_submit_s',
+                                  'server_received_s', 'service_dequeued_s')]
+        assert all(math.isfinite(t) for t in times) and times == sorted(times)
+        metrics = dict(zip(('publisher_wakeup_ms', 'publisher_submit_ms',
+                           'submit_to_service_receive_ms', 'service_receive_to_dequeue_ms'),
+                          [(b-a)*1000 for a,b in zip(times,times[1:])]))
+        errors.append(abs(sum(list(metrics.values())[:3])-r['arrival_release_lateness_ms']))
+        dispatch_admitted = admission['admitted_monotonic_s']-r['runtime_slot_wait_ms']/1000
+        assert times[-1] <= dispatch_admitted
+        metrics['dequeue_to_dispatch_window_admitted_ms'] = (dispatch_admitted-times[-1])*1000
+        errors.append(abs(metrics['service_receive_to_dequeue_ms']+
+            metrics['dequeue_to_dispatch_window_admitted_ms']-r['dispatch_window_wait_ms']))
+        end, middle = admission['admitted_monotonic_s'], pending['observed_at']
+        assert dispatch_admitted <= middle <= end
+        metrics.update(before_native_pending_ack_ms=(middle-dispatch_admitted)*1000,
+            native_pending_ack_to_admitted_ms=(end-middle)*1000,
+            runtime_slot_envelope_ms=r['runtime_slot_wait_ms'],
+            routing_nested_ms=r['routing_decision_us']/1000)
+        errors.append(abs(metrics['before_native_pending_ack_ms']+
+            metrics['native_pending_ack_to_admitted_ms']-r['runtime_slot_wait_ms']))
+        receipt, gpu = evidence['receipt'], admission['source']['tier']=='gpu'
+        acquired = receipt['acquired_monotonic_s']
+        if gpu:
+            assert middle <= acquired <= end
+        metrics.update(gpu_pending_ack_to_acquired_ms=(acquired-middle)*1000 if gpu else None,
+            gpu_acquired_to_controller_admitted_ms=(end-acquired)*1000 if gpu else None,
+            gpu_reference_operation_ms=receipt['load_and_acquire_ms'] if gpu else None,
+            gpu_reference_completion_fence_ms=receipt['completion_fence_ms'] if gpu else None)
+        metrics.update({k:float(old[k]) for k in ('arrival_release_lateness_ms',
+            'dispatch_window_wait_ms', 'executable_to_engine_ms', 'engine_entry_to_queue_ms',
+            'admission_to_acquired_ms', 'ttft_ms', 'tpot_ms')})
+        assert all(v is None or (math.isfinite(v) and v >= 0) for v in metrics.values())
+        rows.append(dict(request_id=r['request_id'], ordinal=ext['index'],
+            tier=admission['source']['tier'], slo_group=old['slo_group'],
+            joint_pass=old['joint_pass']=='True', ttft_pass=old['ttft_pass']=='True',
+            tpot_pass=old['tpot_pass']=='True', prompt_tokens=int(old['prompt_tokens']),
+            output_tokens=int(old['output_tokens']),
+            retry_count=len(evidence.get('prior_routing_attempts', [])), **metrics))
+assert len(rows) == len({r['request_id'] for r in rows}) == 4000
+assert max(errors) < 1
+groups = []
+for dimension in ('all', 'tier', 'slo_group'):
+    labels = ['all'] if dimension=='all' else sorted({r[dimension] for r in rows})
+    for label in labels:
+        selected = rows if dimension=='all' else [r for r in rows if r[dimension]==label]
+        groups.append(dict(dimension=dimension, label=label, n=len(selected),
+            joint_pass=sum(r['joint_pass'] for r in selected),
+            retry_requests=sum(r['retry_count']>0 for r in selected),
+            metrics={k:timing_stats([r[k] for r in selected if r[k] is not None]) for k in metrics}))
+
+# Not an achievable counterfactual: deleting the full containing interval also
+# deletes unrelated useful work. Do not use these numbers as performance data.
+arithmetic = []
+for key in ('engine_entry_to_queue_ms', 'arrival_release_lateness_ms',
+            'submit_to_service_receive_ms', 'runtime_slot_envelope_ms',
+            'gpu_pending_ack_to_acquired_ms'):
+    flags = [common_slo_flags(freeze['groups'], prompt_tokens=r['prompt_tokens'],
+        output_tokens=r['output_tokens'], ttft_ms=max(0., r['ttft_ms']-(r[key] or 0.)),
+        tpot_ms=r['tpot_ms']) for r in rows]
+    joint = sum(x['joint_pass'] for x in flags)
+    arithmetic.append(dict(removed_interval=key, remaining_spans_held_fixed=True,
+        actual_joint_pass=sum(r['joint_pass'] for r in rows),
+        arithmetic_joint_pass=joint, arithmetic_added_joint=joint-sum(r['joint_pass'] for r in rows),
+        not_an_experimental_result=True))
+
+# Reuse D727's exact controller arithmetic audit on the newly completed run.
+run = Path(stage['source_run'])
+launch_path = run/'launch.json'
+launch = read(launch_path)
+t0 = launch['external_replay']['replay_t0_s']
+outcome_path = run/'launch.launch/physical_deployment/main_outcome.json'
+config_path = ROOT/'configs/ieee_tc/20261022_d729_3b_bulk_loader_full_w0.yaml'
+limits = yaml.safe_load(config_path.read_text())['resource_coordination']['ieee_scaling']
+with outcome_path.open('rb') as f:
+    events = list(ijson.items(f, 'mechanism_events._ieee_control_events.item', use_float=True))
+for e in events:
+    ratios = dict(queue=e['queue_depth']/limits['queue_upper'],
+        active=e['active_saturation']/limits['active_upper'],
+        ttft=None if e['p95_ttft_ms'] is None else e['p95_ttft_ms']/limits['ttft_upper_ms'])
+    assert ratios == e['ratios']
+    assert e['score'] == max(v for v in ratios.values() if v is not None)
+    assert e['current_instances'] == e['ready_instances']+e['pending_instances']
+    assert e['all_low'] == (e['queue_depth'] < limits['queue_lower'] and
+        e['active_saturation'] < limits['active_lower'] and e['p95_ttft_ms'] is not None and
+        e['p95_ttft_ms'] < limits['ttft_lower_ms'])
+low = [e for e in events if e['observed_at'] >= t0 and e['ready_instances']>1 and
+       not e['pending_instances'] and e['queue_depth']<limits['queue_lower'] and
+       e['active_saturation']<limits['active_lower'] and e['p95_ttft_ms'] is not None]
+control = dict(n=len(events), limits=limits,
+    actions=[dict(e, relative_s=e['observed_at']-t0) for e in events if e['action']!='no_action'],
+    low_queue_active_no_pending_n=len(low), all_low_n=sum(e['all_low'] for e in events),
+    low_load_p95_ttft_ms=timing_stats([e['p95_ttft_ms'] for e in low]))
+OUT.mkdir(parents=True)
+with (OUT/'requests.csv').open('x', newline='') as f:
+    writer=csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator='\n')
+    writer.writeheader(); writer.writerows(rows)
+report = dict(kind='d730_closed_ingress_pending_partition_v1', passed=True,
+    new_gpu_replays=0, production_changes=False, metric_changes=False,
+    n_correct=None, ranking_eligible=False, confidence_interval=None,
+    source_run=str(run), scope=scope, max_partition_error_ms=max(errors),
+    groups=groups, arithmetic_span_removal_not_performance=arithmetic, control=control,
+    sources=[ref(x) for x in (Path(__file__), stage_path, table, result, launch_path,
+        outcome_path, config_path, freeze_path, ROOT/'faaslora/datasets/workload_generator.py',
+        ROOT/'scripts/run_all_experiments.py',
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')],
+    limitations=[
+        'Submit-to-receive includes socket delivery and receiver event-loop scheduling, not pure network time.',
+        'The GPU pending-to-acquired interval includes fresh HOST inventory and native core work, not pure IPC.',
+        'Bind has no separate request-level span. Engine-entry-to-queue is a containing envelope, not measured bind latency.',
+        'Arithmetic removals are fixed-trace prioritization bounds, not an achievable policy, prediction, or publishable SLO.',
+        'No independent numerical adapter proof or repeated-run inference.'])
+with (OUT/'diagnosis.json').open('x') as f:
+    json.dump(report, f, indent=2, allow_nan=False); f.write('\n')
+with (OUT/'analyze.py.snapshot').open('x') as f:
+    f.write(Path(__file__).read_text())
+cg=p.cg_path()
+with (OUT/'resources.json').open('x') as f:
+    json.dump(dict(scope=scope, peak_bytes=int((cg/'memory.peak').read_text()),
+        events=(cg/'memory.events').read_text(), swap_bytes=int((cg/'memory.swap.current').read_text())),f,indent=2)
+with (OUT/'manifest.json').open('x') as f:
+    json.dump(dict(kind='d730_derived_evidence_v1', files=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]),f,indent=2)
+print(json.dumps(dict(passed=True, groups=groups, arithmetic=arithmetic, control=control),indent=2))

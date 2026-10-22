@@ -1,5 +1,35 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D730完成离线接收/pending拆分，不新增回放或小补丁
+
+PROGRESS。读取完整PLAN及V1/V2，复用D729全4000请求和1910控制事件。
+发生器wake/submit均值1.949576/0.834744ms；提交到本机服务接收149.717743ms，
+P95 928.956311ms，约占arrival-release总均值98.17%。这不是远端LoRA链路，
+也不是某个函数已测CPU份额。receive→dequeue12.916516ms，dequeue→窗口准入
+35.681524ms。GPU命中1967条：slot前段141.777534、pending→acquired97.628648、
+acquired→admitted50.167551ms；完整289.573732ms。receipt的1.207119ms在HOST
+前置检查后才开始，不能将差额误称纯IPC。169条routing重试不重置等待。
+
+代码有bind→ADD顺序，但没有独立bind span；删除整个entry→queue且固定其余
+时间线只算术增加20条联合通过，不能补齐171条。此投影不是预测或真实干预上界，
+不作为性能结果。暂不实施bind融合，不为它新增GPU回放。现有all-low全0，
+三次扩容均由首条6847.902ms的滚动P95驱动，公式/ready+pending算术一致。
+不改SLO/控制阈值。D729仍90.725%/15900.939779 GPU-s，独立数值资格未知。
+
+下一有界问题转向controller同步状态维护的完整访问/发布事务。纯DP早已外移，
+D457/D606表示优化、D329/D514反例及D352/691已完成机制均保留；不能简单
+to_thread后让其他同步锁调用继续卡住循环，也不能跳过新鲜物理清点。需实际
+事务边界和因果证据再登记生产候选，不继续HOST pin/GC/startup局部循环。
+本轮只有离线脚本和数据/文档，无生产修改、远端操作、新权重/trace或图表。
+分析peak631676928B，high/max/OOM/swap0；收尾保护与备份另见D730 closure/
+backup回执。3B W1/W2及其baseline/dLoRA、最终7B一致性、A1–A5、S1–S13、
+CE、审稿文档和最终图表全部未完成且范围不减，goal active。
+
+D730收尾已通过：原清单自引用新建空文件SHA导致首次封存检查失败，原清单/
+失败脚本保留；实体数据均未变化，修正清单枚举时机后新final_manifest通过。
+未重跑分析或GPU。三个本轮空scope精确关闭，保护145项未变；磁盘
+170255671296B。接下来仅备份明确路径，不推送用户manifest、不force V2。
+
 ## 2026-10-22 18:32 D729完整结束：90.725%，未达标，已释放且不重复运行
 
 PROGRESS。同一D729 4000/4000原生生成、绑定、时间计量通过；共同D648
@@ -27,8 +57,12 @@ request packing0。服务峰值24265113600B，high/max/OOM/swap0；分析峰值
 
 数据：d729_3b_bulk_loader_full_w0/completion及closure.json；完整说明
 D729_3B_BULK_LOADER_FULL_W0_20261022.md。源结果SHA4288d6612fbf683ab2f77047a1762ecafc99f479df760138519267257f603344。
-本封存待下面备份步骤确认；实际head/ref以raw/d729_20261022/backup_completion.json
-为准，原检查点b9e8afa保留，V2不force。用户manifest不stage。
+本封存已提交3d3a0608f8b1d581af41afe43ad1f24a9d88f501，并推送/ls-remote核验
+faaslora_origin/backup/d729-complete-20261022。回执raw/d729_20261022/backup_completion.json；
+原检查点b9e8afa保留，V2不force。用户manifest未stage。首次备份仅因既有
+CSV的CRLF被Git误报尾空格而停在提交前，原数据SHA未改；CSV单独采用
+cr-at-eol检查后通过，其他文件仍普通diff --check。最后空备份组已按
+InvocationID/inode/无进程关闭；当前无GPU任务。此确认行待下个检查点备份。
 3B后续W1/W2/基线与dLoRA、最终7B一致性、A1–A5、S1–S13、CE、审稿文档和
 最终图表均未完成，范围不变，goal active。下一先诊断现有证据，非重复实验。
 

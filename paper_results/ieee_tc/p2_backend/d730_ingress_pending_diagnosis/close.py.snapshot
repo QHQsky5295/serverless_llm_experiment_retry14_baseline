@@ -1,0 +1,65 @@
+"""Reuse D727/D729's identity-bound closure for the D730 offline analysis."""
+import ast
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+def ref(path):
+    return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0)=={2,3,26,27}
+save(RAW/'closure_identity.json',p.scope_identity(p.cg_path().name))
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(ROOT/'paper_results/ieee_tc/p2_backend/d729_3b_bulk_loader_full_w0/prelaunch/qualification.json')
+for name,sha in (q['refs']|q['protected']).items():
+    assert p.digest(Path(name))==sha,name
+assert len(q['protected'])==145
+for item in read(OUT/'manifest.json')['files']:
+    assert p.digest(Path(item['path']))==item['sha256']
+assert read(OUT/'diagnosis.json')['passed']
+assert p.digest(RAW/'analyze.py')==p.digest(OUT/'analyze.py.snapshot')
+for path in (RAW/'analyze.py',Path(__file__)):
+    ast.parse(path.read_text())
+identities=[read(RAW/'identity.json')]
+peek=p.scope_identity('primelora-tc-aux-46ccbe7195264f5a8413256b75f1668e.scope')
+assert peek['invocation_id']=='2aed2cfc10bc4651a7d1169de9909a40'
+identities.append(peek)
+closures=[]
+for identity in identities:
+    path=Path(identity['path'])
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    snapshot=p.cgroup_snapshot(path)
+    assert all(snapshot['memory.events'][key]==0 for key in ('high','max','oom','oom_kill'))
+    assert int(snapshot['memory.swap.current'])==0
+    result=p.stop_scope_identity(identity,grace_seconds=0)
+    assert result['released'] and not result['targets']
+    closures.append(dict(identity=identity,resources=snapshot,result=result))
+save(OUT/'closure.json',dict(kind='d730_offline_analysis_closure_v1',passed=True,
+    closures=closures,protected_publication_files=144,user_manifest_unchanged=True,
+    protected_user_manifest_sha256=p.digest(ROOT/'configs/generated/lora_manifest_1000.json'),
+    disk_free_bytes=shutil.disk_usage(ROOT).free,new_gpu_replays=0,production_changes=False,
+    protocol_refs={name:sha for name,sha in q['refs'].items() if
+        'METRIC_PROTOCOL' in name or 'PrimeLoRA-PLAN.md' in name or 'd648_frozen' in name},
+    source_code=[ref(ROOT/name) for name in ('faaslora/memory/residency_manager.py',
+        'faaslora/memory/gpu_monitor.py','faaslora/preloading/planning_cpu.py',
+        'faaslora/scheduling/vllm_ieee_frontend.py','faaslora/scheduling/vllm_ieee_scheduler.py')]))
+with (OUT/'close.py.snapshot').open('x') as f:
+    f.write(Path(__file__).read_text())
+save(OUT/'final_manifest.json',dict(passed=True,files=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True,closed_scopes=len(closures),protected=145,
+    disk_free_bytes=shutil.disk_usage(ROOT).free)))
