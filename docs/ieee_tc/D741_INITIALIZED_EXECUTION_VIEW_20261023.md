@@ -55,3 +55,14 @@ D648共同阈值、源trace/500池、真实只读远端交付与固定生成合�
 设计参照及D159/D163/D193/D737差异详见D740文档。使用system-profile与
 analyze-results区分组件观察/系统主张；备份按github-sync明确路径、保护SHA、
 敏感信息与测试核查。V2远端已有分歧，不force，独立backup分支核验SHA。
+
+## 实际备份与释放
+
+21个明确文件提交 `528bdb12c5752f1abcc6b46ca793faf1a45187ba`，推送到
+`faaslora_origin/backup/d741-execution-view-20261023` 并核对远端SHA。
+V2未同步，用户manifest不纳入提交，旧投稿保护文件未变。测试/备份资源域
+均核对InvocationID、inode和无进程后释放；备份域峰值58,757,120B、
+high/max/OOM/swap0。`raw/post_backup_release.json`保留实际回执。
+此补充在下一正常检查点备份，不为记录备份自身循环提交。
+
+下一为D742完整3B W0，尚未创建或启动；不以本次55项检查宣布性能改善。
