@@ -1,0 +1,18 @@
+{
+  "checkpoint": "191d4ee3e456915adadad83988d984854bddb094",
+  "verified_remote_ref": "faaslora_origin/backup/d723-components-20261022",
+  "files": 24,
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-347e5d8d3b2244de975c6930ae04f3b1.scope",
+    "invocation_id": "6ac2cf71118247efbeb8e5723a9cd4ed",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-347e5d8d3b2244de975c6930ae04f3b1.scope",
+    "inode": 30206637
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "state": "inactive"
+}

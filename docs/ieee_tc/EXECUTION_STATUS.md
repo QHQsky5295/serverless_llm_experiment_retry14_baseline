@@ -2,6 +2,13 @@
 
 ## 2026-10-22 D723：前100组件诊断完成，定位到图重放覆盖边界
 
+完成证据检查点`191d4ee3e456915adadad83988d984854bddb094`已推送并ls-remote
+核验`faaslora_origin/backup/d723-components-20261022`。24个显式文件、
+21项completion bundle SHA与原始step表SHA通过，敏感模式0，用户manifest
+未stage。所有本轮scope已确认空后关闭，GPU无compute进程，磁盘162GiB。
+当前没有活动性能实验；下一图捕获候选尚未安装。V2仍81990b7e…，既存
+分歧未强推，不能称V2同步。无新baseline仓库修改。
+
 PROGRESS。一次100/100原生生成/绑定/计时通过，4进程及100个decode窗口
 完整、无截断。11497step中100个多token分配平均wall62.501ms、CPU62.121ms，
 execute_model60.418ms，LoRA激活4.204ms、输入准备0.912ms、scheduler0.298ms。
@@ -14,8 +21,8 @@ NONE等同于全模型未经torch.compile，或把host耗时叫GPU kernel时间�
 生产代码、观察器、Full策略/profile/SLO/token预算均未改；69测试通过。
 服务峰值20011065344B、分析761556992B，high/max/OOM/swap0；GPU释放、
 远端两服务与monitor停止，29fetch/67350156字节/打包0，缓存已空，磁盘162GiB。
-旧投稿144与用户manifest不变。预启动35c9683已备份到专用backup分支，
-本轮完成证据待最终备份；V2既存分歧不强推。首次辅助scope命名和旧静态
+旧投稿144与用户manifest不变。预启动35c9683及完成证据均已备份到专用
+backup分支；V2既存分歧不强推。首次辅助scope命名和旧静态
 白名单测试失败均保存，不改身份门槛、不重跑GPU。共享k3s未操作。
 
 下一仅核对图捕获覆盖的历史、官方实现和当前接口，提出一个按模型合法
