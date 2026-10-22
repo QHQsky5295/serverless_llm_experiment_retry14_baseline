@@ -1,0 +1,12 @@
+"""Reuse D744 runner; retest only its intentionally changed observation boundary."""
+from pathlib import Path
+
+source = Path(__file__).resolve().parent/'qualify.py'
+code = source.read_text()
+before = "out = RAW/'tests1'"
+assert code.count(before) == 1
+code = code.replace(before, "out = RAW/'tests2'")
+start = code.index("    tests = ['tests.test_ieee_tc_planning_cpu',")
+end = code.index("    with (out/'tests.log')", start)
+code = code[:start] + "    tests = ['tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_current_observation_releases_planner_turn_to_sibling']\n" + code[end:]
+exec(compile(code, str(source), 'exec'))

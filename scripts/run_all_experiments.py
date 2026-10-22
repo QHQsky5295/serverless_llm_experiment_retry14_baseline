@@ -20032,13 +20032,21 @@ class ScenarioRunner:
         # request-scoped footprint: planning needs global capacity and victims.
         # Physical execution/deferred-capacity checks keep their full reports.
         observed_engine = slot.engine
-        native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
-        files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
-        plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
-            file_snapshot=files, identities=self._ieee_artifact_identities,
-            adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
-            profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
-            expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
+        async def observe():
+            native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
+            files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            return dict(mode=mode, native_snapshot=native,
+                file_snapshot=files, identities=self._ieee_artifact_identities,
+                adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
+                profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
+                expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
+        if mode == 'residency':
+            # Queue the observation intent, not a native graph already aging
+            # behind other replicas. The original shared file-round observation
+            # keeps its own capture time; no atomic cross-owner lease is implied.
+            plan = await self._stack.plan_ieee_owned_preparation_async(observe=observe)
+        else:
+            plan = await self._stack.plan_ieee_owned_preparation_async(**await observe())
         # The pure worker already validates this full graph. Reuse only its
         # immutable route projection instead of validating it on the request
         # loop a second time. Cancelled worker results never reach this point.

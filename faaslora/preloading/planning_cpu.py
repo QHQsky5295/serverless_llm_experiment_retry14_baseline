@@ -1,6 +1,8 @@
 """One CPU owner for pure IEEE planning, never for live resource operations.
 
-The request loop freezes received values before its first await. The spawned
+The ordinary entry freezes received values before its first await. The observed
+entry waits for this same planner before collecting initialized residency input.
+The spawned
 worker calls the existing selector and validator; it cannot reserve, load,
 evict, update demand/costs, or access a native engine. Its process stays inside
 the caller's service cgroup. Pickle is ONLY local parent-generated IPC, not an
@@ -304,34 +306,62 @@ class IEEEPlanningCPU:
         message = pickle.dumps((operation, max_dp_buffer_bytes, args), protocol=5)
         detached = time.monotonic()
         async with self._lock:
+            return await self._run_message_locked(operation, message, captured, detached)
+
+    async def run_observed_owned(self, max_dp_buffer_bytes, observe):
+        """Wait before observing; never requeue the resulting physical snapshot.
+
+        The callback runs on the controller, not in the pure CPU worker. Queued
+        cancellation does not call it; cancellation/error during observation
+        releases this turn. Submitted computation still joins before releasing.
+        This owns computation order only, never a native/file resource lease.
+        """
+        if self._closed:
+            raise RuntimeError('planning CPU owner is closed')
+        queued = time.monotonic()
+        async with self._lock:
             if self._closed:
                 raise RuntimeError('planning CPU owner is closed')
-            if self._pool is None:
-                self._pool = ProcessPoolExecutor(max_workers=1,
-                    mp_context=multiprocessing.get_context('spawn'))
-            submitted = time.monotonic()
-            future = asyncio.wrap_future(self._pool.submit(execute_planning_message, message))
-            event = dict(operation=operation, captured_monotonic_s=captured,
-                detached_monotonic_s=detached, submitted_monotonic_s=submitted,
-                state='submitted', caller_cancelled=False)
-            self.events.append(event)
-            try:
-                (payload, receipt), cancelled = await _join_without_abandoning(future)
-                event.update({key: value for key, value in receipt.items()
-                              if key not in ('_native_source_publication', '_initialized_execution_payload')},
-                             state='completed', caller_cancelled=cancelled,
-                             joined_monotonic_s=time.monotonic())
-                if cancelled:
-                    event['state'] = 'cancelled_result_discarded'
-                    raise asyncio.CancelledError()
-                if operation == 'owned_execution_epoch':
-                    return ValidatedPreparationPlan._from_worker_result(payload, receipt)
-                return pickle.loads(payload)
-            except BaseException as exc:
-                event.update(error_type=type(exc).__name__, joined_monotonic_s=time.monotonic())
-                if event['state'] == 'submitted':
-                    event['state'] = 'failed'
-                raise
+            acquired = time.monotonic()
+            args = await observe()
+            captured = time.monotonic()
+            message = pickle.dumps(('owned_execution_epoch', max_dp_buffer_bytes, args), protocol=5)
+            detached = time.monotonic()
+            return await self._run_message_locked('owned_execution_epoch', message, captured,
+                detached, input_sampling='planner_turn_v1', queued_monotonic_s=queued,
+                planner_acquired_monotonic_s=acquired,
+                input_factory_finished_monotonic_s=captured)
+
+    async def _run_message_locked(self, operation, message, captured, detached, **timing):
+        """Private shared submission path; both entries hold _lock until join."""
+        if self._closed:
+            raise RuntimeError('planning CPU owner is closed')
+        if self._pool is None:
+            self._pool = ProcessPoolExecutor(max_workers=1,
+                mp_context=multiprocessing.get_context('spawn'))
+        submitted = time.monotonic()
+        future = asyncio.wrap_future(self._pool.submit(execute_planning_message, message))
+        event = dict(operation=operation, captured_monotonic_s=captured,
+            detached_monotonic_s=detached, submitted_monotonic_s=submitted,
+            state='submitted', caller_cancelled=False, **timing)
+        self.events.append(event)
+        try:
+            (payload, receipt), cancelled = await _join_without_abandoning(future)
+            event.update({key: value for key, value in receipt.items()
+                          if key not in ('_native_source_publication', '_initialized_execution_payload')},
+                         state='completed', caller_cancelled=cancelled,
+                         joined_monotonic_s=time.monotonic())
+            if cancelled:
+                event['state'] = 'cancelled_result_discarded'
+                raise asyncio.CancelledError()
+            if operation == 'owned_execution_epoch':
+                return ValidatedPreparationPlan._from_worker_result(payload, receipt)
+            return pickle.loads(payload)
+        except BaseException as exc:
+            event.update(error_type=type(exc).__name__, joined_monotonic_s=time.monotonic())
+            if event['state'] == 'submitted':
+                event['state'] = 'failed'
+            raise
 
     async def close(self):
         self._closed = True
@@ -349,11 +379,21 @@ class IEEEPlanningCPU:
                 self._pool = None
 
 
-async def run_planning_cpu(stack, operation, args):
+def _planning_cpu_owner(stack):
     worker = getattr(stack, '_ieee_planning_cpu', None)
     if worker is None:
         worker = stack._ieee_planning_cpu = IEEEPlanningCPU()
+    return worker
+
+
+async def run_planning_cpu(stack, operation, args):
+    worker = _planning_cpu_owner(stack)
     return await worker.run(operation, stack.preloading_planner.max_dp_buffer_bytes, args)
+
+
+async def run_observed_planning_cpu(stack, observe):
+    worker = _planning_cpu_owner(stack)
+    return await worker.run_observed_owned(stack.preloading_planner.max_dp_buffer_bytes, observe)
 
 
 async def execution_preparation_input(stack, plan):

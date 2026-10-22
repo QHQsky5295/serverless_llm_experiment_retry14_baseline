@@ -7,7 +7,7 @@ import pickle
 import time
 import unittest
 from collections.abc import Mapping
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from faaslora.preloading.planning_cpu import (
     IEEEPlanningCPU, execute_planning_message, freeze_owned_planning,
@@ -98,6 +98,130 @@ class ValidatedPlanMembership(unittest.TestCase):
 
 
 class PlanningCPU(unittest.IsolatedAsyncioTestCase):
+    async def test_observed_entry_waits_before_capture_and_never_requeues(self):
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        await worker._lock.acquire()
+        state = {'version': 1}
+        observer = AsyncMock(side_effect=lambda: dict(state))
+        entered, finish = asyncio.Event(), asyncio.Event()
+        async def submit(operation, message, captured, detached, **timing):
+            self.assertTrue(worker._lock.locked())
+            self.assertEqual(operation, 'owned_execution_epoch')
+            self.assertLessEqual(timing['queued_monotonic_s'], timing['planner_acquired_monotonic_s'])
+            self.assertLessEqual(timing['planner_acquired_monotonic_s'], captured)
+            self.assertLessEqual(captured, detached)
+            entered.set()
+            await finish.wait()
+            return pickle.loads(message)[2]
+        with patch.object(worker, '_run_message_locked', side_effect=submit):
+            first = asyncio.create_task(worker.run_observed_owned(1024, observer))
+            await asyncio.sleep(0)
+            observer.assert_not_awaited()
+            state['version'] = 2
+            worker._lock.release()
+            await entered.wait()
+            second_observer = AsyncMock(return_value={})
+            second = asyncio.create_task(worker.run_observed_owned(1024, second_observer))
+            await asyncio.sleep(0)
+            second_observer.assert_not_awaited()
+            second.cancel()
+            with self.assertRaises(asyncio.CancelledError): await second
+            state['version'] = 3
+            finish.set()
+            self.assertEqual(await first, {'version': 2})
+        self.assertFalse(worker._lock.locked())
+        observer.assert_awaited_once()
+        second_observer.assert_not_awaited()
+
+    async def test_observation_cancellation_and_error_release_turn_without_submit(self):
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        entered = asyncio.Event()
+        async def observe():
+            entered.set()
+            await asyncio.Future()
+        task = asyncio.create_task(worker.run_observed_owned(1024, observe))
+        await entered.wait()
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError): await task
+        self.assertFalse(worker._lock.locked())
+        with self.assertRaisesRegex(ValueError, 'source failed'):
+            await worker.run_observed_owned(1024, AsyncMock(side_effect=ValueError('source failed')))
+        self.assertFalse(worker._lock.locked())
+        self.assertIsNone(worker._pool)
+        self.assertEqual(worker.events, [])
+
+    async def test_close_during_observation_prevents_submission(self):
+        worker = IEEEPlanningCPU()
+        entered, finish = asyncio.Event(), asyncio.Event()
+        async def observe():
+            entered.set()
+            await finish.wait()
+            return {}
+        task = asyncio.create_task(worker.run_observed_owned(1024, observe))
+        await entered.wait()
+        closing = asyncio.create_task(worker.close())
+        await asyncio.sleep(0)
+        self.assertFalse(closing.done())
+        finish.set()
+        with self.assertRaisesRegex(RuntimeError, 'closed'): await task
+        await closing
+        self.assertIsNone(worker._pool)
+        observer = AsyncMock(return_value={})
+        with self.assertRaisesRegex(RuntimeError, 'closed'):
+            await worker.run_observed_owned(1024, observer)
+        observer.assert_not_awaited()
+        self.assertEqual(worker.events, [])
+
+    async def test_ordinary_entry_still_detaches_before_waiting(self):
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        await worker._lock.acquire()
+        args = {'version': 1}
+        async def submit(operation, message, captured, detached, **timing):
+            self.assertTrue(worker._lock.locked())
+            self.assertEqual(timing, {})
+            return pickle.loads(message)[2]
+        with patch.object(worker, '_run_message_locked', side_effect=submit):
+            task = asyncio.create_task(worker.run('owned_epoch', 1024, args))
+            await asyncio.sleep(0)
+            args['version'] = 2
+            worker._lock.release()
+            self.assertEqual(await task, {'version': 1})
+
+    async def test_runner_residency_captures_new_native_epoch_after_planner_wait(self):
+        args, runner, slot = await asyncio.to_thread(self.inputs)
+        worker = runner._stack._ieee_planning_cpu = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        await worker._lock.acquire()
+        slot.engine.ieee_gpu_reference.reset_mock()
+        shared_files = args['file_snapshot']
+        captured_file_time = shared_files['captured_at']
+        original_epoch = args['native_snapshot']['epoch']
+        task = asyncio.create_task(runner._plan_ieee_preparation_for_slot(
+            slot=slot, mode='residency', file_snapshot=shared_files))
+        await asyncio.sleep(0)
+        slot.engine.ieee_gpu_reference.assert_not_awaited()
+        args['native_snapshot']['epoch'] += 1
+        worker._lock.release()
+        plan = await task
+        self.assertIs(type(plan), ValidatedPreparationPlan)
+        self.assertEqual(plan['source_view']['native']['epoch'], original_epoch+1)
+        self.assertEqual(shared_files['captured_at'], captured_file_time)
+        slot.engine.ieee_gpu_reference.assert_awaited_once_with(operation='routing_source_snapshot')
+        self.assertEqual(plan['selected'], runner._stack.preloading_planner.validate_ieee_execution_plan(plan.snapshot()))
+        self.assertFalse(plan['physical_resources_reserved'])
+        self.assertEqual(len(worker.events), 1)
+        event = worker.events[0]
+        self.assertEqual(event['input_sampling'], 'planner_turn_v1')
+        self.assertTrue(event['frozen_execution_validated'])
+        self.assertEqual(event['cpu_affinity'], sorted(os.sched_getaffinity(0)))
+        self.assertNotEqual(event['worker_pid'], os.getpid())
+        pid = event['worker_pid']
+        await worker.close()
+        with self.assertRaises(ProcessLookupError): os.kill(pid, 0)
+
     def inputs(self, mode='residency'):
         from faaslora.clock import local_monotonic_clock_id
         from tests.test_ieee_tc_transfer_pressure import OwnedPreparationPlanning

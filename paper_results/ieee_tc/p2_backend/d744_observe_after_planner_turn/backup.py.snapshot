@@ -1,0 +1,119 @@
+"""D744 checkpoint: reuse D741 explicit paths, preserving the changed test boundary."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=60).strip()
+
+def copy(src, dest):
+    with dest.open('xb') as stream:
+        stream.write(src.read_bytes())
+    assert p.digest(src) == p.digest(dest)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+save(RAW/'backup_identity.json', p.scope_identity(p.cg_path().name))
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+identity = read(RAW/'tests2/identity.json')
+path = Path(identity['path'])
+assert p.scope_still_owned(identity) and not p.owned_pids(path)
+resources = p.cgroup_snapshot(path)
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not path.exists()
+first, second = read(RAW/'tests1/result.json'), read(RAW/'tests2/result.json')
+assert first['returncode'] == 1 and second['returncode'] == 0
+assert 'Ran 62 tests in 92.331s' in (RAW/'tests1/tests.log').read_text()
+assert 'FAILED (errors=1)' in (RAW/'tests1/tests.log').read_text()
+assert 'Ran 1 test in 0.164s' in (RAW/'tests2/tests.log').read_text()
+assert read(RAW/'tests1/closure.json')['result']['released'] is True
+q = read(ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json')
+for name, sha in q['protected'].items():
+    assert p.digest(Path(name)) == sha, name
+for name, sha in second['source_shas'].items():
+    assert p.digest(ROOT/name) == sha, name
+    if name != 'tests/test_ieee_tc_planning_snapshot.py':
+        assert first['source_shas'][name] == sha, name
+assert p.digest(RAW/'tests1/test_ieee_tc_planning_snapshot.py.snapshot') == first['source_shas']['tests/test_ieee_tc_planning_snapshot.py']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+protocols = {
+    '/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md': 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'): '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'): '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+}
+for name, sha in protocols.items():
+    assert p.digest(Path(name)) == sha, name
+OUT.mkdir(exist_ok=False)
+files = []
+for group in ('tests1', 'tests2'):
+    destdir = OUT/group
+    destdir.mkdir()
+    names = ['identity.json', 'result.json', 'tests.log']
+    if group == 'tests1':
+        names += ['closure.json', 'test_ieee_tc_planning_snapshot.py.snapshot']
+    for name in names:
+        dest = destdir/name
+        copy(RAW/group/name, dest)
+        files.append(dest)
+for name in ('qualify.py', 'qualify_boundary.py', 'preserve_tests1.py', 'backup.py'):
+    ast.parse((RAW/name).read_text())
+    dest = OUT/(name+'.snapshot')
+    copy(RAW/name, dest)
+    files.append(dest)
+closure = OUT/'closure.json'
+save(closure, dict(passed=True, original_suite=dict(tests=62, passed=61, errors=1),
+    retest=dict(tests=1, passed=1), production_changed_between_tests=False,
+    changed_boundary='Slow observation now owns the planning turn; sibling proceeds after cancellation, not before it.',
+    protected_files=len(q['protected']), test_scope_identity=identity,
+    test_scope_release=closed, resources=resources, new_gpu_replays=0))
+files.append(closure)
+manifest = OUT/'manifest.json'
+save(manifest, dict(passed=True, source_shas=second['source_shas'], protocols=protocols,
+    parent_commit='8a707f5b449e970bda6d71a5e8808b9a2f48ce20',
+    performance_accepted=False, new_gpu_replays=0,
+    files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x)) for x in files]))
+files.append(manifest)
+files += [ROOT/name for name in second['source_shas']
+          if name != 'faaslora/preloading/preloading_planner.py']
+files += [ROOT/'docs/ieee_tc'/name for name in (
+    'D744_OBSERVE_AFTER_PLANNER_TURN_20261023.md', 'EXECUTION_STATUS.md')]
+paths = [str(x.relative_to(ROOT)) for x in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *paths])
+logs = [x for x in paths if x.endswith('.log')]
+call(['git', 'add', '--', *[x for x in paths if x not in logs]])
+call(['git', 'add', '-f', '--', *logs])
+assert set(call(['git', 'diff', '--cached', '--no-renames', '--name-only']).splitlines()) == set(paths)
+call(['git', 'diff', '--cached', '--check'])
+save(RAW/'backup_precommit.json', dict(passed=True, paths=paths, protected_files=len(q['protected'])))
+call(['git', 'commit', '-m', 'tc: observe residency state after acquiring the existing planner turn'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d744-observe-after-turn-20261023'
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup_completion.json', dict(passed=True, head=head, ref=ref,
+    files=paths, v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

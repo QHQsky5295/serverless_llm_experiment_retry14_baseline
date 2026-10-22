@@ -1,0 +1,74 @@
+{
+  "passed": true,
+  "source_shas": {
+    "faaslora/preloading/planning_cpu.py": "af85860e860196f9c06434728547c92c7c533f9012b5c813c5aade1d282fb18c",
+    "faaslora/experiment/experiment_stack.py": "672cd91fdb2c415b9922d3e309b8e69e6b3d52aad2a2008e1b9f257ddff83234",
+    "scripts/run_all_experiments.py": "614459c381a7373f21ee6b3b3a7d5a7b9f6c287367724d5459c9a39a3cc35fb1",
+    "tests/test_ieee_tc_planning_cpu.py": "da138d912521d3336d34f71f3e8912b93d3f194374b193aaecb3b0d624bea5a8",
+    "tests/test_ieee_tc_planning_snapshot.py": "d1fbc6d157587274c53b8816737739095453aea9a5181f00df8f53fc72a49515",
+    "tests/test_ieee_tc_transfer_pressure.py": "23a8ed2fc386b597f797d2d898dfcb9db0dab357c0f4ecea0425c9897a232723",
+    "faaslora/preloading/preloading_planner.py": "91da2378aed5b0e636c4c37dacce72a675b813351f2bfe36a7440baf5f48951c"
+  },
+  "protocols": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "parent_commit": "8a707f5b449e970bda6d71a5e8808b9a2f48ce20",
+  "performance_accepted": false,
+  "new_gpu_replays": 0,
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests1/identity.json",
+      "sha256": "5485cd5bb323cb6fc1e17b5168d520b19ae92df147ee630b1bae5e9b4c26ea53"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests1/result.json",
+      "sha256": "d45a233caa7690645ac2b8a073091d6af5a6ff5f19c6da4e96aad57f60cd1d5c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests1/tests.log",
+      "sha256": "a599baa378d225ac240d99e49da6bef7271640a94cd169f9f1bf10ecd6c34b28"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests1/closure.json",
+      "sha256": "01265f6ca5277b5e238849f21106525bb4195f4cca945807636360e535e812ca"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests1/test_ieee_tc_planning_snapshot.py.snapshot",
+      "sha256": "97594e79db564ae37ee4d4c72e1ca235f6de9e3efd9ae98178b599cf13b6bc0a"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests2/identity.json",
+      "sha256": "7d36b35298fec22eb45159c3f43d2db2af2b9722181e78cbbe69b86558222909"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests2/result.json",
+      "sha256": "ed4a2eacf27ab4e7b7b6d5a6e0653da307158621870234c5bb262199b7613def"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/tests2/tests.log",
+      "sha256": "c4eae620a019ecd1ce461f04e1517231366d6af36c2fa9f0e40ccdba3cd62812"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/qualify.py.snapshot",
+      "sha256": "e8389b70e777e60e0bf6527f5e77dd55bf5ed3896a971fc7da8fe87cc7303ab8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/qualify_boundary.py.snapshot",
+      "sha256": "0705191f268199de7f36ac3a94c618716482a88a9fb9379689ad3e681c206ae9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/preserve_tests1.py.snapshot",
+      "sha256": "a32b084656377b5a1ff103e1b9df0d56add4e2439cd68e3378ec644f52052a30"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/backup.py.snapshot",
+      "sha256": "ee1b07d9964e51d1e84b80ac2829cd337152c5aa32e997a76f25ca068a6f4998"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d744_observe_after_planner_turn/closure.json",
+      "sha256": "a0c88e5c3221a91712554fa5cd202005a33f415d31a102de0f3f10ad51155a10"
+    }
+  ]
+}

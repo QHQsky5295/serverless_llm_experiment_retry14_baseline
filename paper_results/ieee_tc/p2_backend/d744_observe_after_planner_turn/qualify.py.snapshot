@@ -1,0 +1,54 @@
+"""D744 targeted CPU-only validation, reusing D741 containment and evidence."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def main():
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    out = RAW/'tests1'
+    out.mkdir(exist_ok=False)
+    save(out/'identity.json', p.scope_identity(p.cg_path().name))
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                       '--format=csv,noheader'], text=True).strip()
+    prior = json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/prelaunch/qualification.json').read_text())
+    for path, sha in prior['protected'].items():
+        assert p.digest(Path(path)) == sha, path
+    names = ('faaslora/preloading/planning_cpu.py', 'faaslora/experiment/experiment_stack.py',
+        'scripts/run_all_experiments.py', 'tests/test_ieee_tc_planning_cpu.py',
+        'tests/test_ieee_tc_planning_snapshot.py', 'tests/test_ieee_tc_transfer_pressure.py',
+        'faaslora/preloading/preloading_planner.py')
+    source_shas = {name:p.digest(ROOT/name) for name in names}
+    tests = ['tests.test_ieee_tc_planning_cpu',
+        'tests.test_ieee_tc_planning_snapshot.PlanningSnapshot',
+        'tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation',
+        'tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation',
+        'tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement']
+    with (out/'tests.log').open('x') as log:
+        result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+            cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+    for path, sha in prior['protected'].items():
+        assert p.digest(Path(path)) == sha, path
+    for path, sha in source_shas.items():
+        assert p.digest(ROOT/path) == sha, path
+    save(out/'result.json', dict(returncode=result.returncode, tests=tests,
+        resources=p.cgroup_snapshot(p.cg_path()), source_shas=source_shas,
+        protected_files_unchanged=len(prior['protected']), new_gpu_replays=0,
+        python=sys.executable))
+    print(json.dumps(dict(returncode=result.returncode, log=str(out/'tests.log'))))
+    raise SystemExit(result.returncode)
+
+if __name__ == '__main__':
+    main()

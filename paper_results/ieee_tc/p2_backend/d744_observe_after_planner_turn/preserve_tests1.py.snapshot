@@ -1,0 +1,23 @@
+"""Preserve the superseded parallel-observation assertion before revising it."""
+import json
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+result = json.loads((RAW/'tests1/result.json').read_text())
+assert result['returncode'] == 1
+path = ROOT/'tests/test_ieee_tc_planning_snapshot.py'
+assert p.digest(path) == result['source_shas'][str(path.relative_to(ROOT))]
+with (RAW/'tests1/test_ieee_tc_planning_snapshot.py.snapshot').open('xb') as stream:
+    stream.write(path.read_bytes())
+identity = json.loads((RAW/'tests1/identity.json').read_text())
+assert p.scope_still_owned(identity) and not p.owned_pids(Path(identity['path']))
+resources = p.cgroup_snapshot(Path(identity['path']))
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets']
+with (RAW/'tests1/closure.json').open('x') as stream:
+    json.dump(dict(identity=identity, resources=resources, result=closed), stream, indent=2)
+print(json.dumps(dict(released=closed['released'], preserved_tests=62,
+    failed_test='test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling')))
