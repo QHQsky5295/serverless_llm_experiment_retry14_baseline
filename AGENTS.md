@@ -1,5 +1,13 @@
 # PrimeLoRA IEEE TC execution contract
 
+Latest user update (2026-10-22): avoid excessive defensive decisions and useless
+extra gates. Reuse valid completed checks; choose tests proportional to the changed
+path. Do not repeat broad qualifications or add diagnostic replays without a
+specific unresolved question. Preserve the established memory/disk containment,
+correctness and measurement contract. If a native mixed-batch profile collection
+already validates the changed backend path, do not add a redundant short Full
+replay before the required complete workload. Record limitations, not new hurdles.
+
 Before any task, after context compaction, and before every experiment, read
 `/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md` in full and
 `docs/ieee_tc/EXECUTION_STATUS.md`. The source plan is authoritative; its

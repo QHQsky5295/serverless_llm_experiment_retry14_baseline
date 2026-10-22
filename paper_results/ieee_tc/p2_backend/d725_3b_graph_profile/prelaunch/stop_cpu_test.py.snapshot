@@ -1,0 +1,19 @@
+"""Stop only this CPU test scope after unexpected subprocess-import pressure."""
+import json,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+identity=json.loads((RAW/'prepare_identity.json').read_text())
+group=Path(identity['path'])
+before={k:(group/k).read_text().strip() for k in ('memory.peak','memory.current','memory.events','memory.swap.current')}
+targets=p.owned_pids(group)
+receipt=p.stop_scope_identity(identity,grace_seconds=1)
+assert receipt['released'] and not group.exists()
+with (RAW/'cpu_attempt1_stopped.json').open('x') as f:
+    json.dump(dict(classification='bounded_cpu_qualification_resource_pressure',
+        reason='broad unrelated launcher tests imported multiple native child stacks',
+        gpu_experiment_started=False,resources=before,identity=identity,
+        owned_processes=targets,closure=receipt),f,indent=2)
+print(json.dumps(dict(released=receipt['released'],resources=before,process_count=len(targets))))

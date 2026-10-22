@@ -1,0 +1,61 @@
+"""Bounded CPU qualification of reused source cases and explicit identity transfer."""
+import json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def read(path):return json.loads(path.read_text())
+own=p.scope_identity(p.cg_path().name);save(RAW/'prepare_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+before=(group/'memory.events').read_text()
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+closures=[]
+for name in ('analysis2_identity.json','publish_identity.json','publish_resume_identity.json'):
+    identity=read(RAW.parent/'d724_20261022'/name)
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+    closures.append(dict(identity=identity,closure=closed))
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'preflight.json',gate)
+assert gate['preflight_pass'],gate['issues']
+seal=read(ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+protected={Path(k):v['sha256'] for k,v in seal['entries'].items()
+    if '/paper_results/final_v2/' in k or '/figs/paper/' in k}
+assert len(protected)==144
+protected[ROOT/'configs/generated/lora_manifest_1000.json']='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+for path,sha in protected.items():assert p.digest(path)==sha,path
+python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+with (RAW/'tests.log').open('x') as log:
+    test=subprocess.run([python,'-B','-m','pytest','-q',
+      'tests/test_ieee_tc_preflight.py::MeasuredAdmissionInitializer',
+      'tests/test_ieee_tc_scheduler_observation.py',
+      'tests/test_ieee_tc_launch.py','--junitxml='+str(RAW/'tests.xml')],
+      cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert test.returncode==0
+subprocess.run(['bash','-n','scripts/ieee_tc/run_d298_capacity_source.sh'],cwd=ROOT,check=True)
+with (RAW/'prepare.log').open('x') as log:
+    prep=subprocess.run([python,'-B','-m','scripts.ieee_tc.prepare_d701_3b_same_spec_profile',
+      '--rebind-graph-config','configs/ieee_tc/20261022_d724_3b_graph_native.yaml',
+      '--output',str(OUT),'--raw-directory',str(RAW),'--campaign','D725_20261022'],
+      cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert prep.returncode==0
+assert (group/'memory.events').read_text()==before and (group/'memory.swap.current').read_text().strip()=='0'
+refs=[p.PLAN,ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+ ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',ROOT/'scripts/ieee_tc_preflight.py',
+ ROOT/'scripts/ieee_tc/prepare_d701_3b_same_spec_profile.py',ROOT/'scripts/ieee_tc/run_d298_capacity_source.sh',
+ ROOT/'scripts/run_all_experiments.py',ROOT/'configs/ieee_tc/20261022_d724_3b_graph_native.yaml',
+ ROOT/'tests/test_ieee_tc_preflight.py',RAW/'tests.xml',RAW/'tests.log',Path(__file__),
+ *[f for f in OUT.iterdir() if f.is_file()]]
+save(RAW/'qualification.json',dict(passed=True,identity=own,closures=closures,
+    refs={str(f):p.digest(f) for f in refs},protected={str(f):sha for f,sha in protected.items()},
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')},
+    numerical_correctness_qualified=False,new_timing_measurements_required=True))
+print(json.dumps(dict(passed=True,source_spec=str(OUT/'source_spec.json'),resources_peak=(group/'memory.peak').read_text().strip())))

@@ -4151,7 +4151,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_capacity_length_transfer_v1',
         'native_fixed_output_control_length_transfer_v1',
         'native_fixed_output_file_demand_length_transfer_v1',
-        'native_fixed_output_metadata_length_transfer_v1')
+        'native_fixed_output_metadata_length_transfer_v1',
+        'native_fixed_output_graph_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
         fields.add('model_config_changes')
@@ -4160,7 +4161,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_capacity_length_transfer_v1',
             'native_fixed_output_control_length_transfer_v1',
             'native_fixed_output_file_demand_length_transfer_v1',
-            'native_fixed_output_metadata_length_transfer_v1')):
+            'native_fixed_output_metadata_length_transfer_v1',
+            'native_fixed_output_graph_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -4199,10 +4201,30 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         control_transfer = binding['kind'] == 'native_fixed_output_control_length_transfer_v1'
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
+        graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
         capacity_fields = {'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
         permitted = (capacity_fields
                      if capacity_transfer else {'max_num_batched_tokens'})
         numeric_changes = changes
+        if graph_transfer:
+            # Only historical *completed fixed-output counts* are reusable.
+            # Capture sizes alter performance identity, so every timing class
+            # must be remeasured. No existing source configuration is rewritten.
+            graph = identity.get('compilation_config')
+            if (not isinstance(graph, dict)
+                    or set(graph) != {'cudagraph_capture_sizes', 'max_cudagraph_capture_size'}
+                    or 'compilation_config' in source_identity):
+                raise ValueError('fixed-output graph completed-length transfer contract differs')
+            sizes = graph['cudagraph_capture_sizes']
+            maximum = graph['max_cudagraph_capture_size']
+            if (not isinstance(sizes, list) or not sizes
+                    or any(type(n) is not int or n <= 0 for n in sizes)
+                    or sizes != sorted(set(sizes))
+                    or type(maximum) is not int or maximum != sizes[-1]
+                    or maximum > identity.get('max_num_batched_tokens', 0)):
+                raise ValueError('fixed-output graph capture sizes are invalid')
+            permitted = {'compilation_config'}
+            numeric_changes = {}
         if control_transfer or file_transfer or metadata_transfer:
             # Reuse only completed fixed-output lengths, NOT latency or SLO.
             # Explicitly retain the changed policy in the target identity; the

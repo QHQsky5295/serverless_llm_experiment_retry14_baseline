@@ -12,6 +12,7 @@ zero-cost default is permitted.
 from __future__ import annotations
 
 import copy
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -242,7 +243,8 @@ def main() -> None:
 
     manifest = dict(
         kind="d701_3b_same_spec_profile_export_v1",
-        campaign="D701_20261019",
+        campaign=("D701_20261019" if prep['campaign'] == 'D701' else prep['campaign']),
+        exporter_schema_reused=True,
         passed=True,
         development_only=True,
         production_profile_frozen=False,
@@ -302,4 +304,23 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--preparation-directory', type=Path)
+    parser.add_argument('--raw-directory', type=Path)
+    parser.add_argument('--config', type=Path)
+    args = parser.parse_args()
+    if any((args.preparation_directory, args.raw_directory, args.config)):
+        if not all((args.preparation_directory, args.raw_directory, args.config)):
+            parser.error('all three source identity paths are required together')
+        PREP_DIR = args.preparation_directory.resolve(strict=True)
+        RAW_DIR = args.raw_directory.resolve(strict=True)
+        CONFIG_PATH = args.config.resolve(strict=True)
+        SPEC_PATH, PREP_PATH = PREP_DIR/'source_spec.json', PREP_DIR/'prepare.json'
+        RAW_PATH, LAUNCH_PATH = RAW_DIR/'source1.json', RAW_DIR/'source1_launch.json'
+        OUT = PREP_DIR/'export'
+        reference = read(SPEC_PATH)['full_development_contract']
+        CONTRACT_PATH = Path(reference['path'])
+        CONTRACT_PATH = CONTRACT_PATH if CONTRACT_PATH.is_absolute() else ROOT/CONTRACT_PATH
+        if p.digest(CONTRACT_PATH) != reference['sha256']:
+            raise ValueError('explicit full development contract SHA mismatch')
     main()

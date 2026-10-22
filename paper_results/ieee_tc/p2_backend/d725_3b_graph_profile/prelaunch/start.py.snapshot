@@ -1,0 +1,58 @@
+"""Checkpoint and launch one existing native source collection with frozen inputs."""
+import ast,json,os,re,shlex,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+CURATED=ROOT/'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile'
+OUT=CURATED/'prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+own=p.scope_identity(p.cg_path().name);save(RAW/'start_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=read(RAW/'qualification.json')
+for name,sha in (q['refs']|q['protected']).items():assert p.digest(Path(name))==sha,name
+assert not p.owned_pids(Path(q['identity']['path']))
+closed=p.stop_scope_identity(q['identity'],grace_seconds=0)
+assert closed['released'] and not closed['targets']
+scripts=[*RAW.glob('*.py'),*RAW.glob('*.sh')]
+for source in scripts:
+    if source.suffix=='.py':ast.parse(source.read_text())
+    else:call(['bash','-n',str(source)])
+ast.parse((ROOT/'scripts/ieee_tc/export_d701_3b_profile.py').read_text())
+OUT.mkdir(parents=True,exist_ok=False)
+for source in [*scripts,RAW/'qualification.json',RAW/'cpu_attempt1_stopped.json',RAW/'tests2.xml']:
+    with (OUT/(source.name+('.snapshot' if source.suffix in ('.py','.sh') else ''))).open('xb') as f:
+        f.write(source.read_bytes())
+save(OUT/'qualification_closure.json',closed)
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f))
+    for f in sorted(CURATED.rglob('*')) if f.is_file()]))
+paths=['AGENTS.md','scripts/ieee_tc_preflight.py','tests/test_ieee_tc_preflight.py',
+ 'scripts/ieee_tc/prepare_d701_3b_same_spec_profile.py','scripts/ieee_tc/export_d701_3b_profile.py',
+ 'scripts/ieee_tc/run_d298_capacity_source.sh','docs/ieee_tc/D725_3B_GRAPH_MATCHED_PROFILE_20261022.md',
+ 'docs/ieee_tc/EXECUTION_STATUS.md']+[str(f.relative_to(ROOT)) for f in sorted(CURATED.rglob('*')) if f.is_file()]
+assert not call(['git','diff','--cached','--name-only'])
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:assert not pattern.search((ROOT/path).read_text()),path
+call(['git','add','--',*paths]);assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: reuse source cases with fresh graph timing identity (D725)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d725-graph-profile-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,files=paths))
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'launch_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+assert not (RAW/'source1.json').exists() and not (RAW/'source1_launch.json').exists()
+session='tc-d725-3b-graph-profile'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+call(['bash',str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3','-B',str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(['bash',str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json',dict(launched=True,head=head,backup_ref=ref,tmux=session,identity=own,
+    scripts={str(f):p.digest(f) for f in scripts}))
+print(json.dumps(dict(launched=True,head=head,ref=ref,tmux=session)))

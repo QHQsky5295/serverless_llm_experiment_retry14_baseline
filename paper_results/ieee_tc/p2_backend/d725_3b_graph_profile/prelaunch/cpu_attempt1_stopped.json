@@ -1,0 +1,201 @@
+{
+  "classification": "bounded_cpu_qualification_resource_pressure",
+  "reason": "broad unrelated launcher tests imported multiple native child stacks",
+  "gpu_experiment_started": false,
+  "resources": {
+    "memory.peak": "3434647552",
+    "memory.current": "3434647552",
+    "memory.events": "low 0\nhigh 54785\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+    "invocation_id": "1eced3c38fe144bea533f1a80c6cfb1e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+    "inode": 30225479
+  },
+  "owned_processes": [
+    {
+      "pid": 2023075,
+      "start_ticks": 215780782,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2023102,
+      "start_ticks": 215780827,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024029,
+      "start_ticks": 215783496,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024571,
+      "start_ticks": 215784869,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024573,
+      "start_ticks": 215784913,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024627,
+      "start_ticks": 215784959,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024630,
+      "start_ticks": 215785004,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2024640,
+      "start_ticks": 215785162,
+      "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    }
+  ],
+  "closure": {
+    "targets": [
+      {
+        "pid": 2023075,
+        "start_ticks": 215780782,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2023102,
+        "start_ticks": 215780827,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024029,
+        "start_ticks": 215783496,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024571,
+        "start_ticks": 215784869,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024573,
+        "start_ticks": 215784913,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024627,
+        "start_ticks": 215784959,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024630,
+        "start_ticks": 215785004,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2024640,
+        "start_ticks": 215785162,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-96426de1c3664d009afce3a9eb2c0725.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      }
+    ],
+    "hard_kill": true,
+    "released": true
+  }
+}

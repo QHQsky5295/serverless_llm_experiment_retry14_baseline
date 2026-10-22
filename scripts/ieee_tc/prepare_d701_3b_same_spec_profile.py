@@ -15,6 +15,7 @@ the strict profile exporter pass independently.
 from __future__ import annotations
 
 import copy
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -170,5 +171,98 @@ def main() -> None:
     print(json.dumps(manifest, indent=2, sort_keys=True))
 
 
+def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) -> None:
+    """Reuse D701 cases, not times, under an explicit graph-only identity change."""
+    if out.exists():
+        raise FileExistsError(f"append-only preparation exists: {out}")
+    original = read(OUT_SPEC)
+    original_preparation = read(OUT / 'prepare.json')
+    if original_preparation['source_spec']['sha256'] != digest(OUT_SPEC):
+        raise ValueError('original same-spec preparation changed')
+    old_config = yaml.safe_load(CONFIG.read_text())
+    new_config = yaml.safe_load(config_path.read_text())
+    changed = copy.deepcopy(new_config)
+    model_key = 'llama32_3b_main_modelscope'
+    graph = changed['model_profiles'][model_key]['model'].pop('compilation_config')
+    if changed != old_config:
+        raise ValueError('graph rebind also changes non-graph model or input configuration')
+    contract_path = ROOT / original['full_development_contract']['path']
+    if digest(contract_path) != original['full_development_contract']['sha256']:
+        raise ValueError('original full development contract changed')
+    contract = read(contract_path)
+    spec = copy.deepcopy(original)
+    spec.pop('full_development_contract')
+    spec['admission_initialization'].update(
+        kind='native_fixed_output_graph_length_transfer_v1',
+        model_config_changes={'compilation_config': dict(source=None, target=graph)})
+    spec['nvme_parent'] = str(raw.resolve())
+    spec['purpose'] = 'same_cases_fresh_native_timings_after_explicit_graph_coverage_change'
+    spec['derivation'] = dict(kind='same_spec_graph_rebind_v1', campaign=campaign,
+        source_spec=dict(path=str(OUT_SPEC), sha256=digest(OUT_SPEC)),
+        source_contract=dict(path=str(contract_path), sha256=digest(contract_path)),
+        source_config=dict(path=str(CONFIG), sha256=digest(CONFIG)),
+        candidate_config=dict(path=str(config_path), sha256=digest(config_path)),
+        requests_changed=False, timing_samples_reused=False)
+    cfg = copy.deepcopy(new_config['model_profiles'][model_key]['model'])
+    cfg.update(generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1', max_input_len=759,
+        max_output_tokens_cap=256, ieee_physical_allocation=True,
+        timing_contract='ieee_tc_native_v1', ieee_worker_observation=True,
+        ieee_gpu_references=True, ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759])
+    cfg.update(copy.deepcopy(spec['model_overrides']))
+    runtime = ROOT / 'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    kwargs = dict(backend_version=read(runtime)['modules']['vllm']['version'],
+        runtime_receipt_sha256=digest(runtime), source_trace_sha256=spec['trace_sha256'])
+    _, evidence, assembly = p.prepare_admission_source_runtime(cfg, spec, **kwargs)
+    if (assembly['planned_child_model_config']['ieee_admission_profile']['profile_means']
+            != contract['model_config']['ieee_admission_profile']['profile_means']):
+        raise ValueError('graph-only rebind changed the completed fixed-output means')
+    contract.update(model_config=assembly['planned_child_model_config'],
+        base_config_sha256=digest(config_path), completed_length_binding=spec['admission_initialization'],
+        derivation=copy.deepcopy(spec['derivation']), plan_sha256=p.check_plan())
+    out.mkdir(parents=True, exist_ok=False)
+    def save(name, value):
+        path = out / name
+        with path.open('x') as stream:
+            json.dump(value, stream, indent=2, sort_keys=True, allow_nan=False)
+            stream.write('\n')
+        return dict(path=str(path), sha256=digest(path))
+    spec['full_development_contract'] = save('development_contract.json', contract)
+    source_ref = save('source_spec.json', spec)
+    _, _, checked = p.prepare_admission_source_runtime(cfg, spec, **kwargs)
+    plan = FrozenReplayPlan.load(TRACE, count=1000, profile='W0')
+    _, _, identities, waves, _ = p.source_profile_inputs(out/'source_spec.json', plan, cfg, POOL.resolve(strict=True))
+    assert spec['waves'] == original['waves'] and spec['representatives'] == original['representatives']
+    assert len(identities) == 24 and len(waves) == 76 and sum(map(len, waves)) == 423
+    manifest = dict(kind='d701_3b_same_spec_profile_preparation_v1', campaign=campaign,
+        preparation_schema_reused=True, launchable=False, gpu_runs=0,
+        dynamic_measurement_required=True, profile_export_authorized=False,
+        representatives=24, waves=76, planned_requests=423,
+        representative_measurement_waves=sum(w['role']=='representative_measurement' for w in spec['waves']),
+        source_spec=source_ref, source_plan=original_preparation['source_plan'],
+        content_index=original_preparation['content_index'], source_plan_sha256=p.check_plan(),
+        identity_only_resolver_passed=True, no_new_trace_or_adapter=True,
+        length_initialization=evidence, assembly=checked, timing_samples_reused=False)
+    save('prepare.json', manifest)
+    print(json.dumps(dict(passed=True, campaign=campaign, requests=423, waves=76,
+        model_backend_id=contract['model_config']['ieee_admission_profile']['model_backend_id'],
+        timing_samples_reused=False)))
+
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--rebind-graph-config', type=Path)
+    parser.add_argument('--output', type=Path)
+    parser.add_argument('--raw-directory', type=Path)
+    parser.add_argument('--campaign')
+    args = parser.parse_args()
+    if args.rebind_graph_config:
+        if not all((args.output, args.raw_directory, args.campaign)):
+            parser.error('graph rebind requires output, raw-directory and campaign')
+        rebind_graph_config(args.rebind_graph_config.resolve(strict=True), args.output.resolve(),
+                            args.raw_directory.resolve(), args.campaign)
+    else:
+        if any((args.output, args.raw_directory, args.campaign)):
+            parser.error('output overrides require rebind-graph-config')
+        main()

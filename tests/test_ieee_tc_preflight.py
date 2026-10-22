@@ -1402,6 +1402,67 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
             self.derive(model_config=candidate)
 
 
+    def graph_transfer_fixture(self):
+        self.fixed_output_transfer_fixture()
+        graph = dict(cudagraph_capture_sizes=[1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024],
+                     max_cudagraph_capture_size=1024)
+        self.binding.update(kind='native_fixed_output_graph_length_transfer_v1',
+            model_config_changes={'compilation_config': dict(source=None, target=graph)})
+        return dict(self.cfg, compilation_config=graph)
+
+    def test_graph_transfer_keeps_completed_counts_but_not_timing_identity(self):
+        from types import SimpleNamespace
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        candidate = self.graph_transfer_fixture()
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        with self.assertRaisesRegex(ValueError, 'runtime configuration differs'):
+            FrozenServiceProfiles.validate_runtime(SimpleNamespace(
+                model_config_json=json.dumps(FrozenServiceProfiles.model_identity(self.cfg), sort_keys=True),
+                model_identity=FrozenServiceProfiles.model_identity), candidate)
+        self.binding.pop('model_config_changes')
+        self.binding['kind'] = 'native_completed_length_binding_v1'
+        original, _ = self.derive()
+        self.assertNotEqual(original['model_backend_id'], profile['model_backend_id'])
+        self.assertNotEqual(original['profile_id'], profile['profile_id'])
+        with self.assertRaisesRegex(ValueError, 'identity differs'):
+            self.derive(model_config=candidate)
+
+    def test_graph_transfer_rejects_invalid_graph_and_other_changes(self):
+        candidate = self.graph_transfer_fixture()
+        for graph in ({}, None, {'cudagraph_capture_sizes': [1, 2], 'max_cudagraph_capture_size': 4},
+                      {'cudagraph_capture_sizes': [True], 'max_cudagraph_capture_size': True},
+                      {'cudagraph_capture_sizes': [2, 1], 'max_cudagraph_capture_size': 1},
+                      {'cudagraph_capture_sizes': [2048], 'max_cudagraph_capture_size': 2048}):
+            with self.subTest(graph=graph), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, compilation_config=graph))
+        for changes in (dict(max_num_batched_tokens=512), dict(max_loras=99),
+                        dict(name='other'), dict(generation_contract='natural_stop'),
+                        dict(enable_chunked_prefill=False), dict(extra=None)):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **changes))
+        self.binding['model_config_changes']['compilation_config']['source'] = {}
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_graph_transfer_rejects_incomplete_native_source_counts(self):
+        candidate = self.graph_transfer_fixture()
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
+    def test_graph_transfer_rejects_natural_stop_on_both_sides(self):
+        candidate = self.graph_transfer_fixture()
+        for cfg in (self.cfg, self.run['model_config'], self.entry['model_config'], candidate):
+            cfg['generation_contract'] = 'natural_stop'
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'transfer contract'):
+            self.derive(model_config=candidate)
+
+
 class CapacityProbeObservation(unittest.TestCase):
     def test_gpu_short_gap_uses_original_long_background_and_real_admission(self):
         from scripts.ieee_tc.prepare_d298_capacity import gpu_short_gap_waves
