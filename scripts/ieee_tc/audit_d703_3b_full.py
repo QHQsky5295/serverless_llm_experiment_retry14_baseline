@@ -470,8 +470,8 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
     from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
     if output.exists():
         raise FileExistsError(output)
-    if expected_count not in (1000, 4000):
-        raise ValueError('D713 prefix1000 or D703 full4000 only')
+    if expected_count not in (100, 1000, 4000):
+        raise ValueError('registered prefix100/prefix1000 or full4000 only')
     results = list(raw.glob('experiment_results_full*.json'))
     if len(results) != 1:
         raise ValueError('exactly one completed source result required')

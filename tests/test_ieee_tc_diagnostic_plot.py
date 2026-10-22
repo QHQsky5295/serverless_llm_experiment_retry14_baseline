@@ -269,6 +269,21 @@ def test_common_slo_rejects_missing_or_overlapping_strata():
             common_slo_flags(groups, **values)
 
 
+@pytest.mark.parametrize("count", [100, 1000, 4000])
+def test_registered_common_slo_population_still_requires_completed_source(tmp_path, count):
+    from scripts.ieee_tc.audit_d703_3b_full import reevaluate_common_slo
+    with pytest.raises(ValueError, match="exactly one completed source result required"):
+        reevaluate_common_slo(tmp_path, tmp_path / "audit.json", expected_count=count)
+    assert not (tmp_path / "audit.json").exists()
+
+
+@pytest.mark.parametrize("count", [0, 99, 101, 3999])
+def test_unregistered_common_slo_population_rejected(tmp_path, count):
+    from scripts.ieee_tc.audit_d703_3b_full import reevaluate_common_slo
+    with pytest.raises(ValueError, match="registered prefix100/prefix1000 or full4000 only"):
+        reevaluate_common_slo(tmp_path, tmp_path / "audit.json", expected_count=count)
+
+
 def test_incomplete_replay_rejected(tmp_path):
     result = {"metadata": {"total_requests": 1}, "detailed_results": {
         "one": {"completed": 1, "failed": 0, "requests": [request()]}}}
