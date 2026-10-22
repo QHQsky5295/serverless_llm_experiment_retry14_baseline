@@ -4,6 +4,71 @@ import json
 
 import pytest
 
+
+def d716_request():
+    n = dict(timing_contract='ieee_tc_native_v1', native_clock_id='clock',
+        controller_admitted_monotonic_s=1., native_dispatch_monotonic_s=2.,
+        native_queued_monotonic_s=2.1, native_scheduled_monotonic_s=2.2,
+        native_first_token_monotonic_s=3., native_last_token_monotonic_s=4.,
+        worker_completed_monotonic_s=4.1, controller_completed_monotonic_s=4.2,
+        native_output_tokens=3, native_tpot_ms=500., actual_prompt_tokens=20,
+        gpu_reference_owner_id='owner', gpu_reference_lease_id='lease')
+    receipt = dict(acquired=True, clock_id='clock', owner_id='owner', lease_id='lease',
+        acquired_monotonic_s=1.5, native_load_invoked=True,
+        native_load_started_monotonic_s=1.2, native_load_completed_monotonic_s=1.5,
+        source_tier_before_acquisition='host', worker_pid=123)
+    evidence = dict(source_admission=dict(source={'tier':'host'}, clock_id='clock',
+        admitted_monotonic_s=1.), receipt=receipt, stale_rechecks=0,
+        preparation_interval=dict(request_id='r0', native_lease_id='lease', reason='demand'))
+    return dict(request_id='r0', adapter_id='a', instance_id='replica', success=True,
+        readiness_tier_before_dispatch='host', native_token_timing=n,
+        external_arrival_timing=dict(planned_arrival_s=.5, index=0), gpu_reference_evidence=evidence,
+        completion_tokens=3, requested_completion_tokens=3, overall_ttft_ms=2500.,
+        tpot_ms=500., overall_e2e_ms=3700., arrival_release_lateness_ms=100.,
+        dispatch_window_wait_ms=300., runtime_slot_wait_ms=100., control_path_total_us=1234.)
+
+
+@pytest.mark.parametrize('tt, tp, label', [(3000.,600.,'pass'),(2000.,600.,'ttft_only'),
+                                         (3000.,400.,'tpot_only'),(2000.,400.,'both')])
+def test_d716_partition_retains_all_joint_outcomes(tt, tp, label):
+    from scripts.ieee_tc.audit_d703_3b_full import partition_common_slo_request, D716_TTFT_STAGES
+    groups = [dict(lower_exclusive=None,upper_inclusive=None,ttft_ms=tt,tpot_ms=tp)]
+    row = partition_common_slo_request(d716_request(), groups, clock_id='clock')
+    assert row['slo_group'] == label
+    assert sum(row[k] for k in D716_TTFT_STAGES) == pytest.approx(2500.)
+    assert row['before_final_load_ms'] == pytest.approx(200.)
+    assert row['final_native_load_ms'] == pytest.approx(300.)
+    assert row['routing_nested_ms'] == 1.234
+
+
+@pytest.mark.parametrize('fault', ['clock','missing','ingress','lease','count','metric'])
+def test_d716_partition_rejects_incomplete_or_mismatched_evidence(fault):
+    from scripts.ieee_tc.audit_d703_3b_full import partition_common_slo_request
+    row = d716_request()
+    if fault == 'clock': row['native_token_timing']['native_clock_id'] = 'foreign'
+    elif fault == 'missing': del row['gpu_reference_evidence']['receipt']['native_load_started_monotonic_s']
+    elif fault == 'ingress': row['runtime_slot_wait_ms'] += 2
+    elif fault == 'lease': row['gpu_reference_evidence']['receipt']['lease_id'] = 'wrong'
+    elif fault == 'count': row['requested_completion_tokens'] = 4
+    elif fault == 'metric': row['overall_ttft_ms'] += 2
+    with pytest.raises((ValueError,KeyError)):
+        partition_common_slo_request(row, [dict(lower_exclusive=None,upper_inclusive=None,
+            ttft_ms=3000., tpot_ms=600.)], clock_id='clock')
+
+
+def test_d716_overlap_is_union_and_not_double_counted():
+    from scripts.ieee_tc.audit_d703_3b_full import clipped_interval_union
+    assert clipped_interval_union(1.,4.,[(0.,2.),(1.5,3.),(3.5,5.),(4.,5.)]) == (2.5,3)
+    assert clipped_interval_union(1.,4.,[]) == (0.,0)
+    assert clipped_interval_union(1.,1.,[(0.,2.)]) == (0.,0)
+
+
+@pytest.mark.parametrize('span', [(2.,1.),(float('nan'),2.),(0.,float('inf'))])
+def test_d716_overlap_rejects_unknown_clock_spans(span):
+    from scripts.ieee_tc.audit_d703_3b_full import clipped_interval_union
+    with pytest.raises(ValueError):
+        clipped_interval_union(1.,4.,[span])
+
 from scripts.ieee_tc.plot_d290_diagnostic import (binding_checks, load, percentile,
     request_vectors, write_numerical_repeat_audit, audit_elastic_locality_mechanisms)
 

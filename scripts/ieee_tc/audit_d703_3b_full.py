@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import collections
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -37,6 +38,190 @@ SERVICE_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_pro
 PREPARATION_PROFILE = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/preparation.json"
 PROFILE_MANIFEST = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_profile/export/manifest.json"
 OUT = ROOT / "paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile"
+
+
+def clipped_interval_union(start, end, spans):
+    """Witnessed temporal overlap, not attributable delay or a token stall."""
+    if not all(type(v) in (int, float) and math.isfinite(v) for v in (start, end)) or start > end:
+        raise ValueError('finite ordered observation interval required')
+    clipped = []
+    for a, b in spans:
+        if not all(type(v) in (int, float) and math.isfinite(v) for v in (a, b)) or a > b:
+            raise ValueError('finite ordered peer interval required')
+        if max(start, a) < min(end, b):
+            clipped.append((max(start, a), min(end, b)))
+    total, previous = 0., start
+    for a, b in sorted(clipped):
+        total += max(0., b-max(a, previous))
+        previous = max(previous, b)
+    return total, len(clipped)
+
+
+D716_TTFT_STAGES = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
+    'executable_to_engine_ms', 'engine_entry_to_queue_ms',
+    'native_engine_queue_ms', 'native_prefill_ms')
+
+
+def partition_common_slo_request(request, groups, *, clock_id):
+    """Reuse native boundaries and preparation receipts; no inferred spans."""
+    from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
+    from scripts.ieee_tc.check_d299_full_context import common_slo_flags
+    from scripts.ieee_tc.analyze_d297_full import retained_preparation_row
+    n, ext = request['native_token_timing'], request['external_arrival_timing']
+    b = NativeV1TokenTimeline.service_breakdown(n,
+        admitted_at=n['controller_admitted_monotonic_s'],
+        completed_at=n['controller_completed_monotonic_s'], clock_id=clock_id)
+    prep = retained_preparation_row(request)
+    arrival, first, last = (ext['planned_arrival_s'], n['native_first_token_monotonic_s'],
+                           n['native_last_token_monotonic_s'])
+    tokens, prompt = request['completion_tokens'], int(n['actual_prompt_tokens'])
+    if (type(tokens) is not int or tokens < 2 or n['native_output_tokens'] != tokens
+            or n['actual_prompt_tokens'] != prompt or tokens != request['requested_completion_tokens']):
+        raise ValueError('complete matched multi-token native counts required')
+    values = dict(ttft_ms=(first-arrival)*1000, tpot_ms=(last-first)*1000/(tokens-1),
+        e2e_ms=(n['controller_completed_monotonic_s']-arrival)*1000,
+        arrival_to_admission_ms=(n['controller_admitted_monotonic_s']-arrival)*1000,
+        admission_to_acquired_ms=prep['admission_to_acquired_ms'],
+        executable_to_engine_ms=prep['executable_to_engine_ms'],
+        **{k:b[k] for k in D716_TTFT_STAGES[3:]})
+    if any(not math.isfinite(v) or v < 0 for v in values.values()):
+        raise ValueError('finite nonnegative native stages required')
+    error = abs(math.fsum(values[k] for k in D716_TTFT_STAGES)-values['ttft_ms'])
+    for key, stored in (('ttft_ms','overall_ttft_ms'), ('tpot_ms','tpot_ms'), ('e2e_ms','overall_e2e_ms')):
+        error = max(error, abs(values[key]-request[stored]))
+    ingress = {k:request[k] for k in ('arrival_release_lateness_ms',
+        'dispatch_window_wait_ms', 'runtime_slot_wait_ms')}
+    if any(type(v) not in (int,float) or not math.isfinite(v) or v < 0 for v in ingress.values()):
+        raise ValueError('complete nonnegative ingress stages required')
+    error = max(error, abs(math.fsum(ingress.values())-values['arrival_to_admission_ms']))
+    if error > 1:
+        raise ValueError('native timing partition exceeds 1 ms')
+    flags = common_slo_flags(groups, prompt_tokens=prompt, output_tokens=tokens,
+                            ttft_ms=values['ttft_ms'], tpot_ms=values['tpot_ms'])
+    label = ('pass' if flags['joint_pass'] else 'tpot_only' if flags['ttft_pass']
+             else 'ttft_only' if flags['tpot_pass'] else 'both')
+    receipt = request['gpu_reference_evidence']['receipt']
+    return dict(request_id=request['request_id'], ordinal=ext['index'],
+        phase=ext['index']//500, adapter_id=request['adapter_id'], owner=prep['owner_id'],
+        replica=request['instance_id'], worker_pid=receipt['worker_pid'],
+        tier=prep['tier'], native_source=prep['native_source'],
+        output_tokens=tokens, prompt_tokens=prompt, output_bin=f'{(tokens-1)//64*64+1}-{((tokens-1)//64+1)*64}',
+        slo_group=label, **flags, **values, **ingress, stage_identity_error_ms=error,
+        dominant_ttft_stage=max(D716_TTFT_STAGES, key=values.__getitem__),
+        routing_nested_ms=request['control_path_total_us']/1000,
+        stale_rechecks=prep['stale_rechecks'], native_load_invoked=prep['native_load_invoked'],
+        before_final_load_ms=prep['before_final_load_ms'], final_native_load_ms=prep['final_native_load_ms'],
+        admitted=n['controller_admitted_monotonic_s'], scheduled=n['native_scheduled_monotonic_s'],
+        first=first, last=last, load_start=receipt['native_load_started_monotonic_s'],
+        load_end=receipt['native_load_completed_monotonic_s'])
+
+
+def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
+    """D716: all-request, source-bound, CPU-only descriptive stage diagnosis."""
+    import ijson
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    metric = read(metric_audit)
+    if (metric['kind'] != 'native_common_slo_reanalysis_d714_v1' or not metric['passed']
+            or metric['source_run'] != str(raw) or metric['counts']['n'] != 4000):
+        raise ValueError('complete same-run D714 common-SLO audit required')
+    refs = {Path(x['path']):x['sha256'] for x in metric['source_refs']}
+    result = next(x for x in refs if x.name.startswith('experiment_results_full'))
+    freeze_path = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+    summary_path = raw/'launch.launch/physical_deployment/summary.json'
+    content_path = ROOT/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json'
+    v1, v2 = (ROOT/'docs/ieee_tc'/x for x in
+              ('METRIC_PROTOCOL_FROZEN_V1.md','METRIC_PROTOCOL_SINGLE_RUN_V2.md'))
+    sources = [result, freeze_path, summary_path, content_path, v1, v2]
+    for path in sources:
+        if digest(path) != refs[path]:
+            raise ValueError(f'sealed source changed: {path}')
+    freeze, summary = read(freeze_path), read(summary_path)
+    rows = []
+    with result.open('rb') as handle:
+        for request in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rows.append(partition_common_slo_request(request, freeze['groups'], clock_id=summary['clock_id']))
+    rows.sort(key=lambda r:r['ordinal'])
+    if (len(rows) != 4000 or len({r['request_id'] for r in rows}) != 4000
+            or [r['ordinal'] for r in rows] != list(range(4000))):
+        raise ValueError('all offered requests required; no slow-request subset')
+    counts = dict(n=len(rows), ttft_pass=sum(r['ttft_pass'] for r in rows),
+        tpot_eligible=len(rows), tpot_pass=sum(r['tpot_pass'] for r in rows),
+        joint_pass=sum(r['joint_pass'] for r in rows))
+    if counts != metric['counts']:
+        raise ValueError('D714 population/count mismatch')
+    violations = {r['request_id']:r for r in metric['slo_violations']}
+    if {r['request_id'] for r in rows if not r['joint_pass']} != set(violations):
+        raise ValueError('D714 violation identities differ')
+    for r in rows:
+        if r['request_id'] in violations:
+            old = violations[r['request_id']]
+            if any(r[k] != old[k] for k in ('ordinal','ttft_ms','tpot_ms','e2e_ms','ttft_pass','tpot_pass','joint_pass')):
+                raise ValueError('D714 per-request metrics/flags differ')
+    owners = collections.defaultdict(list)
+    for r in rows:
+        owners[r['owner']].append(r)
+    for owner_rows in owners.values():
+        if len({(r['worker_pid'],r['replica']) for r in owner_rows}) != 1:
+            raise ValueError('owner/worker/replica mapping is not unique')
+        for r in owner_rows:
+            peers = [q for q in owner_rows if q['request_id'] != r['request_id']]
+            for name, spans in (
+                ('prefill', ((q['scheduled'],q['first']) for q in peers)),
+                ('demand_load', ((q['load_start'],q['load_end']) for q in peers if q['native_load_invoked'])),
+                ('decode', ((q['first'],q['last']) for q in peers))):
+                duration, count = clipped_interval_union(r['first'], r['last'], spans)
+                r[f'peer_{name}_overlap_ms'] = duration*1000
+                r[f'peer_{name}_count'] = count
+                r[f'peer_{name}_fraction'] = duration/(r['last']-r['first'])
+    stats_keys = (*D716_TTFT_STAGES, 'ttft_ms','tpot_ms','e2e_ms',
+        'arrival_release_lateness_ms','dispatch_window_wait_ms','runtime_slot_wait_ms',
+        'routing_nested_ms','before_final_load_ms','final_native_load_ms','stale_rechecks',
+        'peer_prefill_fraction','peer_demand_load_fraction','peer_decode_fraction')
+    def summarize(selected):
+        return dict(n=len(selected), joint_pass=sum(r['joint_pass'] for r in selected),
+            ttft_pass=sum(r['ttft_pass'] for r in selected), tpot_pass=sum(r['tpot_pass'] for r in selected),
+            dominant_ttft_stages=dict(collections.Counter(r['dominant_ttft_stage'] for r in selected)),
+            peer_overlap_counts={name:sum(r[f'peer_{name}_count']>0 for r in selected)
+                                 for name in ('prefill','demand_load','decode')},
+            metrics={k:timing_stats([r[k] for r in selected if r[k] is not None]) for k in stats_keys})
+    groups = [dict(dimension='all',label='all',**summarize(rows))]
+    for key in ('slo_group','tier','owner','phase','output_bin','native_load_invoked'):
+        for value in sorted({r[key] for r in rows}, key=str):
+            groups.append(dict(dimension=key,label=value,**summarize([r for r in rows if r[key]==value])))
+    for field in ('tier','output_bin'):
+        for label in ('pass','ttft_only','tpot_only','both'):
+            for value in sorted({r[field] for r in rows}):
+                groups.append(dict(dimension=f'slo_group/{field}',label=f'{label}/{value}',
+                    **summarize([r for r in rows if r['slo_group']==label and r[field]==value])))
+    for key in ('ttft_ms','tpot_ms','e2e_ms'):
+        for stat, value in metric['metrics'][key].items():
+            if abs(groups[0]['metrics'][key][stat]-value)>1e-8:
+                raise ValueError('whole-population metric differs from D714')
+    sources += [metric_audit, Path(__file__), ROOT/'scripts/ieee_tc/analyze_d297_full.py',
+                ROOT/'scripts/ieee_tc/check_d299_full_context.py',
+                Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
+    report = dict(kind='d716_all_request_stage_diagnosis_v1', passed=True,
+        source_run=str(raw), clock_id=summary['clock_id'], counts=counts, groups=groups,
+        max_stage_identity_error_ms=max(r['stage_identity_error_ms'] for r in rows),
+        n_correct=metric['n_correct'], numerical_adapter_correctness_qualified=False,
+        ranking_eligible=False, physical_gpu_seconds=metric['physical_gpu_seconds'],
+        source_refs=[ref(x) for x in sources], confidence_interval=None,
+        limitations=['Single-run conditional association, not a causal speedup estimate.',
+            'Overlap uses same-owner/same-clock observed envelopes, not GPU kernel time.',
+            'Demand-load spans only; proactive preparation is not covered by this overlap count.',
+            'Ingress and routing fields are nested; never add them to the six TTFT stages again.',
+            'All 4000 requests retained; no new performance execution or protocol change.'])
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'requests.csv').open('x') as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader(); writer.writerows(rows)
+    report['request_table'] = ref(output/'requests.csv')
+    with (output/'diagnosis.json').open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps(dict(passed=True, counts=counts, output=str(output),
+                         max_stage_identity_error_ms=report['max_stage_identity_error_ms'])))
 
 
 def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
@@ -595,13 +780,18 @@ if __name__ == "__main__":
     parser.add_argument('--calibrate-control-lower', type=Path)
     parser.add_argument('--reevaluate-common-slo', type=Path)
     parser.add_argument('--audit-closed-outcome', type=Path)
+    parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--metric-audit', type=Path)
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.diagnose_common_slo)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.audit_closed_outcome is not None:
+    if args.diagnose_common_slo is not None:
+        if args.metric_audit is None:
+            parser.error('--metric-audit is required for --diagnose-common-slo')
+        diagnose_common_slo(args.raw, args.diagnose_common_slo, args.metric_audit)
+    elif args.audit_closed_outcome is not None:
         if args.metric_audit is None:
             parser.error('--metric-audit is required for --audit-closed-outcome')
         audit_closed_outcome(args.raw, args.audit_closed_outcome, args.metric_audit)
