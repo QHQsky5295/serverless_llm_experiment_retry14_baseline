@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "parent_commit": "33b9e03cf7031bc9fb2c9518a1269746c6664beb",
+  "rejected_candidate_commit": "0af3cd461c58f2a2cd2fb7515e1b8e76fb5d1c11",
+  "restored_sources": {
+    "faaslora/preloading/planning_cpu.py": "f66ad51709f318f1d6889c4fcc19403c232de0c2465acbd6cb153b5de0d2a225",
+    "scripts/run_all_experiments.py": "20a85d76c35a66b19f3dc2c6950a88c30f1410093e0e78d113c66fd938f70c61"
+  },
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/test_identity.json",
+      "sha256": "d42dbc41201aa37d3f17ccd83c28342a79af51a7ed0011db7703649bac030bf5"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/restoration.json",
+      "sha256": "49e12983fb2e41bc4ea671e566de29c86677172eabb87127fb2a5ec540050ff8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/tests.log",
+      "sha256": "9a25a14af35cf57c5d30905552e7b52c6cb6590b49e7797abeb64c2861d4a41e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/test_result.json",
+      "sha256": "b7526edb9c63f1499c138777f048782995276f5035e9e3811d57931f82a558ad"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/qualify.py.snapshot",
+      "sha256": "e12f413e8eadac979d1c55382585dee6780e16fca25f548fba53e222d2b2c829"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/checks/backup.py.snapshot",
+      "sha256": "bb49213c13984698d2ee6c67d36703c1e3a8d527266205e69c569fdac9188c2f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/closure.json",
+      "sha256": "d4a9851e9684ea506c32ca79d83a7950a756da2695e967bacbe3bdf3ca2a28cc"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/withdrawn/planning_wire.py.snapshot",
+      "sha256": "6786a1fbb422d66f8fd91fd1ad8e321abb2664b4f92acc24142bbababd14ed3e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/withdrawn/test_ieee_tc_planning_wire.py.snapshot",
+      "sha256": "d8f2ec008ebcda7f9a12e51c56c73b34338d818ce1498e7845d68c3cfcb19a19"
+    }
+  ]
+}

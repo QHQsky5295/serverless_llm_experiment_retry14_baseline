@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "restored": {
+    "faaslora/preloading/planning_cpu.py": "f66ad51709f318f1d6889c4fcc19403c232de0c2465acbd6cb153b5de0d2a225",
+    "scripts/run_all_experiments.py": "20a85d76c35a66b19f3dc2c6950a88c30f1410093e0e78d113c66fd938f70c61"
+  },
+  "archived": {
+    "faaslora/preloading/planning_wire.py": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/withdrawn/planning_wire.py.snapshot",
+      "sha256": "6786a1fbb422d66f8fd91fd1ad8e321abb2664b4f92acc24142bbababd14ed3e"
+    },
+    "tests/test_ieee_tc_planning_wire.py": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d739_planning_wire_rollback/withdrawn/test_ieee_tc_planning_wire.py.snapshot",
+      "sha256": "d8f2ec008ebcda7f9a12e51c56c73b34338d818ce1498e7845d68c3cfcb19a19"
+    }
+  },
+  "parent_commit": "33b9e03cf7031bc9fb2c9518a1269746c6664beb",
+  "rejected_candidate_commit": "0af3cd461c58f2a2cd2fb7515e1b8e76fb5d1c11"
+}

@@ -168,11 +168,6 @@ def execute_planning_message(message):
     objectives_seconds = None
     if operation in ('owned_epoch', 'owned_execution_epoch'):
         args = dict(args)
-        from .planning_wire import FrozenPlanningSnapshot
-        if type(args['native_snapshot']) is FrozenPlanningSnapshot:
-            # Same fresh observation, decoded by its sole full-graph consumer.
-            # No live-state lookup or synchronous failure fallback on the parent.
-            args['native_snapshot'] = args['native_snapshot'].decode()
         mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
         profiles = args['profiles']
         inputs = owned_preparation_inputs(**args)

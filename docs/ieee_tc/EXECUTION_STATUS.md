@@ -1,5 +1,41 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D739恢复父版：41项通过，无新GPU回放
+
+PROGRESS。D737生产差异已精确撤回，两个文件逐字节等于D736提交33b9e03；
+withdrawn目录保留D737模块与专用测试原字节，完整负结果与历史不变。既有
+planning_cpu/rpc_decode/planning_snapshot三组41测试通过（65.558秒），
+145保护项未变，测试内存峰值1755422720B，high/max/OOM/swap0。
+没有修改九公式、指标或在线参数，没有为恢复父版重跑4000请求。
+
+当前完成的是恢复与检查，不是性能改善；3B仍未达95%，G1/G2未闭口。
+下一封存D739并备份明确路径（V2不force），再从已有完整测量/历史及官方
+实现核查不同的可证伪假设；planning-wire无新前提不再尝试。尚无新性能
+候选启动，不重复HydraServe基础适配或使用共享k3s。3B后续场景/基线/
+dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、审稿文档与最终图表均
+保留，goal active。详情D739_PLANNING_WIRE_ROLLBACK_20261023.md。
+
+## 2026-10-23 03:11 D738负结果已备份，下一恢复受测父版
+
+19个明确文件已提交079df7d00f1b6b19a037e08cef33e6eeca9e0ae3，推送并
+ls-remote核验faaslora_origin/backup/d738-complete-20261023。V2未同步、
+未force。145保护项/两个结果manifest/远端日志SHA/格式与敏感信息检查通过；
+原样CSV及脚本快照保留，用户manifest SHA未变且未stage。D737针对性检查
+和D738新入口2项直接复用，没有为备份追加测试或GPU资格。
+
+closure/backup两域均按InvocationID/inode核对空后释放；最后备份域峰值
+61464576B、high/max/OOM/swap0，完整回执raw/post_backup_release.json。
+当前无活GPU实验，远端三项服务停止；磁盘165072261120B可用，主机
+MemAvailable109966964kB。此为收尾观察，不代替下一任务的新资源检查。
+
+D738仍为3693/4000=92.325%、U15899.370577，不接受D737性能候选；生产
+源码当前仍含D737，尚未恢复。下一先以保留的D736/D735受测父版精确撤回
+D737的生产差异（保留候选源码历史、组件测试、负结果，不覆盖用户修改），
+完成必要的针对性核验和检查点，然后基于历史失败排除/完整阶段/官方资料
+选择唯一不同假设。不得重跑D738、重复planning-wire方向或HydraServe基础
+适配；无新候选已启动。全部后续矩阵/消融/敏感性/文档图表仍保留，goal
+active。本收尾条目在下一正常检查点备份，不另开仅为状态同步的提交。
+
 ## 2026-10-23 03:09 D738完整结束：92.325%，不接受D737候选
 
 PROGRESS。4000/4000正常终态、零运行失败；实际service、GPU、回放和远端
