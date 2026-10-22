@@ -17953,6 +17953,12 @@ class ScenarioRunner:
                 evidence['native_source_conflict'] = 'native owner/epoch changed during source admission'
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
+            # Publish this accepted owner observation to every identity consumer.
+            # Deleting only the measured scope leaves an older negative frontier
+            # usable on retry, even after this recheck disproved its absence.
+            # Presence still requires a measured scoped read and source pin;
+            # the identity event does not invent footprints or admit the request.
+            self._ieee_publish_identity_frontier(slot, native)
             aid = InferenceEngine._lora_int_id(reservation.adapter_id)
             if aid in native.unknown_native_adapter_ids:
                 raise ValueError('source admission found an unowned native adapter')

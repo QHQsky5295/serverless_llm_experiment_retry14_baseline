@@ -1,0 +1,499 @@
+{
+  "kind": "d717_all_request_routing_retries_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0",
+  "groups": {
+    "all": {
+      "n": 4000,
+      "slo_groups": {
+        "ttft_only": 140,
+        "pass": 3744,
+        "tpot_only": 107,
+        "both": 9
+      },
+      "attempt_count": 258,
+      "faster_source_attempt_count": 129,
+      "repeated_absence_count": 118,
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 734.3513196494314,
+          "p50_type1": 543.8031572848558,
+          "p95_type1": 1784.6462689340115
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 16.277835688393356,
+          "p50_type1": 14.107437133241225,
+          "p95_type1": 28.297727500709396
+        },
+        "runtime_slot_wait_ms": {
+          "count": 4000,
+          "mean": 228.5615556241246,
+          "p50_type1": 129.1192399803549,
+          "p95_type1": 749.221860896796
+        },
+        "arrival_to_admission_ms": {
+          "count": 4000,
+          "mean": 381.62971745379036,
+          "p50_type1": 229.0644203312695,
+          "p95_type1": 1175.0600517261773
+        },
+        "pending_residence_ms": {
+          "count": 4000,
+          "mean": 5.133550237107556,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "attempts": {
+          "count": 4000,
+          "mean": 0.0645,
+          "p50_type1": 0,
+          "p95_type1": 0
+        }
+      }
+    },
+    "no_retry": {
+      "n": 3872,
+      "slo_groups": {
+        "ttft_only": 130,
+        "pass": 3628,
+        "tpot_only": 105,
+        "both": 9
+      },
+      "attempt_count": 0,
+      "faster_source_attempt_count": 0,
+      "repeated_absence_count": 0,
+      "metrics": {
+        "ttft_ms": {
+          "count": 3872,
+          "mean": 724.8125631154264,
+          "p50_type1": 535.7921908143908,
+          "p95_type1": 1772.1038905438036
+        },
+        "tpot_ms": {
+          "count": 3872,
+          "mean": 16.307056320288392,
+          "p50_type1": 14.12631341848861,
+          "p95_type1": 28.522038233599492
+        },
+        "runtime_slot_wait_ms": {
+          "count": 3872,
+          "mean": 215.72768157676356,
+          "p50_type1": 126.00598204880953,
+          "p95_type1": 687.3182079289109
+        },
+        "arrival_to_admission_ms": {
+          "count": 3872,
+          "mean": 369.7724212695241,
+          "p50_type1": 221.12988773733377,
+          "p95_type1": 1148.21541425772
+        },
+        "pending_residence_ms": {
+          "count": 3872,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "attempts": {
+          "count": 3872,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        }
+      }
+    },
+    "with_retry": {
+      "n": 128,
+      "slo_groups": {
+        "pass": 116,
+        "ttft_only": 10,
+        "tpot_only": 2
+      },
+      "attempt_count": 258,
+      "faster_source_attempt_count": 129,
+      "repeated_absence_count": 118,
+      "metrics": {
+        "ttft_ms": {
+          "count": 128,
+          "mean": 1022.8987048030831,
+          "p50_type1": 802.4827125482261,
+          "p95_type1": 1991.9270619284362
+        },
+        "tpot_ms": {
+          "count": 128,
+          "mean": 15.393911573568442,
+          "p50_type1": 13.571631123281282,
+          "p95_type1": 24.489568053539116
+        },
+        "runtime_slot_wait_ms": {
+          "count": 128,
+          "mean": 616.7862455567956,
+          "p50_type1": 420.87769717909396,
+          "p95_type1": 1492.091097868979
+        },
+        "arrival_to_admission_ms": {
+          "count": 128,
+          "mean": 740.3129270278441,
+          "p50_type1": 542.5102771259844,
+          "p95_type1": 1647.8450167924166
+        },
+        "pending_residence_ms": {
+          "count": 128,
+          "mean": 160.42344490961113,
+          "p50_type1": 24.26415402442217,
+          "p95_type1": 806.223883992061
+        },
+        "attempts": {
+          "count": 128,
+          "mean": 2.015625,
+          "p50_type1": 1,
+          "p95_type1": 2
+        }
+      }
+    },
+    "faster_source": {
+      "n": 10,
+      "slo_groups": {
+        "pass": 9,
+        "ttft_only": 1
+      },
+      "attempt_count": 129,
+      "faster_source_attempt_count": 129,
+      "repeated_absence_count": 118,
+      "metrics": {
+        "ttft_ms": {
+          "count": 10,
+          "mean": 1706.4153724815696,
+          "p50_type1": 1009.9988309666514,
+          "p95_type1": 6947.715553920716
+        },
+        "tpot_ms": {
+          "count": 10,
+          "mean": 14.38684792816796,
+          "p50_type1": 13.220264292033637,
+          "p95_type1": 18.780178987585447
+        },
+        "runtime_slot_wait_ms": {
+          "count": 10,
+          "mean": 1163.9673737809062,
+          "p50_type1": 520.8475932013243,
+          "p95_type1": 6801.146977813914
+        },
+        "arrival_to_admission_ms": {
+          "count": 10,
+          "mean": 1404.1160727618262,
+          "p50_type1": 544.1849830094725,
+          "p95_type1": 6829.913058783859
+        },
+        "pending_residence_ms": {
+          "count": 10,
+          "mean": 540.7774729887024,
+          "p50_type1": 191.4140919689089,
+          "p95_type1": 2737.834731582552
+        },
+        "attempts": {
+          "count": 10,
+          "mean": 12.9,
+          "p50_type1": 1,
+          "p95_type1": 113
+        }
+      }
+    },
+    "repeated_absence": {
+      "n": 3,
+      "slo_groups": {
+        "ttft_only": 1,
+        "pass": 2
+      },
+      "attempt_count": 122,
+      "faster_source_attempt_count": 122,
+      "repeated_absence_count": 118,
+      "metrics": {
+        "ttft_ms": {
+          "count": 3,
+          "mean": 2870.5131456566355,
+          "p50_type1": 1009.9988309666514,
+          "p95_type1": 6947.715553920716
+        },
+        "tpot_ms": {
+          "count": 3,
+          "mean": 15.68419896571988,
+          "p50_type1": 16.233483333573012,
+          "p95_type1": 18.780178987585447
+        },
+        "runtime_slot_wait_ms": {
+          "count": 3,
+          "mean": 2658.04469694073,
+          "p50_type1": 648.2586339116096,
+          "p95_type1": 6801.146977813914
+        },
+        "arrival_to_admission_ms": {
+          "count": 3,
+          "mean": 2679.713050602004,
+          "p50_type1": 665.0411100126803,
+          "p95_type1": 6829.913058783859
+        },
+        "pending_residence_ms": {
+          "count": 3,
+          "mean": 1157.9629828532536,
+          "p50_type1": 544.6401250083,
+          "p95_type1": 2737.834731582552
+        },
+        "attempts": {
+          "count": 3,
+          "mean": 40.666666666666664,
+          "p50_type1": 6,
+          "p95_type1": 113
+        }
+      }
+    },
+    "pass": {
+      "n": 3744,
+      "slo_groups": {
+        "pass": 3744
+      },
+      "attempt_count": 131,
+      "faster_source_attempt_count": 16,
+      "repeated_absence_count": 7,
+      "metrics": {
+        "ttft_ms": {
+          "count": 3744,
+          "mean": 653.538002204645,
+          "p50_type1": 517.1094189863652,
+          "p95_type1": 1515.1717627886683
+        },
+        "tpot_ms": {
+          "count": 3744,
+          "mean": 15.323006733033498,
+          "p50_type1": 13.9098665204601,
+          "p95_type1": 24.641283905754488
+        },
+        "runtime_slot_wait_ms": {
+          "count": 3744,
+          "mean": 212.38786902080406,
+          "p50_type1": 125.97615108825266,
+          "p95_type1": 677.7993638534099
+        },
+        "arrival_to_admission_ms": {
+          "count": 3744,
+          "mean": 347.8990702164876,
+          "p50_type1": 215.82581172697246,
+          "p95_type1": 1077.9957782942802
+        },
+        "pending_residence_ms": {
+          "count": 3744,
+          "mean": 3.9995798272599115,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "attempts": {
+          "count": 3744,
+          "mean": 0.03498931623931624,
+          "p50_type1": 0,
+          "p95_type1": 0
+        }
+      }
+    },
+    "ttft_only": {
+      "n": 140,
+      "slo_groups": {
+        "ttft_only": 140
+      },
+      "attempt_count": 125,
+      "faster_source_attempt_count": 113,
+      "repeated_absence_count": 111,
+      "metrics": {
+        "ttft_ms": {
+          "count": 140,
+          "mean": 2633.364462544809,
+          "p50_type1": 2585.8275811187923,
+          "p95_type1": 4380.335696274415
+        },
+        "tpot_ms": {
+          "count": 140,
+          "mean": 17.2306171951571,
+          "p50_type1": 15.724535007029772,
+          "p95_type1": 27.09430764073485
+        },
+        "runtime_slot_wait_ms": {
+          "count": 140,
+          "mean": 542.2291097214578,
+          "p50_type1": 276.1424630880356,
+          "p95_type1": 1540.6630409415811
+        },
+        "arrival_to_admission_ms": {
+          "count": 140,
+          "mean": 1142.1423263515212,
+          "p50_type1": 1055.6968736927956,
+          "p95_type1": 3331.0529433656484
+        },
+        "pending_residence_ms": {
+          "count": 140,
+          "mean": 39.23455074296466,
+          "p50_type1": 0.0,
+          "p95_type1": 73.19760299287736
+        },
+        "attempts": {
+          "count": 140,
+          "mean": 0.8928571428571429,
+          "p50_type1": 0,
+          "p95_type1": 1
+        }
+      }
+    },
+    "tpot_only": {
+      "n": 107,
+      "slo_groups": {
+        "tpot_only": 107
+      },
+      "attempt_count": 2,
+      "faster_source_attempt_count": 0,
+      "repeated_absence_count": 0,
+      "metrics": {
+        "ttft_ms": {
+          "count": 107,
+          "mean": 960.40353274939,
+          "p50_type1": 876.1345571838319,
+          "p95_type1": 1895.77348344028
+        },
+        "tpot_ms": {
+          "count": 107,
+          "mean": 45.18712879294785,
+          "p50_type1": 42.56100024213083,
+          "p95_type1": 68.93315455979771
+        },
+        "runtime_slot_wait_ms": {
+          "count": 107,
+          "mean": 349.5292255685395,
+          "p50_type1": 270.64642892219126,
+          "p95_type1": 923.2033949811012
+        },
+        "arrival_to_admission_ms": {
+          "count": 107,
+          "mean": 509.24947761242913,
+          "p50_type1": 399.4608542416245,
+          "p95_type1": 1163.740459131077
+        },
+        "pending_residence_ms": {
+          "count": 107,
+          "mean": 0.625579169664149,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "attempts": {
+          "count": 107,
+          "mean": 0.018691588785046728,
+          "p50_type1": 0,
+          "p95_type1": 0
+        }
+      }
+    },
+    "both": {
+      "n": 9,
+      "slo_groups": {
+        "both": 9
+      },
+      "attempt_count": 0,
+      "faster_source_attempt_count": 0,
+      "repeated_absence_count": 0,
+      "metrics": {
+        "ttft_ms": {
+          "count": 9,
+          "mean": 2124.9772870085308,
+          "p50_type1": 1794.439174933359,
+          "p95_type1": 3110.7234444934875
+        },
+        "tpot_ms": {
+          "count": 9,
+          "mean": 54.96626188095383,
+          "p50_type1": 45.982624898897484,
+          "p95_type1": 106.40669260174036
+        },
+        "runtime_slot_wait_ms": {
+          "count": 9,
+          "mean": 639.370931752233,
+          "p50_type1": 798.259137198329,
+          "p95_type1": 1007.9268098343164
+        },
+        "arrival_to_admission_ms": {
+          "count": 9,
+          "mean": 1066.1256812098954,
+          "p50_type1": 1016.6988491546363,
+          "p95_type1": 1743.5000266414136
+        },
+        "pending_residence_ms": {
+          "count": 9,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "attempts": {
+          "count": 9,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        }
+      }
+    }
+  },
+  "attempt_reasons": {
+    "gpu:required_source_changed": 68,
+    "host:required_source_changed": 61,
+    "faster native source appeared before admission": 129
+  },
+  "attempt_histogram": {
+    "0": 3872,
+    "1": 114,
+    "2": 11,
+    "3": 1,
+    "6": 1,
+    "113": 1
+  },
+  "reason_frontier_counts": {
+    "faster native source appeared before admission": 129
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d703_3b_full_w0_d701profile.json",
+      "sha256": "eeab36caab728bdb9217ebfd54f509ecc49398994f9a9646a050f5bda24d2c84",
+      "bytes": 346790534
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d716_common_slo_diagnosis/requests.csv",
+      "sha256": "39b7e2969dfd2d5754c483f271c139dd9ef4728f6a7313a0df73da827c05520a",
+      "bytes": 2437691
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d716_common_slo_diagnosis/diagnosis.json",
+      "sha256": "c89370c7b08fb224a4adaff306766a59e659db881086eeafab18f0e69a28a285",
+      "bytes": 234344
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "a2d1a0bd48481fe525716169c119ece7f317b9faaaeb636f3c4e5944982bb440",
+      "bytes": 57444
+    }
+  ],
+  "n_correct": null,
+  "ranking_eligible": false,
+  "performance_execution": false,
+  "limitations": [
+    "Rejected routing attempts differ from final native-acquisition stale_rechecks.",
+    "Pending residence is a witnessed nested interval, not full retry time or GPU holding time.",
+    "Conditional groups are not causal counterfactuals; do not subtract delays from old results.",
+    "All offered requests retained, including zero-retry and passing controls."
+  ],
+  "tables": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d717_routing_retries/requests.csv",
+      "sha256": "bf2684ccdfe39c9d8d79f53e01440317ff9874295378c7944d66bafa4efd01e9",
+      "bytes": 436079
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d717_routing_retries/attempts.csv",
+      "sha256": "0684bca46d846fe0a69465616dfc2a7137ad0b060e9f9d726f9e7d7c6956d66e",
+      "bytes": 59672
+    }
+  ]
+}

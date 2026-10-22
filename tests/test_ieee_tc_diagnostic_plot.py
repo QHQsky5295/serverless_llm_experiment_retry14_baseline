@@ -5,6 +5,45 @@ import json
 import pytest
 
 
+def d717_request():
+    opened = dict(intent_id='p',state='pending',clock_id='clock',scheduler_owner_id='scheduler',observed_at=1.)
+    final = dict(opened,state='withdrawn',observed_at=1.1)
+    attempt = dict(native_source_conflict='faster native source appeared before admission',
+        routing_snapshot=dict(selected_reference_acquired=False,selected_replica_id='replica',sources={
+            'replica':dict(source=dict(tier='nvme',native=False),native_owner_id='owner',native_epoch=1,
+                native_captured_monotonic_s=.5,source_collection=dict(mode='confirmed_snapshot_cache_v1',
+                    frontier_absence_replica_indexes=[0]))}),
+        pending_kv_admission=dict(intent_id='p',state='closed',receipt=opened,
+            close_receipt=dict(intent_id='p',closed=True,receipt=final)))
+    return dict(request_id='r',gpu_reference_evidence=dict(prior_routing_attempts=[attempt]))
+
+
+def test_d717_preserves_zero_attempts_and_counts_repeated_negative_views():
+    from scripts.ieee_tc.audit_d703_3b_full import retained_routing_attempts
+    assert retained_routing_attempts(dict(gpu_reference_evidence={}),clock_id='clock') == []
+    request = d717_request()
+    request['gpu_reference_evidence']['prior_routing_attempts'] *= 2
+    rows = retained_routing_attempts(request,clock_id='clock')
+    assert [r['repeated_absence_view'] for r in rows] == [False,True]
+    assert rows[0]['pending_residence_ms'] == pytest.approx(100.)
+
+
+@pytest.mark.parametrize('fault',['clock','pending','indexes','native','acquired','negative','type'])
+def test_d717_rejects_incomplete_or_contradictory_attempt_evidence(fault):
+    from scripts.ieee_tc.audit_d703_3b_full import retained_routing_attempts
+    request = d717_request()
+    a = request['gpu_reference_evidence']['prior_routing_attempts'][0]
+    if fault == 'clock': a['pending_kv_admission']['receipt']['clock_id'] = 'other'
+    elif fault == 'pending': a['pending_kv_admission']['state'] = 'pending'
+    elif fault == 'indexes': a['routing_snapshot']['sources']['replica']['source_collection']['frontier_absence_replica_indexes'] = [1]
+    elif fault == 'native': a['routing_snapshot']['sources']['replica']['source']['native'] = True
+    elif fault == 'acquired': a['routing_snapshot']['selected_reference_acquired'] = True
+    elif fault == 'negative': a['pending_kv_admission']['close_receipt']['receipt']['observed_at'] = .1
+    elif fault == 'type': request['gpu_reference_evidence']['prior_routing_attempts'] = None
+    with pytest.raises(ValueError):
+        retained_routing_attempts(request,clock_id='clock')
+
+
 def d716_request():
     n = dict(timing_contract='ieee_tc_native_v1', native_clock_id='clock',
         controller_admitted_monotonic_s=1., native_dispatch_monotonic_s=2.,

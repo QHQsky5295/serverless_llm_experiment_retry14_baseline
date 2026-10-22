@@ -1,5 +1,26 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D717：全量路由重试分析完成，单一一致性修正待性能验证
+
+PROGRESS。复用D703/D716全部4000请求；128条有258次前序路由尝试。
+GPU/HOST来源变化分别68/61次；更快原生来源129次仅涉及10请求，其中1条
+违约，118次重复相同否定观察。由此不能将其解释为56条SLO缺口的主因。
+数据 `paper_results/ieee_tc/p2_backend/d717_routing_retries/`，解释
+`D717_3B_ROUTING_RETRY_DIAGNOSIS_20261022.md`。没有新增GPU性能运行。
+
+已重现一致性遗漏：低层source准入读到新identity后只更新slot、不发布路由
+frontier，scope删除仍可重用已否定的absence。生产改动仅调用已有frontier
+发布；保留拒绝旧来源、重新选择、测量scope和pin检查，九公式/配置/协议不变。
+修正前定向测试1失败；修正后131+363=494通过。候选尚无性能资格；不得写成
+已达到95%。3B完整当前仍93.60%、14864.807562 GPU-s，数值正确性仍未知。
+
+CPU流式分析14.81s，六scope无high/max/OOM，核对空进程后关闭；144原投稿
+文件、用户manifest、PLAN/V1/V2未变。没有操作远端/共享k3s，也不画图。
+下一项：备份此单候选后按D703相同合同做必要原生smoke及新键Full4000一次，
+保留罕见分支未触发/退化情况；随后回到其余准备等待和短输出TPOT主因。
+不在这个只直接涉及1条违约的缺陷上继续局部搜索，不叠加新生产候选。
+3B其他场景/baseline/dLoRA、全部消融/敏感性/审稿交付未完成范围仍保留。
+
 ## 2026-10-22 D716：3B 全请求阶段诊断完成，不新增 GPU 回放
 
 检查点 `5fa6699b5600e1ad543fba175941519175cf99bd` 已推送并用ls-remote核验

@@ -554,6 +554,45 @@ class RouteIdentityCacheQualification(unittest.TestCase):
         self.assertEqual(values[0][0].footprint_adapter_ids, (99,))
         self.assertEqual(values[0][1], identity_wire['device_uuid'])
 
+    def test_selected_file_recheck_retires_disproved_absence_before_retry(self):
+        runner, slot, identity_wire, full_wire = self._runner()
+        runner.model_cfg = {'timing_contract':'ieee_tc_native_v1', 'ieee_gpu_references':True}
+        runner._ieee_route_confirmed_snapshot_cache = True
+        clock = local_monotonic_clock_id()
+        present = NativeSourceSnapshot.from_routing_wire(identity_wire,
+            expected_clock_id=clock, received_monotonic_s=time.monotonic())
+        absent = replace(present, sources=tuple(s for s in present.sources if s.adapter_int_id != 4),
+            slot_adapter_ids=tuple(None if a == 4 else a for a in present.slot_adapter_ids),
+            registered_cpu_adapter_ids=tuple(a for a in present.registered_cpu_adapter_ids if a != 4))
+        slot.commit_native_sources(absent)
+        slot.native_device_uuid = identity_wire['device_uuid']
+        runner._ieee_route_identity_frontier = {slot.instance_id:absent}
+        fresh = replace(present, epoch=present.epoch+1, captured_monotonic_s=time.monotonic())
+        slot.engine.ieee_source_identities.return_value = fresh.routing_wire(device_uuid=slot.native_device_uuid)
+        measured = NativeSourceSnapshot.from_request_wire(full_wire, requested_adapter_ids=[4],
+            expected_clock_id=clock, received_monotonic_s=time.monotonic())
+        measured = replace(measured, epoch=fresh.epoch, captured_monotonic_s=time.monotonic())
+        slot.engine.ieee_request_sources.return_value = measured.request_wire(device_uuid=slot.native_device_uuid)
+        reservation = SimpleNamespace(slot=slot, adapter_id='fixture-adapter', gpu_reference_evidence={})
+        async def check():
+            old, meta = await runner._ieee_collect_confirmed_snapshot_cache((slot,), requested_adapter_ids=[4])
+            self.assertEqual(meta['frontier_absence_replica_indexes'], [0])
+            self.assertFalse(any(s.adapter_int_id == 4 for s in old[0][0].sources))
+            with unittest.mock.patch('scripts.run_all_experiments.InferenceEngine._lora_int_id', return_value=4):
+                accepted = await runner._ieee_protect_selected_source(
+                    reservation, {'native':False,'tier':'nvme'}, SimpleNamespace())
+            self.assertFalse(accepted)  # Still reselect; never force a stale source through admission.
+            self.assertEqual(reservation.gpu_reference_evidence['native_source_conflict'],
+                             'faster native source appeared before admission')
+            self.assertEqual(runner._ieee_route_identity_frontier[slot.instance_id], fresh)
+            new, metadata = await runner._ieee_collect_confirmed_snapshot_cache((slot,), requested_adapter_ids=[4])
+            self.assertEqual(metadata['frontier_absence_replica_indexes'], [])
+            self.assertEqual(metadata['full_authoritative_read_replica_count'], 1)
+            self.assertEqual(new[0][0], measured)
+            slot.engine.ieee_request_sources.assert_awaited_once()
+            self.assertIsNone(runner._ieee_route_identity_frontier[slot.instance_id].gpu_pool_storage_bytes)
+        asyncio.run(check())
+
 
 class RouteEvidenceAudit(unittest.TestCase):
     def _requests(self):

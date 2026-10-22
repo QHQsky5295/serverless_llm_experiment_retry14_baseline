@@ -224,6 +224,145 @@ def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
                          max_stage_identity_error_ms=report['max_stage_identity_error_ms'])))
 
 
+def retained_routing_attempts(request, *, clock_id):
+    """D717: rejected attempts, not final-acquisition rechecks or saved time."""
+    attempts = request['gpu_reference_evidence'].get('prior_routing_attempts', [])
+    if not isinstance(attempts, list):
+        raise ValueError('prior routing attempts must be an explicit list when present')
+    rows, seen = [], set()
+    for index, attempt in enumerate(attempts):
+        snapshot = attempt['routing_snapshot']
+        if snapshot['selected_reference_acquired'] is not False:
+            raise ValueError('prior attempt must not assert an acquired selected source')
+        replica = snapshot['selected_replica_id']
+        sources = snapshot['sources']
+        selected = sources[replica]
+        source, collection = selected['source'], selected['source_collection']
+        if collection['mode'] != 'confirmed_snapshot_cache_v1':
+            raise ValueError('D717 requires the retained confirmed-cache contract')
+        replicas = list(sources)
+        absence_indexes = collection['frontier_absence_replica_indexes']
+        if (not isinstance(absence_indexes, list) or len(set(absence_indexes)) != len(absence_indexes)
+                or any(type(i) is not int or not 0 <= i < len(replicas) for i in absence_indexes)):
+            raise ValueError('invalid retained frontier-absence membership')
+        absent = replicas.index(replica) in absence_indexes
+        if absent and source['native']:
+            raise ValueError('absence cannot classify a native source')
+        reason = attempt.get('native_source_conflict')
+        if reason is None:
+            conflict = attempt.get('last_conflict')
+            if conflict is not None:
+                if conflict['acquired'] is not False or conflict['clock_id'] != clock_id:
+                    raise ValueError('GPU rejection receipt differs from the attempt')
+                reason = 'gpu:' + conflict['reason']
+            else:
+                conflict = attempt['native_host_source']['conflict']
+                if conflict['held'] is not False or conflict['clock_id'] != clock_id:
+                    raise ValueError('HOST rejection receipt differs from the attempt')
+                reason = 'host:' + conflict['reason']
+        pending = attempt['pending_kv_admission']
+        opened, closed = pending['receipt'], pending['close_receipt']
+        final = closed['receipt']
+        if (pending['state'] != 'closed' or closed['closed'] is not True
+                or opened['state'] != 'pending' or final['state'] != 'withdrawn'
+                or any(x['intent_id'] != pending['intent_id'] for x in (opened, closed, final))
+                or any(x['clock_id'] != clock_id for x in (opened, final))
+                or opened['scheduler_owner_id'] != final['scheduler_owner_id']):
+            raise ValueError('rejected attempt lacks its same-owner closed pending receipt')
+        start, end = opened['observed_at'], final['observed_at']
+        if any(type(v) not in (int,float) or not math.isfinite(v) for v in (start,end)) or start > end:
+            raise ValueError('invalid pending interval')
+        view = (replica, selected['native_owner_id'], selected['native_epoch'],
+                selected['native_captured_monotonic_s'])
+        repeated = absent and view in seen
+        if absent:
+            seen.add(view)
+        rows.append(dict(request_id=request['request_id'], attempt_index=index,
+            reason=reason, selected_replica=replica, selected_tier=source['tier'],
+            selected_native=source['native'], frontier_absence=absent,
+            repeated_absence_view=repeated, native_owner=view[1], native_epoch=view[2],
+            native_captured=view[3], pending_start=start, pending_end=end,
+            pending_residence_ms=(end-start)*1000))
+    return rows
+
+
+def diagnose_routing_retries(raw: Path, output: Path, stage_audit: Path) -> None:
+    """Join ALL requests to the sealed D716 population; no GPU execution."""
+    import ijson
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    stage = read(stage_audit)
+    if (stage['kind'] != 'd716_all_request_stage_diagnosis_v1' or not stage['passed']
+            or stage['source_run'] != str(raw) or stage['counts']['n'] != 4000):
+        raise ValueError('complete same-run D716 diagnosis required')
+    refs = {Path(x['path']):x['sha256'] for x in stage['source_refs']}
+    result = next(x for x in refs if x.name.startswith('experiment_results_full'))
+    table = Path(stage['request_table']['path'])
+    if digest(result) != refs[result] or digest(table) != stage['request_table']['sha256']:
+        raise ValueError('sealed source changed')
+    with table.open() as handle:
+        previous = list(csv.DictReader(handle))
+    by_id = {r['request_id']:r for r in previous}
+    if len(previous) != 4000 or len(by_id) != 4000:
+        raise ValueError('complete unique stage table required')
+    rows, attempts = [], []
+    with result.open('rb') as handle:
+        for request in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            old = by_id[request['request_id']]
+            if int(old['ordinal']) != request['external_arrival_timing']['index']:
+                raise ValueError('D716 request ordinal differs')
+            entries = retained_routing_attempts(request, clock_id=stage['clock_id'])
+            attempts.extend(entries)
+            fields = ('ttft_ms','tpot_ms','runtime_slot_wait_ms','arrival_to_admission_ms')
+            faster = [a for a in entries if a['reason'] == 'faster native source appeared before admission']
+            rows.append(dict(request_id=request['request_id'], ordinal=int(old['ordinal']),
+                slo_group=old['slo_group'], tier=old['tier'], attempts=len(entries),
+                faster_source_attempts=len(faster),
+                repeated_absence_attempts=sum(a['repeated_absence_view'] for a in entries),
+                pending_residence_ms=math.fsum(a['pending_residence_ms'] for a in entries),
+                **{k:float(old[k]) for k in fields}))
+    rows.sort(key=lambda r:r['ordinal'])
+    if [r['ordinal'] for r in rows] != list(range(4000)) or len({r['request_id'] for r in rows}) != 4000:
+        raise ValueError('all offered IDs required')
+    def summarize(group):
+        return dict(n=len(group), slo_groups=dict(collections.Counter(r['slo_group'] for r in group)),
+            attempt_count=sum(r['attempts'] for r in group),
+            faster_source_attempt_count=sum(r['faster_source_attempts'] for r in group),
+            repeated_absence_count=sum(r['repeated_absence_attempts'] for r in group),
+            metrics={k:timing_stats([r[k] for r in group]) for k in
+                     (*fields,'pending_residence_ms','attempts')})
+    groups = {name:summarize(group) for name, group in (
+        ('all',rows), ('no_retry',[r for r in rows if not r['attempts']]),
+        ('with_retry',[r for r in rows if r['attempts']]),
+        ('faster_source',[r for r in rows if r['faster_source_attempts']]),
+        ('repeated_absence',[r for r in rows if r['repeated_absence_attempts']]))}
+    for label in ('pass','ttft_only','tpot_only','both'):
+        groups[label] = summarize([r for r in rows if r['slo_group']==label])
+    report = dict(kind='d717_all_request_routing_retries_v1', passed=True,
+        source_run=str(raw), groups=groups,
+        attempt_reasons=dict(collections.Counter(a['reason'] for a in attempts)),
+        attempt_histogram=dict(sorted(collections.Counter(r['attempts'] for r in rows).items())),
+        reason_frontier_counts=dict(collections.Counter(a['reason'] for a in attempts if a['frontier_absence'])),
+        source_refs=[ref(x) for x in (result,table,stage_audit,Path(__file__))],
+        n_correct=None, ranking_eligible=False, performance_execution=False,
+        limitations=['Rejected routing attempts differ from final native-acquisition stale_rechecks.',
+            'Pending residence is a witnessed nested interval, not full retry time or GPU holding time.',
+            'Conditional groups are not causal counterfactuals; do not subtract delays from old results.',
+            'All offered requests retained, including zero-retry and passing controls.'])
+    output.mkdir(parents=True, exist_ok=False)
+    report['tables'] = []
+    for name, values in (('requests',rows), ('attempts',attempts)):
+        path = output/(name+'.csv')
+        with path.open('x', newline='') as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(values[0]), lineterminator='\n')
+            writer.writeheader(); writer.writerows(values)
+        report['tables'].append(ref(path))
+    with (output/'diagnosis.json').open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps(dict(output=str(output),attempt_reasons=report['attempt_reasons'],groups=groups)))
+
+
 def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
     """Join closed remote, control and watchdog evidence after the SLO audit."""
     import ijson
@@ -781,13 +920,19 @@ if __name__ == "__main__":
     parser.add_argument('--reevaluate-common-slo', type=Path)
     parser.add_argument('--audit-closed-outcome', type=Path)
     parser.add_argument('--diagnose-common-slo', type=Path)
+    parser.add_argument('--diagnose-routing-retries', type=Path)
+    parser.add_argument('--stage-audit', type=Path)
     parser.add_argument('--metric-audit', type=Path)
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.diagnose_common_slo)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.diagnose_common_slo, args.diagnose_routing_retries)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_common_slo is not None:
+    if args.diagnose_routing_retries is not None:
+        if args.stage_audit is None:
+            parser.error('--stage-audit is required for --diagnose-routing-retries')
+        diagnose_routing_retries(args.raw, args.diagnose_routing_retries, args.stage_audit)
+    elif args.diagnose_common_slo is not None:
         if args.metric_audit is None:
             parser.error('--metric-audit is required for --diagnose-common-slo')
         diagnose_common_slo(args.raw, args.diagnose_common_slo, args.metric_audit)

@@ -1,0 +1,29 @@
+{
+  "kind": "d717_cpu_logic_qualification_v1",
+  "performance_execution": false,
+  "candidate_performance_qualified": false,
+  "tests_before": {"failed": 1, "path": "results/ieee_tc/p2_backend_qualification/d717_20261022/unit_before.xml", "sha256": "32af9d7b2eb210ca36b5f1e5205b8f36319ee2f8d1801272e108aad5e270c616"},
+  "tests_after": [
+    {"passed": 131, "path": "results/ieee_tc/p2_backend_qualification/d717_20261022/unit_after.xml", "sha256": "100bb79a0e554245c41f9406ad27ce0736434d6ba69d727ee5e6ab4b46446915"},
+    {"passed": 363, "path": "results/ieee_tc/p2_backend_qualification/d717_20261022/lifecycle_after.xml", "sha256": "36278d56c89a33c291e2a71364eef0e86061c4c09a12a6f309d83134ffdcce37"}
+  ],
+  "source_sha256": {
+    "scripts/run_all_experiments.py": "6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd",
+    "scripts/ieee_tc/audit_d703_3b_full.py": "a2d1a0bd48481fe525716169c119ece7f317b9faaaeb636f3c4e5944982bb440",
+    "tests/test_ieee_tc_route_identity_cache.py": "021d1e3120679172df186a07112874ec418e307c23892c867deb51b16d31aa23",
+    "tests/test_ieee_tc_diagnostic_plot.py": "4a150aa0f375314d51ce94f0e9212f99b75e12363ba9a7f2941586b8bc1a0b7d"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "publication_files_verified_unchanged": 144,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "analysis_wall_seconds": 14.81,
+  "analysis_max_rss_kib": 1060336,
+  "scope_memory_peak_bytes": {"population-read1":12509184,"reasons-read2":12443648,"before-test1":683008000,"tests2":681795584,"analysis1":617152512,"lifecycle3":633024512},
+  "scope_memory_high_max_oom_events": 0,
+  "scope_processes_empty_before_owned_stop": true,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "next": "New-key same-contract native validation of the one identity-publication change; no repeated-key winner selection."
+}
