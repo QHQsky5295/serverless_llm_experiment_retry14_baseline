@@ -1,5 +1,87 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 18:32 D729完整结束：90.725%，未达标，已释放且不重复运行
+
+PROGRESS。同一D729 4000/4000原生生成、绑定、时间计量通过；共同D648
+联合3629/4000=90.725%，TTFT3749、TPOT3858。物理U15900.939779，
+P95 TTFT2297.528106ms、均值863.058260ms、平均TPOT16.652563ms。
+相对D72692.650%/U15884.281128，联合下降1.925pp，U增加16.658651
+（0.104875%），P95增加14.016%。未达95%、还缺171条；不接受为最终工作点，
+不启动其W1/W2，不将权重加载微测改善等同全程收益。独立数值正确性仍未知，
+n_correct=null、ranking_eligible=false；没有隐藏不利结果或计算运行间CI。
+
+首请求TTFT11.244s→6.848s，但仍3up/0down，后三卡业务后10.703/12.761/
+14.866s持有直到约3976s。八段联合471/438/465/458/458/448/449/442，
+全部未95%。TTFT违约251条，其中GPU/HOST/NVMe为64/70/36共170条，
+remote81。GPU-hit slot包络289.574ms，不能称纯IPC；下一复用D727已有
+control/pending分析核对本轮startup反馈、稳态release/slot返回路径，提出
+新的可证伪候选前不做相同GPU回放、不继续局部HOST扫描优化、不改评价尺子。
+
+性能及辅助分析已结束：service/watchdog/replay均0退出，物理GPU释放，按
+InvocationID停本轮远端3服务；132fetch/306360162B，逐传输内容与字节对齐，
+request packing0。服务峰值24265113600B，high/max/OOM/swap0；分析峰值
+811122688B无事件。按身份关闭completion/start/launch三个空scope，closure
+自身空scope在备份时关闭。144旧投稿+用户manifest保护145项核对未变。
+不操作共享k3s，当前无GPU任务；磁盘约159GiB，下一重型任务仍须按计划
+核对可重建缓存/剩余新增峰值，不删除独有证据。未生成图，未改生产代码。
+
+数据：d729_3b_bulk_loader_full_w0/completion及closure.json；完整说明
+D729_3B_BULK_LOADER_FULL_W0_20261022.md。源结果SHA4288d6612fbf683ab2f77047a1762ecafc99f479df760138519267257f603344。
+本封存待下面备份步骤确认；实际head/ref以raw/d729_20261022/backup_completion.json
+为准，原检查点b9e8afa保留，V2不force。用户manifest不stage。
+3B后续W1/W2/基线与dLoRA、最终7B一致性、A1–A5、S1–S13、CE、审稿文档和
+最终图表均未完成，范围不变，goal active。下一先诊断现有证据，非重复实验。
+
+## 2026-10-22 17:50 D729运行中：已过半程，继续同一完整W0
+
+已核对PLAN、V1/V2和实际服务进程：D729仍运行，原tmux/服务InvocationID
+未变，四个原生engine在本轮服务域内；无重复启动、无代码或配置修改。
+实时日志2026/4000完成且fail0，已过半程并进入第五个500请求片段；
+这些仅为进度，不代表最终资格。watchdog样本1962：服务20.235GiB、主机
+available87.123GiB、磁盘156.965GiB，
+high/max/OOM/oom_kill/swap均0，warning false、abort为空。
+已观察到3次扩容/0次缩容，尚不能认定启动加载改善减少了全程GPU占用。
+实时5000ms SLO不作为最终判断；结束后仍按D648共同阈值、完整原生计量、
+实际分配/释放核算，不在partial阶段宣布G1或独立数值资格通过。
+
+本轮只读复核了既有audit_d703及D726收尾入口；在raw/d729_20261022/complete.py
+准备了D726收尾脚本的路径替换版，diff核对只改本轮路径、D726比较引用和
+说明。不新增统计公式/门槛，不修改生产代码或配置；脚本尚未执行，必须等
+完整launch.json和本轮remote_stop.log确认结束/释放后在原4GiB辅助域运行。
+其后仍需结合D719/D703及冻结目标判断，不只胜过D726就认定最终达标。
+
+继续观察同一D729，完成后先核对本机物理释放及本轮远端停止回执，再复用
+既有分析器封存全部结果和下一步证据。不构建、压缩、重哈希、备份或改变
+远端，不操作共享k3s。最近代码备份仍b9e8afa的专用backup分支；本状态条
+待性能结束后一并提交。D72692.650%/U15884.281128仍为最近完整参照；
+3B后续场景/基线/dLoRA、最终7B一致性、A1–A5、S1–S13、CE、审稿文档与
+最终图表未完成且范围不变，goal active，当前等待不是阻塞。
+
+## 2026-10-22 D729已启动：单轮完整3B W0，请勿重复启动
+
+D728资格完成及D729冻结输入检查点b9e8afa883a3c1e68264022065889782eba63ccc
+已推送并ls-remote核验faaslora_origin/backup/d729-bulk-loader-full-20261022。
+V2既存分歧未force；用户manifest未stage。D729约17:16启动，tmux
+tc-d729-3b-bulk-loader-full-w0，原始目录d729_20261022/3b_bulk_loader_full_w0。
+使用原run_d293 d729入口，4000原W0、同真实远端500池，非Full短前缀。
+startup唯一改动为已资格lossless bulk loader，其余D726配置与D725 profile复用。
+
+远端启动前确认1000Mb/s/full，D80发布缓存不重建；本轮monitor为
+primelora-artifact-monitor-d729-bulk-loader-fullw0.service。运行结束脚本会
+先验证本机物理释放，再按InvocationID停止本轮远端。当前处于初始化，
+watchdog样本59服务7223361536B、主机available104693612544B，high/max/OOM
+均0，无warning/abort；尚无完整性能结果，不能宣称SLO或G1通过。
+本轮aux为primelora-tc-aux-cf0556fa558d4d9a8e0647f58eb0059b.scope。
+启动辅助scope e6ac1d25cf564ff2b381e24c42b00729在start_identity.json，退出后
+可在正常收尾按身份关闭，不做无关清理。当前不要构建/备份/压缩/重哈希/
+调整远端或启动另一重型任务；共享k3s不操作。
+
+下一只监测这一次运行→清理/原生计量与共同D648 SLO分析→封存全部结果。
+D726仍92.650%/U15884.281128，D729未知；独立数值资格边界不变。
+3B W1/W2及baseline/dLoRA、最终7B一致性、A1–A5、S1–S13、CE、审稿文档与
+最终图表全部保留，goal active。本状态条待本轮性能结束后再备份，不在
+运行中git push。
+
 ## 2026-10-22 D728资格完成，D729完整W0准备通过
 
 PROGRESS。4/4原生请求152/59/123/217 tokens、lease与物理释放通过。D728
