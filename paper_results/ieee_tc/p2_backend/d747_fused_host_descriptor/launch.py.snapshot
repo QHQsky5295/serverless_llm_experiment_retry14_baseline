@@ -1,0 +1,32 @@
+"""Prepared only: one existing native microtest, never a full workload replay."""
+import json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(name,data):
+    with (RAW/name).open('x') as f:json.dump(data,f,indent=2,allow_nan=False)
+identity=p.scope_identity(p.cg_path().name)
+save('start_identity.json',identity)
+q=json.loads((OUT/'qualification.json').read_text())
+prepared=json.loads((OUT/'preparation.json').read_text())
+assert q['passed'] and prepared['passed']
+for path,sha in prepared['source_shas'].items(): assert p.digest(Path(path))==sha,path
+library=Path(q['library'])
+assert p.digest(library)==q['source_shas'][str(library)]
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+os.environ['FAASLORA_TC_NVML_BINDING']='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py'
+os.environ['FAASLORA_TC_NVML_SHA256']='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea'
+receipt=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json')
+assert p.digest(receipt)=='cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf'
+command=['/usr/bin/env','CUDA_VISIBLE_DEVICES=0',
+ 'PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True',
+ '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python','-B',str(ROOT/'scripts/ieee_tc_preflight.py'),
+ 'backend-pin-check','--runtime-receipt',str(receipt),'--host-descriptor-library',str(library),
+ '--output',str(RAW/'native_descriptor.json')]
+result=p.gated_launch(command,RAW/'native_launch.json',predicted_growth=64*p.MIB)
+save('native_launch.json',result)
+print(json.dumps(dict(passed=result['pass'],service=result.get('service_unit'))))
+raise SystemExit(0 if result['pass'] else 2)

@@ -1,0 +1,50 @@
+"""Close CPU qualification and verify only the newly added diagnostic interface."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,data):
+    with path.open('x') as f: json.dump(data,f,indent=2,allow_nan=False)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'preparation_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(OUT/'qualification.json')
+old=q['identity']; path=Path(old['path'])
+assert p.scope_still_owned(old) and not p.owned_pids(path)
+resources=p.cgroup_snapshot(path)
+closed=p.stop_scope_identity(old,grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not path.exists()
+save(OUT/'qualification_closure.json',dict(passed=True,identity=old,resources=resources,closure=closed))
+for name,sha in q['production'].items():
+    if name!='scripts/ieee_tc_preflight.py': assert p.digest(ROOT/name)==sha
+for name,sha in q['source_shas'].items():
+    if name!=str(ROOT/'tests/test_ieee_tc_host_descriptor_witness.py'): assert p.digest(Path(name))==sha
+tests=['tests.test_ieee_tc_host_descriptor_witness.DescriptorPreflightSelection',
+       'tests.test_ieee_tc_preflight.LivePinQueryQualification']
+with (OUT/'interface_tests.txt').open('x') as log:
+    done=subprocess.run([sys.executable,'-B','-m','unittest',*tests,'-v'],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert done.returncode==0
+sources=[ROOT/'scripts/ieee_tc_preflight.py',ROOT/'scripts/ieee_tc/host_descriptor_witness.py',
+         ROOT/'scripts/ieee_tc/native_host_descriptor.cpp',ROOT/'tests/test_ieee_tc_host_descriptor_witness.py']
+for path in (RAW/'qualify.py',RAW/'prepare.py',RAW/'launch.py'): ast.parse(path.read_text())
+protected=read(ROOT/'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch/qualification.json')['protected']
+for name,sha in protected.items(): assert p.digest(Path(name))==sha
+resources=p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'preparation.json',dict(passed=True,identity=identity,resources=resources,
+    source_shas={str(path):p.digest(path) for path in sources},
+    prior_qualification_sha256=p.digest(OUT/'qualification.json'),new_interface_tests=8,
+    prior_tests_reused=49,native_cuda_qualification_complete=False,full_performance_run=False,
+    protected_files_unchanged=len(protected),plan_sha256=p.check_plan()))
+for name in ('prepare.py','launch.py'):
+    with (OUT/(name+'.snapshot')).open('xb') as f:f.write((RAW/name).read_bytes())
+print(json.dumps(dict(passed=True,new_interface_tests=8,prior_tests_reused=49)))

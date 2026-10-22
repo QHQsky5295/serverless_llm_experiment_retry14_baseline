@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-74720261023000000000000000000001.scope",
+    "invocation_id": "0f78177f50434422a2f3455ec0924cda",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000001.scope",
+    "inode": 30702796
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000001.scope",
+    "memory.current": 634445824,
+    "memory.peak": 1200140288,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 34414866\nuser_usec 30488660\nsystem_usec 3926205\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "tests": [
+    "tests.test_ieee_tc_host_descriptor_witness"
+  ],
+  "equalities": [
+    "full",
+    "runtime",
+    "requested",
+    "staged_shared"
+  ],
+  "cases": [
+    "dense",
+    "offset",
+    "transpose",
+    "dtype",
+    "same_tensor_storage_resize",
+    "reject_empty",
+    "reject_rank1",
+    "reject_meta",
+    "reject_sparse",
+    "reject_non_tensor",
+    "reject_subclass",
+    "reject_parameter"
+  ],
+  "production": {
+    "faaslora/memory/gpu_monitor.py": "213cc94b070a1b3e0b0b1da9decdc5d0ffe0724c36aa57a892619a5c6d6eeb32",
+    "faaslora/memory/residency_manager.py": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6",
+    "scripts/ieee_tc_preflight.py": "c7b539db498dbb3e2f18608a86d355e6c091bbcd5218b0a4ed1a03e91136f961"
+  },
+  "protected_files_unchanged": 145,
+  "cuda_initialized": false,
+  "source_shas": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_descriptor.cpp": "dc7cce4c903b473893cba72aaa8fd10f89ccde6f27005258f53e121d1249a635",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/host_descriptor_witness.py": "64378ef220fc4aefc6bc9a155b7898aad3b8aced6c4c17a65dcf361a8669ca70",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_descriptor_witness.py": "1add60fb896ece2e64642d5c0299f0690d34e0f1be92af36103c976f16f22635",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/torch/csrc/autograd/python_variable.h": "55629fc3e0d756b0c529b49967236b04bad7daca9b71b603dbce019be0ca26d4",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_model.py": "2a5987431597e10dc18a9b87eceee1f3f7d01a91dccd5c1a993978e38a549a5f",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_weights.py": "300249f2f58a7bae51c840bf9cec9866653e085b0a6efa0c09a927fd44d9f6cc"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+  "library_bytes": 195688,
+  "cpu_only": true,
+  "native_cuda_qualification_complete": false,
+  "production_integrated": false,
+  "full_performance_run": false,
+  "witness_source_sha256": "13412b3f916682595d60c87210b365a8613c6839eccdef4196498cf2be869d0b"
+}

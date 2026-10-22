@@ -1,0 +1,128 @@
+"""D747 bounded CPU semantics and native descriptor build, no serving edit."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import sysconfig
+from types import SimpleNamespace as NS
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+                                    '--format=csv,noheader'], text=True).strip()
+gate = p.preflight([ROOT, RAW], 128*p.MIB)
+save(RAW/'resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+OUT.mkdir(parents=True, exist_ok=False)
+q = json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/prelaunch/qualification.json').read_text())
+for name, sha in q['protected'].items(): assert p.digest(Path(name)) == sha, name
+production = {str(path.relative_to(ROOT)): p.digest(path)
+              for path in (ROOT/'faaslora/memory/gpu_monitor.py',
+                           ROOT/'faaslora/memory/residency_manager.py',
+                           ROOT/'scripts/ieee_tc_preflight.py')}
+tests = ['tests.test_ieee_tc_host_descriptor_witness']
+with (RAW/'tests.txt').open('x') as log:
+    done = subprocess.run([sys.executable, '-B','-m','unittest',*tests,'-v'],
+                           cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+save(RAW/'test_receipt.json',dict(returncode=done.returncode,sha256=p.digest(RAW/'tests.txt')))
+assert done.returncode == 0
+
+import torch
+assert torch.__version__ == '2.13.0+cu130' and not torch.cuda.is_initialized()
+torch_root = Path(torch.__file__).parent
+source = ROOT/'scripts/ieee_tc/native_host_descriptor.cpp'
+library = RAW/('_ieee_native_host_descriptor'+sysconfig.get_config_var('EXT_SUFFIX'))
+assert not library.exists()
+command = ['/usr/bin/c++','-shared','-fPIC','-O2','-std=c++17',
+    '-D_GLIBCXX_USE_CXX11_ABI='+str(int(torch._C._GLIBCXX_USE_CXX11_ABI)),
+    '-I'+sysconfig.get_path('include'),'-I'+str(torch_root/'include'),
+    '-I'+str(torch_root/'include/torch/csrc/api/include'),str(source),
+    '-L'+str(torch_root/'lib'),'-ltorch_python','-ltorch_cpu','-lc10',
+    '-Wl,-rpath,'+str(torch_root/'lib'),'-o',str(library)]
+with (RAW/'build.txt').open('x') as log:
+    done = subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,timeout=120)
+save(RAW/'build_receipt.json',dict(command=command,returncode=done.returncode,
+    log_sha256=p.digest(RAW/'build.txt'),torch_version=torch.__version__))
+assert done.returncode == 0
+
+from scripts.ieee_tc.host_descriptor_witness import load_descriptor, inventory_witness
+from faaslora.memory.gpu_monitor import _ieee_lora_host_inventory as inventory
+from tests.test_ieee_tc_host_descriptor_witness import python_descriptor
+from tests.test_ieee_tc_worker_observation import NativeHostFootprint
+descriptor = load_descriptor(library)
+candidate, witness_source = inventory_witness(inventory, descriptor, lambda: None)
+manager, models = NativeHostFootprint().native_models()
+equalities = []
+def same(label, options=None):
+    options = options or {}
+    assert candidate(manager, **options) == inventory(manager, **options), label
+    equalities.append(label)
+same('full')
+same('runtime',dict(include_tensor_views=False))
+same('requested',dict(include_tensor_views=False,requested_adapter_ids=[7]))
+staged = NS(id=99,rank=models[7].rank,loras=models[7].loras)
+same('staged_shared',dict(include_tensor_views=False,staged_models={99:staged}))
+cases = []
+for label, tensor in [('dense',torch.empty(4,8)),('offset',torch.empty(4,8)[1:]),
+                      ('transpose',torch.empty(4,8).T),('dtype',torch.empty(4,8,dtype=torch.float16))]:
+    assert descriptor(tensor,label) == python_descriptor(tensor,label)
+    cases.append(label)
+tensor = torch.empty(4,8)
+first = descriptor(tensor,'resize')
+tensor.untyped_storage().resize_(256)
+second = descriptor(tensor,'resize')
+assert second == python_descriptor(tensor,'resize') and second[1] != first[1]
+cases.append('same_tensor_storage_resize')
+for label,tensor in [('empty',torch.empty(0,8)),('rank1',torch.empty(8)),
+                     ('meta',torch.empty(4,8,device='meta')),
+                     ('sparse',torch.empty(4,8).to_sparse())]:
+    try: descriptor(tensor,label)
+    except ValueError: cases.append('reject_'+label)
+    else: raise AssertionError(label)
+class SubTensor(torch.Tensor): pass
+for label,obj in [('non_tensor',object()),('subclass',torch.empty(4,8).as_subclass(SubTensor)),
+                  ('parameter',torch.nn.Parameter(torch.empty(4,8)))]:
+    try: descriptor(obj,label)
+    except ValueError: cases.append('reject_'+label)
+    else: raise AssertionError(label)
+assert not torch.cuda.is_initialized()
+for name,sha in production.items(): assert p.digest(ROOT/name) == sha
+for name,sha in q['protected'].items(): assert p.digest(Path(name)) == sha
+resources = p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+sources = [source,ROOT/'scripts/ieee_tc/host_descriptor_witness.py',
+    ROOT/'tests/test_ieee_tc_host_descriptor_witness.py', library,
+    torch_root/'include/torch/csrc/autograd/python_variable.h']
+native = torch_root.parent/'vllm/lora'
+sources += [native/name for name in ('worker_manager.py','model_manager.py','lora_model.py','lora_weights.py')]
+save(OUT/'qualification.json',dict(passed=True,identity=identity,resources=resources,
+    tests=tests, equalities=equalities,cases=cases,production=production,
+    protected_files_unchanged=len(q['protected']),cuda_initialized=False,
+    source_shas={str(path):p.digest(path) for path in sources},
+    plan_sha256=p.check_plan(),library=str(library),library_bytes=library.stat().st_size,
+    cpu_only=True,native_cuda_qualification_complete=False,production_integrated=False,
+    full_performance_run=False,witness_source_sha256=hashlib.sha256(witness_source.encode()).hexdigest()))
+for name in ('tests.txt','build.txt','test_receipt.json','build_receipt.json','resource_gate.json'):
+    with (OUT/name).open('xb') as f: f.write((RAW/name).read_bytes())
+with (OUT/'qualify.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True,cpu_cases=len(cases),graphs=len(equalities),library_bytes=library.stat().st_size)))

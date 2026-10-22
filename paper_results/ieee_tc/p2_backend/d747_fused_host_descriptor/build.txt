@@ -1,0 +1,12 @@
+In file included from /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/c10/core/InferenceMode.h:4,
+                 from /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/c10/core/TensorImpl.h:9,
+                 from /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/ATen/core/TensorBody.h:21,
+                 from /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/ATen/core/Tensor.h:4,
+                 from /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/torch/csrc/autograd/python_variable.h:4,
+                 from /home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_descriptor.cpp:5:
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/c10/core/AutogradState.h:89:33: warning: default member initializers for bit-fields only available with ‘-std=c++20’ or ‘-std=gnu++20’
+   89 |   bool view_replay_enabled_ : 1 = false;
+      |                                 ^
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/c10/core/AutogradState.h:90:45: warning: default member initializers for bit-fields only available with ‘-std=c++20’ or ‘-std=gnu++20’
+   90 |   bool grad_layout_enforcement_enabled_ : 1 = true;
+      |                                             ^

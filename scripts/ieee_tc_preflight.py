@@ -2404,12 +2404,14 @@ def backend_frontend_check(runtime_receipt: Path, config: Path) -> dict:
 
 
 def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None = None,
-                            gc_observer=None) -> dict:
+                            gc_observer=None, descriptor_library: Path | None = None) -> dict:
     """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
 
     Small tensor fixtures are not a new adapter pool. No model, input trace,
     production function, pin-state cache, async stream or registry is modified.
     """
+    if descriptor_library is not None and (bulk_library is not None or gc_observer is not None):
+        raise ValueError('fused descriptor is a distinct candidate, not a pin-batch/GC combination')
     service = verify_current_service()  # Limits established BEFORE torch/CUDA.
     prior = json.loads(runtime_receipt.read_text())
     if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
@@ -2455,7 +2457,23 @@ def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None 
             if type(tensor) is not torch.Tensor or tensor.device.type != 'cpu':
                 raise ValueError('live pin witness excludes tensor subclasses and non-CPU tensors')
             return _direct_pin_query(runtime, pointer)
-        if bulk_library is None:
+        if descriptor_library is not None:
+            from scripts.ieee_tc.host_descriptor_witness import inventory_witness, load_descriptor
+            descriptor = load_descriptor(descriptor_library)
+            candidate, candidate_source = inventory_witness(inventory, descriptor, guard)
+            def query(tensor, pointer):
+                actual_pointer, capacity, pinned = descriptor(tensor, 'native_semantics')
+                if (actual_pointer != pointer or capacity != tensor.untyped_storage().nbytes()
+                        or type(pinned) is not bool):
+                    raise RuntimeError('fused descriptor changed current storage metadata')
+                return pinned
+            result.update(kind='native_fused_host_descriptor_d747_v1',
+                descriptor_library=str(descriptor_library),
+                descriptor_library_sha256=digest(descriptor_library),
+                candidate_label='fused_current_tensor_descriptor_not_pin_batch',
+                per_view_query_retained=True, cross_call_state_cache=False,
+                original_pytorch_pin_dispatcher=True)
+        elif bulk_library is None:
             candidate, candidate_source = _pin_inventory_witness(inventory, query, guard)
         else:
             from scripts.ieee_tc.host_pin_batch_witness import inventory_witness, load_query
@@ -6478,6 +6496,8 @@ def main():
     parser.add_argument('--runtime-receipt', type=Path)
     parser.add_argument('--pin-bulk-library', type=Path,
                         help='Diagnostic-only prebuilt per-view native pin batch; no serving integration')
+    parser.add_argument('--host-descriptor-library', type=Path,
+                        help='Distinct diagnostic-only fused current Tensor descriptor; no serving integration')
     parser.add_argument('--pin-gc-observation', action='store_true',
                         help='One diagnostic attribution pass; does not change GC policy or serving code')
     parser.add_argument('--native-observation', type=Path,
@@ -6634,6 +6654,8 @@ def main():
     elif args.action == 'backend-pin-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-pin-check requires the native runtime receipt and new output')
+        if args.host_descriptor_library and (args.pin_bulk_library or args.pin_gc_observation):
+            parser.error('fused HOST descriptor cannot combine with pin-batch or GC candidates')
         if args.pin_gc_observation:
             if not args.pin_bulk_library:
                 parser.error('pin GC attribution requires the already-qualified bulk library')
@@ -6645,7 +6667,8 @@ def main():
             result['gc_observation'] = observer.report()
             result['kind'] = 'native_live_pin_gc_attribution_d686_v1'
         else:
-            result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library)
+            result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library,
+                                            descriptor_library=args.host_descriptor_library)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/usr/bin/c++",
+    "-shared",
+    "-fPIC",
+    "-O2",
+    "-std=c++17",
+    "-D_GLIBCXX_USE_CXX11_ABI=1",
+    "-I/home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12",
+    "-I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include",
+    "-I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/torch/csrc/api/include",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_descriptor.cpp",
+    "-L/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/lib",
+    "-ltorch_python",
+    "-ltorch_cpu",
+    "-lc10",
+    "-Wl,-rpath,/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/lib",
+    "-o",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so"
+  ],
+  "returncode": 0,
+  "log_sha256": "670e6453ab145f459fe5781465745b0fa0e4767693d154df965b982fba4b9ad1",
+  "torch_version": "2.13.0+cu130"
+}

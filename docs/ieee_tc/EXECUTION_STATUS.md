@@ -1,5 +1,50 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D747有界生命周期审计与原生描述组件CPU核查完成
+
+PROGRESS。完整重读PLAN/AGENTS、最新规则与冻结V1/单轮V2；沿原生注册/
+packing/clone、owner和combined pending事务核对。pending登记没有完整HOST
+图可复用；当前对象/存储独占性不足，不恢复D329已拒绝的epoch/ID跨调用缓存。
+没有重复该反例实验，也未把源码允许变化说成W0已观测变化。
+
+新单一候选D747只在诊断中融合逐Tensor CPU/dense/2D/storage/pinning读取，
+保留原PyTorch pin dispatcher、每view实时查询及原图/alias构造。不同于
+D685 pin-only批量、D687格式化或D744采样移动，不恢复这些完整失败方向。
+联网核对官方vLLM0.30/PyTorch2.13源码和CPU性能分析，本地实际源码单独SHA。
+
+49项CPU图/新鲜度回归通过，actual Torch2.13库195688B，12项CPU情形和4种
+图对照一致；随后仅8项新入口/既有pin回归0.016秒通过。无CUDA初始化、GPU
+微测或完整性能运行，生产仍D741。资格峰值1200140288B、events/swap0，
+145保护项和用户manifest不变；原资格空域已释放。完整D74293.175%/
+U14868.152527、D70393.6%均未达95%，D711数值限制保持。
+
+下一完成本检查点明确路径备份/空域释放，再运行已准备launch.py的一次
+native tiny组件对照：9种CUDA状态、4图、20组交替完整清点，保留长点；
+不是新profiling前缀，未得到结果前不生产集成/完整W0。共享k3s不动，
+HydraServe隔离结果复用。3B后续/基线/dLoRA、7B最终同版本、A1–A5/
+S1–S13、CE/Pareto、两轮审稿说明和最终图表全部继续；goal active。
+
+## 2026-10-23 D746回退已备份并释放；下一返回3B残余瓶颈
+
+PROGRESS。18个明确路径提交bd97213feb8490c31615fd9fbb1360a5c9c89805，
+推送并ls-remote核对backup/d746-observation-turn-rollback-20261023。
+V2未同步、无force；第一次git add遇到*.log忽略规则，原脚本和失败阶段
+已保存，随后仅显式加入小型tests.log并继续发布，没有重复测试/回放。
+六文件逐字节恢复D741，两个取消边界通过、55项复用；145保护项和用户
+manifest SHA不变且未stage用户文件。测试/失败备份/最终备份域全部按
+身份空核验释放；最终备份峰值56815616B，high/max/OOM/swap0。
+
+无GPU计算进程；磁盘161853841408B、MemAvailable109880100kB为收尾观察，
+下次重型任务须重新检查，当前存储余量接近150GiB新任务门槛。本轮未删除
+或压缩数据，不虚报回收。D745全部失败方向已独立备份，原始数据保留。
+下一结合已封存3B阶段/历史关闭方向及原始论文实现选单一有依据假设；
+尚无新候选，不重复D742/D745，不恢复无变化HydraServe基础适配。
+
+D74293.175%/U14868.152527和D70393.6%都未达95%；D711数值限制保持。
+全部剩余3B/基线/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档和最终图表继续。共享k3s不动，goal active。本收尾记录随下一
+正常检查点备份，不为“备份已完成”再造循环提交。
+
 ## 2026-10-23 D745已备份；D746精确回退及有界核查完成
 
 PROGRESS。D745完整结果19个明确路径提交5b0e223916d4bf25a0dc7d343d72c06e0e49e674，

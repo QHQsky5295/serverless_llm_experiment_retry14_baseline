@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-74720261023000000000000000000002.scope",
+    "invocation_id": "5760c2cd6043442fac6d88d89d0c89b1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000002.scope",
+    "inode": 30703786
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74720261023000000000000000000002.scope",
+    "memory.current": 33902592,
+    "memory.peak": 546926592,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 8576160\nuser_usec 7441271\nsystem_usec 1134888\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "source_shas": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "2d4d8ffeea592e4c36360963c71d45ea4c2a5b919f3c356bf51ae77565375e07",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/host_descriptor_witness.py": "64378ef220fc4aefc6bc9a155b7898aad3b8aced6c4c17a65dcf361a8669ca70",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_descriptor.cpp": "dc7cce4c903b473893cba72aaa8fd10f89ccde6f27005258f53e121d1249a635",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_descriptor_witness.py": "36fad0a14a0066a1ef869c94de845a9a6f1e0619a5a6a4e8137eaa7522521db7"
+  },
+  "prior_qualification_sha256": "ed1e482d8a77d2e109f900dc9039d1de7dfd140f7d806129a5acfba3720d1563",
+  "new_interface_tests": 8,
+  "prior_tests_reused": 49,
+  "native_cuda_qualification_complete": false,
+  "full_performance_run": false,
+  "protected_files_unchanged": 145,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

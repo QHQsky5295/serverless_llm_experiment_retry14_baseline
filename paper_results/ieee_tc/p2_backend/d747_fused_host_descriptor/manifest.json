@@ -1,0 +1,79 @@
+{
+  "kind": "d747_cpu_component_checkpoint_v1",
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/backup.py.snapshot",
+      "sha256": "7c40a8155100440b74320d49a3ec53b01962d0a014520478c041c00d667a2297",
+      "bytes": 4311
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/build.txt",
+      "sha256": "670e6453ab145f459fe5781465745b0fa0e4767693d154df965b982fba4b9ad1",
+      "bytes": 1502
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/build_receipt.json",
+      "sha256": "e1709ef17e6f06fdc7fbec5d93011fd60ef1419403cdeb8741dceedc72f4acb6",
+      "bytes": 1087
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/interface_tests.txt",
+      "sha256": "b03edb18cc04fad315adaeb542080443febba76a9242adcf21ebfffe3545b804",
+      "bytes": 1517
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/launch.py.snapshot",
+      "sha256": "74bbd74aa326a981e30cf5578f7a21399afc26365884709dd820c7d3678dc26f",
+      "bytes": 2089
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/preparation.json",
+      "sha256": "b32d9a936055ab20d60a95edd1d56e62aebecc823b7b5f1d22e9e19985cd686a",
+      "bytes": 2194
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/preparation_closure.json",
+      "sha256": "c2caf39617f78ffee6d892e440c607824084af204d61846df9e6a820067440d5",
+      "bytes": 1223
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/prepare.py.snapshot",
+      "sha256": "08145df16523989e2be4134ca6856bc7632eecd037def98d3d9d3928ca46815b",
+      "bytes": 3112
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/qualification.json",
+      "sha256": "ed1e482d8a77d2e109f900dc9039d1de7dfd140f7d806129a5acfba3720d1563",
+      "bytes": 4161
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/qualification_closure.json",
+      "sha256": "501e2d56d3d5449813ec110afd33bdfc14fe9606d26827c94d9dfca364b31b30",
+      "bytes": 1228
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/qualify.py.snapshot",
+      "sha256": "21dc3d57b5c714d4de2f72751444d93c03e6160b83095f787dfa179eab0d58d5",
+      "bytes": 7021
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/resource_gate.json",
+      "sha256": "c824b9e16fb059b1e7d3fb28362c88bda1ebfed0aac69084f51303025061d2ad",
+      "bytes": 6718
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/test_receipt.json",
+      "sha256": "5b407cf59e270ff58aaa1d6b6c8a6aca7c8d7501d797258eafaff319e8b2e659",
+      "bytes": 102
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d747_fused_host_descriptor/tests.txt",
+      "sha256": "f3253262f495e748dd6aaa03464356b79047ecd174dd1214f79162603b58ecd8",
+      "bytes": 9790
+    }
+  ],
+  "production_integrated": false,
+  "native_gpu_microtest_executed": false,
+  "full_workload_executed": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}
