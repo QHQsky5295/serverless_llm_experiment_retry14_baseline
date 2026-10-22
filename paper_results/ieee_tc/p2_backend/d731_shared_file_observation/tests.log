@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 204 items
+
+tests/test_ieee_tc_planning_snapshot.py .....                            [  2%]
+tests/test_ieee_tc_transfer_pressure.py ......................           [ 13%]
+tests/test_ieee_tc_launch.py ........................................... [ 34%]
+.......................................................

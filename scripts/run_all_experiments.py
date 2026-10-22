@@ -14103,20 +14103,50 @@ class ScenarioRunner:
         active_engines = {id(engine) for task, engine in (
             getattr(self, '_ieee_file_plan_engines', {}) |
             getattr(self, '_ieee_gpu_plan_engines', {})).items() if not task.done()}
+        eligible = []
         for slot in self.instance_pool.get_slots():
             key = id(slot.engine)
             if key in self._ieee_residency_tasks or key in active_engines:
                 continue
+            eligible.append(slot)
+            active_engines.add(key)
+        if not eligible:
+            return
+        policy = getattr(self, 'coord_cfg', {}).get('ieee_residency_file_observation')
+        if policy not in (None, 'control_round_v1'):
+            raise ValueError('unknown residency file observation policy')
+        shared_files = None
+        observation = None
+        if policy == 'control_round_v1':
+            # Ready replicas join the shared HOST/file domain before entering
+            # the pool. Read that physical owner ONCE for this control round,
+            # not once per replica. Each task still reads its own full fresh
+            # native graph; there is no slowest-native barrier or cached view
+            # carried into a later round. This is a planning observation, NOT
+            # an atomic cross-owner snapshot, source lease or byte reservation.
+            started = time.monotonic()
+            shared_files = self._ieee_preparation_file_snapshot()
+            observation = dict(round_id=uuid.uuid4().hex,
+                owner_id=shared_files['owner_id'], epoch=shared_files['epoch'],
+                captured_at=shared_files['captured_at'], started_at=started,
+                elapsed_ms=1000*(time.monotonic()-started), replicas=len(eligible),
+                physical_resources_reserved=False)
+        for slot in eligible:
+            key = id(slot.engine)
             record = dict(target_replica=slot.instance_id, state='planning', trigger_reason='residency',
                           started_at=time.monotonic())
+            if observation is not None:
+                record['shared_file_observation'] = dict(observation)
             self._ieee_residency_epochs.append(record)
-            self._ieee_residency_tasks[key] = asyncio.create_task(self._execute_ieee_residency_epoch(slot, record))
+            self._ieee_residency_tasks[key] = asyncio.create_task(
+                self._execute_ieee_residency_epoch(slot, record, file_snapshot=shared_files))
 
-    async def _execute_ieee_residency_epoch(self, slot, record):
+    async def _execute_ieee_residency_epoch(self, slot, record, *, file_snapshot=None):
         try:
             # Registered before the first await, including source collection.
+            shared = {} if file_snapshot is None else dict(file_snapshot=file_snapshot)
             result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',
-                capacity_only=not self._coordination_enabled)
+                capacity_only=not self._coordination_enabled, **shared)
             record.update(state=result.get('state', 'completed'), plan_sha256=result['plan']['plan_sha256'])
             if record['state'] == 'superseded':
                 record['preparation_supersession'] = result['preparation_supersession']
@@ -19957,7 +19987,15 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
 
-    async def _plan_ieee_preparation_for_slot(self, *, slot, mode):
+    def _ieee_preparation_file_snapshot(self):
+        """One fresh complete observation of the shared physical file owner."""
+        manager = self._stack.residency_manager
+        manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
+        return manager.local_source_references.preparation_snapshot(manifests=manifests,
+            limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
+                    for tier in manager.local_source_references.roots})
+
+    async def _plan_ieee_preparation_for_slot(self, *, slot, mode, file_snapshot=None):
         """Read the real backend and file owners, then run the IEEE selector.
 
         No manually supplied candidate sizes, cache hints or tier latencies.
@@ -19969,6 +20007,8 @@ class ScenarioRunner:
                 or self._preparation_profiles is None or self._remote_artifact_client is None
                 or slot.preparation_cost_model is None):
             raise ValueError('automatic preparation requires measured profiles and real source owners')
+        if file_snapshot is not None and mode != 'residency':
+            raise ValueError('shared control-round file observation is only for steady-state residency')
         self._preparation_profiles.validate_runtime(slot.engine.model_cfg)
         await self._attach_ieee_host_budget(slot.engine)
         # Despite its historical name, this endpoint returns the full fresh
@@ -19980,11 +20020,7 @@ class ScenarioRunner:
         observed_engine = slot.engine
         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
         self._ieee_publish_planning_sources(slot, native, expected_engine=observed_engine)
-        manager = self._stack.residency_manager
-        manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
-        files = manager.local_source_references.preparation_snapshot(manifests=manifests,
-            limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
-                    for tier in manager.local_source_references.roots})
+        files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
         return await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
@@ -19992,13 +20028,14 @@ class ScenarioRunner:
             expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
 
     async def _run_ieee_owned_preparation_plan(self, *, slot, mode, activation_id=None,
-                                              capacity_only=False):
+                                              capacity_only=False, file_snapshot=None):
         """Plan once from real owners, then execute that unchanged mixed epoch.
 
         Requires an initialized engine. Activation-time pre-init layout/profile
         inheritance and remaining-candidate joint replacement are separate gates.
         """
-        plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode)
+        shared = {} if file_snapshot is None else dict(file_snapshot=file_snapshot)
+        plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode, **shared)
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         try:
             result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,

@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "first": 0,
+  "second": 0,
+  "tests": [
+    "tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_shared_round_executes_remote_host_gpu_and_closes_real_ownership",
+    "tests/test_ieee_tc_launch.py::IEEEActualControl::test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch",
+    "tests/test_ieee_tc_launch.py::IEEEActualControl::test_failed_residency_surfaces_once_not_automatic_retry",
+    "tests/test_ieee_tc_launch.py::IEEEActualControl::test_retirement_joins_a_planning_epoch_before_runtime_shutdown",
+    "tests/test_ieee_tc_launch.py::IEEEActualControl::test_locality_combination_keeps_actual_scaleout_but_no_preparation"
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731d1d91a8e42f4952ba4e0641c23fa.scope",
+    "memory.current": 629489664,
+    "memory.peak": 633344000,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 11406404\nuser_usec 9966363\nsystem_usec 1440041\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "earlier_completed_checks_reused": 27,
+  "earlier_broad_suite_incomplete": true,
+  "actual_process_placement_requalified": false,
+  "new_gpu_replays": 0
+}

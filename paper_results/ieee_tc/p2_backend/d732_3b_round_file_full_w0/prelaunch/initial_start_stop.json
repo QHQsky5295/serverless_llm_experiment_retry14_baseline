@@ -1,0 +1,14 @@
+{
+  "reason": "git add refused three small *.log evidence files under the existing ignore rule; no commit, remote operation or GPU run had started.",
+  "previous_scope": {
+    "unit": "primelora-tc-aux-d732a1c3cbd64841895d423b75048bdb.scope",
+    "invocation_id": "2b5662bfbc254eb9901434fd89294fd4",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d732a1c3cbd64841895d423b75048bdb.scope",
+    "inode": 30367446
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  }
+}

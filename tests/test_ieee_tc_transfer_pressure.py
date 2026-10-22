@@ -1585,7 +1585,7 @@ class OwnedNativeHostMovement(unittest.TestCase):
 
 class OwnedPreparationPlanning(unittest.TestCase):
     """Actual runner/owner/selector composition, with controlled native reports."""
-    def make(self):
+    def make(self, *, native_owner_count=1):
         import copy
         import json
         from faaslora.clock import local_monotonic_clock_id
@@ -1649,7 +1649,7 @@ class OwnedPreparationPlanning(unittest.TestCase):
             for _ in range(n): stack.hotness_tracker.record_arrival(aid)
         runner._stack = stack
         runner._preparation_profiles = profiles
-        runner.model_cfg.update(ieee_host_budget_bytes=2097152+24576,
+        runner.model_cfg.update(ieee_host_budget_bytes=2097152*native_owner_count+24576,
                                 ieee_native_host_tensor_budget_bytes=2097152)
         costs = PreparationCostModel(values, beta=.5, profile_id=profiles.profile_id)
         slot = NS(engine=engine, instance_id='replica', preparation_cost_model=costs)

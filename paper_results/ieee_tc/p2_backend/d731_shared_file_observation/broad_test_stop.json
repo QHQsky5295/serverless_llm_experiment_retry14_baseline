@@ -1,0 +1,127 @@
+{
+  "reason": "Unnecessary broad launcher tests spawned unchanged native imports; narrow to the changed scheduling/ownership path.",
+  "identity": {
+    "unit": "primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+    "invocation_id": "3e469a43ccb24309b17d5343f4e417d5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+    "inode": 30362143
+  },
+  "before": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+    "memory.current": 3467124736,
+    "memory.peak": 3467382784,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=96.80 avg60=70.53 avg300=23.11 total=79105482\nfull avg10=95.50 avg60=68.96 avg300=22.47 total=76747392",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 128690486\nuser_usec 108915728\nsystem_usec 19774757\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 38282,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "result": {
+    "targets": [
+      {
+        "pid": 2693722,
+        "start_ticks": 217492635,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2693762,
+        "start_ticks": 217492667,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695034,
+        "start_ticks": 217495697,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695524,
+        "start_ticks": 217497060,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695526,
+        "start_ticks": 217497087,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695528,
+        "start_ticks": 217497105,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695578,
+        "start_ticks": 217497135,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      },
+      {
+        "pid": 2695586,
+        "start_ticks": 217497264,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d731b51c8a8b47a6965d1bdc07f37830.scope",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ]
+      }
+    ],
+    "hard_kill": true,
+    "released": true
+  },
+  "candidate_failure": false,
+  "tests_incomplete": true
+}

@@ -759,6 +759,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=100
     ;;
+  d732)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0
+    CONFIG=configs/ieee_tc/20261022_d732_3b_round_file_full_w0.yaml
+    TAG=d732_3b_round_file_full_w0
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d729)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d729_20261022/3b_bulk_loader_full_w0
     CONFIG=configs/ieee_tc/20261022_d729_3b_bulk_loader_full_w0.yaml
@@ -890,7 +897,7 @@ if [[ "${1:-d293}" == d636 ]]; then
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
 fi
-if [[ "${1:-d293}" == d659 || "${1:-d293}" == d660 || "${1:-d293}" == d664 || "${1:-d293}" == d665 || "${1:-d293}" == d668 || "${1:-d293}" == d672 || "${1:-d293}" == d676 || "${1:-d293}" == d677 || "${1:-d293}" == d681 || "${1:-d293}" == d694 || "${1:-d293}" == d696 || "${1:-d293}" == d697 || "${1:-d293}" == d695 || "${1:-d293}" == d702 || "${1:-d293}" == d703 || "${1:-d293}" == d713 || "${1:-d293}" == d718 || "${1:-d293}" == d719 || "${1:-d293}" == d682 || "${1:-d293}" == d688 || "${1:-d293}" == d684 || "${1:-d293}" == d723 || "${1:-d293}" == d726 || "${1:-d293}" == d729 ]]; then
+if [[ "${1:-d293}" == d659 || "${1:-d293}" == d660 || "${1:-d293}" == d664 || "${1:-d293}" == d665 || "${1:-d293}" == d668 || "${1:-d293}" == d672 || "${1:-d293}" == d676 || "${1:-d293}" == d677 || "${1:-d293}" == d681 || "${1:-d293}" == d694 || "${1:-d293}" == d696 || "${1:-d293}" == d697 || "${1:-d293}" == d695 || "${1:-d293}" == d702 || "${1:-d293}" == d703 || "${1:-d293}" == d713 || "${1:-d293}" == d718 || "${1:-d293}" == d719 || "${1:-d293}" == d682 || "${1:-d293}" == d688 || "${1:-d293}" == d684 || "${1:-d293}" == d723 || "${1:-d293}" == d726 || "${1:-d293}" == d729 || "${1:-d293}" == d732 ]]; then
   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
@@ -906,7 +913,7 @@ export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python
 export FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea
 export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
-if [[ "${1:-d293}" == d659 || "${1:-d293}" == d660 || "${1:-d293}" == d664 || "${1:-d293}" == d665 || "${1:-d293}" == d668 || "${1:-d293}" == d672 || "${1:-d293}" == d676 || "${1:-d293}" == d677 || "${1:-d293}" == d681 || "${1:-d293}" == d694 || "${1:-d293}" == d696 || "${1:-d293}" == d697 || "${1:-d293}" == d695 || "${1:-d293}" == d702 || "${1:-d293}" == d703 || "${1:-d293}" == d713 || "${1:-d293}" == d718 || "${1:-d293}" == d719 || "${1:-d293}" == d682 || "${1:-d293}" == d688 || "${1:-d293}" == d684 || "${1:-d293}" == d723 || "${1:-d293}" == d726 || "${1:-d293}" == d729 ]]; then
+if [[ "${1:-d293}" == d659 || "${1:-d293}" == d660 || "${1:-d293}" == d664 || "${1:-d293}" == d665 || "${1:-d293}" == d668 || "${1:-d293}" == d672 || "${1:-d293}" == d676 || "${1:-d293}" == d677 || "${1:-d293}" == d681 || "${1:-d293}" == d694 || "${1:-d293}" == d696 || "${1:-d293}" == d697 || "${1:-d293}" == d695 || "${1:-d293}" == d702 || "${1:-d293}" == d703 || "${1:-d293}" == d713 || "${1:-d293}" == d718 || "${1:-d293}" == d719 || "${1:-d293}" == d682 || "${1:-d293}" == d688 || "${1:-d293}" == d684 || "${1:-d293}" == d723 || "${1:-d293}" == d726 || "${1:-d293}" == d729 || "${1:-d293}" == d732 ]]; then
   export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
   export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 fi

@@ -1,0 +1,55 @@
+"""Reuse the D729 checkpoint/start sequence for one shared-file observation candidate."""
+import ast,json,os,re,shlex,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch'
+BASE=ROOT/'paper_results/ieee_tc/p2_backend/d731_shared_file_observation'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+own=p.scope_identity(p.cg_path().name);save(RAW/'start_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=read(OUT/'qualification.json')
+for path,sha in (q['refs']|q['protected']).items():assert p.digest(Path(path))==sha,path
+assert not p.owned_pids(Path(q['identity']['path']))
+closed=p.stop_scope_identity(q['identity'],grace_seconds=0)
+assert closed['released'] and not closed['targets']
+save(OUT/'qualification_closure.json',closed)
+for item in read(BASE/'manifest.json')['files']:assert p.digest(Path(item['path']))==item['sha256']
+scripts=[*RAW.glob('*.py'),*RAW.glob('*.sh')]
+for source in scripts:
+    if source.suffix=='.py':ast.parse(source.read_text())
+    else:call(['bash','-n',str(source)])
+    with (OUT/(source.name+'.snapshot')).open('xb') as f:f.write(source.read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f)) for f in sorted(OUT.iterdir())]))
+paths=['scripts/run_all_experiments.py','tests/test_ieee_tc_planning_snapshot.py',
+ 'tests/test_ieee_tc_transfer_pressure.py','scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+ 'configs/ieee_tc/20261022_d732_3b_round_file_full_w0.yaml',
+ 'docs/ieee_tc/D731_SHARED_FILE_OBSERVATION_20261022.md',
+ 'docs/ieee_tc/D732_3B_ROUND_FILE_FULL_W0_20261022.md','docs/ieee_tc/EXECUTION_STATUS.md']
+paths += [str(f.relative_to(ROOT)) for directory in (OUT,BASE) for f in sorted(directory.iterdir()) if f.is_file()]
+assert not call(['git','diff','--cached','--name-only'])
+pattern=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:assert not pattern.search((ROOT/path).read_text()),path
+call(['git','add','--',*paths]);assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: qualify shared control-round file observations and launch full 3B W0 (D731-D732)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d732-round-file-full-20261022'
+call(['git','push','faaslora_origin','HEAD:'+ref]);assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False))
+gate=p.preflight([ROOT,RAW],32*p.GIB);save(RAW/'launch_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+assert not (RAW/'3b_round_file_full_w0').exists() and not Path('/dev/shm/tc-d732-3b-w0').exists()
+session='tc-d732-3b-round-file-full-w0'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+call(['bash',str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3','-B',str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(['bash',str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json',dict(launched=True,head=head,backup_ref=ref,tmux=session,identity=own,
+    scripts={str(f):p.digest(f) for f in scripts}))
+print(json.dumps(dict(launched=True,head=head,ref=ref,tmux=session)))

@@ -1,0 +1,44 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 1 item
+
+tests/test_ieee_tc_planning_snapshot.py .                                [100%]
+
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1345
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d731_20261022/attempt2/focused_new.xml -
+======================== 1 passed, 2 warnings in 0.21s =========================
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 4 items
+
+tests/test_ieee_tc_launch.py ....                                        [100%]
+
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1345
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d731_20261022/attempt2/focused_launch.xml -
+======================== 4 passed, 2 warnings in 0.62s =========================

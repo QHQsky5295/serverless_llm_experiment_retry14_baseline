@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/qualification.json",
+      "sha256": "6776aaeca8dce1d9362da9731819c8daf4928511fdfe4d492ed99547ec68847b"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/qualification_closure.json",
+      "sha256": "a173f4f05f315c49f2e594141a4fce617061a0dad7526a75b3d9e37939650193"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/run_and_release.sh.snapshot",
+      "sha256": "0198d6bd78df606aecbf713db938c60686ed476737e887772522c05f0d00d699"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/start.py.snapshot",
+      "sha256": "8e5a34f794577ab78604771173b0c99277324b288997784d7c7d24d7bc5885fe"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/start_remote.sh.snapshot",
+      "sha256": "78dad2aa951e08b70b99d350d074a62a1bd61a561d579e597834319afcfd3555"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d732_3b_round_file_full_w0/prelaunch/stop_remote.sh.snapshot",
+      "sha256": "0b84090bec4a455ddc85dd330ea4245a8e84c9da3c5f62efb49460c436d37421"
+    }
+  ]
+}

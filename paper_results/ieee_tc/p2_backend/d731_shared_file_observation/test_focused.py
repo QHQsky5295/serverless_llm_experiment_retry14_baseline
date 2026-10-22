@@ -1,0 +1,46 @@
+"""Complete only D731's affected checks; retain the broad-suite abort."""
+import contextlib
+import json
+import os
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+if len(sys.argv) == 2:
+    assert sys.argv[1] == 'attempt2'
+    RAW = RAW / sys.argv[1]
+    RAW.mkdir(exist_ok=False)
+os.chdir(ROOT)
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+save(RAW/'focused_identity.json', p.scope_identity(p.cg_path().name))
+import pytest
+from tests import test_ieee_tc_transfer_pressure as fixture
+new = 'tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_shared_round_executes_remote_host_gpu_and_closes_real_ownership'
+prefix = 'tests/test_ieee_tc_launch.py::IEEEActualControl::'
+tests = [prefix+name for name in (
+    'test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch',
+    'test_failed_residency_surfaces_once_not_automatic_retry',
+    'test_retirement_joins_a_planning_epoch_before_runtime_shutdown',
+    'test_locality_combination_keeps_actual_scaleout_but_no_preparation')]
+with (RAW/'focused_tests.log').open('x') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+    # The new class installs this same existing serialized CPU-selector fixture.
+    first = pytest.main(['-q', new, '--junitxml='+str(RAW/'focused_new.xml')])
+    fixture.setUpModule()
+    try:
+        second = pytest.main(['-q', *tests, '--junitxml='+str(RAW/'focused_launch.xml')])
+    finally:
+        fixture.tearDownModule()
+resources = p.cgroup_snapshot(p.cg_path())
+save(RAW/'focused_result.json', dict(passed=first == second == 0,
+    first=int(first), second=int(second), tests=[new, *tests], resources=resources,
+    earlier_completed_checks_reused=27, earlier_broad_suite_incomplete=True,
+    actual_process_placement_requalified=False, new_gpu_replays=0))
+print(json.dumps(dict(passed=first == second == 0, resources=resources)))
+raise SystemExit(first or second)

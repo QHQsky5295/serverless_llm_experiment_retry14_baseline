@@ -5,6 +5,7 @@ Metadata/real-owner and actual transport tests, not native model performance.
 import asyncio
 import copy
 import json
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace as NS
@@ -187,6 +188,212 @@ class CapacityConsumer(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(calls), 4)
         finally:
             await queue.close()
+
+
+class ControlRoundFileObservation(unittest.TestCase):
+    """Real file owner and selector; controlled independent native reports."""
+
+    @classmethod
+    def setUpClass(cls):
+        # Reuse the serialized selector fixture, not a process per small test.
+        # Existing planning_cpu tests own actual spawn/cancel qualification.
+        fixtures.setUpModule()
+
+    @classmethod
+    def tearDownClass(cls):
+        fixtures.tearDownModule()
+
+    def make(self, count=4):
+        factory = fixtures.OwnedPreparationPlanning()
+        self.addCleanup(factory.doCleanups)
+        files, runner, queue, first, native = factory.make(native_owner_count=count)
+        first.engine.ieee_gpu_reference.reset_mock()
+        self.addCleanup(lambda: asyncio.run(queue.close()))
+        slots = [first]
+        reports = [native]
+        for index in range(1, count):
+            report = copy.deepcopy(native)
+            report['owner_id'] = 'controlled-native-' + str(index)
+            report['epoch'] += index
+            engine = NS(model_cfg=dict(first.engine.model_cfg))
+
+            async def observe(*, operation, _report=report, **kw):
+                if operation == 'routing_source_snapshot':
+                    return copy.deepcopy(_report)
+                if operation == 'snapshot':
+                    return dict(owner_id=_report['owner_id'], worker_pid=os.getpid(),
+                                clock_id=_report['clock_id'])
+                if operation == 'configure_host_budget':
+                    return dict(configured=True, owner_id=_report['owner_id'],
+                        worker_pid=os.getpid(), tensor_budget_bytes=kw['tensor_budget_bytes'],
+                        clock_id=_report['clock_id'])
+                raise AssertionError(operation)
+
+            engine.ieee_gpu_reference = AsyncMock(side_effect=observe)
+            # As in activation, HOST binding precedes ready pool publication.
+            asyncio.run(runner._attach_ieee_host_budget(engine))
+            self.addCleanup(os.close, runner._ieee_host_budget_members[id(engine)]['pidfd'])
+            engine.ieee_gpu_reference.reset_mock()
+            slots.append(NS(engine=engine, instance_id='replica-' + str(index),
+                preparation_cost_model=first.preparation_cost_model))
+            reports.append(report)
+        runner.instance_pool = NS(get_slots=lambda: slots)
+        runner.coord_cfg = dict(getattr(runner, 'coord_cfg', {}),
+                               ieee_residency_file_observation='control_round_v1')
+        runner._hierarchical_residency_enabled = True
+        runner._coordination_enabled = True
+        return files, runner, slots, reports
+
+    def test_one_fresh_file_read_four_independent_native_plans(self):
+        files, runner, slots, reports = self.make()
+        plans = {}
+
+        async def plan_only(**kw):
+            self.assertEqual(kw.pop('capacity_only'), False)
+            plan = await runner._plan_ieee_preparation_for_slot(**kw)
+            plans[kw['slot'].instance_id] = plan.snapshot()
+            return dict(plan=plan)
+
+        async def run():
+            with patch.object(files.owner, 'preparation_snapshot',
+                              wraps=files.owner.preparation_snapshot) as read, \
+                 patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+                runner._schedule_ieee_residency_epochs()
+                first_tasks = dict(runner._ieee_residency_tasks)
+                runner._schedule_ieee_residency_epochs()
+                self.assertEqual(runner._ieee_residency_tasks, first_tasks)
+                self.assertEqual(read.call_count, 1)
+                await asyncio.gather(*first_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(read.call_count, 1)
+                views = [plans[s.instance_id]['source_view'] for s in slots]
+                self.assertTrue(all(v['files'] == views[0]['files'] for v in views))
+                self.assertEqual({v['native']['owner_id'] for v in views},
+                                 {r['owner_id'] for r in reports})
+                self.assertEqual(len({p['plan_sha256'] for p in plans.values()}), 4)
+                self.assertTrue(all(not p['physical_resources_reserved'] for p in plans.values()))
+                self.assertFalse(files.owner.leases)
+                self.assertFalse(files.owner.materializations)
+                for slot in slots:
+                    slot.engine.ieee_gpu_reference.assert_awaited_once_with(operation='routing_source_snapshot')
+                # With unchanged state, the ordinary per-replica entry chooses
+                # the same candidates/objectives (observation times may differ).
+                direct = await runner._plan_ieee_preparation_for_slot(slot=slots[0], mode='residency')
+                self.assertEqual(without_provenance(direct.snapshot()),
+                                 without_provenance(plans[slots[0].instance_id]))
+                self.assertEqual(read.call_count, 2)
+                # A new control round must re-read; no epoch/TTL reuse.
+                old_capture = views[0]['files']['captured_at']
+                runner._schedule_ieee_residency_epochs()
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(read.call_count, 3)
+                self.assertGreater(plans[slots[0].instance_id]['source_view']['files']['captured_at'], old_capture)
+                records = runner._ieee_residency_epochs
+                self.assertEqual(len({r['shared_file_observation']['round_id'] for r in records}), 2)
+                self.assertTrue(all(r['shared_file_observation']['replicas'] == 4 for r in records))
+        asyncio.run(run())
+
+    def test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling(self):
+        files, runner, slots, _ = self.make(count=2)
+
+        async def run():
+            entered = asyncio.Event()
+            async def slow(**kw):
+                self.assertEqual(kw, dict(operation='routing_source_snapshot'))
+                entered.set()
+                await asyncio.Future()
+            slots[0].engine.ieee_gpu_reference.side_effect = slow
+            async def plan_only(**kw):
+                kw.pop('capacity_only')
+                return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
+            with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+                runner._schedule_ieee_residency_epochs()
+                await entered.wait()
+                pending = runner._ieee_residency_tasks[id(slots[0].engine)]
+                sibling = runner._ieee_residency_tasks[id(slots[1].engine)]
+                await asyncio.wait_for(asyncio.shield(sibling), 10)
+                self.assertFalse(pending.done())
+                pending.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await pending
+                self.assertEqual([r['state'] for r in runner._ieee_residency_epochs],
+                                 ['cancelled', 'completed'])
+                self.assertFalse(files.owner.leases)
+        asyncio.run(run())
+
+    def test_disabled_path_still_reads_each_replica_and_empty_round_reads_nothing(self):
+        files, runner, slots, _ = self.make(count=2)
+        runner.coord_cfg.pop('ieee_residency_file_observation')
+        async def plan_only(**kw):
+            kw.pop('capacity_only')
+            return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
+        async def run():
+            with patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read, \
+                 patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+                runner._schedule_ieee_residency_epochs()
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(read.call_count, 2)
+                self.assertTrue(all('shared_file_observation' not in r for r in runner._ieee_residency_epochs))
+                slots.clear()
+                runner._schedule_ieee_residency_epochs()
+                self.assertEqual(read.call_count, 2)
+        asyncio.run(run())
+
+    def test_shared_observation_cannot_be_used_for_handoff(self):
+        _, runner, slots, _ = self.make(count=1)
+        async def run():
+            with self.assertRaisesRegex(ValueError, 'only for steady-state'):
+                await runner._plan_ieee_preparation_for_slot(slot=slots[0], mode='handoff',
+                    file_snapshot=runner._ieee_preparation_file_snapshot())
+            slots[0].engine.ieee_gpu_reference.assert_not_awaited()
+        asyncio.run(run())
+
+    def test_received_shared_view_is_detached_and_still_uses_normal_executor(self):
+        files, runner, slots, _ = self.make(count=1)
+        snapshot = runner._ieee_preparation_file_snapshot()
+        original = copy.deepcopy(snapshot)
+        async def execute(**kw):
+            self.assertEqual(kw['plan']['source_view']['files'], original)
+            self.assertIs(kw['target_engine'], slots[0].engine)
+            self.assertFalse(kw['capacity_only'])
+            # A later mutation of a caller's dict cannot alter frozen bytes.
+            snapshot['epoch'] += 1000
+            snapshot['artifacts'].clear()
+            self.assertEqual(kw['plan']['source_view']['files'], original)
+            return []
+        async def run():
+            with patch.object(files.owner, 'preparation_snapshot', side_effect=AssertionError('second read')), \
+                 patch.object(runner, '_run_ieee_file_preparation_plan', side_effect=execute) as executor:
+                result = await runner._run_ieee_owned_preparation_plan(slot=slots[0], mode='residency',
+                                                                       file_snapshot=snapshot)
+                self.assertEqual(result['results'], [])
+                executor.assert_awaited_once()
+        asyncio.run(run())
+
+    def test_shared_round_executes_remote_host_gpu_and_closes_real_ownership(self):
+        factory = fixtures.MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        files, runner, queue, slot, owner, _, loads = factory.make(remote_gpu=True)
+        runner.instance_pool = NS(get_slots=lambda: [slot])
+        runner.coord_cfg = dict(getattr(runner, 'coord_cfg', {}),
+                               ieee_residency_file_observation='control_round_v1')
+        runner._hierarchical_residency_enabled = True
+        runner._coordination_enabled = True
+        async def run():
+            try:
+                self.assertFalse((files.nvme/'a').exists())
+                runner._schedule_ieee_residency_epochs()
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual((files.nvme/'a'/'weights').read_bytes(), b'a'*12288)
+                self.assertEqual(loads, [('host', 'a'), ('gpu', 'a')])
+                self.assertEqual(runner._ieee_residency_epochs[0]['state'], 'completed')
+                factory.check_clean(files, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
 
 
 class PlanningTransport(unittest.IsolatedAsyncioTestCase):
