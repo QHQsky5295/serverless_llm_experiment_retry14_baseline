@@ -2,6 +2,12 @@
 
 ## 2026-10-22 D721：完整请求解码重叠复核完成；未改Full配置
 
+检查点`cf397825a595d705b97f2fb85a5f5c42b01c6d21`已推送并ls-remote核验
+`faaslora_origin/backup/d721-decode-exposure-20261022`。14个显式文件、12项
+bundle SHA、114项测试及敏感模式扫描通过；用户manifest未stage，旧投稿未改。
+远端V2仍81990b7e...，既存分歧未强推；不能称V2已同步。当前GPU无compute
+进程，四个本轮离线scope均inactive，磁盘162GiB；没有活动性能实验。
+
 PROGRESS。复用D703/D719各4000请求，按同owner原生区间重算prefill／按需
 加载交叠并给出互斥分组；90组数据已保存，114项检查通过，无新GPU实验。
 D719短输出132条TPOT违约：prefill-only44、demand-load-only16、both40、
