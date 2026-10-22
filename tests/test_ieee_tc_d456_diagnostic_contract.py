@@ -184,11 +184,37 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertNotIn('export', block)
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
         wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
-        branch = re.search(r'if \[\[ "\$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 \]\]; then\n(.*?)\nelse\n(.*?)\nfi', wrapper, re.S)
+        branch = re.search(r'if \[\[ "\$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 \|\| "\$FAASLORA_RESULTS_TAG" == d723_3b_step_components100 \]\]; then\n(.*?)\nelse\n(.*?)\nfi', wrapper, re.S)
         self.assertIsNotNone(branch)
         self.assertIn('export FAASLORA_TC_CORE_STEP_TIMING=v2_components_v1', branch.group(1))
         self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', branch.group(2))
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
+
+
+class D723DiagnosticContract(unittest.TestCase):
+    def test_current_configuration_only_changes_three_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261022_d723_3b_step_components100.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d723', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_registered_first100_components_without_inventory(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d723\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=100\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertEqual(shell.count(' || "${1:-d293}" == d723'), 3)
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        tag = 'd723_3b_step_components100'
+        self.assertEqual(wrapper.count(tag), 2)  # case registration + component allowlist only
+        self.assertIn('test "${FAASLORA_FORMAL_RUN:-}" = 0', wrapper)
+        self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', wrapper)
 
 
 class D512DiagnosticContract(unittest.TestCase):

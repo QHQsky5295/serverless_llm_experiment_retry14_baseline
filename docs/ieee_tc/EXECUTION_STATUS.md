@@ -1,5 +1,15 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-22 D723：前100请求组件诊断资格通过，待启动
+
+按D722的下一动作，D719策略不变，仅新增隔离目录及既有组件观察入口。
+69项CPU测试通过，qualification峰值696946688B，high/max/OOM/swap0，
+旧投稿144文件/用户manifest不变。失败的辅助scope命名和静态测试更新记录
+保留，均发生在GPU启动前。详见D723_3B_STEP_COMPONENTS_20261022.md。
+接下来备份并启动唯一100请求诊断；不是正式4000点、不改SLO/profile/预算。
+当前完整3B仍D719 joint91.60%、U13508.300779、n_correct未知；不关闭目标。
+共享k3s不动；3B后续、消融/敏感性/CE/审稿交付和最终图表全部保留。
+
 ## 2026-10-22 D722：复用原生迭代，不凭prefill包络选择token预算
 
 检查点`eb9669f88fe16e7b52ed7c6bb10a89d2a5218aba`已推送并ls-remote核验

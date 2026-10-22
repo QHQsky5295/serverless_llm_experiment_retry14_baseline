@@ -26,6 +26,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d684_3b_full_w0_prefix1)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d684_20261018
     ;;
+  d723_3b_step_components100)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022
+    ;;
   *) echo 'Unregistered diagnostic observer campaign' >&2; exit 2 ;;
 esac
 test "$1" = "$ROOT/scripts/run_all_experiments.py"
@@ -46,7 +49,7 @@ else
   unset FAASLORA_TC_STACK_SAMPLING
   export FAASLORA_TC_CORE_TIMING=host_spans_v1
 fi
-if [[ "$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 ]]; then
+if [[ "$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d723_3b_step_components100 ]]; then
   export FAASLORA_TC_CORE_STEP_TIMING=v2_components_v1
 else
   unset FAASLORA_TC_CORE_STEP_TIMING

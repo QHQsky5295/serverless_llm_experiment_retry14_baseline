@@ -1,0 +1,116 @@
+"""Reuse D684 qualification gates for current D719, first100 component observation.
+
+No algorithm/observer changes. Tests finish before heavyweight profile imports.
+"""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d723_step_components/prelaunch'
+PARENT = '6af23ede801ec6c6a5cc68ddee75fd15bdfba0cf'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', identity)
+group = Path(identity['path'])
+sample = lambda: {k:(group/k).read_text().strip() for k in (
+    'memory.high','memory.max','memory.peak','memory.events','memory.swap.max','memory.swap.current')}
+before = sample()
+assert before['memory.high'] == str(3*p.GIB)
+assert before['memory.max'] == str(4*p.GIB) and before['memory.swap.max'] == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() == PARENT
+assert not subprocess.check_output(['git','diff','--name-only','HEAD','--','faaslora','scripts/run_all_experiments.py','tests'],cwd=ROOT,text=True).strip()
+gate = p.preflight([ROOT], 32*p.GIB)
+save(RAW/'resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+bindings = {
+    p.PLAN:'d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+    ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json':'d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8',
+    ROOT/'scripts/run_all_experiments.py':'6f10f395fd74f01401c52f1e5698847ba2dfe704da32f883cf6aa933f86de6bd',
+    ROOT/'scripts/analyze_control_path_overhead.py':'b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e',
+}
+seal = json.loads((ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json').read_text())
+protected = {Path(k):v['sha256'] for k,v in seal['entries'].items()
+    if '/paper_results/final_v2/' in k or '/figs/paper/' in k}
+assert len(protected) == 144
+for path, sha in (bindings | protected).items(): assert p.digest(path) == sha, path
+shell = ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh'
+text = shell.read_text()
+start = text.index('  d723)\n'); end = text.index('    ;;\n',start)+len('    ;;\n')
+restored = text[:start]+text[end:]
+assert restored.count(' || "${1:-d293}" == d723') == 3
+restored = restored.replace(' || "${1:-d293}" == d723','')
+assert restored == subprocess.check_output(['git','show',PARENT+':'+str(shell.relative_to(ROOT))],cwd=ROOT,text=True)
+wrapper = ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh'
+text = wrapper.read_text()
+a = text.index('  d723_3b_step_components100)\n'); b = text.index('    ;;\n',a)+len('    ;;\n')
+restored = (text[:a]+text[b:]).replace(' || "$FAASLORA_RESULTS_TAG" == d723_3b_step_components100','')
+assert restored == subprocess.check_output(['git','show',PARENT+':'+str(wrapper.relative_to(ROOT))],cwd=ROOT,text=True)
+for path in [shell,wrapper,*RAW.glob('*.sh')]: subprocess.run(['bash','-n',str(path)],check=True)
+for path in RAW.glob('*.py'): ast.parse(path.read_text())
+old = ROOT/'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml'
+config = ROOT/'configs/ieee_tc/20261022_d723_3b_step_components100.yaml'
+assert config.read_text() == old.read_text().replace('d719','d723').replace('3b_identity_full_w0','3b_step_components100').replace('3b_nvme_w0','3b_nvme_components100').replace('tc-d723-3b-w0','tc-d723-3b-components100')
+with (RAW/'tests.log').open('x') as log:
+    result = subprocess.run([sys.executable,'-B','-m','pytest','-q',
+        'tests/test_ieee_tc_core_timing.py','tests/test_ieee_tc_core_timing_analysis.py',
+        'tests/test_ieee_tc_d456_diagnostic_contract.py','--junitxml='+str(RAW/'tests.xml')],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert result.returncode == 0
+# Keep ML imports out of the parent while tests hold their own imported model code.
+import yaml
+from scripts.run_all_experiments import ScenarioRunner, _prepare_scenario_runtime_model_config
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+cfg = yaml.safe_load(config.read_text())
+runner = ScenarioRunner.__new__(ScenarioRunner)
+runner.coord_cfg = cfg['resource_coordination']; runner._initial_runtime_pending = True
+runner.model_cfg = _prepare_scenario_runtime_model_config(cfg['model'],cfg['workload'],runner.coord_cfg)
+runner._service_profiles = runner._load_ieee_service_profiles()
+assert runner._load_ieee_preparation_profiles() is not None
+trace = '/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json'
+plan = FrozenReplayPlan.load(trace,count=100,profile='W0')
+assert plan.source_sha256 == '4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+assert plan.identity()['count'] == 100
+for path in (cfg['experiment']['output_dir'],cfg['storage']['nvme_cache_dir'],cfg['storage']['host_cache_dir']):
+    assert not Path(path).exists(), path
+refs = {str(path):p.digest(path) for path in [*bindings,*protected,shell,wrapper,config,old,
+    ROOT/'faaslora/utils/core_timing.py',ROOT/'scripts/ieee_tc_preflight.py',
+    *RAW.glob('*.py'),*RAW.glob('*.sh')]}
+for key in ('ieee_service_profile','ieee_preparation_profile'):
+    item = cfg['resource_coordination'][key]
+    assert p.digest(Path(item['path'])) == item['sha256']
+    refs[item['path']] = item['sha256']
+after = sample()
+assert after['memory.events'] == before['memory.events'] and after['memory.swap.current'] == '0'
+record = dict(kind='d723_current_3b_components_prelaunch_v1',passed=True,parent=PARENT,
+    source_plan=plan.identity(),configuration=dict(path=str(config),sha256=p.digest(config)),
+    unchanged_policy=True,unchanged_observer=True,unchanged_historical_shell_branches=True,
+    profile_loader_passed=True,protected_count=144,refs=refs,identity=identity,
+    resources_before=before,resources_after=after,tests_sha256=p.digest(RAW/'tests.xml'),
+    diagnostic_only=True,includes_observer_overhead=True,n_correct=None,ranking_eligible=False,
+    full_performance_complete=False,no_new_input_or_profile=True)
+save(RAW/'qualification.json', record)
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'qualification.json', record)
+for source in [*RAW.glob('*.py'),*RAW.glob('*.sh'),RAW/'tests.xml']:
+    with (OUT/(source.name+'.snapshot' if source.suffix in ('.py','.sh') else source.name)).open('xb') as f:
+        f.write(source.read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(f.relative_to(ROOT)),sha256=p.digest(f))
+    for f in sorted(OUT.iterdir())]))
+print(json.dumps(dict(passed=True,count=100,peak=after['memory.peak'],scope=identity)))

@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-5d71315e221249da9be7bca1b74223ca.scope",
+        "invocation_id": "1b3ff847541c4ef1939fa67ae52f4604",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-5d71315e221249da9be7bca1b74223ca.scope",
+        "inode": 30200497
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-739c871847494495a513c0d59f506020.scope",
+        "invocation_id": "316ffc241ec84def91fb79c3698f0eb1",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-739c871847494495a513c0d59f506020.scope",
+        "inode": 30200934
+      },
+      "closure": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ]
+}
