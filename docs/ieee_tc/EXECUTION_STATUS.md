@@ -2,6 +2,13 @@
 
 ## 2026-10-22 D722：复用原生迭代，不凭prefill包络选择token预算
 
+检查点`eb9669f88fe16e7b52ed7c6bb10a89d2a5218aba`已推送并ls-remote核验
+`faaslora_origin/backup/d722-native-iterations-20261022`。13个显式文件、11项
+bundle SHA通过，敏感模式0命中；CSV保持原CRLF字节，diff检查仅按cr-at-eol
+识别标准行尾，不改数据。用户manifest未stage。远端V2仍81990b7e...，既存
+分歧未强推，不能称V2同步。本轮唯一分析scope inactive、GPU空、磁盘162GiB。
+没有活动性能实验；下述100请求组件诊断仅已确定范围，尚未启动或声称完成。
+
 PROGRESS。复用D684完整4进程、312160span和1000请求，恢复89915个step；
 原观察器／analyzer未改，45测试通过，原D648共同阈值核对一致。974个含
 多token分配step平均wall64.547ms／线程CPU64.214ms，scheduler仅0.305ms；
