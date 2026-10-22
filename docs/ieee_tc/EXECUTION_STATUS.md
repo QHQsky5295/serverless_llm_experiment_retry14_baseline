@@ -1,5 +1,54 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 01:43 D737规划wire候选已实现并通过针对性检查
+
+PROGRESS。完整PLAN/最新状态/V1/单轮V2已核对；确认共享k3s非本项目，已有
+HydraServe隔离适配/7B W0W1W2继续复用，不重新部署。当前最新完整3B仍D736：
+3706/4000=92.65%、U14942.317331GPU-s；没有新的G1/G2达标结论。
+
+核对D172/D192/D163/D329/D687/D688/D735历史及官方msgspec Raw、Python
+asyncio、vLLM0.30序列化后，唯一候选为“同一fresh native planning JSON以
+不可变bytes送到既有pure planner再解码”。不是换encoder、删图或跨epoch缓存。
+7种保存形态/42计时行/13边界案例完整保留；3B非空组件parent2.688→0.443ms，
+但IPC2.140倍。实现含原timing header再检查为2.026→0.614ms、IPC2.144倍；
+不外推TTFT/SLO改善，不用历史7B大图冒称当前3B分布，不改源工件/负载。
+
+新增planning_wire.py、规划worker单次解码及runner显式只读入口。原JSON
+socket/framing/字节限额、timing、其他RPC、native capture/epoch、physical
+validation、发布时当前身份检查、取消join和执行时容量重查保留。九式和配置
+不改；legacy/in-process保留原object API，无异常回退。122项检查通过，另
+新增入口1项及native部署环境2项复核通过。入口夹具曾因runtime/profile身份
+未同步失败，已只修正夹具；一次UUID格式启动失败在测试前停止，均保留。
+研究与测试high/max/OOM/swap0；无GPU/remote/k3s操作，无图/CI。
+
+正在保存curated证据、精确释放本轮aux及按github-sync备份本检查点；V2有
+分歧，不force。D737报告、raw研究脚本和测试/资源回执为来源。备份核验后
+下一主线为D738一次完整3B W0（复用D736启动/分析/profile/输入，只换独占路径
+及源码身份），不再增加短GPU资格或重复组件测量。该候选尚未接受为性能改进。
+其余3B W1/W2/baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档和最终图表范围完整保留；goal active，尚未启动D738。
+
+## 2026-10-23 01:21 D736结果检查点已备份并释放
+
+19个明确文件已提交33b9e03cf7031bc9fb2c9518a1269746c6664beb，并已推送及
+ls-remote核验faaslora_origin/backup/d736-complete-20261023。V2未同步，
+没有force。145保护项、冻结源码/profile和两份结果manifest通过；用户manifest
+SHA未变且未stage。运行前99项针对性检查复用，未为文档封存重跑GPU或测试。
+
+前两次发布在空白检查处停止：两个标准CSV的CRLF及原样执行脚本快照的EOF
+空行；未影响实验。保留失败脚本，finish_backup.py逐类型检查格式，数据/脚本
+快照字节完全未改，只对CSV识别CRLF、对snapshot保留原EOF空行。所有内容/
+敏感信息/路径检查仍通过；没有第二次性能运行。raw backup_completion.json、
+backup_precommit_check.json、post_backup_release.json记录回执。最终备份域
+按InvocationID/inode核对为空后释放，peak57933824B，high/max/OOM/swap0。
+
+当前没有活GPU实验或候选；磁盘约155.4GiB，主机available约104.9GiB。
+这不是下一重型任务启动保证，启动前按剩余增长重新检查。飞书配置不存在，
+未发送外部通知。后续先复用D736完整阶段/控制记录与历史失败排除，联网核对
+直接相关的原始实现，再登记唯一新假设；不得重做D736、D734前缀、工件审计
+或HydraServe基础适配。完整scope与95%目标保持，goal active。本条在下个
+正常检查点纳入备份，不为状态收尾另开重复提交。
+
 ## 2026-10-23 01:18 D736完整结束：92.650%，资源改善但未达目标
 
 PROGRESS。同一4000 W0已自然完成，零运行失败；本机GPU、service、replay和

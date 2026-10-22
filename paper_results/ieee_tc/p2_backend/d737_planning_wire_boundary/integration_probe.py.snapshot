@@ -1,0 +1,88 @@
+"""One bounded integration-cost check, with actual timing-header work included."""
+import ast
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import pickle
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts.run_all_experiments import _decode_native_rpc_frame, _attach_parent_rpc_breakdown
+from faaslora.preloading.planning_wire import decode_planning_rpc_reply
+from scripts import ieee_tc_preflight as preflight
+
+# Reuse the first study's exact comparison/encoder without executing its study.
+module = ast.parse((RAW/'probe.py').read_text())
+selected = [node for node in module.body if isinstance(node, ast.FunctionDef)
+            and node.name in ('identical', 'encode')]
+exec(compile(ast.Module(body=selected, type_ignores=[]), str(RAW/'probe.py'), 'exec'))
+
+
+def current(wire):
+    result = _decode_native_rpc_frame(wire)['result']
+    timing = _attach_parent_rpc_breakdown(result.get('timing'), channel_acquire_ms=2.,
+                                        parent_response_read_wall_time=100.)
+    timing.update(parent_rpc_send_flush_ms=1., parent_rpc_request_bytes=100,
+                  parent_rpc_response_bytes=len(wire), parent_rpc_wait_response_ms=3.,
+                  parent_rpc_transport='native_async_socket_v1', parent_rpc_thread_resume_delay_ms=0.)
+    result['timing'] = timing
+    return pickle.dumps({'native_snapshot': result}, protocol=5)
+
+
+def opaque(wire):
+    result = decode_planning_rpc_reply(wire)['result']
+    timing = _attach_parent_rpc_breakdown(result.timing_copy(), channel_acquire_ms=2.,
+                                        parent_response_read_wall_time=100.)
+    timing.update(parent_rpc_send_flush_ms=1., parent_rpc_request_bytes=100,
+                  parent_rpc_response_bytes=len(wire), parent_rpc_wait_response_ms=3.,
+                  parent_rpc_transport='native_async_socket_v1', parent_rpc_thread_resume_delay_ms=0.)
+    return pickle.dumps({'native_snapshot': result.with_timing(timing)}, protocol=5)
+
+
+def main():
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    identity = preflight.scope_identity(preflight.cg_path().name)
+    first = json.loads((RAW/'probe1.json').read_text())
+    ref = next(s for s in first['sources'] if s['label'] == 'd725_current_3b')
+    path = Path(ref['path'])
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == ref['sha256']
+    view = json.loads(path.read_bytes())['sources_after']
+    view = {k: v for k, v in view.items() if k not in first['omitted_projection_fields']}
+    wire = encode(dict(ok=True, result=view))
+    rows = []
+    for label, parent in [('current', current), ('opaque', opaque)]:
+        result = None
+        parent_s = worker_s = 0.
+        for _ in range(40):
+            t0 = time.perf_counter()
+            message = parent(wire)
+            t1 = time.perf_counter()
+            decoded = pickle.loads(message)['native_snapshot']
+            result = decoded.decode() if label == 'opaque' else decoded
+            t2 = time.perf_counter()
+            parent_s += t1-t0
+            worker_s += t2-t1
+        if label == 'current':
+            expected = result
+        else:
+            identical(expected, result)
+        rows.append(dict(path=label, iterations=40, parent_ms=parent_s/40*1000,
+                         worker_ms=worker_s/40*1000, total_ms=(parent_s+worker_s)/40*1000,
+                         ipc_bytes=len(message)))
+    result = dict(kind='d737_actual_planning_wire_timing_header_check_v1', measurements=rows,
+                  source=ref, wire_bytes=len(wire), equal_values_types_and_float_bits=True,
+                  identity=identity, resources=preflight.cgroup_snapshot(preflight.cg_path()),
+                  caveat='One CPU component pass, fixed order; includes actual header/accounting, excludes real IPC/queue/planning. Not system performance or CI.')
+    with (RAW/'integration_probe1.json').open('x') as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+    print(json.dumps(dict(measurements=rows, equal=True)))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,58 @@
+{
+  "kind": "d737_actual_planning_wire_timing_header_check_v1",
+  "measurements": [
+    {
+      "path": "current",
+      "iterations": 40,
+      "parent_ms": 2.0258418866433203,
+      "worker_ms": 6.191285967361182,
+      "total_ms": 8.217127854004502,
+      "ipc_bytes": 102044
+    },
+    {
+      "path": "opaque",
+      "iterations": 40,
+      "parent_ms": 0.6143550388514996,
+      "worker_ms": 1.1505671660415828,
+      "total_ms": 1.7649222048930824,
+      "ipc_bytes": 218746
+    }
+  ],
+  "source": {
+    "label": "d725_current_3b",
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d725_20261022/source1.json",
+    "sha256": "19f91a2302fa1aae3c33c01d1005983f43103ff8eb3ae1b5bf28812a51dc2fc6",
+    "bytes": 35875302
+  },
+  "wire_bytes": 218312,
+  "equal_values_types_and_float_bits": true,
+  "identity": {
+    "unit": "primelora-tc-aux-a9702d50ca8d4feca203c9c3d9130157.scope",
+    "invocation_id": "039ffc5d8b1c478883a81e84b45ccb3a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a9702d50ca8d4feca203c9c3d9130157.scope",
+    "inode": 30546382
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a9702d50ca8d4feca203c9c3d9130157.scope",
+    "memory.current": 515465216,
+    "memory.peak": 584650752,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7425961\nuser_usec 6402518\nsystem_usec 1023443\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "caveat": "One CPU component pass, fixed order; includes actual header/accounting, excludes real IPC/queue/planning. Not system performance or CI."
+}

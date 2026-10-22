@@ -1,0 +1,187 @@
+"""D192-derived bounded representation study. No GPU or production edits."""
+import csv
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import pickle
+import subprocess
+import time
+
+import msgspec
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+PARENT = '33b9e03cf7031bc9fb2c9518a1269746c6664beb'
+PLAN_SHA = 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip() == PARENT
+assert hashlib.sha256(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md').read_bytes()).hexdigest() == PLAN_SHA
+assert sorted(os.sched_getaffinity(0)) == [2, 3, 26, 27]
+cg = next(x.split(':', 2)[2] for x in Path('/proc/self/cgroup').read_text().splitlines() if x.startswith('0:'))
+cgdir = Path('/sys/fs/cgroup') / cg.lstrip('/')
+assert int((cgdir/'memory.max').read_text()) == 4*1024**3
+assert int((cgdir/'memory.high').read_text()) == 3*1024**3
+assert int((cgdir/'memory.swap.max').read_text()) == 0
+
+
+class Reply(msgspec.Struct):
+    ok: bool
+    result: msgspec.Raw = msgspec.Raw(b'{}')
+    error: str = 'subprocess_engine_rpc_failed'
+
+
+def identical(a, b):
+    """Reused D192 check, including signed zero and exact finite float bits."""
+    assert type(a) is type(b), (type(a).__name__, type(b).__name__)
+    if isinstance(a, dict):
+        assert list(a) == list(b)
+        for key in a:
+            identical(a[key], b[key])
+    elif isinstance(a, (list, tuple)):
+        assert len(a) == len(b)
+        for x, y in zip(a, b):
+            identical(x, y)
+    elif isinstance(a, float):
+        assert math.isfinite(a) and a.hex() == b.hex()
+    else:
+        assert a == b
+
+
+def original_parent(wire):
+    reply = msgspec.json.decode(wire)
+    if not reply.get('ok'):
+        raise RuntimeError(str(reply.get('error', 'subprocess_engine_rpc_failed')))
+    return pickle.dumps({'native_snapshot': reply.get('result', {}) or {}}, protocol=5)
+
+
+def original_worker(message):
+    return pickle.loads(message)['native_snapshot']
+
+
+def candidate_parent(wire):
+    reply = msgspec.json.decode(wire, type=Reply)
+    if not reply.ok:
+        raise RuntimeError(reply.error)
+    # Actual immutable owned bytes, not a Raw view retaining mutable storage.
+    return pickle.dumps({'native_snapshot_json': bytes(reply.result)}, protocol=5)
+
+
+def candidate_worker(message):
+    return msgspec.json.decode(pickle.loads(message)['native_snapshot_json']) or {}
+
+
+def encode(value):
+    # Unchanged production encoder and protocol byte bound, not msgspec encoder.
+    body = json.dumps(value, ensure_ascii=True).encode('utf-8')
+    if len(body) > 8*1024**2:
+        raise ValueError('dedicated RPC frame exceeds protocol byte limit')
+    return body+b'\n'
+
+
+fixture = dict(owner_id='copy-α', epoch=2**80, leased=True,
+    allocation_ids=[0, 2**53+1], rank=16, counts={'4': 2}, sources=[None],
+    prompt='中文\n𝄞\t"\\', confirmed=459919.250000003,
+    floats=[0., -0., 5e-324, 1.7976931348623157e308])
+paths = {'current': (original_parent, original_worker), 'opaque': (candidate_parent, candidate_worker)}
+semantics = []
+edge_wires = [
+    ('valid_extreme_primitives', encode(dict(ok=True, result=fixture))),
+    ('duplicate_nested_key', b'{"ok":true,"result":{"x":1,"x":2}}\n'),
+    ('empty_result', b'{"ok":true,"result":{}}\n'),
+    ('null_result', b'{"ok":true,"result":null}\n'),
+    ('missing_result', b'{"ok":true}\n'),
+    ('error', b'{"ok":false,"error":"native source rejected"}\n'),
+    ('nan', b'{"ok":true,"result":{"x":NaN}}\n'),
+    ('infinity', b'{"ok":true,"result":{"x":Infinity}}\n'),
+    ('float_overflow', b'{"ok":true,"result":{"x":1e309}}\n'),
+    ('bad_utf8', b'{"ok":true,"result":{"x":"\xff"}}\n'),
+    ('lone_surrogate', b'{"ok":true,"result":{"x":"\\ud800"}}\n'),
+    ('truncated', b'{"ok":true,"result":{"x":1}\n'),
+    ('trailing', b'{"ok":true,"result":{}}extra\n'),
+]
+for case, wire in edge_wires:
+    row, outputs = {'case': case}, {}
+    for name, (parent, worker) in paths.items():
+        phase = 'parent'
+        try:
+            frozen = parent(wire)
+            phase = 'worker'
+            outputs[name] = worker(frozen)
+            row[name] = {'outcome': 'accepted'}
+        except Exception as exc:
+            row[name] = {'outcome': 'rejected', 'phase': phase, 'type': type(exc).__name__}
+    assert row['current']['outcome'] == row['opaque']['outcome'], row
+    if outputs:
+        identical(outputs['current'], outputs['opaque'])
+    semantics.append(row)
+
+sources, messages = [], []
+specs = [
+    ('d725_current_3b', 'd725_20261022/source1.json',
+     '19f91a2302fa1aae3c33c01d1005983f43103ff8eb3ae1b5bf28812a51dc2fc6'),
+    ('d169_historical_7b', 'd169_20261002/7b_probe1.json',
+     'ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602'),
+]
+omitted = ('native_staging_footprints', 'native_host_allocator', 'metadata_publication')
+for label, relative, expected_sha in specs:
+    path = RAW.parent/relative
+    data = path.read_bytes()
+    sha = hashlib.sha256(data).hexdigest()
+    assert sha == expected_sha
+    doc = json.loads(data)
+    views = ([doc['sources_before'], doc['sources_after'], doc['sources_after_eviction']]
+             if label.startswith('d725') else [b['sources_before'] for b in doc['warm_batches']])
+    sources.append(dict(label=label, path=str(path), sha256=sha, bytes=len(data)))
+    for index, view in enumerate(views):
+        projected = {key: val for key, val in view.items() if key not in omitted}
+        messages.append((label, index, projected))
+    del doc, data
+
+rows, shapes = [], []
+for label, index, view in messages:
+    wire = encode(dict(ok=True, result=view))
+    reference = original_worker(original_parent(wire))
+    identical(reference, candidate_worker(candidate_parent(wire)))
+    shapes.append(dict(label=label, index=index, wire_bytes=len(wire), source_count=len(view['sources']),
+        current_ipc_bytes=len(original_parent(wire)), opaque_ipc_bytes=len(candidate_parent(wire)),
+        decoded_tree_equal=True))
+    iterations = 20
+    for repeat in range(3):
+        for name in (('current', 'opaque') if repeat%2 == 0 else ('opaque', 'current')):
+            parent, worker = paths[name]
+            parent_ns = worker_ns = parent_cpu_ns = worker_cpu_ns = 0
+            for _ in range(iterations):
+                # Include destruction/allocation within the repeated assignments;
+                # neither path benefits from a cross-observation cache.
+                start, cpu = time.perf_counter_ns(), time.process_time_ns()
+                frozen = parent(wire)
+                split, cpu_split = time.perf_counter_ns(), time.process_time_ns()
+                result = worker(frozen)
+                end, cpu_end = time.perf_counter_ns(), time.process_time_ns()
+                parent_ns += split-start
+                worker_ns += end-split
+                parent_cpu_ns += cpu_split-cpu
+                worker_cpu_ns += cpu_end-cpu_split
+            identical(reference, result)
+            rows.append(dict(label=label, index=index, repeat=repeat, path=name, iterations=iterations,
+                parent_ms=parent_ns/iterations/1e6, worker_ms=worker_ns/iterations/1e6,
+                parent_cpu_ms=parent_cpu_ns/iterations/1e6, worker_cpu_ms=worker_cpu_ns/iterations/1e6,
+                total_ms=(parent_ns+worker_ns)/iterations/1e6, ipc_bytes=len(frozen)))
+
+report = dict(kind='d737_retained_planning_wire_boundary_component_v1', parent_commit=PARENT,
+    plan_sha256=PLAN_SHA, sources=sources, shapes=shapes, measurements=rows,
+    edge_semantics=semantics, omitted_projection_fields=omitted, msgspec_version=msgspec.__version__,
+    cgroup=cg, affinity=sorted(os.sched_getaffinity(0)),
+    memory_events=(cgdir/'memory.events').read_text(), memory_peak=int((cgdir/'memory.peak').read_text()),
+    memory_swap_current=int((cgdir/'memory.swap.current').read_text()),
+    production_changed=False, gpu_executed=False,
+    caveat='Retained projected snapshots, not current live message distribution. CPU component loops include no real process IPC/queue/plan; no service effect or CI inferred.')
+with (RAW/'probe1.json').open('x') as out:
+    json.dump(report, out, indent=2, allow_nan=False)
+with (RAW/'probe1.csv').open('x', newline='') as out:
+    writer = csv.DictWriter(out, fieldnames=list(rows[0]), lineterminator='\n')
+    writer.writeheader()
+    writer.writerows(rows)
+print(json.dumps(dict(status='PASS', shapes=len(shapes), measurements=len(rows), edge_cases=len(semantics),
+                     memory_peak=report['memory_peak'], memory_events=report['memory_events'])))

@@ -1,0 +1,154 @@
+{
+  "component_results": [
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "path": "current",
+      "parent_ms": 1.4216861666666667,
+      "worker_ms": 1.0136052833333333,
+      "total_ms": 2.43529145,
+      "ipc_bytes": 63824
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "path": "opaque",
+      "parent_ms": 0.15235351666666666,
+      "worker_ms": 0.5129803666666667,
+      "total_ms": 0.6653338833333334,
+      "ipc_bytes": 114494
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "path": "current",
+      "parent_ms": 2.6883314833333336,
+      "worker_ms": 1.1238591500000001,
+      "total_ms": 3.8121906333333335,
+      "ipc_bytes": 102044
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "path": "opaque",
+      "parent_ms": 0.4433713166666666,
+      "worker_ms": 1.2485161666666666,
+      "total_ms": 1.6918874833333335,
+      "ipc_bytes": 218331
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "path": "current",
+      "parent_ms": 0.9269718833333335,
+      "worker_ms": 0.5095780666666666,
+      "total_ms": 1.4365499499999999,
+      "ipc_bytes": 63825
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "path": "opaque",
+      "parent_ms": 0.1580682,
+      "worker_ms": 1.07303585,
+      "total_ms": 1.23110405,
+      "ipc_bytes": 114497
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "path": "current",
+      "parent_ms": 8.703499633333335,
+      "worker_ms": 5.54427045,
+      "total_ms": 14.247770083333334,
+      "ipc_bytes": 431106
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "path": "opaque",
+      "parent_ms": 1.5325091333333336,
+      "worker_ms": 4.767287066666667,
+      "total_ms": 6.2997962,
+      "ipc_bytes": 825857
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "path": "current",
+      "parent_ms": 13.0887089,
+      "worker_ms": 7.2133642,
+      "total_ms": 20.3020731,
+      "ipc_bytes": 609151
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "path": "opaque",
+      "parent_ms": 1.7720387833333333,
+      "worker_ms": 6.974765016666667,
+      "total_ms": 8.7468038,
+      "ipc_bytes": 1174736
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "path": "current",
+      "parent_ms": 20.327749866666668,
+      "worker_ms": 13.334677783333333,
+      "total_ms": 33.66242765,
+      "ipc_bytes": 965288
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "path": "opaque",
+      "parent_ms": 3.669281983333333,
+      "worker_ms": 14.3376157,
+      "total_ms": 18.00689768333333,
+      "ipc_bytes": 1873489
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "path": "current",
+      "parent_ms": 25.68944743333333,
+      "worker_ms": 15.724447083333333,
+      "total_ms": 41.413894516666666,
+      "ipc_bytes": 1142305
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "path": "opaque",
+      "parent_ms": 3.9009354833333334,
+      "worker_ms": 15.089234383333334,
+      "total_ms": 18.990169866666665,
+      "ipc_bytes": 2221345
+    }
+  ],
+  "integration": [
+    {
+      "path": "current",
+      "iterations": 40,
+      "parent_ms": 2.0258418866433203,
+      "worker_ms": 6.191285967361182,
+      "total_ms": 8.217127854004502,
+      "ipc_bytes": 102044
+    },
+    {
+      "path": "opaque",
+      "iterations": 40,
+      "parent_ms": 0.6143550388514996,
+      "worker_ms": 1.1505671660415828,
+      "total_ms": 1.7649222048930824,
+      "ipc_bytes": 218746
+    }
+  ],
+  "parent_reduction_fraction": 0.6967408745460173,
+  "code_candidate_only": true,
+  "full_gpu_run_complete": false,
+  "protected_count": 145,
+  "native_msgspec": "0.21.1",
+  "cpu_test_msgspec": "0.20.0"
+}

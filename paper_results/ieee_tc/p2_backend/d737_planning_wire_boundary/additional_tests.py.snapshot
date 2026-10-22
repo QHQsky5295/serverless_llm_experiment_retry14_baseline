@@ -1,0 +1,38 @@
+"""Only the added call-site check and actual native-environment wire checks."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as preflight
+
+
+def main():
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    identity = preflight.scope_identity(preflight.cg_path().name)
+    commands = [
+        [sys.executable, '-B', '-m', 'unittest',
+         'tests.test_ieee_tc_planning_wire.PlanningWireWorker.test_runner_uses_wire_only_for_native_subprocess_planning', '-v'],
+        ['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python', '-B', '-m', 'unittest',
+         'tests.test_ieee_tc_planning_wire.PlanningWire', '-v'],
+    ]
+    rows = []
+    with (RAW/'additional_tests.log').open('x') as log:
+        for command in commands:
+            result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+            rows.append(dict(command=command, returncode=result.returncode))
+    report = dict(commands=rows, identity=identity,
+                  resources=preflight.cgroup_snapshot(preflight.cg_path()))
+    with (RAW/'additional_tests.json').open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+    print(json.dumps(rows))
+    raise SystemExit(int(any(row['returncode'] for row in rows)))
+
+
+if __name__ == '__main__':
+    main()

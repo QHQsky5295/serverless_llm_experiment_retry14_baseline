@@ -1,0 +1,115 @@
+"""Close only D737 CPU tasks; curate the measured candidate before backup."""
+from collections import defaultdict
+import csv
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d737_planning_wire_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+
+def main():
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                        '--format=csv,noheader'], text=True).strip()
+    own_identity = p.scope_identity(p.cg_path().name)
+    save(RAW/'close_identity.json', own_identity)
+    paths = ['probe1.json', 'tests1/test_identity.json', 'tests1/test_result.json',
+             'integration_probe1.json', 'additional_tests.json', 'entry_test_retry.json']
+    records = {name: json.loads((RAW/name).read_text()) for name in paths}
+    assert records['tests1/test_result.json']['returncode'] == 0
+    assert records['entry_test_retry.json']['commands'][0]['returncode'] == 0
+    assert records['additional_tests.json']['commands'][1]['returncode'] == 0
+    units = [
+        p.scope_identity('primelora-tc-aux-a2787fcd3dc54c26a5f9c867028eedf4.scope'),
+        records['tests1/test_identity.json'],
+        records['integration_probe1.json']['identity'],
+        records['additional_tests.json']['identity'],
+        records['entry_test_retry.json']['identity'],
+    ]
+    assert units[0]['invocation_id'] == '24c8732231534f8992184d0ea0a0cde3'
+    closed = []
+    for identity in units:
+        assert p.scope_still_owned(identity)
+        path = Path(identity['path'])
+        assert not p.owned_pids(path)
+        resources = p.cgroup_snapshot(path)
+        assert resources['memory.swap.current'] == 0
+        assert all(resources['memory.events'][key] == 0 for key in ('high','max','oom','oom_kill'))
+        receipt = p.stop_scope_identity(identity)
+        assert receipt['released'] and not receipt['targets']
+        closed.append(dict(identity=identity, resources=resources, closure=receipt))
+    # A literal typo scope failed at the existing UUID check before any test.
+    # Never broaden scope_identity; inspect and stop this exact empty unit only.
+    typo = 'primelora-tc-aux-c2879be1d5084c2f93dc46dd43ff265fe.scope'
+    props = dict(line.split('=', 1) for line in subprocess.check_output(
+        ['systemctl','--user','show',typo,'-p','InvocationID','-p','ControlGroup'], text=True).splitlines())
+    path = Path('/sys/fs/cgroup')/props['ControlGroup'].lstrip('/')
+    assert path.name == typo and path.stat().st_uid == os.getuid() and not p.owned_pids(path)
+    ino = path.stat().st_ino
+    resources = p.cgroup_snapshot(path)
+    assert not p.owned_pids(path) and path.stat().st_ino == ino
+    again = subprocess.check_output(['systemctl','--user','show',typo,'-p','InvocationID','--value'], text=True).strip()
+    assert again == props['InvocationID']
+    subprocess.run(['systemctl','--user','stop',typo], check=True, timeout=10)
+    closed.append(dict(unit=typo, invocation_id=again, inode=ino, resources=resources,
+                       released=not path.exists(), reason='launcher UUID typo rejected before tests'))
+    save(RAW/'aux_closures.json', closed)
+    protected = json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d734_3b_controller_prefix1000/prelaunch/qualification.json').read_text())['protected']
+    for name, sha in protected.items():
+        assert p.digest(Path(name)) == sha, name
+    OUT.mkdir(exist_ok=False)
+    for name in paths+['aux_closures.json']:
+        shutil.copyfile(RAW/name, OUT/name.replace('/', '_'))
+    shutil.copyfile(RAW/'probe1.csv', OUT/'component_measurements.csv')
+    for name in ['probe.py', 'integration_probe.py', 'test_unittest.py', 'additional_tests.py',
+                 'entry_test_retry.py', 'close.py']:
+        shutil.copyfile(RAW/name, OUT/(name+'.snapshot'))
+    grouped = defaultdict(list)
+    for row in records['probe1.json']['measurements']:
+        grouped[(row['label'], row['index'], row['path'])].append(row)
+    summary = []
+    for (label,index,variant), rows in grouped.items():
+        summary.append(dict(label=label, index=index, path=variant,
+            parent_ms=sum(r['parent_ms'] for r in rows)/len(rows),
+            worker_ms=sum(r['worker_ms'] for r in rows)/len(rows),
+            total_ms=sum(r['total_ms'] for r in rows)/len(rows), ipc_bytes=rows[0]['ipc_bytes']))
+    save(OUT/'summary.json', dict(component_results=summary, integration=records['integration_probe1.json']['measurements'],
+        parent_reduction_fraction=1-records['integration_probe1.json']['measurements'][1]['parent_ms']/records['integration_probe1.json']['measurements'][0]['parent_ms'],
+        code_candidate_only=True, full_gpu_run_complete=False, protected_count=len(protected),
+        native_msgspec='0.21.1', cpu_test_msgspec='0.20.0'))
+    code = ['scripts/run_all_experiments.py','faaslora/preloading/planning_cpu.py',
+            'faaslora/preloading/planning_wire.py','tests/test_ieee_tc_planning_wire.py',
+            'docs/ieee_tc/D737_PLANNING_WIRE_BOUNDARY_20261023.md']
+    manifest = dict(kind='d737_candidate_evidence_manifest_v1',
+        parent_commit=subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT,text=True).strip(),
+        plan_sha256=p.digest(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')),
+        metric_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        single_run_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+        source_code={name:p.digest(ROOT/name) for name in code},
+        files={str(path.relative_to(ROOT)):p.digest(path) for path in sorted(OUT.iterdir())},
+        raw_logs={name:p.digest(RAW/name) for name in ['tests1/tests.log','additional_tests.log','entry_test_retry.log']},
+        protected=protected, outcome='implementation_candidate_not_performance_accepted')
+    save(OUT/'manifest.json', manifest)
+    save(RAW/'closure.json', dict(curated=str(OUT), manifest_sha256=p.digest(OUT/'manifest.json'),
+                                own_identity=own_identity, resources=p.cgroup_snapshot(p.cg_path())))
+    print(json.dumps(dict(curated=str(OUT), files=len(manifest['files']), protected=len(protected),
+                          closed=len(closed), candidate_only=True)))
+
+
+if __name__ == '__main__':
+    main()

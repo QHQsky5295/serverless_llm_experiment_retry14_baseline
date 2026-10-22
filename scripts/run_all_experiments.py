@@ -5910,8 +5910,13 @@ class SubprocessInferenceEngineProxy:
         return proxy
 
     async def _rpc(self, cmd: str, *, _native_event_observer=None,
-                   _native_submission_evidence=None, **kwargs: Any) -> Dict[str, Any]:
+                   _native_submission_evidence=None, _planning_snapshot_wire=False,
+                   **kwargs: Any) -> Dict[str, Any]:
         native = self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'
+        if _planning_snapshot_wire and (not native or cmd != 'ieee_gpu_reference'
+                or kwargs != {'operation': 'routing_source_snapshot'}
+                or _native_event_observer is not None or _native_submission_evidence is not None):
+            raise ValueError('deferred decoding requires the read-only native planning snapshot')
         if _native_submission_evidence is not None:
             if not native or cmd != 'generate':
                 raise ValueError('submission observation requires native generation')
@@ -6016,8 +6021,12 @@ class SubprocessInferenceEngineProxy:
             rpc_phase = 'response_decode'
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
-            response = (_decode_native_rpc_frame(raw) if native
-                        else json.loads(raw.decode("utf-8")))
+            if _planning_snapshot_wire:
+                from faaslora.preloading.planning_wire import decode_planning_rpc_reply
+                response = decode_planning_rpc_reply(raw)
+            else:
+                response = (_decode_native_rpc_frame(raw) if native
+                            else json.loads(raw.decode("utf-8")))
             rpc_phase = 'response_validate'
             if _native_event_observer is not None and response.get('native_event_rpc_id') != attempt_id:
                 raise ValueError('service terminal RPC identity mismatch')
@@ -6046,10 +6055,10 @@ class SubprocessInferenceEngineProxy:
                             raise ValueError('service progress differs from native terminal reference')
                 if progress_events[-1]['token_count'] != result.get('output_tokens'):
                     raise ValueError('service progress/terminal token count mismatch')
-            if isinstance(result, dict):
+            if isinstance(result, dict) or _planning_snapshot_wire:
                 rpc_phase = 'result_timing'
                 result_timing = _attach_parent_rpc_breakdown(
-                    result.get("timing"),
+                    result.timing_copy() if _planning_snapshot_wire else result.get("timing"),
                     channel_acquire_ms=rpc_channel_acquire_ms,
                     parent_response_read_wall_time=parent_response_read_wall_time,
                 )
@@ -6066,7 +6075,10 @@ class SubprocessInferenceEngineProxy:
                     )
                     * 1000.0,
                 )
-                result["timing"] = result_timing
+                if _planning_snapshot_wire:
+                    result = result.with_timing(result_timing)
+                else:
+                    result["timing"] = result_timing
             diagnostic_outcome = 'success'
             return result
 
@@ -6670,6 +6682,11 @@ class SubprocessInferenceEngineProxy:
                              ('register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan')))):
                     del self._native_rpc_uncertain[key]
         return result
+
+    async def ieee_planning_sources(self):
+        """Immutable fresh wire for the existing pure planner, not a route view."""
+        return await self._rpc('ieee_gpu_reference', operation='routing_source_snapshot',
+                               _planning_snapshot_wire=True)
 
     async def ieee_routing_sources(self) -> Dict[str, Any]:
         return await self._rpc('ieee_routing_sources')
@@ -20032,7 +20049,13 @@ class ScenarioRunner:
         # request-scoped footprint: planning needs global capacity and victims.
         # Physical execution/deferred-capacity checks keep their full reports.
         observed_engine = slot.engine
-        native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
+        if (isinstance(observed_engine, SubprocessInferenceEngineProxy)
+                and observed_engine.model_cfg.get('timing_contract') == 'ieee_tc_native_v1'):
+            native = await observed_engine.ieee_planning_sources()
+        else:
+            # In-process/legacy engines retain their existing object API. This
+            # representation choice is explicit, not a runtime error fallback.
+            native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
         files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
         plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,

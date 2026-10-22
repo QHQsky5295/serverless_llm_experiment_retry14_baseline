@@ -1,0 +1,802 @@
+{
+  "kind": "d737_retained_planning_wire_boundary_component_v1",
+  "parent_commit": "33b9e03cf7031bc9fb2c9518a1269746c6664beb",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "sources": [
+    {
+      "label": "d725_current_3b",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d725_20261022/source1.json",
+      "sha256": "19f91a2302fa1aae3c33c01d1005983f43103ff8eb3ae1b5bf28812a51dc2fc6",
+      "bytes": 35875302
+    },
+    {
+      "label": "d169_historical_7b",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+      "sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+      "bytes": 38068749
+    }
+  ],
+  "shapes": [
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "wire_bytes": 114475,
+      "source_count": 0,
+      "current_ipc_bytes": 63824,
+      "opaque_ipc_bytes": 114494,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "wire_bytes": 218312,
+      "source_count": 4,
+      "current_ipc_bytes": 102044,
+      "opaque_ipc_bytes": 218331,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "wire_bytes": 114478,
+      "source_count": 0,
+      "current_ipc_bytes": 63825,
+      "opaque_ipc_bytes": 114497,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "wire_bytes": 825838,
+      "source_count": 8,
+      "current_ipc_bytes": 431106,
+      "opaque_ipc_bytes": 825857,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "wire_bytes": 1174717,
+      "source_count": 12,
+      "current_ipc_bytes": 609151,
+      "opaque_ipc_bytes": 1174736,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "wire_bytes": 1873470,
+      "source_count": 20,
+      "current_ipc_bytes": 965288,
+      "opaque_ipc_bytes": 1873489,
+      "decoded_tree_equal": true
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "wire_bytes": 2221326,
+      "source_count": 24,
+      "current_ipc_bytes": 1142305,
+      "opaque_ipc_bytes": 2221345,
+      "decoded_tree_equal": true
+    }
+  ],
+  "measurements": [
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 2.47586195,
+      "worker_ms": 0.5143705,
+      "parent_cpu_ms": 2.4759881,
+      "worker_cpu_ms": 0.51421225,
+      "total_ms": 2.99023245,
+      "ipc_bytes": 63824
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.15525904999999998,
+      "worker_ms": 0.52197225,
+      "parent_cpu_ms": 0.15529545,
+      "worker_cpu_ms": 0.5221157,
+      "total_ms": 0.6772313000000001,
+      "ipc_bytes": 114494
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.15027520000000003,
+      "worker_ms": 0.50466305,
+      "parent_cpu_ms": 0.1503144,
+      "worker_cpu_ms": 0.50483535,
+      "total_ms": 0.65493825,
+      "ipc_bytes": 114494
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 0.8986419,
+      "worker_ms": 2.02749655,
+      "parent_cpu_ms": 0.89886535,
+      "worker_cpu_ms": 2.02737135,
+      "total_ms": 2.9261384500000003,
+      "ipc_bytes": 63824
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 0.89055465,
+      "worker_ms": 0.49894879999999997,
+      "parent_cpu_ms": 0.8907917,
+      "worker_cpu_ms": 0.498933,
+      "total_ms": 1.3895034499999999,
+      "ipc_bytes": 63824
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 0,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.15152629999999997,
+      "worker_ms": 0.5123058,
+      "parent_cpu_ms": 0.15156575,
+      "worker_cpu_ms": 0.51245655,
+      "total_ms": 0.6638320999999999,
+      "ipc_bytes": 114494
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 2.0192522,
+      "worker_ms": 1.15487805,
+      "parent_cpu_ms": 2.0194893,
+      "worker_cpu_ms": 1.1548306499999998,
+      "total_ms": 3.17413025,
+      "ipc_bytes": 102044
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.4530895,
+      "worker_ms": 1.2876808,
+      "parent_cpu_ms": 0.45346309999999995,
+      "worker_cpu_ms": 1.2877543500000002,
+      "total_ms": 1.7407703,
+      "ipc_bytes": 218331
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.44289229999999996,
+      "worker_ms": 1.2463925500000002,
+      "parent_cpu_ms": 0.44328534999999997,
+      "worker_cpu_ms": 1.24647065,
+      "total_ms": 1.6892848500000002,
+      "ipc_bytes": 218331
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 4.03930625,
+      "worker_ms": 1.1254538500000002,
+      "parent_cpu_ms": 4.0395125499999995,
+      "worker_cpu_ms": 1.1252684499999999,
+      "total_ms": 5.1647601,
+      "ipc_bytes": 102044
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 2.006436,
+      "worker_ms": 1.09124555,
+      "parent_cpu_ms": 2.005509,
+      "worker_cpu_ms": 1.0911358500000001,
+      "total_ms": 3.09768155,
+      "ipc_bytes": 102044
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 1,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.43413215000000005,
+      "worker_ms": 1.2114751499999998,
+      "parent_cpu_ms": 0.43442245,
+      "worker_cpu_ms": 1.21149545,
+      "total_ms": 1.6456073,
+      "ipc_bytes": 218331
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 0.9263528000000001,
+      "worker_ms": 0.5018182999999999,
+      "parent_cpu_ms": 0.92654395,
+      "worker_cpu_ms": 0.5017787,
+      "total_ms": 1.4281711000000001,
+      "ipc_bytes": 63825
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.1621051,
+      "worker_ms": 2.1465790499999997,
+      "parent_cpu_ms": 0.16214735,
+      "worker_cpu_ms": 2.14665605,
+      "total_ms": 2.30868415,
+      "ipc_bytes": 114497
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.154728,
+      "worker_ms": 0.525589,
+      "parent_cpu_ms": 0.154781,
+      "worker_cpu_ms": 0.52577565,
+      "total_ms": 0.680317,
+      "ipc_bytes": 114497
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 0.90496555,
+      "worker_ms": 0.5017520999999999,
+      "parent_cpu_ms": 0.90519525,
+      "worker_cpu_ms": 0.50169035,
+      "total_ms": 1.4067176499999998,
+      "ipc_bytes": 63825
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 0.9495973000000001,
+      "worker_ms": 0.5251638000000001,
+      "parent_cpu_ms": 0.94981305,
+      "worker_cpu_ms": 0.5251438,
+      "total_ms": 1.4747611,
+      "ipc_bytes": 63825
+    },
+    {
+      "label": "d725_current_3b",
+      "index": 2,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 0.1573715,
+      "worker_ms": 0.5469395,
+      "parent_cpu_ms": 0.15742420000000001,
+      "worker_cpu_ms": 0.5471507,
+      "total_ms": 0.704311,
+      "ipc_bytes": 114497
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 9.619417550000001,
+      "worker_ms": 4.65318145,
+      "parent_cpu_ms": 9.619246,
+      "worker_cpu_ms": 4.6513779500000005,
+      "total_ms": 14.272599,
+      "ipc_bytes": 431106
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.50671405,
+      "worker_ms": 4.6646464000000005,
+      "parent_cpu_ms": 1.50703275,
+      "worker_cpu_ms": 4.6608543,
+      "total_ms": 6.17136045,
+      "ipc_bytes": 825857
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.6125718500000001,
+      "worker_ms": 4.9623668499999996,
+      "parent_cpu_ms": 1.61298195,
+      "worker_cpu_ms": 4.96195235,
+      "total_ms": 6.574938700000001,
+      "ipc_bytes": 825857
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 8.29393675,
+      "worker_ms": 4.861756,
+      "parent_cpu_ms": 8.29274215,
+      "worker_cpu_ms": 4.8607881,
+      "total_ms": 13.15569275,
+      "ipc_bytes": 431106
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 8.1971446,
+      "worker_ms": 7.1178739,
+      "parent_cpu_ms": 8.1949774,
+      "worker_cpu_ms": 7.117154,
+      "total_ms": 15.3150185,
+      "ipc_bytes": 431106
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 0,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.4782415,
+      "worker_ms": 4.67484795,
+      "parent_cpu_ms": 1.4785341,
+      "worker_cpu_ms": 4.6745304,
+      "total_ms": 6.15308945,
+      "ipc_bytes": 825857
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 12.1984256,
+      "worker_ms": 7.48509825,
+      "parent_cpu_ms": 12.1972289,
+      "worker_cpu_ms": 7.4828800499999994,
+      "total_ms": 19.68352385,
+      "ipc_bytes": 609151
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.85591965,
+      "worker_ms": 7.2310501,
+      "parent_cpu_ms": 1.85617445,
+      "worker_cpu_ms": 7.229498400000001,
+      "total_ms": 9.08696975,
+      "ipc_bytes": 1174736
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.7170426,
+      "worker_ms": 6.821474,
+      "parent_cpu_ms": 1.7171853000000001,
+      "worker_cpu_ms": 6.8205377,
+      "total_ms": 8.5385166,
+      "ipc_bytes": 1174736
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 14.77533225,
+      "worker_ms": 7.10862365,
+      "parent_cpu_ms": 14.77437775,
+      "worker_cpu_ms": 7.1064024,
+      "total_ms": 21.8839559,
+      "ipc_bytes": 609151
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 12.292368849999999,
+      "worker_ms": 7.0463707,
+      "parent_cpu_ms": 12.2922617,
+      "worker_cpu_ms": 7.0441765499999995,
+      "total_ms": 19.33873955,
+      "ipc_bytes": 609151
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 1,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 1.7431541000000002,
+      "worker_ms": 6.87177095,
+      "parent_cpu_ms": 1.7432716000000001,
+      "worker_cpu_ms": 6.87020795,
+      "total_ms": 8.61492505,
+      "ipc_bytes": 1174736
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 20.60010495,
+      "worker_ms": 14.804739,
+      "parent_cpu_ms": 20.59946085,
+      "worker_cpu_ms": 14.80110885,
+      "total_ms": 35.40484395,
+      "ipc_bytes": 965288
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 3.4686732,
+      "worker_ms": 12.158812699999999,
+      "parent_cpu_ms": 3.4675129,
+      "worker_cpu_ms": 12.15797385,
+      "total_ms": 15.6274859,
+      "ipc_bytes": 1873489
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 4.0484016,
+      "worker_ms": 15.33794755,
+      "parent_cpu_ms": 4.04897105,
+      "worker_cpu_ms": 15.33580965,
+      "total_ms": 19.386349149999997,
+      "ipc_bytes": 1873489
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 19.98440785,
+      "worker_ms": 12.351258,
+      "parent_cpu_ms": 19.9837865,
+      "worker_cpu_ms": 12.34974125,
+      "total_ms": 32.33566585,
+      "ipc_bytes": 965288
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 20.398736800000002,
+      "worker_ms": 12.84803635,
+      "parent_cpu_ms": 20.3973992,
+      "worker_cpu_ms": 12.8466804,
+      "total_ms": 33.246773149999996,
+      "ipc_bytes": 965288
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 2,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 3.49077115,
+      "worker_ms": 15.516086849999999,
+      "parent_cpu_ms": 3.4910222,
+      "worker_cpu_ms": 15.51372035,
+      "total_ms": 19.006858,
+      "ipc_bytes": 1873489
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 0,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 25.0482248,
+      "worker_ms": 14.0982064,
+      "parent_cpu_ms": 25.047193850000003,
+      "worker_cpu_ms": 14.0943304,
+      "total_ms": 39.1464312,
+      "ipc_bytes": 1142305
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 0,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 3.9135451,
+      "worker_ms": 14.9418559,
+      "parent_cpu_ms": 3.913761,
+      "worker_cpu_ms": 14.93801835,
+      "total_ms": 18.855401,
+      "ipc_bytes": 2221345
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 1,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 3.9017612,
+      "worker_ms": 14.96323065,
+      "parent_cpu_ms": 3.9019586,
+      "worker_cpu_ms": 14.961908699999999,
+      "total_ms": 18.864991850000003,
+      "ipc_bytes": 2221345
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 1,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 24.80443735,
+      "worker_ms": 16.6176628,
+      "parent_cpu_ms": 24.80074895,
+      "worker_cpu_ms": 16.61579825,
+      "total_ms": 41.42210015,
+      "ipc_bytes": 1142305
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 2,
+      "path": "current",
+      "iterations": 20,
+      "parent_ms": 27.215680149999997,
+      "worker_ms": 16.45747205,
+      "parent_cpu_ms": 27.209579,
+      "worker_cpu_ms": 16.4518154,
+      "total_ms": 43.673152200000004,
+      "ipc_bytes": 1142305
+    },
+    {
+      "label": "d169_historical_7b",
+      "index": 3,
+      "repeat": 2,
+      "path": "opaque",
+      "iterations": 20,
+      "parent_ms": 3.8875001499999997,
+      "worker_ms": 15.362616599999999,
+      "parent_cpu_ms": 3.88765835,
+      "worker_cpu_ms": 15.36150915,
+      "total_ms": 19.25011675,
+      "ipc_bytes": 2221345
+    }
+  ],
+  "edge_semantics": [
+    {
+      "case": "valid_extreme_primitives",
+      "current": {
+        "outcome": "accepted"
+      },
+      "opaque": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "case": "duplicate_nested_key",
+      "current": {
+        "outcome": "accepted"
+      },
+      "opaque": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "case": "empty_result",
+      "current": {
+        "outcome": "accepted"
+      },
+      "opaque": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "case": "null_result",
+      "current": {
+        "outcome": "accepted"
+      },
+      "opaque": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "case": "missing_result",
+      "current": {
+        "outcome": "accepted"
+      },
+      "opaque": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "case": "error",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "RuntimeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "RuntimeError"
+      }
+    },
+    {
+      "case": "nan",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      }
+    },
+    {
+      "case": "infinity",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      }
+    },
+    {
+      "case": "float_overflow",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "ValidationError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "worker",
+        "type": "ValidationError"
+      }
+    },
+    {
+      "case": "bad_utf8",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "UnicodeDecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "worker",
+        "type": "UnicodeDecodeError"
+      }
+    },
+    {
+      "case": "lone_surrogate",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      }
+    },
+    {
+      "case": "truncated",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      }
+    },
+    {
+      "case": "trailing",
+      "current": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      },
+      "opaque": {
+        "outcome": "rejected",
+        "phase": "parent",
+        "type": "DecodeError"
+      }
+    }
+  ],
+  "omitted_projection_fields": [
+    "native_staging_footprints",
+    "native_host_allocator",
+    "metadata_publication"
+  ],
+  "msgspec_version": "0.21.1",
+  "cgroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a2787fcd3dc54c26a5f9c867028eedf4.scope",
+  "affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "memory_peak": 197345280,
+  "memory_swap_current": 0,
+  "production_changed": false,
+  "gpu_executed": false,
+  "caveat": "Retained projected snapshots, not current live message distribution. CPU component loops include no real process IPC/queue/plan; no service effect or CI inferred."
+}
