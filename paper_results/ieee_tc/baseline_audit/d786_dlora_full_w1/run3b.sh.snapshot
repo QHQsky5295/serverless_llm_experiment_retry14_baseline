@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+MAIN=/home/qhq/serverless_llm_experiment_retry14_baseline
+BASE=/home/qhq/serverless_llm_baselines
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d786_20261024
+ENV=/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518
+IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
+export PRIME_REMOTE_TOKEN
+cd "${BASE}"
+exec systemd-run --user --scope --unit=primelora-tc-aux-d7860000000000000000000000000002.scope \
+  -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 -p AllowedCPUs=2,3,26,27 \
+  taskset -c 2,3,26,27 env -u PYTHONPATH -u PYTHONHOME \
+  FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py \
+  FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea \
+  PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 VLLM_NO_USAGE_STATS=1 \
+  /usr/bin/python3 "${MAIN}/scripts/ieee_tc_preflight.py" gated-launch \
+  --output "${RAW}/launch3b.json" --predicted-growth-gib 28 \
+  --http-replay-config "${RAW}/http_3b_4000.json" \
+  --exec "${ENV}/bin/python" -B "${BASE}/scripts/replay_vllm_engine_trace.py" native-http-service \
+  --config "${RAW}/native_3b.json" \
+  --http-replay-config "${RAW}/http_3b_4000.json" \
+  --output "${RAW}/model3b" --private-root /tmp/tc-d786-3bd

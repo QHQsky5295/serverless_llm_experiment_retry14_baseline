@@ -1,0 +1,41 @@
+"""Reuse D785 explicit-path checkpointing for the actual D786 failed outcome."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d785_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '5f961ff9971ce79a33fb385c2d875573c8310ebb49cf3b915f47ab54f23b7520'
+source = data.decode().replace('D785', 'D786').replace('d785', 'd786')
+source = source.replace('prefix1000_compatibility', 'full_w1')
+source = source.replace('PREFIX1000_COMPATIBILITY', 'FULL_W1')
+source = source.replace('audit_prefix1000.json', 'audit_full4000_w1.json')
+source = source.replace('http_3b_1000.json', 'http_3b_4000.json')
+source = source.replace('59a3fde4ed163bb8e88434439bfb7d9a68c7313e', 'd66d56c10f3296bdbe02e4d025f03143535285dd')
+
+def replace_once(before, after):
+    global source
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+
+replace_once("assert audit['workload_passed'] and audit['native_revalidated_requests'] == 1000",
+    "assert audit['measurement_complete'] and not audit['workload_passed']\n"
+    "assert audit['outcome_contract'] == 'complete_with_failures'\n"
+    "assert audit['counts']['N_plan'] == audit['counts']['N_terminal'] == 4000\n"
+    "assert audit['counts']['N_failed'] == 622\n"
+    "assert audit['counts']['N_response'] == audit['native_revalidated_requests'] == 3378")
+replace_once("assert audit['actual_native_output_tokens'] == 122510 and audit['served_adapter_ids'] == 60",
+    "assert audit['actual_native_output_tokens'] == 377990 and audit['served_adapter_ids'] == 123")
+replace_once("assert launch['service_returncode'] == launch['replay_returncode'] == launch['watchdog_returncode'] == 0",
+    "assert launch['service_returncode'] == launch['replay_returncode'] == 1\n"
+    "assert launch['watchdog_returncode'] == 0 and launch['pass'] is False")
+replace_once("schema='ieee_tc_dlora_prefix_compatibility_checkpoint_v1'",
+    "schema='ieee_tc_dlora_full_w1_failure_checkpoint_v1'")
+replace_once('prepared_adapters=500, served_adapters=60,',
+    "prepared_adapters=500, served_adapters=123, counts=audit['counts'],\n"
+    "    outcome_contract=audit['outcome_contract'], measurement_complete=True, workload_passed=False,")
+replace_once("tests_reused_from='D783: unchanged dLoRA analyzer/runtime and D770 approved prefix1000 view'",
+    "tests_reused_from='D783 unchanged dLoRA analyzer/runtime tests; D772 approved W1 input view; D785 compatibility'")
+replace_once('tc: seal dLoRA 3B prefix1000 compatibility (D786)',
+    'tc: seal dLoRA 3B W1 complete timeout outcome (D786)')
+replace_once('backup/d786-dlora-prefix1000-20261024', 'backup/d786-dlora-full-w1-20261024')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

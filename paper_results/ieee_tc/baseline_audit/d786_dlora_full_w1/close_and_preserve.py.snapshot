@@ -1,0 +1,15 @@
+"""Reuse D783 evidence collection after D786 ends, including failed outcomes."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/close_and_preserve.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '2450e54d62ff125ab7432baf29cab46d989b7b6c229425e8b4101ec49a5261bc'
+source = data.decode().replace('D783', 'D786').replace('d783', 'd786')
+before = "assert launch['service_returncode'] == launch['replay_returncode'] == 0"
+assert source.count(before) == 1
+# Evidence preservation is allowed for a terminal failure; the existing real
+# GPU release, absent service path, empty owned launcher and identity checks stay.
+# This is operational closure, not workload success or performance qualification.
+source = source.replace(before, "assert all(type(launch[k]) is int for k in ('service_returncode', 'replay_returncode'))")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

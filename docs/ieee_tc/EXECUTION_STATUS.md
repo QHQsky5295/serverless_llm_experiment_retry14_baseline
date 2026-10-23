@@ -1,5 +1,138 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D786：核验与回收闭合，准备备份
+
+storage会话2966返回0并关闭，storage域实际结束/关闭；全部本轮GPU、远端
+服务和收尾资源均已释放。4000重复objects原池/缓存全文SHA核验后回收，
+释放19497299968bytes，可用162438365184bytes；147保护项未变，唯一工件、
+原始/失败证据保留。未修改runtime/analyzer或共享k3s。准备执行已检查的
+backup.py，仅提交D786文档/本轮curated证据及状态到独立检查点；不force，
+不声称V2同步。此刻备份尚未执行。下一仍3B W2及完整后续范围。
+
+## 2026-10-24 D786：完整W1结束并核验，622超时保留（PROGRESS）
+
+同一轮运行已真实结束：4000计划/到达/提交/终态，3378有效原生响应、622
+TimeoutError，成功比例84.45%。service/replay退出码1、watchdog0；实际GPU
+释放、服务和launcher关闭，三项远端服务已停，54项Ray日志及远端证据保留。
+starter/maintenance/analysis域已实际关闭，无GPU任务，不再监测旧tmux当活跃。
+
+既有analyzer一次以full4000_w1/complete_with_failures通过，未改runtime/
+analyzer算法、无重复GPU运行：377990原生token逐请求匹配，正常INFO完成
+3378条；另11条not-in-stream提示均为超时ID且日志中先有Aborted，不计成功。
+联合19/4000=0.475%，TTFT31/4000，条件TPOT2581/3378。U6595.080408905
+GPU-s，成功响应平均/P95TTFT545640.300441/1572043.214517ms；平均/P95
+TPOT178.088965/89.718475ms；平均/P95E2E565546.522134/1583794.610073ms。
+最大原生/E2E/TPOT重算0ms。独立数值正确性未知、n_correct=null，非G1/G2
+达标点，不用较低U抵消失败。全文见D786_DLORA_FULL_W1_20261024.md。
+
+有界核查：service TTFT均值510211ms，后半段仍有大内部等待，不能只归因
+启动。50次原生ILP求解总59.008183s/max2.758577s，54条迁移决策打印/686
+请求提及；不是686独立请求或完整迁移成功回执，不据此量化因果收益。
+未发现新的输入/绑定/计量适配错误，不因低SLO开启基线性能搜索；机制内部
+等待尚未完整分离，不能写成原论文算法缺陷或全局性能结论。
+
+当前storage aux d786...0005在核验原池/重复缓存内容后回收objects；会话2966
+仍待完成，不能并行新重型任务。close_and_preserve/preserve_evidence/analyze/
+reclaim/backup入口已复用创建，analysis与收尾确实执行成功，backup尚未执行。
+成功/失败区分保留，收尾成功不改写退出码。下一storage闭合→明确路径备份，
+再dLoRA W2，不重复D783–D785资格、不加W0、不调基线性能参数。
+
+MAIN仍d66d56c，BASE8fcb6bf不变；共享k3s未动，旧结果与用户dirty保护不变。
+后续Loquetier/HydraServe3B、PrimeLoRA完整比较优化/同版本Full、A1–A5、
+S1–S13、CE/Pareto、审稿文档、图表和最终V2全部保留，goal active未完成。
+
+## 2026-10-24 D786：完整W1继续，已出现超时（已验证等待）
+
+本次继续完整核查PLAN、最新执行规则与monitor-experiment；不启动新实验、
+不改源码/配置、不动不属于本项目的k3s。当前同一tmux与服务域仍运行，
+watchdog sample2073；worker日志1892条Finished request，回放日志97条
+http_request_failed，已检查近期失败为TimeoutError。最新请求req_03792
+http_headers_sent，尚无launch3b.json。这些是运行中记录，非最终成功/失败
+审计数量，不能以原生Finished计数替代客户端终态或正确性核查。
+
+hostavailable34.1158828735GiB，high1535、max/OOM/kill均0；无warning/abort。
+完成数近期增长很慢，原生日志有迁移相关记录，但尚无证据将停滞/超时全部
+归因于迁移或原算法。保留共同1800秒保护，不延长超时、不重启、不调基线。
+全部请求到达后继续既定drain与真实资源计量，终态后再查具体路径。
+
+运行载体仍为tc-d786-dlora-3b-w1及svc-7d1f75a58dea4bd9a616dcc9abdccf75；
+无待wait的exec会话。远端服务保持不变，运行期间禁止构建、压缩/清理、
+大范围扫描、推送或第二重型任务。收尾须按实际outcome复用D783/D785，
+不能套用success断言；保存失败、计量、释放和适配证据后再决定受影响项。
+
+整体goal仍active未完成。后续dLoRA W2、Loquetier/HydraServe3B、PrimeLoRA
+完整对照优化/同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、图表与
+V2交付全部保留。MAIN已备份D785检查点d66d56c，当前D786未收尾未推送；
+BASE8fcb6bf不变。不能把共享k3s授权理解为可改其他项目服务。
+
+## 2026-10-24 D786：原生就绪，完整W1继续运行（已验证等待）
+
+同一tmux `tc-d786-dlora-3b-w1` 与服务域实际活跃，watchdog sample549。
+native ready回执 `model3b/worker_receipts/5a7a6c9ab4ef498bb8686ae2ede0b000.json`
+已生成，worker日志61条Finished request；最新回放为req_00156 http_response。
+这不是61/4000最终成功判断。hostavailable33.9329GiB，high1431、max/OOM/
+kill均0，无warning/abort。原生placement为501副本、engine分配251/250。
+Ray metrics exporter连接警告保留在原日志，不据此断言服务失败；实际已就绪
+且有请求终态。没有launch3b.json，不能清理/重启、改配置、维护远端或并发任务。
+
+starter会话7855早已返回0并关闭；当前没有待wait的exec，运行载体是上述tmux
+及service/launcher资源域。下一继续轻量监测同一运行。观察超时不等于终止。
+本轮已创建start/freeze_inputs/run3b/native/http/close与说明文档，尚未创建
+post-run分析/回收/备份脚本；结束后直接复用D783/D785已有recipe并按W1实际
+结局选outcome，不能把尚未生成的回执当已通过。最终完整目标仍active未完成。
+
+## 2026-10-24 05:05 CST：D786完整W1已启动，禁止重复启动
+
+实际tmux `tc-d786-dlora-3b-w1`，RAW为dlora_qualification/d786_20261024。
+exec/start回执已生成，启动aux已实际关闭。服务
+`primelora-tc-svc-7d1f75a58dea4bd9a616dcc9abdccf75.scope`，invocation
+`f0b9ac7813be40f0bd49d0e6a1ed756e`、inode31336858；launcher aux为
+`primelora-tc-aux-d7860000000000000000000000000002.scope`。
+start会话7855已返回0并关闭，后续监测同一tmux/服务，不因观察等待重启。
+
+启动核验：W1 view SHA8a7fa829…、4000/132ID/458224目标token，原池/源trace
+不变；native配置除隔离ray_root外与D785相同，HTTP配置除系统schema/lifecycle
+外与D772相同。原preflight和保护SHA通过，远端实际1000Mbps/full，已发布gzip
+交付不在请求中打包。初期sample29，hostavailable106.003GiB、high/max/OOM/kill
+均0，尚处原生准备，不表示请求完成。运行中不构建、清理、hash扫描、推送或
+调整远端/运行配置。仅轻量监测与状态记录。尚无最终launch3b.json。
+
+结束后先按实际returncode/终态判断，再复用D783/D785释放、保存、analyzer
+`--scheduler-contract dlora_native_manager_v1 --population full4000_w1`与冻结
+3B SLO；成功/失败按真实结果选择outcome，不能硬套成功。清理仅核验后的
+重复缓存，原始/失败证据全部保留。随后备份再W2，后续完整矩阵不删减。
+
+## 2026-10-24 D786：沿用已通过路径，准备完整3B W1
+
+上一轮D785为PROGRESS，兼容前缀已封存备份并全部释放。当前完整重读PLAN、
+状态与冻结V1/单轮V2，继续run-experiment、monitor-experiment、github-sync。
+只切到既有W1视图：4000请求、132ID、458224目标token，复用D765/D772
+输入变换；D782 source view、D779环境、D780启动/释放与D785 native配置
+不变，无新runtime/analyzer改动，不重复100/500/1000资格，不调基线性能。
+已创建唯一d786_20261024，尚未启动。当前GPU空闲，磁盘162690347008bytes、
+MemAvailable111689280KiB；正式启动前沿用原preflight实际复核。
+MAINd66d56c、BASE8fcb6bf为已核验检查点；共享k3s不动。
+本轮结束后仍需W2及其后全部主比较/优化/消融/敏感性/文档交付，goal active。
+
+## 2026-10-24 D785：检查点已核验，下一限定3B W1（PROGRESS）
+
+MAIN `d66d56c10f3296bdbe02e4d025f03143535285dd` 已核验远端
+`faaslora_origin/backup/d785-dlora-prefix1000-20261024`，42项明确路径；
+BASE本轮未改，`8fcb6bf95fdde6f4f0e6f396c2ba604b861db554` 已再核验
+origin/main。无force，V2尚未同步。backup域已实际结束并关闭；所有exec
+会话结束，无本次GPU/远端服务。此推送后状态追加在下一检查点备份。
+
+D783100、D784500-ID、D7851000兼容已完整闭合并封存，不再重复。下一D786
+尚未创建/启动：沿用D782 source view、D779环境、D780启动/释放、D783
+统计与D785同一native配置，直接切到既有W1视图4000请求，再W2；不得新增
+dLoRA W0主比较或基线性能搜索。旧缓存已核验删除，不再要求其存在来重复
+旧audit。复用现有W1/W2输入变换与冻结3B阈值，不生成新工件/负载。
+
+完整范围仍含Loquetier/HydraServe3B、PrimeLoRA3BW1/W2及全对照优化、
+7B同版本Full、A1–A5、S1–S13、CE/Pareto、两轮审稿文档、图表与最终V2。
+独立数值正确性未知、低SLO和未覆盖机制如实保留；整体goal active未完成。
+最新用户确认共享k3s不属本项目，继续复用隔离适配，不改共享集群。
+
 ## 2026-10-24 D785：证据与安全回收闭合，准备备份
 
 analysis/storage均实际结束并关闭。原池和缓存4000文件全文核验后，仅回收

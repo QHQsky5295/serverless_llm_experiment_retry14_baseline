@@ -1,0 +1,8 @@
+"""Reuse the already validated D772 W1 view and existing input/cache seal."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/freeze_inputs.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '5a649a03792321866418136ea5c425fa35db36e9d1d6fadda93c137bfc283f45'
+source = data.decode().replace('verify_slora_source_view', 'verify_dlora_source_view').replace('S-LoRA', 'dLoRA')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
