@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py", line 2493, in <module>
+    raise SystemExit(main())
+  File "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py", line 2242, in main
+    return native_http_main(sys.argv[1:])
+  File "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py", line 2109, in native_http_main
+    asyncio.run(_native_dlora_worker(args.config, args.index))
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+    return future.result()
+  File "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py", line 661, in _native_dlora_worker
+    from aiohttp import web
+ModuleNotFoundError: No module named 'aiohttp'

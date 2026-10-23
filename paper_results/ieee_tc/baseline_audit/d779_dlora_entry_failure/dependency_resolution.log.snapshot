@@ -1,0 +1,18 @@
+Collecting aiohttp==3.13.3 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 5))
+  Downloading aiohttp-3.13.3-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.3 MB/s  0:00:00
+Collecting async-timeout==5.0.1 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 6))
+  Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting multidict==6.7.1 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 7))
+  Downloading multidict-6.7.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (240 kB)
+Collecting yarl==1.22.0 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 8))
+  Downloading yarl-1.22.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (346 kB)
+Collecting aiohappyeyeballs==2.6.1 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 9))
+  Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+Collecting aiosignal==1.4.0 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 10))
+  Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+Collecting frozenlist==1.8.0 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 11))
+  Downloading frozenlist-1.8.0-cp39-cp39-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (219 kB)
+Collecting propcache==0.4.1 (from -r /home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt (line 12))
+  Downloading propcache-0.4.1-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (197 kB)
+Would install aiohappyeyeballs-2.6.1 aiohttp-3.13.3 aiosignal-1.4.0 async-timeout-5.0.1 frozenlist-1.8.0 multidict-6.7.1 propcache-0.4.1 yarl-1.22.0

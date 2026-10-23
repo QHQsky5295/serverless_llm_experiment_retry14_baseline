@@ -1,0 +1,61 @@
+{
+  "schema": "ieee_tc_dlora_environment_failure_v1",
+  "system": "dLoRA",
+  "model": "3B",
+  "workload_passed": false,
+  "formal_run": false,
+  "performance_ranking_eligible": false,
+  "failure": "Missing aiohttp in the retained native Python 3.9 environment; exited before Ray/model initialization.",
+  "prepared_pool_count": 500,
+  "model_loaded": false,
+  "native_worker_ready": false,
+  "independent_numerical_correctness_proven": false,
+  "n_correct": null,
+  "physical_measurement_complete": false,
+  "physical_lease_limitation": "Acquisition was recorded but no qualified native lifetime existed; do not report a performance GPU-s result.",
+  "actual_cleanup": {
+    "passed": true,
+    "service_returncode": 1,
+    "launch_passed": false,
+    "service_identity": {
+      "unit": "primelora-tc-svc-66dcca9d94444321865388910b1781aa.scope",
+      "invocation_id": "603883ec67ba4807876d9bf28f91b5df",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-66dcca9d94444321865388910b1781aa.scope",
+      "inode": 31239968
+    },
+    "service_path_gone": true,
+    "auxiliary_identity": {
+      "unit": "primelora-tc-aux-d7790000000000000000000000000002.scope",
+      "invocation_id": "c743a5fd396440d799950404a14b53ce",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7790000000000000000000000000002.scope",
+      "inode": 31239926
+    },
+    "actual_recursive_procs_empty": true,
+    "auxiliary_path_gone": true,
+    "resources": {
+      "memory.peak": "262930432",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "launch_sha256": "07e1722fd0a5e68827337cf9d74c536568906e43e5ca21376d4fbc76201846ac"
+  },
+  "resource_peak_bytes": 20533035008,
+  "memory_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "remote_stopped": true,
+  "source_view_unchanged": true,
+  "baseline_configuration_unchanged": true,
+  "raw_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/worker_0.log": "49bbc677f3f4aa31d14b51f8b711ed9f5194f32d3063f7bcb35c9181736db31c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/model_qualification.json": "301f08f9428ce84915cde1b125b4098c7de4595fe00677dcce6a059194518216",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/physical/physical_resource_summary.json": "7ce7bf081833444a4542012dff57f3afde62688bf2144646b32504838081ba0a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/launch3b.json": "07e1722fd0a5e68827337cf9d74c536568906e43e5ca21376d4fbc76201846ac",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/launch3b.launch/replay.jsonl": "53bb5b5e7577a26018167b4508c5024455eacfb9713adda76d757d081b52c70d"
+  }
+}

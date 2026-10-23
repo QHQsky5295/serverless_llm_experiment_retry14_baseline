@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "changed_distributions": {
+    "async-timeout": {
+      "before": null,
+      "after": "5.0.1"
+    },
+    "yarl": {
+      "before": null,
+      "after": "1.22.0"
+    },
+    "multidict": {
+      "before": null,
+      "after": "6.7.1"
+    },
+    "aiohappyeyeballs": {
+      "before": null,
+      "after": "2.6.1"
+    },
+    "frozenlist": {
+      "before": null,
+      "after": "1.8.0"
+    },
+    "aiohttp": {
+      "before": null,
+      "after": "3.13.3"
+    },
+    "propcache": {
+      "before": null,
+      "after": "0.4.1"
+    },
+    "aiosignal": {
+      "before": null,
+      "after": "1.4.0"
+    }
+  },
+  "native_ml_stack_unchanged": true,
+  "source_view_unchanged": true,
+  "model_loaded": false,
+  "qualification_scope": "actual native environment import and CPU HTTP roundtrip only",
+  "official_dependency_source": "https://raw.githubusercontent.com/aio-libs/aiohttp/v3.13.3/pyproject.toml",
+  "version_selection": "match already-used wrapper aiohttp 3.13.3; official Python >=3.9 support",
+  "dependency_lock_reused_from": "/home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_http_py39_additions.txt",
+  "dependency_lock_sha256": "8f13659abb2f95a10e2ff57f148dd43f06edef97a8588f7d0f8612149cc515e8",
+  "install_report_sha256": "40691cf10ae4d713f3affeb02b5b26ebea2937258c67aee5974b26e84aaff7e2",
+  "import_log_sha256": "b44c8d41089f3063b41250d5378d52339ee61d930f5f298dd7ce359febc75398",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7790000000000000000000000000004.scope",
+    "memory.current": 42614784,
+    "memory.peak": 347373568,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10127752\nuser_usec 8669460\nsystem_usec 1458291\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

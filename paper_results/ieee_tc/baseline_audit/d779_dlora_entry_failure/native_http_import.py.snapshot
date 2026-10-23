@@ -1,0 +1,40 @@
+"""Actual retained Python/native source + newly required HTTP transport, CPU only."""
+import asyncio
+import inspect
+import json
+from pathlib import Path
+import sys
+import aiohttp
+from aiohttp import web
+import torch
+import ray
+from vllm.engine.engine_manager import EngineManager
+from vllm import SamplingParams
+from replay_vllm_engine_trace import NativeDloraRequestHandler
+
+async def main():
+    async def health(request):
+        return web.json_response({'ok':True})
+    app=web.Application()
+    app.router.add_get('/health',health)
+    runner=web.AppRunner(app,access_log=None,handler_cancellation=True)
+    await runner.setup()
+    try:
+        site=web.TCPSite(runner,'127.0.0.1',0)
+        await site.start()
+        port=site._server.sockets[0].getsockname()[1]
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'http://127.0.0.1:{port}/health') as response:
+                assert response.status==200 and await response.json()=={'ok':True}
+    finally:
+        await runner.cleanup()
+    assert not torch.cuda.is_initialized() and not ray.is_initialized()
+    source=Path(inspect.getfile(EngineManager)).absolute()
+    expected=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view')
+    assert source.is_relative_to(expected)
+    print(json.dumps(dict(passed=True,python=sys.version,executable=sys.executable,
+        aiohttp=aiohttp.__version__,torch=torch.__version__,ray=ray.__version__,
+        engine_manager_source=str(source),cuda_initialized=False,ray_initialized=False,
+        cpu_http_roundtrip=True,model_loaded=False,numerical_correctness_proven=False)))
+
+asyncio.run(main())

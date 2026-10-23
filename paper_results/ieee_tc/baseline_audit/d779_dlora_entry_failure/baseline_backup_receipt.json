@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "head": "2acec0b037157b4a3bc4bddd9f1358eea6bf5fac",
+  "remote_ref": "refs/heads/main",
+  "paths": [
+    "configs/ieee_tc/dlora_http_py39_additions.txt",
+    "docs/ieee_tc/D779_DLORA_HTTP_ENVIRONMENT_20261024.md"
+  ],
+  "native_inference_source_unchanged": true,
+  "environment_additions": 8
+}

@@ -1,0 +1,91 @@
+"""Seal the actual D779 environment failure and reclaim only duplicate objects."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+REUSE=RAW.parent.parent/'slora_qualification/d767_20261023'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'maintenance_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert read(RAW/'launch3b.json')['service_returncode']==1
+assert "ModuleNotFoundError: No module named 'aiohttp'" in (RAW/'model3b/worker_0.log').read_text()
+path=REUSE/'close_launch.py'
+assert p.digest(path)=='8107b10112a6728006950f4513ea313bdb00b280ddb24a69e1e99240e010890e'
+exec(compile(path.read_text(),str(path),'exec'),{'__name__':'__main__','__file__':str(RAW/'close_launch.py')})
+subprocess.run([sys.executable,'-B',str(RAW/'close.py'),'start'],check=True)
+path=REUSE/'stop_remote.sh'
+assert p.digest(path)=='28ff871738f753c68b3152b693dc680ab3281ecac79c56c62897a26962a1526e'
+subprocess.run(['bash'],input=path.read_text().replace(str(REUSE),str(RAW)).replace('d767','d779'),text=True,check=True)
+path=REUSE/'preserve_evidence.py'
+assert p.digest(path)=='b5af7c5a6a930892c53813d4d4615238a71628055ba08e6c192599b9f8b6dde4'
+source=path.read_text().replace('/tmp/tc-d767-3bs/','/tmp/tc-d779-3bd/').replace('d767','d779')
+exec(compile(source,str(path),'exec'),{'__name__':'__main__','__file__':str(RAW/'preserve_evidence.py')})
+q=read(RAW.parent/'d778_20261024/qualification.json')
+for path,sha in (q['refs']|q['preserved']).items(): assert p.digest(Path(path))==sha,path
+samples=[]
+with (RAW/'launch3b.launch/watchdog.jsonl').open() as stream:
+    for line in stream:
+        row=json.loads(line)
+        if row.get('event')=='resource_sample': samples.append(row)
+work=read(RAW/'model3b/model_qualification.json')
+physical=read(RAW/'model3b/physical/physical_resource_summary.json')
+assert not work['passed'] and not physical['measurement_complete']
+assert not any(row['gpu']['service_held_gpu_uuids'] for row in samples)
+result=dict(schema='ieee_tc_dlora_environment_failure_v1',system='dLoRA',model='3B',
+    workload_passed=False,formal_run=False,performance_ranking_eligible=False,
+    failure='Missing aiohttp in the retained native Python 3.9 environment; exited before Ray/model initialization.',
+    prepared_pool_count=len(read(RAW/'model3b/dlora_full_pool_preparation.json')),
+    model_loaded=False,native_worker_ready=False,independent_numerical_correctness_proven=False,
+    n_correct=None,physical_measurement_complete=False,
+    physical_lease_limitation='Acquisition was recorded but no qualified native lifetime existed; do not report a performance GPU-s result.',
+    actual_cleanup=read(RAW/'local_cleanup.json'),
+    resource_peak_bytes=max(row['service']['memory.peak'] for row in samples),
+    memory_events=samples[-1]['service']['memory.events'],
+    remote_stopped=True,source_view_unchanged=True,baseline_configuration_unchanged=True,
+    raw_sources={str(path):p.digest(path) for path in (RAW/'model3b/worker_0.log',
+        RAW/'model3b/model_qualification.json',RAW/'model3b/physical/physical_resource_summary.json',
+        RAW/'launch3b.json',RAW/'launch3b.launch/replay.jsonl')})
+assert result['prepared_pool_count']==500
+save(RAW/'failure_result.json',result)
+# Existing D532 cleanup verifies every cached byte against the retained original,
+# copies of resolver evidence, active references, symlinks/mounts and open files.
+path=RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+assert p.digest(path)=='e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+source=path.read_text()
+changes={
+    "'d532_20261015'":"'d779_20261024'",
+    '/tmp/tc-d532-7bv/':'/tmp/tc-d779-3bd/',
+    'llama2_7b_a500_v2_publicmix':'llama32_3b_a500_v1_modelscope',
+    "ROOT/'launch7b.json'":"ROOT/'launch3b.json'",
+    "launch['service_returncode'] == 0":"launch['service_returncode'] == 1",
+    "MAIN/'paper_results/ieee_tc/main_comparison/d532_vllm_w1/result1/audit.json'":"ROOT/'failure_result.json'",
+    'f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7':p.digest(RAW/'failure_result.json'),
+    "assert audit['workload_passed'] and audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780":
+        "assert not audit['workload_passed'] and not audit['model_loaded'] and audit['prepared_pool_count'] == 500",
+    '20260927_7b_materialized_content_index.json':'20260927_3b_remote_content_index.json',
+    'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c':read(RAW/'http_3b_100.json')['pool_index_sha256'],
+    "len(selected) == audit['offered_unique_adapters']":"len(selected) == 500",
+    "total == audit['verified_materialized_bytes']":"total == sum(item['size_bytes'] for row in index['artifacts'] for item in row['files'])",
+    'all_cache_bytes_previously_hashed_by_audit=True':'all_cache_bytes_previously_hashed_by_audit=False',
+}
+for before,after in changes.items():
+    assert source.count(before)==1,before
+    source=source.replace(before,after)
+exec(compile(source,str(path),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'maintenance_receipt.json',dict(passed=True,failure_preserved=True,
+    cache_reclamation=read(RAW/'cache_cleanup_after.json'),resources=p.cgroup_snapshot(group)))
+print(json.dumps(result))

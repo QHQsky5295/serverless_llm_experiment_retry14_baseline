@@ -1,0 +1,82 @@
+"""D779 explicit-path failure/environment checkpoint; no historical mutation."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d779_dlora_entry_failure'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('start','maintenance','environment'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert read(RAW/'local_cleanup.json')['passed']
+assert read(RAW/'environment_receipt.json')['passed']
+assert read(RAW/'maintenance_receipt.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+q=read(RAW.parent/'d778_20261024/qualification.json')
+for path,sha in (q['refs']|q['preserved']).items(): assert p.digest(Path(path))==sha,path
+assert call(BASE,'git','rev-parse','HEAD')=='40f0f814018cf3d33b57648f05ff659757d0ed3f'
+assert call(MAIN,'git','rev-parse','HEAD')=='84bf72e1c133ef97f0d6a9ad020d2dc389c41256'
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def check_files(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size<2*1024*1024,path
+        assert not secret.search(path.read_text()),path
+base_paths=['configs/ieee_tc/dlora_http_py39_additions.txt','docs/ieee_tc/D779_DLORA_HTTP_ENVIRONMENT_20261024.md']
+check_files([BASE/x for x in base_paths])
+assert not call(BASE,'git','diff','--cached','--name-only')
+call(BASE,'git','add','--',*base_paths)
+assert set(call(BASE,'git','diff','--cached','--name-only').splitlines())==set(base_paths)
+call(BASE,'git','diff','--cached','--check')
+call(BASE,'git','commit','-m','tc: record dLoRA native HTTP dependency repair after actual entry failure (D779)')
+basehead=call(BASE,'git','rev-parse','HEAD')
+call(BASE,'git','-c','http.version=HTTP/1.1','push','origin','HEAD:refs/heads/main')
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+save(RAW/'baseline_backup_receipt.json',dict(passed=True,head=basehead,remote_ref='refs/heads/main',
+    paths=base_paths,native_inference_source_unchanged=True,environment_additions=8))
+OUT.mkdir(parents=True,exist_ok=False)
+names=('failure_result.json','input_identity.json','native_3b.json','http_3b_100.json','launch_gate.json',
+    'launch3b.json','local_cleanup.json','start_receipt.json','start_closure.json',
+    'remote_start.log','remote_stop.log','remote_health.json','remote_management_source.json',
+    'evidence_copy_receipt.json','cache_cleanup_before.json','cache_cleanup_after.json',
+    'maintenance_receipt.json','maintenance_closure.json','native_environment_before.json',
+    'native_environment_after.json','dependency_resolution.json','dependency_install.json',
+    'dependency_resolution.log','dependency_install.log','native_http_import.log',
+    'environment_receipt.json','environment_closure.json','baseline_backup_receipt.json',
+    'start.py','run3b.sh','freeze_inputs.py','close.py','finish_failure.py','fix_environment.py',
+    'native_http_import.py','backup.py')
+sources=[RAW/name for name in names]+[RAW/'model3b/worker_0.log',
+    RAW/'model3b/model_qualification.json',RAW/'model3b/physical/physical_resource_summary.json']
+check_files(sources)
+mapping=copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(files=mapping,plan_sha256=p.check_plan(),baseline_head=basehead,
+    outcome='environment_failure_repaired_CPU_only',experiment_passed=False,
+    native_model_run_complete=False,performance_ranking_eligible=False,
+    protected_unchanged=145,independent_numerical_correctness_proven=False,
+    previous_native_source_checkpoint='40f0f814018cf3d33b57648f05ff659757d0ed3f'))
+for name,row in mapping.items(): assert p.digest(OUT/name)==row['sha256'],name
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D779_DLORA_ENTRY_FAILURE_20261024.md',*sorted(OUT.iterdir())]
+check_files(paths)
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert not call(MAIN,'git','diff','--cached','--name-only')
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: preserve dLoRA actual entry failure and minimal environment repair (D779)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d779-dlora-http-environment-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=relative,protected_unchanged=145,
+    resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,paths=len(relative))))

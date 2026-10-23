@@ -1,0 +1,38 @@
+{
+  "allocation_journals": [
+    {
+      "events": 3,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/physical_allocations/0711de4bf30443a8b8bdc15b8236c308.jsonl",
+      "released": false,
+      "sha256": "db266cdaf7f963365a9b644b0ed4c21bab5c17ed952aba05247a797ae0aef186"
+    }
+  ],
+  "contract": "physical_gpu_resource_summary_v1",
+  "deployment_contract": "physical_gpu_deployment_v1",
+  "eligible_physical_measurement": false,
+  "legacy_fields_not_accepted": [
+    "infra_gpu_seconds_total",
+    "instance_lifecycle_log"
+  ],
+  "measurement_complete": false,
+  "n_correct": null,
+  "n_interrupted": 0,
+  "n_native_contract_complete": 0,
+  "n_plan": 100,
+  "n_terminal": 45,
+  "open_lease_ids": [
+    "0711de4bf30443a8b8bdc15b8236c308"
+  ],
+  "physical_gpu_seconds_observed": 19.295104295946658,
+  "physical_gpu_seconds_per_correct_request": null,
+  "physical_gpu_seconds_total": null,
+  "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/physical/request_terminals.jsonl",
+  "request_terminals_sha256": "49e52919167165d3340805bed154f16c38195b9454f27150037deadc53e2de04",
+  "result_file": {
+    "exists": true,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/model_qualification.json",
+    "sha256": "301f08f9428ce84915cde1b125b4098c7de4595fe00677dcce6a059194518216"
+  },
+  "summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d779_20261024/model3b/physical/summary.json",
+  "summary_sha256": "24fc899d9688c44273f0e2481cce70cad7c305a9441fc53de84aab9ae3c3de9c"
+}

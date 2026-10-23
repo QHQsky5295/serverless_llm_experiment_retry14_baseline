@@ -1,0 +1,66 @@
+"""Add only the missing common HTTP dependency; do not change native ML stack."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+NATIVE='/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python'
+sys.path[:0]=[str(MAIN),str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from replay_vllm_engine_trace import dlora_worker_environment
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+def versions():
+    command=[NATIVE,'-B','-c','import json,importlib.metadata as m; print(json.dumps({d.metadata["Name"].lower().replace("_","-"):d.version for d in m.distributions()}))']
+    return json.loads(subprocess.check_output(command,text=True))
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'environment_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert read(RAW/'maintenance_closure.json')['path_gone']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+before=versions()
+save(RAW/'native_environment_before.json',before)
+assert 'aiohttp' not in before
+allowed={'aiohttp','aiohappyeyeballs','aiosignal','async-timeout','frozenlist','multidict','propcache','yarl'}
+assert not allowed.intersection(before)
+assert {k:before[k] for k in ('attrs','idna','typing-extensions')}=={
+    'attrs':'26.1.0','idna':'3.15','typing-extensions':'4.15.0'}
+requirements=BASE/'configs/ieee_tc/loquetier_http_py39_additions.txt'
+assert p.digest(requirements)=='8f13659abb2f95a10e2ff57f148dd43f06edef97a8588f7d0f8612149cc515e8'
+base=[NATIVE,'-m','pip','install','--disable-pip-version-check','--index-url','https://pypi.org/simple',
+      '--no-deps','--only-binary=:all:','--require-hashes','--no-compile','-r',str(requirements)]
+with (RAW/'dependency_resolution.log').open('x') as log:
+    subprocess.run(base+['--dry-run','--report',str(RAW/'dependency_resolution.json')],
+        stdout=log,stderr=subprocess.STDOUT,check=True)
+report=read(RAW/'dependency_resolution.json')
+names={r['metadata']['name'].lower().replace('_','-') for r in report['install']}
+assert names == allowed,names
+with (RAW/'dependency_install.log').open('x') as log:
+    subprocess.run(base+['--report',str(RAW/'dependency_install.json')],stdout=log,stderr=subprocess.STDOUT,check=True)
+after=versions()
+save(RAW/'native_environment_after.json',after)
+changed={k:dict(before=before.get(k),after=after.get(k)) for k in set(before)|set(after) if before.get(k)!=after.get(k)}
+assert set(changed)<=allowed and after['aiohttp']=='3.13.3'
+for key in ('torch','ray','transformers','vllm','triton','numpy'):
+    assert before.get(key)==after.get(key),(key,before.get(key),after.get(key))
+cfg=dict(read(RAW/'native_3b.json'),main_repo=str(MAIN))
+env=dlora_worker_environment(cfg)
+with (RAW/'native_http_import.log').open('x') as log:
+    subprocess.run([NATIVE,'-B',str(RAW/'native_http_import.py')],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+save(RAW/'environment_receipt.json',dict(passed=True,changed_distributions=changed,
+    native_ml_stack_unchanged=True,source_view_unchanged=True,model_loaded=False,
+    qualification_scope='actual native environment import and CPU HTTP roundtrip only',
+    official_dependency_source='https://raw.githubusercontent.com/aio-libs/aiohttp/v3.13.3/pyproject.toml',
+    version_selection='match already-used wrapper aiohttp 3.13.3; official Python >=3.9 support',
+    dependency_lock_reused_from=str(requirements),dependency_lock_sha256=p.digest(requirements),
+    install_report_sha256=p.digest(RAW/'dependency_install.json'),
+    import_log_sha256=p.digest(RAW/'native_http_import.log'),resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,changed_distributions=changed,native_ml_stack_unchanged=True)))

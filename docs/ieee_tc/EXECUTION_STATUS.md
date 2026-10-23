@@ -1,5 +1,45 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D779：首次实际入口失败已定位，HTTP依赖最小补齐（PROGRESS）
+
+已完整重读PLAN/状态/补充规则；复用现有受限launcher、D778 source view、
+原3B DP2/TP1参数与prefix100，实际启动共同服务。真实远程500池准备完成，
+原生Python3.9在导入HTTP时因缺aiohttp退出，尚未初始化Ray/模型/GPU worker。
+失败保留，不是dLoRA机制或性能劣势；无有效TTFT/TPOT/GPU-s结果。物理
+账目因无合格worker lifetime保持incomplete，不能用实际清理证据伪补。
+
+依据D441同类历史复用现有有hash的8项HTTP依赖，新增aiohttp3.13.3等，所有
+既有包版本不变，未升级原生推理栈或改变调度/迁移/参数。实际native环境
+导入D778 EngineManager和共同handler并通过CPU HTTP往返，CUDA/Ray未初始化。
+原生实际加载和独立数值正确性仍未证明，下一直接回到该问题，不重复宽泛CPU门禁。
+
+服务/启动域与远端服务已结束关闭；服务峰值20533035008bytes，无high/max/
+OOM/swap。逐项核对保留原池并保存失败/传输日志后回收19497287680bytes重复
+objects。环境修复aux4峰值347373568bytes，亦结束关闭；145项投稿和用户
+dirty保持。RAW为dlora_qualification/d779_20261024，准备小型证据检查点备份。
+
+下一新键绑定环境变化、D778 view和同DP2/TP1配置，实际加载/GQA/共同HTTP
+资格→3B W1/W2。之后Loquetier/HydraServe 3B、PrimeLoRA完整对照优化、同版本
+Full、A1–A5/S1–S13/CE/Pareto/审稿文档/最终图表均保留，整体目标active。
+共享k3s未触碰；不得重用D779执行键或把本次失败当有效基线性能。
+
+## 2026-10-24 01:38 CST：D778修正检查点已备份核验（PROGRESS）
+
+BASE `40f0f814018cf3d33b57648f05ff659757d0ed3f` 已推送并核验origin/main；
+MAIN `84bf72e1c133ef97f0d6a9ad020d2dc389c41256` 已核验
+`faaslora_origin/backup/d778-dlora-native-layout-20261024`，未force，V2未同步。
+D777服务接入及D778布局修正都已备份；只有此推送后状态追加待下一检查点。
+资格aux1峰值39923712bytes，high/max/OOM/swap为0，已关闭；备份aux2也已结束
+并关闭空域。无活动exec/wait或GPU进程。145项投稿与用户dirty SHA未变。
+当前可用磁盘162930749440bytes、MemAvailable109584280KiB；仅为此时状态。
+
+下一实际执行不再扩展接口分支：复用d767/d771等现有TC launcher、freeze_inputs、
+远端启动/核验、回放和收尾，绑定最新D778 source view及历史dLoRA DP2/TP1
+参数，先实际加载/GQA/LoRA及共同HTTP资格，再3B W1/W2。已有loader probe
+仅验首adapter首层q/o，需必要补k/v/GQA和选定层/adapter；不将其改名为全模型
+数值正确性。不要用旧D776/D777 view（helper SHA已更新）；不调用旧ray stop。
+完整后续范围不变，共享k3s不动，整体目标active。
+
 ## 2026-10-24 D778：原生层/adapter维度误读已修正（PROGRESS）
 
 D777已备份核验：BASE `f9c0e79c1dae868648fe7e7cb5d194a0ac10b449` origin/main；
