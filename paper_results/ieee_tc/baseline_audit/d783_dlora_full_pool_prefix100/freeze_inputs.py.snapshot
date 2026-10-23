@@ -1,0 +1,7 @@
+"""Reuse the same retained dLoRA input/cache seal; no new trace or assets."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/freeze_inputs.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='5f9a3e8b52a69dbc185db2d2d1803e5d053df79f2ebf497409721cd247bc8921'
+exec(compile(data,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

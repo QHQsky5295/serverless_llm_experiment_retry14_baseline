@@ -1,0 +1,16 @@
+"""Preserve the first offline failure; rerun only the completed-run analysis."""
+import hashlib
+from pathlib import Path
+
+original=Path(__file__).with_name('analyze.py')
+source=original.read_text()
+source=source.replace("'analysis_identity.json'", "'analysis2_identity.json'")
+source=source.replace("'analysis_receipt.json'", "'analysis2_receipt.json'")
+source=source.replace("'analysis_tests.log'", "'analysis2_tests.log'")
+source=source.replace("'analysis.log'", "'analysis2.log'")
+# Native backend code and the GPU run are unchanged; only the missing summary
+# identity branch was added. Test that branch before consuming real evidence.
+source=source.replace("'tests.test_tc_loquetier_evidence','-v']", "'tests.test_tc_loquetier_evidence','-v']")
+source=source.replace("commands=[", "commands=[('baseline_summary_tests.log',[sys.executable,'-B','-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_serverlessllm_bandwidth_summary.py','-v']),")
+source=source.replace('len(results)==2', 'len(results)==3')
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

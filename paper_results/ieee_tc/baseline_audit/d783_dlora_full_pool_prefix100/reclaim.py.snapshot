@@ -1,0 +1,49 @@
+"""Reuse verified duplicate-cache reclamation only after D783 audit succeeds."""
+import json
+import os
+from pathlib import Path
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'storage_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert read(RAW/'analysis3_receipt.json')['passed']
+assert read(RAW/'analysis3_closure.json')['passed']
+audit=read(RAW/'audit_prefix100.json')
+assert audit['workload_passed'] and audit['native_revalidated_requests']==100
+assert audit['deployment_prepared_adapters']==500
+q=read(RAW.parent/'d782_20261024/qualification.json')
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+original=RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+assert p.digest(original)=='e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+source=original.read_text()
+changes={
+    "'d532_20261015'":"'d783_20261024'",
+    '/tmp/tc-d532-7bv/':'/tmp/tc-d783-3bd/',
+    'llama2_7b_a500_v2_publicmix':'llama32_3b_a500_v1_modelscope',
+    "ROOT/'launch7b.json'":"ROOT/'launch3b.json'",
+    "MAIN/'paper_results/ieee_tc/main_comparison/d532_vllm_w1/result1/audit.json'":"ROOT/'audit_prefix100.json'",
+    'f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7':p.digest(RAW/'audit_prefix100.json'),
+    "assert audit['workload_passed'] and audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780":
+        "assert audit['workload_passed'] and audit['native_revalidated_requests']==100 and audit['deployment_prepared_adapters']==500",
+    '20260927_7b_materialized_content_index.json':'20260927_3b_remote_content_index.json',
+    'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c':read(RAW/'http_3b_100.json')['pool_index_sha256'],
+    "len(selected) == audit['offered_unique_adapters']":"len(selected) == audit['deployment_prepared_adapters']",
+}
+for before,after in changes.items():
+    assert source.count(before)==1,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'storage_receipt.json',dict(passed=True,protected_unchanged=len(q['preserved']),
+    cleanup=read(RAW/'cache_cleanup_after.json'),resources=p.cgroup_snapshot(group)))

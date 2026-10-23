@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 1257, in <module>
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 979, in audit
+    qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native,
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 771, in audit_dlora_receipts
+    raise ValueError('dLoRA native manager/configuration/full-pool identity differs')
+ValueError: dLoRA native manager/configuration/full-pool identity differs

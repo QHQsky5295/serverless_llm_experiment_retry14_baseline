@@ -1,0 +1,5 @@
+{
+  "native_python": "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python",
+  "source_view_manifest_sha256": "be6c1f20a1f7febd3a505b25584a8cfebc6ecf7a14be730aa125b81c7b98b78e",
+  "startup": "native_dp2_manager_v1"
+}

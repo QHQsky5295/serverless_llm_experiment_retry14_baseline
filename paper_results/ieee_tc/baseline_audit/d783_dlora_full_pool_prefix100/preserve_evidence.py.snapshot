@@ -1,0 +1,9 @@
+"""Reuse closed-run remote evidence collection, preserving D783 identities."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/preserve_evidence.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'b5af7c5a6a930892c53813d4d4615238a71628055ba08e6c192599b9f8b6dde4'
+source = data.decode().replace('/tmp/tc-d767-3bs/', '/tmp/tc-d783-3bd/').replace('d767', 'd783')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

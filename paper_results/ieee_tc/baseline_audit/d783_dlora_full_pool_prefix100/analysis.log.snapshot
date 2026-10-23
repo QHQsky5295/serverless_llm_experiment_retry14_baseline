@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 1257, in <module>
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 956, in audit
+    summary = analyzer.audit_tc_http_journal(replay)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py", line 170, in audit_tc_http_journal
+    raise ValueError('unknown frozen native backend identity')
+ValueError: unknown frozen native backend identity

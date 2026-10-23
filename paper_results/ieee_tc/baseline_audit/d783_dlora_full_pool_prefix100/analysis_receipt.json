@@ -1,0 +1,69 @@
+{
+  "passed": false,
+  "commands": [
+    {
+      "log": "analysis_tests.log",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.test_tc_dlora_evidence",
+        "tests.test_tc_serverless_qualification_population",
+        "tests.test_tc_loquetier_evidence",
+        "-v"
+      ]
+    },
+    {
+      "log": "analysis.log",
+      "returncode": 1,
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "-B",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+        "--root",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024",
+        "--baseline",
+        "/home/qhq/serverless_llm_baselines",
+        "--main",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "--scheduler-contract",
+        "dlora_native_manager_v1",
+        "--model-key",
+        "3b",
+        "--population",
+        "prefix100",
+        "--outcome",
+        "success",
+        "--slo-freeze",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/audit_prefix100.json"
+      ]
+    }
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7830000000000000000000000000004.scope",
+    "memory.current": 41144320,
+    "memory.peak": 96141312,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 2106018\nuser_usec 1879629\nsystem_usec 226389\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "analyzer_sha256": "10be16db630038ef644a78f583b6dc68705e46d0bf867eed61b17e35acd0d153"
+}

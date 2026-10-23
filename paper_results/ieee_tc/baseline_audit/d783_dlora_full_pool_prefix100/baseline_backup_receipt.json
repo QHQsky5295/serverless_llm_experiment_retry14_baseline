@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "head": "8fcb6bf95fdde6f4f0e6f396c2ba604b861db554",
+  "remote_ref": "refs/heads/main",
+  "paths": [
+    "scripts/summarize_serverlessllm_replay.py",
+    "tests/test_serverlessllm_bandwidth_summary.py",
+    "docs/ieee_tc/D783_DLORA_SUMMARY_IDENTITY_20261024.md"
+  ]
+}

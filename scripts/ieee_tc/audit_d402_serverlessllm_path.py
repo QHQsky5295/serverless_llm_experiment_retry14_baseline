@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ServerlessLLM/vLLM/S-LoRA/Loquetier evidence recipe; reuses native validators.
+"""ServerlessLLM/vLLM/S-LoRA/Loquetier/dLoRA evidence recipe; reuses native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -37,10 +37,10 @@ def audit_layout(root, model_key, scheduler_contract, population):
     if population not in counts:
         raise ValueError('unknown qualification population')
     if scheduler_contract not in ('original', 'request_identity_v1', 'resident_rr_v1',
-                                  'slora_resident_rr_v1', 'loquetier_static_shards_v1'):
+                                  'slora_resident_rr_v1', 'loquetier_static_shards_v1', 'dlora_native_manager_v1'):
         raise ValueError('unknown scheduler contract')
     resident = scheduler_contract in ('resident_rr_v1', 'slora_resident_rr_v1',
-                                      'loquetier_static_shards_v1')
+                                      'loquetier_static_shards_v1', 'dlora_native_manager_v1')
     suffix = '' if resident else '_repaired'
     return (root/f'launch{model_key}{suffix}.launch', root/f'model{model_key}{suffix}',
             root/f'http_{model_key}_{counts[population]}.json')
@@ -339,6 +339,7 @@ def validate_terminal_outcome(summary, qualifier, count, outcome,
             'resident_rr_v1': ('vllm', 'vllm_resident_pool_v1'),
             'slora_resident_rr_v1': ('slora', 'slora_resident_pool_v1'),
             'loquetier_static_shards_v1': ('loquetier', 'loquetier_static_shards_v1'),
+            'dlora_native_manager_v1': ('dlora', 'dlora_native_pool_v1'),
         }
         if scheduler_contract in resident_contracts:
             backend, lifecycle = resident_contracts[scheduler_contract]
@@ -699,9 +700,136 @@ def validate_artifact_transfer(aid, control, receipt, receipt_sha, files, server
         raise ValueError('published artifact transfer/receipt/content identity differs')
 
 
+def validate_dlora_lifetime(row, cfg, allocation, service, clock_id, completed):
+    """Validate the recorded DP2 manager/worker lease, without querying dead PIDs."""
+    events = allocation['events']
+    kinds = ('acquire', 'worker_spawn', 'native_workers', 'native_workers_exited', 'release')
+    by_kind = {kind: [e for e in events if e['event'] == kind] for kind in kinds}
+    if (allocation.get('released') is not True or len(set(allocation['gpu_uuids'])) != 2
+            or len(events) != 5 or any(len(rows) != 1 for rows in by_kind.values())
+            or any(e.get('clock_id') != clock_id or e.get('lease_id') != allocation['lease_id']
+                   or e.get('owner_id') != allocation['lease_id']
+                   or e.get('gpu_uuids') != allocation['gpu_uuids'] for e in events)):
+        raise ValueError('dLoRA complete two-GPU physical lifetime required')
+    acquire, spawn, native, exited, release = [by_kind[k][0] for k in kinds]
+    workers = row['workers']
+    identities = [row['identity'], *(w['identity'] for w in workers)]
+    if (spawn['worker'] != row['identity'] or len(workers) != 2
+            or len({p['pid'] for p in identities}) != 3
+            or {w['engine_id'] for w in workers} != {0, 1}
+            or {w['cuda_visible'] for w in workers} != {'0', '1'}
+            or any(p.get('cgroup') != service['cgroup'] or p.get('affinity') != service['affinity']
+                   or any(type(p.get(k)) is not int or p[k] <= 0 for k in ('pid', 'start_ticks'))
+                   for p in identities)):
+        raise ValueError('dLoRA manager and native workers lack distinct bounded identities')
+    bindings = [dict(device_uuid=allocation['gpu_uuids'][int(w['cuda_visible'])],
+                     pid=w['identity']['pid'], worker_rank=w['engine_id']) for w in workers]
+    if (native['workers'] != bindings
+            or set(exited['worker_pids']) != {w['identity']['pid'] for w in workers}
+            or len(exited['worker_pids']) != 2):
+        raise ValueError('dLoRA native worker lease/exit binding differs')
+    times = [cfg['deployment_notice_s'], acquire['at'], spawn['at'], row['at'],
+             native['at'], completed, exited['at'], release['at']]
+    if (any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
+            or times != sorted(times)):
+        raise ValueError('dLoRA physical lifetime ordering differs')
+    for event in (acquire, native, release):
+        census = event['census']
+        if census.get('source') != 'nvml_v3_compute_and_graphics' or census.get('clock_id') != clock_id:
+            raise ValueError('dLoRA actual GPU census source differs')
+        for w, binding in zip(workers, bindings):
+            devices = [d for d in census['devices'] if d['gpu_uuid'] == binding['device_uuid']]
+            if len(devices) != 1 or devices[0]['index'] != cfg['gpu_ids'][int(w['cuda_visible'])]:
+                raise ValueError('dLoRA physical GPU identity differs')
+            processes = devices[0]['processes']
+            compute = [p for p in processes if p['kind'] == 'compute']
+            if event is native:
+                if (len(compute) != 1 or compute[0]['identity'] != w['identity']
+                        or compute[0]['pid'] != w['identity']['pid'] or compute[0]['service_member'] is not True):
+                    raise ValueError('dLoRA actual GPU worker differs from ready receipt')
+            elif any(p['identity'] is None or p['kind'] == 'compute'
+                     or p['service_member'] or p['previously_owned'] for p in processes):
+                raise ValueError('dLoRA acquire/release census is not clear')
+    return bindings
+
+
+def validate_dlora_worker_configuration(cfg, configuration, model_root):
+    expected_args = dict(configuration['engine_args'],
+        lora_adapter_subset=str(model_root/'native_adapter_subset.json'),
+        lora_adapter_root=str(Path(cfg['remote_config']['cache_dir'])/'objects'), lora_adapter_limit=500)
+    if (cfg['schema'] != 'ieee_tc_dlora_native_worker_v1'
+            or configuration['schema'] != 'ieee_tc_dlora_native_service_v1'
+            or cfg['engine_args'] != expected_args
+            or any(cfg.get(k) != v for k, v in configuration.items() if k not in ('schema', 'engine_args'))):
+        raise ValueError('dLoRA worker configuration differs from the exact service-to-worker derivation')
+
+
+def audit_dlora_receipts(root, cfg, qualifier, ready, config_path, native, *, model_root):
+    from replay_vllm_engine_trace import validate_dlora_service_config, verify_dlora_source_view, validate_dlora_ready_receipt
+    validate_dlora_service_config(qualifier['configuration'], json.loads(config_path.read_text()))
+    validate_dlora_worker_configuration(cfg, qualifier['configuration'], model_root)
+    verify_dlora_source_view(cfg)
+    if (cfg['schema'] != 'ieee_tc_dlora_native_worker_v1'
+            or qualifier['schema'] != 'ieee_tc_dlora_native_model_qualification_v1'
+            or qualifier['physical_lifecycle']['mode'] != 'dlora_native_pool_v1'
+            or qualifier['physical_lifecycle']['measurement_complete'] is not True
+            or cfg['source_sha256'] != qualifier['source_sha256']
+            or len(qualifier['physical_allocations']) != 1
+            or len(cfg['adapters']) != 500
+            or {i for i, path in cfg['adapters'].values()} != set(range(500))
+            or any(path != str(Path(cfg['remote_config']['cache_dir'])/'objects'/aid)
+                   for aid, (i, path) in cfg['adapters'].items())):
+        raise ValueError('dLoRA native manager/configuration/full-pool identity differs')
+    for path, sha in cfg['source_sha256'].items():
+        if digest(path) != sha:
+            raise ValueError('executed dLoRA measurement source changed')
+    allocation = qualifier['physical_allocations'][0]
+    receipts, rows_by_id = {}, {}
+    completed = max(r['response']['metrics']['ieee_tc']['worker_completed_monotonic_s'] for r in qualifier['requests'])
+    config_sha, prep_sha = digest(model_root/'worker_config.json'), digest(model_root/'dlora_full_pool_preparation.json')
+    for request in qualifier['requests']:
+        o = request['response']['metrics']['ieee_tc']
+        c, aid = o['control_observation'], o['native_adapter_id']
+        rid = c['tc_worker_receipt_id']
+        if len(rid) != 32 or any(ch not in '0123456789abcdef' for ch in rid):
+            raise ValueError('invalid dLoRA receipt ID')
+        path = model_root/'worker_receipts'/(rid+'.json')
+        if rid not in rows_by_id:
+            rows_by_id[rid] = json.loads(path.read_text())
+            receipts[rid] = dict(path=str(path), sha256=digest(path))
+        row = rows_by_id[rid]
+        if (path.is_symlink() or receipts[rid]['sha256'] != c['tc_worker_receipt_sha256']
+                or row['receipt_id'] != rid or row['worker_config_sha256'] != config_sha
+                or any(row['native_input_parameters'].get(k) != v for k, v in cfg['engine_args'].items())
+                or row['ray_version'] != '2.51.2' or row['ray_root'] != cfg['ray_root']
+                or len(row['ray_nodes']) != 1 or row['ray_nodes'][0]['Alive'] is not True
+                or any(row['ray_nodes'][0]['Resources'][k] != v for k, v in
+                       {'CPU':40, 'GPU':2, 'object_store_memory':8*1024**3}.items())
+                or c['tc_worker_ready_s'] != row['at']
+                or not cfg['deployment_notice_s'] <= row['at'] <= c['tc_manager_entry_s']
+                or cfg['adapters'][aid] != [o['native_model_id'], o['native_adapter_path']]):
+            raise ValueError('dLoRA ready/source/input/Ray/adapter receipt differs')
+        workers = {w['identity']['pid']: w['identity'] for w in row['workers']}
+        validate_dlora_ready_receipt(row, cfg=cfg, identity=row['identity'],
+            worker_identity=lambda pid: workers[pid],
+            allocation=NS(owner_id=allocation['lease_id'], gpu_uuids=allocation['gpu_uuids']),
+            clock_id=ready['clock_id'], preparation_sha256=prep_sha)
+        validate_dlora_lifetime(row, cfg, allocation, qualifier['service'], ready['clock_id'],
+            completed)
+        by_engine = {w['engine_id']: dict(engine_id=w['engine_id'], pid=w['identity']['pid'],
+            start_ticks=w['identity']['start_ticks'], clock_id=ready['clock_id']) for w in row['workers']}
+        if (any(w['cpu_adapter_capacity'] != 500 for w in row['workers'])
+                or o['native_engine_workers'] != [by_engine[i] for i in dict.fromkeys(o['native_engine_path'])]
+                or c['tc_native_engine_workers'] != o['native_engine_workers']):
+            raise ValueError('dLoRA actual sequence engine path differs from its native GPU workers')
+    if len(receipts) != 1:
+        raise ValueError('one native dLoRA manager lifetime required')
+    return list(receipts.values())
+
+
 def validate_slora_preparation(preparation, pool_ids, notice, first_acquire, remote, *, backend='slora'):
     """All 500 static IDs after notice, before workers, sequential and one delivery each."""
-    if backend not in ('slora', 'loquetier'):
+    if backend not in ('slora', 'loquetier', 'dlora'):
         raise ValueError('unknown full-pool preparation contract')
     if len(pool_ids) != 500 or set(preparation) != set(pool_ids) or len(remote) != 500:
         raise ValueError('S-LoRA full-static-pool preparation is incomplete')
@@ -832,9 +960,10 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     is_vllm = scheduler_contract == 'resident_rr_v1'
     is_slora = scheduler_contract == 'slora_resident_rr_v1'
     is_loquetier = scheduler_contract == 'loquetier_static_shards_v1'
-    static_native = is_slora or is_loquetier
+    is_dlora = scheduler_contract == 'dlora_native_manager_v1'
+    static_native = is_slora or is_loquetier or is_dlora
     resident = is_vllm or static_native
-    backend = 'loquetier' if is_loquetier else 'slora' if is_slora else 'vllm'
+    backend = 'dlora' if is_dlora else 'loquetier' if is_loquetier else 'slora' if is_slora else 'vllm'
     launch_root, model_root, config_path = audit_layout(root, model_key, scheduler_contract, population)
     http = json.loads(config_path.read_text())
     model_profile = validate_metric_model(http, model_key, main)
@@ -861,7 +990,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                 or any(request_index[rid]['response'] != raw['body']
                        for rid, raw in index['http_raw_response'].items())):
             raise ValueError('resident service and independent publisher responses differ')
-        receipt_audit = audit_loquetier_receipts if is_loquetier else audit_slora_receipts if is_slora else audit_vllm_receipts
+        receipt_audit = audit_dlora_receipts if is_dlora else audit_loquetier_receipts if is_loquetier else audit_slora_receipts if is_slora else audit_vllm_receipts
         qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native,
                                                           model_root=model_root)
     else:
@@ -889,7 +1018,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         queue_evidence = asyncio.run(reproduce_queue(scheduler_source))
     elif resident:
         queue_evidence = dict(contract=scheduler_contract, native_worker_receipts=qualifier['backend_ready_receipts'],
-            conclusion=('Frozen input-only static shard mapping; every selected native forward/worker/ready/physical owner verified.'
+            conclusion=('Retained native DP2 EngineManager selection and observed engine paths; not frontend round robin.'
+                        if is_dlora else 'Frozen input-only static shard mapping; every selected native forward/worker/ready/physical owner verified.'
                         if is_loquetier else
                         'Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified.'))
     else:
@@ -1030,7 +1160,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
     result.update(schema=('ieee_tc_complete_request_failure_audit_v1' if outcome == 'complete_with_failures' else
                           'ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
-                          else 'ieee_tc_affected_path_audit_v2'), display_name='Loquetier' if is_loquetier else 'S-LoRA' if is_slora else 'vLLM' if is_vllm else 'ServerlessLLM',
+                          else 'ieee_tc_affected_path_audit_v2'), display_name='dLoRA' if is_dlora else 'Loquetier' if is_loquetier else 'S-LoRA' if is_slora else 'vLLM' if is_vllm else 'ServerlessLLM',
         remote_affected_path_qualified=outcome == 'success', complete_system_qualified=False,
         model_profile=model_profile, model_key=model_key,
         source_plan=ready['plan'], native_revalidated_requests=response_count, max_native_recompute_error_ms=native_error,
@@ -1057,7 +1187,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
              'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
-            (loquetier_deployment_description(cfg) if is_loquetier else
+            ('dLoRA DP2/TP1 retains EngineManager and PERIOD_MIG; full remote pool is prepared after notice. Actual GPU lifetime includes native CPU LoRA loading and KV preparation; no claim that configured migration triggered.' if is_dlora else
+             loquetier_deployment_description(cfg) if is_loquetier else
              'S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.' if is_slora else
              'Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.' if is_vllm else
              'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.'),
@@ -1128,7 +1259,7 @@ if __name__ == '__main__':
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1'), default='original')
+    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1', 'dlora_native_manager_v1'), default='original')
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000', 'full4000_w1', 'full4000_w2'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)

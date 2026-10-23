@@ -1,0 +1,53 @@
+"""Close only D783-owned services and preserve evidence before analysis."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+REUSE = RAW.parent.parent/'slora_qualification/d767_20261023'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'maintenance_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+launch = read(RAW/'launch3b.json')
+assert launch['service_returncode'] == launch['replay_returncode'] == 0
+assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+path = REUSE/'close_launch.py'
+assert p.digest(path) == '8107b10112a6728006950f4513ea313bdb00b280ddb24a69e1e99240e010890e'
+exec(compile(path.read_text(), str(path), 'exec'), {'__name__': '__main__', '__file__': str(RAW/'close_launch.py')})
+assert read(RAW/'start_closure.json')['passed']
+path = REUSE/'stop_remote.sh'
+assert p.digest(path) == '28ff871738f753c68b3152b693dc680ab3281ecac79c56c62897a26962a1526e'
+subprocess.run(['bash'], input=path.read_text().replace(str(REUSE), str(RAW)).replace('d767', 'd783'), text=True, check=True)
+subprocess.run([sys.executable, '-B', str(RAW/'preserve_evidence.py')], check=True)
+ray = Path('/tmp/tc-d783-ray/session_latest').resolve(strict=True)
+assert ray.parent == Path('/tmp/tc-d783-ray')
+dest = RAW/'ray_evidence'
+dest.mkdir(exist_ok=False)
+copies = {}
+for item in sorted((ray/'logs').rglob('*')):
+    if item.is_file() and not item.is_symlink():
+        relative = item.relative_to(ray/'logs')
+        target = dest/relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(item, target)
+        assert p.digest(item) == p.digest(target)
+        copies[str(relative)] = dict(source=str(item), sha256=p.digest(target), bytes=target.stat().st_size)
+save(RAW/'ray_evidence_manifest.json', copies)
+save(RAW/'maintenance_receipt.json', dict(passed=True, local_closed=True, remote_closed=True,
+    evidence_saved=True, cache_reclaimed=False, resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, ray_log_files=len(copies), local_closed=True, remote_closed=True)))

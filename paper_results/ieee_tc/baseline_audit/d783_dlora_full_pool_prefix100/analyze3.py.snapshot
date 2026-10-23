@@ -1,0 +1,10 @@
+"""Re-analyze retained D783 evidence after exact worker-config derivation support."""
+from pathlib import Path
+
+original=Path(__file__).with_name('analyze.py')
+source=original.read_text()
+for before,after in [('analysis_identity','analysis3_identity'),('analysis_receipt','analysis3_receipt'),
+                     ('analysis_tests.log','analysis3_tests.log'),('analysis.log','analysis3.log')]:
+    source=source.replace(before,after)
+source=source.replace("'tests.test_tc_dlora_evidence','tests.test_tc_serverless_qualification_population',\n    'tests.test_tc_loquetier_evidence','-v'", "'tests.test_tc_dlora_evidence','-v'")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

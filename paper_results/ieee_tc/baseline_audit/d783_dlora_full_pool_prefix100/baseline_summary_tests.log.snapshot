@@ -1,0 +1,15 @@
+test_aggregate_reservation_fields (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_aggregate_reservation_fields) ... ok
+test_dlora_summary_requires_sequence_model_id_not_vllm_name (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_dlora_summary_requires_sequence_model_id_not_vllm_name) ... ok
+test_loquetier_summary_requires_forward_binding_not_vllm_name (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_loquetier_summary_requires_forward_binding_not_vllm_name) ... ok
+test_no_delay_and_http_modes_are_explicit (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_no_delay_and_http_modes_are_explicit) ... ok
+test_slora_summary_uses_explicit_native_path_without_vllm_name_fallback (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_slora_summary_uses_explicit_native_path_without_vllm_name_fallback) ... ok
+test_summary_writes_bandwidth_and_real_file_hashes (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_summary_writes_bandwidth_and_real_file_hashes) ... ok
+test_tc_native_audit_recomputes_timing_and_never_claims_numeric_correctness (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_tc_native_audit_recomputes_timing_and_never_claims_numeric_correctness) ... ok
+test_tc_native_audit_retains_failures_and_rejects_live_duplicate_counts (test_serverlessllm_bandwidth_summary.ServerlessLLMBandwidthSummaryTest.test_tc_native_audit_retains_failures_and_rejects_live_duplicate_counts) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.346s
+
+OK
+Summary[serverlessllm_fair] TTFT=10.0ms TPOT=5.0ms Tok/s=150.00 E2E=20.0ms Cost/req=$0.300020 CE=166.656 Cost/1MTok=$23078.46 TokenProxy/req=$0.001000 TokenProxyCE=50000.000 InfraCost/req=$0.300020 InfraCE=166.656 MonetaryEqGPU=300.02s IdleFactor=1.000 PricingClass=serverful ActiveGPU=0.02s IdleReadyGPU=300.00s GoodTok/GPU-s=0.01
+wrote summary -> /tmp/tmpel3_madn/summary.json

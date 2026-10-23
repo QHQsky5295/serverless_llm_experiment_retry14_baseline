@@ -1,0 +1,48 @@
+"""Run the existing audit with the explicit native dLoRA manager contract."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+local=json.loads((RAW/'local_cleanup.json').read_text())
+assert local['passed'] and not Path(local['service_identity']['path']).exists()
+assert not Path(local['auxiliary_identity']['path']).exists()
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+analyzer=MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py'
+commands=[('analysis_tests.log',[sys.executable,'-B','-m','unittest',
+    'tests.test_tc_dlora_evidence','tests.test_tc_serverless_qualification_population',
+    'tests.test_tc_loquetier_evidence','-v']),
+    ('analysis.log',[sys.executable,'-B',str(analyzer),'--root',str(RAW),'--baseline',str(BASE),
+    '--main',str(MAIN),'--scheduler-contract','dlora_native_manager_v1','--model-key','3b',
+    '--population','prefix100','--outcome','success','--slo-freeze',
+    str(MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),
+    '--output',str(RAW/'audit_prefix100.json')])]
+results=[]
+try:
+    for name,cmd in commands:
+        with (RAW/name).open('x') as stream:
+            result=subprocess.run(cmd,cwd=MAIN,stdout=stream,stderr=subprocess.STDOUT,
+                env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
+        results.append(dict(log=name,returncode=result.returncode,command=cmd))
+        result.check_returncode()
+finally:
+    save(RAW/'analysis_receipt.json',dict(passed=len(results)==2 and all(r['returncode']==0 for r in results),
+        commands=results,resources=p.cgroup_snapshot(group),analyzer_sha256=p.digest(analyzer)))
+print(json.dumps(dict(passed=True,audit_path=str(RAW/'audit_prefix100.json'))))

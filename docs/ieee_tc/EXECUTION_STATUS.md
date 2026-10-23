@@ -1,5 +1,65 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 03:45 CST：D783审计与安全回收完成，准备检查点
+
+analysis3实际成功，所有服务与分析/维护域已结束并关闭。完整原池/下载内容
+逐文件核对后仅回收4000个重复objects，实际释放19497299968bytes，可用
+162742669312bytes。147项投稿/用户dirty保护SHA未变，唯一数据和失败均保留。
+CPU回归100项、baseline summary8项通过；新增配置派生检查后针对性测试通过。
+GPU仍只执行一轮，不因为两次离线消费者适配失败重跑。当前没有活动GPU任务，
+远端已停。即将备份MAIN明确路径与BASE两项统计代码/测试及说明，未声称已推送。
+下一为D784全500-ID实际服务覆盖；整个实验计划和G1/G2仍未完成。
+
+## 2026-10-24 D783：完整500池启动及100前缀已闭合（PROGRESS）
+
+D783只运行一次：100/100正常终态、17,369原生token逐请求吻合，实际服务29个
+adapter；两worker完整500池加载、250/251原生初始放置及CPU KV4681/4681。
+同D782零CPU视图，原DP2/TP1、CPU KV8GiB和PERIOD_MIG不变。U=818.521554742
+GPU-s，平均/P95 TTFT302279.805/374474.767ms，联合SLO0/100。通知到准备
+ready约429秒，业务仍通知后60秒开始；这是带启动积压的短前缀，不作完整
+性能排名，不因低SLO继续基线调参。独立数值正确性仍未知，500-ID实际服务
+覆盖尚未完成。100前缀已通过原生/输入/远端/物理计量审计，不重跑该前缀。
+
+服务峰值77310402560bytes，high2368，max/OOM/kill0，swap718372864；最低
+主机available35177693184bytes。实际service/replay/watchdog均0、GPU与服务
+域释放，所属远端三个服务已停，Ray/transfer/resolver证据保留，共享k3s未动。
+扩展原离线analyzer支持dLoRA原生manager而非RR；两次分析适配失败保留，
+第三次成功，未重跑GPU。当前仅有已结束数据的重复缓存核验回收进行中。
+
+下一D784补500-ID功能覆盖，再1000兼容、限定W1/W2。使用D782 source view、
+D779环境、D780已验证运行与清理，D783完成的资格直接复用。不得重开缩CPU KV、
+缩池或原pinned容量方向。main/runtime来源未被本次离线统计改动；baseline
+summarizer和主analyzer须在本检查点备份。完整后续Loquetier/HydraServe3B、
+PrimeLoRA3BW1/W2/全对照优化/同版本Full、A1–A5、S1–S13、CE/Pareto、审稿
+文档与最终图表均保留。整体目标active，不以短前缀通过宣称完整复现或最优。
+
+## 2026-10-24 03:22 CST：D783完整池实际服务资格运行中
+
+上一轮D782为PROGRESS。完整重读PLAN/状态，复用run-experiment和monitor-experiment
+的受限运行及本地tmux观测。D782新CPU零视图、D779环境、D780 wrapper/清理，
+原DP2/TP1、500池、CPU KV8GiB、PERIOD_MIG与100请求前缀保持。当前实际已启动
+`tc-d783-dlora-3b-prefix100`，RAW为dlora_qualification/d783_20261024；
+MAIN851377b、BASE64ad972。服务域fe4423eba3f84d2983ce400b8f5c99ff，launcher
+aux尾号d783…0002，启动域已空并关闭。不得因观测等待重启同键。
+真实远端已发布gzip服务已启动，仍无请求路径打包；尚无完成结果/性能结论。
+本轮结束后按实际返回/释放审计，再决定限定W1/W2；完整后续范围不删减。
+
+## 2026-10-24 03:19 CST：D782必要存储适配检查点已备份（PROGRESS）
+
+BASE `64ad9724baa90459229fcb026fe8073ad62683a8` 已核验origin/main；MAIN
+`851377b826979264dd57f4b0cca378348aef9efc` 已核验
+`faaslora_origin/backup/d782-dlora-zero-mlp-20261024`。未force，V2仍未同步。
+5项明确BASE路径及29项MAIN文档/证据已备份。原生源码快照的既有行尾空白
+导致首次发布检查停止，保留快照原字节、按原SHA核验，新增代码正常diff检查；
+仅恢复发布，未重跑资格/性能。两次备份辅助域、资格域及probe域均已关闭，
+无活动exec/wait或GPU计算；远端本轮未启动。147项旧投稿/用户dirty未变。
+
+下一D783尚未创建/启动。使用D782 source_view与qualification.json/result_receipt.json，
+D779环境和D780 wrapper/cleanup；最新HEAD与备份回执在D782。CPU KV仍原配置，
+不再执行D781曾提出的缩减方向。直接回到同100前缀、实际500池初始化与共同
+HTTP资格，随后限定W1/W2；不重复已通过的CPU/两adapter copy小测。
+完整后续范围保留，整体目标active。本推送后状态追加待下个检查点备份。
+
 ## 2026-10-24 D782：CPU零值共享适配通过实际张量检查（PROGRESS）
 
 完整重读PLAN/状态/最新规则。D781原计划核查CPU KV容量，但新查原生调度
