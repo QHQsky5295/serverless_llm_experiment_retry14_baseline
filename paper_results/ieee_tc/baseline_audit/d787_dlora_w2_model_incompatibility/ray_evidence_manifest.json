@@ -1,0 +1,272 @@
+{
+  "dashboard.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "dashboard.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard.log",
+    "sha256": "a221f85e23fd183487ddf5f5bb70f1e67387155f00ede412dfc9ec7fb32f05d2",
+    "bytes": 6404
+  },
+  "dashboard.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard.out",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "dashboard_agent.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard_agent.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "dashboard_agent.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard_agent.log",
+    "sha256": "a00c03219c8a266f0f49ad60035e246692edc3139e1437f00c7c923844407099",
+    "bytes": 5490
+  },
+  "dashboard_agent.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/dashboard_agent.out",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "debug_state.txt": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/debug_state.txt",
+    "sha256": "e17259f9afeec8e83cae9a1c208a009c37abeb2bca576d8cfd705e678c3d5143",
+    "bytes": 23042
+  },
+  "events/event_AUTOSCALER.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_AUTOSCALER.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3492478.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3492478.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3498078.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3498078.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3498079.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3498079.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3498574.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3498574.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3498575.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3498575.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_CORE_WORKER_3498873.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_CORE_WORKER_3498873.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_GCS.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_GCS.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "events/event_RAYLET.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/events/event_RAYLET.log",
+    "sha256": "fab43cfc4e3ab82f158cd36e334a3efd11381110ba1d1cc3d16cd7f12dd6ed6f",
+    "bytes": 50728
+  },
+  "export_events/event_EXPORT_ACTOR.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_ACTOR.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_DRIVER_JOB.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_DRIVER_JOB.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_NODE.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_NODE.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3492478.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3492478.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3498078.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3498078.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3498079.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3498079.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3498574.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3498574.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3498575.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3498575.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "export_events/event_EXPORT_TASK_3498873.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/export_events/event_EXPORT_TASK_3498873.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "gcs_server.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/gcs_server.err",
+    "sha256": "a0919269d3cc4bfec073db7baaa307c5b5ccae9f20c7affb58f3e90f44cc0a04",
+    "bytes": 287
+  },
+  "gcs_server.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/gcs_server.out",
+    "sha256": "3393f26e68a117c4edf23c92ab5e537b09aa2313991a33640b251b6568258df7",
+    "bytes": 482582
+  },
+  "log_monitor.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/log_monitor.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "log_monitor.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/log_monitor.log",
+    "sha256": "117245f40919b2932b7dd6e68f55f0a86087139df851c366ddf0f05ab5ae05fa",
+    "bytes": 1987
+  },
+  "log_monitor.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/log_monitor.out",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "monitor.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/monitor.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "monitor.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/monitor.log",
+    "sha256": "9cd75ec530dade9c0d32db2e0af03288a87e6e63feb0de518da4949668bffb2c",
+    "bytes": 204171
+  },
+  "monitor.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/monitor.out",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "python-core-driver-01000000ffffffffffffffffffffffffffffffffffffffffffffffff_3492478.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-driver-01000000ffffffffffffffffffffffffffffffffffffffffffffffff_3492478.log",
+    "sha256": "2723bff7eb00d29dc79fb94df7b3c403500d5d7345cecd425fc822f115287bb5",
+    "bytes": 240111
+  },
+  "python-core-worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2_3498078.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2_3498078.log",
+    "sha256": "2c12716a6edeb1eae35ba8709d5ce1289193e7bf7735c7faf1a743e65daf0df8",
+    "bytes": 253711
+  },
+  "python-core-worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720_3498079.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720_3498079.log",
+    "sha256": "86dc6308049d4407db2237b982ea7a26b7d6cb9ce1291c540e85b48695416efe",
+    "bytes": 144402
+  },
+  "python-core-worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986_3498873.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986_3498873.log",
+    "sha256": "5cd89d40d95d061ce71d32c980cf038d99e942eaabe03e52f7b30a0a66dcec66",
+    "bytes": 162005
+  },
+  "python-core-worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f_3498575.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f_3498575.log",
+    "sha256": "fb657d3f4e2bf677e27a2ba04864a0c7c7db22e526ca447cb4d717da75562638",
+    "bytes": 255375
+  },
+  "python-core-worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352_3498574.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/python-core-worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352_3498574.log",
+    "sha256": "8f26a0df612b750013f56d7660f60606507f1d5f4b2bd4a6f75cad26ee3390c2",
+    "bytes": 162773
+  },
+  "raylet.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/raylet.err",
+    "sha256": "4c33659f29367d06194cd2cb484c580a31b7eb14be527ababdde0c181a17b19b",
+    "bytes": 26904
+  },
+  "raylet.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/raylet.out",
+    "sha256": "61ab2618b1001d04689439a1f03b73fc52eee4d96e9d13c246c6032984f12fab",
+    "bytes": 585557
+  },
+  "runtime_env_agent.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/runtime_env_agent.err",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "runtime_env_agent.log": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/runtime_env_agent.log",
+    "sha256": "5a920ab5453878dbd7e9b56ac35f810017b93ace840b77213c05a6bf7c956e3e",
+    "bytes": 285
+  },
+  "runtime_env_agent.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/runtime_env_agent.out",
+    "sha256": "d47945285ba528797a00f0122889dab546df894043f7e003f5b12f75cc8eda6c",
+    "bytes": 75
+  },
+  "worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2-01000000-3498078.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2-01000000-3498078.err",
+    "sha256": "7784fa03a306f18e32231a4b47189ebde6428df03e300e0a73479aa5dde860d5",
+    "bytes": 493
+  },
+  "worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2-01000000-3498078.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-5927843c619e1a36d59b34a652ad298870560795d0e7fa6700e7aee2-01000000-3498078.out",
+    "sha256": "ba43d7bb884a068ddbbd8cfd2a4e69e09bf733375aa7edd858380934789f8912",
+    "bytes": 61996
+  },
+  "worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720-01000000-3498079.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720-01000000-3498079.err",
+    "sha256": "c17ad4e4b8545d11642630c6c9c7bd7c5c154e0e56e6bd06faacdaccc005d076",
+    "bytes": 365
+  },
+  "worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720-01000000-3498079.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-ad32e32564eecb66bb91d0b0b53f6370fb68f8ef1a3ffdcf0e4d5720-01000000-3498079.out",
+    "sha256": "fe00105961101163513a0ba00eb0d0d6c646588ed91fdf756a8d3557bb1b4216",
+    "bytes": 99
+  },
+  "worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986-01000000-3498873.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986-01000000-3498873.err",
+    "sha256": "a3adc2946ce5afcf7ad28099b2ec230fb2c4a7ab3f662317bd99a2410678f811",
+    "bytes": 305
+  },
+  "worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986-01000000-3498873.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-b2faf98e0d342ffed5657bdb0e3165c49f66e3a660ab8687b28d3986-01000000-3498873.out",
+    "sha256": "6a7db7696aa08dcbee918387fad177bc855ffb029483d73b84e99bde7e0b34c0",
+    "bytes": 16389
+  },
+  "worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f-01000000-3498575.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f-01000000-3498575.err",
+    "sha256": "7629c3fd73d9573c5bb3afa7866e30fda64cdd441785343e3938b6ca056b9b90",
+    "bytes": 493
+  },
+  "worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f-01000000-3498575.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-c376cc6557011de80eec57b757f9244f4785536c57765a24ce7a047f-01000000-3498575.out",
+    "sha256": "04ba40c0c2107f748e284db4d61190be9c9a9868d9f8bed9aba5684adb9504d2",
+    "bytes": 91043
+  },
+  "worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352-01000000-3498574.err": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352-01000000-3498574.err",
+    "sha256": "68c9d47de8acd06af86dc433a77689be773adb235b0a68071b36c2d5894423e8",
+    "bytes": 305
+  },
+  "worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352-01000000-3498574.out": {
+    "source": "/tmp/tc-d787-ray/session_2026-10-24_06-23-43_295277_3492478/logs/worker-dbf9021dd77aeaaec13c561c512690c1fea1e2a0cc575002147f0352-01000000-3498574.out",
+    "sha256": "95a9beeb56d7399b6f616d5ba9648dc2d9083ac65d5cea310d0d31f54fd237bb",
+    "bytes": 18752
+  }
+}

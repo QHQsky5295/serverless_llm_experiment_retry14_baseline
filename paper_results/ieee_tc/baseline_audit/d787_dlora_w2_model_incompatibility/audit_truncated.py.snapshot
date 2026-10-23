@@ -1,0 +1,121 @@
+"""Save the actual stopped population using existing journal/input validators.
+
+Not the full4000 audit: preserve non-arrivals, stop-induced failures, and the
+service terminal snapshot race explicitly. Never calculate a performance rank.
+"""
+from collections import Counter
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path[:0] = [str(MAIN), str(MAIN/'scripts/ieee_tc'), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import summarize_serverlessllm_replay as journal_audit
+import prepare_ieee_tc_serverless_stack as native
+from audit_d402_serverlessllm_path import validate_population, validate_slora_preparation
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert read(RAW/'maintenance_closure.json')['passed']
+local, launch = read(RAW/'local_cleanup.json'), read(RAW/'launch3b.json')
+assert local['passed'] and not Path(local['service_identity']['path']).exists()
+assert not Path(local['auxiliary_identity']['path']).exists()
+assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+decision = read(RAW/'model_compatibility_stop_decision.json')
+signal = read(RAW/'model_compatibility_stop_signal_receipt.json')
+assert decision['run_reuse_class'] == 'R3' and not decision['performance_based_stop']
+assert signal['signal_sent'] and signal['target_pid'] == decision['owner_identity']['pid']
+replay = RAW/'launch3b.launch/replay.jsonl'
+summary = journal_audit.audit_tc_http_journal(replay)
+events = [json.loads(line) for line in replay.read_text().splitlines()]
+index = {}
+for event in events:
+    if 'request_id' in event:
+        index.setdefault(event['event'], {})[event['request_id']] = event
+ready = summary['ready_identity']
+assert p.digest(Path(ready['plan']['source_path'])) == ready['plan']['source_sha256']
+http = read(RAW/'http_3b_4000.json')
+assert p.digest(RAW/'http_3b_4000.json') == ready['config_sha256']
+assert validate_population(http, ready, index['request_contract'], native, 'full4000_w2') == 4000
+assert not summary['measurement_complete'] and not summary['workload_passed']
+assert summary['counts']['N_plan'] == 4000
+qualifier = read(RAW/'model3b/model_qualification.json')
+raw = index.get('http_raw_response', {})
+assert {r['request_id']:r['response'] for r in qualifier['requests']} == {rid:e['body'] for rid,e in raw.items()}
+failures = [e for e in events if e['event'] in ('http_request_failed','http_request_cancelled')]
+failure_times = {e['request_id']:e['client_completed_s'] for e in failures}
+before = [e for e in failures if failure_times[e['request_id']] < signal['sent_at_monotonic_s']]
+zero_ids = [rid for rid,e in raw.items() if set(e['body']['metrics']['ieee_tc']['completion_token_ids']) == {0}]
+physical = read(RAW/'model3b/physical/physical_resource_summary.json')
+assert not physical['measurement_complete'] and physical['physical_gpu_seconds_total'] is None
+assert physical['n_correct'] is None and not physical['open_lease_ids']
+allocations = list((RAW/'model3b/physical_allocations').glob('*.jsonl'))
+assert len(allocations) == 1
+allocation = [json.loads(line) for line in allocations[0].read_text().splitlines()]
+acquire, release = allocation[0], allocation[-1]
+assert acquire['event'] == 'acquire' and release['event'] == 'release'
+assert acquire['gpu_uuids'] == release['gpu_uuids'] and len(acquire['gpu_uuids']) == 2
+observed_u = len(acquire['gpu_uuids'])*(release['at']-acquire['at'])
+assert math.isclose(observed_u, physical['physical_gpu_seconds_observed'], abs_tol=1e-6)
+physical_rows = [json.loads(line) for line in (RAW/'model3b/physical/request_terminals.jsonl').read_text().splitlines()]
+physical_ids = {r['request_id'] for r in physical_rows}
+terminal_ids = set(index.get('http_response', {})) | {e['request_id'] for e in failures}
+assert physical_ids <= terminal_ids
+cfg = read(RAW/'model3b/worker_config.json')
+pool_path = Path(http['pool_index'])
+assert p.digest(pool_path) == http['pool_index_sha256']
+pool = read(pool_path)['artifacts']
+preparation = read(RAW/'model3b/dlora_full_pool_preparation.json')
+remote_rows = [json.loads(line) for line in (RAW/'remote_transfers.jsonl').read_text().splitlines()]
+remote = {r['transfer_id']:r for r in remote_rows}
+assert len(remote_rows) == len(remote)
+wire = validate_slora_preparation(preparation, {r['id'] for r in pool},
+    cfg['deployment_notice_s'], acquire['at'], remote, backend='dlora')
+assert all(r['outcome'] == 'sent' and r['pack_performed'] is False for r in remote_rows)
+out = dict(schema='ieee_tc_dlora_truncated_model_incompatibility_v1',
+    integrity_checked=True, measurement_complete=False, workload_passed=False,
+    outcome_contract='model_compatibility_stop_truncated', reuse_class='R3',
+    counts=summary['counts'], N_not_arrived=4000-summary['counts']['N_arrived'], N_correct=None,
+    actual_native_output_tokens=summary['actual_native_output_tokens'],
+    responses_with_only_token_zero=len(zero_ids), response_population=len(raw),
+    failures_before_stop=len(before), failures_after_stop=len(failures)-len(before),
+    failure_types=dict(Counter(e.get('error','cancelled').split(':',1)[0] for e in failures)),
+    observed_gpu_seconds=observed_u, physical_gpu_seconds_total=None,
+    physical_terminal_snapshot_count=len(physical_ids),
+    later_publisher_terminal_ids=sorted(terminal_ids-physical_ids),
+    physical_terminal_snapshot_caveat='Service saved terminals before publisher finished cancellation; use final independent publisher for actual arrived/terminal counts.',
+    deployment_prepared_adapters=len(preparation), transferred_bytes=wire,
+    expected_materialized_bytes=sum(f['size_bytes'] for r in pool for f in r['files']),
+    materialized_cache_content_revalidated_here=False,
+    source_sha256={str(path):p.digest(path) for path in
+        (replay, RAW/'launch3b.json', RAW/'model_compatibility_stop_decision.json',
+         RAW/'model_compatibility_stop_signal_receipt.json', Path(journal_audit.__file__),
+         MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py')},
+    independent_lora_numerical_correctness=False, performance_ranking_eligible=False,
+    conclusions=['Known model-semantic mismatch; binding/count audit is not correct inference.',
+                 'Stopped because of compatibility defects, not ranking or low SLO.',
+                 'Unarrived requests are not failures; no full-workload SLO or cost rank.'])
+save(RAW/'audit_truncated.json', out)
+save(RAW/'analysis_receipt.json', dict(passed=True, audit_path=str(RAW/'audit_truncated.json'),
+    population='actual_stopped_W2', workload_passed=False, performance_ranking_eligible=False,
+    resources=p.cgroup_snapshot(group), script_sha256=p.digest(Path(__file__))))
+print(json.dumps({k:out[k] for k in ('counts','N_not_arrived','responses_with_only_token_zero',
+    'failures_before_stop','failures_after_stop','failure_types','observed_gpu_seconds',
+    'physical_terminal_snapshot_count','later_publisher_terminal_ids')}))

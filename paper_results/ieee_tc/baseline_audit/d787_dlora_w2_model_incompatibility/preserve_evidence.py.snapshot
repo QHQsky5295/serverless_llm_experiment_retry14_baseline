@@ -1,0 +1,9 @@
+"""Reuse D786 remote/resolver preservation with D787-owned identities."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d786_20261024/preserve_evidence.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '0096f516101a49e8b11c8629792fc9997415d29f3fc2a824c72924a0434bb554'
+source = data.decode().replace('D786', 'D787').replace('d786', 'd787')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

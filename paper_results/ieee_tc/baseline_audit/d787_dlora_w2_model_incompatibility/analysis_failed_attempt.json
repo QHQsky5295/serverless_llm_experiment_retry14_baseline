@@ -1,0 +1,11 @@
+{
+  "schema": "ieee_tc_offline_analysis_attempt_v1",
+  "script": "audit_truncated.py",
+  "script_sha256": "70a16fa50e2f0f195286a8131500c1948f9e09e0162b22cadf97f5e02915be9f",
+  "returncode": 1,
+  "exception": "AssertionError",
+  "location": "service qualifier response map compared with every raw HTTP response",
+  "reason": "Raw HTTP records also include error-status responses after the controlled stop; they are not successful model responses.",
+  "run_data_changed": false,
+  "performance_rerun": false
+}

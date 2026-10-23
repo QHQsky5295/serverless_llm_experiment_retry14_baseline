@@ -1,0 +1,58 @@
+{
+  "schema": "ieee_tc_dlora_truncated_model_incompatibility_v1",
+  "integrity_checked": true,
+  "measurement_complete": false,
+  "workload_passed": false,
+  "outcome_contract": "model_compatibility_stop_truncated",
+  "reuse_class": "R3",
+  "counts": {
+    "N_plan": 4000,
+    "N_arrived": 1364,
+    "N_terminal": 1364,
+    "N_response": 747,
+    "N_failed": 617,
+    "N_submitted": 1345
+  },
+  "N_not_arrived": 2636,
+  "N_correct": null,
+  "actual_native_output_tokens": 85456,
+  "responses_with_only_token_zero": 747,
+  "response_population": 747,
+  "failures_before_stop": 0,
+  "failures_after_stop": 617,
+  "stopped_raw_http_error_responses": 597,
+  "failure_types": {
+    "ValueError": 597,
+    "ClientConnectorError": 19,
+    "ServerDisconnectedError": 1
+  },
+  "observed_gpu_seconds": 2657.656482404098,
+  "physical_gpu_seconds_total": null,
+  "physical_terminal_snapshot_count": 1360,
+  "later_publisher_terminal_ids": [
+    "req_01360",
+    "req_01361",
+    "req_01362",
+    "req_01363"
+  ],
+  "physical_terminal_snapshot_caveat": "Service saved terminals before publisher finished cancellation; use final independent publisher for actual arrived/terminal counts.",
+  "deployment_prepared_adapters": 500,
+  "transferred_bytes": 1160474851,
+  "expected_materialized_bytes": 19482573296,
+  "materialized_cache_content_revalidated_here": false,
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d787_20261024/launch3b.launch/replay.jsonl": "20cfe30107a83496941671fc97ad8384eab935e2e06aae196e3a6f88ee31fe7d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d787_20261024/launch3b.json": "f26b5b62bf9aba4cb5529c7b1f1b0e61b517be4bb0bb9994510d911dcb0303ca",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d787_20261024/model_compatibility_stop_decision.json": "b80040515b03cb2e5dadab56954ec55953e0019fdb4f53d7fda59d4dc0c3569b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d787_20261024/model_compatibility_stop_signal_receipt.json": "4423aa49c0026bea302b3f9c16989bfba4be693865204fb702b408b8b6f52171",
+    "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py": "82b985947c0f646e0310fb7e79cb9216b8db4dcc88aa5c96d8b93df96298503e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py": "8a5f1bf18944a0c168525eddbde8eaed1b61e3b05d4f6279d0f9d81e8efec473"
+  },
+  "independent_lora_numerical_correctness": false,
+  "performance_ranking_eligible": false,
+  "conclusions": [
+    "Known model-semantic mismatch; binding/count audit is not correct inference.",
+    "Stopped because of compatibility defects, not ranking or low SLO.",
+    "Unarrived requests are not failures; no full-workload SLO or cost rank."
+  ]
+}

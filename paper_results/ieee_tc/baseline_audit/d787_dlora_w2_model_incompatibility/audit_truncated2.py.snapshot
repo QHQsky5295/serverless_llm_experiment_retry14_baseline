@@ -1,0 +1,20 @@
+"""Retain failed analysis; distinguish successful and stopped-error raw HTTP."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).with_name('audit_truncated.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '70a16fa50e2f0f195286a8131500c1948f9e09e0162b22cadf97f5e02915be9f'
+source = data.decode()
+before = "raw = index.get('http_raw_response', {})"
+assert source.count(before) == 1
+source = source.replace(before, """all_raw = index.get('http_raw_response', {})
+raw = {rid:e for rid,e in all_raw.items() if rid in index.get('http_response', {})}
+stopped_errors = {rid:e for rid,e in all_raw.items() if rid not in raw}
+assert all(e['status'] >= 400 and e['client_completed_s'] >= signal['sent_at_monotonic_s']
+           and rid in index.get('http_request_failed', {}) for rid,e in stopped_errors.items())""")
+source = source.replace("failure_types=dict(Counter(",
+    "stopped_raw_http_error_responses=len(stopped_errors),\n    failure_types=dict(Counter(")
+source = source.replace('analysis_identity.json', 'analysis2_identity.json')
+source = source.replace('analysis_receipt.json', 'analysis2_receipt.json')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

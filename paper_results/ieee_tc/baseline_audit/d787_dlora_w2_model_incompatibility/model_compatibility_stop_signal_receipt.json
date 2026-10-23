@@ -1,0 +1,8 @@
+{
+  "signal_sent": true,
+  "sent_at_monotonic_s": 2302658.822049089,
+  "target_pid": 3487739,
+  "target_start_ticks": 230119722,
+  "terminal": false,
+  "release_confirmed": false
+}

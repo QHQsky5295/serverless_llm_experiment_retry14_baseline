@@ -1,0 +1,61 @@
+"""Stop the owned D787 service through its existing SIGTERM/finally path.
+
+Reason: confirmed model-semantic incompatibility, not performance or a monitor
+timeout. Keep the original workload size and every partial measurement.
+"""
+import json
+import os
+from pathlib import Path
+import signal
+import sys
+import time
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+assert RAW.name == 'd787_20261024'
+assert not (RAW/'launch3b.json').exists(), 'already terminal; do not signal'
+receipt = json.loads((RAW/'launch3b.launch/exec_receipt.json').read_text())
+identity = receipt['service_identity']
+assert identity['invocation_id'] == '500ed896ea7d4b60b47a97d180b0ccf9'
+assert p.scope_still_owned(identity)
+journals = list((RAW/'model3b/physical_allocations').glob('*.jsonl'))
+assert len(journals) == 1
+with journals[0].open() as stream:
+    acquisition = json.loads(next(stream))
+assert acquisition['event'] == 'acquire'
+owner = acquisition['owner_identity']
+assert owner['pid'] == 3487739 and owner['start_ticks'] == 230119722
+assert owner['cgroup'] == identity['path']
+assert p.gpu_process_identity(owner['pid']) == owner
+cmdline = Path(f'/proc/{owner["pid"]}/cmdline').read_bytes().split(b'\0')
+assert b'native-http-service' in cmdline
+assert str(RAW/'native_3b.json').encode() in cmdline
+evidence = MAIN/'docs/ieee_tc/D787_DLORA_OUTPUT_OBSERVATION_20261024.md'
+decision = dict(schema='ieee_tc_model_compatibility_stop_v1', campaign=RAW.name,
+    reason='missing_tied_output_embedding_and_llama3_rope',
+    run_reuse_class='R3', performance_based_stop=False,
+    original_N_plan=4000, unarrived_requests_are_failures=False,
+    service_identity=identity, owner_identity=owner,
+    evidence_path=str(evidence), evidence_sha256=p.digest(evidence),
+    plan_sha256=p.check_plan(), requested_at_monotonic_s=time.monotonic(),
+    signal='SIGTERM_to_native_http_service_owner', old_data_preserved=True)
+fd = os.pidfd_open(owner['pid'])
+try:
+    assert p.gpu_process_identity(owner['pid']) == owner
+    save(RAW/'model_compatibility_stop_decision.json', decision)
+    signal.pidfd_send_signal(fd, signal.SIGTERM)
+    save(RAW/'model_compatibility_stop_signal_receipt.json',
+         dict(signal_sent=True, sent_at_monotonic_s=time.monotonic(),
+              target_pid=owner['pid'], target_start_ticks=owner['start_ticks'],
+              terminal=False, release_confirmed=False))
+finally:
+    os.close(fd)
+print(json.dumps(dict(signal_sent=True, target_pid=owner['pid'],
+                      reason=decision['reason'], terminal=False)))

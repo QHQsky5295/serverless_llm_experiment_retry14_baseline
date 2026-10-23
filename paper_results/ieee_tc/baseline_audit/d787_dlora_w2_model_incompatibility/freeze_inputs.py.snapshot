@@ -1,0 +1,9 @@
+"""D787: reuse frozen W2 input/cache sealing; only native system identity changes."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d773_20261023/freeze_inputs.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '933b5725f08881f235996b4146a8076cfd19c1b57c2f431f963408e55a831045'
+source = data.decode().replace('verify_slora_source_view', 'verify_dlora_source_view').replace('S-LoRA', 'dLoRA').replace('D773', 'D787')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
