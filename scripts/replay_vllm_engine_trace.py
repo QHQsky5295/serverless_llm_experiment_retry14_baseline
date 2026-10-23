@@ -351,6 +351,71 @@ class NativeVLLMRequestHandler:
             metrics=dict(ieee_tc=measured))
 
 
+class NativeDloraRequestHandler:
+    """Common input into native EngineManager, not an alternative router.
+
+    The service launcher must supply owned Ray/lifecycle evidence separately.
+    This request adapter alone is not a qualified service or a performance run.
+    """
+    def __init__(self, *, manager, sampling_factory, model, vocab_size, max_model_len, clock_id):
+        from ieee_tc_serverless_measurement import dlora_native_adapter_bindings
+        self.manager, self.sampling_factory = manager, sampling_factory
+        self.model, self.vocab_size, self.max_model_len = model, vocab_size, max_model_len
+        self.clock_id = clock_id
+        self.adapters = dlora_native_adapter_bindings(manager)
+        self.seen = set()
+
+    async def generate(self, body):
+        from ieee_tc_serverless_measurement import (dlora_prepare_canonical_request,
+            dlora_validate_final_output, dlora_abort_current_owner)
+        entry = time.perf_counter()
+        request = dlora_prepare_canonical_request(body, model=self.model,
+            adapters=self.adapters, vocab_size=self.vocab_size, max_model_len=self.max_model_len)
+        rid = request['request_id']
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if control.get('tc_clock_id') != self.clock_id or rid in self.seen:
+            raise ValueError('dLoRA request clock differs or request ID was already offered')
+        params = self.sampling_factory(**request['sampling_kwargs'])
+        self.seen.add(rid)
+        async with self.manager.select_lock:
+            selection_started = time.perf_counter()
+            engine, generator = await self.manager.select_engine(rid, request['prompt'], params,
+                request['model_id'], prompt_token_ids=list(request['prompt_token_ids']))
+            dispatched = time.perf_counter()
+        final, valid = None, False
+        try:
+            async for output in generator:
+                final = output
+            completed = time.perf_counter()
+            if final is None:
+                raise ValueError('dLoRA returned no native terminal output')
+            measured = dlora_validate_final_output(final, request_id=rid,
+                model_id=request['model_id'], prompt_ids=request['prompt_token_ids'],
+                target=request['target_tokens'], dispatched_at=dispatched,
+                completed_at=completed, clock_id=self.clock_id)
+            control.update(tc_backend_entry_s=entry, tc_native_selection_started_s=selection_started,
+                tc_native_submitted_s=dispatched, tc_native_selected_engine_id=engine.engine_id,
+                tc_canonical_prompt_sha256=request['canonical_prompt_sha256'])
+            measured.update(native_request_id=rid, native_adapter_id=request['adapter_id'],
+                native_adapter_path=request['adapter_path'], native_adapter_index=request['model_id'],
+                control_observation=control)
+            valid = True
+            return dict(id=rid, model=self.model, choices=[dict(index=0, finish_reason='length',
+                message=dict(role='assistant', content=final.outputs[0].text))],
+                usage=dict(prompt_tokens=len(request['prompt_token_ids']),
+                    completion_tokens=request['target_tokens'],
+                    total_tokens=len(request['prompt_token_ids'])+request['target_tokens']),
+                metrics=dict(ieee_tc=measured))
+        finally:
+            # The original generate catches Exception, not task cancellation;
+            # its captured engine can also be stale after a native migration.
+            try:
+                if not valid:
+                    await dlora_abort_current_owner(self.manager, rid)
+            finally:
+                await generator.aclose()
+
+
 class ResidentRoundRobin:
     """Stable request-ordinal round robin, as in the existing fair runner.
 

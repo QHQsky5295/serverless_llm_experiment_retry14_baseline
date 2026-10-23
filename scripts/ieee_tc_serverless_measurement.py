@@ -627,6 +627,88 @@ def install_v030_snapshot():
                 source_sha256=sources, package_root=str(root))
 
 
+def dlora_native_adapter_bindings(manager):
+    """Read the exact zero-based order passed to native PEFT loaders.
+
+    This is a static identity map, not replica placement. EngineManager retains
+    authority over routing and migration. Loaded bytes/arithmetic need their
+    own evidence; an integer model ID alone does not prove either.
+    """
+    if (getattr(manager.exec_type, 'name', None) != 'LORA' or not manager.engines
+            or type(manager.num_models) is not int or manager.num_models <= 0):
+        raise ValueError('dLoRA binding requires native LORA engines and an explicit pool')
+    bindings = None
+    for ordinal, engine in enumerate(manager.engines):
+        cfg = engine.lora_config
+        ids, paths = cfg.adapter_ids, cfg.adapter_paths
+        if (engine.engine_id != ordinal or cfg.num_models != manager.num_models
+                or len(ids) != manager.num_models or len(paths) != len(ids)
+                or any(not isinstance(a, str) or not a for a in ids)
+                or len(set(ids)) != len(ids)
+                or any(not isinstance(p, str) or not Path(p).is_absolute() for p in paths)):
+            raise ValueError('dLoRA native loader adapter identity is incomplete')
+        current = {aid: (i, paths[i]) for i, aid in enumerate(ids)}
+        if bindings is not None and bindings != current:
+            raise ValueError('dLoRA engines disagree on native model-ID/adapter order')
+        bindings = current
+    return bindings
+
+
+def dlora_prepare_canonical_request(body, *, model, adapters, vocab_size, max_model_len):
+    """Common frozen body -> existing native sampling/input arguments, no tokenize.
+
+    Preserve the supplied canonical ID list instead of re-encoding its text
+    using dLoRA's historical tokenizer. Return copies, so transport buffers
+    cannot rewrite an enqueued request. A later native output must match them.
+    """
+    ids, target = body.get('input_tokens'), body.get('max_tokens')
+    aid, rid = body.get('lora_adapter_name'), body.get('request_id')
+    prompt = body.get('canonical_prompt')
+    if (body.get('model') != model or not isinstance(rid, str) or not rid
+            or not isinstance(aid, str) or aid not in adapters
+            or not isinstance(prompt, str) or not prompt
+            or type(vocab_size) is not int or vocab_size <= 0
+            or type(max_model_len) is not int or max_model_len <= 0
+            or type(ids) is not list or not ids
+            or any(type(t) is not int or not 0 <= t < vocab_size for t in ids)
+            or type(target) is not int or not 1 <= target <= 256
+            or len(ids)+target > max_model_len
+            or body.get('temperature') != 0 or body.get('top_p') != 1
+            or body.get('ignore_eos') is not True or body.get('stream') is not False
+            or body.get('stop') != [] or body.get('stop_token_ids') != []
+            or body.get('n', 1) != 1 or body.get('best_of', 1) != 1
+            or body.get('use_beam_search', False) is not False):
+        raise ValueError('request differs from dLoRA canonical fixed-output contract')
+    index, path = adapters[aid]
+    return dict(request_id=rid, adapter_id=aid, model_id=index, adapter_path=path,
+        prompt=prompt, prompt_token_ids=list(ids), target_tokens=target,
+        canonical_prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest(),
+        prompt_token_ids_sha256=_native_ids_digest(ids),
+        sampling_kwargs=dict(n=1, best_of=1, temperature=0., top_p=1.,
+            max_tokens=target, ignore_eos=True, stop=[], use_beam_search=False))
+
+
+async def dlora_abort_current_owner(manager, request_id):
+    """Abort the current native owner, including after request migration.
+
+    The original API captures the initially selected engine. Its tracker may
+    no longer own the stream after migration. Use the same native select_lock
+    as migration; do not broadcast an abort or change its placement policy.
+    No owner means not submitted yet or already terminal. No global Ray stop.
+    """
+    async with manager.select_lock:
+        owners = [engine for engine in manager.engines
+                  if request_id in engine.request_tracker]
+        if len(owners) > 1:
+            raise ValueError('dLoRA request has multiple native stream owners')
+        if owners:
+            # Native _abort is synchronous and schedules cleanup in engine_step.
+            # No await between ownership lookup and this mutation.
+            owners[0]._abort(request_id)
+            return owners[0].engine_id
+        return None
+
+
 def dlora_register_sequence_group(group):
     """Observe native enqueue; the existing migrated SequenceGroup owns state.
 

@@ -378,7 +378,7 @@ DLORA_OBSERVATION_SOURCES = {
 }
 
 
-def dlora_measurement_sources(native_source: Path) -> dict[str, str]:
+def dlora_measurement_sources(native_source: Path, *, canonical_input=False) -> dict[str, str]:
     """Passive native event hooks in the retained dLoRA compatibility tree.
 
     SequenceGroup already migrates by deepcopy. Carry its measured timestamps
@@ -427,19 +427,34 @@ def dlora_measurement_sources(native_source: Path) -> dict[str, str]:
         '        "prompt_token_ids": list(request_output.prompt_token_ids),\n'
         '        "finish_reasons": [output.finish_reason for output in request_output.outputs],\n')
     replacements = {engine_path: engine, output_path: output, api_path: api}
+    if canonical_input:
+        # AsyncLLMEngine already accepts token IDs. Preserve the native choice,
+        # placement and migration; forward the optional input through its owner.
+        path = 'vllm/engine/engine_manager.py'
+        manager = (native_source/path).read_text()
+        manager = replace_once(manager,
+            '    async def select_engine(self, request_id, prompt, sampling_params, model_id: int) -> AsyncLLMEngine:\n',
+            '    async def select_engine(self, request_id, prompt, sampling_params, model_id: int,\n'
+            '                            prompt_token_ids: Optional[List[int]] = None) -> AsyncLLMEngine:\n')
+        manager = replace_once(manager,
+            '        results_generator = engine.generate(prompt, sampling_params, request_id, model_id)\n',
+            '        results_generator = engine.generate(prompt, sampling_params, request_id, model_id,\n'
+            '                                            prompt_token_ids=prompt_token_ids)\n')
+        replacements[path] = manager
     for path, source in replacements.items():
         compile(source, path, 'exec')
     return replacements
 
 
-def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
+def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path,
+                                   *, canonical_input=False) -> dict:
     """Reuse the source-view approach; preserve vendor checkout and old results."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous dLoRA source view')
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
-    replacements = dlora_measurement_sources(native_source)
+    replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input)
     support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
     output.mkdir(mode=0o700)
     for parent, dirs, files in os.walk(native_source/'vllm'):
@@ -466,6 +481,9 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
         scheduling_policy_changed=False, loading_policy_changed=False,
         sampling_policy_changed=False, terminal_only_delivery_preserved=True,
         added_cuda_synchronization=False, performance_run_authorized=False)
+    if canonical_input:
+        result['input_contract'] = 'canonical_token_ids_v1'
+        result['input_forwarding'] = 'EngineManager_to_existing_AsyncLLMEngine_generate'
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result
@@ -2538,6 +2556,8 @@ def main() -> None:
     dlora = sub.add_parser('prepare-dlora-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         dlora.add_argument('--'+name, type=Path, required=True)
+    dlora.add_argument('--canonical-input', action='store_true',
+                       help='Forward common token IDs through the native EngineManager.')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2583,7 +2603,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == 'prepare-dlora-measurement-view':
         print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
-            args.main_repo), indent=2))
+            args.main_repo, canonical_input=args.canonical_input), indent=2))
         return
     if args.action == 'prepare-loquetier-measurement-view':
         print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,
