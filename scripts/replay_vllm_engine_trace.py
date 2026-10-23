@@ -163,8 +163,14 @@ def validate_slora_service_config(cfg, http):
             or cfg.get('host_layout') not in ('native_v1', 'packed_views_v1')):
         raise ValueError('explicit S-LoRA full-pool/resident/sequential/loopback contract required')
     args = cfg.get('native_args', {})
+    # Preserve the existing explicit native BMM path used for GQA models by
+    # run_slora_fair_experiment.sh. Packed HOST views are an audited non-GQA,
+    # non-BMM representation only; never silently select or fall back to it.
+    bmm = args.get('bmm')
+    if type(bmm) is not bool or (bmm and cfg['host_layout'] != 'native_v1'):
+        raise ValueError('native S-LoRA BMM requires explicit native HOST layout')
     fixed = dict(model_dir=http['backbone'], tokenizer_mode='auto', tp=1,
-        max_req_total_len=1024, swap=True, scheduler='slora', dummy=False, bmm=False,
+        max_req_total_len=1024, swap=True, scheduler='slora', dummy=False, bmm=bmm,
         no_lora=False, no_kernel=False, no_lora_compute=False, no_lora_swap=False,
         no_mem_pool=False, profile=False, enable_abort=False, prefetch=False,
         prefetch_size=0, pool_size_lora=0, batch_num_adapters=None, fair_weights=[],

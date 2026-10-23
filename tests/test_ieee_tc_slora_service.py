@@ -61,6 +61,22 @@ def native_configs():
 
 
 class NativeConfiguration(unittest.TestCase):
+    def test_explicit_native_bmm_reuses_gqa_path_without_packed_fallback(self):
+        cfg, http = native_configs()
+        cfg['host_layout'] = 'native_v1'
+        cfg['native_args']['bmm'] = True
+        self.assertEqual(service.validate_native_service_config(cfg, http), 18090)
+        self.assertTrue(cfg['native_args']['bmm'])
+        with self.assertRaisesRegex(ValueError, 'native HOST layout'):
+            service.validate_native_service_config(dict(cfg, host_layout='packed_views_v1'), http)
+        for value in (1, 0, 'true', None):
+            invalid = copy.deepcopy(cfg)
+            invalid['native_args']['bmm'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                service.validate_native_service_config(invalid, http)
+        cfg['native_args']['bmm'] = False
+        self.assertEqual(service.validate_native_service_config(cfg, http), 18090)
+
     def test_explicit_source_and_native_modes_not_new_policy(self):
         cfg, http = native_configs()
         self.assertEqual(service.validate_native_service_config(cfg, http), 18090)
