@@ -164,6 +164,19 @@ def audit_tc_http_journal(replay_path: Path) -> Dict[str, Any]:
                     and type(observation.get('native_forward_count')) is int
                     and observation['native_forward_count'] == contract['target_tokens']
                     and observation.get('native_terminal_observed') is True)
+            elif backend == 'dlora':
+                path = observation.get('native_adapter_path')
+                adapter_matches = (observation.get('timing_contract') == 'ieee_tc_dlora_native_v1'
+                    and observation.get('native_adapter_id') == contract['adapter_id']
+                    and observation.get('native_request_id') == rid
+                    and isinstance(path, str) and Path(path).is_absolute()
+                    and Path(path).name == contract['adapter_id']
+                    and type(observation.get('native_adapter_index')) is int
+                    and observation['native_adapter_index'] >= 0
+                    and type(observation.get('native_model_id')) is int
+                    and observation['native_model_id'] == observation['native_adapter_index']
+                    and observation.get('native_adapter_binding_source') == 'dlora_native_sequence_group_model_id'
+                    and observation.get('native_terminal_observed') is True)
             elif backend == 'vllm':
                 adapter_matches = observation.get('native_lora_name') == contract['adapter_id']
             else:

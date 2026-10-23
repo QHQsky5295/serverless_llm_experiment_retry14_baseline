@@ -93,6 +93,9 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
     def test_loquetier_summary_requires_forward_binding_not_vllm_name(self):
         self.check_static_summary('loquetier')
 
+    def test_dlora_summary_requires_sequence_model_id_not_vllm_name(self):
+        self.check_static_summary('dlora')
+
     def check_static_summary(self, backend):
         contract = dict(event='request_contract', request_id='r', adapter_id='a',
                         native_backend=backend, target_tokens=2,
@@ -108,6 +111,11 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
                 native_request_id='r', native_terminal_observed=True, native_forward_count=2,
                 native_adapter_binding_source='loquetier_actual_forward_segments_and_startup_pointer_tables',
                 control_observation=dict(instance_id='loquetier-0'))
+        if backend == 'dlora':
+            observed.update(timing_contract='ieee_tc_dlora_native_v1', native_adapter_id='a',
+                native_request_id='r', native_terminal_observed=True, native_model_id=0,
+                native_adapter_binding_source='dlora_native_sequence_group_model_id',
+                control_observation=dict(instance_id='dlora-0'))
         timing = dict(protocol_valid=True, ttft_ms=6., e2e_ms=15., submit_lag_ms=1.,
                       dispatch_wait_after_submit_ms=2., service_ttft_ms=3., decode_ms=4.,
                       completion_notification_ms=5., router_queue_ms=2., tpot_ms=4.,
@@ -143,6 +151,9 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
                 mutations += [('native_adapter_id', 'b'), ('native_request_id', 'other'),
                     ('native_forward_count', 1), ('native_forward_count', True),
                     ('native_terminal_observed', False)]
+            if backend == 'dlora':
+                mutations += [('native_adapter_id', 'b'), ('native_request_id', 'other'),
+                    ('native_model_id', 1), ('native_model_id', False), ('native_terminal_observed', False)]
             for key, bad in mutations:
                 saved = observed[key]
                 observed[key] = bad
