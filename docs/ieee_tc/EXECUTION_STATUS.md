@@ -1,5 +1,96 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D749完整3B W0结束：94.675%，保留改善但未达标
+
+PROGRESS。同一InvocationID完成4000/4000正常请求/原生生成合同；service、
+watchdog、replay均0，四GPU真实释放、service域移除、远端自有三服务停止。
+按冻结V1/单轮V2离线核查通过：联合3787/4000=94.675%，TTFT3888、TPOT3893；
+仅TTFT失败106、仅TPOT失败101、两者失败6，仍差13条至3800。
+U14847.16496653203 GPU-s，TTFT均636.416398/P951726.965143ms，
+TPOT均16.098775/P9528.062593ms，E2E均2457.967816/P955170.070120ms。
+相对直接父版D742增加60条/1.5pp，U少0.14116%；相对D703历史3744增加43条，
+不是只胜过退化D745。保留D748为开发父版，但未宣布95%或G1/G2完成。
+D711数值身份限制继续：n_correct=null、ranking_eligible=false，无CI/图。
+
+实际4个worker、4000请求的11051份相关descriptor回执全部匹配精确SHA和
+fresh/no-state-cache合同。145保护项不变；4062资源采样high/max/OOM/swap0，
+服务峰值24392962048B，主机最低可用90554241024B；真实remote132次、
+306360162线上字节，两端身份匹配、无请求时打包。3次自然扩容、0缩容，
+不能以时延改善宣称资源目标已实现。分解误差0ms，完整结果均保留。
+
+离线封存两次入口问题保留：非UUID分析域在开始前拒绝并释放；随后既有三
+统计器均通过，外层Python缺ijson仅影响后续profile绑定，换已有分析环境
+继续剩余封存，没有重复统计/性能运行。complete/resume/launch aux已精确
+释放，closure aux待备份入口释放。下一明确路径提交备份本轮，再检查回收
+有证据的可重建缓存（根盘低于下一重型150GiB线，高于当前100GiB底线），
+结合既有分解/历史失败与官方源码提出单一新假设，不重跑本键。
+3B W1/W2/全部baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档和最终图表全部保留。共享k3s不动，HydraServe隔离结果复用，goal active。
+
+## 2026-10-23 D749完整3B W0已实际运行，保持同一实例监测
+
+PROGRESS。两个新runner合同检查通过，D748/D747资格直接复用。启动前
+明确路径提交1a802bd91e134595ce646114b04a86f3f395de79并核对远端
+backup/d749-fresh-host-descriptor-fullw0-20261023；V2未同步，无force。
+原资源准入通过，真实远端health为prepublished_gzip_v1；启动前链路1000
+Mbit/s/full，仅协商值不冒称吞吐。145保护项、用户manifest和旧数据不变。
+
+tmux `tc-d749-3b-fresh-host-descriptor-full-w0`；实际service
+`primelora-tc-svc-3b9964dc6418444ebca89b577ad6490c.scope`，InvocationID
+`2f682f0a13984677a92ed84b81492d30`。已直接核对active/running及实际worker
+PID233246属于该资源域，/proc/maps已装载D747精确库路径，不仅凭tmux判断。
+watchdog sample134：内存8452784128B、high/max/OOM/swap0、无abort；随后
+读取27条终态均success/native_contract_matched。这只是早期进度，不算完整
+4000请求结果或数值正确性资格。启动管理空域已精确释放，未向服务发信号。
+
+后续轻量复查仍为同一InvocationID、active/running。watchdog sample344：
+服务内存9812959232B、主机可用103945625600B，high/max/OOM/swap均0、
+无abort；随后读取170条终态均success/native_contract_matched、失败0。
+继续这一活实例，不把局部完成率作为最终SLO或数值正确性证据。用户再次
+说明k3s非本项目；不接管共享集群，复用既有隔离rootless Podman HydraServe
+适配和7B W0/W1/W2，不重做部署或索取共享集群凭据。
+
+2026-10-23 07:45:35 CST继续核验（VERIFIED_WAIT）：同一service/InvocationID
+仍active/running，TasksCurrent534；sample407→489→573→650持续推进，
+终态252→360→425→487，最后487条均success/native_contract_matched、失败0。
+sample650当前持有4张GPU，服务内存19715895296B，主机可用93720596480B，
+high/max/OOM/swap均0、无abort。df实测根盘可用160024797184B，低于新任务
+150GiB启动线但高于当前运行100GiB底线；不在测量中清理。当前仅完整回放
+中的进度，不据此计算正式达标/排名；等待本实例终态及真实释放。之后在新
+重型任务前核验并回收有证据可重建的缓存，不删除唯一工件或原始结果。
+
+2026-10-23 07:57:11 CST本轮为VERIFIED_WAIT：完整重读PLAN及执行记录后，
+按同一service/InvocationID连续轻量监测sample718–1328，所有观测均为
+active/running；终态从529增至1194，最后1194条全部success且
+native_contract_matched，失败0。sample1328持有4张GPU，服务内存
+21026447360B、主机可用93331365888B，high/max/OOM/swap均0，无警告/中止。
+根盘可用159046811648B；测量中未清理、构建、测试、push或变更远端。
+当前不是终态，不重启、不追加实验，不将部分完成误称达标。下一继续同一
+运行；结束后真实释放、按冻结V1/单轮V2分析及备份，保留D711正确性限制
+和全部剩余实验范围。下一重型任务前执行既定安全存储回收。
+
+2026-10-23 08:07:55 CST本轮继续VERIFIED_WAIT：完整重读PLAN/执行记录，
+使用同一service/InvocationID监测sample1381–1972，直接查询均active/running。
+终态1255→2038，最后2038全部success/native_contract_matched、失败0；
+sample1972服务内存21757218816B、主机可用92954529792B，4张GPU，
+high/max/OOM/swap均0，无abort。根盘可用158575071232B，仍高于当前运行
+100GiB底线；未扫描/清理或启动其他工作。超过半程不表示完整SLO/正确性
+或资源排名已通过。下一继续这一实例至终态并核实真实释放，才分析和备份；
+D711限制、历史完整对照和全部剩余矩阵不变，goal active。
+
+2026-10-23 08:20:33 CST阶段记录：本轮继续同一活实例，sample2029–2719
+均直接核验active/running且InvocationID不变；终态2108→3021，最后3021
+全部success/native_contract_matched、失败0。sample2719服务内存
+23149211648B、主机可用92361261056B，4张GPU；high/max/OOM/swap均0、
+无abort。根盘可用157597446144B。已过四分之三但仍非终态，继续低扰动
+监测至本轮结束；不重启、不测试/构建/扫描/清理/push、不改远端或配置。
+
+下一继续监测这一活实例，不因观察超时重启。运行期间不测试、构建、哈希
+扫描、压缩/清理、push或变更远端；完成后先真实释放，再按冻结口径分析/
+保留全部数据和D711限制。D74293.175%、D70393.6%仍为既有完整对照。
+全部剩余跨场景/baseline/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档和最终图表不变，goal active。该状态更新于下一正常检查点备份。
+
 ## 2026-10-23 D749完整W0入口已登记，待启动
 
 上一轮为PROGRESS。完整重读PLAN/冻结V1/单轮V2并核对当前D748源与资格，

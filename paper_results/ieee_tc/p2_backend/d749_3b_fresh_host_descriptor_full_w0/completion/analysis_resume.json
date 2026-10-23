@@ -1,0 +1,6 @@
+{
+  "reason": "System analysis interpreter lacked ijson only at post-analysis profile binding",
+  "metrics_context_stages_reused": true,
+  "performance_replayed": false,
+  "analyses_repeated": false
+}

@@ -1,0 +1,94 @@
+"""D749 closure, reused from D745; execute only after physical release."""
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW / '3b_fresh_host_descriptor_full_w0'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d749_3b_fresh_host_descriptor_full_w0/completion'
+PYTHON = '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'completion_resume_identity.json', own)
+group = Path(own['path'])
+events_before = (group / 'memory.events').read_text()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert read(OUT/'closed_outcome.json')['passed']
+assert read(OUT/'stages/diagnosis.json')['passed']
+metric = OUT/'full4000.json'
+with (OUT/'complete.py.snapshot').open('xb') as stream:
+    stream.write((RAW/'complete.py').read_bytes())
+save(OUT/'analysis_resume.json', dict(reason='System analysis interpreter lacked ijson only at post-analysis profile binding', metrics_context_stages_reused=True, performance_replayed=False, analyses_repeated=False))
+# Reuse D725 profile binding; do not invoke D703's historical profile audit.
+import ijson
+with (RUN / 'launch.launch/physical_deployment/main_outcome.json').open('rb') as stream:
+    contract = next(ijson.items(stream, 'launch_contract', use_float=True))
+profiles = ROOT / 'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export'
+assert contract['replay_scope'] == 'full_source_v1'
+assert contract['service_profile_id'] == p.digest(profiles / 'service.json')
+assert contract['preparation_profile_id'] == p.digest(profiles / 'preparation.json')
+save(OUT / 'actual_profile_binding.json', dict(
+    passed=True, launch_contract=contract,
+    prelaunch=ref(OUT.parent / 'prelaunch/qualification.json'),
+    service=ref(profiles / 'service.json'), preparation=ref(profiles / 'preparation.json')))
+
+qualification = read(OUT.parent / 'prelaunch/qualification.json')
+for path, sha in qualification['protected'].items():
+    assert p.digest(Path(path)) == sha, path
+head = read(RAW/'start_receipt.json')['head']
+evolving_docs = {
+    ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D749_3B_FRESH_HOST_DESCRIPTOR_FULL_W0_20261023.md',
+}
+for name, sha in qualification['refs'].items():
+    path = Path(name)
+    if path in evolving_docs:
+        content = subprocess.check_output(
+            ['git', 'show', head+':'+str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+actual = read(metric)
+old_path = ROOT / 'paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/full4000.json'
+old = read(old_path)
+comparison = dict(
+    kind='d749_vs_d742_single_run_observation_v1', previous=ref(old_path), current=ref(metric),
+    joint_slo_delta_percentage_points=100 * (actual['joint_slo_fraction'] - old['joint_slo_fraction']),
+    gpu_seconds_reduction_fraction=(old['physical_gpu_seconds'] - actual['physical_gpu_seconds']) / old['physical_gpu_seconds'],
+    n_correct=actual['n_correct'], ranking_eligible=False, confidence_interval=None,
+    scope='Known W0 development workload; not independent held-out or cross-workload superiority.')
+save(OUT / 'comparison.json', comparison)
+assert (group / 'memory.events').read_text() == events_before
+assert (group / 'memory.swap.current').read_text().strip() == '0'
+save(OUT / 'analysis_resources.json', dict(identity=own, resources={
+    key: (group / key).read_text().strip()
+    for key in ('memory.peak', 'memory.events', 'memory.swap.current')}))
+with (OUT / 'complete_resume.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT / 'manifest.json', dict(files=[
+    dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+    for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(counts=actual['counts'], joint_slo_fraction=actual['joint_slo_fraction'],
+    physical_gpu_seconds=actual['physical_gpu_seconds'], metrics=actual['metrics'],
+    n_correct=actual['n_correct'], comparison=comparison), indent=2))

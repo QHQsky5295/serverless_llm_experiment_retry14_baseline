@@ -1,0 +1,132 @@
+{
+  "kind": "d749_closed_fresh_descriptor_observation_v1",
+  "passed": true,
+  "actual_descriptor": {
+    "requests": 4000,
+    "receipts": 11051,
+    "worker_receipts": {
+      "233246": 3464,
+      "249974": 2658,
+      "250083": 2889,
+      "250194": 2040
+    },
+    "configuration": {
+      "FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+      "FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044"
+    }
+  },
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3888,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3893,
+    "joint_pass": 3787
+  },
+  "violation_partition": {
+    "ttft_only_fail": 106,
+    "tpot_only_fail": 101,
+    "both_fail": 6
+  },
+  "shortfall_to_3800": 13,
+  "metric_source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d749_3b_fresh_host_descriptor_full_w0/completion/full4000.json",
+    "sha256": "5bd78de561d738b76614d6fa7da26b06e92600352e5069f89131175e08ef070f"
+  },
+  "comparisons": [
+    {
+      "label": "D742_direct_parent",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d742_3b_execution_view_full_w0/completion/full4000.json",
+        "sha256": "3efa3caba9ae43347ecca1db6c740aafce7412c3bcc799c50ce3aa9bac5e2c10"
+      },
+      "previous_joint_slo": 0.93175,
+      "previous_gpu_seconds": 14868.152527434286,
+      "joint_difference_percentage_points": 1.5000000000000013,
+      "gpu_seconds_reduction_fraction": 0.0014115782618944
+    },
+    {
+      "label": "D703_historical",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d714_common_slo_correction/d703_verified.json",
+        "sha256": "f780b2dce0626649ddb6dc719935ae0957ed602c40c9fa79fb2e28ab060b9c95"
+      },
+      "previous_joint_slo": 0.936,
+      "previous_gpu_seconds": 14864.807562012225,
+      "joint_difference_percentage_points": 1.0749999999999926,
+      "gpu_seconds_reduction_fraction": 0.0011868700894105573
+    },
+    {
+      "label": "D745_rejected",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/full4000.json",
+        "sha256": "6d455fa64e3e28e240b52071a2e72f54f82b579ad2da67a24cae06f483ce7197"
+      },
+      "previous_joint_slo": 0.92175,
+      "previous_gpu_seconds": 14857.984539700672,
+      "joint_difference_percentage_points": 2.500000000000002,
+      "gpu_seconds_reduction_fraction": 0.0007281992480025013
+    }
+  ],
+  "candidate_disposition": "retain_d748_as_development_parent_not_goal_complete",
+  "observed_latency_feasible": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "decision": "Retain this observed improvement without claiming the common 95% target, G1/G2 qualification or independent numerical adapter correctness. Do not repeat this key. Keep D742 and D703 comparisons, all failed candidates, and the complete remaining matrix.",
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d7490000000000000000000000000002.scope",
+        "invocation_id": "0e2d16ae0a524eb89c77a02393b095ef",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7490000000000000000000000000002.scope",
+        "inode": 30748535
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d7490000000000000000000000000003.scope",
+        "invocation_id": "96c8955a7b2b405a954a32eb083a538f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7490000000000000000000000000003.scope",
+        "inode": 30749920
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84febbfffce040c0acb11272cab9c9bb.scope",
+        "invocation_id": "accd4e5df504499f9d35c7bbfb36c7f4",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84febbfffce040c0acb11272cab9c9bb.scope",
+        "inode": 30715466
+      },
+      "result": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "protected_publication_files": 145,
+  "analysis_launcher_failure": {
+    "kind": "analysis_launcher_error",
+    "scope": "primelora-tc-aux-d749-completion-20261023.scope",
+    "reason": "non-UUID auxiliary name rejected before analysis",
+    "observed": "ControlGroup=/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d749-completion-20261023.scope\nTasksCurrent=0\nActiveState=active\nInvocationID=57f598c636114e06a0764dec0d6d1909\n",
+    "performance_run_repeated": false
+  },
+  "resources": {
+    "memory.peak": "51089408",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}
