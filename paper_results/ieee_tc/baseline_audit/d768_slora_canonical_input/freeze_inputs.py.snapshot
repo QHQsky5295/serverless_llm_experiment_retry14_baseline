@@ -1,0 +1,45 @@
+"""D768: reuse D423 input/cache sealing with explicit S-LoRA native identity."""
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+ROOT = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from prepare_ieee_tc_serverless_stack import load_http_replay_plan
+from replay_vllm_engine_trace import _exclusive_json, _sha, validate_native_service_config, verify_slora_source_view
+http_path = ROOT/'http_3b_100.json'
+cfg_path = ROOT/'native_3b.json'
+http = json.loads(http_path.read_text())
+cfg = json.loads(cfg_path.read_text())
+validate_native_service_config(cfg, http)
+verify_slora_source_view(dict(cfg, main_repo=str(MAIN)))
+plan = load_http_replay_plan(http)
+assert plan.identity()['view_sha256'] == '7fc7c1a556fbf8d161ef607684416b51d7d917eff53a7c5e24ab4088d563f598'
+assert _sha(http['pool_index']) == http['pool_index_sha256']
+rows = [json.loads(e.source_json) for e in plan.entries]
+assert len(rows) == 100 and len({r['adapter_id'] for r in rows}) == 29
+assert sum(min(r['expected_output_tokens'], 256) for r in rows) == 17369
+pool = json.loads(Path(http['pool_index']).read_text())['artifacts']
+assert len(pool) == 500
+assert {r['adapter_id'] for r in rows} <= {r['id'] for r in pool}
+_exclusive_json(ROOT/'input_identity.json', dict(plan=plan.identity(),
+    actual_unique_adapters=29, target_tokens=17369, native_pool_adapters=500,
+    performance_ranking_eligible=False, qualification_only=True, formal_run=False,
+    experiment_role='affected_3b_canonical_input_boundary_qualification',
+    pending_complete_contract_audit=True, resident_reference_candidate=False,
+    source_trace_and_pool_unmodified=True,
+    http_sha256=_sha(http_path), config_sha256=_sha(cfg_path),
+    source_view_manifest_sha256=cfg['source_view_manifest_sha256'],
+    main_execution_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=MAIN,text=True).strip(),
+    baseline_execution_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=BASE,text=True).strip()))
+cache = Path('/home/qhq/.triton/cache')
+items = [[str(p), p.stat().st_size, _sha(p)] for p in sorted(cache.rglob('*')) if p.is_file()]
+_exclusive_json(ROOT/'native_cache_identity.json', dict(
+    scope='Existing native Triton disk cache before S-LoRA launch; shared historical cache, not engine preload',
+    files=len(items), bytes=sum(r[1] for r in items), entries=items,
+    aggregate_sha256=hashlib.sha256(json.dumps(items,separators=(',',':')).encode()).hexdigest(),
+    engine_or_gpu_preloaded=False))
+print(json.dumps(dict(input=plan.identity(), cache_files=len(items), cache_bytes=sum(r[1] for r in items))))

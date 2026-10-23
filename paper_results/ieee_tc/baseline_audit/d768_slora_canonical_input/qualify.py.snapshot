@@ -1,0 +1,82 @@
+"""D768: bounded input-boundary qualification following D767's one failure.
+
+Reuse existing native source adapter, CPU tests, input view and resource domain.
+No new trace/weights, baseline policy or GPU inference in this step.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+PREV = RAW.parent/'d767_20261023'
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import prepare_slora_measurement_view, load_http_replay_plan
+from replay_vllm_engine_trace import validate_native_service_config, verify_slora_source_view
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+attempt = sys.argv[1]
+assert re.fullmatch(r'0[1-9]', attempt)
+name = 'qualification_'+attempt
+own = p.scope_identity(p.cg_path().name)
+save(RAW/(name+'_identity.json'), own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+protected = read(PREV/'qualification.json')
+for path, digest in (protected['protected'] | protected['preserved']).items():
+    assert p.digest(Path(path)) == digest, path
+assert read(PREV/'gpu_cache_reclamation.json')['passed']
+
+command = [sys.executable, '-B', '-m', 'unittest',
+    'tests.test_ieee_tc_slora_measurement','tests.test_ieee_tc_slora_service','-v']
+logpath = RAW/('cpu_contract_tests_'+attempt+'.log')
+with logpath.open('x') as log:
+    result = subprocess.run(command, cwd=BASE, stdout=log, stderr=subprocess.STDOUT)
+assert result.returncode == 0, str(logpath)
+count = int(re.search(r'Ran (\d+) tests', logpath.read_text())[1])
+
+view = RAW/'source_view'
+manifest = prepare_slora_measurement_view(BASE/'repos/S-LoRA', view, MAIN,
+    host_layout='native_v1', worker_lifecycle=True, input_mode='canonical_token_ids_v1')
+http = read(PREV/'http_3b_100.json')
+http['experiment_role'] = 'affected_3b_canonical_input_boundary_qualification'
+cfg = read(PREV/'native_3b.json')
+cfg.update(source_view=str(view), source_view_manifest_sha256=p.digest(view/'measurement_manifest.json'),
+           input_mode='canonical_token_ids_v1')
+validate_native_service_config(cfg, http)
+verify_slora_source_view(dict(cfg, main_repo=str(MAIN)))
+save(RAW/'native_3b.json', cfg)
+save(RAW/'http_3b_100.json', http)
+plan = load_http_replay_plan(http)
+assert plan.identity() == read(PREV/'qualification.json')['input_identity']
+assert len(plan.entries) == 100
+refs = [RAW/'native_3b.json', RAW/'http_3b_100.json', view/'measurement_manifest.json',
+    logpath, Path(__file__), PREV/'prompt_diagnostic.json', PREV/'failure_result.json',
+    PREV/'gpu_cache_reclamation.json',
+    *[BASE/'scripts'/name for name in ('replay_vllm_engine_trace.py',
+        'prepare_ieee_tc_serverless_stack.py', 'ieee_tc_serverless_measurement.py')],
+    *[BASE/'tests'/name for name in ('test_ieee_tc_slora_measurement.py', 'test_ieee_tc_slora_service.py')]]
+save(RAW/'qualification.json', dict(passed=True, cpu_tests=count, command=command,
+    qualification_attempt=attempt, input_identity=plan.identity(), actual_unique_adapters=29,
+    target_tokens=17369, no_gpu_run=True, numerical_correctness_qualified=False,
+    baseline_performance_tuning=False, input_mode='canonical_token_ids_v1',
+    change='Exact common IDs at native HTTP/router boundary; native limits/scheduler/inference unchanged.',
+    qualification_scope='CPU integration only; affected 3B GPU input path pending.',
+    source_plan_sha256=p.check_plan(), protected=protected['protected'], preserved=protected['preserved'],
+    refs={str(path):p.digest(path) for path in refs}, resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, cpu_tests=count, input_identity=plan.identity(), gpu_run_started=False)))

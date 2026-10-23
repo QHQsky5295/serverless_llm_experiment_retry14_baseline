@@ -1,6 +1,34 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D768：同token输入边界适配（PROGRESS）
+
+D767唯一失败有CPU同请求89/91输入差异证据，本轮只修复旧tokenizer再次切分。
+新显式canonical_token_ids_v1把公共ID传到原生HTTP→router；native_text_v1
+默认不变。原生长度限制、RR/调度、BMM/LoRA、输出计数及实际输入核验均保留，
+没有backend升级或baseline调参。原始源码/旧view不覆盖。详见
+D768_SLORA_CANONICAL_INPUT_20261023.md。
+
+57相关CPU测试通过（新增实际API/manager/服务接线、AST范围/输入错误检查），
+成功域peak349380608B，high/max/OOM/swap0，空域已关闭。首次57项中两个新
+fixture错误保留cpu_contract_tests_01.log，修正后02通过；不是GPU重跑。
+两次scope命名失败在模型/测试启动前退出并精确关闭，没有放宽资源身份规则。
+新RAW slora_qualification/d768_20261023；原100请求/29 IDs/17369 targets/
+500静态池保持。D767已关闭缓存的回收证据复用，不新复制整池。
+
+先做脚本/来源备份，随后才运行受影响的同100条GPU资格。此处尚无GPU结果，
+独立数值正确性未知。下一仍是S-LoRA 3B缺失资格→完整W0/W1/W2与其余3B
+baseline比较；随后PrimeLoRA必要优化、最终同版本7B主表/Full、A1–A5、
+S1–S13及全部文档图表。共享k3s不动，HydraServe隔离证据保留，目标active。
+
 ## 2026-10-23 D767：前100终态与单条输入差异定位（PROGRESS）
+
+19:48 CST检查点完成：MAIN 4b2fc47e280a3354bb1877f98caed09c7903bf2e，
+已推送并核对faaslora_origin/backup/d767-slora-3b-input-failure-20261023；
+BASE 08a69516e072d774ee77ee5d37df6a487871dee1仍与origin/main一致。本轮
+41条明确路径、未stage用户修改；V2仍未同步，不force。publication session
+40073已结束，空域已精确关闭；全部本轮会话结束，没有活动GPU/exec/wait。
+回执在raw，下一正常检查点携带。缓存维护high2712、peak3221749760B，
+max/OOM/swap0；在测量结束后，不与服务的零high/OOM事件混淆。
 
 本轮100计划/到达/提交/终态，99原生合同完成、1失败req_00028。实际4个
 worker已释放，launch service_returncode=1保留；远端3个自有服务停止，

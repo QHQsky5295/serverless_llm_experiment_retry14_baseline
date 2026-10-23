@@ -1,0 +1,85 @@
+"""D768: reuse D591 launch/containment for the qualified 3B canonical input boundary.
+
+Only model, prefix population and verified checkpoint identity differ. No
+performance search, GPU preload, generated artifacts, or shared-k3s operation.
+"""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+ENV = Path('/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python')
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+def git(repo, *args):
+    return subprocess.check_output(['git', *args], cwd=repo, text=True).strip()
+
+assert RAW.name == 'd768_20261023'
+assert not any((RAW/name).exists() for name in ('launch3b.json','launch3b.launch','model3b','input_identity.json'))
+assert not Path('/tmp/tc-d768-3bs').exists()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+backup = read(RAW/'backup_receipt.json')
+head = git(ROOT, 'rev-parse', 'HEAD')
+basehead = git(BASE, 'rev-parse', 'HEAD')
+assert backup['passed'] and head == backup['head'] and basehead == backup['baseline_head']
+assert git(ROOT,'ls-remote','faaslora_origin',backup['remote_ref']).split()[0] == head
+assert git(BASE,'ls-remote','origin','refs/heads/main').split()[0] == basehead
+for name in ('backup','qualification_02'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']
+    assert not Path(closed['identity']['path']).exists()
+for repo, paths in ((ROOT,['faaslora','scripts','configs/ieee_tc','tests']),
+                    (BASE,['scripts/prepare_ieee_tc_serverless_stack.py',
+                           'scripts/replay_vllm_engine_trace.py','scripts/ieee_tc_serverless_measurement.py',
+                           'configs/ieee_tc'])):
+    assert not git(repo,'diff','--name-only','HEAD','--',*paths)
+binding = read(RAW/'qualification.json')
+assert binding['passed'] and binding['cpu_tests'] == 57 and binding['input_identity']['profile'] == 'W0'
+assert binding['actual_unique_adapters'] == 29 and binding['target_tokens'] == 17369
+for path, sha in (binding['refs'] | binding['protected'] | binding['preserved']).items():
+    assert p.digest(Path(path)) == sha, path
+assert len(binding['protected']) == 145
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+gate = p.preflight([ROOT], 20*p.GIB)
+assert gate['preflight_pass'], gate['issues']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+session = 'tc-d768-slora-3b-prefix100'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode != 0
+save(RAW/'launch_gate.json', dict(passed=True,head=head,baseline_head=basehead,
+    qualification_sha256=p.digest(RAW/'qualification.json'),gate=gate,
+    protected_unchanged=145,scope=identity,
+    helpers=[dict(path=str(x),sha256=p.digest(x),content=x.read_text())
+             for x in sorted([*RAW.glob('*.py'),*RAW.glob('*.sh')])]))
+subprocess.run([str(ENV),'-B',str(RAW/'freeze_inputs.py')],cwd=BASE,check=True)
+subprocess.run(['bash',str(RAW/'start_remote.sh')],check=True)
+subprocess.run([sys.executable,str(RAW/'check_remote_health_stdlib.py')],cwd=ROOT,check=True)
+subprocess.run(['tmux','new-session','-d','-s',session,'-c',str(BASE),
+                f'bash {RAW}/run3b.sh > {RAW}/runner.log 2>&1'],check=True)
+receipt = RAW/'launch3b.launch/exec_receipt.json'
+deadline = time.monotonic()+210
+while not receipt.exists():
+    if time.monotonic() > deadline:
+        raise TimeoutError('Observation timeout only; inspect the same tmux, never restart.')
+    time.sleep(.1)
+launched = read(receipt)
+captured = p.scope_identity(Path(launched['auxiliary_path']).name)
+save(RAW/'service_aux_identity.json', captured)
+save(RAW/'start_receipt.json', dict(launched=True,head=head,baseline_head=basehead,
+    tmux=session,starter_identity=identity,launcher_identity=captured))
+print(json.dumps(dict(launched=True,tmux=session,head=head,baseline_head=basehead)))

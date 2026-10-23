@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "head": "84bb7892b4aade6bed0b898fb99d1f6074073a10",
+  "remote": "origin/main",
+  "force_push": false,
+  "paths": [
+    "scripts/replay_vllm_engine_trace.py",
+    "scripts/prepare_ieee_tc_serverless_stack.py",
+    "scripts/ieee_tc_serverless_measurement.py",
+    "tests/test_ieee_tc_slora_service.py",
+    "tests/test_ieee_tc_slora_measurement.py",
+    "docs/ieee_tc/D768_SLORA_CANONICAL_INPUT_BOUNDARY.md"
+  ],
+  "tests": 57
+}

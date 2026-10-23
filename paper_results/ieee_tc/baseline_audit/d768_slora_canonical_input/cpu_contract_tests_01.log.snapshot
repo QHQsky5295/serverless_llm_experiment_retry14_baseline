@@ -1,0 +1,119 @@
+test_actual_native_init_forward_filter_merge_preserve_observation (tests.test_ieee_tc_slora_measurement.NativeBatchTests.test_actual_native_init_forward_filter_merge_preserve_observation) ... ok
+test_actual_api_preserves_native_event_with_slow_consumer (tests.test_ieee_tc_slora_measurement.NativeSSETests.test_actual_api_preserves_native_event_with_slow_consumer) ... ok
+test_actual_detokenizer_and_fifo_preserve_burst_event_identity (tests.test_ieee_tc_slora_measurement.NativeSSETests.test_actual_detokenizer_and_fifo_preserve_burst_event_identity)
+Execute existing transport methods; only sockets/tokenizer are fakes. ... ok
+test_canonical_api_manager_pass_exact_ids_without_retokenizing (tests.test_ieee_tc_slora_measurement.NativeSSETests.test_canonical_api_manager_pass_exact_ids_without_retokenizing) ... ok
+test_actual_native_loader_retains_independent_cpu_storages (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_actual_native_loader_retains_independent_cpu_storages) ... ok
+test_explicit_packed_bound_does_not_authorize_deployment (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_explicit_packed_bound_does_not_authorize_deployment) ... ok
+test_native_layout_identity (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_native_layout_identity) ... ok
+test_necessary_not_sufficient_and_boundary (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_necessary_not_sufficient_and_boundary) ... ok
+test_reject_duplicate_empty_and_invalid_resources (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_reject_duplicate_empty_and_invalid_resources) ... ok
+test_reject_missing_extra_dtype_and_rank (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_reject_missing_extra_dtype_and_rank) ... ok
+test_two_native_copies_and_logical_not_content_deduplication (tests.test_ieee_tc_slora_measurement.SloraHostBoundTests.test_two_native_copies_and_logical_not_content_deduplication) ... ok
+test_corrupt_first_event_rejected (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_corrupt_first_event_rejected) ... ok
+test_mutable_prompt_snapshot_and_completion_tail (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_mutable_prompt_snapshot_and_completion_tail) ... ok
+test_native_append_is_required_and_count_is_bounded (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_native_append_is_required_and_count_is_bounded) ... ok
+test_packed_pool_binding_and_first_forward_only (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_packed_pool_binding_and_first_forward_only) ... ok
+test_registration_rejects_partial_batch_and_fallback (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_registration_rejects_partial_batch_and_fallback) ... ok
+test_registration_rejects_wrong_sampler_and_token_types (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_registration_rejects_wrong_sampler_and_token_types) ... ok
+test_single_token_has_no_tpot (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_single_token_has_no_tpot) ... ok
+test_stream_missing_duplicate_reordered_or_wrong_id_rejected (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_stream_missing_duplicate_reordered_or_wrong_id_rejected) ... ok
+test_unrelated_engine_and_wrong_pool_rejected (tests.test_ieee_tc_slora_measurement.SloraObservationTests.test_unrelated_engine_and_wrong_pool_rejected) ... ok
+test_actual_pool_copy_methods_unchanged_for_prefetch_and_ordinary (tests.test_ieee_tc_slora_measurement.SloraPackedHostTests.test_actual_pool_copy_methods_unchanged_for_prefetch_and_ordinary) ... ok
+test_invalid_mode_geometry_or_tensor_fails_before_allocation (tests.test_ieee_tc_slora_measurement.SloraPackedHostTests.test_invalid_mode_geometry_or_tensor_fails_before_allocation) ... ok
+test_native_equivalence_both_existing_ranks_and_single_storage (tests.test_ieee_tc_slora_measurement.SloraPackedHostTests.test_native_equivalence_both_existing_ranks_and_single_storage) ... ok
+test_native_packed_load_offload_repeat_keeps_bytes_and_order (tests.test_ieee_tc_slora_measurement.SloraPackedHostTests.test_native_packed_load_offload_repeat_keeps_bytes_and_order) ... ok
+test_source_view_is_explicit_and_other_native_methods_unchanged (tests.test_ieee_tc_slora_measurement.SloraPackedHostTests.test_source_view_is_explicit_and_other_native_methods_unchanged) ... ok
+test_canonical_input_changes_only_native_input_binding (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_canonical_input_changes_only_native_input_binding) ... FAIL
+test_canonical_input_requires_valid_exact_ids_and_hashes (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_canonical_input_requires_valid_exact_ids_and_hashes) ... ok
+test_exclusive_view_preserves_original_and_unmodified_files (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_exclusive_view_preserves_original_and_unmodified_files) ... ok
+test_only_observation_ast_changes (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_only_observation_ast_changes) ... ok
+test_source_drift_fails_before_creating_view (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_source_drift_fails_before_creating_view) ... ok
+test_bootstrap_arguments_match_actual_native_parser (tests.test_ieee_tc_slora_service.NativeConfiguration.test_bootstrap_arguments_match_actual_native_parser) ... ok
+test_bootstrap_refuses_before_backend_import_without_worker_identity (tests.test_ieee_tc_slora_service.NativeConfiguration.test_bootstrap_refuses_before_backend_import_without_worker_identity) ... ok
+test_environment_reuses_native_library_without_dirty_pythonpath (tests.test_ieee_tc_slora_service.NativeConfiguration.test_environment_reuses_native_library_without_dirty_pythonpath) ... ok
+test_explicit_native_bmm_reuses_gqa_path_without_packed_fallback (tests.test_ieee_tc_slora_service.NativeConfiguration.test_explicit_native_bmm_reuses_gqa_path_without_packed_fallback) ... ok
+test_explicit_source_and_native_modes_not_new_policy (tests.test_ieee_tc_slora_service.NativeConfiguration.test_explicit_source_and_native_modes_not_new_policy) ... ok
+test_input_mode_is_explicit_and_must_match_source_view (tests.test_ieee_tc_slora_service.NativeConfiguration.test_input_mode_is_explicit_and_must_match_source_view) ... ERROR
+test_native_context_checks_complete_source_before_guard (tests.test_ieee_tc_slora_service.NativeConfiguration.test_native_context_checks_complete_source_before_guard) ... ok
+test_actual_bridge_response_enters_physical_union_with_native_identity (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_actual_bridge_response_enters_physical_union_with_native_identity) ... Executing <Task pending name='Task-19' coro=<NativeHTTPBridge.asyncSetUp() running at /home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_service.py:418> wait_for=<_GatheringFuture pending cb=[Task.task_wakeup()] created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:712> cb=[_run_until_complete_cb() at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:181] created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:100> took 0.495 seconds
+ok
+test_cancel_has_no_retry_and_closes_request (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_cancel_has_no_retry_and_closes_request) ... Error handling request from 127.0.0.1
+Traceback (most recent call last):
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/web_protocol.py", line 575, in _handle_request
+    resp = await request_handler(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/web_app.py", line 559, in _handle
+    return await handler(request)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_service.py", line 603, in native
+    await response.write(payload[start:start+7])
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/web_response.py", line 564, in write
+    await self._payload_writer.write(data)
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/http_writer.py", line 199, in write
+    self._write_chunked_payload(chunk)
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/http_writer.py", line 122, in _write_chunked_payload
+    self._writelines((chunk_len_pre, chunk, b"\r\n"))
+  File "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/aiohttp/http_writer.py", line 113, in _writelines
+    raise ClientConnectionResetError("Cannot write to closing transport")
+aiohttp.client_exceptions.ClientConnectionResetError: Cannot write to closing transport
+ok
+test_canonical_input_envelope_preserves_native_response_checks (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_canonical_input_envelope_preserves_native_response_checks) ... ok
+test_changed_native_worker_prompt_or_adapter_rejected (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_changed_native_worker_prompt_or_adapter_rejected) ... ok
+test_common_service_assembly_prepares_after_ingress_and_owns_shutdown (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_common_service_assembly_prepares_after_ingress_and_owns_shutdown)
+Run the real outer service with CPU transport/synthetic GPU ownership. ... Executing <Task pending name='Task-75' coro=<NativeHTTPBridge.test_common_service_assembly_prepares_after_ingress_and_owns_shutdown() running at /home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_service.py:537> wait_for=<Future pending cb=[Task.task_wakeup()] created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:448> cb=[_run_until_complete_cb() at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:181] created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:100> took 0.165 seconds
+ok
+test_error_is_visible_not_retried (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_error_is_visible_not_retried) ... ok
+test_outer_validator_rejects_mislabelled_or_missing_evidence (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_outer_validator_rejects_mislabelled_or_missing_evidence) ... ok
+test_real_loopback_native_ids_timing_prompt_and_preparation_reference (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_real_loopback_native_ids_timing_prompt_and_preparation_reference) ... ok
+test_single_token_has_no_tpot (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_single_token_has_no_tpot) ... ok
+test_truncated_sse_no_synthetic_completion (tests.test_ieee_tc_slora_service.NativeHTTPBridge.test_truncated_sse_no_synthetic_completion) ... ok
+test_actual_api_main_closes_both_handles_after_normal_return (tests.test_ieee_tc_slora_service.NativeLifecycleSource.test_actual_api_main_closes_both_handles_after_normal_return) ... ok
+test_actual_api_main_closes_children_on_start_and_serving_error (tests.test_ieee_tc_slora_service.NativeLifecycleSource.test_actual_api_main_closes_children_on_start_and_serving_error) ... ok
+test_opt_in_boundaries_and_original_api_statements (tests.test_ieee_tc_slora_service.NativeLifecycleSource.test_opt_in_boundaries_and_original_api_statements) ... ok
+test_real_owned_cpu_children_terminate_and_join (tests.test_ieee_tc_slora_service.NativeLifecycleSource.test_real_owned_cpu_children_terminate_and_join) ... ok
+test_receipt_binds_actual_registry_process_and_after_initialization (tests.test_ieee_tc_slora_service.NativeReadyReceipt.test_receipt_binds_actual_registry_process_and_after_initialization) ... ok
+test_wrong_registry_or_uninitialized_pool_publishes_no_receipt (tests.test_ieee_tc_slora_service.NativeReadyReceipt.test_wrong_registry_or_uninitialized_pool_publishes_no_receipt) ... ok
+test_all_500_static_ids_prepared_serially_after_notice (tests.test_ieee_tc_slora_service.StartupContracts.test_all_500_static_ids_prepared_serially_after_notice) ... ok
+test_explicit_lifecycle_not_vllm_or_store_alias (tests.test_ieee_tc_slora_service.StartupContracts.test_explicit_lifecycle_not_vllm_or_store_alias) ... ok
+test_no_partial_pool_reused_or_pre_notice_preparation (tests.test_ieee_tc_slora_service.StartupContracts.test_no_partial_pool_reused_or_pre_notice_preparation) ... ok
+test_same_round_robin_blocks_selected_worker_not_every_worker (tests.test_ieee_tc_slora_service.StartupContracts.test_same_round_robin_blocks_selected_worker_not_every_worker) ... ok
+
+======================================================================
+ERROR: test_input_mode_is_explicit_and_must_match_source_view (tests.test_ieee_tc_slora_service.NativeConfiguration.test_input_mode_is_explicit_and_must_match_source_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_service.py", line 79, in test_input_mode_is_explicit_and_must_match_source_view
+    service.verify_slora_source_view(dict(cfg, input_mode='canonical_token_ids_v1'))
+  File "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py", line 208, in verify_slora_source_view
+    or manifest.get('shared_package') != str((Path(cfg['main_repo'])/'faaslora').resolve())):
+                                                   ~~~^^^^^^^^^^^^^
+KeyError: 'main_repo'
+
+======================================================================
+FAIL: test_canonical_input_changes_only_native_input_binding (tests.test_ieee_tc_slora_measurement.SloraSourceTests.test_canonical_input_changes_only_native_input_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_measurement.py", line 509, in test_canonical_input_changes_only_native_input_binding
+    restored = RestoreInput().visit(ast.parse(sources[path]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/ast.py", line 407, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+            ^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/ast.py", line 407, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_measurement.py", line 492, in visit_AsyncFunctionDef
+    self.assert_input(node)
+  File "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_slora_measurement.py", line 499, in assert_input
+    assert [a.arg for a in node.args.kwonlyargs] == ['input_contract']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+----------------------------------------------------------------------
+Ran 57 tests in 6.852s
+
+FAILED (failures=1, errors=1)
