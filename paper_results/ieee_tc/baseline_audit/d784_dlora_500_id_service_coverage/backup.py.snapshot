@@ -1,0 +1,89 @@
+"""Reuse explicit-path publication helpers for the closed D784 checkpoint."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d784_dlora_500_id_service_coverage'
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+for name in ('start', 'maintenance', 'analysis', 'storage'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert read(RAW/'storage_receipt.json')['passed'] and read(RAW/'analysis_receipt.json')['passed']
+q = read(RAW.parent/'d782_20261024/qualification.json')
+for path, sha in q['preserved'].items():
+    assert p.digest(Path(path)) == sha, path
+audit = read(RAW/'audit_coverage500.json')
+assert audit['workload_passed'] and audit['native_revalidated_requests'] == 500
+assert audit['actual_native_output_tokens'] == 68925 and audit['served_adapter_ids'] == 500
+assert audit['deployment_prepared_adapters'] == 500 and not audit['independent_lora_numerical_correctness']
+assert audit['max_native_recompute_error_ms'] <= 1
+launch = read(RAW/'launch3b.json')
+assert launch['service_returncode'] == launch['replay_returncode'] == launch['watchdog_returncode'] == 0
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == '1f48d07aabc2ab5be8b7e656cfe66313b3f9b47e'
+basehead = call(BASE, 'git', 'rev-parse', 'HEAD')
+assert basehead == '8fcb6bf95fdde6f4f0e6f396c2ba604b861db554'
+assert call(BASE, 'git', 'ls-remote', 'origin', 'refs/heads/main').split()[0] == basehead
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def check_files(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size < 2*1024*1024, path
+        assert not secret.search(path.read_text()), path
+names = ('start.py','start_identity.json','start_receipt.json','start_closure.json','input_identity.json',
+    'native_3b.json','http_3b_500.json','environment_identity.json','freeze_inputs.py','run3b.sh',
+    'launch3b.json','local_cleanup.json','service_aux_identity.json','remote_health.json',
+    'remote_start.log','remote_stop.log','evidence_copy_receipt.json','ray_evidence_manifest.json',
+    'close_and_preserve.py','preserve_evidence.py','maintenance_receipt.json','maintenance_closure.json',
+    'analyze.py','analysis.log','analysis_receipt.json','analysis_closure.json',
+    'audit_coverage500.json','reclaim.py','cache_cleanup_before.json','cache_cleanup_after.json',
+    'storage_receipt.json','storage_closure.json','close.py','backup.py')
+ready = list((RAW/'model3b/worker_receipts').glob('*.json'))
+assert len(ready) == 1
+sources = [RAW/name for name in names] + [RAW/'model3b/worker_config.json',
+    RAW/'model3b/native_toolchain.json',RAW/'model3b/physical/physical_resource_summary.json',
+    RAW/'model3b/physical/summary.json',*ready]
+check_files(sources)
+OUT.mkdir(parents=True, exist_ok=False)
+mapping = copy_sources(OUT, sources)
+save(OUT/'manifest.json', dict(schema='ieee_tc_dlora_coverage_qualification_checkpoint_v1',
+    files=mapping, baseline_head=basehead, executed_baseline_head=basehead,
+    executed_main_head='1f48d07aabc2ab5be8b7e656cfe66313b3f9b47e',
+    plan_sha256=p.check_plan(), metric_protocol_sha256=p.digest(MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_sha256=p.digest(MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    source_view_manifest_sha256=read(RAW/'native_3b.json')['source_view_manifest_sha256'],
+    gpu_executions=1, offline_analysis_attempts=1, prepared_adapters=500, served_adapters=500,
+    numerical_correctness_proven=False, performance_ranking_eligible=False,
+    protected_and_user_dirty_unchanged=len(q['preserved']), raw_root=str(RAW),
+    tests_reused_from='D783: unchanged dLoRA analyzer/runtime and D769 approved coverage view',
+    retained_raw_sources={str(path):p.digest(path) for path in
+        (RAW/'model3b/model_qualification.json',RAW/'model3b/worker_0.log',
+         RAW/'launch3b.launch/replay.jsonl',RAW/'launch3b.launch/watchdog.jsonl',
+         RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log')}))
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D784_DLORA_500_ID_SERVICE_COVERAGE_20261024.md',*sorted(OUT.iterdir())]
+check_files(paths)
+relative = [str(path.relative_to(MAIN)) for path in paths]
+assert not call(MAIN, 'git', 'diff', '--cached', '--name-only')
+call(MAIN, 'git', 'add', '--', *relative)
+assert set(call(MAIN, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(relative)
+call(MAIN, 'git', 'diff', '--cached', '--check')
+call(MAIN, 'git', 'commit', '-m', 'tc: seal dLoRA 3B all-adapter service coverage (D784)')
+head = call(MAIN, 'git', 'rev-parse', 'HEAD')
+ref = 'refs/heads/backup/d784-dlora-coverage500-20261024'
+call(MAIN, 'git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+ref)
+assert call(MAIN, 'git', 'ls-remote', 'faaslora_origin', ref).split()[0] == head
+for path, sha in q['preserved'].items():
+    assert p.digest(Path(path)) == sha, path
+save(RAW/'backup_receipt.json', dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    baseline_unchanged_and_remote_verified=True,force_push=False,v2_synchronized=False,
+    paths=relative,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,paths=len(relative))))

@@ -1,0 +1,112 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d784_20261024/launch3b.launch/replay.jsonl",
+  "replay_sha256": "6be8f602963b6c0f510ab6c02b9ac1cb5e4576f130c1e44a8fbca478ee97fbab",
+  "counts": {
+    "N_plan": 500,
+    "N_arrived": 500,
+    "N_terminal": 500,
+    "N_response": 500,
+    "N_failed": 0,
+    "N_submitted": 500
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "actual_native_output_tokens": 68925,
+  "observed_instance_ids": [
+    "dlora-0",
+    "dlora-1"
+  ],
+  "offered_unique_adapters": 500,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 499,
+    "mean": 0.26325460694980374,
+    "p50_type1": 0.0008781631477177143,
+    "p95_type1": 1.9091034596785903
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "dLoRA",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "model_profile": "llama32_3b_main_modelscope",
+  "model_key": "3b",
+  "native_revalidated_requests": 500,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 1998.4144458407536,
+  "physical_window_gpu_seconds": {
+    "arrival": 1041.0867618843913,
+    "cleanup": 25.919119940139353,
+    "drain": 931.408564016223,
+    "pre_arrival": 0.0
+  },
+  "n_correct": null,
+  "remote_transfers": 500,
+  "remote_wire_bytes": 1160474851,
+  "verified_materialized_bytes": 19482573296,
+  "cache_hit_requests": null,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 1,
+  "remote_clock_ids": [
+    "remote-process-monotonic:39fdb07f5fe84734ac0b24249cbc0471"
+  ],
+  "service_memory_event_maxima": {
+    "high": 1552,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 77310185472,
+  "service_swap_max_bytes": 986509312,
+  "host_min_available_bytes": 34585317376,
+  "disk_min_free_bytes": 143321706496,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "dlora_native_manager_v1",
+  "scheduler_qualification": {
+    "contract": "dlora_native_manager_v1",
+    "native_worker_receipts": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d784_20261024/model3b/worker_receipts/8353b5ad969844979f1311c12ef1baa3.json",
+        "sha256": "583146c4c89e01139a5288828d853b302ef52f2e01d5087aeefca437a1bc8ea6"
+      }
+    ],
+    "conclusion": "Retained native DP2 EngineManager selection and observed engine paths; not frontend round robin."
+  },
+  "limitations": [
+    "500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "dLoRA DP2/TP1 retains EngineManager and PERIOD_MIG; full remote pool is prepared after notice. Actual GPU lifetime includes native CPU LoRA loading and KV preparation; no claim that configured migration triggered.",
+    "No relative performance comparison with the 4000-request PrimeLoRA observation."
+  ],
+  "artifact_attribution": "deployment_preparation_reference_not_request_transfer",
+  "deployment_prepared_adapters": 500,
+  "deployment_remote_wire_bytes": 1160474851,
+  "request_remote_wire_bytes": 0,
+  "preparation_references": 500,
+  "served_adapter_ids": 500,
+  "common_slo": {
+    "offered": 500,
+    "binding_valid": 500,
+    "ttft_good": 0,
+    "tpot_eligible": 500,
+    "tpot_good": 0,
+    "joint_good": 0,
+    "ttft_attainment": 0.0,
+    "joint_attainment": 0.0,
+    "conditional_tpot_attainment": 0.0,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+    "freeze_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 3.996828891681507
+  }
+}

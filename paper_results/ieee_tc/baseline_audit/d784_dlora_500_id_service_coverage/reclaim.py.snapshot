@@ -1,0 +1,10 @@
+"""Reuse full-content duplicate-cache reclamation after coverage audit/closure."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/reclaim.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '7476bee26075e92cf526be97089b833a6214836a0f062eeda51809409f7b23d1'
+source = data.decode().replace('D783', 'D784').replace('d783', 'd784')
+source = source.replace('analysis3_', 'analysis_').replace('audit_prefix100.json', 'audit_coverage500.json')
+source = source.replace('http_3b_100.json', 'http_3b_500.json').replace('==100', '==500')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

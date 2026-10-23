@@ -1,5 +1,67 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 04:21 CST：D784保存与安全回收完成，准备备份
+
+完整覆盖审计已通过，所有服务/回放/分析/存储域实际结束并关闭，GPU空闲，
+本次远端已停。经原池与缓存逐文件核对，仅回收4000个重复objects，实际
+释放19497287680bytes，可用162792108032bytes。147项投稿/用户dirty SHA
+未变；唯一工件与原始/失败证据保留。新数据与文档在明确路径，统计代码、
+runtime及baseline仓库均未改动，复用D783已通过测试和本轮实际500-ID审计。
+下一仅按检查表备份到不覆盖历史的检查点分支；V2已有分歧，不force、不声称
+V2已同步。D7851000兼容尚未创建/启动，后续全部矩阵保持，整体目标active。
+
+## 2026-10-24 D784：500-ID实际服务覆盖已通过（PROGRESS）
+
+本轮只运行一次：500/500正常终态、实际500个ID、68925原生token逐请求
+匹配，原生绑定/时钟/远端/双GPU计量审计一次通过。U=1998.414445841GPU-s；
+平均/P95 TTFT442047.077/461939.953ms，平均/P95 TPOT66.035/78.254ms，
+联合0/500。覆盖负载不是W0/W1/W2性能点，不因低SLO继续基线性能搜索。
+独立数值正确性仍未知；EngineManager/PERIOD_MIG配置保留，不冒称迁移收益。
+原D782 view、D779环境、D780启动与D783服务参数均不变，只有视图与campaign
+身份改变，未改runtime/analyzer，未生成新权重或完整trace。
+
+service/replay/watchdog均0，GPU与服务域释放；launcher/start/maintenance/
+analysis均已实际关闭，本次远端三服务已停。内存峰值77310185472bytes，
+high1552、max/OOM/kill0，swap峰值986509312bytes，最低主机available
+34585317376bytes。完整原生日志、远端/请求/资源证据保留，共享k3s未修改。
+当前storage域正在按原池逐文件核验回收重复objects；不得因该等待重跑GPU。
+准备按github-sync检查明确路径备份，尚未声称完成推送。
+
+下一D785尚未创建/启动：直接复用D783100前缀与本D784500-ID资格，进入1000
+请求兼容，再限定3BW1/W2。后续Loquetier/HydraServe3B、PrimeLoRA3BW1/W2/
+全对照优化/同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、最终图表和V2
+交付全部保留。整体目标active且未完成，图表按最新用户要求继续延期。
+
+## 2026-10-24 D784：从已闭合100前缀推进500-ID覆盖（准备）
+
+完整核对PLAN、最新状态、冻结V1/单轮V2及六项执行补充。最新用户确认共享
+k3s属于其他项目：既有HydraServe隔离适配继续复用，不动共享集群。D783100
+前缀和全部释放/分析/备份证据直接复用，不追加同键运行。本轮使用run-experiment
+与monitor-experiment的现有入口、tmux和所属资源监测。
+
+D784准备复用D769的adapter_coverage_v1视图，500请求/500 ID/68925目标token；
+只改变请求视图和campaign路径，服务配置与D783一致。D782 view、D779环境、
+D780启动/清理和D783 dLoRA离线统计保持。尚未启动，不能记作通过。
+主目录HEAD1f48d07、baseline8fcb6bf已备份；147项保护清单在启动检查再次核验。
+当前无GPU任务，磁盘162736652288bytes、MemAvailable113670131712bytes。
+下一为1000兼容与限定W1/W2，不因资格运行低SLO继续基线调优；后续完整范围不删。
+
+## 2026-10-24 03:46 CST：D783两仓库检查点已核验（PROGRESS）
+
+MAIN `1f48d07aabc2ab5be8b7e656cfe66313b3f9b47e` 已核验
+`faaslora_origin/backup/d783-dlora-prefix100-20261024`，55项明确路径；BASE
+`8fcb6bf95fdde6f4f0e6f396c2ba604b861db554` 已核验origin/main。未force，V2
+仍未同步。backup域实际结束并关闭；无活动exec/wait、GPU任务或本次远端服务。
+本推送后追加状态待下检查点备份。历史数据和三项用户dirty SHA仍保持。
+
+下一D784尚未创建/运行：从D783已经闭合的100前缀转入500-ID实际服务覆盖，
+复用D782 view（manifest be6c1f20a1f7febd3a505b25584a8cfebc6ecf7a14be730aa125b81c7b98b78e）、
+D779环境、D780 wrapper/cleanup与D783离线analyzer。新的启动recipe须使用
+本检查点HEAD及备份，不再断言D782 HEAD；D783输入/服务参数与完整池准备可
+复用，coverage只用已批准的原trace索引变换，不创建新权重或完整trace副本。
+先500实际覆盖，再1000兼容及限定W1/W2，不追加同100前缀重复或性能搜索。
+完整后续范围仍见下文；整体目标active且未完成。
+
 ## 2026-10-24 03:45 CST：D783审计与安全回收完成，准备检查点
 
 analysis3实际成功，所有服务与分析/维护域已结束并关闭。完整原池/下载内容

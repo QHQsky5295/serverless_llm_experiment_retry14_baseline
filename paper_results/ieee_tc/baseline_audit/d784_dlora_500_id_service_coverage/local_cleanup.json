@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "service_returncode": 0,
+  "launch_passed": true,
+  "service_identity": {
+    "unit": "primelora-tc-svc-18bffa45c9504e10bac7b9b7723a805d.scope",
+    "invocation_id": "f4404a845e9f4417b4b5b807c0ddb342",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-18bffa45c9504e10bac7b9b7723a805d.scope",
+    "inode": 31302932
+  },
+  "service_path_gone": true,
+  "auxiliary_identity": {
+    "unit": "primelora-tc-aux-d7840000000000000000000000000002.scope",
+    "invocation_id": "52d688ab093a4cba87852d217def1216",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7840000000000000000000000000002.scope",
+    "inode": 31302811
+  },
+  "actual_recursive_procs_empty": true,
+  "auxiliary_path_gone": true,
+  "resources": {
+    "memory.peak": "312270848",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "launch_sha256": "a4e157ed59b9c0db458e846e23c48e366f21f429642eacf0598c0e7c7f2018de"
+}
