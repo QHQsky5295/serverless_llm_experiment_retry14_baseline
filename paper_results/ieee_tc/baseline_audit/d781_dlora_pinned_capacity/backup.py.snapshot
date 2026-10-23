@@ -1,0 +1,70 @@
+"""Back up only D781 closed diagnostic evidence and its explanatory document."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d781_dlora_pinned_capacity'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('start','maintenance'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert read(RAW/'local_cleanup.json')['passed']
+assert read(RAW/'maintenance_receipt.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+q=read(RAW.parent/'d780_20261024/qualification2.json')
+for path,sha in (q['refs']|q['preserved']).items(): assert p.digest(Path(path))==sha,path
+basehead=call(BASE,'git','rev-parse','HEAD')
+assert basehead=='e1f7525e8ec67aea60b5b703274faa2b9bb6f0c3'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+assert call(MAIN,'git','rev-parse','HEAD')=='7e904d56c6114e6e55858639c3b2a6d67dd59e08'
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def check_files(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size<2*1024*1024,path
+        assert not secret.search(path.read_text()),path
+OUT.mkdir(parents=True,exist_ok=False)
+names=('failure_result.json','capacity_derivation.json','input_identity.json','native_3b.json',
+    'http_3b_100.json','launch_gate.json','local_cleanup.json','launch3b.json',
+    'start_receipt.json','start_closure.json','manual_stop_before.json','manual_stop_signal.json',
+    'remote_start.log','remote_stop.log','remote_health.json','remote_management_source.json',
+    'evidence_copy_receipt.json','ray_evidence_manifest.json','cache_cleanup_before.json',
+    'cache_cleanup_after.json','maintenance_receipt.json','maintenance_closure.json',
+    'environment_identity.json','start.py','run3b.sh','freeze_inputs.py','stop_qualification.py',
+    'finish_diagnostic.py','close.py','backup.py')
+sources=[RAW/name for name in names]+[RAW/'model3b/worker_0.log',RAW/'model3b/model_qualification.json',
+    RAW/'model3b/physical/physical_resource_summary.json',RAW/'runner.log']
+check_files(sources)
+mapping=copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(files=mapping,plan_sha256=p.check_plan(),baseline_head=basehead,
+    outcome='manual_capacity_diagnostic_stop',performance_ranking_eligible=False,
+    protected_unchanged=len(q['preserved']),source_code_changed=False,
+    native_initialization_complete=False,independent_numerical_correctness_proven=False,
+    physical_measurement_complete=False,static_capacity_not_observed_peak=True))
+for name,row in mapping.items(): assert p.digest(OUT/name)==row['sha256'],name
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D781_DLORA_PINNED_CAPACITY_20261024.md',*sorted(OUT.iterdir())]
+check_files(paths)
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert not call(MAIN,'git','diff','--cached','--name-only')
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: preserve native dLoRA pinned allocation capacity diagnostic (D781)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d781-dlora-pinned-capacity-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=relative,protected_unchanged=len(q['preserved']),
+    baseline_code_unchanged=True,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,paths=len(relative))))

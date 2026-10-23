@@ -1,0 +1,101 @@
+{
+  "kind": "static_allocator_capacity_derivation_not_measured_peak",
+  "torch_version": "2.1.2+cu121",
+  "native_dp": 2,
+  "layers": 28,
+  "dtype_bytes": 2,
+  "max_rank": 16,
+  "num_adapters": 500,
+  "lora_shapes": [
+    {
+      "shape": [
+        500,
+        3072,
+        48
+      ],
+      "payload_bytes": 147456000,
+      "pinned_allocation_bytes": 268435456
+    },
+    {
+      "shape": [
+        500,
+        48,
+        5120
+      ],
+      "payload_bytes": 245760000,
+      "pinned_allocation_bytes": 268435456
+    },
+    {
+      "shape": [
+        500,
+        3072,
+        16
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    },
+    {
+      "shape": [
+        500,
+        16,
+        3072
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    },
+    {
+      "shape": [
+        500,
+        3072,
+        16
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    },
+    {
+      "shape": [
+        500,
+        16,
+        16384
+      ],
+      "payload_bytes": 262144000,
+      "pinned_allocation_bytes": 268435456
+    },
+    {
+      "shape": [
+        500,
+        8192,
+        16
+      ],
+      "payload_bytes": 131072000,
+      "pinned_allocation_bytes": 134217728
+    },
+    {
+      "shape": [
+        500,
+        16,
+        3072
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    }
+  ],
+  "lora_payload_bytes_per_worker": 27525120000,
+  "lora_pinned_bytes_per_worker": 33822867456,
+  "cpu_kv_blocks": 4681,
+  "cpu_kv_tensor_bytes": 153387008,
+  "cpu_kv_pinned_bytes_per_worker": 15032385536,
+  "total_pinned_bytes": 97710505984,
+  "common_memory_max_bytes": 85899345920,
+  "excludes_runtime_and_other_overhead": true,
+  "not_observed_oom": true,
+  "allocator_source": "https://raw.githubusercontent.com/pytorch/pytorch/v2.1.2/aten/src/ATen/cuda/CachingHostAllocator.cpp",
+  "allocation_rule": "cudaHostAlloc(PowerOf2Ceil(size)); each active allocation retained",
+  "native_cache_source": "https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/worker/cache_engine.py",
+  "local_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/worker/lora_engine.py": "4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/worker/cache_engine.py": "a85c69353a3fe401591241cb6a355fd2d5a7bc265e90f31aba52e9ae44824543",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/engine/arg_utils.py": "33ae007eb541a0b9ecb9469b711b65c80cf83208c6c6c867eefe9ae7cffb690a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/native_3b.json": "323a63cdbdf26c27cd27ac63214ec39e1c5f5b7154edd10f045655d14af27dbf"
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "schema": "ieee_tc_dlora_capacity_diagnostic_v1",
+  "system": "dLoRA",
+  "model": "3B",
+  "workload_passed": false,
+  "formal_run": false,
+  "performance_ranking_eligible": false,
+  "failure": "Manual diagnostic stop: native pinned allocation capacity derivation exceeds the common budget; no claimed OOM or startup timeout.",
+  "prepared_pool_count": 500,
+  "model_loaded": false,
+  "native_worker_ready": false,
+  "independent_numerical_correctness_proven": false,
+  "n_correct": 0,
+  "physical_measurement_complete": false,
+  "physical_lease_limitation": "Acquisition was recorded but no qualified native lifetime existed; do not report a performance GPU-s result.",
+  "actual_cleanup": {
+    "passed": true,
+    "service_returncode": 1,
+    "launch_passed": false,
+    "service_identity": {
+      "unit": "primelora-tc-svc-623f96ed019c408db537992d57e9837b.scope",
+      "invocation_id": "c40a98267ad7451c82901fa5fb2809e6",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-623f96ed019c408db537992d57e9837b.scope",
+      "inode": 31261370
+    },
+    "service_path_gone": true,
+    "auxiliary_identity": {
+      "unit": "primelora-tc-aux-d7810000000000000000000000000002.scope",
+      "invocation_id": "0885b8a038b54a629512e23ad69aa4f6",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7810000000000000000000000000002.scope",
+      "inode": 31261249
+    },
+    "actual_recursive_procs_empty": true,
+    "auxiliary_path_gone": true,
+    "resources": {
+      "memory.peak": "301944832",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "launch_sha256": "d04764853281d5e682934618e0768fe7735dcf6fb022ee1cd1f0659b10ff19ca"
+  },
+  "resource_peak_bytes": 80859029504,
+  "memory_events": {
+    "low": 0,
+    "high": 611536,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "remote_stopped": true,
+  "source_view_unchanged": true,
+  "baseline_configuration_unchanged": true,
+  "raw_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/model3b/worker_0.log": "f20aa8cfbdccade5b2598454cb95abff5652838acb34f337a62351e0beb211a5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/model3b/model_qualification.json": "1ea6032b28a94cb80ea2a1bf311c0fbc982a8d35b564ca16ba50b76a3a82e494",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/model3b/physical/physical_resource_summary.json": "3af510fd117697f4133614b738b6a5b0138723e3b5f2f6bd0bbd03c38bba7df1",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/launch3b.json": "d04764853281d5e682934618e0768fe7735dcf6fb022ee1cd1f0659b10ff19ca",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/launch3b.launch/replay.jsonl": "45a85bd59bdf30192364075a558c3227306f9c5f05fa11f6093a7c77e03aacd1"
+  },
+  "manual_stop": true,
+  "not_watchdog_threshold_abort": true,
+  "no_oom_observed": true,
+  "both_cpu_adapter_pools_loaded": true,
+  "placement_counts": [
+    250,
+    251
+  ],
+  "capacity_derivation": {
+    "kind": "static_allocator_capacity_derivation_not_measured_peak",
+    "torch_version": "2.1.2+cu121",
+    "native_dp": 2,
+    "layers": 28,
+    "dtype_bytes": 2,
+    "max_rank": 16,
+    "num_adapters": 500,
+    "lora_shapes": [
+      {
+        "shape": [
+          500,
+          3072,
+          48
+        ],
+        "payload_bytes": 147456000,
+        "pinned_allocation_bytes": 268435456
+      },
+      {
+        "shape": [
+          500,
+          48,
+          5120
+        ],
+        "payload_bytes": 245760000,
+        "pinned_allocation_bytes": 268435456
+      },
+      {
+        "shape": [
+          500,
+          3072,
+          16
+        ],
+        "payload_bytes": 49152000,
+        "pinned_allocation_bytes": 67108864
+      },
+      {
+        "shape": [
+          500,
+          16,
+          3072
+        ],
+        "payload_bytes": 49152000,
+        "pinned_allocation_bytes": 67108864
+      },
+      {
+        "shape": [
+          500,
+          3072,
+          16
+        ],
+        "payload_bytes": 49152000,
+        "pinned_allocation_bytes": 67108864
+      },
+      {
+        "shape": [
+          500,
+          16,
+          16384
+        ],
+        "payload_bytes": 262144000,
+        "pinned_allocation_bytes": 268435456
+      },
+      {
+        "shape": [
+          500,
+          8192,
+          16
+        ],
+        "payload_bytes": 131072000,
+        "pinned_allocation_bytes": 134217728
+      },
+      {
+        "shape": [
+          500,
+          16,
+          3072
+        ],
+        "payload_bytes": 49152000,
+        "pinned_allocation_bytes": 67108864
+      }
+    ],
+    "lora_payload_bytes_per_worker": 27525120000,
+    "lora_pinned_bytes_per_worker": 33822867456,
+    "cpu_kv_blocks": 4681,
+    "cpu_kv_tensor_bytes": 153387008,
+    "cpu_kv_pinned_bytes_per_worker": 15032385536,
+    "total_pinned_bytes": 97710505984,
+    "common_memory_max_bytes": 85899345920,
+    "excludes_runtime_and_other_overhead": true,
+    "not_observed_oom": true,
+    "allocator_source": "https://raw.githubusercontent.com/pytorch/pytorch/v2.1.2/aten/src/ATen/cuda/CachingHostAllocator.cpp",
+    "allocation_rule": "cudaHostAlloc(PowerOf2Ceil(size)); each active allocation retained",
+    "native_cache_source": "https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/worker/cache_engine.py",
+    "local_sources": {
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/worker/lora_engine.py": "4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/worker/cache_engine.py": "a85c69353a3fe401591241cb6a355fd2d5a7bc265e90f31aba52e9ae44824543",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/engine/arg_utils.py": "33ae007eb541a0b9ecb9469b711b65c80cf83208c6c6c867eefe9ae7cffb690a",
+      "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/native_3b.json": "323a63cdbdf26c27cd27ac63214ec39e1c5f5b7154edd10f045655d14af27dbf"
+    }
+  },
+  "observed_error": "RuntimeError: ingress did not stop; outer service cleanup remains required"
+}

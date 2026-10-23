@@ -1,0 +1,12 @@
+"""Reuse exact-owner diagnostic termination after a concrete capacity derivation."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d780_20261024/stop_qualification.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='9e0211fe565d55fcf097fc7ed1599b39a3fe241605cc4826b312ff3b415e1e9c'
+source=data.decode().replace("reason='diagnostic_startup_memory_thrashing'",
+    "reason='native_pinned_allocator_capacity_exceeds_common_budget'")
+source=source.replace("hypothesis='Ray prestarted 40 Python workers for 40 logical CPUs, while native DP2 uses four actors; quantify idle overhead before deciding a necessary startup adaptation.'",
+    "hypothesis='PyTorch 2.1.2 rounds each pinned tensor allocation to PowerOf2Ceil. Native 28-layer FP16 rank16 500-adapter pool requires 31.5 GiB per worker; 4681-block CPU KV requires 14 GiB per worker. DP2 requires 91 GiB before other overhead, above the common 80 GiB hard limit. This is a static capacity derivation, not an observed OOM.'")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

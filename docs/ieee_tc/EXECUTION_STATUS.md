@@ -1,5 +1,47 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D781：pinned 分配容量不匹配已定位，实际诊断安全结束（PROGRESS）
+
+完整重读 PLAN/状态及最新规则，复用 D778 view、D779 环境、D780 按需 Ray。
+同 DP2/TP1 原100请求前缀：真实远端500池准备完毕，两worker均记录500个
+PEFT加载完成，初始放置250/251；首引擎1173 GPU/4681 CPU KV blocks。
+无ready或合格推理结果。服务峰值80,859,029,504bytes、high611536，max/
+OOM/OOM-kill均0。新证据：PyTorch2.1.2 pinned分配PowerOf2Ceil，实际形状
+推算每worker CPU LoRA31.5GiB、CPU KV14GiB，DP2合计91GiB>共同80GiB。
+这是静态容量推算，不是观测峰值或OOM；据此主动停止，不等同超时/机制劣势。
+
+精确父进程pidfd SIGTERM，原launcher返回码1，实际launch3b.json存在；服务
+域及GPU上下文已释放，starter/launcher/maintenance均结束关闭。内部ingress
+停止错误和native lifetime未合格记录保留，物理计量仍incomplete，不伪补U。
+所属3个远端服务已关闭；Ray/传输/失败证据保留，逐文件核对原池后仅删除
+4000个重复objects，释放19,497,259,008bytes，可用162,788,909,056bytes。
+147项保护文件（含3项用户dirty）未变，未触碰共享k3s或修改基线代码。
+
+RAW：dlora_qualification/d781_20261024；解释见D781_DLORA_PINNED_CAPACITY_20261024.md。
+下一只做必要容量适配：核算allocator取整和非KV实际占用，给原有CPU KV
+配置合法容量；不扩总预算、不缩池、不改GPU放置/迁移/调度、不重复原配置，
+不扫描baseline性能。实际初始化、必要GQA/所选层adapter核查及W1/W2仍未完。
+之后Loquetier/HydraServe3B、PrimeLoRA完整对照优化、同版本Full、A1–A5、
+S1–S13、成本/CE/审稿文档/最终图表均保留，整体目标active。准备备份此诊断。
+
+## 2026-10-24 02:26 CST：D780启动/退出修正与未完成证据已备份（PROGRESS）
+
+BASE `e1f7525e8ec67aea60b5b703274faa2b9bb6f0c3` 已核验origin/main；MAIN
+`7e904d56c6114e6e55858639c3b2a6d67dd59e08` 已核验
+`faaslora_origin/backup/d780-dlora-startup-20261024`。未force，V2未同步。
+3项BASE路径、MAIN清理实现/测试/文档和小型证据显式备份；145项旧投稿与
+用户dirty SHA未变。备份域实际结束并关闭，无活动exec/wait、GPU进程或
+本次远端服务；此推送后状态追加留待下一检查点。不是dLoRA性能实验完成。
+
+下一D781复用D780的start/run3b/freeze_inputs，但必须更新身份：native view
+仍D778；环境身份仍D779/native_environment_after.json；最新备份在D780；
+启动/清理修正refs在D780/qualification2.json。D778旧refs中的wrapper/test
+已被新版本替代，不可原样断言全部不变。D780没有launch3b.json，实际关闭
+证据为recovery_cleanup.json和service/launcher/start/maintenance/qualification/
+qualification2/backup各closure。不得伪造失败返回码或物理release。
+回到实际DP2/TP1加载和共同HTTP资格，不再重复已通过的CPU小测；完整后续
+3B基线、PrimeLoRA优化、消融/敏感性/文档/图表范围不变，整体目标active。
+
 ## 2026-10-24 D780：实际启动压力已封存，按需Ray启动与退出检查修正（PROGRESS）
 
 已完整核查PLAN和最新规则。真实远端500池准备及私有Ray启动完成，原生

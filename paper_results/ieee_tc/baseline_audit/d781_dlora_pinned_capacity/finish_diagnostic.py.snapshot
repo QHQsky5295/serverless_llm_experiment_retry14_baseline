@@ -1,0 +1,68 @@
+"""Preserve D781 actual incomplete outcome and reuse verified duplicate cleanup."""
+import hashlib
+import json
+from pathlib import Path
+import shutil
+
+RAW=Path(__file__).resolve().parent
+original=RAW.parent/'d779_20261024/finish_failure.py'
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='5178d3d8afe3ba0cad492d33dbcacb50f3c002976836697721835969a74b325a'
+source=data.decode()
+changes={
+    "assert \"ModuleNotFoundError: No module named 'aiohttp'\" in (RAW/'model3b/worker_0.log').read_text()":
+        "assert read(RAW/'manual_stop_signal.json')['signal']=='SIGTERM'\nassert 'placement init done' in (RAW/'model3b/worker_0.log').read_text()",
+    "q=read(RAW.parent/'d778_20261024/qualification.json')":"q=read(RAW.parent/'d780_20261024/qualification2.json')",
+    "assert not any(row['gpu']['service_held_gpu_uuids'] for row in samples)":"assert any(row['gpu']['service_held_gpu_uuids'] for row in samples)",
+    "schema='ieee_tc_dlora_environment_failure_v1'":"schema='ieee_tc_dlora_capacity_diagnostic_v1'",
+    "failure='Missing aiohttp in the retained native Python 3.9 environment; exited before Ray/model initialization.'":
+        "failure='Manual diagnostic stop: native pinned allocation capacity derivation exceeds the common budget; no claimed OOM or startup timeout.'",
+    "save(RAW/'failure_result.json',result)":
+        "result.update(manual_stop=True,not_watchdog_threshold_abort=True,no_oom_observed=all(s['service']['memory.events']['oom']==0 for s in samples),both_cpu_adapter_pools_loaded=True,placement_counts=[250,251],capacity_derivation=read(RAW/'capacity_derivation.json'),observed_error=work.get('error'),n_correct=0)\nsave(RAW/'failure_result.json',result)",
+}
+for before,after in changes.items():
+    assert source.count(before)==1,before
+    source=source.replace(before,after)
+source=source.replace('d779','d781')
+# The source's global d779->d781 replacement does not alter the D780 identity.
+insert='''
+ray=Path('/tmp/tc-d781-ray/session_latest').resolve(strict=True)
+assert ray.parent==Path('/tmp/tc-d781-ray')
+dest=RAW/'ray_evidence'
+dest.mkdir(exist_ok=False)
+copies={}
+for item in sorted((ray/'logs').rglob('*')):
+    if item.is_file() and not item.is_symlink():
+        relative=item.relative_to(ray/'logs')
+        target=dest/relative
+        target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(item,target)
+        assert p.digest(item)==p.digest(target)
+        copies[str(relative)]=dict(source=str(item),sha256=p.digest(target),bytes=target.stat().st_size)
+save(RAW/'ray_evidence_manifest.json',copies)
+G=1<<30
+shapes=[(500,3072,48),(500,48,5120),(500,3072,16),(500,16,3072),(500,3072,16),(500,16,16384),(500,8192,16),(500,16,3072)]
+rows=[]
+for shape in shapes:
+    size=2
+    for n in shape: size*=n
+    rows.append(dict(shape=shape,payload_bytes=size,pinned_allocation_bytes=1<<(size-1).bit_length()))
+lora_payload=28*sum(r['payload_bytes'] for r in rows)
+lora_pinned=28*sum(r['pinned_allocation_bytes'] for r in rows)
+kv_part=4681*8*128*16*2
+kv_pinned=56*(1<<(kv_part-1).bit_length())
+assert lora_pinned==31.5*G and kv_pinned==14*G and 2*(lora_pinned+kv_pinned)==91*G
+save(RAW/'capacity_derivation.json',dict(kind='static_allocator_capacity_derivation_not_measured_peak',
+    torch_version='2.1.2+cu121',native_dp=2,layers=28,dtype_bytes=2,max_rank=16,num_adapters=500,
+    lora_shapes=rows,lora_payload_bytes_per_worker=lora_payload,lora_pinned_bytes_per_worker=lora_pinned,
+    cpu_kv_blocks=4681,cpu_kv_tensor_bytes=kv_part,cpu_kv_pinned_bytes_per_worker=kv_pinned,
+    total_pinned_bytes=2*(lora_pinned+kv_pinned),common_memory_max_bytes=80*G,
+    excludes_runtime_and_other_overhead=True,not_observed_oom=True,
+    allocator_source='https://raw.githubusercontent.com/pytorch/pytorch/v2.1.2/aten/src/ATen/cuda/CachingHostAllocator.cpp',
+    allocation_rule='cudaHostAlloc(PowerOf2Ceil(size)); each active allocation retained',
+    native_cache_source='https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/worker/cache_engine.py',
+    local_sources={str(path):p.digest(path) for path in [RAW.parent/'d778_20261024/source_view/vllm/worker/lora_engine.py',RAW.parent/'d778_20261024/source_view/vllm/worker/cache_engine.py',RAW.parent/'d778_20261024/source_view/vllm/engine/arg_utils.py',RAW/'native_3b.json']}))
+'''
+needle="q=read(RAW.parent/'d780_20261024/qualification2.json')"
+source=source.replace(needle,insert+'\n'+needle)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__)),'shutil':shutil})

@@ -1,0 +1,13 @@
+{
+  "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+  "campaign": "d781_20261024",
+  "target": "/tmp/tc-d781-3bd/remote_artifacts/objects",
+  "removed": true,
+  "disk_before_bytes": 143291650048,
+  "disk_after_bytes": 162788909056,
+  "observed_reclaimed_bytes": 19497259008,
+  "before_receipt_sha256": "b361874e0e4d510609980c22ff049f796167d9b200aa28a2a0c9c12c1bd8ac1d",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "recorded_unix": 1792781901.167486
+}
