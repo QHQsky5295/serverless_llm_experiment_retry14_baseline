@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "files": {
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/prepare.py",
+      "sha256": "243e4c3126520abfe78ab2b447ecade9e8698a8736adeada0c8264bd455bceb3"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/qualification.json",
+      "sha256": "1de0344d402f2cb57ad79a3a778ca90d556c3290dd6c48d0390c77308cb62c19"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/qualification_closure.json",
+      "sha256": "af76cd9b89b38562e40b6f1e03d4f9ce3dbe3cf55d03602ae8d01430aa0b7d8f"
+    },
+    "http_3b_4000.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/http_3b_4000.json",
+      "sha256": "3142e802dc9b7541c3279dc1e35c7bba1f70de382a6bbedeebe04bb62aedb613"
+    },
+    "run3b_repaired.sh.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/run3b_repaired.sh",
+      "sha256": "5eaa71a1896dfe7796ab05a2e03a888d8d897069f08fed299fd2543d7087d7a9"
+    },
+    "start.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/start.py",
+      "sha256": "e60f3b7614e5b374a612bddb5f12c62bab8c3c98aec142ed6b42df01290b4c27"
+    },
+    "run_analysis.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/run_analysis.py",
+      "sha256": "4e30445fcf3542974ab5d594f7b54f1294dddb4cbf29066c45314bb323e36b4f"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/source_repaired/measurement_manifest.json",
+      "sha256": "a6b6077ae915e9a4424ab8c5fca6869866c82b4fc64d07134bfa766e21602e60"
+    }
+  },
+  "qualification_reused_from": "D764",
+  "requests": 4000,
+  "workload": "W1",
+  "actual_unique_adapters": 132,
+  "target_tokens": 458224,
+  "performance_run_started": false,
+  "no_new_trace_or_weights": true,
+  "independent_numerical_correctness_proven": false
+}

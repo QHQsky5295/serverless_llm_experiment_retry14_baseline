@@ -1,0 +1,39 @@
+{
+  "prior": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/audit_full4000_v2.json",
+  "prior_sha256": "e7d4561861e6f8ac6600a9bb5930bd25a7ca9af57b1a28d267e2a4b7207620d6",
+  "current": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/audit_full4000.json",
+  "current_sha256": "ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f",
+  "metrics": {
+    "physical_gpu_seconds": {
+      "before": 23240.876161672175,
+      "after": 16090.730445874855,
+      "relative_lower_better": 0.3076538795722781
+    },
+    "service_memory_peak_bytes": {
+      "before": 79027851264,
+      "after": 51459633152,
+      "relative_lower_better": 0.34884180287156946
+    }
+  },
+  "joint_before": 0.576,
+  "joint_after": 0.97725,
+  "claim": "Complete W0 after necessary tokenizer adaptation; prior failed W0 retained. Not an isolated causal or cross-system comparison.",
+  "runtime_change": "verified common tokenizer; ordinary retained compiler cache has different history",
+  "full_workload_completed": true,
+  "prior_counts": {
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 2522,
+    "N_failed": 1478,
+    "N_submitted": 4000
+  },
+  "current_counts": {
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0,
+    "N_submitted": 4000
+  }
+}

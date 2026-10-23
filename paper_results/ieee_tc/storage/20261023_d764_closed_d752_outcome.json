@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792745506.0623646,
+  "before": {
+    "available_bytes": 160794550272
+  },
+  "after": {
+    "available_bytes": 161877950464
+  },
+  "entries": [
+    {
+      "run": "d752_20261023/3b_dense_alias_validation_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/3b_dense_alias_validation_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/3b_dense_alias_validation_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "e0e2d80db1807bce61e714235ac52eec1205649bfd71a49295bcc163091ef96e",
+      "audit_sha256": "e0e2d80db1807bce61e714235ac52eec1205649bfd71a49295bcc163091ef96e",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109595094,
+        "size": 1248195049,
+        "mtime_ns": 1792722688992520973,
+        "ctime_ns": 1792722688992520973,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2437896
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "eb11ac7235f3a7e8667d5f2af93ea23ee2492033cf3d939f8ea512c1c0dc1bd5",
+      "archive_sha256": "8d8408eab5842ce4c871d5ede2336b9d322a6f815d9675b40218e2a5650a3143",
+      "archive_bytes": 164728061,
+      "archive_allocated_bytes": 164732928,
+      "first_roundtrip_sha256": "e0e2d80db1807bce61e714235ac52eec1205649bfd71a49295bcc163091ef96e",
+      "second_roundtrip_sha256": "e0e2d80db1807bce61e714235ac52eec1205649bfd71a49295bcc163091ef96e",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 1083469824
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

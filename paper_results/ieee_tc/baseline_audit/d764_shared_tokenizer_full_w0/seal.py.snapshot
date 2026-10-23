@@ -1,0 +1,111 @@
+"""Seal the full W0 observation; retain prior failure and numerical-proof limits."""
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d764_shared_tokenizer_full_w0'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert read(RAW/'analysis_receipt.json')['passed']
+assert read(RAW/'analysis_closure.json')['path_gone']
+assert read(RAW/'local_cleanup.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status']=='RESTORED'
+q=read(RAW/'qualification.json')
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+audit=read(RAW/'audit_full4000.json')
+assert audit['counts']==dict(N_plan=4000,N_arrived=4000,N_terminal=4000,N_response=4000,N_failed=0,N_submitted=4000)
+assert audit['native_revalidated_requests']==4000 and audit['actual_native_output_tokens']==458224
+assert audit['remote_affected_path_qualified'] and not audit['formal_performance_qualified']
+assert audit['remote_transfers']==132 and audit['request_time_pack_count']==0
+assert audit['measurement_complete'] and audit['workload_passed']
+assert audit['n_correct'] is None and not audit['complete_system_qualified']
+assert audit['service_memory_event_maxima']==dict(high=0,max=0,oom=0,oom_kill=0)
+assert audit['service_swap_max_bytes']==0
+assert abs(sum(audit['physical_window_gpu_seconds'].values())-audit['physical_gpu_seconds'])<0.001
+for key in ('max_e2e_recomputation_error_ms','max_native_recompute_error_ms','max_tpot_recomputation_error_ms'):
+    assert audit[key]<=1.0
+metrics=dict(system='ServerlessLLM',model='3b',workload='W0',run='D764',
+    offered=4000,native_binding_valid=4000,failed=0,native_output_tokens=458224,
+    joint_slo=audit['common_slo']['joint_attainment'],
+    ttft_slo=audit['common_slo']['ttft_attainment'],
+    tpot_slo=audit['common_slo']['conditional_tpot_attainment'],
+    physical_gpu_seconds=audit['physical_gpu_seconds'],
+    gpu_seconds_per_binding_valid_request=audit['physical_gpu_seconds']/4000,
+    independent_numerical_correctness_proven=False,formal_run=False)
+for name in ('ttft_ms','tpot_ms','e2e_ms','dispatch_wait_after_submit_ms','service_ttft_ms','decode_ms'):
+    for stat in ('mean','p95_type1'):
+        metrics[name+'_'+stat]=audit['conditional_metrics'][name][stat]
+with (RAW/'metrics.csv').open('x',newline='') as handle:
+    writer=csv.DictWriter(handle,fieldnames=list(metrics))
+    writer.writeheader()
+    writer.writerow(metrics)
+workers=sorted((RAW/'model3b_repaired/worker_receipts').glob('*.json'))
+assert len(workers)==4
+proof=[]
+for path in workers:
+    row=read(path)
+    shared=row['shared_tokenizer']
+    assert row['enable_lora'] is True and shared['lora_weights_enabled'] is True
+    assert shared['contract']=='verified_published_base_v1' and shared['adapter_count']==500
+    assert shared['remote_resolver_preserved'] is True
+    assert shared['per_adapter_tokenizer_construction'] is False
+    assert shared['content_manifest_file_sha256']==read(RAW/'http_3b_4000.json')['pool_index_sha256']
+    proof.append(dict(path=str(path),sha256=p.digest(path),receipt=row))
+save(RAW/'shared_tokenizer_live_proof.json',dict(passed=True,workers=proof,
+    scope='actual native engine frontends, before serving; weight execution enablement retained',
+    independent_numerical_correctness_proven=False))
+oldpath=RAW.parent/'d760_20261023/audit_full4000_v2.json'
+old=read(oldpath)
+assert old['source_plan']==audit['source_plan']
+fields=['physical_gpu_seconds','service_memory_peak_bytes']
+save(RAW/'full_w0_observation.json',dict(prior=str(oldpath),prior_sha256=p.digest(oldpath),
+    current=str(RAW/'audit_full4000.json'),current_sha256=p.digest(RAW/'audit_full4000.json'),
+    metrics={key:dict(before=old[key],after=audit[key],
+        relative_lower_better=(old[key]-audit[key])/old[key]) for key in fields},
+    joint_before=old['common_slo']['joint_attainment'],joint_after=audit['common_slo']['joint_attainment'],
+    claim='Complete W0 after necessary tokenizer adaptation; prior failed W0 retained. Not an isolated causal or cross-system comparison.',
+    runtime_change='verified common tokenizer; ordinary retained compiler cache has different history',
+    full_workload_completed=True,prior_counts=old['counts'],current_counts=audit['counts']))
+OUT.mkdir(parents=True,exist_ok=False)
+sources=[RAW/name for name in ('audit_full4000.json','metrics.csv','shared_tokenizer_live_proof.json',
+    'full_w0_observation.json','qualification.json','qualification_closure.json',
+    'input_identity.json','local_cleanup.json','analysis_receipt.json','analysis_closure.json',
+    'start_receipt.json','start_closure.json','remote_health.json','remote_start.log','remote_stop.log',
+    'launch3b_repaired.json','prepare.py','seal.py','run3b_repaired.sh','start.py','run_analysis.py')]
+sources.extend([RAW/'source_repaired/measurement_manifest.json',
+    RAW/'overlay3b_repaired/restore_receipt.json'])
+sources.extend(RAW.parent/'d763_20261023'/name for name in ('result_publication_receipt.json',
+    'result_publication_closure.json','publish_result.py'))
+mapping={}
+for source in sources:
+    prefix='d763_' if source.parent.name=='d763_20261023' else ''
+    suffix='.snapshot' if source.suffix in ('.py','.sh','.log') else ''
+    name='audit.json' if source.name=='audit_full4000.json' else prefix+source.name+suffix
+    target=OUT/name
+    with target.open('xb') as handle: handle.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+    mapping[name]=dict(source=str(source),sha256=p.digest(source))
+save(OUT/'manifest.json',dict(passed=True,plan_sha256=p.check_plan(),files=mapping,
+    model='3b',requests=4000,qualification_only=False,complete_W0=True,formal_run=False,
+    execution=read(RAW/'input_identity.json'),protected_unchanged=len(q['protected']),
+    independent_numerical_correctness_proven=False,performance_ranking_eligible=False))
+save(RAW/'result_receipt.json',dict(passed=True,identity=own,files=len(mapping),
+    protected_unchanged=len(q['protected']),resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,requests=4000,workers_shared_tokenizer=4,complete_W0=True)))

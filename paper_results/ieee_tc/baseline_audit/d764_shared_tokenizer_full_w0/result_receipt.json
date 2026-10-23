@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d7642026102300000000000000000005.scope",
+    "invocation_id": "2b017751343c4afcba5554b760ac5ebf",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7642026102300000000000000000005.scope",
+    "inode": 30980988
+  },
+  "files": 26,
+  "protected_unchanged": 145,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7642026102300000000000000000005.scope",
+    "memory.current": 16130048,
+    "memory.peak": 28438528,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 297236\nuser_usec 222675\nsystem_usec 74560\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

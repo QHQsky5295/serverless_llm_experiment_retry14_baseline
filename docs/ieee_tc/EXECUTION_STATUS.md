@@ -1,5 +1,121 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D764完成；D765同配置3B W1已绑定、未启动
+
+D764下载缓存回收完成：仅1056个当前SHA/原池SHA一致的下载副本，释放
+5143678976B；FD可读范围局限仍列明，唯一工件/原始测量未删。随后复用
+已有压缩器无损压缩已关闭且备份的D752 main_outcome.json：两次解压SHA
+均为e0e2d80db1807bce61e714235ac52eec1205649bfd71a49295bcc163091ef96e，
+再释放1083469824B，余161877950464B。原路径现为同名.json.gz，恢复后
+核SHA再用需要明文的旧分析器；D752 curated数值未变。contract/storage
+辅助空域已精确关闭，收据位于本轮RAW及paper_results/ieee_tc/storage。
+
+D765机械绑定完成：W1视图SHA
+8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f，
+与3B Resident D654完整一致，4000请求/132 adapter/458224 tokens；不生成
+新trace或权重。源码视图、native配置与已完成D764完全相同，复用114/89/33
+检查，不重做短资格；分析population明确为full4000_w1。qualification
+辅助空域已关闭，尚未启动GPU、远端或安装overlay。下一正常Git检查点后
+重新核查PLAN/启动资源，再运行D765一次；W2及全部后续范围不变。
+
+当前没有活动GPU实验；先前monitor cell2874、analysis34575、reclaim34393、
+storage20509、prepare13603均已完成，不再等待这些句柄。
+
+16:45–16:49 CST完整运行终态并审计/封存：4000响应、0失败，458224原生
+tokens全部匹配；联合97.725%、TTFT98.675%、TPOT99.05%，U16090.730445875
+GPU-s，平均/P95 TTFT447.474547/413.334624ms，平均/P95 TPOT
+16.703323/22.389719ms。132次远端306360162线上B/5139892912物化B，pack0。
+service峰值51459633152B，high/max/OOM/swap0，计时重算误差0。
+audit_full4000 SHA ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f。
+实际GPU释放、service消失，launcher精确空域关闭、loader恢复、3远端服务
+停止；analysis/result辅助空域已关闭。D760失败保留，编译缓存历史差异仍
+披露；n_correct=null，独立数值LoRA正确性未补造。新文档D764_SHARED_TOKENIZER_FULL_W0_20261023.md。
+最新等待循环2874已正常结束，无活动等待cell；分析session34575已完成。
+正在仅核验回收本轮下载缓存（contract辅助，session34393），未回收原始
+证据或唯一工件；之后检查磁盘和备份，再直接同配置W1/W2，不再重复资格。
+全目标active，未完成范围保持。
+
+16:32:32 CST继续verified wait：同一service/InvocationID仍active/running，
+20次45秒观察完成，最新创建req_03531、返回req_03530，最近无失败；已进入
+最后500请求阶段但未终态。sample3289服务49570340864B、peak51459633152B，
+主机可用64430637056B、磁盘156221534208B，high/max/OOM/swap0，无保护
+告警/中止。cell2861已完成，仅为观察循环结束。完整重读冻结V1/单轮V2与
+analyze-results技能，复核已有收尾脚本，尚未执行收尾或分析；仍只监测
+原实验，不重启、改参数或增加任务。完整目标active，未完成范围不缩减。
+
+16:16:45 CST再次verified wait：同一service持续active/running/Tasks1451，
+InvocationID未变；最近创建req_02558、返回req_02556，最近100行没有失败。
+sample2356服务48454381568B、peak51459633152B，主机可用64395132928B，
+磁盘157289287680B，high/max/OOM/swap0，无保护告警/中止。已进入第六个
+500请求阶段，仍非完整终态，不提前宣称最终SLO或D760全部异常已关闭。
+12次45秒观察的cell2859已经完成；不再wait它，不代表原服务终止。当前
+继续监测同一实验，无新配置/源码/远端/存储维护/推送。完整目标active。
+
+16:06:54 CST继续verified wait：完整复核PLAN/状态后，对同一实际service
+完成20次45秒间隔观察，InvocationID始终54b5abff24744eca8410c5d996d88149，
+仍active/running/Tasks1451。sample1773服务47604723712B、peak51459633152B，
+主机可用64547311616B、磁盘158016163840B，high/max/OOM/swap0，无保护
+告警/中止。尾部最新创建req_01808、返回req_01786，最近100行无失败；
+尾部ID不等于累计完成数，完整4000尚未终态。监测cell2857已结束，不再
+wait该句柄；这不是实验结束。functions.store新增d764_compact_monitor，
+保持同一实际身份、watchdog尾行和最近100行事件的低干扰观察。无源码、
+配置、远端、共享k3s、扫描维护或推送变更。继续原运行，未重启或新增任务；
+此前失败与所有后续实验范围保留，完整目标active。
+
+15:49:42 CST本轮verified wait：完整重读PLAN/最新状态，使用monitor-experiment
+轻量核对同一实际service，并以六次45秒间隔观察；未重启、未改配置。
+实际systemd仍active/running、InvocationID仍54b5abff24744eca8410c5d996d88149、
+Tasks1659。只读流式统计558创建/558提交/558响应、失败0；原计划4000不变，
+不能当作完整完成。已进入第二个500请求阶段。15:49:14 sample727服务
+50953789440B、主机可用59752976384B、磁盘159334428672B，high/max/OOM/
+swap0，无保护告警/中止。等待循环cell2849已完成，仅监测句柄结束，服务
+没有结束；下轮检查同一实际service，不再wait已完成cell。d764_monitor_cmds
+已改为仅显示最近100行的事件/请求ID，避免输出完整prompt；该尾部计数不是
+累计统计，558为单独流式全量观察。没有源码修改、测试、扫描/压缩/清理、
+推送、远端维护或共享k3s操作。下一仍等待原运行自然终态，按下述链收尾。
+本轮只是有实据的等待，不宣称D760全部异常已解决或PrimeLoRA排名完成；
+完整目标active，3B后续/最终同版本7B/消融/敏感性/审稿交付范围均保留。
+
+本轮PROGRESS：D763原生100请求核验、结果封存、下载副本回收及正常备份
+完成；48条明确路径提交95a4d703a74531f6271171149d9c1006bb04485e并推送
+核对faaslora_origin/backup/d763-native-shared-tokenizer-20261023。
+BASE保持c9b3c9f7a02c1a118db089708697af3c76d47a5c及origin/main；V2
+仍未同步，不force，用户修改未stage。发布辅助空域精确关闭；发布回执与
+关闭证据随下个正常检查点保存，不新增空备份链。
+
+完整重读PLAN/状态/冻结V1及单轮V2/基线停止与存储规则后，D764机械绑定
+既有4000视图，132个实际adapter、458224目标tokens；实际source view与
+D763逐SHA一致，复用114/89/33项检查及真实100请求证明，不重做500/1000。
+原native配置、1800秒保护、真实远端与生成合同不变，D760失败永久保留。
+qualification/start辅助空域已精确关闭，未改生产代码或生成新数据。
+
+15:40:23 CST最新轻量复查：同一InvocationID仍active/running，74请求
+实际创建/提交，70原生响应，当前日志无失败事件；这是运行中计数，不是
+终态。sample203服务49914126336B、主机可用59947057152B、磁盘
+160305618944B，high/max/OOM/swap0，无保护告警/中止。四实例已处理请求。
+已低于150GiB新任务启动线，但仍高于100GiB运行停止线；不启动第二任务，
+不在测量中清理。下次继续观察原实例，不因本轮短时正常而宣布完整恢复。
+
+15:38:36 CST观察：tmux tc-d764-serverlessllm-3b4000已实际运行，service
+primelora-tc-svc-c4719e80d28a4c00bf5485824543d08e.scope，InvocationID
+54b5abff24744eca8410c5d996d88149，inode30948040。launcher为
+primelora-tc-aux-d7640000000000000000000000000004.scope，InvocationID
+d36c00d3225f44da9eb0ec15ef9ce980。sample96服务40627040256B，主机可用
+68371845120B，磁盘161206063104B，high/max/OOM/swap0，无保护告警/中止。
+实际请求已开始排队，尚处启动，不宣称最终完成、SLO或内存问题已解决。
+Ray报告文件系统超过95%使用率，属于保留预警，未据此认定实际spill或失败。
+远端本次1000Mb/s/full；3B clock 295a76c4402c49399e36158f107a0183，
+7B clock 30f742a174544d5c9f5300c12c54ffb8。请求中不打包，运行中不维护远端。
+
+下一只监测同一实际实例，不重启、不追加实验/扫描/压缩/推送。自然终态
+后按既有close_launch→restore_overlay→stop_remote→run_analysis链，
+以真实success或complete_with_failures分析并封存；然后同配置W1/W2。
+functions.store的d764_monitor_cmds保存轻量实际监测命令；启动session67478
+已完成，不再等待该句柄。独立数值LoRA正确性仍未知，n_correct不补造。
+3B其他基线/PrimeLoRA跨场景/dLoRA、最终同版本7B主表与Full、A1–A5、
+S1–S13、CE/Pareto、审稿文档/最终图表全部保留，完整目标active。
+非本项目k3s保持不动；HydraServe已有隔离/7B三场景结果复用。
+
 ## 2026-10-23 D763：共同分词器原生100请求通过，下一直接完整W0
 
 100/100响应、0失败，17369原生tokens与输入目标一致；四个实际backend
