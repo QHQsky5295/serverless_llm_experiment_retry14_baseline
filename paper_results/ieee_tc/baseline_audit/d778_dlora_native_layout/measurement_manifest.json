@@ -1,0 +1,41 @@
+{
+  "schema": "ieee_tc_dlora_measurement_view_v1",
+  "native_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/dLoRA_artifact_main_20260519",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view",
+  "original_sha256": {
+    "vllm/engine/llm_engine.py": "e8bbbe9d9f0defdbab20d7184b8527d145767034733bbbdd230d35c30b85a989",
+    "vllm/outputs.py": "b034a9cce794748c33b5e228959db40b2acdd5c62f4b0f076d7b1b9d25eeead8",
+    "vllm/entrypoints/api_server.py": "ed68e4810f17bb57672a567993a6e2f40ce85face6b166fcf8df8ed390dd41ae",
+    "vllm/engine/async_llm_engine.py": "d2378aef28b42e114718e9290910e5ec1fbd87759a7f0393ac78e9128a176634",
+    "vllm/engine/engine_manager.py": "3615234d01cd15222f3edbacf8064b973b66cba7ca220245ce1eae2f4aa3e578",
+    "vllm/core/scheduler.py": "bf1c786a3d8c4a47c76d466248e06ea413474fb4c5f8a8981072b979ce96444f",
+    "vllm/sequence.py": "74767d459dcaeb8c90a1b281332511a75dbdd774997f95d2dfe8b8f4a4e0bdc2",
+    "vllm/worker/lora_engine.py": "4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9",
+    "vllm/engine/ray_utils.py": "e063611e74c09d1e4df8b80c8c82e3ca1b01b82d83ab7d56ca9ea5d9daf41198"
+  },
+  "measured_sha256": {
+    "vllm/engine/llm_engine.py": "c2779e5eb4421c5a40ea50bf0ba3c01c459f9f30c5394436dc54e28578409daa",
+    "vllm/outputs.py": "48d7d4fa2a285e844f8ec818f71b02456ac1f04689d94cb56e15115e8f6a2cc8",
+    "vllm/entrypoints/api_server.py": "dbd58955aa0e2f7533da60bcf0ef4f7f1519e6050664ac6926f3c2459d241d18",
+    "vllm/engine/engine_manager.py": "be8406bfc9ba3879df878e7126f78d4d788c9bc258b2b2e85460fc73c00f6c1b",
+    "vllm/engine/ray_utils.py": "8718c3fe16e33561b648475e0db7088b07acb39810bceb87cc0726176b94ba91"
+  },
+  "helper_path": "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_serverless_measurement.py",
+  "helper_sha256": "97346a5a019c41349777733ea089fb0fc2f0ca1e0b5a59224f1f5a624c8065a2",
+  "source_adapter_sha256": "8ab1bed24e4aaab5a74bfe300950ad47f5266f13ebc0a4cc0946c4d9b1da7702",
+  "shared_source_sha256": {
+    "faaslora/clock.py": "dfb56eee569afc35d6b944dd86a1cc663a31ab5ee6917b9205a10ad3f75ee4cb"
+  },
+  "timing_boundary": "worker_result_available_before_scheduler_update_and_text_decode",
+  "migration_state_carrier": "native_SequenceGroup_deepcopy",
+  "scheduling_policy_changed": false,
+  "loading_policy_changed": false,
+  "sampling_policy_changed": false,
+  "terminal_only_delivery_preserved": true,
+  "added_cuda_synchronization": false,
+  "performance_run_authorized": false,
+  "input_contract": "canonical_token_ids_v1",
+  "input_forwarding": "EngineManager_to_existing_AsyncLLMEngine_generate",
+  "worker_lifecycle": true,
+  "worker_lifecycle_scope": "DP2_TP1_private_Ray_pool_v1"
+}

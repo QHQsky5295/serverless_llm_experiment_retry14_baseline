@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "head": "40f0f814018cf3d33b57648f05ff659757d0ed3f",
+  "remote_ref": "origin/main",
+  "paths": [
+    "scripts/ieee_tc_serverless_measurement.py",
+    "tests/test_ieee_tc_dlora_measurement.py"
+  ],
+  "force_push": false
+}

@@ -1,0 +1,5 @@
+"""Reuse exact-owned empty-scope closure."""
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/close.py')
+exec(compile(original.read_text(),str(original),'exec'),
+     {'__name__':'__main__','__file__':str(Path(__file__))})

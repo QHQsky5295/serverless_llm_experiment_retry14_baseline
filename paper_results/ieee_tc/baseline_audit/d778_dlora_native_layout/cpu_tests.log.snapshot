@@ -1,0 +1,12 @@
+test_lifecycle_view_records_sources_without_overwriting_legacy_view (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_lifecycle_view_records_sources_without_overwriting_legacy_view) ... ok
+test_native_ray_guard_runs_before_worker_or_distributed_initialization (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_native_ray_guard_runs_before_worker_or_distributed_initialization) ... ok
+test_private_ray_never_uses_discovery_and_store_is_service_total (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_private_ray_never_uses_discovery_and_store_is_service_total) ... ok
+test_receipt_reads_actual_capacity_and_native_loaded_order (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_receipt_reads_actual_capacity_and_native_loaded_order) ... ok
+test_receipt_uses_native_layer_major_constructor_not_synthetic_adapter_list (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_receipt_uses_native_layer_major_constructor_not_synthetic_adapter_list) ... ok
+test_runtime_shutdown_on_native_construction_failure (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_runtime_shutdown_on_native_construction_failure) ... ok
+test_runtime_shutdown_on_partial_ray_initialization_failure (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_runtime_shutdown_on_partial_ray_initialization_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.071s
+
+OK

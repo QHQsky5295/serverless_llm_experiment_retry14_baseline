@@ -1,0 +1,74 @@
+{
+  "schema": "ieee_tc_dlora_native_layout_cpu_qualification_v1",
+  "files": {
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/qualification.json",
+      "sha256": "6c27892921c16c0be1f555a531ea5405df97cd8b88a7d61a8c767938884c3dae"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/qualification_closure.json",
+      "sha256": "64e2da7ceea465acd40627cc0603d681a638933a1ba6a68fd545038f97718544"
+    },
+    "cpu_tests.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/cpu_tests.log",
+      "sha256": "b4d6afa3f0280289bfc9a785f56b4a0d10601bc7f7e14be948e3f98231582cd6"
+    },
+    "qualify.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/qualify.py",
+      "sha256": "6f4f5053d809c56a39cfb908eef8115ea1949a1698b3e8ee68583d92d28f7462"
+    },
+    "close.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/close.py",
+      "sha256": "be1a51f033ceda88785537ad2a7ea30690704fa77fffd0c698a79447e26b5f58"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/backup.py",
+      "sha256": "e63c711c6bfa792a5771299f900fbf82c7c33cdae22a8e37134d860f5f314c62"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/baseline_backup_receipt.json",
+      "sha256": "641173f95dfa669683a3aaeab71be7ab777bc38eddce570410988b8db3c31ca0"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/measurement_manifest.json",
+      "sha256": "3e7220301737441552c5aea7890675359baf6ab8d7984f30e99863d67e9ef64b"
+    },
+    "llm_engine.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/engine/llm_engine.py",
+      "sha256": "c2779e5eb4421c5a40ea50bf0ba3c01c459f9f30c5394436dc54e28578409daa"
+    },
+    "outputs.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/outputs.py",
+      "sha256": "48d7d4fa2a285e844f8ec818f71b02456ac1f04689d94cb56e15115e8f6a2cc8"
+    },
+    "api_server.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/entrypoints/api_server.py",
+      "sha256": "dbd58955aa0e2f7533da60bcf0ef4f7f1519e6050664ac6926f3c2459d241d18"
+    },
+    "engine_manager.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/engine/engine_manager.py",
+      "sha256": "be8406bfc9ba3879df878e7126f78d4d788c9bc258b2b2e85460fc73c00f6c1b"
+    },
+    "ray_utils.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/source_view/vllm/engine/ray_utils.py",
+      "sha256": "8718c3fe16e33561b648475e0db7088b07acb39810bceb87cc0726176b94ba91"
+    },
+    ".gitattributes": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d778_20261024/snapshot.gitattributes",
+      "sha256": "e8917d270beab62331747a0d07e9bb7c55a06460fa6052a750956b2a3c28fd86"
+    }
+  },
+  "baseline_head": "40f0f814018cf3d33b57648f05ff659757d0ed3f",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": {
+    "affected_owned_runtime": 7,
+    "passed": true,
+    "native_constructor_shape_only": true
+  },
+  "native_inference_run": false,
+  "performance_run_authorized": false,
+  "independent_numerical_correctness_proven": false,
+  "old_publication_unchanged": 145,
+  "historical_vendor_tree_unchanged": true,
+  "no_new_weights_or_trace": true
+}

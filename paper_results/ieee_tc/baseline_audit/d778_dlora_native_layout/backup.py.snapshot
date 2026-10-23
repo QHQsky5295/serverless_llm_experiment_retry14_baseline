@@ -1,0 +1,37 @@
+"""Reuse explicit checkpoint; only the two affected native-layout paths."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='b5c70e16e8bd04fc8f3f5868a4d9696e197cd91f09293a2a4a613ebd7d7049e1'
+source=data.decode()
+changes={
+    'd774_dlora_native_timing':'d778_dlora_native_layout',
+    '== [0,0]':'== [0]',
+    '84bb7892b4aade6bed0b898fb99d1f6074073a10':'f9c0e79c1dae868648fe7e7cb5d194a0ac10b449',
+    '57be5a751304642b76e226f9b19e84f8e941519a':'bc9719ec6068ecd0ea03074e513022625ad752bf',
+    "             'scripts/prepare_ieee_tc_serverless_stack.py',\n":'',
+    'tc: observe native dLoRA token timelines across migration (D774)':
+        'tc: read native dLoRA layer-major adapter pool correctly (D778)',
+    "         'shared_regression.log','qualify.py'":"         'qualify.py'",
+    "manifest = dict(schema='ieee_tc_dlora_native_timing_cpu_qualification_v1',":
+        "with (OUT/'.gitattributes').open('xb') as handle:\n    handle.write((RAW/'snapshot.gitattributes').read_bytes())\nfiles['.gitattributes']=dict(source=str(RAW/'snapshot.gitattributes'),sha256=p.digest(OUT/'.gitattributes'))\nmanifest = dict(schema='ieee_tc_dlora_native_layout_cpu_qualification_v1',",
+    'tests=dict(dlora=12, shared_slora_regression=30, passed=True)':
+        'tests=dict(affected_owned_runtime=7, passed=True, native_constructor_shape_only=True)',
+    'D774_DLORA_NATIVE_TIMING_20261024.md':'D778_DLORA_NATIVE_LAYOUT_CORRECTION_20261024.md',
+    'tc: preserve dLoRA native timing qualification and scope (D774)':
+        'tc: document native dLoRA layout measurement correction (D778)',
+    'backup/d774-dlora-native-timing-20261024':'backup/d778-dlora-native-layout-20261024',
+}
+for old,new in changes.items():
+    assert source.count(old)==1,old
+    source=source.replace(old,new)
+needle="assert call(BASE,'git','branch','--show-current') == 'main'"
+check="""for path in q['source_view']['measured_sha256']:
+    checked=subprocess.run(['git','diff','--no-index','--check',str(native/path),str(view/path)],
+        capture_output=True,text=True)
+    assert checked.returncode in (0,1) and not checked.stdout and not checked.stderr,path
+"""
+assert source.count(needle)==1
+source=source.replace(needle,check+needle)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

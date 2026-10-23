@@ -1,5 +1,25 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D778：原生层/adapter维度误读已修正（PROGRESS）
+
+D777已备份核验：BASE `f9c0e79c1dae868648fe7e7cb5d194a0ac10b449` origin/main；
+MAIN `bc9719ec6068ecd0ea03074e513022625ad752bf` 位于
+`faaslora_origin/backup/d777-dlora-shared-service-20261024`。aux1/2均结束/关闭。
+无force，V2仍未同步；主服务/终态代码和小型证据已保存。
+
+随后阅读实际loader probe/native实现发现D776回执将cpu_lora_weights外层
+误当adapter数，实际是模型层；合成fixture也错误，因此此前CPU通过不足以
+证明这一维度。已修正为层数/每层组数/A-B首维分别检查，未改原生布局或
+策略，未运行GPU，不归因为dLoRA性能缺陷。新测试直接执行原生构造方法，
+用shape holders避免大分配，验证3B 28层、500 adapter及错误499槽拒绝。
+7项受影响检查通过，未重跑无变化的D777共享服务检查。RAW为
+dlora_qualification/d778_20261024；资格空域已关闭，准备修正检查点备份。
+
+下一必须用D778 source view/当前helper做真实DP2/TP1加载与必要LoRA/GQA、
+共同HTTP资格，不能用旧view SHA或把CPU检查当性能。随后限定3B W1/W2、
+Loquetier/HydraServe 3B、PrimeLoRA完整对照优化、同版本Full与全消融/敏感性/
+文档/图表；目标active。共享k3s/远端未改，历史证据与用户dirty保留。
+
 ## 2026-10-24 D777：共同服务与物理计量连接完成，61项CPU检查通过（PROGRESS）
 
 已完整重读PLAN/最新状态，核对D773历史审计及固定官方EngineManager/API。
