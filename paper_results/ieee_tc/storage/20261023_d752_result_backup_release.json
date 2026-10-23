@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-5cf86520c192abc95f0cae112508130a.scope",
+    "invocation_id": "d96f60cfe14b42fead033d5de1646fd4",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-5cf86520c192abc95f0cae112508130a.scope",
+    "inode": 30803169
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-5cf86520c192abc95f0cae112508130a.scope",
+    "memory.current": 1757184,
+    "memory.peak": 36835328,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 1197029\nuser_usec 900295\nsystem_usec 296734\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "backup": {
+    "passed": true,
+    "head": "915fdd7d321c74556d2aac1ed278134115d5e6bf",
+    "ref": "refs/heads/backup/d752-complete-20261023",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/actual_profile_binding.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/analysis_resources.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/closed_outcome.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/comparison.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/full4000.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/stages/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/stages/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/closure.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/seal.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/backup_results.py.snapshot",
+      "docs/ieee_tc/D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md",
+      "docs/ieee_tc/EXECUTION_STATUS.md",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/resume_start.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/finish_start.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/resume_identity.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/finish_identity.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/interrupted_start_closure.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/interrupted_resume_closure.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/start_closure.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/start_receipt.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/commit.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/backup.json",
+      "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/execution_recovery/manifest.json",
+      "docs/ieee_tc/HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md"
+    ],
+    "v2_synchronized": false,
+    "closed_previous_scope": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "protected_publication_files": 145,
+    "remote_monitor_sha256": "40230aec57bb8802561eb31197be2912802f946b3cc49ad2f4bb1afef164d3f7",
+    "csv_check": "CSV CRLF and exact executed snapshot EOF preserved; sealed bytes unchanged.",
+    "protected_user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "disk_free_bytes": 160410345472,
+  "no_running_gpu_task": true,
+  "shared_k3s_untouched": true
+}

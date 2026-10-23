@@ -1,0 +1,56 @@
+"""Reuse the existing lossless compressor on two closed, source-bound outcomes."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/storage/20261023_d752_closed_older_outcomes.json'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'storage_identity.json', own)
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert read(RAW/'post_backup_release.json')['passed']
+q = read(ROOT/'paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/qualification.json')
+for name, sha in q['protected'].items():
+    assert p.digest(Path(name)) == sha, name
+targets = []
+for run, curated in (
+    ('d742_20261023/3b_execution_view_full_w0', 'd742_3b_execution_view_full_w0'),
+    ('d749_20261023/3b_fresh_host_descriptor_full_w0', 'd749_3b_fresh_host_descriptor_full_w0'),
+):
+    audit = read(ROOT/'paper_results/ieee_tc/p2_backend'/curated/'completion/closed_outcome.json')
+    assert audit['passed'] and audit['all_allocations_released']
+    source = c.RAW_ROOT/run/'launch.launch/physical_deployment/main_outcome.json'
+    reference = next(item for item in audit['source_refs'] if Path(item['path']) == source)
+    assert p.digest(source) == reference['sha256']
+    targets.append(dict(run=run, audit_sha=reference['sha256']))
+c.TARGETS, c.OUT = targets, OUT
+assert c.main() == 0
+for name, sha in q['protected'].items():
+    assert p.digest(Path(name)) == sha, name
+group = Path(own['path'])
+assert all(int(row.split()[1]) == 0 for row in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT.with_name(OUT.stem+'_verification.json'), dict(
+    passed=True, identity=own, protected_files=len(q['protected']),
+    receipt_sha256=p.digest(OUT), compressor_sha256=p.digest(Path(c.__file__)),
+    source_script_sha256=p.digest(Path(__file__)), resources=p.cgroup_snapshot(group),
+    note='Restore the original path from its archive and verify source_sha256 before reusing an analyzer requiring an uncompressed outcome. D752 remains uncompressed.'))
+with OUT.with_name(OUT.stem+'.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())

@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-cbabc2ba40ae8373ff3b44631b3ea3f9.scope",
+    "invocation_id": "35b22530f4534f13b811edefe5bc4b86",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-cbabc2ba40ae8373ff3b44631b3ea3f9.scope",
+    "inode": 30804238
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-cbabc2ba40ae8373ff3b44631b3ea3f9.scope",
+    "memory.current": 315650048,
+    "memory.peak": 335384576,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 89786587\nuser_usec 84284869\nsystem_usec 5501717\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d752_closed_older_outcomes.json",
+      "sha256": "f0f207bb0514a338f37bc23f99f8482ef8fb9711ae4f9945d8fa4c649994f406"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d752_closed_older_outcomes_verification.json",
+      "sha256": "5c149ca20b7b358efe605711bc85ef485925a2f70030ce1a8f31db3ec41fdb93"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d752_result_backup_release.json",
+      "sha256": "4adf9df87c4c05658e5c7c8704b557becff51f3dfe87903daa8c7bcb9953acc7"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d752_closed_older_outcomes.py.snapshot",
+      "sha256": "8379e06873b367de839a644e1aa7249be66a6ae7413ef0e5404a36b5b5ab4251"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d752_publish_storage.py.snapshot",
+      "sha256": "36e555cbdfd7cce9ca793a0638399eed014b876de4a4a3e496ab75a8021c82d2"
+    }
+  ],
+  "bindings": [
+    {
+      "run": "d742_20261023/3b_execution_view_full_w0",
+      "source_sha256": "d23b9044cbaf8684ab6a776094bf747c661363eb7f9d4eb565ce5bf5ff97751c",
+      "launch_sha256": "05816b66c12c6dccb82c9a1561de313d5dba7f293b2a20cdef5eaf667e89263d"
+    },
+    {
+      "run": "d749_20261023/3b_fresh_host_descriptor_full_w0",
+      "source_sha256": "11d94085a518cf46828ec36cf9f04e63b3987910f871947f78f3bd4333fa6eed",
+      "launch_sha256": "9c484d818fd1054874646b4eea211d3df14d9ba53a13243392d2e9e97e2cd7b5"
+    }
+  ],
+  "protected_files": 145,
+  "compressor": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/compress_closed_main_outcomes.py",
+    "sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6"
+  },
+  "recovery": "gzip -dc archive to original exact path, then verify source_sha256 before any analyzer needing the uncompressed source. No measurements deleted.",
+  "new_performance_runs": 0
+}
