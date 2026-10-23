@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "head": "23fee79696578c53f267355a42dd353116ee217b",
+  "remote_ref": "refs/heads/backup/d766-w2-binding-20261023",
+  "baseline_head": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+  "force_push": false,
+  "v2_synchronized": false,
+  "paths": [
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/backup.py.snapshot",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/http_3b_4000.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/manifest.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/measurement_manifest.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/prepare.py.snapshot",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/qualification.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/qualification_closure.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/result_publication_closure.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/result_publication_receipt.json",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/run3b_repaired.sh.snapshot",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/run_analysis.py.snapshot",
+    "paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_w2_binding/start.py.snapshot"
+  ],
+  "protected_unchanged": 145,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7662026102300000000000000000002.scope",
+    "memory.current": 15523840,
+    "memory.peak": 32456704,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 758759\nuser_usec 495148\nsystem_usec 263611\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

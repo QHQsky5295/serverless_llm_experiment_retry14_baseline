@@ -1,0 +1,20 @@
+"""Reuse verified closed-download reclamation for this completed W2 cache only."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d764_20261023/reclaim.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '8072d61ef7f585e68c49e544dc1df85bced2ea5c526348ad2776c517c9066519'
+source = data.decode().replace('D764', 'D766').replace('d764', 'd766')
+changes = {
+    'd766_shared_tokenizer_full_w0': 'd766_shared_tokenizer_full_w2',
+    'ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f':
+        '9ff674a6f4dd981abcfae0bde1256d9deb3a45e60766d688d6f50b40ea3c4a65',
+    "audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 5139892912":
+        "audit['offered_unique_adapters'] == 497 and audit['verified_materialized_bytes'] == 19379651180",
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

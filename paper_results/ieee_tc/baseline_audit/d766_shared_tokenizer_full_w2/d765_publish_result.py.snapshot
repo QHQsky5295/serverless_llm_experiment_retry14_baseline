@@ -1,0 +1,30 @@
+"""Reuse D764's explicit-path publication for the completed W1 observation."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d764_20261023/publish_result.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+source = data.decode()
+begin = source.index('NEXT_OUT.mkdir(parents=True,exist_ok=False)')
+end = source.index('paths=[MAIN/',begin)
+source = source[:begin]+source[end:]
+changes = {
+    'd764_shared_tokenizer_full_w0':'d765_shared_tokenizer_full_w1',
+    "for folder,names in ((RAW,('result','contract','storage')),(NEXT,('qualification',))):":
+        "for folder,names in ((RAW,('result','contract')),):",
+    "q=read(NEXT/'qualification.json')":"q=read(RAW/'qualification.json')",
+    '95a4d703a74531f6271171149d9c1006bb04485e':'2d6c9d1ab8d725439189e04afa62ace567448ab0',
+    "'contract_closure.json','storage.py','close_storage.py','storage_closure.json','publish_result.py'":
+        "'contract_closure.json','publish_result.py'",
+    'D764_SHARED_TOKENIZER_FULL_W0_20261023.md':'D765_SHARED_TOKENIZER_FULL_W1_20261023.md',
+    '*sorted(OUT.iterdir()),*sorted(NEXT_OUT.iterdir()),*storage_paths':'*sorted(OUT.iterdir())',
+    'tc: seal ServerlessLLM 3B W0 and bind unchanged W1 (D764-D765)':
+        'tc: seal complete ServerlessLLM 3B W1 observation (D765)',
+    'refs/heads/backup/d764-complete-w0-20261023':'refs/heads/backup/d765-complete-w1-20261023',
+}
+for before,after in changes.items():
+    assert source.count(before)==1,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),
+     {'__name__':'__main__','__file__':str(Path(__file__))})

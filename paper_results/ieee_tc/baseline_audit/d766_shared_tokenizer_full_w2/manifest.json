@@ -1,0 +1,155 @@
+{
+  "passed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files": {
+    "audit.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/audit_full4000.json",
+      "sha256": "9ff674a6f4dd981abcfae0bde1256d9deb3a45e60766d688d6f50b40ea3c4a65"
+    },
+    "metrics.csv": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/metrics.csv",
+      "sha256": "577cd570020e69177e496036de7d7a053377796ec5b8345b53fb1a2c2ad84bcc"
+    },
+    "shared_tokenizer_live_proof.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/shared_tokenizer_live_proof.json",
+      "sha256": "161d59976d0b52b6548ca8b861d82946ce7034c8bdf331af137e695d2d87521c"
+    },
+    "full_w2_observation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/full_w2_observation.json",
+      "sha256": "85269f2d1c2ab267cc24854cbf172bd0b37275be6eb293b90fce27d39c2b6b8f"
+    },
+    "phase_metrics.csv": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/phase_metrics.csv",
+      "sha256": "fc36b37dca55159080f94097585862d4461be1fa8f183cd17ec56105c676cb77"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/qualification.json",
+      "sha256": "ded7f7288d705fd1f0b5029bbe2cd0ec70ba2f7fa95c8254a4948cdc41084ce4"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/qualification_closure.json",
+      "sha256": "105c4dcc51573a5d3913a5196bf935aa28d440038c478426f7305a0594a74264"
+    },
+    "input_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/input_identity.json",
+      "sha256": "58cb8c543c9cb6c74f9b0e71148138739aa452f4f62e6ebd2dadd7dc3c390a40"
+    },
+    "local_cleanup.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/local_cleanup.json",
+      "sha256": "54d60d1ab3b06722dd5e3503b575bf28a31b5e52f8f565894c804bf4612456a0"
+    },
+    "analysis_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/analysis_receipt.json",
+      "sha256": "3e015988ecca7303c5f2bcc109dfff701b9948467857b2d946e85b1284bc8eaa"
+    },
+    "analysis_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/analysis_closure.json",
+      "sha256": "cd4cd9614bab28b59a5a5f5140b479063fc7c6011bfc8e23ef9c949931fdcfaa"
+    },
+    "start_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/start_receipt.json",
+      "sha256": "7e17b5987abdb230bc7254f53f879e8c8383ab244c4d4ab279d1ae726c7bcc68"
+    },
+    "start_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/start_closure.json",
+      "sha256": "403d6357fda42a63bf8180f589f45981336a46832371cef35733ffadd2bb42d6"
+    },
+    "remote_health.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/remote_health.json",
+      "sha256": "d99f561896b889e81af52e9f7e713ac08814e3273432d9c60b22ac20b6347fd4"
+    },
+    "remote_start.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/remote_start.log",
+      "sha256": "4247e14541f4f3293718760c12bba4f2ce2c8d9695f50051998727277c2198e4"
+    },
+    "remote_stop.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/remote_stop.log",
+      "sha256": "433c99faa93a1186b8bcb8c69d885aae10f38b83142179ff87963ba32ae2ea39"
+    },
+    "launch3b_repaired.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/launch3b_repaired.json",
+      "sha256": "46bbc3a431964d2181d7118b3741d55c4b6c23b21c84d2b1460a9abcc025f989"
+    },
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/prepare.py",
+      "sha256": "31a23aaa2878521b305eb2a043938424e847d8c06107c41f7ed60707226ba2fc"
+    },
+    "seal.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/seal.py",
+      "sha256": "486432c3d9024f70879b83326dc78e2ab077bc6bff4d01cac78d478bea4025d6"
+    },
+    "run3b_repaired.sh.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/run3b_repaired.sh",
+      "sha256": "5f4b8667a6340bacd7be1cd747e9e2f103a9262f9adf9f984cba5c3c530c5a67"
+    },
+    "start.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/start.py",
+      "sha256": "0fcbb8de999b67ebf7ba2f42ceaf179c18ed89f0c8073f7443f7e50f9169c8d1"
+    },
+    "run_analysis.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/run_analysis.py",
+      "sha256": "d27e44ddd88e689a52b2bcd6efd8b7251507b9cf6df5240cad90d99edd4bec66"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/source_repaired/measurement_manifest.json",
+      "sha256": "b731f003f133bb1e65c11d7a9625cd569855bb3d00c8289e310910a73eaaf6e3"
+    },
+    "restore_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/overlay3b_repaired/restore_receipt.json",
+      "sha256": "c7715ba4bab4ac48df7820fa9eced3fb979efbc8ce342484c19aa0fd1cbb772f"
+    },
+    "d765_result_publication_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/result_publication_receipt.json",
+      "sha256": "71f4d4dcae2ea1abd52039422d51ec76efdc5d572e1aa76f4ba9adbed4aa9768"
+    },
+    "d765_result_publication_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/result_publication_closure.json",
+      "sha256": "9b1797b71fc92ad0b067d3d81669529f5f0450a0a14341867b0cffa23fee8ba5"
+    },
+    "d765_publish_result.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/publish_result.py",
+      "sha256": "b8a8fa057716b271577a3a04654c259cae627cebfe5ebd68610a6e0418f6461a"
+    },
+    "backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/backup_receipt.json",
+      "sha256": "a1ecfb9220850b70b4003b63df0d4dfeeda1ca3a1423f6d74caf0156ca0c0d0e"
+    },
+    "backup_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/backup_closure.json",
+      "sha256": "fea96c514f0e40bfe465119796bc7882f9a06de84ca122c390cc6e38c7779ec1"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/backup.py",
+      "sha256": "8a76cacbefe86c0a56a67107132735caa9e10d4e98ad57369490d91cb690cb90"
+    }
+  },
+  "model": "3b",
+  "requests": 4000,
+  "qualification_only": false,
+  "complete_W2": true,
+  "formal_run": false,
+  "execution": {
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+      "count": 4000,
+      "source_count": 4000,
+      "profile": "W2",
+      "rate_scale": 1.0,
+      "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+      "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+    },
+    "actual_unique_adapters": 497,
+    "target_tokens": 458224,
+    "performance_ranking_eligible": false,
+    "formal_run": false,
+    "main_execution_commit": "23fee79696578c53f267355a42dd353116ee217b",
+    "baseline_execution_commit": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+    "generation_contract": "fixed_length_greedy_v1",
+    "native_configuration_reused": "D764/D765 complete configurations; unchanged native policy/cache ownership; existing W2 view"
+  },
+  "protected_unchanged": 145,
+  "independent_numerical_correctness_proven": false,
+  "performance_ranking_eligible": false
+}

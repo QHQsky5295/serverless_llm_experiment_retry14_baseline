@@ -1,0 +1,33 @@
+"""Reuse D765's publication recipe for the same-configuration complete W2 run."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d765_20261023/seal.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '341ac4fa9df15ce93e87024e46c999ebdc8474e16ae382347e2fa59181f61f25'
+source = data.decode()
+changes = {
+    'unchanged-configuration W1 run': 'unchanged-configuration W2 run',
+    'full_w1_observation.json': 'full_w2_observation.json',
+    'Complete W1 observation': 'Complete W2 observation',
+    'd765_shared_tokenizer_full_w1': 'd766_shared_tokenizer_full_w2',
+    "workload='W1',run='D765'": "workload='W2',run='D766'",
+    "audit['backend_ready_receipts']==14": "audit['backend_ready_receipts']==4",
+    'complete_W1=True': 'complete_W2=True',
+    '''"RAW.parent/'d763_20261023'":"RAW.parent/'d764_20261023'"''':
+        '''"RAW.parent/'d763_20261023'":"RAW.parent/'d765_20261023'"''',
+    '''"prefix='d764_' if source.parent.name=='d764_20261023'"''':
+        '''"prefix='d765_' if source.parent.name=='d765_20261023'"''',
+}
+for before, after in changes.items():
+    assert before in source, before
+    source = source.replace(before, after)
+marker = 'for before,after in changes.items():'
+assert source.count(marker) == 1
+source = source.replace(marker, '''changes.update({
+    "assert audit['remote_transfers']==132": "assert audit['remote_transfers']==497",
+    "mapping={}": "sources.extend([RAW/'backup_receipt.json',RAW/'backup_closure.json',RAW/'backup.py'])\\nmapping={}",
+})
+''' + marker)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

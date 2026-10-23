@@ -1,0 +1,27 @@
+"""Reuse the checked D765 publication path for completed D766 W2 evidence."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d765_20261023/publish_result.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'b8a8fa057716b271577a3a04654c259cae627cebfe5ebd68610a6e0418f6461a'
+source = data.decode()
+changes = {
+    'completed W1 observation':'completed W2 observation',
+    'd765_shared_tokenizer_full_w1':'d766_shared_tokenizer_full_w2',
+    'D765_SHARED_TOKENIZER_FULL_W1_20261023.md':'D766_SHARED_TOKENIZER_FULL_W2_20261023.md',
+    '2d6c9d1ab8d725439189e04afa62ace567448ab0':'23fee79696578c53f267355a42dd353116ee217b',
+    'tc: seal complete ServerlessLLM 3B W1 observation (D765)':
+        'tc: seal complete ServerlessLLM 3B W2 observation (D766)',
+    'refs/heads/backup/d765-complete-w1-20261023':
+        'refs/heads/backup/d766-complete-w2-20261023',
+    'for before,after in changes.items():':
+        'changes["paths=[MAIN/\'docs/ieee_tc/EXECUTION_STATUS.md\',"] = '
+        '"paths=[MAIN/\'docs/ieee_tc/EXECUTION_STATUS.md\', MAIN/\'docs/ieee_tc/SLORA_3B_REUSE_PRECHECK_20261023.md\',"\n'
+        'for before,after in changes.items():',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

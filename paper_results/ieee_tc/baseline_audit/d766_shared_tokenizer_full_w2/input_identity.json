@@ -1,0 +1,21 @@
+{
+  "plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+  },
+  "actual_unique_adapters": 497,
+  "target_tokens": 458224,
+  "performance_ranking_eligible": false,
+  "formal_run": false,
+  "main_execution_commit": "23fee79696578c53f267355a42dd353116ee217b",
+  "baseline_execution_commit": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+  "generation_contract": "fixed_length_greedy_v1",
+  "native_configuration_reused": "D764/D765 complete configurations; unchanged native policy/cache ownership; existing W2 view"
+}

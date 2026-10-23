@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d7660000000000000000000000000005.scope",
+    "invocation_id": "1feaf91c1e6a4be7b6add0a29c00e208",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7660000000000000000000000000005.scope",
+    "inode": 31043843
+  },
+  "commands": [
+    {
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/preserve_evidence.py"
+      ],
+      "log": "collection1.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+        "--root",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023",
+        "--baseline",
+        "/home/qhq/serverless_llm_baselines",
+        "--main",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "--scheduler-contract",
+        "request_identity_v1",
+        "--population",
+        "full4000_w2",
+        "--outcome",
+        "success",
+        "--model-key",
+        "3b",
+        "--slo-freeze",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/audit_full4000.json"
+      ],
+      "log": "analysis1.log",
+      "returncode": 0
+    }
+  ],
+  "outcome": "success",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/run_analysis.py": "d27e44ddd88e689a52b2bcd6efd8b7251507b9cf6df5240cad90d99edd4bec66",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/preserve_evidence.py": "6dcc0e72ee25e864f1f490d4d53938c7c0d4911dc4bd3b75b5c55f7387b4f58f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py": "e89ac9f8e79e3b42901bf6df8615b4842f7132adb0ebc0847dd27359f12d3156"
+  },
+  "resources": {
+    "memory.peak": "675598336\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}
