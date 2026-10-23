@@ -1,0 +1,20 @@
+"""Reuse D774's bounded CPU qualification for the changed canonical-input path."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/qualify.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'fe5052135b17a43a0f30362f71cbde25cafa397fcc8fbbdac08528fa4d271bdb'
+source = data.decode()
+changes = {
+    "for log, module in [('cpu_tests.log', 'tests.test_ieee_tc_dlora_measurement'),\n                    ('shared_regression.log', 'tests.test_ieee_tc_slora_measurement')]:":
+        "for log, module in [('cpu_tests.log', 'tests.test_ieee_tc_dlora_measurement')]:",
+    "RAW/'source_view', MAIN)": "RAW/'source_view', MAIN, canonical_input=True)",
+    "BASE/'tests/test_ieee_tc_dlora_measurement.py', Path(__file__)]":
+        "BASE/'tests/test_ieee_tc_dlora_measurement.py', BASE/'scripts/replay_vllm_engine_trace.py', Path(__file__)]",
+}
+for old, new in changes.items():
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,5 +1,50 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D775：共同输入/原生绑定接口已验证（PROGRESS）
+
+完整PLAN及最新补充规则已复核，继续D774主线，不重做S-LoRA完整矩阵。
+用户重申共享k3s不是本项目：本轮不修改它，不部署新集群、不启动远端服务。
+重新联网核对固定官方EngineManager/API，确认底层已支持prompt IDs、分配
+入口未转发；本轮在opt-in source view补两处参数转发，反向还原与原始manager
+源码完全一致。现有runner新增NativeDloraRequestHandler直接调用原生选择，
+读取原生lora_config的零基索引；固定生成和最终原生绑定核验，迁移后取消
+在原select_lock下找到当前owner。调度/放置/迁移/LoRA运算均未更换。
+
+21项CPU检查通过（既有12+新增9），实际执行原生selection/generate/tracker/
+SamplingParams，GPU输出为合成测试，不冒称真实推理或数值资格。aux1内存
+峰值39014400bytes，high/max/OOM/swap均0，实际结束/空域关闭。145项旧投稿
+保护和三项用户dirty SHA未变。RAW为dlora_qualification/d775_20261024。
+当前准备按github-sync显式路径备份；尚不预称远端完成，推送后另记实际hash。
+
+下一接现有TC受限服务、项目私有Ray、实际worker allocation/release和原生
+binding receipt；当前handler尚未连完整launcher/共同HTTP replayer，不是
+可直接正式运行的服务。补必要加载/GQA正确性，随后仅3B W1/W2。已有被动
+计时/共同输入检查不作无变化重验；不做dLoRA性能搜索、不全局停止Ray。
+之后Loquetier/HydraServe 3B、PrimeLoRA完整对照优化、同版本Full、A1–A5、
+S1–S13、CE/Pareto、两轮审稿文档/图表全部保留。整体目标active。
+
+## 2026-10-24 00:55 CST：D774计量代码及证据均已备份（PROGRESS）
+
+BASE提交`031f6757cfb07fa91e7ed3ce44c71383df4c68fa`已推送并核验origin/main。
+MAIN提交`a9dd357b027c0eb05022cccbb7ba72913eff39ac`已推送并核验
+`faaslora_origin/backup/d774-dlora-native-timing-20261024`，无force，V2仍未同步。
+本轮12项dLoRA/30项共享回归通过；qualification峰值696434688bytes，
+high/max/OOM/swap均0。aux1/2/3全部实际结束并关闭，无活动exec/wait或GPU运行。
+用户三项dirty SHA及145项旧投稿保护未变；只有本推送后状态追加待下次备份。
+
+第一次MAIN发布检查因原生llm_engine源码快照继承的6条空白行尾空格停止，
+BASE当时已备份成功，未重复提交。保留全部原快照/manifest字节，仅在新证据
+目录添加仅适用该快照的whitespace属性；相对保留vendor源码的实际新增代码
+独立diff --check无输出。恢复脚本/中断原因/闭域回执均归档，随后完整检查和
+推送通过。这是证据格式归档问题，不是性能失败或修改测量结果。
+
+下一实际动作：基于D774现有source-view/原生观察接口补canonical prompt IDs
+及静态model_id/adapter绑定，接现有受限TC服务入口与私有Ray/实际worker
+allocation-release，复用历史DP2/TP1。当前原API仍终态返回，尚未接共同
+replayer；不得将D774宣称为完整服务或GPU资格。已有被动观察检查不重做无
+变化广泛测试，不做dLoRA性能搜索。随后按限定3B W1/W2、Loquetier/HydraServe
+3B对照、PrimeLoRA有证据优化、全消融/敏感性/文档/图表主线推进，目标active。
+
 ## 2026-10-24 D774：原生生成时间线适配与42项CPU检查通过（PROGRESS）
 
 上一轮PROGRESS已实际封存/回收/备份D773。本轮完整重读PLAN和最新状态，

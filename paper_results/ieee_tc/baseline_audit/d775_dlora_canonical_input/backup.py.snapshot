@@ -1,0 +1,42 @@
+"""Reuse the explicit-path checkpoint workflow; only D775 tested task files."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'b5c70e16e8bd04fc8f3f5868a4d9696e197cd91f09293a2a4a613ebd7d7049e1'
+source = data.decode()
+changes = {
+    'd774_dlora_native_timing': 'd775_dlora_canonical_input',
+    "== [0,0]": "== [0]",
+    '84bb7892b4aade6bed0b898fb99d1f6074073a10': '031f6757cfb07fa91e7ed3ce44c71383df4c68fa',
+    '57be5a751304642b76e226f9b19e84f8e941519a': 'a9dd357b027c0eb05022cccbb7ba72913eff39ac',
+    "             'tests/test_ieee_tc_dlora_measurement.py']":
+        "             'tests/test_ieee_tc_dlora_measurement.py',\n             'scripts/replay_vllm_engine_trace.py']",
+    'tc: observe native dLoRA token timelines across migration (D774)':
+        'tc: forward canonical inputs through native dLoRA selection (D775)',
+    "         'shared_regression.log','qualify.py'": "         'qualify.py'",
+    "manifest = dict(schema='ieee_tc_dlora_native_timing_cpu_qualification_v1',":
+        "with (OUT/'.gitattributes').open('xb') as handle:\n    handle.write((RAW/'snapshot.gitattributes').read_bytes())\nfiles['.gitattributes'] = dict(source=str(RAW/'snapshot.gitattributes'), sha256=p.digest(OUT/'.gitattributes'))\nmanifest = dict(schema='ieee_tc_dlora_canonical_input_cpu_qualification_v1',",
+    'tests=dict(dlora=12, shared_slora_regression=30, passed=True)':
+        'tests=dict(dlora=21, passed=True, gpu_output_is_synthetic=True)',
+    'D774_DLORA_NATIVE_TIMING_20261024.md': 'D775_DLORA_CANONICAL_INPUT_20261024.md',
+    'tc: preserve dLoRA native timing qualification and scope (D774)':
+        'tc: preserve dLoRA canonical input qualification and scope (D775)',
+    'backup/d774-dlora-native-timing-20261024': 'backup/d775-dlora-canonical-input-20261024',
+}
+for old, new in changes.items():
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+# Keep inherited whitespace in evidence snapshots; check all actual changes
+# against retained native sources before staging or pushing either repository.
+needle = "assert call(BASE,'git','branch','--show-current') == 'main'"
+check = """for path in q['source_view']['measured_sha256']:
+    checked = subprocess.run(['git','diff','--no-index','--check',str(native/path),str(view/path)],
+        capture_output=True,text=True)
+    assert checked.returncode in (0,1) and not checked.stdout and not checked.stderr, path
+"""
+assert source.count(needle) == 1
+source = source.replace(needle, check+needle)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

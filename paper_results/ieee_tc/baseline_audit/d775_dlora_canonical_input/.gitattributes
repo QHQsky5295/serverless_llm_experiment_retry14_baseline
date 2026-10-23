@@ -1,0 +1,4 @@
+# Preserve verbatim native evidence, including inherited blank-line whitespace.
+# The actual introduced changes are independently checked against vendor source.
+llm_engine.py.snapshot -whitespace
+engine_manager.py.snapshot -whitespace
