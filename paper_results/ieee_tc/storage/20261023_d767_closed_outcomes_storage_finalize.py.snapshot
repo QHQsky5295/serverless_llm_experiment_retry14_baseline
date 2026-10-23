@@ -1,0 +1,44 @@
+"""Complete bookkeeping after successful archival and a post-work high-event assertion.
+
+Never rerun compression or unlink additional data. The already written per-run
+receipts retain both full gzip round-trip hashes. memory.high is recorded,
+not silently reclassified as a performance experiment or an OOM.
+"""
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/storage/20261023_d767_closed_outcomes.json'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+receipt = json.loads(OUT.read_text())
+closed = json.loads((RAW/'storage_closure.json').read_text())
+assert closed['path_gone'] and closed['actual_recursive_procs_empty']
+assert receipt['source_archive_round_trip_verified'] and len(receipt['entries']) == 3
+events = dict(line.split() for line in closed['resources']['memory.events'].splitlines())
+assert all(int(events[k]) == 0 for k in ('max', 'oom', 'oom_kill'))
+assert int(closed['resources']['memory.swap.current']) == 0
+for row in receipt['entries']:
+    assert row['removed_uncompressed_duplicate'] and row['audit_sha_matches']
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert not Path(row['source']).exists()
+    assert p.digest(Path(row['archive'])) == row['archive_sha256']
+q = json.loads(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/qualification.json').read_text())
+for name, digest in (q['protected'] | q['preserved']).items():
+    assert p.digest(Path(name)) == digest, name
+with OUT.with_name(OUT.stem+'_verification.json').open('x') as stream:
+    json.dump(dict(passed=True, receipt_sha256=p.digest(OUT),
+        original_wrapper_postcheck_failed=True, postcheck_reason='nonzero maintenance memory.high',
+        closure=closed, archived_sources=3, protected_unchanged=len(q['protected']),
+        preserved_unchanged=len(q['preserved']), no_second_compression=True,
+        original_script_sha256=p.digest(RAW/'storage.py'), finalize_script_sha256=p.digest(Path(__file__)),
+        restore_note='gzip -dc each archive into the original path, then verify source_sha256 before reanalysis requiring the uncompressed pathname.'), stream, indent=2)
+for name in ('storage.py', 'storage_finalize.py'):
+    with OUT.with_name(OUT.stem+'_'+name+'.snapshot').open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+print(json.dumps(dict(passed=True, archived_sources=3, resources=closed['resources'],
+    reclaimed=sum(row['allocated_bytes_reclaimed'] for row in receipt['entries']))))

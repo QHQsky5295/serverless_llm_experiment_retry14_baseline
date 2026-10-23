@@ -1,0 +1,103 @@
+"""D767: reuse S-LoRA source/CPU checks for the existing 3B native BMM path.
+
+No GPU run, baseline tuning, new weights, or trace generation. Only the common
+configuration validator changed: explicit BMM with the native HOST layout.
+"""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d767_slora_3b_entry'
+OLD = RAW.parent/'d591_20261016'
+SLLM = RAW.parent.parent/'serverless_qualification'
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import prepare_slora_measurement_view, load_http_replay_plan
+from replay_vllm_engine_trace import validate_native_service_config, verify_slora_source_view
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert read(MAIN/'paper_results/ieee_tc/storage/20261023_d767_closed_outcomes_verification.json')['passed']
+protected = read(SLLM/'d766_20261023/qualification.json')
+for name, digest in (protected['protected'] | protected['preserved']).items():
+    assert p.digest(Path(name)) == digest, name
+OUT.mkdir(exist_ok=False)
+
+# Adapt the existing inventory selector, retaining all matching runs, not a winner.
+inventory = RAW.parent/'d425_20261011/inventory.py'
+data = inventory.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'dc0a535a49fbcaff207b699df9a8bc68d726bb68b78c8c893e759613d2acf6ab'
+source = data.decode().replace('d425_slora_reuse_inventory.json', 'd767_slora_3b_entry/history_inventory.json')
+source = source.replace("if '7b' in p", "if 'llama32_3b' in p")
+source = source.replace('containing 7b', 'containing llama32_3b').replace('substring 7b', 'substring llama32_3b')
+source = source.replace('ieee_tc_d425_slora_reuse_inventory_v1', 'ieee_tc_d767_slora_3b_reuse_inventory_v1')
+exec(compile(source, str(inventory), 'exec'), {'__name__':'__main__', '__file__':str(inventory)})
+
+view = RAW/'source_view'
+manifest = prepare_slora_measurement_view(BASE/'repos/S-LoRA', view, MAIN,
+    host_layout='native_v1', worker_lifecycle=True)
+http = read(SLLM/'d754_20261023/http_3b_100.json')
+http.update(schema='ieee_tc_slora_http_replay_v1', model='base',
+    url='http://127.0.0.1:8452/v1/chat/completions',
+    physical_lifecycle='slora_resident_pool_v1', artifact_preparation='native_full_pool_before_service_v1',
+    experiment_role='affected_3b_native_bmm_path_qualification')
+cfg = read(OLD/'native_7b.json')
+cfg.update(source_view=str(view), source_view_manifest_sha256=p.digest(view/'measurement_manifest.json'),
+    host_layout='native_v1')
+cfg['native_args'].update(model_dir=http['backbone'], bmm=True)
+validate_native_service_config(cfg, http)
+verify_slora_source_view(dict(cfg, main_repo=str(MAIN)))
+save(RAW/'native_3b.json', cfg)
+save(RAW/'http_3b_100.json', http)
+plan = load_http_replay_plan(http)
+assert plan.identity() == read(SLLM/'d754_20261023/input_identity.json')['plan']
+rows = [json.loads(entry.source_json) for entry in plan.entries]
+assert len(rows) == 100 and len({row['adapter_id'] for row in rows}) == 29
+assert sum(min(row['expected_output_tokens'],256) for row in rows) == 17369
+model = read(Path(http['backbone'])/'config.json')
+assert model['model_type'] == 'llama' and model['num_attention_heads'] == 24 and model['num_key_value_heads'] == 8
+
+command = [sys.executable, '-B', '-m', 'unittest',
+    'tests.test_ieee_tc_slora_measurement','tests.test_ieee_tc_slora_service','-v']
+with (RAW/'cpu_contract_tests.log').open('x') as log:
+    result = subprocess.run(command, cwd=BASE, stdout=log, stderr=subprocess.STDOUT)
+assert result.returncode == 0
+count = int(re.search(r'Ran (\d+) tests', (RAW/'cpu_contract_tests.log').read_text())[1])
+refs = [RAW/'native_3b.json',RAW/'http_3b_100.json',view/'measurement_manifest.json',
+    RAW/'cpu_contract_tests.log',Path(__file__),OUT/'history_inventory.json',
+    BASE/'scripts/replay_vllm_engine_trace.py',BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'scripts/ieee_tc_serverless_measurement.py',BASE/'tests/test_ieee_tc_slora_service.py',
+    BASE/'tests/test_ieee_tc_slora_measurement.py',BASE/'docs/PROGRESS_2026-05-10_LLAMA32_3B.md',
+    BASE/'scripts/run_slora_fair_experiment.sh',Path(http['backbone'])/'config.json',
+    Path(http['pool_index']),Path(http['trace'])]
+save(RAW/'qualification.json', dict(passed=True, cpu_tests=count, command=command,
+    input_identity=plan.identity(), actual_unique_adapters=29, target_tokens=17369,
+    no_gpu_run=True, numerical_correctness_qualified=False, baseline_performance_tuning=False,
+    model_heads=dict(query=model['num_attention_heads'],kv=model['num_key_value_heads']),
+    change='Explicit native BMM configuration accepted; native source/algorithms unchanged; packed HOST disallowed with BMM.',
+    historical_selection='Existing GQA BMM choice from run_slora_fair_experiment.sh and 2026-05-10 record.',
+    qualification_scope='CPU input/source/transport checks only; affected 3B GPU path still pending.',
+    source_plan_sha256=p.check_plan(), protected=protected['protected'], preserved=protected['preserved'],
+    refs={str(path):p.digest(path) for path in refs}, resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,cpu_tests=count,input_identity=plan.identity(),gpu_run_started=False)))

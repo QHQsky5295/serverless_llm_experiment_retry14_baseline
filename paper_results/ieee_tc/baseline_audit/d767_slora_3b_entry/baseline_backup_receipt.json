@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "head": "08a69516e072d774ee77ee5d37df6a487871dee1",
+  "remote": "origin/main",
+  "force_push": false,
+  "paths": [
+    "scripts/replay_vllm_engine_trace.py",
+    "tests/test_ieee_tc_slora_service.py",
+    "docs/ieee_tc/D767_SLORA_3B_NATIVE_BMM_ENTRY.md"
+  ],
+  "tests": 52
+}

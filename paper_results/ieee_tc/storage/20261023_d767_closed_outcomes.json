@@ -1,0 +1,102 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792754010.175656,
+  "before": {
+    "available_bytes": 161058017280
+  },
+  "after": {
+    "available_bytes": 163862126592
+  },
+  "entries": [
+    {
+      "run": "d736_20261022/3b_validated_publication_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d736_20261022/3b_validated_publication_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d736_20261022/3b_validated_publication_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "2d3df28fd31e5cfcad769fff0d2643e5fdf2ed5f5d9fa5669ce353aab35bb45f",
+      "audit_sha256": "2d3df28fd31e5cfcad769fff0d2643e5fdf2ed5f5d9fa5669ce353aab35bb45f",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109584941,
+        "size": 1076997943,
+        "mtime_ns": 1792688810533255832,
+        "ctime_ns": 1792688810533255832,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2103520
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "a223b613da920ec87a8889209d2aadb9450080cf129d2ad86d16fd9162e6c39a",
+      "archive_sha256": "4177e6cd8144ba24e14fe07269cddfe7410e6f50eda1ab3135e5399d36a59dbe",
+      "archive_bytes": 139967656,
+      "archive_allocated_bytes": 139972608,
+      "first_roundtrip_sha256": "2d3df28fd31e5cfcad769fff0d2643e5fdf2ed5f5d9fa5669ce353aab35bb45f",
+      "second_roundtrip_sha256": "2d3df28fd31e5cfcad769fff0d2643e5fdf2ed5f5d9fa5669ce353aab35bb45f",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 937029632
+    },
+    {
+      "run": "d732_20261022/3b_round_file_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d732_20261022/3b_round_file_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+      "audit_sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109584762,
+        "size": 1097243997,
+        "mtime_ns": 1792672505056743971,
+        "ctime_ns": 1792672505056743971,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2143064
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "2ce0da0b92f6def2b9b83fb1da566e6a1f4a3b523e160978e112490a1ca0cf21",
+      "archive_sha256": "7bb2e5b791598b74bae1d1fd775efa61d0c70e3f373d2a950728fa77647c7a18",
+      "archive_bytes": 142284701,
+      "archive_allocated_bytes": 142290944,
+      "first_roundtrip_sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+      "second_roundtrip_sha256": "5057337a7bdd5eb73ab8b9ab5021a4a048e7f572e31dc7b89ba8e9d8c886d30e",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 954957824
+    },
+    {
+      "run": "d729_20261022/3b_bulk_loader_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d729_20261022/3b_bulk_loader_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d729_20261022/3b_bulk_loader_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "d40a29644cb96be4dff5873f7fc1e013a815c42f3e46a35482823eefb4df7f0f",
+      "audit_sha256": "d40a29644cb96be4dff5873f7fc1e013a815c42f3e46a35482823eefb4df7f0f",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109584669,
+        "size": 1049108205,
+        "mtime_ns": 1792664710901545940,
+        "ctime_ns": 1792664710901545940,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2049048
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "3143689897e442882ffc8558768135779915fc44fe5660d30f64d90dc2b69ccc",
+      "archive_sha256": "43bcb262f56c93888fa04af2da0b9eac677aa5e731e9194e5b15562bf786f0cf",
+      "archive_bytes": 136747061,
+      "archive_allocated_bytes": 136749056,
+      "first_roundtrip_sha256": "d40a29644cb96be4dff5873f7fc1e013a815c42f3e46a35482823eefb4df7f0f",
+      "second_roundtrip_sha256": "d40a29644cb96be4dff5873f7fc1e013a815c42f3e46a35482823eefb4df7f0f",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 912363520
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

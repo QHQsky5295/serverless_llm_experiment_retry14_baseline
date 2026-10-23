@@ -1,0 +1,60 @@
+{
+  "schema": "ieee_tc_slora_native_service_v1",
+  "python": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+  "native_python": "/home/qhq/anaconda3/envs/slora_official_cu118/bin/python",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/source_view",
+  "source_view_manifest_sha256": "c1bcb4b2671198547f8b838321bbf9bbaf877139a475c97f5a031bd80b1bcfbc",
+  "host_layout": "native_v1",
+  "routing": "round_robin",
+  "worker_startup": "sequential_v1",
+  "generation_contract": "fixed_length_greedy_v1",
+  "gpu_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "router_port": 8451,
+  "worker_ports": [
+    8463,
+    8473,
+    8483,
+    8493
+  ],
+  "nccl_ports": [
+    29763,
+    29773,
+    29783,
+    29793
+  ],
+  "native_args": {
+    "model_dir": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "tokenizer_mode": "auto",
+    "tp": 1,
+    "max_req_total_len": 1024,
+    "swap": true,
+    "scheduler": "slora",
+    "dummy": false,
+    "bmm": true,
+    "no_lora": false,
+    "no_kernel": false,
+    "no_lora_compute": false,
+    "no_lora_swap": false,
+    "no_mem_pool": false,
+    "profile": false,
+    "enable_abort": false,
+    "prefetch": false,
+    "prefetch_size": 0,
+    "pool_size_lora": 0,
+    "batch_num_adapters": null,
+    "fair_weights": [],
+    "trust_remote_code": true,
+    "disable_log_stats": true,
+    "eos_id": 2,
+    "log_stats_interval": 10,
+    "max_req_input_len": 984,
+    "max_total_token_num": 14000,
+    "batch_max_tokens": 1024,
+    "running_max_req_size": 1000
+  }
+}

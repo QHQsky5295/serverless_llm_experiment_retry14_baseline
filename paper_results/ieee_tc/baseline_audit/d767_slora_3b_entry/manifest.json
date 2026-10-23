@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "files": {
+    "qualify.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/qualify.py",
+      "sha256": "bb07cecb40d50b3646b04b0aef9365954c35f3aa4f8e54fc7537439cf165447a"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/qualification.json",
+      "sha256": "da4ebd1d0462ba502ab373ad5afa877bfd1125116c23e5cea817d2303b64dd49"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/qualification_closure.json",
+      "sha256": "eff437052fd2472c8349fd49409e155128e887707a107162938ff11367c531ef"
+    },
+    "http_3b_100.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/http_3b_100.json",
+      "sha256": "329af5d7b429e73b7bf85a59a188dc0d0c2275d4ae8a8b9eb7ad0b3af480bf26"
+    },
+    "native_3b.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/native_3b.json",
+      "sha256": "0fd2eb16c2d5f48c134f9db7d536f6c645b28813daf9bed28dbdb929fdd9083e"
+    },
+    "cpu_contract_tests.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/cpu_contract_tests.log",
+      "sha256": "cd2a760185cdc82a3cfbb4b83cc129f189f95e63821feada7bb60c8710e43618"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/backup.py",
+      "sha256": "c9366cfe6d91b0ab83b5b3a667d3eba2ef8ed28c9b8c761ba1b897b13ac2d403"
+    },
+    "storage.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/storage.py",
+      "sha256": "018f8604f9211faf5d8e0dc6a89d660fcbd059d73b94ca638a7b1c2b1a44c3d5"
+    },
+    "storage_finalize.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/storage_finalize.py",
+      "sha256": "9fd0c37a175ed1d5e12f6eb3ab551ec3de24cd57bacbe312ebd024207eab4fd9"
+    },
+    "storage_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/storage_closure.json",
+      "sha256": "0b862c7bcc8dfd6fff84ad0082e6d587031479f0752cd2f501dfe430b99b9a66"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/baseline_backup_receipt.json",
+      "sha256": "036126b65af259dc030d4de488ebb12eaf8015f734fcdaaee8cbaf1277116e5b"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/source_view/measurement_manifest.json",
+      "sha256": "c1bcb4b2671198547f8b838321bbf9bbaf877139a475c97f5a031bd80b1bcfbc"
+    },
+    "result_publication_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/result_publication_receipt.json",
+      "sha256": "7c1aa9c1de97fd630a9b06daf85b4d6576dc1cb4b5ede55f1fa4a4dac9e5d732"
+    },
+    "result_publication_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023/result_publication_closure.json",
+      "sha256": "4e7d66a95441fd20569064a1ef4166f37533ab0f170901543260407c3aa4ee6f"
+    },
+    "history_inventory.json": {
+      "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d767_slora_3b_entry/history_inventory.json",
+      "sha256": "fd0a38e52845990f69ad66a7a094ac25e9e95ee31e5f55e5397d3930ba27e4d2"
+    }
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "baseline_head": "08a69516e072d774ee77ee5d37df6a487871dee1",
+  "cpu_tests": 52,
+  "requests_prepared": 100,
+  "gpu_run_started": false,
+  "no_new_weights_or_trace": true,
+  "independent_numerical_correctness_proven": false
+}

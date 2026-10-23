@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "receipt_sha256": "005d1530e2c22fe772ab1fb585a8ce06080a7f1b818d759063ae2364979b1401",
+  "original_wrapper_postcheck_failed": true,
+  "postcheck_reason": "nonzero maintenance memory.high",
+  "closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d7670000000000000000000000000001.scope",
+      "invocation_id": "a889a9b53af84a5199af424c644602e2",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7670000000000000000000000000001.scope",
+      "inode": 31050489
+    },
+    "actual_recursive_procs_empty": true,
+    "path_gone": true,
+    "resources": {
+      "memory.peak": "3221741568",
+      "memory.events": "low 0\nhigh 1593\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "3ef551d4e95302a09317ee7a5941e88e86d7a11fd6d0478dc5f27b815eaad2b5"
+  },
+  "archived_sources": 3,
+  "protected_unchanged": 145,
+  "preserved_unchanged": 3,
+  "no_second_compression": true,
+  "original_script_sha256": "018f8604f9211faf5d8e0dc6a89d660fcbd059d73b94ca638a7b1c2b1a44c3d5",
+  "finalize_script_sha256": "9fd0c37a175ed1d5e12f6eb3ab551ec3de24cd57bacbe312ebd024207eab4fd9",
+  "restore_note": "gzip -dc each archive into the original path, then verify source_sha256 before reanalysis requiring the uncompressed pathname."
+}

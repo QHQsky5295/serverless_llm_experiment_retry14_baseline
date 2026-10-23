@@ -1,0 +1,64 @@
+"""Reuse explicit-path publication checks; baseline source and main evidence separately."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+prefix = recipe[:recipe.index('own=p.scope_identity')]
+suffix = recipe[recipe.index('relative=[str(path.relative_to(MAIN))'):]
+file_checks = suffix[suffix.index('secret=re.compile'):suffix.index("call(MAIN,'git','add'")]
+body = '''own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+q=read(RAW/'qualification.json')
+assert q['passed'] and q['cpu_tests']==52
+for name in ('storage','qualification'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+assert call(MAIN,'git','rev-parse','HEAD')=='4d6a7a0b9a4b7ad85aae697e347dbcfb1a21acce'
+assert call(BASE,'git','rev-parse','HEAD')=='c9b3c9f7a02c1a118db089708697af3c76d47a5c'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]=='c9b3c9f7a02c1a118db089708697af3c76d47a5c'
+paths=[BASE/'scripts/replay_vllm_engine_trace.py',BASE/'tests/test_ieee_tc_slora_service.py',
+    BASE/'docs/ieee_tc/D767_SLORA_3B_NATIVE_BMM_ENTRY.md']
+assert not call(BASE,'git','diff','--cached','--name-only')
+'''+file_checks+'''
+relative=[str(path.relative_to(BASE)) for path in paths]
+call(BASE,'git','add','--',*relative)
+assert set(call(BASE,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(BASE,'git','diff','--cached','--check')
+call(BASE,'git','commit','-m','tc: accept explicit existing S-LoRA GQA BMM path (D767)')
+basehead=call(BASE,'git','rev-parse','HEAD')
+call(BASE,'git','-c','http.version=HTTP/1.1','push','origin','HEAD:refs/heads/main')
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+save(RAW/'baseline_backup_receipt.json',dict(passed=True,head=basehead,remote='origin/main',
+    force_push=False,paths=relative,tests=52))
+sources=[RAW/name for name in ('qualify.py','qualification.json','qualification_closure.json',
+    'http_3b_100.json','native_3b.json','cpu_contract_tests.log','backup.py',
+    'storage.py','storage_finalize.py','storage_closure.json','baseline_backup_receipt.json')]
+sources.append(RAW/'source_view/measurement_manifest.json')
+previous=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023')
+sources.extend(previous/name for name in ('result_publication_receipt.json','result_publication_closure.json'))
+mapping=copy_sources(OUT,sources)
+mapping['history_inventory.json']=dict(source=str(OUT/'history_inventory.json'),sha256=p.digest(OUT/'history_inventory.json'))
+save(OUT/'manifest.json',dict(passed=True,files=mapping,plan_sha256=p.check_plan(),
+    baseline_head=basehead,cpu_tests=52,requests_prepared=100,gpu_run_started=False,
+    no_new_weights_or_trace=True,independent_numerical_correctness_proven=False))
+storage_paths=sorted((MAIN/'paper_results/ieee_tc/storage').glob('20261023_d767_closed_outcomes*'))
+assert len(storage_paths)==4
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D767_SLORA_3B_ENTRY_20261023.md',
+    *sorted(OUT.iterdir()),*storage_paths]
+'''
+source = prefix+body+suffix
+source = source.replace('d764_shared_tokenizer_full_w0','d767_slora_3b_entry')
+source = source.replace('tc: seal ServerlessLLM 3B W0 and bind unchanged W1 (D764-D765)',
+    'tc: preserve 3B S-LoRA entry and closed evidence archives (D767)')
+source = source.replace('refs/heads/backup/d764-complete-w0-20261023',
+    'refs/heads/backup/d767-slora-3b-entry-20261023')
+source = source.replace("RAW/'result_publication_receipt.json'", "RAW/'backup_receipt.json'")
+exec(compile(source, str(original), 'exec'),
+     {'__name__':'__main__','__file__':str(Path(__file__))})

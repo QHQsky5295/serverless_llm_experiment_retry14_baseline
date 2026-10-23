@@ -1,0 +1,1150 @@
+{
+  "schema": "ieee_tc_d767_slora_3b_reuse_inventory_v1",
+  "scope": "All rg-discovered results/** filenames matching *slora*replay.json and containing llama32_3b; not an exhaustive assertion about every file on the server.",
+  "selector": "rg --files results -g *slora*replay.json; substring llama32_3b",
+  "files": 5,
+  "historical": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_replay.json",
+      "sha256": "b4189f98f237db4ac04f87afb0c13ec784820bcf82a25a1642f393fe2989108e",
+      "bytes": 9327552,
+      "reported_rows": 4000,
+      "reported_success": 4000,
+      "actual_logical_ids": 132,
+      "adapter_ids_sha256": "8425e16b26b5b8a5e3d2f0ce13cd2ed59132bd9d634bbfbe18ea8c0656c6ea19",
+      "native_token_source_rows": 0,
+      "output_contract_match_rows": 0,
+      "output_token_hash_rows": 0,
+      "canonical_prompt_hash_rows": 0,
+      "nonempty_server_metrics_rows": 0,
+      "row_keys": [
+        "adapter_id",
+        "api_e2e_ms",
+        "api_ttft_ms",
+        "arrival_time_s",
+        "backend_e2e_ms",
+        "backend_ttft_ms",
+        "cache_hit",
+        "cold_start_latency_ms",
+        "comparable_request",
+        "completion_offset_s",
+        "completion_token_source",
+        "completion_tokens",
+        "cost_usd",
+        "dispatch_admission_wait_ms",
+        "dispatch_offset_s",
+        "e2e_ms",
+        "empty_success_retries",
+        "error",
+        "final_empty_success",
+        "generated_text_chars",
+        "generation_seed",
+        "gpu_ready_request",
+        "guard_max_tokens",
+        "guard_prompt_tokens",
+        "lora_load_ms",
+        "metric_warning",
+        "metrics_source",
+        "overall_e2e_ms",
+        "overall_ttft_ms",
+        "prompt_token_source",
+        "prompt_tokens",
+        "raw_text_chars",
+        "raw_text_preview",
+        "replay_dispatch_wait_ms",
+        "request_attempts",
+        "request_id",
+        "runtime_ttft_ms",
+        "scaleup_affected",
+        "scaleup_first_service",
+        "server_metrics",
+        "server_queue_wait_ms",
+        "serverless_overhead_ms",
+        "service_e2e_ms",
+        "service_overhead_ms",
+        "service_ttft_ms",
+        "status_code",
+        "stream_event_count",
+        "success",
+        "target_base_url",
+        "total_tokens",
+        "tpot_ms",
+        "tpot_observed",
+        "ttft_ms",
+        "usage",
+        "warm_standard_request"
+      ],
+      "server_metric_keys": [],
+      "generation_contract": null,
+      "routing_policy": "round_robin",
+      "trace_source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "max_requests": 0,
+      "client_prewarm_sec_excluded_from_workload_clock": null,
+      "replay_time_origin": null,
+      "support_files": [
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/logs/40_slora.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r0.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r1.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r2.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r3.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_adapter_value_map.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_fleet.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_launch.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_lora_dirs.txt"
+      ],
+      "reuse": "R2_assets_and_historical_diagnostics_not_current_timing_resource_contract"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_replay.json",
+      "sha256": "a6be908aa2bb7e8d07797d454c1580c4ef08e854663b30736ce73bfb01f6b164",
+      "bytes": 9327256,
+      "reported_rows": 4000,
+      "reported_success": 4000,
+      "actual_logical_ids": 132,
+      "adapter_ids_sha256": "8425e16b26b5b8a5e3d2f0ce13cd2ed59132bd9d634bbfbe18ea8c0656c6ea19",
+      "native_token_source_rows": 0,
+      "output_contract_match_rows": 0,
+      "output_token_hash_rows": 0,
+      "canonical_prompt_hash_rows": 0,
+      "nonempty_server_metrics_rows": 0,
+      "row_keys": [
+        "adapter_id",
+        "api_e2e_ms",
+        "api_ttft_ms",
+        "arrival_time_s",
+        "backend_e2e_ms",
+        "backend_ttft_ms",
+        "cache_hit",
+        "cold_start_latency_ms",
+        "comparable_request",
+        "completion_offset_s",
+        "completion_token_source",
+        "completion_tokens",
+        "cost_usd",
+        "dispatch_admission_wait_ms",
+        "dispatch_offset_s",
+        "e2e_ms",
+        "empty_success_retries",
+        "error",
+        "final_empty_success",
+        "generated_text_chars",
+        "generation_seed",
+        "gpu_ready_request",
+        "guard_max_tokens",
+        "guard_prompt_tokens",
+        "lora_load_ms",
+        "metric_warning",
+        "metrics_source",
+        "overall_e2e_ms",
+        "overall_ttft_ms",
+        "prompt_token_source",
+        "prompt_tokens",
+        "raw_text_chars",
+        "raw_text_preview",
+        "replay_dispatch_wait_ms",
+        "request_attempts",
+        "request_id",
+        "runtime_ttft_ms",
+        "scaleup_affected",
+        "scaleup_first_service",
+        "server_metrics",
+        "server_queue_wait_ms",
+        "serverless_overhead_ms",
+        "service_e2e_ms",
+        "service_overhead_ms",
+        "service_ttft_ms",
+        "status_code",
+        "stream_event_count",
+        "success",
+        "target_base_url",
+        "total_tokens",
+        "tpot_ms",
+        "tpot_observed",
+        "ttft_ms",
+        "usage",
+        "warm_standard_request"
+      ],
+      "server_metric_keys": [],
+      "generation_contract": null,
+      "routing_policy": "round_robin",
+      "trace_source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_trace.json",
+      "max_requests": 0,
+      "client_prewarm_sec_excluded_from_workload_clock": null,
+      "replay_time_origin": null,
+      "support_files": [
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/logs/40_slora.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r0.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r1.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r2.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r3.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_adapter_value_map.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_fleet.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_launch.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_lora_dirs.txt"
+      ],
+      "reuse": "R2_assets_and_historical_diagnostics_not_current_timing_resource_contract"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_replay.json",
+      "sha256": "1614dedfc96161778bcaa4190461558341459589d321720fa4b21139650f10c1",
+      "bytes": 9327337,
+      "reported_rows": 4000,
+      "reported_success": 4000,
+      "actual_logical_ids": 132,
+      "adapter_ids_sha256": "8425e16b26b5b8a5e3d2f0ce13cd2ed59132bd9d634bbfbe18ea8c0656c6ea19",
+      "native_token_source_rows": 0,
+      "output_contract_match_rows": 0,
+      "output_token_hash_rows": 0,
+      "canonical_prompt_hash_rows": 0,
+      "nonempty_server_metrics_rows": 0,
+      "row_keys": [
+        "adapter_id",
+        "api_e2e_ms",
+        "api_ttft_ms",
+        "arrival_time_s",
+        "backend_e2e_ms",
+        "backend_ttft_ms",
+        "cache_hit",
+        "cold_start_latency_ms",
+        "comparable_request",
+        "completion_offset_s",
+        "completion_token_source",
+        "completion_tokens",
+        "cost_usd",
+        "dispatch_admission_wait_ms",
+        "dispatch_offset_s",
+        "e2e_ms",
+        "empty_success_retries",
+        "error",
+        "final_empty_success",
+        "generated_text_chars",
+        "generation_seed",
+        "gpu_ready_request",
+        "guard_max_tokens",
+        "guard_prompt_tokens",
+        "lora_load_ms",
+        "metric_warning",
+        "metrics_source",
+        "overall_e2e_ms",
+        "overall_ttft_ms",
+        "prompt_token_source",
+        "prompt_tokens",
+        "raw_text_chars",
+        "raw_text_preview",
+        "replay_dispatch_wait_ms",
+        "request_attempts",
+        "request_id",
+        "runtime_ttft_ms",
+        "scaleup_affected",
+        "scaleup_first_service",
+        "server_metrics",
+        "server_queue_wait_ms",
+        "serverless_overhead_ms",
+        "service_e2e_ms",
+        "service_overhead_ms",
+        "service_ttft_ms",
+        "status_code",
+        "stream_event_count",
+        "success",
+        "target_base_url",
+        "total_tokens",
+        "tpot_ms",
+        "tpot_observed",
+        "ttft_ms",
+        "usage",
+        "warm_standard_request"
+      ],
+      "server_metric_keys": [],
+      "generation_contract": null,
+      "routing_policy": "round_robin",
+      "trace_source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "max_requests": 0,
+      "client_prewarm_sec_excluded_from_workload_clock": null,
+      "replay_time_origin": null,
+      "support_files": [
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/logs/40_slora.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r0.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r1.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r2.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r3.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_adapter_value_map.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_fleet.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_launch.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_lora_dirs.txt",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_remote_staged_adapter_subset.json"
+      ],
+      "reuse": "R2_assets_and_historical_diagnostics_not_current_timing_resource_contract"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_replay.json",
+      "sha256": "3050f95b6de8e58a99a906b4761dabda9c4a96186a107c85ba3c49c26be0b627",
+      "bytes": 9327526,
+      "reported_rows": 4000,
+      "reported_success": 4000,
+      "actual_logical_ids": 132,
+      "adapter_ids_sha256": "8425e16b26b5b8a5e3d2f0ce13cd2ed59132bd9d634bbfbe18ea8c0656c6ea19",
+      "native_token_source_rows": 0,
+      "output_contract_match_rows": 0,
+      "output_token_hash_rows": 0,
+      "canonical_prompt_hash_rows": 0,
+      "nonempty_server_metrics_rows": 0,
+      "row_keys": [
+        "adapter_id",
+        "api_e2e_ms",
+        "api_ttft_ms",
+        "arrival_time_s",
+        "backend_e2e_ms",
+        "backend_ttft_ms",
+        "cache_hit",
+        "cold_start_latency_ms",
+        "comparable_request",
+        "completion_offset_s",
+        "completion_token_source",
+        "completion_tokens",
+        "cost_usd",
+        "dispatch_admission_wait_ms",
+        "dispatch_offset_s",
+        "e2e_ms",
+        "empty_success_retries",
+        "error",
+        "final_empty_success",
+        "generated_text_chars",
+        "generation_seed",
+        "gpu_ready_request",
+        "guard_max_tokens",
+        "guard_prompt_tokens",
+        "lora_load_ms",
+        "metric_warning",
+        "metrics_source",
+        "overall_e2e_ms",
+        "overall_ttft_ms",
+        "prompt_token_source",
+        "prompt_tokens",
+        "raw_text_chars",
+        "raw_text_preview",
+        "replay_dispatch_wait_ms",
+        "request_attempts",
+        "request_id",
+        "runtime_ttft_ms",
+        "scaleup_affected",
+        "scaleup_first_service",
+        "server_metrics",
+        "server_queue_wait_ms",
+        "serverless_overhead_ms",
+        "service_e2e_ms",
+        "service_overhead_ms",
+        "service_ttft_ms",
+        "status_code",
+        "stream_event_count",
+        "success",
+        "target_base_url",
+        "total_tokens",
+        "tpot_ms",
+        "tpot_observed",
+        "ttft_ms",
+        "usage",
+        "warm_standard_request"
+      ],
+      "server_metric_keys": [],
+      "generation_contract": null,
+      "routing_policy": "round_robin",
+      "trace_source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_trace.json",
+      "max_requests": 0,
+      "client_prewarm_sec_excluded_from_workload_clock": null,
+      "replay_time_origin": null,
+      "support_files": [
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/logs/40_slora.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r0.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r1.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r2.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r3.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_adapter_value_map.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_fleet.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_launch.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_lora_dirs.txt",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_remote_staged_adapter_subset.json"
+      ],
+      "reuse": "R2_assets_and_historical_diagnostics_not_current_timing_resource_contract"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/replay/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_replay.json",
+      "sha256": "10787beac49de628c710e81f35f9ca837a1535ac21c04434c92ece2211293cda",
+      "bytes": 150954,
+      "reported_rows": 64,
+      "reported_success": 64,
+      "actual_logical_ids": 24,
+      "adapter_ids_sha256": "ac9cd6d10b75b461a6c40f86e720ecc22aa196fc49799edaade334c4c5c15945",
+      "native_token_source_rows": 0,
+      "output_contract_match_rows": 0,
+      "output_token_hash_rows": 0,
+      "canonical_prompt_hash_rows": 0,
+      "nonempty_server_metrics_rows": 0,
+      "row_keys": [
+        "adapter_id",
+        "api_e2e_ms",
+        "api_ttft_ms",
+        "arrival_time_s",
+        "backend_e2e_ms",
+        "backend_ttft_ms",
+        "cache_hit",
+        "cold_start_latency_ms",
+        "comparable_request",
+        "completion_offset_s",
+        "completion_token_source",
+        "completion_tokens",
+        "cost_usd",
+        "dispatch_admission_wait_ms",
+        "dispatch_offset_s",
+        "e2e_ms",
+        "empty_success_retries",
+        "error",
+        "final_empty_success",
+        "generated_text_chars",
+        "generation_seed",
+        "gpu_ready_request",
+        "guard_max_tokens",
+        "guard_prompt_tokens",
+        "lora_load_ms",
+        "metric_warning",
+        "metrics_source",
+        "overall_e2e_ms",
+        "overall_ttft_ms",
+        "prompt_token_source",
+        "prompt_tokens",
+        "raw_text_chars",
+        "raw_text_preview",
+        "replay_dispatch_wait_ms",
+        "request_attempts",
+        "request_id",
+        "runtime_ttft_ms",
+        "scaleup_affected",
+        "scaleup_first_service",
+        "server_metrics",
+        "server_queue_wait_ms",
+        "serverless_overhead_ms",
+        "service_e2e_ms",
+        "service_overhead_ms",
+        "service_ttft_ms",
+        "status_code",
+        "stream_event_count",
+        "success",
+        "target_base_url",
+        "total_tokens",
+        "tpot_ms",
+        "tpot_observed",
+        "ttft_ms",
+        "usage",
+        "warm_standard_request"
+      ],
+      "server_metric_keys": [],
+      "generation_contract": null,
+      "routing_policy": "round_robin",
+      "trace_source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/shared_artifacts/llama32_3b_smoke_r64_a64_seed42_s8_trace.json",
+      "max_requests": 0,
+      "client_prewarm_sec_excluded_from_workload_clock": null,
+      "replay_time_origin": null,
+      "support_files": [
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/logs/40_slora.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r0.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r1.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r2.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r3.log",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/replay/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_summary.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_adapter_value_map.json",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_fleet.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_launch.yaml",
+        "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_lora_dirs.txt"
+      ],
+      "reuse": "R2_assets_and_historical_diagnostics_not_current_timing_resource_contract"
+    }
+  ],
+  "support_files": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/logs/40_slora.log",
+      "sha256": "3c46113200afd0508794ba13d3cf4684c07c328fb54273fb0f40184118ffa4ac",
+      "bytes": 1230986,
+      "lines": 5091,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 1,
+        "replica_startup": 4,
+        "traceback": 0
+      },
+      "startup_seconds": [
+        80.618229,
+        78.561817,
+        82.589658,
+        80.595741
+      ]
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r0.log",
+      "sha256": "f32cebf4d4fa554d75e8ed2756a8c40ff53f4a8dbe542298584921bb019325b4",
+      "bytes": 188667,
+      "lines": 3684,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r1.log",
+      "sha256": "3871ea40a713be1c7ecdaa1cd5e7290cdc486f3b214039226b05e4e3ca19b8fd",
+      "bytes": 195810,
+      "lines": 3804,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r2.log",
+      "sha256": "1e5cac95696af3ac39b35631ba03f767d39254f6ef5a40f064b37d37d6c9114c",
+      "bytes": 192691,
+      "lines": 3756,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_server_r3.log",
+      "sha256": "86138d770135e3bdcdb499acb08d8fcd31717f1577c711c615de95eb6c9b9dc1",
+      "bytes": 193818,
+      "lines": 3769,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_summary.json",
+      "sha256": "c4a73422095abab2adfe0a1fdf06937bdbb9a3ae9f45a0542ad876d36c00ff8f",
+      "bytes": 10281337
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_adapter_value_map.json",
+      "sha256": "21d09a10db8e202c21f8747b0f9d9f87d2fae8153331cbade177054a00f1cf50",
+      "bytes": 63606
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_fleet.yaml",
+      "sha256": "b592492721e9700ca6ef9bc68c604c7f2511b5d278d3f689172dbbfffeb44828",
+      "bytes": 620
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_launch.yaml",
+      "sha256": "ce8106d1d54c46f8ec439aa96983d9e9c46997cc13fb751f573ca854d75433b4",
+      "bytes": 614
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_lora_dirs.txt",
+      "sha256": "3f7bb0f6306308d7a8803e8f8d51e84dadb89f758edbc2e2b9e4012ad922ef90",
+      "bytes": 50552
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/logs/40_slora.log",
+      "sha256": "30e768ab0c97542bb75c778b37b3dd4e0ce9a37cea163edd592312ee535e4262",
+      "bytes": 1275320,
+      "lines": 5167,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 1,
+        "replica_startup": 4,
+        "traceback": 0
+      },
+      "startup_seconds": [
+        80.634336,
+        78.561876,
+        80.597145,
+        82.63687
+      ]
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r0.log",
+      "sha256": "7b1f6191b7bfcb40490bf67733ae65a9f3dfc5069a25a1293fe1281c97198d43",
+      "bytes": 188591,
+      "lines": 3681,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r1.log",
+      "sha256": "7a69fb764cd3e6d795b8f8a9c091305816918c9cdcc1e9fb8c16147943ddc84b",
+      "bytes": 187838,
+      "lines": 3676,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r2.log",
+      "sha256": "1ea6aadf3d0b51c7d7af2f3ed4979f185ef7c1e9f4776b8a5f13fe04317f219f",
+      "bytes": 190615,
+      "lines": 3717,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_server_r3.log",
+      "sha256": "60bb10e3529e6832ae5c9e9c6ff25cce921e626ba1a7c6b62a2f2715ad5e4926",
+      "bytes": 192098,
+      "lines": 3748,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_summary.json",
+      "sha256": "e2f8fec746a88b29a9d4fe952950d3828e1cc52357765b705db4d3f662bece9e",
+      "bytes": 10281054
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_adapter_value_map.json",
+      "sha256": "21d09a10db8e202c21f8747b0f9d9f87d2fae8153331cbade177054a00f1cf50",
+      "bytes": 63606
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_fleet.yaml",
+      "sha256": "e144c486a683376a3b62d4d4d8b19d3d6dfbfe68d6e11907cd76e2d1e4ab5f01",
+      "bytes": 619
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_launch.yaml",
+      "sha256": "ce8106d1d54c46f8ec439aa96983d9e9c46997cc13fb751f573ca854d75433b4",
+      "bytes": 614
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_201205_llama32_3b_main_s8_v2/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv2_seq8_slora_dp4_tp1_lora_dirs.txt",
+      "sha256": "3f7bb0f6306308d7a8803e8f8d51e84dadb89f758edbc2e2b9e4012ad922ef90",
+      "bytes": 50552
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/logs/40_slora.log",
+      "sha256": "65b528a9c145dd9b08aa1460379747b4e7d10223d09905dafbcb8783a8d8f6fd",
+      "bytes": 1322327,
+      "lines": 5110,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 1,
+        "replica_startup": 4,
+        "traceback": 0
+      },
+      "startup_seconds": [
+        80.72075,
+        78.560691,
+        80.623333,
+        86.623265
+      ]
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r0.log",
+      "sha256": "545fb4dc011e6c696124e27de164b98ea8951c11c2001889eb5d67f64357f5d4",
+      "bytes": 192845,
+      "lines": 3756,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r1.log",
+      "sha256": "b055aff89df9b8681f7822a9b6feadd4f7b746ebe1c5960eac166eaa79280959",
+      "bytes": 192647,
+      "lines": 3751,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r2.log",
+      "sha256": "c060883d144afd83a53ea9e3aa03d656f48768a320490201e757a05e1c3a77b2",
+      "bytes": 194729,
+      "lines": 3792,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_server_r3.log",
+      "sha256": "ccfaa25346edf20d966c16297d7245f70b510333212d2051c2d340b601269a68",
+      "bytes": 194652,
+      "lines": 3786,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_summary.json",
+      "sha256": "5fddbeff2b22fc67114e2b682c74329d5df7b13dcd5bf7a32124511708b13333",
+      "bytes": 10281479
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_adapter_value_map.json",
+      "sha256": "c00beee9112f55a5a7012dc8a4331066f8609038533cab8477290cb98494aa2e",
+      "bytes": 127106
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_fleet.yaml",
+      "sha256": "cbe76fc0635688cab1f5237ca4c5bbf4bc28d45e433d6fcedc3344eb89a0a1e7",
+      "bytes": 719
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_launch.yaml",
+      "sha256": "ce8106d1d54c46f8ec439aa96983d9e9c46997cc13fb751f573ca854d75433b4",
+      "bytes": 614
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_lora_dirs.txt",
+      "sha256": "c3a01765c0989018c9f78a1bb45b0804885effa2670e333ee8fdcf47d73f176f",
+      "bytes": 114052
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4_patch/20260512_223735_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_slora_dp4_tp1_remote_staged_adapter_subset.json",
+      "sha256": "de26743767a376c5224e582d8b8b5a3a8df86f318428615a6e4a8b5a414e96be",
+      "bytes": 351045
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/logs/40_slora.log",
+      "sha256": "cb592f9e1f3ab4f3b8d09ee5331271364f39ac2bef484712d6f21a0fe999d52d",
+      "bytes": 1342106,
+      "lines": 5146,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 1,
+        "replica_startup": 4,
+        "traceback": 0
+      },
+      "startup_seconds": [
+        80.683178,
+        78.607966,
+        80.610477,
+        80.648759
+      ]
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r0.log",
+      "sha256": "a8898b69264bbbdd08ad88aa6792cdd1eb58038a05dcb1998335ab2d7488a8d1",
+      "bytes": 189683,
+      "lines": 3702,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r1.log",
+      "sha256": "b3f13e18d50042f570e039938fd330409a0e1901eba7a328dcae84ca318bc03b",
+      "bytes": 192148,
+      "lines": 3745,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r2.log",
+      "sha256": "652f364401bd4fdb1de4349f4e47c0a5803617f47c6682cedcfddc2e910e23f0",
+      "bytes": 188021,
+      "lines": 3677,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/logs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_server_r3.log",
+      "sha256": "a3fe57a3b82c584eca62edcd91b6e01a691e51e58e2ed536229a1d2982f2b81d",
+      "bytes": 190115,
+      "lines": 3712,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/replay/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_summary.json",
+      "sha256": "9c718a2fa9b9f608e0c1b798bc13d440201509512e3ba13e52bd9ffae297c31f",
+      "bytes": 10281685
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_adapter_value_map.json",
+      "sha256": "f19e774a9d9a971239f316754e13f1b899e066896c23e00633a1b3e6b3d3b022",
+      "bytes": 126106
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_fleet.yaml",
+      "sha256": "145a01b93e045a6be0f5f4dd00829b7b4e58bcea7312fd6b969eae7d8eea3ef8",
+      "bytes": 725
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_launch.yaml",
+      "sha256": "ce8106d1d54c46f8ec439aa96983d9e9c46997cc13fb751f573ca854d75433b4",
+      "bytes": 614
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_lora_dirs.txt",
+      "sha256": "35628a3a7a4afef4b86e9932734235c9ad95c86432bd27f845ca894c632c0611",
+      "bytes": 113052
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/12_remote_fair_main_real_remote_v1/20260513_160342_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1/raw/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_slora_dp4_tp1_remote_staged_adapter_subset.json",
+      "sha256": "b45259f5491ecebed808c8032bc1f24f520850ccbd0071b5ba9762f6a9160478",
+      "bytes": 325859
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/logs/40_slora.log",
+      "sha256": "d868d67e4d25b17bd5027e12387c457c8cdee79ba5f3506f25a50e00e095ffd2",
+      "bytes": 24063,
+      "lines": 131,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 1,
+        "replica_startup": 4,
+        "traceback": 0
+      },
+      "startup_seconds": [
+        26.212944,
+        26.21631,
+        26.214026,
+        26.21976
+      ]
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r0.log",
+      "sha256": "f7a4039916311302c036333d2d545ac8c37c85150432a4d79062af073eb88d1a",
+      "bytes": 6734,
+      "lines": 109,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r1.log",
+      "sha256": "23ca0f53a0bf705d0b0908a1dd01ec813bc26b8a412fdf144bf2d613a7f84a4d",
+      "bytes": 7527,
+      "lines": 120,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r2.log",
+      "sha256": "e2e3ed9113762a0a6c3485dadb01536dbe14fff7d45732df4cd75d14dc7f8d57",
+      "bytes": 6965,
+      "lines": 113,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/logs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_server_r3.log",
+      "sha256": "3c3aa21d015cae2204ffbb549f1025ec06acecf6bc9d780105ec7079cd0a6d14",
+      "bytes": 6678,
+      "lines": 108,
+      "pattern_counts": {
+        "first_native_token": 0,
+        "last_native_token": 0,
+        "physical_lease": 0,
+        "resource_envelope": 0,
+        "replay_start_marker": 0,
+        "replica_startup": 0,
+        "traceback": 0
+      },
+      "startup_seconds": []
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/replay/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_summary.json",
+      "sha256": "fd08265c8d9f0e391ca31935e4050fc851deb02368b69f8380ae56747ee05880",
+      "bytes": 207275
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_adapter_value_map.json",
+      "sha256": "55d01050cd559a5a04530ba3627005f317d7d78f2d1410b1ba7bb319e899c60d",
+      "bytes": 8142
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_fleet.yaml",
+      "sha256": "595da8a55ea0c03a71b3b3dc144cdad84571c8e9e86401546b3bde9c8dbedcf9",
+      "bytes": 618
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_launch.yaml",
+      "sha256": "1268b56e9be7e722e0ea6d6030a5e73511f07e6e5112860e014b75dbe0207125",
+      "bytes": 613
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/99_smoke/20260509_124404_llama32_3b_smoke_r64_a64_s8/raw/shared_inputs/llama32_3b_smoke_r64_a64_seed42_s8_slora_dp4_tp1_lora_dirs.txt",
+      "sha256": "75a5be4a14be9acae795408c3ddc7eeaeae33c5c907878bcb42d94bc39d2b895",
+      "bytes": 6470
+    }
+  ],
+  "log_patterns": {
+    "first_native_token": "first_token_(time|ts)|native_first_token|first_token_monotonic",
+    "last_native_token": "last_token_(time|ts)|native_last_token|last_token_monotonic",
+    "physical_lease": "physical_owner_id|allocation_monotonic|release_monotonic|gpu_acquired|gpu_released",
+    "resource_envelope": "MemoryHigh|MemoryMax|memory\\.high|memory\\.max|memory\\.swap\\.max",
+    "replay_start_marker": "\\[4/5\\] Replaying",
+    "replica_startup": "replica=\\d+ startup_sec=",
+    "traceback": "Traceback \\(most recent call last\\)"
+  },
+  "pattern_caveat": "No pattern matches alone do not prove no equivalent evidence exists under another name. Native source and representative complete server logs are reviewed separately.",
+  "upstream_commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+  "compatibility_diff_sha256": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60",
+  "compatibility_patch_matches": true,
+  "source_identity": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/csrc/bgmv/bgmv_config.h",
+      "sha256": "05a138b36d0844811b82459fc1aa78a90787a6f0878a14df663bfbe847d13c70",
+      "bytes": 1300
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/models/bmm/lora_bmm_infer.py",
+      "sha256": "a9ffec95093e8118910130bde8f3b95c0ba03e8edcce13cd7af03c2279bc4786",
+      "bytes": 23024
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/models/llama/layer_weights/pre_and_post_layer_weight.py",
+      "sha256": "e744104f0afd079ba7feccf21f564529caf6d4bacb0b865bc8d2be529da5cc8e",
+      "bytes": 2822
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/models/peft/layer_weights/lora_layer_weight.py",
+      "sha256": "71fff39f6bfba68984acedb581b5b16af142f07247901d4c6fb896cfa2f55ec7",
+      "bytes": 16057
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/models/peft/lora_adapter.py",
+      "sha256": "3a603145d3198d3fc60ec3f7d433af1600764801ee9289b3cbdaccb56ecb2e45",
+      "bytes": 2880
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/models/peft/lora_unordered_batch_infer.py",
+      "sha256": "97c51adc2687db4d0edc6adca26218372cfdde8e47a978918e355b6a4172c9a2",
+      "bytes": 27443
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/server/detokenization/manager.py",
+      "sha256": "d11514ee650ac145316086d3c115f986c74fb024f7da9a2b1c0fa547da8def0b",
+      "bytes": 4503
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/server/httpserver/manager.py",
+      "sha256": "f0220152d7a925d0d28abb40658a7cfc5c58a06c88b591eb4be6c760ddd38037",
+      "bytes": 5632
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/server/router/manager.py",
+      "sha256": "6c700d0fe71a1df4ea9d6dba100749cc9dbb1ff5c4b4c7bec3cdf9d47d7c3de7",
+      "bytes": 19425
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/server/router/model_infer/model_rpc.py",
+      "sha256": "405fa0342ae74a844a8238118ba88e7ef248ebfbc0a0ee18e052cbeb1c96ce0c",
+      "bytes": 23216
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/repos/S-LoRA/slora/server/api_server.py",
+      "sha256": "504a1128cd8c6868a7d4c4ed21127b93f3cc7db0fc009082677bf1c1de97c485",
+      "bytes": 17832
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/run_slora_fair_experiment.sh",
+      "sha256": "00ab892a4573cea02bee8e7e825e0ffccf40cc18303747bdd2a178348433b907",
+      "bytes": 32639
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+      "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+      "bytes": 123319
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/docs/UPSTREAM_REPO_STATE.md",
+      "sha256": "57b076133009e3952abbcac69f571a9dc8d41943a16f2a9973e86b7f80a46e85",
+      "bytes": 8972
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/docs/EUROSYS27_V2_FORMAL_CONFIG_GATE.md",
+      "sha256": "9afcd70f5b7d4ed5995b82a8a77543a85d2603bd5e0c86793af081b621fc42b0",
+      "bytes": 6378
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/patches/S-LoRA_local_changes.patch.gz",
+      "sha256": "037eed2e9f8529fcb0e76ce48952375504fae10bac9fa5d0292575863b621f38",
+      "bytes": 7467
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d425_20261011/inventory.py",
+      "sha256": "dc0a535a49fbcaff207b699df9a8bc68d726bb68b78c8c893e759613d2acf6ab",
+      "bytes": 7054
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d420_20261011/inventory.py",
+      "sha256": "3cb2676b964d7232d0a0670a483b564965fbdea6c67a3ae09d2dadc7fb400669",
+      "bytes": 3080
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "bytes": 82192
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    }
+  ],
+  "rows_with_500_actual_adapter_ids": [],
+  "decision": "Retain historical observations and tested fixed-length/FIFO/assets. Do not derive native first/last or physical leases from HTTP timestamps/startup maxima. New common-contract observation path is required before current G1/G2 ranking.",
+  "performance_ranking_eligible": false
+}

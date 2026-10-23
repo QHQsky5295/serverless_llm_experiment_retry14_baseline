@@ -1,0 +1,44 @@
+{
+  "schema": "ieee_tc_slora_measurement_view_v1",
+  "native_source": "/home/qhq/serverless_llm_baselines/repos/S-LoRA",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/source_view",
+  "original_sha256": {
+    "slora/server/router/model_infer/model_rpc.py": "405fa0342ae74a844a8238118ba88e7ef248ebfbc0a0ee18e052cbeb1c96ce0c",
+    "slora/server/router/model_infer/infer_batch.py": "c9de78231eae3e716ae0ed2617eb322f8ea7090c28fa4ed88679cf6a24932ca4",
+    "slora/server/router/model_infer/post_process.py": "a369d40772d7b716d0309f9cbb4ce58dd79c6ab5ebc964ffd2bf3786de7a812e",
+    "slora/server/api_server.py": "504a1128cd8c6868a7d4c4ed21127b93f3cc7db0fc009082677bf1c1de97c485",
+    "slora/server/httpserver/manager.py": "f0220152d7a925d0d28abb40658a7cfc5c58a06c88b591eb4be6c760ddd38037",
+    "slora/server/router/manager.py": "6c700d0fe71a1df4ea9d6dba100749cc9dbb1ff5c4b4c7bec3cdf9d47d7c3de7",
+    "slora/server/detokenization/manager.py": "d11514ee650ac145316086d3c115f986c74fb024f7da9a2b1c0fa547da8def0b",
+    "slora/server/io_struct.py": "9f4d96a0194697e26ebe155811c7c717580ea92a6b64a95e75894b1c68d65292",
+    "slora/server/sampling_params.py": "c1899ef57ba693eb46ebbb571505f2e5bcfc9403ca32286641b6109325baeaf5",
+    "slora/server/router/model_infer/infer_adapter.py": "dc3fa719a407bcaf85215c814bc569430455696fed1c4141c9b66db5fb3ea842",
+    "slora/models/peft/lora_adapter.py": "3a603145d3198d3fc60ec3f7d433af1600764801ee9289b3cbdaccb56ecb2e45",
+    "slora/models/peft/lora_unordered_batch_infer.py": "97c51adc2687db4d0edc6adca26218372cfdde8e47a978918e355b6a4172c9a2",
+    "slora/models/bmm/lora_bmm_infer.py": "a9ffec95093e8118910130bde8f3b95c0ba03e8edcce13cd7af03c2279bc4786"
+  },
+  "measured_sha256": {
+    "slora/server/router/model_infer/model_rpc.py": "bf1c8094064509d96335c99869e2dbfe5ab42dd2b2ae17691c0534ba6c212a26",
+    "slora/server/api_server.py": "d6055c6315f9f4092d92aeb5a7f4ca7821bb4507d4a0afe2b1832c9e60675434"
+  },
+  "helper_path": "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_serverless_measurement.py",
+  "helper_sha256": "0653cf9d6353be220f6b8e25b2f5781e03d9f3fa5c15a36730f0199694a987b1",
+  "source_adapter_sha256": "369cc7e971fd0dfdaef76b2f4aea6686e318d4c3ee8bc0240fe98dffdcb7cf6f",
+  "shared_package": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora",
+  "repository_startup_hooks": false,
+  "shared_source_sha256": {
+    "faaslora/clock.py": "dfb56eee569afc35d6b944dd86a1cc663a31ab5ee6917b9205a10ad3f75ee4cb"
+  },
+  "supported_observation": "TP1_native_slora_fixed_length_greedy_v1",
+  "timing_boundary": "after_existing_sampled_token_id_cpu_transfer_before_logprob_and_text",
+  "added_cuda_synchronization": false,
+  "scheduling_policy_changed": false,
+  "loading_policy_changed": false,
+  "sampling_policy_changed": false,
+  "host_layout": "native_v1",
+  "host_representation_changed": false,
+  "worker_lifecycle": true,
+  "worker_lifecycle_scope": "TP1_owned_router_detokenizer",
+  "host_layout_scope": "native",
+  "performance_run_authorized": false
+}

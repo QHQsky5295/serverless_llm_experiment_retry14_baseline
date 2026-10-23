@@ -1,0 +1,26 @@
+"""Reuse checked lossless archival on three explicitly closed PrimeLoRA outcomes."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/storage.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1ea29097f648cbd02d1b5b6ae9c2033e20704526d39208a502b0691520d11bb6'
+source = data.decode()
+previous = '/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d766_20261023'
+changes = {
+    '20261023_d764_closed_d752_outcome.json':'20261023_d767_closed_outcomes.json',
+    "read(RAW/'result_closure.json')":f"read(Path('{previous}/result_closure.json'))",
+    "read(RAW/'contract_closure.json')":f"read(Path('{previous}/contract_closure.json'))",
+    "read(RAW/'qualification.json')":f"read(Path('{previous}/qualification.json'))",
+    "('d752_20261023/3b_dense_alias_validation_full_w0', 'd752_3b_dense_alias_validation_full_w0'),":
+        "('d736_20261022/3b_validated_publication_full_w0', 'd736_3b_validated_publication_full_w0'),\n"
+        "    ('d732_20261022/3b_round_file_full_w0', 'd732_3b_round_file_full_w0'),\n"
+        "    ('d729_20261022/3b_bulk_loader_full_w0', 'd729_3b_bulk_loader_full_w0'),",
+    'D752 is preserved losslessly; current D764 logs remain uncompressed.':
+        'D736/D732/D729 are preserved losslessly; current D766 logs remain uncompressed.',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,5 +1,36 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D767：S-LoRA 3B复用入口、原生BMM接入与存储维护（PROGRESS）
+
+D766完整结果43条显式路径已提交4d6a7a0b9a4b7ad85aae697e347dbcfb1a21acce，
+核对faaslora_origin/backup/d766-complete-w2-20261023一致；BASE尚为c9b3c9f7。
+发布域已精确关闭（peak32583680B/high/max/OOM/swap0），回执本检查点携带。
+V2仍未同步，不force。ServerlessLLM 3B三场景已经完整结束，不继续调参。
+
+D767复用D425 inventory找到5份3B回放（4×4000、1×64）和52支持文件；
+原生token来源/固定长度标志/非空server_metrics均0，按R2保留，不冒充新
+主表。十文件原生兼容补丁SHA与历史一致。模型24 query/8 KV heads，旧runner
+和May10记录明确使用BMM；7B packed HOST不适用。联网核查固定官方RPC/BMM
+分支后，只扩展共同launcher校验，允许显式native_v1+BMM；不改原生源码/
+调度/缓存、无自动fallback。52相关CPU测试通过，peak423329792B、事件/swap0，
+资格域关闭；新增配置/前100视图与D754一致。此处尚无3B GPU运行或性能结果。
+必须披露BMM不是packed BGMV adapter统一分页，不冒称全部原论文机制。
+
+存储先行：复用压缩器无损封存已闭合D736/D732/D729，双次解压SHA均等于
+原件，释放2804350976B，剩余约163865202688B。维护scope high1593/max0/
+OOM0/swap0，原wrapper事后零high断言失败，已保留并完成独立存储回执补全，
+没有重跑压缩、删除新文件或改实验数据。145旧产物及3用户修改SHA不变。
+storage session66348、finalize89944、qualification44985均结束；无活动GPU。
+相关原始路径results/ieee_tc/slora_qualification/d767_20261023，详见
+D767_SLORA_3B_ENTRY_20261023.md。准备把此必要适配/来源/回执按各仓库备份。
+
+下一：在D767既有source_view/native_3b.json/http_3b_100.json上复用D591启动/
+远端/分析脚本，只补3B受影响原生路径及缺失资格、完整矩阵；实际启动时
+重查150GiB/102GiB，不能直接用维护后读数。D648共同SLO不变，Resident三点
+复用，禁止baseline搜索和PrimeLoRA新候选抢先。其后3B其他基线/dLoRA、
+PrimeLoRA跨场景与必要优化、最终同版本7B主表/Full、A1–A5、S1–S13、
+CE/Pareto、两轮审稿文档和最终图表全部保留；目标active，当前不画图。
+
 ## 2026-10-23 D766：W2完整结束、计量封存及安全回收（PROGRESS）
 
 约18:57 CST自然终态：4000计划/创建/提交/终态/响应、0失败，原生输出
