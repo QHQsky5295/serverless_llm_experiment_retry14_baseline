@@ -1,0 +1,8 @@
+"""Reuse D770's original 1000-request prefix and existing cache seal."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d770_20261023/freeze_inputs.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '2971ca790c2185c28c0053155abb59fd8ee6b3359e028730bb93c320a05a12a3'
+source = data.decode().replace('verify_slora_source_view', 'verify_dlora_source_view').replace('S-LoRA', 'dLoRA')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

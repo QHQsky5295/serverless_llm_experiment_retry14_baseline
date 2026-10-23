@@ -1,0 +1,8 @@
+"""Reuse D783 transfer/resolver evidence collection; no data regeneration."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/preserve_evidence.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1ecf8a7ebb62dddc0e36556241fde64361cb3a4f2c4a6129eb4e821bcc08d948'
+source = data.decode().replace('D783', 'D785').replace('d783', 'd785')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

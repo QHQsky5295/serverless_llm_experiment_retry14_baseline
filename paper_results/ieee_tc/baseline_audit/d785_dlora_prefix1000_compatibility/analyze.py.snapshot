@@ -1,0 +1,14 @@
+"""Audit D785 using the D783-qualified native dLoRA consumer, no GPU rerun."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/analyze.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'a553a20a0538bed0d3c83bec315cc10e514c7f36eb2d32195e0556a124dd0a96'
+source = data.decode()
+before = "commands=[('analysis_tests.log',[sys.executable,'-B','-m','unittest',\n    'tests.test_tc_dlora_evidence','tests.test_tc_serverless_qualification_population',\n    'tests.test_tc_loquetier_evidence','-v']),\n    ('analysis.log'"
+assert source.count(before) == 1
+source = source.replace(before, "commands=[('analysis.log'")
+source = source.replace("'--population','prefix100'", "'--population','prefix1000'")
+source = source.replace('audit_prefix100.json', 'audit_prefix1000.json')
+source = source.replace('passed=len(results)==2', 'passed=len(results)==1')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

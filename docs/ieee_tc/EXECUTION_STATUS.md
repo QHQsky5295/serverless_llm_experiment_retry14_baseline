@@ -1,5 +1,62 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D785：证据与安全回收闭合，准备备份
+
+analysis/storage均实际结束并关闭。原池和缓存4000文件全文核验后，仅回收
+重复objects，释放19497299968bytes，可用162688704512bytes；147项旧投稿/
+用户dirty未变，原始和失败证据保留。当前无GPU任务和本次远端服务，所有
+运行/收尾域均已关闭。文档已写明1000前缀通过、联合0.4%、内部等待与数值
+证据边界；不据此作完整性能排名。接下来只提交明确路径到独立D785检查点，
+不force、不声称V2同步；baseline仓库本轮未改，8fcb6bf沿用。
+下一限定3BW1/W2及后续完整范围不变，整体目标active未完成。
+
+## 2026-10-24 D785：1000前缀完成，离线核验通过（PROGRESS）
+
+本轮唯一GPU执行已结束：1000/1000正常终态、0失败，60实际ID、122510原生
+输出token全部匹配，完整500池仍准备。原生绑定/时钟/E2E/TPOT/远端与GPU
+计量审计一次通过，最大重算误差0ms。U=3024.474435576GPU-s；平均/P95
+TTFT343367.184/875742.207ms，平均/P95 TPOT361.199/2076.459ms，联合
+4/1000=0.4%。这是兼容前缀，非完整W0或排名；独立数值正确性仍未知。
+原生内部等待仍明显，不能只归因启动，也不无证据断言算法缺陷；低SLO不
+触发baseline参数搜索。当前无新发现的输入/绑定/计量缺陷。
+
+服务/回放/watchdog均0、GPU和服务域释放；start/maintenance/analysis实际
+关闭，远端三服务已停，54项Ray日志与远端记录保留。服务峰值77310242816
+bytes，high1283、max/OOM/kill0，swap峰值1409241088bytes；主机available
+最低35214123008bytes。当前storage正在逐文件核验后回收本次重复objects，
+完成后按明确路径备份；尚未声称D785推送完成。未改runtime/analyzer、未动
+共享k3s，已通过测试直接复用。图表继续延期。
+
+下一D786限定3BW1，再W2；随后Loquetier/HydraServe3B、PrimeLoRA完整
+比较优化/同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、图表和V2交付。
+完整目标active且未完成；不重跑D783–D785资格，不加入dLoRA W0主矩阵。
+
+## 2026-10-24 D785：原1000前缀兼容检查准备
+
+上一轮D784为PROGRESS：500-ID覆盖完成并备份，所有域已关闭。当前完整重读
+PLAN、状态、冻结V1/单轮V2及六项补充，沿用run-experiment、monitor-experiment
+和github-sync。复用100+500资格，不重复已通过路径。D785只切到D770已有
+prefix1000视图（60 ID、122510目标token），全部native参数不变；未改runtime/
+analyzer、未生成新数据，尚未启动。MAIN59a3fde、BASE8fcb6bf；初查GPU空闲，
+磁盘162782019584bytes、MemAvailable113813684224bytes。启动时原preflight复核。
+当前无具体适配缺陷，不因D784联合0/500搜索baseline性能参数；独立数值正确性
+仍未知。下一限定W1/W2及后续完整矩阵不删减，整体目标active。
+
+## 2026-10-24 04:22 CST：D784检查点已核验（PROGRESS）
+
+MAIN `59a3fde4ed163bb8e88434439bfb7d9a68c7313e` 已核验
+`faaslora_origin/backup/d784-dlora-coverage500-20261024`，42项明确路径。BASE
+本轮未修改，`8fcb6bf95fdde6f4f0e6f396c2ba604b861db554` 已再核验origin/main。
+未force，V2尚未同步；本推送后状态追加待下一检查点备份。backup域实际结束
+并关闭，无活动exec/wait、GPU任务或本次远端服务。全500-ID覆盖已封存，
+不重跑D783或D784；旧投稿和三项用户dirty未改。
+
+下一D785尚未创建/运行：复用D784最新HEAD/备份和100+500资格，D782 view、
+D779环境、D780运行/清理和D783离线统计，切到原trace prefix1000，保持全部
+native参数。D784实际audit_coverage500.json已在删除重复缓存前完成全文核验；
+缓存已删除，不再次要求其存在来重跑旧audit。仍先1000兼容，再限定3BW1/W2，
+不能因低SLO搜索基线参数。后续完整范围见下文，整体目标active未完成。
+
 ## 2026-10-24 04:21 CST：D784保存与安全回收完成，准备备份
 
 完整覆盖审计已通过，所有服务/回放/分析/存储域实际结束并关闭，GPU空闲，

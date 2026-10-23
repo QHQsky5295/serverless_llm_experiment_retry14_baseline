@@ -1,0 +1,8 @@
+"""Reuse D783 post-release evidence collection; campaign identity only."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/close_and_preserve.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '2450e54d62ff125ab7432baf29cab46d989b7b6c229425e8b4101ec49a5261bc'
+source = data.decode().replace('D783', 'D785').replace('d783', 'd785')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
