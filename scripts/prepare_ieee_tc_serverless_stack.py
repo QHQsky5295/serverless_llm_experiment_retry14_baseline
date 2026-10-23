@@ -376,9 +376,11 @@ DLORA_OBSERVATION_SOURCES = {
     'vllm/sequence.py': '74767d459dcaeb8c90a1b281332511a75dbdd774997f95d2dfe8b8f4a4e0bdc2',
     'vllm/worker/lora_engine.py': '4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9',
 }
+DLORA_RAY_SOURCE_SHA256 = 'e063611e74c09d1e4df8b80c8c82e3ca1b01b82d83ab7d56ca9ea5d9daf41198'
 
 
-def dlora_measurement_sources(native_source: Path, *, canonical_input=False) -> dict[str, str]:
+def dlora_measurement_sources(native_source: Path, *, canonical_input=False,
+                              worker_lifecycle=False) -> dict[str, str]:
     """Passive native event hooks in the retained dLoRA compatibility tree.
 
     SequenceGroup already migrates by deepcopy. Carry its measured timestamps
@@ -441,20 +443,38 @@ def dlora_measurement_sources(native_source: Path, *, canonical_input=False) -> 
             '        results_generator = engine.generate(prompt, sampling_params, request_id, model_id,\n'
             '                                            prompt_token_ids=prompt_token_ids)\n')
         replacements[path] = manager
+    if worker_lifecycle:
+        if not canonical_input:
+            raise ValueError('dLoRA owned runtime requires the common canonical-input path')
+        path = 'vllm/engine/ray_utils.py'
+        source = (native_source/path).read_text()
+        if sha(source.encode()) != DLORA_RAY_SOURCE_SHA256:
+            raise ValueError('retained dLoRA Ray compatibility source changed')
+        source = replace_once(source,
+            '        def __init__(self) -> None:\n            self.worker = None\n',
+            '        def __init__(self) -> None:\n'
+            '            from vllm.tc_measurement import dlora_worker_launch_guard\n'
+            '            dlora_worker_launch_guard()\n'
+            '            self.worker = None\n\n'
+            '        def tc_worker_receipt(self):\n'
+            '            from vllm.tc_measurement import dlora_native_worker_receipt\n'
+            '            return dlora_native_worker_receipt(self.worker)\n')
+        replacements[path] = source
     for path, source in replacements.items():
         compile(source, path, 'exec')
     return replacements
 
 
 def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path,
-                                   *, canonical_input=False) -> dict:
+                                   *, canonical_input=False, worker_lifecycle=False) -> dict:
     """Reuse the source-view approach; preserve vendor checkout and old results."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous dLoRA source view')
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
-    replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input)
+    replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input,
+                                              worker_lifecycle=worker_lifecycle)
     support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
     output.mkdir(mode=0o700)
     for parent, dirs, files in os.walk(native_source/'vllm'):
@@ -484,6 +504,10 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
     if canonical_input:
         result['input_contract'] = 'canonical_token_ids_v1'
         result['input_forwarding'] = 'EngineManager_to_existing_AsyncLLMEngine_generate'
+    if worker_lifecycle:
+        result['original_sha256'] = dict(result['original_sha256'],
+            **{'vllm/engine/ray_utils.py': DLORA_RAY_SOURCE_SHA256})
+        result.update(worker_lifecycle=True, worker_lifecycle_scope='DP2_TP1_private_Ray_pool_v1')
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result
@@ -2558,6 +2582,8 @@ def main() -> None:
         dlora.add_argument('--'+name, type=Path, required=True)
     dlora.add_argument('--canonical-input', action='store_true',
                        help='Forward common token IDs through the native EngineManager.')
+    dlora.add_argument('--worker-lifecycle', action='store_true',
+                       help='Verify owned allocation before native Ray worker initialization.')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2603,7 +2629,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == 'prepare-dlora-measurement-view':
         print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
-            args.main_repo, canonical_input=args.canonical_input), indent=2))
+            args.main_repo, canonical_input=args.canonical_input,
+            worker_lifecycle=args.worker_lifecycle), indent=2))
         return
     if args.action == 'prepare-loquetier-measurement-view':
         print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,

@@ -627,6 +627,45 @@ def install_v030_snapshot():
                 source_sha256=sources, package_root=str(root))
 
 
+def dlora_worker_launch_guard():
+    """Check the already-owned pool before Ray's NCCL/model initialization."""
+    from replay_vllm_engine_trace import dlora_worker_context
+    return dlora_worker_context(Path(os.environ['FAASLORA_TC_DLORA_WORKER_CONFIG']), actor=True)
+
+
+def dlora_native_worker_receipt(worker):
+    """Read actual TP1 worker state after native model, LoRA and KV allocation.
+
+    No warm inference, CUDA synchronization, new placement, or inferred weight
+    correctness. The parent binds this PID to its live NVML pool before serving.
+    """
+    cfg, guard = dlora_worker_launch_guard()
+    from faaslora.clock import local_monotonic_clock_id
+    import torch
+    lora, cache = worker.lora_config, worker.cache_config
+    expected = cfg['adapters']
+    actual = {aid: [i, lora.adapter_paths[i]] for i, aid in enumerate(lora.adapter_ids)}
+    if (worker.exec_type.name != 'LORA' or worker.model_config.use_dummy_weights
+            or worker.parallel_config.tensor_parallel_size != 1
+            or worker.parallel_config.pipeline_parallel_size != 1
+            or worker.model_config.model != cfg['engine_args']['model']
+            or actual != expected or lora.num_models != len(expected)
+            or len(worker.lora_engine.cpu_lora_weights) != len(expected)
+            or lora.gpu_capacity != len(worker.lora_engine.gpu_lora_models)
+            or worker.cache_engine is None or cache.num_gpu_blocks <= 0
+            or torch.cuda.device_count() != 1 or torch.cuda.current_device() != 0):
+        raise ValueError('dLoRA actual native worker differs from owned full-pool contract')
+    return dict(schema='ieee_tc_dlora_native_worker_v1', at=time.perf_counter(),
+        clock_id=local_monotonic_clock_id(), identity=guard.gpu_process_identity(os.getpid()),
+        cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'], cuda_device_count=1,
+        global_rank=worker.rank, tensor_parallel_size=1, pipeline_parallel_size=1,
+        model=worker.model_config.model, adapter_bindings=actual,
+        gpu_lora_models=list(worker.lora_engine.gpu_lora_models),
+        actual_gpu_capacity=lora.gpu_capacity, num_gpu_blocks=cache.num_gpu_blocks,
+        num_cpu_blocks=cache.num_cpu_blocks, native_torch_version=torch.__version__,
+        numerical_correctness_qualified=False)
+
+
 def dlora_native_adapter_bindings(manager):
     """Read the exact zero-based order passed to native PEFT loaders.
 

@@ -17,6 +17,7 @@ import uuid
 import threading
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -349,6 +350,150 @@ class NativeVLLMRequestHandler:
                           message=dict(role='assistant', content=final.outputs[0].text))],
             usage=dict(prompt_tokens=len(ids), completion_tokens=target, total_tokens=len(ids)+target),
             metrics=dict(ieee_tc=measured))
+
+
+def dlora_private_ray_options(cfg):
+    """One new local Ray node, never discovery/auto or a shared cluster.
+
+    The 8 GiB object store is inside the whole-service cgroup. CPU/GPU counts
+    describe Ray resources; actual isolation is verified separately by the TC
+    launcher and native worker guard, not inferred from these logical counts.
+    """
+    root = Path(cfg['ray_root'])
+    if (not root.is_absolute() or root.is_symlink() or '..' in root.parts
+            or cfg.get('gpu_ids') != [0, 1]
+            or cfg.get('ray_object_store_bytes') != 8*1024**3
+            or cfg.get('ray_num_cpus') != 40):
+        raise ValueError('explicit private Ray root and retained DP2 resource contract required')
+    return dict(address='local', namespace='primelora-tc-dlora',
+        num_cpus=cfg['ray_num_cpus'], num_gpus=2,
+        object_store_memory=cfg['ray_object_store_bytes'], include_dashboard=False,
+        log_to_driver=False, _temp_dir=str(root),
+        object_spilling_directory=str(root/'spill'), _node_ip_address='127.0.0.1')
+
+
+def dlora_worker_context(config_path, *, actor=False):
+    """Current process must belong to the admitted service and allocated pool."""
+    from prepare_ieee_tc_serverless_stack import load_guard
+    cfg = _load_json(config_path)
+    if (cfg.get('schema') != 'ieee_tc_dlora_native_worker_v1'
+            or _sha(config_path) != os.environ.get('FAASLORA_TC_DLORA_WORKER_CONFIG_SHA256')
+            or Path(sys.executable).resolve() != Path(cfg['native_python']).resolve()
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or cfg.get('migration_type') != 3
+            or any(_sha(path) != digest for path, digest in cfg['source_sha256'].items())):
+        raise ValueError('dLoRA frozen native interpreter/config/source differs')
+    dlora_private_ray_options(cfg)
+    sys.path.insert(0, cfg['main_repo'])
+    guard = load_guard(Path(cfg['main_repo']))
+    admission = guard.verify_current_service()
+    path = Path(cfg['allocation_journal'])
+    records = [json.loads(line) for line in path.read_text().splitlines()]
+    acquire = records[0]
+    service = Path(admission['service_identity']['path'])
+    visible = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+    if (acquire['event'] != 'acquire' or acquire['lease_id'] != cfg['allocation_lease_id']
+            or any(r['event'] == 'release' for r in records)
+            or not Path(acquire['owner_identity']['cgroup']).is_relative_to(service)
+            or guard.gpu_process_identity(acquire['owner_identity']['pid']) != acquire['owner_identity']
+            or (visible not in ('0', '1') if actor else visible != '0,1')
+            or len(acquire['gpu_uuids']) != 2):
+        raise ValueError('native dLoRA process has no live pre-initialization physical pool')
+    return cfg, guard
+
+
+def verify_dlora_source_view(cfg):
+    root = Path(cfg['source_view'])
+    path = root/'measurement_manifest.json'
+    if _sha(path) != cfg['source_view_manifest_sha256']:
+        raise ValueError('dLoRA source view manifest changed')
+    manifest = _load_json(path)
+    if (manifest.get('schema') != 'ieee_tc_dlora_measurement_view_v1'
+            or manifest.get('input_contract') != 'canonical_token_ids_v1'
+            or manifest.get('worker_lifecycle_scope') != 'DP2_TP1_private_Ray_pool_v1'
+            or manifest.get('worker_lifecycle') is not True):
+        raise ValueError('dLoRA source view lacks input or native lifecycle adaptation')
+    for relative, digest in manifest['original_sha256'].items():
+        if _sha(Path(manifest['native_source'])/relative) != digest:
+            raise ValueError('retained dLoRA source changed: '+relative)
+    for relative, digest in manifest['measured_sha256'].items():
+        if _sha(root/relative) != digest:
+            raise ValueError('measured dLoRA source changed: '+relative)
+    if _sha(manifest['helper_path']) != manifest['helper_sha256']:
+        raise ValueError('dLoRA measurement helper changed')
+    return manifest
+
+
+@asynccontextmanager
+async def dlora_native_runtime(config_path):
+    """Own the existing native EngineManager and its new private Ray lifetime.
+
+    Called only by an already-bound GPU-pool child. Startup includes native
+    NCCL and original LoRA placement; teardown closes that same local Ray node,
+    never `ray stop`. The external owner still verifies actual exits/NVML before
+    releasing its allocation, including when construction fails.
+    """
+    cfg, guard = dlora_worker_context(config_path)
+    verify_dlora_source_view(cfg)
+    root = Path(cfg['ray_root'])
+    root.mkdir(mode=0o700, exist_ok=False)
+    (root/'spill').mkdir()
+    import ray
+    if ray.__version__ != '2.51.2' or ray.is_initialized():
+        raise ValueError('dLoRA requires the retained native Ray version and no inherited connection')
+    manager = None
+    try:
+        ray.init(**dlora_private_ray_options(cfg))
+        nodes = [node for node in ray.nodes() if node['Alive']]
+        if (len(nodes) != 1 or nodes[0]['Resources'].get('GPU') != 2
+                or nodes[0]['Resources'].get('CPU') != 40
+                or nodes[0]['Resources'].get('object_store_memory') != 8*1024**3):
+            raise ValueError('actual private Ray resources differ from the shared envelope')
+        from vllm.engine.arg_utils import AsyncEngineArgs
+        from vllm.engine.engine_manager import EngineManager, MigrationType
+        from vllm.config import ExecType
+        from faaslora.clock import local_monotonic_clock_id
+        if not Path(inspect.getfile(EngineManager)).absolute().is_relative_to(Path(cfg['source_view'])):
+            raise ValueError('dLoRA imported a different native source view')
+        args = AsyncEngineArgs(**cfg['engine_args'])
+        if (args.num_groups != 2 or args.tensor_parallel_size != 1 or args.pipeline_parallel_size != 1
+                or args.use_dummy_weights or not args.worker_use_ray or not args.engine_use_ray
+                or args.exec_type != ExecType.LORA.value or args.num_models != len(cfg['adapters'])):
+            raise ValueError('native dLoRA DP2/TP1 real-weight arguments differ')
+        manager = EngineManager(ExecType.LORA, MigrationType.PERIOD_MIG, 2, args.num_models, args)
+        from ieee_tc_serverless_measurement import dlora_native_adapter_bindings
+        if {a:list(v) for a,v in dlora_native_adapter_bindings(manager).items()} != cfg['adapters']:
+            raise ValueError('native manager pool differs from published static adapter mapping')
+        workers = []
+        for engine in manager.engines:
+            if len(engine.workers) != 1:
+                raise ValueError('retained dLoRA TP1 engine does not have exactly one native worker')
+            row = ray.get(engine.workers[0].tc_worker_receipt.remote())
+            if (row['identity'] != guard.gpu_process_identity(row['identity']['pid'])
+                    or row['clock_id'] != local_monotonic_clock_id()):
+                raise ValueError('native worker birth or local clock changed before ready')
+            workers.append(dict(row, engine_id=engine.engine_id))
+        receipt = dict(schema='ieee_tc_dlora_backend_ready_v1', receipt_id=uuid.uuid4().hex,
+            at=time.perf_counter(), clock_id=local_monotonic_clock_id(),
+            identity=guard.gpu_process_identity(os.getpid()), workers=workers,
+            worker_config_sha256=_sha(config_path), ray_version=ray.__version__,
+            ray_nodes=nodes, ray_root=str(root),
+            source_view_manifest_sha256=cfg['source_view_manifest_sha256'],
+            ready_boundary='native_EngineManager_model_LoRA_placement_and_KV_initialized',
+            allocation_lease_id=cfg['allocation_lease_id'],
+            native_input_parameters=vars(args),
+            numerical_correctness_qualified=False)
+        yield manager, receipt
+    finally:
+        if manager is not None:
+            tasks = [task for task in [manager.background_loop,
+                *(engine.background_loop for engine in manager.engines)] if task is not None]
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        # ray.init(address='local') creates a head owned by this driver. The
+        # retained Ray shutdown kills its own processes even after partial init.
+        ray.shutdown()
 
 
 class NativeDloraRequestHandler:

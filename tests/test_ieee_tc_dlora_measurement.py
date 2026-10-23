@@ -11,6 +11,7 @@ import math
 import time
 from enum import Enum
 from types import MethodType
+from unittest.mock import Mock
 from types import SimpleNamespace as NS
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 import unittest
@@ -475,6 +476,111 @@ class DloraCanonicalInputTests(unittest.TestCase):
             self.assertFalse((out/path).is_symlink())
             self.assertTrue((out/'vllm/engine/async_llm_engine.py').is_symlink())
             self.assertFalse(manifest['performance_run_authorized'])
+
+
+class DloraOwnedRuntimeTests(unittest.TestCase):
+    def test_private_ray_never_uses_discovery_and_store_is_service_total(self):
+        cfg = dict(ray_root='/tmp/tc-dlora-test/ray', gpu_ids=[0, 1],
+                   ray_object_store_bytes=8*1024**3, ray_num_cpus=40)
+        with patch.dict('os.environ', {'RAY_ADDRESS':'10.0.0.1:9999'}):
+            options = replayer.dlora_private_ray_options(cfg)
+        self.assertEqual(options['address'], 'local')
+        self.assertEqual(options['object_store_memory'], 8*1024**3)
+        self.assertEqual(options['num_gpus'], 2)
+        self.assertEqual(options['_node_ip_address'], '127.0.0.1')
+        for change in (dict(gpu_ids=[0,1,2,3]), dict(ray_object_store_bytes=16*1024**3),
+                       dict(ray_root='relative')):
+            with self.assertRaises(ValueError):
+                replayer.dlora_private_ray_options(dict(cfg, **change))
+
+    def test_native_ray_guard_runs_before_worker_or_distributed_initialization(self):
+        sources = p.dlora_measurement_sources(NATIVE, canonical_input=True, worker_lifecycle=True)
+        tree = ast.parse(sources['vllm/engine/ray_utils.py'])
+        node = next(n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == 'RayWorker')
+        namespace = dict(TorchDistributedWorker=object)
+        exec(compile(ast.Module(body=[node], type_ignores=[]), '<native-RayWorker>', 'exec'), namespace)
+        calls = []
+        support = NS(dlora_worker_launch_guard=lambda:calls.append('guard'),
+                     dlora_native_worker_receipt=lambda worker: ('receipt', worker))
+        with patch.dict(sys.modules, {'vllm.tc_measurement':support}):
+            worker = namespace['RayWorker']()
+            self.assertEqual(calls, ['guard'])
+            self.assertIsNone(worker.worker)
+            worker.worker = 'native-model'
+            self.assertEqual(worker.tc_worker_receipt(), ('receipt','native-model'))
+        # No modification of worker initialization, native NCCL, or arithmetic.
+        self.assertNotIn('vllm/worker/worker.py', sources)
+        self.assertNotIn('vllm/worker/lora_engine.py', sources)
+        with self.assertRaises(ValueError): p.dlora_measurement_sources(NATIVE, worker_lifecycle=True)
+
+    def test_receipt_reads_actual_capacity_and_native_loaded_order(self):
+        cfg = dict(adapters={'z':[0,'/pool/z'], 'a':[1,'/pool/a']}, engine_args={'model':'/model'})
+        guard = NS(gpu_process_identity=lambda pid:dict(pid=pid, start_ticks=3))
+        native = NS(exec_type=NS(name='LORA'), model_config=NS(model='/model',use_dummy_weights=False),
+            parallel_config=NS(tensor_parallel_size=1,pipeline_parallel_size=1),
+            lora_config=NS(num_models=2, adapter_ids=['z','a'], adapter_paths=['/pool/z','/pool/a'],
+                           gpu_capacity=1),
+            lora_engine=NS(cpu_lora_weights=[1,2],gpu_lora_models=[1]), cache_engine=object(),
+            cache_config=NS(num_gpu_blocks=300,num_cpu_blocks=900), rank=1)
+        torch = NS(cuda=NS(device_count=lambda:1,current_device=lambda:0),__version__='test-only')
+        with patch.object(m, 'dlora_worker_launch_guard', return_value=(cfg,guard)), \
+                patch.dict(sys.modules, {'torch':torch}), patch.dict('os.environ', {'CUDA_VISIBLE_DEVICES':'1'}):
+            receipt = m.dlora_native_worker_receipt(native)
+            self.assertEqual(receipt['actual_gpu_capacity'], 1)
+            self.assertEqual(receipt['gpu_lora_models'], [1])
+            self.assertEqual(receipt['adapter_bindings'], cfg['adapters'])
+            self.assertFalse(receipt['numerical_correctness_qualified'])
+            native.model_config.use_dummy_weights = True
+            with self.assertRaises(ValueError): m.dlora_native_worker_receipt(native)
+
+    def test_runtime_shutdown_on_native_construction_failure(self):
+        async def check():
+            with tempfile.TemporaryDirectory() as directory:
+                cfg = dict(ray_root=str(Path(directory)/'ray'), gpu_ids=[0,1],
+                    ray_object_store_bytes=8*1024**3,ray_num_cpus=40,source_view=directory,
+                    adapters={'a':[0,'/pool/a']}, engine_args=dict(num_groups=2,
+                    tensor_parallel_size=1,pipeline_parallel_size=1,use_dummy_weights=False,
+                    worker_use_ray=True,engine_use_ray=True,exec_type=Exec.LORA.value,num_models=1))
+                ray = NS(__version__='2.51.2',is_initialized=lambda:False,init=Mock(),shutdown=Mock(),
+                    nodes=lambda:[dict(Alive=True,Resources=dict(GPU=2,CPU=40,object_store_memory=8*1024**3))])
+                factory = Mock(side_effect=RuntimeError('native constructor failed'))
+                with patch.object(replayer,'dlora_worker_context',return_value=(cfg,None)), \
+                        patch.object(replayer,'verify_dlora_source_view'), \
+                        patch.object(replayer.inspect,'getfile',return_value=str(Path(directory)/'engine_manager.py')), \
+                        patch.dict(sys.modules, {'ray':ray,'vllm.engine.arg_utils':NS(AsyncEngineArgs=NS),
+                            'vllm.engine.engine_manager':NS(EngineManager=factory,MigrationType=Migration),
+                            'vllm.config':NS(ExecType=Exec)}):
+                    with self.assertRaisesRegex(RuntimeError,'native constructor failed'):
+                        async with replayer.dlora_native_runtime('config'):
+                            self.fail('failed constructor cannot publish ready')
+                self.assertEqual(ray.init.call_args.kwargs['address'], 'local')
+                ray.shutdown.assert_called_once_with()
+        asyncio.run(check())
+
+    def test_runtime_shutdown_on_partial_ray_initialization_failure(self):
+        async def check():
+            with tempfile.TemporaryDirectory() as directory:
+                cfg = dict(ray_root=str(Path(directory)/'ray'),gpu_ids=[0,1],
+                           ray_object_store_bytes=8*1024**3,ray_num_cpus=40)
+                ray = NS(__version__='2.51.2',is_initialized=lambda:False,
+                         init=Mock(side_effect=RuntimeError('private Ray failed')),shutdown=Mock())
+                with patch.object(replayer,'dlora_worker_context',return_value=(cfg,None)), \
+                        patch.object(replayer,'verify_dlora_source_view'), patch.dict(sys.modules,{'ray':ray}):
+                    with self.assertRaisesRegex(RuntimeError,'private Ray failed'):
+                        async with replayer.dlora_native_runtime('config'):
+                            self.fail('failed Ray cannot yield a native manager')
+                ray.shutdown.assert_called_once_with()
+        asyncio.run(check())
+
+    def test_lifecycle_view_records_sources_without_overwriting_legacy_view(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)/'view'
+            result = p.prepare_dlora_measurement_view(NATIVE,out,MAIN,
+                canonical_input=True,worker_lifecycle=True)
+            self.assertTrue(result['worker_lifecycle'])
+            self.assertEqual(result['original_sha256']['vllm/engine/ray_utils.py'],p.DLORA_RAY_SOURCE_SHA256)
+            self.assertFalse((out/'vllm/engine/ray_utils.py').is_symlink())
+            self.assertTrue((out/'vllm/worker/worker.py').is_symlink())
 
 
 if __name__ == '__main__':
