@@ -1,5 +1,41 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D776：私有运行域接口及原生环境导入通过（PROGRESS）
+
+完整PLAN及最新规则已核对；遵循run-experiment复用入口，未触碰其他项目k3s。
+现有三脚本新增opt-in RayWorker启动前所有权检查/实际状态回执、DP2/TP1
+私有Ray生命周期；保留原生调度/放置/迁移/LoRA运算和历史参数。全服务
+object store合计8GiB，启动前须已有真实GPU allocation，不从ready才计量。
+
+27项CPU检查通过（0.105s）；旧Python3.9.25/torch2.1.2+cu121/Ray2.51.2环境
+实际导入本轮source view成功，CUDA/Ray均未初始化、未加载模型。aux1峰值
+684384256bytes，high/max/OOM/swap均0；已实际结束并关闭空域。145项旧投稿
+和三项用户dirty SHA不变。RAW为dlora_qualification/d776_20261024。
+准备按github-sync检查点备份；此处不提前声称推送完成。
+
+本轮尚未接完整HTTP/parent allocation/实际NVML/release，不是GPU资格或
+性能复现完成。下一在现有TC入口接上述生命周期与共同replayer，dLoRA仍
+用native EngineManager选择，不改RR；补必要真实加载/GQA，然后限定3B
+W1/W2。之后Loquetier/HydraServe 3B、PrimeLoRA全对照优化、同版本Full、
+A1–A5、S1–S13、CE/Pareto、审稿文档及最终图表不删减，目标active。
+
+## 2026-10-24 01:09 CST：D775检查点已推送并核验（PROGRESS）
+
+BASE `1ba6a4dd7bcdfda12fe8d398eb87cb855ef3372c` 已核验 origin/main；
+MAIN `50700cf94a464d1ef56051c7558ecc5539e7a4e8` 已核验
+`faaslora_origin/backup/d775-dlora-canonical-input-20261024`。未force，V2仍未同步。
+只提交4项测试过的BASE路径、D775文档/小型证据及执行状态，未stage三项用户
+dirty；145项旧投稿保护未变。原生证据快照保留字节，实际修改逐文件相对vendor
+独立diff --check通过；新增目录只对两份原生快照限定whitespace属性。
+aux1/2均已实际结束并关闭空域，无活动exec/wait或GPU实验。21项CPU检查通过，
+不是完整原生环境/GPU/数值正确性资格。只有本推送后状态追加待下一次备份。
+
+下一实际工作是dLoRA受限私有Ray、现有TC服务入口和真实worker生命周期接入，
+使用本轮已验证canonical handler；不得从CPU测试跳到正式性能宣称。原始Worker
+init_model之前还有Ray分布式初始化，生命周期需覆盖首次真实持卡而非只记ready。
+随后必要加载/GQA验证、3B W1/W2、Loquetier/HydraServe 3B完整对照，再优化
+PrimeLoRA；全消融/敏感性/审稿文档/图表主线保留，共享k3s不动，目标active。
+
 ## 2026-10-24 D775：共同输入/原生绑定接口已验证（PROGRESS）
 
 完整PLAN及最新补充规则已复核，继续D774主线，不重做S-LoRA完整矩阵。

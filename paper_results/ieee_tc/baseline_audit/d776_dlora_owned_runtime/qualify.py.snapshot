@@ -1,0 +1,36 @@
+"""Reuse D774's bounded qualification for the native private-runtime path."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/qualify.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'fe5052135b17a43a0f30362f71cbde25cafa397fcc8fbbdac08528fa4d271bdb'
+source = data.decode()
+changes = {
+    "for log, module in [('cpu_tests.log', 'tests.test_ieee_tc_dlora_measurement'),\n                    ('shared_regression.log', 'tests.test_ieee_tc_slora_measurement')]:":
+        "for log, module in [('cpu_tests.log', 'tests.test_ieee_tc_dlora_measurement')]:",
+    "RAW/'source_view', MAIN)": "RAW/'source_view', MAIN, canonical_input=True, worker_lifecycle=True)",
+    "BASE/'tests/test_ieee_tc_dlora_measurement.py', Path(__file__)]":
+        "BASE/'tests/test_ieee_tc_dlora_measurement.py', BASE/'scripts/replay_vllm_engine_trace.py', RAW/'native_import.py', Path(__file__)]",
+}
+for old, new in changes.items():
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+marker = "refs = [BASE/'scripts/ieee_tc_serverless_measurement.py', source_script,"
+native = """env = dict(os.environ, CUDA_VISIBLE_DEVICES='', PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1',
+    PYTHONPATH=os.pathsep.join([str(RAW/'source_view'),str(MAIN),str(BASE/'scripts')]))
+env.pop('PYTHONHOME',None)
+env.pop('RAY_ADDRESS',None)
+command = ['/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python','-B',str(RAW/'native_import.py')]
+with (RAW/'native_import.log').open('x') as log:
+    result = subprocess.run(command,cwd=RAW/'source_view',env=env,stdout=log,stderr=subprocess.STDOUT)
+commands.append(dict(command=command,log='native_import.log',returncode=result.returncode))
+if result.returncode:
+    save('qualification.json',dict(passed=False,commands=commands,source_view=view,
+        plan_sha256=plan_sha,preserved=preserved,resources=p.cgroup_snapshot(group)))
+    raise SystemExit(result.returncode)
+"""
+assert source.count(marker) == 1
+source = source.replace(marker,native+marker)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

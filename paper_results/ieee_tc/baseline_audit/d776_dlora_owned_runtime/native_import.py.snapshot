@@ -1,0 +1,44 @@
+"""Import the retained real dLoRA environment, with no visible GPU or Ray start."""
+import hashlib
+import inspect
+import json
+import os
+from pathlib import Path
+import sys
+
+RAW = Path(__file__).resolve().parent
+assert os.environ.get('CUDA_VISIBLE_DEVICES') == ''
+assert Path(sys.executable).resolve() == Path('/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python').resolve()
+import torch
+import ray
+from vllm.engine.engine_manager import EngineManager
+from vllm.engine.async_llm_engine import AsyncLLMEngine
+from vllm.engine.ray_utils import RayWorker
+from vllm.engine.arg_utils import AsyncEngineArgs
+from vllm.sampling_params import SamplingParams
+import replay_vllm_engine_trace as runner
+
+assert not torch.cuda.is_initialized() and not ray.is_initialized()
+assert ray.__version__ == '2.51.2'
+assert 'prompt_token_ids' in inspect.signature(EngineManager.select_engine).parameters
+assert 'prompt_token_ids' in inspect.signature(AsyncLLMEngine.generate).parameters
+assert hasattr(RayWorker, 'tc_worker_receipt')
+assert Path(inspect.getfile(EngineManager)).absolute().is_relative_to(RAW/'source_view')
+args = AsyncEngineArgs(model='/not-loaded',use_dummy_weights=False,num_groups=2,num_models=500,
+    worker_use_ray=True,engine_use_ray=True,tensor_parallel_size=1,pipeline_parallel_size=1,
+    dtype='half',gpu_memory_utilization=.92,max_num_seqs=4,max_num_batched_tokens=1024,
+    gpu_capacity=8,swap_space=8)
+assert args.num_groups == 2 and not args.use_dummy_weights
+params = SamplingParams(temperature=0.,top_p=1.,ignore_eos=True,stop=[],max_tokens=256)
+assert params.max_tokens == 256 and params.ignore_eos
+paths = [Path(inspect.getfile(cls)).absolute() for cls in
+         (EngineManager,AsyncLLMEngine,RayWorker,AsyncEngineArgs,SamplingParams)]
+paths += [Path(runner.__file__),Path(ray.__file__),Path(torch.__file__)]
+result = dict(passed=True, python=sys.version, interpreter=sys.executable,
+    torch_version=torch.__version__,ray_version=ray.__version__,
+    native_sources={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
+    cuda_initialized=False,ray_initialized=False,model_loaded=False,
+    native_inference_run=False,performance_run_authorized=False)
+with (RAW/'native_import.json').open('x') as handle:
+    json.dump(result,handle,indent=2)
+print(json.dumps(result))

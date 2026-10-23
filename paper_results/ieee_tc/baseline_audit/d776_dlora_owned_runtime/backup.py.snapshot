@@ -1,0 +1,42 @@
+"""Reuse the frozen explicit-path checkpoint; only tested D776 task files."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'b5c70e16e8bd04fc8f3f5868a4d9696e197cd91f09293a2a4a613ebd7d7049e1'
+source = data.decode()
+changes = {
+    'd774_dlora_native_timing': 'd776_dlora_owned_runtime',
+    '84bb7892b4aade6bed0b898fb99d1f6074073a10': '1ba6a4dd7bcdfda12fe8d398eb87cb855ef3372c',
+    '57be5a751304642b76e226f9b19e84f8e941519a': '50700cf94a464d1ef56051c7558ecc5539e7a4e8',
+    "             'tests/test_ieee_tc_dlora_measurement.py']":
+        "             'tests/test_ieee_tc_dlora_measurement.py',\n             'scripts/replay_vllm_engine_trace.py']",
+    'tc: observe native dLoRA token timelines across migration (D774)':
+        'tc: bind private dLoRA runtime and native worker lifecycle (D776)',
+    "         'shared_regression.log','qualify.py'":
+        "         'native_import.py','native_import.log','native_import.json','qualify.py'",
+    "manifest = dict(schema='ieee_tc_dlora_native_timing_cpu_qualification_v1',":
+        "with (OUT/'.gitattributes').open('xb') as handle:\n    handle.write((RAW/'snapshot.gitattributes').read_bytes())\nfiles['.gitattributes'] = dict(source=str(RAW/'snapshot.gitattributes'), sha256=p.digest(OUT/'.gitattributes'))\nmanifest = dict(schema='ieee_tc_dlora_owned_runtime_cpu_qualification_v1',",
+    'tests=dict(dlora=12, shared_slora_regression=30, passed=True)':
+        'tests=dict(dlora=27, native_environment_import=True, passed=True, gpu_output_is_synthetic=True)',
+    'D774_DLORA_NATIVE_TIMING_20261024.md': 'D776_DLORA_OWNED_RUNTIME_20261024.md',
+    'tc: preserve dLoRA native timing qualification and scope (D774)':
+        'tc: preserve dLoRA private runtime qualification and scope (D776)',
+    'backup/d774-dlora-native-timing-20261024': 'backup/d776-dlora-owned-runtime-20261024',
+}
+for old, new in changes.items():
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+needle = "assert call(BASE,'git','branch','--show-current') == 'main'"
+check = """for path in q['source_view']['measured_sha256']:
+    checked = subprocess.run(['git','diff','--no-index','--check',str(native/path),str(view/path)],
+        capture_output=True,text=True)
+    assert checked.returncode in (0,1) and not checked.stdout and not checked.stderr, path
+native_import = read(RAW/'native_import.json')
+assert native_import['passed'] and not native_import['cuda_initialized'] and not native_import['ray_initialized']
+"""
+assert source.count(needle) == 1
+source = source.replace(needle, check+needle)
+exec(compile(source, str(original), 'exec'),
+     {'__name__': '__main__', '__file__': str(Path(__file__))})

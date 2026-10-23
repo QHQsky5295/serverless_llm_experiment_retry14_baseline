@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "python": "3.9.25 (main, Nov  3 2025, 22:33:05) \n[GCC 11.2.0]",
+  "interpreter": "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python",
+  "torch_version": "2.1.2+cu121",
+  "ray_version": "2.51.2",
+  "native_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/source_view/vllm/engine/engine_manager.py": "be8406bfc9ba3879df878e7126f78d4d788c9bc258b2b2e85460fc73c00f6c1b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/source_view/vllm/engine/async_llm_engine.py": "d2378aef28b42e114718e9290910e5ec1fbd87759a7f0393ac78e9128a176634",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/source_view/vllm/engine/ray_utils.py": "8718c3fe16e33561b648475e0db7088b07acb39810bceb87cc0726176b94ba91",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/source_view/vllm/engine/arg_utils.py": "33ae007eb541a0b9ecb9469b711b65c80cf83208c6c6c867eefe9ae7cffb690a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/source_view/vllm/sampling_params.py": "4df532503b63ebb29d23daaf3dd70da19cc2effd96ac6ed5826f12067fa8b8f4",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py": "b6eb9ec2a728080d80a5f23cfea62d8399f52e44e7e2ff513259de0d7eebd76d",
+    "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/ray/__init__.py": "54e814a1bc0f7c26a92ca2e411b56d7304c2d3e1e4490dfc6fdca81be5a480e8",
+    "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/__init__.py": "7261130fcc9dae49bb38843604ae2d0cab8d6b7277eb57b5dbc1559e35e34be1"
+  },
+  "cuda_initialized": false,
+  "ray_initialized": false,
+  "model_loaded": false,
+  "native_inference_run": false,
+  "performance_run_authorized": false
+}
