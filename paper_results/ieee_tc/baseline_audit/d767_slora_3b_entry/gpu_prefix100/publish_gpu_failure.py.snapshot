@@ -1,0 +1,44 @@
+"""Reuse verified explicit-path publication for the failed attempt and diagnosis."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+prefix=recipe[:recipe.index('own=p.scope_identity')]
+suffix=recipe[recipe.index('relative=[str(path.relative_to(MAIN))'):]
+body='''own=p.scope_identity(p.cg_path().name)
+save(RAW/'gpu_publication_identity.json',own)
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d767_slora_3b_entry/gpu_prefix100'
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+assert read(RAW/'result_receipt.json')['evidence_sealed']
+assert read(RAW/'gpu_cache_reclamation.json')['passed']
+for name in ('analysis','prompt_diagnostic','result','gpu_cache'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+q=read(RAW/'qualification.json')
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+for name,row in read(OUT/'manifest.json')['files'].items():
+    assert p.digest(OUT/name)==row['sha256'],name
+assert call(MAIN,'git','rev-parse','HEAD')=='bdad33997a554ed30f411218b139a54eb899ae5d'
+basehead=call(BASE,'git','rev-parse','HEAD')
+assert basehead=='08a69516e072d774ee77ee5d37df6a487871dee1'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+extra=copy_sources(OUT,[RAW/name for name in ('result_receipt.json','result_closure.json',
+    'reclaim_gpu_cache.py','gpu_cache_reclamation.json','cache_cleanup_before.json',
+    'cache_cleanup_after.json','gpu_cache_closure.json','publish_gpu_failure.py')])
+save(OUT/'checkpoint_manifest.json',dict(passed=True,files=extra,baseline_head=basehead,
+    protected_unchanged=145,plan_sha256=p.check_plan(),experiment_passed=False))
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D767_SLORA_3B_INPUT_MISMATCH_20261023.md',*sorted(OUT.iterdir())]
+'''
+source=prefix+body+suffix
+source=source.replace('tc: seal ServerlessLLM 3B W0 and bind unchanged W1 (D764-D765)',
+    'tc: preserve S-LoRA 3B input mismatch and native failure (D767)')
+source=source.replace('refs/heads/backup/d764-complete-w0-20261023',
+    'refs/heads/backup/d767-slora-3b-input-failure-20261023')
+source=source.replace("RAW/'result_publication_receipt.json'", "RAW/'gpu_publication_receipt.json'")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

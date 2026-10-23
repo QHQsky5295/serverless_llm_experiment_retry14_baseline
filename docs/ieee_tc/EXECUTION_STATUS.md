@@ -1,6 +1,59 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D767：前100终态与单条输入差异定位（PROGRESS）
+
+本轮100计划/到达/提交/终态，99原生合同完成、1失败req_00028。实际4个
+worker已释放，launch service_returncode=1保留；远端3个自有服务停止，
+无GPU进程、共享k3s未动。物理U1230.8150130887516 GPU-s仅是资格消耗，
+n_correct=null，不排名。已有分析器在失败response无metrics处KeyError，
+日志与失败receipt保留，不声称完整SLO审计通过。
+
+CPU-only使用原公共prepare_frozen_http_request与原生get_tokenizer复现100条：
+仅req_00028不匹配，共同输入89、原生91 tokens，首差异索引34，恰对应GPU
+失败请求。原生Transformers4.34.0/tokenizers0.14.1；未改源码/权重/负载。
+这是输入兼容缺陷，不作S-LoRA机制性能结论。详见
+D767_SLORA_3B_INPUT_MISMATCH_20261023.md及gpu_prefix100小型封存。
+analysis session55007已失败结束并关闭空域，diagnostic10117成功并关闭，
+result封存已完成/关闭；stop session52343结束。
+
+已以D532既有逐字节/引用核查程序回收本轮已关闭的500-ID下载副本，
+明确29 offered IDs与500 prepared IDs不混淆。reclaim session89762已成功结束，
+4000文件逐字节匹配保留原件，释放19497328640B、剩余163823943680B；空域
+精确关闭，原始失败和唯一工件均未删除。新实验尚未启动。随后备份本轮证据，下一步查历史/
+官方输入接口并仅修复共同token序列的接入差异，再补受影响路径资格。
+不删失败、不放宽SLO、不升级原生推理核心。其余3B完整baseline、PrimeLoRA
+必要优化/跨场景、A1–A5、S1–S13与文档图表范围全部保留，目标active。
+
+## 2026-10-23 D767：3B原生BMM前100请求验证已启动（PROGRESS）
+
+19:26 CST在已备份的MAIN bdad3399 / BASE 08a69516上，复用D591启动、
+已发布远端交付、独立回放和资源监测流程，只调整3B模型/前100请求身份。
+CPU资格52项及D767输入/source_view直接复用，没有新baseline策略或调参。
+启动重新核验PLAN、145旧产物、3用户修改、实际150GiB/102GiB及空闲GPU。
+远端仍1000Mb/s/full；原缓存复用，请求中不打包，不修改无关k3s。
+HydraServe既有rootless Podman隔离结果继续保留，不重启已完成7B适配。
+
+tmux=tc-d767-slora-3b-prefix100；实际服务
+primelora-tc-svc-ee22e44b6c5345408f6005044cc2b153.scope，InvocationID
+3923759aa8cc46d4a9c3e8d16e4f5527。RAW仍为slora_qualification/d767_20261023，
+launch3b.launch/watchdog.jsonl为监测，replay.jsonl为独立请求记录。
+starter session33410已结束，starter空域精确关闭；模型运行不依赖该会话。
+服务/回放资源限制分别72/80GiB+swap2GiB、3/4GiB+swap0，实际CPU分离。
+当前是受影响路径资格，未终态、尚无完整性能结论；独立数值正确性未知。
+
+结束后按close_launch→stop_remote→run_analysis(--model-key 3b,D648)
+封存真实结果并关闭自有资源，不重复同键。后续500-ID覆盖、1000兼容、
+S-LoRA 3B完整W0/W1/W2及其余完整计划保留。准备脚本及其SHA/全文已存
+launch_gate.json；既有代码检查点在远端，新增运行证据结束后正常备份。
+
 ## 2026-10-23 D767：S-LoRA 3B复用入口、原生BMM接入与存储维护（PROGRESS）
+
+19:20 CST检查点完成：MAIN bdad33997a554ed30f411218b139a54eb899ae5d，
+已推送并验证faaslora_origin/backup/d767-slora-3b-entry-20261023；BASE
+08a69516e072d774ee77ee5d37df6a487871dee1，已推送并验证origin/main。
+MAIN本次22个明确产物路径、BASE仅2源码/测试及1说明文档，用户修改未stage。
+backup session74285已结束、空域精确关闭；没有活动exec/wait或GPU实验。
+完整备份回执在D767 raw，下一正常检查点携带；V2远端仍未同步，不force。
 
 D766完整结果43条显式路径已提交4d6a7a0b9a4b7ad85aae697e347dbcfb1a21acce，
 核对faaslora_origin/backup/d766-complete-w2-20261023一致；BASE尚为c9b3c9f7。

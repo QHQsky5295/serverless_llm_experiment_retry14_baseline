@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "files": {
+    "result_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/result_receipt.json",
+      "sha256": "382321b82e6b1af6acc97f666a13162961bde92c29d69fec519ee0dcf1a3cbd6"
+    },
+    "result_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/result_closure.json",
+      "sha256": "645b6d57ffc5aaeb573fb2d244d459eb3b4fc091b1893e46aacc286f546546dd"
+    },
+    "reclaim_gpu_cache.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/reclaim_gpu_cache.py",
+      "sha256": "dcdcec0220c368f52f9306d40ec87e551f87ffdadd3e4ef3177f9fbe581b9c10"
+    },
+    "gpu_cache_reclamation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/gpu_cache_reclamation.json",
+      "sha256": "03bf90a04f7cbe66a4c2b498de78b8279f769c5c1395f3b6670268a89b387c98"
+    },
+    "cache_cleanup_before.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/cache_cleanup_before.json",
+      "sha256": "65b550449580d80ad461ed4a99a3d91b078e91a688802d76c07889088c6ed6c4"
+    },
+    "cache_cleanup_after.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/cache_cleanup_after.json",
+      "sha256": "149a4b158487c6b3d06683a485bdc516de6ad7f104feea7a404c87de6702d671"
+    },
+    "gpu_cache_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/gpu_cache_closure.json",
+      "sha256": "02680a52fcc569e4235a83eb06723397057b96453c939d857c29433af1bf819d"
+    },
+    "publish_gpu_failure.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/publish_gpu_failure.py",
+      "sha256": "7f86a06dae43ad0903f93f966ce9245d751cedbf756bdd7f2b60103f8fecbfac"
+    }
+  },
+  "baseline_head": "08a69516e072d774ee77ee5d37df6a487871dee1",
+  "protected_unchanged": 145,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "experiment_passed": false
+}

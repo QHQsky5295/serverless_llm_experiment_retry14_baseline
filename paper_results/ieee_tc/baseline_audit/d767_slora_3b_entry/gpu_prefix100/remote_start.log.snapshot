@@ -1,0 +1,26 @@
+1000
+full
+Running as unit: primelora-artifact-monitor-d767-smoke.service; invocation ID: b5fd403573114fbd96a1a589f417e9f1
+MainPID=644318
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-3b.service
+ActiveState=active
+InvocationID=2372754ad2c242a5b64c0e557d3bfd28
+
+MainPID=644320
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-7b.service
+ActiveState=active
+InvocationID=97d82ec82b3f4a7a974b26ea54061f8e
+
+MainPID=644323
+MemoryHigh=134217728
+MemoryMax=268435456
+MemorySwapMax=0
+Id=primelora-artifact-monitor-d767-smoke.service
+ActiveState=active
+InvocationID=b5fd403573114fbd96a1a589f417e9f1

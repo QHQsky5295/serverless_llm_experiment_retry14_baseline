@@ -1,0 +1,80 @@
+"""CPU-only replay of the existing common and native tokenizer boundaries.
+
+Reuses load_http_replay_plan, prepare_frozen_http_request and S-LoRA's original
+get_tokenizer; no generated trace, model execution, fallback or source change.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import load_http_replay_plan
+from faaslora.datasets.workload_generator import prepare_frozen_http_request
+from transformers import AutoTokenizer
+
+def sha_ids(values):
+    return hashlib.sha256(json.dumps(values,separators=(',',':')).encode()).hexdigest()
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'prompt_diagnostic_identity.json',identity)
+group = Path(identity['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert json.loads((RAW/'local_cleanup.json').read_text())['passed']
+cfg = json.loads((RAW/'http_3b_100.json').read_text())
+native = json.loads((RAW/'native_3b.json').read_text())
+plan = load_http_replay_plan(cfg)
+tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'],local_files_only=True)
+prepared = [prepare_frozen_http_request(e,tokenizer,cfg['model']) for e in plan.entries]
+events = [json.loads(line) for line in (RAW/'launch3b.launch/replay.jsonl').read_text().splitlines()]
+contracts = {e['request_id']:e for e in events if e['event']=='request_contract'}
+for row in prepared:
+    assert row['native_prompt_token_ids_sha256'] == contracts[row['request_id']]['native_prompt_token_ids_sha256']
+    assert row['canonical_prompt_sha256'] == contracts[row['request_id']]['canonical_prompt_sha256']
+child = '''import contextlib,json,sys
+sys.path.insert(0,sys.argv[1])
+from slora.server.tokenizer import get_tokenizer
+import transformers,tokenizers
+with contextlib.redirect_stdout(sys.stderr):
+    t=get_tokenizer(sys.argv[2],"auto",trust_remote_code=True,local_files_only=True)
+rows=json.load(sys.stdin)
+print(json.dumps(dict(transformers=transformers.__version__,tokenizers=tokenizers.__version__,
+    tokenizer_class=type(t).__name__,rows=[dict(request_id=r["request_id"],ids=t.encode(r["prompt"])) for r in rows])))
+'''
+payload = [dict(request_id=row['request_id'],prompt=row['prompt']) for row in prepared]
+with (RAW/'prompt_diagnostic_native.log').open('x') as log:
+    result = subprocess.run([native['native_python'],'-B','-c',child,native['source_view'],cfg['backbone']],
+        input=json.dumps(payload),text=True,stdout=subprocess.PIPE,stderr=log,check=True,
+        env=dict(os.environ,USE_TORCH='0',USE_TF='0',CUDA_VISIBLE_DEVICES='',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1'))
+observed=json.loads(result.stdout)
+got={row['request_id']:row['ids'] for row in observed.pop('rows')}
+rows=[]
+for row in prepared:
+    want,actual=row['input_token_ids'],got[row['request_id']]
+    mismatches=[i for i,(a,b) in enumerate(zip(want,actual)) if a!=b]
+    first=mismatches[0] if mismatches else min(len(want),len(actual)) if len(want)!=len(actual) else None
+    rows.append(dict(request_id=row['request_id'],match=want==actual,expected_count=len(want),
+        native_count=len(actual),expected_sha256=sha_ids(want),native_sha256=sha_ids(actual),
+        first_difference=first,expected_ids_near_difference=want[max(0,first-2):first+5] if first is not None else [],
+        native_ids_near_difference=actual[max(0,first-2):first+5] if first is not None else []))
+failed=[e['request_id'] for e in events if e['event']=='http_request_failed']
+report=dict(completed=True,cpu_only=True,no_serving_source_change=True,plan=plan.identity(),
+    source_native_tokenizer=str(Path(native['source_view'])/'slora/server/tokenizer.py'),
+    native_environment=observed,failed_request_ids=failed,
+    mismatch_request_ids=[r['request_id'] for r in rows if not r['match']],rows=rows,
+    common_contract_reproduced=True,resources=p.cgroup_snapshot(group))
+save(RAW/'prompt_diagnostic.json',report)
+print(json.dumps({k:v for k,v in report.items() if k not in ('rows','resources','plan')}))

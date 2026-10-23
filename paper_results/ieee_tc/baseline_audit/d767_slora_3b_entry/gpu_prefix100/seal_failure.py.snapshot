@@ -1,0 +1,58 @@
+"""Preserve the failed 3B qualification and CPU diagnosis, without ranking it."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+# Reuse the established bounded publication helpers, not its experiment-specific gates.
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d767_slora_3b_entry/gpu_prefix100'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('analysis','prompt_diagnostic'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert read(RAW/'local_cleanup.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+q=read(RAW/'qualification.json')
+for path,sha in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(path))==sha,path
+work=read(RAW/'model3b/model_qualification.json')
+physical=read(RAW/'model3b/physical/physical_resource_summary.json')
+diag=read(RAW/'prompt_diagnostic.json')
+assert not work['passed'] and work['http_completion']['N_response']==99
+assert work['http_completion']['N_failed']==1 and work['http_completion']['N_terminal']==100
+assert physical['measurement_complete'] and physical['open_lease_ids']==[]
+assert diag['failed_request_ids']==diag['mismatch_request_ids']==['req_00028']
+assert not read(RAW/'analysis_receipt.json')['passed']
+result=dict(schema='ieee_tc_failed_native_input_qualification_v1',system='S-LoRA',model='3B',
+    complete_attempt=True,workload_passed=False,formal_run=False,performance_ranking_eligible=False,
+    counts=work['http_completion'],n_native_contract_complete=physical['n_native_contract_complete'],
+    n_correct=None,independent_numerical_correctness_proven=False,
+    physical_gpu_seconds_total=physical['physical_gpu_seconds_total'],
+    diagnosis='Only req_00028 differs between common and native tokenizer encodings: 89 versus 91 tokens; exact failed request reproduced CPU-only.',
+    scope='Input compatibility failure, not evidence of baseline algorithmic inferiority.',
+    analyzer_limitation='Existing static-native receipt audit assumes every response contains metrics and raised KeyError on the retained HTTP 500; no full audit or SLO qualification claimed.',
+    raw_sources={str(path):p.digest(path) for path in (RAW/'model3b/model_qualification.json',
+        RAW/'model3b/physical/physical_resource_summary.json',RAW/'launch3b.launch/replay.jsonl',
+        RAW/'launch3b.launch/service.log',RAW/'prompt_diagnostic.json')})
+save(RAW/'failure_result.json',result)
+OUT.mkdir(exist_ok=False)
+names=('failure_result.json','input_identity.json','launch3b.json','local_cleanup.json',
+    'analysis_receipt.json','analysis_closure.json','analysis1.log','remote_start.log','remote_stop.log',
+    'evidence_copy_receipt.json','prompt_diagnostic.json','prompt_diagnostic_closure.json',
+    'prompt_diagnostic_native.log','diagnose_prompt.py','seal_failure.py','start.py','run3b.sh',
+    'freeze_inputs.py','run_analysis.py','close_launch.py','close_runtime.py',
+    'preserve_evidence.py','start_remote.sh','stop_remote.sh','check_remote_health_stdlib.py',
+    'start_receipt.json','start_closure.json','backup_receipt.json','backup_closure.json')
+mapping=copy_sources(OUT,[RAW/name for name in names])
+save(OUT/'manifest.json',dict(files=mapping,plan_sha256=p.check_plan(),
+    experiment_passed=False,evidence_sealed=True,baseline_head=call(BASE,'git','rev-parse','HEAD'),
+    protected_unchanged=145,raw_result_not_overwritten=True))
+save(RAW/'result_receipt.json',dict(passed=True,evidence_sealed=True,experiment_passed=False,
+    output=str(OUT),manifest_sha256=p.digest(OUT/'manifest.json'),resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(result))

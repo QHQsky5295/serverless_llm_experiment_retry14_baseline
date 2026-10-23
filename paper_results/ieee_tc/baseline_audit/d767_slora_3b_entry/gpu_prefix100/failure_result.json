@@ -1,0 +1,31 @@
+{
+  "schema": "ieee_tc_failed_native_input_qualification_v1",
+  "system": "S-LoRA",
+  "model": "3B",
+  "complete_attempt": true,
+  "workload_passed": false,
+  "formal_run": false,
+  "performance_ranking_eligible": false,
+  "counts": {
+    "N_arrived": 100,
+    "N_failed": 1,
+    "N_plan": 100,
+    "N_response": 99,
+    "N_terminal": 100,
+    "event": "http_replay_complete"
+  },
+  "n_native_contract_complete": 99,
+  "n_correct": null,
+  "independent_numerical_correctness_proven": false,
+  "physical_gpu_seconds_total": 1230.8150130887516,
+  "diagnosis": "Only req_00028 differs between common and native tokenizer encodings: 89 versus 91 tokens; exact failed request reproduced CPU-only.",
+  "scope": "Input compatibility failure, not evidence of baseline algorithmic inferiority.",
+  "analyzer_limitation": "Existing static-native receipt audit assumes every response contains metrics and raised KeyError on the retained HTTP 500; no full audit or SLO qualification claimed.",
+  "raw_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/model3b/model_qualification.json": "e6d7059b155db2e31a2a7cda24a8a2423c8692493a92dd9f3d8f1b22a2dd9416",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/model3b/physical/physical_resource_summary.json": "970b674f49807d68a24abf835599ce5932f5d20d863c86b98ad9f8279417e359",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/launch3b.launch/replay.jsonl": "c5e22e5fcb0f06430797360bca463e398ddfece5ad4a243771b96b753e6a95fe",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/launch3b.launch/service.log": "02d4298d247ce3757999490327556e474ecf8b524af7bf829c9adde2c81c15c0",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/prompt_diagnostic.json": "810092e08e80d75d6e429615f6ec3ef9071119dc05d461cd09df5c0dc1f6a0b2"
+  }
+}

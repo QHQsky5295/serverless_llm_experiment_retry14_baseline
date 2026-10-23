@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "receipt": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d767_20261023",
+    "target": "/tmp/tc-d767-3bs/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 144326615040,
+    "disk_after_bytes": 163823943680,
+    "observed_reclaimed_bytes": 19497328640,
+    "before_receipt_sha256": "65b550449580d80ad461ed4a99a3d91b078e91a688802d76c07889088c6ed6c4",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1792755984.7865129
+  },
+  "failed_attempt_preserved": true,
+  "prepared_pool_count": 500,
+  "offered_unique_adapters": 29,
+  "original_recipe_sha256": "e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb",
+  "protected_unchanged": 145,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7670000000000000000000000000009.scope",
+    "memory.current": 3213434880,
+    "memory.peak": 3221749760,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=195092\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=195026",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 129535273\nuser_usec 104464123\nsystem_usec 25071149\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 2712,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

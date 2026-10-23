@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 1141, in <module>
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 865, in audit
+    qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native,
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py", line 554, in audit_slora_receipts
+    o = request['response']['metrics']['ieee_tc']
+        ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'metrics'
