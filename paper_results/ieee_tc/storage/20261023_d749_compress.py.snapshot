@@ -1,0 +1,44 @@
+"""Reuse the existing lossless compressor for two explicitly closed outcomes."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'identity.json',own)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+protected=read(ROOT/'paper_results/ieee_tc/p2_backend/d749_3b_fresh_host_descriptor_full_w0/prelaunch/qualification.json')['protected']
+for path,sha in protected.items(): assert p.digest(Path(path))==sha
+bindings=[]
+for run,audit in (
+ ('d738_20261023/3b_planning_wire_full_w0','d738_3b_planning_wire_full_w0'),
+ ('d745_20261023/3b_observe_after_turn_full_w0','d745_3b_observe_after_turn_full_w0')):
+    path=ROOT/'paper_results/ieee_tc/p2_backend'/audit/'completion/closed_outcome.json'
+    value=read(path)
+    assert value['passed'] and value['all_allocations_released']
+    source=next(s for s in value['source_refs'] if s['path'].endswith('/main_outcome.json'))
+    assert Path(source['path'])==c.RAW_ROOT/run/'launch.launch/physical_deployment/main_outcome.json'
+    assert source['path'] not in protected
+    assert p.digest(Path(source['path']))==source['sha256']
+    bindings.append(dict(run=run,audit_sha=source['sha256'],audit=str(path),audit_file_sha=p.digest(path)))
+save(RAW/'prechecks.json',dict(bindings=bindings,protected=protected,identity=own))
+c.TARGETS=[dict(run=x['run'],audit_sha=x['audit_sha']) for x in bindings]
+c.OUT=ROOT/'paper_results/ieee_tc/storage/20261023_d749_closed_older_outcomes.json'
+assert c.main()==0
+for path,sha in protected.items(): assert p.digest(Path(path))==sha
+group=Path(own['path'])
+assert all(int(line.split()[1])==0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(RAW/'resources.json',p.cgroup_snapshot(group))
+print(json.dumps(dict(passed=True,protected=len(protected),receipt=str(c.OUT))))

@@ -1,0 +1,71 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d7490000000000000000000000000006.scope",
+    "invocation_id": "fe865c3d310c4b07bf31aea050889f56",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7490000000000000000000000000006.scope",
+    "inode": 30751705
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7490000000000000000000000000006.scope",
+    "memory.current": 307961856,
+    "memory.peak": 338657280,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 87620572\nuser_usec 82280662\nsystem_usec 5339910\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "closure": {
+    "targets": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d749_closed_older_outcomes.json",
+      "sha256": "1d67a495a6fd88282bd40716746792bff7b4351da54a0758de16306f418b5327"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d749_compress.py.snapshot",
+      "sha256": "f98e2abcadf12b3393fa9a5f0d6bc468eb14b3e2580fe470dd770ae73c075fd3"
+    },
+    {
+      "path": "paper_results/ieee_tc/storage/20261023_d749_publish.py.snapshot",
+      "sha256": "990be2aa994f4b91c70c331eb178810de48b9088f8bacc3b8f089537cd990bd6"
+    }
+  ],
+  "bindings": [
+    {
+      "run": "d738_20261023/3b_planning_wire_full_w0",
+      "audit_sha": "71356d01447ed2b4733f35e6dc3a6b2692a1ce07ae004d0a304e2a6f3f5c688c",
+      "audit": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d738_3b_planning_wire_full_w0/completion/closed_outcome.json",
+      "audit_file_sha": "634e5ee0cd93ddca0a0179c1b83462b92be9dae08c6e2b37c8530273beeaf435"
+    },
+    {
+      "run": "d745_20261023/3b_observe_after_turn_full_w0",
+      "audit_sha": "058e746b4fdc4271b0566fe93d10ccb4a900af4c0869d6e9e89671d26766d0a7",
+      "audit": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d745_3b_observe_after_turn_full_w0/completion/closed_outcome.json",
+      "audit_file_sha": "7045961162e3e47c1d18ad10f30949fb66d7ddab2f492cef63e0d14603dd6af9"
+    }
+  ],
+  "protected_files": 145,
+  "compressor": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/compress_closed_main_outcomes.py",
+    "sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6"
+  },
+  "recovery": "gzip -dc archive to original exact path, then verify source_sha256 before any analyzer needing the uncompressed source. No measurements deleted.",
+  "new_performance_runs": 0
+}

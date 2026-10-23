@@ -1,0 +1,71 @@
+"""Back up the two explicit lossless mappings, without raw logs or user dirt."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/storage'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+def call(args):
+    return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json',own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+identity=read(RAW/'identity.json')
+path=Path(identity['path'])
+assert p.scope_still_owned(identity) and not p.owned_pids(path)
+resources=p.cgroup_snapshot(path)
+closed=p.stop_scope_identity(identity,grace_seconds=0)
+assert closed['released'] and not closed['targets']
+pre=read(RAW/'prechecks.json')
+for name,sha in pre['protected'].items(): assert p.digest(Path(name))==sha
+receipt=OUT/'20261023_d749_closed_older_outcomes.json'
+data=read(receipt)
+assert data['source_archive_round_trip_verified'] and len(data['entries'])==2
+for entry in data['entries']:
+    assert entry['audit_sha_matches'] and entry['removed_uncompressed_duplicate']
+    assert entry['source_sha256']==entry['first_roundtrip_sha256']==entry['second_roundtrip_sha256']
+    assert not Path(entry['source']).exists()
+    assert p.digest(Path(entry['archive']))==entry['archive_sha256']
+files=[receipt]
+for name in ('compress.py','publish.py'):
+    source=RAW/name
+    ast.parse(source.read_text())
+    target=OUT/('20261023_d749_'+name+'.snapshot')
+    with target.open('xb') as stream: stream.write(source.read_bytes())
+    files.append(target)
+manifest=OUT/'20261023_d749_maintenance_manifest.json'
+save(manifest,dict(passed=True,identity=identity,resources=resources,closure=closed,
+    files=[dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path)) for path in files],
+    bindings=pre['bindings'],protected_files=len(pre['protected']),
+    compressor=dict(path=str(ROOT/'scripts/ieee_tc/compress_closed_main_outcomes.py'),sha256=p.digest(ROOT/'scripts/ieee_tc/compress_closed_main_outcomes.py')),
+    recovery='gzip -dc archive to original exact path, then verify source_sha256 before any analyzer needing the uncompressed source. No measurements deleted.',
+    new_performance_runs=0))
+files += [manifest, ROOT/'docs/ieee_tc/EXECUTION_STATUS.md']
+paths=[str(path.relative_to(ROOT)) for path in files]
+assert not call(['git','diff','--cached','--name-only'])
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files: assert not secret.search(path.read_text()), str(path)
+call(['git','diff','--check','--',*paths])
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: preserve D749 closure and lossless older-outcome storage recovery'])
+head=call(['git','rev-parse','HEAD'])
+ref='refs/heads/backup/d749-storage-20261023'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'publication_receipt.json',dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))
