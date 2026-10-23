@@ -1,0 +1,102 @@
+{
+  "files": {
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification.json",
+      "sha256": "8d3b703e7b812bb166cfb94b2fecc8a5339ba479ac954797ec45f9ed319e29cb"
+    },
+    "qualification_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification_identity.json",
+      "sha256": "f34b15a527bdfedd91a401530bbcadf119e2ba361b329981348c3165b909847a"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification_closure.json",
+      "sha256": "b2eaa53d4a62144e4a7398bbc1ab9b5efee214fdf6af5c108697a2191106fd58"
+    },
+    "pool_metadata.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/pool_metadata.json",
+      "sha256": "3f60cbf5566f656295e7b51cb8cf1a63dc209edf7109cfa3906db2db183eaff2"
+    },
+    "cpu_tests.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/cpu_tests.log",
+      "sha256": "078db02043e3bd27bb48e60361dfefc3504c5505547e175e1660eefe0b9dee20"
+    },
+    "native_probe.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/native_probe.json",
+      "sha256": "565aa8a54f1ed54e31fd3693fd8efdea2880015bc827349f22d027ee5564ca89"
+    },
+    "native_probe_admission.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/native_probe_admission.json",
+      "sha256": "85ba6c4bb2eba8641f4bdebd90b69ac969e82239d81a66706dba10e0065dc9a4"
+    },
+    "probe_launch.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_launch.json",
+      "sha256": "7dacea4200b45b7bfc87fd33d8968b8adf8c9e139c822bebcc9aba3251a350bb"
+    },
+    "probe_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_identity.json",
+      "sha256": "3b7ddac7a747bf3baaaa87768128c3b6979ab9e4a77a3d20c352d6241fb12681"
+    },
+    "probe_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_closure.json",
+      "sha256": "3ee5dc9fb0a8019b8e361dda2897101215963c6fab9d2327ab3c94200b27c344"
+    },
+    "probe_launcher.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_launcher.log",
+      "sha256": "ca4a7be8cbdc71a946aea1543888f541c2c0f75c9fa01daeeeb37c790b35000a"
+    },
+    "capacity_derivation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/capacity_derivation.json",
+      "sha256": "f682b97d4ef624141f8d4fb1d16c0293e26e00662f4e4af50b13e82e5a5b9f27"
+    },
+    "result_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/result_receipt.json",
+      "sha256": "549640cd1358d0de4e2c1232973a3319b5f768a38ca330d806f062efb936217f"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/baseline_backup_receipt.json",
+      "sha256": "db111fa0e1cc1d178091de86e88cc1a7aa4f8fcf940fa87cb15a0019e9029d96"
+    },
+    "qualify.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualify.py",
+      "sha256": "afb565242564945fc3e603e5f205f71540cb8146cc5bdcdcd674f10f50d259d9"
+    },
+    "probe.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe.py",
+      "sha256": "9f6550d0632e14d733ecfa9e8f82c8e721ec81dfd2c0c9476f600e04a38849c1"
+    },
+    "run_probe.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/run_probe.py",
+      "sha256": "5d788b5567f521c8da4426f860a55d8d09d7eb1f5c1f1afd67c9e3a97947dcd2"
+    },
+    "close.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/close.py",
+      "sha256": "576bb4d2ea9d53ee3b2a56fea102d0f2d77d09e3cb86ec5537e7891341b1b4de"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/backup.py",
+      "sha256": "2fe6e7fd12a16a69a3e6655cc77541e38076d15cf7a3943c3a1ffd07bc7f4e15"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/source_view/measurement_manifest.json",
+      "sha256": "be6c1f20a1f7febd3a505b25584a8cfebc6ecf7a14be730aa125b81c7b98b78e"
+    },
+    "lora_engine.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/source_view/vllm/worker/lora_engine.py",
+      "sha256": "eafe16b6d361d50fb30085838ab6e3994f63a8379ff0056f7b9f8e97c332d312"
+    },
+    "service.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_launch.launch/service.log",
+      "sha256": "ade534fea26b2959c78ef30f3c0b436b3319e239998f8570eca63535e6575f3c"
+    },
+    "watchdog.jsonl": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/probe_launch.launch/watchdog.jsonl",
+      "sha256": "e8e5de21f0c97370784bfa78276a32a0fbb404701bd5a108770a7998d709d3a0"
+    }
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "baseline_head": "64ad9724baa90459229fcb026fe8073ad62683a8",
+  "native_tensor_copy_validated": true,
+  "full_500_pool_inference_validated": false,
+  "old_protected_and_user_dirty_unchanged": 147,
+  "performance_ranking_eligible": false
+}

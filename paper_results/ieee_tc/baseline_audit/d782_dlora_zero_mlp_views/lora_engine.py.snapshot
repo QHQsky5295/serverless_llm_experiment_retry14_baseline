@@ -1,0 +1,420 @@
+"""LoRa engine class for managing LoRa weight."""
+import json
+import re
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+from transformers import PretrainedConfig, OPTConfig, LlamaConfig
+
+import torch
+from vllm.config import LoRaConfig, ModelConfig, ParallelConfig
+from vllm.logger import init_logger
+from vllm.model_executor.parallel_utils.parallel_state import (
+    get_pipeline_model_parallel_rank,
+    get_tensor_model_parallel_rank,
+)
+
+logger = init_logger(__name__)
+
+class LoRaWeight:
+
+    def __init__(
+        self,
+        lora_engine,
+        max_num: int,
+        in_features: int,
+        max_rank: int,
+        out_features: int,
+        dtype: torch.dtype,
+        device: str):
+
+        self.lora_engine = lora_engine
+        if device == "cpu":
+            self.lora_As = torch.zeros((max_num, in_features, max_rank),
+                                dtype=dtype, device=device, pin_memory=True)
+            self.lora_Bs = torch.zeros((max_num, max_rank, out_features),
+                                dtype=dtype, device=device, pin_memory=True)
+        else:
+            self.lora_As = torch.zeros((max_num, in_features, max_rank),
+                                dtype=dtype, device=device)
+            self.lora_Bs = torch.zeros((max_num, max_rank, out_features),
+                                dtype=dtype, device=device)
+        self.active_lora_As = self.lora_As
+        self.active_lora_Bs = self.lora_Bs
+        self.active_idx = []
+        self.merged_adapter = None
+
+    def adjust_lora_adapter(self, active_idx: List[int]):
+        self.active_idx = active_idx.copy()
+        if len(active_idx) == 1:
+            return
+        if len(active_idx) == self.lora_engine.lora_config.gpu_capacity:
+            self.active_lora_As = self.lora_As
+            self.active_lora_Bs = self.lora_Bs
+        else:
+            self.active_lora_As = self.lora_As[active_idx]
+            self.active_lora_Bs = self.lora_Bs[active_idx]
+
+    def merge(self, weight: torch.Tensor, idx: int):
+        if self.merged_adapter != None:
+            self.unmerge(weight)
+        self.merged_adapter = idx
+        weight.addmm_(self.active_lora_Bs[idx].T, self.active_lora_As[idx].T)
+
+    def unmerge(self, weight: torch.Tensor):
+        if self.merged_adapter == None:
+            return
+        idx = self.merged_adapter
+        weight.addmm_(self.active_lora_Bs[idx].T, self.active_lora_As[idx].T, alpha=-1.0)
+        self.merged_adapter = None
+
+    def copy_from_cpu(self, idx: int, cpu_A: torch.Tensor, cpu_B: torch.Tensor):
+        self.lora_As[idx].copy_(cpu_A, non_blocking=True)
+        self.lora_Bs[idx].copy_(cpu_B, non_blocking=True)
+
+
+
+class TCZeroLoRaWeight(LoRaWeight):
+    """CPU-only immutable zeros for modules absent from every real adapter.
+
+    Each indexed slice is still contiguous pinned storage. GPU copies, shapes,
+    GPU allocation and get_size remain native. These CPU views are never written.
+    """
+    def __init__(self, engine, max_num, in_features, max_rank, out_features, dtype, device):
+        if device != 'cpu':
+            raise ValueError('shared zero layout is only for immutable CPU modules')
+        super().__init__(engine, 1, in_features, max_rank, out_features, dtype, device)
+        self.lora_As = self.lora_As.expand(max_num, -1, -1)
+        self.lora_Bs = self.lora_Bs.expand(max_num, -1, -1)
+        self.active_lora_As, self.active_lora_Bs = self.lora_As, self.lora_Bs
+
+    def copy_from_cpu(self, *args, **kwargs):
+        raise RuntimeError('immutable CPU zero views are not copy destinations')
+
+
+class LoRaEngine:
+    lora_type = Tuple[LoRaWeight, LoRaWeight, LoRaWeight, LoRaWeight]
+    lora_cnt = 4
+
+    def __init__(
+        self,
+        config,
+        model_config: ModelConfig,
+        lora_config: LoRaConfig,
+        parallel_config: ParallelConfig,
+        device: torch.device
+    ):
+
+        self.model_config = model_config
+        self.lora_config = lora_config
+        self.parallel_config = parallel_config
+        self.device = device
+        self.hidden_size = config.hidden_size
+        self.num_hidden_layers = config.num_hidden_layers // self.parallel_config.pipeline_parallel_size
+
+        self.num_gpu_lora = 0
+        self.gpu_lora_models = []
+        self.active = []
+        self.merged_adapter = None
+
+        self.gpu_lora_weights: List[self.lora_type] = []
+        self.cpu_lora_weights: List[self.lora_type] = []
+
+        # Initialize the stream for lora swap operations.
+        self.lora_stream = torch.cuda.Stream()
+        assert self.lora_stream != torch.cuda.current_stream()
+        # Initialize the events for stream synchronization.
+        self.events = [torch.cuda.Event() for _ in range(self.num_hidden_layers)]
+
+    def copy_into_gpu(self, gpu_idx: int, cpu_idx: int):
+        for i in range(self.num_hidden_layers):
+            for j in range(self.lora_cnt):
+                self.gpu_lora_weights[i][j].copy_from_cpu(gpu_idx,
+                    self.cpu_lora_weights[i][j].lora_As[cpu_idx], self.cpu_lora_weights[i][j].lora_Bs[cpu_idx])
+            event = self.events[i]
+            event.record(stream=self.lora_stream)
+
+    def set_gpu_lora(self, gpu_lora_list: List[int]) -> bool:
+        assert len(gpu_lora_list) <= self.lora_config.gpu_capacity
+        if gpu_lora_list == self.gpu_lora_models:
+            return False
+        self.num_gpu_lora = len(gpu_lora_list)
+        swapped = False
+
+        with torch.cuda.stream(self.lora_stream):
+            for idx, model_id in enumerate(gpu_lora_list):
+                if idx < len(self.gpu_lora_models) and self.gpu_lora_models[idx] == model_id:
+                    continue
+                swapped = True
+                self.copy_into_gpu(idx, model_id)
+
+        self.gpu_lora_models = gpu_lora_list.copy()
+        return swapped
+            
+    def adjust_lora_adapter(self, gpu_model_list: List[int], active_model_list: List[int]) -> bool:
+        swapped = self.set_gpu_lora(gpu_model_list)
+        active_idx = []
+        for model_id in active_model_list:
+            idx = self.gpu_lora_models.index(model_id)
+            active_idx.append(idx)
+
+        for i in range(self.num_hidden_layers):
+            for j in range(self.lora_cnt):
+                self.gpu_lora_weights[i][j].adjust_lora_adapter(active_idx)
+
+        return swapped
+    
+    def get_size(self):
+        dtype_size = _get_dtype_size(self.model_config.dtype)
+        return dtype_size * sum([self.lora_A_shapes[i][0] * self.lora_A_shapes[i][1] + self.lora_B_shapes[i][0] * self.lora_B_shapes[i][1] for i in range(self.lora_cnt)]) * self.num_hidden_layers
+
+    def load_peft_adapters(self) -> None:
+        raise NotImplementedError(
+            f"PEFT adapter loading is not implemented for {type(self).__name__}")
+
+
+class OPTLoRaEngine(LoRaEngine):
+
+    lora_type = Tuple[LoRaWeight, LoRaWeight, LoRaWeight, LoRaWeight] # qkv_proj, out_proj, fc1, fc2
+    lora_cnt = 4
+
+    def __init__(
+        self,
+        config: OPTConfig,
+        model_config: ModelConfig,
+        lora_config: LoRaConfig,
+        parallel_config: ParallelConfig,
+        device: torch.device
+    ):
+        LoRaEngine.__init__(self, config, model_config, lora_config, parallel_config, device)
+
+        self.ffn_dim = config.ffn_dim
+
+        self.lora_A_shapes = [(self.hidden_size, 3 * self.lora_config.max_r), (self.hidden_size // self.parallel_config.tensor_parallel_size, self.lora_config.max_r), (self.hidden_size, self.lora_config.max_r), (self.ffn_dim // self.parallel_config.tensor_parallel_size, self.lora_config.max_r)]
+        self.lora_B_shapes = [(3 * self.lora_config.max_r, 3 * self.hidden_size // self.parallel_config.tensor_parallel_size), (self.lora_config.max_r, self.hidden_size), (self.lora_config.max_r, self.ffn_dim // self.parallel_config.tensor_parallel_size), (self.lora_config.max_r, self.hidden_size)]
+
+
+        for i in range(self.num_hidden_layers):
+            self.cpu_lora_weights.append((LoRaWeight(self, self.lora_config.num_models, self.hidden_size, 3 * self.lora_config.max_r,
+                                        3 * self.hidden_size // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device='cpu'),
+                                        LoRaWeight(self, self.lora_config.num_models, self.hidden_size // self.parallel_config.tensor_parallel_size, 
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device='cpu'),
+                                        LoRaWeight(self, self.lora_config.num_models, self.hidden_size, self.lora_config.max_r,
+                                        self.ffn_dim // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device='cpu'),
+                                        LoRaWeight(self, self.lora_config.num_models, self.ffn_dim // self.parallel_config.tensor_parallel_size,
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device='cpu')))
+
+    def allocate_gpu_lora_weight(self, lora_types: List[int]):
+
+        self.lora_config.gpu_capacity = len(lora_types)
+
+        for i in range(self.num_hidden_layers):
+            self.gpu_lora_weights.append((LoRaWeight(self, self.lora_config.gpu_capacity, self.hidden_size, 3 * self.lora_config.max_r,
+                                        3 * self.hidden_size // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.hidden_size // self.parallel_config.tensor_parallel_size, 
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.hidden_size, self.lora_config.max_r,
+                                        self.ffn_dim // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.ffn_dim // self.parallel_config.tensor_parallel_size,
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device=self.device)))
+            
+        self.adjust_lora_adapter(lora_types, lora_types)
+
+class LlamaLoRaEngine(LoRaEngine):
+    lora_type = Tuple[LoRaWeight, LoRaWeight, LoRaWeight, LoRaWeight] # qkv_proj, o_proj, gate_up_proj, down_proj
+    lora_cnt = 4
+
+    def __init__(
+        self,
+        config: LlamaConfig,
+        model_config: ModelConfig,
+        lora_config: LoRaConfig,
+        parallel_config: ParallelConfig,
+        device: torch.device
+    ):
+        
+        LoRaEngine.__init__(self, config, model_config, lora_config, parallel_config, device)
+
+        self.intermediate_size = config.intermediate_size
+        self.total_num_heads=config.num_attention_heads
+        self.total_num_kv_heads=config.num_key_value_heads
+        self.head_dim = self.hidden_size // self.total_num_heads
+        self.qkv_dim = (self.total_num_heads + 2 * self.total_num_kv_heads) * self.head_dim
+
+        self.lora_A_shapes = [(self.hidden_size, 3 * self.lora_config.max_r), (self.total_num_heads * self.head_dim // self.parallel_config.tensor_parallel_size, self.lora_config.max_r), (self.hidden_size, self.lora_config.max_r), (self.intermediate_size // self.parallel_config.tensor_parallel_size, self.lora_config.max_r)]
+        self.lora_B_shapes = [(3 * self.lora_config.max_r, self.qkv_dim // self.parallel_config.tensor_parallel_size), (self.lora_config.max_r, self.hidden_size), (self.lora_config.max_r, 2 * self.intermediate_size // self.parallel_config.tensor_parallel_size), (self.lora_config.max_r, self.hidden_size)]
+
+        from vllm.tc_measurement import dlora_attention_only_pool_metadata
+        self.tc_cpu_mlp_layout = dlora_attention_only_pool_metadata(
+            self.lora_config.adapter_paths, config.num_hidden_layers)
+
+        for i in range(self.num_hidden_layers):
+            self.cpu_lora_weights.append((LoRaWeight(self, self.lora_config.num_models, self.hidden_size, 3 * self.lora_config.max_r,
+                                        self.qkv_dim // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device='cpu'),
+                                        LoRaWeight(self, self.lora_config.num_models, self.total_num_heads * self.head_dim // self.parallel_config.tensor_parallel_size, 
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device='cpu'),
+                                        TCZeroLoRaWeight(self, self.lora_config.num_models, self.hidden_size, self.lora_config.max_r,
+                                        2 * self.intermediate_size // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device='cpu'),
+                                        TCZeroLoRaWeight(self, self.lora_config.num_models, self.intermediate_size // self.parallel_config.tensor_parallel_size,
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device='cpu')))
+            
+    def allocate_gpu_lora_weight(self, lora_types: List[int]):
+
+        self.lora_config.gpu_capacity = len(lora_types)
+
+        for i in range(self.num_hidden_layers):
+            self.gpu_lora_weights.append((LoRaWeight(self, self.lora_config.gpu_capacity, self.hidden_size, 3 * self.lora_config.max_r,
+                                        self.qkv_dim // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.total_num_heads * self.head_dim // self.parallel_config.tensor_parallel_size, 
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.hidden_size, self.lora_config.max_r,
+                                        2 * self.intermediate_size // self.parallel_config.tensor_parallel_size, self.model_config.dtype, device=self.device),
+                                        LoRaWeight(self, self.lora_config.gpu_capacity, self.intermediate_size // self.parallel_config.tensor_parallel_size,
+                                        self.lora_config.max_r, self.hidden_size, self.model_config.dtype, device=self.device)))
+            
+        self.adjust_lora_adapter(lora_types, lora_types)
+
+    def load_peft_adapters(self) -> None:
+        adapter_paths = self.lora_config.adapter_paths
+        if not adapter_paths:
+            return
+        if len(adapter_paths) > self.lora_config.num_models:
+            raise ValueError(
+                f"got {len(adapter_paths)} adapter paths for "
+                f"{self.lora_config.num_models} configured LoRA models")
+
+        try:
+            from safetensors.torch import load_file
+        except ImportError as exc:
+            raise ImportError(
+                "safetensors is required for loading real PEFT adapters") from exc
+
+        pp_rank = get_pipeline_model_parallel_rank()
+        tp_rank = get_tensor_model_parallel_rank()
+        tp_size = self.parallel_config.tensor_parallel_size
+        layer_offset = pp_rank * self.num_hidden_layers
+        q_cols = self.total_num_heads * self.head_dim // tp_size
+        kv_cols = self.total_num_kv_heads * self.head_dim // tp_size
+        o_a_cols = self.total_num_heads * self.head_dim // tp_size
+        q_full_cols = self.total_num_heads * self.head_dim
+        kv_full_cols = self.total_num_kv_heads * self.head_dim
+        o_full_cols = self.total_num_heads * self.head_dim
+
+        loaded = 0
+        for adapter_idx, adapter_path in enumerate(adapter_paths):
+            path = Path(adapter_path)
+            config_path = path / "adapter_config.json"
+            weight_path = path / "adapter_model.safetensors"
+            if not config_path.exists() or not weight_path.exists():
+                raise FileNotFoundError(
+                    f"missing adapter_config.json or adapter_model.safetensors in {path}")
+
+            adapter_config = json.loads(config_path.read_text(encoding="utf-8"))
+            rank = int(adapter_config.get("r", self.lora_config.max_r))
+            alpha = float(adapter_config.get("lora_alpha", rank))
+            if rank > self.lora_config.max_r:
+                raise ValueError(
+                    f"adapter {path.name} rank {rank} exceeds max_r {self.lora_config.max_r}")
+            scale = alpha / rank if rank > 0 else 0.0
+            tensors = load_file(str(weight_path), device="cpu")
+
+            for local_layer in range(self.num_hidden_layers):
+                layer = layer_offset + local_layer
+                qkv_lora, o_lora, _, _ = self.cpu_lora_weights[local_layer]
+
+                qkv_lora.lora_As[adapter_idx].zero_()
+                qkv_lora.lora_Bs[adapter_idx].zero_()
+                o_lora.lora_As[adapter_idx].zero_()
+                o_lora.lora_Bs[adapter_idx].zero_()
+
+                q_a = _get_lora_tensor(tensors, layer, "q_proj", "A")
+                k_a = _get_lora_tensor(tensors, layer, "k_proj", "A")
+                v_a = _get_lora_tensor(tensors, layer, "v_proj", "A")
+                q_b = _get_lora_tensor(tensors, layer, "q_proj", "B")
+                k_b = _get_lora_tensor(tensors, layer, "k_proj", "B")
+                v_b = _get_lora_tensor(tensors, layer, "v_proj", "B")
+                o_a = _get_lora_tensor(tensors, layer, "o_proj", "A")
+                o_b = _get_lora_tensor(tensors, layer, "o_proj", "B")
+
+                qkv_a = qkv_lora.lora_As[adapter_idx]
+                qkv_b = qkv_lora.lora_Bs[adapter_idx]
+                _copy_checked(qkv_a[:, 0:rank], q_a.t(), "q_proj.lora_A")
+                _copy_checked(qkv_a[:, self.lora_config.max_r:self.lora_config.max_r + rank],
+                              k_a.t(), "k_proj.lora_A")
+                _copy_checked(qkv_a[:, 2 * self.lora_config.max_r:2 * self.lora_config.max_r + rank],
+                              v_a.t(), "v_proj.lora_A")
+
+                q_start = q_cols * tp_rank
+                k_start = kv_cols * tp_rank
+                v_start = kv_cols * tp_rank
+                _copy_checked(qkv_b[0:rank, 0:q_cols],
+                              q_b[q_start:q_start + q_cols].t() * scale,
+                              "q_proj.lora_B")
+                _copy_checked(qkv_b[self.lora_config.max_r:self.lora_config.max_r + rank,
+                                    q_cols:q_cols + kv_cols],
+                              k_b[k_start:k_start + kv_cols].t() * scale,
+                              "k_proj.lora_B")
+                _copy_checked(qkv_b[2 * self.lora_config.max_r:2 * self.lora_config.max_r + rank,
+                                    q_cols + kv_cols:q_cols + 2 * kv_cols],
+                              v_b[v_start:v_start + kv_cols].t() * scale,
+                              "v_proj.lora_B")
+
+                o_start = o_a_cols * tp_rank
+                _copy_checked(o_lora.lora_As[adapter_idx, :, 0:rank],
+                              o_a[:, o_start:o_start + o_a_cols].t(),
+                              "o_proj.lora_A")
+                _copy_checked(o_lora.lora_Bs[adapter_idx, 0:rank, :],
+                              o_b.t() * scale,
+                              "o_proj.lora_B")
+
+                _assert_expected_shape(q_b, (q_full_cols, rank), "q_proj.lora_B")
+                _assert_expected_shape(k_b, (kv_full_cols, rank), "k_proj.lora_B")
+                _assert_expected_shape(v_b, (kv_full_cols, rank), "v_proj.lora_B")
+                _assert_expected_shape(o_a, (rank, o_full_cols), "o_proj.lora_A")
+            loaded += 1
+
+        logger.info("Loaded %d real PEFT LoRA adapters into dLoRA CPU pool", loaded)
+
+
+
+_MODEL_LORA_MAPPING = {
+    "opt": OPTLoRaEngine,
+    "llama": LlamaLoRaEngine,
+}
+
+
+def _get_dtype_size(dtype: torch.dtype) -> int:
+    return torch.tensor([], dtype=dtype).element_size()
+
+
+_LORA_KEY_RE = re.compile(
+    r"layers\.(?P<layer>\d+)\..*?(?P<module>q_proj|k_proj|v_proj|o_proj)"
+    r"\.lora_(?P<kind>A|B)\.weight$")
+
+
+def _get_lora_tensor(tensors: Dict[str, torch.Tensor],
+                     layer: int,
+                     module: str,
+                     kind: str) -> torch.Tensor:
+    for name, tensor in tensors.items():
+        match = _LORA_KEY_RE.search(name)
+        if match is None:
+            continue
+        if int(match.group("layer")) == layer and match.group("module") == module and match.group("kind") == kind:
+            return tensor.contiguous()
+    raise KeyError(f"missing layer {layer} {module}.lora_{kind}.weight")
+
+
+def _copy_checked(dst: torch.Tensor, src: torch.Tensor, label: str) -> None:
+    if tuple(dst.shape) != tuple(src.shape):
+        raise ValueError(
+            f"shape mismatch for {label}: dst={tuple(dst.shape)} src={tuple(src.shape)}")
+    dst.copy_(src.to(dtype=dst.dtype), non_blocking=True)
+
+
+def _assert_expected_shape(tensor: torch.Tensor,
+                           shape: Tuple[int, int],
+                           label: str) -> None:
+    if tuple(tensor.shape) != tuple(shape):
+        raise ValueError(
+            f"unexpected shape for {label}: got={tuple(tensor.shape)} expected={shape}")

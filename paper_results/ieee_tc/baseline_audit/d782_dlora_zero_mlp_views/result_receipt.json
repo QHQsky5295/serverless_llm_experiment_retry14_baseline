@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "qualification_sha256": "8d3b703e7b812bb166cfb94b2fecc8a5339ba479ac954797ec45f9ed319e29cb",
+  "probe_sha256": "565aa8a54f1ed54e31fd3693fd8efdea2880015bc827349f22d027ee5564ca89",
+  "probe_launch_sha256": "7dacea4200b45b7bfc87fd33d8968b8adf8c9e139c822bebcc9aba3251a350bb",
+  "native_tensor_copy_validated": true,
+  "full_500_pool_inference_validated": false,
+  "independent_numerical_correctness_proven": false,
+  "performance_ranking_eligible": false,
+  "probe_service_peak_bytes": 907112448,
+  "old_protected_and_user_dirty_unchanged": 147,
+  "additional_refs": {
+    "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py": "fdc6368db8d906636acc735415ce685541f62d3daa8f55b6d70264ba7fb2fd14"
+  },
+  "sources": [
+    "https://raw.githubusercontent.com/pytorch/pytorch/v2.1.2/aten/src/ATen/cuda/CachingHostAllocator.cpp",
+    "https://docs.pytorch.org/docs/2.1/generated/torch.Tensor.expand.html",
+    "https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/worker/lora_engine.py"
+  ]
+}

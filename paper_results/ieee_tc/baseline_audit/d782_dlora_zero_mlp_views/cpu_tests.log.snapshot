@@ -1,0 +1,10 @@
+test_attention_only_pool_metadata_without_weight_import (tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests.test_attention_only_pool_metadata_without_weight_import) ... ok
+test_declared_or_serialized_mlp_is_not_silently_zeroed (tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests.test_declared_or_serialized_mlp_is_not_silently_zeroed) ... ok
+test_incomplete_pool_is_rejected (tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests.test_incomplete_pool_is_rejected) ... ok
+test_new_view_discloses_layout_without_modifying_legacy (tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests.test_new_view_discloses_layout_without_modifying_legacy) ... ok
+test_representation_only_changes_llama_cpu_mlp_allocation (tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests.test_representation_only_changes_llama_cpu_mlp_allocation) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.248s
+
+OK

@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "head": "64ad9724baa90459229fcb026fe8073ad62683a8",
+  "remote_ref": "refs/heads/main",
+  "paths": [
+    "scripts/prepare_ieee_tc_serverless_stack.py",
+    "scripts/ieee_tc_serverless_measurement.py",
+    "scripts/probe_dlora_real_adapter_loader.py",
+    "tests/test_ieee_tc_dlora_measurement.py",
+    "docs/ieee_tc/D782_DLORA_ZERO_MLP_VIEWS_20261024.md"
+  ]
+}

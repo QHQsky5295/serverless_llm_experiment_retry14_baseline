@@ -1,5 +1,41 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D782：CPU零值共享适配通过实际张量检查（PROGRESS）
+
+完整重读PLAN/状态/最新规则。D781原计划核查CPU KV容量，但新查原生调度
+发现READY/swapped请求可跨批次保留，batch4不是总缓存上界，故未缩减KV。
+全500工件配置/header均仅含28层q/k/v/o。新增opt-in CPU MLP只读零值共享，
+保持500逻辑池、CPU KV8GiB名义容量、GPU分配/拷贝/调度/迁移及get_size。
+不改vendor/旧视图；不支持的实际模块明确拒绝，不伪零填充。
+
+5项针对性测试通过；原生环境两个既有adapter、每个28层：448项CPU检查、
+896项原序/反序GPU copy检查均零差异，112个pinned零视图切片连续/共享。
+微测服务峰值907112448bytes，high/max/OOM/swap0，实际returncode0并释放。
+CPU资格和probe辅助域亦空并关闭；远端未启动，共享k3s未动。
+DP2静态LoRA+KV分配91→63.0546875GiB，仅容量推算，不是完整服务峰值或
+性能提升。完整500池初始化/推理及独立模型数值正确性仍未证明。
+
+RAW：dlora_qualification/d782_20261024。下一D783使用新source_view/manifest，
+D779环境、D780已合格Ray和cleanup配置、原100前缀和500池，实际启动与共同
+HTTP资格后完成限定W1/W2。D782 refs替代被改动prepare/helper/test的旧refs；
+wrapper/安全清理仍D780，不能原样断言旧D778所有refs未变。尚未启动D783。
+之后Loquetier/HydraServe3B、PrimeLoRA完整对照优化、同版本Full、A1–A5、
+S1–S13、CE/Pareto/审稿文档/最终图表均保留，整体目标active。准备检查点备份。
+
+## 2026-10-24 02:59 CST：D781诊断检查点已备份核验（PROGRESS）
+
+MAIN `ab1ed2d50aacb4edf460f4b96ef18253dd323bf4` 已核验
+`faaslora_origin/backup/d781-dlora-pinned-capacity-20261024`；BASE未改代码，
+`e1f7525e8ec67aea60b5b703274faa2b9bb6f0c3` 仍核验origin/main。未force，
+V2仍未同步。37项明确文档/小型证据已备份；本推送后状态追加待下一检查点。
+backup域也已结束并关闭；无活动exec/wait、GPU计算或本次远端服务。
+
+下一D782需要的身份：native view仍D778；环境仍D779；被测wrapper/清理refs
+仍D780/qualification2.json；最新HEAD及备份为D781。D781的launch3b.json是
+真实返回码1并已释放，不沿用D780“缺失launch回执”的特殊恢复分支。所有
+失败和capacity_derivation保留；必要CPU KV容量适配尚未实施，不重复旧配置。
+完整后续范围见下文，整体目标active，不能把诊断/备份当性能实验完成。
+
 ## 2026-10-24 D781：pinned 分配容量不匹配已定位，实际诊断安全结束（PROGRESS）
 
 完整重读 PLAN/状态及最新规则，复用 D778 view、D779 环境、D780 按需 Ray。

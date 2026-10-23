@@ -1,0 +1,9 @@
+{
+  "reason": "original_native_source_snapshot_trailing_whitespace",
+  "original_snapshot_sha256": "eafe16b6d361d50fb30085838ab6e3994f63a8379ff0056f7b9f8e97c332d312",
+  "snapshot_bytes_preserved": true,
+  "new_authored_files_normal_diff_check": true,
+  "original_backup_script_sha256": "2fe6e7fd12a16a69a3e6655cc77541e38076d15cf7a3943c3a1ffd07bc7f4e15",
+  "baseline_head": "64ad9724baa90459229fcb026fe8073ad62683a8",
+  "no_test_or_performance_retry": true
+}

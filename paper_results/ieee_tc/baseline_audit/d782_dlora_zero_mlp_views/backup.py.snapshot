@@ -1,0 +1,111 @@
+"""Reuse explicit-path checkpoint publication; preserve old evidence and user dirt."""
+import hashlib
+import math
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d782_dlora_zero_mlp_views'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('qualification','probe'):
+    closed=read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+q=read(RAW/'qualification.json')
+for path,sha in (q['refs']|q['preserved']).items(): assert p.digest(Path(path))==sha,path
+launch=read(RAW/'probe_launch.json')
+probe=read(RAW/'native_probe.json')
+assert launch['pass'] and launch['service_returncode']==0
+assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert not Path(launch['service_identity']['path']).exists()
+assert probe['passed'] and len(probe['loaded_adapter_ids'])==2
+assert len(probe['checks'])==448 and len(probe['gpu_copy_checks'])==896
+assert all(v==0 for v in (probe['checks']|probe['gpu_copy_checks']).values())
+watch=[json.loads(line) for line in (RAW/'probe_launch.launch/watchdog.jsonl').read_text().splitlines()]
+samples=[row['service'] for row in watch if row['event']=='resource_sample']
+assert max(row['memory.peak'] for row in samples)==907112448
+assert all(all(row['memory.events'][k]==0 for k in ('high','max','oom','oom_kill'))
+           and row['memory.swap.current']==0 for row in samples)
+old=read(RAW.parent/'d781_20261024/capacity_derivation.json')
+shapes=[]
+for i,row in enumerate(old['lora_shapes']):
+    shape=row['shape'].copy()
+    if i>=4: shape[0]=1
+    payload=math.prod(shape)*old['dtype_bytes']
+    shapes.append(dict(logical_shape=row['shape'],storage_shape=shape,payload_bytes=payload,
+                       pinned_allocation_bytes=1<<(payload-1).bit_length()))
+per_worker=sum(row['pinned_allocation_bytes'] for row in shapes)*old['layers']
+total=(per_worker+old['cpu_kv_pinned_bytes_per_worker'])*old['native_dp']
+assert per_worker/p.GIB==17.52734375 and total/p.GIB==63.0546875
+save(RAW/'capacity_derivation.json',dict(kind='static_allocator_capacity_derivation_not_measured_peak',
+    previous_sha256=p.digest(RAW.parent/'d781_20261024/capacity_derivation.json'),
+    lora_shapes=shapes,lora_pinned_bytes_per_worker=per_worker,
+    cpu_kv_pinned_bytes_per_worker=old['cpu_kv_pinned_bytes_per_worker'],
+    native_dp=2,total_pinned_bytes=total,excludes_runtime_and_other_overhead=True,
+    cpu_kv_capacity_changed=False,gpu_representation_changed=False))
+save(RAW/'result_receipt.json',dict(passed=True,qualification_sha256=p.digest(RAW/'qualification.json'),
+    probe_sha256=p.digest(RAW/'native_probe.json'),probe_launch_sha256=p.digest(RAW/'probe_launch.json'),
+    native_tensor_copy_validated=True,full_500_pool_inference_validated=False,
+    independent_numerical_correctness_proven=False,performance_ranking_eligible=False,
+    probe_service_peak_bytes=907112448,old_protected_and_user_dirty_unchanged=len(q['preserved']),
+    additional_refs={str(BASE/'scripts/probe_dlora_real_adapter_loader.py'):
+                     p.digest(BASE/'scripts/probe_dlora_real_adapter_loader.py')},
+    sources=[
+      'https://raw.githubusercontent.com/pytorch/pytorch/v2.1.2/aten/src/ATen/cuda/CachingHostAllocator.cpp',
+      'https://docs.pytorch.org/docs/2.1/generated/torch.Tensor.expand.html',
+      'https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/worker/lora_engine.py']))
+assert call(BASE,'git','rev-parse','HEAD')=='e1f7525e8ec67aea60b5b703274faa2b9bb6f0c3'
+assert call(MAIN,'git','rev-parse','HEAD')=='ab1ed2d50aacb4edf460f4b96ef18253dd323bf4'
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def check_files(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size<2*1024*1024,path
+        assert not secret.search(path.read_text()),path
+base_paths=['scripts/prepare_ieee_tc_serverless_stack.py','scripts/ieee_tc_serverless_measurement.py',
+    'scripts/probe_dlora_real_adapter_loader.py','tests/test_ieee_tc_dlora_measurement.py',
+    'docs/ieee_tc/D782_DLORA_ZERO_MLP_VIEWS_20261024.md']
+check_files([BASE/path for path in base_paths])
+assert not call(BASE,'git','diff','--cached','--name-only')
+call(BASE,'git','add','--',*base_paths)
+assert set(call(BASE,'git','diff','--cached','--name-only').splitlines())==set(base_paths)
+call(BASE,'git','diff','--cached','--check')
+call(BASE,'git','commit','-m','tc: share validated absent-module CPU zero storage in dLoRA (D782)')
+basehead=call(BASE,'git','rev-parse','HEAD')
+call(BASE,'git','-c','http.version=HTTP/1.1','push','origin','HEAD:refs/heads/main')
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+save(RAW/'baseline_backup_receipt.json',dict(passed=True,head=basehead,remote_ref='refs/heads/main',paths=base_paths))
+OUT.mkdir(parents=True,exist_ok=False)
+names=('qualification.json','qualification_identity.json','qualification_closure.json','pool_metadata.json',
+    'cpu_tests.log','native_probe.json','native_probe_admission.json','probe_launch.json',
+    'probe_identity.json','probe_closure.json','probe_launcher.log','capacity_derivation.json',
+    'result_receipt.json','baseline_backup_receipt.json','qualify.py','probe.py','run_probe.py','close.py','backup.py')
+sources=[RAW/name for name in names]+[RAW/'source_view/measurement_manifest.json',
+    RAW/'source_view/vllm/worker/lora_engine.py',RAW/'probe_launch.launch/service.log',
+    RAW/'probe_launch.launch/watchdog.jsonl']
+check_files(sources)
+mapping=copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(files=mapping,plan_sha256=p.check_plan(),baseline_head=basehead,
+    native_tensor_copy_validated=True,full_500_pool_inference_validated=False,
+    old_protected_and_user_dirty_unchanged=len(q['preserved']),performance_ranking_eligible=False))
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D782_DLORA_ZERO_MLP_VIEWS_20261024.md',*sorted(OUT.iterdir())]
+check_files(paths)
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert not call(MAIN,'git','diff','--cached','--name-only')
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: preserve dLoRA zero-storage qualification without shrinking KV (D782)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d782-dlora-zero-mlp-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=relative,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,paths=len(relative))))

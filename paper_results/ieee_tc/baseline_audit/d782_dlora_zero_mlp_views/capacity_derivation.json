@@ -1,0 +1,125 @@
+{
+  "kind": "static_allocator_capacity_derivation_not_measured_peak",
+  "previous_sha256": "502a8a7275d06b144f2e135a198823eb5159267c7aef6a7a5ca2dce5bc42c3bc",
+  "lora_shapes": [
+    {
+      "logical_shape": [
+        500,
+        3072,
+        48
+      ],
+      "storage_shape": [
+        500,
+        3072,
+        48
+      ],
+      "payload_bytes": 147456000,
+      "pinned_allocation_bytes": 268435456
+    },
+    {
+      "logical_shape": [
+        500,
+        48,
+        5120
+      ],
+      "storage_shape": [
+        500,
+        48,
+        5120
+      ],
+      "payload_bytes": 245760000,
+      "pinned_allocation_bytes": 268435456
+    },
+    {
+      "logical_shape": [
+        500,
+        3072,
+        16
+      ],
+      "storage_shape": [
+        500,
+        3072,
+        16
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    },
+    {
+      "logical_shape": [
+        500,
+        16,
+        3072
+      ],
+      "storage_shape": [
+        500,
+        16,
+        3072
+      ],
+      "payload_bytes": 49152000,
+      "pinned_allocation_bytes": 67108864
+    },
+    {
+      "logical_shape": [
+        500,
+        3072,
+        16
+      ],
+      "storage_shape": [
+        1,
+        3072,
+        16
+      ],
+      "payload_bytes": 98304,
+      "pinned_allocation_bytes": 131072
+    },
+    {
+      "logical_shape": [
+        500,
+        16,
+        16384
+      ],
+      "storage_shape": [
+        1,
+        16,
+        16384
+      ],
+      "payload_bytes": 524288,
+      "pinned_allocation_bytes": 524288
+    },
+    {
+      "logical_shape": [
+        500,
+        8192,
+        16
+      ],
+      "storage_shape": [
+        1,
+        8192,
+        16
+      ],
+      "payload_bytes": 262144,
+      "pinned_allocation_bytes": 262144
+    },
+    {
+      "logical_shape": [
+        500,
+        16,
+        3072
+      ],
+      "storage_shape": [
+        1,
+        16,
+        3072
+      ],
+      "payload_bytes": 98304,
+      "pinned_allocation_bytes": 131072
+    }
+  ],
+  "lora_pinned_bytes_per_worker": 18819842048,
+  "cpu_kv_pinned_bytes_per_worker": 15032385536,
+  "native_dp": 2,
+  "total_pinned_bytes": 67704455168,
+  "excludes_runtime_and_other_overhead": true,
+  "cpu_kv_capacity_changed": false,
+  "gpu_representation_changed": false
+}

@@ -1,0 +1,27 @@
+"""Use the existing bounded launcher; tiny real tensor probe, no performance claim."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+own=p.scope_identity(p.cg_path().name)
+with (RAW/'probe_identity.json').open('x') as stream: json.dump(own,stream,indent=2)
+q=json.loads((RAW/'qualification.json').read_text())
+assert q['passed']
+for path,sha in q['refs'].items(): assert p.digest(Path(path))==sha,path
+env=dict(os.environ,PYTHONPATH=os.pathsep.join((str(RAW/'source_view'),str(MAIN),str(BASE/'scripts'))),
+    CUDA_VISIBLE_DEVICES='0',TRANSFORMERS_OFFLINE='1',HF_HUB_OFFLINE='1',
+    FAASLORA_TC_NVML_BINDING='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py',
+    FAASLORA_TC_NVML_SHA256='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea')
+with (RAW/'probe_launcher.log').open('x') as stream:
+    result=subprocess.run(['/usr/bin/python3','-B',str(MAIN/'scripts/ieee_tc_preflight.py'),
+        'gated-launch','--output',str(RAW/'probe_launch.json'),'--predicted-growth-gib','0.05',
+        '--exec','/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python','-B',str(RAW/'probe.py')],
+        cwd=BASE,env=env,stdout=stream,stderr=subprocess.STDOUT)
+print(json.dumps(dict(launcher_returncode=result.returncode,receipt=str(RAW/'probe_launch.json'))))
+raise SystemExit(result.returncode)

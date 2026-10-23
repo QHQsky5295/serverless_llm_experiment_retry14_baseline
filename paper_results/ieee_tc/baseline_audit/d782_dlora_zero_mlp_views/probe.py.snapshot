@@ -1,0 +1,20 @@
+"""Run the existing real-weight loader probe only after service admission."""
+import json
+from pathlib import Path
+import runpy
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+admission=p.verify_current_service()
+with (RAW/'native_probe_admission.json').open('x') as stream:
+    json.dump(admission,stream,indent=2)
+probe=BASE/'scripts/probe_dlora_real_adapter_loader.py'
+subset=BASE/'results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json'
+sys.argv=[str(probe),'--model',str(MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct'),
+    '--adapter-subset',str(subset),'--limit','2','--max-r','16','--gpu-capacity','2',
+    '--verify-gpu-copies','--expect-shared-cpu-mlp','--out-json',str(RAW/'native_probe.json')]
+runpy.run_path(str(probe),run_name='__main__')

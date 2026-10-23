@@ -1,0 +1,54 @@
+"""Preserve exact native-source snapshot whitespace; finish only MAIN checkpoint."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d782_dlora_zero_mlp_views'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_recovery_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+assert read(RAW/'backup_closure.json')['path_gone']
+q=read(RAW/'qualification.json')
+for path,sha in (q['refs']|q['preserved']).items(): assert p.digest(Path(path))==sha,path
+basehead=read(RAW/'baseline_backup_receipt.json')['head']
+assert call(BASE,'git','rev-parse','HEAD')==basehead
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+assert call(MAIN,'git','rev-parse','HEAD')=='ab1ed2d50aacb4edf460f4b96ef18253dd323bf4'
+manifest=read(OUT/'manifest.json')
+for name,row in manifest['files'].items(): assert p.digest(OUT/name)==row['sha256'],name
+snapshot=str((OUT/'lora_engine.py.snapshot').relative_to(MAIN))
+assert (OUT/'lora_engine.py.snapshot').read_bytes()==(RAW/'source_view/vllm/worker/lora_engine.py').read_bytes()
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D782_DLORA_ZERO_MLP_VIEWS_20261024.md',*sorted(OUT.iterdir())]
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+# Do not alter an observed source snapshot just to remove inherited vendor
+# whitespace. Every newly authored file is still checked with the normal rule.
+call(MAIN,'git','diff','--cached','--check','--',*filter(lambda x:x!=snapshot,relative))
+copy_sources(OUT,[Path(__file__),RAW/'backup_closure.json'])
+save(OUT/'backup_recovery_note.json',dict(reason='original_native_source_snapshot_trailing_whitespace',
+    original_snapshot_sha256=p.digest(OUT/'lora_engine.py.snapshot'),
+    snapshot_bytes_preserved=True,new_authored_files_normal_diff_check=True,
+    original_backup_script_sha256=p.digest(RAW/'backup.py'),baseline_head=basehead,
+    no_test_or_performance_retry=True))
+extras=[str((OUT/name).relative_to(MAIN)) for name in
+        ('backup_recovery.py.snapshot','backup_closure.json','backup_recovery_note.json')]
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+')
+for name in extras: assert not secret.search((MAIN/name).read_text()),name
+call(MAIN,'git','add','--',*extras)
+relative+=extras
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','diff','--cached','--check','--',*filter(lambda x:x!=snapshot,relative))
+call(MAIN,'git','commit','-m','tc: preserve dLoRA zero-storage qualification without shrinking KV (D782)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d782-dlora-zero-mlp-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=relative,recovered_publication_only=True,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,paths=len(relative))))

@@ -1,0 +1,58 @@
+"""Necessary CPU representation qualification, not a performance experiment."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path.insert(0,str(MAIN))
+sys.path.insert(0,str(BASE/'scripts'))
+from scripts import ieee_tc_preflight as p
+import ieee_tc_serverless_measurement as m
+import prepare_ieee_tc_serverless_stack as prepare
+
+def save(name,value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+
+own=p.scope_identity(p.cg_path().name)
+save('qualification_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+prior=json.loads((RAW.parent/'d780_20261024/qualification2.json').read_text())
+preserved=prior['preserved']
+for path,sha in preserved.items(): assert p.digest(Path(path))==sha,path
+index=MAIN/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json'
+assert p.digest(index)=='bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275'
+pool=Path('/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope')
+entries=json.loads(index.read_text())['artifacts']
+assert len(entries)==500
+metadata=m.dlora_attention_only_pool_metadata([str(pool/row['id']) for row in entries],28)
+for row,entry in zip(metadata['adapters'],entries):
+    files={f['path']:f for f in entry['files']}
+    assert row['config_sha256']==files['adapter_config.json']['sha256']
+    assert row['safetensors_size']==files['adapter_model.safetensors']['size_bytes']
+save('pool_metadata.json',dict(metadata,content_index_sha256=p.digest(index)))
+command=[sys.executable,'-B','-m','unittest','tests.test_ieee_tc_dlora_measurement.DloraZeroMLPViewTests','-v']
+with (RAW/'cpu_tests.log').open('x') as stream:
+    result=subprocess.run(command,cwd=BASE,stdout=stream,stderr=subprocess.STDOUT)
+if result.returncode: raise SystemExit(result.returncode)
+view=prepare.prepare_dlora_measurement_view(BASE/'vendor_new_baselines/dLoRA_artifact_main_20260519',
+    RAW/'source_view',MAIN,canonical_input=True,worker_lifecycle=True,cpu_zero_mlp_views=True)
+for path,sha in preserved.items(): assert p.digest(Path(path))==sha,path
+refs=[BASE/'scripts/ieee_tc_serverless_measurement.py',BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+      BASE/'tests/test_ieee_tc_dlora_measurement.py',BASE/'scripts/replay_vllm_engine_trace.py',Path(__file__)]
+save('qualification.json',dict(passed=True,plan_sha256=p.check_plan(),source_view=view,
+    refs={str(path):p.digest(path) for path in refs},preserved=preserved,
+    metadata_sha256=p.digest(RAW/'pool_metadata.json'),commands=[command],
+    native_tensor_copy_validated=False,independent_numerical_correctness_proven=False,
+    performance_run_authorized=False,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,full_pool_metadata_count=len(entries),new_tests=5,
+    source_view=str(RAW/'source_view'),performance_run_authorized=False)))
