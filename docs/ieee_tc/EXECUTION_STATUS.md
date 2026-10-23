@@ -1,5 +1,48 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D773：S-LoRA 3B W2输入绑定已完成（PROGRESS）
+
+上一轮D772完整W1已终态、核验封存/解释、重复缓存回收并远端备份。本轮
+完整重读PLAN及最新状态，确认GPU空闲、HEAD和资源余量后，复用D772 helpers
+准备D773同配置W2；尚未启动GPU，不重跑W0/W1，不追加基线性能优化。
+prepare会话84978已通过并结束，qualification空域精确身份关闭。
+
+W2绑定与ServerlessLLM D766逐字段一致：4000请求、497实际IDs、458224目标
+输出tokens；view SHA5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174，
+复用既有20261018_3b_w2_adapter_map_v1.json及原trace。native配置仍
+6a9b353554bd7c51312055ef7ea6ce7235c252c9461a0d83f9f8836f9682b85a，D768
+source_view不变，分析population明确full4000_w2。只增加小型执行绑定文件，
+没有新权重或完整负载。复用57CPU资格/500-ID覆盖/1000前缀/完整W0/W1，
+仅核验新helpers语法和W2身份，不重复无变化测试。
+
+当前MAIN0de527deb0bffcb421f0d0258cea40773cfa77f9、BASE84bb7892b4aade6bed0b898fb99d1f6074073a10。
+下一明确路径备份后用D773/start.py启动tmux tc-d773-slora-3b-full-w2；
+执行前现时资源重新准入，D772的历史余量不作为放行。共享k3s不动，真实远端
+复用通知前发布gzip；运行时不扫描/清理/构建/维护远端。3B BMM机制范围和
+未知独立数值正确性保留。不因低SLO另开基线调参。其后其余3B基线/PrimeLoRA
+必要优化、同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档/图表完整保留。
+整体目标active。
+
+## 2026-10-23 D772检查点已远端备份，下一为S-LoRA 3B W2
+
+MAIN提交0de527deb0bffcb421f0d0258cea40773cfa77f9的33明确路径已推送并验证
+faaslora_origin/backup/d772-slora-3b-fullw1-20261023；BASE仍
+84bb7892b4aade6bed0b898fb99d1f6074073a10，与origin/main一致。
+无force、未stage用户manifest，145旧投稿受保护文件未变，V2仍未同步。
+publication26377已结束，gpu_publication空域已关闭，全部D772工具会话/
+服务/回放已结束；GPU已空，不再轮询或重启D772。
+
+本轮实际进展为完整W1完成、核验解释/封存、重复缓存回收与远端备份。
+下一读取完整PLAN及最新状态后直接准备D773同配置S-LoRA 3B W2（尚未创建），
+复用D772 helpers、D768 source_view、同一native配置，W2输入身份按已完成
+ServerlessLLM D766核对；仅场景和执行身份改变，不重做无变化的57CPU资格、
+覆盖500或1000前缀。不因0%联合SLO开启基线性能搜索，保留3B BMM机制范围
+与未知数值证明。安全准入在下一实际启动前检查，不引用旧余量作为放行。
+
+其后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格/完整比较、PrimeLoRA
+必要优化、同版本7B主表/Full、A1–A5、S1–S13、CE/Pareto、两轮审稿文档和
+最终图表全部保留。整体目标active，尚未达到完整目标，不缩减范围。
+
 ## 2026-10-23 D772：完整W1完成、核验封存与重复缓存回收（PROGRESS）
 
 上一轮为VERIFIED WAIT；本轮继续观察同一InvocationID/tmux至23:09实际终态，

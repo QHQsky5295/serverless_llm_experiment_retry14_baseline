@@ -1,0 +1,29 @@
+"""Reuse exact-identity empty-scope closure; preserve actual terminal status."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+run=RAW
+launch=json.loads((run/'launch3b.json').read_text())
+assert isinstance(launch['service_returncode'], int) and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+service=launch['service_identity']
+assert not Path(service['path']).exists()
+identity=json.loads((RAW/'service_aux_identity.json').read_text())
+assert p.scope_still_owned(identity)
+group=Path(identity['path'])
+members={str(path):path.read_text().split() for path in group.rglob('cgroup.procs')}
+assert members and all(not values for values in members.values())
+resources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert p.scope_still_owned(identity)
+subprocess.run(['systemctl','--user','stop',identity['unit']],check=True)
+assert not group.exists()
+with (RAW/'local_cleanup.json').open('x') as stream:
+    json.dump(dict(passed=True,service_returncode=launch['service_returncode'],launch_passed=launch['pass'],service_identity=service,service_path_gone=True,
+        auxiliary_identity=identity,actual_recursive_procs_empty=True,auxiliary_path_gone=True,
+        resources=resources,launch_sha256=p.digest(run/'launch3b.json')),stream,indent=2)
+print(json.dumps(dict(passed=True,resources=resources)))
