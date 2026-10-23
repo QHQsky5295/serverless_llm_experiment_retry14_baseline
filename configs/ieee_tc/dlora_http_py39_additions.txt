@@ -1,0 +1,5 @@
+# D779: reuse the exact eight HTTP-only CPython 3.9 wheel pins from D441.
+# The retained dLoRA environment already has attrs26.1.0, idna3.15,
+# typing_extensions4.15.0. Install with --no-deps --require-hashes
+# --only-binary=:all: --no-compile; do not upgrade the native inference stack.
+-r loquetier_http_py39_additions.txt
