@@ -1,0 +1,71 @@
+"""Reuse D532's verified duplicate-object reclaim for closed D754 and D756.
+
+D754 remains qualification_failure. Removal is justified by current byte-for-byte
+identity with the retained pool, not by its performance or a fabricated pass.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2)
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+prior=json.loads((RAW.parent.parent/'serverless_qualification/d755_20261023/qualification.json').read_text())
+protected=prior['protected']|prior['preserved']
+for path,expected in protected.items(): assert p.digest(Path(path))==expected,path
+original=RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+records=[]
+for campaign,audit_relative,audit_sha,failed in [
+    ('d754','baseline_audit/d754_3b_compile_failure/failure.json','2b1fd7fe9bd09dd9d56b2e4333f308c6540ab3335b6e4ab91b53199e582b6dc5',True),
+    ('d756','baseline_audit/d756_3b_native_remote_prefix100/audit.json','cb0b1a11085c2a30a8807ec63df25d6ae6b46bf807a3de655a2e652e361111cb',False)]:
+    root=RAW.parent.parent/'serverless_qualification'/(campaign+'_20261023')
+    assert json.loads((root/'local_cleanup.json').read_text())['passed']
+    assert json.loads((root/'analysis_closure.json').read_text())['passed']
+    assert (root/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+    source=data.decode()
+    changes={
+        'ROOT = Path(__file__).resolve().parent':f'ROOT = Path({str(root)!r})',
+        "'d532_20261015'":repr(campaign+'_20261023'),
+        '/tmp/tc-d532-7bv/':f'/tmp/tc-{campaign}-3br/',
+        'llama2_7b_a500_v2_publicmix':'llama32_3b_a500_v1_modelscope',
+        "ROOT/'launch7b.json'":"ROOT/'launch3b_repaired.json'",
+        'main_comparison/d532_vllm_w1/result1/audit.json':audit_relative,
+        'f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7':audit_sha,
+        '20260927_7b_materialized_content_index.json':'20260927_3b_remote_content_index.json',
+        'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c':'bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275',
+        "assert audit['workload_passed'] and audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780":
+            ("assert audit['qualification_passed'] is False and audit['counts']['N_response'] == 100 and audit['actual_unique_adapters'] == 29" if failed else
+             "assert audit['workload_passed'] and audit['offered_unique_adapters'] == 29 and audit['verified_materialized_bytes'] == 1170025980"),
+    }
+    if failed:
+        changes["assert len(selected) == audit['offered_unique_adapters']"]="assert len(selected) == audit['actual_unique_adapters']"
+        changes["assert total == audit['verified_materialized_bytes']"]="assert total == 1170025980  # current full content-index and retained-pool byte check above"
+        changes['all_cache_bytes_previously_hashed_by_audit=True']='all_cache_bytes_previously_hashed_by_audit=False'
+    for before,after in changes.items():
+        assert source.count(before)==1,before
+        source=source.replace(before,after)
+    exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
+    records.append(json.loads((root/'cache_cleanup_after.json').read_text()))
+for path,expected in protected.items(): assert p.digest(Path(path))==expected,path
+save(RAW/'reclamation.json',dict(passed=True,records=records,
+    observed_reclaimed_bytes=sum(row['observed_reclaimed_bytes'] for row in records),
+    original_recipe=str(original),original_recipe_sha256=p.digest(original),
+    source_sha256=p.digest(Path(__file__)),protected_unchanged=len(prior['protected']),
+    failed_run_retained=True,no_unique_artifacts_removed=True,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,observed_reclaimed_bytes=sum(row['observed_reclaimed_bytes'] for row in records))))

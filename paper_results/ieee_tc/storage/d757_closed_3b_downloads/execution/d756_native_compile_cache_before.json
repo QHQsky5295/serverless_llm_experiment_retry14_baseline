@@ -1,0 +1,8 @@
+{
+  "root": "/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1",
+  "entries": [],
+  "files": 0,
+  "bytes": 0,
+  "policy": "retained ordinary compiler disk cache; all actual startup/capture GPU holding charged",
+  "whole_lower_level_cache_identity_proved": false
+}

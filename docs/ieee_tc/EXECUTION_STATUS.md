@@ -1,5 +1,54 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D757：关闭下载副本回收完成，继续3B基线主线
+
+PROGRESS。复用D532全量当前字节/保留池/活动引用核对，仅回收D754和D756
+各232个下载副本，载荷各1170025980B；实测释放2341724160B，剩余
+161893863424B（约150.775GiB）。原工件/原始成功失败/receipt/journal/编译
+缓存/用户修改和145保护项均保留。三个同UID不可读proc的范围未隐瞒。
+未修改任何性能协议/阈值，未启动新GPU实验；维护空域已精确关闭。
+下一正常检查点一起备份D756结果和D757回执，随后推进缺少的3B
+ServerlessLLM500-ID、1000与完整场景；不重做本100或已完成vLLM/7B。
+完整目标仍active，全部后续范围保留，共享k3s不动。
+
+## 2026-10-23 D756完成：四实例原生路径通过，结束编译适配
+
+PROGRESS。同一3B100自然完成，100响应/0失败/17369原生tokens，四个ready
+且served实例绑定CUDA0/1/2/3及独立稳定编译根，共同原生hash770f1086c5，
+无FileNotFoundError/BackendCompilerFailed，全部保留图执行。原严格分析器
+首次通过，D754的四实例条件未放宽；封存wrapper数量字段误读在输出前失败，
+seal_v2只修包装读取，原证据保留、没有推理重跑。不是完整W0或独立数值证明。
+
+共同D648联合25/100，TTFT均38212.595/P9594719.581ms，TPOT均19.389/
+P9525.966ms，U981.8548264596611；短前缀含启动排队，不因低SLO调基线。
+29次传输/67350156线上B/1170025980物化B/0请求打包，时间/资源核对通过。
+服务峰值53823905792B、host最低57634295808B、events/swap0；GPU/service/
+launcher释放、loader恢复、远端3服务停止、analysis/result/review空域已关闭。
+145保护项及三个用户修改不变。当前磁盘159552925696B，下一重型前须回收
+已关闭可重建下载副本，不能降低150GiB门槛。D756结果待随维护一起备份。
+
+下一：必要闭环存储维护→补3B ServerlessLLM缺少的500-ID/1000/完整矩阵。
+不重复本100、不展开编译/基线参数优化；PrimeLoRA D752及vLLM三个场景复用，
+其余3B/7B同版本/消融/敏感性/文档/图表全部保留，共享k3s不动，goal active。
+
+## 2026-10-23 11:30 CST：D756同一3B100验证已启动
+
+PROGRESS。BASE四条路径提交2bdf53cb25040b98e84e587f421bd772528c96b9并核对
+origin/main；MAIN检查点8e52c3564df7d0c5ce3d3aec97d0d72ba970637b已推送核对
+backup/d755-cache-ownership-20261023，V2未同步/no force。两个小日志命中
+全局ignore，首次add失败保留；仅显式加入这两项后续备份，无实验重跑。
+发布/启动辅助空域均按身份关闭，未stage三个用户修改；未改PrimeLoRA代码。
+
+tmux tc-d756-serverlessllm-3b100；service d2d76889b93f47abb00dd72757a6a35d，
+InvocationID1e363a7ed199437eb35019d4e1a88f92/inode30828847；launcher为
+primelora-tc-aux-d7560000000000000000000000000004.scope。3B远端clock
+b75f5a0fb20a4bc88f9d0258917b1b7f、7B c45a47e8ea354403b4ebeb6487e2245a。
+即时准入通过，sample7可用111717023744B、磁盘161087815680B、events/swap0。
+当前仅启动阶段，未得完整结果；新稳定编译根初始0文件，不GPU预热。
+下一只轻量观察同一实例；自然结束/实际释放后按原close_launch、restore_overlay、
+stop_remote、run_analysis收尾。无并行构建/扫描/清理/压缩/push/远端调整。
+共享k3s不动，3B后续矩阵及全部既定范围保留，goal active。
+
 ## 2026-10-23 D755：编译目录竞态已在CPU复现，准备受影响路径D756
 
 PROGRESS。安装版torch2.8真实save方法＋微型假载荷：共享写目录A失败/B成功，

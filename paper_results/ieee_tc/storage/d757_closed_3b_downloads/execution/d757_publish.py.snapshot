@@ -1,0 +1,104 @@
+"""One explicit-path checkpoint for completed D756 and D757; no experiment rerun."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+RUN = RAW.parent.parent/'serverless_qualification/d756_20261023'
+OUT = MAIN/'paper_results/ieee_tc/storage/d757_closed_3b_downloads'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def call(repo, *args):
+    return subprocess.check_output(list(args), cwd=repo, text=True,
+                                   stderr=subprocess.STDOUT).strip()
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+assert not call(MAIN, 'git', 'diff', '--cached', '--name-only')
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == '8e52c3564df7d0c5ce3d3aec97d0d72ba970637b'
+assert call(BASE, 'git', 'rev-parse', 'HEAD') == '2bdf53cb25040b98e84e587f421bd772528c96b9'
+assert read(RUN/'result_receipt.json')['passed']
+assert read(RAW/'reclamation.json')['passed']
+assert p.digest(RUN/'audit_prefix100.json') == 'cb0b1a11085c2a30a8807ec63df25d6ae6b46bf807a3de655a2e652e361111cb'
+for root, names in ((RUN, ('analysis', 'result', 'review', 'backup', 'publication', 'start')),
+                    (RAW, ('qualification',))):
+    for name in names:
+        closed = read(root/(name+'_closure.json'))
+        assert closed['passed'] and not Path(closed['identity']['path']).exists()
+prior = read(RUN.parent/'d755_20261023/qualification.json')
+for path, expected in (prior['refs'] | prior['protected'] | prior['preserved']).items():
+    assert p.digest(Path(path)) == expected, path
+
+OUT.mkdir(parents=True, exist_ok=False)
+execution = OUT/'execution'
+execution.mkdir()
+files = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+         MAIN/'docs/ieee_tc/D756_3B_SERVERLESSLLM_NATIVE_PREFIX100_20261023.md',
+         MAIN/'docs/ieee_tc/D757_CLOSED_3B_DOWNLOAD_RECLAIM_20261023.md']
+files += sorted((MAIN/'paper_results/ieee_tc/baseline_audit/d756_3b_native_remote_prefix100').glob('*.json'))
+sources = [RAW/'reclaim.py', RAW/'close.py', Path(__file__), RAW/'reclamation.json',
+           RAW/'qualification_identity.json', RAW/'qualification_closure.json']
+sources += [RUN/name for name in (
+    'seal.py', 'seal_v2.py', 'result_receipt.json', 'result_closure.json',
+    'review_closure.json', 'analysis_receipt.json', 'analysis_closure.json',
+    'local_cleanup.json', 'start_receipt.json', 'start_closure.json',
+    'backup_receipt.json', 'backup_closure.json', 'publication_closure.json',
+    'native_compile_cache_before.json', 'cache_cleanup_before.json',
+    'cache_cleanup_after.json', 'overlay3b_repaired/restore_receipt.json')]
+sources += [RUN.parent/'d754_20261023'/name for name in
+            ('cache_cleanup_before.json', 'cache_cleanup_after.json')]
+mapping = []
+for source in sources:
+    assert source.stat().st_size < 4 * p.GIB / 1024, source
+    if source.suffix == '.py':
+        ast.parse(source.read_text(), filename=str(source))
+    else:
+        read(source)
+    prefix = 'd757_' if source.is_relative_to(RAW) else 'd756_' if source.is_relative_to(RUN) else 'd754_'
+    target = execution/(prefix+source.name+('.snapshot' if source.suffix == '.py' else ''))
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(source) == p.digest(target)
+    mapping.append(dict(source=str(source), target=str(target.relative_to(MAIN)), sha256=p.digest(target)))
+    files.append(target)
+save(OUT/'manifest.json', dict(passed=True, sources=mapping,
+    source_audit_sha256=p.digest(RUN/'audit_prefix100.json'),
+    plan_sha256=p.check_plan(), baseline_head=call(BASE, 'git', 'rev-parse', 'HEAD'),
+    measured_reclaimed_bytes=read(RAW/'reclamation.json')['observed_reclaimed_bytes'],
+    protected_unchanged=len(prior['protected']), no_performance_rerun=True))
+files.append(OUT/'manifest.json')
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+paths = [str(path.relative_to(MAIN)) for path in files]
+assert len(paths) == len(set(paths))
+for path in files:
+    assert not secret.search(path.read_text()), path
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(MAIN, 'git', 'add', '--', *paths)
+assert set(call(MAIN, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(paths)
+call(MAIN, 'git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof', 'diff', '--cached', '--check')
+call(MAIN, 'git', 'commit', '-m', 'tc: seal qualified 3B ServerlessLLM prefix and closed-cache reclamation (D756-D757)')
+head = call(MAIN, 'git', 'rev-parse', 'HEAD')
+ref = 'refs/heads/backup/d756-complete-d757-storage-20261023'
+call(MAIN, 'git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+ref)
+assert call(MAIN, 'git', 'ls-remote', 'faaslora_origin', ref).split()[0] == head
+save(RAW/'publication_receipt.json', dict(passed=True, head=head, remote_ref=ref,
+    v2_synchronized=False, force_push=False, paths=paths,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, paths=len(paths), remote_ref=ref)))

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "ready_served_instances": 4,
+  "actual_roots": [
+    "/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1/6ad2be1d3db81150/cuda-0",
+    "/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1/6ad2be1d3db81150/cuda-1",
+    "/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1/6ad2be1d3db81150/cuda-2",
+    "/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1/6ad2be1d3db81150/cuda-3"
+  ],
+  "common_native_hash": "770f1086c5",
+  "cold_new_root_before": true,
+  "native_compilation_preserved": true,
+  "zero_observed_compiler_errors": true,
+  "source_audit_sha256": "cb0b1a11085c2a30a8807ec63df25d6ae6b46bf807a3de655a2e652e361111cb",
+  "latency_causal_comparison": false,
+  "reason": "Changed cache initial state and single prefix; not a causal performance experiment."
+}

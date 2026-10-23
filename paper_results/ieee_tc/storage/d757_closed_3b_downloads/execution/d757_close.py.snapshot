@@ -1,0 +1,27 @@
+"""Reuse exact-identity empty-scope closure; never stop unrelated work."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+name = sys.argv[1]
+assert name in ('qualification', 'backup', 'start', 'analysis', 'result', 'publication', 'contract', 'review', 'review_backup', 'cross', 'result_publication')
+source = RAW/(name+'_identity.json')
+identity = json.loads(source.read_text())
+assert p.scope_still_owned(identity)
+group = Path(identity['path'])
+members = {str(path):path.read_text().split() for path in group.rglob('cgroup.procs')}
+assert members and all(not values for values in members.values())
+resources = {key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')}
+assert p.scope_still_owned(identity)
+subprocess.run(['systemctl','--user','stop',identity['unit']],check=True)
+assert not group.exists()
+with (RAW/(name+'_closure.json')).open('x') as stream:
+    json.dump(dict(passed=True,identity=identity,actual_recursive_procs_empty=True,
+        path_gone=True,resources=resources,source_sha256=p.digest(Path(__file__))),stream,indent=2)
+print(json.dumps(dict(passed=True,name=name,resources=resources)))
+
+

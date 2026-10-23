@@ -1,0 +1,70 @@
+"""Seal the first qualified device-cache run; not a full performance point."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d756_3b_native_remote_prefix100'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'launch3b_repaired.json')
+assert launch['pass'] and launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert read(RAW/'analysis_receipt.json')['passed'] and read(RAW/'analysis_closure.json')['passed']
+assert read(RAW/'local_cleanup.json')['passed']
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status']=='RESTORED'
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+audit=read(RAW/'audit_prefix100.json')
+assert audit['counts']['N_response']==100 and audit['counts']['N_failed']==0
+assert audit['remote_affected_path_qualified'] and audit['native_revalidated_requests']==100
+assert len(audit['backend_ready_receipts'])==4
+receipts=[row['observation'] for row in audit['backend_ready_receipts']]
+assert {row['cuda_visible'] for row in receipts}=={'0','1','2','3'}
+roots={row['compile_cache']['vllm_cache_root'] for row in receipts}
+assert len(roots)==4
+for row in receipts:
+    cache=row['compile_cache']
+    assert cache['cuda_visible']==row['cuda_visible']
+    assert cache['contract']=='physical_device_compile_cache_v1'
+    assert cache['native_config_code_hash_preserved'] and not cache['compilation_disabled']
+    assert not cache['run_specific'] and not cache['shared_cache_cleared']
+log=re.sub(r'\x1b\[[0-9;]*m','',(RAW/'model3b_repaired/serve.log').read_text(errors='replace'))
+assert 'FileNotFoundError' not in log and 'BackendCompilerFailed' not in log
+for root in roots:
+    assert root+'/torch_compile_cache/770f1086c5/rank_0_0/backbone' in log
+assert read(RAW/'native_compile_cache_before.json')['files']==0
+prior=read(RAW.parent/'d755_20261023/qualification.json')
+for path,expected in (prior['refs']|prior['protected']|prior['preserved']).items():
+    assert p.digest(Path(path))==expected,path
+OUT.mkdir(parents=True,exist_ok=False)
+with (OUT/'audit.json').open('xb') as stream: stream.write((RAW/'audit_prefix100.json').read_bytes())
+save(OUT/'cache_ownership.json',dict(passed=True,ready_served_instances=4,actual_roots=sorted(roots),
+    common_native_hash='770f1086c5',cold_new_root_before=True,native_compilation_preserved=True,
+    zero_observed_compiler_errors=True,source_audit_sha256=p.digest(RAW/'audit_prefix100.json'),
+    latency_causal_comparison=False,reason='Changed cache initial state and single prefix; not a causal performance experiment.'))
+sources=[path for path in RAW.rglob('*') if path.is_file() and not path.is_symlink()
+         and path.suffix!='.pyc' and path!=RAW/'result_identity.json']
+save(OUT/'manifest.json',dict(raw_root=str(RAW),source_sha256={str(path):p.digest(path) for path in sorted(sources)},
+    protected=prior['protected'],preserved=prior['preserved'],main_execution_commit=read(RAW/'start_receipt.json')['head'],
+    baseline_execution_commit=read(RAW/'start_receipt.json')['baseline_head'],
+    qualification_passed=True,full_w0_completed=False,ranking_eligible=False,n_correct=None))
+save(RAW/'result_receipt.json',dict(passed=True,output=str(OUT),source_sha256=p.digest(Path(__file__)),
+    audit_sha256=p.digest(RAW/'audit_prefix100.json'),resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,ready_served_instances=4,joint_good=audit['common_slo']['joint_good'],
+    physical_gpu_seconds=audit['physical_gpu_seconds'],main_comparison_qualified=False)))
