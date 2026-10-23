@@ -1,0 +1,66 @@
+{
+  "schema": "ieee_tc_dlora_native_timing_cpu_qualification_v1",
+  "files": {
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/qualification.json",
+      "sha256": "6581922a7925e7c36755bedd12e02473062117b3d77ca66a602aafe938ee8982"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/qualification_closure.json",
+      "sha256": "1a95b698cdf4491c666160ad29d7c8403bdf012becb7e3acc05fa2e9514224da"
+    },
+    "cpu_tests.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/cpu_tests.log",
+      "sha256": "0f251ac20c003bf436ee6d3659bb239f2c28e706affe7ff340a0ebf4dde286a7"
+    },
+    "shared_regression.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/shared_regression.log",
+      "sha256": "b93ad70f6ee1de76e3d4425311aa85a700ede0286ac0894942b0bf108b4fde88"
+    },
+    "qualify.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/qualify.py",
+      "sha256": "fe5052135b17a43a0f30362f71cbde25cafa397fcc8fbbdac08528fa4d271bdb"
+    },
+    "close.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/close.py",
+      "sha256": "69cdc47b4cccd7d77f690b6cc9dc22bfe8ef6e87e2ae13f796aad6414576704b"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup.py",
+      "sha256": "b5c70e16e8bd04fc8f3f5868a4d9696e197cd91f09293a2a4a613ebd7d7049e1"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/baseline_backup_receipt.json",
+      "sha256": "e93eaab796c2b91edfed8bf4ca6c038688761be2465984bb1d46806197e73350"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/source_view/measurement_manifest.json",
+      "sha256": "afa5f1adfe1e53d270b739c0ddb84e9a8f7f75d801993147f9b4f311683af86c"
+    },
+    "llm_engine.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/source_view/vllm/engine/llm_engine.py",
+      "sha256": "c2779e5eb4421c5a40ea50bf0ba3c01c459f9f30c5394436dc54e28578409daa"
+    },
+    "outputs.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/source_view/vllm/outputs.py",
+      "sha256": "48d7d4fa2a285e844f8ec818f71b02456ac1f04689d94cb56e15115e8f6a2cc8"
+    },
+    "api_server.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/source_view/vllm/entrypoints/api_server.py",
+      "sha256": "dbd58955aa0e2f7533da60bcf0ef4f7f1519e6050664ac6926f3c2459d241d18"
+    }
+  },
+  "baseline_head": "031f6757cfb07fa91e7ed3ce44c71383df4c68fa",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": {
+    "dlora": 12,
+    "shared_slora_regression": 30,
+    "passed": true
+  },
+  "native_inference_run": false,
+  "performance_run_authorized": false,
+  "independent_numerical_correctness_proven": false,
+  "old_publication_unchanged": 145,
+  "historical_vendor_tree_unchanged": true,
+  "no_new_weights_or_trace": true
+}

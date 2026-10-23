@@ -1,4 +1,48 @@
-# IEEE TC execution status — resumed; W2 baseline completion
+# IEEE TC execution status — dLoRA 3B necessary measurement adaptation
+
+## 2026-10-24 D774：原生生成时间线适配与42项CPU检查通过（PROGRESS）
+
+上一轮PROGRESS已实际封存/回收/备份D773。本轮完整重读PLAN和最新状态，
+核对历史dLoRA复用说明、代码历史与固定官方源码，按run-experiment资产
+保护要求复用现有TC入口；github-sync用于随后检查点备份。未启动GPU性能
+实验，未调基线参数，未触碰现有他项目k3s/远端服务。
+
+BASE现有两个脚本新增dLoRA被动生成事件观察/source view；原生SequenceGroup
+的deepcopy携带首末token记录，保留原AsyncStream终态才返回、原生调度/
+放置/迁移/LoRA算术。只在原生enqueue/schedule/已有worker结果返回处计时，
+最终API携带ID/快照，不将HTTP完成当首token，不增加CUDA同步。
+独立数值正确性仍未知。本轮42项CPU检查通过（12项dLoRA、30项S-LoRA共享
+回归），aux1已真实结束并关闭空域，源码view不覆盖原树，145项旧投稿保护
+及用户dirty SHA不变。原生完整环境/Ray/GPU尚未导入或启动。
+
+RAW为results/ieee_tc/dlora_qualification/d774_20261024，source_view在同目录。
+本轮只完成计量子路径；canonical输入、受限私有Ray、生命周期/worker绑定、
+必要加载正确性及既定资格/W1/W2仍待接入，不冒称性能复现完成。
+接下来先备份已测试代码和小型回执，再做上述受影响路径的必要适配。
+不反复验证已通过被动计时，不调用旧全局ray stop，不增加基线参数搜索。
+同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档和图表全部保留，目标active。
+
+## 2026-10-24 00:40 CST：D773检查点已远端核验，转dLoRA必要适配（PROGRESS）
+
+aux8实际完成并关闭空域。MAIN提交
+`57be5a751304642b76e226f9b19e84f8e941519a`已推送并ls-remote核验至
+`faaslora_origin/backup/d773-slora-3b-fullw2-20261024`；34个显式路径含完整
+W2结果、清理回执和dLoRA复用说明。未force，V2仍未同步。BASE保持
+`84bb7892b4aade6bed0b898fb99d1f6074073a10`，origin/main已核验。
+结果manifest/checkpoint各SHA、145个旧投稿保护及三项用户dirty SHA通过；
+暂存区为空。只有此推送后状态追加尚待下一检查点备份。
+
+无活动exec/wait会话、无GPU计算进程，本项目远端服务已停止，未改其他
+项目k3s。00:39:59磁盘可用162953666560bytes、MemAvailable109681488KiB；
+仅表示该时刻资源状态，下一重型任务仍重新准入。
+
+本轮S-LoRA完整W2封存/分析/安全回收/备份已完成，W0/W1/W2不再重复。
+下一具体工作是复用dLoRA现有DP2/TP1、native EngineManager及TC测量接口，
+补原生逐步输出的首末时刻/IDs与迁移身份连续性、精确服务所有权/生命周期，
+做改动路径必要验证，再限定3B W1/W2各一次。旧最终态返回数据为R2，不能
+把完成态时刻改称首token；不全局ray stop、不接他项目集群、不搜索性能参数。
+目前未新增dLoRA源码或GPU运行。随后仍Loquetier/HydraServe 3B完整对照、
+PrimeLoRA有证据优化、同版本Full及全部消融/敏感性/文档/图表，目标active。
 
 ## 2026-10-24 00:39 CST：D773完整W2已封存/回收，准备检查点备份（PROGRESS）
 

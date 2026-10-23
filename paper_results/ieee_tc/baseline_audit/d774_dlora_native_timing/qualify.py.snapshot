@@ -1,0 +1,62 @@
+"""D774 bounded native-observation tests, source view, and protected-asset check."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+
+def save(name, value):
+    with (RAW/name).open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+
+own = p.scope_identity(p.cg_path().name)
+save('qualification_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                    '--format=csv,noheader'], text=True).strip()
+prior = json.loads((RAW.parent.parent/'slora_qualification/d773_20261023/qualification.json').read_text())
+preserved = prior['protected'] | prior['preserved']
+for name, digest in preserved.items():
+    assert p.digest(Path(name)) == digest, name
+plan_sha = p.check_plan()
+commands = []
+for log, module in [('cpu_tests.log', 'tests.test_ieee_tc_dlora_measurement'),
+                    ('shared_regression.log', 'tests.test_ieee_tc_slora_measurement')]:
+    command = [sys.executable, '-B', '-m', 'unittest', module, '-v']
+    with (RAW/log).open('x') as handle:
+        result = subprocess.run(command, cwd=BASE, stdout=handle, stderr=subprocess.STDOUT)
+    commands.append(dict(command=command, log=log, returncode=result.returncode))
+    if result.returncode:
+        save('qualification.json', dict(passed=False, commands=commands,
+            plan_sha256=plan_sha, preserved=preserved, resources=p.cgroup_snapshot(group)))
+        raise SystemExit(result.returncode)
+source_script = BASE/'scripts/prepare_ieee_tc_serverless_stack.py'
+spec = importlib.util.spec_from_file_location('tc_d774_prepare', source_script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+view = module.prepare_dlora_measurement_view(
+    BASE/'vendor_new_baselines/dLoRA_artifact_main_20260519', RAW/'source_view', MAIN)
+for name, digest in preserved.items():
+    assert p.digest(Path(name)) == digest, name
+refs = [BASE/'scripts/ieee_tc_serverless_measurement.py', source_script,
+        BASE/'tests/test_ieee_tc_dlora_measurement.py', Path(__file__)]
+save('qualification.json', dict(passed=True, commands=commands, source_view=view,
+    plan_sha256=plan_sha, refs={str(path): p.digest(path) for path in refs},
+    preserved=preserved, native_inference_run=False, performance_run_authorized=False,
+    core_scheduling_migration_unchanged=True, independent_numerical_correctness_proven=False,
+    resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, tests=[row['log'] for row in commands],
+                     source_view=view['source_view'], performance_run_authorized=False)))

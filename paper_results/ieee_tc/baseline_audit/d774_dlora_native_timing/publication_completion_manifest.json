@@ -1,0 +1,23 @@
+{
+  "files": {
+    "backup_interruption.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup_interruption.json",
+      "sha256": "e5d7436f8c63be77e6a88e89b754ebc339938545bfea26b7ec4e3ed277ebe62b"
+    },
+    "backup_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup_closure.json",
+      "sha256": "a5d42d5ded2ec0004b66c945756894038095ed579ad22e4903c5afa9e1ed9c0f"
+    },
+    "backup_resume.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup_resume.py",
+      "sha256": "8ac06618899e0a197f04265d4d8abc8b56699beb99d10f55c880b9331a628a60"
+    },
+    ".gitattributes": {
+      "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d774_dlora_native_timing/.gitattributes",
+      "sha256": "cc4bc09608fc921885e0200b73630507617c1bc123af8622415ed896b807de95"
+    }
+  },
+  "baseline_head": "031f6757cfb07fa91e7ed3ce44c71383df4c68fa",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "existing_manifest_and_results_unchanged": true
+}

@@ -1,0 +1,12 @@
+{
+  "status": "recovered_before_main_commit",
+  "baseline_already_backed_up": "031f6757cfb07fa91e7ed3ce44c71383df4c68fa",
+  "main_result_before_recovery": "not_published",
+  "cause": "six inherited whitespace-only native lines in exact evidence snapshot",
+  "exact_snapshot_sha256": "c2779e5eb4421c5a40ea50bf0ba3c01c459f9f30c5394436dc54e28578409daa",
+  "original_native_sha256": "e8bbbe9d9f0defdbab20d7184b8527d145767034733bbbdd230d35c30b85a989",
+  "introduced_source_whitespace_check_passed": true,
+  "snapshot_bytes_changed": false,
+  "exception_scope": "this directory/llm_engine.py.snapshot only",
+  "performance_or_qualification_failure": false
+}

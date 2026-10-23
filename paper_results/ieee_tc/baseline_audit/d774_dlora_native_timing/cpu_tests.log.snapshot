@@ -1,0 +1,17 @@
+test_exclusive_source_view_preserves_vendor_and_core_files (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_exclusive_source_view_preserves_vendor_and_core_files) ... ok
+test_final_api_retains_native_ids_and_event_times (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_final_api_retains_native_ids_and_event_times) ... ok
+test_invalid_generation_never_qualified (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_invalid_generation_never_qualified) ... ok
+test_migration_deepcopy_preserves_first_boundary_and_native_insert (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_migration_deepcopy_preserves_first_boundary_and_native_insert) ... ok
+test_native_events_not_final_http_time (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_native_events_not_final_http_time) ... ok
+test_native_terminal_only_tracker_and_stream_transfer_unchanged (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_native_terminal_only_tracker_and_stream_transfer_unchanged) ... ok
+test_no_output_ignored_request_cannot_be_success (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_no_output_ignored_request_cannot_be_success) ... ok
+test_reject_binding_clock_count_and_completion_changes (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_reject_binding_clock_count_and_completion_changes) ... ok
+test_reject_duplicate_missing_or_rewritten_tokens (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_reject_duplicate_missing_or_rewritten_tokens) ... ok
+test_single_token_has_no_tpot (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_single_token_has_no_tpot) ... ok
+test_snapshots_do_not_alias_future_native_updates (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_snapshots_do_not_alias_future_native_updates) ... ok
+test_source_hooks_are_before_text_and_preserve_core_policies (tests.test_ieee_tc_dlora_measurement.DloraNativeTimingTests.test_source_hooks_are_before_text_and_preserve_core_policies) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.089s
+
+OK

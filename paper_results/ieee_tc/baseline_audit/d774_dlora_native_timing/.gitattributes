@@ -1,0 +1,3 @@
+# Byte-preserved native evidence; introduced source edits are checked against
+# the retained vendor original. Do not normalize historical blank-line spaces.
+llm_engine.py.snapshot -whitespace

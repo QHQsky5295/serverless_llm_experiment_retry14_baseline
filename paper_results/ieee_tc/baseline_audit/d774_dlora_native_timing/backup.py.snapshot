@@ -1,0 +1,82 @@
+"""Back up only tested D774 task files; preserve user dirt and previous results."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+exec(compile(data.decode().split('own=p.scope_identity')[0], str(original), 'exec'))
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d774_dlora_native_timing'
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+q, closure = read(RAW/'qualification.json'), read(RAW/'qualification_closure.json')
+assert q['passed'] and closure['path_gone'] and not Path(closure['identity']['path']).exists()
+assert [r['returncode'] for r in q['commands']] == [0,0]
+for path, digest in (q['refs'] | q['preserved']).items():
+    assert p.digest(Path(path)) == digest, path
+native = Path(q['source_view']['native_source'])
+view = Path(q['source_view']['source_view'])
+for path, digest in q['source_view']['original_sha256'].items():
+    assert p.digest(native/path) == digest, path
+for path, digest in q['source_view']['measured_sha256'].items():
+    assert p.digest(view/path) == digest, path
+assert call(BASE,'git','branch','--show-current') == 'main'
+assert call(BASE,'git','rev-parse','HEAD') == '84bb7892b4aade6bed0b898fb99d1f6074073a10'
+assert call(MAIN,'git','rev-parse','HEAD') == '57be5a751304642b76e226f9b19e84f8e941519a'
+assert not call(BASE,'git','diff','--cached','--name-only')
+assert not call(MAIN,'git','diff','--cached','--name-only')
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+basepaths = ['scripts/ieee_tc_serverless_measurement.py',
+             'scripts/prepare_ieee_tc_serverless_stack.py',
+             'tests/test_ieee_tc_dlora_measurement.py']
+for relative in basepaths:
+    path = BASE/relative
+    assert path.stat().st_size < 2*1024*1024 and not secret.search(path.read_text())
+call(BASE,'git','diff','--check','--',*basepaths)
+call(BASE,'git','add','--',*basepaths)
+assert set(call(BASE,'git','diff','--cached','--name-only').splitlines()) == set(basepaths)
+call(BASE,'git','diff','--cached','--check')
+call(BASE,'git','commit','-m','tc: observe native dLoRA token timelines across migration (D774)')
+basehead = call(BASE,'git','rev-parse','HEAD')
+call(BASE,'git','-c','http.version=HTTP/1.1','push','origin','main')
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0] == basehead
+save(RAW/'baseline_backup_receipt.json', dict(passed=True, head=basehead,
+    remote_ref='origin/main', paths=basepaths, force_push=False))
+OUT.mkdir(parents=True, exist_ok=False)
+names = ('qualification.json','qualification_closure.json','cpu_tests.log',
+         'shared_regression.log','qualify.py','close.py','backup.py','baseline_backup_receipt.json')
+files = copy_sources(OUT, [RAW/name for name in names] + [view/'measurement_manifest.json']
+                     + [view/path for path in q['source_view']['measured_sha256']])
+manifest = dict(schema='ieee_tc_dlora_native_timing_cpu_qualification_v1',
+    files=files, baseline_head=basehead, plan_sha256=p.check_plan(),
+    tests=dict(dlora=12, shared_slora_regression=30, passed=True),
+    native_inference_run=False, performance_run_authorized=False,
+    independent_numerical_correctness_proven=False, old_publication_unchanged=145,
+    historical_vendor_tree_unchanged=True, no_new_weights_or_trace=True)
+save(OUT/'manifest.json', manifest)
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+         MAIN/'docs/ieee_tc/D774_DLORA_NATIVE_TIMING_20261024.md', *sorted(OUT.iterdir())]
+relative = [str(path.relative_to(MAIN)) for path in paths]
+for path in paths:
+    assert path.is_file() and path.stat().st_size < 2*1024*1024
+    assert not secret.search(path.read_text()), path
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines()) == set(relative)
+call(MAIN,'git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof,cr-at-eol',
+     'diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: preserve dLoRA native timing qualification and scope (D774)')
+head = call(MAIN,'git','rev-parse','HEAD')
+ref = 'refs/heads/backup/d774-dlora-native-timing-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0] == head
+for path, digest in q['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+save(RAW/'backup_receipt.json', dict(passed=True, head=head, baseline_head=basehead,
+    remote_ref=ref, paths=relative, force_push=False, v2_synchronized=False,
+    resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, head=head, baseline_head=basehead, remote_ref=ref)))
