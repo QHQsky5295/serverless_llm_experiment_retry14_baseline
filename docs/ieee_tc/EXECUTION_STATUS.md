@@ -1,6 +1,33 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D766：同配置3B ServerlessLLM W2已绑定，待启动
+
+本轮开始完整重读PLAN/最新状态，前一轮为PROGRESS：D765完整W1封存与
+备份。当前无活动GPU任务；磁盘161496047616B、MemAvailable111723552768B。
+D765当前下载副本已在上轮核验回收，不重复计算清理空间。D766只绑定既有
+W2映射，不改native配置/源码/论文公式，不新增权重或完整trace。
+
+W2视图SHA5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174，
+adapter_map SHA28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23，
+与完整Resident D656 source_plan完全一致；4000请求/497实际adapter/
+458224目标tokens。source view及native配置与D765相同，复用114/89/33项
+既有检查，不做额外100/500/1000；分析population为full4000_w2。
+资格辅助空域精确关闭，session77674完成；没有活动wait句柄、overlay或
+远端/GPU启动。本轮接下来正常输入绑定备份，再复核启动条件并只运行W2一次。
+
+完整目标active。W0/W1不重复、不调baseline胜负参数；独立数值正确性仍未知。
+后续3B其余baseline/PrimeLoRA跨场景/dLoRA、最终同版本7B主表与Full、
+A1–A5、S1–S13、CE/Pareto、两轮审稿文档/最终图表全部保留。
+
 ## 2026-10-23 D765完成：3B ServerlessLLM W1封存，下一同配置W2
+
+17:43 CST备份完成：39个明确路径提交8f9b97dea3bbbdaf48e8350b7c70129e2f73bca9，
+推送并核对faaslora_origin/backup/d765-complete-w1-20261023；BASE仍
+c9b3c9f7a02c1a118db089708697af3c76d47a5c，origin/main已核对。V2仍未同步，
+没有force push。publication session32936完成，result_publication精确空域
+关闭；回执随下一正常检查点携带，不新增闭合回执专用空备份。旧投稿及用户
+修改未变，没有新代码/配置/论文/图形变更。当前没有活动GPU任务或wait句柄；
+下一执行同配置W2的既有视图绑定及启动检查，不重复已完成W0/W1。
 
 17:35 CST自然终态，4000创建/提交/终态/响应，失败0；458224原生tokens
 全部匹配。共同联合80.075%、TTFT81.100%、TPOT98.325%；U8980.542167645
