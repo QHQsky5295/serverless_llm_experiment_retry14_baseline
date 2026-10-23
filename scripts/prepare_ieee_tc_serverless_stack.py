@@ -370,7 +370,8 @@ def scheduler_queue_source(source: str) -> str:
 
 def measurement_sources(native_source: Path, variant: str,
                         scheduler_queue: str = 'original', *,
-                        device_compile_cache: bool = False) -> dict[str, str]:
+                        device_compile_cache: bool = False,
+                        shared_tokenizer: bool = False) -> dict[str, str]:
     """Instrument identical control/engine boundaries; only router loop differs.
 
     Returns source text for an exclusive view; the dirty upstream checkout and
@@ -379,6 +380,8 @@ def measurement_sources(native_source: Path, variant: str,
     """
     if type(device_compile_cache) is not bool:
         raise ValueError('explicit device compilation cache flag required')
+    if type(shared_tokenizer) is not bool:
+        raise ValueError('explicit shared tokenizer flag required')
     paths = ['sllm/app_lib.py', 'sllm/backends/vllm_backend.py',
              'sllm/routers/roundrobin_router.py']
     original = {p: (native_source / p).read_text() for p in paths}
@@ -446,6 +449,12 @@ def measurement_sources(native_source: Path, variant: str,
             '        self.vllm_runtime_env = _apply_vllm_runtime_env(backend_config)\n'
             '        from sllm.backends.tc_measurement import configure_device_compile_cache\n'
             '        self._tc_compile_cache = configure_device_compile_cache(backend_config)\n')
+    if shared_tokenizer:
+        backend = replace_once(backend,
+            '            self._tc_ready_receipt = record_backend_ready(self, __file__)\n',
+            '            from sllm.backends.tc_measurement import configure_verified_shared_tokenizer\n'
+            '            self._tc_shared_tokenizer = configure_verified_shared_tokenizer(self)\n'
+            '            self._tc_ready_receipt = record_backend_ready(self, __file__)\n')
     result = dict(zip(paths, (app, backend, router)))
     if scheduler_queue == 'request_identity_v1':
         path = 'sllm/schedulers/storage_aware_scheduler.py'
@@ -457,14 +466,16 @@ def measurement_sources(native_source: Path, variant: str,
 
 def prepare_measurement_view(native_source: Path, output: Path, variant: str,
                              main_repo: Path, scheduler_queue: str = 'original', *,
-                             device_compile_cache_root: Path | None = None) -> dict:
+                             device_compile_cache_root: Path | None = None,
+                             shared_tokenizer: bool = False) -> dict:
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous source view')
     if device_compile_cache_root is not None and (
             not device_compile_cache_root.is_absolute() or '..' in device_compile_cache_root.parts):
         raise ValueError('absolute stable device cache root required')
     replacements = measurement_sources(native_source, variant, scheduler_queue,
-        device_compile_cache=device_compile_cache_root is not None)
+        device_compile_cache=device_compile_cache_root is not None,
+        shared_tokenizer=shared_tokenizer)
     support = ROOT / 'scripts/ieee_tc_serverless_measurement.py'
     output.mkdir(mode=0o700)
     # Copy only instrumented/repaired source files; unchanged files are symlinks.
@@ -500,6 +511,8 @@ def prepare_measurement_view(native_source: Path, output: Path, variant: str,
     if device_compile_cache_root is not None:
         result['device_compile_cache_root'] = str(device_compile_cache_root)
         result['compile_cache_contract'] = 'physical_device_compile_cache_v1'
+    if shared_tokenizer:
+        result['tokenizer_contract'] = 'verified_published_base_v1'
     with (output / 'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result
@@ -2127,6 +2140,8 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
                   launcher_manifest_sha256=sha((args.output / 'launch_manifest.json').read_bytes()))
     if measured and measured.get('compile_cache_contract') == 'physical_device_compile_cache_v1':
         result['configuration']['backend_config']['tc_device_compile_cache_root'] = measured['device_compile_cache_root']
+    if measured and measured.get('tokenizer_contract') == 'verified_published_base_v1':
+        result['configuration']['backend_config']['tc_tokenizer_contract'] = measured['tokenizer_contract']
     if http_cfg:
         index = json.loads(Path(http_cfg['pool_index']).read_text())
         if sha(Path(http_cfg['pool_index']).read_bytes()) != http_cfg['pool_index_sha256']:
@@ -2376,6 +2391,8 @@ def main() -> None:
     source.add_argument('--scheduler-queue', choices=('original', 'request_identity_v1'),
                         default='original')
     source.add_argument('--main-repo', type=Path, required=True)
+    source.add_argument('--shared-tokenizer', action='store_true',
+                        help='Verify published tokenizer identity before sharing the native base tokenizer.')
     slora = sub.add_parser('prepare-slora-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         slora.add_argument('--'+name, type=Path, required=True)
@@ -2441,7 +2458,7 @@ def main() -> None:
         return
     if args.action == 'prepare-measurement-view':
         print(json.dumps(prepare_measurement_view(args.native_source, args.output, args.variant,
-                                                 args.main_repo, args.scheduler_queue), indent=2))
+            args.main_repo, args.scheduler_queue, shared_tokenizer=args.shared_tokenizer), indent=2))
         return
     if args.action == 'export-checkpoint':
         print(json.dumps(export_checkpoint(args), indent=2))

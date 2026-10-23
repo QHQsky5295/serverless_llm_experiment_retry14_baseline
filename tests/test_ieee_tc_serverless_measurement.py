@@ -85,6 +85,129 @@ class DeviceCompileCacheTests(unittest.TestCase):
             self.assertFalse(root.exists())  # preparation neither compiles nor prewarms
 
 
+class SharedTokenizerTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        names = ('config.json', 'generation_config.json', 'special_tokens_map.json',
+                 'tokenizer.json', 'tokenizer_config.json')
+        files = {}
+        for name in names:
+            raw = ('content-'+name).encode()
+            (self.root/name).write_bytes(raw)
+            files[name] = (len(raw), hashlib.sha256(raw).hexdigest())
+        for name in ('adapter_config.json', 'adapter_model.safetensors', 'adapter_data.bin'):
+            files[name] = (1, 'a'*64)
+        self.manifests = {aid: dict(files) for aid in ('a','b')}
+        self.client = NS(content_manifest_sha256='index-sha',
+            preparation_manifests=Mock(side_effect=lambda ids: {a: self.manifests[a] for a in ids}))
+        group = NS(tokenizer_id=str(self.root), enable_lora=True, lora_tokenizers={}, tokenizer=object())
+        self.backend = NS(backend_config=dict(tc_tokenizer_contract='verified_published_base_v1',
+            lora_adapters={a: str(self.root/'objects'/a) for a in self.manifests}),
+            enable_lora=True, engine_args=NS(enable_lora=True),
+            _tc_artifact_resolver=NS(client=self.client, root=self.root,
+                config={'content_manifest_file_sha256':'file-sha'}),
+            engine=NS(tokenizer=group, vllm_config=NS(lora_config=object()),
+                processor=NS(tokenizer=group, input_preprocessor=NS(tokenizer=group)),
+                output_processor=NS(tokenizer=group)))
+
+    def test_equal_published_content_changes_only_tokenizer_selection(self):
+        backend = self.backend
+        lora_config = backend.engine.vllm_config.lora_config
+        tokenizer = backend.engine.tokenizer.tokenizer
+        receipt = measurement.configure_verified_shared_tokenizer(backend)
+        self.assertFalse(backend.engine.tokenizer.enable_lora)
+        self.assertIs(backend.engine.tokenizer.tokenizer, tokenizer)
+        self.assertTrue(backend.enable_lora and backend.engine_args.enable_lora)
+        self.assertIs(backend.engine.vllm_config.lora_config, lora_config)
+        self.assertEqual(receipt['adapter_count'], 2)
+        self.assertEqual(receipt['content_manifest_file_sha256'], 'file-sha')
+        self.client.preparation_manifests.assert_called_once_with(('a','b'))
+        self.assertFalse((self.root/'objects').exists())  # metadata only; no fetch/prewarm
+
+    def test_heterogeneous_tokenizer_rejected_before_mutation(self):
+        self.manifests['b']['tokenizer.json'] = (100,'b'*64)
+        with self.assertRaisesRegex(ValueError, 'published tokenizer differs'):
+            measurement.configure_verified_shared_tokenizer(self.backend)
+        self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_missing_or_alternative_assets_rejected(self):
+        original = dict(self.manifests['b'])
+        for name in ('missing', 'extra'):
+            self.manifests['b'] = dict(original)
+            if name == 'missing':
+                self.manifests['b'].pop('tokenizer_config.json')
+            else:
+                self.manifests['b']['added_tokens.json'] = (0,'c'*64)
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                measurement.configure_verified_shared_tokenizer(self.backend)
+            self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_changed_actual_base_bytes_rejected(self):
+        (self.root/'tokenizer.json').write_bytes(b'changed')
+        with self.assertRaises(ValueError):
+            measurement.configure_verified_shared_tokenizer(self.backend)
+        self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_additional_base_tokenizer_asset_rejected(self):
+        (self.root/'added_tokens.json').write_text('{}')
+        with self.assertRaises(ValueError):
+            measurement.configure_verified_shared_tokenizer(self.backend)
+        self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_requires_live_lora_binding_and_shared_unused_frontend(self):
+        for target, field, value in (
+            (self.backend, 'enable_lora', False),
+            (self.backend.engine_args, 'enable_lora', False),
+            (self.backend.engine.vllm_config, 'lora_config', None),
+            (self.backend.engine.output_processor, 'tokenizer', object()),
+            (self.backend.engine.processor.input_preprocessor, 'tokenizer', object()),
+            (self.backend.engine.tokenizer, 'lora_tokenizers', {1:object()}),
+            (self.backend, '_tc_artifact_resolver', None)):
+            with self.subTest(field=field), patch.object(target, field, value):
+                with self.assertRaises(ValueError):
+                    measurement.configure_verified_shared_tokenizer(self.backend)
+                self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_no_implicit_opt_in_or_unverified_path(self):
+        self.backend.backend_config.pop('tc_tokenizer_contract')
+        with self.assertRaises(ValueError):
+            measurement.configure_verified_shared_tokenizer(self.backend)
+        self.backend.backend_config['tc_tokenizer_contract'] = 'verified_published_base_v1'
+        self.backend.backend_config['lora_adapters']['b'] = '/other/b'
+        with self.assertRaises(ValueError):
+            measurement.configure_verified_shared_tokenizer(self.backend)
+        self.assertTrue(self.backend.engine.tokenizer.enable_lora)
+
+    def test_opt_in_source_changes_only_startup_tokenizer_representation(self):
+        original = launch.measurement_sources(NATIVE, 'repaired', device_compile_cache=True)
+        adapted = launch.measurement_sources(NATIVE, 'repaired', device_compile_cache=True,
+                                             shared_tokenizer=True)
+        key = 'sllm/backends/vllm_backend.py'
+        added = ('            from sllm.backends.tc_measurement import configure_verified_shared_tokenizer\n'
+                 '            self._tc_shared_tokenizer = configure_verified_shared_tokenizer(self)\n')
+        self.assertEqual(adapted[key].replace(added, ''), original[key])
+        self.assertLess(adapted[key].index('self.engine = AsyncLLMEngine.from_engine_args'),
+                        adapted[key].index('self._tc_shared_tokenizer ='))
+        self.assertLess(adapted[key].index('self._tc_shared_tokenizer ='),
+                        adapted[key].index('self._tc_ready_receipt ='))
+        for name in original:
+            if name != key:
+                self.assertEqual(original[name], adapted[name])
+        ast.parse(adapted[key])
+
+    def test_view_records_opt_in_without_changing_native_checkout(self):
+        view = launch.prepare_measurement_view(NATIVE, self.root/'view', 'repaired', MAIN,
+                                               shared_tokenizer=True)
+        self.assertEqual(view['tokenizer_contract'], 'verified_published_base_v1')
+        self.assertFalse(view['loader_policy_changed'])
+        legacy = launch.prepare_measurement_view(NATIVE, self.root/'legacy', 'repaired', MAIN)
+        self.assertNotIn('tokenizer_contract', legacy)
+        self.assertNotIn('configure_verified_shared_tokenizer',
+                        (self.root/'legacy/sllm/backends/vllm_backend.py').read_text())
+
+
 class PublishedResolverTests(unittest.IsolatedAsyncioTestCase):
     """Tiny real HTTP fixtures only, not production pool/performance runs."""
 

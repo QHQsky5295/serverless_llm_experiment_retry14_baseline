@@ -54,6 +54,64 @@ def configure_device_compile_cache(backend_config):
         shared_cache_cleared=False, compilation_disabled=False)
 
 
+def configure_verified_shared_tokenizer(backend):
+    """Intern byte-identical published tokenizers before native V1 serving.
+
+    vLLM 0.10.2's TokenizerGroup flag controls only tokenizer lookup, not
+    LoRARequest/weight execution. Both input and output use the same group.
+    This opt-in contract supports the audited JSON-tokenizer artifact layout;
+    heterogeneous/custom tokenizers fail rather than falling back to base.
+    The normal resolver still downloads/verifies every requested artifact.
+    No artifact prefetch, weight mutation, cache eviction, or periodic GC.
+    """
+    config = backend.backend_config
+    if config.get('tc_tokenizer_contract') != 'verified_published_base_v1':
+        raise ValueError('explicit verified published tokenizer contract required')
+    engine, resolver = backend.engine, backend._tc_artifact_resolver
+    group = engine.tokenizer
+    if (resolver is None or not backend.enable_lora or not backend.engine_args.enable_lora
+            or engine.vllm_config.lora_config is None or group is None
+            or not group.enable_lora or len(group.lora_tokenizers)
+            or engine.processor.tokenizer is not group
+            or engine.processor.input_preprocessor.tokenizer is not group
+            or engine.output_processor.tokenizer is not group):
+        raise ValueError('shared tokenizer requires an unused native LoRA-enabled V1 frontend')
+    names = ('config.json', 'generation_config.json', 'special_tokens_map.json',
+             'tokenizer.json', 'tokenizer_config.json')
+    payload_names = {'adapter_config.json', 'adapter_model.safetensors', 'adapter_data.bin'}
+    root = Path(group.tokenizer_id)
+    if not root.is_absolute() or not root.is_dir():
+        raise ValueError('actual engine tokenizer must have a local immutable source')
+    # Unsupported alternative assets could change AutoTokenizer selection.
+    extra = {'tokenizer.model', 'added_tokens.json', 'vocab.json', 'vocab.txt', 'merges.txt'}
+    if any((root/name).exists() for name in extra):
+        raise ValueError('tokenizer source has assets outside the audited JSON layout')
+    canonical = {}
+    for name in names:
+        raw = (root/name).read_bytes()
+        canonical[name] = (len(raw), hashlib.sha256(raw).hexdigest())
+    adapter_map = config.get('lora_adapters', {})
+    if not adapter_map:
+        raise ValueError('explicit published adapter mapping required')
+    manifests = resolver.client.preparation_manifests(tuple(sorted(adapter_map)))
+    for adapter_id, files in manifests.items():
+        if (set(files) != set(names) | payload_names
+                or any(files[name] != canonical[name] for name in names)
+                or adapter_map[adapter_id] != str(resolver.root/'objects'/adapter_id)):
+            raise ValueError('published tokenizer differs from actual engine tokenizer: '+adapter_id)
+    # All validation precedes the only mutation. Do NOT change backend.enable_lora,
+    # engine_args.enable_lora, vllm_config.lora_config, or native LoRA requests.
+    group.enable_lora = False
+    return dict(contract='verified_published_base_v1', tokenizer_id=str(root),
+        adapter_count=len(manifests),
+        content_manifest_sha256=resolver.client.content_manifest_sha256,
+        content_manifest_file_sha256=resolver.config['content_manifest_file_sha256'],
+        tokenizer_files={name: dict(size_bytes=size, sha256=digest)
+                         for name, (size, digest) in canonical.items()},
+        tokenizer_group_shared_by_input_output=True, lora_weights_enabled=True,
+        remote_resolver_preserved=True, per_adapter_tokenizer_construction=False)
+
+
 def record_backend_ready(backend, module_file):
     """Durable live identity before serving, not an actor-exit/GPU-release claim."""
     config = backend.backend_config.get('tc_worker_audit')
@@ -86,6 +144,8 @@ def record_backend_ready(backend, module_file):
         enable_lora=backend.enable_lora)
     if hasattr(backend, '_tc_compile_cache'):
         row['compile_cache'] = backend._tc_compile_cache
+    if hasattr(backend, '_tc_shared_tokenizer'):
+        row['shared_tokenizer'] = backend._tc_shared_tokenizer
     raw = json.dumps(row, sort_keys=True, separators=(',', ':')).encode()
     with (Path(config['root'])/(receipt_id+'.json')).open('xb') as handle:
         handle.write(raw)
