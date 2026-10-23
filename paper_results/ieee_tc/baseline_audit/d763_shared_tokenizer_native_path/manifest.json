@@ -1,0 +1,140 @@
+{
+  "passed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files": {
+    "audit.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/audit_prefix100.json",
+      "sha256": "f5f26a4d3f750e8c8e555263ea7542d90fd65b3d15847ec42386199ae64afe71"
+    },
+    "shared_tokenizer_live_proof.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/shared_tokenizer_live_proof.json",
+      "sha256": "f378d0509cce9719123cfcb8967d5bd1a1c12741a5747309518fec6862f81184"
+    },
+    "short_check_observation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/short_check_observation.json",
+      "sha256": "681da5fbe1e90e48b28bfacf5db572452bb74a46124ff4ad91bf9d8a0c02cc4f"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/qualification.json",
+      "sha256": "163f504ee475deeb17985c9381df322a90f95694f05eb663b33e1769e042c449"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/qualification_closure.json",
+      "sha256": "d7cce1c3cb7498c04776895a88d42f24cc2f69a1bfe0a5ed80e052bd832c02be"
+    },
+    "input_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/input_identity.json",
+      "sha256": "8e8d291d2598cbe89fa6687e5ec8acbd84cff5e3590cefc9e03e3d5d7b7b54fa"
+    },
+    "local_cleanup.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/local_cleanup.json",
+      "sha256": "bb555367278b6c6010a24a5d8021f28a145cb8b2bc94db4967a390746b6d4589"
+    },
+    "analysis_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/analysis_receipt.json",
+      "sha256": "16e1ebad95e0029f1fc20c0f2e6081cc3062e43d95ee9c000d5ca197bd3f2616"
+    },
+    "analysis_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/analysis_closure.json",
+      "sha256": "5fe8fb60da163bc6f3c23f2e83ff389a6303c3c3df82a3f01551ffdd1663b69e"
+    },
+    "start_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/start_receipt.json",
+      "sha256": "2e738e9e81df53507fd57d8380b14c257a8bab406c4cb30592df6cf2661feaad"
+    },
+    "start_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/start_closure.json",
+      "sha256": "951ed816db0dcdac831b2fc29aff704d0d2e36b02ce626ac2a5ae597a468431c"
+    },
+    "remote_health.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/remote_health.json",
+      "sha256": "8289247302ebafec0123432fbd95e7901b58508ef5a3f1b3d4e1453cde78f67a"
+    },
+    "remote_start.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/remote_start.log",
+      "sha256": "a70aae9aad2cc520f2dc5ff8e292176702ecc6779685f3501a397f46726df6bc"
+    },
+    "remote_stop.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/remote_stop.log",
+      "sha256": "1a48261942af79be15ba0f80017bd2ebc2a2ef9318e8c07f3fbe86016269a737"
+    },
+    "launch3b_repaired.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/launch3b_repaired.json",
+      "sha256": "36412715ec64f2e03b664ca6dab49b22101e7697dc2c6fa32a2ba2f8861c9fab"
+    },
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/prepare.py",
+      "sha256": "7dc56a562d23b42fe546c3724facaf5252cb12927d76c9a3cfc6aa2de1264357"
+    },
+    "seal.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/seal.py",
+      "sha256": "abe6ce35ffde57c3aba18c9901424d4af642e49aa3416ee6d8072e2f9a633b37"
+    },
+    "run3b_repaired.sh.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/run3b_repaired.sh",
+      "sha256": "ac1be43a8dd669254551e3713f0d51dafb34faf451fd7ba474c8fce4600363c2"
+    },
+    "start.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/start.py",
+      "sha256": "e72c731b81bc1c7b5bf1b3e40d0a14b260554594222f25eb1958e8e7bfb3d811"
+    },
+    "run_analysis.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/run_analysis.py",
+      "sha256": "ace387bf1a044d38094f5e72850d63650d0359de2dc7682fd57483c6a618c863"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/source_repaired/measurement_manifest.json",
+      "sha256": "92496725af2b77b413bf3e6582363f1ecd5b2ec54f0059661e6ad310ed97f8b2"
+    },
+    "restore_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/overlay3b_repaired/restore_receipt.json",
+      "sha256": "e497d825eee9383a6d4c805aca1eb10a422b51b599edd0fd73cf2ff9b5d03fa8"
+    },
+    "d762_publication_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/publication_receipt.json",
+      "sha256": "0400c25e50559b2a4cbd779de5a387138f36b694be1c749c7f0d8234875ad0c5"
+    },
+    "d762_publication_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/publication_closure.json",
+      "sha256": "f5628d9344f568e842d208aa4064957aef885cb90e930002c9aea3ef750d242f"
+    },
+    "d762_publication1_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/publication1_closure.json",
+      "sha256": "4648e2c3682a46caa1ac1a5e705fe17bad15dd730c3cb478c9c70068bc8bf1fc"
+    },
+    "d762_finish_publication.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/finish_publication.py",
+      "sha256": "e34c3b5585bab6d0dabecf275aa716fe3a9d68701cc097b40de35b284ee1df59"
+    },
+    "d762_close_publication.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/close_publication.py",
+      "sha256": "9bd6e11a36712a078a61668a9bc6da171f8a0a2aa1bb6dd8abcad153a43f5f6f"
+    }
+  },
+  "model": "3b",
+  "requests": 100,
+  "qualification_only": true,
+  "complete_W0": false,
+  "execution": {
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "7fc7c1a556fbf8d161ef607684416b51d7d917eff53a7c5e24ab4088d563f598",
+      "count": 100,
+      "source_count": 4000,
+      "profile": "W0",
+      "rate_scale": 1.0
+    },
+    "actual_unique_adapters": 29,
+    "target_tokens": 17369,
+    "performance_ranking_eligible": false,
+    "formal_run": false,
+    "main_execution_commit": "a7bd40cde1596ee289f6aed696ba2a53dbd851e0",
+    "baseline_execution_commit": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+    "generation_contract": "fixed_length_greedy_v1",
+    "native_configuration_reused": "D760 unchanged native policy; D762 content-verified shared tokenizer representation"
+  },
+  "protected_unchanged": 145,
+  "independent_numerical_correctness_proven": false,
+  "performance_ranking_eligible": false
+}

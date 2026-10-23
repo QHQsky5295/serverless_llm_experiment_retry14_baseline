@@ -1,0 +1,88 @@
+"""Seal one affected-path run, preserving its distinction from full W0."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d763_shared_tokenizer_native_path'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert read(RAW/'analysis_receipt.json')['passed']
+assert read(RAW/'analysis_closure.json')['path_gone']
+assert read(RAW/'local_cleanup.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status']=='RESTORED'
+q=read(RAW/'qualification.json')
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+audit=read(RAW/'audit_prefix100.json')
+assert audit['counts']==dict(N_plan=100,N_arrived=100,N_terminal=100,N_response=100,N_failed=0,N_submitted=100)
+assert audit['native_revalidated_requests']==100 and audit['actual_native_output_tokens']==17369
+assert audit['remote_affected_path_qualified'] and not audit['formal_performance_qualified']
+assert audit['remote_transfers']==29 and audit['request_time_pack_count']==0
+workers=sorted((RAW/'model3b_repaired/worker_receipts').glob('*.json'))
+assert len(workers)==4
+proof=[]
+for path in workers:
+    row=read(path)
+    shared=row['shared_tokenizer']
+    assert row['enable_lora'] is True and shared['lora_weights_enabled'] is True
+    assert shared['contract']=='verified_published_base_v1' and shared['adapter_count']==500
+    assert shared['remote_resolver_preserved'] is True
+    assert shared['per_adapter_tokenizer_construction'] is False
+    assert shared['content_manifest_file_sha256']==read(RAW/'http_3b_100.json')['pool_index_sha256']
+    proof.append(dict(path=str(path),sha256=p.digest(path),receipt=row))
+save(RAW/'shared_tokenizer_live_proof.json',dict(passed=True,workers=proof,
+    scope='actual native engine frontends, before serving; weight execution enablement retained',
+    independent_numerical_correctness_proven=False))
+oldpath=RAW.parent/'d756_20261023/audit_prefix100.json'
+old=read(oldpath)
+assert old['source_plan']==audit['source_plan']
+fields=['physical_gpu_seconds','service_memory_peak_bytes']
+save(RAW/'short_check_observation.json',dict(prior=str(oldpath),prior_sha256=p.digest(oldpath),
+    current=str(RAW/'audit_prefix100.json'),current_sha256=p.digest(RAW/'audit_prefix100.json'),
+    metrics={key:dict(before=old[key],after=audit[key],
+        relative_lower_better=(old[key]-audit[key])/old[key]) for key in fields},
+    joint_before=old['common_slo']['joint_attainment'],joint_after=audit['common_slo']['joint_attainment'],
+    claim='Single short startup-affected checks, not a full-W0 or isolated causal performance comparison.',
+    runtime_change='verified common tokenizer; ordinary retained compiler cache has different history',
+    full_workload_recovery_proven=False))
+OUT.mkdir(parents=True,exist_ok=False)
+sources=[RAW/name for name in ('audit_prefix100.json','shared_tokenizer_live_proof.json',
+    'short_check_observation.json','qualification.json','qualification_closure.json',
+    'input_identity.json','local_cleanup.json','analysis_receipt.json','analysis_closure.json',
+    'start_receipt.json','start_closure.json','remote_health.json','remote_start.log','remote_stop.log',
+    'launch3b_repaired.json','prepare.py','seal.py','run3b_repaired.sh','start.py','run_analysis.py')]
+sources.extend([RAW/'source_repaired/measurement_manifest.json',
+    RAW/'overlay3b_repaired/restore_receipt.json'])
+sources.extend(RAW.parent/'d762_20261023'/name for name in ('publication_receipt.json',
+    'publication_closure.json','publication1_closure.json','finish_publication.py','close_publication.py'))
+mapping={}
+for source in sources:
+    prefix='d762_' if source.parent.name=='d762_20261023' else ''
+    suffix='.snapshot' if source.suffix in ('.py','.sh','.log') else ''
+    name='audit.json' if source.name=='audit_prefix100.json' else prefix+source.name+suffix
+    target=OUT/name
+    with target.open('xb') as handle: handle.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+    mapping[name]=dict(source=str(source),sha256=p.digest(source))
+save(OUT/'manifest.json',dict(passed=True,plan_sha256=p.check_plan(),files=mapping,
+    model='3b',requests=100,qualification_only=True,complete_W0=False,
+    execution=read(RAW/'input_identity.json'),protected_unchanged=len(q['protected']),
+    independent_numerical_correctness_proven=False,performance_ranking_eligible=False))
+save(RAW/'result_receipt.json',dict(passed=True,identity=own,files=len(mapping),
+    protected_unchanged=len(q['protected']),resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,requests=100,workers_shared_tokenizer=4,complete_W0=False)))

@@ -1,0 +1,23 @@
+{
+  "prior": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d756_20261023/audit_prefix100.json",
+  "prior_sha256": "cb0b1a11085c2a30a8807ec63df25d6ae6b46bf807a3de655a2e652e361111cb",
+  "current": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d763_20261023/audit_prefix100.json",
+  "current_sha256": "f5f26a4d3f750e8c8e555263ea7542d90fd65b3d15847ec42386199ae64afe71",
+  "metrics": {
+    "physical_gpu_seconds": {
+      "before": 981.8548264596611,
+      "after": 934.5000545848161,
+      "relative_lower_better": 0.04822991199788187
+    },
+    "service_memory_peak_bytes": {
+      "before": 53823905792,
+      "after": 50360467456,
+      "relative_lower_better": 0.0643475846844764
+    }
+  },
+  "joint_before": 0.25,
+  "joint_after": 0.38,
+  "claim": "Single short startup-affected checks, not a full-W0 or isolated causal performance comparison.",
+  "runtime_change": "verified common tokenizer; ordinary retained compiler cache has different history",
+  "full_workload_recovery_proven": false
+}

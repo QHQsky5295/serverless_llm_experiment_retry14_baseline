@@ -1,0 +1,18 @@
+{
+  "3b": {
+    "clock_id": "remote-process-monotonic:362ffe4a34e9482786dc630a06adaa10",
+    "delivery_mode": "prepublished_gzip_v1",
+    "ok": true,
+    "root": "/home/lab14/primelora_remote_artifacts/llama32_3b_a500_v1_modelscope",
+    "time": 1792740005.5201485,
+    "timing_contract": "artifact_timing_v2"
+  },
+  "7b": {
+    "clock_id": "remote-process-monotonic:164fd150daa843dc909aaf9bc208b3bd",
+    "delivery_mode": "prepublished_gzip_v1",
+    "ok": true,
+    "root": "/home/lab14/primelora_remote_artifacts/llama2_7b_a500_v2_publicmix",
+    "time": 1792740005.5405216,
+    "timing_contract": "artifact_timing_v2"
+  }
+}

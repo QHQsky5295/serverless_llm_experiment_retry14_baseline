@@ -1,0 +1,81 @@
+"""Bind the existing full W0 to the D763-qualified common tokenizer path."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+OLD=RAW.parent/'d760_20261023'
+CHECK=RAW.parent/'d763_20261023'
+sys.path[:0]=[str(MAIN),str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as native
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert read(CHECK/'result_receipt.json')['passed']
+assert read(CHECK/'reclamation.json')['passed']
+assert read(CHECK/'contract_closure.json')['path_gone']
+assert p.digest(CHECK/'audit_prefix100.json')=='f5f26a4d3f750e8c8e555263ea7542d90fd65b3d15847ec42386199ae64afe71'
+prior=read(CHECK/'qualification.json')
+for name,digest in (prior['refs']|prior['protected']|prior['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+http=read(OLD/'http_3b_4000.json')
+http['experiment_role']='native_full4000_w0_verified_shared_tokenizer_development_observation'
+plan=native.load_http_replay_plan(http)
+assert plan.identity()==prior['views']['4000']['plan']
+rows=[json.loads(entry.source_json) for entry in plan.entries]
+assert len({r['adapter_id'] for r in rows})==132
+assert sum(min(r['expected_output_tokens'],256) for r in rows)==458224
+save(RAW/'http_3b_4000.json',http)
+view=native.prepare_measurement_view(
+    BASE/'vendor_new_baselines/ServerlessLLM_new_main_20260518',RAW/'source_repaired',
+    'repaired',MAIN,'request_identity_v1',shared_tokenizer=True,
+    device_compile_cache_root=Path(prior['source_view']['device_compile_cache_root']))
+assert view['measured_sha256']==prior['source_view']['measured_sha256']
+assert view['helper_sha256']==prior['source_view']['helper_sha256']
+save(RAW/'overlay_preflight.json',read(CHECK/'overlay_preflight.json'))
+mapping=[]
+for name in ('run3b_repaired.sh','start.py','start_remote.sh','stop_remote.sh',
+             'check_remote_health_stdlib.py','close.py','close_launch.py',
+             'restore_overlay.py','preserve_evidence.py','run_analysis.py'):
+    source=OLD/name
+    body=source.read_text().replace('d760','d764').replace('D760','D764')
+    if name=='start.py':
+        before='D759 unchanged native model/policy/cache ownership'
+        assert body.count(before)==1
+        body=body.replace(before,'D763-qualified verified common tokenizer; unchanged native policy/cache ownership')
+    target=RAW/name
+    with target.open('x') as stream: stream.write(body)
+    if target.suffix=='.py': ast.parse(body,filename=str(target))
+    else: subprocess.run(['bash','-n',str(target)],check=True)
+    mapping.append(dict(source=str(source),source_sha256=p.digest(source),
+        target=str(target),target_sha256=p.digest(target)))
+paths=[*RAW.glob('*.py'),*RAW.glob('*.sh'),RAW/'http_3b_4000.json',RAW/'overlay_preflight.json',
+    RAW/'source_repaired/measurement_manifest.json',BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'scripts/ieee_tc_serverless_measurement.py',MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+    Path(http['trace']),Path(http['pool_index']),CHECK/'audit_prefix100.json',CHECK/'shared_tokenizer_live_proof.json',
+    MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json',
+    MAIN/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json']
+save(RAW/'qualification.json',dict(passed=True,reused_native_tests=114,reused_3b_input_tests=89,
+    affected_tests=33,new_component_tests=0,views=prior['views'],protected=prior['protected'],
+    preserved=prior['preserved'],native_configuration=prior['native_configuration'],source_view=view,
+    refs={str(path):p.digest(path) for path in paths},mechanical_rebindings=mapping,
+    changed_path_native_check=str(CHECK/'audit_prefix100.json'),
+    no_new_weights_or_trace=True,performance_qualified=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,requests=4000,adapter_ids=132,target_tokens=458224,
+    source_view_matches_actual_D763=True,gpu_started=False)))

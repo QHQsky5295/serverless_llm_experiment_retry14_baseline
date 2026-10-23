@@ -1,0 +1,24 @@
+"""Close only the recorded publication scope after its children exited."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+identity=json.loads((RAW/'finish_publication_identity.json').read_text())
+assert json.loads((RAW/'publication_receipt.json').read_text())['passed']
+path=Path(identity['path'])
+assert p.scope_still_owned(identity)
+members={str(file):file.read_text().split() for file in path.rglob('cgroup.procs')}
+assert members and all(not row for row in members.values())
+resources=p.cgroup_snapshot(path)
+subprocess.run(['systemctl','--user','stop',identity['unit']],check=True)
+assert not path.exists()
+with (RAW/'publication_closure.json').open('x') as handle:
+    json.dump(dict(passed=True,identity=identity,resources=resources,
+        actual_recursive_procs_empty=True,path_gone=True),handle,indent=2)
+print(json.dumps(dict(passed=True,path_gone=True)))

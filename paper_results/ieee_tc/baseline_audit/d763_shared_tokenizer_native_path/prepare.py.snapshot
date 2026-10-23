@@ -1,0 +1,89 @@
+"""Bind the existing 100-request native entry to D762's verified representation."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+OLD=RAW.parent/'d756_20261023'
+ADAPT=RAW.parent/'d762_20261023'
+sys.path[:0]=[str(MAIN),str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as native
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+changed=read(ADAPT/'qualification.json')
+assert changed['passed'] and read(ADAPT/'unit_tests.json')['tests']==33
+assert read(ADAPT/'publication_receipt.json')['passed']
+assert read(ADAPT/'publication_closure.json')['path_gone']
+for name,digest in (changed['refs']|changed['protected']|changed['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+prior=read(RAW.parent/'d760_20261023/qualification.json')
+http=read(OLD/'http_3b_100.json')
+http['experiment_role']='verified_shared_tokenizer_affected_native_path'
+plan=native.load_http_replay_plan(http)
+assert plan.identity()==prior['views']['100']['plan']
+rows=[json.loads(e.source_json) for e in plan.entries]
+assert len({r['adapter_id'] for r in rows})==29
+assert sum(min(r['expected_output_tokens'],256) for r in rows)==17369
+save(RAW/'http_3b_100.json',http)
+view=native.prepare_measurement_view(
+    BASE/'vendor_new_baselines/ServerlessLLM_new_main_20260518',RAW/'source_repaired',
+    'repaired',MAIN,'request_identity_v1',shared_tokenizer=True,
+    device_compile_cache_root=Path(changed['source_view']['device_compile_cache_root']))
+assert view['measured_sha256']==changed['source_view']['measured_sha256']
+assert view['helper_sha256']==changed['source_view']['helper_sha256']
+save(RAW/'overlay_preflight.json',read(OLD/'overlay_preflight.json'))
+mapping=[]
+for name in ('run3b_repaired.sh','start.py','start_remote.sh','stop_remote.sh',
+             'check_remote_health_stdlib.py','close.py','close_launch.py',
+             'restore_overlay.py','preserve_evidence.py','run_analysis.py'):
+    source=OLD/name
+    body=source.read_text().replace('d756','d763').replace('D756','D763')
+    if name=='start.py':
+        edits={
+            "BINDING=RAW.parent/'d755_20261023/qualification.json'":"BINDING=RAW/'qualification.json'",
+            "RAW.parent/'d755_20261023/review_closure.json'":"RAW/'qualification_closure.json'",
+            'D754 unchanged model/policy; D755 device compile cache ownership adaptation':
+                'D760 unchanged native policy; D762 content-verified shared tokenizer representation',
+            "assert binding['views']['100']['plan']['count']==100":
+                "assert binding['views']['100']['plan']['count']==100\nassert binding['affected_tests']==33",
+        }
+        for before,after in edits.items():
+            assert body.count(before)==1,before
+            body=body.replace(before,after)
+    target=RAW/name
+    with target.open('x') as stream: stream.write(body)
+    if target.suffix=='.py': ast.parse(body,filename=str(target))
+    else: subprocess.run(['bash','-n',str(target)],check=True)
+    mapping.append(dict(source=str(source),source_sha256=p.digest(source),
+        target=str(target),target_sha256=p.digest(target)))
+save(RAW/'backup_receipt.json',read(ADAPT/'publication_receipt.json'))
+save(RAW/'backup_closure.json',read(ADAPT/'publication_closure.json'))
+paths=[*RAW.glob('*.py'),*RAW.glob('*.sh'),RAW/'http_3b_100.json',RAW/'overlay_preflight.json',
+    RAW/'source_repaired/measurement_manifest.json',BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'scripts/ieee_tc_serverless_measurement.py',MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+    Path(http['trace']),Path(http['pool_index']),MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+    MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json']
+save(RAW/'qualification.json',dict(passed=True,reused_native_tests=114,reused_3b_input_tests=89,
+    affected_tests=33,views=prior['views'],protected=prior['protected'],preserved=prior['preserved'],
+    native_configuration=prior['native_configuration'],source_view=view,
+    refs={str(path):p.digest(path) for path in paths},mechanical_rebindings=mapping,
+    no_new_weights_or_trace=True,model_path_qualified=False,performance_qualified=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,requests=100,adapter_ids=29,target_tokens=17369,
+    tokenizer_contract=view['tokenizer_contract'],gpu_started=False)))

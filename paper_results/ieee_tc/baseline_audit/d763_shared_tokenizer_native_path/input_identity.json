@@ -1,0 +1,19 @@
+{
+  "plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "7fc7c1a556fbf8d161ef607684416b51d7d917eff53a7c5e24ab4088d563f598",
+    "count": 100,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "actual_unique_adapters": 29,
+  "target_tokens": 17369,
+  "performance_ranking_eligible": false,
+  "formal_run": false,
+  "main_execution_commit": "a7bd40cde1596ee289f6aed696ba2a53dbd851e0",
+  "baseline_execution_commit": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+  "generation_contract": "fixed_length_greedy_v1",
+  "native_configuration_reused": "D760 unchanged native policy; D762 content-verified shared tokenizer representation"
+}

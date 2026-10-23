@@ -1,0 +1,26 @@
+1000
+full
+Running as unit: primelora-artifact-monitor-d763-3b100.service; invocation ID: 08b0b6dc8beb4a339308d9a3c6e9321a
+MainPID=279826
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-3b.service
+ActiveState=active
+InvocationID=4d0ffc0f6055466aace0f7506f4a389c
+
+MainPID=279828
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-7b.service
+ActiveState=active
+InvocationID=dcd1cb9a2c16479f928d21ec24473822
+
+MainPID=279831
+MemoryHigh=134217728
+MemoryMax=268435456
+MemorySwapMax=0
+Id=primelora-artifact-monitor-d763-3b100.service
+ActiveState=active
+InvocationID=08b0b6dc8beb4a339308d9a3c6e9321a
