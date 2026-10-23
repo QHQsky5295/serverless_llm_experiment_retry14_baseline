@@ -1,0 +1,160 @@
+"""Stream D760 evidence into fixed time bins; retain causal limitations."""
+import bisect
+from collections import Counter, defaultdict
+import csv
+import json
+import math
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+SRC = RAW.parent/'d760_20261023'
+DEST = MAIN/'paper_results/ieee_tc/baseline_audit/d761_3b_memory_cause'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+
+old = json.loads((RAW/'diagnostic_identity.json').read_text())
+old_path = Path(old['path'])
+assert p.scope_still_owned(old)
+assert all(not f.read_text().split() for f in old_path.rglob('cgroup.procs'))
+snapshot = p.cgroup_snapshot(old_path)
+subprocess.run(['systemctl','--user','stop',old['unit']], check=True)
+assert not old_path.exists()
+save(RAW/'diagnostic_closure.json', dict(identity=old, resources=snapshot,
+     actual_recursive_procs_empty=True, path_gone=True))
+
+sources = set()
+def rows(path):
+    sources.add(path)
+    with path.open() as handle:
+        for line in handle:
+            yield json.loads(line)
+
+try:
+    startup = list(rows(SRC/'model3b_repaired/startup_events.jsonl'))
+    anchor = next(r for r in startup if r['event']=='native_stack_start')
+    offset = anchor['wall_time_s']-anchor['monotonic_s']
+    baseline = anchor['monotonic_s']
+    bins = {}
+    def get_bin(t):
+        key = math.floor((t-baseline)/300)
+        if key not in bins:
+            bins[key] = dict(index=key, start_s=key*300,
+                response_count=0, failed_count=0, resolver_complete=0,
+                resource_samples=0, memory_peak_bytes=0, swap_peak_bytes=0,
+                high_counter_last=0, high_counter_first=None,
+                full_psi_avg10_peak=0., backend_pids=set(), adapters=set())
+        return bins[key]
+    responses, failures = [], []
+    request_counts = Counter()
+    for r in rows(SRC/'launch3b_repaired.launch/replay.jsonl'):
+        if r['event'] in ('http_response','http_request_failed'):
+            t = r['client_completed_s']
+            failed = r['event']=='http_request_failed'
+            get_bin(t)['failed_count' if failed else 'response_count'] += 1
+            (failures if failed else responses).append(t)
+            request_counts[r['request_id']] += 1
+    assert len(request_counts)==4000 and set(request_counts.values())=={1}
+    assert len(responses)==2522 and len(failures)==1478
+    responses.sort()
+    failures.sort()
+    first_high = None
+    sample_times = []
+    memory_at_response_gap = []
+    for r in rows(SRC/'launch3b_repaired.launch/watchdog.jsonl'):
+        if r['event']!='resource_sample':
+            continue
+        t, svc = r['monotonic'], r['service']
+        b = get_bin(t)
+        b['resource_samples'] += 1
+        b['memory_peak_bytes'] = max(b['memory_peak_bytes'],svc['memory.current'])
+        b['swap_peak_bytes'] = max(b['swap_peak_bytes'],svc['memory.swap.current'])
+        high = svc['memory.events']['high']
+        b['high_counter_last'] = high
+        if b['high_counter_first'] is None:
+            b['high_counter_first'] = high
+        for line in svc['memory.pressure'].splitlines():
+            if line.startswith('full '):
+                psi = float(dict(item.split('=') for item in line.split()[1:])['avg10'])
+                b['full_psi_avg10_peak'] = max(b['full_psi_avg10_peak'],psi)
+        if high and first_high is None:
+            first_high = dict(monotonic_s=t, since_start_s=t-baseline,
+                wall_time_s=t+offset, memory_current=svc['memory.current'], high=high,
+                responses_so_far=bisect.bisect_right(responses,t))
+        sample_times.append(t)
+    per_pid = Counter()
+    for path in sorted((SRC/'remote_resolver_evidence/journals').glob('*.jsonl')):
+        for r in rows(path):
+            if r['event']=='resolve_completed':
+                t=r['monotonic_s']
+                b=get_bin(t)
+                b['resolver_complete'] += 1
+                b['backend_pids'].add(r['pid'])
+                b['adapters'].add(r['adapter_id'])
+                per_pid[r['pid']] += 1
+    assert sum(per_pid.values())==4000
+    intervals = sorted((b-a,a,b) for a,b in zip(responses,responses[1:]))
+    gap = intervals[-1]
+    samples = list(rows(RAW/'tokenizer_samples.jsonl'))
+    initial = next(r for r in samples if r['event']=='group_created')
+    before = next(r for r in samples if r['event']=='before_explicit_gc')
+    after = next(r for r in samples if r['event']=='after_explicit_gc')
+    lookups = [r for r in samples if r['event']=='lookup']
+    assert len(lookups)==120 and sum(r['cache_miss'] for r in lookups)==79
+    assert max(r['cache_count'] for r in lookups)==4
+    assert before['live_classes']==35 and after['live_classes']==4
+    table=[]
+    for key,b in sorted(bins.items()):
+        b['backend_pids'] = ';'.join(map(str,sorted(b['backend_pids'])))
+        b['unique_adapters'] = len(b.pop('adapters'))
+        table.append(b)
+    with (RAW/'timeline_300s.csv').open('x',newline='') as handle:
+        writer=csv.DictWriter(handle,fieldnames=list(table[0]))
+        writer.writeheader()
+        writer.writerows(table)
+    summary=dict(no_performance_replay=True, d760_outcome_unchanged=True,
+        first_memory_high=first_high,
+        longest_between_response_gap=dict(seconds=gap[0], start_monotonic_s=gap[1],
+            end_monotonic_s=gap[2], start_wall_s=gap[1]+offset, end_wall_s=gap[2]+offset,
+            responses_before=bisect.bisect_right(responses,gap[1]),
+            responses_after=len(responses)-bisect.bisect_left(responses,gap[2])),
+        native_resolver_completions_by_pid=dict(per_pid),
+        tokenizer_cpu_diagnostic=dict(lookups=len(lookups), native_cache_misses=79,
+            cache_capacity=4, initial=initial, before_gc=before, after_gc=after,
+            rss_growth_bytes=before['process']['VmRSS']-initial['process']['VmRSS'],
+            rss_gc_reduction_bytes=before['process']['VmRSS']-after['process']['VmRSS']),
+        limitations=['CPU diagnostic does not quantify its contribution to full-run stall.',
+            'RSS includes shared/file pages and allocator retention; not equivalent to service PSS.',
+            'GC diagnostic is not a proposed periodic-GC serving patch.',
+            'No surviving production heap snapshot; other causes remain possible.'],
+        sources_sha256={str(path):p.digest(path) for path in sorted(sources)},
+        script_sha256=p.digest(Path(__file__)))
+    save(RAW/'summary.json', summary)
+    DEST.mkdir(parents=True,exist_ok=False)
+    files=['summary.json','timeline_300s.csv','diagnostic_contract.json',
+        'diagnostic_receipt.json','diagnostic_identity.json','diagnostic_closure.json',
+        'tokenizer_samples.jsonl','tokenizer_diagnostic.py','analyze.py']
+    for name in files:
+        shutil.copy2(RAW/name, DEST/name)
+        assert p.digest(RAW/name)==p.digest(DEST/name)
+    save(DEST/'manifest.json', dict(source=str(RAW),
+        files={name:p.digest(DEST/name) for name in files}, formal_run=False,
+        diagnostic_only=True, memory_cause_partially_isolated=True))
+    print(json.dumps({k:v for k,v in summary.items() if k not in ('sources_sha256','tokenizer_cpu_diagnostic')},indent=2))
+finally:
+    save(RAW/'analysis_receipt.json', dict(identity=identity, resources=p.cgroup_snapshot(group)))

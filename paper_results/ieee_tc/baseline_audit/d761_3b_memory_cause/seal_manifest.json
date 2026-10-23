@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "protected_unchanged": 145,
+  "preserved_user_files_unchanged": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "files": {
+    "analysis2_receipt.json": "540de4514450a5ce96f9b9cd70538c3b4442be0f0a3d0f9d794f673e3fb92a19",
+    "analysis2_identity.json": "086e959effc345bf4c8d7fc9da9fe54a8db87f36f1ebb36e11f33c80a703c8ab",
+    "analysis2_closure.json": "bd62e755c4dd32b0d1a01799d29553cad6ae6d1a3d4bf622c50f20e7c05a34e1",
+    "tokenizer_equivalence.json": "054fdd0970d83f7f82cd50bc91346a2ae6dd9533baf348ab98f231e53519ff0f",
+    "seal.py": "9a1288c128db6f152826cd0de5c0e697680f681480b60e6cd09f2068d253bf5e"
+  },
+  "previous_checkpoint": {
+    "d760_result_publication_receipt.json": "405f07fe1b00a17873b56a6b88759991811edd6f5603d941bcb5c1feb9cb2d72",
+    "d760_result_publication_closure.json": "768784d23c55ed74e15c1e7511c683e214885c16f6e2e18a232bddee148ce9af"
+  },
+  "main_head": "7bd3b1848d7481cc87190d8f639c00493748a63e",
+  "no_performance_run": true,
+  "no_serving_change": true
+}

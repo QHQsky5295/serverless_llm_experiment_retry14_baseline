@@ -1,0 +1,21 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023",
+  "files": {
+    "summary.json": "f269da304218bd4b07de6d971b923aed0d17bc1dfbdf8bfc688b9074ef99d843",
+    "timeline_300s.csv": "6ce4c2c2eb6a46a63da8157233b66545d85877a46ade1a718b2cdd3521df2509",
+    "diagnostic_contract.json": "fc4a7bac20bb3968bdfed203cb674894c7239cbe680ed345dacf7bfbfa06613e",
+    "diagnostic_receipt.json": "fa127bb1bf3214c4719223c24c8c5efcb0641d05ac86a719bdcdb0c494ed2cd7",
+    "diagnostic_identity.json": "cc1e0bb0a33af959bb0a7b7796962852746a07902d9244cc2b5af6933ea19055",
+    "diagnostic_closure.json": "e87c90b9a25fda8241105a37e06426f42e2009347896ff3d98bb2720aaa8f38a",
+    "tokenizer_samples.jsonl": "51c472fb6f0457ecd27fa290ba1d42697080e96b57e14f117624c9de300c2fbc",
+    "tokenizer_diagnostic.py": "49051e9be7d44d7a53e02bc1427ed4c4b14a63d246c9d4c3442641aa2a24a410",
+    "analyze.py": "0c8e9ee90574ab30a33ccf8e4cb54404cc28774514cf80eb0687f6912f159fdc",
+    "analysis_receipt.json": "6430485c539777f7da5d8f26d3ba6be81fe7b6c835fc602227afc32e10f0ed9a",
+    "analysis_identity.json": "636b7ad58500e90eba0d46d7ac8c38798c7199fa4fa4648a85d4041b2e37925f",
+    "analysis1_closure.json": "711965054da438288a609aba836e1c86400fb9f27e70654d1a5b206f59e82211",
+    "analyze_attempt1.py.snapshot": "e7d150eb1ec3c19350c042fad7e498280fd110a54e73866bca80b8f1157b0f90"
+  },
+  "formal_run": false,
+  "diagnostic_only": true,
+  "memory_cause_partially_isolated": true
+}

@@ -1,0 +1,161 @@
+{
+  "no_performance_replay": true,
+  "d760_outcome_unchanged": true,
+  "first_memory_high": {
+    "monotonic_s": 2240000.459662728,
+    "since_start_s": 1928.0756250941195,
+    "wall_time_s": 1792732752.9381886,
+    "memory_current": 77285810176,
+    "high": 2,
+    "responses_so_far": 1956
+  },
+  "longest_between_response_gap": {
+    "seconds": 3450.2209133389406,
+    "start_monotonic_s": 2240399.895919711,
+    "end_monotonic_s": 2243850.11683305,
+    "start_wall_s": 1792733152.3744457,
+    "end_wall_s": 1792736602.5953588,
+    "responses_before": 2489,
+    "responses_after": 33
+  },
+  "native_resolver_completions_by_pid": {
+    "1034817": 744,
+    "990137": 1056,
+    "991443": 1006,
+    "992035": 1001,
+    "992808": 193
+  },
+  "tokenizer_cpu_diagnostic": {
+    "lookups": 120,
+    "native_cache_misses": 79,
+    "cache_capacity": 4,
+    "initial": {
+      "event": "group_created",
+      "elapsed_s": 44.66067004902288,
+      "process": {
+        "VmRSS": 860295168,
+        "RssAnon": 517595136,
+        "RssFile": 342700032,
+        "VmSwap": 0
+      },
+      "gc_counts": [
+        31,
+        3,
+        11
+      ],
+      "gc_stats": [
+        {
+          "collections": 740,
+          "collected": 7753,
+          "uncollectable": 0
+        },
+        {
+          "collections": 67,
+          "collected": 1250,
+          "uncollectable": 0
+        },
+        {
+          "collections": 5,
+          "collected": 1059,
+          "uncollectable": 0
+        }
+      ],
+      "live_tokenizers": 0,
+      "live_classes": 0,
+      "cache_count": 0
+    },
+    "before_gc": {
+      "event": "before_explicit_gc",
+      "elapsed_s": 89.66594136506319,
+      "process": {
+        "VmRSS": 2726866944,
+        "RssAnon": 2384166912,
+        "RssFile": 342700032,
+        "VmSwap": 0
+      },
+      "gc_counts": [
+        27,
+        10,
+        17
+      ],
+      "gc_stats": [
+        {
+          "collections": 813,
+          "collected": 7753,
+          "uncollectable": 0
+        },
+        {
+          "collections": 73,
+          "collected": 3372,
+          "uncollectable": 0
+        },
+        {
+          "collections": 5,
+          "collected": 1059,
+          "uncollectable": 0
+        }
+      ],
+      "live_tokenizers": 4,
+      "live_classes": 35,
+      "cache_count": 4,
+      "stop": "bounded_rss_stop"
+    },
+    "after_gc": {
+      "event": "after_explicit_gc",
+      "elapsed_s": 91.02944850316271,
+      "process": {
+        "VmRSS": 2429382656,
+        "RssAnon": 2086682624,
+        "RssFile": 342700032,
+        "VmSwap": 0
+      },
+      "gc_counts": [
+        15,
+        0,
+        0
+      ],
+      "gc_stats": [
+        {
+          "collections": 813,
+          "collected": 7753,
+          "uncollectable": 0
+        },
+        {
+          "collections": 73,
+          "collected": 3372,
+          "uncollectable": 0
+        },
+        {
+          "collections": 6,
+          "collected": 2613,
+          "uncollectable": 0
+        }
+      ],
+      "live_tokenizers": 4,
+      "live_classes": 4,
+      "cache_count": 4,
+      "collected": 1554,
+      "stop": "bounded_rss_stop"
+    },
+    "rss_growth_bytes": 1866571776,
+    "rss_gc_reduction_bytes": 297484288
+  },
+  "limitations": [
+    "CPU diagnostic does not quantify its contribution to full-run stall.",
+    "RSS includes shared/file pages and allocator retention; not equivalent to service PSS.",
+    "GC diagnostic is not a proposed periodic-GC serving patch.",
+    "No surviving production heap snapshot; other causes remain possible."
+  ],
+  "sources_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/launch3b_repaired.launch/replay.jsonl": "e5cbfa98d9d0ced3bf2050116e7a364be4393b391e01e30a2a7f9534e5d222ec",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/launch3b_repaired.launch/watchdog.jsonl": "84ad250fe809f4731112aad1841b08b71ade4bea56cbde92f643f74ab7ea43a4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/model3b_repaired/startup_events.jsonl": "5d51582b19ba5d31697f00ea49d859a0b9ba81b5636d51f720d68ecf400331f0",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_resolver_evidence/journals/1034817-68000295b662460580ce3b2c5d16d747.jsonl": "ac9d002aa755b62dd1396648b4d6c84f46989c95bdb842c86dbaf695bae14e4e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_resolver_evidence/journals/990137-d78ff6d1477948cb9c02ae64a7d20caf.jsonl": "fbde7f49385df3b90ec798d486c030bb04c0376a8601e802944c237518c56a2f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_resolver_evidence/journals/991443-1b7aaf3e543948bbacd9f5c54d680d9f.jsonl": "7a22a5504a92467cebaca6ce5663cab63ca52176afff68f88bc19585178f49d1",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_resolver_evidence/journals/992035-603f024396ed4683a4e6480b5cb20962.jsonl": "c2cf3bd84c0d5c63b60016eca6c8a37621c6c1e4664bc486d5374a561b39f930",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_resolver_evidence/journals/992808-629784e3c6c24f9081179941a5ec9603.jsonl": "5f3615c9f255a32486cb498f98340bb42474ed3bef67b3f575b010ec4441195c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023/tokenizer_samples.jsonl": "51c472fb6f0457ecd27fa290ba1d42697080e96b57e14f117624c9de300c2fbc"
+  },
+  "script_sha256": "0c8e9ee90574ab30a33ccf8e4cb54404cc28774514cf80eb0687f6912f159fdc"
+}

@@ -1,0 +1,34 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d7610000000000000000000000000002.scope",
+    "invocation_id": "8f4d9246c50b406e97bb51a531be8e23",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7610000000000000000000000000002.scope",
+    "inode": 30924369
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7610000000000000000000000000002.scope",
+    "memory.current": 24576,
+    "memory.peak": 12599296,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 1186191\nuser_usec 1132136\nsystem_usec 54054\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "actual_recursive_procs_empty": true,
+  "path_gone": true,
+  "failed_reason": "KeyError: adapter_id; actual completion schema uses tc_artifact_id",
+  "source_sha256": "e7d150eb1ec3c19350c042fad7e498280fd110a54e73866bca80b8f1157b0f90"
+}
