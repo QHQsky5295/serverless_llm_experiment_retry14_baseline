@@ -1,0 +1,15 @@
+"""Restore this execution's loader only after its complete physical release."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+RAW=Path(__file__).resolve().parent
+launch=json.loads((RAW/'launch3b_repaired.json').read_text())
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert not Path(launch['service_identity']['path']).exists()
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert not (RAW/'overlay3b_repaired/restore_receipt.json').exists()
+subprocess.run([sys.executable,
+    '/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py',
+    '--action','restore','--backup-root',str(RAW/'overlay3b_repaired/backups'),
+    '--receipt',str(RAW/'overlay3b_repaired/install.json')],check=True)

@@ -1,0 +1,18 @@
+"""Close only this completed CPU preparation's exact owned empty scope."""
+import json
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+identity = json.loads((RAW / 'identity.json').read_text())
+assert p.scope_still_owned(identity)
+path = Path(identity['path'])
+assert not p.owned_pids(path)
+resources = p.cgroup_snapshot(path)
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not path.exists()
+with (RAW / 'closure.json').open('x') as out:
+    json.dump(dict(passed=True, identity=identity, resources=resources, closure=closed), out, indent=2)
+print(json.dumps(dict(passed=True, peak=resources['memory.peak'], events=resources['memory.events'])))

@@ -1,0 +1,90 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/reuse.json",
+      "sha256": "5b9e68dd279458a22045763b16dab5c2a3162498125be6dcde367b1250954d61"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/qualification.json",
+      "sha256": "675189aeb6e1c665361e0fe1216737621139328f8b1c563b5e24f1e558759af5"
+    },
+    {
+      "path": "docs/ieee_tc/D753_3B_BASELINE_REUSE_AND_SERVERLESSLLM_ENTRY_20261023.md",
+      "sha256": "fd06b654947d1cd8d22cee63e94920e85d68e1cb894d378b84319228b72d62b9"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_restore_overlay.py.snapshot",
+      "sha256": "08cdca6916ed49a91ce4cd7f238d69c475bc75abdc94ea20183406b023dcf90b"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_start.py.snapshot",
+      "sha256": "38d19d7e98c8a583e19f061d41897c8257e4592c8dac28127ffb2692ac5bbabb"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_run_analysis.py.snapshot",
+      "sha256": "b4186d694a89798a892251bde1fb7296ace3647ced4306fb8bee12612737652e"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_close.py.snapshot",
+      "sha256": "1dfdaf437889bd64db219c9b63316040357aa4f3ccdb23d259d699677ebde423"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_preserve_evidence.py.snapshot",
+      "sha256": "a56758760c7851c38aea1d1169d212478f657296b5c512d7692d7dc3733c24ad"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_close_launch.py.snapshot",
+      "sha256": "43a3f7107da65c02f0829d4bb07faa33cb9fa4b0ecc938f38457d4863c3fd16d"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_run3b_repaired.sh.snapshot",
+      "sha256": "c840aa2bbf8ba9a730e0a533542be15be0f12a18b75f390a50cb1e503419ee89"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_stop_remote.sh.snapshot",
+      "sha256": "fdeb3f7b180947566fef38dae9088e84347f2a8ab0b06fabc1320ba1a4fff21c"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_start_remote.sh.snapshot",
+      "sha256": "cfc3b0f175f9b194415a868a8d996f0dc08d1634751d068617b7f618cca938a6"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_http_3b_100.json",
+      "sha256": "c5aeaa15d8142ea927a9abf87810eab015eee924a60e2e3356e5bb213047a8b9"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_overlay_preflight.json",
+      "sha256": "23f1603351ae600d14d3a36f4c07390f4f6d992607e0cc5c85d2a94f2eefc2bc"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d754_measurement_manifest.json",
+      "sha256": "e47d351afdcd3a44a5eefb9067651fb7c5314d84e13a9dcf5c7ab84cbd988d93"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d753_prepare.py.snapshot",
+      "sha256": "bdbd423311bb965b976027be46ab2aa9fd4390979d569b8c8f19c959791efd14"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d753_close.py.snapshot",
+      "sha256": "83457cbf7f400a2d8e395e14ab667e7b5cd1c428eda05d508d14ffa6d1a48e46"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d753_closure.json",
+      "sha256": "40916c3ce40a019f678b20b04169d2b51756df861e96bcaad11fb146f159c11f"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/execution/d753_publish.py.snapshot",
+      "sha256": "3c4368c4110ac363e7a4fd6ba747b9bf0167cb76a64ce7653e1cdba8b3d22f5b"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d753_3b_reuse/prelaunch_d754.json",
+      "sha256": "3d6a2cf797f2a6c023ee1a74006c5f076bf3ea4d63c50b99c7b7e19088b8feaf"
+    }
+  ],
+  "exact_source_snapshots": true,
+  "no_independent_audit_pass": true
+}

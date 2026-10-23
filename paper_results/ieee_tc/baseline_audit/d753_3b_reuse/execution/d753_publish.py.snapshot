@@ -1,0 +1,91 @@
+"""Seal CPU reuse evidence and tested D754 recipe before any GPU execution."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+NEXT = RAW.parent / 'd754_20261023'
+OUT = ROOT / 'paper_results/ieee_tc/baseline_audit/d753_3b_reuse'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT).strip()
+
+identity = p.scope_identity(p.cg_path().name)
+save(NEXT / 'backup_identity.json', identity)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+q = json.loads((RAW / 'qualification.json').read_text())
+assert q['passed'] and len(q['new_input_checks']) == 7
+for name, sha in (q['refs'] | q['protected'] | q['preserved']).items():
+    assert p.digest(Path(name)) == sha, name
+closure = json.loads((RAW / 'closure.json').read_text())
+assert closure['passed'] and not Path(closure['identity']['path']).exists()
+files = [OUT / 'reuse.json', OUT / 'qualification.json',
+    ROOT / 'docs/ieee_tc/D753_3B_BASELINE_REUSE_AND_SERVERLESSLLM_ENTRY_20261023.md',
+    ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']
+snapshots = OUT / 'execution'
+snapshots.mkdir(exist_ok=False)
+recipes = [*NEXT.glob('*.py'), *NEXT.glob('*.sh')]
+for source in recipes:
+    if source.suffix == '.py':
+        ast.parse(source.read_text(), filename=str(source))
+    else:
+        subprocess.run(['bash', '-n', str(source)], check=True)
+assert "'--model-key','3b'" in (NEXT / 'run_analysis.py').read_text()
+assert "'prefix100'" in (NEXT / 'run_analysis.py').read_text()
+assert '/tmp/tc-d754-3br/' in (NEXT / 'preserve_evidence.py').read_text()
+assert '/d80_20260927/3b/transfers-' in (NEXT / 'preserve_evidence.py').read_text()
+assert '."3b".clock_id' in (NEXT / 'stop_remote.sh').read_text()
+sources = recipes + [NEXT / 'http_3b_100.json', NEXT / 'overlay_preflight.json',
+    NEXT / 'source_repaired/measurement_manifest.json', RAW / 'prepare.py', RAW / 'close.py',
+    RAW / 'closure.json', Path(__file__)]
+for source in sources:
+    label = ('d753_' if source.parent == RAW else 'd754_') + source.name
+    if source.suffix in ('.py', '.sh'):
+        label += '.snapshot'
+    dest = snapshots / label
+    with dest.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(source) == p.digest(dest)
+    files.append(dest)
+binding = OUT / 'prelaunch_d754.json'
+save(binding, dict(passed=True, source_sha256={str(path): p.digest(path) for path in sources},
+    source_qualification_sha256=p.digest(RAW / 'qualification.json'), no_gpu_run=True,
+    new_checks=7, reused_native_checks=114, reused_input_checks=89))
+files.append(binding)
+manifest = OUT / 'manifest.json'
+save(manifest, dict(files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+                          for path in files if path.name != 'EXECUTION_STATUS.md'],
+    exact_source_snapshots=True, no_independent_audit_pass=True))
+files.append(manifest)
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), path
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *paths])
+call(['git', 'commit', '-m', 'tc: reuse 3B baseline evidence and qualify ServerlessLLM entry (D753)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d753-3b-baselines-20261023'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(NEXT / 'backup_receipt.json', dict(passed=True, head=head, remote_ref=ref,
+    files=paths, v2_synchronized=False, baseline_unchanged=True,
+    memory=p.cgroup_snapshot(Path(identity['path']))))
+print(json.dumps(dict(passed=True, head=head, remote_ref=ref, files=len(paths))), flush=True)

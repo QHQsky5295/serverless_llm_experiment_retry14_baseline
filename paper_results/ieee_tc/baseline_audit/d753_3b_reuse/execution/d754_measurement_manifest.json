@@ -1,0 +1,32 @@
+{
+  "schema": "ieee_tc_serverless_measurement_view_v1",
+  "variant": "repaired",
+  "native_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/ServerlessLLM_new_main_20260518",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023/source_repaired",
+  "shared_package": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora",
+  "repository_startup_hooks": false,
+  "original_sha256": {
+    "sllm/app_lib.py": "33a319e2f2be700d2aa20c68068312c028449ff7c962ea1fc8b64568f55587fb",
+    "sllm/backends/vllm_backend.py": "994c80ae9c6106a6469f9d8d5889132e5c2032608c4e497141c00127f91cc777",
+    "sllm/routers/roundrobin_router.py": "2bcbba0d8a3fdf46354f75c1d8ca5bcd79e505f059fcb296bf30dbff176e8f6e",
+    "sllm/schedulers/storage_aware_scheduler.py": "b7779e41f451a3328eb73337533d6d9b117aafe6ee6b78f9b28e9b5f5e2b0567"
+  },
+  "measured_sha256": {
+    "sllm/app_lib.py": "0091152d89a47b06dc20415cea2ba68a6428f9f20ec7fa1b138051a9f62c5776",
+    "sllm/backends/vllm_backend.py": "4c874e1210a5b8be9435bea40a56410b065eb3602301933977ad162668e81715",
+    "sllm/routers/roundrobin_router.py": "ee08f28f550b0d50fa81f58ae98a94c3af75f17f6371ed446ee6896716ab09ff",
+    "sllm/schedulers/storage_aware_scheduler.py": "7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91"
+  },
+  "helper_sha256": "2302032a596c5d0b0390ecc0bec372939636e4982ee1a257de223b5b3236ae79",
+  "helper_path": "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_serverless_measurement.py",
+  "shared_source_sha256": {
+    "faaslora/storage/http_artifact_store.py": "980643ca2c1c8a8a86ef58d5f884c016c5f6977db5a657b803d9727fe0d00024",
+    "faaslora/clock.py": "dfb56eee569afc35d6b944dd86a1cc663a31ab5ee6917b9205a10ad3f75ee4cb"
+  },
+  "loader_policy_changed": false,
+  "routing_policy_changed": true,
+  "scheduler_queue": "request_identity_v1",
+  "scheduler_placement_policy_changed": false,
+  "source_adapter_sha256": "d9277550f57098fccc36b6ca9c5d488518598aee740ddfbe6f2a95b88479ff48",
+  "performance_run_authorized": false
+}

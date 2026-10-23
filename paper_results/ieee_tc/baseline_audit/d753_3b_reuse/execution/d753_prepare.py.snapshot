@@ -1,0 +1,164 @@
+"""Reuse D555's qualified ServerlessLLM path with existing D649 3B inputs.
+
+CPU-only preparation; no new serving policy, weights, workload or GPU run.
+Historical results retain their original status and unknown numerical proof.
+"""
+import copy
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+NEXT = RAW.parent / 'd754_20261023'
+OLD = RAW.parent / 'd555_20261015'
+OUT = MAIN / 'paper_results/ieee_tc/baseline_audit/d753_3b_reuse'
+sys.path[:0] = [str(MAIN), str(BASE / 'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as s
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'identity.json', own)
+group = Path(own['path'])
+assert (group / 'memory.high').read_text().strip() == str(3 * p.GIB)
+assert (group / 'memory.max').read_text().strip() == str(4 * p.GIB)
+assert (group / 'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                    '--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+q555 = read(OLD / 'qualification.json')
+assert q555['passed'] and q555['reused_native_tests'] == 114
+source_paths = [BASE / 'scripts/prepare_ieee_tc_serverless_stack.py',
+               BASE / 'scripts/ieee_tc_serverless_measurement.py']
+for path in source_paths:
+    assert p.digest(path) == q555['refs'][str(path)], path
+oldview = read(OLD / 'source_repaired/measurement_manifest.json')
+for name, sha in oldview['shared_source_sha256'].items():
+    assert p.digest(MAIN / name) == sha, name
+for name, sha in q555['preserved'].items():
+    assert p.digest(Path(name)) == sha, name
+
+# Preserve D74 diagnostic evidence without re-running its failed local prefix.
+summary_path = MAIN / 'paper_results/ieee_tc/serverless_audit/20260927_3b_repaired_polling_d74.json'
+old = read(summary_path)
+for field in ('replay', 'http_config', 'deployment'):
+    assert p.digest(Path(old[field + '_path'])) == old[field + '_sha256']
+assert old['counts']['N_plan'] == 1000 and old['counts']['N_failed'] == 3
+assert old['remote_qualified'] is False and old['workload_passed'] is False
+historical = dict(source_summary=str(summary_path), sha256=p.digest(summary_path),
+    counts=old['counts'], reuse_class='R2', no_replay_required=True,
+    reason='Local 1000-request failed diagnostic lacks current remote/lifecycle contract.',
+    preserved_evidence='Native model/checkpoint, input and polling diagnosis; not a main-table result.')
+
+# Existing three full 3B vLLM runs also serve as Resident references: no duplicate run.
+references_path = MAIN / 'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json'
+references = read(references_path)
+vllm = {}
+for profile, campaign, filename in [('W0', 'd653', 'audit_full4000.json'),
+                                  ('W1', 'd654', 'audit_full4000_w1.json'),
+                                  ('W2', 'd656', 'audit_full4000_w2.json')]:
+    path = RAW.parent.parent / 'vllm_qualification' / (campaign + '_20261018') / filename
+    ref = references[profile]
+    assert p.digest(path) == ref['source_audit_sha256']
+    assert ref['n_protocol_valid'] == 4000 and ref['reference_frozen']
+    vllm[profile] = dict(ref, audit_path=str(path), reuse_class='R0_observation',
+                        rerun_required=False)
+
+cfg = read(NEXT / 'http_3b_100.json')
+s.validate_http_lifecycle_contract(cfg)
+q649 = read(RAW.parent.parent / 'vllm_qualification/d649_20261018/qualification.json')
+assert q649['passed'] and q649['tests'] == 89
+views = {}
+for label, count in [('100', 100), ('1000', 1000), ('4000', 4000), ('coverage', 500)]:
+    candidate = dict(cfg, request_count=count)
+    if label == 'coverage':
+        candidate.update(request_view='adapter_coverage_v1',
+                         experiment_role='adapter_pool_functional_coverage')
+    plan = s.load_http_replay_plan(candidate)
+    assert plan.identity() == q649['views'][label]['plan'], label
+    rows = [json.loads(entry.source_json) for entry in plan.entries]
+    assert len({row['adapter_id'] for row in rows}) == q649['views'][label]['actual_unique_adapters']
+    views[label] = dict(plan=plan.identity(), actual_unique_adapters=len({r['adapter_id'] for r in rows}),
+                        target_tokens=sum(min(r['expected_output_tokens'], 256) for r in rows))
+assert p.digest(Path(cfg['pool_index'])) == cfg['pool_index_sha256']
+checks = list(views)
+for label, delta in [('wrong_source', {'trace_sha256': '0' * 64}),
+                     ('wrong_profile', {'replay_profile': 'W1'}),
+                     ('unlabelled_coverage', {'request_count': 500})]:
+    try:
+        s.load_http_replay_plan(dict(cfg, **delta))
+    except ValueError:
+        checks.append(label + '_rejected')
+    else:
+        raise AssertionError(label + ' accepted')
+
+# The public hybrid mode already replaces qualification-only eager in 7B.
+# Reuse that correction, not a 3B performance search; retain historical target8.
+checkpoint = BASE / 'models/vllm' / cfg['model']
+config = s.native_model_config(checkpoint, Path(cfg['backbone']), min_instances=1,
+    max_instances=4, target=8, keep_alive=10, enforce_eager=False)
+d74config = read(Path(old['deployment_path']))
+assert config['auto_scaling_config'] == d74config['auto_scaling_config']
+for key, value in config['backend_config'].items():
+    if key != 'enforce_eager':
+        assert value == d74config['backend_config'][key], key
+tensor_index = read(checkpoint / 'rank_0/tensor_index.json')
+assert set(row[4] for row in tensor_index.values()) == {'torch.float16'}
+assert max(row[0] + row[1] for row in tensor_index.values()) == (checkpoint / 'rank_0/tensor.data_0').stat().st_size
+view = s.prepare_measurement_view(BASE / 'vendor_new_baselines/ServerlessLLM_new_main_20260518',
+    NEXT / 'source_repaired', 'repaired', MAIN, 'request_identity_v1')
+for key in ('original_sha256', 'measured_sha256', 'shared_source_sha256', 'helper_sha256', 'source_adapter_sha256'):
+    assert view[key] == oldview[key], key
+installer = Path('/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py')
+assert p.digest(installer) == q555['refs'][str(installer)]
+spec = importlib.util.spec_from_file_location('d753_loader', installer)
+loader = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(loader)
+_, overlay = loader.build_overlay(loader.DEFAULT_VLLM_ROOT, loader.DEFAULT_OFFICIAL_PATCH)
+assert overlay['members'] == read(OLD / 'overlay_preflight.json')['members']
+save(NEXT / 'overlay_preflight.json', overlay)
+subprocess.run(['bash', '-n', str(NEXT / 'run3b_repaired.sh')], check=True)
+protected = read(MAIN / 'paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/qualification.json')['protected']
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+
+OUT.mkdir(parents=True, exist_ok=False)
+save(OUT / 'reuse.json', dict(passed=True, historical_serverlessllm=historical,
+    resident_vllm=vllm, reference_manifest_sha256=p.digest(references_path),
+    no_gpu_run=True, no_performance_ranking=True,
+    independent_review='unavailable: experiment-audit shared references missing'))
+refs = [*source_paths, summary_path, references_path, installer, Path(__file__),
+    Path(cfg['trace']), Path(cfg['pool_index']), checkpoint / 'rank_0/tensor_index.json',
+    MAIN / 'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+    MAIN / 'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    MAIN / 'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json',
+    NEXT / 'http_3b_100.json', NEXT / 'run3b_repaired.sh',
+    NEXT / 'source_repaired/measurement_manifest.json', NEXT / 'overlay_preflight.json']
+qualification = dict(passed=True, scope=own, reused_native_tests=114,
+    reused_3b_input_tests=89, new_input_checks=checks, views=views,
+    native_configuration=config, checkpoint_reused=str(checkpoint),
+    checkpoint_tensor_count=len(tensor_index), no_checkpoint_conversion=True,
+    source_view=view, no_gpu_run=True, native_3b_remote_path_qualified=False,
+    refs={str(path): p.digest(path) for path in refs}, protected=protected,
+    preserved=q555['preserved'], resources=p.cgroup_snapshot(group))
+save(OUT / 'qualification.json', qualification)
+save(RAW / 'qualification.json', qualification)
+print(json.dumps(dict(passed=True, reuse='D74 diagnostic; D653/D654/D656 complete observations',
+    new_input_checks=len(checks), next='D754 3B remote native smoke100',
+    no_gpu_run=True, source_view_unchanged=True)), flush=True)

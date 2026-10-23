@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+MAIN=/home/qhq/serverless_llm_experiment_retry14_baseline
+BASE=/home/qhq/serverless_llm_baselines
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023
+ENV=/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518
+STORE=${BASE}/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1
+TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
+export PRIME_REMOTE_TOKEN
+cd "${MAIN}"
+exec systemd-run --user --scope --unit=primelora-tc-aux-d7540000000000000000000000000004.scope \
+  -p AllowedCPUs=2,3,26,27 -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
+  taskset -c 2,3,26,27 env \
+  PYTHONPATH="${RAW}/source_repaired:${STORE}/site-packages" \
+  LD_LIBRARY_PATH="${STORE}/site-packages/sllm_store" PATH="${ENV}/bin:${PATH}" \
+  FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py \
+  FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea \
+  PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 VLLM_NO_USAGE_STATS=1 RAY_USAGE_STATS_ENABLED=0 \
+  /usr/bin/python3 "${MAIN}/scripts/ieee_tc_preflight.py" gated-launch \
+  --output "${RAW}/launch3b_repaired.json" --predicted-growth-gib 32 \
+  --http-replay-config "${RAW}/http_3b_100.json" \
+  --exec "${ENV}/bin/python" "${BASE}/scripts/prepare_ieee_tc_serverless_stack.py" qualify-model \
+  --output "${RAW}/model3b_repaired" --private-root /tmp/tc-d754-3br --main-repo "${MAIN}" \
+  --environment "${ENV}" --native-source "${RAW}/source_repaired" \
+  --checkpoint-root "${BASE}/models" \
+  --backbone /home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct \
+  --trace "${TRACE}" --store-package "${STORE}" \
+  --overlay-receipt "${RAW}/overlay3b_repaired/install.json" --gpu-ids 0,1,2,3 \
+  --host 192.168.4.178 --model-name v43-sllm-native-smoke-llama32-3b \
+  --ray-port 6398 --api-port 8348 --http-replay-config "${RAW}/http_3b_100.json" \
+  --min-instances 1 --max-instances 4 --target 8 --keep-alive 10 --no-enforce-eager
