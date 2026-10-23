@@ -875,5 +875,125 @@ class DloraHTTPServiceTests(unittest.IsolatedAsyncioTestCase):
             entry.assert_called_once_with(sys.argv[1:])
 
 
+class DloraLlamaModelCompatibilityTests(unittest.TestCase):
+    """Execute changed native constructors/loader, without GPU or random weights."""
+
+    @classmethod
+    def setUpClass(cls):
+        import torch
+        cls.torch = torch
+        cls.sources = p.dlora_llama_model_sources(NATIVE)
+
+    def native_class(self, path, name, methods, namespace):
+        node = next(n for n in ast.parse(self.sources[path]).body
+                    if isinstance(n, ast.ClassDef) and n.name == name)
+        node.body = [n for n in node.body if (isinstance(n, ast.FunctionDef)
+                     and n.name in methods) or isinstance(n, ast.Assign)]
+        exec(compile(ast.Module(body=[node], type_ignores=[]), '<actual-model-methods>', 'exec'), namespace)
+        return namespace[name]
+
+    def model(self, tied):
+        torch = self.torch
+        class Body(torch.nn.Module):
+            def __init__(self, cfg, parallel):
+                super().__init__()
+                self.embed_tokens = torch.nn.Embedding(64, cfg.hidden_size)
+        namespace = dict(nn=torch.nn, Optional=Optional, ParallelConfig=NS,
+            LlamaModel=Body, get_pipeline_model_parallel_world_size=lambda:1,
+            is_pipeline_last_stage=lambda:True,
+            ColumnParallelLinear=lambda size,vocab,**kw:torch.nn.Linear(size,vocab,bias=False),
+            Sampler=lambda _:torch.nn.Identity(),get_tensor_model_parallel_world_size=lambda:1,
+            get_tensor_model_parallel_rank=lambda:0,
+            load_padded_tensor_parallel_vocab=lambda param,loaded,rank:param.data.copy_(loaded))
+        model_cls = self.native_class('vllm/model_executor/models/llama.py', 'LlamaForCausalLM',
+                                     {'__init__','load_weights'}, namespace)
+        cfg = NS(tie_word_embeddings=tied,vocab_size=64,hidden_size=4,
+                 num_attention_heads=2,num_key_value_heads=1)
+        return model_cls(cfg,NS()),namespace
+
+    def test_tied_head_shares_loaded_parameter_after_dtype_conversion(self):
+        torch = self.torch
+        model, ns = self.model(True)
+        source = torch.arange(256,dtype=torch.float32).reshape(64,4)
+        ns['hf_model_weights_iterator'] = lambda *args:iter([
+            ('model.embed_tokens.weight',source),('lm_head.weight',torch.full_like(source,-1))])
+        model.load_weights('/not-read')
+        self.assertIs(model.lm_head,model.model.embed_tokens)
+        torch.testing.assert_close(model.lm_head.weight,source,rtol=0,atol=0)
+        model.double()
+        self.assertIs(model.lm_head.weight,model.model.embed_tokens.weight)
+        torch.testing.assert_close(model.lm_head.weight,source.double(),rtol=0,atol=0)
+
+    def test_untied_checkpoint_head_remains_independent(self):
+        torch = self.torch
+        model, ns = self.model(False)
+        source = torch.ones(64,4)
+        ns['hf_model_weights_iterator'] = lambda *args:iter([
+            ('model.embed_tokens.weight',source),('lm_head.weight',source*2)])
+        model.load_weights('/not-read')
+        self.assertIsNot(model.lm_head,model.model.embed_tokens)
+        torch.testing.assert_close(model.lm_head.weight,source*2,rtol=0,atol=0)
+
+    def rope(self, scaling, base=500000):
+        torch = self.torch
+        class Parent(torch.nn.Module):
+            def __init__(self,*args): super().__init__()
+        cls = self.native_class('vllm/model_executor/layers/attention.py','PagedAttentionWithRoPE',
+                                {'__init__'},dict(torch=torch,Optional=Optional,PagedAttention=Parent))
+        old = torch.get_default_dtype()
+        try:
+            torch.set_default_dtype(torch.float16)
+            return cls(24,128,128**-.5,128,max_position=1024,base=base,
+                       num_kv_heads=8,rope_scaling=scaling).cos_sin_cache
+        finally:
+            torch.set_default_dtype(old)
+
+    def test_llama3_rope_all_bands_match_scalar_definition(self):
+        torch = self.torch
+        scaling = dict(rope_type='llama3',factor=32,low_freq_factor=1,
+                       high_freq_factor=4,original_max_position_embeddings=8192)
+        freqs = []
+        for i in range(0,128,2):
+            f = 500000**(-i/128)
+            wavelength = 2*math.pi/f
+            if wavelength > 8192: f /= 32
+            elif wavelength >= 2048:
+                smooth = (8192/wavelength-1)/3
+                f = (1-smooth)*f/32+smooth*f
+            freqs.append(f)
+        # FP32 trig then FP16 cache, matching the kernel's storage contract.
+        phase = torch.arange(1024,dtype=torch.float32)[:,None]*torch.tensor(freqs,dtype=torch.float32)
+        expected = torch.cat((phase.cos(),phase.sin()),dim=-1).half()
+        actual = self.rope(scaling)
+        self.assertTrue(torch.isfinite(actual).all())
+        torch.testing.assert_close(actual,expected,rtol=1e-3,atol=5e-4)
+        self.assertFalse(torch.equal(actual,self.rope(None)))
+
+    def test_unscaled_path_retains_native_7b_cache(self):
+        torch = self.torch
+        old = torch.get_default_dtype()
+        try:
+            torch.set_default_dtype(torch.float16)
+            inv = 1/(10000**(torch.arange(0,128,2)/128))
+            phase = torch.einsum('i,j -> ij',torch.arange(1024).float(),inv.float())
+            expected = torch.cat((phase.cos(),phase.sin()),dim=-1).half()
+        finally: torch.set_default_dtype(old)
+        torch.testing.assert_close(self.rope(None,10000),expected,rtol=0,atol=0)
+
+    def test_unknown_or_invalid_scaling_is_not_silently_ignored(self):
+        for scaling in (dict(rope_type='dynamic'),dict(rope_type='llama3',factor=32,
+                low_freq_factor=4,high_freq_factor=4,original_max_position_embeddings=8192)):
+            with self.subTest(scaling=scaling),self.assertRaises(ValueError): self.rope(scaling)
+
+    def test_compatibility_is_opt_in_and_keeps_scheduler_unchanged(self):
+        off = p.dlora_measurement_sources(NATIVE,canonical_input=True,worker_lifecycle=True)
+        on = p.dlora_measurement_sources(NATIVE,canonical_input=True,worker_lifecycle=True,
+                                        llama_model_compat=True)
+        self.assertEqual(set(on)-set(off),set(p.DLORA_LLAMA_SOURCES))
+        for path in off: self.assertEqual(off[path],on[path])
+        self.assertIn('rope_scaling=getattr(config, "rope_scaling", None)',
+                      on['vllm/model_executor/models/llama.py'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -377,10 +377,87 @@ DLORA_OBSERVATION_SOURCES = {
     'vllm/worker/lora_engine.py': '4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9',
 }
 DLORA_RAY_SOURCE_SHA256 = 'e063611e74c09d1e4df8b80c8c82e3ca1b01b82d83ab7d56ca9ea5d9daf41198'
+DLORA_LLAMA_SOURCES = {
+    'vllm/model_executor/models/llama.py': 'beeeb731d1c79534726c7c9228810695000ef530ae51159dcf0dfecdf85e4ce1',
+    'vllm/model_executor/layers/attention.py': '01967f67d5996e56cc773632f8c3e56d3f186fb04644e72daf250c3ee71e083f',
+}
+
+
+def dlora_llama_model_sources(native_source: Path) -> dict[str, str]:
+    """Model semantics only: tied vocabulary and Llama 3 RoPE, PP1 scope.
+
+    Based on vLLM v0.6.3.post1 Llama weight tying and Transformers v4.45.2
+    _compute_llama3_parameters. Keep native attention kernels and scheduling.
+    No model-name test, substituted weights, or performance-policy change.
+    """
+    for path, expected in DLORA_LLAMA_SOURCES.items():
+        if sha((native_source/path).read_bytes()) != expected:
+            raise ValueError('dLoRA model compatibility source drift: '+path)
+    llama_path, attention_path = DLORA_LLAMA_SOURCES
+    llama = (native_source/llama_path).read_text()
+    llama = replace_once(llama, '        rope_theta: float = 10000,\n',
+        '        rope_theta: float = 10000,\n        rope_scaling: Optional[Dict] = None,\n')
+    llama = replace_once(llama, '                                           num_kv_heads=self.num_kv_heads)\n',
+        '                                           num_kv_heads=self.num_kv_heads,\n'
+        '                                           rope_scaling=rope_scaling)\n')
+    llama = replace_once(llama, '            rope_theta=rope_theta,\n',
+        '            rope_theta=rope_theta,\n'
+        '            rope_scaling=getattr(config, "rope_scaling", None),\n')
+    old_head = '''            self.lm_head = ColumnParallelLinear(config.hidden_size,
+                                                vocab_size,
+                                                bias=False,
+                                                gather_output=False,
+                                                perform_initialization=False)
+'''
+    new_head = '''            if getattr(config, "tie_word_embeddings", False):
+                if get_pipeline_model_parallel_world_size() != 1:
+                    raise ValueError("tied vocabulary adaptation is qualified only for PP1")
+                self.lm_head = self.model.embed_tokens
+            else:
+                self.lm_head = ColumnParallelLinear(config.hidden_size,
+                                                   vocab_size,
+                                                   bias=False,
+                                                   gather_output=False,
+                                                   perform_initialization=False)
+'''
+    llama = replace_once(llama, old_head, new_head)
+    llama = replace_once(llama, '            if "rotary_emb.inv_freq" in name:\n',
+        '            if (name == "lm_head.weight"\n'
+        '                    and getattr(self.config, "tie_word_embeddings", False)):\n'
+        '                continue  # The shared parameter is loaded from embed_tokens.\n'
+        '            if "rotary_emb.inv_freq" in name:\n')
+    attention = (native_source/attention_path).read_text()
+    start = attention.index('class PagedAttentionWithRoPE(')
+    before, rope = attention[:start], attention[start:]
+    rope = replace_once(rope, '        num_kv_heads: Optional[int] = None,\n',
+        '        num_kv_heads: Optional[int] = None,\n        rope_scaling: Optional[dict] = None,\n')
+    rope = replace_once(rope,
+        '        inv_freq = 1.0 / (base**(torch.arange(0, rotary_dim, 2) / rotary_dim))\n', '''        if rope_scaling is None:
+            inv_freq = 1.0 / (base**(torch.arange(0, rotary_dim, 2) / rotary_dim))
+        else:
+            if rope_scaling.get("rope_type", rope_scaling.get("type")) != "llama3":
+                raise ValueError("unsupported RoPE scaling in dLoRA model adaptation")
+            factor = float(rope_scaling["factor"])
+            low = float(rope_scaling["low_freq_factor"])
+            high = float(rope_scaling["high_freq_factor"])
+            original = float(rope_scaling["original_max_position_embeddings"])
+            if not (factor >= 1 and high > low > 0 and original > 0):
+                raise ValueError("invalid Llama 3 RoPE configuration")
+            # FP32 is essential: theta=500000 overflows the native FP16 base.
+            inv_freq = 1.0 / (base**(torch.arange(0, rotary_dim, 2).float() / rotary_dim))
+            wavelen = 2 * torch.pi / inv_freq
+            scaled = torch.where(wavelen > original / low, inv_freq / factor, inv_freq)
+            smooth = (original / wavelen - low) / (high - low)
+            interpolated = (1 - smooth) * scaled / factor + smooth * scaled
+            medium = (wavelen >= original / high) & (wavelen <= original / low)
+            inv_freq = torch.where(medium, interpolated, scaled)
+''')
+    return {llama_path: llama, attention_path: before+rope}
 
 
 def dlora_measurement_sources(native_source: Path, *, canonical_input=False,
-                              worker_lifecycle=False, cpu_zero_mlp_views=False) -> dict[str, str]:
+                              worker_lifecycle=False, cpu_zero_mlp_views=False,
+                              llama_model_compat=False) -> dict[str, str]:
     """Passive native event hooks in the retained dLoRA compatibility tree.
 
     SequenceGroup already migrates by deepcopy. Carry its measured timestamps
@@ -499,6 +576,8 @@ class LoRaEngine:
             constructor = replace_once(constructor, marker, marker.replace('LoRaWeight(', 'TCZeroLoRaWeight('))
         source = source[:start]+constructor+source[end:]
         replacements[path] = source
+    if llama_model_compat:
+        replacements.update(dlora_llama_model_sources(native_source))
     for path, source in replacements.items():
         compile(source, path, 'exec')
     return replacements
@@ -506,7 +585,7 @@ class LoRaEngine:
 
 def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path,
                                    *, canonical_input=False, worker_lifecycle=False,
-                                   cpu_zero_mlp_views=False) -> dict:
+                                   cpu_zero_mlp_views=False, llama_model_compat=False) -> dict:
     """Reuse the source-view approach; preserve vendor checkout and old results."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
@@ -515,7 +594,8 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
         raise ValueError('source view must be outside the preserved native checkout')
     replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input,
                                               worker_lifecycle=worker_lifecycle,
-                                              cpu_zero_mlp_views=cpu_zero_mlp_views)
+                                              cpu_zero_mlp_views=cpu_zero_mlp_views,
+                                              llama_model_compat=llama_model_compat)
     support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
     output.mkdir(mode=0o700)
     for parent, dirs, files in os.walk(native_source/'vllm'):
@@ -553,6 +633,11 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
         result.update(cpu_lora_representation='attention_only_cpu_mlp_zero_views_v1',
             cpu_representation_changed=True, gpu_representation_changed=False,
             cpu_kv_capacity_changed=False, absent_module_validation='all_configs_and_tensor_headers')
+    if llama_model_compat:
+        result['original_sha256'] = dict(result['original_sha256'], **DLORA_LLAMA_SOURCES)
+        result.update(model_compatibility='tied_vocab_llama3_rope_pp1_v1',
+            model_arithmetic_changed=True, native_attention_kernels_preserved=True,
+            model_configuration_authoritative=True)
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result
@@ -2658,6 +2743,8 @@ def main() -> None:
                        help='Forward common token IDs through the native EngineManager.')
     dlora.add_argument('--worker-lifecycle', action='store_true',
                        help='Verify owned allocation before native Ray worker initialization.')
+    dlora.add_argument('--llama-model-compat', action='store_true',
+                       help='Apply configured tied vocabulary and Llama 3 RoPE in a new source view.')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2704,7 +2791,8 @@ def main() -> None:
     if args.action == 'prepare-dlora-measurement-view':
         print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
             args.main_repo, canonical_input=args.canonical_input,
-            worker_lifecycle=args.worker_lifecycle), indent=2))
+            worker_lifecycle=args.worker_lifecycle,
+            llama_model_compat=args.llama_model_compat), indent=2))
         return
     if args.action == 'prepare-loquetier-measurement-view':
         print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,
