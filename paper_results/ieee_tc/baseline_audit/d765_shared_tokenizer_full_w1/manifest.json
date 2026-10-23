@@ -1,0 +1,141 @@
+{
+  "passed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files": {
+    "audit.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/audit_full4000.json",
+      "sha256": "b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71"
+    },
+    "metrics.csv": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/metrics.csv",
+      "sha256": "6eb80b07954bda70c227b0a4cc6879a8d8b2783f51c544be732557fa76916066"
+    },
+    "shared_tokenizer_live_proof.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/shared_tokenizer_live_proof.json",
+      "sha256": "f56eddce42191c6f1f084dd83eaabecc65141e8fc54a4cfcf1f42875ca3ec995"
+    },
+    "full_w1_observation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/full_w1_observation.json",
+      "sha256": "3404e277890e8376203cacb5ac1170f6b11af4ba512e1580d8a82864681174c8"
+    },
+    "phase_metrics.csv": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/phase_metrics.csv",
+      "sha256": "163b49e78389262c76d7ca85549e97519762a8e979fe21b2218cdfe300ef18be"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/qualification.json",
+      "sha256": "1de0344d402f2cb57ad79a3a778ca90d556c3290dd6c48d0390c77308cb62c19"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/qualification_closure.json",
+      "sha256": "af76cd9b89b38562e40b6f1e03d4f9ce3dbe3cf55d03602ae8d01430aa0b7d8f"
+    },
+    "input_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/input_identity.json",
+      "sha256": "4978d72b1d0e92901fbdb239dce7f6727c068c29ebf4cbf3a655796df02b3276"
+    },
+    "local_cleanup.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/local_cleanup.json",
+      "sha256": "8e209824da375c804b82ae2de42f3192b1622b0775634c94b45666c62ac11bfd"
+    },
+    "analysis_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/analysis_receipt.json",
+      "sha256": "fdd928486afc6a863bca94455c08de18381ac7b2ce5a8ac4dd5ae88229560e51"
+    },
+    "analysis_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/analysis_closure.json",
+      "sha256": "5fa4fded4a34e86d47a3c3f78f4caca8f51561050f3d27a8ddd5201f0bccef79"
+    },
+    "start_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/start_receipt.json",
+      "sha256": "7221bb9aa8a66f3976f2066781978bc5ecb06315a3c174bce05b9109d0e6d0d8"
+    },
+    "start_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/start_closure.json",
+      "sha256": "7cc32523becbbe9808df9e7e1d2fc6c82cae91826418a6e5ac5c87ba3b66ae73"
+    },
+    "remote_health.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/remote_health.json",
+      "sha256": "fcbe883fd309bf9dbcbfe7606735f3e663104da9b93848e3222c3c0a1b4c8d93"
+    },
+    "remote_start.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/remote_start.log",
+      "sha256": "b3e2371bee35286b55b5a383bcce0a49c10d98df111cbb6e36f3f9aa4a7673ff"
+    },
+    "remote_stop.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/remote_stop.log",
+      "sha256": "6f94aa20594f12eac443017c84328a1ea7cefc500617cf8895f613331d6403ef"
+    },
+    "launch3b_repaired.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/launch3b_repaired.json",
+      "sha256": "e21a4a23ec01005462e1fbb15fe4a7297633aebfab2a3e28848cc8a30920a3c9"
+    },
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/prepare.py",
+      "sha256": "243e4c3126520abfe78ab2b447ecade9e8698a8736adeada0c8264bd455bceb3"
+    },
+    "seal.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/seal.py",
+      "sha256": "341ac4fa9df15ce93e87024e46c999ebdc8474e16ae382347e2fa59181f61f25"
+    },
+    "run3b_repaired.sh.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/run3b_repaired.sh",
+      "sha256": "5eaa71a1896dfe7796ab05a2e03a888d8d897069f08fed299fd2543d7087d7a9"
+    },
+    "start.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/start.py",
+      "sha256": "e60f3b7614e5b374a612bddb5f12c62bab8c3c98aec142ed6b42df01290b4c27"
+    },
+    "run_analysis.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/run_analysis.py",
+      "sha256": "4e30445fcf3542974ab5d594f7b54f1294dddb4cbf29066c45314bb323e36b4f"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/source_repaired/measurement_manifest.json",
+      "sha256": "a6b6077ae915e9a4424ab8c5fca6869866c82b4fc64d07134bfa766e21602e60"
+    },
+    "restore_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023/overlay3b_repaired/restore_receipt.json",
+      "sha256": "c1e00436b67be83c9773d3c59ee13f6cb53dfa19c259304ee0c9a32f0e299351"
+    },
+    "d764_result_publication_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/result_publication_receipt.json",
+      "sha256": "7ee9546ebcf4747449898347d45fc5c9b23e9fe05a95ab7e456f86ac2f75a3c8"
+    },
+    "d764_result_publication_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/result_publication_closure.json",
+      "sha256": "eecc8bbb2457809aa8212ade71ebb0ebc1f2d6b8400fd88b2c2c46ae9c90f52d"
+    },
+    "d764_publish_result.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py",
+      "sha256": "1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4"
+    }
+  },
+  "model": "3b",
+  "requests": 4000,
+  "qualification_only": false,
+  "complete_W1": true,
+  "formal_run": false,
+  "execution": {
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+      "count": 4000,
+      "source_count": 4000,
+      "profile": "W1",
+      "rate_scale": 1.0
+    },
+    "actual_unique_adapters": 132,
+    "target_tokens": 458224,
+    "performance_ranking_eligible": false,
+    "formal_run": false,
+    "main_execution_commit": "2d6c9d1ab8d725439189e04afa62ace567448ab0",
+    "baseline_execution_commit": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+    "generation_contract": "fixed_length_greedy_v1",
+    "native_configuration_reused": "D764 complete W0 configuration; unchanged native policy/cache ownership; existing W1 view"
+  },
+  "protected_unchanged": 145,
+  "independent_numerical_correctness_proven": false,
+  "performance_ranking_eligible": false
+}

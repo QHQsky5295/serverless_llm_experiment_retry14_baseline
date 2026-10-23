@@ -1,0 +1,37 @@
+{
+  "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+  "campaign": "d765_20261023",
+  "target": "/tmp/tc-d765-3br/remote_artifacts/objects",
+  "status": "verified_before_removal",
+  "files": 1056,
+  "payload_bytes": 5139892912,
+  "disk_before_bytes": 156350164992,
+  "audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d765_shared_tokenizer_full_w1/audit.json",
+    "sha256": "b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71"
+  },
+  "source_index": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+  "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d765_20261023",
+  "all_cache_bytes_previously_hashed_by_audit": true,
+  "current_original_bytes_rehashed": true,
+  "current_cache_bytes_rehashed": true,
+  "current_file_sizes_and_original_inodes_verified": true,
+  "owned_runtime_references": [],
+  "future_config_script_references": [],
+  "cache_symlinks_or_nested_mounts": false,
+  "metadata_copies_hash_match": true,
+  "unreadable_same_uid_proc_entries": [
+    "2628",
+    "3360275",
+    "3361057"
+  ],
+  "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "recipe_sha256": "cb2c7dd638aab23af69b852cd62506565b1d103dd622fd9c2a79e308a4b305a7",
+  "recorded_unix": 1792748372.478991
+}

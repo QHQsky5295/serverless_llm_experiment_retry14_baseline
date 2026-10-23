@@ -1,0 +1,51 @@
+"""Reuse D764's sealed-result recipe for the unchanged-configuration W1 run."""
+import hashlib
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+original = RAW.parent/'d764_20261023/seal.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '052e5d73f340e8d3e9e9ac2ad1179c26b92d716f8459f474494123b53fea056b'
+source = data.decode()
+begin = source.index("oldpath=RAW.parent/'d760_20261023/audit_full4000_v2.json'")
+end = source.index('OUT.mkdir(parents=True,exist_ok=False)', begin)
+source = source[:begin] + '''save(RAW/'full_w1_observation.json',dict(
+    audit_path=str(RAW/'audit_full4000.json'),audit_sha256=p.digest(RAW/'audit_full4000.json'),
+    configuration_reused_from='D764',source_plan=audit['source_plan'],
+    full_workload_completed=True,counts=audit['counts'],
+    observed_slo_feasible=audit['common_slo']['observed_feasible'],
+    claim='Complete W1 observation at the frozen native configuration; not an isolated causal or cross-system comparison.',
+    source_order_diagnostics=audit['source_order_diagnostics'],
+    independent_numerical_correctness_proven=False,
+    original_seal_recipe=dict(path=str(original),sha256=hashlib.sha256(data).hexdigest())))
+with (RAW/'phase_metrics.csv').open('x',newline='') as handle:
+    fields=['phase','first_source_index','last_source_index','offered','joint_good',
+            'joint_attainment','ttft_ms_mean','ttft_ms_p95','router_queue_ms_mean','service_ttft_ms_mean']
+    writer=csv.DictWriter(handle,fieldnames=fields)
+    writer.writeheader()
+    for number,phase in enumerate(audit['source_order_diagnostics'],1):
+        lo,hi=phase['source_indices_inclusive']
+        writer.writerow(dict(phase=number,first_source_index=lo,last_source_index=hi,
+            offered=phase['common_slo']['offered'],joint_good=phase['common_slo']['joint_good'],
+            joint_attainment=phase['common_slo']['joint_attainment'],
+            ttft_ms_mean=phase['metrics']['ttft_ms']['mean'],
+            ttft_ms_p95=phase['metrics']['ttft_ms']['p95_type1'],
+            router_queue_ms_mean=phase['metrics']['router_queue_ms']['mean'],
+            service_ttft_ms_mean=phase['metrics']['service_ttft_ms']['mean']))
+''' + source[end:]
+changes = {
+    'd764_shared_tokenizer_full_w0':'d765_shared_tokenizer_full_w1',
+    "workload='W0',run='D764'":"workload='W1',run='D765'",
+    'assert len(workers)==4':"assert len(workers)==audit['backend_ready_receipts']==14",
+    "'full_w0_observation.json'":"'full_w1_observation.json','phase_metrics.csv'",
+    "RAW.parent/'d763_20261023'":"RAW.parent/'d764_20261023'",
+    "prefix='d763_' if source.parent.name=='d763_20261023'":"prefix='d764_' if source.parent.name=='d764_20261023'",
+    'complete_W0=True':'complete_W1=True',
+    'workers_shared_tokenizer=4':'workers_shared_tokenizer=len(workers)',
+}
+for before,after in changes.items():
+    assert before in source,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),
+     {'__name__':'__main__','__file__':str(Path(__file__)),
+      'original':original,'hashlib':hashlib,'data':data})

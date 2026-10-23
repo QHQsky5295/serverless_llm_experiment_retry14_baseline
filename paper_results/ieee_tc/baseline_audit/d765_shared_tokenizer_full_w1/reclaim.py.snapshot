@@ -1,0 +1,14 @@
+"""Reuse D764's verified reclamation, only for this closed W1 download cache."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d764_20261023/reclaim.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '8072d61ef7f585e68c49e544dc1df85bced2ea5c526348ad2776c517c9066519'
+source = data.decode().replace('D764', 'D765').replace('d764', 'd765')
+source = source.replace('d765_shared_tokenizer_full_w0', 'd765_shared_tokenizer_full_w1')
+old = 'ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f'
+assert source.count(old) == 1
+source = source.replace(old, 'b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71')
+exec(compile(source,str(original),'exec'),
+     {'__name__':'__main__','__file__':str(Path(__file__))})

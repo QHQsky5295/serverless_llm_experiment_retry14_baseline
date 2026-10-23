@@ -1,5 +1,90 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D765完成：3B ServerlessLLM W1封存，下一同配置W2
+
+17:35 CST自然终态，4000创建/提交/终态/响应，失败0；458224原生tokens
+全部匹配。共同联合80.075%、TTFT81.100%、TPOT98.325%；U8980.542167645
+GPU-s，平均/P95 TTFT3070.728696/16986.096993ms，平均/P95 TPOT
+19.406074/27.255579ms。低SLO观测保留，不据此开展基线调参或重复W1。
+计时重算误差0，14个实际backend ready/共同tokenizer证据，LoRA权重启用。
+132次真实远端306360162线上B/5139892912物化B，pack0；service峰值
+54113546240B，high/max/OOM/swap0。独立数值正确性未知、n_correct=null，
+不能称已满足全部G1/G2正确性或完成跨系统排名。
+
+第1/4/6个500段联合70.4/38.6/48.4%，平均router等待8820.717/6678.667/
+4650.743ms；其余段完整保留于phase_metrics.csv。这是单轮无重叠描述性
+分段，不是独立重复，不删启动段。主要观测为排队位置，不无对照归因某一
+扩容机制或声称旧每请求1秒轮询复发。源码、配置与D764相同，只有既有W1
+视图变化；输入与Resident D654 SHA一致。
+
+实际GPU/service释放，launcher精确关闭，loader恢复，三owned远端服务
+停止。analysis/result/contract辅助空域已关闭。audit_full4000 SHA
+b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71。
+145个旧投稿文件及3个用户修改SHA不变。仅回收1056个当前下载副本，逐文件
+与保留原池SHA一致，释放5143805952B，余161493970944B；不可读same-UID
+PID 2628/3360275/3361057的FD检查局限保留，未删除唯一工件/原始证据。
+结果文档D765_SHARED_TOKENIZER_FULL_W1_20261023.md；汇总目录
+paper_results/ieee_tc/baseline_audit/d765_shared_tokenizer_full_w1。
+
+本轮PROGRESS：监测同一实例至终态，完整分析、封存、回收。monitor cell2941
+和2943均完成；analysis session97413/reclaim79838均完成，不再wait这些句柄。
+当前没有活动GPU实验，不把旧启动scope的inactive误认为新失败。正在对本轮
+明确路径做正常备份，未启动W2；下一重读PLAN/状态并复核启动资源后直接
+同配置W2，不重做100/500/1000资格。3B其余baseline/PrimeLoRA跨场景/dLoRA、
+最终同版本7B主表与Full、A1–A5、S1–S13、CE/Pareto、审稿文档/最终图表
+全部保留，完整目标active。共享k3s不动，HydraServe隔离及7B三场景复用。
+
+## 2026-10-23 D765：同配置3B ServerlessLLM W1实际已启动
+
+17:16:03 CST本轮verified wait：上一轮是PROGRESS（D764完成/封存/备份，
+D765启动）；本轮完整重读PLAN/状态及monitor-experiment，持续20次45秒
+间隔核验同一actual service，InvocationID始终
+f933cd83fbf346ebbefaeedc9e54d436，仍active/running/Tasks1668。只读流式
+计数2000创建/2000提交/1998响应/0失败，原计划4000不变，第四段接近结束。
+sample1087服务52517294080B、peak52518244352B，主机可用59727544320B，
+磁盘158572568576B，high/max/OOM/swap0，无保护告警/中止。运行仍未终态，
+不计算最终SLO或排名。监测cell2927已正常完成，只是观察循环结束，不代表
+实际服务结束；没有活动wait cell，下一直接用d765_compact_monitor检查
+同一个实际实例，不再wait2927，不重启。无代码/配置变更，无其他实验、
+远端维护、扫描清理、压缩或推送。当前仅状态文档更新；完整目标active。
+下一仍自然终态后按既有精确收尾链分析W1，再同配置W2，其余全范围保留。
+
+16:58:04 CST核验：tmux tc-d765-serverlessllm-3b4000运行；实际service
+primelora-tc-svc-dce5b56c68ed4d2992edc07559f23bef.scope，InvocationID
+f933cd83fbf346ebbefaeedc9e54d436，inode30986417。launcher为
+primelora-tc-aux-d7650000000000000000000000000004.scope，InvocationID
+e5ac37be1b0c48969760ab7ff4b449e6，inode30986059。sample22处于启动期，
+service19338199040B、主机可用90700242944B、磁盘161868083200B，high/max/
+OOM/swap0，无保护告警/中止；尚未创建业务请求，不宣称SLO或运行完成。
+startup辅助空域已精确关闭，启动session28866完成，不再等该句柄。
+
+本轮PROGRESS：D764完整4000已审计/封存、释放、回收下载副本并无损压缩
+D752闭合日志；D765沿用相同源码视图/native配置，只采用既有W1到达变换。
+执行前完整重读PLAN/最新状态；冻结V1/单轮V2及停止/存储规则本轮已重读。
+启动安全检查passed，未添加新组件检查，不重做100/500/1000，不调基线参数。
+53个明确路径已提交2d6c9d1ab8d725439189e04afa62ace567448ab0，并推送核对
+faaslora_origin/backup/d764-complete-w0-20261023。BASE保持
+c9b3c9f7a02c1a118db089708697af3c76d47a5c及origin/main。V2未同步，不force；
+用户修改未stage。D764发布辅助空域已关闭，发布回执/关闭证据保留于RAW，
+其副本作为D765 backup_receipt/closure；随下一正常检查点携带，不开空备份链。
+
+远端实际1000Mb/s/full，未改网络；3B clock
+remote-process-monotonic:7c5b360fd8494e2d8c0d92170f040873；7B clock
+remote-process-monotonic:e58304d8f53c4d62a0fec382102652f5。
+监控primelora-artifact-monitor-d765-3b4000.service，InvocationID
+25a282ecec7e4a048873f03ab8071088；其余owned身份在remote_start.log。
+请求中不打包，运行期间不维护远端、扫描、清理、压缩、推送或启动其他重型任务。
+非本项目k3s不动；HydraServe隔离与7B三场景结果继续复用。
+
+下一只监测这个实际实例；functions.store的d765_compact_monitor保存三个
+轻量命令，旧d764命令不要用于判断当前运行。没有活动functions.wait cell。
+自然终态后使用D765已绑定close_launch→restore_overlay→stop_remote→
+run_analysis（population full4000_w1；按真实outcome选择success或
+complete_with_failures）→封存/回收/备份，再同配置W2。原生正确计数/独立
+数值LoRA证据分开，n_correct未知不填造。3B其余baseline/PrimeLoRA跨场景/
+dLoRA、最终同版本7B主表与Full、A1–A5、S1–S13、CE/Pareto、审稿文档/
+最终图表完整保留，完整目标active，未闭口。
+
 ## 2026-10-23 D764完成；D765同配置3B W1已绑定、未启动
 
 D764下载缓存回收完成：仅1056个当前SHA/原池SHA一致的下载副本，释放
