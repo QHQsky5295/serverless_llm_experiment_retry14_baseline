@@ -1,0 +1,18 @@
+"""Correct preparation-only row access; retain the failed original recipe.
+
+FrozenReplayEntry stores adapter identity in source_json, as D753 already uses.
+The failed preparation stopped before creating any HTTP config or native view.
+"""
+from pathlib import Path
+
+original = Path(__file__).with_name('prepare.py')
+source = original.read_text()
+changes = {
+    "save(RAW/'qualification_identity.json', own)": "save(RAW/'review_identity.json', own)",
+    "{entry.adapter_id for entry in plan.entries}": "{json.loads(entry.source_json)['adapter_id'] for entry in plan.entries}",
+    '"RAW/\'qualification_closure.json\'"': '"RAW/\'review_closure.json\'"',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(original)})

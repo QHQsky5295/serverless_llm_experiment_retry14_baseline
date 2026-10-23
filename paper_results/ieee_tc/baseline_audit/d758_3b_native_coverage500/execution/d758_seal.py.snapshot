@@ -1,0 +1,70 @@
+"""Seal completed 3B coverage with unchanged strict analyzer and honest limits."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d758_3b_native_coverage500'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+launch = read(RAW/'launch3b_repaired.json')
+assert launch['pass'] and launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert read(RAW/'local_cleanup.json')['passed']
+assert read(RAW/'analysis_receipt.json')['passed']
+assert read(RAW/'analysis_closure.json')['path_gone']
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status'] == 'RESTORED'
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+audit = read(RAW/'audit_coverage500.json')
+assert p.digest(RAW/'audit_coverage500.json') == '072f4fd7881155a13191efd198a24e5177524f533af8d2d0d44690b4a658817b'
+assert audit['workload_passed'] and audit['offered_unique_adapters'] == 500
+assert audit['native_revalidated_requests'] == 500 and audit['actual_native_output_tokens'] == 68925
+assert audit['counts']['N_failed'] == 0 and audit['counts']['N_response'] == 500
+assert audit['backend_ready_receipts'] == 4 and audit['remote_transfers'] == 500
+assert audit['request_time_pack_count'] == 0 and audit['n_correct'] is None
+assert not audit['formal_performance_qualified']
+receipts = [row['observation'] for row in read(RAW/'model3b_repaired/model_qualification.json')['backend_ready_receipts']]
+assert {row['cuda_visible'] for row in receipts} == {'0', '1', '2', '3'}
+assert len({row['compile_cache']['vllm_cache_root'] for row in receipts}) == 4
+prior = read(RAW/'qualification.json')
+for path, expected in (prior['refs'] | prior['protected'] | prior['preserved']).items():
+    assert p.digest(Path(path)) == expected, path
+OUT.mkdir(parents=True, exist_ok=False)
+with (OUT/'audit.json').open('xb') as stream:
+    stream.write((RAW/'audit_coverage500.json').read_bytes())
+sources = [RAW/'audit_coverage500.json', RAW/'launch3b_repaired.json', RAW/'launch_gate.json',
+    RAW/'http_3b_500.json', RAW/'input_identity.json', RAW/'qualification.json',
+    RAW/'analysis_receipt.json', RAW/'analysis_closure.json', RAW/'local_cleanup.json',
+    RAW/'model3b_repaired/model_qualification.json', RAW/'remote_transfers.jsonl',
+    RAW/'remote_monitor.log', RAW/'evidence_copy_receipt.json', RAW/'native_compile_cache_before.json',
+    RAW/'overlay3b_repaired/restore_receipt.json', Path(__file__)]
+save(OUT/'manifest.json', dict(passed=True, raw_root=str(RAW),
+    source_sha256={str(path): p.digest(path) for path in sources},
+    protected=prior['protected'], preserved=prior['preserved'],
+    execution_main_commit=read(RAW/'start_receipt.json')['head'],
+    execution_baseline_commit=read(RAW/'start_receipt.json')['baseline_head'],
+    plan_sha256=p.check_plan(), backend_ready_receipts=receipts,
+    coverage_qualified=True, full_w0_completed=False, ranking_eligible=False, n_correct=None,
+    service_memory_high_events=audit['service_memory_event_maxima']['high'],
+    analysis_memory_high_events=377, no_performance_repeat=True))
+save(RAW/'result_receipt.json', dict(passed=True, output=str(OUT),
+    audit_sha256=p.digest(RAW/'audit_coverage500.json'),
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, requests=500, adapter_ids=500,
+                     joint_good=audit['common_slo']['joint_good'],
+                     physical_gpu_seconds=audit['physical_gpu_seconds'])))

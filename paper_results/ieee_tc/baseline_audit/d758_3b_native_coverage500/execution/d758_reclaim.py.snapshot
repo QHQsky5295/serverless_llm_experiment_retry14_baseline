@@ -1,0 +1,55 @@
+"""Reuse the existing byte-verified closed-download reclaimer for D758 only."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'contract_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert json.loads((RAW/'result_receipt.json').read_text())['passed']
+assert json.loads((RAW/'result_closure.json').read_text())['path_gone']
+assert json.loads((RAW/'analysis_closure.json').read_text())['path_gone']
+assert json.loads((RAW/'local_cleanup.json').read_text())['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+q = json.loads((RAW/'qualification.json').read_text())
+protected = q['protected'] | q['preserved']
+for path, expected in protected.items():
+    assert p.digest(Path(path)) == expected, path
+original = RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+source = data.decode()
+changes = {
+    "'d532_20261015'": "'d758_20261023'",
+    '/tmp/tc-d532-7bv/': '/tmp/tc-d758-3br/',
+    'llama2_7b_a500_v2_publicmix': 'llama32_3b_a500_v1_modelscope',
+    "ROOT/'launch7b.json'": "ROOT/'launch3b_repaired.json'",
+    'main_comparison/d532_vllm_w1/result1/audit.json': 'baseline_audit/d758_3b_native_coverage500/audit.json',
+    'f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7': '072f4fd7881155a13191efd198a24e5177524f533af8d2d0d44690b4a658817b',
+    "audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780":
+        "audit['offered_unique_adapters'] == 500 and audit['verified_materialized_bytes'] == 19482573296",
+    '20260927_7b_materialized_content_index.json': '20260927_3b_remote_content_index.json',
+    'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c': json.loads((RAW/'http_3b_500.json').read_text())['pool_index_sha256'],
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
+for path, expected in protected.items():
+    assert p.digest(Path(path)) == expected, path
+save(RAW/'reclamation.json', dict(passed=True, receipt=json.loads((RAW/'cache_cleanup_after.json').read_text()),
+    protected_unchanged=len(q['protected']), original_recipe_sha256=p.digest(original),
+    source_sha256=p.digest(Path(__file__)), resources=p.cgroup_snapshot(Path(own['path']))))

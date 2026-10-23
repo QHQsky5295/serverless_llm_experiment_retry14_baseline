@@ -1,0 +1,96 @@
+"""Back up completed D758 coverage and safe reclamation, using explicit paths."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d758_3b_native_coverage500'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def call(repo, *args):
+    return subprocess.check_output(list(args), cwd=repo, text=True,
+                                   stderr=subprocess.STDOUT).strip()
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+assert not call(MAIN, 'git', 'diff', '--cached', '--name-only')
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == 'a49cd3f75d633bc5843f4542c136cf5e12ceb733'
+assert call(BASE, 'git', 'rev-parse', 'HEAD') == '2bdf53cb25040b98e84e587f421bd772528c96b9'
+assert read(RAW/'result_receipt.json')['passed'] and read(RAW/'reclamation.json')['passed']
+for name in ('qualification', 'review', 'start', 'analysis', 'result', 'contract'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and not Path(closed['identity']['path']).exists()
+q = read(RAW/'qualification.json')
+for path, expected in (q['refs'] | q['protected'] | q['preserved']).items():
+    assert p.digest(Path(path)) == expected, path
+assert p.digest(OUT/'audit.json') == '072f4fd7881155a13191efd198a24e5177524f533af8d2d0d44690b4a658817b'
+files = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+         MAIN/'docs/ieee_tc/D758_3B_SERVERLESSLLM_500_ID_COVERAGE_20261023.md',
+         OUT/'audit.json', OUT/'manifest.json']
+execution = OUT/'execution'
+execution.mkdir(exist_ok=False)
+names = ('qualification.json', 'prepare_parse_failure.json', 'qualification_closure.json',
+         'review_closure.json', 'start_receipt.json', 'start_closure.json', 'launch_gate.json',
+         'launch3b_repaired.json', 'http_3b_500.json', 'input_identity.json',
+         'analysis_receipt.json', 'analysis_closure.json', 'local_cleanup.json',
+         'result_receipt.json', 'result_closure.json', 'native_compile_cache_before.json',
+         'reclamation.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json',
+         'contract_closure.json', 'evidence_copy_receipt.json', 'overlay3b_repaired/restore_receipt.json')
+sources = [*sorted(RAW.glob('*.py')), *sorted(RAW.glob('*.sh')), *[RAW/name for name in names]]
+previous = RAW.parent.parent/'storage_maintenance/d757_20261023'
+sources += [previous/'publication_receipt.json', previous/'publication_closure.json']
+mapping = []
+for source in sources:
+    assert source.stat().st_size < 4 * 1024 * 1024, source
+    if source.suffix == '.py':
+        ast.parse(source.read_text(), filename=str(source))
+    elif source.suffix == '.sh':
+        subprocess.run(['bash', '-n', str(source)], check=True)
+    else:
+        read(source)
+    prefix = 'd757_' if source.is_relative_to(previous) else 'd758_'
+    target = execution/(prefix+source.name+('.snapshot' if source.suffix in ('.py', '.sh') else ''))
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(source) == p.digest(target)
+    mapping.append(dict(source=str(source), target=str(target.relative_to(MAIN)), sha256=p.digest(target)))
+    files.append(target)
+save(OUT/'execution_manifest.json', dict(sources=mapping, no_new_performance_run=True,
+    protected_unchanged=len(q['protected']), main_execution_commit=read(RAW/'start_receipt.json')['head'],
+    baseline_execution_commit=read(RAW/'start_receipt.json')['baseline_head'],
+    plan_sha256=p.check_plan(), failed_preparations_retained=True))
+files.append(OUT/'execution_manifest.json')
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+paths = [str(path.relative_to(MAIN)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+for path in files:
+    assert not secret.search(path.read_text()), path
+call(MAIN, 'git', 'add', '--', *paths)
+assert set(call(MAIN, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(paths)
+call(MAIN, 'git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof', 'diff', '--cached', '--check')
+call(MAIN, 'git', 'commit', '-m', 'tc: complete 3B ServerlessLLM 500-ID native coverage (D758)')
+head = call(MAIN, 'git', 'rev-parse', 'HEAD')
+ref = 'refs/heads/backup/d758-3b-coverage-20261023'
+call(MAIN, 'git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+ref)
+assert call(MAIN, 'git', 'ls-remote', 'faaslora_origin', ref).split()[0] == head
+save(RAW/'publication_receipt.json', dict(passed=True, head=head, remote_ref=ref,
+    force_push=False, v2_synchronized=False, paths=paths, resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, remote_ref=ref, paths=len(paths))))

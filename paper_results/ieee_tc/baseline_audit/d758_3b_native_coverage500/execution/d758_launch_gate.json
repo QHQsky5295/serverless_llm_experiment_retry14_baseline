@@ -1,0 +1,310 @@
+{
+  "passed": true,
+  "head": "a49cd3f75d633bc5843f4542c136cf5e12ceb733",
+  "baseline_head": "2bdf53cb25040b98e84e587f421bd772528c96b9",
+  "qualification_sha256": "4503d5d6daa0e579d8e69f105fb840ab4f8e82dd4ced918a7d314b93a019318d",
+  "gate": {
+    "kind": "ieee_tc_preflight",
+    "time_unix": 1792727527.2788723,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "policy": {
+      "service_high_bytes": 77309411328,
+      "service_max_bytes": 85899345920,
+      "service_swap_max_bytes": 2147483648,
+      "aux_max_bytes": 4294967296,
+      "stop_available_bytes": 17179869184,
+      "margin_bytes": 2147483648,
+      "warning_available_bytes": 25769803776,
+      "service_cpus": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "aux_cpus": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "reserved_cpus": [
+        0,
+        1,
+        24,
+        25
+      ],
+      "memory_full_avg10_percent": 10,
+      "pressure_samples": 10,
+      "sample_seconds": 1,
+      "disk_stop_bytes": 107374182400,
+      "disk_start_floor_bytes": 161061273600
+    },
+    "memory": {
+      "MemTotal": 134626844672,
+      "MemFree": 55588245504,
+      "MemAvailable": 112526692352,
+      "Buffers": 11815485440,
+      "Cached": 36232261632,
+      "SwapCached": 37380096,
+      "Active": 26373066752,
+      "Inactive": 38602448896,
+      "Active(anon)": 16184283136,
+      "Inactive(anon)": 791506944,
+      "Active(file)": 10188783616,
+      "Inactive(file)": 37810941952,
+      "Unevictable": 3211264,
+      "Mlocked": 0,
+      "SwapTotal": 36507213824,
+      "SwapFree": 34905600000,
+      "Zswap": 0,
+      "Zswapped": 0,
+      "Dirty": 778240,
+      "Writeback": 0,
+      "AnonPages": 16920993792,
+      "Mapped": 827625472,
+      "Shmem": 48050176,
+      "KReclaimable": 10184867840,
+      "Slab": 11656736768,
+      "SReclaimable": 10184867840,
+      "SUnreclaim": 1471868928,
+      "KernelStack": 41828352,
+      "PageTables": 177496064,
+      "SecPageTables": 0,
+      "NFS_Unstable": 0,
+      "Bounce": 0,
+      "WritebackTmp": 0,
+      "CommitLimit": 103820636160,
+      "Committed_AS": 21870133248,
+      "VmallocTotal": 35184372087808,
+      "VmallocUsed": 756436992,
+      "VmallocChunk": 0,
+      "Percpu": 217251840,
+      "HardwareCorrupted": 0,
+      "AnonHugePages": 71303168,
+      "ShmemHugePages": 0,
+      "ShmemPmdMapped": 0,
+      "FileHugePages": 0,
+      "FilePmdMapped": 0,
+      "Unaccepted": 0,
+      "HugePages_Total": 0,
+      "HugePages_Free": 0,
+      "HugePages_Rsvd": 0,
+      "HugePages_Surp": 0,
+      "Hugepagesize": 2097152,
+      "Hugetlb": 0,
+      "DirectMap4k": 64106758144,
+      "DirectMap2M": 72798437376,
+      "DirectMap1G": 2147483648
+    },
+    "required_available_bytes": 109521666048,
+    "filesystems": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "device": 2050,
+        "free_bytes": 161893384192,
+        "required_bytes": 161061273600,
+        "free_inodes": 209959582
+      }
+    ],
+    "service_parent_chain": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+        "memory.current": 11442520064,
+        "memory.peak": 93511049216,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 219324416,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=1938095951\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1905854759",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 2475636383326\nuser_usec 2268644699331\nsystem_usec 206991683994\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 1208076,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+        "memory.current": 66572701696,
+        "memory.peak": 125386870784,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 220803072,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=2671287971\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=2635395169",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 2600548155054\nuser_usec 2359744305312\nsystem_usec 240803849742\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 1208076,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "memory.current": 66671357952,
+        "memory.peak": 125467160576,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 401682432,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=2665645168\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=2629313308",
+        "cpu.max": "max 100000",
+        "cpu.stat": "usage_usec 2660682488354\nuser_usec 2401456620645\nsystem_usec 259225867708\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": {
+          "low": 0,
+          "high": 1208076,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "memory.current": null,
+        "memory.peak": null,
+        "memory.high": null,
+        "memory.max": null,
+        "memory.swap.current": null,
+        "memory.swap.max": null,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=2447116216\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=2382345787",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 5121144204000\nuser_usec 3877255228000\nsystem_usec 1243888976000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": null
+      }
+    ],
+    "issues": [],
+    "preflight_pass": true,
+    "production_launch_authorized": false,
+    "remaining_gates": [
+      "actual_service_workers",
+      "separate_replay_and_watchdog",
+      "gpu_cleanup",
+      "per_filesystem_quota_audit"
+    ]
+  },
+  "protected": {
+    "passed": true,
+    "entry_count": 145
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d7580000000000000000000000000005.scope",
+    "invocation_id": "89fec61c0aa8498e8419f6bba3aa581c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7580000000000000000000000000005.scope",
+    "inode": 30839495
+  },
+  "helpers": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/check_remote_health_stdlib.py",
+      "sha256": "46706fcf33baf9ce191a71f8403909c486f09929179a79c8bc421f942f0f44de",
+      "content": "import json\nimport importlib.util\nimport sys\nimport time\nfrom pathlib import Path\n# Load the stdlib-only HTTP client without the storage package's optional ML\n# imports. This management check does not load a model or change serving code.\nspec = importlib.util.spec_from_file_location('tc_health_http_client',\n    '/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py')\nmodule = importlib.util.module_from_spec(spec)\nsys.modules[spec.name] = module\nspec.loader.exec_module(module)\nHttpArtifactStoreClient = module.HttpArtifactStoreClient\n\ntoken = Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_text().strip()\nresults = {}\nfor model, port in [('3b',18080),('7b',18081)]:\n    client = HttpArtifactStoreClient(endpoint=f'http://192.168.4.174:{port}', token=token,\n        timeout_s=5, required_delivery_mode='prepublished_gzip_v1')\n    for attempt in range(10):\n        try:\n            data = client.health()\n            break\n        except (OSError, RuntimeError):\n            if attempt == 9:\n                raise\n            time.sleep(1)\n    assert data['ok'] and data['delivery_mode'] == 'prepublished_gzip_v1'\n    assert data['timing_contract'] == 'artifact_timing_v2'\n    results[model] = data\nwith (Path(__file__).resolve().parent/'remote_health.json').open('x') as f:\n    json.dump(results, f, indent=2)\nprint(json.dumps(results))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/close.py",
+      "sha256": "157dc0d4abc4e1d90bb9b24d613036fdf5a0082b79090d41f4841d5d73444dcb",
+      "content": "\"\"\"Reuse exact-identity empty-scope closure; never stop unrelated work.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW = Path(__file__).resolve().parent\nsys.path.insert(0, str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nname = sys.argv[1]\nassert name in ('qualification', 'backup', 'start', 'analysis', 'result', 'publication', 'contract', 'review', 'review_backup', 'cross', 'result_publication')\nsource = RAW/(name+'_identity.json')\nidentity = json.loads(source.read_text())\nassert p.scope_still_owned(identity)\ngroup = Path(identity['path'])\nmembers = {str(path):path.read_text().split() for path in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources = {key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(identity)\nsubprocess.run(['systemctl','--user','stop',identity['unit']],check=True)\nassert not group.exists()\nwith (RAW/(name+'_closure.json')).open('x') as stream:\n    json.dump(dict(passed=True,identity=identity,actual_recursive_procs_empty=True,\n        path_gone=True,resources=resources,source_sha256=p.digest(Path(__file__))),stream,indent=2)\nprint(json.dumps(dict(passed=True,name=name,resources=resources)))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/close_launch.py",
+      "sha256": "36cef4ad597145f8f0454d317d08fa97fbb6b7ce6e0790a6f73b2fc7257d7e07",
+      "content": "\"\"\"Reuse exact-identity empty-scope closure; preserve actual terminal status.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nrun=RAW\nlaunch=json.loads((run/'launch3b_repaired.json').read_text())\nassert isinstance(launch['service_returncode'], int) and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']\nservice=launch['service_identity']\nassert not Path(service['path']).exists()\nidentity=json.loads((RAW/'service_aux_identity.json').read_text())\nassert p.scope_still_owned(identity)\ngroup=Path(identity['path'])\nmembers={str(path):path.read_text().split() for path in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')}\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert p.scope_still_owned(identity)\nsubprocess.run(['systemctl','--user','stop',identity['unit']],check=True)\nassert not group.exists()\nwith (RAW/'local_cleanup.json').open('x') as stream:\n    json.dump(dict(passed=True,service_returncode=launch['service_returncode'],launch_passed=launch['pass'],service_identity=service,service_path_gone=True,\n        auxiliary_identity=identity,actual_recursive_procs_empty=True,auxiliary_path_gone=True,\n        resources=resources,launch_sha256=p.digest(run/'launch3b_repaired.json')),stream,indent=2)\nprint(json.dumps(dict(passed=True,resources=resources)))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/finish_prepare.py",
+      "sha256": "84d9e9ed308561e39c84a8368b3b2aeafbc4600955ddb1ee9054388fce72b403",
+      "content": "\"\"\"Correct preparation-only row access; retain the failed original recipe.\n\nFrozenReplayEntry stores adapter identity in source_json, as D753 already uses.\nThe failed preparation stopped before creating any HTTP config or native view.\n\"\"\"\nfrom pathlib import Path\n\noriginal = Path(__file__).with_name('prepare.py')\nsource = original.read_text()\nchanges = {\n    \"save(RAW/'qualification_identity.json', own)\": \"save(RAW/'review_identity.json', own)\",\n    \"{entry.adapter_id for entry in plan.entries}\": \"{json.loads(entry.source_json)['adapter_id'] for entry in plan.entries}\",\n    '\"RAW/\\'qualification_closure.json\\'\"': '\"RAW/\\'review_closure.json\\'\"',\n}\nfor before, after in changes.items():\n    assert source.count(before) == 1, before\n    source = source.replace(before, after)\nexec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(original)})\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/prepare.py",
+      "sha256": "94af913185710aa5682a26614250df29c7407594b74bb7dd30ef0a7e818c8f2c",
+      "content": "\"\"\"Reuse D756's qualified native path for the already-qualified 500-ID input view.\n\nMechanical campaign rebinding only: no new workload, weights, baseline policy,\nproduction change, or repeated component-test suite.\n\"\"\"\nimport ast\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nMAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nBASE = Path('/home/qhq/serverless_llm_baselines')\nRAW = Path(__file__).resolve().parent\nOLD = RAW.parent/'d756_20261023'\nPRIOR = RAW.parent/'d755_20261023'\nBACKUP = RAW.parent.parent/'storage_maintenance/d757_20261023'\nsys.path[:0] = [str(MAIN), str(BASE/'scripts')]\nfrom scripts import ieee_tc_preflight as p\nimport prepare_ieee_tc_serverless_stack as native\n\ndef read(path):\n    return json.loads(path.read_text())\n\ndef save(path, value):\n    with path.open('x') as stream:\n        json.dump(value, stream, indent=2, allow_nan=False)\n        stream.write('\\n')\n\nown = p.scope_identity(p.cg_path().name)\nsave(RAW/'qualification_identity.json', own)\nassert os.sched_getaffinity(0) == {2, 3, 26, 27}\nassert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()\nassert read(OLD/'result_receipt.json')['passed']\nassert read(OLD/'local_cleanup.json')['passed']\nassert p.digest(OLD/'audit_prefix100.json') == 'cb0b1a11085c2a30a8807ec63df25d6ae6b46bf807a3de655a2e652e361111cb'\nprior = read(PRIOR/'qualification.json')\nfor path, expected in (prior['refs'] | prior['protected'] | prior['preserved']).items():\n    assert p.digest(Path(path)) == expected, path\n\nhttp = read(OLD/'http_3b_100.json')\nhttp.update(request_count=500, request_view='adapter_coverage_v1',\n            experiment_role='adapter_pool_functional_coverage')\nhttp.pop('replay_profile')\nplan = native.load_http_replay_plan(http)\nassert plan.identity() == prior['views']['coverage']['plan']\nassert len({entry.adapter_id for entry in plan.entries}) == 500\nsave(RAW/'http_3b_500.json', http)\nview = native.prepare_measurement_view(\n    BASE/'vendor_new_baselines/ServerlessLLM_new_main_20260518', RAW/'source_repaired',\n    'repaired', MAIN, 'request_identity_v1',\n    device_compile_cache_root=Path(prior['source_view']['device_compile_cache_root']))\nassert view['measured_sha256'] == prior['source_view']['measured_sha256']\nsave(RAW/'overlay_preflight.json', read(OLD/'overlay_preflight.json'))\n\nsources = []\nfor name in ('run3b_repaired.sh', 'start.py', 'start_remote.sh', 'stop_remote.sh',\n             'check_remote_health_stdlib.py', 'close.py', 'close_launch.py',\n             'restore_overlay.py', 'preserve_evidence.py', 'run_analysis.py'):\n    source = OLD/name\n    body = source.read_text().replace('d756', 'd758').replace('D756', 'D758')\n    body = body.replace('3b100', '3b500').replace('http_3b_100.json', 'http_3b_500.json')\n    if name == 'start.py':\n        changes = {\n            \"BINDING=RAW.parent/'d755_20261023/qualification.json'\": \"BINDING=RAW/'qualification.json'\",\n            \"binding['views']['100']['plan']['count']==100\": \"binding['views']['coverage']['plan']['count']==500\",\n            \"RAW.parent/'d755_20261023/review_closure.json'\": \"RAW/'qualification_closure.json'\",\n            \"binding['views']['100']['plan'],actual_unique_adapters=29\": \"binding['views']['coverage']['plan'],actual_unique_adapters=500\",\n            'target_tokens=17369': 'target_tokens=68925',\n            \"'D754 unchanged model/policy; D755 device compile cache ownership adaptation'\": \"'D756 unchanged native model/policy/cache ownership; existing 500-ID functional view'\",\n        }\n        for before, after in changes.items():\n            assert body.count(before) == 1, before\n            body = body.replace(before, after)\n    if name == 'run_analysis.py':\n        assert body.count(\"'--population', 'prefix100'\") == 1\n        body = body.replace(\"'--population', 'prefix100'\", \"'--population', 'adapter_coverage_v1'\")\n        body = body.replace('audit_prefix100.json', 'audit_coverage500.json')\n    # Comments must not misidentify this population or previous failed run.\n    body = body.replace('prefix100', '500-ID coverage').replace('Save closed D754 evidence', 'Save closed D758 evidence')\n    target = RAW/name\n    with target.open('x') as stream:\n        stream.write(body)\n    if target.suffix == '.py':\n        ast.parse(body, filename=str(target))\n    else:\n        subprocess.run(['bash', '-n', str(target)], check=True)\n    sources.append(dict(source=str(source), source_sha256=p.digest(source),\n                        target=str(target), target_sha256=p.digest(target)))\n\nassert sum(min(int(json.loads(entry.source_json)['expected_output_tokens']), 256)\n           for entry in plan.entries) == 68925\nbackup = read(BACKUP/'publication_receipt.json')\nassert backup['passed']\nbackup['baseline_head'] = '2bdf53cb25040b98e84e587f421bd772528c96b9'\nbackup['scope_note'] = 'Existing tested code/results checkpoint reused; D758 adds only mechanical run bindings captured in launch_gate.'\nsave(RAW/'backup_receipt.json', backup)\nsave(RAW/'backup_closure.json', read(BACKUP/'publication_closure.json'))\nrefs = {str(path): p.digest(path) for path in [\n    *RAW.glob('*.py'), *RAW.glob('*.sh'), RAW/'http_3b_500.json',\n    RAW/'source_repaired/measurement_manifest.json', RAW/'overlay_preflight.json',\n    BASE/'scripts/prepare_ieee_tc_serverless_stack.py', BASE/'scripts/ieee_tc_serverless_measurement.py',\n    MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py', Path(http['trace']), Path(http['pool_index']),\n    MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']}\nsave(RAW/'qualification.json', dict(passed=True, reused_native_tests=114,\n    reused_3b_input_tests=89, reused_cache_tests=17, new_component_tests=0,\n    views=prior['views'], protected=prior['protected'], preserved=prior['preserved'],\n    native_configuration=prior['native_configuration'], source_view=view, refs=refs,\n    mechanical_rebindings=sources, no_gpu_run=True, no_new_weights_or_trace=True,\n    resources=p.cgroup_snapshot(Path(own['path']))))\nprint(json.dumps(dict(passed=True, requests=500, adapter_ids=500, target_tokens=68925,\n                     source_view_unchanged=True, gpu_run_started=False)))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/preserve_evidence.py",
+      "sha256": "df8f40e53250069678f19526a2413924fb83855cce8c3b284b1057f980424040",
+      "content": "\"\"\"Save closed D758 evidence only; never copy materialized object weights.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport re\nimport shutil\nimport subprocess\n\nROOT = Path(__file__).resolve().parent\nlaunch = json.loads((ROOT/'launch3b_repaired.json').read_text())\nassert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()\nlocal = json.loads((ROOT/'local_cleanup.json').read_text())\nassert local['passed'] and local['service_path_gone'] and local['auxiliary_path_gone']\nassert local['actual_recursive_procs_empty']\nassert not Path(local['service_identity']['path']).exists()\nassert not Path(local['auxiliary_identity']['path']).exists()\nscheduler = ROOT/'source_repaired/sllm/schedulers/storage_aware_scheduler.py'\nassert not (ROOT/'storage_aware_scheduler_executed.py').exists()\nshutil.copy2(scheduler, ROOT/'storage_aware_scheduler_executed.py')\ndest = ROOT/'remote_resolver_evidence'\ndest.mkdir(exist_ok=False)\nsource = Path('/tmp/tc-d758-3br/remote_artifacts')\nfor name in ('journals','receipts'):\n    shutil.copytree(source/name, dest/name)\nshutil.copy2(source/'run_contract.json', dest/'run_contract.json')\nstop = (ROOT/'remote_stop.log').read_text()\nassert stop.count('ActiveState=inactive') == 3 and stop.count('MainPID=0') == 3\npaths = re.findall(r'^(/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-[a-f0-9]{32}\\.jsonl)$', stop, re.M)\nassert len(paths) == 1\nmonitor = '/home/lab14/primelora_remote/tc/d758_20261023/remote_monitor.log'\ncopies = []\nfor remote, name in ((paths[0], 'remote_transfers.jsonl'), (monitor, 'remote_monitor.log')):\n    prefix = ['ssh','-o','BatchMode=yes','primelora-artifact-174']\n    expected = subprocess.check_output(prefix+['sha256sum '+remote], text=True).split()[0]\n    raw = subprocess.check_output(prefix+['cat '+remote])\n    assert hashlib.sha256(raw).hexdigest() == expected\n    with (ROOT/name).open('xb') as handle:\n        handle.write(raw)\n    copies.append(dict(source=remote, path=str(ROOT/name), sha256=expected, bytes=len(raw)))\nwith (ROOT/'evidence_copy_receipt.json').open('x') as handle:\n    json.dump(dict(remote=copies, actual_gpu_release=True, empty_owned_aux_stopped=True,\n                   object_cache_copied=False), handle, indent=2)\nprint(json.dumps(copies))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/restore_overlay.py",
+      "sha256": "0b3c9b6e80e8d223f13fde9d3d5fec7bfd14ed7868ae85911c10a5597f815e09",
+      "content": "\"\"\"Restore this execution's loader only after its complete physical release.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nRAW=Path(__file__).resolve().parent\nlaunch=json.loads((RAW/'launch3b_repaired.json').read_text())\nassert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']\nassert not Path(launch['service_identity']['path']).exists()\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert not (RAW/'overlay3b_repaired/restore_receipt.json').exists()\nsubprocess.run([sys.executable,\n    '/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py',\n    '--action','restore','--backup-root',str(RAW/'overlay3b_repaired/backups'),\n    '--receipt',str(RAW/'overlay3b_repaired/install.json')],check=True)\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/run3b_repaired.sh",
+      "sha256": "2dd96aa42c47655e5a5babe33b14734345f4b5562ac40df52503a5488b4b1f0e",
+      "content": "#!/usr/bin/env bash\nset -euo pipefail\nMAIN=/home/qhq/serverless_llm_experiment_retry14_baseline\nBASE=/home/qhq/serverless_llm_baselines\nRAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023\nENV=/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518\nSTORE=${BASE}/installs/serverless-llm-store-0.8.0-vllm0102-py312-v1\nTRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json\nIFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token\nexport PRIME_REMOTE_TOKEN\ncd \"${MAIN}\"\nexec systemd-run --user --scope --unit=primelora-tc-aux-d7580000000000000000000000000004.scope \\\n  -p AllowedCPUs=2,3,26,27 -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \\\n  taskset -c 2,3,26,27 env \\\n  PYTHONPATH=\"${RAW}/source_repaired:${STORE}/site-packages\" \\\n  LD_LIBRARY_PATH=\"${STORE}/site-packages/sllm_store\" PATH=\"${ENV}/bin:${PATH}\" \\\n  FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py \\\n  FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea \\\n  PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \\\n  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 VLLM_NO_USAGE_STATS=1 RAY_USAGE_STATS_ENABLED=0 \\\n  /usr/bin/python3 \"${MAIN}/scripts/ieee_tc_preflight.py\" gated-launch \\\n  --output \"${RAW}/launch3b_repaired.json\" --predicted-growth-gib 32 \\\n  --http-replay-config \"${RAW}/http_3b_500.json\" \\\n  --exec \"${ENV}/bin/python\" \"${BASE}/scripts/prepare_ieee_tc_serverless_stack.py\" qualify-model \\\n  --output \"${RAW}/model3b_repaired\" --private-root /tmp/tc-d758-3br --main-repo \"${MAIN}\" \\\n  --environment \"${ENV}\" --native-source \"${RAW}/source_repaired\" \\\n  --checkpoint-root \"${BASE}/models\" \\\n  --backbone /home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct \\\n  --trace \"${TRACE}\" --store-package \"${STORE}\" \\\n  --overlay-receipt \"${RAW}/overlay3b_repaired/install.json\" --gpu-ids 0,1,2,3 \\\n  --host 192.168.4.178 --model-name v43-sllm-native-smoke-llama32-3b \\\n  --ray-port 6398 --api-port 8348 --http-replay-config \"${RAW}/http_3b_500.json\" \\\n  --min-instances 1 --max-instances 4 --target 8 --keep-alive 10 --no-enforce-eager\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/run_analysis.py",
+      "sha256": "5e52d1c82c65689952d96d1b37beaf87969fb007f32ea55d6df4d12a1ebeb0ab",
+      "content": "\"\"\"Reuse D555's post-release wrapper for the 3B native remote 500-ID coverage.\n\nPreparation is not execution or qualification. Run only after exact local\nclosure and owned remote stop; no model/serving/input changes are made here.\n\"\"\"\nimport argparse\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nBASE = Path('/home/qhq/serverless_llm_baselines')\nRAW = Path(__file__).resolve().parent\nsys.path.insert(0, str(ROOT))\nfrom scripts import ieee_tc_preflight as p\n\nparser = argparse.ArgumentParser()\nparser.add_argument('--outcome', choices=('success', 'complete_with_failures'), required=True)\nargs = parser.parse_args()\nidentity = p.scope_identity(p.cg_path().name)\ngroup = Path(identity['path'])\nwith (RAW/'analysis_identity.json').open('x') as stream:\n    json.dump(identity, stream, indent=2)\nassert (group/'memory.high').read_text().strip() == str(3*p.GIB)\nassert (group/'memory.max').read_text().strip() == str(4*p.GIB)\nassert (group/'memory.swap.max').read_text().strip() == '0'\nassert os.sched_getaffinity(0) == {2, 3, 26, 27}\nassert not subprocess.check_output(\n    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()\nlocal = json.loads((RAW/'local_cleanup.json').read_text())\nassert local['passed'] and local['actual_recursive_procs_empty']\nassert local['service_path_gone'] and local['auxiliary_path_gone']\nassert not Path(local['service_identity']['path']).exists()\nassert not Path(local['auxiliary_identity']['path']).exists()\nstop = (RAW/'remote_stop.log').read_text()\nassert stop.count('ActiveState=inactive') == stop.count('MainPID=0') == 3\nanalyzer = ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py'\ncommands = [\n    ('collection1.log', [sys.executable, str(RAW/'preserve_evidence.py')]),\n    ('analysis1.log', [sys.executable, str(analyzer),\n                      '--root', str(RAW), '--baseline', str(BASE), '--main', str(ROOT),\n                      '--scheduler-contract', 'request_identity_v1',\n                      '--population', 'adapter_coverage_v1', '--outcome', args.outcome,\n                      '--model-key','3b','--slo-freeze', str(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),\n                      '--output', str(RAW/'audit_coverage500.json')]),\n]\nresults = []\ntry:\n    for name, command in commands:\n        with (RAW/name).open('x') as log:\n            result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,\n                env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))\n        results.append(dict(command=command, log=name, returncode=result.returncode))\n        result.check_returncode()\nfinally:\n    record = dict(passed=len(results) == len(commands) and all(r['returncode'] == 0 for r in results),\n        identity=identity, commands=results, outcome=args.outcome,\n        source_sha256={str(path): p.digest(path) for path in\n                       (Path(__file__), RAW/'preserve_evidence.py', analyzer)},\n        resources={key: (group/key).read_text() for key in\n                   ('memory.peak', 'memory.events', 'memory.swap.current')})\n    with (RAW/'analysis_receipt.json').open('x') as stream:\n        json.dump(record, stream, indent=2)\nprint(json.dumps(record), flush=True)\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/start.py",
+      "sha256": "9026de699979d7d60cb2d39dda016bd44ac003eca1b89e3cd63334684861ab4b",
+      "content": "\"\"\"Reuse D555's exact-owned entry for the D753-qualified 3B 500-ID coverage.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport time\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nBASE=Path('/home/qhq/serverless_llm_baselines')\nRAW=Path(__file__).resolve().parent\nBINDING=RAW/'qualification.json'\nENV=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python')\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\ndef save(path,value):\n    with path.open('x') as stream:json.dump(value,stream,indent=2,allow_nan=False)\ndef run(command,**kwargs):return subprocess.run(command,check=True,**kwargs)\ndef git(repo,*args):return subprocess.check_output(['git',*args],cwd=repo,text=True).strip()\n\nassert RAW.name=='d758_20261023'\nassert not any((RAW/name).exists() for name in ('launch3b_repaired.json','launch3b_repaired.launch','model3b_repaired','input_identity.json'))\nassert not Path('/tmp/tc-d758-3br').exists()\nidentity=p.scope_identity(p.cg_path().name)\nsave(RAW/'start_identity.json',identity)\ngroup=Path(identity['path'])\nassert (group/'memory.high').read_text().strip()==str(3*p.GIB)\nassert (group/'memory.max').read_text().strip()==str(4*p.GIB)\nassert (group/'memory.swap.max').read_text().strip()=='0'\nassert os.sched_getaffinity(0)=={2,3,26,27}\nbackup=json.loads((RAW/'backup_receipt.json').read_text())\nhead=git(ROOT,'rev-parse','HEAD')\nassert backup['passed'] and head==backup['head']\nassert git(ROOT,'ls-remote','faaslora_origin',backup['remote_ref']).split()[0]==head\nbasehead=git(BASE,'rev-parse','HEAD')\nassert basehead==backup['baseline_head']\nassert git(BASE,'ls-remote','origin','refs/heads/main').split()[0]==basehead\nclosed=json.loads((RAW/'backup_closure.json').read_text())\nassert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']\nassert not Path(closed['identity']['path']).exists()\nfor repo,paths in ((ROOT,['faaslora','scripts','configs/ieee_tc','tests']),\n                   (BASE,['scripts/prepare_ieee_tc_serverless_stack.py','scripts/replay_vllm_engine_trace.py',\n                          'scripts/ieee_tc_serverless_measurement.py','configs/ieee_tc'])):\n    assert not git(repo,'diff','--name-only','HEAD','--',*paths)\nbinding=json.loads(BINDING.read_text())\nassert binding['passed'] and binding['reused_native_tests']==114 and binding['reused_3b_input_tests']==89\nassert binding['views']['coverage']['plan']['count']==500\n\nfor path,sha in binding['refs'].items():assert p.digest(Path(path))==sha,path\nfor name in ('qualification',):\n    closure=json.loads((RAW/'review_closure.json').read_text())\n    assert closure['passed'] and closure['path_gone'] and not Path(closure['identity']['path']).exists()\nassert p.check_plan()=='d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'\ngate=p.preflight([ROOT],32*p.GIB)\nassert gate['preflight_pass'],gate['issues']\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nsession='tc-d758-serverlessllm-3b500'\nassert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0\nfor path,sha in binding['protected'].items():assert p.digest(Path(path))==sha,path\nprotected=dict(passed=True,entry_count=len(binding['protected']))\nprepared=binding\nfor path,sha in prepared['refs'].items():assert p.digest(Path(path))==sha,path\nsave(RAW/'launch_gate.json',dict(passed=True,head=head,baseline_head=basehead,\n    qualification_sha256=p.digest(BINDING),gate=gate,protected=protected,scope=identity,\n    helpers=[dict(path=str(x),sha256=p.digest(x),content=x.read_text())\n             for x in sorted([*RAW.glob('*.py'),*RAW.glob('*.sh')])]))\nsave(RAW/'input_identity.json',dict(plan=binding['views']['coverage']['plan'],actual_unique_adapters=500,\n    target_tokens=68925,performance_ranking_eligible=False,formal_run=False,\n    main_execution_commit=head,baseline_execution_commit=basehead,\n    generation_contract='fixed_length_greedy_v1',native_configuration_reused='D756 unchanged native model/policy/cache ownership; existing 500-ID functional view'))\n# Preserve ordinary compiler cache state before measurement, never GPU-prewarm.\ncache=Path(binding['source_view']['device_compile_cache_root'])\nentries=[]\nfor path in sorted(cache.rglob('*')):\n    if path.is_file():\n        assert not path.is_symlink()\n        entries.append([str(path.relative_to(cache)),path.stat().st_size,p.digest(path)])\nsave(RAW/'native_compile_cache_before.json',dict(root=str(cache),entries=entries,\n    files=len(entries),bytes=sum(x[1] for x in entries),\n    policy='retained ordinary compiler disk cache; all actual startup/capture GPU holding charged',\n    whole_lower_level_cache_identity_proved=False))\n# Same official loader-only overlay, with this execution's own backup/receipt.\ninstaller='/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py'\nwith (RAW/'overlay_install.log').open('x') as stream:\n    run([sys.executable,installer,'--action','install','--backup-root',str(RAW/'overlay3b_repaired/backups'),\n        '--receipt',str(RAW/'overlay3b_repaired/install.json')],stdout=stream,stderr=subprocess.STDOUT)\ninstalled=json.loads((RAW/'overlay3b_repaired/install.json').read_text())\nexpected=json.loads((RAW/'overlay_preflight.json').read_text())\nassert installed['status']=='INSTALLED' and installed['members']==expected['members']\nrun(['bash',str(RAW/'start_remote.sh')])\nrun([sys.executable,str(RAW/'check_remote_health_stdlib.py')],cwd=ROOT)\nrun(['tmux','new-session','-d','-s',session,'-c',str(BASE),\n     f\"bash {RAW}/run3b_repaired.sh > {RAW}/runner.log 2>&1\"])\nreceipt=RAW/'launch3b_repaired.launch/exec_receipt.json'\ndeadline=time.monotonic()+210\nwhile not receipt.exists():\n    if time.monotonic()>deadline:\n        raise TimeoutError('observation timeout only; inspect the same tmux, never restart')\n    time.sleep(.1)\nlaunched=json.loads(receipt.read_text())\ncaptured=p.scope_identity(Path(launched['auxiliary_path']).name)\nsave(RAW/'service_aux_identity.json',captured)\nsave(RAW/'start_receipt.json',dict(launched=True,head=head,baseline_head=basehead,\n    tmux=session,starter_identity=identity,launcher_identity=captured))\nprint(json.dumps(dict(launched=True,tmux=session,head=head,baseline_head=basehead)))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/start_remote.sh",
+      "sha256": "6fb24a62809013e59a7e4ea2191b779217b9c22976929bc29d1b1cbe49da15e3",
+      "content": "#!/usr/bin/env bash\n# Reuse the frozen published-service procedure; campaign paths only.\nset -euo pipefail\nset -o noclobber\nraw=/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023\nssh -o BatchMode=yes primelora-artifact-174 /bin/bash <<'REMOTE' > \"$raw/remote_start.log\" 2>&1\nset -euo pipefail\nbase=/home/lab14/primelora_remote/tc/d80_20260927\nout=/home/lab14/primelora_remote/tc/d758_20261023\ntest \"$(loginctl show-user lab14 -p Linger --value)\" = yes\ntest \"$(awk '/^MemAvailable:/{print $2}' /proc/meminfo)\" -ge 27525120\ntest \"$(df -B1 --output=avail \"$base\" | tail -1 | tr -d ' ')\" -ge 17280532480\ntest -z \"$(ss -ltnH '( sport = :18080 or sport = :18081 )')\"\ntest ! -e \"$out\"\nfor model in 3b 7b; do\n  test \"$(systemctl --user show primelora-artifact-tc-${model}.service -p ActiveState --value)\" = inactive\n  cmp \"$base/primelora-artifact-tc-${model}.service\" \"/home/lab14/.config/systemd/user/primelora-artifact-tc-${model}.service\"\ndone\nmkdir \"$out\"\niface=$(ip -o route get 192.168.4.178 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1);exit}}')\ntest -n \"$iface\"\ncat \"/sys/class/net/$iface/speed\" \"/sys/class/net/$iface/duplex\"\nsystemctl --user start primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service\nsystemd-run --user --unit=primelora-artifact-monitor-d758-3b500.service \\\n  -p Type=exec -p UMask=0077 -p MemoryHigh=128M -p MemoryMax=256M -p MemorySwapMax=0 \\\n  -p CPUAffinity='0 20' -p TasksMax=32 -p NoNewPrivileges=yes \\\n  -p TimeoutStopSec=30 -p Restart=no \\\n  -p StandardOutput=\"append:$out/remote_monitor.log\" \\\n  -p StandardError=\"append:$out/remote_monitor.log\" \\\n  /bin/bash \"$base/monitor_remote_services_v2.sh\"\nsystemctl --user show primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d758-3b500.service \\\n  -p Id -p InvocationID -p MainPID -p ActiveState -p MemoryHigh -p MemoryMax -p MemorySwapMax\nREMOTE\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023/stop_remote.sh",
+      "sha256": "9b9429a29609ce2ae08150d7278224632926921ffa36f257d9f2965eee41a7fe",
+      "content": "#!/usr/bin/env bash\nset -euo pipefail\nset -o noclobber\nraw=/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d758_20261023\njq -e '.native_gpu_context_release_confirmed and .service_path_removed' \"$raw/launch3b_repaired.json\" >/dev/null\ntest -z \"$(nvidia-smi --query-compute-apps=pid --format=csv,noheader)\"\nids=()\nfor unit in primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d758-3b500.service; do\n  id=$(awk -F= -v want=\"$unit\" '$1==\"Id\" {id=$2} $1==\"InvocationID\" && id==want {print $2}' \"$raw/remote_start.log\")\n  [[ \"$id\" =~ ^[a-f0-9]{32}$ ]]\n  ids+=(\"$id\")\ndone\nclock_id=$(jq -er '.\"3b\".clock_id' \"$raw/remote_health.json\")\n[[ \"$clock_id\" =~ ^remote-process-monotonic:[a-f0-9]{32}$ ]]\nssh -o BatchMode=yes primelora-artifact-174 /bin/bash -s -- \"${ids[@]}\" \"$clock_id\" <<'REMOTE' > \"$raw/remote_stop.log\" 2>&1\nset -euo pipefail\nunits=(primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d758-3b500.service)\nids=(\"$1\" \"$2\" \"$3\")\nclock_id=$4\nfor i in 0 1 2; do\n  test \"$(systemctl --user show \"${units[$i]}\" -p InvocationID --value)\" = \"${ids[$i]}\"\ndone\nsystemctl --user stop \"${units[2]}\"\nfor i in 0 1; do\n  state=$(systemctl --user show \"${units[$i]}\" -p ActiveState --value)\n  if test \"$state\" != inactive; then\n    test \"$(systemctl --user show \"${units[$i]}\" -p InvocationID --value)\" = \"${ids[$i]}\"\n    systemctl --user stop \"${units[$i]}\"\n  fi\ndone\nfor unit in \"${units[@]}\"; do\n  test \"$(systemctl --user show \"$unit\" -p ActiveState --value)\" = inactive\n  test \"$(systemctl --user show \"$unit\" -p MainPID --value)\" = 0\n  systemctl --user show \"$unit\" -p Id -p ActiveState -p MainPID -p Result\ndone\ntest -z \"$(ss -ltnH '( sport = :18080 or sport = :18081 )')\"\ngrep -l \"$clock_id\" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl || test \"$?\" -eq 1\nsha256sum /home/lab14/primelora_remote/tc/d758_20261023/remote_monitor.log\nREMOTE\n\n"
+    }
+  ]
+}
