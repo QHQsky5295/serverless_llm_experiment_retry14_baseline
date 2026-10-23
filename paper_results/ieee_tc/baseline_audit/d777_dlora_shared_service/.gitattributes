@@ -1,0 +1,4 @@
+# Preserve verbatim native evidence; actual changes are checked independently.
+llm_engine.py.snapshot -whitespace
+engine_manager.py.snapshot -whitespace
+ray_utils.py.snapshot -whitespace

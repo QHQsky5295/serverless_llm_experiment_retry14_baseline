@@ -1,0 +1,39 @@
+"""Reuse explicit-path checkpoint for D777 shared service and physical contract."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d774_20261024/backup.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='b5c70e16e8bd04fc8f3f5868a4d9696e197cd91f09293a2a4a613ebd7d7049e1'
+source=data.decode()
+changes={
+    'd774_dlora_native_timing':'d777_dlora_shared_service',
+    '84bb7892b4aade6bed0b898fb99d1f6074073a10':'7c190b2e87f6a1817306ea74e14bcd429a842d3b',
+    '57be5a751304642b76e226f9b19e84f8e941519a':'d5ea4ac990ce5dcb0ee5ba40b11d9a81ce713e43',
+    "             'tests/test_ieee_tc_dlora_measurement.py']":
+        "             'tests/test_ieee_tc_dlora_measurement.py',\n             'scripts/replay_vllm_engine_trace.py']",
+    'tc: observe native dLoRA token timelines across migration (D774)':
+        'tc: connect native dLoRA to common HTTP and physical lifecycle (D777)',
+    "manifest = dict(schema='ieee_tc_dlora_native_timing_cpu_qualification_v1',":
+        "with (OUT/'.gitattributes').open('xb') as handle:\n    handle.write((RAW/'snapshot.gitattributes').read_bytes())\nfiles['.gitattributes']=dict(source=str(RAW/'snapshot.gitattributes'),sha256=p.digest(OUT/'.gitattributes'))\nmanifest = dict(schema='ieee_tc_dlora_shared_service_cpu_qualification_v1',",
+    'tests=dict(dlora=12, shared_slora_regression=30, passed=True)':
+        'tests=dict(dlora=34, shared_slora_service_regression=27, passed=True, gpu_output_is_synthetic=True)',
+    "paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',":
+        "paths = [MAIN/'faaslora/metrics/metrics_collector.py', MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',",
+    'D774_DLORA_NATIVE_TIMING_20261024.md':'D777_DLORA_SHARED_SERVICE_20261024.md',
+    'tc: preserve dLoRA native timing qualification and scope (D774)':
+        'tc: bind dLoRA physical terminal contract and preserve qualification (D777)',
+    'backup/d774-dlora-native-timing-20261024':'backup/d777-dlora-shared-service-20261024',
+}
+for old,new in changes.items():
+    assert source.count(old)==1,old
+    source=source.replace(old,new)
+needle="assert call(BASE,'git','branch','--show-current') == 'main'"
+check="""for path in q['source_view']['measured_sha256']:
+    checked=subprocess.run(['git','diff','--no-index','--check',str(native/path),str(view/path)],
+        capture_output=True,text=True)
+    assert checked.returncode in (0,1) and not checked.stdout and not checked.stderr,path
+"""
+assert source.count(needle)==1
+source=source.replace(needle,check+needle)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

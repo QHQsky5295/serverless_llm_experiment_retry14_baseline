@@ -1,0 +1,8 @@
+"""Reuse exact-owned empty-scope closure; never stop unrelated processes."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d776_20261024/close.py')
+data=original.read_bytes()
+source=data.decode()
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

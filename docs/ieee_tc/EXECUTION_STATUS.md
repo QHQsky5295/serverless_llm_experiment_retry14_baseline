@@ -1,5 +1,43 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D777：共同服务与物理计量连接完成，61项CPU检查通过（PROGRESS）
+
+已完整重读PLAN/最新状态，核对D773历史审计及固定官方EngineManager/API。
+复用run-experiment入口保护：现有resident服务新增dLoRA原生manager分支，
+共同通知后full-pool准备→两GPU真实分配→唯一manager启动→原生worker/NVML
+绑定→等待中的共同请求→原生select_engine/迁移→实际退出/release/终态。
+不使用RR选择dLoRA副本，不改历史DP2/TP1性能参数、放置/迁移或LoRA运算。
+MAIN物理终态仅增加dLoRA原生timing/token-source对，原资源公式不变。
+
+34项dLoRA检查（0.417s）及27项共享S-LoRA服务回归（2.164s）通过。合成
+输出经实际原生选择/生成/tracker进入共同校验和物理终态，不冒称GPU/数值
+正确性。aux1峰值63643648bytes，high/max/OOM/swap均0，已结束并关闭空域；
+145项旧投稿和三项dirty SHA未变。RAW为dlora_qualification/d777_20261024。
+本轮未启动GPU/Ray/远端服务，也未触碰共享k3s。准备检查点备份，未预称完成。
+
+下一从接口阶段转真实native DP2/TP1加载与必要GQA/LoRA/共同HTTP资格；
+原生完整服务尚未实际运行，不由61项CPU检查推称其合格。只补具体受影响
+路径，不继续接口无变化重验/基线寻优；随后3B W1/W2各一次。
+Loquetier/HydraServe 3B、PrimeLoRA全比较优化、同版本Full、A1–A5、S1–S13、
+CE/Pareto、审稿文档/最终图表全部保留，整体目标active。
+
+## 2026-10-24 01:24 CST：D776检查点已备份并核验（PROGRESS）
+
+BASE `7c190b2e87f6a1817306ea74e14bcd429a842d3b` 已推送并核验origin/main；
+MAIN `d5ea4ac990ce5dcb0ee5ba40b11d9a81ce713e43` 已核验
+`faaslora_origin/backup/d776-dlora-owned-runtime-20261024`。无force，V2仍未同步。
+显式提交本轮4项BASE路径、文档/状态和小型证据；145项投稿保护及用户dirty
+未变。原生快照保留字节，新增实际修改相对vendor逐文件diff --check通过。
+aux1资格和aux2备份均结束，空域已关闭；无活动exec/wait或GPU性能运行。
+只有本推送后状态追加待下一检查点保存。
+
+下一动作仍是dLoRA共同HTTP/remote full-pool/parent PhysicalGPUAllocation
+接入。D776 runtime要求分配先存在，但尚未实现外层服务、NVML确认与release；
+不从27项CPU/原生环境导入推称真实性能。复用现有resident服务的准备、入口、
+终态和清理，dLoRA使用专门native EngineManager分配而非ResidentRoundRobin。
+之后必要真实加载/GQA验证→3B W1/W2→Loquetier/HydraServe 3B→PrimeLoRA
+完整比较优化；同版本Full、全消融/敏感性/文档/图表保持，目标active。
+
 ## 2026-10-24 D776：私有运行域接口及原生环境导入通过（PROGRESS）
 
 完整PLAN及最新规则已核对；遵循run-experiment复用入口，未触碰其他项目k3s。
