@@ -1,0 +1,7 @@
+"""Same model check as D788; reference packages are explicit qualified inputs."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/probe.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='87c635b2b8d9b0aa619e7378a02362a174339ab7f494041c7b18096611be3c3d'
+exec(compile(data,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

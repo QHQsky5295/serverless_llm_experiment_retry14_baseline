@@ -1,0 +1,17 @@
+Running scope as unit: primelora-tc-svc-e3dc386435d6422a823659cdcb8adacd.scope
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/probe.py", line 19, in <module>
+    runpy.run_path(str(probe),run_name='__main__')
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 288, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 97, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 307, in <module>
+    raise SystemExit(main())
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 190, in main
+    result = probe_model_outputs(args)
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 54, in probe_model_outputs
+    from peft import PeftModel
+ModuleNotFoundError: No module named 'peft'

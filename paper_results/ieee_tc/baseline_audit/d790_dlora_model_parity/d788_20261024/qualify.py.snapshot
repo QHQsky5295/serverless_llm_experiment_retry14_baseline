@@ -1,0 +1,41 @@
+"""Bind a new model-correctness view; retain D782/vendor and every failed run."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as prepare
+
+def save(name,value):
+    with (RAW/name).open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+
+own = p.scope_identity(p.cg_path().name)
+save('qualification_identity.json',own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+prior = json.loads((RAW.parent/'d782_20261024/qualification.json').read_text())
+for path,digest in prior['preserved'].items(): assert p.digest(Path(path)) == digest,path
+backup = json.loads((RAW.parent/'d787_20261024/backup_receipt.json').read_text())
+assert backup['passed']
+command = [sys.executable,'-B','-m','unittest','tests.test_ieee_tc_dlora_measurement','-v']
+with (RAW/'cpu_tests.log').open('x') as stream:
+    result = subprocess.run(command,cwd=BASE,stdout=stream,stderr=subprocess.STDOUT)
+if result.returncode: raise SystemExit(result.returncode)
+view = prepare.prepare_dlora_measurement_view(BASE/'vendor_new_baselines/dLoRA_artifact_main_20260519',
+    RAW/'source_view',MAIN,canonical_input=True,worker_lifecycle=True,
+    cpu_zero_mlp_views=True,llama_model_compat=True)
+refs = [BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+        BASE/'scripts/probe_dlora_real_adapter_loader.py',BASE/'scripts/ieee_tc_serverless_measurement.py',
+        BASE/'tests/test_ieee_tc_dlora_measurement.py',Path(__file__),RAW/'probe.py',RAW/'run_probe.py']
+save('qualification.json',dict(passed=True,plan_sha256=p.check_plan(),source_view=view,
+    refs={str(path):p.digest(path) for path in refs},preserved=prior['preserved'],
+    commands=[command],previous_checkpoint=backup['head'],
+    model_output_parity_validated=False,performance_run_authorized=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,source_view=str(RAW/'source_view'),model_parity_pending=True)))

@@ -1,0 +1,36 @@
+"""Bind probe input-contract correction; model code and reference stay frozen."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+RAW=Path(__file__).resolve().parent
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+PRIOR=RAW.parent/'d789_20261024'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def save(name,value):
+    with (RAW/name).open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name);save('qualification_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=json.loads((PRIOR/'qualification.json').read_text())
+changed=BASE/'scripts/probe_dlora_real_adapter_loader.py'
+snapshot=PRIOR/'probe_before_native_input_reuse.py.snapshot'
+assert p.digest(snapshot)==q['refs'][str(changed)]
+for path,sha in (q['refs']|q['reference_sources']).items():
+    if path!=str(changed): assert p.digest(Path(path))==sha,path
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+assert json.loads((PRIOR/'probe_closure.json').read_text())['path_gone']
+ast.parse(changed.read_text())
+refs={**q['refs'],str(changed):p.digest(changed),**{str(path):p.digest(path) for path in
+    (Path(__file__),RAW/'probe.py',RAW/'run_probe.py',snapshot)}}
+save('qualification.json',dict(passed=True,plan_sha256=p.check_plan(),refs=refs,
+    preserved=q['preserved'],reference_sources=q['reference_sources'],source_view=q['source_view'],
+    model_code_changed_since_d788=False,reference_environment_changed_since_d789=False,
+    probe_input_contract='actual_Worker._prepare_inputs',old_probe_sha256=p.digest(snapshot),
+    reason='probe supplied int64 KV slots, native kernel requires int32; reuse worker preparation and padding',
+    performance_run_authorized=False,resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,model_unchanged=True,probe_uses_native_input_preparation=True)))

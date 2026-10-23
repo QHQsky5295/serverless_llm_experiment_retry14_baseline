@@ -1,0 +1,84 @@
+"""Explicit-path checkpoint of necessary model adaptation and all probe outcomes."""
+import ast
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe=data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+own=p.scope_identity(p.cg_path().name);save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+q=read(RAW/'qualification.json')
+for path,digest in (q['refs']|q['reference_sources']|q['preserved']).items():
+    assert p.digest(Path(path))==digest,path
+for campaign in ('d788_20261024','d789_20261024','d790_20261024'):
+    root=RAW.parent/campaign
+    for name in ('qualification','probe'):
+        close=read(root/(name+'_closure.json'))
+        assert close['passed'] and close['path_gone'] and not Path(close['identity']['path']).exists()
+    launch=read(root/'probe_launch.json')
+    assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert read(RAW/'probe_launch.json')['pass']
+probe=read(RAW/'native_probe.json')
+assert probe['passed'] and len(probe['checks'])==6
+assert probe['tied_head_shared'] and probe['rope_cache_max_abs_error']==0
+assert all(row['passed'] and row['native_token']==row['reference_token'] for row in probe['checks'])
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def checked(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size<2*1024*1024,path
+        assert not secret.search(path.read_text()),path
+        if path.suffix=='.py': ast.parse(path.read_text(),filename=str(path))
+def commit(repo,paths,message,remote,ref):
+    checked(paths)
+    relative=[str(path.relative_to(repo)) for path in paths]
+    assert not call(repo,'git','diff','--cached','--name-only')
+    call(repo,'git','add','--',*relative)
+    assert set(call(repo,'git','diff','--cached','--name-only').splitlines())==set(relative)
+    call(repo,'git','diff','--cached','--check')
+    call(repo,'git','commit','-m',message)
+    head=call(repo,'git','rev-parse','HEAD')
+    call(repo,'git','-c','http.version=HTTP/1.1','push',remote,'HEAD:'+ref)
+    assert call(repo,'git','ls-remote',remote,ref).split()[0]==head
+    return head
+assert call(BASE,'git','rev-parse','HEAD')=='8fcb6bf95fdde6f4f0e6f396c2ba604b861db554'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]=='8fcb6bf95fdde6f4f0e6f396c2ba604b861db554'
+baseline_paths=[BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'scripts/probe_dlora_real_adapter_loader.py',BASE/'tests/test_ieee_tc_dlora_measurement.py']
+basehead=commit(BASE,baseline_paths,'tc: adapt configured dLoRA tied vocabulary and Llama 3 RoPE',
+                'origin','refs/heads/main')
+save(RAW/'baseline_backup_receipt.json',dict(passed=True,head=basehead,remote='origin/main',
+    paths=[str(path) for path in baseline_paths],force_push=False))
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d790_dlora_model_parity'
+OUT.mkdir(parents=True,exist_ok=False)
+mapping={}
+for campaign in ('d788_20261024','d789_20261024','d790_20261024'):
+    root=RAW.parent/campaign;target=OUT/campaign;target.mkdir()
+    sources=sorted(path for path in root.iterdir() if path.is_file() and path.suffix in ('.py','.json','.log','.snapshot'))
+    # Full resource sampling remains raw; small closed receipt and actual model log suffice here.
+    checked(sources)
+    mapping[campaign]=copy_sources(target,sources)
+    service_log=root/'probe_launch.launch/service.log'
+    checked([service_log]);mapping[campaign].update(copy_sources(target,[service_log]))
+view=RAW.parent/'d788_20261024/source_view/measurement_manifest.json'
+mapping['source_view']=copy_sources(OUT,[view])
+save(OUT/'manifest.json',dict(schema='ieee_tc_dlora_model_compatibility_checkpoint_v1',files=mapping,
+    baseline_head=basehead,plan_sha256=p.check_plan(),native_source_view_sha256=p.digest(view),
+    successful_probe=str(RAW/'native_probe.json'),prior_probe_failures_retained=2,
+    tests=46,numerical_points=6,numerical_scope=probe['scope'],
+    full_workload_correctness_proven=False,performance_experiments=0,
+    model_compatibility='tied_vocab_llama3_rope_pp1_v1',next='affected_3B_W1_W2_only',
+    baseline_performance_parameters_changed=False,new_weights_or_trace=False,
+    protected_and_dirty_preserved=len(q['preserved'])))
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D788_DLORA_MODEL_COMPATIBILITY_20261024.md',
+       *sorted(path for path in OUT.rglob('*') if path.is_file())]
+assert call(MAIN,'git','rev-parse','HEAD')=='0d196af750075bc9d8f4d5e77861b36840881fff'
+ref='refs/heads/backup/d790-dlora-model-parity-20261024'
+head=commit(MAIN,paths,'tc: preserve dLoRA model compatibility and native parity evidence (D788-D790)',
+            'faaslora_origin',ref)
+for path,digest in q['preserved'].items(): assert p.digest(Path(path))==digest,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref)))

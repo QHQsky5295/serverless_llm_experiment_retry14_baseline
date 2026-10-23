@@ -1,5 +1,57 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D790：真实模型数值对照通过，准备冻结并恢复W1/W2
+
+D790真实检查已通过（launch pass=true，service/watchdog0/0），6/6原生
+prefill/paged-decode点greedy token与HF/PEFT一致，logits全部finite；
+relative L2最大0.0022089437、cosine最小0.9999917746、max_abs0.0234375。
+真实head共享、28层RoPE cache与参考最大误差0；输出[578,19114,374]及
+[578,2326,1288]，不再全token0。只证明两个既有prompt/adapter的有界
+路径，不能冒称完整4000请求数值/性能达标。GPU空闲、service path gone、
+probe辅助域已关闭；D788缺参考依赖及D789probe输入类型失败全部保留。
+下一检查点备份（BASE三文件+MAIN证据）→新执行键复用同一修正model view
+及原生配置重跑dLoRA3BW1/W2，不改参数、不新增资格矩阵或新工件。
+之后仍为Loquetier/HydraServe3B、PrimeLoRA全比较/优化、同版本Full、
+A1–A5、S1–S13、CE/Pareto、审稿文档和图表/V2。goal active未完成。
+
+## 2026-10-24 D790：验证入口复用native输入准备；同一数值问题继续
+
+D789进入native模型后因probe的slot_mapping int64与kernel int32不符停止，
+并非dLoRA模型失败。service1/watchdog0，GPU空闲、service gone、probe域
+闭合；旧probe源码ef7aea3d已完整保存在D789并与当时qualification SHA一致。
+只修正probe为真实Worker._prepare_inputs，保留native padding及adapter
+mapping，不改模型适配、参考环境、判据或性能参数。D790 qualification
+已完成并闭合，tmux tc-d790-model-parity已启动；未重做46项已通过模型测试。
+下一等待实际数值结果→收尾/备份→通过后仅重跑受影响W1/W2。完整未完范围
+不变，goal active；无新的正式性能结果、无共享k3s改动。
+
+## 2026-10-24 D789：复用参考依赖，同一有界模型检查已启动
+
+D788实际probe在模型加载前因缺PEFT终止，原错误保留；service1/watchdog0，
+GPU释放、service path gone、probe辅助域已闭合，不把它记为数值错误结果。
+D789不改模型源码/判据，仅只读链接本机Loquetier环境中的PEFT0.17.1及
+Accelerate0.34.2包和metadata，255文件SHA记录；CPU import已验证native
+Torch2.1.2cu121/Transformers4.45.2不变。没有安装、环境覆盖或新数据。
+qualification49391返回0并闭合，tmux tc-d789-model-parity已启动同一小型
+prefill+两步paged decode检查。尚无通过结论；当前无正式性能回放。
+下一按实际结果保存/释放→通过则冻结代码并只重跑受影响W1/W2，否则根据
+具体数值证据处理；所有后续baseline/PrimeLoRA/消融/敏感性/文档交付保留。
+
+## 2026-10-24 D788：模型兼容新视图与46项回归通过，数值检查待执行
+
+D787存储和备份均已闭合，MAIN0d196af备份到
+`faaslora_origin/backup/d787-dlora-model-incompatibility-20261024`，BASE仍8fcb6bf。
+实际回收18.16GiB重复缓存，现可用约151.18GiB，唯一资产与147项保护未变。
+D788仅扩展既有source-view和loader probe：配置驱动共享head与llama3
+RoPE（FP32频率），不改官方调度/迁移/性能参数，保留vendor/D782。
+六项新CPU单元检查和46项完整dLoRA合同回归通过；qualification86856已
+返回0。下一以既有两个prompt/adapter比较native prefill+两步paged decode
+与Transformers/PEFT，不重做无关整池审计，不生成权重或负载。判据、来源
+和历史见D788_DLORA_MODEL_COMPATIBILITY_20261024.md。
+这不是新的性能结果或已证明完整数值正确；正确性通过后仅重跑受影响3B
+W1/W2，随后Loquetier/HydraServe3B、PrimeLoRA全比较优化和完整消融/敏感性/
+CE/文档/图表/V2继续。共享k3s不改。goal active。
+
 ## 2026-10-24 D787：模型缺陷主动截断，已释放与审计（PROGRESS）
 
 本轮先核验同一运行持续活跃（Finished602→670），随后基于上一轮已确认

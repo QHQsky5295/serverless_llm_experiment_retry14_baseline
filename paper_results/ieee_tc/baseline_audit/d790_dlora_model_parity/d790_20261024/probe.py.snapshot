@@ -1,0 +1,7 @@
+"""Same existing-input numerical probe with corrected native input preparation."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d789_20261024/probe.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='d0fc8186ea9a865d1c32948093b1e2c30e14533ea51eab8d7b477425aa7527a3'
+exec(compile(data,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

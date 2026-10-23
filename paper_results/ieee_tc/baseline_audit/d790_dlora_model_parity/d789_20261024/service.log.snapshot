@@ -1,0 +1,47 @@
+Running scope as unit: primelora-tc-svc-8cbde6731e0a487b94b2034b90790629.scope
+WARNING 10-24 07:04:12 config.py:321] Casting torch.bfloat16 to torch.float16.
+INFO 10-24 07:04:19 lora_engine.py:376] Loaded 2 real PEFT LoRA adapters into dLoRA CPU pool
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d789_20261024/probe.py", line 7, in <module>
+    exec(compile(data,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/probe.py", line 19, in <module>
+    runpy.run_path(str(probe),run_name='__main__')
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 288, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 97, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 307, in <module>
+    raise SystemExit(main())
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 190, in main
+    result = probe_model_outputs(args)
+  File "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py", line 129, in probe_model_outputs
+    hidden = native.model(torch.tensor(input_ids,device='cuda'),
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/source_view/vllm/model_executor/models/llama.py", line 272, in forward
+    hidden_states = layer(
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/source_view/vllm/model_executor/models/llama.py", line 205, in forward
+    hidden_states = self.self_attn(
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/source_view/vllm/model_executor/models/llama.py", line 157, in forward
+    attn_output = self.attn(positions, q, k, v, k_cache, v_cache,
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/source_view/vllm/model_executor/layers/attention.py", line 385, in forward
+    return super().forward(
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/source_view/vllm/model_executor/layers/attention.py", line 272, in forward
+    cache_ops.reshape_and_cache(
+RuntimeError: expected scalar type Int but found Long

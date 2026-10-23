@@ -1,0 +1,11 @@
+"""Reuse bounded model check, with explicit reference-only package overlay."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/run_probe.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='5d788b5567f521c8da4426f860a55d8d09d7eb1f5c1f1afd67c9e3a97947dcd2'
+source=data.decode().replace("str(RAW/'source_view'),str(MAIN)",
+    "str(RAW.parent/'d788_20261024/source_view'),str(RAW/'reference_packages'),str(MAIN)")
+source=source.replace("'--predicted-growth-gib','0.05'","'--predicted-growth-gib','0.1'")
+source=source.replace("for path,sha in q['refs'].items()", "for path,sha in (q['refs'] | q['reference_sources']).items()")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

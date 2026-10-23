@@ -1,0 +1,48 @@
+"""Reuse two existing pure-Python reference packages, not a backend upgrade."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+RAW=Path(__file__).resolve().parent
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+PRIOR=RAW.parent/'d788_20261024'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def save(name,value):
+    with (RAW/name).open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name)
+save('qualification_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=json.loads((PRIOR/'qualification.json').read_text())
+for path,sha in q['refs'].items(): assert p.digest(Path(path))==sha,path
+assert json.loads((PRIOR/'probe_closure.json').read_text())['path_gone']
+overlay=RAW/'reference_packages';overlay.mkdir()
+site=Path('/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages')
+sources={}
+for name in ('peft','peft-0.17.1.dist-info','accelerate','accelerate-0.34.2.dist-info'):
+    source=site/name
+    (overlay/name).symlink_to(source,target_is_directory=True)
+    for path in source.rglob('*'):
+        if path.is_file() and '__pycache__' not in path.parts and path.suffix!='.pyc':
+            sources[str(path)]=p.digest(path)
+env=dict(os.environ,PYTHONPATH=str(overlay),CUDA_VISIBLE_DEVICES='',HF_HUB_OFFLINE='1',
+         TRANSFORMERS_OFFLINE='1',PYTHONDONTWRITEBYTECODE='1')
+command=['/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python','-B','-c',
+    'import json,torch,transformers,peft,accelerate; from peft import PeftModel; '
+    'print(json.dumps(dict(torch=torch.__version__,transformers=transformers.__version__, '
+    'peft=peft.__version__,accelerate=accelerate.__version__,torch_path=torch.__file__, '
+    'transformers_path=transformers.__file__,peft_path=peft.__file__,accelerate_path=accelerate.__file__)))']
+with (RAW/'reference_import.log').open('x') as stream:
+    result=subprocess.run(command,env=env,stdout=stream,stderr=subprocess.STDOUT)
+if result.returncode: raise SystemExit(result.returncode)
+refs={**q['refs'],**{str(path):p.digest(path) for path in
+    (Path(__file__),RAW/'probe.py',RAW/'run_probe.py',PRIOR/'source_view/measurement_manifest.json')}}
+save('qualification.json',dict(passed=True,plan_sha256=p.check_plan(),refs=refs,
+    preserved=q['preserved'],reference_sources=sources,source_view=q['source_view'],
+    model_code_changed_since_d788=False,native_environment_modified=False,
+    new_weights_or_trace=False,performance_run_authorized=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,reused_reference_packages=2,source_files=len(sources))))

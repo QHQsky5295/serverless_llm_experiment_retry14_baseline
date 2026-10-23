@@ -1,0 +1,8 @@
+"""Reuse the existing bounded probe launcher; no second experiment framework."""
+import hashlib
+from pathlib import Path
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/run_probe.py')
+source=original.read_text()
+assert 'predicted-growth-gib' in source
+source=source.replace("'--predicted-growth-gib','0.05'","'--predicted-growth-gib','0.1'")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "head": "cf421793e7b71342cf75ff063f8d64afe26d8169",
+  "remote": "origin/main",
+  "paths": [
+    "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+    "/home/qhq/serverless_llm_baselines/scripts/probe_dlora_real_adapter_loader.py",
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_dlora_measurement.py"
+  ],
+  "force_push": false
+}
