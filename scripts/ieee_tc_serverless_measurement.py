@@ -627,6 +627,134 @@ def install_v030_snapshot():
                 source_sha256=sources, package_root=str(root))
 
 
+def dlora_register_sequence_group(group):
+    """Observe native enqueue; the existing migrated SequenceGroup owns state.
+
+    Restricted to the shared fixed-length greedy contract. No requested token
+    is manufactured, no scheduler decision is made, and no CUDA call is added.
+    The native migration deepcopy carries these scalar fields and ID snapshots.
+    """
+    from faaslora.clock import local_monotonic_clock_id
+    params, seqs = group.sampling_params, group.get_seqs()
+    if (hasattr(group, '_tc_dlora') or not group.request_id
+            or type(group.model_id) is not int or group.model_id < 0
+            or len(seqs) != 1 or params.n != 1 or params.best_of != 1
+            or params.use_beam_search or params.temperature != 0 or params.top_p != 1
+            or not params.ignore_eos or params.stop
+            or type(params.max_tokens) is not int or not 1 <= params.max_tokens <= 256):
+        raise ValueError('dLoRA observation requires a fresh fixed-length greedy request')
+    prompt_ids = list(seqs[0].data.prompt_token_ids)
+    if (not prompt_ids or any(type(t) is not int or t < 0 for t in prompt_ids)
+            or seqs[0].get_output_token_ids()):
+        raise ValueError('dLoRA enqueue requires native prompt IDs and no output yet')
+    group._tc_dlora = dict(schema='ieee_tc_dlora_native_sequence_v1',
+        request_id=group.request_id, model_id=group.model_id,
+        native_clock_id=local_monotonic_clock_id(), native_prompt_token_ids=prompt_ids,
+        target_tokens=params.max_tokens, queued_at=time.perf_counter(),
+        scheduled_at=None, first_at=None, last_at=None, token_ids=[], engine_path=[])
+
+
+def dlora_scheduled(groups, engine_id):
+    """Record actual native scheduling, preserving the first boundary on resume."""
+    from faaslora.clock import local_monotonic_clock_id
+    if type(engine_id) is not int or engine_id < 0:
+        raise ValueError('native dLoRA engine ID required')
+    at, clock = time.perf_counter(), local_monotonic_clock_id()
+    for group in groups:
+        state = group._tc_dlora
+        if (state['request_id'] != group.request_id or state['model_id'] != group.model_id
+                or state['native_clock_id'] != clock or at < state['queued_at']
+                or (state['last_at'] is not None and at < state['last_at'])):
+            raise ValueError('dLoRA scheduling identity/clock changed')
+        if state['scheduled_at'] is None:
+            state['scheduled_at'] = at
+        path = state['engine_path']
+        if not path or path[-1] != engine_id:
+            path.append(engine_id)
+
+
+def dlora_tokens_available(groups, engine_id, produced_at):
+    """Timestamp the existing sampled-ID result before native text decoding.
+
+    `produced_at` is taken on entry to _process_worker_outputs, after the
+    existing worker result has arrived. It is not a CUDA kernel timestamp.
+    One returned batch shares this boundary. No extra synchronization or HTTP
+    streaming change; migration does not reset the first/last token history.
+    """
+    from faaslora.clock import local_monotonic_clock_id
+    clock = local_monotonic_clock_id()
+    for group in groups:
+        state, seqs = group._tc_dlora, group.get_seqs()
+        if len(seqs) != 1:
+            raise ValueError('dLoRA measured generation must have exactly one sequence')
+        ids = list(seqs[0].get_output_token_ids())
+        if (state['request_id'] != group.request_id or state['model_id'] != group.model_id
+                or state['native_clock_id'] != clock
+                or not state['engine_path'] or state['engine_path'][-1] != engine_id
+                or list(seqs[0].data.prompt_token_ids) != state['native_prompt_token_ids']
+                or any(type(t) is not int or t < 0 for t in ids)
+                or len(ids) != len(state['token_ids'])+1 or ids[:-1] != state['token_ids']
+                or len(ids) > state['target_tokens'] or state['scheduled_at'] is None
+                or type(produced_at) not in (int, float) or not math.isfinite(produced_at)
+                or produced_at < state['scheduled_at']
+                or (state['last_at'] is not None and produced_at < state['last_at'])):
+            raise ValueError('dLoRA native output identity/count/time is inconsistent')
+        if state['first_at'] is None:
+            state['first_at'] = produced_at
+        state['last_at'], state['token_ids'] = produced_at, ids
+
+
+def dlora_output_snapshot(group):
+    """Immutable-by-copy metadata on an existing native RequestOutput."""
+    return copy.deepcopy(group._tc_dlora)
+
+
+def dlora_validate_final_output(output, *, request_id, model_id, prompt_ids, target,
+                                dispatched_at, completed_at, clock_id):
+    """Validate final transport against the recorded native events, not text.
+
+    The native API intentionally returns only a terminal output; first/last
+    times below come from earlier engine events carried through migration.
+    This proves sequence/model-ID binding, NOT independent LoRA arithmetic.
+    """
+    state = output.tc_dlora_native
+    times = [dispatched_at, state['queued_at'], state['scheduled_at'],
+             state['first_at'], state['last_at'], completed_at]
+    ids = state['token_ids']
+    if (state['schema'] != 'ieee_tc_dlora_native_sequence_v1'
+            or state['native_clock_id'] != clock_id
+            or output.request_id != request_id or state['request_id'] != request_id
+            or type(model_id) is not int or state['model_id'] != model_id
+            or type(target) is not int or not 1 <= target <= 256
+            or state['target_tokens'] != target or len(ids) != target
+            or any(type(t) is not int or t < 0 for t in ids)
+            or list(output.prompt_token_ids) != prompt_ids
+            or state['native_prompt_token_ids'] != prompt_ids
+            or not output.finished or len(output.outputs) != 1
+            or output.outputs[0].finish_reason != 'length'
+            or list(output.outputs[0].token_ids) != ids
+            or not state['engine_path']
+            or any(type(i) is not int or i < 0 for i in state['engine_path'])
+            or any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
+            or times != sorted(times) or (target == 1 and state['first_at'] != state['last_at'])):
+        raise ValueError('dLoRA final native evidence does not match the submitted request')
+    decode = (state['last_at']-state['first_at'])*1000.
+    return dict(timing_contract='ieee_tc_dlora_native_v1', native_terminal_observed=True,
+        native_timing_source='dlora_worker_result_available_before_native_text_decode',
+        native_clock_id=clock_id, native_dispatch_monotonic_s=dispatched_at,
+        native_queued_monotonic_s=state['queued_at'],
+        native_scheduled_monotonic_s=state['scheduled_at'],
+        native_first_token_monotonic_s=state['first_at'], native_last_token_monotonic_s=state['last_at'],
+        worker_completed_monotonic_s=completed_at, native_output_tokens=len(ids),
+        native_decode_ms=decode, native_tpot_ms=decode/(len(ids)-1) if len(ids)>1 else None,
+        worker_completion_notification_ms=(completed_at-state['last_at'])*1000.,
+        native_prompt_token_ids=list(prompt_ids), native_prompt_token_ids_sha256=_native_ids_digest(prompt_ids),
+        completion_token_ids=list(ids), completion_token_ids_sha256=_native_ids_digest(ids),
+        native_model_id=model_id, native_engine_path=list(state['engine_path']),
+        native_adapter_binding_source='dlora_native_sequence_group_model_id',
+        lora_numerical_correctness_qualified=False)
+
+
 class NativeRequestObservation:
     def __init__(self, lora_request):
         from faaslora.clock import local_monotonic_clock_id

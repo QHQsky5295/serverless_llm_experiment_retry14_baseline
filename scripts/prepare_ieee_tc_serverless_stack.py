@@ -366,6 +366,111 @@ def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo:
     return result
 
 
+DLORA_OBSERVATION_SOURCES = {
+    'vllm/engine/llm_engine.py': 'e8bbbe9d9f0defdbab20d7184b8527d145767034733bbbdd230d35c30b85a989',
+    'vllm/outputs.py': 'b034a9cce794748c33b5e228959db40b2acdd5c62f4b0f076d7b1b9d25eeead8',
+    'vllm/entrypoints/api_server.py': 'ed68e4810f17bb57672a567993a6e2f40ce85face6b166fcf8df8ed390dd41ae',
+    'vllm/engine/async_llm_engine.py': 'd2378aef28b42e114718e9290910e5ec1fbd87759a7f0393ac78e9128a176634',
+    'vllm/engine/engine_manager.py': '3615234d01cd15222f3edbacf8064b973b66cba7ca220245ce1eae2f4aa3e578',
+    'vllm/core/scheduler.py': 'bf1c786a3d8c4a47c76d466248e06ea413474fb4c5f8a8981072b979ce96444f',
+    'vllm/sequence.py': '74767d459dcaeb8c90a1b281332511a75dbdd774997f95d2dfe8b8f4a4e0bdc2',
+    'vllm/worker/lora_engine.py': '4d5410f4385a1f010e58b00c12200e90e9da3e95055838cd431f1fd22c525fb9',
+}
+
+
+def dlora_measurement_sources(native_source: Path) -> dict[str, str]:
+    """Passive native event hooks in the retained dLoRA compatibility tree.
+
+    SequenceGroup already migrates by deepcopy. Carry its measured timestamps
+    with it rather than altering AsyncStream or publishing intermediate outputs.
+    Does not authorize launch or implement the separate owned-Ray lifecycle.
+    """
+    for path, expected in DLORA_OBSERVATION_SOURCES.items():
+        if sha((native_source/path).read_bytes()) != expected:
+            raise ValueError('dLoRA observation source drift: '+path)
+    engine_path, output_path, api_path = (
+        'vllm/engine/llm_engine.py', 'vllm/outputs.py', 'vllm/entrypoints/api_server.py')
+    engine = (native_source/engine_path).read_text()
+    engine = replace_once(engine, 'import time\n',
+        'import time\nfrom vllm.tc_measurement import (dlora_register_sequence_group, '
+        'dlora_scheduled, dlora_tokens_available)\n')
+    engine = replace_once(engine, '        self.scheduler.add_seq_group(seq_group)\n',
+        '        dlora_register_sequence_group(seq_group)\n'
+        '        self.scheduler.add_seq_group(seq_group)\n')
+    engine = replace_once(engine,
+        '        seq_group_metadata_list, scheduler_outputs = self.scheduler.schedule()\n',
+        '        seq_group_metadata_list, scheduler_outputs = self.scheduler.schedule()\n'
+        '        dlora_scheduled(scheduler_outputs.scheduled_seq_groups, self.engine_id)\n')
+    engine = replace_once(engine,
+        '        # Update the scheduler with the model outputs.\n'
+        '        seq_groups = self.scheduler.update(output)\n',
+        '        tc_produced_at = time.perf_counter()\n'
+        '        # Update the scheduler with the model outputs.\n'
+        '        seq_groups = self.scheduler.update(output)\n'
+        '        dlora_tokens_available(seq_groups, self.engine_id, tc_produced_at)\n')
+    output = (native_source/output_path).read_text()
+    output = replace_once(output, 'from typing import Dict, List, Optional\n',
+        'from typing import Dict, List, Optional\n'
+        'from vllm.tc_measurement import dlora_output_snapshot\n')
+    output = replace_once(output,
+        '        return cls(seq_group.request_id, prompt, prompt_token_ids, outputs,\n'
+        '                   finished)\n',
+        '        result = cls(seq_group.request_id, prompt, prompt_token_ids, outputs,\n'
+        '                     finished)\n'
+        '        result.tc_dlora_native = dlora_output_snapshot(seq_group)\n'
+        '        return result\n')
+    api = (native_source/api_path).read_text()
+    api = replace_once(api, '        "finished": request_output.finished,\n',
+        '        "finished": request_output.finished,\n'
+        '        "tc_dlora_native": request_output.tc_dlora_native,\n'
+        '        "token_ids": [list(output.token_ids) for output in request_output.outputs],\n'
+        '        "prompt_token_ids": list(request_output.prompt_token_ids),\n'
+        '        "finish_reasons": [output.finish_reason for output in request_output.outputs],\n')
+    replacements = {engine_path: engine, output_path: output, api_path: api}
+    for path, source in replacements.items():
+        compile(source, path, 'exec')
+    return replacements
+
+
+def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
+    """Reuse the source-view approach; preserve vendor checkout and old results."""
+    native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
+    if output.exists() or output.is_symlink():
+        raise FileExistsError('preserve previous dLoRA source view')
+    if output.resolve().is_relative_to(native_source):
+        raise ValueError('source view must be outside the preserved native checkout')
+    replacements = dlora_measurement_sources(native_source)
+    support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
+    output.mkdir(mode=0o700)
+    for parent, dirs, files in os.walk(native_source/'vllm'):
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        relative = Path(parent).relative_to(native_source)
+        dest = output/relative
+        dest.mkdir(exist_ok=True)
+        for name in files:
+            key = str(relative/name)
+            if key in replacements:
+                (dest/name).write_text(replacements[key])
+            elif not name.endswith('.pyc'):
+                (dest/name).symlink_to(Path(parent)/name)
+    (output/'vllm/tc_measurement.py').symlink_to(support)
+    (output/'faaslora').symlink_to(shared.resolve(strict=True), target_is_directory=True)
+    result = dict(schema='ieee_tc_dlora_measurement_view_v1', native_source=str(native_source),
+        source_view=str(output.resolve()), original_sha256=DLORA_OBSERVATION_SOURCES,
+        measured_sha256={p: sha(v.encode()) for p, v in replacements.items()},
+        helper_path=str(support), helper_sha256=sha(support.read_bytes()),
+        source_adapter_sha256=sha(Path(__file__).read_bytes()),
+        shared_source_sha256={'faaslora/clock.py': sha((shared/'clock.py').read_bytes())},
+        timing_boundary='worker_result_available_before_scheduler_update_and_text_decode',
+        migration_state_carrier='native_SequenceGroup_deepcopy',
+        scheduling_policy_changed=False, loading_policy_changed=False,
+        sampling_policy_changed=False, terminal_only_delivery_preserved=True,
+        added_cuda_synchronization=False, performance_run_authorized=False)
+    with (output/'measurement_manifest.json').open('x') as handle:
+        json.dump(result, handle, indent=2)
+    return result
+
+
 def scheduler_queue_source(source: str) -> str:
     """Correct pending-request identity, without changing placement policy.
 
@@ -2430,6 +2535,9 @@ def main() -> None:
     loquetier = sub.add_parser('prepare-loquetier-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         loquetier.add_argument('--'+name, type=Path, required=True)
+    dlora = sub.add_parser('prepare-dlora-measurement-view')
+    for name in ('native-source', 'output', 'main-repo'):
+        dlora.add_argument('--'+name, type=Path, required=True)
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2473,6 +2581,10 @@ def main() -> None:
     model.add_argument('--enforce-eager', action=argparse.BooleanOptionalAction, default=True,
                        help='Historical default is eager; --no-enforce-eager explicitly tests native CUDA graphs.')
     args = parser.parse_args()
+    if args.action == 'prepare-dlora-measurement-view':
+        print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
+            args.main_repo), indent=2))
+        return
     if args.action == 'prepare-loquetier-measurement-view':
         print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,
             args.main_repo), indent=2))
