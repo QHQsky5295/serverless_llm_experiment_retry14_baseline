@@ -437,6 +437,10 @@ def dlora_private_ray_options(cfg):
     return dict(address='local', namespace='primelora-tc-dlora',
         num_cpus=cfg['ray_num_cpus'], num_gpus=2,
         object_store_memory=cfg['ray_object_store_bytes'], include_dashboard=False,
+        # Ray 2.51.2 otherwise starts one idle Python process per logical CPU
+        # on first driver registration. Native DP2 creates its four actors on
+        # demand; retaining CPU resources need not allocate 40 idle workers.
+        _system_config=dict(enable_worker_prestart=False, prestart_worker_first_driver=False),
         log_to_driver=False, _temp_dir=str(root),
         object_spilling_directory=str(root/'spill'), _node_ip_address='127.0.0.1')
 

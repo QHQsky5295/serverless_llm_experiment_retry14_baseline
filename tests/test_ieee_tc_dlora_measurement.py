@@ -489,6 +489,9 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
         self.assertEqual(options['address'], 'local')
         self.assertEqual(options['object_store_memory'], 8*1024**3)
         self.assertEqual(options['num_gpus'], 2)
+        self.assertEqual(options['num_cpus'], 40)
+        self.assertEqual(options['_system_config'],
+                         dict(enable_worker_prestart=False, prestart_worker_first_driver=False))
         self.assertEqual(options['_node_ip_address'], '127.0.0.1')
         for change in (dict(gpu_ids=[0,1,2,3]), dict(ray_object_store_bytes=16*1024**3),
                        dict(ray_root='relative')):
