@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "ray_version": "2.51.2",
+  "options": {
+    "address": "local",
+    "namespace": "primelora-tc-dlora",
+    "num_cpus": 40,
+    "num_gpus": 0,
+    "object_store_memory": 83886080,
+    "include_dashboard": false,
+    "_system_config": {
+      "enable_worker_prestart": false,
+      "prestart_worker_first_driver": false,
+      "object_spilling_config": "{\"type\": \"filesystem\", \"params\": {\"directory_path\": \"/tmp/tc-d780-ray-prestart-probe/spill\"}}",
+      "is_external_storage_type_fs": true
+    },
+    "log_to_driver": false,
+    "_temp_dir": "/tmp/tc-d780-ray-prestart-probe",
+    "object_spilling_directory": "/tmp/tc-d780-ray-prestart-probe/spill",
+    "_node_ip_address": "127.0.0.1"
+  },
+  "production_options": {
+    "address": "local",
+    "namespace": "primelora-tc-dlora",
+    "num_cpus": 40,
+    "num_gpus": 2,
+    "object_store_memory": 8589934592,
+    "include_dashboard": false,
+    "_system_config": {
+      "enable_worker_prestart": false,
+      "prestart_worker_first_driver": false,
+      "object_spilling_config": "{\"type\": \"filesystem\", \"params\": {\"directory_path\": \"/tmp/tc-d780-ray-prestart-probe/spill\"}}",
+      "is_external_storage_type_fs": true
+    },
+    "log_to_driver": false,
+    "_temp_dir": "/tmp/tc-d780-ray-prestart-probe",
+    "object_spilling_directory": "/tmp/tc-d780-ray-prestart-probe/spill",
+    "_node_ip_address": "127.0.0.1"
+  },
+  "worker_pids": [
+    2927890,
+    2927891,
+    2927892,
+    2927893
+  ],
+  "actors": [
+    {
+      "pid": 2927891,
+      "visible": "",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2927893,
+      "visible": "",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2927892,
+      "visible": "",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    },
+    {
+      "pid": 2927890,
+      "visible": "",
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ]
+    }
+  ],
+  "idle_prestarted_workers": 0,
+  "cpu_resources": 40,
+  "model_loaded": false,
+  "qualification": "on-demand private Ray actor creation only",
+  "elapsed_s": 9.466223201714456
+}

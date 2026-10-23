@@ -1,0 +1,26 @@
+1000
+full
+Running as unit: primelora-artifact-monitor-d780-smoke.service; invocation ID: ecba0645ddc8456bab67919522e6f20c
+MainPID=1172970
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-3b.service
+ActiveState=active
+InvocationID=9c8b51d7e6924561988da03ad9452007
+
+MainPID=1172972
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-7b.service
+ActiveState=active
+InvocationID=6a12a0adfea24375a6de01dc1c898dbb
+
+MainPID=1172975
+MemoryHigh=134217728
+MemoryMax=268435456
+MemorySwapMax=0
+Id=primelora-artifact-monitor-d780-smoke.service
+ActiveState=active
+InvocationID=ecba0645ddc8456bab67919522e6f20c

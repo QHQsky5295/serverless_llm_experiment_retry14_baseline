@@ -1,0 +1,56 @@
+"""Changed-path check in the retained native Ray environment, with GPUs hidden.
+
+This is not a model or performance qualification. The production CPU count and
+prestart policy are retained; object store is 80 MiB and GPU resources are zero.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import time
+
+RAW=Path(__file__).resolve().parent
+BASE=Path('/home/qhq/serverless_llm_baselines')
+sys.path.insert(0,str(BASE/'scripts'))
+from replay_vllm_engine_trace import dlora_private_ray_options
+import ray
+
+assert ray.__version__=='2.51.2' and not ray.is_initialized()
+assert os.environ.get('CUDA_VISIBLE_DEVICES')==''
+cfg=json.loads((RAW/'native_3b.json').read_text())
+cfg['ray_root']='/tmp/tc-d780-ray-prestart-probe'
+assert not Path(cfg['ray_root']).exists()
+production=dlora_private_ray_options(cfg)
+assert production['_system_config']==dict(enable_worker_prestart=False,prestart_worker_first_driver=False)
+options=dict(production,num_gpus=0,object_store_memory=80*1024**2)
+started=time.monotonic()
+try:
+    ray.init(**options)
+    assert len([node for node in ray.nodes() if node['Alive']])==1
+    assert ray.cluster_resources()['CPU']==40
+    logs=Path(cfg['ray_root'])/'session_latest/logs/raylet.out'
+    initial=logs.read_text()
+    assert 'Started worker process with pid' not in initial
+    @ray.remote(num_cpus=1)
+    class Worker:
+        def identity(self):
+            import os
+            return dict(pid=os.getpid(),visible=os.environ.get('CUDA_VISIBLE_DEVICES'),
+                affinity=sorted(os.sched_getaffinity(0)))
+    actors=[Worker.remote() for _ in range(4)]
+    identities=ray.get([actor.identity.remote() for actor in actors],timeout=40)
+    assert len({item['pid'] for item in identities})==4
+    assert all(item['affinity']==[2,3,26,27] and item['visible']=='' for item in identities)
+    text=logs.read_text()
+    worker_pids=[int(value) for value in re.findall(r'Started worker process with pid (\d+)',text)]
+    assert len(set(worker_pids))==4,worker_pids
+    record=dict(passed=True,ray_version=ray.__version__,options=options,
+        production_options=production,worker_pids=worker_pids,actors=identities,
+        idle_prestarted_workers=0,cpu_resources=40,model_loaded=False,
+        qualification='on-demand private Ray actor creation only',elapsed_s=time.monotonic()-started)
+finally:
+    ray.shutdown()
+with (RAW/'native_ray_prestart_receipt.json').open('x') as stream:
+    json.dump(record,stream,indent=2)
+print(json.dumps(record))

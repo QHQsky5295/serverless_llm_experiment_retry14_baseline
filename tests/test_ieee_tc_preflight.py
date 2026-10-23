@@ -8,6 +8,46 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class CleanupCensusChurnTests(unittest.TestCase):
+    def test_qualification_census_stays_strict(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)
+            (path/'cgroup.procs').write_text(str(p.os.getpid())+'\n')
+            with patch.object(p,'cg_path',return_value=Path('/different/domain')):
+                with self.assertRaisesRegex(RuntimeError,'membership/owner changed'):
+                    p.owned_pids(path)
+
+    def test_cleanup_excludes_departed_pid_and_records_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)
+            (path/'cgroup.procs').write_text(str(p.os.getpid())+'\n')
+            departed=[]
+            with patch.object(p,'cg_path',return_value=Path('/different/domain')):
+                self.assertEqual(p.owned_pids(path,departed=departed),[])
+            self.assertEqual(len(departed),1)
+            self.assertEqual(departed[0]['pid'],p.os.getpid())
+            self.assertFalse(departed[0]['signaled'])
+
+    def test_departure_cannot_prevent_pinned_owned_group_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)
+            (path/'cgroup.procs').write_text(str(p.os.getpid())+'\n')
+            (path/'cgroup.kill').touch()
+            identity=dict(path=str(path),unit='synthetic-test')
+            with patch.object(p,'scope_still_owned',return_value=True), \
+                 patch.object(p,'cg_path',return_value=Path('/different/domain')), \
+                 patch.object(p,'counters',side_effect=[{'populated':1},{'populated':1},{'populated':0},{'populated':0}]), \
+                 patch.object(p.signal,'pidfd_send_signal') as send, \
+                 patch.object(p.subprocess,'run') as stop:
+                result=p.stop_scope_identity(identity,grace_seconds=0)
+            send.assert_not_called()
+            stop.assert_called_once()
+            self.assertEqual((path/'cgroup.kill').read_text(),'1\n')
+            self.assertTrue(result['hard_kill'] and result['released'])
+            self.assertEqual(result['targets'],[])
+            self.assertEqual(len(result['departed_during_census']),1)
+
+
 class UserScopeAdapterMapForwarding(unittest.TestCase):
     """Exercise the real shell boundary without starting systemd or a model."""
 

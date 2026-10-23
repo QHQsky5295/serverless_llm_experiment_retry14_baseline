@@ -815,10 +815,15 @@ def scope_still_owned(identity: dict) -> bool:
     return True
 
 
-def owned_pids(path: Path) -> list[dict]:
-    """Read current descendants with PID birth identity, never scan by name."""
+def owned_pids(path: Path, *, departed: list[dict] | None = None) -> list[dict]:
+    """Read current descendants with PID birth identity, never scan by name.
+
+    cgroup.procs is not an atomic PID snapshot. Cleanup may record and exclude
+    a PID that no longer belongs here, rather than treating it as a signal
+    target. Qualification callers remain strict by default.
+    """
     found = {}
-    for entry in [path / 'cgroup.procs', *path.glob('**/cgroup.procs')]:
+    for entry in path.rglob('cgroup.procs'):
         try:
             pids = entry.read_text().split()
         except FileNotFoundError:
@@ -830,6 +835,12 @@ def owned_pids(path: Path) -> list[dict]:
                 fields = stat_path.read_text().rsplit(') ', 1)[1].split()
                 group = cg_path(pid)
                 if stat_path.stat().st_uid != os.getuid() or not group.is_relative_to(path):
+                    if departed is not None:
+                        departed.append({'pid': pid, 'start_ticks': int(fields[19]),
+                                         'observed_cgroup': str(group),
+                                         'reason': 'owner_or_membership_changed',
+                                         'signaled': False})
+                        continue
                     raise RuntimeError('process membership/owner changed during census')
                 found[pid] = {'pid': pid, 'start_ticks': int(fields[19]),
                               'cgroup': str(group), 'affinity': sorted(os.sched_getaffinity(pid))}
@@ -982,7 +993,8 @@ def stop_scope_identity(identity: dict, grace_seconds: float = 10) -> dict:
     with (path / 'cgroup.kill').open('w') as kill_file:
         if not scope_still_owned(identity):
             return {'already_gone': True, 'released': True, 'targets': []}
-        targets = owned_pids(path)
+        departed = []
+        targets = owned_pids(path, departed=departed)
         for proc in targets:
             try:
                 fd = os.pidfd_open(proc['pid'])
@@ -1016,7 +1028,8 @@ def stop_scope_identity(identity: dict, grace_seconds: float = 10) -> dict:
     if released and scope_still_owned(identity):
         subprocess.run(['systemctl', '--user', 'stop', identity['unit']],
                        capture_output=True, timeout=3, check=True)
-    return {'targets': targets, 'hard_kill': hard_kill, 'released': released}
+    return {'targets': targets, 'departed_during_census': departed,
+            'hard_kill': hard_kill, 'released': released}
 
 
 def host_sample() -> dict:

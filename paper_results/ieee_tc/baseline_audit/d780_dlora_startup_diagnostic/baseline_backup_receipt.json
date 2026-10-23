@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "head": "e1f7525e8ec67aea60b5b703274faa2b9bb6f0c3",
+  "remote_ref": "refs/heads/main",
+  "paths": [
+    "scripts/replay_vllm_engine_trace.py",
+    "tests/test_ieee_tc_dlora_measurement.py",
+    "docs/ieee_tc/D780_DLORA_RAY_STARTUP_20261024.md"
+  ],
+  "native_algorithm_source_unchanged": true,
+  "environment_additions": 0
+}

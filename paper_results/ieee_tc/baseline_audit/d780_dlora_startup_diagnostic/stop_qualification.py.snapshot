@@ -1,0 +1,56 @@
+"""End this diagnostic attempt for observed startup thrashing, not a claimed OOM.
+
+Capture the existing service first; signal only its physically bound parent by
+PID birth identity. The already-running TC launcher owns final tree cleanup.
+"""
+import json
+import os
+from pathlib import Path
+import signal
+import sys
+import time
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+launch=read(RAW/'launch3b.launch/exec_receipt.json')
+identity=launch['service_identity']
+assert p.scope_still_owned(identity)
+group=Path(identity['path'])
+journals=list((RAW/'model3b/physical_allocations').glob('*.jsonl'))
+assert len(journals)==1
+acquire=json.loads(journals[0].read_text().splitlines()[0])
+owner=acquire['owner_identity']
+assert p.gpu_process_identity(owner['pid'])==owner
+assert Path(owner['cgroup']).is_relative_to(group)
+members=p.owned_pids(group)
+rows=[]
+for proc in members:
+    root=Path('/proc')/str(proc['pid'])
+    try:
+        fields=dict(line.split(':',1) for line in (root/'status').read_text().splitlines() if ':' in line)
+        rows.append(dict(proc,comm=(root/'comm').read_text().strip(),
+            memory={k:fields.get(k,'').strip() for k in ('VmRSS','RssAnon','RssFile','RssShmem','VmSwap')}))
+    except FileNotFoundError:
+        continue
+save(RAW/'manual_stop_before.json',dict(reason='diagnostic_startup_memory_thrashing',
+    not_watchdog_threshold_abort=True,not_claimed_oom=True,
+    native_model_ready=False,service_identity=identity,bound_parent=owner,
+    scope=p.cgroup_snapshot(group),memory_stat=(group/'memory.stat').read_text(),
+    process_snapshot=rows,at=time.monotonic(),
+    hypothesis='Ray prestarted 40 Python workers for 40 logical CPUs, while native DP2 uses four actors; quantify idle overhead before deciding a necessary startup adaptation.',
+    frozen_configuration_unchanged=True,performance_ranking_eligible=False))
+fd=os.pidfd_open(owner['pid'])
+try:
+    assert p.scope_still_owned(identity) and p.gpu_process_identity(owner['pid'])==owner
+    signal.pidfd_send_signal(fd,signal.SIGTERM)
+finally:
+    os.close(fd)
+save(RAW/'manual_stop_signal.json',dict(signal='SIGTERM',target=owner,
+    sent_at=time.monotonic(),mechanism='exact physical owner PID handle',
+    final_release_unproven=True))
+print(json.dumps(dict(sent=True,target_pid=owner['pid'],observed_members=len(rows),
+    ready_receipt_exists=(RAW/'model3b/worker_0.ready.json').exists())))

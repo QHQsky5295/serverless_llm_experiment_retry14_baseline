@@ -1,0 +1,6 @@
+test_private_ray_never_uses_discovery_and_store_is_service_total (tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK

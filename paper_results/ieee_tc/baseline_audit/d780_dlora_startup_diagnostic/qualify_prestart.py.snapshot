@@ -1,0 +1,50 @@
+"""Bounded checks for only the new Ray-startup setting."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert read(RAW/'maintenance_closure.json')['path_gone']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+with (RAW/'prestart_unit_test.log').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','unittest',
+        'tests.test_ieee_tc_dlora_measurement.DloraOwnedRuntimeTests.test_private_ray_never_uses_discovery_and_store_is_service_total','-v'],
+        cwd=BASE,stdout=log,stderr=subprocess.STDOUT,check=True)
+with (RAW/'cleanup_unit_test.log').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','unittest',
+        'tests.test_ieee_tc_preflight.CleanupCensusChurnTests','-v'],
+        cwd=MAIN,stdout=log,stderr=subprocess.STDOUT,check=True)
+env=dict(os.environ,CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',RAY_USAGE_STATS_ENABLED='0')
+env.pop('RAY_ADDRESS',None)
+env.pop('PYTHONPATH',None)
+env.pop('PYTHONHOME',None)
+native='/home/qhq/anaconda3/envs/dlora_medusa_clone_20260519/bin/python'
+env['PATH']=str(Path(native).parent)+os.pathsep+env.get('PATH','')
+with (RAW/'native_ray_prestart.log').open('x') as log:
+    subprocess.run([native,'-B',str(RAW/'probe_ray_prestart.py')],env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=100)
+receipt=read(RAW/'native_ray_prestart_receipt.json')
+assert receipt['passed']
+q=read(RAW.parent/'d778_20261024/qualification.json')
+for path,sha in q['preserved'].items(): assert p.digest(Path(path))==sha,path
+paths=[BASE/'scripts/replay_vllm_engine_trace.py',BASE/'tests/test_ieee_tc_dlora_measurement.py',
+    MAIN/'scripts/ieee_tc_preflight.py',MAIN/'tests/test_ieee_tc_preflight.py']
+save(RAW/'qualification.json',dict(passed=True,changed_path_only=True,model_loaded=False,
+    source_view=str(RAW.parent/'d778_20261024/source_view'),
+    refs={str(path):p.digest(path) for path in paths},preserved=q['preserved'],
+    reused_checks=str(RAW.parent/'d778_20261024/qualification.json'),
+    native_ray=receipt,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,native_ray_on_demand_actors=4,model_loaded=False)))

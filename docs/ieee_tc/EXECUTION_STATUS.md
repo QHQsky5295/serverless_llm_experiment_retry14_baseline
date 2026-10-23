@@ -1,5 +1,48 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D780：实际启动压力已封存，按需Ray启动与退出检查修正（PROGRESS）
+
+已完整核查PLAN和最新规则。真实远端500池准备及私有Ray启动完成，原生
+DP2/TP1进入模型加载，但尚无ready或合格推理。观察到36空闲Ray worker与
+4个原生actor；服务峰值78,497,169,408bytes，high事件12,336,539，无max/
+OOM。因严重回收压力主动结束诊断，不是watchdog中止，不作为dLoRA性能劣势。
+launcher退出时进程身份检查竞争，launch3b.json缺失；不伪补返回码或物理
+release。实际服务/辅助域已空并关闭，NVML无计算进程，所属远端服务已关闭。
+
+保留Ray/原生/远端/回放失败证据；逐文件核对4000文件与原池后仅回收重复
+objects，释放19,497,328,640bytes。145项旧投稿及用户dirty未变。关闭所有
+维护/资格域；未触碰共享k3s。新增两个必要修正：私有Ray禁用空闲预启动，
+保留CPU40和原生按需actors；清理时不向身份变化的PID发信号，记录后继续
+已验证所属cgroup收尾，资格检查仍严格。3项清理检查与1项Ray选项检查通过；
+初次重复枚举失败日志保留。实际native CPU-only Ray创建4actors、无空闲
+预启动，峰值993,918,976bytes，无high/max/OOM/swap；不是模型加载成功。
+
+RAW为dlora_qualification/d780_20261024；当前资格身份qualification2.json。
+下一新键复用D778 native view、D779环境、D780启动选项，回到实际加载/
+GQA/LoRA/共同HTTP，随后dLoRA3B W1/W2；不扩展无变化CPU门禁或性能搜索。
+Loquetier/HydraServe3B、PrimeLoRA完整对照优化、同版本Full、A1–A5、S1–S13、
+CE/Pareto/审稿文档/最终图表全部保留，整体目标active。准备检查点备份。
+
+## 2026-10-24 01:57 CST：D779失败/环境修复检查点已备份核验（PROGRESS）
+
+BASE `2acec0b037157b4a3bc4bddd9f1358eea6bf5fac` 已核验origin/main；
+MAIN `d1e55885a4003977250c44e3976fb54c5d163955` 已核验
+`faaslora_origin/backup/d779-dlora-http-environment-20261024`。未force，V2仍未同步。
+8项新增HTTP依赖有固定版本及wheel SHA，所有原有包版本未变。实际native
+CPU导入/HTTP成功；不是原生模型加载成功。D779完整失败、小型证据和修复
+记录均已保存；仅本推送后状态追加待下个检查点。
+
+starter/launcher/maintenance/environment/backup辅助域均实际结束并关闭，
+服务域也已移除；无活动exec/wait或GPU compute，所属远端服务关闭。当前
+磁盘可用162887061504bytes，MemAvailable109681684KiB；后续启动须重验。
+145项投稿及3项用户dirty仍未变，共享k3s未动，未清理任何原始池/日志。
+
+下一D780新键复用D779的start/run3b/freeze_inputs及D778 source_view。注意：
+最新HEAD/备份回执在D779，而源码资格refs仍在D778；环境前后身份和实际
+HTTP验证回执在D779。不得把旧D778 HEAD断言原样复用，不得在D779原键重跑。
+先实际DP2/TP1加载/GQA/LoRA/共同HTTP，随后3B W1/W2；不再扩展无变化的
+CPU接口检查或基线性能搜索。完整后续范围同下文，整体目标active。
+
 ## 2026-10-24 D779：首次实际入口失败已定位，HTTP依赖最小补齐（PROGRESS）
 
 已完整重读PLAN/状态/补充规则；复用现有受限launcher、D778 source view、

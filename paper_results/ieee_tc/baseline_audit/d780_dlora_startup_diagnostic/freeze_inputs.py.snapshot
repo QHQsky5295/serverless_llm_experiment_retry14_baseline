@@ -1,0 +1,9 @@
+"""Reuse the existing input/cache seal; dLoRA identity and source verifier only."""
+from pathlib import Path
+import hashlib
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d767_20261023/freeze_inputs.py')
+text = original.read_text()
+text = text.replace('verify_slora_source_view', 'verify_dlora_source_view')
+text = text.replace('affected_3b_native_bmm_path_qualification', 'dlora_native_dp2_common_http_qualification')
+text = text.replace('S-LoRA', 'dLoRA')
+exec(compile(text, str(original), 'exec'), {'__name__':'__main__', '__file__':str(Path(__file__))})

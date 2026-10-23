@@ -1,0 +1,8 @@
+test_cleanup_excludes_departed_pid_and_records_it (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... ok
+test_departure_cannot_prevent_pinned_owned_group_cleanup (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... ok
+test_qualification_census_stays_strict (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.065s
+
+OK

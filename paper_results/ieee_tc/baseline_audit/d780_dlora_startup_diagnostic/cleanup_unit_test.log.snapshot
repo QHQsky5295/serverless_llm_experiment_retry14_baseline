@@ -1,0 +1,24 @@
+test_cleanup_excludes_departed_pid_and_records_it (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... FAIL
+test_departure_cannot_prevent_pinned_owned_group_cleanup (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... FAIL
+test_qualification_census_stays_strict (tests.test_ieee_tc_preflight.CleanupCensusChurnTests) ... ok
+
+======================================================================
+FAIL: test_cleanup_excludes_departed_pid_and_records_it (tests.test_ieee_tc_preflight.CleanupCensusChurnTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 27, in test_cleanup_excludes_departed_pid_and_records_it
+    self.assertEqual(len(departed),1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_departure_cannot_prevent_pinned_owned_group_cleanup (tests.test_ieee_tc_preflight.CleanupCensusChurnTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 48, in test_departure_cannot_prevent_pinned_owned_group_cleanup
+    self.assertEqual(len(result['departed_during_census']),1)
+AssertionError: 2 != 1
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.036s
+
+FAILED (failures=2)

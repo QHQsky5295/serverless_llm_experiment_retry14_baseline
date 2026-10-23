@@ -1,0 +1,11 @@
+"""Retain the failed fixture log; rerun only its corrected census and new Ray check."""
+from pathlib import Path
+original=Path(__file__).with_name('qualify_prestart.py')
+source=original.read_text()
+start=source.index("with (RAW/'prestart_unit_test.log')")
+end=source.index("with (RAW/'cleanup_unit_test.log')",start)
+source=source[:start]+source[end:]
+source=source.replace("RAW/'qualification_identity.json'","RAW/'qualification2_identity.json'")
+source=source.replace("RAW/'cleanup_unit_test.log'","RAW/'cleanup_unit_test_r2.log'")
+source=source.replace("RAW/'qualification.json'","RAW/'qualification2.json'")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
