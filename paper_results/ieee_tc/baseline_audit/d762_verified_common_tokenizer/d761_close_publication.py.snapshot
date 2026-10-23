@@ -1,0 +1,24 @@
+"""Close only the verified empty D761 publication scope (small bookkeeping)."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+assert json.loads((RAW/'publication_receipt.json').read_text())['passed']
+identity=json.loads((RAW/'finish_publication_identity.json').read_text())
+path=Path(identity['path'])
+assert p.scope_still_owned(identity)
+assert all(not f.read_text().split() for f in path.rglob('cgroup.procs'))
+resources=p.cgroup_snapshot(path)
+subprocess.run(['systemctl','--user','stop',identity['unit']],check=True)
+assert not path.exists()
+with (RAW/'publication_closure.json').open('x') as handle:
+    json.dump(dict(passed=True,identity=identity,resources=resources,
+        path_gone=True,actual_recursive_procs_empty=True),handle,indent=2)
+    handle.write('\n')
+print(json.dumps(dict(passed=True,path_gone=True)))

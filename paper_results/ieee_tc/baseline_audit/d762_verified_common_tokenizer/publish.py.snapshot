@@ -1,0 +1,86 @@
+"""Explicit-path two-repository D762 checkpoint; preserve user dirt and history."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d762_verified_common_tokenizer'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+def call(repo,*args):
+    return subprocess.check_output(args,cwd=repo,text=True,stderr=subprocess.STDOUT).strip()
+
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def commit(repo,files,message,remote,ref):
+    paths=[str(path.relative_to(repo)) for path in files]
+    assert len(paths)==len(set(paths)) and not call(repo,'git','diff','--cached','--name-only')
+    assert 'configs/generated/lora_manifest_1000.json' not in paths
+    for path in files: assert not secret.search(path.read_text()),path
+    call(repo,'git','add','--',*paths)
+    assert set(call(repo,'git','diff','--cached','--name-only').splitlines())==set(paths)
+    call(repo,'git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof,cr-at-eol',
+         'diff','--cached','--check','--',*paths)
+    call(repo,'git','commit','-m',message)
+    head=call(repo,'git','rev-parse','HEAD')
+    call(repo,'git','-c','http.version=HTTP/1.1','push',remote,'HEAD:'+ref)
+    assert call(repo,'git','ls-remote',remote,ref).split()[0]==head
+    return dict(head=head,remote=remote,remote_ref=ref,paths=paths)
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+old=read(RAW/'seal_identity.json')
+path=Path(old['path'])
+assert p.scope_still_owned(old)
+assert all(not file.read_text().split() for file in path.rglob('cgroup.procs'))
+resources=p.cgroup_snapshot(path)
+subprocess.run(['systemctl','--user','stop',old['unit']],check=True)
+assert not path.exists()
+save(RAW/'seal_closure.json',dict(passed=True,identity=old,resources=resources,
+    actual_recursive_procs_empty=True,path_gone=True))
+assert read(RAW/'seal_receipt.json')['passed']
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+q=read(RAW/'qualification.json')
+for name,sha in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==sha,name
+for name,row in read(OUT/'manifest.json')['files'].items():
+    assert p.digest(OUT/name)==row['sha256'],name
+assert call(BASE,'git','rev-parse','HEAD')=='2bdf53cb25040b98e84e587f421bd772528c96b9'
+assert call(MAIN,'git','rev-parse','HEAD')=='0e4a1fededda818a32d54fe1c7f880fc256a7aac'
+basefiles=[BASE/name for name in ('scripts/ieee_tc_serverless_measurement.py',
+    'scripts/prepare_ieee_tc_serverless_stack.py','tests/test_ieee_tc_serverless_measurement.py',
+    'docs/ieee_tc/D762_VERIFIED_COMMON_TOKENIZER_20261023.md')]
+base=commit(BASE,basefiles,'tc: share verified identical native LoRA tokenizers (D762)',
+            'origin','refs/heads/main')
+save(RAW/'baseline_checkpoint.json',dict(passed=True,**base))
+additional={}
+for name in ('seal_identity.json','seal_receipt.json','seal_closure.json',
+             'baseline_checkpoint.json','publish.py'):
+    source=RAW/name
+    target=OUT/(name+('.snapshot' if source.suffix=='.py' else ''))
+    with target.open('xb') as handle: handle.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+    additional[target.name]=dict(source=str(source),sha256=p.digest(source))
+save(OUT/'checkpoint_manifest.json',dict(passed=True,baseline_checkpoint=base,
+    plan_sha256=p.check_plan(),files=additional,protected_unchanged=len(q['protected']),
+    model_path_qualified=False,performance_qualified=False))
+files=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+       MAIN/'docs/ieee_tc/D762_VERIFIED_COMMON_TOKENIZER_20261023.md',
+       *sorted(path for path in OUT.iterdir() if path.is_file())]
+record=commit(MAIN,files,'tc: validate common tokenizer representation without performance claims (D762)',
+              'faaslora_origin','refs/heads/backup/d762-common-tokenizer-20261023')
+save(RAW/'publication_receipt.json',dict(passed=True,**record,baseline_head=base['head'],
+    force_push=False,v2_synchronized=False,resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=record['head'],baseline_head=base['head'],
+                     remote_ref=record['remote_ref'],paths=len(files))))

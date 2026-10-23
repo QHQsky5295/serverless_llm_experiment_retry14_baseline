@@ -1,0 +1,141 @@
+"""Bounded affected-path tests and native tokenizer equivalence; no model run."""
+import asyncio
+import hashlib
+import importlib.metadata
+import json
+import os
+from pathlib import Path
+import sys
+import time
+from types import SimpleNamespace as NS
+import unittest
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path[:0] = [str(MAIN), str(BASE/'scripts'), str(BASE/'tests')]
+from scripts import ieee_tc_preflight as p
+import ieee_tc_serverless_measurement as m
+import test_ieee_tc_serverless_measurement as tests
+
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save('qualification_identity.json', own)
+cg = Path(own['path'])
+assert (cg/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (cg/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (cg/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ.get('CUDA_VISIBLE_DEVICES') == ''
+start = time.monotonic()
+passed = False
+samples = []
+
+def sample(event):
+    rss = next(int(line.split()[1])*1024 for line in Path('/proc/self/status').read_text().splitlines()
+               if line.startswith('VmRSS:'))
+    row = dict(event=event, rss_bytes=rss, elapsed_s=time.monotonic()-start)
+    samples.append(row)
+    print(json.dumps(row), flush=True)
+    assert rss < int(2.5*p.GIB), 'bounded RSS stop'
+    assert row['elapsed_s'] < 180, 'bounded time stop'
+    return row
+
+try:
+    prior = json.loads((RAW.parent/'d760_20261023/qualification.json').read_text())
+    for name, digest in (prior['protected'] | prior['preserved']).items():
+        assert p.digest(Path(name)) == digest, name
+    suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls) for cls in
+        (tests.SharedTokenizerTests, tests.DeviceCompileCacheTests, tests.MeasurementTests,
+         tests.NativeReadyReceiptTests, tests.PublishedResolverTests))
+    with (RAW/'affected_tests.log').open('x') as stream:
+        result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
+    save('unit_tests.json', dict(passed=result.wasSuccessful(), tests=result.testsRun,
+        failures=len(result.failures), errors=len(result.errors)))
+    assert result.wasSuccessful()
+    sample('before_native_import')
+    from vllm.lora.request import LoRARequest
+    from vllm.transformers_utils.tokenizer_group import TokenizerGroup
+    from vllm.transformers_utils.tokenizer import get_tokenizer
+    import vllm.transformers_utils.tokenizer_group as group_module
+    import vllm.transformers_utils.tokenizer as tokenizer_module
+    old_contract = json.loads((RAW.parent/'d761_20261023/diagnostic_contract.json').read_text())
+    sequence = old_contract['source_sequence']
+    assert len(sequence) == 128
+    index = MAIN/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json'
+    assert p.digest(index) == 'bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275'
+    cfg = dict(mode='published_gzip_ondemand_peft_v1', endpoint='http://192.168.4.174:18080',
+        token_env='PRIME_REMOTE_TOKEN', timeout_s=1800, content_manifest=str(index),
+        content_manifest_file_sha256=p.digest(index))
+    client = m.published_artifact_client(cfg)  # static metadata only
+    pool = Path('/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope')
+    backbone = MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct'
+    ids = sorted(row['id'] for row in json.loads(index.read_text())['artifacts'])
+    assert len(ids) == 500
+    group = TokenizerGroup(str(backbone), enable_lora=True, max_num_seqs=4,
+        max_input_length=None, max_loras=4, tokenizer_mode='auto',
+        trust_remote_code=True, revision=None, truncation_side='left')
+    baseline = sample('group_created')
+    backend = NS(backend_config=dict(tc_tokenizer_contract='verified_published_base_v1',
+        lora_adapters={aid:str(RAW/'not_created_cache/objects'/aid) for aid in ids}),
+        enable_lora=True, engine_args=NS(enable_lora=True),
+        _tc_artifact_resolver=NS(client=client, root=RAW/'not_created_cache', config=cfg),
+        engine=NS(tokenizer=group, vllm_config=NS(lora_config=object()),
+            processor=NS(tokenizer=group,input_preprocessor=NS(tokenizer=group)),
+            output_processor=NS(tokenizer=group)))
+    proof = m.configure_verified_shared_tokenizer(backend)
+    requests = {aid:LoRARequest(aid, i+1, str(pool/aid)) for i,aid in enumerate(ids)}
+
+    async def check_all():
+        for pos, aid in enumerate(sequence+ids):
+            request = requests[aid]
+            assert group.get_lora_tokenizer(request) is group.tokenizer
+            assert await group.get_lora_tokenizer_async(request) is group.tokenizer
+            assert len(group.lora_tokenizers) == 0
+            assert request.lora_path == str(pool/aid)
+            if (pos+1) % 100 == 0:
+                sample('lookup_'+str(pos+1))
+    asyncio.run(check_all())
+    after = sample('all_628_lookups_complete')
+    independent = get_tokenizer(str(pool/sequence[0]), **group.tokenizer_config)
+    # These are unit inputs, not a regenerated inference workload or performance trace.
+    inputs = ['', 'Explain GPU memory allocation.', '中文与 English 混合\n123',
+              '<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nHello']
+    comparisons = []
+    for text in inputs:
+        for special in (False, True):
+            left = independent.encode(text, add_special_tokens=special)
+            right = group.encode(text, lora_request=requests[sequence[0]], add_special_tokens=special)
+            assert left == right
+            assert independent.decode(left) == group.tokenizer.decode(right)
+            comparisons.append(dict(prompt_sha256=hashlib.sha256(text.encode()).hexdigest(),
+                add_special_tokens=special, tokens=left, encode_decode_equal=True))
+    sample('independent_encode_decode_complete')
+    assert backend.enable_lora and backend.engine_args.enable_lora
+    assert not (RAW/'not_created_cache').exists()
+    view = tests.launch.prepare_measurement_view(tests.NATIVE, RAW/'source_repaired',
+        'repaired', MAIN, 'request_identity_v1', shared_tokenizer=True,
+        device_compile_cache_root=Path('/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1'))
+    save('qualification.json', dict(passed=True, source_sequence_count=len(sequence),
+        all_adapter_count=len(ids), synchronous_lookups=628, asynchronous_lookups=628,
+        lora_tokenizer_cache_count=len(group.lora_tokenizers),
+        lookup_rss_delta_bytes=after['rss_bytes']-baseline['rss_bytes'],
+        representation_proof=proof, comparisons=comparisons, source_view=view,
+        no_model_loaded=True, no_gpu_run=True, no_remote_requests=True,
+        numerical_lora_correctness_proven=False, performance_qualified=False,
+        versions={name:importlib.metadata.version(name) for name in ('vllm','transformers','tokenizers')},
+        native_sources={module.__file__:p.digest(Path(module.__file__)) for module in (group_module,tokenizer_module)},
+        protected=prior['protected'], preserved=prior['preserved'], plan_sha256=p.digest(p.PLAN),
+        refs={str(path):p.digest(path) for path in [Path(__file__), index,
+            BASE/'scripts/ieee_tc_serverless_measurement.py',
+            BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+            BASE/'tests/test_ieee_tc_serverless_measurement.py']}))
+    passed = True
+finally:
+    save('qualification_receipt.json', dict(passed=passed, identity=own, samples=samples,
+        resources=p.cgroup_snapshot(cg), elapsed_s=time.monotonic()-start,
+        script_sha256=p.digest(Path(__file__))))

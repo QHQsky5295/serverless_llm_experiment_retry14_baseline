@@ -1,0 +1,63 @@
+"""Seal tested representation evidence; close only its exact empty CPU scope."""
+import ast
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d762_verified_common_tokenizer'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'seal_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+old=read(RAW/'qualification_identity.json')
+path=Path(old['path'])
+assert p.scope_still_owned(old)
+assert all(not file.read_text().split() for file in path.rglob('cgroup.procs'))
+resources=p.cgroup_snapshot(path)
+subprocess.run(['systemctl','--user','stop',old['unit']],check=True)
+assert not path.exists()
+save(RAW/'qualification_closure.json',dict(passed=True,identity=old,resources=resources,
+    actual_recursive_procs_empty=True,path_gone=True))
+q=read(RAW/'qualification.json')
+assert q['passed'] and read(RAW/'unit_tests.json')['tests']==33
+for name,sha in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==sha,name
+for name in ('scripts/ieee_tc_serverless_measurement.py','scripts/prepare_ieee_tc_serverless_stack.py',
+             'tests/test_ieee_tc_serverless_measurement.py'):
+    ast.parse((BASE/name).read_text(),filename=name)
+subprocess.run(['git','diff','--check','--','scripts/ieee_tc_serverless_measurement.py',
+    'scripts/prepare_ieee_tc_serverless_stack.py','tests/test_ieee_tc_serverless_measurement.py'],cwd=BASE,check=True)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+OUT.mkdir(parents=True,exist_ok=False)
+sources=[RAW/name for name in ('qualify.py','qualification.json','qualification_receipt.json',
+    'qualification_identity.json','qualification_closure.json','unit_tests.json','affected_tests.log','seal.py')]
+sources.append(RAW/'source_repaired/measurement_manifest.json')
+sources.extend(RAW.parent/'d761_20261023'/name for name in
+    ('publication_receipt.json','publication_closure.json','finish_publication.py','close_publication.py'))
+mapping={}
+for source in sources:
+    prefix='d761_' if source.parent.name=='d761_20261023' else ''
+    target=OUT/(prefix+source.name+('.snapshot' if source.suffix=='.py' else ''))
+    with target.open('xb') as handle: handle.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+    mapping[target.name]=dict(source=str(source),sha256=p.digest(source))
+save(OUT/'manifest.json',dict(passed=True,plan_sha256=p.check_plan(),files=mapping,
+    protected_unchanged=len(q['protected']),preserved_unchanged=q['preserved'],
+    no_gpu_run=True,model_path_qualified=False,performance_qualified=False))
+save(RAW/'seal_receipt.json',dict(passed=True,identity=own,resources=p.cgroup_snapshot(Path(own['path'])),
+    protected_unchanged=len(q['protected']),files=len(mapping),disk_free_bytes=shutil.disk_usage(MAIN).free))
+print(json.dumps(dict(passed=True,protected_unchanged=len(q['protected']),files=len(mapping))))

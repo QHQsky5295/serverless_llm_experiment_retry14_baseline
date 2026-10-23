@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d7622026102300000000000000000001.scope",
+    "invocation_id": "a6c116953bd5436bbca3c862474254f0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7622026102300000000000000000001.scope",
+    "inode": 30934217
+  },
+  "samples": [
+    {
+      "event": "before_native_import",
+      "rss_bytes": 64548864,
+      "elapsed_s": 5.280641936697066
+    },
+    {
+      "event": "group_created",
+      "rss_bytes": 870248448,
+      "elapsed_s": 10.325374881736934
+    },
+    {
+      "event": "lookup_100",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.367474965751171
+    },
+    {
+      "event": "lookup_200",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.368350331671536
+    },
+    {
+      "event": "lookup_300",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.369167651049793
+    },
+    {
+      "event": "lookup_400",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.369985356926918
+    },
+    {
+      "event": "lookup_500",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.370805841870606
+    },
+    {
+      "event": "lookup_600",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.371631850954145
+    },
+    {
+      "event": "all_628_lookups_complete",
+      "rss_bytes": 870502400,
+      "elapsed_s": 10.372131302021444
+    },
+    {
+      "event": "independent_encode_decode_complete",
+      "rss_bytes": 937349120,
+      "elapsed_s": 10.897115784697235
+    }
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7622026102300000000000000000001.scope",
+    "memory.current": 598880256,
+    "memory.peak": 599142400,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 8554758\nuser_usec 7501512\nsystem_usec 1053246\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "elapsed_s": 10.912407272029668,
+  "script_sha256": "7d3bc5d0d3e52e45d928304bcf6f650bb3993919c9ab59f330db94e0b2877295"
+}

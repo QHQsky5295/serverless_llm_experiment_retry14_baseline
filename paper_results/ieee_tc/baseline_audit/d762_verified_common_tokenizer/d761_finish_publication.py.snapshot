@@ -1,0 +1,48 @@
+"""Resume the exact staged checkpoint; permit standard CSV CRLF, preserve bytes."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d761_3b_memory_cause'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as handle:
+        json.dump(value,handle,indent=2,allow_nan=False)
+        handle.write('\n')
+
+def call(*args):
+    return subprocess.check_output(args,cwd=MAIN,text=True,stderr=subprocess.STDOUT).strip()
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'finish_publication_identity.json',own)
+old=json.loads((RAW/'publication_identity.json').read_text())
+path=Path(old['path'])
+assert p.scope_still_owned(old)
+assert all(not f.read_text().split() for f in path.rglob('cgroup.procs'))
+resources=p.cgroup_snapshot(path)
+subprocess.run(['systemctl','--user','stop',old['unit']],check=True)
+assert not path.exists()
+save(RAW/'publication1_closure.json',dict(identity=old,resources=resources,path_gone=True,
+    failed_at='git diff --check: standard CSV CRLF interpreted as trailing whitespace',
+    actual_recursive_procs_empty=True))
+assert call('git','rev-parse','HEAD')=='7bd3b1848d7481cc87190d8f639c00493748a63e'
+expected={str(path.relative_to(MAIN)) for path in OUT.iterdir() if path.is_file()}
+expected|={'docs/ieee_tc/EXECUTION_STATUS.md','docs/ieee_tc/D761_3B_SERVERLESSLLM_MEMORY_CAUSE_20261023.md'}
+assert set(call('git','diff','--cached','--name-only').splitlines())==expected
+assert not call('git','diff','--name-only','--',*sorted(expected))
+call('git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof,cr-at-eol','diff','--cached','--check')
+call('git','commit','-m','tc: isolate D760 tokenizer memory retention without a performance replay')
+head=call('git','rev-parse','HEAD')
+ref='refs/heads/backup/d761-3b-tokenizer-cause-20261023'
+call('git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call('git','ls-remote','faaslora_origin',ref).split()[0]==head
+save(RAW/'publication_receipt.json',dict(passed=True,head=head,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=sorted(expected),
+    first_publication_failure_preserved=True,csv_bytes_unchanged=True,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,remote_ref=ref,paths=len(expected))))

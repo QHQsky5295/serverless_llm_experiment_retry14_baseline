@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "baseline_checkpoint": {
+    "head": "c9b3c9f7a02c1a118db089708697af3c76d47a5c",
+    "remote": "origin",
+    "remote_ref": "refs/heads/main",
+    "paths": [
+      "scripts/ieee_tc_serverless_measurement.py",
+      "scripts/prepare_ieee_tc_serverless_stack.py",
+      "tests/test_ieee_tc_serverless_measurement.py",
+      "docs/ieee_tc/D762_VERIFIED_COMMON_TOKENIZER_20261023.md"
+    ]
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files": {
+    "seal_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/seal_identity.json",
+      "sha256": "8be9d2a44e6a8516677abfaa848e51b9dfd99b423db2f13e4a672f79b246ae9d"
+    },
+    "seal_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/seal_receipt.json",
+      "sha256": "02043de148da6d358e16380418b5171dbda47ee74a621508622791fc792de9bf"
+    },
+    "seal_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/seal_closure.json",
+      "sha256": "059b3f631e4c59ba2d8c99d6c6649e1638635b8eb72311147c632fa1f9ef6798"
+    },
+    "baseline_checkpoint.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/baseline_checkpoint.json",
+      "sha256": "12017f9ff64247c77065a351777547080dcd2f67d19a1629abf2f5e167b08330"
+    },
+    "publish.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/publish.py",
+      "sha256": "c6d3664969b00ae92d54fa4a3af63f9fa654c280ef2e27603217021935a5781b"
+    }
+  },
+  "protected_unchanged": 145,
+  "model_path_qualified": false,
+  "performance_qualified": false
+}

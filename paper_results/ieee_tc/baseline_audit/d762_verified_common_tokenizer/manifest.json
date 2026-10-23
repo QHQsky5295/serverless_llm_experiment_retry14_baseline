@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files": {
+    "qualify.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/qualify.py",
+      "sha256": "7d3bc5d0d3e52e45d928304bcf6f650bb3993919c9ab59f330db94e0b2877295"
+    },
+    "qualification.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/qualification.json",
+      "sha256": "8346e57f96003348368e82fe7ae0792153ef5072f1e8b56cb44fdd8109c4b989"
+    },
+    "qualification_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/qualification_receipt.json",
+      "sha256": "5bb4e16e896191a9b407c71f1ea334ab12851f87235f60c15e69df9655d4d5ec"
+    },
+    "qualification_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/qualification_identity.json",
+      "sha256": "216c101b42ed08d5bdebbff7ec087fbaba1115bf3fcf3df5fea9beaba2e0f466"
+    },
+    "qualification_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/qualification_closure.json",
+      "sha256": "5bdd2f6aa8f01d386e1d402a69c7e5f7c1eeb1e20cef970c8494ad8e62c0c8bd"
+    },
+    "unit_tests.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/unit_tests.json",
+      "sha256": "a48e6b9de897479028e96a83eb82ef96cf588f00caa1adcee42a30d70c73ab75"
+    },
+    "affected_tests.log": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/affected_tests.log",
+      "sha256": "fc50828d087b3c0ee42ba72b89b6c2a39b1ee23af3c2e96c5044621100965a84"
+    },
+    "seal.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/seal.py",
+      "sha256": "b9f97082512e6c6fe50eac9d970303c2359a56c1b85f55867c6869c5a1d6ccba"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d762_20261023/source_repaired/measurement_manifest.json",
+      "sha256": "8cad6dd8c03d40e1754c31f496f1f31ca4868333063f185056fbb52809c4745c"
+    },
+    "d761_publication_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023/publication_receipt.json",
+      "sha256": "f68b449c13bd8187cfe1c590868a69279e16611625ade8228a12c5a6e8557743"
+    },
+    "d761_publication_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023/publication_closure.json",
+      "sha256": "900ef0ed69a95fe4d8ce9967fbd030a46b74df2c010ac820b7cd94665d31590a"
+    },
+    "d761_finish_publication.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023/finish_publication.py",
+      "sha256": "27adb1ee4bc12571dc9ade7a3139b0214ef977eb3c1c749cbd2d3f62245b73b9"
+    },
+    "d761_close_publication.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d761_20261023/close_publication.py",
+      "sha256": "641f12c5ef2058ac55eb30189945d6aaeef73065d5c19d73e505c7b9070beef8"
+    }
+  },
+  "protected_unchanged": 145,
+  "preserved_unchanged": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "no_gpu_run": true,
+  "model_path_qualified": false,
+  "performance_qualified": false
+}

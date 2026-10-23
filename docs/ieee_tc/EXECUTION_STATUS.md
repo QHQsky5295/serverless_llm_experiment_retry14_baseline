@@ -1,5 +1,27 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D762：内容等价的共同分词器适配通过 CPU 检查
+
+按完整PLAN、D761实际内存证据、历史提交及官方0.10.2/0.11.0源码，只加入
+显式opt-in的verified_published_base_v1。启动时核对全部许可工件的五种
+tokenizer/config内容与实际engine源一致，随后共享输入/输出TokenizerGroup；
+backend/engine的LoRA权重开关、LoRARequest、原生RR/store/扩缩容、请求
+生成/1800s保护和实际远端下载不变。没有周期GC、重启或baseline参数搜索。
+
+33项相关单元/回归通过；同原生0.10.2 CPU-only完成原128访问序列+500ID，
+共628次同步/628次异步查询，始终同一对象、逐adapter LRU为0。查询前后
+RSS870248448/870502400B，增长253952B；独立分词器8个编解码用例一致。
+辅助域peak599142400B、high/max/OOM/swap0，总10.91秒，无GPU/模型加载、
+无真实远端请求。不是数值LoRA正确性证明，也不是完整服务恢复的性能证据。
+详见D762_VERIFIED_COMMON_TOKENIZER_20261023.md。
+
+下一复用既有100请求入口仅验证本次改变的原生mixed-LoRA路径；不重复
+500/1000整套资格。通过后新版本完整W0→同配置W1/W2。D760的2522响应/
+1478失败保留，不能由CPU结果覆盖或解释为已解决。当前没有新性能结果。
+继续保留3B其他基线/PrimeLoRA跨场景/dLoRA、最终同版本7B主表与Full、
+A1–A5、S1–S13、CE/Pareto、两轮审稿文档与最终图表；完整目标active。
+HydraServe隔离适配/7B三场景已完成，不修改非本项目k3s或重复其基础资格。
+
 ## 2026-10-23 D761：分词器重复构造导致内存增长已隔离，未做性能重跑
 
 先重读完整PLAN/状态、停止规则与基线/存储顺序，使用analyze-results完成
@@ -17,8 +39,15 @@ RSS由860295168升至2726866944B，LRU一直≤4，但存活动态类35个；完
 离线分箱首版误读completion字段adapter_id，原脚本/失败回执保留，已按
 真实tc_artifact_id修正并严格核对4000/2522/1478；CPU诊断没有重跑。
 详见D761_3B_SERVERLESSLLM_MEMORY_CAUSE_20261023.md及
-baseline_audit/d761_3b_memory_cause。诊断域与首分析域已精确关闭；成功
-分析域在本轮发布前按InvocationID关闭。文档与证据待本轮检查点备份。
+baseline_audit/d761_3b_memory_cause。全部诊断/分析/封存/发布空域均已按
+InvocationID精确关闭。500项远端内容索引的五种tokenizer/config文件与
+当前backbone SHA一致，未重新扫描/生成权重池。145个旧投稿文件及三个
+用户修改未变。28条明确路径已提交并推送核对
+0e4a1fededda818a32d54fe1c7f880fc256a7aac，远端分支
+backup/d761-3b-tokenizer-cause-20261023；V2仍未同步，不force。首发布的
+diff检查把标准CSV CRLF当作尾空白，原检查失败保留；允许cr-at-eol后通过，
+数据字节未改。发布完成回执/关闭与本条说明随下个正常检查点保存，不追加
+备份链。当前磁盘161249923072B，无GPU/分析任务；baseline源码未改。
 
 下一仅做“内容等价的共同tokenizer复用”必要适配：既有500项索引的五种
 tokenizer/config文件各同SHA；应验证backbone一致，保留权重/LoRA原生
