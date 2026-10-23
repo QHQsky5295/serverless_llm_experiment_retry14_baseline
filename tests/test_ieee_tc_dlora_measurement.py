@@ -523,7 +523,9 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
             parallel_config=NS(tensor_parallel_size=1,pipeline_parallel_size=1),
             lora_config=NS(num_models=2, adapter_ids=['z','a'], adapter_paths=['/pool/z','/pool/a'],
                            gpu_capacity=1),
-            lora_engine=NS(cpu_lora_weights=[1,2],gpu_lora_models=[1]), cache_engine=object(),
+            lora_engine=NS(cpu_lora_weights=[tuple(NS(lora_As=NS(shape=(2,3,4)),
+                lora_Bs=NS(shape=(2,4,3))) for _ in range(4)) for _ in range(3)],
+                num_hidden_layers=3,lora_cnt=4,gpu_lora_models=[1]), cache_engine=object(),
             cache_config=NS(num_gpu_blocks=300,num_cpu_blocks=900), rank=1)
         torch = NS(cuda=NS(device_count=lambda:1,current_device=lambda:0),__version__='test-only')
         with patch.object(m, 'dlora_worker_launch_guard', return_value=(cfg,guard)), \
@@ -532,9 +534,55 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
             self.assertEqual(receipt['actual_gpu_capacity'], 1)
             self.assertEqual(receipt['gpu_lora_models'], [1])
             self.assertEqual(receipt['adapter_bindings'], cfg['adapters'])
+            self.assertEqual(receipt['cpu_lora_layers'],3)
+            self.assertEqual(receipt['cpu_adapter_capacity'],2)
             self.assertFalse(receipt['numerical_correctness_qualified'])
             native.model_config.use_dummy_weights = True
             with self.assertRaises(ValueError): m.dlora_native_worker_receipt(native)
+
+    def test_receipt_uses_native_layer_major_constructor_not_synthetic_adapter_list(self):
+        source=(NATIVE/'vllm/worker/lora_engine.py').read_text()
+        tree=ast.parse(source)
+        classes=[]
+        for name in ('LoRaEngine','LlamaLoRaEngine'):
+            node=copy.deepcopy(next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name==name))
+            node.body=[n for n in node.body if isinstance(n,ast.Assign)
+                       or isinstance(n,ast.FunctionDef) and n.name=='__init__']
+            classes.append(node)
+        # Execute the actual native constructor with shape-only tensor holders;
+        # no weight data, CUDA allocation or altered native layout is introduced.
+        class ShapeWeight:
+            def __init__(self,engine,count,inputs,rank,outputs,dtype,device):
+                self.lora_As=NS(shape=(count,inputs,rank))
+                self.lora_Bs=NS(shape=(count,rank,outputs))
+        fake_torch=NS(device=object,cuda=NS(Stream=object,current_stream=lambda:None,Event=object,
+            device_count=lambda:1,current_device=lambda:0),__version__='shape-only')
+        ns=dict(Tuple=Tuple,List=List,LoRaWeight=ShapeWeight,torch=fake_torch,
+                ModelConfig=object,LoRaConfig=object,ParallelConfig=object,LlamaConfig=object)
+        exec(compile(ast.Module(body=classes,type_ignores=[]),'<native-LoRA-constructors>','exec'),ns)
+        config=NS(hidden_size=3072,num_hidden_layers=28,intermediate_size=8192,
+                  num_attention_heads=24,num_key_value_heads=8,vocab_size=128256)
+        lora=NS(num_models=500,max_r=16,gpu_capacity=250,
+                adapter_ids=[f'a{i}' for i in range(500)],adapter_paths=[f'/pool/a{i}' for i in range(500)])
+        parallel=NS(tensor_parallel_size=1,pipeline_parallel_size=1)
+        model=NS(model='/model',use_dummy_weights=False,dtype='half',hf_config=config)
+        engine=ns['LlamaLoRaEngine'](config,model,lora,parallel,'cuda:0')
+        self.assertEqual(len(engine.cpu_lora_weights),28)
+        self.assertEqual(engine.cpu_lora_weights[0][0].lora_As.shape,(500,3072,48))
+        engine.gpu_lora_models=list(range(250))
+        worker=NS(exec_type=NS(name='LORA'),model_config=model,parallel_config=parallel,
+            lora_config=lora,lora_engine=engine,cache_engine=object(),
+            cache_config=NS(num_gpu_blocks=100,num_cpu_blocks=100),rank=0)
+        cfg=dict(engine_args={'model':'/model'},adapters={aid:[i,lora.adapter_paths[i]]
+                                                        for i,aid in enumerate(lora.adapter_ids)})
+        guard=NS(gpu_process_identity=lambda pid:dict(pid=pid,start_ticks=1))
+        with patch.object(m,'dlora_worker_launch_guard',return_value=(cfg,guard)), \
+                patch.dict(sys.modules,{'torch':fake_torch}),patch.dict(os.environ,CUDA_VISIBLE_DEVICES='0'):
+            receipt=m.dlora_native_worker_receipt(worker)
+            self.assertEqual(receipt['cpu_lora_layers'],28)
+            self.assertEqual(receipt['cpu_adapter_capacity'],500)
+            engine.cpu_lora_weights[0][0].lora_As.shape=(499,3072,48)
+            with self.assertRaises(ValueError):m.dlora_native_worker_receipt(worker)
 
     def test_runtime_shutdown_on_native_construction_failure(self):
         async def check():

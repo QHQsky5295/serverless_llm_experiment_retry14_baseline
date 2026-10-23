@@ -650,7 +650,11 @@ def dlora_native_worker_receipt(worker):
             or worker.parallel_config.pipeline_parallel_size != 1
             or worker.model_config.model != cfg['engine_args']['model']
             or actual != expected or lora.num_models != len(expected)
-            or len(worker.lora_engine.cpu_lora_weights) != len(expected)
+            or len(worker.lora_engine.cpu_lora_weights) != worker.lora_engine.num_hidden_layers
+            or any(len(layer) != worker.lora_engine.lora_cnt
+                   or any(weights.lora_As.shape[0] != len(expected)
+                          or weights.lora_Bs.shape[0] != len(expected) for weights in layer)
+                   for layer in worker.lora_engine.cpu_lora_weights)
             or lora.gpu_capacity != len(worker.lora_engine.gpu_lora_models)
             or worker.cache_engine is None or cache.num_gpu_blocks <= 0
             or torch.cuda.device_count() != 1 or torch.cuda.current_device() != 0):
@@ -661,6 +665,8 @@ def dlora_native_worker_receipt(worker):
         global_rank=worker.rank, tensor_parallel_size=1, pipeline_parallel_size=1,
         model=worker.model_config.model, adapter_bindings=actual,
         vocab_size=worker.model_config.hf_config.vocab_size,
+        cpu_lora_layers=len(worker.lora_engine.cpu_lora_weights),
+        cpu_adapter_capacity=len(expected),
         gpu_lora_models=list(worker.lora_engine.gpu_lora_models),
         actual_gpu_capacity=lora.gpu_capacity, num_gpu_blocks=cache.num_gpu_blocks,
         num_cpu_blocks=cache.num_cpu_blocks, native_torch_version=torch.__version__,
