@@ -1,5 +1,133 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D752完成：3B W0联合95.775%，封存并返回完整主线
+
+PROGRESS。完整重读PLAN、冻结V1/单轮V2；同一service/InvocationID完成
+4000/4000正常终态与原生生成合同，全部返回码0。四GPU真实释放、service
+域消失、远端本轮三个自有服务均停止。既有三个分析器首次完成，无推理重跑。
+共同D648联合3831/4000=95.775%，TTFT3913、TPOT3917；仅TTFT违约86、
+仅TPOT82、二者1。不是旧Live 5秒100%；本轮达到约定W0时延档位。
+U14860.687045203056，TTFT均604.023302/P951546.421684ms，TPOT均
+15.922397/P9527.498088ms，E2E均2407.332753/P955117.529954ms。
+对D749联合+44条/+1.100pp、P95TTFT少10.454%，U增加0.091075%；对D703
+历史联合+87条/+2.175pp、U少0.027720%，不夸大微小资源差别。n_correct=null、
+ranking_eligible=false仍保留；不是独立数值证明、完整G1/G2或跨场景最优。
+
+既有阶段核算恒等式误差0；自然扩容3、缩容0；132次remote/306360162线上
+字节，两端身份/字节/SHA匹配、无请求时打包。4058资源采样high/max/OOM/
+swap0，峰值24341979136B。4worker/4000请求/11082descriptor回执匹配；
+145保护项、用户manifest、冻结协议和生产SHA未变。completion与seal通过，
+completion及原launch辅助空域已精确关闭；seal辅助空域待备份流程关闭。
+
+决定保留D751和本轮W0观测，不重跑同键、不追加无新问题的短资格。下一先
+明确路径备份结果/启动恢复记录/历史口径说明；随后必要存储维护（当前低于
+150GiB新重型门槛），再推进3B跨场景/基线同合同比较与必要资源优化，不继续
+在W0局部反复验证。3B W1/W2/基线/dLoRA、7B最终同版本主表/Full、A1–A5、
+S1–S13、CE/Pareto、审稿文档与最终图表全部保留。共享k3s不动，goal active。
+
+## 2026-10-23 09:41 CST：D752同一完整回放持续推进
+
+10:03 CST续检（VERIFIED_WAIT）：再次确认用户所述共享k3s非本项目，继续
+复用既有rootless Podman隔离适配及HydraServe D576/D579/D582三场景结果，
+不索取共享集群凭据、不接管集群、不重做部署。本轮完整重读PLAN、最新状态
+及冻结V1/单轮V2。D752同一service/InvocationID仍active/running，Live
+2396→2443→2532/4000，失败0；sample2341服务内存22536654848B，主机可用
+92993323008B、磁盘158210650112B，high/max/OOM/swap0，无warning/abort。
+仅轻量监测和小型文档读取；没有生产修改、重型分析、测试、扫描、压缩、清理、
+push或远端调整。仍等这一完整实例结束及实际释放后按冻结共同联合SLO分析；
+不得从Live旧5秒显示判断达标。全部后续范围保留，goal active。
+
+09:57 CST续检（VERIFIED_WAIT）：完整重读PLAN与当前状态，按同一service/
+InvocationID持续观察，所有查询active/running；完成1366→1468→1528→
+1589→1684→1803→1884→1956→2038/4000，全部观测失败0。sample1977
+服务内存21692792832B、主机可用93215371264B、磁盘158816374784B，
+high/max/OOM/swap0、无warning/abort。已过半但不是最终联合SLO/资源结果。
+本轮仅monitor-experiment轻量监测，无生产修改、远端操作、额外资格或性能
+任务、扫描/压缩/清理/push。继续同一实例至终态及释放；全部后续范围不变。
+
+09:47 CST续检（VERIFIED_WAIT）：同一service/InvocationID持续active/running，
+Live完成1021→1118→1156→1203→1280，最新失败0；watchdog sample1404，
+服务内存20985864192B、主机可用93431840768B、磁盘159244132352B，
+high/max/OOM/swap0、无warning/abort。只读核查既有D749收尾入口与
+reevaluate_common_slo，确认按D648逐请求联合评价；未执行统计、大文件
+读写或新增脚本。继续这一完整实例，未启动新实验；不从局部结果宣布达标。
+
+VERIFIED_WAIT。本轮完整重读PLAN及最新状态，按更新后的用户目标返回3B
+优化主线，不再扩展上一轮已完成的历史核查。直接复查service仍为
+primelora-tc-svc-c2fa4f993e044387985f0c47326fd438.scope，InvocationID
+6a2c942022d14779ae1e498f13c5f06a，全部观测active/running；Live完成数
+742→812→853→907，最新907/4000、失败0，未结束、不判最终联合SLO。
+watchdog sample867→939→1004→1084；最新服务内存20395368448B，
+主机可用93693202432B、磁盘159760646144B，high/max/OOM/swap均0、
+无warning/abort。仅轻量读取本次已有监控，不重启、不追加性能或资格运行。
+
+下一等待这个实例完成及真实释放，再按冻结V1/单轮V2分析D751候选相对
+D749/D703的联合SLO、尾延迟与完整物理GPU时间。未构建、扫描、压缩、
+清理、push或调整远端；后置封存/备份及下一重型前存储维护不省略。
+已完成7B/baseline复用，3B剩余比较、dLoRA、同合同主表/Full、A1–A5、
+S1–S13、CE/Pareto、审稿文档及最终图表全部保留。goal active。
+
+## 2026-10-23 历史达标核查：7B复用；3B旧99.875%不是共同联合SLO
+
+回应最新用户要求：核查“7B/3B历史到过95、已转baseline，为何又做实验”。
+本轮为只读来源核查加D752 VERIFIED_WAIT，不是新GPU实验。详见
+HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md。D639 machine产物确认
+7B W0/D636为3935/4000=98.375%，W1/D633为3842/4000=96.050%，
+W2/D632为3854/4000=96.350%；W1/W2低于共同预算。保留版本边界和
+数值证据限制，不因本次核查重启7B。D593已有五个已发表baseline各三场景，
+共15个7B点，HydraServe隔离适配与D576/D579/D582结果直接复用，共享k3s不动。
+
+3B D703此前3995/4000=99.875%错误地把TTFT≤5000ms的单项比例标为联合；
+这确实造成先前达标汇报错误，不是用户记错。D714早已用原日志离线更正为
+3744/4000=93.600%，TTFT3851/TPOT3884；D648阈值先于D703冻结，未事后
+提高。此更正没有重跑D703，不覆盖旧误标证据。D749最新完整3787/4000=
+94.675%，仍差13条。D710回到旧7B的排程另为真实错误，D711执行前已纠正。
+
+D752继续同一service/InvocationID 6a2c942022d14779ae1e498f13c5f06a；
+最新轻量观测521/4000完成、ok521/fail0，非最终结果。watchdog sample676：
+服务内存19748028416B、主机可用93960577024B、磁盘160259543040B，
+持有4GPU，high/max/OOM/swap0，无warning/abort。当前仅运行D751新候选
+一次完整3B W0，不是重启整个项目、不复跑相同键。旧5秒live显示不能判优。
+
+本轮未改生产/阈值/远端，未扫描大文件、测试、构建、压缩、清理或push；
+本说明随本轮结束的正常检查点备份。后续保持3B主线及全部未完矩阵，
+独立数值未知字段不补写，也不因此增加重复全量exact资格。goal active。
+
+## 2026-10-23 D752完整3B W0已启动：同一实例继续监测
+
+PROGRESS。两项runner/config合同检查通过；D751的51项和D748/D747已有
+资格直接复用，没有新GPU微测/短前缀。16条明确路径提交
+370e5a8ebd8f0f05b2c934ae78af98b333d59783并核对远端
+backup/d752-dense-alias-validation-fullw0-20261023；V2未同步、无force。
+GitHub两次HTTPS push中断发生在任何远端服务/性能启动前，原start.py、
+resume_start.py及身份保留；HTTP1.1 ls-remote恢复后finish_start.py只继续
+备份/原准入/启动，未重做测试或重跑性能。TLS验证未关闭。三个启动管理
+空域均已按InvocationID/inode释放；resume/finish补充脚本及回执在完成封存
+时备份，不在本次性能运行中push。
+
+实际tmux：tc-d752-3b-dense-alias-validation-full-w0；service
+primelora-tc-svc-c2fa4f993e044387985f0c47326fd438.scope，InvocationID
+6a2c942022d14779ae1e498f13c5f06a，inode30767335。独立watchdog/replay域
+primelora-tc-aux-8c828fa946cf478d89871e2ad047a20f.scope仍在运行，不能清理。
+直接查询active/running；实际GPU worker PID495264属于该service，/proc/maps
+已装载D747精确descriptor库路径。watchdog sample135服务内存8422031360B，
+主机可用104242253824B，high/max/OOM/swap0，无warning/abort。服务Live
+最新27/4000完成、ok27/fail0；这是早期进度，不是完整SLO或数值正确性证明。
+
+运行目录results/ieee_tc/p2_backend_qualification/d752_20261023/
+3b_dense_alias_validation_full_w0；launch.launch下service.log、watchdog.jsonl、
+replay.jsonl为当前监测源。exec_receipt绑定原W0 source4000/view/SHA和60秒通知。
+远端prepublished_gzip_v1健康；启动前实际协商1000Mbit/s/full，不冒称吞吐。
+3b服务InvocationID a971eedd111e4d1c8aea9b395496af78，7b为
+83e979f9f45e4d349c8d27cf2a46b550，monitor为b9d73efa6dcc4b6590b457e1575515cb。
+已有run_and_release.sh在本机真实释放后按身份关闭本次三服务；测量中不改远端。
+
+下一只轻量等待这一完整实例，不重启/并发测试/扫描/压缩/清理/push。结束后
+实际释放→冻结V1/单轮V2分析→与D749/D703等完整父点比较→备份/必要存储
+维护。D711 n_correct=null/ranking=false仍保留；W0不关闭W1/W2/G2。
+所有剩余3B场景/基线/dLoRA、7B最终同版本、A1–A5/S1–S13、CE/Pareto、
+审稿文档及最终图表保持。共享k3s不动，HydraServe隔离结果复用，goal active。
+
 ## 2026-10-23 D752登记：仅D751候选的完整3B W0
 
 REGISTERED。完整重读PLAN/最新执行规范及冻结V1/单轮V2；直接复用D749

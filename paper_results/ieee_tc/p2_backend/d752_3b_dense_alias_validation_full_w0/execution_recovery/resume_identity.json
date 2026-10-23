@@ -1,0 +1,6 @@
+{
+  "unit": "primelora-tc-aux-194d37713e5542aaa0f9162a0869dcc0.scope",
+  "invocation_id": "56d6a53bb535413db022a5e9081c801a",
+  "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-194d37713e5542aaa0f9162a0869dcc0.scope",
+  "inode": 30766498
+}

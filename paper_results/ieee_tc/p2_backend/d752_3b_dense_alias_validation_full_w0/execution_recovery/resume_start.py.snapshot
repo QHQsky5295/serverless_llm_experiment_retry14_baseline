@@ -1,0 +1,57 @@
+"""Resume after prelaunch HTTPS TLS interruption; no tests or replay repeated."""
+import json, os, shlex, subprocess, sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=55).strip()
+assert os.sched_getaffinity(0) == {2,3,26,27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'resume_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not (RAW/'start_receipt.json').exists()
+assert not (RAW/'3b_dense_alias_validation_full_w0').exists()
+commit = read(RAW/'commit.json')
+head, ref, files = commit['head'], commit['ref'], commit['files']
+assert call(['git','rev-parse','HEAD']) == head
+assert not call(['git','diff','--cached','--name-only'])
+assert not call(['git','diff','HEAD','--name-only','--', *files])
+for item in read(OUT/'manifest.json')['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256'], item['path']
+old = read(RAW/'start_identity.json')
+oldpath = Path(old['path'])
+assert p.scope_still_owned(old) and not p.owned_pids(oldpath)
+oldresources = p.cgroup_snapshot(oldpath)
+closed = p.stop_scope_identity(old, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not oldpath.exists()
+save(RAW/'interrupted_start_closure.json', dict(identity=old, resources=oldresources, closure=closed,
+    reason='GitHub HTTPS TLS handshake interruption before remote service start or replay'))
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=ref, files=files, v2_synchronized=False,
+    resumed_after_tls_interruption=True, tls_verification_disabled=False,
+    resume_script_sha256=p.digest(Path(__file__))))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d752-3b-dense-alias-validation-full-w0'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT), shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=ref,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=ref, tmux=session)))

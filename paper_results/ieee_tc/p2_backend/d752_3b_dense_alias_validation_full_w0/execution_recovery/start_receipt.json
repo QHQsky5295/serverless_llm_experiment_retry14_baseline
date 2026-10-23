@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "370e5a8ebd8f0f05b2c934ae78af98b333d59783",
+  "backup_ref": "refs/heads/backup/d752-dense-alias-validation-fullw0-20261023",
+  "tmux": "tc-d752-3b-dense-alias-validation-full-w0",
+  "identity": {
+    "unit": "primelora-tc-aux-9378b6a7b5c041259a3ff4f5c7ed6c3c.scope",
+    "invocation_id": "857fae838799449f9c1e2d0709943a4e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9378b6a7b5c041259a3ff4f5c7ed6c3c.scope",
+    "inode": 30767172
+  },
+  "qualification_sha256": "c8acdbbfa1e5a24fe7fff0a4f3424e09928513abed779c55edd5a32d1450b664"
+}
