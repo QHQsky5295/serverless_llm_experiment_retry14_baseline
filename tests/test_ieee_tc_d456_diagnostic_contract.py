@@ -191,6 +191,34 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D752FullContract(unittest.TestCase):
+    def test_parent_configuration_only_changes_three_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d749_3b_fresh_host_descriptor_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d752_3b_dense_alias_validation_full_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d752', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_full_trace_and_exact_qualified_descriptor(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d752\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        switches = [line for line in shell.splitlines() if '"${1:-d293}" == d752' in line]
+        self.assertEqual(len(switches), 3)
+        self.assertEqual(sum('"${1:-d293}" == d659' in line for line in switches), 2)
+        candidate = re.search(r'^if \[\[ "\$\{1:-d293\}" == d752 \]\]; then\n(.*?)^fi', shell, re.M | re.S).group(1)
+        self.assertIn('FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=', candidate)
+        self.assertIn('_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so', candidate)
+        self.assertIn('FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044', candidate)
+        self.assertEqual(candidate.count('export '), 2)
+        self.assertNotIn('d752', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+
 class D749FullContract(unittest.TestCase):
     def test_parent_configuration_only_changes_three_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d742_3b_execution_view_full_w0.yaml').read_text())

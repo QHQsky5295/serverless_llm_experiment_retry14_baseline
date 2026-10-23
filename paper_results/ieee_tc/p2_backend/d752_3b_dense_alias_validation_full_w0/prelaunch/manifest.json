@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/close_start.py.snapshot",
+      "sha256": "1885b395321c9796b29e1d6f8238adab893cbb243b34cfa91b38d4cbd249643e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/execution_contract_tests.json",
+      "sha256": "ab7bb90581f3e40f227896e33f632cfd01de913aa7e89513c3b8b79448a64792"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/qualification.json",
+      "sha256": "c8acdbbfa1e5a24fe7fff0a4f3424e09928513abed779c55edd5a32d1450b664"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/reused_alias_qualification.json",
+      "sha256": "255045d95968b4b5a72c65c1cb71d526f5c3a7e1f66a3bea259fc94fd6fb1e40"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/reused_qualification.json",
+      "sha256": "9bc6426d91908976c8bf86767f5028a8963f038ebfdad9848ee781fb3352d4e7"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/run_and_release.sh.snapshot",
+      "sha256": "10877052e7d35cbb8484527ca3d0d9c44265ffb3c108eba2f7670c6b0519322b"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/start.py.snapshot",
+      "sha256": "5a3dfb8fc1af52514d7d483707302319d7caf45856aee04651708c20b915100f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/start_remote.sh.snapshot",
+      "sha256": "6afea055293c185bcccb22e84159362c85ee9380e681841389abfa1348c0f237"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/prelaunch/stop_remote.sh.snapshot",
+      "sha256": "9308c541ab1909f81cabab57fd5822fd7c7fdc1ae9aad273d2eec3174559e067"
+    }
+  ]
+}

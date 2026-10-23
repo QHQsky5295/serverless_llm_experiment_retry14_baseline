@@ -1,6 +1,25 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D752登记：仅D751候选的完整3B W0
+
+REGISTERED。完整重读PLAN/最新执行规范及冻结V1/单轮V2；直接复用D749
+配置，只有结果/NVMe/HOST三路径隔离。生产唯一差异D751紧凑owner校验，
+源码SHA e604a7bf061db2da407c44195897cb83eacd586f2d79ba065eb24496ed26e039。
+复用51项CPU、D748接口和D747原生资格；只补两个runner合同检查，不叠加
+优化/新阈值/新profile/新trace，不补短前缀。启动前检查点与实际启动回执
+另记；当前登记本身不是性能结果。D749为94.675%/U14847.16496653203，
+D711 n_correct=null/ranking=false保持。每键一次完整4000，失败全部保留。
+共享k3s不动，HydraServe既有隔离适配复用。全部剩余3B/基线/dLoRA、7B
+最终同版本、A1–A5/S1–S13、CE/Pareto、审稿文档及图表不删，goal active。
+
 ## 2026-10-23 D750/D751：复用规划记录；紧凑alias校验通过最小资格
+
+检查点已完成：22条明确路径提交eae8b6f40c7a94159fb1a9f33db0c6fbd9476006，
+推送并核对backup/d751-dense-alias-qualification-20261023；V2未同步，无force。
+发布空域已按InvocationID/inode精确释放，峰值31809536B，events/swap0。
+当前无GPU任务；磁盘可用162071502848B，PLAN和用户manifest SHA不变，
+用户manifest未stage。D752尚未注册或启动，下一直接复用D749 runner登记
+同配置完整W0，不重复本轮组件或51项资格。本段随下一正常检查点备份。
 
 PROGRESS。D749仍为最近完整3B点：3787/4000=94.675%，
 U14847.16496653203，差13条至95%；D711 n_correct=null/ranking=false不变。

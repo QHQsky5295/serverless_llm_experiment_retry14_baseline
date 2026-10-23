@@ -1,0 +1,103 @@
+{
+  "passed": true,
+  "qualification_sha256": "db4773b1e52d71a0eaa5d1a065a6f9cacdaa179c9441344019f01646fd628b4e",
+  "manifest_sha256": "4a4d67d53d8f2ba399ab52381fc45e1a48efd291159c14fe446d6a13264e519f",
+  "tests_reused": 51,
+  "measured_candidate_ast_identical": true,
+  "sources": {
+    "faaslora/experiment/instance_pool.py": "e604a7bf061db2da407c44195897cb83eacd586f2d79ba065eb24496ed26e039",
+    "tests/test_ieee_tc_dense_alias_validation.py": "84f7201804f0361f51bbd8bc87508d2203fa724ce6c6d7d70f1ed5386a356245"
+  },
+  "new_component_or_gpu_microtests": 0,
+  "backup_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-b7749ebc8bb24116be08d4ef3501e4c9.scope",
+      "invocation_id": "273cadc7c5e34fe8b0c4488f4ca3067f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b7749ebc8bb24116be08d4ef3501e4c9.scope",
+      "inode": 30762069
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b7749ebc8bb24116be08d4ef3501e4c9.scope",
+      "memory.current": 724992,
+      "memory.peak": 31809536,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 704174\nuser_usec 442109\nsystem_usec 262064\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "backup": {
+      "passed": true,
+      "head": "eae8b6f40c7a94159fb1a9f33db0c6fbd9476006",
+      "ref": "refs/heads/backup/d751-dense-alias-qualification-20261023",
+      "files": [
+        "paper_results/ieee_tc/p2_backend/d750_d749_planner_intervals/planner.json",
+        "paper_results/ieee_tc/p2_backend/d750_d749_planner_intervals/planner.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d750_d749_planner_intervals/resources.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/attempt2/candidate.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/attempt2/probe.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/attempt2/reference.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/attempt2/resources.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/attempt2/result.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/probe.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/publish.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/closure.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/prior_scopes_closed.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/probe_attempt1.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/qualification.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/qualify.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/test_receipt.json",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/tests.txt",
+        "paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/manifest.json",
+        "faaslora/experiment/instance_pool.py",
+        "tests/test_ieee_tc_dense_alias_validation.py",
+        "docs/ieee_tc/D750_D751_PLANNER_INTERVALS_AND_ALIAS_VALIDATION_20261023.md",
+        "docs/ieee_tc/EXECUTION_STATUS.md"
+      ],
+      "v2_synchronized": false,
+      "resources": {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b7749ebc8bb24116be08d4ef3501e4c9.scope",
+        "memory.current": 14114816,
+        "memory.peak": 31809536,
+        "memory.high": 3221225472,
+        "memory.max": 4294967296,
+        "memory.swap.current": 0,
+        "memory.swap.max": 0,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 689125\nuser_usec 429078\nsystem_usec 260047\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      }
+    },
+    "disk_free_bytes": 162071511040,
+    "no_running_gpu_task": true,
+    "shared_k3s_untouched": true
+  }
+}
