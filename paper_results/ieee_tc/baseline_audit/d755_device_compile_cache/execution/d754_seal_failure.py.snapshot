@@ -1,0 +1,85 @@
+"""Preserve the completed replay without upgrading failed engine qualification."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d754_3b_compile_failure'
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import summarize_serverlessllm_replay as analyzer
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert read(RAW/'local_cleanup.json')['passed']
+assert read(RAW/'analysis_closure.json')['passed']
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status'] == 'RESTORED'
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+assert not read(RAW/'analysis_receipt.json')['passed']
+assert not (RAW/'audit_prefix100.json').exists()
+summary = analyzer.audit_tc_http_journal(RAW/'launch3b_repaired.launch/replay.jsonl')
+assert summary['counts']['N_response'] == 100 and summary['counts']['N_failed'] == 0
+qualifier = read(RAW/'model3b_repaired/model_qualification.json')
+assert len(qualifier['backend_ready_receipts']) == len(summary['observed_instance_ids']) == 2
+log = (RAW/'model3b_repaired/serve.log').read_text(errors='replace')
+plain = re.sub(r'\x1b\[[0-9;]*m', '', log)
+failures = [line for line in plain.splitlines() if 'FileNotFoundError' in line and 'torch_compile_cache' in line]
+assert failures and all('770f1086c5/rank_0_0/backbone/' in line for line in failures)
+samples = [json.loads(line) for line in (RAW/'launch3b_repaired.launch/watchdog.jsonl').read_text().splitlines()]
+samples = [row for row in samples if row['event'] == 'resource_sample']
+resources = dict(samples=len(samples),
+    service_peak_bytes=max(row['service']['memory.peak'] for row in samples),
+    host_available_min_bytes=min(row['host']['available_bytes'] for row in samples),
+    filesystem_free_min_bytes=min(fs['free_bytes'] for row in samples for fs in row['filesystems']),
+    memory_event_max={key:max(row['service']['memory.events'][key] for row in samples)
+                      for key in ('high','max','oom','oom_kill')},
+    swap_max_bytes=max(row['service']['memory.swap.current'] for row in samples),
+    warning_samples=sum(row['decision']['warning'] for row in samples),
+    abort_samples=sum(bool(row['decision']['abort_reasons']) for row in samples))
+prior = read(RAW.parent/'d753_20261023/qualification.json')
+for path, expected in {**prior['protected'], **prior['preserved']}.items():
+    assert p.digest(Path(path)) == expected, path
+OUT.mkdir(parents=True, exist_ok=False)
+report = dict(schema='ieee_tc_serverless_compile_failure_v1',
+    status='qualification_failure', qualification_passed=False, ranking_eligible=False,
+    classification='native_engine_shared_compile_cache_startup_failure',
+    counts=summary['counts'], actual_native_output_tokens=summary['actual_native_output_tokens'],
+    actual_unique_adapters=summary['offered_unique_adapters'],
+    planned_max_instances=4, ready_served_instances=2,
+    failed_engine_core_pids=[744451,744453], successful_engine_core_pids=[744449,744450],
+    conditional_metrics=summary['conditional_metrics'],
+    max_e2e_recomputation_error_ms=summary['max_e2e_recomputation_error_ms'],
+    max_tpot_recomputation_error_ms=summary['max_tpot_recomputation_error_ms'],
+    physical=read(RAW/'model3b_repaired/physical/physical_resource_summary.json'),
+    independent_numerical_correctness=None, compiler_error_lines=failures,
+    resource_observations=resources, protected_files_unchanged=len(prior['protected']),
+    strict_analyzer_preserved=True, strict_analyzer_failure='expected four ready receipts; observed two',
+    interpretation='Two engines completed all requests. This does not qualify the intended four-instance scale-out path.',
+    next_action='Bounded cache writer-ownership adaptation; no policy or workload changes.')
+save(OUT/'failure.json', report)
+paths = [RAW/'seal_failure.py', Path(analyzer.__file__), MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py']
+paths += [path for path in RAW.rglob('*') if path.is_file() and not path.is_symlink()
+          and path.suffix != '.pyc' and path != RAW/'result_identity.json']
+save(OUT/'manifest.json', dict(raw_root=str(RAW), sources={str(path):p.digest(path) for path in sorted(set(paths))},
+    protected=prior['protected'], preserved=prior['preserved'], identity=own))
+save(RAW/'result_receipt.json',dict(passed=True, qualification_passed=False, output=str(OUT),
+    resources=p.cgroup_snapshot(group),source_sha256=p.digest(Path(__file__))))
+print(json.dumps({key:report[key] for key in ('status','counts','ready_served_instances','resource_observations')}))

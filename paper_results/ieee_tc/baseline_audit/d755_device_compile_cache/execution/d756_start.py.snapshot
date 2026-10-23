@@ -1,0 +1,105 @@
+"""Reuse D555's exact-owned entry for the D753-qualified 3B prefix100."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+BINDING=RAW.parent/'d755_20261023/qualification.json'
+ENV=Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python')
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as stream:json.dump(value,stream,indent=2,allow_nan=False)
+def run(command,**kwargs):return subprocess.run(command,check=True,**kwargs)
+def git(repo,*args):return subprocess.check_output(['git',*args],cwd=repo,text=True).strip()
+
+assert RAW.name=='d756_20261023'
+assert not any((RAW/name).exists() for name in ('launch3b_repaired.json','launch3b_repaired.launch','model3b_repaired','input_identity.json'))
+assert not Path('/tmp/tc-d756-3br').exists()
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json',identity)
+group=Path(identity['path'])
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27}
+backup=json.loads((RAW/'backup_receipt.json').read_text())
+head=git(ROOT,'rev-parse','HEAD')
+assert backup['passed'] and head==backup['head']
+assert git(ROOT,'ls-remote','faaslora_origin',backup['remote_ref']).split()[0]==head
+basehead=git(BASE,'rev-parse','HEAD')
+assert basehead==backup['baseline_head']
+assert git(BASE,'ls-remote','origin','refs/heads/main').split()[0]==basehead
+closed=json.loads((RAW/'backup_closure.json').read_text())
+assert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']
+assert not Path(closed['identity']['path']).exists()
+for repo,paths in ((ROOT,['faaslora','scripts','configs/ieee_tc','tests']),
+                   (BASE,['scripts/prepare_ieee_tc_serverless_stack.py','scripts/replay_vllm_engine_trace.py',
+                          'scripts/ieee_tc_serverless_measurement.py','configs/ieee_tc'])):
+    assert not git(repo,'diff','--name-only','HEAD','--',*paths)
+binding=json.loads(BINDING.read_text())
+assert binding['passed'] and binding['reused_native_tests']==114 and binding['reused_3b_input_tests']==89
+assert binding['views']['100']['plan']['count']==100
+
+for path,sha in binding['refs'].items():assert p.digest(Path(path))==sha,path
+for name in ('qualification',):
+    closure=json.loads((RAW.parent/'d755_20261023/review_closure.json').read_text())
+    assert closure['passed'] and closure['path_gone'] and not Path(closure['identity']['path']).exists()
+assert p.check_plan()=='d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+gate=p.preflight([ROOT],32*p.GIB)
+assert gate['preflight_pass'],gate['issues']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+session='tc-d756-serverlessllm-3b100'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+for path,sha in binding['protected'].items():assert p.digest(Path(path))==sha,path
+protected=dict(passed=True,entry_count=len(binding['protected']))
+prepared=binding
+for path,sha in prepared['refs'].items():assert p.digest(Path(path))==sha,path
+save(RAW/'launch_gate.json',dict(passed=True,head=head,baseline_head=basehead,
+    qualification_sha256=p.digest(BINDING),gate=gate,protected=protected,scope=identity,
+    helpers=[dict(path=str(x),sha256=p.digest(x),content=x.read_text())
+             for x in sorted([*RAW.glob('*.py'),*RAW.glob('*.sh')])]))
+save(RAW/'input_identity.json',dict(plan=binding['views']['100']['plan'],actual_unique_adapters=29,
+    target_tokens=17369,performance_ranking_eligible=False,formal_run=False,
+    main_execution_commit=head,baseline_execution_commit=basehead,
+    generation_contract='fixed_length_greedy_v1',native_configuration_reused='D754 unchanged model/policy; D755 device compile cache ownership adaptation'))
+# Preserve ordinary compiler cache state before measurement, never GPU-prewarm.
+cache=Path(binding['source_view']['device_compile_cache_root'])
+entries=[]
+for path in sorted(cache.rglob('*')):
+    if path.is_file():
+        assert not path.is_symlink()
+        entries.append([str(path.relative_to(cache)),path.stat().st_size,p.digest(path)])
+save(RAW/'native_compile_cache_before.json',dict(root=str(cache),entries=entries,
+    files=len(entries),bytes=sum(x[1] for x in entries),
+    policy='retained ordinary compiler disk cache; all actual startup/capture GPU holding charged',
+    whole_lower_level_cache_identity_proved=False))
+# Same official loader-only overlay, with this execution's own backup/receipt.
+installer='/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py'
+with (RAW/'overlay_install.log').open('x') as stream:
+    run([sys.executable,installer,'--action','install','--backup-root',str(RAW/'overlay3b_repaired/backups'),
+        '--receipt',str(RAW/'overlay3b_repaired/install.json')],stdout=stream,stderr=subprocess.STDOUT)
+installed=json.loads((RAW/'overlay3b_repaired/install.json').read_text())
+expected=json.loads((RAW/'overlay_preflight.json').read_text())
+assert installed['status']=='INSTALLED' and installed['members']==expected['members']
+run(['bash',str(RAW/'start_remote.sh')])
+run([sys.executable,str(RAW/'check_remote_health_stdlib.py')],cwd=ROOT)
+run(['tmux','new-session','-d','-s',session,'-c',str(BASE),
+     f"bash {RAW}/run3b_repaired.sh > {RAW}/runner.log 2>&1"])
+receipt=RAW/'launch3b_repaired.launch/exec_receipt.json'
+deadline=time.monotonic()+210
+while not receipt.exists():
+    if time.monotonic()>deadline:
+        raise TimeoutError('observation timeout only; inspect the same tmux, never restart')
+    time.sleep(.1)
+launched=json.loads(receipt.read_text())
+captured=p.scope_identity(Path(launched['auxiliary_path']).name)
+save(RAW/'service_aux_identity.json',captured)
+save(RAW/'start_receipt.json',dict(launched=True,head=head,baseline_head=basehead,
+    tmux=session,starter_identity=identity,launcher_identity=captured))
+print(json.dumps(dict(launched=True,tmux=session,head=head,baseline_head=basehead)))
+

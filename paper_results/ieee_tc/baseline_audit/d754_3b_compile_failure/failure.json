@@ -1,0 +1,146 @@
+{
+  "schema": "ieee_tc_serverless_compile_failure_v1",
+  "status": "qualification_failure",
+  "qualification_passed": false,
+  "ranking_eligible": false,
+  "classification": "native_engine_shared_compile_cache_startup_failure",
+  "counts": {
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 100,
+    "N_failed": 0,
+    "N_submitted": 100
+  },
+  "actual_native_output_tokens": 17369,
+  "actual_unique_adapters": 29,
+  "planned_max_instances": 4,
+  "ready_served_instances": 2,
+  "failed_engine_core_pids": [
+    744451,
+    744453
+  ],
+  "successful_engine_core_pids": [
+    744449,
+    744450
+  ],
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 100,
+      "mean": 182557.52886022907,
+      "p50_type1": 181460.34419117495,
+      "p95_type1": 234915.44461343437
+    },
+    "e2e_ms": {
+      "count": 100,
+      "mean": 186503.84820855688,
+      "p50_type1": 183096.57349763438,
+      "p95_type1": 240144.761366304
+    },
+    "submit_lag_ms": {
+      "count": 100,
+      "mean": 10.005506440065801,
+      "p50_type1": 3.8186549209058285,
+      "p95_type1": 14.662994537502527
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 100,
+      "mean": 179236.43186062574,
+      "p50_type1": 180109.09306583926,
+      "p95_type1": 230617.0035363175
+    },
+    "service_ttft_ms": {
+      "count": 100,
+      "mean": 3311.091493163258,
+      "p50_type1": 3101.6850383020937,
+      "p95_type1": 5862.670707050711
+    },
+    "decode_ms": {
+      "count": 100,
+      "mean": 3751.9879555422813,
+      "p50_type1": 4301.231435034424,
+      "p95_type1": 7029.361089225858
+    },
+    "completion_notification_ms": {
+      "count": 100,
+      "mean": 194.33139278553426,
+      "p50_type1": 14.428656082600355,
+      "p95_type1": 746.8799869529903
+    },
+    "router_queue_ms": {
+      "count": 100,
+      "mean": 166281.6829093732,
+      "p50_type1": 176878.53840505704,
+      "p95_type1": 188848.02949102595
+    }
+  },
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 6,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023/model3b_repaired/physical_allocations/89e71f811f594429836c7ec3ca13c99a.jsonl",
+        "released": true,
+        "sha256": "df42b4140c9b81defd6399387cbd94192ce4bb405c19331ba5565a60a287ec4e"
+      }
+    ],
+    "contract": "physical_gpu_resource_summary_v1",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "eligible_physical_measurement": true,
+    "legacy_fields_not_accepted": [
+      "infra_gpu_seconds_total",
+      "instance_lifecycle_log"
+    ],
+    "measurement_complete": true,
+    "n_correct": null,
+    "n_interrupted": 0,
+    "n_native_contract_complete": 100,
+    "n_plan": 100,
+    "n_terminal": 100,
+    "open_lease_ids": [],
+    "physical_gpu_seconds_observed": 1315.835328411311,
+    "physical_gpu_seconds_per_correct_request": null,
+    "physical_gpu_seconds_total": 1315.835328411311,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023/model3b_repaired/physical/request_terminals.jsonl",
+    "request_terminals_sha256": "8878ece22d0a7f104329b0c441339acd2fb51ae7d890420727c32c9d9192833b",
+    "result_file": {
+      "exists": true,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023/model3b_repaired/model_qualification.json",
+      "sha256": "86db2e4b0d9d217d29ef85e35cbc1d8fac213687ba0d0665fa0c0e34b1281052"
+    },
+    "summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d754_20261023/model3b_repaired/physical/summary.json",
+    "summary_sha256": "359a3c913f2bea23089d1cbf47d5742376cdf091606626624cb04596eb5f46f0"
+  },
+  "independent_numerical_correctness": null,
+  "compiler_error_lines": [
+    "(VllmBackend pid=741679) (EngineCore_DP0 pid=744453) ERROR 10-23 11:07:05 [core.py:727] FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/.744453.140076294231872.tmp' -> '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/cqlwygdsvgkyxrcvcpppcm7cvluz7rr7t55nuktuse6qmraddwg'",
+    "(VllmBackend pid=741679) (EngineCore_DP0 pid=744453) ERROR 10-23 11:07:05 [core.py:727] FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/.744453.140076294231872.tmp' -> '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/cqlwygdsvgkyxrcvcpppcm7cvluz7rr7t55nuktuse6qmraddwg'",
+    "(VllmBackend pid=741679) (EngineCore_DP0 pid=744453) FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/.744453.140076294231872.tmp' -> '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/cqlwygdsvgkyxrcvcpppcm7cvluz7rr7t55nuktuse6qmraddwg'",
+    "(VllmBackend pid=741679) (EngineCore_DP0 pid=744453) FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/.744453.140076294231872.tmp' -> '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_0/fxgraph/wy/fwyen7ou3nxbyst3b4vwqdtdnrblxhrmxcnkb2xph6roh3o3ttq2/cqlwygdsvgkyxrcvcpppcm7cvluz7rr7t55nuktuse6qmraddwg'",
+    "(VllmBackend pid=742158) (EngineCore_DP0 pid=744451) FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_3/aotautograd/a7octtoogkjdrc23drq2rrtwa5qohmd7kn7fut5ipetp7zpxyffo/.744451.136799023781696.tmp'",
+    "(VllmBackend pid=742158) (EngineCore_DP0 pid=744451) FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_3/aotautograd/a7octtoogkjdrc23drq2rrtwa5qohmd7kn7fut5ipetp7zpxyffo/.744451.136799023781696.tmp'",
+    "(VllmBackend pid=742158) (EngineCore_DP0 pid=744451) ERROR 10-23 11:07:12 [core.py:727] FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_3/aotautograd/a7octtoogkjdrc23drq2rrtwa5qohmd7kn7fut5ipetp7zpxyffo/.744451.136799023781696.tmp'",
+    "(VllmBackend pid=742158) (EngineCore_DP0 pid=744451) ERROR 10-23 11:07:12 [core.py:727] FileNotFoundError: [Errno 2] No such file or directory: '/home/qhq/.cache/vllm/torch_compile_cache/770f1086c5/rank_0_0/backbone/artifact_shape_None_subgraph_3/aotautograd/a7octtoogkjdrc23drq2rrtwa5qohmd7kn7fut5ipetp7zpxyffo/.744451.136799023781696.tmp'"
+  ],
+  "resource_observations": {
+    "samples": 382,
+    "service_peak_bytes": 52631592960,
+    "host_available_min_bytes": 59849023488,
+    "filesystem_free_min_bytes": 161161117696,
+    "memory_event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "swap_max_bytes": 0,
+    "warning_samples": 0,
+    "abort_samples": 0
+  },
+  "protected_files_unchanged": 145,
+  "strict_analyzer_preserved": true,
+  "strict_analyzer_failure": "expected four ready receipts; observed two",
+  "interpretation": "Two engines completed all requests. This does not qualify the intended four-instance scale-out path.",
+  "next_action": "Bounded cache writer-ownership adaptation; no policy or workload changes."
+}

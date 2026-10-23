@@ -1,0 +1,73 @@
+"""Bounded affected-path tests and D756 preparation, reusing D753 inputs."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+NEXT=RAW.parent/'d756_20261023'
+OLD=RAW.parent/'d754_20261023'
+sys.path[:0]=[str(MAIN),str(BASE/'scripts'),str(BASE/'tests')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as native
+import test_ieee_tc_serverless_measurement as tests
+
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'review_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+race=json.loads((RAW/'race_reproduction_v2.json').read_text())
+assert race['passed']
+prior=json.loads((RAW.parent/'d753_20261023/qualification.json').read_text())
+for path,expected in {**prior['protected'],**prior['preserved']}.items():
+    assert p.digest(Path(path))==expected,path
+suite=unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls) for cls in
+    (tests.DeviceCompileCacheTests,tests.MeasurementTests,tests.NativeReadyReceiptTests))
+with (RAW/'affected_tests.log').open('x') as stream:
+    result=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)
+assert result.wasSuccessful()
+cache_root=Path('/home/qhq/.cache/primelora-tc/serverlessllm-vllm0102/physical_device_v1')
+view=native.prepare_measurement_view(BASE/'vendor_new_baselines/ServerlessLLM_new_main_20260518',
+    NEXT/'source_repaired','repaired',MAIN,'request_identity_v1',device_compile_cache_root=cache_root)
+oldview=json.loads((OLD/'source_repaired/measurement_manifest.json').read_text())
+for name,expected in oldview['measured_sha256'].items():
+    if name!='sllm/backends/vllm_backend.py':
+        assert view['measured_sha256'][name]==expected,name
+http=json.loads((NEXT/'http_3b_100.json').read_text())
+assert http==json.loads((OLD/'http_3b_100.json').read_text())
+assert native.load_http_replay_plan(http).identity()==prior['views']['100']['plan']
+installer=Path('/home/qhq/relayserve_serverless_llm/scripts/relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py')
+spec=importlib.util.spec_from_file_location('d755_overlay',installer)
+loader=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(loader)
+_,overlay=loader.build_overlay(loader.DEFAULT_VLLM_ROOT,loader.DEFAULT_OFFICIAL_PATCH)
+assert overlay['members']==json.loads((OLD/'overlay_preflight.json').read_text())['members']
+save(NEXT/'overlay_preflight.json',overlay)
+for path in NEXT.glob('*.sh'):
+    subprocess.run(['bash','-n',str(path)],check=True)
+paths=[BASE/'scripts/prepare_ieee_tc_serverless_stack.py',BASE/'scripts/ieee_tc_serverless_measurement.py',
+    BASE/'tests/test_ieee_tc_serverless_measurement.py',MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+    MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    Path(http['trace']),Path(http['pool_index']),installer,Path(__file__),RAW/'race_reproduction_v2.json',
+    NEXT/'source_repaired/measurement_manifest.json',NEXT/'overlay_preflight.json',NEXT/'http_3b_100.json']
+paths.extend([*NEXT.glob('*.py'),*NEXT.glob('*.sh')])
+save(RAW/'qualification.json',dict(passed=True,affected_tests=result.testsRun,
+    reused_native_tests=114,reused_3b_input_tests=89,reuse_boundary='unchanged native policy/input paths; changed cache ownership re-tested',
+    views=prior['views'],protected=prior['protected'],preserved=prior['preserved'],
+    native_configuration=prior['native_configuration'],source_view=view,
+    refs={str(path):p.digest(path) for path in paths},no_gpu_run=True,
+    native_3b_remote_path_qualified=False,resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,affected_tests=result.testsRun,prepared=str(NEXT),no_gpu_run=True)))

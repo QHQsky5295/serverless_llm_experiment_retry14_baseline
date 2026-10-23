@@ -1,0 +1,10 @@
+{
+  "status": "diagnostic_reporting_error",
+  "script": "reproduce_cache_race.py",
+  "error": "AttributeError: function object has no attribute __file__",
+  "location": "report construction after shared and isolated case assertions",
+  "cause": "import dotted module alias resolved to package attribute with the same name",
+  "resolution": "importlib.import_module in reproduce_cache_race_v2.py; separate identity and output",
+  "performance_run": false,
+  "original_script_preserved": true
+}

@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "actual_native_save_source": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/torch/_inductor/standalone_compile.py",
+  "native_source_sha256": "871fe698e9b80ed6f04c951e50c42de5766976335a711dc590ac8df7fc41ea58",
+  "torch_version": "2.8.0+cu128",
+  "torch_git_version": "a1cb3cc05d46d198467bebbb6e8fba50a325d4e7",
+  "cases": {
+    "shared": [
+      {
+        "writer": "A",
+        "pid": 785714,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/shared/same",
+        "status": "FileNotFoundError",
+        "error": "[Errno 2] No such file or directory: '/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/shared/same/785714.tmp' -> '/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/shared/same/saved-A'"
+      },
+      {
+        "writer": "B",
+        "pid": 785715,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/shared/same",
+        "status": "saved"
+      }
+    ],
+    "isolated": [
+      {
+        "writer": "A",
+        "pid": 785851,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/isolated/A",
+        "status": "saved"
+      },
+      {
+        "writer": "B",
+        "pid": 785852,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d755_20261023/cache-writer-test-usru0htf/isolated/B",
+        "status": "saved"
+      }
+    ]
+  },
+  "mocked_boundary": "torch.compiler.load_cache_artifacts writes a tiny file, not a real graph",
+  "conclusion": "Shared unpacked-save directory removes an in-flight writer file; isolated roots avoid this failure.",
+  "no_gpu": true,
+  "no_real_compile": true,
+  "no_performance_claim": true,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7550000000000000000000000000002.scope",
+    "memory.current": 339185664,
+    "memory.peak": 1012838400,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=13\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=13",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 19297333\nuser_usec 16524148\nsystem_usec 2773185\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "source_sha256": "abfa3e83cc9b0893284f278bc21b8b02c3e0907212e560cd41947cb7149d2aa3"
+}

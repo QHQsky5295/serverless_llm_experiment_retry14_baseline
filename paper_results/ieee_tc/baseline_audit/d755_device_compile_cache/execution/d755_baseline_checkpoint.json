@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "head": "2bdf53cb25040b98e84e587f421bd772528c96b9",
+  "remote": "origin",
+  "remote_ref": "refs/heads/main",
+  "paths": [
+    "scripts/ieee_tc_serverless_measurement.py",
+    "scripts/prepare_ieee_tc_serverless_stack.py",
+    "tests/test_ieee_tc_serverless_measurement.py",
+    "docs/ieee_tc/D755_DEVICE_COMPILE_CACHE_20261023.md"
+  ]
+}

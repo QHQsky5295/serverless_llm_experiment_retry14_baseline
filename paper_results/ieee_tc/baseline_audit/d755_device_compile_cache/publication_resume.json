@@ -1,0 +1,11 @@
+{
+  "reason": "Two explicitly selected small logs are globally ignored; original manifest unchanged.",
+  "forced_add_paths": [
+    "paper_results/ieee_tc/baseline_audit/d755_device_compile_cache/execution/d755_affected_tests.log",
+    "paper_results/ieee_tc/baseline_audit/d755_device_compile_cache/execution/d754_analysis1.log"
+  ],
+  "force_push": false,
+  "baseline_already_verified": "2bdf53cb25040b98e84e587f421bd772528c96b9",
+  "original_manifest_sha256": "40089bf79da2bc1125257b393c102a9522780896e6b8ba07d885bb89287da847",
+  "source_sha256": "e69e529d5f113b0153855bf2b651908829ab16c86f7169de46f534e0ee248291"
+}

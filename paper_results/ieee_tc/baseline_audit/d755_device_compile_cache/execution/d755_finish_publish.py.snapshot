@@ -1,0 +1,51 @@
+"""Resume only MAIN staging: two intended small logs matched global *.log ignore."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+NEXT=RAW.parent/'d756_20261023'
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d755_device_compile_cache'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2)
+def call(repo,*args):
+    return subprocess.check_output(list(args),cwd=repo,text=True,stderr=subprocess.STDOUT).strip()
+
+own=p.scope_identity(p.cg_path().name)
+save(NEXT/'publication_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+base=json.loads((RAW/'baseline_checkpoint.json').read_text())
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==base['head']
+manifest=json.loads((OUT/'manifest.json').read_text())
+for name,sha in manifest['files'].items(): assert p.digest(MAIN/name)==sha,name
+paths=list(manifest['files'])+['docs/ieee_tc/EXECUTION_STATUS.md',str((OUT/'manifest.json').relative_to(MAIN))]
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines()) <= set(paths)
+logs=[name for name in paths if name.endswith('.log')]
+assert len(logs)==2 and all((MAIN/name).stat().st_size<20000 for name in logs)
+call(MAIN,'git','add','-f','--',*logs)
+snapshot=OUT/'execution/d755_finish_publish.py.snapshot'
+with snapshot.open('xb') as stream: stream.write(Path(__file__).read_bytes())
+receipt=OUT/'publication_resume.json'
+save(receipt,dict(reason='Two explicitly selected small logs are globally ignored; original manifest unchanged.',
+    forced_add_paths=logs,force_push=False,baseline_already_verified=base['head'],
+    original_manifest_sha256=p.digest(OUT/'manifest.json'),source_sha256=p.digest(Path(__file__))))
+paths += [str(snapshot.relative_to(MAIN)),str(receipt.relative_to(MAIN))]
+call(MAIN,'git','add','--',str(snapshot.relative_to(MAIN)),str(receipt.relative_to(MAIN)))
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(paths)
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(MAIN,'git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: preserve 3B startup failure and qualify cache ownership adaptation (D754-D755)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d755-cache-ownership-20261023'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+save(NEXT/'backup_receipt.json',dict(passed=True,head=head,baseline_head=base['head'],remote_ref=ref,
+    v2_synchronized=False,files=paths,resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,baseline_head=base['head'],remote_ref=ref)))

@@ -1,0 +1,94 @@
+"""Explicit-path two-repository checkpoint; no force, secrets or user dirt."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+OLD=RAW.parent/'d754_20261023'
+NEXT=RAW.parent/'d756_20261023'
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d755_device_compile_cache'
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+def call(repo,args):
+    return subprocess.check_output(args,cwd=repo,text=True,stderr=subprocess.STDOUT).strip()
+
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+
+def commit(repo,files,message,remote,ref):
+    paths=[str(path.relative_to(repo)) for path in files]
+    assert len(paths)==len(set(paths)) and not call(repo,['git','diff','--cached','--name-only'])
+    assert 'configs/generated/lora_manifest_1000.json' not in paths
+    for path in files:
+        assert not secret.search(path.read_text()),path
+    call(repo,['git','add','--',*paths])
+    assert set(call(repo,['git','diff','--cached','--name-only']).splitlines())==set(paths)
+    call(repo,['git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof','diff','--cached','--check','--',*paths])
+    call(repo,['git','commit','-m',message])
+    head=call(repo,['git','rev-parse','HEAD'])
+    call(repo,['git','-c','http.version=HTTP/1.1','push',remote,'HEAD:'+ref])
+    assert call(repo,['git','-c','http.version=HTTP/1.1','ls-remote',remote,ref]).split()[0]==head
+    return dict(head=head,remote=remote,remote_ref=ref,paths=paths)
+
+identity=p.scope_identity(p.cg_path().name)
+save(NEXT/'backup_identity.json',identity)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not call(MAIN,['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=json.loads((RAW/'qualification.json').read_text())
+assert q['passed'] and q['affected_tests']==17
+for path,expected in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(path))==expected,path
+for name in ('qualification','contract','review'):
+    closed=json.loads((RAW/(name+'_closure.json')).read_text())
+    assert closed['passed'] and not Path(closed['identity']['path']).exists()
+basefiles=[BASE/'scripts/ieee_tc_serverless_measurement.py',BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+           BASE/'tests/test_ieee_tc_serverless_measurement.py',BASE/'docs/ieee_tc/D755_DEVICE_COMPILE_CACHE_20261023.md']
+base=commit(BASE,basefiles,'tc: isolate native TP1 compilation cache writers (D755)','origin','refs/heads/main')
+save(RAW/'baseline_checkpoint.json',dict(passed=True,**base))
+OUT.mkdir(parents=True,exist_ok=False)
+execution=OUT/'execution'
+execution.mkdir()
+files=[MAIN/'docs/ieee_tc/D754_3B_SERVERLESSLLM_COMPILE_FAILURE_20261023.md',
+       MAIN/'docs/ieee_tc/D755_SERVERLESSLLM_DEVICE_COMPILE_CACHE_20261023.md',
+       MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+       MAIN/'paper_results/ieee_tc/baseline_audit/d754_3b_compile_failure/failure.json',
+       MAIN/'paper_results/ieee_tc/baseline_audit/d754_3b_compile_failure/manifest.json']
+sources=[*RAW.glob('*.py'),*RAW.glob('*.json'),RAW/'affected_tests.log',
+         *NEXT.glob('*.py'),*NEXT.glob('*.sh'),NEXT/'http_3b_100.json',NEXT/'overlay_preflight.json',
+         NEXT/'source_repaired/measurement_manifest.json',
+         OLD/'seal_failure.py',OLD/'result_receipt.json',OLD/'result_closure.json',
+         OLD/'analysis_receipt.json',OLD/'analysis_closure.json',OLD/'local_cleanup.json',
+         OLD/'start_receipt.json',OLD/'start_closure.json',OLD/'analysis1.log',
+         OLD/'overlay3b_repaired/restore_receipt.json']
+for source in sources:
+    if source.suffix=='.py':
+        ast.parse(source.read_text(),filename=str(source))
+    elif source.suffix=='.sh':
+        subprocess.run(['bash','-n',str(source)],check=True)
+    prefix='d755_' if source.is_relative_to(RAW) else 'd756_' if source.is_relative_to(NEXT) else 'd754_'
+    target=execution/(prefix+source.name+('.snapshot' if source.suffix in ('.py','.sh') else ''))
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+    files.append(target)
+save(OUT/'manifest.json',dict(baseline_checkpoint=base,raw_root=str(RAW),next_root=str(NEXT),
+    metric_protocol_sha256=p.digest(MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    plan_sha256=p.check_plan(),sources={str(source):p.digest(source) for source in sources},
+    files={str(path.relative_to(MAIN)):p.digest(path) for path in files if path.name!='EXECUTION_STATUS.md'}))
+files.append(OUT/'manifest.json')
+record=commit(MAIN,files,'tc: preserve 3B startup failure and qualify cache ownership adaptation (D754-D755)',
+              'faaslora_origin','refs/heads/backup/d755-cache-ownership-20261023')
+save(NEXT/'backup_receipt.json',dict(passed=True,**record,baseline_head=base['head'],v2_synchronized=False,
+    resources=p.cgroup_snapshot(Path(identity['path']))))
+print(json.dumps(dict(passed=True,head=record['head'],baseline_head=base['head'],remote_ref=record['remote_ref'])))

@@ -1,6 +1,50 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D755：编译目录竞态已在CPU复现，准备受影响路径D756
+
+PROGRESS。安装版torch2.8真实save方法＋微型假载荷：共享写目录A失败/B成功，
+隔离目录A/B均成功。首次只在来源输出import解析时报错，原脚本与错误保留；
+第二版仅修报告，峰值1012838400B、events/swap0，精确关闭。不是性能重跑。
+显式opt-in将vLLM公开缓存根按主机/分配GPU稳定隔离，保留原生hash与跨轮复用；
+17项受影响配置/source/ready测试通过，原策略/输入资格复用。BASE三个相关
+脚本/测试及必要说明待备份；不改用户replay/relayserve，不修改PrimeLoRA。
+
+D754失败已封存failure.json/manifest，382采样峰值52631592960B，host最低
+59849023488B，high/max/OOM/swap0；不能把100响应写成四实例资格成功。
+D756准备相同前100请求，只改编译目录所有权，新目录首次为空并照实计启动。
+下一正常检查点备份后即时资源检查、实际四实例验证，再推进3B基线矩阵；
+不继续基线参数搜索，全部既定后续范围保留。共享k3s不动，goal active。
+
+## 2026-10-23 D754结束：100响应，但两实例编译缓存冲突，资格未通过
+
+PROGRESS。原3B100请求自然结束，N_plan/arrived/terminal/response均100、失败0；
+实际只有2个served/ready实例，另2个EngineCore在相同torch_compile_cache目录
+写临时文件时报FileNotFoundError。严格分析器原四实例检查正确拒绝，未放宽。
+物理U=1315.835328411311 GPU-s，n_correct=null；本轮仅适配失败证据，不进入
+主比较。service和launcher实际释放、原生loader恢复、远端本轮3服务停止，
+collection1成功、analysis1失败回执和analysis空域关闭均已保留；当前无GPU作业。
+
+新证据：安装版PyTorch2.8 CompiledArtifact.save(unpacked)先rmtree目标目录再
+写入；vLLM0.10.2四个独立TP1实例共享同hash/rank_0_0目录，与本轮双写失败吻合。
+下一封存D754，做有界源代码级竞态验证，并仅隔离物理worker编译缓存所有权。
+不清除共享缓存、不切eager、不更改RR/scaler/加载/批量参数；适配后回3B矩阵，
+不重启已完成7B或HydraServe基础资格。原k3s保持不动，其余完整计划及goal active。
+
 ## 2026-10-23 D753：3B基线复用完成，接续ServerlessLLM受影响路径
+
+11:03 CST D754实际启动：23条显式路径已备份8b4ff845ed93dd43d1b29561da7983e77add5f2d，
+remote backup/d753-3b-baselines-20261023相等，V2未同步/no force；BASE保持
+e16af33aaf41f02a62ecdce59f6f3227813244c3。publication与starter空域按身份
+关闭，峰值31076352/149528576B、events/swap0。D754现为同一tmux
+tc-d754-serverlessllm-3b100，service e9ea8154351440c5badee7abf2349e77，
+InvocationID417c0d9f67ad40d6871d6b47403fe8f2/inode30814997；launcher
+primelora-tc-aux-d7540000000000000000000000000004.scope保持运行。远端
+3B clock1fb4dc5f3a154b9cb672cfe36c3ce14a、7B clock81b946922dfb4393a709f2fbddfbc991；
+monitor InvocationIDe816eb2ee4f4475a875ef3e8d423fc82。本轮启动前实测
+1000Mb/s/full，不把协商值冒称传输吞吐。sample60主机可用110631792640B、
+服务1532174336B、磁盘162418003968B、events/swap0。第一请求已按原到达
+发出；尚无完整结果，不作达标/性能结论。后续只观察这一实例，不重复启动；
+真实结束后用本轮close_launch/restore_overlay/stop_remote/run_analysis收尾。
 
 PROGRESS。完整核对PLAN/V1/V2及基线有界适配规则；D752 W0已封存，不再
 重复调优。D74原始replay/HTTP/部署SHA与汇总相等，1000计划/997响应/3失败，

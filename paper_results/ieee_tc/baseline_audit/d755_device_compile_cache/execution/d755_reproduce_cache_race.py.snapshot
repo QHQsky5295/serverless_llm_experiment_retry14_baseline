@@ -1,0 +1,95 @@
+"""Actual installed CompiledArtifact.save; tiny mocked cache payload, no model.
+
+Two processes order the previously observed overlapping writes deterministically.
+The torch deletion/save method itself is not mocked. The control uses disjoint
+writer directories. This is a source-level failure test, not a performance run.
+"""
+import json
+import multiprocessing as mp
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+from types import SimpleNamespace as NS
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def writer(role, path, first_writing, second_done, queue):
+    import torch
+    from torch._inductor.standalone_compile import CompiledArtifact
+    if role == 'B' and not first_writing.wait(20):
+        raise TimeoutError('writer A did not reach the controlled save')
+    def fake_load(_):
+        root = Path(os.environ['TORCHINDUCTOR_CACHE_DIR'])
+        root.mkdir(parents=True, exist_ok=True)
+        temporary = root/(str(os.getpid())+'.tmp')
+        temporary.write_bytes(b'tiny-test-payload')
+        if role == 'A':
+            first_writing.set()
+            if not second_done.wait(20):
+                raise TimeoutError('writer B did not finish')
+        temporary.replace(root/('saved-'+role))
+        return NS(inductor_artifacts=[])
+    torch.compiler.load_cache_artifacts = fake_load
+    artifact = CompiledArtifact(lambda: None, (b'test', NS(aot_autograd_artifacts=['test-key'])))
+    result = dict(writer=role, pid=os.getpid(), path=str(path))
+    try:
+        artifact.save(path=str(path), format='unpacked')
+        result.update(status='saved')
+    except FileNotFoundError as error:
+        result.update(status='FileNotFoundError', error=str(error))
+    finally:
+        if role == 'B':
+            second_done.set()
+    queue.put(result)
+
+def main():
+    own = p.scope_identity(p.cg_path().name)
+    with (RAW/'qualification_identity.json').open('x') as stream:
+        json.dump(own, stream, indent=2)
+    group = Path(own['path'])
+    assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+    assert (group/'memory.swap.max').read_text().strip() == '0'
+    assert os.sched_getaffinity(0) == {2,3,26,27}
+    assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+    import torch
+    import torch._inductor.standalone_compile as native
+    assert torch.__version__ == '2.8.0+cu128'
+    context = mp.get_context('spawn')
+    results = {}
+    with tempfile.TemporaryDirectory(prefix='cache-writer-test-',dir=RAW) as temporary:
+        for mode in ('shared', 'isolated'):
+            first_writing, second_done, queue = context.Event(), context.Event(), context.Queue()
+            jobs = [context.Process(target=writer,args=(role,
+                Path(temporary)/mode/(role if mode=='isolated' else 'same'),
+                first_writing, second_done, queue)) for role in ('A','B')]
+            for job in jobs:
+                job.start()
+            for job in jobs:
+                job.join(30)
+                if job.is_alive():
+                    job.terminate()
+                    job.join()
+                    raise TimeoutError('owned reproduction process exceeded bounded test')
+                assert job.exitcode == 0, job.exitcode
+            rows = sorted([queue.get(timeout=2),queue.get(timeout=2)],key=lambda row:row['writer'])
+            assert [row['status'] for row in rows] == (
+                ['FileNotFoundError','saved'] if mode=='shared' else ['saved','saved'])
+            results[mode] = rows
+    report = dict(passed=True, actual_native_save_source=str(native.__file__),
+        native_source_sha256=p.digest(Path(native.__file__)), torch_version=torch.__version__,
+        torch_git_version=torch.version.git_version, cases=results,
+        mocked_boundary='torch.compiler.load_cache_artifacts writes a tiny file, not a real graph',
+        conclusion='Shared unpacked-save directory removes an in-flight writer file; isolated roots avoid this failure.',
+        no_gpu=True, no_real_compile=True, no_performance_claim=True,
+        resources=p.cgroup_snapshot(group), source_sha256=p.digest(Path(__file__)))
+    with (RAW/'race_reproduction.json').open('x') as stream:
+        json.dump(report,stream,indent=2)
+    print(json.dumps(report))
+
+if __name__ == '__main__':
+    main()
