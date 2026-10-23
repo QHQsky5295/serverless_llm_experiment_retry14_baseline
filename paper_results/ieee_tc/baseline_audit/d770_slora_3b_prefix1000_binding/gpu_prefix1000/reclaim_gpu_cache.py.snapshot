@@ -1,0 +1,17 @@
+"""Reuse D769 exact-ownership/content cleanup for D770's closed duplicate cache."""
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/reclaim_gpu_cache.py')
+source=original.read_text()
+changes={
+    'd769_20261023':'d770_20261023',
+    '/tmp/tc-d769-3bs/':'/tmp/tc-d770-3bs/',
+    'audit_coverage500.json':'audit_prefix1000.json',
+    "audit['counts']['N_terminal'] == 500":"audit['counts']['N_terminal'] == 1000",
+    'http_3b_500.json':'http_3b_1000.json',
+    'offered_unique_adapters=500':'offered_unique_adapters=60',
+}
+for before,after in changes.items():
+    assert before in source,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

@@ -1,0 +1,67 @@
+"""Reuse D529's bounded post-release wrapper with D771's existing full-W0 analyzer.
+
+Preparation is not execution or qualification. Run only after exact local
+closure and owned remote stop; no model/serving/input changes are made here.
+"""
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--outcome', choices=('success', 'complete_with_failures'), required=True)
+args = parser.parse_args()
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+with (RAW/'analysis_identity.json').open('x') as stream:
+    json.dump(identity, stream, indent=2)
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+local = json.loads((RAW/'local_cleanup.json').read_text())
+assert local['passed'] and local['actual_recursive_procs_empty']
+assert local['service_path_gone'] and local['auxiliary_path_gone']
+assert not Path(local['service_identity']['path']).exists()
+assert not Path(local['auxiliary_identity']['path']).exists()
+stop = (RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive') == stop.count('MainPID=0') == 3
+analyzer = ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py'
+ANALYSIS_PYTHON='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+commands = [
+    ('collection1.log', [ANALYSIS_PYTHON, str(RAW/'preserve_evidence.py')]),
+    ('analysis1.log', [ANALYSIS_PYTHON, str(analyzer),
+                      '--root', str(RAW), '--baseline', str(BASE), '--main', str(ROOT),
+                      '--scheduler-contract', 'slora_resident_rr_v1', '--model-key', '3b',
+                      '--population', 'full4000', '--outcome', args.outcome,
+                      '--slo-freeze', str(ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),
+                      '--output', str(RAW/'audit_full4000.json')]),
+]
+results = []
+try:
+    for name, command in commands:
+        with (RAW/name).open('x') as log:
+            result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
+        results.append(dict(command=command, log=name, returncode=result.returncode))
+        result.check_returncode()
+finally:
+    record = dict(passed=len(results) == len(commands) and all(r['returncode'] == 0 for r in results),
+        identity=identity, commands=results, outcome=args.outcome,
+        source_sha256={str(path): p.digest(path) for path in
+                       (Path(__file__), RAW/'preserve_evidence.py', analyzer)},
+        resources={key: (group/key).read_text() for key in
+                   ('memory.peak', 'memory.events', 'memory.swap.current')})
+    with (RAW/'analysis_receipt.json').open('x') as stream:
+        json.dump(record, stream, indent=2)
+print(json.dumps(record), flush=True)

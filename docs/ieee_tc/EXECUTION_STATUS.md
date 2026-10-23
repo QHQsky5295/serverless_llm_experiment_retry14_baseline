@@ -1,5 +1,58 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D770：原1000前缀已完成、审计封存并回收重复缓存（PROGRESS）
+
+21:04 CST实际终态：1000计划/到达/提交/终态/响应、0失败；1000条原生重新
+核验，60实际IDs，122510实际输出tokens全部等于target。时间分解/TPOT/native
+重算误差0，实际GPU租约完整关闭。audit SHA
+80a38501b7593ca868f59a9c1de8fc980530cc3efd0de2c8a899f76cf9bdae1c。
+物理U3454.3704791492783 GPU-s；独立数值正确性未知，n_correct=null。
+联合SLO0/1000、TTFT60.6%、TPOT0%；平均/P95 TTFT58025.270356/276892.198995ms，
+TPOT115.135928/215.667740ms。后500条平均TTFT1374.555873ms、TPOT71.462402ms；
+仅描述性分段，不是去启动开销的主结果或独立重复。BMM路径限制与低SLO保留。
+
+launch pass/returncode0、所有GPU已释放，close_launch成功；远端自有三服务
+停止(session78363完成)。分析session5330、封存已完成，analysis/result空域
+关闭。服务峰值62135709696B、分析260734976B、封存51380224B，无high/max/OOM/swap。
+缓存回收session22154完成：4000重复文件与保留原件逐字节一致，释放19497037824B，
+剩余163659907072B；gpu_cache空域已关闭。唯一资产/原始测量/失败证据/145旧产物
+及用户修改保留。没有活动GPU，不重启D770、不将兼容性检查称完整W0比较。
+
+下一D771使用同一native配置/D768source_view与57项已合格CPU证据，绑定原完整
+4000 W0（132IDs/458224目标tokens）；不调性能参数、不造数据、不重复无变化资格。
+绑定已成功、qualification空域关闭（峰值137338880B、事件/swap0），尚未GPU
+执行，之后备份再启动。共享k3s不动；所有3B基线、
+PrimeLoRA必要优化/跨场景、最终同版本7B主表/Full、A1–A5、S1–S13、CE/Pareto、
+审稿文档和最终图表仍待推进，目标active。
+
+## 2026-10-23 D770：原1000请求兼容检查已启动（PROGRESS）
+
+20:45 CST：D769完整500-ID结果/回收及D770绑定50明确路径已提交
+MAIN 49c40b6cfb84df8f46131dabc5fbcf3963247cae，推送并核对
+faaslora_origin/backup/d769-coverage-d770-prefix1000-20261023。
+BASE 84bb7892b4aade6bed0b898fb99d1f6074073a10与origin/main一致；
+用户修改未stage、未force，V2仍未同步。publication session95588结束，
+gpu_publication空域关闭；starter91202结束，start空域关闭，无活动exec/wait。
+
+D770已实际运行于tmux tc-d770-slora-3b-prefix1000，RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d770_20261023。
+服务scope primelora-tc-svc-9d14058f0c9f44a2abea4926c19fafb4.scope，
+InvocationID 2f7f30503af544d893da0f0f34643682；回放aux
+primelora-tc-aux-d7700000000000000000000000000004.scope。
+当前完整静态池准备阶段，无最终结果。原1000条/60IDs/122510目标tokens，
+57CPU资格与D769覆盖证据复用；没有新性能策略或额外资格重复。
+实际远端1000Mb/s/full，已发布gzip不按请求打包；服务72/80GiB/swap2GiB，
+独立回放3/4GiB/swap0，CPU分离及watchdog生效，初期事件/swap0。
+
+继续同一tmux/进程，不因观察超时重启；运行中不清理、扫描、备份、安装或
+调整远端。终态后close_launch→stop_remote→受限run_analysis(真实outcome)
+→封存解释/备份→安全回收重复缓存。已知失败response无metrics时旧分析器
+可能报错，需保留真实失败，不伪称通过。D769已封存，禁止覆盖或重跑。
+
+下一完整S-LoRA 3B W0/W1/W2与其余3B基线；之后集中PrimeLoRA必要优化。
+全部最终同版本7B Full、A1–A5、S1–S13、CE/Pareto、审稿文档/图表仍需
+完成；目标active，不声称3B或整体最优已实现。共享k3s保持不动。
+
 ## 2026-10-23 D769已安全收尾；D770原1000前缀绑定完成（PROGRESS）
 
 D769重复缓存回收session74097成功结束，4000文件逐字节匹配保留原件，

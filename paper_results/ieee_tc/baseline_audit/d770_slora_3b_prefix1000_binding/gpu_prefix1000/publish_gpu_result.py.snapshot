@@ -1,0 +1,63 @@
+"""Seal D770's completed prefix qualification and unchanged D771 full W0 binding."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+exec(compile(data.decode().split('own=p.scope_identity')[0], str(original), 'exec'))
+NEXT = RAW.parent/'d771_20261023'
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d770_slora_3b_prefix1000_binding/gpu_prefix1000'
+NEXT_OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d771_slora_3b_full_w0_binding'
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'gpu_publication_identity.json', own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+assert read(RAW/'result_receipt.json')['passed'] and read(RAW/'gpu_cache_reclamation.json')['passed']
+for folder,names in ((RAW,('analysis','result','gpu_cache')),(NEXT,('qualification',))):
+    for name in names:
+        row = read(folder/(name+'_closure.json'))
+        assert row['path_gone'] and not Path(row['identity']['path']).exists()
+q = read(NEXT/'qualification.json')
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name)) == digest,name
+for name,row in read(OUT/'manifest.json')['files'].items():
+    assert p.digest(OUT/name) == row['sha256'],name
+assert call(MAIN,'git','rev-parse','HEAD') == '49c40b6cfb84df8f46131dabc5fbcf3963247cae'
+basehead = call(BASE,'git','rev-parse','HEAD')
+assert basehead == '84bb7892b4aade6bed0b898fb99d1f6074073a10'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0] == basehead
+extra = copy_sources(OUT,[RAW/name for name in ('result_receipt.json','result_closure.json',
+    'reclaim_gpu_cache.py','gpu_cache_reclamation.json','cache_cleanup_before.json',
+    'cache_cleanup_after.json','gpu_cache_closure.json','publish_gpu_result.py')])
+save(OUT/'checkpoint_manifest.json',dict(passed=True,files=extra,baseline_head=basehead,
+    protected_unchanged=len(q['protected']),plan_sha256=p.check_plan()))
+NEXT_OUT.mkdir(parents=True,exist_ok=False)
+nextmap = copy_sources(NEXT_OUT,sorted(NEXT.glob('*.py'))+sorted(NEXT.glob('*.sh'))+
+    [NEXT/name for name in ('qualification.json','qualification_closure.json',
+                            'native_3b.json','http_3b_4000.json')])
+save(NEXT_OUT/'manifest.json',dict(passed=True,files=nextmap,qualification_reused_from='D770',
+    requests=4000,actual_unique_adapters=132,target_tokens=458224,gpu_run_started=False,
+    no_new_trace_or_weights=True,independent_numerical_correctness_proven=False))
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D770_SLORA_3B_PREFIX1000_20261023.md',
+    MAIN/'docs/ieee_tc/D771_SLORA_3B_FULL_W0_20261023.md',
+    *sorted(OUT.iterdir()),*sorted(NEXT_OUT.iterdir())]
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert len(relative)==len(set(relative)) and not call(MAIN,'git','diff','--cached','--name-only')
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:
+    assert path.is_file() and path.stat().st_size<2*1024*1024,path
+    assert not secret.search(path.read_text()),path
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof,cr-at-eol','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: seal S-LoRA 3B prefix1000 and bind full W0 (D770-D771)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d770-prefix1000-d771-fullw0-20261023'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+save(RAW/'gpu_publication_receipt.json',dict(passed=True,head=head,remote_ref=ref,
+    baseline_head=basehead,force_push=False,v2_synchronized=False,paths=relative,
+    protected_unchanged=len(q['protected']),resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,remote_ref=ref,baseline_head=basehead,paths=len(relative))))

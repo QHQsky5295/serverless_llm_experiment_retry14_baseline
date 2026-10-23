@@ -1,0 +1,25 @@
+"""Reuse exclusive D769 curation for the existing 1000-request prefix."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/seal_result.py')
+source=original.read_text()
+changes={
+    "d769_slora_3b_coverage_binding/gpu_coverage500":"d770_slora_3b_prefix1000_binding/gpu_prefix1000",
+    'audit_coverage500.json':'audit_prefix1000.json',
+    'N_plan=500,N_arrived=500,N_submitted=500,N_terminal=500,N_response=500':'N_plan=1000,N_arrived=1000,N_submitted=1000,N_terminal=1000,N_response=1000',
+    "audit['native_revalidated_requests']==500":"audit['native_revalidated_requests']==1000",
+    '==68925':'==122510',
+    "audit['offered_unique_adapters']==500":"audit['offered_unique_adapters']==60",
+    "physical['n_native_contract_complete']==500":"physical['n_native_contract_complete']==1000",
+    'len(observations)==500':'len(observations)==1000',
+    'ieee_tc_adapter_coverage_qualification_v1':'ieee_tc_prefix_compatibility_qualification_v1',
+    'native_revalidated_requests=500,actual_native_output_tokens=68925':'native_revalidated_requests=1000,actual_native_output_tokens=122510',
+    'offered_unique_adapters=500,prepared_pool_count=500':'offered_unique_adapters=60,prepared_pool_count=500',
+    'All 500 existing adapter IDs complete':'All 1000 existing prefix requests complete',
+    "RAW.parent/'d768_20261023'":"RAW.parent/'d769_20261023'",
+}
+for before,after in changes.items():
+    assert before in source,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
