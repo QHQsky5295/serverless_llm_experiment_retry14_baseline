@@ -1,5 +1,99 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D772：完整W1完成、核验封存与重复缓存回收（PROGRESS）
+
+上一轮为VERIFIED WAIT；本轮继续观察同一InvocationID/tmux至23:09实际终态，
+没有重启、调参或删去启动等待。launch pass/rc0/service_path_removed/
+native_gpu_context_release_confirmed均通过，GPU进程已空，回放空域已关闭。
+4000计划/到达/提交/终态/响应、0失败；4000原生重新核验、132实际IDs、
+458224实际输出tokens逐请求等于target，所有计时重算误差0。独立数值证明
+仍未知，n_correct=null；不把计量/绑定有效当成独立数值正确性通过。
+
+W1平均/P95 TTFT100705.665561/318727.890513ms；平均/P95 TPOT
+152.584421/216.286646ms；平均/P95 E2E118432.015178/336551.940309ms。
+TTFT1196/4000=29.9%，TPOT与联合均0/4000。物理U7885.918405623175GPU-s，
+每原生绑定有效请求1.9714796014057938。较低U伴随较短W1窗口及未达标SLO，
+不是G1资源优势。dispatch后首token阶段平均81856.983558ms，包含后端等待，
+不是纯GPU计算时间；首/末500条平均TTFT252426.633931/822.905874ms。
+本机3B GQA/BMM而非7B packed BGMV/paging的机制范围保留，不泛化为原系统
+普遍缺陷，不因低SLO开启性能搜索。详细全程表与解释已写入D772文档。
+
+审计SHA5a6e287b03e8d2c95d02fff337beed6fb7d67645e46f2a2ccac3bc7810e11fe5，
+curated路径paper_results/ieee_tc/baseline_audit/d772_slora_3b_w1_binding/gpu_full4000/。
+远端stop会话3632、分析62011、封存14485、回收55616均已正常结束；
+analysis/result空域已关闭，gpu_cache也已按精确身份关闭。
+服务峰值61535535104B，high/max/OOM/swap0；主机最小可用68757606400B、
+磁盘最小143847993344B。远端线上1160474851B，物化19482573296B，500工件，
+动态请求打包0；冻结输入/原生配置与既有D771/D765绑定保持一致。
+
+仅在核验原始保留副本SHA、大小、inode、引用、挂载/软链接、可读同UID
+打开文件及元数据证据后回收/tmp/tc-d772-3bs/remote_artifacts/objects。
+4000重复文件、19482573296B payload，实际释放19497299968B，磁盘余量
+163218460672B；唯一工件、原始测量、145受保护投稿文件和用户修改保持不变。
+不可读同UID PID2628/3360275/3361057范围已披露，不宣称全系统FD完全可读。
+
+下一按明确路径将结果/解释/回收证据推送唯一备份分支（仍不force、不声称
+V2已同步），随后准备D773同配置S-LoRA 3B W2。尚未创建/运行D773，不重复
+W0/W1或既有57CPU资格。其后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B、
+完整基线比较与PrimeLoRA必要优化；同版本Full、A1–A5、S1–S13、CE/Pareto、
+两轮审稿文档和最终图表全部保留，整体目标active。
+
+## 2026-10-23 22:45 CST D772：同一W1运行持续推进（VERIFIED WAIT）
+
+本轮重新完整读取PLAN、指标之外的执行补充规则和monitor-experiment技能，
+仅观察已启动的同一D772，不重跑、不改配置、不增加资格或基线参数搜索。
+tmux tc-d772-slora-3b-full-w1仍live，pane PID2388987；服务仍active，
+InvocationID仍74a5de70282d4a0f9778a6be093a2b9f，无新exec/wait会话。
+
+22:45:02最新watchdog sample802：1323条创建、962条响应、962条在线协议
+有效、0错误；服务57.254200GiB，主机可用65.026222GiB，磁盘134.005539GiB，
+high/max/OOM/swap均0，无warning/abort。此前sample669为1050/642、
+sample730为1165/784，响应持续增加，尚未返回数408→381→361。此为运行中
+描述，不是完整性能结果，不因启动积压重启、不删除启动延迟或推断独立数值
+正确性。下一继续观察同一handle至真实终态；资源护栏和远端配置保持不变。
+
+本轮没有源码改动、备份/压缩/扫描/清理或另一重型任务。当前运行期间磁盘
+高于100GiB中止线但低于150GiB新任务启动线；终态后按既有证据封存与重复
+缓存回收流程处理，不能现在清理或启动下一任务。既有共享k3s不动；HydraServe
+已验证隔离部署继续复用，不重开基础适配。
+
+真实终态后仍依22:31条目close_launch→stop_remote→受限full4000_w1分析、
+封存/解释、安全重复缓存回收与备份。接着同配置S-LoRA 3B W2、dLoRA限定
+3B W1/W2、Loquetier/HydraServe 3B必要资格及完整比较，再据证据优化PrimeLoRA。
+其余同版本Full主表/消融、A1–A5、S1–S13、CE/Pareto、审稿文档与最终图表
+全部保留。等待是正在测量的既定完整回放，不是阻塞，整体目标active。
+
+## 2026-10-23 22:31 CST D772：S-LoRA 3B W1已实际启动（PROGRESS）
+
+21明确路径已提交MAIN b20d5b9969b4e7580ea58f32cb4b3d705d2f2ee9，推送并核对
+faaslora_origin/backup/d772-slora-3b-w1-binding-20261023；BASE
+84bb7892b4aade6bed0b898fb99d1f6074073a10与origin/main一致。用户修改未stage，
+没有force，V2仍未同步。backup72261和starter53826均已完成，对应空域关闭；
+backup峰值33005568B、starter148631552B，事件/swap0。无活动exec/wait会话。
+
+实际运行于tmux tc-d772-slora-3b-full-w1，pane PID2388987；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023。
+服务primelora-tc-svc-4c29625476504956ab5acb12fac3aef1.scope为active，
+InvocationID74a5de70282d4a0f9778a6be093a2b9f、inode31147194；回放aux
+primelora-tc-aux-d7720000000000000000000000000004.scope。
+最新sample105为完整静态池准备阶段：37创建、0响应、0错误；服务12.826580GiB、
+主机可用104.169891GiB、磁盘141.604477GiB，high/max/OOM0，无告警/中止。
+这只是启动过程，不是性能结果；保持同一handle，不因暂时无响应而重启。
+交接前再次核对同一InvocationID和tmux/pane live：sample173、134创建、
+0响应、0错误，无warning/abort；仍在准备，不作终态或失败判断。
+
+真实链路再次为1000Mb/s/full。远端仅自有两artifact服务和本轮monitor；
+3B clock remote-process-monotonic:d77f79dd234047e0a3a86f7ec574b8d1，
+7B clock remote-process-monotonic:ecff006eeb3d463d92240bdf2ce8102b。
+通知前已发布gzip不在请求中打包；测量中不维护远端、不扫描/清理/构建/
+备份或运行另一模型。原生配置与D771相同，W1视图已与D765核对。
+
+终态后仍按close_launch→stop_remote→受限run_analysis --outcome真实结果
+（population full4000_w1）→封存/解释/备份→安全回收重复缓存。不要将响应
+数量足够当作实际GPU释放，也不要重跑已封存W0。下一同配置W2及既定其余
+3B基线，然后PrimeLoRA必要优化；同版本7B Full、A1–A5、S1–S13、CE/Pareto、
+审稿文档/最终图表全部保留，目标active。
+
 ## 2026-10-23 D772：S-LoRA 3B W1输入绑定完成（PROGRESS）
 
 上一轮为实质进展：D771完整W0终态、核验/解释/封存、缓存回收与备份。

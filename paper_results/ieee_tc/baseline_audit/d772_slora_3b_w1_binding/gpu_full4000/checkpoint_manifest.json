@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "files": {
+    "result_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/result_receipt.json",
+      "sha256": "a25b8fff7211386b4ba1402d1d1a4cd81f1432c86b7a1163911b02bbf7539841"
+    },
+    "result_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/result_closure.json",
+      "sha256": "d966a42a060311433f3ce2e6d2515a76f55f900eaba51b7b94a398f82523f962"
+    },
+    "reclaim_gpu_cache.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/reclaim_gpu_cache.py",
+      "sha256": "95baab0d0169344c43dd9cfcb02e82f37565a9d733b18016a3c964ee9e352e6f"
+    },
+    "gpu_cache_reclamation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/gpu_cache_reclamation.json",
+      "sha256": "c269287c43cc5eb28a4f324b2147b4d42cf3e3dcd38170078ef252af33d387d9"
+    },
+    "cache_cleanup_before.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/cache_cleanup_before.json",
+      "sha256": "80237111d930d93471ef43b03ec0c9695fa2b8d30b3a0b50f76de36294c1ae86"
+    },
+    "cache_cleanup_after.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/cache_cleanup_after.json",
+      "sha256": "3166b54f6776222313fa3e61f75d87588e813b804d4c9b721abf261e56cbbf15"
+    },
+    "gpu_cache_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/gpu_cache_closure.json",
+      "sha256": "42c93cf997ed880ed08a14e853325d84af1acd8ee86d5b0eb746f25a67e69dd4"
+    },
+    "publish_gpu_result.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/publish_gpu_result.py",
+      "sha256": "1173c3b685efe2b84cb146f4e807a5473264a18ad4d29b2700f186e06cd9c371"
+    }
+  },
+  "baseline_head": "84bb7892b4aade6bed0b898fb99d1f6074073a10",
+  "protected_unchanged": 145,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

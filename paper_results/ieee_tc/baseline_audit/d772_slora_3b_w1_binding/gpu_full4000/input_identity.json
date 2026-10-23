@@ -1,0 +1,26 @@
+{
+  "actual_unique_adapters": 132,
+  "baseline_execution_commit": "84bb7892b4aade6bed0b898fb99d1f6074073a10",
+  "config_sha256": "6a9b353554bd7c51312055ef7ea6ce7235c252c9461a0d83f9f8836f9682b85a",
+  "experiment_role": "native_3b_full_w1_development_observation",
+  "formal_run": false,
+  "http_sha256": "6059c5687575f8f8a497bfa68c81f866e266cc816f1b6bf51ce9fddc3a0d3a63",
+  "main_execution_commit": "b20d5b9969b4e7580ea58f32cb4b3d705d2f2ee9",
+  "native_pool_adapters": 500,
+  "pending_complete_contract_audit": true,
+  "performance_ranking_eligible": false,
+  "plan": {
+    "count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0,
+    "source_count": 4000,
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f"
+  },
+  "qualification_only": true,
+  "resident_reference_candidate": false,
+  "source_trace_and_pool_unmodified": true,
+  "source_view_manifest_sha256": "8db3efc8eb6edbc18cb240ee70d9394c05636b58a66eb8d60696bb9166cb958e",
+  "target_tokens": 458224
+}

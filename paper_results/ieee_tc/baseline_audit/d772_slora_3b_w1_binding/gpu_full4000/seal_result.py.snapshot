@@ -1,0 +1,30 @@
+"""Reuse exclusive D769 curation for the completed D772 full W1 observation."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/seal_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='c24e8ad8938e312ea7c4344caabb2f48d574362174cc7ca96bcf5820d9d725e6'
+source=data.decode()
+changes={
+    'd769_slora_3b_coverage_binding/gpu_coverage500':'d772_slora_3b_w1_binding/gpu_full4000',
+    'audit_coverage500.json':'audit_full4000.json',
+    'N_plan=500,N_arrived=500,N_submitted=500,N_terminal=500,N_response=500':'N_plan=4000,N_arrived=4000,N_submitted=4000,N_terminal=4000,N_response=4000',
+    "audit['native_revalidated_requests']==500":"audit['native_revalidated_requests']==4000",
+    '==68925':'==458224',
+    "audit['offered_unique_adapters']==500":"audit['offered_unique_adapters']==132",
+    "physical['n_native_contract_complete']==500":"physical['n_native_contract_complete']==4000",
+    'len(observations)==500':'len(observations)==4000',
+    'ieee_tc_adapter_coverage_qualification_v1':'ieee_tc_full_workload_observation_v1',
+    "system='S-LoRA',model='3B'":"system='S-LoRA',model='3B',workload='W1'",
+    'native_revalidated_requests=500,actual_native_output_tokens=68925':'native_revalidated_requests=4000,actual_native_output_tokens=458224',
+    'offered_unique_adapters=500,prepared_pool_count=500':'offered_unique_adapters=132,prepared_pool_count=500',
+    'All 500 existing adapter IDs complete':'All 4000 existing W1 requests complete',
+    'Input/transport/native binding qualification, not full-workload performance or independent numerical proof.':'Complete W1 development observation; native binding and measurement pass, joint SLO does not pass, independent numerical correctness remains unknown.',
+    'qualification_result.json':'full_workload_result.json',
+    "RAW.parent/'d768_20261023'":"RAW.parent/'d771_20261023'",
+}
+for before,after in changes.items():
+    assert before in source,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
