@@ -1,0 +1,126 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/launch3b.launch/replay.jsonl",
+  "replay_sha256": "9fbdfc57fae9c0f639475fe2ebe6fd294df81e5f6469c1b3d5dcca66c52b942c",
+  "counts": {
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 100,
+    "N_failed": 0,
+    "N_submitted": 100
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "actual_native_output_tokens": 17369,
+  "observed_instance_ids": [
+    "slora-0",
+    "slora-1",
+    "slora-2",
+    "slora-3"
+  ],
+  "offered_unique_adapters": 29,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 99,
+    "mean": 2.498450772023073,
+    "p50_type1": 0.0006295712664723396,
+    "p95_type1": 0.0026143579743802547
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "S-LoRA",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "model_profile": "llama32_3b_main_modelscope",
+  "model_key": "3b",
+  "native_revalidated_requests": 100,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 1151.1070299618877,
+  "physical_window_gpu_seconds": {
+    "arrival": 78.71951729990542,
+    "cleanup": 21.26224684668705,
+    "drain": 1051.1252658152953,
+    "pre_arrival": 0.0
+  },
+  "n_correct": null,
+  "remote_transfers": 500,
+  "remote_wire_bytes": 1160474851,
+  "verified_materialized_bytes": 19482573296,
+  "cache_hit_requests": null,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 4,
+  "remote_clock_ids": [
+    "remote-process-monotonic:9b655cdfbe0c453caf31fd633af63faa"
+  ],
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 61243949056,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 69438984192,
+  "disk_min_free_bytes": 144307048448,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "slora_resident_rr_v1",
+  "scheduler_qualification": {
+    "contract": "slora_resident_rr_v1",
+    "native_worker_receipts": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/worker_receipts/66f389fdfdf6419493a44022d904dca9.json",
+        "sha256": "3bb3ae58ea5f2d3f51e97b5c2898136c1757b41b2d1536318bea0e3a8b656478"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/worker_receipts/c6f1e22ca9ae4f09bfd2d24d341ba7a9.json",
+        "sha256": "934ff7e60c594f8cad7fabd93facbe462d7a5aae9ffe1f7a01dfd33d5615c56f"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/worker_receipts/4e50a189550945ee92e0decd35b36405.json",
+        "sha256": "88d43b2248d38e5a21263450e190a4caea92641e1904e8e452372fce0dd86a81"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/worker_receipts/51f6468ffd794b2188b3c91bd31be801.json",
+        "sha256": "42622a7d74c42c2a555e7ef7c36093b7fd7daf9712300dcf5459c4b827cf4a28"
+      }
+    ],
+    "conclusion": "Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified."
+  },
+  "limitations": [
+    "100-request development prefix, not a full W0 comparison or configuration optimum.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+    "No relative performance comparison with the 4000-request PrimeLoRA observation."
+  ],
+  "artifact_attribution": "deployment_preparation_reference_not_request_transfer",
+  "deployment_prepared_adapters": 500,
+  "deployment_remote_wire_bytes": 1160474851,
+  "request_remote_wire_bytes": 0,
+  "preparation_references": 100,
+  "served_adapter_ids": 29,
+  "common_slo": {
+    "offered": 100,
+    "binding_valid": 100,
+    "ttft_good": 0,
+    "tpot_eligible": 100,
+    "tpot_good": 0,
+    "joint_good": 0,
+    "ttft_attainment": 0.0,
+    "joint_attainment": 0.0,
+    "conditional_tpot_attainment": 0.0,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+    "freeze_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 11.511070299618877
+  }
+}

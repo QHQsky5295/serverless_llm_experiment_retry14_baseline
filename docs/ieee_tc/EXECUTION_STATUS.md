@@ -1,5 +1,67 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D769：复用合格配置，绑定500-adapter功能覆盖（PROGRESS）
+
+D768缓存回收已成功结束，session9914无需再轮询：4000个文件逐字节匹配
+保留原件，释放19497332736B，剩余163787735040B；gpu_cache空域已关闭，
+peak2916139008B、high/max/OOM/swap0。没有删除唯一工件或原始测量。
+D769仅复用D768通过的57项CPU检查和100请求真实GPU证据，不重复测试。
+prepare session3600成功结束，qualification空域已关闭。原生配置/source_view
+与D768完全相同；既有500-ID覆盖视图与ServerlessLLM D758一致：500条、
+500实际IDs、68925目标tokens，view SHA
+4a9f63b08a600c40af7f5acd8066fb518aa21ed48ee8d5c75d7b3e2e8a51088e。
+未生成新trace/权重，未调整baseline性能参数，尚无D769 GPU启动或结果。
+
+下一步先备份D768完整结果及D769绑定，然后启动既定500-ID覆盖；通过后
+继续1000兼容和完整W0/W1/W2。使用run-experiment既有隔离/tmux入口，
+不改其他项目k3s。全部后续3B基线、PrimeLoRA优化、A1–A5、S1–S13及
+最终文档图表继续保留，目标active。
+
+## 2026-10-23 D768：100请求完整通过，收尾封存与回收（PROGRESS）
+
+约20:11自然终态：100计划/到达/提交/终态/响应、0失败；原生重新核验100，
+实际输出17369、逐请求target相同，req_00028实际89输入/245输出。四worker
+绑定、原生计时、物理计量通过；三项重算误差0。物理U1151.1070299618877
+GPU-s，n_correct仍null，不作独立数值正确性或完整性能排名。
+联合SLO0/100、平均/P95 TTFT215423.530882/379164.422547ms、
+TPOT177.025816/229.308849ms如实保留；这是启动期前缀，不能与4000条主结果
+比较，也不把全部延迟归于网络。500准备池、29实际IDs区分。服务peak
+61243949056B、high/max/OOM/swap0，请求打包0，实际远端1000Mb/s/full。
+
+launch pass=true/returncode0，四GPU真实释放、自有远端三服务停止；
+stop session59412、analysis57674已结束，分析空域和result空域均已精确关闭。
+audit_prefix100.json SHA35b40d242d813f4eaff3d9101e472f12caf0f2d3d0ca299c8e0240a3de11a05d；
+结果保存paper_results/ieee_tc/baseline_audit/d768_slora_canonical_input/gpu_prefix100。
+reclaim_gpu_cache.py已复用D532逐字节/引用核查，只回收本轮关闭的重复下载；
+当时session9914尚在运行；现已结束并关闭空域，见上方D769记录。没有GPU实验。
+
+回收完成→保存回执→提交/远端备份→绑定既定500-ID功能覆盖。尚无500覆盖/
+1000/完整W0/W1/W2资格，不省略；其余3Bbaseline、PrimeLoRA必要优化、最终
+同版本7B主表/Full、A1–A5、S1–S13和全部审稿文档/图表保留，目标active。
+
+## 2026-10-23 D768：受影响输入路径的真实远程前100已启动（PROGRESS）
+
+20:02 CST：MAIN 3fd146d11af898d57e6001dfc57f4e413b2f5547已推送并核对
+faaslora_origin/backup/d768-slora-input-20261023；BASE
+84bb7892b4aade6bed0b898fb99d1f6074073a10已推送并核对origin/main。
+MAIN26明确路径、BASE6明确路径；用户修改未stage。V2仍未同步，不force。
+backup session62463与starter65417均结束，空域已按身份关闭；无活动exec/wait。
+
+同100请求新键已在tmux tc-d768-slora-3b-prefix100运行；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023。
+服务scope primelora-tc-svc-1c7dc3d12b8e4320a0aa0ec1714677f0.scope，
+InvocationID 254ca5e06a8f4e43bdd845de4c936501；原生服务72/80GiB、swap2GiB，
+独立回放3/4GiB、swap0，CPU分离，独立watchdog运行。此时处于完整静态池
+准备阶段，尚无完成结果；不得重新启动同键。远端当前1000Mb/s/full，复用
+D78/D80发布缓存；请求不打包。共享k3s未改，外部维护不与本轮重叠。
+
+运行结束后：close_launch.py核实释放→stop_remote.sh只停自有服务→受限
+run_analysis.py --outcome success（若失败按真实outcome保留，D767已知通用
+分析器对失败response无metrics会报错，不伪称通过）→保存实际结果/备份→
+在证据/引用核查后回收本轮重复下载缓存。D767失败和原始唯一工件不覆盖。
+继续S-LoRA 3B资格及完整三场景、其他3B基线、PrimeLoRA必要优化和全部
+A1–A5/S1–S13/论文证据交付；目标active，无新性能排名结论。
+
 ## 2026-10-23 D768：同token输入边界适配（PROGRESS）
 
 D767唯一失败有CPU同请求89/91输入差异证据，本轮只修复旧tokenizer再次切分。

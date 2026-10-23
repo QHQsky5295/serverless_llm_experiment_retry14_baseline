@@ -1,0 +1,74 @@
+"""Reuse established exclusive evidence curation for D768's input qualification."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d768_slora_canonical_input/gpu_prefix100'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+closed=read(RAW/'analysis_closure.json')
+assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert read(RAW/'local_cleanup.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+q=read(RAW/'qualification.json')
+for path,sha in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(path))==sha,path
+audit=read(RAW/'audit_prefix100.json')
+physical=read(RAW/'model3b/physical/physical_resource_summary.json')
+assert audit['measurement_complete'] and audit['workload_passed']
+assert audit['counts']==dict(N_plan=100,N_arrived=100,N_submitted=100,N_terminal=100,N_response=100,N_failed=0)
+assert audit['native_revalidated_requests']==100 and audit['actual_native_output_tokens']==17369
+assert audit['n_correct'] is None and audit['offered_unique_adapters']==29
+assert physical['measurement_complete'] and physical['open_lease_ids']==[]
+assert physical['n_native_contract_complete']==100
+assert read(RAW/'analysis_receipt.json')['passed']
+for ref in audit['raw_sources']:
+    assert p.digest(Path(ref['path']))==ref['sha256'],ref['path']
+observations=[]
+with (RAW/'launch3b.launch/replay.jsonl').open() as handle:
+    for line in handle:
+        row=json.loads(line)
+        if row['event']=='http_raw_response': observations.append(row)
+assert len(observations)==100 and all(row['status']==200 for row in observations)
+assert all(row['body']['metrics']['ieee_tc']['control_observation']['tc_slora_input_mode']=='canonical_token_ids_v1'
+           for row in observations)
+fixed=next(row['body']['metrics']['ieee_tc'] for row in observations if row['request_id']=='req_00028')
+assert len(fixed['native_prompt_token_ids'])==89 and fixed['native_output_tokens']==245
+result=dict(schema='ieee_tc_canonical_input_qualification_v1',system='S-LoRA',model='3B',
+    complete_attempt=True,workload_passed=True,formal_run=False,performance_ranking_eligible=False,
+    counts=audit['counts'],native_revalidated_requests=100,actual_native_output_tokens=17369,
+    offered_unique_adapters=29,prepared_pool_count=500,n_correct=None,
+    independent_numerical_correctness_proven=False,
+    physical_gpu_seconds_total=physical['physical_gpu_seconds_total'],
+    input_mode='canonical_token_ids_v1',previous_failed_request='req_00028',
+    repaired_request_native_input_tokens=89,repaired_request_native_output_tokens=245,
+    conclusion='All 100 common inputs and native outputs pass; old input discrepancy removed without changing native inference or scheduling.',
+    scope='Input/transport/native binding qualification, not full-workload performance or independent numerical proof.',
+    audit_path=str(RAW/'audit_prefix100.json'),audit_sha256=p.digest(RAW/'audit_prefix100.json'),
+    metric_protocol_sha256=p.digest(MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_protocol_sha256=p.digest(MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'))
+save(RAW/'qualification_result.json',result)
+OUT.mkdir(exist_ok=False)
+names=('qualification_result.json','audit_prefix100.json','input_identity.json','launch3b.json',
+    'local_cleanup.json','analysis_receipt.json','analysis_closure.json','analysis1.log',
+    'remote_start.log','remote_stop.log','evidence_copy_receipt.json','seal_result.py',
+    'start_receipt.json','start_closure.json','backup_receipt.json','backup_closure.json')
+sources=[RAW/name for name in names]
+sources.append(RAW/'model3b/physical/physical_resource_summary.json')
+sources+=sorted((RAW/'model3b/worker_receipts').glob('*.json'))
+mapping=copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(files=mapping,plan_sha256=p.check_plan(),
+    experiment_passed=True,evidence_sealed=True,baseline_head=call(BASE,'git','rev-parse','HEAD'),
+    protected_unchanged=145,raw_result_not_overwritten=True,performance_ranking_eligible=False))
+save(RAW/'result_receipt.json',dict(passed=True,evidence_sealed=True,experiment_passed=True,
+    output=str(OUT),manifest_sha256=p.digest(OUT/'manifest.json'),resources=p.cgroup_snapshot(group)))
+print(json.dumps(result))

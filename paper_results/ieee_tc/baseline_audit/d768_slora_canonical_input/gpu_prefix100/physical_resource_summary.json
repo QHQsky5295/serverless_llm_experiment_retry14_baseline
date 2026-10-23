@@ -1,0 +1,54 @@
+{
+  "allocation_journals": [
+    {
+      "events": 5,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical_allocations/16f0374838fd4cddbf7d4dfba3f41d28.jsonl",
+      "released": true,
+      "sha256": "dbd03b32c94d6d004e52ad0c9583066ed051530c1539a26a4469650a1a0c4dc0"
+    },
+    {
+      "events": 5,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical_allocations/1f4b9638d57b49328e0de84e14c20b53.jsonl",
+      "released": true,
+      "sha256": "2f60690cd4a2225830ec3eb5112344af0bc3aa3d78d7704e04292de5241656f7"
+    },
+    {
+      "events": 5,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical_allocations/2976b9784e9c4e518e2594fcdf7f864c.jsonl",
+      "released": true,
+      "sha256": "5510cd5117e0d916d8688c17bbc71ae90c13829897293b051bf88131e5df812a"
+    },
+    {
+      "events": 5,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical_allocations/9ea039f584a24bfea9ad1346cf258c9b.jsonl",
+      "released": true,
+      "sha256": "0ccf36b8917c5ee3fde1845a75a4408247be8977a763354aded22aec9fa898d1"
+    }
+  ],
+  "contract": "physical_gpu_resource_summary_v1",
+  "deployment_contract": "physical_gpu_deployment_v1",
+  "eligible_physical_measurement": true,
+  "legacy_fields_not_accepted": [
+    "infra_gpu_seconds_total",
+    "instance_lifecycle_log"
+  ],
+  "measurement_complete": true,
+  "n_correct": null,
+  "n_interrupted": 0,
+  "n_native_contract_complete": 100,
+  "n_plan": 100,
+  "n_terminal": 100,
+  "open_lease_ids": [],
+  "physical_gpu_seconds_observed": 1151.1070299618877,
+  "physical_gpu_seconds_per_correct_request": null,
+  "physical_gpu_seconds_total": 1151.1070299618877,
+  "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical/request_terminals.jsonl",
+  "request_terminals_sha256": "6df241f3e40ab968c5eed1fed81d2b850f30993c87a4310653e618826244e86f",
+  "result_file": {
+    "exists": true,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/model_qualification.json",
+    "sha256": "0f305f5d5b8f7cb8823a187d88d46056ab742bee69feba3904472df1921f8748"
+  },
+  "summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/model3b/physical/summary.json",
+  "summary_sha256": "7a3bc001a801fb07a6b02f7e2d9c7379bea7a0f689968f620f0593aac3cfb710"
+}
