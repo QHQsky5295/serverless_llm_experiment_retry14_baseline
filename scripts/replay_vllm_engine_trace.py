@@ -162,6 +162,8 @@ def validate_slora_service_config(cfg, http):
             or endpoint.username or endpoint.password or not http.get('remote_artifacts')
             or cfg.get('host_layout') not in ('native_v1', 'packed_views_v1')):
         raise ValueError('explicit S-LoRA full-pool/resident/sequential/loopback contract required')
+    if cfg.get('input_mode', 'native_text_v1') not in ('native_text_v1', 'canonical_token_ids_v1'):
+        raise ValueError('unknown explicit S-LoRA input mode')
     args = cfg.get('native_args', {})
     # Preserve the existing explicit native BMM path used for GQA models by
     # run_slora_fair_experiment.sh. Packed HOST views are an audited non-GQA,
@@ -199,6 +201,7 @@ def verify_slora_source_view(cfg):
             or manifest.get('worker_lifecycle') is not True
             or manifest.get('worker_lifecycle_scope') != 'TP1_owned_router_detokenizer'
             or manifest.get('host_layout') != cfg['host_layout']
+            or manifest.get('input_mode', 'native_text_v1') != cfg.get('input_mode', 'native_text_v1')
             or manifest.get('helper_path') != str(SCRIPT_DIR/'ieee_tc_serverless_measurement.py')
             or manifest.get('helper_sha256') != _sha(manifest['helper_path'])
             or manifest.get('source_adapter_sha256') != _sha(SCRIPT_DIR/'prepare_ieee_tc_serverless_stack.py')
@@ -1193,10 +1196,12 @@ class NativeSloraRequestHandler:
     The owning service supplies its already-verified preparation/ready records.
     """
     def __init__(self, *, session, endpoint, adapters, preparation, clock_id,
-                 instance_id, receipt, worker_process, model, deployment_notice_s):
+                 instance_id, receipt, worker_process, model, deployment_notice_s,
+                 input_mode='native_text_v1'):
         from urllib.parse import urlsplit
         url = urlsplit(endpoint)
-        if (url.scheme != 'http' or url.hostname != '127.0.0.1'
+        if (input_mode not in ('native_text_v1', 'canonical_token_ids_v1')
+                or url.scheme != 'http' or url.hostname != '127.0.0.1'
                 or not url.port or url.path != '/generate_stream'
                 or url.username or url.password or url.query or url.fragment
                 or not instance_id.startswith('slora-')
@@ -1214,6 +1219,7 @@ class NativeSloraRequestHandler:
         self.preparation, self.clock_id, self.instance_id = preparation, clock_id, instance_id
         self.receipt, self.worker_process = dict(receipt), dict(worker_process)
         self.model, self.notice = model, deployment_notice_s
+        self.input_mode = input_mode
 
     async def generate(self, body):
         from ieee_tc_serverless_measurement import SloraNativeRequestObservation
@@ -1253,6 +1259,11 @@ class NativeSloraRequestHandler:
             parameters=dict(do_sample=False, temperature=0., top_p=1., top_k=1,
                 presence_penalty=0., frequency_penalty=0., ignore_eos=True,
                 max_new_tokens=target, stop_sequences=[]))
+        if self.input_mode == 'canonical_token_ids_v1':
+            native_body['tc_input_contract'] = dict(mode=self.input_mode, token_ids=list(ids),
+                prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest(),
+                token_ids_sha256=hashlib.sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest())
+            control['tc_slora_input_mode'] = self.input_mode
         control['tc_native_http_submitted_s'] = time.perf_counter()
         async with self.session.post(self.endpoint, json=native_body, allow_redirects=False) as response:
             if response.status != 200 or response.content_type != 'text/event-stream':
@@ -1518,7 +1529,8 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                 adapters=worker_cfg['adapters'], preparation=slora_preparation,
                 clock_id=router.clock_id, instance_id=f'slora-{index}',
                 receipt=dict(ready, tc_worker_ready_s=receipt['at']), worker_process=native_process,
-                model=http['model'], deployment_notice_s=context['deployment_notice_s'])
+                model=http['model'], deployment_notice_s=context['deployment_notice_s'],
+                input_mode=cfg.get('input_mode', 'native_text_v1'))
             _exclusive_json(output/f'worker_{index}.ready.json',
                 dict(ready, port=cfg['worker_ports'][index], api_health_verified_s=time.perf_counter()))
         router.ready[index].set()

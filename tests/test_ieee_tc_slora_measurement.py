@@ -3,6 +3,7 @@ import ast
 import asyncio
 import collections
 import copy
+import hashlib
 from dataclasses import dataclass
 import importlib.util
 import json
@@ -478,6 +479,59 @@ class StripObservation(ast.NodeTransformer):
 
 
 class SloraSourceTests(unittest.TestCase):
+    def test_canonical_input_changes_only_native_input_binding(self):
+        mode = 'canonical_token_ids_v1'
+        sources = launch.slora_measurement_sources(NATIVE, input_mode=mode)
+        self.assertEqual(len(sources), 3)
+        native = launch.slora_measurement_sources(NATIVE)
+        self.assertEqual(sources['slora/server/router/model_infer/model_rpc.py'],
+                         native['slora/server/router/model_infer/model_rpc.py'])
+        class RestoreInput(ast.NodeTransformer):
+            def visit_AsyncFunctionDef(self, node):
+                if node.name == 'generate' and node.args.args[0].arg == 'self':
+                    self.assert_input(node)
+                    node.args.kwonlyargs = []
+                    node.args.kw_defaults = []
+                    node.body = ast.parse('prompt_ids = self.tokenizer.encode(prompt)').body + node.body[2:]
+                return self.generic_visit(node)
+
+            def assert_input(self, node):
+                assert [a.arg for a in node.args.kwonlyargs] == ['input_contract']
+                assert isinstance(node.body[0], ast.ImportFrom)
+                assert node.body[1].value.func.id == 'slora_canonical_prompt_ids'
+
+            def visit_Call(self, node):
+                if isinstance(node.func, ast.Attribute) and node.func.attr == 'generate':
+                    node.keywords = [k for k in node.keywords if k.arg != 'input_contract']
+                return self.generic_visit(node)
+        for path in ('slora/server/api_server.py', 'slora/server/httpserver/manager.py'):
+            before = native.get(path, (NATIVE/path).read_text())
+            restored = RestoreInput().visit(ast.parse(sources[path]))
+            self.assertEqual(ast.dump(ast.parse(before)), ast.dump(restored), path)
+            compile(sources[path], path, 'exec')
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)/'view'
+            manifest = launch.prepare_slora_measurement_view(NATIVE, out, MAIN, input_mode=mode)
+            self.assertEqual(manifest['input_mode'], mode)
+            self.assertFalse((out/'slora/server/httpserver/manager.py').is_symlink())
+            self.assertTrue((out/'slora/server/router/manager.py').is_symlink())
+
+    def test_canonical_input_requires_valid_exact_ids_and_hashes(self):
+        contract = dict(mode='canonical_token_ids_v1', token_ids=[1, 2],
+            prompt_sha256=hashlib.sha256(b'prompt').hexdigest(),
+            token_ids_sha256=measurement._native_ids_digest([1, 2]))
+        ids = measurement.slora_canonical_prompt_ids('prompt', contract, 100)
+        self.assertEqual(ids, [1, 2])
+        ids.append(3)
+        self.assertEqual(contract['token_ids'], [1, 2])
+        for key, value in [('mode', 'auto'), ('prompt_sha256', '0'*64),
+                ('token_ids_sha256', '0'*64), ('token_ids', []), ('token_ids', [True, 2]),
+                ('token_ids', [1, 100]), ('token_ids', [1, -1]), ('token_ids', [1, 2.0])]:
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                measurement.slora_canonical_prompt_ids('prompt', dict(contract, **{key: value}), 100)
+        with self.assertRaises(ValueError):
+            measurement.slora_canonical_prompt_ids('changed prompt', contract, 100)
+
     def test_only_observation_ast_changes(self):
         replacements = launch.slora_measurement_sources(NATIVE)
         self.assertEqual(len(replacements), 2)
@@ -599,6 +653,62 @@ class NativeBatchTests(unittest.TestCase):
 
 
 class NativeSSETests(unittest.IsolatedAsyncioTestCase):
+    async def test_canonical_api_manager_pass_exact_ids_without_retokenizing(self):
+        sources = launch.slora_measurement_sources(NATIVE, input_mode='canonical_token_ids_v1')
+        manager_node = next(n for n in ast.parse(sources['slora/server/httpserver/manager.py']).body
+                            if isinstance(n, ast.ClassDef) and n.name == 'HttpServerManager')
+        scope = dict(asyncio=asyncio, Union=Union)
+        exec(compile(ast.Module(body=[manager_node], type_ignores=[]), 'canonical_manager', 'exec'), scope)
+        manager = object.__new__(scope['HttpServerManager'])
+        class Tokenizer:
+            def __len__(self): return 1000
+            def encode(self, *args, **kwargs):
+                raise AssertionError('canonical input must not be re-tokenized')
+        manager.tokenizer = Tokenizer()
+        manager.total_token_num, manager.max_req_input_len, manager.max_req_total_len = 512, 32, 512
+        manager.req_id_to_out_inf = {}
+        sent = []
+        def send(value):
+            sent.append(value)
+            manager.req_id_to_out_inf[value[3]].put_nowait((
+                'x', dict(id=100, logprob=0., tc_slora_native_token={'native': True}), True, False))
+        manager.send_to_router = NS(send_pyobj=send)
+        api = next(n for n in ast.parse(sources['slora/server/api_server.py']).body
+                   if isinstance(n, ast.AsyncFunctionDef) and n.name == 'generate_stream')
+        api.decorator_list = []
+        scope.update(Request=object, Response=object, AsyncGenerator=AsyncGenerator,
+            isFirst=False, json=json, SamplingParams=sampling.SamplingParams,
+            httpserver_manager=manager, BackgroundTasks=lambda: NS(add_task=Mock()),
+            StreamingResponse=lambda stream, **kw: stream)
+        exec(compile(ast.Module(body=[api], type_ignores=[]), 'canonical_api', 'exec'), scope)
+        contract = dict(mode='canonical_token_ids_v1', token_ids=[1, 2],
+            prompt_sha256=hashlib.sha256(b'prompt').hexdigest(),
+            token_ids_sha256=measurement._native_ids_digest([1, 2]))
+        request = dict(req_id='r', lora_dir='/artifacts/a', inputs='prompt',
+            tc_input_contract=contract,
+            parameters=dict(do_sample=False, temperature=0, ignore_eos=True, max_new_tokens=1))
+        async def body(): return copy.deepcopy(request)
+        with patch.dict(sys.modules, {'slora.server.tc_measurement': measurement}):
+            stream = await scope['generate_stream'](NS(json=body))
+            rows = [json.loads(data.decode().removeprefix('data:')) async for data in stream]
+            self.assertEqual(sent[0][1], [1, 2])
+            self.assertEqual(sent[0][0], '/artifacts/a')
+            self.assertEqual(rows[0]['token']['id'], 100)
+            self.assertEqual(manager.req_id_to_out_inf, {})
+            for attr, value, message in [('max_req_input_len', 1, 'input prompt token len'),
+                    ('max_req_total_len', 2, 'req token total len'),
+                    ('total_token_num', 3, 'max_total_token_num')]:
+                old = getattr(manager, attr)
+                setattr(manager, attr, value)
+                with self.subTest(attr=attr), self.assertRaisesRegex(ValueError, message):
+                    stream = await scope['generate_stream'](NS(json=body))
+                    await stream.__anext__()
+                setattr(manager, attr, old)
+            self.assertEqual(len(sent), 1)
+            del request['tc_input_contract']
+            with self.assertRaises(KeyError):
+                await scope['generate_stream'](NS(json=body))
+
     async def test_actual_detokenizer_and_fifo_preserve_burst_event_identity(self):
         """Execute existing transport methods; only sockets/tokenizer are fakes."""
         class BatchTokenIdOut:

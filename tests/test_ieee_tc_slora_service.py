@@ -61,6 +61,23 @@ def native_configs():
 
 
 class NativeConfiguration(unittest.TestCase):
+    def test_input_mode_is_explicit_and_must_match_source_view(self):
+        cfg, http = native_configs()
+        self.assertEqual(service.validate_native_service_config(
+            dict(cfg, input_mode='canonical_token_ids_v1'), http), 18090)
+        with self.assertRaisesRegex(ValueError, 'input mode'):
+            service.validate_native_service_config(dict(cfg, input_mode='auto'), http)
+        with tempfile.TemporaryDirectory() as tmp:
+            view = Path(tmp)/'view'
+            shared.prepare_slora_measurement_view(ROOT/'repos/S-LoRA', view, MAIN,
+                host_layout='packed_views_v1', worker_lifecycle=True,
+                input_mode='canonical_token_ids_v1')
+            cfg.update(main_repo=str(MAIN), source_view=str(view),
+                source_view_manifest_sha256=service._sha(view/'measurement_manifest.json'))
+            with self.assertRaises(ValueError):
+                service.verify_slora_source_view(cfg)
+            service.verify_slora_source_view(dict(cfg, input_mode='canonical_token_ids_v1'))
+
     def test_explicit_native_bmm_reuses_gqa_path_without_packed_fallback(self):
         cfg, http = native_configs()
         cfg['host_layout'] = 'native_v1'
@@ -429,11 +446,13 @@ class NativeHTTPBridge(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);output=root/'output'
             cfg,http=native_configs()
-            cfg.update(gpu_ids=[0],worker_ports=[int(self.handler.endpoint.split(':')[2].split('/')[0])],
+            cfg.update(input_mode='canonical_token_ids_v1',
+                gpu_ids=[0],worker_ports=[int(self.handler.endpoint.split(':')[2].split('/')[0])],
                 router_port=router_port,nccl_ports=[nccl_port],source_view=str(root/'view'))
             http.update(main_repo=str(MAIN),model='base',url=f'http://127.0.0.1:{ingress_port}/v1/chat/completions')
             shared.prepare_slora_measurement_view(ROOT/'repos/S-LoRA',root/'view',MAIN,
-                host_layout='packed_views_v1',worker_lifecycle=True)
+                host_layout='packed_views_v1',worker_lifecycle=True,
+                input_mode='canonical_token_ids_v1')
             cfg['source_view_manifest_sha256']=service._sha(root/'view/measurement_manifest.json')
             config_path,http_path=root/'config.json',root/'http.json'
             service._exclusive_json(config_path,cfg);service._exclusive_json(http_path,http)
@@ -531,6 +550,7 @@ class NativeHTTPBridge(unittest.IsolatedAsyncioTestCase):
                     self.assertNotIn('allocate',order);self.assertFalse(offered.done())
                     release_preparation.set()
                     response=await asyncio.wait_for(offered,5.)
+                    self.assertEqual(self.calls[0]['tc_input_contract']['token_ids'], [1, 2])
                     with replay.open('a') as handle:
                         handle.write(json.dumps(dict(event='http_raw_response',request_id='r',body=response,status=200))+'\n')
                         handle.write(json.dumps(dict(event='http_replay_complete',N_failed=0,N_response=1))+'\n')
@@ -614,6 +634,7 @@ class NativeHTTPBridge(unittest.IsolatedAsyncioTestCase):
         native = result['metrics']['ieee_tc']
         sent = self.calls[0]
         self.assertEqual(sent['inputs'], 'canonical prompt')
+        self.assertNotIn('tc_input_contract', sent)
         self.assertEqual(sent['lora_dir'], '/owned/a')
         self.assertFalse(sent['parameters']['do_sample'])
         self.assertTrue(sent['parameters']['ignore_eos'])
@@ -630,6 +651,22 @@ class NativeHTTPBridge(unittest.IsolatedAsyncioTestCase):
             'submit_lag_ms', 'dispatch_wait_after_submit_ms', 'service_ttft_ms',
             'decode_ms', 'completion_notification_ms')))
         self.assertEqual(audit['tpot_ms'], native['native_tpot_ms'])
+
+    async def test_canonical_input_envelope_preserves_native_response_checks(self):
+        self.handler.input_mode = 'canonical_token_ids_v1'
+        *_, audit = await self.valid()
+        self.assertEqual(self.calls[0]['tc_input_contract'], dict(
+            mode='canonical_token_ids_v1', token_ids=[1, 2],
+            prompt_sha256=hashlib.sha256(b'canonical prompt').hexdigest(),
+            token_ids_sha256=digest([1, 2])))
+        self.assertFalse(audit['lora_numerical_correctness_qualified'])
+        def wrong_input(row):
+            first = row['tc_slora_native_token'].get('first_event')
+            if first:
+                first['native_prompt_token_ids'] = [1, 3]
+        self.corrupt = wrong_input
+        with self.assertRaises(ValueError):
+            await self.valid()
 
     async def test_single_token_has_no_tpot(self):
         *_, audit = await self.valid(1)

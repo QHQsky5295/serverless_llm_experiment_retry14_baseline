@@ -207,10 +207,13 @@ def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
 
 
 def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native_v1',
-                             worker_lifecycle: bool = False) -> dict[str, str]:
+                             worker_lifecycle: bool = False,
+                             input_mode: str = 'native_text_v1') -> dict[str, str]:
     """Opt-in native observations; preserve the audited S-LoRA compatibility tree."""
     if host_layout not in ('native_v1', 'packed_views_v1') or type(worker_lifecycle) is not bool:
         raise ValueError('unknown S-LoRA HOST representation')
+    if input_mode not in ('native_text_v1', 'canonical_token_ids_v1'):
+        raise ValueError('unknown explicit S-LoRA input mode')
     originals = dict(SLORA_OBSERVATION_SOURCES)
     if host_layout == 'packed_views_v1':
         originals.update(SLORA_HOST_LAYOUT_SOURCES)
@@ -237,6 +240,29 @@ def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native
         "            ret['tc_slora_native_token'] = metadata['tc_slora_native_token']\n"
         '            yield ("data:" + json.dumps(ret, ensure_ascii=False)')
     replacements = {rpc_path: rpc, api_path: api}
+    if input_mode == 'canonical_token_ids_v1':
+        # The common publisher already tokenizes once for every backend. Old
+        # tokenizers can split the same text differently; transport that exact
+        # input at the HTTP-to-router boundary, never alter native inference.
+        tree = ast.parse(replacements[api_path])
+        method = next(n for n in tree.body if isinstance(n, ast.AsyncFunctionDef)
+                      and n.name == 'generate_stream')
+        lines = replacements[api_path].splitlines(keepends=True)
+        body = ''.join(lines[method.lineno-1:method.end_lineno])
+        body = replace_once(body,
+            'httpserver_manager.generate(adapter_dir, prompt, sampling_params, request_id)',
+            'httpserver_manager.generate(adapter_dir, prompt, sampling_params, request_id,\n'
+            '        input_contract=request_dict["tc_input_contract"])')
+        replacements[api_path] = ''.join(lines[:method.lineno-1])+body+''.join(lines[method.end_lineno:])
+        manager_path = 'slora/server/httpserver/manager.py'
+        manager = (native_source/manager_path).read_text()
+        manager = replace_once(manager,
+            '    async def generate(self, adapter_dir, prompt, sampling_params, request_id):',
+            '    async def generate(self, adapter_dir, prompt, sampling_params, request_id, *, input_contract):')
+        manager = replace_once(manager, '        prompt_ids = self.tokenizer.encode(prompt)',
+            '        from slora.server.tc_measurement import slora_canonical_prompt_ids\n'
+            '        prompt_ids = slora_canonical_prompt_ids(prompt, input_contract, len(self.tokenizer))')
+        replacements[manager_path] = manager
     if host_layout == 'packed_views_v1':
         rpc = replace_once(rpc, '        self.tp_rank = rank_id\n',
             '        from slora.server.tc_measurement import slora_require_packed_host_mode\n'
@@ -289,15 +315,16 @@ def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native
 
 
 def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo: Path,
-                                   *, host_layout: str = 'native_v1', worker_lifecycle: bool = False) -> dict:
-    """Reuse the source adapter; optional third copy changes HOST layout only."""
+                                   *, host_layout: str = 'native_v1', worker_lifecycle: bool = False,
+                                   input_mode: str = 'native_text_v1') -> dict:
+    """Exclusive native view with explicit HOST/input/lifecycle adaptations."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous S-LoRA source view')
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
     replacements = slora_measurement_sources(native_source, host_layout=host_layout,
-                                             worker_lifecycle=worker_lifecycle)
+                                             worker_lifecycle=worker_lifecycle, input_mode=input_mode)
     support = ROOT/'scripts/ieee_tc_serverless_measurement.py'
     shared_package = (main_repo/'faaslora').resolve(strict=True)
     output.mkdir(mode=0o700)
@@ -327,6 +354,7 @@ def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo:
         timing_boundary='after_existing_sampled_token_id_cpu_transfer_before_logprob_and_text',
         added_cuda_synchronization=False, scheduling_policy_changed=False,
         loading_policy_changed=False, sampling_policy_changed=False,
+        input_mode=input_mode,
         host_layout=host_layout, host_representation_changed=host_layout != 'native_v1',
         worker_lifecycle=worker_lifecycle,
         worker_lifecycle_scope='TP1_owned_router_detokenizer' if worker_lifecycle else None,

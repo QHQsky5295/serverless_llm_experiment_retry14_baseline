@@ -1169,6 +1169,26 @@ def slora_token_event(request, adapter_path, token_id, produced_at):
     return event
 
 
+def slora_canonical_prompt_ids(prompt, contract, vocab_size):
+    """Explicit pretokenized input boundary; no old-tokenizer fallback.
+
+    The native router still consumes a plain ID list, with its original context
+    and scheduling constraints. The returned copy cannot alias caller state.
+    """
+    if (not isinstance(prompt, str) or not prompt or type(contract) is not dict
+            or set(contract) != {'mode', 'token_ids', 'prompt_sha256', 'token_ids_sha256'}
+            or contract['mode'] != 'canonical_token_ids_v1'
+            or type(vocab_size) is not int or vocab_size <= 0):
+        raise ValueError('explicit canonical S-LoRA input contract required')
+    ids = contract['token_ids']
+    if (type(ids) is not list or not ids
+            or any(type(token) is not int or not 0 <= token < vocab_size for token in ids)
+            or contract['prompt_sha256'] != hashlib.sha256(prompt.encode()).hexdigest()
+            or contract['token_ids_sha256'] != _native_ids_digest(ids)):
+        raise ValueError('canonical S-LoRA prompt/ID identity differs')
+    return list(ids)
+
+
 class SloraNativeRequestObservation:
     """Validate native SSE IDs/events without guessing missing timestamps.
 
