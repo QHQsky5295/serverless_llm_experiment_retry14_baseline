@@ -1,0 +1,124 @@
+INFO 10-23 09:10:52 [__init__.py:216] Automatically detected platform cuda.
+test_allocation_edge_bounds_duplicates_and_types (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_allocation_edge_bounds_duplicates_and_types) ... ok
+test_owner_table_requires_exact_bidirectional_edges (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_owner_table_requires_exact_bidirectional_edges) ... ok
+test_repeated_call_reads_current_sharing_and_does_not_reuse_owner_table (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_repeated_call_reads_current_sharing_and_does_not_reuse_owner_table) ... ok
+test_scoped_capacity_keeps_observation_only_semantics (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_scoped_capacity_keeps_observation_only_semantics) ... ok
+test_shared_storage_never_becomes_exclusive (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_shared_storage_never_becomes_exclusive) ... ok
+test_shared_three_way_and_singleton_capacity (tests.test_ieee_tc_dense_alias_validation.DenseAliasValidation.test_shared_three_way_and_singleton_capacity) ... ok
+test_full_measurement_projection_matches_fresh_scoped_schema (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_full_measurement_projection_matches_fresh_scoped_schema) ... ok
+test_global_capacity_or_reclaimable_names_fail_closed (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_global_capacity_or_reclaimable_names_fail_closed) ... ok
+test_invalid_scope_is_rejected_not_normalized (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_invalid_scope_is_rejected_not_normalized) ... ok
+test_malformed_identity_is_not_hidden_by_scope (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_malformed_identity_is_not_hidden_by_scope) ... ok
+test_projection_cannot_invent_footprints_from_identity_or_scope (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_projection_cannot_invent_footprints_from_identity_or_scope) ... ok
+test_scope_and_coverage_must_match_both_endpoints (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_scope_and_coverage_must_match_both_endpoints) ... ok
+test_scoped_view_cannot_be_published_as_full_inventory (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_scoped_view_cannot_be_published_as_full_inventory) ... ok
+test_target_class_and_all_identities_match_full_observation (tests.test_ieee_tc_request_footprints.RequestFootprintSchema.test_target_class_and_all_identities_match_full_observation) ... ok
+test_delayed_reply_does_not_replace_newer_state_or_mutate_legacy_hints (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_delayed_reply_does_not_replace_newer_state_or_mutate_legacy_hints) ... ok
+test_input_mutation_cannot_change_the_committed_state (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_input_mutation_cannot_change_the_committed_state) ... ok
+test_malformed_storage_totals_edges_or_wrong_native_state_reject (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_malformed_storage_totals_edges_or_wrong_native_state_reject) ... ok
+test_native_miss_is_not_a_remote_claim_and_cpu_source_survives (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_native_miss_is_not_a_remote_claim_and_cpu_source_survives) ... ok
+test_native_source_class_uses_gpu_slot_or_actual_host_storage (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_native_source_class_uses_gpu_slot_or_actual_host_storage) ... ok
+test_owner_change_and_same_epoch_different_content_require_reconciliation (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_owner_change_and_same_epoch_different_content_require_reconciliation) ... ok
+test_raw_slot_without_completed_copy_cannot_be_gpu_ready (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_raw_slot_without_completed_copy_cannot_be_gpu_ready) ... ok
+test_readiness_only_snapshot_cannot_invent_service_cost_class (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_readiness_only_snapshot_cannot_invent_service_cost_class) ... ok
+test_shared_host_storage_total_is_not_sum_of_adapter_footprints (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_shared_host_storage_total_is_not_sum_of_adapter_footprints) ... ok
+test_source_lookup_rejects_native_id_name_and_path_collisions (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_source_lookup_rejects_native_id_name_and_path_collisions) ... ok
+test_unowned_native_id_is_not_attached_to_an_arbitrary_adapter (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_unowned_native_id_is_not_attached_to_an_arbitrary_adapter) ... ok
+test_wrong_clock_future_copy_and_inconsistent_coverage_reject (tests.test_ieee_tc_service_routing.CommittedNativeSources.test_wrong_clock_future_copy_and_inconsistent_coverage_reject) ... ok
+test_compact_wire_rejects_identity_capacity_and_shape_corruption (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_compact_wire_rejects_identity_capacity_and_shape_corruption) ... ok
+test_dedicated_producer_freshly_validates_full_graph_each_time (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_dedicated_producer_freshly_validates_full_graph_each_time) ... ok
+test_delayed_reply_does_not_replace_newer_state_or_mutate_legacy_hints (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_delayed_reply_does_not_replace_newer_state_or_mutate_legacy_hints) ... ok
+test_input_mutation_cannot_change_the_committed_state (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_input_mutation_cannot_change_the_committed_state) ... ok
+test_malformed_storage_totals_edges_or_wrong_native_state_reject (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_malformed_storage_totals_edges_or_wrong_native_state_reject) ... ok
+test_measured_empty_cache_and_shared_known_sources_preserve_union (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_measured_empty_cache_and_shared_known_sources_preserve_union) ... ok
+test_native_miss_is_not_a_remote_claim_and_cpu_source_survives (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_native_miss_is_not_a_remote_claim_and_cpu_source_survives) ... ok
+test_native_source_class_uses_gpu_slot_or_actual_host_storage (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_native_source_class_uses_gpu_slot_or_actual_host_storage) ... ok
+test_owner_change_and_same_epoch_different_content_require_reconciliation (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_owner_change_and_same_epoch_different_content_require_reconciliation) ... ok
+test_raw_slot_without_completed_copy_cannot_be_gpu_ready (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_raw_slot_without_completed_copy_cannot_be_gpu_ready) ... ok
+test_readiness_only_snapshot_cannot_invent_service_cost_class (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_readiness_only_snapshot_cannot_invent_service_cost_class) ... ok
+test_same_source_AA_preserves_service_classes_and_routing_decisions (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_same_source_AA_preserves_service_classes_and_routing_decisions) ... ok
+test_shared_host_storage_total_is_not_sum_of_adapter_footprints (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_shared_host_storage_total_is_not_sum_of_adapter_footprints) ... ok
+test_source_lookup_rejects_native_id_name_and_path_collisions (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_source_lookup_rejects_native_id_name_and_path_collisions) ... ok
+test_unowned_native_id_is_not_attached_to_an_arbitrary_adapter (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_unowned_native_id_is_not_attached_to_an_arbitrary_adapter) ... ok
+test_wrong_clock_future_copy_and_inconsistent_coverage_reject (tests.test_ieee_tc_service_routing.ProjectedNativeSources.test_wrong_clock_future_copy_and_inconsistent_coverage_reject) ... ok
+test_cancel_observation_never_submits_plan_or_reserves_movement (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement) ... 2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_every_epoch_reads_fresh_protection_and_never_reuses_selection (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_every_epoch_reads_fresh_protection_and_never_reuses_selection) ...     remote artifact fetch b: 0.0 MB, 5.8 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 4.3 ms
+    remote artifact fetch a: 0.0 MB, 4.8 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.7 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 9.2 ms
+2026-10-23 09:10:55 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+test_failed_or_cancelled_planning_never_publishes (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_failed_or_cancelled_planning_never_publishes) ... 2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 9.0 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 6.2 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_full_and_projected_runner_plans_objectives_match_in_both_modes (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_full_and_projected_runner_plans_objectives_match_in_both_modes) ...     remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 4.3 ms
+    remote artifact fetch a: 0.0 MB, 5.1 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_global_union_alias_credit_and_protection_corruption_are_rejected (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected) ...     remote artifact fetch b: 0.0 MB, 4.2 ms
+    remote artifact fetch c: 0.0 MB, 6.6 ms
+    remote artifact fetch d: 0.0 MB, 6.5 ms
+    remote artifact fetch a: 0.0 MB, 12.6 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_initialized_planner_publishes_the_same_received_measurement (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_initialized_planner_publishes_the_same_received_measurement) ...     remote artifact fetch b: 0.0 MB, 4.7 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 7.1 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_initialized_planner_uses_complete_native_graph_not_compact_wire (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_initialized_planner_uses_complete_native_graph_not_compact_wire) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 6.0 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_real_planner_and_route_collector_share_one_measurement (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_real_planner_and_route_collector_share_one_measurement) ...     remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 5.9 ms
+2026-10-23 09:10:55 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:55 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_state_updated_during_planning_is_not_overwritten (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_state_updated_during_planning_is_not_overwritten) ...     remote artifact fetch b: 0.0 MB, 3.7 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 9.0 ms
+2026-10-23 09:10:56 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:56 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 3.8 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-10-23 09:10:56 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-23 09:10:56 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+
+----------------------------------------------------------------------
+Ran 51 tests in 0.816s
+
+OK
+    remote artifact fetch b: 0.0 MB, 3.1 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 6.3 ms

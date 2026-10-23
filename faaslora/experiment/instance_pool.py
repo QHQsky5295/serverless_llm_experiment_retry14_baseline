@@ -146,14 +146,17 @@ class NativeSourceSnapshot:
             raise ValueError('native GPU representation has no dtype')
         gpu_dtypes = {v['dtype'] for v in gpu_views}
         gpu_representation = 'native_gpu_dense_slot_v1:' + ','.join(sorted(gpu_dtypes))
-        result, owners = {}, {index: set() for index in range(len(allocations))}
+        # Allocation IDs were checked to be dense above. Keep singleton owners
+        # directly; allocate a set only when the current graph actually shares
+        # storage. This is local validation state, never a cached physical view.
+        result, owners = {}, [None] * len(allocations)
         for adapter in adapters:
             if not isinstance(adapter, dict):
                 raise ValueError('invalid native HOST adapter footprint')
             aid, ids = adapter.get('adapter_int_id'), adapter.get('allocation_ids')
             if (type(aid) is not int or aid not in covered or aid in result
                     or not isinstance(ids, list) or not ids
-                    or any(type(index) is not int or index not in owners for index in ids)
+                    or any(type(index) is not int or not 0 <= index < len(owners) for index in ids)
                     or len(set(ids)) != len(ids)):
                 raise ValueError('native HOST adapter allocation edges are inconsistent')
             capacity = sum(allocations[index]['allocated_bytes'] for index in ids)
@@ -165,7 +168,13 @@ class NativeSourceSnapshot:
                     or any(not isinstance(dtype, str) or not dtype for dtype in dtypes)):
                 raise ValueError('invalid native HOST footprint/representation')
             for index in ids:
-                owners[index].add(aid)
+                previous = owners[index]
+                if previous is None:
+                    owners[index] = aid
+                elif type(previous) is int:
+                    owners[index] = {previous, aid}
+                else:
+                    previous.add(aid)
             host_representation = 'native_cpu_dense_ab_v1:' + ','.join(sorted(set(dtypes)))
             pinning = {allocations[index]['pinned'] for index in ids}
             host_representation += ':' + ('pinned' if pinning == {True} else
@@ -176,11 +185,13 @@ class NativeSourceSnapshot:
         if set(result) != covered:
             raise ValueError('native HOST footprints do not cover the CPU cache')
         for index, allocation in enumerate(allocations):
-            if not owners[index] or allocation.get('adapter_ids') != sorted(owners[index]):
+            owner = owners[index]
+            if owner is None or allocation.get('adapter_ids') != (
+                    [owner] if type(owner) is int else sorted(owner)):
                 raise ValueError('native HOST shared allocation owners disagree')
         for adapter in adapters:
             exclusive = sum(allocations[index]['allocated_bytes'] for index in adapter['allocation_ids']
-                            if owners[index] == {adapter['adapter_int_id']})
+                            if owners[index] == adapter['adapter_int_id'])
             exclusive_key = ('exclusive_storage_bytes' if requested_adapter_ids is None
                              else 'within_observation_exclusive_bytes')
             if (type(adapter.get(exclusive_key)) is not int or adapter[exclusive_key] != exclusive

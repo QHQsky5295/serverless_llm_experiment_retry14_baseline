@@ -1,0 +1,679 @@
+{
+  "kind": "d751_dense_alias_validation_component_v1",
+  "passed": true,
+  "production_changes": false,
+  "new_gpu_replays": 0,
+  "new_weights_or_workloads": false,
+  "parent": "d75c3bff4a2c306b035199a1e49cf873375db32f",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+    "sha256": "434aab5951b4ec885c89535b942853cbe54e79bce5ed3932b89cf472238bdae5"
+  },
+  "retained_graphs": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-211d56f396f4413a85f2f6c9da82d086.scope",
+    "invocation_id": "b61419a806704105bad01d0f0dc6a120",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-211d56f396f4413a85f2f6c9da82d086.scope",
+    "inode": 30759931
+  },
+  "summary": [
+    {
+      "snapshot": 0,
+      "registered": 8,
+      "allocations": 2048,
+      "shared_allocations": 0,
+      "reference": 3.565497292826573,
+      "candidate": 2.802399080246687,
+      "reduction_fraction": 0.21402293983371237
+    },
+    {
+      "snapshot": 1,
+      "registered": 12,
+      "allocations": 3072,
+      "shared_allocations": 0,
+      "reference": 8.379643068959316,
+      "candidate": 4.325737959394853,
+      "reduction_fraction": 0.48378016536066204
+    },
+    {
+      "snapshot": 2,
+      "registered": 20,
+      "allocations": 5120,
+      "shared_allocations": 0,
+      "reference": 11.9863231976827,
+      "candidate": 7.051123088846604,
+      "reduction_fraction": 0.41173594499689536
+    },
+    {
+      "snapshot": 3,
+      "registered": 24,
+      "allocations": 6144,
+      "shared_allocations": 0,
+      "reference": 14.135449193418026,
+      "candidate": 8.651261342068514,
+      "reduction_fraction": 0.38797407682687207
+    }
+  ],
+  "rows": [
+    {
+      "snapshot": 0,
+      "variant": "reference",
+      "repeat": 0,
+      "samples_ms": [
+        3.9193248376250267,
+        3.724027890712023,
+        3.546822816133499,
+        3.453345037996769,
+        3.457385115325451
+      ],
+      "mean_ms": 3.6201811395585537
+    },
+    {
+      "snapshot": 0,
+      "variant": "candidate",
+      "repeat": 0,
+      "samples_ms": [
+        2.809423953294754,
+        2.8695371001958847,
+        2.7751917950809,
+        2.7730208821594715,
+        2.770670223981142
+      ],
+      "mean_ms": 2.7995687909424305
+    },
+    {
+      "snapshot": 0,
+      "variant": "candidate",
+      "repeat": 1,
+      "samples_ms": [
+        2.8869695961475372,
+        2.7732467278838158,
+        2.8176801279187202,
+        2.774273045361042,
+        2.789651043713093
+      ],
+      "mean_ms": 2.8083641082048416
+    },
+    {
+      "snapshot": 0,
+      "variant": "reference",
+      "repeat": 1,
+      "samples_ms": [
+        3.4641558304429054,
+        3.4944801591336727,
+        3.6850781179964542,
+        3.5538608208298683,
+        3.4442259930074215
+      ],
+      "mean_ms": 3.5283601842820644
+    },
+    {
+      "snapshot": 0,
+      "variant": "reference",
+      "repeat": 2,
+      "samples_ms": [
+        3.5152900964021683,
+        3.4525012597441673,
+        3.502235282212496,
+        3.5846149548888206,
+        3.685111179947853
+      ],
+      "mean_ms": 3.547950554639101
+    },
+    {
+      "snapshot": 0,
+      "variant": "candidate",
+      "repeat": 2,
+      "samples_ms": [
+        2.7976753190159798,
+        2.812065649777651,
+        2.8373817913234234,
+        2.7666669338941574,
+        2.782532013952732
+      ],
+      "mean_ms": 2.7992643415927887
+    },
+    {
+      "snapshot": 1,
+      "variant": "reference",
+      "repeat": 0,
+      "samples_ms": [
+        5.25631383061409,
+        5.1596700213849545,
+        5.393819883465767,
+        5.155038088560104,
+        5.543227773159742
+      ],
+      "mean_ms": 5.301613919436932
+    },
+    {
+      "snapshot": 1,
+      "variant": "candidate",
+      "repeat": 0,
+      "samples_ms": [
+        4.41002007573843,
+        4.262943752110004,
+        4.237109795212746,
+        4.1553303599357605,
+        4.149293061345816
+      ],
+      "mean_ms": 4.242939408868551
+    },
+    {
+      "snapshot": 1,
+      "variant": "candidate",
+      "repeat": 1,
+      "samples_ms": [
+        4.316280130296946,
+        4.119569901376963,
+        4.177497234195471,
+        4.364660009741783,
+        4.141576122492552
+      ],
+      "mean_ms": 4.223916679620743
+    },
+    {
+      "snapshot": 1,
+      "variant": "reference",
+      "repeat": 1,
+      "samples_ms": [
+        5.383170675486326,
+        5.432633217424154,
+        5.459607113152742,
+        5.45282568782568,
+        5.2948747761547565
+      ],
+      "mean_ms": 5.404622294008732
+    },
+    {
+      "snapshot": 1,
+      "variant": "reference",
+      "repeat": 2,
+      "samples_ms": [
+        5.159751977771521,
+        5.392645951360464,
+        50.263534765690565,
+        5.604535341262817,
+        5.74299693107605
+      ],
+      "mean_ms": 14.432692993432283
+    },
+    {
+      "snapshot": 1,
+      "variant": "candidate",
+      "repeat": 2,
+      "samples_ms": [
+        4.576412960886955,
+        4.646710120141506,
+        4.48000431060791,
+        4.386346787214279,
+        4.462314769625664
+      ],
+      "mean_ms": 4.510357789695263
+    },
+    {
+      "snapshot": 2,
+      "variant": "reference",
+      "repeat": 0,
+      "samples_ms": [
+        9.357783943414688,
+        9.403347969055176,
+        9.3002007342875,
+        10.07184199988842,
+        9.15680080652237
+      ],
+      "mean_ms": 9.45799509063363
+    },
+    {
+      "snapshot": 2,
+      "variant": "candidate",
+      "repeat": 0,
+      "samples_ms": [
+        7.299560122191906,
+        7.33704399317503,
+        6.94126496091485,
+        6.798060145229101,
+        6.857011932879686
+      ],
+      "mean_ms": 7.046588230878115
+    },
+    {
+      "snapshot": 2,
+      "variant": "candidate",
+      "repeat": 1,
+      "samples_ms": [
+        7.316804025322199,
+        6.8091112188994884,
+        6.7769549787044525,
+        7.1876212023198605,
+        7.190575823187828
+      ],
+      "mean_ms": 7.056213449686766
+    },
+    {
+      "snapshot": 2,
+      "variant": "reference",
+      "repeat": 1,
+      "samples_ms": [
+        9.005750063806772,
+        8.779242169111967,
+        8.52192984893918,
+        8.65518907085061,
+        8.663039654493332
+      ],
+      "mean_ms": 8.725030161440372
+    },
+    {
+      "snapshot": 2,
+      "variant": "reference",
+      "repeat": 2,
+      "samples_ms": [
+        54.290748201310635,
+        8.68056109175086,
+        8.563009090721607,
+        8.821309544146061,
+        8.5240937769413
+      ],
+      "mean_ms": 17.775944340974092
+    },
+    {
+      "snapshot": 2,
+      "variant": "candidate",
+      "repeat": 2,
+      "samples_ms": [
+        7.189842872321606,
+        7.272485177963972,
+        7.178854197263718,
+        6.816480774432421,
+        6.795174907892942
+      ],
+      "mean_ms": 7.050567585974932
+    },
+    {
+      "snapshot": 3,
+      "variant": "reference",
+      "repeat": 0,
+      "samples_ms": [
+        10.475584771484137,
+        10.651182848960161,
+        10.384153109043837,
+        11.297459714114666,
+        11.238300241529942
+      ],
+      "mean_ms": 10.809336137026548
+    },
+    {
+      "snapshot": 3,
+      "variant": "candidate",
+      "repeat": 0,
+      "samples_ms": [
+        8.327251300215721,
+        8.226738311350346,
+        8.578256238251925,
+        8.509206585586071,
+        8.45668138936162
+      ],
+      "mean_ms": 8.419626764953136
+    },
+    {
+      "snapshot": 3,
+      "variant": "candidate",
+      "repeat": 1,
+      "samples_ms": [
+        8.55520274490118,
+        8.112930227071047,
+        8.164314087480307,
+        8.215409703552723,
+        8.21783673018217
+      ],
+      "mean_ms": 8.253138698637486
+    },
+    {
+      "snapshot": 3,
+      "variant": "reference",
+      "repeat": 1,
+      "samples_ms": [
+        10.773312766104937,
+        58.65187011659145,
+        10.827113408595324,
+        10.66402206197381,
+        10.581576265394688
+      ],
+      "mean_ms": 20.299578923732042
+    },
+    {
+      "snapshot": 3,
+      "variant": "reference",
+      "repeat": 2,
+      "samples_ms": [
+        11.406518984586,
+        10.994447395205498,
+        10.46667667105794,
+        11.53030525892973,
+        12.089214287698269
+      ],
+      "mean_ms": 11.297432519495487
+    },
+    {
+      "snapshot": 3,
+      "variant": "candidate",
+      "repeat": 2,
+      "samples_ms": [
+        9.30181285366416,
+        8.965493645519018,
+        8.943976368755102,
+        9.508868679404259,
+        9.68494126573205
+      ],
+      "mean_ms": 9.281018562614918
+    }
+  ],
+  "checks": [
+    {
+      "snapshot": 0,
+      "mutation": "union",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST total is not the distinct storage union"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "owners",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST shared allocation owners disagree"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "exclusive",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST exclusive capacity incorrectly includes sharing"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "negative_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "end_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "bool_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 0,
+      "mutation": "duplicate_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "union",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST total is not the distinct storage union"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "owners",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST shared allocation owners disagree"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "exclusive",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST exclusive capacity incorrectly includes sharing"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "negative_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "end_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "bool_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 1,
+      "mutation": "duplicate_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "union",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST total is not the distinct storage union"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "owners",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST shared allocation owners disagree"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "exclusive",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST exclusive capacity incorrectly includes sharing"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "negative_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "end_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "bool_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 2,
+      "mutation": "duplicate_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "union",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST total is not the distinct storage union"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "owners",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST shared allocation owners disagree"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "exclusive",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST exclusive capacity incorrectly includes sharing"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "negative_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "end_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "bool_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "snapshot": 3,
+      "mutation": "duplicate_edge",
+      "same_rejection": [
+        "error",
+        "ValueError",
+        "native HOST adapter allocation edges are inconsistent"
+      ]
+    },
+    {
+      "unit_graph": [],
+      "full_equal": true
+    },
+    {
+      "unit_graph": [],
+      "requested_equal": true
+    },
+    {
+      "unit_graph": [
+        1
+      ],
+      "full_equal": true
+    },
+    {
+      "unit_graph": [
+        1
+      ],
+      "requested_equal": true
+    },
+    {
+      "unit_graph": [
+        1,
+        2
+      ],
+      "full_equal": true
+    },
+    {
+      "unit_graph": [
+        1,
+        2
+      ],
+      "requested_equal": true
+    },
+    {
+      "unit_graph": [
+        1,
+        2,
+        3
+      ],
+      "full_equal": true
+    },
+    {
+      "unit_graph": [
+        1,
+        2,
+        3
+      ],
+      "requested_equal": true
+    }
+  ],
+  "limitation": "Four historical actual graphs; CPU parser-only component, not current 3B request timing. Includes all slow observations. No CI or system-speedup claim."
+}

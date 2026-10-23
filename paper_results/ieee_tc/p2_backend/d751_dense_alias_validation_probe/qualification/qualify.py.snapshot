@@ -1,0 +1,63 @@
+"""D751 minimal production parser checks, reusing scoped/full planning tests."""
+import ast
+import inspect
+import json
+import os
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+OUT.mkdir(parents=True,exist_ok=False)
+closed=[]
+for source in (RAW.parent/'d750_20261023/identity.json', RAW/'identity.json', RAW/'identity_attempt2.json'):
+    identity=read(source)
+    group=Path(identity['path'])
+    assert p.scope_still_owned(identity) and not p.owned_pids(group)
+    resources=p.cgroup_snapshot(group)
+    closure=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closure['released'] and not closure['targets']
+    closed.append(dict(identity=identity,resources=resources,closure=closure))
+save(OUT/'prior_scopes_closed.json',closed)
+protected=read(ROOT/'paper_results/ieee_tc/p2_backend/d749_3b_fresh_host_descriptor_full_w0/prelaunch/qualification.json')['protected']
+for name,sha in protected.items(): assert p.digest(Path(name))==sha,name
+tests=['tests.test_ieee_tc_dense_alias_validation',
+       'tests.test_ieee_tc_request_footprints.RequestFootprintSchema',
+       'tests.test_ieee_tc_service_routing.CommittedNativeSources',
+       'tests.test_ieee_tc_service_routing.ProjectedNativeSources',
+       'tests.test_ieee_tc_planning_snapshot.PlanningSnapshot']
+with (RAW/'tests.txt').open('x') as log:
+    result=subprocess.run([sys.executable,'-B','-m','unittest',*tests,'-v'],cwd=ROOT,
+        stdout=log,stderr=subprocess.STDOUT)
+save(RAW/'test_receipt.json',dict(returncode=result.returncode,tests=tests))
+assert result.returncode==0
+from faaslora.experiment.instance_pool import NativeSourceSnapshot
+node=ast.parse(textwrap.dedent(inspect.getsource(NativeSourceSnapshot._footprints))).body[0]
+node.decorator_list=[]
+candidate=ast.parse((OUT.parent/'attempt2/candidate.py.snapshot').read_text()).body[0]
+assert ast.dump(node)==ast.dump(candidate),'production differs from measured parser'
+for name,sha in protected.items(): assert p.digest(Path(name))==sha,name
+resources=p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'qualification.json',dict(passed=True,tests=tests,
+    production_ast_matches_measured_candidate=True,resources=resources,identity=own,
+    protected=protected,plan_sha256=p.check_plan(),
+    sources={name:p.digest(ROOT/name) for name in ('faaslora/experiment/instance_pool.py',
+        'tests/test_ieee_tc_dense_alias_validation.py')},
+    new_gpu_replays=0,numerical_correctness='D711 remains; parser tests are not numerical adapter qualification'))
+for name in ('tests.txt','test_receipt.json','qualify.py','probe_attempt1.py'):
+    target=name+'.snapshot' if name.endswith('.py') else name
+    with (OUT/target).open('xb') as stream: stream.write((RAW/name).read_bytes())
+print(json.dumps(dict(passed=True,resources=resources,tests=tests)))

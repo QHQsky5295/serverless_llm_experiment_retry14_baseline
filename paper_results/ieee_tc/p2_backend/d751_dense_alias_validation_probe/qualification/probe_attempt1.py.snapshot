@@ -1,0 +1,157 @@
+"""One CPU-only graph-validation candidate; reuse D193's four retained graphs.
+
+No production edit. Both functions are extracted from the current committed
+validator, without importing a serving engine or constructing LoRA artifacts.
+"""
+import ast
+import copy
+import json
+import os
+import statistics
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+path = ROOT/'faaslora/experiment/instance_pool.py'
+source = path.read_text()
+assert source == subprocess.check_output(['git', 'show', 'HEAD:faaslora/experiment/instance_pool.py'], cwd=ROOT, text=True)
+tree = ast.parse(source)
+cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'NativeSourceSnapshot')
+node = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_footprints')
+node.decorator_list = []
+reference_source = ast.unparse(node)
+candidate_source = reference_source
+edits = (
+    ('result, owners = ({}, {index: set() for index in range(len(allocations))})',
+     'result, owners = {}, [None] * len(allocations)'),
+    ('index not in owners', 'not 0 <= index < len(owners)'),
+    ('owners[index].add(aid)',
+     'previous = owners[index]\n            if previous is None:\n                owners[index] = aid\n            elif type(previous) is int:\n                owners[index] = {previous, aid}\n            else:\n                previous.add(aid)'),
+    ('if not owners[index] or allocation.get(\'adapter_ids\') != sorted(owners[index]):',
+     "owner = owners[index]\n        if owner is None or allocation.get('adapter_ids') != ([owner] if type(owner) is int else sorted(owner)):"),
+    ("owners[index] == {adapter['adapter_int_id']}", "owners[index] == adapter['adapter_int_id']"),
+)
+for before, after in edits:
+    assert candidate_source.count(before) == 1, before
+    candidate_source = candidate_source.replace(before, after)
+
+def compile_function(text):
+    namespace = {}
+    exec(compile(text, '<d751-validator>', 'exec'), namespace)
+    return namespace['_footprints']
+
+reference, candidate = map(compile_function, (reference_source, candidate_source))
+native_path = RAW.parent/'d169_20261002/7b_probe1.json'
+assert p.digest(native_path) == 'ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602'
+snapshots = [row['sources_before'] for row in json.loads(native_path.read_bytes())['warm_batches']]
+assert len(snapshots) == 4
+
+def invoke(fn, payload, requested=None):
+    return fn(payload, tuple(payload['slot_adapter_ids']), tuple(payload['registered_cpu_adapter_ids']),
+              requested_adapter_ids=requested)
+
+def outcome(fn, payload, requested=None):
+    try:
+        return ('ok', invoke(fn, payload, requested))
+    except Exception as error:
+        return ('error', type(error).__name__, str(error))
+
+rows, cases, checks = [], [], []
+for index, native in enumerate(snapshots):
+    graph = native['native_footprints']
+    expected = invoke(reference, graph)
+    assert invoke(candidate, graph) == expected
+    cases.append(dict(snapshot=index, registered=len(native['registered_cpu_adapter_ids']),
+        allocations=len(graph['host_allocations']),
+        shared_allocations=sum(len(a['adapter_ids']) > 1 for a in graph['host_allocations'])))
+    for repeat in range(3):
+        for name, fn in ((('reference', reference), ('candidate', candidate)) if repeat % 2 == 0
+                         else (('candidate', candidate), ('reference', reference))):
+            elapsed = []
+            for _ in range(5):
+                start = time.perf_counter()
+                actual = invoke(fn, graph)
+                elapsed.append((time.perf_counter()-start)*1000)
+                assert actual == expected
+            rows.append(dict(snapshot=index, variant=name, repeat=repeat,
+                samples_ms=elapsed, mean_ms=statistics.mean(elapsed)))
+    mutations = {
+        'union': lambda x: x.__setitem__('host_tensor_storage_bytes', -1),
+        'owners': lambda x: x['host_allocations'][0].__setitem__('adapter_ids', []),
+        'exclusive': lambda x: x['host_adapter_footprints'][0].__setitem__('exclusive_storage_bytes', -1),
+        'negative_edge': lambda x: x['host_adapter_footprints'][0]['allocation_ids'].__setitem__(0, -1),
+        'end_edge': lambda x: x['host_adapter_footprints'][0]['allocation_ids'].__setitem__(0, len(x['host_allocations'])),
+        'bool_edge': lambda x: x['host_adapter_footprints'][0]['allocation_ids'].__setitem__(0, True),
+        'duplicate_edge': lambda x: x['host_adapter_footprints'][0]['allocation_ids'].append(x['host_adapter_footprints'][0]['allocation_ids'][0]),
+    }
+    for name, mutate in mutations.items():
+        broken = copy.deepcopy(graph)
+        mutate(broken)
+        old, new = outcome(reference, broken), outcome(candidate, broken)
+        assert old == new and old[0] == 'error', (index, name, old, new)
+        checks.append(dict(snapshot=index, mutation=name, same_rejection=old))
+
+# Unit-test graphs, not weights or serving workloads: shared ownership and
+# scoped capacity use the same verifier, including >2 owners and empty cache.
+for covered in ((), (1,), (1, 2), (1, 2, 3)):
+    graph = copy.deepcopy(snapshots[0]['native_footprints'])
+    graph['registered_cpu_adapter_ids'] = list(covered)
+    graph['slot_adapter_ids'] = [None]*len(graph['slot_adapter_ids'])
+    graph['host_allocations'] = ([] if not covered else [dict(allocation_id=0,
+        allocated_bytes=128, pinned=True, adapter_ids=list(covered))])
+    graph['host_tensor_storage_bytes'] = 128 if covered else 0
+    graph['host_adapter_footprints'] = [dict(adapter_int_id=aid, allocation_ids=[0],
+        storage_bytes=128, exclusive_storage_bytes=(128 if len(covered)==1 else 0),
+        representation='native_cpu_dense_ab_v1', has_packed_modules=False,
+        dtypes=['torch.float16']) for aid in covered]
+    assert outcome(reference, graph) == outcome(candidate, graph)
+    assert outcome(reference, graph)[0] == 'ok'
+    checks.append(dict(unit_graph=list(covered), full_equal=True))
+    graph['host_footprint_scope'] = 'native_requested_tensor_storage_capacity'
+    graph['host_requested_adapter_ids'] = list(covered)
+    graph['requested_host_storage_bytes'] = graph.pop('host_tensor_storage_bytes')
+    for adapter in graph['host_adapter_footprints']:
+        adapter['within_observation_exclusive_bytes'] = adapter.pop('exclusive_storage_bytes')
+    assert outcome(reference, graph, covered) == outcome(candidate, graph, covered)
+    assert outcome(reference, graph, covered)[0] == 'ok'
+    checks.append(dict(unit_graph=list(covered), requested_equal=True))
+
+summary = []
+for case in cases:
+    means = {name: statistics.mean(r['mean_ms'] for r in rows
+        if r['snapshot']==case['snapshot'] and r['variant']==name)
+        for name in ('reference', 'candidate')}
+    summary.append(dict(**case, **means, reduction_fraction=(means['reference']-means['candidate'])/means['reference']))
+for name, text in (('reference.py.snapshot', reference_source), ('candidate.py.snapshot', candidate_source)):
+    with (OUT/name).open('x') as stream:
+        stream.write(text+'\n')
+with (OUT/'probe.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'result.json', dict(kind='d751_dense_alias_validation_component_v1', passed=True,
+    production_changes=False, new_gpu_replays=0, new_weights_or_workloads=False,
+    parent=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    source=dict(path=str(path), sha256=p.digest(path)),
+    retained_graphs=dict(path=str(native_path), sha256=p.digest(native_path)),
+    scope=identity, summary=summary, rows=rows, checks=checks,
+    limitation='Four historical actual graphs; CPU parser-only component, not current 3B request timing. Includes all slow observations. No CI or system-speedup claim.'))
+cg=p.cg_path()
+save(OUT/'resources.json',dict(scope=identity,peak_bytes=int((cg/'memory.peak').read_text()),
+    events=(cg/'memory.events').read_text(),swap_bytes=int((cg/'memory.swap.current').read_text())))
+print(json.dumps(dict(passed=True,summary=summary,checks=len(checks)),indent=2))

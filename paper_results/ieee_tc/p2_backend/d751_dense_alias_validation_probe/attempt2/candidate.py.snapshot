@@ -1,0 +1,70 @@
+def _footprints(payload, slots, registered, *, requested_adapter_ids=None):
+    """Validate storage unions separately from per-adapter footprint sums."""
+    if payload is None:
+        return ({}, None, None)
+    if not isinstance(payload, dict) or payload.get('uniform_slot_layout') is not True or payload.get('host_footprint_scope') != ('native_registered_tensor_storage_capacity' if requested_adapter_ids is None else 'native_requested_tensor_storage_capacity') or (payload.get('host_budget_reserved') is not False) or (payload.get('host_allocator_overhead_included') is not False) or (payload.get('slot_adapter_ids') != list(slots)) or (payload.get('registered_cpu_adapter_ids') != list(registered)):
+        raise ValueError('native footprints differ from source snapshot/qualified representation')
+    covered = set(registered)
+    if requested_adapter_ids is not None:
+        if payload.get('host_requested_adapter_ids') != list(requested_adapter_ids) or 'host_tensor_storage_bytes' in payload:
+            raise ValueError('request-scoped HOST inventory changed target scope or claims global capacity')
+        covered &= set(requested_adapter_ids)
+    (slot_bytes, gpu_bytes) = (payload.get('slot_capacity_bytes'), payload.get('pool_allocated_bytes'))
+    if type(slot_bytes) is not int or slot_bytes <= 0 or type(gpu_bytes) is not int or (gpu_bytes != slot_bytes * len(slots)):
+        raise ValueError('native GPU pool/slot capacities are inconsistent')
+    allocations = payload.get('host_allocations')
+    adapters = payload.get('host_adapter_footprints')
+    gpu_views = payload.get('pool_tensor_views')
+    if not all((isinstance(v, list) for v in (allocations, adapters, gpu_views))) or not gpu_views:
+        raise ValueError('native footprint tables are missing')
+
+    def bytes_value(value):
+        return type(value) is int and value > 0
+    for (index, allocation) in enumerate(allocations):
+        if not isinstance(allocation, dict) or type(allocation.get('allocation_id')) is not int or allocation['allocation_id'] != index or (not bytes_value(allocation.get('allocated_bytes'))) or (type(allocation.get('pinned')) is not bool):
+            raise ValueError('invalid native HOST allocation capacity')
+    host_bytes = sum((a['allocated_bytes'] for a in allocations))
+    host_key = 'host_tensor_storage_bytes' if requested_adapter_ids is None else 'requested_host_storage_bytes'
+    if type(payload.get(host_key)) is not int or payload[host_key] != host_bytes:
+        raise ValueError('native HOST total is not the distinct storage union')
+    if any((not isinstance(v, dict) or not isinstance(v.get('dtype'), str) or (not v['dtype']) for v in gpu_views)):
+        raise ValueError('native GPU representation has no dtype')
+    gpu_dtypes = {v['dtype'] for v in gpu_views}
+    gpu_representation = 'native_gpu_dense_slot_v1:' + ','.join(sorted(gpu_dtypes))
+    result, owners = {}, [None] * len(allocations)
+    for adapter in adapters:
+        if not isinstance(adapter, dict):
+            raise ValueError('invalid native HOST adapter footprint')
+        (aid, ids) = (adapter.get('adapter_int_id'), adapter.get('allocation_ids'))
+        if type(aid) is not int or aid not in covered or aid in result or (not isinstance(ids, list)) or (not ids) or any((type(index) is not int or not 0 <= index < len(owners) for index in ids)) or (len(set(ids)) != len(ids)):
+            raise ValueError('native HOST adapter allocation edges are inconsistent')
+        capacity = sum((allocations[index]['allocated_bytes'] for index in ids))
+        dtypes = adapter.get('dtypes')
+        if type(adapter.get('storage_bytes')) is not int or adapter['storage_bytes'] != capacity or adapter.get('representation') != 'native_cpu_dense_ab_v1' or (type(adapter.get('has_packed_modules')) is not bool) or (not isinstance(dtypes, list)) or (not dtypes) or any((not isinstance(dtype, str) or not dtype for dtype in dtypes)):
+            raise ValueError('invalid native HOST footprint/representation')
+        for index in ids:
+            previous = owners[index]
+            if previous is None:
+                owners[index] = aid
+            elif type(previous) is int:
+                owners[index] = {previous, aid}
+            else:
+                previous.add(aid)
+        host_representation = 'native_cpu_dense_ab_v1:' + ','.join(sorted(set(dtypes)))
+        pinning = {allocations[index]['pinned'] for index in ids}
+        host_representation += ':' + ('pinned' if pinning == {True} else 'unpinned' if pinning == {False} else 'mixed_pinning')
+        if adapter['has_packed_modules']:
+            host_representation += ':packed'
+        result[aid] = (capacity, host_representation, slot_bytes, gpu_representation)
+    if set(result) != covered:
+        raise ValueError('native HOST footprints do not cover the CPU cache')
+    for (index, allocation) in enumerate(allocations):
+        owner = owners[index]
+        if owner is None or allocation.get('adapter_ids') != ([owner] if type(owner) is int else sorted(owner)):
+            raise ValueError('native HOST shared allocation owners disagree')
+    for adapter in adapters:
+        exclusive = sum((allocations[index]['allocated_bytes'] for index in adapter['allocation_ids'] if owners[index] == adapter['adapter_int_id']))
+        exclusive_key = 'exclusive_storage_bytes' if requested_adapter_ids is None else 'within_observation_exclusive_bytes'
+        if type(adapter.get(exclusive_key)) is not int or adapter[exclusive_key] != exclusive or (requested_adapter_ids is not None and 'exclusive_storage_bytes' in adapter):
+            raise ValueError('native HOST exclusive capacity incorrectly includes sharing')
+    return (result, host_bytes if requested_adapter_ids is None else None, gpu_bytes)

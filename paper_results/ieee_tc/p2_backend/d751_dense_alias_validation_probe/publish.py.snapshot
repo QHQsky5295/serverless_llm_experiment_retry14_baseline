@@ -1,0 +1,64 @@
+"""Back up D750/D751 explicit source and curated evidence; no raw data/user dirt."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+def call(args):
+    return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json',own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+q=read(OUT/'qualification/qualification.json')
+assert q['passed'] and q['production_ast_matches_measured_candidate']
+for name,sha in q['protected'].items(): assert p.digest(Path(name))==sha,name
+for name,sha in q['sources'].items(): assert p.digest(ROOT/name)==sha,name
+identity=q['identity']; group=Path(identity['path'])
+assert p.scope_still_owned(identity) and not p.owned_pids(group)
+resources=p.cgroup_snapshot(group)
+closure=p.stop_scope_identity(identity,grace_seconds=0)
+assert closure['released'] and not closure['targets']
+save(OUT/'qualification/closure.json',dict(identity=identity,resources=resources,closure=closure))
+for name in ('probe.py','publish.py'):
+    ast.parse((RAW/name).read_text())
+    with (OUT/(name+'.snapshot')).open('xb') as stream: stream.write((RAW/name).read_bytes())
+directories=[ROOT/'paper_results/ieee_tc/p2_backend/d750_d749_planner_intervals',OUT]
+files=[path for directory in directories for path in sorted(directory.rglob('*')) if path.is_file()]
+save(OUT/'manifest.json',dict(passed=True,files=[dict(path=str(path.relative_to(ROOT)),
+    sha256=p.digest(path),bytes=path.stat().st_size) for path in files],
+    production_tests=51,new_gpu_replays=0,scope='CPU candidate; not G1/G2 achievement'))
+files += [OUT/'manifest.json']
+files += [ROOT/name for name in ('faaslora/experiment/instance_pool.py',
+    'tests/test_ieee_tc_dense_alias_validation.py',
+    'docs/ieee_tc/D750_D751_PLANNER_INTERVALS_AND_ALIAS_VALIDATION_20261023.md',
+    'docs/ieee_tc/EXECUTION_STATUS.md')]
+paths=[str(path.relative_to(ROOT)) for path in files]
+assert not call(['git','diff','--cached','--name-only'])
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files: assert not secret.search(path.read_text()),str(path)
+call(['git','diff','--check','--',*paths])
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: qualify compact current allocation-owner validation from D749 evidence'])
+head=call(['git','rev-parse','HEAD'])
+ref='refs/heads/backup/d751-dense-alias-qualification-20261023'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'publication_receipt.json',dict(passed=True,head=head,ref=ref,files=paths,
+    v2_synchronized=False,resources=p.cgroup_snapshot(p.cg_path())))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))

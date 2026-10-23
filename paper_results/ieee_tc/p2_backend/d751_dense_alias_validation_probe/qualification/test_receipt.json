@@ -1,0 +1,10 @@
+{
+  "returncode": 0,
+  "tests": [
+    "tests.test_ieee_tc_dense_alias_validation",
+    "tests.test_ieee_tc_request_footprints.RequestFootprintSchema",
+    "tests.test_ieee_tc_service_routing.CommittedNativeSources",
+    "tests.test_ieee_tc_service_routing.ProjectedNativeSources",
+    "tests.test_ieee_tc_planning_snapshot.PlanningSnapshot"
+  ]
+}

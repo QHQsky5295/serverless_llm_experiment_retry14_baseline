@@ -1,0 +1,107 @@
+[
+  {
+    "identity": {
+      "unit": "primelora-tc-aux-89fb78299bd64987a8da8ad89fe7809a.scope",
+      "invocation_id": "3e2a64f4e8fc4cf3b2638f60082f1ddd",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-89fb78299bd64987a8da8ad89fe7809a.scope",
+      "inode": 30756687
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-89fb78299bd64987a8da8ad89fe7809a.scope",
+      "memory.current": 606208,
+      "memory.peak": 50716672,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 12223880\nuser_usec 11615986\nsystem_usec 607894\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  {
+    "identity": {
+      "unit": "primelora-tc-aux-0ac949f12fd6448aab96ca8185909fb8.scope",
+      "invocation_id": "31ab7db6117f418a8b97897cc5ca080f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0ac949f12fd6448aab96ca8185909fb8.scope",
+      "inode": 30759573
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0ac949f12fd6448aab96ca8185909fb8.scope",
+      "memory.current": 471040,
+      "memory.peak": 35188736,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 278821\nuser_usec 237700\nsystem_usec 41121\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  {
+    "identity": {
+      "unit": "primelora-tc-aux-211d56f396f4413a85f2f6c9da82d086.scope",
+      "invocation_id": "b61419a806704105bad01d0f0dc6a120",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-211d56f396f4413a85f2f6c9da82d086.scope",
+      "inode": 30759931
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-211d56f396f4413a85f2f6c9da82d086.scope",
+      "memory.current": 38076416,
+      "memory.peak": 207106048,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 4941299\nuser_usec 4760324\nsystem_usec 180974\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  }
+]
