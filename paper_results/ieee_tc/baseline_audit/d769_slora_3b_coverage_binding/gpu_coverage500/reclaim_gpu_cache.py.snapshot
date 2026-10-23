@@ -1,0 +1,56 @@
+"""Reuse D532 byte/reference checks for D769's closed qualified-attempt cache.
+
+Qualification evidence and the retained original pool are protected. Cleanup proves
+duplicate bytes and released ownership, never successful workload qualification.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle: json.dump(value,handle,indent=2,allow_nan=False)
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'gpu_cache_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert read(RAW/'result_receipt.json')['evidence_sealed']
+assert read(RAW/'result_closure.json')['path_gone']
+assert read(RAW/'analysis_closure.json')['path_gone']
+assert read(RAW/'local_cleanup.json')['passed']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive')==3
+q=read(RAW/'qualification.json')
+for name,digest in (q['protected']|q['preserved']).items(): assert p.digest(Path(name))==digest,name
+original=RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+source=data.decode()
+changes={
+    "'d532_20261015'":"'d769_20261023'",
+    '/tmp/tc-d532-7bv/':'/tmp/tc-d769-3bs/',
+    'llama2_7b_a500_v2_publicmix':'llama32_3b_a500_v1_modelscope',
+    "ROOT/'launch7b.json'":"ROOT/'launch3b.json'",
+    "MAIN/'paper_results/ieee_tc/main_comparison/d532_vllm_w1/result1/audit.json'":"ROOT/'audit_coverage500.json'",
+    'f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7':p.digest(RAW/'audit_coverage500.json'),
+    "assert audit['workload_passed'] and audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780":
+        "assert audit['workload_passed'] and audit['counts']['N_terminal'] == 500 and audit['counts']['N_failed'] == 0 and audit['deployment_prepared_adapters'] == 500",
+    '20260927_7b_materialized_content_index.json':'20260927_3b_remote_content_index.json',
+    'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c':read(RAW/'http_3b_500.json')['pool_index_sha256'],
+    "len(selected) == audit['offered_unique_adapters']":"len(selected) == 500",
+    "total == audit['verified_materialized_bytes']":"total == sum(item['size_bytes'] for row in index['artifacts'] for item in row['files'])",
+    'all_cache_bytes_previously_hashed_by_audit=True':'all_cache_bytes_previously_hashed_by_audit=True',
+}
+for before,after in changes.items():
+    assert source.count(before)==1,before
+    source=source.replace(before,after)
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
+for name,digest in (q['protected']|q['preserved']).items(): assert p.digest(Path(name))==digest,name
+save(RAW/'gpu_cache_reclamation.json',dict(passed=True,receipt=read(RAW/'cache_cleanup_after.json'),
+    closed_attempt_evidence_preserved=True,prepared_pool_count=500,offered_unique_adapters=500,
+    original_recipe_sha256=p.digest(original),protected_unchanged=145,
+    resources=p.cgroup_snapshot(Path(own['path']))))

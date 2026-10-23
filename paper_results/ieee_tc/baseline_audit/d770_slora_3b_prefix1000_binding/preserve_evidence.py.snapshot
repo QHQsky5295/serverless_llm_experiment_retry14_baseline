@@ -1,0 +1,41 @@
+"""Save closed D770 evidence only; never copy materialized object weights."""
+import hashlib
+import json
+from pathlib import Path
+import re
+import shutil
+import subprocess
+
+ROOT = Path(__file__).resolve().parent
+launch = json.loads((ROOT/'launch3b.json').read_text())
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+local = json.loads((ROOT/'local_cleanup.json').read_text())
+assert local['passed'] and local['service_path_gone'] and local['auxiliary_path_gone']
+assert local['actual_recursive_procs_empty']
+assert not Path(local['service_identity']['path']).exists()
+assert not Path(local['auxiliary_identity']['path']).exists()
+dest = ROOT/'remote_resolver_evidence'
+dest.mkdir(exist_ok=False)
+source = Path('/tmp/tc-d770-3bs/remote_artifacts')
+for name in ('journals','receipts'):
+    shutil.copytree(source/name, dest/name)
+shutil.copy2(source/'run_contract.json', dest/'run_contract.json')
+stop = (ROOT/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive') == 3 and stop.count('MainPID=0') == 3
+paths = re.findall(r'^(/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-[a-f0-9]{32}\.jsonl)$', stop, re.M)
+assert len(paths) == 1
+monitor = '/home/lab14/primelora_remote/tc/d770_20261023/remote_monitor.log'
+copies = []
+for remote, name in ((paths[0], 'remote_transfers.jsonl'), (monitor, 'remote_monitor.log')):
+    prefix = ['ssh','-o','BatchMode=yes','primelora-artifact-174']
+    expected = subprocess.check_output(prefix+['sha256sum '+remote], text=True).split()[0]
+    raw = subprocess.check_output(prefix+['cat '+remote])
+    assert hashlib.sha256(raw).hexdigest() == expected
+    with (ROOT/name).open('xb') as handle:
+        handle.write(raw)
+    copies.append(dict(source=remote, path=str(ROOT/name), sha256=expected, bytes=len(raw)))
+with (ROOT/'evidence_copy_receipt.json').open('x') as handle:
+    json.dump(dict(remote=copies, actual_gpu_release=True, empty_owned_aux_stopped=True,
+                   object_cache_copied=False), handle, indent=2)
+print(json.dumps(copies))

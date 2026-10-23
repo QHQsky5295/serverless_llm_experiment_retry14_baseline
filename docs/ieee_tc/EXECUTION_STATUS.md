@@ -1,5 +1,68 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D769已安全收尾；D770原1000前缀绑定完成（PROGRESS）
+
+D769重复缓存回收session74097成功结束，4000文件逐字节匹配保留原件，
+释放19497287680B，剩余163739987968B。gpu_cache空域关闭，维护peak
+1132142592B、high/max/OOM/swap0；原始成功/失败、唯一工件、145旧产物和
+用户修改保留。全部本轮会话结束，没有GPU/exec/wait运行，远端自有服务停止。
+
+D770 prepare已成功结束、qualification空域关闭。直接复用D768/D769合格
+源码/config/57CPUtests/真实GPU证据，没有新CPU测试或GPU运行。原1000
+前缀与ServerlessLLM D759完全一致：1000条、60实际IDs、122510目标tokens，
+view SHA7b8321203834ea96b9913c3444f99169e6d15ac56878644eaf3617d447d99fd7。
+native配置仍引用D768source_view，禁止删除该view。不更换基线策略，不造
+新trace或权重。下一备份D769完整结果及D770绑定后才按既有start.py启动。
+当前只有绑定成功，尚无D770实际结果；不得把本记录当GPU启动凭据。
+
+3B完整基线比较/PrimeLoRA必要优化和跨场景、最终同版本7B主表/Full、
+A1–A5、S1–S13、CE/Pareto、审稿文档和最终图表全部保留，目标active。
+
+## 2026-10-23 D769：全部500-ID覆盖通过，保留低SLO（PROGRESS）
+
+20:38 CST自然终态，500计划/到达/提交/终态/响应、0失败；原生重新核验500，
+实际500 IDs，输出68925 tokens逐请求等于target。四worker原生来源、输入/
+adapter绑定、实际allocation/release及计量通过，三项重算误差0。audit SHA
+b47df192c82594712076c1da1d6c4c1f53e238df74a497d1098f3b4f34839531。
+物理U1893.5618799137883 GPU-s；n_correct=null，仍无独立数值正确性证明。
+联合SLO0/500，TTFT达标109/500，TPOT达标0/500。平均/P95 TTFT
+124896.175453/329602.098276ms，TPOT167.448494/227.781954ms；平均
+dispatch wait73169.925866ms、service TTFT51718.462081ms、decode23160.140612ms。
+这只是功能覆盖，不作为完整W0性能或G1/G2资格；不隐藏低SLO、不因其调参。
+服务peak61332733952B，high/max/OOM/swap0；请求打包0，远端wire1160474851B。
+
+launch pass=true/returncode0，服务/aux域关闭，四GPU实际释放。stop session91230
+结束，自有远端三服务停止；analysis43989通过，analysis/result空域关闭。
+结果封存paper_results/ieee_tc/baseline_audit/d769_slora_3b_coverage_binding/gpu_coverage500。
+当时重复下载缓存回收session74097仍在运行；现已成功结束，见上方收尾记录。
+没有活动GPU；D770将复用同一配置与已合格检查，绑定原1000前缀，不新造数据。
+其余完整3B/PrimeLoRA/7B同版本Full/消融/敏感性/文档图表范围保留，目标active。
+
+## 2026-10-23 D769：500-adapter真实远程覆盖已启动（PROGRESS）
+
+20:25 CST：D768输入修复完整结果、缓存回执和D769冻结绑定共50明确路径
+已提交MAIN aef1bc9056102f857956816c31a7aa0b514b90b5，并验证远端
+faaslora_origin/backup/d768-input-qualified-d769-coverage-20261023一致。
+BASE 84bb7892b4aade6bed0b898fb99d1f6074073a10仍与origin/main一致。
+用户修改未stage，未force，V2仍未同步。publication session72924结束，
+gpu_publication空域已关闭；starter90303结束，start空域已关闭。
+
+D769实际运行在tmux tc-d769-slora-3b-coverage500，RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023。
+服务scope primelora-tc-svc-6216932318154ebfb3c5d44880d8ac97.scope，
+InvocationID ef2a7d86fdc44c53abf31e589c1a2d51。真实远端1000Mb/s/full，
+复用已发布工件；当前为500静态池准备/启动阶段，尚无终态或完整结果。
+服务72/80GiB、swap2GiB，独立回放3/4GiB、swap0；CPU分离、watchdog在。
+初期high/max/OOM/swap均0，无其他GPU作业。无活动exec/wait；tmux实验
+继续运行，禁止重复启动、运行中维护/备份/哈希扫描或修改远端服务。
+
+自然终态后：close_launch.py→stop_remote.sh只停自有三服务→受限
+run_analysis.py --outcome实际状态→封存/解释→有证据回收重复下载缓存。
+按旧计划继续1000兼容与完整三场景；不是性能优化、不以低SLO重跑此键。
+共享k3s不动；HydraServe既有隔离适配不重启。全部剩余3Bbaseline、
+PrimeLoRA必要优化、最终同版本7B主表/Full、A1–A5、S1–S13及文档图表
+继续保留，目标active。D768结果与D769启动回执在下一正常检查点携带。
+
 ## 2026-10-23 D769：复用合格配置，绑定500-adapter功能覆盖（PROGRESS）
 
 D768缓存回收已成功结束，session9914无需再轮询：4000个文件逐字节匹配

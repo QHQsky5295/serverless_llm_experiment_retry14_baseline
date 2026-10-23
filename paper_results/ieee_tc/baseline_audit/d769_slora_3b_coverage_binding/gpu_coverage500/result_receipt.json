@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "evidence_sealed": true,
+  "experiment_passed": true,
+  "output": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d769_slora_3b_coverage_binding/gpu_coverage500",
+  "manifest_sha256": "367a4c8d7822aa957520cc1b53de806ced1c0a28bf5dd6ce70a462a8fd90cc06",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7690004d7690004d7690004d7690004.scope",
+    "memory.current": 31608832,
+    "memory.peak": 31932416,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 380037\nuser_usec 270315\nsystem_usec 109722\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

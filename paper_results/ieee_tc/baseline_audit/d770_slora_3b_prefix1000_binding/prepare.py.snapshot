@@ -1,0 +1,66 @@
+"""Bind the existing 3B 1000-request prefix to D769's qualified S-LoRA configuration.
+
+No repeated CPU suite, new trace, weights or GPU execution. Native source view
+and all non-population configuration are reused after D769 closes.
+"""
+import json
+import os
+from pathlib import Path
+import sys
+
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE=Path('/home/qhq/serverless_llm_baselines')
+RAW=Path(__file__).resolve().parent
+PREV=RAW.parent/'d769_20261023'
+sys.path[:0]=[str(MAIN),str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import load_http_replay_plan
+from replay_vllm_engine_trace import validate_native_service_config,verify_slora_source_view
+
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as handle:json.dump(value,handle,indent=2,allow_nan=False)
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json',own)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (Path(own['path'])/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (Path(own['path'])/'memory.swap.max').read_text().strip()=='0'
+assert read(PREV/'gpu_cache_reclamation.json')['passed']
+for name in ('analysis','result','gpu_cache'):
+    closed=read(PREV/(name+'_closure.json'))
+    assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+q=read(PREV/'qualification.json')
+assert q['passed'] and q['cpu_tests']==57
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+audit=read(PREV/'audit_coverage500.json')
+assert audit['workload_passed'] and audit['native_revalidated_requests']==500
+assert audit['counts']['N_failed']==0 and audit['actual_native_output_tokens']==68925
+cfg=read(PREV/'native_3b.json')
+http=read(PREV/'http_3b_500.json')
+http.update(request_count=1000,request_view='trace_prefix_v1',replay_profile='W0',
+            experiment_role='native_3b_prefix1000_compatibility')
+validate_native_service_config(cfg,http)
+verify_slora_source_view(dict(cfg,main_repo=str(MAIN)))
+plan=load_http_replay_plan(http)
+reference=RAW.parent.parent/'serverless_qualification/d759_20261023/input_identity.json'
+assert plan.identity()==read(reference)['plan']
+rows=[json.loads(entry.source_json) for entry in plan.entries]
+assert len(rows)==1000 and len({row['adapter_id'] for row in rows})==60
+assert sum(min(row['expected_output_tokens'],256) for row in rows)==122510
+save(RAW/'native_3b.json',cfg)
+save(RAW/'http_3b_1000.json',http)
+refs=[RAW/'native_3b.json',RAW/'http_3b_1000.json',Path(__file__),
+      PREV/'qualification.json',PREV/'audit_coverage500.json',PREV/'gpu_cache_reclamation.json',reference]
+refs+=sorted(RAW.glob('*.py'))+sorted(RAW.glob('*.sh'))
+save(RAW/'qualification.json',dict(passed=True,cpu_tests=57,cpu_tests_reused=True,
+    reused_qualification=str(PREV/'qualification.json'),input_identity=plan.identity(),
+    actual_unique_adapters=60,target_tokens=122510,gpu_run_started=False,
+    numerical_correctness_qualified=False,baseline_performance_tuning=False,
+    unchanged_native_config_sha256=p.digest(PREV/'native_3b.json'),
+    no_new_trace_or_weights=True,source_plan_sha256=p.check_plan(),
+    protected=q['protected'],preserved=q['preserved'],
+    refs={str(path):p.digest(path) for path in refs},resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,request_count=1000,actual_unique_adapters=60,
+                     target_tokens=122510,input_identity=plan.identity(),gpu_run_started=False)))

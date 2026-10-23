@@ -1,0 +1,31 @@
+{
+  "schema": "ieee_tc_adapter_coverage_qualification_v1",
+  "system": "S-LoRA",
+  "model": "3B",
+  "complete_attempt": true,
+  "workload_passed": true,
+  "formal_run": false,
+  "performance_ranking_eligible": false,
+  "counts": {
+    "N_plan": 500,
+    "N_arrived": 500,
+    "N_terminal": 500,
+    "N_response": 500,
+    "N_failed": 0,
+    "N_submitted": 500
+  },
+  "native_revalidated_requests": 500,
+  "actual_native_output_tokens": 68925,
+  "offered_unique_adapters": 500,
+  "prepared_pool_count": 500,
+  "n_correct": null,
+  "independent_numerical_correctness_proven": false,
+  "physical_gpu_seconds_total": 1893.5618799137883,
+  "input_mode": "canonical_token_ids_v1",
+  "conclusion": "All 500 existing adapter IDs complete under the same canonical-input and native-output contract; no native inference or scheduling change.",
+  "scope": "Input/transport/native binding qualification, not full-workload performance or independent numerical proof.",
+  "audit_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/audit_coverage500.json",
+  "audit_sha256": "b47df192c82594712076c1da1d6c4c1f53e238df74a497d1098f3b4f34839531",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+}

@@ -1,0 +1,277 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/launch3b.launch/replay.jsonl",
+  "replay_sha256": "88901dd26f9ecd439dcc3548dfeace2608d310bdeabd4542eecf6d637475157d",
+  "counts": {
+    "N_plan": 500,
+    "N_arrived": 500,
+    "N_terminal": 500,
+    "N_response": 500,
+    "N_failed": 0,
+    "N_submitted": 500
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 500,
+      "mean": 124896.17545325682,
+      "p50_type1": 108959.13615776226,
+      "p95_type1": 329602.098276373
+    },
+    "e2e_ms": {
+      "count": 500,
+      "mean": 148080.70027910825,
+      "p50_type1": 140235.51684012637,
+      "p95_type1": 371121.8388704583
+    },
+    "submit_lag_ms": {
+      "count": 500,
+      "mean": 7.787506158463657,
+      "p50_type1": 2.58726067841053,
+      "p95_type1": 7.473118603229523
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 500,
+      "mean": 73169.92586581595,
+      "p50_type1": 20.575571339577436,
+      "p95_type1": 309017.2346192412
+    },
+    "service_ttft_ms": {
+      "count": 500,
+      "mean": 51718.4620812824,
+      "p50_type1": 44261.02862460539,
+      "p95_type1": 141476.2716279365
+    },
+    "decode_ms": {
+      "count": 500,
+      "mean": 23160.140612111427,
+      "p50_type1": 17787.76470478624,
+      "p95_type1": 54465.86499316618
+    },
+    "completion_notification_ms": {
+      "count": 500,
+      "mean": 24.38421374000609,
+      "p50_type1": 25.28236899524927,
+      "p95_type1": 32.83986262977123
+    },
+    "router_queue_ms": {
+      "count": 500,
+      "mean": 73164.06579476688,
+      "p50_type1": 0.026608817279338837,
+      "p95_type1": 309013.11943214387
+    },
+    "tpot_ms": {
+      "count": 500,
+      "mean": 167.44849361314877,
+      "p50_type1": 182.42950908218822,
+      "p95_type1": 227.78195382044134
+    }
+  },
+  "actual_native_output_tokens": 68925,
+  "observed_instance_ids": [
+    "slora-0",
+    "slora-1",
+    "slora-2",
+    "slora-3"
+  ],
+  "offered_unique_adapters": 500,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 499,
+    "mean": 0.8102512203972555,
+    "p50_type1": 0.007763474714010954,
+    "p95_type1": 3.7534681600518525
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "S-LoRA",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "model_profile": "llama32_3b_main_modelscope",
+  "model_key": "3b",
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "4a9f63b08a600c40af7f5acd8066fb518aa21ed48ee8d5c75d7b3e2e8a51088e",
+    "count": 500,
+    "source_count": 4000,
+    "profile": "ADAPTER_COVERAGE_V1",
+    "rate_scale": 1.0
+  },
+  "native_revalidated_requests": 500,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 1893.5618799137883,
+  "physical_window_gpu_seconds": {
+    "arrival": 1452.266272191424,
+    "cleanup": 21.196200461126864,
+    "drain": 420.0994072612375,
+    "pre_arrival": 0.0
+  },
+  "n_correct": null,
+  "remote_transfers": 500,
+  "remote_wire_bytes": 1160474851,
+  "verified_materialized_bytes": 19482573296,
+  "cache_hit_requests": null,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 4,
+  "remote_clock_ids": [
+    "remote-process-monotonic:e94321b35ac94461b614678c7b6ae342"
+  ],
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 61332733952,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 69034352640,
+  "disk_min_free_bytes": 144273551360,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "slora_resident_rr_v1",
+  "scheduler_qualification": {
+    "contract": "slora_resident_rr_v1",
+    "native_worker_receipts": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/ad018415b1c64596bd49ca39beb6072b.json",
+        "sha256": "96aa88575abde11fb460ae2192b534ad17f6fa71d5af1ddbc56d52681103948c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/f068a5a7abf34e47a21ba2e739746e55.json",
+        "sha256": "b67f3117d49ff72a5c5331f140349e9f42d88af0a8f06fd94d1e518c5d9e49e7"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/e4aca49466f8498ca69304a426f060ef.json",
+        "sha256": "48c79d25977db3a26a5ef1c122041fedf1edc78bef8e2907e7b964140f77b401"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/eec74454aead46558a7ce2fbc54ae63e.json",
+        "sha256": "7f2cf01f73562956fb2b917a57bffcab3be9879cb7ccc118658546f75e67474e"
+      }
+    ],
+    "conclusion": "Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified."
+  },
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/launch3b.launch/replay.jsonl",
+      "sha256": "88901dd26f9ecd439dcc3548dfeace2608d310bdeabd4542eecf6d637475157d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/physical/physical_resource_summary.json",
+      "sha256": "10cc812d08731a2a467d0a0928ef535903f6bd95aaf544f96d1158f23ec5c393"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/physical/summary.json",
+      "sha256": "038b5712af54a9e6af8362eeb743164151b5a2fd0eea5262e6fdd1ab2569e2db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/model_qualification.json",
+      "sha256": "e3d8f1fd6c7e741d7f4a8b196cb183fca0b4e71ecaa437e27e4e9c55d81ea053"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/http_3b_500.json",
+      "sha256": "75a3e98c53581900d7d49213c0e14c769d8605ec9512ec7cedb7cc6222027979"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/remote_transfers.jsonl",
+      "sha256": "ff5f74d53f04b7106324622598867afd79fb22bbfe4f51793ca3174b40d2850a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/remote_monitor.log",
+      "sha256": "33c614cf55d0a3c107022ef739d97c5fc9e705b5ea01b18c0c302dd231de6691"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py",
+      "sha256": "abd058ef46e2d42ded855867edd2422cf85d4131bbb08170203d2a9399f89311"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "d34c7e2fa466dbe706ebd5f54a442cd36f4e0542505eb6883071fcafe1c87c49"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "e89ac9f8e79e3b42901bf6df8615b4842f7132adb0ebc0847dd27359f12d3156"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_config.json",
+      "sha256": "0912d52e0d2d872a24ffbd8a7a42429ff3bc8d8d875244432b5c81851cb9db8a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/native_toolchain.json",
+      "sha256": "233505f1d670a400f47d627fa067b4778c148de779c7839053579829ab581181"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/ad018415b1c64596bd49ca39beb6072b.json",
+      "sha256": "96aa88575abde11fb460ae2192b534ad17f6fa71d5af1ddbc56d52681103948c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/f068a5a7abf34e47a21ba2e739746e55.json",
+      "sha256": "b67f3117d49ff72a5c5331f140349e9f42d88af0a8f06fd94d1e518c5d9e49e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/e4aca49466f8498ca69304a426f060ef.json",
+      "sha256": "48c79d25977db3a26a5ef1c122041fedf1edc78bef8e2907e7b964140f77b401"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/worker_receipts/eec74454aead46558a7ce2fbc54ae63e.json",
+      "sha256": "7f2cf01f73562956fb2b917a57bffcab3be9879cb7ccc118658546f75e67474e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/model3b/slora_full_pool_preparation.json",
+      "sha256": "c6f17f31d90168733ca4bd17283c19a71f4d8647ad3a2f43171f389c001d28d3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d768_20261023/source_view/measurement_manifest.json",
+      "sha256": "8db3efc8eb6edbc18cb240ee70d9394c05636b58a66eb8d60696bb9166cb958e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/launch3b.launch/exec_receipt.json",
+      "sha256": "b29ec197aeed91630a0897999f4eff3d37022fe0bccf1ff29e3e5389840298da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d769_20261023/remote_resolver_evidence/journals/2084604-8459f7080f0c437eaf968a1244c2aaeb.jsonl",
+      "sha256": "b69ece07624631354d5e99611381cc47ad0143b70b162047db2df7d5efb48e74"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8"
+    }
+  ],
+  "limitations": [
+    "500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+    "No relative performance comparison with the 4000-request PrimeLoRA observation."
+  ],
+  "artifact_attribution": "deployment_preparation_reference_not_request_transfer",
+  "deployment_prepared_adapters": 500,
+  "deployment_remote_wire_bytes": 1160474851,
+  "request_remote_wire_bytes": 0,
+  "preparation_references": 500,
+  "served_adapter_ids": 500,
+  "common_slo": {
+    "offered": 500,
+    "binding_valid": 500,
+    "ttft_good": 109,
+    "tpot_eligible": 500,
+    "tpot_good": 0,
+    "joint_good": 0,
+    "ttft_attainment": 0.218,
+    "joint_attainment": 0.0,
+    "conditional_tpot_attainment": 0.0,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+    "freeze_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 3.7871237598275767
+  }
+}
