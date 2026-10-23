@@ -1,5 +1,110 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 22:20 CST D771：完整W0已完成并封存（PROGRESS）
+
+本轮从2384响应持续观察至4000，未重启或修改正在测量的系统。22:20实际终态：
+4000计划/到达/提交/终态/响应、0失败；4000原生重新核验、132实际IDs、
+458224实际输出tokens逐请求等于target。时间分解/TPOT/native重算误差0，
+GPU实际租约全部关闭。完整审计SHA
+ef89475e1ea62c232dc252d9a5db4222cc32094c538261d3a671e2c412f2f942。
+
+物理U15002.786413917318 GPU-s；每原生绑定有效请求3.7506966034793296。
+n_correct=null，独立数值正确性仍未知。TTFT达成3621/4000=90.525%，
+TPOT及联合达成均0/4000。平均/P95 TTFT12703.241553/108622.310698ms，
+TPOT78.707421/184.226665ms，E2E21810.245158/132783.470631ms。
+首500条平均TTFT99132.223173ms，末500条238.882876ms、TPOT59.545626ms；
+仅为描述性分段，不扣除启动或当成独立重复。3B GQA/BMM而非7B packed
+BGMV/unified paging的机制范围保留，不外推本机低SLO为普遍机制缺陷。
+
+launch pass/rc0/service_path_removed/native_gpu_context_release_confirmed均通过；
+close_launch成功，stop_remote session88167完成，自有三个远端服务已停止。
+analysis8970与seal35108完成，analysis/result空域已关闭。服务峰值62243557376B，
+分析634732544B、封存164806656B，high/max/OOM/swap均0。未改共享k3s。
+封存在paper_results/ieee_tc/baseline_audit/d771_slora_3b_full_w0_binding/gpu_full4000。
+
+缓存回收session70047已结束：4000重复文件与保留原件逐字节一致，回收
+19497254912B，剩余163416793088B；gpu_cache空域已关闭。只删除
+/tmp/tc-d771-3bs/remote_artifacts/objects；原始测量/失败证据、唯一池、
+D768 source_view及145旧产物不变。尚不启动下一GPU。
+下一D772为S-LoRA 3B W1（尚未创建/启动），复用本轮相同native配置和
+ServerlessLLM D765既有W1变换；之后W2、dLoRA既定3B W1/W2、Loquetier/
+HydraServe 3B，再对照完整可用基线开展PrimeLoRA必要优化。
+
+已完成的7B基线、ServerlessLLM/vLLM 3B及本轮W0不重复。最终同版本7B
+主表/Full、A1–A5、S1–S13、CE/Pareto、两轮审稿文档和最终图表全部保留。
+目标active；完整W0不等于跨场景达标或全部实验完成。V2仍存在远端分歧，
+将按既有非force唯一备份分支保存本轮检查点，不声称V2已同步。
+
+## 2026-10-23 21:45 CST D771：完整W0响应超过一半（VERIFIED WAIT）
+
+上一目标轮为已核实等待，本轮仍为VERIFIED WAIT。完整PLAN已重新阅读，
+按monitor-experiment多次检查实际tmux/服务身份及不断增长的请求记录。
+21:45:32，tc-d771-slora-3b-full-w0/pane PID2197321/pane_dead0仍在；
+服务primelora-tc-svc-2941fed4f23f4fd4a5a2561b104710c1.scope为active，
+InvocationID仍d76f772dfe2b47029da7c2ea339eea75。2026创建、2011响应、
+2011在线protocol_valid、0 error，总计划4000。没有终态或新性能结果。
+
+资源sample1955：服务57.913467GiB、主机可用63.995914GiB、磁盘
+134.215206GiB；high/max/OOM/oom_kill/swap0，无warning/abort。
+测量继续，未改代码/配置/到达/阈值，未重启、并发扫描、清理、构建或推送，
+未调整远端；原始启动等待和后续服务全部保留。无活动exec/wait；持续运行
+的是同一tmux实验，不因本轮交接而重新启动。终态后仍依次实际释放、停本轮
+自有远端服务、受限分析真实outcome、封存和安全回收重复缓存。
+
+完整W0之后为S-LoRA W1/W2及其余既定3B基线，再集中PrimeLoRA必要优化。
+最终同版本7B主表/Full、A1–A5、S1–S13、CE/Pareto、两轮审稿文档与最终
+图表完整保留；目标active，正常运行等待不是blocker或完成。
+
+## 2026-10-23 21:31 CST D771：同一完整W0继续回放（VERIFIED WAIT）
+
+本轮重新完整读取PLAN并按monitor-experiment观察实际进程。上一轮为PROGRESS
+（D770完整收尾/封存/备份/回收以及D771启动），本轮为VERIFIED WAIT：
+tmux tc-d771-slora-3b-full-w0仍在，pane PID2197321/pane_dead0；实际服务
+primelora-tc-svc-2941fed4f23f4fd4a5a2561b104710c1.scope保持active，
+InvocationID仍d76f772dfe2b47029da7c2ea339eea75。21:31:53最新计数1030创建、
+1016响应、1016在线protocol_valid、0 error，总计划4000。它仍非终态，
+不得将前1000完成当作D771全量完成或与D770混用。
+
+最近资源sample1134：服务57.886673GiB，主机可用64.096645GiB，磁盘
+134.229603GiB，high/max/OOM/oom_kill/swap均0，无warning/abort。
+真实启动积压未扣除，未重启、调参、改变到达/SLO或并发维护；远端自有
+artifact服务及monitor继续供同一实验使用，运行中不停止或改动。
+无活动exec/wait会话；实际实验继续在tmux。下一继续观察同一handle至终态，
+再按既有close_launch→stop_remote→run_analysis真实outcome流程收尾。
+
+D770已完成并备份，D771仍未完成。下一S-LoRA W1/W2、既定其余3B基线，
+之后PrimeLoRA必要优化；最终同版本7B Full、A1–A5、S1–S13、CE/Pareto、
+审稿文档/最终图表完整保留，目标active，不因正常等待标blocked。
+
+## 2026-10-23 D771：完整4000请求W0已实际启动（PROGRESS）
+
+21:12 CST：D770完整1000前缀结果/回收与D771完整W0绑定的50明确路径已
+提交MAIN cfd9663a621a1eb793e476907014c46484f6cd72，已推送并验证
+faaslora_origin/backup/d770-prefix1000-d771-fullw0-20261023。
+BASE 84bb7892b4aade6bed0b898fb99d1f6074073a10与origin/main一致；用户修改
+未stage，无force，V2仍未同步。publication7952已结束/空域关闭；starter42497
+已结束/start空域关闭，峰值148566016B、事件/swap0，无活动exec/wait。
+
+D771运行在tmux tc-d771-slora-3b-full-w0，pane PID2197321；RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d771_20261023。
+实际服务scope primelora-tc-svc-2941fed4f23f4fd4a5a2561b104710c1.scope，
+InvocationID d76f772dfe2b47029da7c2ea339eea75、inode31109370；回放aux
+primelora-tc-aux-d7710000000000000000000000000004.scope。
+最新核对active、sample35，当前完整静态池准备阶段，尚无终态结果。相同
+native配置/D768 source_view，原W0 4000条/132IDs/458224目标tokens；
+view SHA0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37。
+真实远端已发布gzip，3B clock remote-process-monotonic:b717307e1e064ffabac1906f12c35b3c；
+远端只启动自有两artifact服务和本轮monitor，不按请求打包，不改共享k3s。
+
+服务72/80GiB/swap2GiB，回放3/4GiB/swap0，CPU分离/watchdog，初期事件0。
+继续同一实际tmux，不重启、不并发另一个模型；测量中不扫描/清理/备份/构建/
+修改远端。自然终态后close_launch→stop_remote→受限run_analysis --outcome
+实际结果→封存解释/备份→安全回收已证明重复缓存。D770已完整封存不重跑。
+
+下一同配置S-LoRA W1/W2，再补齐既定3B基线（dLoRA限W1/W2、Loquetier、
+HydraServe），之后集中PrimeLoRA必要优化/跨场景。最终同版本7B主表/Full、
+A1–A5、S1–S13、CE/Pareto、两轮审稿文档及最终图表均保留，目标active。
+
 ## 2026-10-23 D770：原1000前缀已完成、审计封存并回收重复缓存（PROGRESS）
 
 21:04 CST实际终态：1000计划/到达/提交/终态/响应、0失败；1000条原生重新
