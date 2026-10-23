@@ -1,0 +1,58 @@
+"""Reuse explicit-path checkpoint utilities for the unchanged S-LoRA W1 binding."""
+import hashlib
+from pathlib import Path
+
+original=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data=original.read_bytes()
+assert hashlib.sha256(data).hexdigest()=='1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+exec(compile(data.decode().split('own=p.scope_identity')[0],str(original),'exec'))
+PREV=RAW.parent/'d771_20261023'
+OUT=MAIN/'paper_results/ieee_tc/baseline_audit/d772_slora_3b_w1_binding'
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for folder,names in ((PREV,('analysis','result','gpu_cache','gpu_publication')),(RAW,('qualification',))):
+    for name in names:
+        closed=read(folder/(name+'_closure.json'))
+        assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+q=read(RAW/'qualification.json')
+assert q['passed'] and q['input_identity']['profile']=='W1'
+for name,digest in (q['refs']|q['protected']|q['preserved']).items():
+    assert p.digest(Path(name))==digest,name
+assert call(MAIN,'git','rev-parse','HEAD')=='9513a5af6a57456ef2aee2ae7d0b1b902c7bf55b'
+basehead=call(BASE,'git','rev-parse','HEAD')
+assert basehead=='84bb7892b4aade6bed0b898fb99d1f6074073a10'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0]==basehead
+OUT.mkdir(parents=True,exist_ok=False)
+sources=sorted(RAW.glob('*.py'))+sorted(RAW.glob('*.sh'))
+sources += [RAW/name for name in ('qualification.json','qualification_closure.json','native_3b.json','http_3b_4000.json')]
+sources += [PREV/name for name in ('gpu_publication_receipt.json','gpu_publication_closure.json')]
+mapping=copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(passed=True,files=mapping,qualification_reused_from='D771',
+    workload='W1',requests=4000,actual_unique_adapters=132,target_tokens=458224,
+    gpu_run_started=False,baseline_head=basehead,plan_sha256=p.check_plan(),
+    protected_unchanged=len(q['protected']),no_new_trace_or_weights=True,
+    independent_numerical_correctness_proven=False))
+paths=[MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',MAIN/'docs/ieee_tc/D772_SLORA_3B_W1_20261023.md',*sorted(OUT.iterdir())]
+relative=[str(path.relative_to(MAIN)) for path in paths]
+assert len(relative)==len(set(relative)) and not call(MAIN,'git','diff','--cached','--name-only')
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in paths:
+    assert path.is_file() and path.stat().st_size<2*1024*1024,path
+    assert not secret.search(path.read_text()),path
+call(MAIN,'git','add','--',*relative)
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines())==set(relative)
+call(MAIN,'git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof,cr-at-eol','diff','--cached','--check')
+call(MAIN,'git','commit','-m','tc: bind unchanged S-LoRA 3B W1 continuation (D772)')
+head=call(MAIN,'git','rev-parse','HEAD')
+ref='refs/heads/backup/d772-slora-3b-w1-binding-20261023'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0]==head
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,remote_ref=ref,
+    baseline_head=basehead,force_push=False,v2_synchronized=False,paths=relative,
+    protected_unchanged=len(q['protected']),resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,head=head,remote_ref=ref,baseline_head=basehead,paths=len(relative))))

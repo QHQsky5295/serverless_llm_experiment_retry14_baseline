@@ -1,5 +1,40 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D772：S-LoRA 3B W1输入绑定完成（PROGRESS）
+
+上一轮为实质进展：D771完整W0终态、核验/解释/封存、缓存回收与备份。
+本轮完整读取PLAN并核对当前空闲GPU、资源、HEAD和最新状态后，复用D771
+helpers/config及D768 source_view准备同配置W1，不改推理/调度，不新增
+资格测试或基线性能搜索。prepare已成功，qualification空域关闭。
+
+W1绑定与ServerlessLLM D765一致：4000条、132实际IDs、458224目标tokens，
+view SHA8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f。
+native配置仍SHA6a9b353554bd7c51312055ef7ea6ce7235c252c9461a0d83f9f8836f9682b85a。
+使用既有trace_w1_v1变换，分析入口明确full4000_w1，不把W1当W0统计。
+没有新权重/完整负载文件；D771和历史结果不覆盖。当前仅绑定通过，尚无
+GPU运行或结果。下一明确路径备份后启动tmux tc-d772-slora-3b-full-w1。
+
+本轮只有场景与运行身份变化，复用57CPU资格及已有功能/完整W0证据；
+独立数值正确性仍未知，3B BMM机制范围保留。共享k3s不动，真实远端仍为
+通知前已发布gzip，服务资源包络和安全阈值不变。其后同配置W2、既定其余
+3B基线、PrimeLoRA必要优化、同版本7B主表/Full、A1–A5、S1–S13、CE/Pareto、
+两轮审稿文档和最终图表完整保留，目标active。
+
+## 2026-10-23 D771检查点已远端备份，下一为S-LoRA 3B W1
+
+MAIN提交9513a5af6a57456ef2aee2ae7d0b1b902c7bf55b的33明确路径已推送并验证
+faaslora_origin/backup/d771-slora-3b-fullw0-20261023。BASE仍为
+84bb7892b4aade6bed0b898fb99d1f6074073a10，与origin/main一致。用户manifest
+未stage，旧145产物不变，无force；V2仍未同步。publication3973已结束，
+gpu_publication空域已关闭，全部D771工具会话和服务均已结束，无活动GPU。
+本轮实际进展为完整W0完成、分析/解释/封存、重复缓存回收及远端备份。
+
+下次直接准备D772 S-LoRA 3B W1（尚未创建），复用D771的native配置/D768
+source_view和ServerlessLLM D765的既有W1输入变换。不要重跑D771，不重复
+CPU资格，不因本轮0%联合SLO另开基线搜索。先完整读取PLAN及最新状态，
+遵守既定资源、指标、保真和缓存规则。其后W2及其他3B基线、PrimeLoRA
+必要优化与全部既定消融/敏感性/文档/图表仍待完成；整体目标active。
+
 ## 2026-10-23 22:20 CST D771：完整W0已完成并封存（PROGRESS）
 
 本轮从2384响应持续观察至4000，未重启或修改正在测量的系统。22:20实际终态：
