@@ -1,0 +1,32 @@
+{
+  "schema": "ieee_tc_full_workload_observation_v1",
+  "system": "S-LoRA",
+  "model": "3B",
+  "workload": "W2",
+  "complete_attempt": true,
+  "workload_passed": true,
+  "formal_run": false,
+  "performance_ranking_eligible": false,
+  "counts": {
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0,
+    "N_submitted": 4000
+  },
+  "native_revalidated_requests": 4000,
+  "actual_native_output_tokens": 458224,
+  "offered_unique_adapters": 497,
+  "prepared_pool_count": 500,
+  "n_correct": null,
+  "independent_numerical_correctness_proven": false,
+  "physical_gpu_seconds_total": 15003.934758741409,
+  "input_mode": "canonical_token_ids_v1",
+  "conclusion": "All 4000 existing W2 requests complete under the same canonical-input and native-output contract; no native inference or scheduling change.",
+  "scope": "Complete W2 development observation; native binding and measurement pass; service-quality outcomes are recorded in the audit; independent numerical correctness remains unknown.",
+  "audit_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d773_20261023/audit_full4000.json",
+  "audit_sha256": "137195f249d737a61e27372a7b28c79a7a0a24e30370f296b0a37582522db51d",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+}

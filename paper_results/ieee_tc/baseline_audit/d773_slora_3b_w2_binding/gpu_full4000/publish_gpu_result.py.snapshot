@@ -1,0 +1,20 @@
+"""Reuse D772 explicit-path backup after D773 release, audit, and safe cleanup."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d772_20261023/publish_gpu_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1173c3b685efe2b84cb146f4e807a5473264a18ad4d29b2700f186e06cd9c371'
+source = data.decode()
+changes = {
+    'D772 full W1': 'D773 full W2',
+    'd772_slora_3b_w1_binding': 'd773_slora_3b_w2_binding',
+    'b20d5b9969b4e7580ea58f32cb4b3d705d2f2ee9': 'f48d38114bb8db64b7eacddac6e37aca7b113117',
+    "MAIN/'docs/ieee_tc/D772_SLORA_3B_W1_20261023.md',": "MAIN/'docs/ieee_tc/D773_SLORA_3B_W2_20261023.md',\n    MAIN/'docs/ieee_tc/DLORA_3B_REUSE_REVIEW_20261023.md',",
+    'tc: seal complete S-LoRA 3B W1 observation and cleanup (D772)': 'tc: seal complete S-LoRA 3B W2 and dLoRA reuse evidence (D773)',
+    'refs/heads/backup/d772-slora-3b-fullw1-20261023': 'refs/heads/backup/d773-slora-3b-fullw2-20261024',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

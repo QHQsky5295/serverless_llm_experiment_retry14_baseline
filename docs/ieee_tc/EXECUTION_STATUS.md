@@ -1,5 +1,288 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-24 00:39 CST：D773完整W2已封存/回收，准备检查点备份（PROGRESS）
+
+本轮完整重读PLAN、最新执行规则、冻结V1/单轮V2；使用analyze-results和
+github-sync完成结果解释与显式路径备份准备。D773于00:31真实终态：4000
+响应/原生协议有效、0错误，458224输出tokens、497实际adapter IDs；服务
+退出并实际释放GPU。本轮空域关闭后才停止本项目远端服务、保存传输/监控。
+
+aux5完整分析和aux6封存通过：TTFT均值12525.430755/P95 108627.538335ms，
+TPOT均值77.041881/P95 180.147385ms，E2E均值21441.331524ms；TTFT达成
+90.575%，TPOT/联合0%。U=15003.934758741409 GPU-s，每binding-valid请求
+3.750983689685352；N_correct仍null，独立数值正确性未知，不进入达标排名。
+服务峰值62157459456bytes，high/max/OOM/swap均0；计时恒等式/TPOT重算
+误差0。audit SHA 137195f249d737a61e27372a7b28c79a7a0a24e30370f296b0a37582522db51d。
+前500条平均TTFT97.926828s、末500条0.230766s；末500条TPOT仍58.365527ms。
+保留启动和decode两类限制，不剔除开头、不据差结果做基线调参。
+
+aux7已按现有D532/D769规则重核字节、保留副本及引用，仅回收本轮4000个
+重复下载文件，观测释放19497299968bytes；回收后可用162954588160bytes。
+原始结果、唯一工件、145项旧投稿保护及用户修改保留。analysis/result/
+gpu_cache实际空域已关闭；无活动GPU任务。原三个exec会话均已结束。
+
+当前正在执行下一步aux8显式路径备份，拟ref
+backup/d773-slora-3b-fullw2-20261024；此条不预称推送成功，待实际回执。
+MAIN启动前f48d38114bb8db64b7eacddac6e37aca7b113117，BASE保持
+84bb7892b4aade6bed0b898fb99d1f6074073a10。V2仍未同步，不force。
+S-LoRA 3B W0/W1/W2现均已完成，不重复。dLoRA复用说明随结果备份。
+
+下一进入dLoRA限定3B W1/W2必要原生计量/生命周期适配；复用历史DP2/TP1
+及工件/负载，不调用旧全局Ray清理、不作性能搜索。随后Loquetier/HydraServe
+3B必要资格与完整对照，再据全部可用结果优化PrimeLoRA。现有他项目k3s
+不动。同版本Full主表/消融、A1–A5、S1–S13、CE/Pareto、两轮审稿文档和
+最终图表全部未删减；整体目标active，本轮为实际封存进展而非目标完成。
+
+## 2026-10-24 00:20 CST D773：3557响应，原到达窗口继续（VERIFIED WAIT）
+
+上一轮PROGRESS准备收尾。本轮完整重读PLAN及最新状态、monitor-experiment，
+只监测同一服务；00:20:32仍active、InvocationID
+f6d3fce3342a40c89b67e6769e99cccd。3567创建、3557响应/在线协议有效、
+0错误；00:19 tmux pane2512655仍live，随后同服务继续产生响应。
+sample3351服务57.874191GiB、主机可用63.756901GiB、磁盘133.767330GiB；
+high/max/OOM/swap均0，无warning/abort。45秒等待已返回，无活动exec/wait
+会话；原tmux/aux4继续，不重启、不压缩末段到达时间、不提前收尾。
+
+本轮未改源码/配置，未运行封存、回收、备份、资格或维护远端。实际终态后
+按00:17条目收尾，三个helper已准备但未执行。随后仍完成dLoRA 3B W1/W2、
+Loquetier/HydraServe 3B，再PrimeLoRA必要优化；全计划未完成范围保持，
+共享k3s不动，目标active，当前是有实际进程支持的测量等待。
+
+## 2026-10-24 00:17 CST：D773继续，终态收尾脚本已准备（PROGRESS）
+
+上一轮PROGRESS明确dLoRA旧probe覆盖。本轮完整重读PLAN、最新状态、冻结
+V1/单轮V2和相关执行规则，monitor-experiment核对同一在测服务。00:17:55
+服务active，InvocationID仍f6d3fce3342a40c89b67e6769e99cccd；3478创建、
+3468响应/在线协议有效、0错误。sample3197服务57.873547GiB、主机可用
+63.773220GiB、磁盘133.770836GiB；high/max/OOM/swap均0，无warning/abort。
+仍非终态，不重启、不提前统计完整性能。00:14 tmux pane2512655确认live。
+
+RAW新增seal_result.py、reclaim_gpu_cache.py、publish_gpu_result.py，直接
+复用已检查的固定D769/D772/D764模板。仅更新本轮路径、W2/497/458224身份、
+MAIN预期f48d381、dLoRA复用说明显式备份路径和唯一backup ref；封存scope
+不预设SLO胜负。三个helper及替换展开语法均通过，检查只执行导入stdlib/
+小型模板SHA/替换/AST，不执行底层工作流。D773文档已说明“准备未执行”。
+没有在测源码/配置改变，没有扫描、缓存回收、重型测试、备份或远端维护。
+
+无活动exec/wait工具会话；既有tmux/aux4继续。下一真实终态/GPU释放后：
+close_launch.py→stop_remote.sh→aux5 run_analysis.py --outcome实际状态
+（population已固定full4000_w2）→close.py analysis→核查完整audit→aux6
+seal_result.py/close result→aux7 reclaim_gpu_cache.py/close gpu_cache→
+解释/更新文档→aux8 publish_gpu_result.py/close gpu_publication。
+新结果分支为backup/d773-slora-3b-fullw2-20261024，不force；V2仍未同步。
+当前磁盘高于停止线，但新重型任务须等收尾安全回收及重新准入。
+
+然后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格与完整对照，
+再PrimeLoRA必要优化。同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档
+及最终图表全部保留；共享k3s不动，整体目标active。
+
+## 2026-10-24 00:13 CST：D773继续；明确dLoRA旧加载检查覆盖（PROGRESS）
+
+上一轮VERIFIED WAIT。本轮完整重读PLAN、最新状态，按monitor-experiment
+持续监测同一运行；按analyze-results核对旧加载检查脚本与历史说明的范围。
+00:13:50服务仍active，InvocationID f6d3fce3342a40c89b67e6769e99cccd，
+tmux pane2512655 live；3214创建、3211响应/在线协议有效、0错误。
+sample2955服务57.864052GiB、主机可用63.787853GiB、磁盘133.777290GiB，
+high/max/OOM/swap均0，无warning/abort。仍未终态，不重复启动。
+
+DLORA_3B_REUSE_REVIEW新增第6节：完整读取既有probe发现，加载集合默认2，
+但数值差比较仅第一个adapter第一层q/o四个A/B切片；另检查第一层MLP缓冲
+为0。不能以历史说明代替全部q/k/v/o/层/adapter覆盖证明。本次未执行probe、
+未核对历史原始probe JSON；只收窄复用结论，后续复用骨架补必要缺项，不
+宣称加载错误或新增性能搜索。仅文档改变，diff --check通过；没有源码变更、
+环境导入、GPU资格、构建、清理、备份或远端维护。两个45秒等待均结束，
+无活动exec/wait工具会话；既有tmux/aux4继续。
+
+下一继续D773至实际终态/释放，再close_launch→stop_remote→受限
+full4000_w2分析→封存解释→重复缓存安全回收及检查点备份，包含新增复用说明。
+后续dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格和完整比较，
+再PrimeLoRA必要优化；同版本Full、A1–A5、S1–S13、CE/Pareto、两轮审稿
+文档及最终图表不删除。共享k3s不动，目标active。
+
+## 2026-10-24 00:09 CST D773：W2已返回2965条，仍为同一完整回放（VERIFIED WAIT）
+
+本轮完整重读PLAN和最新状态，按monitor-experiment核对同一运行。
+00:09:30服务active，InvocationID仍f6d3fce3342a40c89b67e6769e99cccd；
+tmux pane2512655仍live。2970创建、2965响应/在线协议有效、0错误，
+较00:08的2891/2879继续推进。sample2698服务57.857311GiB、主机可用
+63.827084GiB、磁盘133.778587GiB；high/max/OOM/swap均0，无warning/abort。
+未结束，不能提前给出完整SLO、物理GPU积分或独立数值正确性结论。
+
+只核对既有run3b、close_launch和stop_remote入口；没有执行收尾、重启、
+源码修改、新资格、性能搜索、扫描、清理、构建、备份或远端维护。
+45秒等待已结束，无活动exec/wait工具会话；既有tmux/aux4继续运行。
+下一仍待真实终态/GPU释放，再关闭本轮空域及远端服务、受限full4000_w2
+分析、封存解释、重复缓存回收与正常备份。之后按dLoRA 3B W1/W2、
+Loquetier/HydraServe 3B、PrimeLoRA必要优化推进；同版本Full、A1–A5、
+S1–S13、CE/Pareto、两轮审稿文档和图表全部保留。共享k3s不动，目标active。
+
+## 2026-10-24 00:03 CST D773：同一W2已返回2521条，继续完整测量（VERIFIED WAIT）
+
+上一轮PROGRESS已完成dLoRA历史容量/迁移补充核查。本轮完整重读PLAN及最新
+状态和monitor-experiment；只继续轻量监测，并定位现有native-http-service、
+prepare_slora_full_pool/PublishedArtifactResolver、原生观察与请求计量接口。
+没有修改源码、导入推理环境、运行新资格或开始dLoRA性能搜索。
+
+00:03:11同一实际服务active，InvocationID仍f6d3fce3342a40c89b67e6769e99cccd；
+2527创建、2521响应/在线协议有效、0错误。sample2324服务57.845680GiB、
+主机可用63.869759GiB、磁盘133.786186GiB，high/max/OOM/swap均0，无
+warning/abort。此前00:01为2399/2393，响应继续增加，未终态、不重启。
+本轮45秒等待已结束，无活动exec/wait工具会话；tmux和aux4继续执行。
+
+继续同一D773至实际终态/释放，随后close_launch、stop_remote、受限
+full4000_w2分析、封存解释、重复缓存安全回收和正常检查点备份。测量期间
+不扫描/清理/构建/推送或维护远端；当前磁盘仍高于停止线、低于新重型启动线。
+其后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格及完整比较，再
+PrimeLoRA必要优化；同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档及
+最终图表均保留。共享k3s不动，目标active，部分请求不能证明完整G1/G2。
+
+## 2026-10-23 23:59 CST：D773继续；dLoRA实际容量/迁移证据已定位（PROGRESS）
+
+上一轮为PROGRESS：完成旧计量R2复用判断。本轮先完整重读PLAN及最新状态、
+monitor-experiment，确认同一D773仍live，没有重启。23:59:18服务仍active、
+InvocationID f6d3fce3342a40c89b67e6769e99cccd；2218创建、2209响应/在线协议
+有效、0错误。sample2095服务57.837608GiB、主机可用63.820866GiB、磁盘
+133.791553GiB，high/max/OOM/swap均0，无warning/abort。完整结果仍未结束。
+
+在轻量只读范围完整检查dLoRA两份历史适配补丁、EngineManager、容量分配和
+请求流迁移；在线核对固定官方源码。将新增证据写入DLORA_3B_REUSE_REVIEW
+第5节：旧日志实际放置501份，两组251/250；原生容量由放置列表长度更新，
+命令行gpu_capacity=8不能当实际上限。旧日志2966–2971确有KV触发、ILP求解
+及move 2 requests from 0 to 1，支持迁移决策触发，不冒称两请求迁移完成/
+数值连续性已验证。请求迁移搬移同一AsyncStream，是保持计时身份的已有载体。
+历史放置补丁含集合查询和无进展终止/遍历修正，不能笼统称wrapper-only；
+后续做必要路径核验，不换调度/迁移算法、不新增基线配置搜索。既有PEFT probe
+可复用；实际环境仍以manifest的dlora_medusa_clone_20260519为准。
+
+只有文档新增与已有日志读取，没有源码/配置变更、环境导入、资格/GPU新运行、
+扫描/清理/构建/备份/远端维护。无活动exec/wait工具会话；D773在既有tmux和
+aux4继续。下一继续同一运行至真实终态/GPU释放，再close_launch→stop_remote
+→受限full4000_w2分析→封存解释→安全重复缓存回收/备份。当前磁盘不允许
+新重型任务，但高于既定停止线，不在性能期间清理。
+
+其后仍为dLoRA限定3B W1/W2必要计量/生命周期适配、Loquetier/HydraServe
+3B必要资格与完整比较、PrimeLoRA据全套结果必要优化。同版本Full主表/消融、
+A1–A5、S1–S13、CE/Pareto、两轮审稿文档和最终图表全部保留；共享k3s不动。
+整体目标active，不因本次静态核查或部分响应宣称完整性能/资格/目标已完成。
+
+## 2026-10-23 23:54 CST：D773继续；dLoRA历史复用边界已核实（PROGRESS）
+
+本轮完整重读PLAN、最新状态、执行补充和冻结V1/单轮V2，使用monitor-experiment
+跟踪同一运行、analyze-results整理旧数据的测量适用范围。未启动新GPU实验、
+未修改任何被测源码/配置/远端，也未进行扫描、构建、清理或备份。
+
+D773仍active，InvocationID f6d3fce3342a40c89b67e6769e99cccd，tmux
+tc-d773-slora-3b-full-w2的pane2512655仍live。23:54:04已有1823创建、1812
+响应及在线协议有效、0错误；sample1784服务57.827671GiB、主机可用
+63.884113GiB、磁盘133.798580GiB，high/max/OOM/swap均0，无warning/abort。
+不从未完成回放推断最终SLO、生命周期积分或独立数值正确性。无活动exec/wait
+工具会话；实际回放继续在既有tmux/aux4，不重复运行start.py。
+
+新增docs/ieee_tc/DLORA_3B_REUSE_REVIEW_20261023.md：直接核查旧4000条请求，
+全部stream_event_count=1、tpot_observed=true为0、非空server_metrics为0。
+本地RequestTracker及固定官方commit均只在finished时向请求流发送输出。
+旧平均“TTFT”11162.4256ms接近E2E11162.7033ms，不能用作本轮原生TTFT。
+服务日志的完成态wait_time_per_output_token也不是TPOT，定向检索未找到
+首末token原生日志；不声称已穷尽所有历史文件。旧输出458533与当前458224
+不符，旧W0及资源/准备合同不同，因此当前W1/W2复用等级R2，非改统计即可R1。
+环境从实际MANIFEST确认是dlora_medusa_clone_20260519；不能误用推测名称。
+复用DP2/TP1、period-migration既有配置及资产，不重复DP4主机OOM和7B零
+KV-block方向。旧wrapper的全局ray stop/auto地址不能原样执行；初始化放置
+兼容补丁仍须具体核查，不能凭旧wrapper-only说明提前宣称完整机制保真。
+
+下一仍先完成D773真实终态/释放，再close_launch、stop_remote、受限
+full4000_w2分析、封存解释、安全回收重复缓存及备份；新文档随正常检查点
+备份，不在性能期间push。之后dLoRA限定3B W1/W2必要计量/生命周期适配，
+Loquetier/HydraServe 3B必要资格和完整比较，再PrimeLoRA有证据优化。
+同版本Full主表/消融、A1–A5、S1–S13、CE/Pareto、两轮审稿文档及最终图表
+全部保留；共享k3s不动。整体目标active，此项复用核查不是新性能结果或完成。
+
+## 2026-10-23 23:39 CST D773：同一W2仍在执行，已有756响应（VERIFIED WAIT）
+
+上一轮VERIFIED WAIT。本轮完整重读PLAN和最新状态、monitor-experiment技能，
+持续核查同一实际scope与tmux；23:38:42服务仍active，InvocationID仍
+f6d3fce3342a40c89b67e6769e99cccd，pane2512655仍live，未重启。
+sample876为765创建、756响应且在线协议有效、0错误。此前sample694为518/491，
+sample763为566/561，sample820为670/662，响应持续增加；完整4000尚未结束。
+服务57.798389GiB、主机可用63.740822GiB、磁盘133.819733GiB；high/max/OOM/
+swap均0，无warning/abort。未从部分请求推断完整SLO、生命周期积分或数值
+正确性。继续保留初始等待和所有后续热点轮换，不提前截断以减少资源账目。
+
+本轮只有轻量日志监测和本记录，无源码/运行参数变更、无备份/扫描/清理/
+构建/远端维护或并行GPU任务。无活动exec/wait工具会话；实际运行继续在
+tmux tc-d773-slora-3b-full-w2及既有aux4，不重新运行start.py。
+下一实际终态与释放后仍按23:29条目收尾：close_launch→stop_remote→受限
+full4000_w2分析→封存解释→安全重复缓存回收与备份。
+
+其后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格和完整比较，再据
+证据优化PrimeLoRA；同版本Full主比较/消融、A1–A5、S1–S13、CE/Pareto、
+两轮审稿文档和最终图表全部保留。目标active，当前是合法测量等待，不是
+阻塞，也不意味着G1/G2或完整实验目标已实现。
+
+## 2026-10-23 23:34 CST D773：同一W2回放继续，启动积压减少（VERIFIED WAIT）
+
+上一轮为VERIFIED WAIT；本轮重新完整读取PLAN和最新状态、monitor-experiment
+技能，只检查同一实际服务/tmux及轻量已有日志。23:34:20服务仍active，
+InvocationID仍f6d3fce3342a40c89b67e6769e99cccd，tmux pane2512655仍live。
+sample617：460创建、403响应、403在线协议有效、0错误。服务57.792675GiB、
+主机可用63.955730GiB、磁盘133.822468GiB，high/max/OOM/swap均0，无告警
+或中止。sample485为359/198、sample553为418/311，尚未返回数161→107→57。
+只据此说明回放推进；完整SLO、资源积分与独立数值正确性仍未作终态判断。
+
+没有源码/配置变更、重复启动、新资格或基线性能搜索；无活动exec/wait工具
+会话。既有tmux及aux4继续测量，不能因本轮结束而重启。未在性能运行期间
+备份、扫描、清理、构建或维护远端；磁盘高于100GiB停止线但低于150GiB新
+重型任务启动线，收尾后才按既有依据处理重复缓存。
+
+下一仍监测D773至实际终态/GPU释放，再按23:29条目close_launch、stop_remote、
+受限full4000_w2分析、封存解释、回收与备份。之后dLoRA限定3B W1/W2、
+Loquetier/HydraServe 3B必要资格与完整比较，随后PrimeLoRA必要优化；同版本
+Full、A1–A5、S1–S13、CE/Pareto、审稿文档和最终图表均保留。整体目标active，
+等待是仍在执行的完整实验，不是外部阻塞或整体完成。
+
+## 2026-10-23 23:31 CST D773：同一W2运行持续推进（VERIFIED WAIT）
+
+23:30:57复核实际服务仍active，InvocationID仍
+f6d3fce3342a40c89b67e6769e99cccd；tmux pane2512655仍live。sample416：
+285创建、115响应、115在线协议有效、0错误；服务51.765858GiB、主机可用
+69.722431GiB、磁盘133.834843GiB，high/max/OOM/swap均0，无warning/abort。
+此前147/18继续增加，不是停滞或完成。没有活动exec/wait工具会话，实际回放
+在既有tmux及aux4继续，不能重复启动。此轮只补运行记录和检查轻量日志；
+完整结果、独立数值正确性和SLO判定仍待终态核验。
+
+下一继续23:29条目规定的同一运行监测与终态收尾，不扫盘、不清理、不维护
+远端、不新增资格或基线调参。其后dLoRA限定3B W1/W2、Loquetier/HydraServe
+3B、PrimeLoRA完整比较及必要优化；同版本Full、A1–A5、S1–S13、CE/Pareto、
+审稿文档和最终图表全部保留，目标active。
+
+## 2026-10-23 23:29 CST D773：S-LoRA 3B W2已实际启动（PROGRESS）
+
+本次绑定已提交MAIN f48d38114bb8db64b7eacddac6e37aca7b113117，推送并验证
+faaslora_origin/backup/d773-slora-3b-w2-binding-20261023；BASE仍
+84bb7892b4aade6bed0b898fb99d1f6074073a10。无force、未stage用户修改，V2仍未
+同步。qualification84978、backup93967、starter69842已结束，对应空域关闭。
+
+D773已于23:23启动，不能再次启动。tmux tc-d773-slora-3b-full-w2仍live，
+pane PID2512655；实际服务primelora-tc-svc-8e5a2057abe0485eaef0654a16809e28.scope，
+InvocationID f6d3fce3342a40c89b67e6769e99cccd，inode31172378。
+外置回放primelora-tc-aux-d7730000000000000000000000000004.scope。
+启动前链路实测1000Mb/s/full，复用D78/D80已发布gzip，没有请求内打包。
+
+23:29最新watchdog sample303：147创建、18响应、18在线协议有效、0错误；
+服务36.457558GiB、主机可用86.394459GiB、磁盘133.836105GiB，high/max/OOM/
+swap均0，无warning/abort。此前sample263为117/6，响应继续增加。当前包含
+顺序启动积压，尚非完整结果；不删除等待、不改变配置或推断数值正确性。
+本轮完整重读PLAN、执行补充规则及monitor-experiment技能，复核同一实际
+handle；未修改源码或运行参数，未扫描/压缩/清理/推送或维护远端。
+
+下一继续观察同一运行至实际终态和GPU释放，再close_launch→stop_remote→
+受限full4000_w2分析、封存解释、安全重复缓存回收和备份。运行中磁盘高于
+100GiB停止线、低于150GiB新任务启动线，不在此时清理或启动下一重型任务。
+既有k3s属其他项目，不动；HydraServe已完成隔离路径继续复用，不重开基础适配。
+其后dLoRA限定3B W1/W2、Loquetier/HydraServe 3B必要资格及完整比较，随后
+PrimeLoRA必要优化。同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档和最终
+图表全部保留；目标active，本次实际启动不是整体完成。
+
 ## 2026-10-23 D773：S-LoRA 3B W2输入绑定已完成（PROGRESS）
 
 上一轮D772完整W1已终态、核验封存/解释、重复缓存回收并远端备份。本轮
