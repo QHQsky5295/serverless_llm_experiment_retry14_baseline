@@ -13,6 +13,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 import threading
@@ -26,6 +27,31 @@ V030_NATIVE_SOURCES = {
     'outputs.py': '346d1f9204a441867efc3af7c5a99d8a70ef0f69fe607dfa8a4a2557a82ca425',
     'v1/metrics/stats.py': 'af1983ddc32fa4d3284e72212c6525daf961dd84429023a02d612b68b3112cf3',
 }
+
+
+def configure_device_compile_cache(backend_config):
+    """Give independent TP1 engines distinct, persistent native cache roots.
+
+    vLLM 0.10.2 includes rank but not the assigned physical device in its cache
+    path. PyTorch 2.8 unpacked saves replace that directory non-atomically.
+    Native model/config/code hashing remains below this root. Never clear the
+    shared cache, disable compilation, or make a fresh cache for each run.
+    Assumes the native scheduler's exclusive one-engine-per-full-GPU allocation.
+    """
+    root = Path(backend_config['tc_device_compile_cache_root'])
+    device = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+    if (not root.is_absolute() or '..' in root.parts
+            or backend_config.get('tensor_parallel_size') != 1
+            or not re.fullmatch(r'(?:0|[1-9][0-9]*|GPU-[0-9a-fA-F-]+)', device)):
+        raise ValueError('device compile cache requires an absolute root and one assigned TP1 GPU')
+    hostname = os.uname().nodename
+    host_key = hashlib.sha256(hostname.encode()).hexdigest()[:16]
+    selected = root/host_key/('cuda-'+device)
+    os.environ['VLLM_CACHE_ROOT'] = str(selected)
+    return dict(contract='physical_device_compile_cache_v1', root=str(root),
+        hostname=hostname, cuda_visible=device, vllm_cache_root=str(selected),
+        native_config_code_hash_preserved=True, run_specific=False,
+        shared_cache_cleared=False, compilation_disabled=False)
 
 
 def record_backend_ready(backend, module_file):
@@ -58,6 +84,8 @@ def record_backend_ready(backend, module_file):
         checkpoint_path=config['checkpoint_path'], load_format=backend.engine_args.load_format,
         cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'), engine_present=True,
         enable_lora=backend.enable_lora)
+    if hasattr(backend, '_tc_compile_cache'):
+        row['compile_cache'] = backend._tc_compile_cache
     raw = json.dumps(row, sort_keys=True, separators=(',', ':')).encode()
     with (Path(config['root'])/(receipt_id+'.json')).open('xb') as handle:
         handle.write(raw)

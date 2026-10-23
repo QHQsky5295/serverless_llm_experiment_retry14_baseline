@@ -33,6 +33,58 @@ launch = load('tc_measurement_launch', ROOT / 'scripts/prepare_ieee_tc_serverles
 measurement = load('tc_measurement', ROOT / 'scripts/ieee_tc_serverless_measurement.py')
 
 
+class DeviceCompileCacheTests(unittest.TestCase):
+    def test_stable_device_roots_preserve_other_environment_and_config(self):
+        config = dict(tensor_parallel_size=1, tc_device_compile_cache_root='/owned/compiler-cache',
+                      enforce_eager=False, max_num_seqs=4)
+        before = dict(config)
+        with patch.dict(os.environ, {'CUDA_VISIBLE_DEVICES':'0','VLLM_CACHE_ROOT':'/old',
+                                    'VLLM_DISABLE_COMPILE_CACHE':'0'}):
+            first = measurement.configure_device_compile_cache(config)
+            self.assertEqual(first, measurement.configure_device_compile_cache(config))
+            self.assertEqual(os.environ['VLLM_CACHE_ROOT'], first['vllm_cache_root'])
+            os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+            second = measurement.configure_device_compile_cache(config)
+            self.assertNotEqual(first['vllm_cache_root'], second['vllm_cache_root'])
+            self.assertEqual(os.environ['VLLM_DISABLE_COMPILE_CACHE'], '0')
+            self.assertEqual(config, before)
+
+    def test_requires_single_owned_device_and_absolute_root(self):
+        config = dict(tensor_parallel_size=1,tc_device_compile_cache_root='/owned/compiler-cache')
+        for visible in ('', '0,1', '-1', '../../escape'):
+            with self.subTest(visible=visible), patch.dict(os.environ, {'CUDA_VISIBLE_DEVICES':visible}):
+                with self.assertRaises(ValueError):
+                    measurement.configure_device_compile_cache(config)
+        with patch.dict(os.environ, {'CUDA_VISIBLE_DEVICES':'0'}):
+            for change in ({'tensor_parallel_size':2},{'tc_device_compile_cache_root':'relative'},
+                           {'tc_device_compile_cache_root':'/owned/../escape'}):
+                with self.assertRaises(ValueError):
+                    measurement.configure_device_compile_cache(dict(config,**change))
+
+    def test_opt_in_source_only_changes_pre_engine_cache_ownership(self):
+        original = launch.measurement_sources(NATIVE,'repaired','request_identity_v1')
+        adapted = launch.measurement_sources(NATIVE,'repaired','request_identity_v1',device_compile_cache=True)
+        key = 'sllm/backends/vllm_backend.py'
+        added = ('        from sllm.backends.tc_measurement import configure_device_compile_cache\n'
+                 '        self._tc_compile_cache = configure_device_compile_cache(backend_config)\n')
+        self.assertEqual(adapted[key].replace(added,''),original[key])
+        self.assertLess(adapted[key].index('self._tc_compile_cache ='),
+                        adapted[key].index('self.engine_args = AsyncEngineArgs'))
+        for path in original:
+            if path != key:
+                self.assertEqual(original[path],adapted[path])
+        ast.parse(adapted[key])
+
+    def test_prepared_view_records_explicit_stable_cache_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)/'persistent-cache'
+            view = launch.prepare_measurement_view(NATIVE,Path(directory)/'view','repaired',MAIN,
+                'request_identity_v1',device_compile_cache_root=root)
+            self.assertEqual(view['device_compile_cache_root'],str(root))
+            self.assertEqual(view['compile_cache_contract'],'physical_device_compile_cache_v1')
+            self.assertFalse(root.exists())  # preparation neither compiles nor prewarms
+
+
 class PublishedResolverTests(unittest.IsolatedAsyncioTestCase):
     """Tiny real HTTP fixtures only, not production pool/performance runs."""
 
@@ -1004,6 +1056,14 @@ class NativeReadyReceiptTests(unittest.TestCase):
             with patch.object(owner, field, bad), self.assertRaisesRegex(ValueError, 'identity differs'):
                 self.record()
         self.assertEqual(list(Path(self.config['root']).iterdir()), [])
+
+    def test_compile_cache_identity_survives_ready_receipt(self):
+        self.backend._tc_compile_cache = {'contract':'physical_device_compile_cache_v1',
+                                         'vllm_cache_root':'/owned/cuda-0'}
+        result, control = self.observed()
+        launch.audit_backend_receipts(result,self.config,control['tc_clock_id'])
+        self.assertEqual(result['backend_ready_receipts'][0]['observation']['compile_cache'],
+                         self.backend._tc_compile_cache)
 
     def test_missing_modified_receipt_clock_and_instance_alias_are_rejected(self):
         result, control = self.observed()
