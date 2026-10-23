@@ -660,6 +660,7 @@ def dlora_native_worker_receipt(worker):
         cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'], cuda_device_count=1,
         global_rank=worker.rank, tensor_parallel_size=1, pipeline_parallel_size=1,
         model=worker.model_config.model, adapter_bindings=actual,
+        vocab_size=worker.model_config.hf_config.vocab_size,
         gpu_lora_models=list(worker.lora_engine.gpu_lora_models),
         actual_gpu_capacity=lora.gpu_capacity, num_gpu_blocks=cache.num_gpu_blocks,
         num_cpu_blocks=cache.num_cpu_blocks, native_torch_version=torch.__version__,

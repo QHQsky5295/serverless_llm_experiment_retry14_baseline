@@ -103,6 +103,8 @@ def validate_native_service_config(cfg, http):
         return validate_slora_service_config(cfg, http)
     if cfg.get('schema') == 'ieee_tc_loquetier_native_service_v1':
         return validate_loquetier_service_config(cfg, http)
+    if cfg.get('schema') == 'ieee_tc_dlora_native_service_v1':
+        return validate_dlora_service_config(cfg, http)
     if (cfg.get('schema') != 'ieee_tc_vllm_native_service_v1'
             or http.get('schema') != 'ieee_tc_vllm_http_replay_v1'
             or cfg.get('routing') != 'round_robin'
@@ -352,6 +354,73 @@ class NativeVLLMRequestHandler:
             metrics=dict(ieee_tc=measured))
 
 
+def validate_dlora_service_config(cfg, http):
+    """Retained DP2/TP1 work point; transport must not replace native routing."""
+    from urllib.parse import urlsplit
+    from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
+    validate_http_lifecycle_contract(http)
+    endpoint = urlsplit(http['url'])
+    ports = [endpoint.port, cfg.get('router_port'), *cfg.get('worker_ports', [])]
+    if (cfg.get('schema') != 'ieee_tc_dlora_native_service_v1'
+            or http.get('schema') != 'ieee_tc_dlora_http_replay_v1'
+            or cfg.get('routing') != 'native_engine_manager'
+            or cfg.get('worker_startup') != 'native_dp2_manager_v1'
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or cfg.get('migration_type') != 3 or cfg.get('gpu_ids') != [0, 1]
+            or len(cfg.get('worker_ports', [])) != 1
+            or any(type(p) is not int or not 0 < p < 65536 for p in ports)
+            or len(set(ports)) != 3 or endpoint.scheme != 'http' or endpoint.hostname != '127.0.0.1'
+            or endpoint.path != '/v1/chat/completions' or endpoint.query or endpoint.fragment
+            or endpoint.username or endpoint.password or not http.get('remote_artifacts')):
+        raise ValueError('dLoRA requires native DP2 manager, one API and shared remote/pre-ready input')
+    args = cfg.get('engine_args', {})
+    fixed = dict(model=http['backbone'], tokenizer=http['backbone'], use_dummy_weights=False,
+        use_np_weights=False, dtype='half', worker_use_ray=True, engine_use_ray=True,
+        tensor_parallel_size=1, pipeline_parallel_size=1, num_groups=2, num_models=500,
+        exec_type=3, gpu_memory_utilization=0.92, max_num_seqs=4, max_num_batched_tokens=1024,
+        gpu_capacity=8, swap_space=8)
+    if (any(args.get(k) != value or type(args.get(k)) is not type(value) for k, value in fixed.items())
+            or set(args)-set(fixed) or cfg.get('request_max_model_len') != 1024):
+        raise ValueError('retained dLoRA native arguments differ; no implicit performance search')
+    for key in ('python', 'native_python', 'source_view', 'ray_root'):
+        if not isinstance(cfg.get(key), str) or not Path(cfg[key]).is_absolute():
+            raise ValueError('explicit dLoRA interpreter/source/private paths required')
+    dlora_private_ray_options(cfg)
+    return endpoint.port
+
+
+def dlora_worker_environment(cfg, environ=None):
+    env = dict(os.environ if environ is None else environ)
+    native_bin = str(Path(cfg['native_python']).parent)
+    for key in ('RAY_ADDRESS', 'PYTHONHOME'):
+        env.pop(key, None)
+    env.update(CUDA_VISIBLE_DEVICES='0,1', PYTHONNOUSERSITE='1', PYTHONDONTWRITEBYTECODE='1',
+        PYTHONUNBUFFERED='1', TRANSFORMERS_OFFLINE='1', HF_DATASETS_OFFLINE='1',
+        PATH=native_bin+os.pathsep+env.get('PATH', ''),
+        PYTHONPATH=os.pathsep.join((cfg['source_view'], cfg['main_repo'], str(SCRIPT_DIR))))
+    return env
+
+
+class NativeManagerIngress:
+    """Wait for one native manager; do not choose an engine or inspect locality."""
+    def __init__(self, request_ids, clock_id):
+        if not request_ids or len(set(request_ids)) != len(request_ids):
+            raise ValueError('unique offered requests required')
+        self.requests, self.seen = set(request_ids), set()
+        self.clock_id, self.ready = clock_id, [asyncio.Event()]
+
+    async def route(self, body, received):
+        rid = body.get('request_id')
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if rid not in self.requests or rid in self.seen or control.get('tc_clock_id') != self.clock_id:
+            raise ValueError('native-manager ingress received an unknown/duplicate request or clock')
+        self.seen.add(rid)
+        control.update(tc_http_received_s=received, tc_router_enqueued_s=received,
+            ready_instances_at_enqueue=int(self.ready[0].is_set()))
+        await self.ready[0].wait()
+        return 0, dict(body, _sllm_internal_metrics=control)
+
+
 def dlora_private_ray_options(cfg):
     """One new local Ray node, never discovery/auto or a shared cluster.
 
@@ -502,13 +571,19 @@ class NativeDloraRequestHandler:
     The service launcher must supply owned Ray/lifecycle evidence separately.
     This request adapter alone is not a qualified service or a performance run.
     """
-    def __init__(self, *, manager, sampling_factory, model, vocab_size, max_model_len, clock_id):
+    def __init__(self, *, manager, sampling_factory, model, vocab_size, max_model_len, clock_id,
+                 service_context=None):
         from ieee_tc_serverless_measurement import dlora_native_adapter_bindings
         self.manager, self.sampling_factory = manager, sampling_factory
         self.model, self.vocab_size, self.max_model_len = model, vocab_size, max_model_len
         self.clock_id = clock_id
         self.adapters = dlora_native_adapter_bindings(manager)
         self.seen = set()
+        self.service_context = service_context
+        if service_context is not None:
+            if (set(service_context['preparation']) != set(self.adapters)
+                    or set(service_context['workers']) != {engine.engine_id for engine in manager.engines}):
+                raise ValueError('dLoRA service context does not cover actual pool/engines')
 
     async def generate(self, body):
         from ieee_tc_serverless_measurement import (dlora_prepare_canonical_request,
@@ -538,9 +613,26 @@ class NativeDloraRequestHandler:
                 model_id=request['model_id'], prompt_ids=request['prompt_token_ids'],
                 target=request['target_tokens'], dispatched_at=dispatched,
                 completed_at=completed, clock_id=self.clock_id)
-            control.update(tc_backend_entry_s=entry, tc_native_selection_started_s=selection_started,
+            control.update(tc_manager_entry_s=entry, tc_backend_entry_s=dispatched,
+                tc_instance_assigned_s=dispatched, instance_id=f'dlora-{engine.engine_id}',
+                tc_native_selection_started_s=selection_started,
                 tc_native_submitted_s=dispatched, tc_native_selected_engine_id=engine.engine_id,
                 tc_canonical_prompt_sha256=request['canonical_prompt_sha256'])
+            if self.service_context is not None:
+                context = self.service_context
+                prep = context['preparation'][request['adapter_id']]
+                if (prep['tc_artifact_request_id'] != 'dlora-full-pool:'+request['adapter_id']
+                        or prep['tc_artifact_cache_hit'] is not False
+                        or not context['deployment_notice_s'] <= prep['tc_artifact_resolve_started_s']
+                        <= prep['tc_artifact_resolve_completed_s'] <= context['receipt']['tc_worker_ready_s'] <= entry):
+                    raise ValueError('dLoRA preparation/ready does not precede native selection')
+                # A request can migrate. Keep every observed engine's actual GPU
+                # worker binding; a single final worker would erase this scope.
+                workers = [context['workers'][i] for i in dict.fromkeys(measured['native_engine_path'])]
+                measured['native_engine_workers'] = workers
+                control.update(prep, **context['receipt'], tc_native_engine_workers=workers,
+                    tc_artifact_preparation_mode='native_full_pool_before_service_v1',
+                    tc_deployment_notice_s=context['deployment_notice_s'])
             measured.update(native_request_id=rid, native_adapter_id=request['adapter_id'],
                 native_adapter_path=request['adapter_path'], native_adapter_index=request['model_id'],
                 control_observation=control)
@@ -559,6 +651,78 @@ class NativeDloraRequestHandler:
                     await dlora_abort_current_owner(self.manager, rid)
             finally:
                 await generator.aclose()
+
+
+async def _native_dlora_worker(config_path, index):
+    """Existing TC HTTP endpoint over native EngineManager and its private Ray."""
+    if index != 0:
+        raise ValueError('one dLoRA manager owns both native engines')
+    cfg, _ = dlora_worker_context(config_path)
+    from aiohttp import web
+    stopped, runner = asyncio.Event(), None
+    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stopped.set)
+    async with dlora_native_runtime(config_path) as (manager, row):
+        row.update(index=index, preparation_sha256=_sha(Path(cfg['output'])/'dlora_full_pool_preparation.json'))
+        receipt_path = Path(cfg['output'])/'worker_receipts'/(row['receipt_id']+'.json')
+        _exclusive_json(receipt_path, row)
+        ready = dict(tc_worker_receipt_id=row['receipt_id'], tc_worker_receipt_sha256=_sha(receipt_path),
+            tc_worker_ready_s=row['at'], port=cfg['worker_ports'][0])
+        from vllm.sampling_params import SamplingParams
+        workers = {w['engine_id']: dict(engine_id=w['engine_id'], pid=w['identity']['pid'],
+            start_ticks=w['identity']['start_ticks'], clock_id=w['clock_id']) for w in row['workers']}
+        handler = NativeDloraRequestHandler(manager=manager, sampling_factory=SamplingParams,
+            model=cfg['model'], vocab_size=row['workers'][0]['vocab_size'],
+            max_model_len=cfg['request_max_model_len'], clock_id=row['clock_id'],
+            service_context=dict(preparation=_load_json(Path(cfg['output'])/'dlora_full_pool_preparation.json'),
+                workers=workers, receipt=ready, deployment_notice_s=cfg['deployment_notice_s']))
+        async def generate(request):
+            return web.json_response(await handler.generate(await request.json()))
+        async def health(request):
+            return web.json_response(dict(ready=True, receipt_id=row['receipt_id'], identity=row['identity']))
+        try:
+            app = web.Application()
+            app.router.add_post('/v1/chat/completions', generate)
+            app.router.add_get('/health', health)
+            runner = web.AppRunner(app, access_log=None, handler_cancellation=True, shutdown_timeout=1.)
+            await runner.setup()
+            await web.TCPSite(runner, '127.0.0.1', cfg['worker_ports'][0]).start()
+            _exclusive_json(Path(cfg['output'])/'worker_0.ready.json', ready)
+            await stopped.wait()
+        finally:
+            if runner is not None:
+                await runner.cleanup()
+
+
+def validate_dlora_ready_receipt(receipt, *, cfg, identity, worker_identity, allocation, clock_id,
+                                 preparation_sha256):
+    if (receipt.get('schema') != 'ieee_tc_dlora_backend_ready_v1'
+            or receipt.get('identity') != identity or receipt.get('index') != 0
+            or receipt.get('clock_id') != clock_id
+            or receipt.get('allocation_lease_id') != allocation.owner_id
+            or receipt.get('source_view_manifest_sha256') != cfg['source_view_manifest_sha256']
+            or receipt.get('preparation_sha256') != preparation_sha256
+            or receipt.get('ready_boundary') != 'native_EngineManager_model_LoRA_placement_and_KV_initialized'
+            or len(receipt.get('workers', [])) != 2):
+        raise ValueError('dLoRA actual manager/pool preparation differs from ready receipt')
+    expected = {i: allocation.gpu_uuids[i] for i in range(2)}
+    workers = receipt['workers']
+    if {w['engine_id'] for w in workers} != {0, 1} or len({w['identity']['pid'] for w in workers}) != 2:
+        raise ValueError('dLoRA must have two distinct native TP1 workers')
+    bindings = []
+    for w in workers:
+        visible = w.get('cuda_visible')
+        if (visible not in ('0', '1') or w['identity'] != worker_identity(w['identity']['pid'])
+                or w['identity']['pid'] == identity['pid'] or w['clock_id'] != clock_id
+                or w.get('adapter_bindings') != cfg['adapters']
+                or w.get('model') != cfg['engine_args']['model']
+                or w.get('tensor_parallel_size') != 1 or w.get('pipeline_parallel_size') != 1
+                or w.get('cuda_device_count') != 1 or w.get('num_gpu_blocks', 0) <= 0
+                or w.get('actual_gpu_capacity') != len(w.get('gpu_lora_models', []))):
+            raise ValueError('dLoRA ready worker differs from its native binding/resource evidence')
+        bindings.append(dict(device_uuid=expected[int(visible)], pid=w['identity']['pid'], worker_rank=w['engine_id']))
+    if {w['device_uuid'] for w in bindings} != set(allocation.gpu_uuids):
+        raise ValueError('dLoRA ready workers do not cover both allocated GPUs')
+    return bindings
 
 
 class ResidentRoundRobin:
@@ -1591,8 +1755,9 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     ingress_port = validate_native_service_config(cfg, http)
     slora = cfg['schema'] == 'ieee_tc_slora_native_service_v1'
     loquetier = cfg['schema'] == 'ieee_tc_loquetier_native_service_v1'
-    static_native = slora or loquetier
-    backend = 'loquetier' if loquetier else 'slora' if slora else 'vllm'
+    dlora = cfg['schema'] == 'ieee_tc_dlora_native_service_v1'
+    static_native = slora or loquetier or dlora
+    backend = 'dlora' if dlora else 'loquetier' if loquetier else 'slora' if slora else 'vllm'
     sys.path.insert(0, http['main_repo'])
     guard = load_guard(Path(http['main_repo']))
     admission = guard.verify_current_service()
@@ -1606,12 +1771,15 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     # All subprocess prerequisites are qualified before the first physical
     # allocation. The executable is already installed; this does not compile.
     if static_native:
-        verify_view = verify_loquetier_source_view if loquetier else verify_slora_source_view
+        verify_view = verify_dlora_source_view if dlora else verify_loquetier_source_view if loquetier else verify_slora_source_view
         verify_view(dict(cfg, main_repo=http['main_repo']))
         toolchain = dict(native_python=cfg['native_python'],
             source_view_manifest_sha256=cfg['source_view_manifest_sha256'], startup=cfg['worker_startup'])
-        make_env = loquetier_worker_environment if loquetier else slora_worker_environment
-        worker_environments = [(make_env(cfg, device), toolchain) for device in cfg['gpu_ids']]
+        if dlora:
+            worker_environments = [(dlora_worker_environment(dict(cfg, main_repo=http['main_repo'])), toolchain)]
+        else:
+            make_env = loquetier_worker_environment if loquetier else slora_worker_environment
+            worker_environments = [(make_env(cfg, device), toolchain) for device in cfg['gpu_ids']]
     else:
         worker_environments = [native_worker_environment(cfg, device) for device in cfg['gpu_ids']]
         toolchain = worker_environments[0][1]
@@ -1631,7 +1799,16 @@ async def _resident_http_service(config_path, http_path, output, private_root):
          'prepare_ieee_tc_serverless_stack.py')}
     worker_cfg = dict(cfg, model=http['model'], main_repo=http['main_repo'], output=str(output),
         source_sha256=sources, native_toolchain=toolchain,
-        remote_config=remote, adapters={aid: [i if slora else i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+        remote_config=remote, adapters={aid: [i if slora or dlora else i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+    if dlora:
+        # This is a small index over the original published pool, not new weights
+        # or a second dataset. All IDs use the same native subset loader/order.
+        subset = output/'native_adapter_subset.json'
+        _exclusive_json(subset, dict(adapters=[dict(id=aid) for aid in sorted(paths)]))
+        worker_cfg.update(schema='ieee_tc_dlora_native_worker_v1',
+            deployment_notice_s=context['deployment_notice_s'],
+            engine_args=dict(cfg['engine_args'], lora_adapter_subset=str(subset),
+                lora_adapter_root=str(Path(next(iter(paths.values()))).parent), lora_adapter_limit=500))
     if loquetier:
         shard_plan = load_loquetier_static_plan(cfg, paths)
         worker_cfg.update(deployment_notice_s=context['deployment_notice_s'],
@@ -1641,8 +1818,11 @@ async def _resident_http_service(config_path, http_path, output, private_root):
             native_environment={k: worker_environments[0][0][k] for k in SLORA_ENV_KEYS},
             native_input_params={k: cfg['native_args'][k] for k in SLORA_INPUT_KEYS})
     worker_path = output/'worker_config.json'
-    _exclusive_json(worker_path, worker_cfg)
-    if loquetier:
+    if not dlora:  # dLoRA config also binds the acquire record written before spawn.
+        _exclusive_json(worker_path, worker_cfg)
+    if dlora:
+        router = NativeManagerIngress([e.request_id for e in plan.entries], local_monotonic_clock_id())
+    elif loquetier:
         router = LoquetierStaticRouter({aid:s['index'] for s in shard_plan['shards'] for aid in s['adapter_ids']},
                                       len(cfg['gpu_ids']),local_monotonic_clock_id())
     else:
@@ -1707,6 +1887,18 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                         break
                 except (aiohttp.ClientConnectionError, asyncio.TimeoutError):
                     await asyncio.sleep(.05)
+        elif dlora:
+            dlora_bindings = validate_dlora_ready_receipt(receipt, cfg=worker_cfg,
+                identity=guard.gpu_process_identity(process.pid), worker_identity=guard.gpu_process_identity,
+                allocation=owner, clock_id=router.clock_id,
+                preparation_sha256=_sha(output/'dlora_full_pool_preparation.json'))
+            async with session.get(f'http://127.0.0.1:{cfg["worker_ports"][0]}/health',
+                    timeout=aiohttp.ClientTimeout(total=1.), allow_redirects=False) as response:
+                health = await response.json()
+                if (response.status != 200 or health.get('ready') is not True
+                        or health.get('receipt_id') != receipt['receipt_id']
+                        or health.get('identity') != receipt['identity']):
+                    raise ValueError('dLoRA native HTTP endpoint does not match its live manager')
         elif loquetier:
             validate_loquetier_ready_receipt(receipt,cfg=worker_cfg,index=index,plan=shard_plan,
                 identity=guard.gpu_process_identity(process.pid),
@@ -1728,7 +1920,11 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         workers = [dict(device_uuid=d['gpu_uuid'], pid=p['pid'], worker_rank=index)
             for d in sample['devices'] if d['gpu_uuid'] in owner.gpu_uuids
             for p in d['processes'] if p['service_member'] and p['kind'] == 'compute']
-        if static_native and (len(workers) != 1 or workers[0]['pid'] != receipt['identity']['pid']):
+        if dlora:
+            if {(w['device_uuid'], w['pid']) for w in workers} != {(w['device_uuid'], w['pid']) for w in dlora_bindings}:
+                raise ValueError('dLoRA native NVML census differs from the two actual worker receipts')
+            workers = dlora_bindings
+        elif static_native and (len(workers) != 1 or workers[0]['pid'] != receipt['identity']['pid']):
             raise ValueError('static native census is not the receipted single-GPU process')
         owner.confirm_workers(workers)
         if slora:
@@ -1802,9 +1998,10 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                     if static_native:
                         slora_preparation.update(await prepare_slora_full_pool(
                             PublishedArtifactResolver(remote), paths, context['deployment_notice_s'],
-                            **({'backend':'loquetier'} if loquetier else {})))
+                            **({'backend':backend} if dlora or loquetier else {})))
                         _exclusive_json(output/f'{backend}_full_pool_preparation.json', slora_preparation)
-                    for index, device in enumerate(cfg['gpu_ids']):
+                    allocation_groups = [cfg['gpu_ids']] if dlora else [[d] for d in cfg['gpu_ids']]
+                    for index, devices in enumerate(allocation_groups):
                         if stop.is_set():
                             raise RuntimeError('resident startup interrupted before next GPU allocation')
                         api = guard.load_nvml_binding(Path(os.environ['FAASLORA_TC_NVML_BINDING']),
@@ -1812,7 +2009,7 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                         census = guard.NativeGPUCensus(api)
                         try:
                             owner = PhysicalGPUAllocation(root=deployment.allocations, census=census,
-                                service_path=service_path, device_indices=(device,),
+                                service_path=service_path, device_indices=devices,
                                 owner_identity=guard.gpu_process_identity(os.getpid()))
                         except BaseException:
                             census.close()
@@ -1821,7 +2018,12 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                         log = (output/f'worker_{index}.log').open('xb')
                         logs.append(log)
                         env = worker_environments[index][0]
-                        if slora:
+                        if dlora:
+                            worker_cfg.update(allocation_journal=str(owner.journal), allocation_lease_id=owner.owner_id)
+                            _exclusive_json(worker_path, worker_cfg)
+                            env.update(FAASLORA_TC_DLORA_WORKER_CONFIG=str(worker_path),
+                                FAASLORA_TC_DLORA_WORKER_CONFIG_SHA256=_sha(worker_path))
+                        elif slora:
                             env.update(FAASLORA_TC_SLORA_WORKER_CONFIG=str(worker_path),
                                 FAASLORA_TC_SLORA_WORKER_CONFIG_SHA256=_sha(worker_path),
                                 FAASLORA_TC_SLORA_WORKER_INDEX=str(index))
@@ -1829,7 +2031,7 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                             env['FAASLORA_TC_LOQUETIER_WORKER_CONFIG_SHA256'] = _sha(worker_path)
                         process = subprocess.Popen([cfg['native_python'] if static_native else cfg['python'],
                             '-B', str(Path(__file__).resolve()),
-                            'native-loquetier-worker' if loquetier else 'native-slora-worker' if slora else 'native-http-worker',
+                            'native-dlora-worker' if dlora else 'native-loquetier-worker' if loquetier else 'native-slora-worker' if slora else 'native-http-worker',
                             '--config', str(worker_path), '--index', str(index)],
                             stdout=log, stderr=subprocess.STDOUT, env=env)
                         processes.append(process)
@@ -1872,7 +2074,7 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         try:
             record_http_physical_terminals(deployment, context['result_path'])
             physical = deployment.summarize(observed_until_s=time.monotonic())
-            result['physical_lifecycle'] = dict(mode=('loquetier_static_shards_v1' if loquetier
+            result['physical_lifecycle'] = dict(mode=('dlora_native_pool_v1' if dlora else 'loquetier_static_shards_v1' if loquetier
                                                     else f'{backend}_resident_pool_v1'),
                 summary_path=str(deployment.root/'physical_resource_summary.json'),
                 measurement_complete=physical['measurement_complete'])
@@ -1893,17 +2095,19 @@ async def _resident_http_service(config_path, http_path, output, private_root):
 def native_http_main(argv):
     parser = argparse.ArgumentParser(description='Opt-in shared TC native HTTP measurement')
     parser.add_argument('mode', choices=('native-http-service', 'native-http-worker', 'native-slora-worker',
-                                         'native-loquetier-worker'))
+                                         'native-loquetier-worker', 'native-dlora-worker'))
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--index', type=int)
     parser.add_argument('--http-replay-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--private-root', type=Path)
     args = parser.parse_args(argv)
-    if args.mode in ('native-http-worker', 'native-slora-worker', 'native-loquetier-worker'):
+    if args.mode in ('native-http-worker', 'native-slora-worker', 'native-loquetier-worker', 'native-dlora-worker'):
         if args.index is None:
             parser.error('worker requires --index')
-        if args.mode == 'native-slora-worker':
+        if args.mode == 'native-dlora-worker':
+            asyncio.run(_native_dlora_worker(args.config, args.index))
+        elif args.mode == 'native-slora-worker':
             _native_slora_worker(args.config, args.index)
         elif args.mode == 'native-loquetier-worker':
             asyncio.run(_native_loquetier_worker(args.config,args.index))
@@ -2034,7 +2238,7 @@ def _print_live(label: str, start_perf: float, total: int, results: List[Dict[st
 
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker', 'native-slora-worker',
-                                          'native-loquetier-worker'):
+                                          'native-loquetier-worker', 'native-dlora-worker'):
         return native_http_main(sys.argv[1:])
     # Legacy path unchanged; the new native service does not import this
     # user-owned dirty replay module or inherit its external loader behavior.

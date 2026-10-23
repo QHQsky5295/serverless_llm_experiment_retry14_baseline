@@ -4,6 +4,8 @@ import asyncio
 import copy
 import importlib.util
 import logging
+import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -516,7 +518,8 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
     def test_receipt_reads_actual_capacity_and_native_loaded_order(self):
         cfg = dict(adapters={'z':[0,'/pool/z'], 'a':[1,'/pool/a']}, engine_args={'model':'/model'})
         guard = NS(gpu_process_identity=lambda pid:dict(pid=pid, start_ticks=3))
-        native = NS(exec_type=NS(name='LORA'), model_config=NS(model='/model',use_dummy_weights=False),
+        native = NS(exec_type=NS(name='LORA'), model_config=NS(model='/model',use_dummy_weights=False,
+                    hf_config=NS(vocab_size=128256)),
             parallel_config=NS(tensor_parallel_size=1,pipeline_parallel_size=1),
             lora_config=NS(num_models=2, adapter_ids=['z','a'], adapter_paths=['/pool/z','/pool/a'],
                            gpu_capacity=1),
@@ -581,6 +584,170 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
             self.assertEqual(result['original_sha256']['vllm/engine/ray_utils.py'],p.DLORA_RAY_SOURCE_SHA256)
             self.assertFalse((out/'vllm/engine/ray_utils.py').is_symlink())
             self.assertTrue((out/'vllm/worker/worker.py').is_symlink())
+
+
+def dlora_configs():
+    http = dict(schema='ieee_tc_dlora_http_replay_v1', backbone='/model', model='3b',
+        url='http://127.0.0.1:19090/v1/chat/completions', physical_lifecycle='dlora_native_pool_v1',
+        ingress_mode='service_pre_ready_v1', artifact_preparation='native_full_pool_before_service_v1',
+        remote_artifacts={'real':True}, main_repo=str(MAIN))
+    args = dict(model='/model', tokenizer='/model', use_dummy_weights=False, use_np_weights=False,
+        dtype='half', worker_use_ray=True, engine_use_ray=True, tensor_parallel_size=1,
+        pipeline_parallel_size=1, num_groups=2, num_models=500, exec_type=3,
+        gpu_memory_utilization=.92, max_num_seqs=4, max_num_batched_tokens=1024,
+        gpu_capacity=8, swap_space=8)
+    cfg = dict(schema='ieee_tc_dlora_native_service_v1', python=sys.executable,
+        native_python=sys.executable, source_view='/source/view', routing='native_engine_manager',
+        worker_startup='native_dp2_manager_v1', generation_contract='fixed_length_greedy_v1',
+        gpu_ids=[0,1], migration_type=3, router_port=19091, worker_ports=[19092],
+        engine_args=args, request_max_model_len=1024, ray_root='/tmp/tc-dlora-test/ray',
+        ray_object_store_bytes=8*1024**3, ray_num_cpus=40)
+    return cfg, http
+
+
+def dlora_service_context(manager):
+    from faaslora.clock import local_monotonic_clock_id
+    now, clock = time.perf_counter(), local_monotonic_clock_id()
+    prep = {aid:dict(tc_artifact_id=aid, tc_artifact_request_id='dlora-full-pool:'+aid,
+        tc_artifact_cache_hit=False, tc_artifact_content_sha256='a'*64,
+        tc_artifact_manifest_sha256='b'*64, tc_artifact_receipt_sha256='c'*64,
+        tc_artifact_transfer_id='d'*32, tc_artifact_transferred_bytes=1024,
+        tc_artifact_delivery_mode='prepublished_gzip_v1', tc_artifact_resolve_started_s=now,
+        tc_artifact_resolve_completed_s=now) for aid in manager.engines[0].lora_config.adapter_ids}
+    return dict(preparation=prep, deployment_notice_s=now-60.,
+        receipt=dict(tc_worker_receipt_id='e'*32, tc_worker_receipt_sha256='f'*64, tc_worker_ready_s=now),
+        workers={i:dict(engine_id=i,pid=100+i,start_ticks=200+i,clock_id=clock) for i in range(2)})
+
+
+class DloraHTTPServiceTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.modules = patch.dict(sys.modules, {'ieee_tc_serverless_measurement':m,
+            'prepare_ieee_tc_serverless_stack':p})
+        self.modules.start()
+        self.addCleanup(self.modules.stop)
+
+    def test_native_config_and_environment_never_select_shared_cluster_or_rr(self):
+        cfg, http = dlora_configs()
+        self.assertEqual(replayer.validate_native_service_config(cfg,http),19090)
+        for change in (dict(routing='round_robin'), dict(gpu_ids=[0,1,2,3]),
+                       dict(worker_ports=[19092,19093]), dict(migration_type=1)):
+            with self.assertRaises(ValueError): replayer.validate_native_service_config(dict(cfg,**change),http)
+        bad = copy.deepcopy(cfg);bad['engine_args']['use_dummy_weights']=True
+        with self.assertRaises(ValueError): replayer.validate_native_service_config(bad,http)
+        env = replayer.dlora_worker_environment(dict(cfg,main_repo=str(MAIN)),
+            dict(RAY_ADDRESS='other-cluster',PYTHONPATH='/dirty',PYTHONHOME='/dirty',PATH='/usr/bin'))
+        self.assertNotIn('RAY_ADDRESS',env)
+        self.assertNotIn('PYTHONHOME',env)
+        self.assertEqual(env['CUDA_VISIBLE_DEVICES'],'0,1')
+        self.assertTrue(env['PYTHONPATH'].startswith('/source/view:'))
+        self.assertNotIn('/dirty',env['PYTHONPATH'])
+
+    async def test_ingress_waits_without_choosing_native_engine(self):
+        body = common_body();clock = body['_sllm_internal_metrics']['tc_clock_id']
+        gate = replayer.NativeManagerIngress(['request-1'],clock)
+        task = asyncio.create_task(gate.route(body,time.perf_counter()))
+        await asyncio.sleep(0)
+        self.assertFalse(task.done())
+        gate.ready[0].set()
+        index, forwarded = await task
+        self.assertEqual(index,0)  # API manager, not GPU engine 0.
+        control = forwarded['_sllm_internal_metrics']
+        self.assertNotIn('instance_id',control)
+        self.assertNotIn('tc_instance_assigned_s',control)
+        with self.assertRaises(ValueError): await gate.route(body,time.perf_counter())
+
+    async def response(self):
+        manager, body = fake_manager(), common_body()
+        h = handler(manager)
+        context = dlora_service_context(manager);h.service_context=context
+        clock = body['_sllm_internal_metrics']['tc_clock_id']
+        gate = replayer.NativeManagerIngress([body['request_id']],clock);gate.ready[0].set()
+        now=time.perf_counter()
+        event=dict(planned_arrival_s=now,task_created_s=now,client_submit_s=now)
+        _,body=await gate.route(body,time.perf_counter())
+        result=await h.generate(body)
+        prepared=dict(request_id=body['request_id'], adapter_id=body['lora_adapter_name'],
+            input_token_ids=body['input_tokens'], target_tokens=3, native_backend='dlora',
+            canonical_prompt_sha256=replayer.hashlib.sha256(body['canonical_prompt'].encode()).hexdigest(),
+            native_prompt_token_ids_sha256=m._native_ids_digest(body['input_tokens']),
+            artifact_content_sha256='a'*64, artifact_manifest_sha256='b'*64,
+            worker_lifetime_required=True, deployment_notice_s=context['deployment_notice_s'])
+        return result,prepared,event,clock,manager
+
+    async def test_native_selection_to_shared_timeline_and_physical_terminal(self):
+        result,prepared,event,clock,manager=await self.response()
+        completed_at=time.perf_counter()
+        summary=p.validate_http_observation(prepared,result,event,completed_at,clock)
+        self.assertTrue(summary['protocol_valid']);self.assertFalse(summary['lora_numerical_correctness_qualified'])
+        native=result['metrics']['ieee_tc'];control=native['control_observation']
+        self.assertEqual(manager.calls[0]['engine_id'],1)  # Native cost selected engine 1, not RR.
+        self.assertEqual(control['instance_id'],'dlora-1')
+        self.assertEqual(native['native_adapter_index'],1)  # Native nonsorted loader order.
+        self.assertEqual(native['native_engine_workers'][0]['pid'],101)
+        self.assertLessEqual(control['tc_manager_entry_s'],control['tc_instance_assigned_s'])
+        self.assertLess(native['native_first_token_monotonic_s'],completed_at)
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);trace=root/'trace.json'
+            trace.write_text(json.dumps(dict(requests=[dict(request_id='request-1',arrival_time_s=0.,
+                adapter_id='adapter-a',expected_output_tokens=3)])))
+            plan=FrozenReplayPlan.load(trace)
+            deployment=PhysicalGPUDeployment(root=root/'physical',plan=plan,context=dict(
+                deployment_notice_s=prepared['deployment_notice_s'],replay_t0_s=event['planned_arrival_s'],
+                clock_id=clock,plan=plan.identity()))
+            replay=root/'replay.jsonl'
+            rows=[dict(event='request_contract',source_item_sha256=plan.entries[0].source_sha256,**prepared),
+                dict(event='http_raw_response',request_id='request-1',body=result,status=200),
+                dict(event='http_response',request_id='request-1',response=summary,client_completed_s=completed_at)]
+            replay.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+            p.record_http_physical_terminals(deployment,replay)
+            self.assertTrue(deployment.terminals['request-1']['native_contract_matched'])
+            self.assertEqual(deployment.terminals['request-1']['completion_token_source'],'dlora_native_sequence_token_ids')
+
+    async def test_shared_contract_rejects_wrong_binding_or_missing_lifetime(self):
+        result,prepared,event,clock,_=await self.response()
+        for field,value in [('native_model_id',0),('native_engine_workers',[]),
+                            ('native_adapter_id','other'),('native_first_token_monotonic_s',float('nan'))]:
+            bad=copy.deepcopy(result);bad['metrics']['ieee_tc'][field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                p.validate_http_observation(prepared,bad,event,time.perf_counter(),clock)
+        bad=copy.deepcopy(result);bad['metrics']['ieee_tc']['control_observation'].pop('tc_worker_receipt_id')
+        with self.assertRaises(ValueError):p.validate_http_observation(prepared,bad,event,time.perf_counter(),clock)
+
+    async def test_shared_full_pool_primitive_keeps_native_preload_identity(self):
+        now=time.perf_counter();paths={f'a{i:03}':f'/pool/a{i:03}' for i in range(500)}
+        calls=[]
+        async def resolve(aid,path,rid):
+            calls.append((aid,path,rid))
+            return dict(tc_artifact_id=aid,tc_artifact_request_id=rid,tc_artifact_cache_hit=False,
+                tc_artifact_resolve_started_s=time.perf_counter(),tc_artifact_resolve_completed_s=time.perf_counter())
+        prepared=await p.prepare_slora_full_pool(NS(resolve=resolve),paths,now,backend='dlora')
+        self.assertEqual(len(prepared),500)
+        self.assertTrue(all(rid=='dlora-full-pool:'+aid for aid,_,rid in calls))
+
+    def test_ready_binding_covers_actual_gpu_workers_not_manager_pid(self):
+        cfg,_=dlora_configs();cfg.update(source_view_manifest_sha256='a'*64,adapters={'a':[0,'/pool/a']})
+        identity=dict(pid=99,start_ticks=1);ids={i:dict(pid=i,start_ticks=i) for i in (100,101)}
+        allocation=NS(owner_id='lease',gpu_uuids=('GPU-a','GPU-b'))
+        receipt=dict(schema='ieee_tc_dlora_backend_ready_v1',identity=identity,index=0,clock_id='clock',
+            allocation_lease_id='lease',source_view_manifest_sha256='a'*64,preparation_sha256='b'*64,
+            ready_boundary='native_EngineManager_model_LoRA_placement_and_KV_initialized',
+            workers=[dict(engine_id=i,identity=ids[100+i],cuda_visible=str(i),clock_id='clock',
+                adapter_bindings=cfg['adapters'],model='/model',tensor_parallel_size=1,pipeline_parallel_size=1,
+                cuda_device_count=1,num_gpu_blocks=100,gpu_lora_models=[0],actual_gpu_capacity=1) for i in range(2)])
+        kw=dict(cfg=cfg,identity=identity,worker_identity=lambda pid:ids[pid],allocation=allocation,
+                clock_id='clock',preparation_sha256='b'*64)
+        bindings=replayer.validate_dlora_ready_receipt(receipt,**kw)
+        self.assertEqual({w['pid'] for w in bindings},{100,101})
+        receipt['workers'][1]['cuda_visible']='0'
+        with self.assertRaises(ValueError):replayer.validate_dlora_ready_receipt(receipt,**kw)
+
+    def test_cli_worker_entry_uses_current_native_service_not_legacy_replay(self):
+        with patch.object(replayer,'native_http_main',return_value=0) as entry, \
+                patch.object(sys,'argv',['replay','native-dlora-worker','--config','/cfg','--index','0']):
+            self.assertEqual(replayer.main(),0)
+            entry.assert_called_once_with(sys.argv[1:])
 
 
 if __name__ == '__main__':
