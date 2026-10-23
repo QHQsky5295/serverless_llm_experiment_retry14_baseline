@@ -1,0 +1,42 @@
+"""Resume publication after a large metadata inventory, without replay or loss."""
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+original = RAW/'native_compile_cache_before.json'
+data = original.read_bytes()
+cache = json.loads(data)
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+save('publication_failure.json', dict(
+    phase='before_staging_or_commit', performance_affected=False,
+    reason='native_compile_cache_before.json exceeds existing 4 MiB per-file publication cap',
+    bytes=len(data), raw_retained=True, raw_path=str(original),
+    sha256=hashlib.sha256(data).hexdigest(),
+    failure_closure='publication_closure.json'))
+save('native_compile_cache_before_summary.json', dict(
+    root=cache['root'], entries=len(cache['entries']),
+    total_bytes=sum(row[1] for row in cache['entries']),
+    full_inventory_path=str(original), full_inventory_sha256=hashlib.sha256(data).hexdigest(),
+    full_inventory_bytes=len(data), full_inventory_retained_locally=True,
+    full_inventory_in_git=False, purpose='Pre-run cache identity summary; raw complete inventory preserved.'))
+source = (RAW/'publish.py').read_text()
+changes = [
+    ("RAW/'publication_identity.json'", "RAW/'result_publication_identity.json'"),
+    ("RAW/'publication_receipt.json'", "RAW/'result_publication_receipt.json'"),
+    ("execution.mkdir(exist_ok=False)", "execution.mkdir(exist_ok=True)"),
+    ("'native_compile_cache_before.json'", "'native_compile_cache_before_summary.json', 'publication_failure.json', 'publication_closure.json'"),
+    ("with target.open('xb') as stream:\n        stream.write(source.read_bytes())",
+     "if target.exists():\n        assert target.read_bytes() == source.read_bytes(), target\n    else:\n        with target.open('xb') as stream:\n            stream.write(source.read_bytes())"),
+]
+for before, after in changes:
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+ast.parse(source)
+with (RAW/'publish_v2.py').open('x') as stream:
+    stream.write(source)
+print('Publication-only resumption prepared; the original large metadata and failed attempt remain intact.')

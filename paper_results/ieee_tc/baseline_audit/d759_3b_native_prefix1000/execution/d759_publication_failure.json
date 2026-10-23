@@ -1,0 +1,10 @@
+{
+  "phase": "before_staging_or_commit",
+  "performance_affected": false,
+  "reason": "native_compile_cache_before.json exceeds existing 4 MiB per-file publication cap",
+  "bytes": 4736461,
+  "raw_retained": true,
+  "raw_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d759_20261023/native_compile_cache_before.json",
+  "sha256": "cdcbe4b590c3fa6010daee75160c707df3340c0ecccb788da37e8deee13b4c9d",
+  "failure_closure": "publication_closure.json"
+}

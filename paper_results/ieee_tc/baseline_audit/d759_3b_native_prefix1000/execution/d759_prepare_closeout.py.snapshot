@@ -1,0 +1,64 @@
+"""Mechanically bind the completed D758 closeout recipes to D759 evidence."""
+import ast
+import hashlib
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+PREVIOUS = RAW.parent/'d758_20261023'
+OLD_SHA = '072f4fd7881155a13191efd198a24e5177524f533af8d2d0d44690b4a658817b'
+NEW_SHA = 'fd908be8a01f219e10227c43be7af84daaae4cb2c318f469690728d71ac3b53d'
+assert hashlib.sha256((RAW/'audit_prefix1000.json').read_bytes()).hexdigest() == NEW_SHA
+
+def bind(name, replacements):
+    source = (PREVIOUS/name).read_text()
+    for before, after in replacements:
+        assert before in source, (name, before)
+        source = source.replace(before, after)
+    ast.parse(source, filename=str(RAW/name))
+    with (RAW/name).open('x') as stream:
+        stream.write(source)
+
+common = [
+    ('d758_3b_native_coverage500', 'd759_3b_native_prefix1000'),
+    (OLD_SHA, NEW_SHA),
+]
+bind('seal.py', common + [
+    ('completed 3B coverage', 'completed 3B original 1000-request compatibility'),
+    ('audit_coverage500.json', 'audit_prefix1000.json'),
+    ("audit['offered_unique_adapters'] == 500", "audit['offered_unique_adapters'] == 60"),
+    ("audit['native_revalidated_requests'] == 500", "audit['native_revalidated_requests'] == 1000"),
+    ("audit['actual_native_output_tokens'] == 68925", "audit['actual_native_output_tokens'] == 122510"),
+    ("audit['counts']['N_response'] == 500", "audit['counts']['N_response'] == 1000"),
+    ("audit['remote_transfers'] == 500", "audit['remote_transfers'] == 60"),
+    ('http_3b_500.json', 'http_3b_1000.json'),
+    ('coverage_qualified=True', 'prefix1000_compatible=True'),
+    ('analysis_memory_high_events=377', 'analysis_memory_high_events=0'),
+    ('requests=500, adapter_ids=500', 'requests=1000, adapter_ids=60'),
+])
+bind('reclaim.py', common + [
+    ('D758 only', 'D759 only'),
+    ("'d758_20261023'", "'d759_20261023'"),
+    ('/tmp/tc-d758-3br/', '/tmp/tc-d759-3br/'),
+    ("audit['offered_unique_adapters'] == 500 and audit['verified_materialized_bytes'] == 19482573296",
+     "audit['offered_unique_adapters'] == 60 and audit['verified_materialized_bytes'] == 2336314960"),
+    ('http_3b_500.json', 'http_3b_1000.json'),
+])
+bind('publish.py', common + [
+    ('completed D758 coverage', 'completed D759 original-prefix compatibility'),
+    ('a49cd3f75d633bc5843f4542c136cf5e12ceb733', '39d9518ce22a848821f65a64bf85be23bc712e57'),
+    ("('qualification', 'review', 'start', 'analysis', 'result', 'contract')",
+     "('qualification', 'start', 'analysis', 'result', 'contract')"),
+    ('D758_3B_SERVERLESSLLM_500_ID_COVERAGE_20261023.md', 'D759_3B_SERVERLESSLLM_PREFIX1000_20261023.md'),
+    ("'qualification.json', 'prepare_parse_failure.json', 'qualification_closure.json',",
+     "'qualification.json', 'qualification_closure.json',"),
+    ("'review_closure.json', 'start_receipt.json'", "'start_receipt.json'"),
+    ('http_3b_500.json', 'http_3b_1000.json'),
+    ("RAW.parent.parent/'storage_maintenance/d757_20261023'", "RAW.parent/'d758_20261023'"),
+    ("prefix = 'd757_' if source.is_relative_to(previous) else 'd758_'",
+     "prefix = 'd758_' if source.is_relative_to(previous) else 'd759_'"),
+    ('failed_preparations_retained=True', 'failed_preparations_retained=False, preparation_first_pass=True'),
+    ('tc: complete 3B ServerlessLLM 500-ID native coverage (D758)',
+     'tc: complete 3B ServerlessLLM original 1000-request compatibility (D759)'),
+    ('refs/heads/backup/d758-3b-coverage-20261023', 'refs/heads/backup/d759-3b-prefix1000-20261023'),
+])
+print('D758 closeout recipes rebound to the completed D759 source evidence; no replay.')
