@@ -380,7 +380,7 @@ DLORA_RAY_SOURCE_SHA256 = 'e063611e74c09d1e4df8b80c8c82e3ca1b01b82d83ab7d56ca9ea
 
 
 def dlora_measurement_sources(native_source: Path, *, canonical_input=False,
-                              worker_lifecycle=False) -> dict[str, str]:
+                              worker_lifecycle=False, cpu_zero_mlp_views=False) -> dict[str, str]:
     """Passive native event hooks in the retained dLoRA compatibility tree.
 
     SequenceGroup already migrates by deepcopy. Carry its measured timestamps
@@ -460,13 +460,53 @@ def dlora_measurement_sources(native_source: Path, *, canonical_input=False,
             '            from vllm.tc_measurement import dlora_native_worker_receipt\n'
             '            return dlora_native_worker_receipt(self.worker)\n')
         replacements[path] = source
+    if cpu_zero_mlp_views:
+        path = 'vllm/worker/lora_engine.py'
+        source = (native_source/path).read_text()
+        source = replace_once(source, '\nclass LoRaEngine:\n', '''
+class TCZeroLoRaWeight(LoRaWeight):
+    """CPU-only immutable zeros for modules absent from every real adapter.
+
+    Each indexed slice is still contiguous pinned storage. GPU copies, shapes,
+    GPU allocation and get_size remain native. These CPU views are never written.
+    """
+    def __init__(self, engine, max_num, in_features, max_rank, out_features, dtype, device):
+        if device != 'cpu':
+            raise ValueError('shared zero layout is only for immutable CPU modules')
+        super().__init__(engine, 1, in_features, max_rank, out_features, dtype, device)
+        self.lora_As = self.lora_As.expand(max_num, -1, -1)
+        self.lora_Bs = self.lora_Bs.expand(max_num, -1, -1)
+        self.active_lora_As, self.active_lora_Bs = self.lora_As, self.lora_Bs
+
+    def copy_from_cpu(self, *args, **kwargs):
+        raise RuntimeError('immutable CPU zero views are not copy destinations')
+
+
+class LoRaEngine:
+''')
+        start = source.index('class LlamaLoRaEngine(')
+        end = source.index('    def allocate_gpu_lora_weight(', start)
+        constructor = source[start:end]
+        constructor = replace_once(constructor,
+            '        for i in range(self.num_hidden_layers):\n',
+            '        from vllm.tc_measurement import dlora_attention_only_pool_metadata\n'
+            '        self.tc_cpu_mlp_layout = dlora_attention_only_pool_metadata(\n'
+            '            self.lora_config.adapter_paths, config.num_hidden_layers)\n\n'
+            '        for i in range(self.num_hidden_layers):\n')
+        for marker in (
+                'LoRaWeight(self, self.lora_config.num_models, self.hidden_size, self.lora_config.max_r,\n',
+                'LoRaWeight(self, self.lora_config.num_models, self.intermediate_size // self.parallel_config.tensor_parallel_size,\n'):
+            constructor = replace_once(constructor, marker, marker.replace('LoRaWeight(', 'TCZeroLoRaWeight('))
+        source = source[:start]+constructor+source[end:]
+        replacements[path] = source
     for path, source in replacements.items():
         compile(source, path, 'exec')
     return replacements
 
 
 def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path,
-                                   *, canonical_input=False, worker_lifecycle=False) -> dict:
+                                   *, canonical_input=False, worker_lifecycle=False,
+                                   cpu_zero_mlp_views=False) -> dict:
     """Reuse the source-view approach; preserve vendor checkout and old results."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
@@ -474,7 +514,8 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
     replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input,
-                                              worker_lifecycle=worker_lifecycle)
+                                              worker_lifecycle=worker_lifecycle,
+                                              cpu_zero_mlp_views=cpu_zero_mlp_views)
     support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
     output.mkdir(mode=0o700)
     for parent, dirs, files in os.walk(native_source/'vllm'):
@@ -508,6 +549,10 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
         result['original_sha256'] = dict(result['original_sha256'],
             **{'vllm/engine/ray_utils.py': DLORA_RAY_SOURCE_SHA256})
         result.update(worker_lifecycle=True, worker_lifecycle_scope='DP2_TP1_private_Ray_pool_v1')
+    if cpu_zero_mlp_views:
+        result.update(cpu_lora_representation='attention_only_cpu_mlp_zero_views_v1',
+            cpu_representation_changed=True, gpu_representation_changed=False,
+            cpu_kv_capacity_changed=False, absent_module_validation='all_configs_and_tensor_headers')
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result

@@ -29,6 +29,56 @@ V030_NATIVE_SOURCES = {
 }
 
 
+def dlora_attention_only_pool_metadata(adapter_paths, num_layers):
+    """Validate the precondition for immutable CPU MLP zero views, not weights.
+
+    Read only configs and safetensors headers. The native loader still loads
+    and checks every real attention tensor. Reject any declared/serialized MLP
+    or other trainable module; never silently replace real weights with zeros.
+    """
+    if not adapter_paths or type(num_layers) is not int or num_layers < 1:
+        raise ValueError('shared MLP zeros require an explicit real adapter pool')
+    modules = {'q_proj', 'k_proj', 'v_proj', 'o_proj'}
+    expected = {(layer, module, kind) for layer in range(num_layers)
+                for module in modules for kind in ('A', 'B')}
+    pattern = re.compile(r'layers\.(\d+)\.self_attn\.(q_proj|k_proj|v_proj|o_proj)'
+                         r'\.lora_(A|B)\.weight$')
+    rows = []
+    for item in adapter_paths:
+        root = Path(item)
+        raw_config = (root/'adapter_config.json').read_bytes()
+        config = json.loads(raw_config)
+        targets = config.get('target_modules')
+        if (not isinstance(targets, list) or set(targets) != modules
+                or config.get('bias', 'none') != 'none'
+                or config.get('modules_to_save') or config.get('use_dora')
+                or config.get('use_rslora')):
+            raise ValueError('shared MLP zeros require attention-only PEFT: '+str(root))
+        weight = root/'adapter_model.safetensors'
+        with weight.open('rb') as stream:
+            size = int.from_bytes(stream.read(8), 'little')
+            if not 0 < size <= weight.stat().st_size-8:
+                raise ValueError('invalid safetensors metadata: '+str(weight))
+            header = stream.read(size)
+        metadata = json.loads(header)
+        keys = [key for key in metadata if key != '__metadata__']
+        found = []
+        for key in keys:
+            match = pattern.search(key)
+            if match is None:
+                raise ValueError('shared MLP zeros reject unsupported tensor: '+key)
+            found.append((int(match[1]), match[2], match[3]))
+        if len(found) != len(expected) or set(found) != expected:
+            raise ValueError('incomplete or duplicate attention tensors: '+str(root))
+        rows.append(dict(path=str(root), tensor_count=len(keys),
+            config_sha256=hashlib.sha256(raw_config).hexdigest(),
+            safetensors_header_sha256=hashlib.sha256(header).hexdigest(),
+            safetensors_size=weight.stat().st_size))
+    return dict(contract='attention_only_cpu_mlp_zero_views_v1',
+        adapter_count=len(rows), num_layers=num_layers, adapters=rows,
+        full_weight_content_verified=False, metadata_only=True)
+
+
 def configure_device_compile_cache(backend_config):
     """Give independent TP1 engines distinct, persistent native cache roots.
 

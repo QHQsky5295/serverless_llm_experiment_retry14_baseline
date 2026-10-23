@@ -637,6 +637,80 @@ class DloraOwnedRuntimeTests(unittest.TestCase):
             self.assertTrue((out/'vllm/worker/worker.py').is_symlink())
 
 
+class DloraZeroMLPViewTests(unittest.TestCase):
+    def make_adapter(self, directory):
+        root = Path(directory)
+        config = dict(target_modules=['q_proj','k_proj','v_proj','o_proj'], bias='none')
+        metadata = {f'base_model.model.model.layers.0.self_attn.{module}.lora_{kind}.weight':
+                    dict(dtype='F16',shape=[2,2],data_offsets=[0,8])
+                    for module in config['target_modules'] for kind in ('A','B')}
+        self.write_adapter(root, config, metadata)
+        return root, config, metadata
+
+    def write_adapter(self, root, config, metadata):
+        (root/'adapter_config.json').write_text(json.dumps(config))
+        header = json.dumps(metadata).encode()
+        (root/'adapter_model.safetensors').write_bytes(len(header).to_bytes(8,'little')+header+b'\0'*64)
+
+    def test_attention_only_pool_metadata_without_weight_import(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, _, _ = self.make_adapter(directory)
+            result = m.dlora_attention_only_pool_metadata([str(root)],1)
+            self.assertEqual(result['adapter_count'],1)
+            self.assertEqual(result['adapters'][0]['tensor_count'],8)
+            self.assertFalse(result['full_weight_content_verified'])
+
+    def test_declared_or_serialized_mlp_is_not_silently_zeroed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, cfg, header = self.make_adapter(directory)
+            cfg['target_modules'].append('gate_proj')
+            self.write_adapter(root,cfg,header)
+            with self.assertRaisesRegex(ValueError,'attention-only'):
+                m.dlora_attention_only_pool_metadata([str(root)],1)
+            cfg['target_modules'].remove('gate_proj')
+            header['base_model.model.model.layers.0.mlp.gate_proj.lora_A.weight'] = {}
+            self.write_adapter(root,cfg,header)
+            with self.assertRaisesRegex(ValueError,'unsupported tensor'):
+                m.dlora_attention_only_pool_metadata([str(root)],1)
+
+    def test_incomplete_pool_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, cfg, header = self.make_adapter(directory)
+            header.pop(next(iter(header)))
+            self.write_adapter(root,cfg,header)
+            with self.assertRaisesRegex(ValueError,'incomplete'):
+                m.dlora_attention_only_pool_metadata([str(root)],1)
+
+    def test_representation_only_changes_llama_cpu_mlp_allocation(self):
+        key = 'vllm/worker/lora_engine.py'
+        self.assertNotIn(key,REPLACEMENTS)
+        replacements = p.dlora_measurement_sources(NATIVE,cpu_zero_mlp_views=True)
+        self.assertEqual(set(replacements)-set(REPLACEMENTS),{key})
+        old, new = ast.parse((NATIVE/key).read_text()),ast.parse(replacements[key])
+        old_classes = {node.name:node for node in old.body if isinstance(node,ast.ClassDef)}
+        new_classes = {node.name:node for node in new.body if isinstance(node,ast.ClassDef)}
+        for name in ('LoRaWeight','LoRaEngine','OPTLoRaEngine'):
+            self.assertEqual(ast.dump(old_classes[name]),ast.dump(new_classes[name]))
+        before = {node.name:node for node in old_classes['LlamaLoRaEngine'].body if isinstance(node,ast.FunctionDef)}
+        after = {node.name:node for node in new_classes['LlamaLoRaEngine'].body if isinstance(node,ast.FunctionDef)}
+        for name in before.keys()-{'__init__'}:
+            self.assertEqual(ast.dump(before[name]),ast.dump(after[name]))
+        constructors = [node.func.id for node in ast.walk(after['__init__'])
+                        if isinstance(node,ast.Call) and isinstance(node.func,ast.Name)
+                        and node.func.id in ('LoRaWeight','TCZeroLoRaWeight')]
+        self.assertEqual(constructors,['LoRaWeight','LoRaWeight','TCZeroLoRaWeight','TCZeroLoRaWeight'])
+
+    def test_new_view_discloses_layout_without_modifying_legacy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)/'view'
+            result = p.prepare_dlora_measurement_view(NATIVE,out,MAIN,
+                canonical_input=True,worker_lifecycle=True,cpu_zero_mlp_views=True)
+            self.assertEqual(result['cpu_lora_representation'],'attention_only_cpu_mlp_zero_views_v1')
+            self.assertFalse(result['cpu_kv_capacity_changed'])
+            self.assertFalse(result['gpu_representation_changed'])
+            self.assertFalse((out/'vllm/worker/lora_engine.py').is_symlink())
+
+
 def dlora_configs():
     http = dict(schema='ieee_tc_dlora_http_replay_v1', backbone='/model', model='3b',
         url='http://127.0.0.1:19090/v1/chat/completions', physical_lifecycle='dlora_native_pool_v1',
