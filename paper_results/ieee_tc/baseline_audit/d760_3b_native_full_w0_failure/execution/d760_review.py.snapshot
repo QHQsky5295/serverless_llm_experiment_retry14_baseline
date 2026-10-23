@@ -1,0 +1,97 @@
+"""Closed-run evidence preservation and tested failure-resource accounting.
+
+No replay, serving change, lost-request imputation, or success qualification.
+The original failed analysis and all raw files remain unchanged.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tarfile
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'review_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert json.loads((RAW/'local_cleanup.json').read_text())['passed']
+assert json.loads((RAW/'analysis_closure.json').read_text())['path_gone']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+
+# The focused CPU tests already ran once; close only their verified empty scope.
+unit = 'primelora-tc-aux-d7600000000000000000000000000007.scope'
+test_identity = p.scope_identity(unit)
+test_group = Path(test_identity['path'])
+members = {str(path): path.read_text().split() for path in test_group.rglob('cgroup.procs')}
+assert members and all(not values for values in members.values())
+assert p.scope_still_owned(test_identity)
+snapshot = p.cgroup_snapshot(test_group)
+subprocess.run(['systemctl', '--user', 'stop', unit], check=True)
+assert not test_group.exists()
+save(RAW/'focused_tests_closure.json', dict(identity=test_identity, resources=snapshot,
+     actual_recursive_procs_empty=True, path_gone=True, tests=10,
+     evidence='unittest console reported 10 tests OK before this closure'))
+
+results = []
+try:
+    # Preserve this run's Ray failures before any later cache maintenance.
+    source = Path('/tmp/tc-d760-3br/ray_tmp/ray/session_latest/logs').resolve()
+    assert source.is_relative_to('/tmp/tc-d760-3br/ray_tmp/ray')
+    files = sorted(path for path in source.rglob('*') if path.is_file())
+    assert files and all(not path.is_symlink() for path in files)
+    manifest = {str(path.relative_to(source)): dict(size=path.stat().st_size, sha256=p.digest(path))
+                for path in files}
+    archive = RAW/'ray_logs.tar.gz'
+    with archive.open('xb') as output:
+        with tarfile.open(fileobj=output, mode='w:gz') as tar:
+            for path in files:
+                tar.add(path, arcname=str(path.relative_to(source)), recursive=False)
+    with tarfile.open(archive, mode='r:gz') as tar:
+        assert set(tar.getnames()) == set(manifest)
+        for member in tar:
+            with tar.extractfile(member) as handle:
+                assert hashlib.file_digest(handle, 'sha256').hexdigest() == manifest[member.name]['sha256']
+    assert all(p.digest(source/name) == entry['sha256'] for name, entry in manifest.items())
+    save(RAW/'ray_logs_preservation.json', dict(source=str(source), files=manifest,
+         archive=str(archive), archive_sha256=p.digest(archive), original_deleted=False,
+         bytes=sum(entry['size'] for entry in manifest.values())))
+    analyzer = MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py'
+    commands = [
+        ('analysis_regression_tests.log', [sys.executable, '-B', '-m', 'unittest',
+            'tests.test_tc_serverless_qualification_population', 'tests.test_tc_loquetier_evidence']),
+        ('analysis2.log', [sys.executable, '-B', str(analyzer), '--root', str(RAW),
+            '--baseline', str(BASE), '--main', str(MAIN), '--scheduler-contract', 'request_identity_v1',
+            '--population', 'full4000', '--outcome', 'complete_with_failures', '--model-key', '3b',
+            '--slo-freeze', str(MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'),
+            '--output', str(RAW/'audit_full4000_v2.json')]),
+    ]
+    for name, command in commands:
+        with (RAW/name).open('x') as log:
+            result = subprocess.run(command, cwd=MAIN, stdout=log, stderr=subprocess.STDOUT,
+                                    env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
+        results.append(dict(command=command, log=name, returncode=result.returncode))
+        result.check_returncode()
+finally:
+    save(RAW/'review_receipt.json', dict(passed=len(results)==2 and all(r['returncode']==0 for r in results),
+        identity=identity, commands=results, no_replay=True, failed_original_analysis_retained=True,
+        source_sha256={str(path): p.digest(path) for path in (Path(__file__),
+            MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+            MAIN/'tests/test_tc_serverless_qualification_population.py')},
+        resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, no_replay=True, result=str(RAW/'audit_full4000_v2.json'))))

@@ -1,0 +1,83 @@
+"""Seal D760's complete failure diagnostic, using the existing closeout contract."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d760_3b_native_full_w0_failure'
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+launch = read(RAW/'launch3b_repaired.json')
+assert not launch['pass'] and launch['service_returncode'] == 1
+assert launch['classification'] == 'qualification_request_failure'
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert read(RAW/'local_cleanup.json')['passed']
+assert not read(RAW/'analysis_receipt.json')['passed']
+assert read(RAW/'review_receipt.json')['passed']
+for name in ('analysis', 'review'):
+    assert read(RAW/(name+'_closure.json'))['path_gone']
+assert read(RAW/'overlay3b_repaired/restore_receipt.json')['status'] == 'RESTORED'
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+audit = read(RAW/'audit_full4000_v2.json')
+assert p.digest(RAW/'audit_full4000_v2.json') == 'e7d4561861e6f8ac6600a9bb5930bd25a7ca9af57b1a28d267e2a4b7207620d6'
+assert not audit['workload_passed'] and audit['offered_unique_adapters'] == 132
+assert audit['native_revalidated_requests'] == audit['counts']['N_response'] == 2522
+assert audit['counts']['N_failed'] == 1478 and audit['counts']['N_terminal'] == 4000
+assert audit['actual_native_output_tokens'] == 267459 and audit['remote_transfers'] == 132
+assert audit['remote_wire_bytes'] == 306360162 and audit['request_time_pack_count'] == 0
+assert audit['n_correct'] is None and not audit['performance_ranking_eligible']
+assert not audit['formal_performance_qualified']
+prior = read(RAW/'qualification.json')
+analyzer = MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py'
+old_sha = '761ef6758ae85c665aa8ee38ef1a6fdbe740b2a7edb9a26912a9273b419b3a17'
+new_sha = 'e89ac9f8e79e3b42901bf6df8615b4842f7132adb0ebc0847dd27359f12d3156'
+assert prior['refs'][str(analyzer)] == old_sha and p.digest(analyzer) == new_sha
+for path, expected in (prior['refs'] | prior['protected'] | prior['preserved']).items():
+    if path != str(analyzer):
+        assert p.digest(Path(path)) == expected, path
+old = subprocess.check_output(['git', 'show', '90f7c4a5fdef53965704dcf7f8eee3359d164f74:scripts/ieee_tc/audit_d402_serverlessllm_path.py'], cwd=MAIN)
+import hashlib
+assert hashlib.sha256(old).hexdigest() == old_sha
+with (RAW/'analyzer_before_failure_ledger.py.snapshot').open('xb') as stream:
+    stream.write(old)
+OUT.mkdir(parents=True, exist_ok=False)
+with (OUT/'audit.json').open('xb') as stream:
+    stream.write((RAW/'audit_full4000_v2.json').read_bytes())
+sources = [RAW/name for name in (
+    'audit_full4000_v2.json', 'launch3b_repaired.json', 'launch_gate.json', 'http_3b_4000.json',
+    'input_identity.json', 'qualification.json', 'analysis_receipt.json', 'analysis_closure.json',
+    'review_receipt.json', 'review_closure.json', 'local_cleanup.json', 'remote_transfers.jsonl',
+    'remote_monitor.log', 'evidence_copy_receipt.json', 'native_compile_cache_before.json',
+    'ray_logs_preservation.json', 'ray_logs.tar.gz', 'analyzer_before_failure_ledger.py.snapshot',
+    'overlay3b_repaired/restore_receipt.json')]
+sources += [Path(__file__), analyzer]
+save(OUT/'manifest.json', dict(evidence_preservation_passed=True, raw_root=str(RAW),
+    source_sha256={str(path): p.digest(path) for path in sources},
+    protected=prior['protected'], preserved=prior['preserved'],
+    execution_main_commit=read(RAW/'start_receipt.json')['head'],
+    execution_baseline_commit=read(RAW/'start_receipt.json')['baseline_head'],
+    plan_sha256=p.check_plan(), failure_attribution='unresolved_memory_pressure_and_stall',
+    full_offered_population_terminal=True, workload_passed=False, ranking_eligible=False, n_correct=None,
+    analysis_revision=dict(before=old_sha, after=new_sha, regression_tests=83,
+        reason='Include failed-request download owners via strict request/receipt/remote ledger; no execution change'),
+    no_performance_repeat=True))
+save(RAW/'result_receipt.json', dict(passed=True, evidence_preservation_only=True, output=str(OUT),
+    audit_sha256=p.digest(RAW/'audit_full4000_v2.json'), resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(evidence_preserved=True, responses=2522, failed=1478,
+                     joint_good=audit['common_slo']['joint_good'], ranking_eligible=False)))

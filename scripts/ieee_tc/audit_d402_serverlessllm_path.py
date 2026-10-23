@@ -755,6 +755,74 @@ def validate_slora_resolver_journal(rows, preparation):
         raise ValueError('S-LoRA preparation differs from actual resolver journal')
 
 
+def validate_request_resolver_ledger(rows, contracts, controls, receipts, pool,
+                                     remote, remote_clock, local_clock):
+    """Account for downloads even when the requesting HTTP call times out.
+
+    A successful response is not the population of all resource consumers.
+    Require a request -> resolver -> immutable receipt -> remote transfer join
+    for every download; never infer missing work from the successful subset.
+    This does not upgrade any failed request or relax native response checks.
+    """
+    started, completed, owners = {}, {}, {}
+    total, successful_bytes = 0, 0
+    for row in rows:
+        if row['event'] == 'resolver_opened':
+            continue
+        if row['event'] == 'resolve_started':
+            rid = row['request_id']
+            if (rid in started or rid not in contracts
+                    or row['adapter_id'] != contracts[rid]['adapter_id']):
+                raise ValueError('resolver start has duplicate/unknown request or wrong adapter')
+            started[rid] = row
+        elif row['event'] == 'resolve_completed':
+            rid, aid = row['tc_artifact_request_id'], row['tc_artifact_id']
+            if rid in completed or rid not in started or aid != contracts[rid]['adapter_id']:
+                raise ValueError('resolver completion lacks a unique matching offered request')
+            start, end = row['tc_artifact_resolve_started_s'], row['tc_artifact_resolve_completed_s']
+            if (row['pid'] != started[rid]['pid']
+                    or any(type(t) not in (int, float) or not math.isfinite(t)
+                           for t in (start, end, row['monotonic_s'], started[rid]['monotonic_s']))
+                    or not start <= started[rid]['monotonic_s'] <= end <= row['monotonic_s']):
+                raise ValueError('resolver process or local timeline differs')
+            path, receipt = receipts[aid]
+            tid = row['tc_artifact_transfer_id']
+            files = {f['path']: (f['size_bytes'], f['sha256']) for f in pool[aid]['files']}
+            validate_artifact_transfer(aid, row, receipt, digest(path), files,
+                                       remote[tid], remote_clock, local_clock)
+            hit, size = row['tc_artifact_cache_hit'], row['tc_artifact_transferred_bytes']
+            if (type(hit) is not bool or type(size) is not int
+                    or size != (0 if hit else remote[tid]['bytes_written'])
+                    or row['tc_artifact_delivery_mode'] != 'prepublished_gzip_v1'):
+                raise ValueError('resolver hit/actual download byte contract differs')
+            if not hit:
+                if tid in owners:
+                    raise ValueError('remote transfer has more than one download owner')
+                owners[tid] = rid
+                total += size
+                if rid in controls:
+                    successful_bytes += size
+            if rid in controls and any(controls[rid].get(k) != v for k, v in row.items()
+                                       if k.startswith('tc_artifact_')):
+                raise ValueError('successful response and resolver journal disagree')
+            completed[rid] = row
+        else:
+            raise ValueError('unaccounted resolver event requires separate failure evidence')
+    if (not set(controls) <= set(completed) or set(owners) != set(remote)
+            or {row['tc_artifact_id'] for row in completed.values()} != set(receipts)
+            or len(receipts) != len(remote)
+            or total != sum(row['bytes_written'] for row in remote.values())):
+        raise ValueError('request/receipt/remote transfer ledger is incomplete')
+    return dict(contract='all_request_download_owners_v1',
+                completed_resolves=len(completed),
+                resolves_without_successful_response=len(set(completed)-set(controls)),
+                remote_wire_bytes=total, successful_download_owner_wire_bytes=successful_bytes,
+                failed_download_owner_wire_bytes=total-successful_bytes,
+                transfer_owners=[dict(transfer_id=tid, request_id=rid,
+                                     successful_response=rid in controls)
+                                 for tid, rid in sorted(owners.items())])
+
+
 def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None,
           outcome='success', model_key='7b'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
@@ -902,8 +970,22 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         used_transfers.add(server['transfer_id'])
         hits += c['tc_artifact_cache_hit']
         transferred += c['tc_artifact_transferred_bytes']
-    assert used_transfers == set(remote) and len(receipts) == len(remote)
-    assert transferred == sum(row['bytes_written'] for row in remote_rows)
+    remote_accounting = None
+    resolver_paths = []
+    if outcome == 'complete_with_failures' and not static_native:
+        resolver_paths = sorted((root/'remote_resolver_evidence/journals').glob('*.jsonl'))
+        resolver_rows = [json.loads(line) for path in resolver_paths for line in path.read_text().splitlines()]
+        controls = {rid: raw['body']['metrics']['ieee_tc']['control_observation']
+                    for rid, raw in index['http_raw_response'].items() if rid in index['http_response']}
+        remote_accounting = validate_request_resolver_ledger(
+            resolver_rows, index['request_contract'], controls, receipts, pool,
+            remote, health[model_key]['clock_id'], ready['clock_id'])
+        assert transferred == remote_accounting['successful_download_owner_wire_bytes']
+        remote_accounting['transfers_referenced_by_successful_responses'] = len(used_transfers)
+        transferred = remote_accounting['remote_wire_bytes']
+    else:
+        assert used_transfers == set(remote) and len(receipts) == len(remote)
+        assert transferred == sum(row['bytes_written'] for row in remote_rows)
     # Verify actual materialized bytes before reclaiming this rebuildable cache.
     payload = 0
     for aid, (_, receipt) in receipts.items():
@@ -937,6 +1019,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     source_paths += ([model_root/'worker_config.json', model_root/'native_toolchain.json'] +
                      [Path(r['path']) for r in qualifier['backend_ready_receipts']] if resident else
                     [root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py'])
+    source_paths += resolver_paths
     if static_native:
         source_paths += [model_root/f'{backend}_full_pool_preparation.json', Path(cfg['source_view'])/'measurement_manifest.json',
                          launch_root/'exec_receipt.json']
@@ -992,6 +1075,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             remote_successful_response_paths_qualified=True,
             terminal_failures=[r for r in summary['diagnostic_rows'] if r['status'] != 'http_response'])
         result['limitations'].append('All offered requests reached a terminal, but request failures remain; conditional latency and total resources do not constitute a feasible G1/G2 point. Failure attribution is separate.')
+        if remote_accounting is not None:
+            result['remote_request_accounting'] = remote_accounting
     if slo_freeze is not None:
         frozen_slo = json.loads(slo_freeze.read_text())
         validate_metric_model(http, model_key, main, frozen_slo)

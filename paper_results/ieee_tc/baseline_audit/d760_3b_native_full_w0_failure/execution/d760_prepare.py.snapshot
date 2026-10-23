@@ -1,0 +1,101 @@
+"""Reuse D759's qualified native execution for the unchanged full 3B W0 view."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+OLD = RAW.parent/'d759_20261023'
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as native
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert read(OLD/'result_receipt.json')['passed']
+assert read(OLD/'reclamation.json')['passed']
+assert p.digest(OLD/'audit_prefix1000.json') == 'fd908be8a01f219e10227c43be7af84daaae4cb2c318f469690728d71ac3b53d'
+prior = read(OLD/'qualification.json')
+for path, expected in (prior['refs'] | prior['protected'] | prior['preserved']).items():
+    assert p.digest(Path(path)) == expected, path
+http = read(OLD/'http_3b_1000.json')
+http.update(request_count=4000, experiment_role='native_full4000_w0_development_observation')
+plan = native.load_http_replay_plan(http)
+rows = [json.loads(entry.source_json) for entry in plan.entries]
+assert plan.identity() == prior['views']['4000']['plan']
+assert len({row['adapter_id'] for row in rows}) == 132
+assert sum(min(row['expected_output_tokens'], 256) for row in rows) == 458224
+save(RAW/'http_3b_4000.json', http)
+view = native.prepare_measurement_view(
+    BASE/'vendor_new_baselines/ServerlessLLM_new_main_20260518', RAW/'source_repaired',
+    'repaired', MAIN, 'request_identity_v1',
+    device_compile_cache_root=Path(prior['source_view']['device_compile_cache_root']))
+assert view['measured_sha256'] == prior['source_view']['measured_sha256']
+save(RAW/'overlay_preflight.json', read(OLD/'overlay_preflight.json'))
+mapping = []
+for name in ('run3b_repaired.sh', 'start.py', 'start_remote.sh', 'stop_remote.sh',
+             'check_remote_health_stdlib.py', 'close.py', 'close_launch.py',
+             'restore_overlay.py', 'preserve_evidence.py', 'run_analysis.py'):
+    source = OLD/name
+    body = source.read_text().replace('d759', 'd760').replace('D759', 'D760')
+    body = body.replace('3b1000', '3b4000').replace('http_3b_1000.json', 'http_3b_4000.json')
+    body = body.replace('original 1000-request prefix', 'complete original 4000-request W0')
+    if name == 'start.py':
+        changes = {
+            "binding['views']['1000']['plan']['count']==1000": "binding['views']['4000']['plan']['count']==4000",
+            "binding['views']['1000']['plan'],actual_unique_adapters=60": "binding['views']['4000']['plan'],actual_unique_adapters=132",
+            'target_tokens=122510': 'target_tokens=458224',
+            'D758 unchanged native model/policy/cache ownership': 'D759 unchanged native model/policy/cache ownership',
+        }
+        for before, after in changes.items():
+            assert body.count(before) == 1, before
+            body = body.replace(before, after)
+    if name == 'run_analysis.py':
+        assert body.count("'--population', 'prefix1000'") == 1
+        body = body.replace("'--population', 'prefix1000'", "'--population', 'full4000'")
+        body = body.replace('audit_prefix1000.json', 'audit_full4000.json')
+    target = RAW/name
+    with target.open('x') as stream:
+        stream.write(body)
+    if target.suffix == '.py':
+        ast.parse(body, filename=str(target))
+    else:
+        subprocess.run(['bash', '-n', str(target)], check=True)
+    mapping.append(dict(source=str(source), source_sha256=p.digest(source),
+                        target=str(target), target_sha256=p.digest(target)))
+backup = read(OLD/'result_publication_receipt.json')
+assert backup['passed']
+backup['baseline_head'] = '2bdf53cb25040b98e84e587f421bd772528c96b9'
+backup['scope_note'] = 'Qualified code and D759 result checkpoint reused; new mechanical execution bindings captured in launch_gate.'
+save(RAW/'backup_receipt.json', backup)
+save(RAW/'backup_closure.json', read(OLD/'result_publication_closure.json'))
+paths = [*RAW.glob('*.py'), *RAW.glob('*.sh'), RAW/'http_3b_4000.json',
+         RAW/'source_repaired/measurement_manifest.json', RAW/'overlay_preflight.json',
+         BASE/'scripts/prepare_ieee_tc_serverless_stack.py', BASE/'scripts/ieee_tc_serverless_measurement.py',
+         MAIN/'scripts/ieee_tc/audit_d402_serverlessllm_path.py', Path(http['trace']), Path(http['pool_index']),
+         MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+         MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json',
+         MAIN/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json']
+save(RAW/'qualification.json', dict(passed=True, reused_native_tests=114,
+    reused_3b_input_tests=89, reused_cache_tests=17, new_component_tests=0,
+    views=prior['views'], protected=prior['protected'], preserved=prior['preserved'],
+    native_configuration=prior['native_configuration'], source_view=view,
+    refs={str(path): p.digest(path) for path in paths}, mechanical_rebindings=mapping,
+    no_gpu_run=True, no_new_weights_or_trace=True,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, requests=4000, adapter_ids=132, target_tokens=458224,
+                     source_view_unchanged=True, gpu_run_started=False)))

@@ -1,6 +1,149 @@
 # IEEE TC execution status — resumed; W2 baseline completion
 
+## 2026-10-23 D760：完整W0失败已核验，先查内存停顿再接矩阵
+
+14:24已取得真实终态，不再等待或重启。4000到达/提交/终态，2522原生
+响应、1478失败；267459有效原生输出tokens，重算误差0ms，联合2304/4000
+=57.6%。U=23240.876161672175 GPU-s；条件平均TTFT24753.559038ms、
+P95 3800.477953ms仅来自2522响应，不能用该低条件P95掩盖大量失败。
+n_correct仍null、独立数值证明未知、ranking/formal/workload均不合格。
+本轮source42/development41、原1800秒保护未改，不因失败补跑同键。
+
+service returncode1/classification qualification_request_failure，实际GPU和
+服务域已释放，launcher空域精确关闭；loader恢复、三个本项目远端服务
+按InvocationID停止。14:17–18内存下降时原四backend仍在；14:23尾部
+恢复33条响应，但其联合达成0，不改写早先停顿。服务peak79027851264B、
+high9124680、max/OOM/kill0、swap最大2147487744B；主机最小可用
+30130462720B，磁盘最小156285751296B。保护未触发不等于服务正常。
+
+首次严格分析在“成功响应引用的transfer=全部transfer”断言失败，原
+analysis1.log/receipt保留。4000完整resolver日志证明132次下载包含失败
+请求所有者，故只扩展离线失败分析：逐请求/receipt/content/remote严格
+连接并计全部消耗，成功模式断言不变。新增10项CPU测试、相关回归83项
+通过。第二分析audit_full4000_v2.json SHA
+e7d4561861e6f8ac6600a9bb5930bd25a7ca9af57b1a28d267e2a4b7207620d6；
+132次下载306360162B，其中失败下载所有者83552852B。没有改被测系统、
+原始数据或判优规则，没有新增GPU运行。analysis/review空域已关闭；review
+峰值3221745664B/high3149，无max/OOM/swap，这属于离线分析而非实验。
+Ray日志已归档且逐文件哈希验证，原日志未删。Ray有95%磁盘占用预警，
+末次debug_state显示累计spill请求0，不能将预警直接当作超时原因。
+
+curated失败诊断已封存于baseline_audit/d760_3b_native_full_w0_failure，
+145个旧投稿文件及三个用户修改未变。D760下载副本1056文件已经逐字节
+核对保留原池、引用/FD/挂载与日志后回收，payload5139892912B、实际
+释放5143777280B，磁盘余161265479680B；唯一工件、原始日志、编译缓存
+均保留。FD核查仍有三个同UID不可读进程2628/3360275/3361057的已记录
+范围限制，不声称全系统扫描。result/contract空域均精确关闭，当前没有
+GPU/分析/维护任务。下一正常检查点备份正在准备，不宣称尚未完成的推送。
+内存增长根因仍未闭口：下一优先
+结合已保存资源/请求/副本/源码，做一次有界归因，区分原生资源压力和
+具体适配错误，再决定必要修复或同配置W1/W2。不能以未解释异常论证
+PrimeLoRA优势，也不以低SLO开启baseline性能搜索。完整目标active；
+3B其他基线/PrimeLoRA跨场景/dLoRA、最终同版本7B主表与Full、A1–A5、
+S1–S13、CE/Pareto、审稿文档与最终图表均保留。共享k3s不动。
+
+### 此前运行中记录（保留历史，不是当前状态）
+
+13:58:01 CST最新：verified wait后取得明确请求失败证据。原service仍
+active/running/Tasks1673，InvocationID未变；sample4207服务78981144576B、
+主机可用30734753792B、磁盘157578522624B，high5935058、max/OOM/kill0、
+swap2147250176B，原保护未告警/中止。13:54已观察到末条req_03999创建和
+http_headers_sent；13:57日志尾部转为http_request_failed。最新100行均为
+该事件，末条req_02668，TimeoutError，elapsed1799.9998073079623秒。
+已确认本轮包含请求超时，不能再称“尚无明确失败”或全正确完成；最终
+完成/失败总数、资源及归因仍待实际终态，不以尾部100行当全量统计。
+
+监测显示已纠正：原临时jq只匹配request_error，漏掉实际http_request_failed；
+原始日志完整保留未改。这是观察摘要问题，不是被测系统/分析器修改。
+functions.store的d760_monitor_cmds第三项现包含全部尾部事件计数及
+recent_failure/elapsed_s，后续直接复用。监测cell2650已完成；2652在
+第三次观察后终止的仅是临时监视循环，未停止service/回放。现无活动exec
+等待句柄。下一直接核对原实际service，继续等待剩余请求原定终态，不
+重启、不提前正常化失败、不启动W1/W2。结束后按已有close_launch/
+restore_overlay/stop_remote/preserve_evidence/run_analysis链处理，实际
+全量终态若含失败使用complete_with_failures；若安全中止则按真实类型，
+不能硬套成功或完整失败分析。先有界核对内存增长/适配问题，再接后续
+矩阵。完整目标active，当前不是阻塞；无生产修改、无额外性能运行、
+无扫描/维护/推送/远端或共享k3s变更。本轮重新完整核对PLAN/状态并使用
+monitor-experiment；所有未完成范围继续保留。
+
+此前13:43观察：
+
+13:43:39 CST最新verified wait：完整重读PLAN/状态及相关执行规则，同一
+service仍active/running，InvocationID仍ca02ee20b4af4b8481af1ca1e5ae998a，
+Tasks1673。sample3357服务78877310976B、主机可用30905593856B、磁盘
+157598552064B，high3516457、max/OOM/kill0、swap2147364864B，现有保护
+未告警/中止。八次45秒观察的最近100行均无响应，最新创建req_03571；
+不当作累计成功数，不称正常推进、终态或完成。原1800秒保护不变，没有
+重启、提高资源限制或新增性能运行。functions监测循环已结束并关闭；下轮
+直接检查同一实际service，不等待已完成的cell2643。
+
+本轮新增有界只读源码/配置证据（详见D760文档）：实际store日志确认启动
+预分配32GiB；当前backend正常完成会删除request_trace，原生vLLM0.10.2
+TokenizerGroup本配置LRU容量4，原生output processor完成时pop状态；
+联网核对同版本官方源码。以上不能证明无泄漏，也不支持“历史输出/分词器
+全部无界保存”的直接归因。内存增长原因仍未闭口；没有源码/配置修改，
+没有测试、内存剖析、扫描/维护/构建/推送、远端改动或共享k3s操作。
+下一仍等待本轮实际终态；先保留完整/失败证据并按既有收尾链释放，再
+有界核对内存增长与副本/请求/adapter时间线，判断原生资源压力或必要适配
+错误后接同配置W1/W2。不得用未解释异常证明PrimeLoRA优势，不开baseline
+参数搜索。3B其他基线/PrimeLoRA跨场景、最终同版本7B主表/Full、消融与
+敏感性、成本/审稿证据/图表全保留；完整目标active，当前不是阻塞。
+
+此前13:29观察：
+
+13:29:25 CST持续观察同一运行，未重启。本轮verified wait，并记录了新的
+内存压力证据；二十次45秒间隔观察后针对停顿作轻量日志/本服务进程核对。
+实际service仍active/running且InvocationID仍为ca02ee20b4af4b8481af1ca1e5ae998a。
+sample2515服务78673932288B、主机可用31132930048B、磁盘157611388928B，
+high882783、max/OOM/kill0、swap2147483648B；保护未告警/中止。
+13:19后开始high，13:24前后swap达到2GiB；13:25–13:26两次尾部最后
+响应均req_02482，13:29已创建req_02779但最近100行无响应。不能再表述为
+正常响应持续推进，也不能将尾部ID当全量完成数。现有serve.log仍有四ready
+实例及容量等待；store尾部无新异常。13:27左右memory.stat以anon
+77630394368B为主，file699899904B；只读PID/RSS快照已写D760文档。
+主机PSI full avg10=60.02%，但MemAvailable仍高于既定24GiB条件；不改变
+保护、memory.high/max、swap或1800秒请求保护。未按停顿重启/另开运行。
+本轮完整复核PLAN/状态/最新执行规则，仅轻量监测，未改配置、未触碰共享
+k3s，未并行扫描/维护/构建/备份。下一继续等待同一实例自然终态，不启动
+另一个性能任务；实际终态后按既有收尾链保存完整/失败状态，并先有界核对
+内存增长来源，区分原生预算压力与必要适配错误，再按证据接W1/W2。不把
+压力直接归为机制缺陷，不开baseline参数搜索。当前为有压力的活跃运行，
+不是终态、阻塞或完成；完整目标仍active，其余矩阵不缩减。
+
+已实际启动tmux tc-d760-serverlessllm-3b4000，MAIN90f7c4a5/BASE2bdf53cb。
+service061a62c92c9146bcbe6fb9716fde62a8，InvocationID
+ca02ee20b4af4b8481af1ca1e5ae998a，inode30866442；launcher aux-d760...0004。
+启动辅助空域已按身份关闭，峰值61083648B、events/swap0。sample13服务
+1767026688B、主机可用110144397312B、磁盘161515044864B，无保护事件。
+3B远端clock dc8579636bd44b39aa041706b96fa711，7B f8e0adcf2c9a4ffc817b71513ea73fc0。
+尚在启动，不能宣告4000完成或SLO。下一仅观察这个实际实例；观察超时不是
+终态，不能重启。运行中不扫描/清理/构建/推送/改远端或准备第二重型任务。
+自然终态/实际释放后复用close_launch、restore_overlay、stop_remote、
+run_analysis --outcome实际结果；成功用full4000/3b/D648，不放宽失败检查。
+随后封存/必要维护/正常备份，接同配置W1/W2；其余完整范围保持active。
+
+上一轮PROGRESS：D759原1000兼容、结果封存、下载副本维护及47路径备份
+已闭环，HEAD90f7c4a5。完整重读PLAN/状态/指标和最新规则，当前无GPU。
+D760复用原4000视图，132IDs/458224tokens；四个native文件SHA与D759
+完全相同，114/89/17项资格复用，新机械绑定和AST/bash/索引核验首次通过。
+qualification空域已精确关闭，无生产修改、无新数据或模型转换。
+下一即时准入后只启动完整W0单轮，随后同配置W1/W2；不重做100/500/1000，
+不以低SLO调基线、不由前缀推算完整成本，n_correct未知继续保留。3B其他
+基线/PrimeLoRA跨场景/G1/G2/dLoRA及7B同版本主表/Full、A1–A5、S1–S13、
+CE/Pareto/审稿文档/最终图表不缩减，完整目标active，共享k3s不动。
+
 ## 2026-10-23 D759：接续3B ServerlessLLM原1000请求兼容
+
+已闭环：47条明确路径提交90f7c4a5fdef53965704dcf7f8eee3359d164f74，
+推送并核对backup/d759-3b-prefix1000-20261023；V2未同步、无force。BASE
+保持已备份2bdf53cb，三个用户修改未stage。result_publication空域精确关闭，
+无GPU/分析/维护/发布作业遗留；关闭说明随下一正常检查点纳入，不再追加
+备份链。D759兼容、结果、存储和发布均完结，不重做100/500/1000或本次维护。
+下一直接复用D759入口与原4000视图，原冻结配置完整3B ServerlessLLM W0，
+随后W1/W2。3B vLLM和7B基线已有三场景继续复用；其他3B、PrimeLoRA跨
+场景/G1/G2、dLoRA、7B最终同版本主表/Full、A1–A5、S1–S13、CE/Pareto、
+审稿文档/最终图表全部保留。共享k3s不动，完整目标active，非完成或阻塞。
 
 发布首次在stage前被4.7MB编译缓存清单的单文件上限拦下，原件/失败回执
 保留、publication空域关闭；只将该清单改为入库SHA摘要，完整原件本地保留。

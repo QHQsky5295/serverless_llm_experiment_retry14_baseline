@@ -14,7 +14,107 @@ from scripts.ieee_tc.audit_d402_serverlessllm_path import (
     validate_vllm_ready_row, validate_slora_ready_row, validate_slora_allocation,
     validate_slora_preparation, validate_slora_preparation_reference, validate_artifact_transfer,
     audit_slora_receipts, digest, validate_slora_notice, validate_slora_resolver_journal,
-    MODEL_IDENTITIES, audit_layout, validate_metric_model)
+    MODEL_IDENTITIES, audit_layout, validate_metric_model, validate_request_resolver_ledger)
+
+
+class RequestDownloadLedgerTests(unittest.TestCase):
+    def setUp(self):
+        from faaslora.storage.http_artifact_store import preparation_content_sha256
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.contracts = {'r0': {'adapter_id': 'a'}, 'r1': {'adapter_id': 'a'},
+                          'r2': {'adapter_id': 'b'}}
+        self.rows, self.controls, self.receipts, self.pool, self.remote = [], {}, {}, {}, {}
+        for aid in ('a', 'b'):
+            files = {'adapter.safetensors': (100, 'a'*64)}
+            content = preparation_content_sha256(files)
+            tid = aid*32
+            evidence = dict(remote_delivery_mode='prepublished_gzip_v1', http_transfer_id=tid,
+                remote_archive_sha256='e'*64, transferred_bytes=10, published_archive_verified=True,
+                content_verified=True, remote_pack_performed=False, loading_clock_id='local')
+            receipt = dict(adapter_id=aid, content_sha256=content, content_manifest_sha256='c'*64,
+                           evidence=evidence)
+            path = Path(self.tmp.name)/(aid+'.json')
+            path.write_text(json.dumps(receipt))
+            self.receipts[aid] = (path, receipt)
+            self.pool[aid] = {'files': [dict(path=k, size_bytes=v[0], sha256=v[1]) for k, v in files.items()]}
+            self.remote[tid] = dict(artifact_id=aid, outcome='sent', pack_performed=False,
+                temporary_created=False, delivery_mode='prepublished_gzip_v1', clock_id='remote',
+                transfer_id=tid, archive_sha256='e'*64, archive_bytes=10, bytes_read=10, bytes_written=10)
+        for i, (rid, contract) in enumerate(self.contracts.items()):
+            aid = contract['adapter_id']
+            path, receipt = self.receipts[aid]
+            control = dict(tc_artifact_request_id=rid, tc_artifact_id=aid,
+                tc_artifact_content_sha256=receipt['content_sha256'], tc_artifact_manifest_sha256='c'*64,
+                tc_artifact_receipt_sha256=digest(path), tc_artifact_transfer_id=aid*32,
+                tc_artifact_cache_hit=rid == 'r1', tc_artifact_transferred_bytes=0 if rid == 'r1' else 10,
+                tc_artifact_delivery_mode='prepublished_gzip_v1', tc_artifact_resolve_started_s=float(i),
+                tc_artifact_resolve_completed_s=i+.5)
+            self.rows.extend([dict(event='resolve_started', pid=12, request_id=rid, adapter_id=aid,
+                                   monotonic_s=i+.1),
+                              dict(control, event='resolve_completed', pid=12, monotonic_s=i+.6)])
+            if rid != 'r0':
+                self.controls[rid] = control
+
+    def check(self):
+        return validate_request_resolver_ledger(self.rows, self.contracts, self.controls,
+            self.receipts, self.pool, self.remote, 'remote', 'local')
+
+    def test_failed_download_owner_is_charged_even_if_success_only_hits_cache(self):
+        report = self.check()
+        self.assertEqual(report['remote_wire_bytes'], 20)
+        self.assertEqual(report['successful_download_owner_wire_bytes'], 10)
+        self.assertEqual(report['failed_download_owner_wire_bytes'], 10)
+        self.assertEqual(report['resolves_without_successful_response'], 1)
+
+    def test_all_download_owners_can_have_failed(self):
+        self.controls = {}
+        report = self.check()
+        self.assertEqual(report['failed_download_owner_wire_bytes'], 20)
+        self.assertEqual(report['successful_download_owner_wire_bytes'], 0)
+
+    def test_duplicate_completion_is_not_a_second_request_or_download(self):
+        self.rows.append(copy.deepcopy(self.rows[1]))
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_missing_download_owner_does_not_pass_on_a_later_cache_hit(self):
+        self.rows = self.rows[2:]
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_unjoined_remote_transfer_is_rejected(self):
+        self.remote['orphan'] = dict(self.remote['a'*32], transfer_id='orphan')
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_unknown_request_is_not_allowed_to_explain_extra_bytes(self):
+        del self.contracts['r0']
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_successful_response_must_match_journal(self):
+        self.controls['r1']['tc_artifact_transferred_bytes'] = 10
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_remote_clock_or_wire_bytes_cannot_be_ignored_for_failed_owner(self):
+        for key, value in [('clock_id', 'wrong'), ('bytes_written', 9), ('pack_performed', True)]:
+            old = self.remote['a'*32][key]
+            self.remote['a'*32][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.check()
+            self.remote['a'*32][key] = old
+
+    def test_incomplete_or_unknown_resolver_event_is_not_silently_dropped(self):
+        self.rows.append(dict(event='resolve_failed', request_id='r0'))
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_resolver_timestamps_are_checked_in_actual_emit_order(self):
+        self.rows[0]['monotonic_s'] = -1
+        with self.assertRaises(ValueError):
+            self.check()
 
 
 class ModelIdentityTests(unittest.TestCase):

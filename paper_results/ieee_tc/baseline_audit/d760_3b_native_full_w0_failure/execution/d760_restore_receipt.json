@@ -1,0 +1,49 @@
+{
+  "backup_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/overlay3b_repaired/backups",
+  "installer_sha256": "da6a14276f92186457c44c215d45d1ca9d18f7bbea9cdec6665737743f9c5978",
+  "members": [
+    {
+      "after_sha256": "563a7f0ee067569ac7d55da61c1c0b0e980ce18d55a920cb40c62537640e2000",
+      "before_sha256": "0ff8f5c9dd6cf38929d9b8bd949408f0d4a18cc6a51e9eddedace1ccbd6a4ff5",
+      "path": "model_executor/model_loader/__init__.py"
+    },
+    {
+      "after_sha256": "8707c7509b30a3a1e125e8a03919315e1b342bee849706ad87713922ab0fb9c4",
+      "before_sha256": "d1219de0d526b2326a471fe8464b3b8a55730dcab63ea99eb9b15e8b90bb116b",
+      "path": "v1/engine/core.py"
+    },
+    {
+      "after_sha256": "5c0b7357b151d8087247199ff2ae093352a15d82c3a266ed388bfbad8feff916",
+      "before_sha256": "bf815cbc2cce2869f77a08d53a746f416f1fd495f8dc081faf660ebe2e122189",
+      "path": "v1/engine/core_client.py"
+    },
+    {
+      "after_sha256": "46f289dbe317d96d657e670a8b31e365e9f15e66f33ba9aacda07a8e620234e7",
+      "before_sha256": "7914ec242ed96ecbbba8adfacd46c89017f31f372853ed65390ed4458f826223",
+      "path": "executor/executor_base.py"
+    },
+    {
+      "after_sha256": "4c7ae3fcd4d3ffc2f693b7e43d12254a77f79b93c3486dcf7e4f73fd4e7ca5a0",
+      "before_sha256": "818c25eb49e9dc1251c630845a25504961257f145851f748ee4b2ea980ed863c",
+      "path": "v1/worker/gpu_model_runner.py"
+    },
+    {
+      "after_sha256": "4e1d263d446c9c771aa63675ecbcafc309d5ef3207fdf7eef7060861aefa4022",
+      "before_sha256": "8a50c7c633ea5f9e14360029e1551929975a91cdaa750de2be3ae9922bdb1f5f",
+      "path": "v1/worker/gpu_worker.py"
+    },
+    {
+      "after_sha256": "1bcb830ae7671bb6462844c0d1b14feb5ad433bcf5980c92ca7a826f168cb9e4",
+      "before_sha256": null,
+      "path": "model_executor/model_loader/sllm_loader.py"
+    }
+  ],
+  "official_patch_path": "/home/qhq/serverless_llm_baselines/repos/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+  "official_patch_sha256": "0d5f9e4e1ea8901538b7a75bf3ac5caa706519bc9e2bbcb91d99aa8ce022f357",
+  "port_scope": "version-location compatibility only: native ServerlessLLM store serialization and load hooks; no routing, autoscaling, cache, or admission changes",
+  "restore_installer_sha256": "da6a14276f92186457c44c215d45d1ca9d18f7bbea9cdec6665737743f9c5978",
+  "schema": "relayserve_v4_3_serverlessllm_vllm_store_overlay_v1",
+  "status": "RESTORED",
+  "vllm_root": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/lib/python3.12/site-packages/vllm",
+  "vllm_version": "0.10.2"
+}

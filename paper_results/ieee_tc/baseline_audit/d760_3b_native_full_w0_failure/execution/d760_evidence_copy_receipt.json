@@ -1,0 +1,19 @@
+{
+  "remote": [
+    {
+      "source": "/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-e320a1e12ba047549c98c1b9b929fadd.jsonl",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_transfers.jsonl",
+      "sha256": "b62b905773208c2bf3cd389a78161f0ef7e2a4410059fa3e832eaf03b4eb8494",
+      "bytes": 110446
+    },
+    {
+      "source": "/home/lab14/primelora_remote/tc/d760_20261023/remote_monitor.log",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d760_20261023/remote_monitor.log",
+      "sha256": "2fae22a5767bf836b00d7851c4f2b5cc448853d333184277d2b8e89dd7638410",
+      "bytes": 96585301
+    }
+  ],
+  "actual_gpu_release": true,
+  "empty_owned_aux_stopped": true,
+  "object_cache_copied": false
+}
