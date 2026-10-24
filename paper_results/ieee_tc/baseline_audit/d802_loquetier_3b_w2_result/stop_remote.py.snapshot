@@ -1,0 +1,10 @@
+"""Stop only this W2 run's exact remote invocations after local GPU release."""
+import hashlib
+from pathlib import Path
+import subprocess
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/stop_remote.sh')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '171f28c06cfa879c1ee76d7d41ea53aca7af106bd06997c91f2dd582703ba8e2'
+source = data.decode().replace('d589_20261016','d802_20261024').replace('d589-full-w2','d802-full-w2')
+source = source.replace('launch7b','launch3b').replace('."7b".clock_id','."3b".clock_id').replace('d80_20260927/7b/','d80_20260927/3b/')
+subprocess.run(['bash','-c',source],check=True)

@@ -1,0 +1,30 @@
+{
+  "schema": "hydraserve_3b_model_compat_cpu_source_checks_v1",
+  "recorded_at": "2026-10-24T16:49:51+08:00",
+  "recorded_from": "exec_command unittest output; no GPU runtime executed",
+  "baseline_head_before_changes": "8594922093ee4625dcc6614ecc11746af277219d",
+  "worktree": "/home/qhq/serverless_llm_baselines",
+  "command": "taskset -c 2 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_ieee_tc_hydraserve_llama_model_compat tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_layer_identity -v",
+  "tests": 27,
+  "test_elapsed_seconds": 0.811,
+  "returncode": 0,
+  "pass": true,
+  "source_sha256": {
+    "HydraServe_project/runtime/llama_model_compat.py": "121e610a8bdbe108aea8e580e1edc2a8149b3f4b9701e21a6e6e5a07be2edcb7",
+    "HydraServe_project/runtime/native_delivery.py": "6aad64e5cc6e659c52699440b50a957ef5c0aaeeed558e550ff6ae4122213455",
+    "HydraServe_project/scripts/probe_layer_identity.py": "bc9ebd87cd9fc7fd2e7d2ebd44ce9e62e508b29b4c1bafaf8ce02183f176a39f",
+    "tests/test_ieee_tc_hydraserve_llama_model_compat.py": "2402e0083f62f6bbcafc2bf0a47e8a8deff5426ae4adddb18380161c1cde3c08",
+    "tests/test_ieee_tc_hydraserve_native_delivery.py": "225382cb79049411a09e73628358fbccd8387a127149fe3c1e8abf7d702eaa5b",
+    "tests/test_ieee_tc_hydraserve_layer_identity.py": "89e97e0994d9e14252447d24fab33a34d46f831e58c68da08d7ea9e46add9d4d"
+  },
+  "gpu_forward_qualified": false,
+  "numerical_qualified": false,
+  "native_runtime_installed_or_started": false,
+  "performance_run": false,
+  "weights_or_traces_generated": false,
+  "limitations": [
+    "Scalar frequency tests and inert object tests do not establish native GPU numerical correctness.",
+    "Actual shared parameters after device transfer, LoRA wrapping and destination registration require targeted validation.",
+    "No full-workload correctness or HydraServe 3B performance claim is made."
+  ]
+}

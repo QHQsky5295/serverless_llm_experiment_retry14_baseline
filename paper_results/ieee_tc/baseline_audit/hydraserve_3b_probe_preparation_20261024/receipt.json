@@ -1,0 +1,46 @@
+{
+  "schema": "hydraserve_3b_probe_preparation_v1",
+  "recorded_at": "2026-10-24 17:08 CST",
+  "record_source": "completed exec tool output; CPU tests only",
+  "baseline_head_before_uncommitted_preparation": "8594922093ee4625dcc6614ecc11746af277219d",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "files_sha256": {
+    "HydraServe_project/runtime/llama_model_compat.py": "121e610a8bdbe108aea8e580e1edc2a8149b3f4b9701e21a6e6e5a07be2edcb7",
+    "HydraServe_project/runtime/native_delivery.py": "9dd9d0053bb3e92d7eadb294ae4ba833dd42044d1600f3bfa36c33177293e36b",
+    "HydraServe_project/scripts/probe_layer_identity.py": "cbad43e09caef4d10b79725b69327bf01127bf5a0339223d86a42035f40420b8",
+    "tests/test_ieee_tc_hydraserve_llama_model_compat.py": "153a2767ef6cef6e71559eaefab881a4d55cdebe30f3209816d4f93b4c4da2c4",
+    "tests/test_ieee_tc_hydraserve_native_delivery.py": "7f8ab08942258944e4c688e236fb1e34f154ff936b3628c61a8a36bacf3a88e3",
+    "tests/test_ieee_tc_hydraserve_layer_identity.py": "606dcaf77ba2058ce5c20791fd6baf0409daf80444942b31b8c76cdf487ec237"
+  },
+  "command": "taskset -c 2 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_ieee_tc_hydraserve_llama_model_compat tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_layer_identity -q",
+  "test_count": 31,
+  "test_elapsed_s": 0.840,
+  "returncode": 0,
+  "diff_check_passed": true,
+  "retained_input_receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d790_20261024/native_probe.json",
+  "retained_input_receipt_sha256": "c81d3376854fcc9d8f6b8ebb431908ae49df86c6a2d5d08cc3eb7f8de43c598d",
+  "native_probe_scope": "PP1 native Worker/ModelRunner, two retained logical adapters/prompts, prefill and two paged decode steps each",
+  "reference_python": "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python",
+  "reference_mode": "sequential child in same contained service; native environment not upgraded",
+  "prospective_numerical_criteria": {
+    "relative_l2_max": 0.01,
+    "cosine_min": 0.999,
+    "greedy_token_equal": true,
+    "rope_cache_max_abs_error_max": 0.001
+  },
+  "native_worker_dtype_rule": "source-pinned native provider EngineArgs.dtype at every app EngineArgs site; currently float16",
+  "gpu_run_executed": false,
+  "numerical_qualification_passed": false,
+  "pipeline_consolidation_qualified": false,
+  "performance_result": false,
+  "native_installed_environment_changed": false,
+  "other_project_k3s_changed": false,
+  "d802_running_configuration_changed": false,
+  "committed_or_pushed": false,
+  "limitations": [
+    "CPU source and inert-object checks do not establish actual GPU correctness.",
+    "Two retained logical IDs do not imply two independent trained adapter contents.",
+    "The new numerical probe still needs its contained execution and affected pipeline identity checks.",
+    "Prior 27-test receipt is historical and is not overwritten with the new source identities."
+  ]
+}

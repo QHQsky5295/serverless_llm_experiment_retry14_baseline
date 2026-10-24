@@ -1,4 +1,237 @@
-# IEEE TC execution status — D801 W1 sealed; D802 Loquetier 3B W2 prepared
+# IEEE TC execution status — D802 Loquetier 3B W2 completed; HydraServe 3B next
+
+## 2026-10-24 17:38 CST D802真实结束、完整分析与缓存回收通过
+
+本轮由VERIFIED_WAIT推进到PROGRESS：等待同一D802真实终态，没有第二次
+性能attempt。完整重读PLAN、AGENTS、执行补充、冻结V1/单轮V2；使用
+monitor-experiment、analyze-results和github-sync，未改评价尺子。
+
+D802服务/watchdog返回0，launch SHA为
+2749b5567a2f4ef51e9a7832203ec90b88846f0d98ffd8999eea64eaa1b85bd9。
+4000/4000响应、0失败、4000原生token/adapter/计时重验、458224输出token；
+500准备ID、497服务ID、4worker就绪，E2E/TPOT/原生重算误差0。
+U=14726.752592459321 GPU-s，3.681688148115 GPU-s/binding-valid请求；
+TTFT平均28.692985s/P95235.211970s，TPOT平均52.398142ms/P9558.619427ms，
+E2E平均34.641670s/P95244.400878s。TTFT75.125%、TPOT条件0%、联合0%，
+observed_feasible=false；n_correct=null、独立完整数值证明false保留。
+审计SHA c892967ce4b96db1600bb63fc711e28ad1f0d18b3b6e10afa82b6aead5386e12。
+
+长尾集中初始请求，但后续TPOT仍超共同阈值，不能仅归因远端或冷启动。
+相对同配置W0，W2平均/P95 TTFT较低24.99%/27.27%，TTFT达成反而低
+1.050个百分点；不预设churn必然让每个统计变差，不据单轮称显著收益。
+详细表格、阶段解释和局限见D802_LOQUETIER_3B_W2_RESULT_20261024.md。
+
+实际GPU context释放、服务资源域消失，本轮远端两个制品服务及监测精确
+停止。分析辅助域0006和回收0007均已关闭，无high/max/OOM或swap。
+服务峰值38903873536B、主机最小available94520913920B；远端500获取、
+线上1160474851B、物化19482573296B、请求打包0。缓存回收只删除经双边
+SHA与引用核验的4000重复文件，释放19497336832B；磁盘161279246336B，
+147个保护条目未变，唯一工件、raw结果及失败记录未删。无活动GPU任务。
+
+当前MAIN HEAD仍2b14036、BASE8594922。下一执行已准备的D802显式路径
+结果备份；先保存原执行身份，再单独提交六个HydraServe任务文件。六文件
+SHA与已完成31项CPU检查回执一致，无需重复不变的检查；CPU检查不冒称
+GPU数值/流水线资格。D803仅prepare/run_probe/close材料，尚未执行。
+没有改其他项目k3s、环境/模型、权重或负载；用户dirty文件保持原SHA。
+
+Loquetier 3B W0/W1/W2已完整观测。主线继续HydraServe3B受影响模型/流水线
+验证与完整场景→全基线比较→PrimeLoRA优化→同版Full、A1–A5/S1–S13、
+成本/CE/Pareto、两轮审稿文档/图表与最终V2。goal保持active，不将基线
+完成或模型准备误报为整个实验目标完成，图形展示仍按最新指令延期。
+
+## 2026-10-24 17:22 CST HydraServe受控检查材料就绪；D802继续运行
+
+上一轮按实际存活进程归为VERIFIED_WAIT；本轮完整重读PLAN和当前状态，沿用
+monitor-experiment，并按serving-llms-vllm模型诊断/run-experiment既有启动
+规则整理下一项受影响算术检查。重新核对官方ModelRunner及本地worker/cache/
+loader接口，未改Loquetier运行路径，未进行baseline参数搜索。
+
+在raw hydraserve_qualification/d803_20261024新建prepare.py、run_probe.py、
+close.py三个小包装，复用原metadata/overlay/gated-launch/精确归属关闭入口；
+CPU2语法/静态绑定检查通过。SHA与范围写入HydraServe模型审计文档。
+只是启动材料准备，尚无qualification.json、probe_launch.json或数值结果；
+没有Torch导入、模型数据复制、GPU任务、环境安装或k3s改动。D803需等D802
+真实收尾/结果备份、BASE适配单独提交之后才执行，不重做无关平台资格。
+
+17:22:40 D802 sample3355：原invocation b24613d07f244397acc28f1c80995461
+仍active/running，原pane755231、服务756452、watchdog756454等PID存活。
+完整日志前缀3570 created/3570 headers/3562 responses，非最终正确数；
+launch3b.json尚未出现。四GPU、available90.410GiB、服务33.827GiB、磁盘
+132.208GiB；high/max/OOM0，无warning/abort/foreign compute。没有第二
+性能attempt、扫描清理、压缩、push或远端维护；两个仓库HEAD仍2b14036/
+8594922。无待工具session，实际tmux仍tc-d802-loquetier-3b-w2。
+
+已重读冻结V1/单轮V2及后置分析/关闭入口，尚未执行终态分析或比较。下一
+仍等待同一D802真实终态，随后释放、分析、重复缓存回收、结果备份；再
+HydraServe3B最小数值验证/完整场景、全基线比较与PrimeLoRA优化。完整goal
+active，Full来源一致性、A1–A5/S1–S13、成本/CE/Pareto、审稿文档/图表与
+最终V2都保留；不以准备材料或单个已完成场景替代整个目标。
+
+## 2026-10-24 17:16 CST D802封存入口准备完成；继续同一轮W2
+
+本轮PROGRESS兼VERIFIED_WAIT：完整重读PLAN、两仓AGENTS、当前状态和执行
+补充，使用monitor-experiment检查实际运行；按github-sync的显式路径和保护
+检查准备后置备份，没有执行push或改变实验。复用SHA绑定D799发布入口新增
+D802 publish_result.py，15项替换和展开代码语法检查通过；脚本SHA为
+63c194164e241ee7d3f6fa804396c923dececa0b0d2c7c6a058cf7681c292991。
+该入口只在真实结束、GPU释放、分析与重复缓存清理完成后执行。预期4000条
+原生请求、497实际逻辑ID与500准备工件；若实际结果不符，保留失败并审计，
+不能筛掉或重跑求胜。仍将BASE8594922记为D802执行身份；待结果备份后才
+单独提交HydraServe适配。MAIN待发布清单包含两份不同阶段CPU receipt和
+HydraServe模型适配文档，不能将CPU检查等同数值或性能验证。
+
+17:16:42 D802 sample3002：原service invocation b24613d07f244397acc28f1c80995461
+仍active/running，pane755231、watchdog756454和原服务PID存活。完整日志前缀
+3269 created/3268 headers/3262 responses；这不是最终正确完成数。
+4张GPU，主机available90.416GiB、服务33.816GiB、磁盘132.217GiB；high/max/
+OOM0，无warning/abort/foreign compute。launch3b.json尚未出现。不启动第二
+GPU任务、构建、扫描、压缩清理、远端维护或push；其他项目k3s不动。两个仓库
+diff检查通过；Feishu无配置不外发。无待工具session，实际运行载体仍
+tc-d802-loquetier-3b-w2，不因观察等待创建新attempt。
+
+下一步仍为真实终态/释放→close_launch→stop_remote→analysis辅助域0006→
+关闭analysis→重复缓存回收辅助域0007→关闭storage→结果文档与MAIN备份。
+后续单独BASE适配备份、HydraServe3B受影响模型最小验证与完整场景，再作全
+基线对照和PrimeLoRA优化。完整目标active：同版Full/A1–A5/S1–S13、成本/
+CE/Pareto、两轮审稿文档/图表及最终V2均未删减。本轮不宣称实验完成或最优。
+
+## 2026-10-24 17:08 CST HydraServe数值检查入口已准备；D802仍为同一轮
+
+本轮PROGRESS：完整重读PLAN、AGENTS和执行补充，沿用monitor-experiment与
+serving-llms-vllm的受影响模型诊断；复核D790/D798与官方ModelRunner、provider/
+app和HF源码，扩展现有probe_layer_identity入口，不另建回放框架、不启动GPU。
+新增native Worker/ModelRunner PP1算术检查及顺序HF/PEFT参考模式；复用D790
+输入和Loquetier已有输入validator，参考在已有Loquetier环境运行，避免给
+HydraServe旧环境装PEFT/升级Transformer。实际数值和受影响pipeline身份未验证。
+
+新确认provider固定FP16但app三个入口auto会对3B选BF16；模型opt-in从原
+provider的SHA绑定AST提取dtype，统一声明到三个入口。默认旧overlay不变，
+不改调度、权重、负载或计量。31项标准库CPU检查0.840秒全部通过，diff检查
+通过；新六文件SHA和测试边界独立保存于baseline_audit/
+hydraserve_3b_probe_preparation_20261024/receipt.json。此前27项回执不覆盖。
+BASE HEAD仍8594922，MAIN仍2b14036，六个BASE任务文件及MAIN补充尚未提交。
+
+17:08:15 D802 sample2501：原invocation b24613d07f244397acc28f1c80995461
+仍active/running，原pane755231、watchdog756454活。四GPU，available90.431GiB、
+service33.800GiB、磁盘132.229GiB；high/max/OOM0，无warning/abort/foreign
+compute。完整日志前缀2765 created/2765 headers/2751 response，非最终正确数；
+launch3b.json未出现。没有第二性能attempt、构建、扫描、清理、压缩、push或
+远端维护；其他项目k3s不动。无待工具session，实际载体tc-d802-loquetier-3b-w2。
+
+下一仍先D802真实终态/释放→原版本结果核验、重复缓存回收、MAIN备份；再
+单独BASE适配备份/最小GPU模型验证/HydraServe3B完整场景。D802后置备份须
+包含新CPU receipt与本审计文档，但不能把新BASE代码当其执行版本。不要因
+等待增加100/1000短性能gate，也不重做已完成平台资格。全部基线对照、
+PrimeLoRA优化、同版Full/A1–A5/S1–S13、成本CE/Pareto、审稿文档/图表/最终
+V2均保留，完整goal active。当前仍在受控等待同一D802，并非阻塞或完成。
+
+## 2026-10-24 16:49 CST HydraServe3B必要模型代码已准备；D802继续同一轮
+
+上一轮VERIFIED_WAIT。本轮完整重读PLAN/当前状态，继续同一D802；同时仅
+准备独立HydraServe代码，不构建/安装/启动第二服务，不改Loquetier执行代码、
+输入或配置。使用serving-llms-vllm的模型诊断，重新核对官方vLLM源码和
+D788–D790历史，未照搬PP1整模块alias或重开基线性能搜索。
+
+六个BASE任务文件已改/新增但尚未提交：llama_model_compat.py、新模型CPU
+测试，以及native_delivery/probe_layer_identity和原有两个对应测试。新增
+opt-in模型overlay、3B真实header/分片元数据、tied head参数/合并模块归属，
+并修复静态检查发现的原loader直接接管BF16导致声明FP16不足的问题；按
+实际参数dtype转换/接收。27项CPU标准库检查通过（0.811s），7B相关回归
+通过，没有Torch/模型payload/GPU运行。具体范围及非数值资格边界已写入
+HYDRASERVE_3B_MODEL_COMPATIBILITY_AUDIT_20261024.md和curated CPU receipt。
+下一GPU必要验证仍未做，不能据此宣布HydraServe3B合格或性能领先。
+
+16:51:50 sample1529：原service invocation b24613d07f244397acc28f1c80995461
+仍active/running，pane755231、watchdog756454活；4张GPU，available90.487GiB、
+服务33.757GiB、磁盘132.259GiB，high/max/OOM0，无warning/abort/foreign
+compute。完整日志前缀1468 created/1468 headers/1458 responses；仍非终态，
+launch3b.json未出现，不启动终态分析/清理。原tmux tc-d802-loquetier-3b-w2
+继续；无待工具session。未push、未远端维护、未接管其他项目k3s。
+
+本轮PROGRESS（独立必要适配代码与针对性测试）并有VERIFIED_WAIT。待D802
+真实终态后先完成原结果/清理/MAIN备份，再单独BASE适配备份（或明确更新
+跨仓预期身份，不能把新版本追记成D802执行版）。D802原绑定HEAD不变。
+完整goal active：HydraServe3B实测、全比较/PrimeLoRA优化、同版Full/A1–A5/
+S1–S13、成本/CE/Pareto、审稿文档/图表/最终V2全部保留，不缩减目标。
+
+## 2026-10-24 16:40 CST D802同一轮正常推进；保持隔离适配边界
+
+本轮为VERIFIED_WAIT：完整重读PLAN、两仓AGENTS、最新执行补充与状态，使用
+monitor-experiment核验实际tmux/PID、服务invocation和watchdog。继续原D802，
+没有重启、新性能attempt、GPU probe、构建、扫描清理、压缩、远端维护或push。
+服务invocation仍b24613d07f244397acc28f1c80995461，pane755231与
+watchdog756454存活。16:40:03采样832：4张GPU，主机available90.548GiB，
+服务33.683GiB，磁盘132.276GiB；high/max/OOM0，无warning/abort/foreign
+compute。完整日志前缀690 created/689 headers/615 responses，较本轮先前
+388 responses持续增加；它们不是最终正确完成数。launch3b.json未出现，
+不提前关闭服务或执行终态分析。Feishu配置不存在，无外发通知。
+
+已有非本项目k3s保持不动；HydraServe继续复用已验证的独立隔离路径，3B
+静态审计补充保留，尚未实施或宣称其运行合格。下一仍是D802真实终态/释放
+后核验、保存、重复缓存回收及备份，再做必要HydraServe3B模型适配和完整
+场景。全部基线对比、PrimeLoRA优化、同版Full/A1–A5/S1–S13、成本/CE/
+Pareto、两轮审稿文档、图表及最终V2仍未完成，完整goal active。无待工具
+会话句柄；实际运行载体仍tc-d802-loquetier-3b-w2，不依据旧回执重启。
+
+## 2026-10-24 16:34 CST D802同一轮继续；HydraServe共享权重适配范围已细化
+
+上一goal轮为PROGRESS（D801结果封存/回收/备份、D802实际启动）。本轮完整
+重读PLAN和状态，按monitor-experiment核验同一tmux/PID/invocation/watchdog；
+没有重启、第二个性能attempt、远端维护、构建、压缩、清理或push。
+
+16:34:14采样488：service invocation仍b24613d07f244397acc28f1c80995461，
+pane755231及watchdog756454存活，当前持3张GPU；主机available95.366GiB、
+服务28.925GiB、磁盘132.294GiB，high/max/OOM0，无warning/abort或foreign
+compute。完整日志前缀361 created/361 headers/136 response，非最终完成数；
+launch3b.json不存在，终态后入口均未执行。下一继续同一D802至实际释放。
+
+等待期间通过serving-llms-vllm的模型诊断方法，只读核对原生模型/metadata/
+LoRA manager与官方源码，并复用现有函数仅读取两个3B safetensors header：
+254个tensor全BF16、无独立head；原生provider明确dtype=float16。不能沿用
+7B FP16-only header资格，也无需生成第二套FP16 checkpoint。另确认download
+映射接受tied-key列表、provider接受布尔值，tied embedding归首末stage，
+现有metadata的None/单owner逻辑不能直接放开给3B。官方vLLM非GGUF保留
+ParallelLMHead模块、仅共享weight；不能照搬dLoRA PP1的整模块alias而忽略
+HydraServe LoRA包装/原生合并关系。具体证据、header SHA与必要验证范围已
+补入HYDRASERVE_3B_MODEL_COMPATIBILITY_AUDIT_20261024.md，diff检查通过。
+无模型payload扫描、Torch导入、GPU probe或运行源码修改；本补充尚未推送，
+随D802终态后的结果检查点备份，不能据静态信息宣称HydraServe3B运行合格。
+
+本轮PROGRESS（新证据明确下一必要适配）并有VERIFIED_WAIT。剩余主线不变：
+D802结束核验/保存/回收/备份 → 隔离HydraServe3B → 全比较/PrimeLoRA优化 →
+同版Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档、图表及最终V2。
+goal active；其他项目k3s及全部历史结果不动，无待工具会话句柄。
+
+## 2026-10-24 16:27 CST D802完整W2已实际启动，持续监测同一轮
+
+D802绑定MAIN 2b14036a7dfa74fc3c7e91fcd3ca257ea027d7a4已核验推送到
+faaslora_origin/backup/d802-loquetier-3b-w2-binding-20261024。BASE仍8594922。
+prepare/backup/start辅助域均已关闭，high/max/OOM0。无待write_stdin句柄。
+
+唯一tmux tc-d802-loquetier-3b-w2，pane755231；gated launcher755233、
+replay755236、service756452、watchdog756454实际存活。服务unit
+primelora-tc-svc-1d466eb699b84e3c9185f13104305335.scope，invocation
+b24613d07f244397acc28f1c80995461、inode31661008，active/running；运行辅助域
+d802...0005。当前没有终态launch3b.json，不重启、不提前收尾。
+
+16:27:21采样81：主机available105.829GiB、服务9.742GiB、磁盘143.442GiB，
+high/max/OOM0、无warning/abort/foreign compute；尚在完整池准备，未持GPU。
+完整日志行前缀4000 request_contract、4 request_created、3 headers；它们
+不是最终完成数。启动前150GiB门槛已通过，运行中继续100GiB底线，不能因
+已发生的下载增长把它当成新启动。远端本轮实际协商1000Mb/s/full，D80发布
+缓存health通过；3B clock_id remote-process-monotonic:5f41df953aa24dceba33bd0c47e99425。
+远端监测d802-full-w2，invocation7762eae6b48a48c2b72848298e76a4a3；运行中
+不维护远端、构建、清理、压缩或push，不把链路限额冒称实际吞吐。
+
+已准备并静态检查close_launch/stop_remote/preserve_evidence/run_analysis/
+reclaim五个旧流程包装；未执行任何终态关闭/分析/删除。分析固定3B、
+full4000_w2和D648阈值；后置文件随结果备份。monitor-experiment按实际tmux、
+PID和watchdog跟踪，不仅看启动回执；Feishu配置不存在，无外发通知。
+
+本轮PROGRESS（D801完整封存、重复缓存回收、D802实际启动）并有VERIFIED_WAIT。
+下一继续同一D802至真实终态/释放→核验保存/缓存回收/备份→隔离HydraServe3B
+→全比较/PrimeLoRA优化→同版Full、A1–A5、S1–S13、成本/CE、审稿文档、
+图表和最终V2。goal仍active，未完成范围没有缩减；其他项目k3s不改动。
 
 ## 2026-10-24 16:24 CST D801备份完成，D802同配置W2输入登记通过
 
