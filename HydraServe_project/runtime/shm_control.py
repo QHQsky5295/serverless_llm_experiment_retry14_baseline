@@ -13,6 +13,7 @@ import socket
 
 APP = 'scripts/image/app.py'
 APP_SHA = 'cab8bc3195159a51da0c4e8ca332a38b049f65891e49cdcd2534fe984235717f'
+STORAGE = 'scripts/kubernetes/vllm/storage_server/local_server.py'
 
 
 class NativeShmLease:
@@ -104,3 +105,60 @@ def render_app(source, native_root):
         'shm_control_lease = NativeShmLease()\n',1)
     compile(result,APP,'exec')
     return result
+
+
+def render_storage_receive(source, native_root):
+    """Bound native receives to the assigned span; never publish failed work.
+
+    D805 exposed a 32 MiB recv_into at the end of a 6 GiB mapping. The
+    serialized payload fits, but the last requested buffer does not. Keep
+    native framing, two processes, progressive visibility and overlap; fix
+    only byte bounds and the parent's unconditional completion publication.
+    """
+    from .loopback_transport import SOURCE_SHA256
+    raw = (Path(native_root)/STORAGE).read_bytes()
+    if sha256(raw).hexdigest() != SOURCE_SHA256[STORAGE]:
+        raise ValueError('native SHM receiver source drift')
+    def methods(text):
+        owner = next(n for n in ast.parse(text).body
+                     if isinstance(n, ast.ClassDef) and n.name == 'CachedStateDict')
+        return {n.name: n for n in owner.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    originals, current = methods(raw), methods(source)
+    names = ('recv_part_content', 'start_download_model')
+    for name in names:
+        if ast.dump(originals[name]) != ast.dump(current[name]):
+            raise ValueError('native SHM receiver already changed: '+name)
+    def once(text, old, new):
+        if text.count(old) != 1:
+            raise ValueError('native SHM receiver splice changed')
+        return text.replace(old, new, 1)
+    source = once(source,
+        '        while True:\n'
+        '            new_len = sock.recv_into(shm.buf[cur_recv_len:cur_recv_len+self.chunk_size], nbytes=self.chunk_size)\n'
+        '            if new_len == 0:\n'
+        '                break\n',
+        '        while cur_recv_len < end_pos:\n'
+        '            capacity = min(self.chunk_size, end_pos - cur_recv_len)\n'
+        '            new_len = sock.recv_into(shm.buf[cur_recv_len:cur_recv_len+capacity], nbytes=capacity)\n'
+        '            if new_len == 0:\n'
+        '                sock.close()\n'
+        '                shm.close()\n'
+        '                raise EOFError("native SHM partition truncated before its declared end")\n')
+    source = once(source,
+        '        sock.close()\n\n    async def start_download_model(self):',
+        '        sock.close()\n        shm.close()\n\n    async def start_download_model(self):')
+    source = once(source,
+        '        while any(p.is_alive() for p in tasks):\n'
+        '            await asyncio.sleep(0.1)\n\n'
+        '        cur_recv_len = data_size + 8\n',
+        '        while any(p.is_alive() for p in tasks):\n'
+        '            await asyncio.sleep(0.1)\n'
+        '        for p in tasks:\n'
+        '            p.join()\n'
+        '        if any(p.exitcode != 0 for p in tasks):\n'
+        '            writer.close()\n'
+        '            await writer.wait_closed()\n'
+        '            raise RuntimeError("native SHM partition receiver failed; completion not published")\n\n'
+        '        cur_recv_len = data_size + 8\n')
+    compile(source, STORAGE, 'exec')
+    return source

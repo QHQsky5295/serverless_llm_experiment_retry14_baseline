@@ -107,7 +107,8 @@ def replace_one(source, old, new):
 
 
 def render_overlays(native_root, *, request_contract=False, shm_control=False,
-                    lora_admission_capacity=False, llama_model_compat=False):
+                    lora_admission_capacity=False, llama_model_compat=False,
+                    bounded_shm_receive=False):
     root=Path(native_root)
     overlays=loopback_transport.render_overlays(root)
     source=overlays[PROVIDER].decode()
@@ -186,6 +187,9 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False,
     if shm_control:
         from .shm_control import render_app
         overlays[APP]=render_app(overlays[APP].decode(),root).encode()
+    if bounded_shm_receive:
+        from .shm_control import STORAGE, render_storage_receive
+        overlays[STORAGE] = render_storage_receive(overlays[STORAGE].decode(), root).encode()
     if llama_model_compat:
         from . import llama_model_compat as model_compat
         overlays.update(model_compat.render_overlays(root))
