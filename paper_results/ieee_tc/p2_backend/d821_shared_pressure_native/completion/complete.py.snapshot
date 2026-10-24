@@ -1,0 +1,113 @@
+"""D725 completion procedure reused without exporting or changing profiles."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from collections import Counter
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+CURATED = ROOT / 'paper_results/ieee_tc/p2_backend/d821_shared_pressure_native'
+OUT = CURATED / 'completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import export_d701_3b_profile as exporter
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False, sort_keys=True)
+        handle.write('\n')
+def ref(path): return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'completion_identity.json', own)
+group = Path(own['path'])
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+raw, launch = read(RAW / 'source1.json'), read(RAW / 'source1_launch.json')
+exporter.SPEC_PATH = CURATED / 'source_spec.json'
+exporter.require_completed_run(raw, launch, read(exporter.SPEC_PATH))
+assert len(raw['requests']) == 48 and len(raw['profile_waves']) == 6
+assert all(w['complete'] for w in raw['profile_waves'])
+assert raw['runtime_boundary'] == 'dedicated_subprocess'
+assert not raw['numerical_adapter_correctness_qualified']
+before, after = raw['file_pressure_before_retirement'], raw['file_pressure_after_retirement']
+assert not before['closed'] and after['closed']
+assert not before['active_transfer_ids'] and not after['active_transfer_ids']
+assert [m['state'] for m in before['members']] == ['attached']
+assert [m['state'] for m in after['members']] == ['retired']
+native = raw['scheduler_after']['adapter_transfers']
+assert native['observation_transport'] == 'same_host_memfd_flock_v1'
+assert native['file_domain_id'] == after['file_owner_id']
+assert native['membership_state'] == 'attached'
+assert native['active_transfers'] == 0 and not native['active_transfer_ids']
+pressure = raw['adapter_transfer_pressure']
+assert len(pressure) == 64 and len({r['transfer_id'] for r in pressure}) == len(pressure)
+for row in pressure:
+    assert row['state'] == 'finished' and row['operation_outcome'] == 'completed'
+    assert row['projection_policy'] == 'same_host_memfd_flock_v1'
+    assert row['created_at'] <= row['io_started_at'] <= row['io_joined_at'] <= row['finished_at']
+    start, finish = row['start_publication'], row['finish_publication']
+    assert start['generation_id'] == finish['generation_id'] == native['pressure_generation_id']
+    assert start['revision'] < finish['revision'] <= native['transfer_sequence']
+    assert row['transfer_id'] in start['active_transfer_ids']
+    assert row['transfer_id'] not in finish['active_transfer_ids']
+    assert start['available'] and finish['available']
+    assert not start['native_acknowledgement'] and not finish['native_acknowledgement']
+    assert all(r['state'] == 'finished' and not r['native_acknowledgement'] for r in row['participants'].values())
+
+stop = (RAW / 'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive') == 3 and stop.count('MainPID=0') == 3
+paths = [line for line in stop.splitlines() if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(paths) == 1
+for local, remote in (('remote_transfers.jsonl', paths[0]), ('remote_monitor.log', '/home/lab14/primelora_remote/tc/d821_20261025/remote_monitor.log')):
+    with (RAW / local).open('xb') as handle:
+        subprocess.run(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', 'cat', remote], stdout=handle, stderr=subprocess.PIPE, check=True, timeout=55)
+server_rows = [json.loads(line) for line in (RAW / 'remote_transfers.jsonl').read_text().splitlines()]
+server = {row['transfer_id']: row for row in server_rows}
+for row in raw['remote_transfers']:
+    remote = server[row['http_transfer_id']]
+    assert remote['archive_sha256'] == row['remote_archive_sha256']
+    assert remote['bytes_written'] == remote['bytes_read'] == remote['archive_bytes'] == row['transferred_bytes']
+    assert remote['artifact_id'] == row['artifact_id'] and remote['outcome'] == 'sent'
+    assert not row['remote_pack_performed'] and not remote['pack_performed']
+
+samples = [json.loads(line) for line in (RAW / 'source1_launch.launch/watchdog.jsonl').read_text().splitlines()]
+samples = [row for row in samples if row.get('event') == 'resource_sample']
+resources = dict(memory_peak_bytes=max(row['service']['memory.peak'] for row in samples),
+    swap_peak_bytes=max(row['service']['memory.swap.current'] for row in samples),
+    events={key:max(row['service']['memory.events'][key] for row in samples) for key in ('high','max','oom','oom_kill')})
+protected = p.verify_seal(RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass'] and protected['entry_count'] == 147
+qualification = read(ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/qualification.json')
+for path, sha in (qualification['sources'] | qualification['user_protected']).items():
+    assert p.digest(Path(path)) == sha, path
+closures = []
+for filename in ('prepare_identity.json', 'start_identity.json'):
+    identity = read(RAW / filename)
+    state = subprocess.check_output(['systemctl','--user','show',identity['unit'],'-p','ActiveState'],text=True)
+    assert 'ActiveState=inactive' in state and not Path(identity['path']).exists()
+    closures.append(dict(identity=identity, released=True))
+assert not Path(launch['service_identity']['path']).exists()
+assert not Path(launch['auxiliary']['path']).exists()
+OUT.mkdir(exist_ok=False)
+result = dict(kind='d821_native_shared_pressure_completion_v1', passed=True,
+    requests=48, sources=dict(Counter(row['requested_source'] for row in raw['requests'])),
+    native_tokens_match=48, completed_file_intervals=len(pressure),
+    native_end_snapshot=native, active_pressure_observed_at_load=None,
+    scope_limitation='Source-profile loading bypasses Full admission witness; native reader identity/end revision and concurrent publication are verified, not nonzero Full admission observation. Full W2 is the next direct validation; no extra prefix.',
+    retired_domain=after, resources=resources, source=ref(RAW/'source1.json'),
+    launch=ref(RAW/'source1_launch.json'), protected_files=147,
+    remote_delivery=dict(transfers=len(raw['remote_transfers']), bytes=sum(r['transferred_bytes'] for r in raw['remote_transfers']), bilateral_sha_verified=True, remote_pack_performed=False),
+    remote_transfers=ref(RAW/'remote_transfers.jsonl'), remote_monitor=ref(RAW/'remote_monitor.log'),
+    remote_stopped=True, service_and_auxiliary_removed=True, closures=closures,
+    profile_exported=False, numerical_correctness_qualified=False, ranking_eligible=False,
+    next_action='Complete 4000 W2 with identical D817 config except exclusive paths and shared-pressure coordination transport')
+save(OUT / 'summary.json', result)
+save(OUT / 'protected_147.json', protected)
+save(OUT / 'analysis_resources.json', dict(identity=own, resources=p.cgroup_snapshot(group)))
+with (OUT / 'complete.py.snapshot').open('xb') as handle: handle.write(Path(__file__).read_bytes())
+save(OUT / 'manifest.json', dict(files=[ref(path) for path in sorted(OUT.iterdir())]))
+print(json.dumps({key:result[key] for key in ('passed','requests','sources','completed_file_intervals','resources','remote_delivery')}, indent=2))

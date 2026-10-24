@@ -1,4 +1,26 @@
-# IEEE TC execution status — D820 opt-in shared pressure integrated; native path validation next
+# IEEE TC execution status — D821 native check complete; D822 full W2 being registered
+
+## 2026-10-25 D821收尾完成，直接准备D822完整W2
+
+本轮PROGRESS，重读完整PLAN/AGENTS/规则及V1/V2。既有D821未重启，实际
+完成48/48原生请求；GPU16/Remote8/NVMe8/fileHOST8/nativeHOST8，64段共享
+文件IO完整发布/撤销，native末态revision130、同generation/domain；关闭
+owner/domain。48次远端交付111556980B，双端SHA/bytes一致、无在线打包。
+服务峰值5748473856B、high/max/OOM/swap0，GPU真实释放、service/aux移除，
+远端所属3服务关闭；completion/summary.json和原始失败日志字节均保留。
+147投稿与用户修改保护通过。独立数值身份仍未知；没有新profile或性能结果。
+
+关键证据范围：source-profile路径绕过Full admission witness；只证明native
+reader连接/末态、并发publication及来源加载，不声称已测到加载时非零压力。
+依D819/D820已有正确性证据直接完整Full验证，不追加短前缀/重复资格。
+D822复用D8174000请求W2，只改三个独占路径与coordination共享通道开关；
+新配置/runner/2项合同测试准备中，尚未启动。本次检查点将一并保存D821收尾。
+磁盘约150.1GiB，启动必须重新实测；无运行GPU任务、无待工具session。
+
+下一核查明确路径/受影响合同并备份→启动一次D822→按共同SLO/U与真实
+pressure witness审计。D813 W1 93.975%、D817 W2 89.90%未达标不变；
+完整同版两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档
+及最终图文/V2仍全部未闭口，整体目标active，不画图。不改非项目k3s。
 
 ## 2026-10-25 D821实际native验证已准备，尚未启动
 

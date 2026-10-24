@@ -1,0 +1,102 @@
+{
+  "active_pressure_observed_at_load": null,
+  "closures": [
+    {
+      "identity": {
+        "inode": 32032366,
+        "invocation_id": "5edfd4d100474802a6084cd844f21d13",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d821ca11000000000000000000000001.scope",
+        "unit": "primelora-tc-aux-d821ca11000000000000000000000001.scope"
+      },
+      "released": true
+    },
+    {
+      "identity": {
+        "inode": 32033040,
+        "invocation_id": "6aed6cb14fc643949a635df19a6f5776",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d821ca11000000000000000000000002.scope",
+        "unit": "primelora-tc-aux-d821ca11000000000000000000000002.scope"
+      },
+      "released": true
+    }
+  ],
+  "completed_file_intervals": 64,
+  "kind": "d821_native_shared_pressure_completion_v1",
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d821_20261025/source1_launch.json",
+    "sha256": "8f819bfb6d1047053da5353aa8af4b85e9085ad49298026510b16d5f8793e07a"
+  },
+  "native_end_snapshot": {
+    "active_transfer_ids": [],
+    "active_transfers": 0,
+    "file_domain_id": "6322f98627964cbcbf70e96a52404e7a",
+    "membership_state": "attached",
+    "observation_transport": "same_host_memfd_flock_v1",
+    "physical_capacity_reserved": false,
+    "pressure_generation_id": "79ed624e7dab4301a6cf08bea3a4e7b4",
+    "transfer_limit": 3,
+    "transfer_scope": "shared_file_domain_and_serialized_native_v1",
+    "transfer_sequence": 130
+  },
+  "native_tokens_match": 48,
+  "next_action": "Complete 4000 W2 with identical D817 config except exclusive paths and shared-pressure coordination transport",
+  "numerical_correctness_qualified": false,
+  "passed": true,
+  "profile_exported": false,
+  "protected_files": 147,
+  "ranking_eligible": false,
+  "remote_delivery": {
+    "bilateral_sha_verified": true,
+    "bytes": 111556980,
+    "remote_pack_performed": false,
+    "transfers": 48
+  },
+  "remote_monitor": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d821_20261025/remote_monitor.log",
+    "sha256": "716217cb426ebe094ee1eae5b0957b30dd06f131662892412362c25669df28eb"
+  },
+  "remote_stopped": true,
+  "remote_transfers": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d821_20261025/remote_transfers.jsonl",
+    "sha256": "0933ff726e44182fff646285aaa3c1115fd026fbb05fc6ef01002da37bfb6a76"
+  },
+  "requests": 48,
+  "resources": {
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "memory_peak_bytes": 5748473856,
+    "swap_peak_bytes": 0
+  },
+  "retired_domain": {
+    "active_transfer_ids": [],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "closed": true,
+    "file_owner_id": "6322f98627964cbcbf70e96a52404e7a",
+    "members": [
+      {
+        "caller_cancelled": false,
+        "owner_id": "8b61a2b7eaa644459d686bd22ff6d583",
+        "state": "retired"
+      }
+    ],
+    "observation_transport": "same_host_memfd_flock_v1",
+    "physical_capacity_reserved": false
+  },
+  "scope_limitation": "Source-profile loading bypasses Full admission witness; native reader identity/end revision and concurrent publication are verified, not nonzero Full admission observation. Full W2 is the next direct validation; no extra prefix.",
+  "service_and_auxiliary_removed": true,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d821_20261025/source1.json",
+    "sha256": "fc2f45288bf2a377f4f3cf53be666c91ee1c38623bd2cdd42a76a4bf6e239571"
+  },
+  "sources": {
+    "file_host": 8,
+    "gpu": 16,
+    "native_host": 8,
+    "nvme": 8,
+    "remote": 8
+  }
+}
