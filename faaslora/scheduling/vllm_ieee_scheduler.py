@@ -125,11 +125,15 @@ def _core_prepare_host(core, command):
                 allowed | {'replacement_epoch', 'preparation_plan_id', 'host_file_fallbacks'})
     if not isinstance(command, dict) or set(command) not in accepted:
         raise ValueError('proactive preparation command fields differ from the contract')
-    observation = scheduler.ieee_scheduler_observation()
-    lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
-    result = core.collective_rpc('ieee_gpu_reference', kwargs={
-        'operation': 'proactive_host_prepare_and_acquire', **command,
-        'scheduler_observation': observation, 'lengths': lengths})
+    # The same-host file owner can otherwise publish a new interval between
+    # this observation and the synchronous UniProc decision/load. No awaiting
+    # controller callbacks is permitted inside this native read transaction.
+    with scheduler._ieee_transfers.observation_transaction():
+        observation = scheduler.ieee_scheduler_observation()
+        lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
+        result = core.collective_rpc('ieee_gpu_reference', kwargs={
+            'operation': 'proactive_host_prepare_and_acquire', **command,
+            'scheduler_observation': observation, 'lengths': lengths})
     if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
         raise RuntimeError('proactive preparation lacks single-worker acknowledgement')
     return result[0]
@@ -163,11 +167,12 @@ def _core_admit_and_demand_load(core, command):
         raise ValueError('native admission command fields differ from the contract')
     if command.get('capacity_only') is not True:
         raise ValueError('request capacity witness requires capacity_only=True')
-    observation = scheduler.ieee_scheduler_observation()
-    lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
-    result = core.collective_rpc('ieee_gpu_reference', kwargs={
-        'operation': 'admit_and_demand_load', **command,
-        'scheduler_observation': observation, 'lengths': lengths})
+    with scheduler._ieee_transfers.observation_transaction():
+        observation = scheduler.ieee_scheduler_observation()
+        lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
+        result = core.collective_rpc('ieee_gpu_reference', kwargs={
+            'operation': 'admit_and_demand_load', **command,
+            'scheduler_observation': observation, 'lengths': lengths})
     if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
         raise RuntimeError('native admission lacks a single-worker acknowledgement')
     return result[0]

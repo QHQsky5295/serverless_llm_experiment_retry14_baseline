@@ -1457,6 +1457,8 @@ class IEEEWorkerObservationExtension:
                     'transfer_scope': transfers['transfer_scope'],
                     'active_transfer_ids': list(transfers['active_transfer_ids']),
                     'transfer_sequence': transfers['transfer_sequence'],
+                    **{key: transfers[key] for key in ('observation_transport', 'pressure_generation_id')
+                       if key in transfers},
                     'allocation_contract': 'existing_pinned_cpu_to_pitched_gpu_v2',
                     'copy_method': 'cudaMemcpy2DAsync_in_native_setter_scope',
                     'scheduler_held_during_commit': True,
@@ -1576,7 +1578,9 @@ class IEEEWorkerObservationExtension:
                 scheduler_sequences={key: observation[key] for key in
                                      ('scheduled_sequence', 'completed_sequence')},
                 admitted_scope=observation['admitted_scope'],
-                transfer_scope=transfers['transfer_scope'])
+                transfer_scope=transfers['transfer_scope'],
+                **{key: transfers[key] for key in ('observation_transport', 'pressure_generation_id',
+                    'transfer_sequence', 'active_transfer_ids') if key in transfers})
             # Request-driven loading has priority over the proactive soft
             # budget.  Keep the evaluator observational here and let the
             # backend's own native LRU/allocator decide the actual load; a

@@ -6,9 +6,9 @@ observation/use interval; an exclusive flock publishes a complete revision.
 Unlike a per-core RPC journal, readers do not have to execute a notification
 before a writer can publish. A missing/dead owner is an error, never idle load.
 
-This transport is not wired into production until its lifecycle and the native
-observation/use critical sections have been qualified. It allocates no GPU/KV
-capacity and does not change IEEE equations or their transfer-limit denominator.
+The runner selects this transport explicitly; native observation/use critical
+sections retain the read lock through synchronous admission/load. It allocates
+no GPU/KV capacity and does not change IEEE equations or their transfer limit.
 """
 from contextlib import contextmanager
 import asyncio

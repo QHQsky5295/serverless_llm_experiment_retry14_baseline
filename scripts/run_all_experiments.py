@@ -4983,7 +4983,7 @@ class InferenceEngine:
         if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
                 or result.get('transfer_id') != command.get('transfer_id')
                 or result.get('state') != {'start': 'active', 'finish': 'finished',
-                    'attach_domain': 'attached'}.get(command.get('operation'))):
+                    'attach_domain': 'attached', 'attach_shared_domain': 'attached'}.get(command.get('operation'))):
             raise ValueError('file transfer event lacks matching scheduler acknowledgement')
         return result
 
@@ -6608,7 +6608,7 @@ class SubprocessInferenceEngineProxy:
         if (not isinstance(result, dict) or result.get('kind') != 'ieee_adapter_transfer_event_v1'
                 or result.get('transfer_id') != command.get('transfer_id')
                 or result.get('state') != {'start': 'active', 'finish': 'finished',
-                    'attach_domain': 'attached'}.get(command.get('operation'))
+                    'attach_domain': 'attached', 'attach_shared_domain': 'attached'}.get(command.get('operation'))
                 or (command.get('expected_owner_id') is not None
                     and result.get('owner_id') != command['expected_owner_id'])):
             raise ValueError('file transfer event lacks matching worker acknowledgement')
@@ -14867,6 +14867,9 @@ class ScenarioRunner:
         if pending_sequences is not None:
             pending_sequences.clear()
         if self.instance_pool is None:
+            domain = getattr(self, '_shared_file_pressure', None)
+            if domain is not None:
+                await domain.close()
             return
         cleanup_failures = [outcome for outcome in retirement_outcomes
                             if isinstance(outcome, BaseException)]
@@ -14912,6 +14915,9 @@ class ScenarioRunner:
             self._ieee_nvml_initialized = False
         if cleanup_failures:
             raise RuntimeError('instance-pool cleanup has unresolved runtime ownership') from cleanup_failures[0]
+        domain = getattr(self, '_shared_file_pressure', None)
+        if domain is not None:
+            await domain.close()
         for outcome in residency_outcomes:
             if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
                 raise RuntimeError('IEEE shutdown preserved a failed residency epoch') from outcome
@@ -20820,11 +20826,16 @@ class ScenarioRunner:
     def _ieee_file_pressure_domain(self):
         from faaslora.scheduling.resource_coordinator import SharedFileTransferDomain
         owner = self._stack.residency_manager.local_source_references
+        # This selects the controller-owned file-domain protocol, not a model
+        # execution option. Do not change/exempt native profile identity fields.
+        if 'ieee_file_pressure_transport' in self.model_cfg:
+            raise ValueError('file pressure transport belongs to resource_coordination, not model')
+        transport = getattr(self, 'coord_cfg', {}).get('ieee_file_pressure_transport', 'native_rpc_v1')
         domain = getattr(self, '_shared_file_pressure', None)
         if domain is None:
             domain = self._shared_file_pressure = SharedFileTransferDomain(
-                owner.owner_id, self._adapter_transfer_pressure_evidence)
-        if domain.owner_id != owner.owner_id:
+                owner.owner_id, self._adapter_transfer_pressure_evidence, transport=transport)
+        if domain.owner_id != owner.owner_id or domain.transport != transport:
             raise ValueError('shared physical file pressure owner changed')
         return domain
 

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checked_unix": 1792875158.5002759,
+  "backup_head": "f830cdc357af3843d011c4b8163c44a8e2157739",
+  "backup_ref": "refs/heads/backup/d819-shared-pressure-ipc-20261025",
+  "scope": {
+    "inode": 32024219,
+    "invocation_id": "c8ae7741cdfb484384a467d2320e64d3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8190000000000000000000000000003.scope",
+    "unit": "primelora-tc-aux-d8190000000000000000000000000003.scope"
+  },
+  "state": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "path_exists": false,
+  "gpu_compute_empty": true,
+  "disk_available_bytes": 161156640768,
+  "staged_files": []
+}

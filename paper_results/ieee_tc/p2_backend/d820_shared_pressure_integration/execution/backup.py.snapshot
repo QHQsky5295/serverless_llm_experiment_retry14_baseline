@@ -1,0 +1,110 @@
+"""D820 explicit-path backup using D819's checks; no performance experiment."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tarfile
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+closures = []
+for name in ('initial', 'coordinator_contract'):
+    evidence = read(OUT / name / 'qualification.json')
+    assert evidence['passed'] and evidence['production_opt_in'] and not evidence['gpu_performance_run']
+    assert evidence['program_sha256'] == p.digest(RAW / 'qualify.py')
+    identity = evidence['identity']
+    state = call(['systemctl', '--user', 'show', identity['unit'],
+                  '-p', 'ActiveState', '-p', 'InvocationID', '-p', 'ControlGroup'])
+    assert 'ActiveState=inactive' in state and not Path(identity['path']).exists()
+    closures.append(dict(identity=identity, state=state, path_exists=False))
+    with tarfile.open(OUT / name / 'source_snapshot.tar.gz') as archive:
+        assert len(archive.getmembers()) == len(evidence['sources'])
+        for member in archive:
+            assert member.isfile() and str(ROOT / member.name) in evidence['sources']
+            assert hashlib.sha256(archive.extractfile(member).read()).hexdigest() == evidence['sources'][str(ROOT / member.name)]
+for path, sha in evidence['sources'].items():
+    assert p.digest(Path(path)) == sha
+seal_path = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal = p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count'] == 147
+protected = read(ROOT / 'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected']
+for path, sha in protected.items():
+    assert p.digest(Path(path)) == sha
+assert p.digest(ROOT / 'faaslora/memory/residency_manager.py') == '049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2'
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+snapshots = OUT / 'execution'
+snapshots.mkdir(exist_ok=False)
+for source, target in (
+    (RAW / 'qualify.py', snapshots / 'qualify.py.snapshot'),
+    (RAW / 'backup.py', snapshots / 'backup.py.snapshot'),
+    (RAW.parent / 'd819_20261025/close.py', snapshots / 'd819_close.py.snapshot'),
+    (RAW.parent / 'd819_20261025/post_backup_release.json', snapshots / 'd819_post_backup_release.json'),
+):
+    if source.suffix == '.py':
+        ast.parse(source.read_text())
+    with target.open('xb') as handle:
+        handle.write(source.read_bytes())
+    assert p.digest(target) == p.digest(source)
+save(OUT / 'closure.json', dict(passed=True, closed_qualifications=closures,
+    protected=seal, protected_user_files=protected, disk_available_bytes=shutil.disk_usage(ROOT).free,
+    no_gpu_compute=True, no_performance_replay=True, no_remote_mutation=True))
+files = sorted(x for x in OUT.rglob('*') if x.is_file())
+files += [ROOT / path for path in (
+    'faaslora/scheduling/resource_coordinator.py', 'faaslora/scheduling/shared_transfer_state.py',
+    'faaslora/scheduling/vllm_ieee_scheduler.py', 'faaslora/memory/gpu_monitor.py',
+    'scripts/run_all_experiments.py', 'scripts/ieee_tc_preflight.py',
+    'tests/test_ieee_tc_shared_pressure_integration.py',
+    'docs/ieee_tc/D820_SHARED_PRESSURE_INTEGRATION_20261025.md', 'docs/ieee_tc/EXECUTION_STATUS.md')]
+save(OUT / 'manifest.json', dict(kind='d820_opt_in_pressure_integration_checkpoint_v1',
+    native_model_qualification_pending=True, performance_replay_pending=True,
+    files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x), bytes=x.stat().st_size) for x in files]))
+files.append(OUT / 'manifest.json')
+paths = [str(x.relative_to(ROOT)) for x in files]
+assert len(paths) == len(set(paths)) and 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    if path.name.endswith('.tar.gz'):
+        with tarfile.open(path) as archive:
+            for member in archive:
+                assert member.isfile() and not secret.search(archive.extractfile(member).read().decode())
+    else:
+        assert not secret.search(path.read_text()), str(path)
+        if path.suffix == '.py':
+            ast.parse(path.read_text())
+call(['git', 'add', '--', *[x for x in paths if not x.endswith(('.log', '.tar.gz'))]])
+call(['git', 'add', '-f', '--', *[x for x in paths if x.endswith(('.log', '.tar.gz'))]])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+call(['git', 'diff', '--cached', '--check', '--', *[x for x in paths if not x.endswith(('.log', '.tar.gz'))]])
+save(RAW / 'precommit.json', dict(passed=True, files=paths, protected=protected))
+call(['git', 'commit', '-m', 'tc: integrate authoritative same-host pressure with native admission (D820)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d820-shared-pressure-integration-20261025'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup.json', dict(passed=True, head=head, ref=ref, files=paths,
+    v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

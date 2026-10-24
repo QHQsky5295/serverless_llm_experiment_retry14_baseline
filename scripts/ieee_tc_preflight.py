@@ -5058,6 +5058,8 @@ def source_profile_boundary(cfg, spec, identities, index):
         'nvme': {'cache_dir': str(paths['nvme']), 'cache_size_gb': spec['nvme_budget_bytes']/GIB}}}, None, None)
     boundary = ScenarioRunner.__new__(ScenarioRunner)
     boundary.model_cfg, boundary.instance_pool = cfg, None
+    boundary.coord_cfg = {'ieee_file_pressure_transport':
+        spec.get('file_pressure_transport', 'native_rpc_v1')}
     boundary._stack = SimpleNamespace(residency_manager=manager,
         preloading_manager=SimpleNamespace(ieee_movements=OwnedMovementQueue(spec['movement_concurrency'])))
     boundary._routing_policy = 'ieee_confirmed'
@@ -6379,6 +6381,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 try:
                     if engine is not None:
                         await domain.retire(engine)
+                    await domain.close()
                 except Exception as error:
                     result.update(profile_pressure_retirement_error=str(error), **{'pass': False})
                 result['file_pressure_after_retirement'] = domain.snapshot()

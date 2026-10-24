@@ -1,0 +1,117 @@
+{
+  "files": [
+    {
+      "bytes": 1882,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/closure.json",
+      "sha256": "e7fbf582be1f3c87c292374d5b7e964255d14c9d32eb9378a6524afa85f25a03"
+    },
+    {
+      "bytes": 287,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/identity.json",
+      "sha256": "79d3866705a897d7294a32b52891433b92efec62b9838826e055988ceb142c9a"
+    },
+    {
+      "bytes": 2606,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/qualification.json",
+      "sha256": "e2d492add098df666b3c043c39668c9ed9df0e3c88f34f719fee76f373177cd4"
+    },
+    {
+      "bytes": 492413,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/source_snapshot.tar.gz",
+      "sha256": "4aaf8c1d11d6553ffe72318dbb8dd8d10fbab9bdbf33354bbad2cecdf4819fc2"
+    },
+    {
+      "bytes": 11700,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/test.log",
+      "sha256": "e765bde13eafe3ff45e43c7c8f12c5a1cafd0972bd2eb5b0c7aaa3f9a401c3e3"
+    },
+    {
+      "bytes": 6487,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/execution/backup.py.snapshot",
+      "sha256": "3ffc4f0f7230a4a335faad95758f44b52f3d099db2fe9204244b99c94cbeeccb"
+    },
+    {
+      "bytes": 1285,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/execution/d819_close.py.snapshot",
+      "sha256": "ad5a27051018e42df61e255b2283c4d459e44d916eebf67ebf81d466d7a886df"
+    },
+    {
+      "bytes": 682,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/execution/d819_post_backup_release.json",
+      "sha256": "57ebf5a0d6ef25b56346967b7ec6c8e3f3814db23a436849e52bb0fd9b8f9a90"
+    },
+    {
+      "bytes": 3215,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/execution/qualify.py.snapshot",
+      "sha256": "f956946448b39fe0a73f7b2bbfeeff2e06c6fddf21eabeb5b340b8f576617a66"
+    },
+    {
+      "bytes": 287,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/initial/identity.json",
+      "sha256": "17a950bedae0a45b965724c4fab088e0cdc94fb5b52e85bfd9614668dfbe9b19"
+    },
+    {
+      "bytes": 2607,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/initial/qualification.json",
+      "sha256": "c67825bf64bda0bcea12539fe1614d3d4e6b23116f7dcfe3985b7614389d73c2"
+    },
+    {
+      "bytes": 492062,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/initial/source_snapshot.tar.gz",
+      "sha256": "3af8cad311334353714ac65d9d74c7bffcc5f877fd0e7b3d3c15b370141d5b86"
+    },
+    {
+      "bytes": 11260,
+      "path": "paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/initial/test.log",
+      "sha256": "cbb10a365a9a13cb8e62f086cdb7eba4793ce64414dd986415f925f8799afb82"
+    },
+    {
+      "bytes": 93619,
+      "path": "faaslora/scheduling/resource_coordinator.py",
+      "sha256": "77786bcf3ff80820a8e32e07a2b5ad0a276bc99e5078deb854f86ad3e610c2a9"
+    },
+    {
+      "bytes": 13191,
+      "path": "faaslora/scheduling/shared_transfer_state.py",
+      "sha256": "075729430ad7a7ae48b4c3c7cf6c8eb075992b443d9f11ef587ae6ae61874bdb"
+    },
+    {
+      "bytes": 17959,
+      "path": "faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "ac48b59f2789b373195948c89a206a984856243f18b30668ff410b8d8c284606"
+    },
+    {
+      "bytes": 125342,
+      "path": "faaslora/memory/gpu_monitor.py",
+      "sha256": "17beb61bc3c595680b24c6da695911d50f7f572e776e44b5b8ff76dac14df198"
+    },
+    {
+      "bytes": 1349874,
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "88f46a5e914ba3f454b92102a1888edb3d680976173279e0630d7e77cd8ed388"
+    },
+    {
+      "bytes": 417420,
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "5f30818248078d44137bee71b4e9045602c043f1b522c28c2221d7cd26517829"
+    },
+    {
+      "bytes": 16564,
+      "path": "tests/test_ieee_tc_shared_pressure_integration.py",
+      "sha256": "5e5adea2baf73554f7bc1e92eb5fa017382644ba274ab68e5e3524a3512e93cb"
+    },
+    {
+      "bytes": 5651,
+      "path": "docs/ieee_tc/D820_SHARED_PRESSURE_INTEGRATION_20261025.md",
+      "sha256": "ddf4757b8ee28fdede4c3990d17f976b0a3d40c64a9b7acb639d0f3c1f741a91"
+    },
+    {
+      "bytes": 1241900,
+      "path": "docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "bac687b653839c1503566eb81231a88b078ea682590a5654fbe072084414d3db"
+    }
+  ],
+  "kind": "d820_opt_in_pressure_integration_checkpoint_v1",
+  "native_model_qualification_pending": true,
+  "performance_replay_pending": true
+}

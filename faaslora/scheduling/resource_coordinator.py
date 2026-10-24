@@ -19,6 +19,7 @@ import uuid
 from bisect import bisect_left
 from collections import defaultdict, deque
 from concurrent.futures import Future
+from contextlib import contextmanager
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -101,6 +102,7 @@ class NativeTransferObservation:
         self.active, self.finished = {}, set()
         self.sequence = 0
         self.file_domain = None
+        self._shared_reader = None
 
     def event(self, *, operation, transfer_id, descriptor=None, expected_owner_id=None):
         self.iterations.check_thread()
@@ -109,6 +111,28 @@ class NativeTransferObservation:
             raise ValueError('transfer requires a unique nonempty identity')
         if expected_owner_id is not None and expected_owner_id != owner_id:
             raise ValueError('transfer scheduler owner changed')
+        if operation == 'attach_shared_domain':
+            from .shared_transfer_state import SharedTransferStateReader
+            if (not isinstance(descriptor, dict) or descriptor.get('file_owner_id') != transfer_id
+                    or self.active or self.finished
+                    or (self.file_domain is not None and self._shared_reader is None)):
+                raise ValueError('shared reader cannot replace another pressure journal')
+            if self._shared_reader is None:
+                self._shared_reader = SharedTransferStateReader(descriptor)
+                self.file_domain = transfer_id
+            elif self._shared_reader.descriptor != descriptor:
+                raise ValueError('native shared pressure publisher cannot change')
+            from faaslora.clock import local_monotonic_clock_id
+            # The controller binds this owner into the shared projection AFTER
+            # this exact reader acknowledgement, before publishing the runtime.
+            # No invented zero-pressure snapshot during that attaching phase.
+            return dict(kind='ieee_adapter_transfer_event_v1', owner_id=owner_id,
+                transfer_id=transfer_id, state='attached', file_domain_id=self.file_domain,
+                clock_id=local_monotonic_clock_id(), observed_at=time.monotonic(),
+                pressure_generation_id=descriptor['generation_id'],
+                observation_transport='same_host_memfd_flock_v1')
+        if self._shared_reader is not None:
+            raise ValueError('shared authoritative pressure cannot accept projected RPC events')
         if operation == 'attach_domain':
             if descriptor is not None or self.file_domain not in (None, transfer_id):
                 raise ValueError('native file pressure domain cannot change')
@@ -152,12 +176,26 @@ class NativeTransferObservation:
 
     def snapshot(self):
         self.iterations.check_thread()
+        if self._shared_reader is not None:
+            return dict(**self._shared_reader.snapshot(self.iterations.owner_id),
+                transfer_limit=self.limit,
+                transfer_scope='shared_file_domain_and_serialized_native_v1')
         return dict(active_transfers=len(self.active), transfer_limit=self.limit,
                     active_transfer_ids=sorted(self.active), transfer_sequence=self.sequence,
                     transfer_scope=('shared_file_domain_and_serialized_native_v1' if self.file_domain
                                     else 'replica_owned_file_preparation_and_serialized_native_v1'),
                     file_domain_id=self.file_domain,
                     physical_capacity_reserved=False)
+
+    @contextmanager
+    def observation_transaction(self):
+        """Keep pressure stable through the synchronous native admission turn."""
+        self.iterations.check_thread()
+        if self._shared_reader is None:
+            yield  # Legacy events are serialized on this same native thread.
+        else:
+            with self._shared_reader.transaction(self.iterations.owner_id):
+                yield
 
 
 class SharedFileTransferDomain:
@@ -169,7 +207,7 @@ class SharedFileTransferDomain:
     not create transfers, byte reservations, measured loading times or GPU work.
     All RPCs settle despite caller cancellation; uncertain outcomes fail closed.
     """
-    def __init__(self, file_owner_id, evidence):
+    def __init__(self, file_owner_id, evidence, *, transport='native_rpc_v1'):
         if not isinstance(file_owner_id, str) or not file_owner_id:
             raise ValueError('shared transfer domain requires its physical owner')
         self.owner_id, self.evidence = file_owner_id, evidence
@@ -177,6 +215,34 @@ class SharedFileTransferDomain:
         self.clock_id = local_monotonic_clock_id()
         self.members, self.active = {}, {}
         self.lock = asyncio.Lock()
+        if transport not in ('native_rpc_v1', 'same_host_memfd_flock_v1'):
+            raise ValueError('unknown physical pressure observation transport')
+        self.transport = transport
+        self._publisher = None
+        self._closed = False
+        if transport == 'same_host_memfd_flock_v1':
+            from .shared_transfer_state import SharedTransferStateOwner
+            self._publisher = SharedTransferStateOwner(file_owner_id)
+
+    async def _publish_state(self, cancellation, *, exclude=None):
+        """Called under membership lock; join publication, not native readers."""
+        active = {key: entry for key, entry in self.active.items() if key != exclude}
+        owners = {}
+        for member in self.members.values():
+            if member['owner_id'] is None or member['state'] not in ('attached', 'retiring', 'retired'):
+                continue
+            owners[member['owner_id']] = dict(state=member['state'], active_transfer_ids=sorted(
+                key for key, entry in active.items()
+                if member['owner_id'] in entry['record']['participants']))
+        task = asyncio.create_task(self._publisher.publish_async(
+            active_transfer_ids=sorted(active), owners=owners))
+        while True:
+            try:
+                return await asyncio.shield(task)
+            except asyncio.CancelledError:
+                cancellation['caller_cancelled'] = True
+                if task.cancelled():
+                    raise
 
     async def _rpc(self, member, command, record):
         task = asyncio.create_task(member['engine'].ieee_transfer_event(**command))
@@ -188,7 +254,8 @@ class SharedFileTransferDomain:
                 record['caller_cancelled'] = True
                 if task.cancelled():
                     raise
-        expected = {'attach_domain': 'attached', 'start': 'active', 'finish': 'finished'}[command['operation']]
+        expected = {'attach_domain': 'attached', 'attach_shared_domain': 'attached',
+                    'start': 'active', 'finish': 'finished'}[command['operation']]
         if (not isinstance(receipt, dict) or receipt.get('state') != expected
                 or receipt.get('transfer_id') != command['transfer_id']
                 or not isinstance(receipt.get('owner_id'), str)
@@ -196,6 +263,10 @@ class SharedFileTransferDomain:
                 or receipt.get('file_domain_id') != self.owner_id
                 or (member['owner_id'] is not None and receipt['owner_id'] != member['owner_id'])):
             raise ValueError('shared transfer event lacks matching native domain acknowledgement')
+        if self._publisher is not None and (
+                receipt.get('observation_transport') != self.transport
+                or receipt.get('pressure_generation_id') != self._publisher.descriptor['generation_id']):
+            raise ValueError('shared pressure reader acknowledgement has another publication identity')
         return receipt
 
     async def _start_member(self, member, record, cancel_record=None):
@@ -211,6 +282,8 @@ class SharedFileTransferDomain:
         if not callable(getattr(engine, 'ieee_transfer_event', None)):
             raise ValueError('shared pressure subscription requires an initialized native engine')
         async with self.lock:
+            if self._closed:
+                raise RuntimeError('shared pressure domain is closed')
             member = self.members.get(id(engine))
             if member is not None:
                 if member['state'] != 'attached':
@@ -219,14 +292,27 @@ class SharedFileTransferDomain:
             member = dict(engine=engine, owner_id=None, state='attaching', caller_cancelled=False)
             self.members[id(engine)] = member  # Retain even if its reply is lost.
             try:
-                receipt = await self._rpc(member, dict(operation='attach_domain',
-                    transfer_id=self.owner_id), member)
+                command = dict(operation='attach_domain', transfer_id=self.owner_id)
+                if self._publisher is not None:
+                    command.update(operation='attach_shared_domain', descriptor=dict(self._publisher.descriptor))
+                receipt = await self._rpc(member, command, member)
                 member['owner_id'] = receipt['owner_id']
                 if any(m is not member and m['owner_id'] == member['owner_id'] for m in self.members.values()):
                     raise ValueError('one native owner has multiple engine identities')
                 for entry in self.active.values():
-                    await self._start_member(member, entry['record'], member)
+                    if self._publisher is None:
+                        await self._start_member(member, entry['record'], member)
+                    else:
+                        entry['record']['participants'][member['owner_id']] = dict(
+                            state='active', native_acknowledgement=False)
                 member['state'] = 'attached'
+                if self._publisher is not None:
+                    member['reader_receipt'] = receipt
+                    publication = await self._publish_state(member)
+                    member['attach_publication'] = publication
+                    for entry in self.active.values():
+                        entry['record']['participants'][member['owner_id']].update(
+                            start_publication_revision=publication['revision'])
             except BaseException:
                 member['state'] = 'uncertain'
                 raise
@@ -236,6 +322,7 @@ class SharedFileTransferDomain:
 
     def snapshot(self):
         return dict(file_owner_id=self.owner_id, clock_id=self.clock_id,
+            observation_transport=self.transport, closed=self._closed,
             active_transfer_ids=sorted(self.active),
             members=[dict(owner_id=m['owner_id'], state=m['state'],
                           caller_cancelled=m['caller_cancelled']) for m in self.members.values()],
@@ -247,6 +334,7 @@ class SharedFileTransferDomain:
         The runner joins its proactive plans first. New file work for other
         replicas may continue. This does not certify physical GPU release.
         """
+        cancellation = dict(caller_cancelled=False)
         async with self.lock:
             member = self.members.get(id(engine))
             if member is None:
@@ -256,17 +344,22 @@ class SharedFileTransferDomain:
             if member['state'] not in ('attached', 'retiring'):
                 raise RuntimeError('cannot retire an uncertain pressure subscription')
             member['state'] = 'retiring'
+            if self._publisher is not None:
+                member['retiring_publication'] = await self._publish_state(cancellation)
             pending = [e for e in self.active.values() if member['owner_id'] in e['record']['participants']]
             async def join():
                 for entry in pending:
                     await entry['done'].wait()
                     if entry['record']['participants'][member['owner_id']]['state'] != 'finished':
                         raise RuntimeError('retiring native owner has unsettled file pressure')
-                member['state'] = 'retired'
+                async with self.lock:
+                    member['state'] = 'retired'
+                    if self._publisher is not None:
+                        member['retired_publication'] = await self._publish_state(cancellation)
             if 'retirement_task' not in member:
                 member['retirement_task'] = asyncio.create_task(join())
             task = member['retirement_task']
-        cancelled = False
+        cancelled = cancellation['caller_cancelled']
         while True:
             try:
                 await asyncio.shield(task)
@@ -278,6 +371,29 @@ class SharedFileTransferDomain:
         if cancelled:
             raise asyncio.CancelledError()
 
+    async def close(self):
+        """Close only settled transport, never use shutdown to forge IO finish."""
+        if self._publisher is None:
+            return
+        async with self.lock:
+            if self._closed:
+                return
+            if self.active or any(m['state'] != 'retired' for m in self.members.values()):
+                raise RuntimeError('cannot close unsettled shared pressure domain')
+            task = asyncio.create_task(asyncio.to_thread(self._publisher.close))
+            cancelled = False
+            while True:
+                try:
+                    await asyncio.shield(task)
+                    break
+                except asyncio.CancelledError:
+                    cancelled = True
+                    if task.cancelled():
+                        raise
+            self._closed = True
+            if cancelled:
+                raise asyncio.CancelledError()
+
     async def run(self, adapter_id, source_tier, target_tier, operation, *, required_engine=None):
         if (not isinstance(adapter_id, str) or not adapter_id
                 or source_tier not in ('remote', 'nvme', 'host')
@@ -287,12 +403,15 @@ class SharedFileTransferDomain:
             source_tier=source_tier, target_tier=target_tier, file_owner_id=self.owner_id,
             state='start_pending', operation_outcome='not_started', caller_cancelled=False,
             participants={}, created_at=time.monotonic(), clock_id=self.clock_id,
-            transfer_scope='shared_file_domain_and_serialized_native_v1')
+            transfer_scope='shared_file_domain_and_serialized_native_v1',
+            projection_policy=self.transport)
         self.evidence.append(record)
         entry = dict(record=record, done=asyncio.Event())
         unresolved_error = None
         try:
             async with self.lock:
+                if self._closed:
+                    raise RuntimeError('shared pressure domain is closed')
                 # Target ownership and transfer publication share the same
                 # linearization point as retirement. A prior attach alone is
                 # not permission to use an owner after it has withdrawn.
@@ -306,7 +425,15 @@ class SharedFileTransferDomain:
                         continue
                     if member['state'] != 'attached':
                         raise RuntimeError('shared file pressure has an uncertain subscriber')
-                    await self._start_member(member, record)
+                    if self._publisher is None:
+                        await self._start_member(member, record)
+                    else:
+                        record['participants'][member['owner_id']] = dict(
+                            state='active', native_acknowledgement=False)
+                if self._publisher is not None:
+                    record['start_publication'] = await self._publish_state(record)
+                    for row in record['participants'].values():
+                        row['start_publication_revision'] = record['start_publication']['revision']
                 record['state'] = 'active'
             if record['caller_cancelled']:
                 raise asyncio.CancelledError()
@@ -335,7 +462,17 @@ class SharedFileTransferDomain:
                 errors = []
                 async with self.lock:
                     record['state'] = 'finish_pending'
+                    if self._publisher is not None:
+                        try:
+                            receipt = await self._publish_state(record, exclude=record['transfer_id'])
+                            record['finish_publication'] = receipt
+                            for row in record['participants'].values():
+                                row.update(state='finished', finish_publication_revision=receipt['revision'])
+                        except BaseException as exc:
+                            errors.append(exc)
                     for member in self.members.values():
+                        if self._publisher is not None:
+                            break
                         row = record['participants'].get(member['owner_id'])
                         if row is None:
                             continue

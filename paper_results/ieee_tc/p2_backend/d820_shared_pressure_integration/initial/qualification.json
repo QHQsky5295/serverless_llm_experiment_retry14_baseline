@@ -1,0 +1,35 @@
+{
+  "disk_available_bytes": 161152536576,
+  "finished_unix": 1792875724.2296836,
+  "gpu_performance_run": false,
+  "identity": {
+    "inode": 32028843,
+    "invocation_id": "3d01256a694548c4a69022ab45931c13",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d820ca11000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-d820ca11000000000000000000000001.scope"
+  },
+  "kind": "bounded_domain_native_integration",
+  "passed": true,
+  "production_opt_in": true,
+  "program_sha256": "f956946448b39fe0a73f7b2bbfeeff2e06c6fddf21eabeb5b340b8f576617a66",
+  "resources": {
+    "cpu.stat": "usage_usec 9824684\nuser_usec 8586480\nsystem_usec 1238204\ncore_sched.force_idle_usec 0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.peak": "538697728",
+    "memory.swap.current": "0"
+  },
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "17beb61bc3c595680b24c6da695911d50f7f572e776e44b5b8ff76dac14df198",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py": "77786bcf3ff80820a8e32e07a2b5ad0a276bc99e5078deb854f86ad3e610c2a9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py": "075729430ad7a7ae48b4c3c7cf6c8eb075992b443d9f11ef587ae6ae61874bdb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py": "ac48b59f2789b373195948c89a206a984856243f18b30668ff410b8d8c284606",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "4b77e5c388813193fa464aeed4e36cc328cf0acb3bad7d00ba2757e821963713",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "92423e74a1abd78ddd280a0b7e5e018c1a3160bfa9ac05d0a38bbaf5a6dd1dff",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_scheduler_observation.py": "8ec2fdc7648fac0c8f95afce07da203d3cedff9f78af6b7bb47a0cfbf5e163ef",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_pressure_integration.py": "bff08f505074151e5fc3e95ef84f3729657e7b6b575a782b1e41423288e592f5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "2064cc9b8725e3aea91b020f93cbdd0a09eb54b098cdcc60b851e650abe6a481"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  }
+}

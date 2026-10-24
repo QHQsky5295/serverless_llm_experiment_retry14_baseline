@@ -1,0 +1,68 @@
+"""Bounded integration qualification; reuse D819 containment/receipt pattern."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tarfile
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration' / sys.argv[1]
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+
+OUT.mkdir(parents=True, exist_ok=False)
+identity = p.scope_identity(p.cg_path().name)
+save(OUT / 'identity.json', identity)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+assert p.digest(p.PLAN) == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+protected = {ROOT / 'configs/generated/lora_manifest_1000.json':
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+paths = [ROOT / path for path in (
+    'faaslora/scheduling/resource_coordinator.py',
+    'faaslora/scheduling/shared_transfer_state.py',
+    'faaslora/scheduling/vllm_ieee_scheduler.py',
+    'faaslora/memory/gpu_monitor.py',
+    'scripts/run_all_experiments.py', 'scripts/ieee_tc_preflight.py',
+    'tests/test_ieee_tc_shared_pressure_integration.py',
+    'tests/test_ieee_tc_transfer_pressure.py',
+    'tests/test_ieee_tc_scheduler_observation.py')]
+sources = {str(path): p.digest(path) for path in paths}
+with tarfile.open(OUT / 'source_snapshot.tar.gz', 'x:gz') as archive:
+    for path in paths:
+        archive.add(path, arcname=str(path.relative_to(ROOT)), recursive=False)
+result = None
+try:
+    for path, sha in protected.items():
+        assert p.digest(path) == sha
+    with (OUT / 'test.log').open('x') as log:
+        result = subprocess.run([sys.executable, '-B', '-m', 'unittest', '-v',
+            'tests.test_ieee_tc_shared_pressure_integration',
+            'tests.test_ieee_tc_transfer_pressure.TransferPressure',
+            'tests.test_ieee_tc_transfer_pressure.SharedPressure',
+            'tests.test_ieee_tc_scheduler_observation.NativeHookWiring'], cwd=ROOT,
+            stdout=log, stderr=subprocess.STDOUT, timeout=150)
+    assert result.returncode == 0
+finally:
+    for path, sha in protected.items():
+        assert p.digest(path) == sha
+    for path, sha in sources.items():
+        assert p.digest(Path(path)) == sha
+    save(OUT / 'qualification.json', dict(kind='bounded_domain_native_integration',
+        passed=result is not None and result.returncode == 0,
+        production_opt_in=True, gpu_performance_run=False, identity=identity,
+        resources={name: (group / name).read_text().strip() for name in
+            ('memory.peak', 'memory.events', 'memory.swap.current', 'cpu.stat')},
+        disk_available_bytes=shutil.disk_usage(ROOT).free, sources=sources,
+        user_protected={str(path): sha for path, sha in protected.items()},
+        program_sha256=p.digest(Path(__file__)), finished_unix=time.time()))

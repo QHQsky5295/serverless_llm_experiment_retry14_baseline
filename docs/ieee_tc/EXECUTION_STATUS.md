@@ -1,4 +1,47 @@
-# IEEE TC execution status — D819 shared-pressure IPC qualified; production integration is next
+# IEEE TC execution status — D820 opt-in shared pressure integrated; native path validation next
+
+## 2026-10-25 D820共享压力接入与受影响测试完成，待备份
+
+本轮PROGRESS。完整PLAN/当前状态/AGENTS及必读规则、冻结V1/单轮V2已核对。
+HydraServe既有隔离适配/结果复用，不改非项目k3s；无GPU或远端运行，无待工具
+session。使用serving-llms-vllm核查当前原生边界，未采用技能通用指标或调参。
+
+沿D818/D819唯一候选接入SharedFileTransferDomain、native同core观测/使用事务、
+runner/proxy、回执provenance及shutdown/profile关闭。显式coordination配置
+same_host_memfd_flock_v1；旧native_rpc_v1保留。IO前发布、实际join后撤销，
+新owner加入全部在途、退休只等待旧任务；未知终态不归零。无新公式/分母，
+读锁跨同步准入/加载，锁内无controller回调依赖。官方vLLM0.30/Python源码
+引用和适用条件见D820_SHARED_PRESSURE_INTEGRATION_20261025.md。
+
+初版53项通过后发现配置归属应在resource_coordination而非model；已修正，
+不修改或豁免FrozenServiceProfiles身份，未运行任何模型。首源快照与记录保留。
+最终13新增集成+42相关旧路径=55项通过0.325s；两CPU组峰值538697728/
+539525120B，high/max/OOM/swap0。D819真实跨进程12项未重复，当前native
+桥使用fake推理对象，不当作GPU资格或性能提升。curated:
+paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/。
+
+下一保存明确路径检查点→必要实际native进程接入验证→新键完整W2。复用
+原D817输入、profile与模型控制配置；只加coordination通道和新结果路径，
+不重采无变化profile、不加Full前缀。注意新publication不是per-core ACK；
+旧D594逐core RPC阶段分析不能照搬。先按当前磁盘/内存实测再准入重型任务。
+未启动下一实验。D813 W1 93.975%、D817 W2 89.90%、D711数值身份未知保留；
+同版两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿与图文/V2
+完整范围不变。整体目标active，不画图、不标完成。
+
+## 2026-10-25 D819检查点已备份并关闭
+
+18条明确路径提交f830cdc357af3843d011c4b8163c44a8e2157739，已push/ls-remote
+核实refs/heads/backup/d819-shared-pressure-ipc-20261025，非最终V2同步。
+147投稿保护文件和三处用户修改SHA未变，未stage用户manifest；旧运行未覆盖。
+失败初版源码tar与恢复的首资格脚本均匹配当时记录SHA；成功源和12项结果
+也经SHA核对。备份aux03已inactive，Invocation/ControlGroup空、实际路径
+不存在，GPU空、stage空；raw/post_backup_release.json保存回执。
+磁盘161156636672B约150.1GiB，本轮没有空间回收，不重复计旧压缩。
+
+没有待工具session/运行GPU作业。下一直接接入下述**同一候选**的domain与
+native观测/提交边界；当前只有组件资格，不把它当性能优化已完成，不重新
+做D818分析或无变化资格。关闭回执随下次正常检查点纳入，不递归备份。
+整体目标active，未完成矩阵与D711正确性限制均不变。
 
 ## 2026-10-25 D819跨进程组件已验证，未接入生产
 
