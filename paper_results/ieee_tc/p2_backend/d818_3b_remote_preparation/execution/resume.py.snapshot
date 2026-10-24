@@ -1,0 +1,35 @@
+"""Resume offline projection using the sealed exact source, not a broad glob."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation'
+RUN=RAW.parent/'d817_20261025/3b_max3_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_remote_preparation
+def save(path,value):
+    with path.open('x') as h:
+        json.dump(value,h,indent=2,sort_keys=True,allow_nan=False); h.write('\n')
+previous=json.loads((RAW/'identity.json').read_text())
+state=subprocess.check_output(['systemctl','--user','show',previous['unit'],
+    '-p','ActiveState','-p','InvocationID','-p','ControlGroup'],text=True)
+assert 'ActiveState=inactive' in state and not Path(previous['path']).exists()
+save(OUT/'analysis_failure.json',dict(error='broad request glob included lossless compression receipt',
+    effect='Projection stopped before reading requests; no measured performance altered.',
+    prior_resources=json.loads((OUT/'analysis_receipt.json').read_text()),previous_scope=state,
+    previous_program_sha256=p.digest(RAW/'analyze.py'),
+    tests_reused=dict(path=str(OUT/'test.log'),sha256=p.digest(OUT/'test.log'))))
+identity=p.scope_identity(p.cg_path().name); group=Path(identity['path'])
+save(RAW/'resume_identity.json',identity)
+try:
+    diagnose_remote_preparation(RUN,OUT/'partition',ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/stages')
+finally:
+    save(OUT/'resume_receipt.json',dict(identity=identity,finished_unix=time.time(),
+        resources={name:(group/name).read_text().strip() for name in
+            ('memory.peak','memory.events','memory.swap.current','cpu.stat')},
+        program_sha256=p.digest(Path(__file__))))

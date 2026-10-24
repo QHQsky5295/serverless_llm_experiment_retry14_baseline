@@ -12,6 +12,7 @@ from __future__ import annotations
 import collections
 import argparse
 import csv
+import gzip
 import hashlib
 import json
 import math
@@ -60,6 +61,147 @@ def clipped_interval_union(start, end, spans):
 D716_TTFT_STAGES = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
     'executable_to_engine_ms', 'engine_entry_to_queue_ms',
     'native_engine_queue_ms', 'native_prefill_ms')
+
+
+def clipped_sequential_stages(start, end, boundaries):
+    """Partition one local interval, including joined/already-finished work.
+
+    The boundaries are ordered observations, not independently additive spans.
+    Clipping does not subtract preparation from a reported user latency.
+    """
+    times = [t for _, t in boundaries]
+    if (not boundaries or not all(type(t) in (int, float) and math.isfinite(t)
+                                  for t in (start, end, *times))
+            or start > end or times != sorted(times)
+            or len({k for k, _ in boundaries}) != len(boundaries)):
+        raise ValueError('unique ordered finite local boundaries required')
+    points = [start, *(min(end, max(start, t)) for t in times), end]
+    names = [k for k, _ in boundaries] + ['after_last_boundary_ms']
+    return {name: 1000*(b-a) for name, a, b in zip(names, points, points[1:])}
+
+
+def diagnose_remote_preparation(raw, output, stage_audit):
+    """D818: reuse sealed stages and stream compressed source evidence once.
+
+    Conditional diagnosis only. No counterfactual SLO, numerical correctness,
+    actual lock wait, or pure link time is inferred from a containing interval.
+    """
+    import ijson
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    stage_report = read(stage_audit/'diagnosis.json')
+    if not stage_report['passed'] or stage_report['source_run'] != str(raw):
+        raise ValueError('same-run sealed stage diagnosis required')
+    stage_csv = stage_audit/'requests.csv'
+    source_csv = stage_report['request_table']
+    if source_csv['path'] != str(stage_csv) or digest(stage_csv) != source_csv['sha256']:
+        raise ValueError('stage CSV changed')
+    with stage_csv.open() as h:
+        stages = {r['request_id']:r for r in csv.DictReader(h)}
+    result_paths = [Path(x['path']) for x in stage_report['source_refs']
+                    if Path(x['path']).name.startswith('experiment_results_full')
+                    and Path(x['path']).suffix == '.json']
+    if len(result_paths) != 1:
+        raise ValueError('exactly one immutable request result required')
+    result = result_paths[0]
+    if not result.exists():
+        result = result.with_suffix('.json.gz')
+    outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
+    if not outcome.exists():
+        outcome = outcome.with_suffix('.json.gz')
+    def open_source(path):
+        return gzip.open(path, 'rb') if path.suffix == '.gz' else path.open('rb')
+    # All transfers are checked, including those not retained by a request.
+    with open_source(outcome) as h:
+        transfers = list(ijson.items(h, 'remote_transfers.item', use_float=True))
+    by_id = {t['transfer_id']:t for t in transfers}
+    if len(by_id) != len(transfers) or any(t['state'] != 'published' for t in transfers):
+        raise ValueError('D818 published-only diagnosis needs unique closed transfers')
+    transfer_rows = []
+    for t in transfers:
+        boundary_fields = ('loading_started_monotonic_s', 'headers_received_monotonic_s',
+            'body_received_monotonic_s', 'extraction_started_monotonic_s',
+            'extraction_completed_monotonic_s', 'published_monotonic_s',
+            'client_completed_monotonic_s')
+        times = [t[k] for k in boundary_fields]
+        names = ('headers_ms','reserve_receive_write_ms','before_extract_ms',
+                 'extract_verify_ms','file_publication_envelope_ms','after_publication_ms')
+        if times != sorted(times):
+            raise ValueError('transfer stages out of order')
+        transfer_rows.append(dict(transfer_id=t['transfer_id'], http_transfer_id=t['http_transfer_id'],
+            adapter_id=t['artifact_id'], bytes=t['transferred_bytes'], payload_bytes=t['payload_bytes_verified'],
+            **{name:1000*(b-a) for name,a,b in zip(names,times,times[1:])},
+            total_ms=1000*(times[-1]-times[0])))
+    requests, missing, seen = [], [], set()
+    with open_source(result) as h:
+        for r in ijson.items(h, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rid = r['request_id']
+            if rid in seen or rid not in stages:
+                raise ValueError('request/stage population mismatch')
+            seen.add(rid)
+            s, e = stages[rid], r['gpu_reference_evidence']
+            if s['tier'] != 'remote':
+                continue
+            p = e.get('preparation_interval') or {}
+            tid = p.get('remote_transfer_id')
+            if tid is None:
+                missing.append(dict(request_id=rid, reason=p.get('reason'),
+                                    remote_receipt_present=e.get('remote_preparation') is not None))
+                continue
+            t, n = by_id[tid], r['native_token_timing']
+            receipt = e['receipt']
+            if (t['artifact_id'] != r['adapter_id'] or t['loading_clock_id'] != p['clock_id']
+                    or t != e['remote_preparation']):
+                raise ValueError('exact transfer identity/clock/receipt mismatch')
+            start, end = float(s['admitted']), receipt['acquired_monotonic_s']
+            part = clipped_sequential_stages(start, end, [
+                ('before_fetch_ms',t['loading_started_monotonic_s']),
+                ('headers_ms',t['headers_received_monotonic_s']),
+                ('reserve_receive_write_ms',t['body_received_monotonic_s']),
+                ('before_extract_ms',t['extraction_started_monotonic_s']),
+                ('extract_verify_ms',t['extraction_completed_monotonic_s']),
+                ('file_publication_envelope_ms',t['published_monotonic_s']),
+                ('published_to_native_start_ms',receipt['native_load_started_monotonic_s']),
+                ('native_load_ms',receipt['native_load_completed_monotonic_s'])])
+            error = abs(math.fsum(part.values())-float(s['admission_to_acquired_ms']))
+            if error > 1:
+                raise ValueError('request preparation partition differs from sealed stage')
+            requests.append(dict(request_id=rid, transfer_id=tid, adapter_id=r['adapter_id'],
+                ordinal=int(s['ordinal']), slo_group=s['slo_group'], owner=s['owner'],
+                ttft_pass=s['ttft_pass']=='True', tpot_pass=s['tpot_pass']=='True',
+                joint_pass=s['joint_pass']=='True', ttft_ms=float(s['ttft_ms']),
+                admission_to_acquired_ms=float(s['admission_to_acquired_ms']),
+                transfer_started_before_admission=t['loading_started_monotonic_s']<start,
+                transfer_published_before_admission=t['published_monotonic_s']<start,
+                partition_error_ms=error, dominant_preparation_stage=max(part,key=part.__getitem__), **part))
+    if seen != set(stages):
+        raise ValueError('missing request population')
+    output.mkdir(parents=True, exist_ok=False)
+    for name, rows in (('transfers.csv',transfer_rows),('remote_requests.csv',requests)):
+        with (output/name).open('x') as h:
+            w=csv.DictWriter(h,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+    def summary(rows):
+        return dict(n=len(rows), metrics={k:timing_stats([r[k] for r in rows])
+                    for k in rows[0] if k.endswith('_ms')} if rows else {})
+    report = dict(kind='d818_remote_preparation_partition_v1', passed=True, source_run=str(raw),
+        request_population=len(stages), selected_remote=sum(s['tier']=='remote' for s in stages.values()),
+        joined_remote_requests=len(requests), unjoined_remote_requests=missing,
+        distinct_request_transfers=len({r['transfer_id'] for r in requests}),
+        transfers=summary(transfer_rows), groups={label:summary([r for r in requests
+            if label=='all' or (label=='ttft_fail' and not r['ttft_pass'])
+            or (label=='ttft_pass' and r['ttft_pass'])]) for label in ('all','ttft_fail','ttft_pass')},
+        dominant_preparation_stages=dict(collections.Counter(r['dominant_preparation_stage'] for r in requests)),
+        limitations=['Conditional selected-replica cohort, not a cross-system causal comparison.',
+            'Receive interval includes reservation and local writes; not pure network latency.',
+            'Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.',
+            'Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.',
+            'Independent numerical adapter correctness remains unknown.'],
+        source_refs=[ref(x) for x in (result,outcome,stage_csv,stage_audit/'diagnosis.json',Path(__file__))],
+        outputs=[ref(output/x) for x in ('transfers.csv','remote_requests.csv')])
+    with (output/'diagnosis.json').open('x') as h:
+        json.dump(report,h,indent=2,sort_keys=True,allow_nan=False); h.write('\n')
+    print(json.dumps({k:report[k] for k in ('passed','request_population','selected_remote','joined_remote_requests','distinct_request_transfers')}))
 
 
 def partition_common_slo_request(request, groups, *, clock_id):
@@ -1168,14 +1310,19 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
+    parser.add_argument('--diagnose-remote-preparation', type=Path)
     parser.add_argument('--stage-audit', type=Path)
     parser.add_argument('--metric-audit', type=Path)
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_decode_overlap is not None:
+    if args.diagnose_remote_preparation is not None:
+        if args.stage_audit is None:
+            parser.error('--stage-audit is required for --diagnose-remote-preparation')
+        diagnose_remote_preparation(args.raw, args.diagnose_remote_preparation, args.stage_audit)
+    elif args.diagnose_decode_overlap is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-decode-overlap')
         diagnose_decode_overlap(args.stage_audit, args.diagnose_decode_overlap)

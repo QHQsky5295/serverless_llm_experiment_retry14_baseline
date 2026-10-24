@@ -1,0 +1,49 @@
+"""Bounded offline D818 projection; no model/service/remote execution."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation'
+RUN=RAW.parent/'d817_20261025/3b_max3_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_remote_preparation
+
+def save(path,value):
+    with path.open('x') as h:
+        json.dump(value,h,indent=2,sort_keys=True,allow_nan=False); h.write('\n')
+
+OUT.mkdir(parents=True,exist_ok=False)
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'identity.json',identity)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+compression=ROOT/'paper_results/ieee_tc/storage/20261025_d817_closed_results.json'
+sealed=json.loads(compression.read_text())
+for entry in sealed['entries']:
+    assert p.digest(Path(entry['archive']))==entry['archive_sha256']
+    assert entry['source_sha256']==entry['first_roundtrip_sha256']==entry['second_roundtrip_sha256']
+    assert entry['audit_sha_matches'] is True
+protected={ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+try:
+    for path,sha in protected.items(): assert p.digest(path)==sha
+    with (OUT/'test.log').open('x') as log:
+        result=subprocess.run([sys.executable,'-B','-m','pytest','-q',
+            'tests/test_ieee_tc_diagnostic_plot.py','-k','d818'],cwd=ROOT,
+            stdout=log,stderr=subprocess.STDOUT)
+    assert result.returncode==0
+    diagnose_remote_preparation(RUN,OUT/'partition',ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/stages')
+finally:
+    resources={name:(group/name).read_text().strip() for name in
+        ('memory.peak','memory.events','memory.swap.current','cpu.stat')}
+    for path,sha in protected.items(): assert p.digest(path)==sha
+    save(OUT/'analysis_receipt.json',dict(identity=identity,resources=resources,
+        finished_unix=time.time(),compression_receipt=dict(path=str(compression),sha256=p.digest(compression)),
+        user_protected={str(path):sha for path,sha in protected.items()},
+        program_sha256=p.digest(Path(__file__))))

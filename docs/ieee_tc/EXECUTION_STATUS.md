@@ -1,4 +1,75 @@
-# IEEE TC execution status — D817 full W2 closed, joint SLO 89.90%; preserve result, next evidence-led optimization
+# IEEE TC execution status — D818 offline diagnosis: shared pressure handoff is a candidate, no new production change
+
+## 2026-10-25 D818离线分解完成，下一论证权威共享压力观测
+
+本轮PROGRESS；完整重读PLAN/AGENTS/现状、scope/storage/baseline规则及冻结V1/
+单轮V2。无GPU实验或远端操作、不改共享k3s；HydraServe隔离适配与既有结果
+继续复用。使用analyze-results，扩展现有D703 analyzer并复用D594压力分解。
+9项分段测试通过。首次glob同时命中压缩回执的分析错误保留；通用入口改为
+精确使用已封存stage源路径，不重跑性能、不覆盖已有输出。
+
+4000请求的513条selected-Remote中503条经真实transfer ID/完整回执绑定，
+其余10条复用/源变化单列。505次交付覆盖497个adapter，仅8次额外获取。
+503条的admission→acquire均值1861.392ms：获取前366.876、headers3.378、
+预留/接收/写入250.384、extract前0.127、extract+校验325.966、publication
+342.909、发布→native load532.249、native load39.502。逐请求恒等式误差0；
+不构造扣延迟后的反事实SLO，未知数值正确性和原未达标结果保持不变。
+
+复用D594同adapter/同钟/唯一包含IO区间的pressure join，503/503唯一匹配，
+平均2.763个owner。start/finish确认包络197.259/223.215ms，内部RPC等待
+166.043/166.839ms为嵌套项；不是纯网络。262条TTFT违约关联请求对应
+start/finish272.653/302.388ms。远端读取2.524ms、socket write223.873ms，
+与客户端重叠；发送阻塞可能来自客户端，不据此断言带宽瓶颈。
+
+已核对D627/628/631、D595/598、D606/609/680等历史及当前源码；不重复
+移hash锁或并行同一批RPC的退化候选。在线核查vLLM0.30 shm广播/多进程
+执行器、Python3.12共享内存生命周期及ServerlessLLM官方资料。下一唯一
+待论证候选：同物理文件域发布权威实时压力，native准入检查点读取，避免
+每次IO等待所有推理core双向确认。尚未实现/通过，不声称收益；先证明真实
+跨进程同步、attach/retire/取消/未知终态与Eq.(8)/(9)语义，不能删压力项或
+采用陈旧缓存。完成有界验证才进入必要原生资格/新版本完整回放。
+
+文档D818_REMOTE_PREPARATION_DIAGNOSIS_20261025.md；curated
+paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/。
+aux04/05/06已结束（收尾/备份再核实空域）；峰值1220362240/616677376/
+63520768B，high/max/OOM/swap0。当前无待工具session；无生产代码修改。
+下一先保存源/保护/关闭回执及明确路径备份，再进入该单一候选，不新增
+重复诊断。磁盘约150.1GiB，不能沿用此数值启动新重型任务。
+
+D813 W1 93.975%、D817 W2 89.90%未达标，D711数值正确性仍null；同版两模型
+主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档与图表/最终V2
+完整保留。整体目标active，不画图、不标全任务完成。
+
+## 2026-10-25 04:20 CST D817已备份封存，压缩完成，返回单一优化主线
+
+本轮PROGRESS（完整运行收尾/指标核算/备份/存储），非阻塞，无运行实验或待
+工具session。36条明确路径提交0bc4e3b23c5c654e8e6764044c14fc0b38a36a87，
+已push并ls-remote核实refs/heads/backup/d817-complete-20261025；非最终V2
+同步。post_backup_release证实aux05自然移除，GPU空，用户manifest未stage，
+BASE未改。main生产源码/后端/配置没有本轮新增变更。
+
+随后沿现有压缩器，仅处理本轮已关闭且备份的main_outcome与request result，
+各两次解压SHA验证，回收1145360384B，磁盘161176424448B（约150.1GiB，
+余量很小；新任务前必须按实际增长量复核，不能沿用本数值保证可启动）。
+147保护文件及原用户修改未变；aux06内存峰值211718144B、high/max/OOM/
+swap0，已自动移除。storage/20261025_d817_closed_results.json及对应
+verification、raw/storage_closure.json保存回执，不重复压缩或重复计回收。
+
+原始大文件现在是.gz，精确恢复需核对原SHA：main_outcome
+e6f46518592b40e18109535b11e6220efe0869f18669416062dd0babca8adf9c；
+request result e3904be51058ee9a55b664bb38b12ee98bfc855326faaccd92fd3b86b5124342。
+优先gzip流式分析；不得因旧脚本要求.json就重跑实验。505次传输全published，
+无需为未发生的延期新建宽松审计分支；18次请求回收共3112837120B，保留
+planned_only主动规划语义，无主动文件替换事件。完成路径与失败脚本回执
+均已备份；本次备份后小型存储/关闭回执在下一正常检查点纳入，不递归备份。
+
+下一直接依据已保存W1/W2阶段数据核查制品准备路径：区分真实传输/验证物化、
+owner等待与驻留/预取是否有效，不先假定某一原因。先看过去修改/失败日志和
+官方同类实现，提出一个能解释W2主要TTFT违约且不恶化W1的可证伪假设，再
+比例适当的验证；不重复已关闭方向、不加无问题指向的资格回放。D817联合
+89.90%、D813 W1 93.975%、D711数值正确性未知均继续公开。完整同版两模型
+主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿与图文/最终V2尚未
+完成，目标保持active；不将容量恢复写成性能达标，不画图。
 
 ## 2026-10-25 04:17 CST D817完整结束并完成离线核算，正在备份
 

@@ -1,0 +1,14 @@
+{
+  "failure": "git whitespace check rejected native pytest blank-line whitespace; no commit/push occurred",
+  "finish_program": {
+    "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/finish_backup.py.snapshot",
+    "sha256": "bf29fafeeb8e61ff1d40cefc4792107cd2a68fdf97c39e778ced855094209f60"
+  },
+  "passed": true,
+  "previous_scope": "ControlGroup=\nActiveState=inactive\nInvocationID=",
+  "protected_raw_log": {
+    "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/test.log",
+    "sha256": "34d41b4f35fdadc0a6f8cafbf43be747534e0087b391e86aa93592d6e8df2eae"
+  },
+  "resolution": "Preserve sealed raw log exactly; all non-log sources and tables passed whitespace check."
+}

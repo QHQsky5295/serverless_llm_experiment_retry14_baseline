@@ -1,0 +1,45 @@
+"""Preserve the raw pytest log bytes; finish the already-staged explicit set."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as h:json.dump(value,h,indent=2,sort_keys=True);h.write('\n')
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+own=p.scope_identity(p.cg_path().name);save(RAW/'finish_backup_identity.json',own)
+prior=json.loads((RAW/'backup_identity.json').read_text())
+state=call(['systemctl','--user','show',prior['unit'],'-p','ActiveState','-p','InvocationID','-p','ControlGroup'])
+assert 'ActiveState=inactive' in state and not Path(prior['path']).exists()
+manifest=json.loads((OUT/'manifest.json').read_text())
+paths=[x['path'] for x in manifest['files']]+[str((OUT/'manifest.json').relative_to(ROOT))]
+for x in manifest['files']:assert p.digest(ROOT/x['path'])==x['sha256']
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+logs=[x for x in paths if x.endswith('.log')]
+assert logs==[str((OUT/'test.log').relative_to(ROOT))]
+call(['git','-c','core.whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof','diff','--cached','--check','--',*[x for x in paths if x not in logs]])
+target=OUT/'execution/finish_backup.py.snapshot'
+with target.open('xb') as h:h.write(Path(__file__).read_bytes())
+recovery=OUT/'backup_recovery.json'
+save(recovery,dict(passed=True,previous_scope=state,
+    failure='git whitespace check rejected native pytest blank-line whitespace; no commit/push occurred',
+    resolution='Preserve sealed raw log exactly; all non-log sources and tables passed whitespace check.',
+    protected_raw_log=dict(path=logs[0],sha256=p.digest(OUT/'test.log')),
+    finish_program=dict(path=str(target.relative_to(ROOT)),sha256=p.digest(target))))
+extra=[str(x.relative_to(ROOT)) for x in (target,recovery)]
+call(['git','add','--',*extra]);paths+=extra
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git','diff','--cached','--check','--',*extra])
+call(['git','commit','-m','tc: diagnose D817 remote preparation and shared pressure handoff (D818)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d818-remote-diagnosis-20261025'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False,
+    resources_before_exit=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))

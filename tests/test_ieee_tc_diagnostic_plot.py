@@ -551,3 +551,29 @@ def test_numerical_audit_rejects_incomplete_before_publishing(tmp_path):
     with pytest.raises(ValueError, match='incomplete'):
         write_numerical_repeat_audit([path], tmp_path / 'out')
     assert not (tmp_path / 'out').exists()
+
+
+@pytest.mark.parametrize('start,end,expected', [
+    (0., 10., [1000., 3000., 6000.]),
+    (2., 8., [0., 2000., 4000.]),
+    (5., 8., [0., 0., 3000.]),
+    (0., .5, [500., 0., 0.]),
+])
+def test_d818_clipped_sequential_partition(start, end, expected):
+    from scripts.ieee_tc.audit_d703_3b_full import clipped_sequential_stages
+    result = clipped_sequential_stages(start, end, [('before_ms', 1.), ('work_ms', 4.)])
+    assert list(result.values()) == expected
+    assert sum(result.values()) == pytest.approx((end-start)*1000)
+
+
+@pytest.mark.parametrize('start,end,boundaries', [
+    (1., 0., [('a', 1.)]),
+    (0., 5., [('a', 3.), ('b', 2.)]),
+    (0., 5., [('a', 2.), ('a', 3.)]),
+    (0., 5., [('a', float('nan'))]),
+    (0., 5., []),
+])
+def test_d818_rejects_invalid_local_boundaries(start, end, boundaries):
+    from scripts.ieee_tc.audit_d703_3b_full import clipped_sequential_stages
+    with pytest.raises(ValueError):
+        clipped_sequential_stages(start, end, boundaries)

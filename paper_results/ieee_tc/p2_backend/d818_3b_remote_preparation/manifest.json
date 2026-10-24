@@ -1,0 +1,145 @@
+{
+  "files": [
+    {
+      "bytes": 3074,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/test.log",
+      "sha256": "34d41b4f35fdadc0a6f8cafbf43be747534e0087b391e86aa93592d6e8df2eae"
+    },
+    {
+      "bytes": 718,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/resume_receipt.json",
+      "sha256": "f9f43e5e1be024ce996a09f64a410e6e4e634873a05e0cab0e4b942157965836"
+    },
+    {
+      "bytes": 8519,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/pressure_diagnosis.json",
+      "sha256": "bb5f5d9fccc1072f737683889aba14e9b51eaebe904ce8dea31a8ffd8f47440d"
+    },
+    {
+      "bytes": 1809,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/analysis_failure.json",
+      "sha256": "61ac414fc8d7728d48a401ed5c14cf1a650480492a17bc7392516ee480ffc46d"
+    },
+    {
+      "bytes": 2571,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/closure.json",
+      "sha256": "98ef13fb939a6363632ba69536b6cd3da4b3c5f8ce48cd8641cee90bd8412ee0"
+    },
+    {
+      "bytes": 1161,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/analysis_receipt.json",
+      "sha256": "53fcb34783b355aa2621f5ec8606efc360e724b8ac54d41186a955fd221ec805"
+    },
+    {
+      "bytes": 5507,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/d594_pressure_diagnosis.py.snapshot",
+      "sha256": "0bf0f1fbc3b1be49a374e72f4ee57c1a5aeb72f739e9716ad96857a52f883ac3"
+    },
+    {
+      "bytes": 705,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/pressure_receipt.json",
+      "sha256": "8b4c35266df29841bc94e56c7a640f863c23053d32ea9178be1c287d8fb71320"
+    },
+    {
+      "bytes": 176542,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/pressure_requests.csv",
+      "sha256": "e41e1d4a52bbc6a83db0ca22fa6701634f70321783f53803692568ab4aa7b384"
+    },
+    {
+      "bytes": 287,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/pressure_identity.json",
+      "sha256": "a064ec6da89447c48748dc7ed8d065810d05b8208df47d2403c2814d442732dd"
+    },
+    {
+      "bytes": 6146,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/d817_post_backup_release.json",
+      "sha256": "40c4016963f5e6db6395e2c8858356af554fdfa6b7dba7ff8cc19ea55654bb37"
+    },
+    {
+      "bytes": 1689,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/d817_storage_closure.json",
+      "sha256": "a355d2265a47e81ce12a20b5f5c069278868bc3a09e9884c8099ca1edef8e8f6"
+    },
+    {
+      "bytes": 5213,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/backup.py.snapshot",
+      "sha256": "4e2f7cc3065907088128da43f9cdc295f087ce9659071ddb1416b913688bbbbb"
+    },
+    {
+      "bytes": 287,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/resume_identity.json",
+      "sha256": "2d7de1892a50571a54720c50381d7e280ff28c08725d90c18710b50e00cff523"
+    },
+    {
+      "bytes": 287,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/identity.json",
+      "sha256": "e473ca1a249615c458f8aaeb68ddfeed88bb25f112a6a0635be9fc23cad24f81"
+    },
+    {
+      "bytes": 2497,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/analyze.py.snapshot",
+      "sha256": "f97028d80e6ace8adfd7722a8057c7a5946ce9ac558fbf6e8622ac4764829c09"
+    },
+    {
+      "bytes": 1934,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/resume.py.snapshot",
+      "sha256": "0ed1a75f7533465c959a8085d09291a401f58a466bd3c3ad9f86fca43fc968dc"
+    },
+    {
+      "bytes": 6892,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/execution/pressure.py.snapshot",
+      "sha256": "6720d21fdfc515f6b5d1211f4788119d17228dbe2bd4a2a3b380bd8335ceb84a"
+    },
+    {
+      "bytes": 12607,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/partition/diagnosis.json",
+      "sha256": "be50d1ef64c9dc91ab5aff2d6c139dcf9de6c3501f7e353851b18f828b48c526"
+    },
+    {
+      "bytes": 178002,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/partition/remote_requests.csv",
+      "sha256": "c458532e14b5e4eca15f32d72f1059b196aa7f9370c17713233887d695f96d5c"
+    },
+    {
+      "bytes": 117554,
+      "path": "paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/partition/transfers.csv",
+      "sha256": "75b37f0d4fc72e9b84faaf40a7f72f693faa53be7cab935b5efa30bc37609f0e"
+    },
+    {
+      "bytes": 82793,
+      "path": "scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "ab7e0ade55bd3517f2d2df55cf8a9704732fbd35928b401d21d6a8baa3f44ecd"
+    },
+    {
+      "bytes": 30279,
+      "path": "tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "d7c0a33f5784cbfd0dc8a4778f87aa76e7e18b7734fa53468f7b292897b5cd84"
+    },
+    {
+      "bytes": 7766,
+      "path": "docs/ieee_tc/D818_REMOTE_PREPARATION_DIAGNOSIS_20261025.md",
+      "sha256": "f8e09daee90cbe7c21c3fe555c5b8b10b843ae2395b117e9f9709315a00f6edb"
+    },
+    {
+      "bytes": 1235507,
+      "path": "docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "36bb0d65a75bdbefe6a1b1cb25cb09e4ea9298fe92b2941f088dac7d84a9be55"
+    },
+    {
+      "bytes": 3683,
+      "path": "paper_results/ieee_tc/storage/20261025_d817_closed_results.json",
+      "sha256": "b391735b761f5a72893eabe9ed9e22449600f97e5a0ad74e2970ecd065223482"
+    },
+    {
+      "bytes": 1805,
+      "path": "paper_results/ieee_tc/storage/20261025_d817_closed_results_verification.json",
+      "sha256": "7ec92bf9ebdd49be9efac12f6b752c53cfd2c4fe4334fe0fd7ffd8fdd25e3055"
+    },
+    {
+      "bytes": 2215,
+      "path": "paper_results/ieee_tc/storage/20261025_d817_closed_results.py.snapshot",
+      "sha256": "50de2bee78bc23be320415626a0f41ed082815c8cc993ef2670501293efa3283"
+    }
+  ],
+  "kind": "d818_offline_evidence_v1"
+}

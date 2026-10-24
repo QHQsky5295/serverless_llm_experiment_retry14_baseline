@@ -1,0 +1,33 @@
+{
+  "effect": "Projection stopped before reading requests; no measured performance altered.",
+  "error": "broad request glob included lossless compression receipt",
+  "previous_program_sha256": "f97028d80e6ace8adfd7722a8057c7a5946ce9ac558fbf6e8622ac4764829c09",
+  "previous_scope": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "prior_resources": {
+    "compression_receipt": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d817_closed_results.json",
+      "sha256": "b391735b761f5a72893eabe9ed9e22449600f97e5a0ad74e2970ecd065223482"
+    },
+    "finished_unix": 1792873719.6344965,
+    "identity": {
+      "inode": 32012628,
+      "invocation_id": "0b534219f37c4c259b2466928b5bf2db",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d818ca11000000000000000000000004.scope",
+      "unit": "primelora-tc-aux-d818ca11000000000000000000000004.scope"
+    },
+    "program_sha256": "f97028d80e6ace8adfd7722a8057c7a5946ce9ac558fbf6e8622ac4764829c09",
+    "resources": {
+      "cpu.stat": "usage_usec 21184380\nuser_usec 18482627\nsystem_usec 2701752\ncore_sched.force_idle_usec 0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.peak": "1220362240",
+      "memory.swap.current": "0"
+    },
+    "user_protected": {
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    }
+  },
+  "tests_reused": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/test.log",
+    "sha256": "34d41b4f35fdadc0a6f8cafbf43be747534e0087b391e86aa93592d6e8df2eae"
+  }
+}

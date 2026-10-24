@@ -1,0 +1,97 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d817ca11000000000000000000000005.scope",
+    "invocation_id": "e2806e4f68f04fc787ba295beac817bc",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000005.scope",
+    "inode": 32008073
+  },
+  "resources_after_exit": null,
+  "closure": {
+    "already_removed": true,
+    "released": true,
+    "signals_sent": false,
+    "systemd_state": {
+      "ControlGroup": "",
+      "ActiveState": "inactive",
+      "InvocationID": ""
+    }
+  },
+  "backup": {
+    "passed": true,
+    "head": "0bc4e3b23c5c654e8e6764044c14fc0b38a36a87",
+    "ref": "refs/heads/backup/d817-complete-20261025",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/actual_profile_binding.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/analysis_launcher_failure.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/analysis_resources.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/closed_outcome.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/comparison.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/delivery_audit_status.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/protected_147_after.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/stages/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/stages/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/closure.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/closure_manifest.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/backup_results.py.snapshot",
+      "docs/ieee_tc/D817_REQUIRED_CAPACITY_FULL_W2_20261025.md",
+      "docs/ieee_tc/EXECUTION_STATUS.md",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_template.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_identity.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/resume_completion.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_resume_template.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_resume_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/completion_resume_identity.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/close_context.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/context_identity.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/close_start.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/start_closure.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/start_receipt.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/commit.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/backup.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/post_backup_release.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/backup_template.json",
+      "paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/execution_recovery/manifest.json"
+    ],
+    "v2_synchronized": false,
+    "resources_before_exit": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000005.scope",
+      "memory.current": 34033664,
+      "memory.peak": 54235136,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 1319122\nuser_usec 1041835\nsystem_usec 277287\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closed_previous_scope": {
+      "already_removed": true,
+      "released": true
+    },
+    "protected_publication_files": 147,
+    "remote_monitor_sha256": "b23f25557c90bb11d4ece9cafdc52ec1fffde7164f4f5ae471d8330dd30eccae",
+    "csv_check": "CSV CRLF and exact executed snapshot EOF preserved; sealed bytes unchanged.",
+    "protected_user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "disk_free_bytes": 160031252480,
+  "no_running_gpu_task": true,
+  "shared_k3s_untouched": true
+}

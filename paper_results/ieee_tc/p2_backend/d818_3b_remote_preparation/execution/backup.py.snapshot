@@ -1,0 +1,75 @@
+"""D752 explicit-path backup procedure, limited to D818 and D817 tail receipts."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as h:json.dump(value,h,indent=2,sort_keys=True,allow_nan=False);h.write('\n')
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name);save(RAW/'backup_identity.json',own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+closures=[]
+for name in ('identity.json','resume_identity.json','pressure_identity.json'):
+    identity=read(RAW/name)
+    state=call(['systemctl','--user','show',identity['unit'],'-p','ActiveState','-p','InvocationID','-p','ControlGroup'])
+    assert 'ActiveState=inactive' in state and not Path(identity['path']).exists()
+    closures.append(dict(identity=identity,state=state,path_exists=False))
+seal_path=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal=p.verify_seal(seal_path);assert seal['pass'] and seal['entry_count']==147
+protected=read(ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected']
+for path,sha in protected.items():assert p.digest(Path(path))==sha
+production={'faaslora/memory/residency_manager.py':'049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2',
+    'scripts/run_all_experiments.py':'63bf1d1dc176f38b9770cbcab705b867c248ff7892b5d2d4e74e55afd3a972a5'}
+for name,sha in production.items():assert p.digest(ROOT/name)==sha
+snapshots=OUT/'execution';snapshots.mkdir(exist_ok=False)
+for name in ('analyze.py','resume.py','pressure.py','backup.py','identity.json','resume_identity.json','pressure_identity.json'):
+    source=RAW/name
+    if name.endswith('.py'):ast.parse(source.read_text())
+    target=snapshots/(name+'.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as h:h.write(source.read_bytes())
+    assert p.digest(target)==p.digest(source)
+for name in ('post_backup_release.json','storage_closure.json'):
+    source=RAW.parent/'d817_20261025'/name
+    with (snapshots/('d817_'+name)).open('xb') as h:h.write(source.read_bytes())
+save(OUT/'closure.json',dict(passed=True,closed_analyses=closures,protected=seal,
+    protected_user_files=protected,production_unchanged=production,
+    disk_available_bytes=shutil.disk_usage(ROOT).free,
+    no_gpu_compute=True,no_performance_replay=True,no_remote_mutation=True))
+files=[x for x in OUT.rglob('*') if x.is_file()]
+files += [ROOT/'scripts/ieee_tc/audit_d703_3b_full.py',ROOT/'tests/test_ieee_tc_diagnostic_plot.py',
+    ROOT/'docs/ieee_tc/D818_REMOTE_PREPARATION_DIAGNOSIS_20261025.md',ROOT/'docs/ieee_tc/EXECUTION_STATUS.md']
+storage=ROOT/'paper_results/ieee_tc/storage'
+files += [storage/name for name in ('20261025_d817_closed_results.json',
+    '20261025_d817_closed_results_verification.json','20261025_d817_closed_results.py.snapshot')]
+save(OUT/'manifest.json',dict(kind='d818_offline_evidence_v1',files=[dict(path=str(x.relative_to(ROOT)),sha256=p.digest(x),bytes=x.stat().st_size) for x in files]))
+files.append(OUT/'manifest.json')
+paths=[str(x.relative_to(ROOT)) for x in files]
+assert len(paths)==len(set(paths)) and 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git','diff','--cached','--name-only'])
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for x in files:assert not secret.search(x.read_text()),str(x)
+call(['git','add','--',*[x for x in paths if not x.endswith('.log')]])
+call(['git','add','-f','--',*[x for x in paths if x.endswith('.log')]])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','-c','core.whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof','diff','--cached','--check'])
+save(RAW/'precommit.json',dict(passed=True,files=paths,protected=protected))
+call(['git','commit','-m','tc: diagnose D817 remote preparation and shared pressure handoff (D818)'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d818-remote-diagnosis-20261025'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'backup.json',dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False,
+    resources_before_exit=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))

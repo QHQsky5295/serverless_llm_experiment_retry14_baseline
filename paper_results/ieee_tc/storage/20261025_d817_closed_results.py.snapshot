@@ -1,0 +1,34 @@
+"""Reuse verified compression on D817's two closed, backed-up result files."""
+from pathlib import Path
+
+_template=Path(__file__).resolve().parent.parent/'d752_20261023/storage_maintenance.py'
+_source=_template.read_text()
+_pairs=[
+    ('20261023_d752_closed_older_outcomes.json','20261025_d817_closed_results.json'),
+    ('d752_3b_dense_alias_validation_full_w0','d817_3b_required_capacity_full_w2'),
+    ("('d742_20261023/3b_execution_view_full_w0', 'd742_3b_execution_view_full_w0'),\n    ('d749_20261023/3b_fresh_host_descriptor_full_w0', 'd749_3b_fresh_host_descriptor_full_w0'),",
+     "('d817_20261025/3b_max3_full_w2', 'd817_3b_required_capacity_full_w2'),"),
+    ('D752 remains uncompressed.',
+     'D817 outcome and request result are losslessly archived after completed audits and verified backup. Prefer streaming gzip for further diagnostics; restore only with exact source SHA when a legacy analyzer requires it.'),
+    ("q['protected']",'protected'),
+]
+for _old,_new in _pairs:
+    assert _old in _source,_old
+    _source=_source.replace(_old,_new)
+_marker="for name, sha in protected.items():"
+_at=_source.index(_marker)
+_source=_source[:_at]+"""seal_path=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected={path:entry['sha256'] for path,entry in read(seal_path)['entries'].items()}
+assert len(protected)==147
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected'])
+"""+_source[_at:]
+_marker='c.TARGETS, c.OUT = targets, OUT'
+assert _source.count(_marker)==1
+_source=_source.replace(_marker,"""metric=read(ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json')
+result=next(row for row in metric['source_refs'] if Path(row['path']).name.startswith('experiment_results_full'))
+assert p.digest(Path(result['path']))==result['sha256']
+targets.append(dict(run='d817_20261025/3b_max3_full_w2',audit_sha=result['sha256'],
+    run_result=Path(result['path']).name))
+"""+_marker)
+exec(compile(_source,str(_template),'exec'),globals())

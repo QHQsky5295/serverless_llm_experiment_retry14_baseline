@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d817ca11000000000000000000000006.scope",
+    "invocation_id": "7610f8c9ec5849338fe14bd38f4aa958",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000006.scope",
+    "inode": 32008510
+  },
+  "path_gone": true,
+  "systemd_state": {
+    "LoadState": "not-found",
+    "ActiveState": "inactive",
+    "InvocationID": ""
+  },
+  "automatically_removed": true,
+  "signals_sent": false,
+  "resources_before_exit": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000006.scope",
+    "memory.current": 210649088,
+    "memory.peak": 211718144,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 50867914\nuser_usec 47183516\nsystem_usec 3684398\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "resource_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d817_closed_results_verification.json",
+  "actual_recursive_procs_empty": null,
+  "note": "The domain was already removed after the completed command. No post-removal cgroup counters or explicit empty-tree sample are invented."
+}
