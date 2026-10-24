@@ -1,0 +1,62 @@
+"""Resume the offline audit after inspecting an actual joined cancellation.
+
+The first exact source and all valid earlier outputs remain unchanged. A
+finished cancelled preparation is not an unfinished interval or a lost request.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw=Path(__file__).resolve().parent
+_template=_raw/'close_context.py'
+_source=_template.read_text()
+_prefix=_source[:_source.index('assert os.sched_getaffinity(0)')]
+_tail=_source[_source.index("with outcome.open('rb') as stream:\n    records="):]
+_old="    assert row['state']=='finished' and row['operation_outcome']=='completed'"
+assert _tail.count(_old)==1
+_tail=_tail.replace(_old,"""    assert row['state']=='finished'
+    assert row['operation_outcome'] in ('completed','cancelled')
+    if row['operation_outcome']=='cancelled':
+        assert row['operation_error_type']=='CancelledError' and row['caller_cancelled'] is True""")
+_tail=_tail.replace("records=list(ijson.items(stream, 'transfer_pressure.item', use_float=True))",
+    "records=next(ijson.items(stream, 'transfer_pressure', use_float=True))")
+_tail=_tail.replace("pressure_intervals=len(records), final_domain=final, observations=observations,",
+    """pressure_intervals=len(records), final_domain=final, observations=observations,
+    operation_outcomes=dict(collections.Counter(r['operation_outcome'] for r in records)),
+    cancelled_intervals=[r for r in records if r['operation_outcome']=='cancelled'],""")
+_tail=_tail.replace("ref(outcome),ref(result),ref(Path(__file__))",
+    "ref(outcome),ref(result),ref(_template),ref(Path(__file__))")
+_setup="""
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_resume_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+previous=read(RAW/'context_identity.json')
+assert not Path(previous['path']).exists()
+closed=read(OUT/'completion/closed_outcome.json')
+assert closed['passed'] and closed['all_allocations_released']
+reclamation=read(OUT/'completion/delivery_applicability_and_reclamation.json')
+assert reclamation['passed']
+required=[r for r in reclamation['cache_snapshot']['replacements'] if r['policy']=='request_lru_v1']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+save(OUT/'completion/analysis_context_schema_correction.json',dict(
+    type='AssertionError',source=ref(_template),
+    assertion="All finished preparation intervals have operation_outcome=completed",
+    inspected_intervals=3541, completed_intervals=3540, cancelled_intervals=1,
+    observed_cancellation_id='e0605c2cca0349e3a063a4cb7a3f823d',
+    reason='Cancellation is recorded separately from pressure retirement; this interval was joined and finished with matching publication generations.',
+    previous_scope=previous, partial_analysis_resources=None,
+    performance_execution_failed=False,new_replays=0,
+    reused_outputs=[ref(OUT/'completion/closed_outcome.json'),ref(OUT/'completion/delivery_applicability_and_reclamation.json')]))
+"""
+_program=_prefix+_setup+_tail
+with (_raw/'context_resume_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        correction='Accept only observed completed or explicitly joined cancelled operations; retain all intervals and validate exact revisions.'),_stream,indent=2)
+    _stream.write('\n')
+with (_raw/'context_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_program)
+exec(compile(_program,str(_raw/'context_resume_program.py.snapshot'),'exec'),globals())

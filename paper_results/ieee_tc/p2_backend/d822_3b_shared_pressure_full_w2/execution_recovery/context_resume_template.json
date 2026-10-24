@@ -1,0 +1,5 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d822_20261025/close_context.py",
+  "sha256": "02f1340b6b574ad9fc5787f0c99ff35e7f6debdd967551d63ba2febe45dea035",
+  "correction": "Accept only observed completed or explicitly joined cancelled operations; retain all intervals and validate exact revisions."
+}

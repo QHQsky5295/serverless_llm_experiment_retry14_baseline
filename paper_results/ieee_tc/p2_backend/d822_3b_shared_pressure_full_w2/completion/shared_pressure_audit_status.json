@@ -1,0 +1,5 @@
+{
+  "status": "pending_actual_full_witness_audit",
+  "transport": "same_host_memfd_flock_v1",
+  "publication_is_not_native_acknowledgement": true
+}

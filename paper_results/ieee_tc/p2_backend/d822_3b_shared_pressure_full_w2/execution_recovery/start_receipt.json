@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d822-shared-pressure-fullw2-20261025",
+  "head": "a2395289f4104c2b49cc6d6d780293d613541d65",
+  "identity": {
+    "inode": 32036842,
+    "invocation_id": "9f20ef1bc3744f28ab7717f724af457f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "101059b108f9ac1cd9f731dd96a58ab67d95b0d68baed46fec1de5ce1f8d5853",
+  "tmux": "tc-d822-3b-shared-pressure-full-w2"
+}

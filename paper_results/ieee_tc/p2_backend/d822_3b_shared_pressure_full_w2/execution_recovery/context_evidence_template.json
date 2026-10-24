@@ -1,0 +1,5 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d822_20261025/context_actual_program.py.snapshot",
+  "sha256": "96e88f360c4ad5d7af9999ed50d5e2362dd0df13d686df755991033617a085ce",
+  "correction": "Separate attempts with and without an actual native pressure snapshot."
+}

@@ -1,0 +1,48 @@
+"""Preserve unavailable pre-decision attempts; audit only actual snapshots.
+
+An attempt can stop before native capacity evaluation. Its admission/reason
+record is not a missing-pressure snapshot and is never promoted to one.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw=Path(__file__).resolve().parent
+_template=_raw/'context_actual_program.py.snapshot'
+_source=_template.read_text()
+_source=_source.replace("save(RAW/'context_actual_identity.json',own)",
+                        "save(RAW/'context_evidence_identity.json',own)")
+_source=_source.replace("previous=read(RAW/'context_resume_identity.json')",
+                        "previous=read(RAW/'context_actual_identity.json')")
+_start=_source.index("save(OUT/'completion/analysis_witness_scope_correction.json'")
+_end=_source.index("with outcome.open('rb') as stream:\n    records=",_start)
+_source=_source[:_start]+'''save(OUT/'completion/analysis_attempt_schema_correction.json',dict(
+    type='KeyError',source=ref(_template),missing_key='observation_transport',
+    reason='A preparation attempt may terminate before native admission evaluation; preserve reason-only records separately from actual capacity snapshots.',
+    previous_scope=previous,partial_analysis_resources=None,
+    performance_execution_failed=False,new_replays=0))
+'''+_source[_end:]
+_source=_source.replace('seen_attempts=set()',
+    "seen_attempts=set()\nunobserved_reasons=collections.Counter()\nunobserved_examples=[]")
+_needle="        assert witness['observation_transport']=='same_host_memfd_flock_v1'"
+assert _source.count(_needle)==1
+_source=_source.replace(_needle,'''        if 'observation_transport' not in witness:
+            counts['proactive_attempts_without_pressure_snapshot']+=1
+            reason=str(witness.get('reason',attempt.get('state')))
+            unobserved_reasons[reason]+=1
+            if len(unobserved_examples)<10:
+                unobserved_examples.append(dict(attempt_id=aid,state=attempt['state'],admission=witness))
+            continue
+        assert witness['observation_transport']=='same_host_memfd_flock_v1' ''')
+_source=_source.replace('pressure_intervals=len(records),final_domain=final,observations=observations,',
+    '''pressure_intervals=len(records),final_domain=final,observations=observations,
+    unobserved_reasons=dict(unobserved_reasons),unobserved_examples=unobserved_examples,''')
+_source=_source.replace("'Observed proactive native admission receipts, not request-level capacity witnesses.',",
+    "'Observed proactive native admission receipts, not request-level capacity witnesses.',\n        'Attempts without a pressure snapshot remain separately counted; they do not prove native observation.',")
+with (_raw/'context_evidence_template.json').open('x') as stream:
+    json.dump(dict(source=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        correction='Separate attempts with and without an actual native pressure snapshot.'),stream,indent=2)
+    stream.write('\n')
+with (_raw/'context_evidence_program.py.snapshot').open('x') as stream:
+    stream.write(_source)
+exec(compile(_source,str(_raw/'context_evidence_program.py.snapshot'),'exec'),globals())

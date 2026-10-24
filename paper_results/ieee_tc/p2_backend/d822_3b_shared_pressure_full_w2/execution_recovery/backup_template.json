@@ -1,0 +1,30 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d817_20261025/backup_program.py.snapshot",
+  "sha256": "9acfe81fb99728df902318cf294c701ec1b87e04a46516ad74ae6af143320d98",
+  "recovery_files": [
+    "complete.py",
+    "completion_template.json",
+    "completion_program.py.snapshot",
+    "completion_identity.json",
+    "close_context.py",
+    "context_identity.json",
+    "resume_context.py",
+    "context_resume_template.json",
+    "context_resume_program.py.snapshot",
+    "context_resume_identity.json",
+    "close_actual_pressure.py",
+    "context_actual_template.json",
+    "context_actual_program.py.snapshot",
+    "context_actual_identity.json",
+    "close_pressure_evidence.py",
+    "context_evidence_template.json",
+    "context_evidence_program.py.snapshot",
+    "context_evidence_identity.json",
+    "start_receipt.json",
+    "commit.json",
+    "backup.json",
+    "post_backup_release.py",
+    "backup_template.json"
+  ],
+  "protection": "147 publication files and three user modifications; explicit paths only."
+}

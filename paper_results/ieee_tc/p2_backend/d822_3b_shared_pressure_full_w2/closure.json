@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3678,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3837,
+    "joint_pass": 3555
+  },
+  "pressure_counts": {
+    "requests": 4000,
+    "no_request_capacity_witness": 4000,
+    "request_capacity_witness": 0,
+    "proactive_attempts": 4768,
+    "proactive_attempts_without_admission_snapshot": 2097,
+    "proactive_admission_witness": 2663,
+    "nonzero_pressure_witness": 782,
+    "admitted_witness": 2663,
+    "deferred_witness": 0,
+    "proactive_attempts_without_pressure_snapshot": 8
+  },
+  "required_reclamations": 20,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "previous_auxiliary_scope_removed": {
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000012.scope",
+    "invocation_id": "e29136f79fd94080b4fd2558c03aa36d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000012.scope",
+    "inode": 32076098
+  },
+  "resources": {
+    "memory.peak": "642617344",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "candidate_decision": {
+    "previous": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json",
+      "sha256": "3b043862801d6c7045d6324b9493553fbe9f900b3f4eaddeb3218715fba1bca4"
+    },
+    "current": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2/completion/full4000.json",
+      "sha256": "00575246ab1c70c1ca84abb3b844e57a3a0729140d5aab59e59d6112ee9c0124"
+    },
+    "joint_slo_difference_percentage_points": -1.0249999999999981,
+    "gpu_seconds_difference": 649.1446265131235,
+    "gpu_seconds_increase_fraction": 0.05752873497121147,
+    "p95_ttft_reduction_fraction": 0.02754293526731877,
+    "accepted_as_improvement": false,
+    "independent_holdout": false,
+    "confidence_interval": null,
+    "decision": "Do not adopt shared-pressure transport as an improvement or expand it to W1/W0. Preserve all results; bounded offline attribution only, no same-key replay."
+  }
+}

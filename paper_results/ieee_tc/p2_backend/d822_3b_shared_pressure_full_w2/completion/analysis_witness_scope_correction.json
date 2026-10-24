@@ -1,0 +1,22 @@
+{
+  "type": "AssertionError",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d822_20261025/context_resume_program.py.snapshot",
+    "sha256": "45cc5da17d69e23fe0668549611728b6399051a62cb9faa5202c03d3842ee667"
+  },
+  "assertion": "request_capacity_witness count > 0",
+  "observed_requests": 4000,
+  "observed_request_capacity_witnesses": 0,
+  "actual_witness_path": "mechanism_events._ieee_gpu_preparation_plans[].attempts[].receipt.admission",
+  "reason": "Native proactive preparation receipts carry the actual pressure snapshots; request-priority acquisition records are not proactive admission decisions.",
+  "no_request_witnesses_fabricated": true,
+  "previous_scope": {
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000005.scope",
+    "invocation_id": "6aa6c61320f44428b9859020799d969f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000005.scope",
+    "inode": 32073197
+  },
+  "partial_analysis_resources": null,
+  "performance_execution_failed": false,
+  "new_replays": 0
+}

@@ -1,0 +1,18 @@
+{
+  "type": "KeyError",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d822_20261025/context_actual_program.py.snapshot",
+    "sha256": "96e88f360c4ad5d7af9999ed50d5e2362dd0df13d686df755991033617a085ce"
+  },
+  "missing_key": "observation_transport",
+  "reason": "A preparation attempt may terminate before native admission evaluation; preserve reason-only records separately from actual capacity snapshots.",
+  "previous_scope": {
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000012.scope",
+    "invocation_id": "e29136f79fd94080b4fd2558c03aa36d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000012.scope",
+    "inode": 32076098
+  },
+  "partial_analysis_resources": null,
+  "performance_execution_failed": false,
+  "new_replays": 0
+}

@@ -1,0 +1,55 @@
+"""D822 offline closure: reuse D817 metrics/stages, preserve explicit limits.
+
+The new shared-pressure channel needs its own subsequent evidence audit; the
+old per-core RPC and all-published delivery checks are not applied to it.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd817_20261025/completion_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '5d44215f8d09bccb1488b79eb8ff7f68a12dff939067b05b48bfd0c6a717440d'
+_source = _template.read_text()
+_replacements = [
+    ('d817_3b_required_capacity_full_w2', 'd822_3b_shared_pressure_full_w2'),
+    ('d817_20261025', 'd822_20261025'),
+    ('D817_REQUIRED_CAPACITY_FULL_W2_20261025.md',
+     'D822_SHARED_PRESSURE_FULL_W2_20261025.md'),
+    ('d817_single_w2_frozen_resource_reference_observation_v1',
+     'd822_single_w2_frozen_resource_reference_observation_v1'),
+]
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+
+# D822 deliberately reused D816 protection and D820/D821 qualification; there
+# is no synthetic `protected` field in the D822 prelaunch schema.
+_old = """for path, sha in qualification['protected'].items():
+    assert p.digest(Path(path)) == sha, path
+"""
+_new = """assert qualification['passed'] is True
+protected = ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json'
+for path, sha in read(protected)['user_protected'].items():
+    assert p.digest(Path(path)) == sha, path
+seal_path = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal = p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT/'protected_147_after.json', seal)
+save(OUT/'shared_pressure_audit_status.json', dict(
+    status='pending_actual_full_witness_audit',
+    transport='same_host_memfd_flock_v1',
+    publication_is_not_native_acknowledgement=True))
+"""
+assert _source.count(_old) == 1
+_source = _source.replace(_old, _new)
+with (_raw/'completion_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template), sha256=_sha, replacements=_replacements,
+        changes='Reuse native metrics and stage decomposition; explicit reused protection schema. Shared-pressure and attempt-aware delivery audits remain separate.'),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw/'completion_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'completion_program.py.snapshot'), 'exec'), globals())

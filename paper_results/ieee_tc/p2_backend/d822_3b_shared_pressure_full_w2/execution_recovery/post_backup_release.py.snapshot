@@ -1,0 +1,6 @@
+"""Reuse the existing actual publication-scope release verifier for D822."""
+from pathlib import Path
+
+_template=Path(__file__).resolve().parent.parent/'d813_20261025/post_backup_release.py'
+_source=_template.read_text().replace('D813','D822')
+exec(compile(_source,str(_template),'exec'),globals())

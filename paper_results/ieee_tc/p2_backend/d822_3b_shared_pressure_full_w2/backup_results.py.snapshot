@@ -1,0 +1,49 @@
+"""Reuse D817 explicit-path backup, retaining failed offline audit sources."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw=Path(__file__).resolve().parent
+_template=_raw.parent/'d817_20261025/backup_program.py.snapshot'
+_source=_template.read_text()
+_source=_source.replace('d817_3b_required_capacity_full_w2','d822_3b_shared_pressure_full_w2')
+_source=_source.replace('D817_REQUIRED_CAPACITY_FULL_W2_20261025.md','D822_SHARED_PRESSURE_FULL_W2_20261025.md')
+_source=_source.replace("identity = read(RAW / 'context_identity.json')",
+                        "identity = read(RAW / 'context_evidence_identity.json')")
+_source=_source.replace("('complete.py','resume_completion.py','close_context.py','backup_results.py','post_backup_release.py')",
+    "('complete.py','close_context.py','resume_context.py','close_actual_pressure.py','close_pressure_evidence.py','backup_results.py','post_backup_release.py')")
+_start=_source.index("for name in ('complete.py', 'completion_template.json'")
+_end=_source.index('    source = RAW / name',_start)
+_recovery=('complete.py','completion_template.json','completion_program.py.snapshot',
+    'completion_identity.json','close_context.py','context_identity.json',
+    'resume_context.py','context_resume_template.json','context_resume_program.py.snapshot',
+    'context_resume_identity.json','close_actual_pressure.py','context_actual_template.json',
+    'context_actual_program.py.snapshot','context_actual_identity.json',
+    'close_pressure_evidence.py','context_evidence_template.json','context_evidence_program.py.snapshot',
+    'context_evidence_identity.json','start_receipt.json','commit.json','backup.json',
+    'post_backup_release.py','backup_template.json')
+_source=_source[:_start]+'for name in '+repr(_recovery)+':\n'+_source[_end:]
+_source=_source.replace("paths = [str(path.relative_to(ROOT)) for path in files]",
+    "files = list(dict.fromkeys(files))\npaths = [str(path.relative_to(ROOT)) for path in files]")
+_source=_source.replace("call(['git', 'add', '--', *paths])",
+    """expected_staged=set(call(['git','diff','--name-only','HEAD','--',*paths]).splitlines())
+expected_staged.update(call(['git','ls-files','--others','--exclude-standard','--',*paths]).splitlines())
+call(['git', 'add', '--', *paths])""")
+_source=_source.replace("== set(paths)","== expected_staged")
+_source=_source.replace('tc: retain complete D817 W2 capacity recovery and joint SLO shortfall',
+    'tc: retain negative D822 full W2 and actual shared-pressure evidence')
+_source=_source.replace('refs/heads/backup/d817-complete-20261025',
+    'refs/heads/backup/d822-complete-20261025')
+_source=_source.replace('protected_publication_files=len(protected)',
+    'protected_publication_files=147, protected_user_files=len(protected)-147')
+_source=_source.replace('core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+    'core.whitespace=-blank-at-eol,space-before-tab,-blank-at-eof')
+_source=_source.replace('exact executed snapshot trailing blanks preserved.',
+    'exact executed snapshot trailing blanks preserved (including the recorded one-space generated assertion line).')
+with (_raw/'backup_template.json').open('x') as stream:
+    json.dump(dict(source=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        recovery_files=_recovery,protection='147 publication files and three user modifications; explicit paths only.'),stream,indent=2)
+    stream.write('\n')
+with (_raw/'backup_program.py.snapshot').open('x') as stream:
+    stream.write(_source)
+exec(compile(_source,str(_raw/'backup_program.py.snapshot'),'exec'),globals())

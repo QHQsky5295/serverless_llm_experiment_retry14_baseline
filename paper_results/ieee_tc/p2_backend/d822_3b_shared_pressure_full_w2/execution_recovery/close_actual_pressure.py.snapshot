@@ -1,0 +1,106 @@
+"""Close D822 using the actual proactive-admission receipt population.
+
+Preserve both earlier offline assertion failures; do not relabel them as replay
+failures, fabricate request witnesses, or double-count copied plan records.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw / 'context_resume_program.py.snapshot'
+_source = _template.read_text()
+_prefix = _source[:_source.index('assert os.sched_getaffinity(0)')]
+_interval = _source[_source.index("with outcome.open('rb') as stream:\n    records="):
+                    _source.index('counts=collections.Counter()')]
+_tail = _source[_source.index('# Reuse actual same-clock phase decomposition;'):]
+_setup = '''
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_actual_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+previous=read(RAW/'context_resume_identity.json')
+assert not Path(previous['path']).exists()
+closed=read(OUT/'completion/closed_outcome.json')
+assert closed['passed'] and closed['all_allocations_released']
+reclamation=read(OUT/'completion/delivery_applicability_and_reclamation.json')
+assert reclamation['passed']
+required=[r for r in reclamation['cache_snapshot']['replacements'] if r['policy']=='request_lru_v1']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+save(OUT/'completion/analysis_witness_scope_correction.json',dict(
+    type='AssertionError',source=ref(_template),
+    assertion="request_capacity_witness count > 0",
+    observed_requests=4000,observed_request_capacity_witnesses=0,
+    actual_witness_path='mechanism_events._ieee_gpu_preparation_plans[].attempts[].receipt.admission',
+    reason='Native proactive preparation receipts carry the actual pressure snapshots; request-priority acquisition records are not proactive admission decisions.',
+    no_request_witnesses_fabricated=True,previous_scope=previous,
+    partial_analysis_resources=None,performance_execution_failed=False,new_replays=0))
+'''
+_audit = '''
+counts=collections.Counter()
+owners=collections.Counter()
+observations=[]
+with result.open('rb') as stream:
+    for request in ijson.items(stream,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        counts['requests']+=1
+        evidence=request['gpu_reference_evidence']
+        assert evidence.get('native_admission') is None
+        assert evidence['receipt'].get('admission') is None
+        counts['no_request_capacity_witness']+=1
+assert counts['requests']==4000
+counts['request_capacity_witness']=0
+seen_attempts=set()
+with outcome.open('rb') as stream:
+    for attempt in ijson.items(stream,'mechanism_events._ieee_gpu_preparation_plans.item.attempts.item',use_float=True):
+        aid=attempt['attempt_id']
+        assert aid not in seen_attempts
+        seen_attempts.add(aid)
+        counts['proactive_attempts']+=1
+        receipt=attempt.get('receipt') or {}
+        witness=receipt.get('admission')
+        if witness is None:
+            counts['proactive_attempts_without_admission_snapshot']+=1
+            continue
+        assert witness['observation_transport']=='same_host_memfd_flock_v1'
+        assert witness['pressure_generation_id']==generation
+        assert witness['scheduler_held_during_commit'] is True
+        assert witness['physical_increment_reserved_bytes']==0
+        owner,revision=witness['scheduler_owner_id'],witness['transfer_sequence']
+        active=witness['active_transfer_ids']
+        assert type(revision) is int and revision>0
+        assert len(set(active))==len(active)==witness['snapshot']['active_transfers']
+        expected=projected_ids(records,owner,revision)
+        assert set(active)==expected,(aid,owner,revision,active,expected)
+        counts['proactive_admission_witness']+=1
+        counts['nonzero_pressure_witness']+=bool(active)
+        counts['admitted_witness']+=witness['admit'] is True
+        counts['deferred_witness']+=witness['admit'] is False
+        owners[owner]+=1
+        observations.append(dict(attempt_id=aid,lease_id=attempt['lease_id'],
+            owner_id=owner,revision=revision,active_transfer_ids=active,
+            captured_at=witness['snapshot']['captured_at'],admit=witness['admit'],
+            load_pressure=witness['load_pressure']))
+assert counts['proactive_admission_witness']>0
+save(OUT/'completion/shared_pressure_witnesses.json',dict(
+    passed=True,kind='d822_actual_proactive_pressure_revision_audit_v1',
+    generation_id=generation,counts=dict(counts),by_owner=dict(owners),
+    pressure_intervals=len(records),final_domain=final,observations=observations,
+    operation_outcomes=dict(collections.Counter(r['operation_outcome'] for r in records)),
+    cancelled_intervals=[r for r in records if r['operation_outcome']=='cancelled'],
+    limitations=['Observed proactive native admission receipts, not request-level capacity witnesses.',
+        'The same receipts copied under file plans and shutdown snapshots are not independent observations.',
+        'Publication/revision correspondence does not measure shared-lock wait or imply a per-core RPC ACK.',
+        'No physical KV reservation or all-request pressure verification is inferred.'],
+    source_refs=[ref(outcome),ref(result),ref(_template),ref(Path(__file__))]))
+'''
+_program = _prefix + _setup + _interval + _audit + _tail
+with (_raw / 'context_actual_template.json').open('x') as stream:
+    json.dump(dict(source=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        correction='Read proactive receipts; preserve absence of request capacity witnesses.'),stream,indent=2)
+    stream.write('\n')
+with (_raw / 'context_actual_program.py.snapshot').open('x') as stream:
+    stream.write(_program)
+exec(compile(_program,str(_raw/'context_actual_program.py.snapshot'),'exec'),globals())

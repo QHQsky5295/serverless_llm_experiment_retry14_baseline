@@ -1,4 +1,108 @@
-# IEEE TC execution status — D821 native check complete; D822 full W2 being registered
+# IEEE TC execution status — D822 complete; negative candidate, offline closure
+
+## 2026-10-25 06:48 CST D822实际主动准入与结果审计完成，待备份/压缩
+
+最终分析session78816退出0，aux13已inactive且Invocation/ControlGroup空。
+实际压力快照在主动准备receipt而非请求记录：4768唯一attempt，2663快照
+逐条generation/revision/active IDs匹配，其中782次非零压力；2097无准入
+记录、8次replacement早停单列（3无victim、5收益不超过损失）。2663快照
+全部admit，不宣称实测了压力拒绝，也不将重复快照计作独立样本。3541段
+文件IO均正确结束，1正常取消保留。第三次离线schema假设错误也已保留；
+最终closure/manifest通过，不改原始请求数据、无性能重跑。
+
+505条精确关联Remote准备均值1581.515ms，对比D817的503条1861.392ms；
+集合略不同，仅为条件诊断。整体联合88.875%、U11932.977425退于D817，
+候选明确不采纳、不扩展W1/W0。默认native_rpc_v1仍保留，新通道为显式
+实验选项。三个来源SHA/错误记录、curated数据与D822文档待明确路径备份；
+随后用既有脚本无损压缩关闭结果。当前没有运行模型、远端服务或待分析session。
+此处不新增下一候选，先完成本检查点与存储维护；全部未完成范围不变。
+
+## 2026-10-25 06:40 CST D822完整回放已结束，不采纳该候选
+
+完整4000请求原生数量/绑定/计量完成，运行失败0；冻结共同联合SLO为
+3555/4000=88.875%，物理U=11932.977425 GPU-s，P95 TTFT2619.397901ms。
+D817为89.90%/11283.832798 GPU-s；本候选联合下降1.025个百分点、资源增加
+约5.75%，虽仍在12083.063870 GPU-s预算内且TTFT P95略降，不能认为G1/G2
+改善。不扩展此配置到W1/W0、不重复同键。D711数值身份未知保持原样。
+
+launch passed、所有GPU真实释放、所属远端三个服务已关闭。505次交付的双端
+ID/bytes/SHA一致、无在线打包；stage恒等式通过。service峰值33105682432B，
+high/max/OOM/swap0；关闭后的磁盘约148.7GiB，下次重型前须无损压缩已封存
+证据恢复安全余量。当前无推理任务；不改共享k3s、不重新进行HydraServe适配。
+
+离线压力审计保留两次分析断言失败：第一版误要求所有准备任务成功完成，
+实际3541段均finished，其中3540 completed、1次取消已join并撤销；第二版
+误预期请求层native_admission字段，实际4000条都没有该witness。原始结果
+和分析脚本均保留；不能将发布/撤销证据冒称原生读取决策证明。正在有界核对
+实际主动准备记录，完成证据范围、候选否决说明和明确路径备份，再做存储维护。
+无GPU重跑，分析session以本轮后续回执为准。
+
+完整同版两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档
+及最终图表/V2仍全部保留；整体目标active。先收尾本候选，再根据新瓶颈证据
+决定下一PrimeLoRA主线改动，不堆叠未验证优化、不重开已否定方向。
+
+## 2026-10-25 05:43 CST D822同一完整回放继续（verified wait）
+
+本轮完整重读PLAN、AGENTS和当前执行状态，按monitor-experiment核查已有运行；
+没有新实验、参数改变、远端管理、批量哈希/压缩或代码修改。多次采样完成数
+1031→1093→1134→1159→1189→1236→1298→1359，失败始终0。最新已到达
+1362/4000、完成1359，elapsed23:35，3 runtimes、scale_up2、scale_down0。
+这只是执行进度，完整正确性、冻结联合SLO和生命周期U尚未产生结论。
+
+watchdog sample1464 monotonic2385424.101560799：MemAvailable91.657GiB，
+service21.044GiB，high/max/OOM/swap0，磁盘143.242GiB，无warning/abort。
+service保持active、Tasks436，InvocationID仍a21da8f3af304a3fb98b7fbe0c97edfc；
+05:43 tmux pane2745776、pane_dead0。磁盘未触发100GiB运行停止线；低于
+150GiB禁止新重型启动，待此运行真实释放后再审计空间，不并行维护。
+
+只读监测functions exec cell7055仍运行（每45秒一次）；继续wait该cell，
+不要重启D822或另起监测循环。实验本身由既有tmux/gated service持有。
+下一仍为完整终态→实际GPU释放/所属远端关闭→新通道Full pressure witness
+和冻结SLO/U分析。没有新性能结果，D711数值身份未知及全部未完成矩阵保留；
+整体目标active，此处是正常等待而非阻塞。不追加短回放/重复资格或图表。
+
+## 2026-10-25 05:25 CST D822持续回放（verified wait）
+
+上一目标轮PROGRESS：D821结束并保存，D822已备份/实际启动。本轮完整重读
+PLAN及当前状态，使用monitor-experiment，连续核查同一活跃tmux和service
+InvocationID；没有重启、配置改动、第二实验或远端操作。多个采样间完成数
+12→52→92→135→175→258，最后到达262/4000、完成258、失败0，elapsed
+05:47，3个runtime、scale_up2。只是原生执行进度，不是完整正确性/SLO结论。
+
+最新watchdog sample411 monotonic2384356.68258337；service active，Tasks435，
+InvocationID仍a21da8f3af304a3fb98b7fbe0c97edfc，pane2745776存活。
+MemAvailable92.254GiB、service15.686GiB，high/max/OOM/swap0；磁盘
+148.113GiB，未触发100GiB运行停止线。低于150GiB只禁止新重型启动，
+不在性能运行中清理/压缩；收尾后按实际空间审计再推进下一键。
+同一原始监控与日志继续追加；没有待工具session，无新的性能指标产物。
+
+下一仍监测此运行至完整终态/真实释放/自动远端关闭，再分析新通道Full
+witness与冻结联合SLO/U。不能依据live5000ms显示定标，不能用阶段成功替代
+4000结果。D711未知及全部未完范围保留，目标active；不另造门槛或短回放。
+
+## 2026-10-25 05:18 CST D822已启动，禁止重启或并行重型工作
+
+本轮PROGRESS：D821完成与真实释放已保存；D822两个新合同检查及三个受影响
+旧检查共5项通过，D819/D820和既有输入证据复用。明确路径提交
+a2395289f4104c2b49cc6d6d780293d613541d65，push/ls-remote核实
+refs/heads/backup/d822-shared-pressure-fullw2-20261025（非最终V2同步）。
+未stage用户manifest，BASE未改。启动管理aux01已inactive、Invocation/路径
+清空。远端1000Mb/s/full，已发布服务未改配置、未重新打包。
+
+活跃tmux tc-d822-3b-shared-pressure-full-w2，pane PID2745776；raw
+results/ieee_tc/p2_backend_qualification/d822_20261025/3b_max3_full_w2。
+service primelora-tc-svc-3993c745e69d4e2a8d5cd356a80b6d1a.scope，Invocation
+a21da8f3af304a3fb98b7fbe0c97edfc；aux a08872bf344e45468fdce52d8368555f。
+05:19采样76：已有3请求到达、2完成、0失败；处于完整回放早期，不能用
+live开发5000ms显示作冻结SLO判定。service峰值12941905920B，high/max/OOM/
+swap0，主机available104457039872B，磁盘161123246080B；无安全告警。
+启动gate实测disk161123889152B，要求161061273600B，issues空；新增峰值
+预算32GiB，运行中100GiB停止门槛/内存保护不变。只监测这个已有运行，
+不额外hash/压缩/备份/构建或调整远端。没有待工具session。
+
+下一直接等待该单轮完整终态→真实GPU释放→所属远端自动关闭→新通道
+Full witness与冻结SLO/U分析。运行中数据不宣称已达标，保留D711未知。
+仍保留全部主比较/消融/机制/敏感性及文档图表，目标active。
 
 ## 2026-10-25 D821收尾完成，直接准备D822完整W2
 

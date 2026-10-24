@@ -1,0 +1,32 @@
+{
+  "type": "AssertionError",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d822_20261025/close_context.py",
+    "sha256": "02f1340b6b574ad9fc5787f0c99ff35e7f6debdd967551d63ba2febe45dea035"
+  },
+  "assertion": "All finished preparation intervals have operation_outcome=completed",
+  "inspected_intervals": 3541,
+  "completed_intervals": 3540,
+  "cancelled_intervals": 1,
+  "observed_cancellation_id": "e0605c2cca0349e3a063a4cb7a3f823d",
+  "reason": "Cancellation is recorded separately from pressure retirement; this interval was joined and finished with matching publication generations.",
+  "previous_scope": {
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000003.scope",
+    "invocation_id": "718fd19ffd8743f6af31374f0afa4f61",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000003.scope",
+    "inode": 32071612
+  },
+  "partial_analysis_resources": null,
+  "performance_execution_failed": false,
+  "new_replays": 0,
+  "reused_outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2/completion/closed_outcome.json",
+      "sha256": "daf6b3ec4c11b4f6b7bb978ace5cf64f59982249fc554a7d20c11ec732b364a1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "93e8719bb6e4b506eaf6a0d654a81da59e2e04d93b55bb78eb7069cb4246b3fd"
+    }
+  ]
+}

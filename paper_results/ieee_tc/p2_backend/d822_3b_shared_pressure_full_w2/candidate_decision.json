@@ -1,0 +1,18 @@
+{
+  "previous": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json",
+    "sha256": "3b043862801d6c7045d6324b9493553fbe9f900b3f4eaddeb3218715fba1bca4"
+  },
+  "current": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2/completion/full4000.json",
+    "sha256": "00575246ab1c70c1ca84abb3b844e57a3a0729140d5aab59e59d6112ee9c0124"
+  },
+  "joint_slo_difference_percentage_points": -1.0249999999999981,
+  "gpu_seconds_difference": 649.1446265131235,
+  "gpu_seconds_increase_fraction": 0.05752873497121147,
+  "p95_ttft_reduction_fraction": 0.02754293526731877,
+  "accepted_as_improvement": false,
+  "independent_holdout": false,
+  "confidence_interval": null,
+  "decision": "Do not adopt shared-pressure transport as an improvement or expand it to W1/W0. Preserve all results; bounded offline attribution only, no same-key replay."
+}

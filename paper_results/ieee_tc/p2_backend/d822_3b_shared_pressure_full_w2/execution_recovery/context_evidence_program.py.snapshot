@@ -1,0 +1,186 @@
+"""Reuse D817 delivery/reclamation closure; audit D822 shared revisions offline.
+
+No replay, new measurements, modified result bytes, or per-core ACK inference.
+"""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import audit_closed_outcome, diagnose_remote_preparation
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path), sha256=p.digest(path))
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def projected_ids(records, owner, revision):
+    return {r['transfer_id'] for r in records if owner in r['participants']
+        and r['participants'][owner]['start_publication_revision'] <= revision
+        < r['participants'][owner]['finish_publication_revision']}
+
+assert projected_ids([dict(transfer_id='a', participants={
+    'o':dict(start_publication_revision=3, finish_publication_revision=7)})], 'o', 3)=={'a'}
+assert projected_ids([dict(transfer_id='a', participants={
+    'o':dict(start_publication_revision=3, finish_publication_revision=7)})], 'o', 7)==set()
+assert projected_ids([dict(transfer_id='a', participants={
+    'o':dict(start_publication_revision=3, finish_publication_revision=7)})], 'other', 4)==set()
+
+
+
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_evidence_identity.json',own)
+group=Path(own['path'])
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+previous=read(RAW/'context_actual_identity.json')
+assert not Path(previous['path']).exists()
+closed=read(OUT/'completion/closed_outcome.json')
+assert closed['passed'] and closed['all_allocations_released']
+reclamation=read(OUT/'completion/delivery_applicability_and_reclamation.json')
+assert reclamation['passed']
+required=[r for r in reclamation['cache_snapshot']['replacements'] if r['policy']=='request_lru_v1']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+save(OUT/'completion/analysis_attempt_schema_correction.json',dict(
+    type='KeyError',source=ref(_template),missing_key='observation_transport',
+    reason='A preparation attempt may terminate before native admission evaluation; preserve reason-only records separately from actual capacity snapshots.',
+    previous_scope=previous,partial_analysis_resources=None,
+    performance_execution_failed=False,new_replays=0))
+with outcome.open('rb') as stream:
+    records=next(ijson.items(stream, 'transfer_pressure', use_float=True))
+with outcome.open('rb') as stream:
+    final=next(ijson.items(stream, 'coordination_after_shutdown.ieee_shared_file_pressure', use_float=True))
+assert final['closed'] and not final['active_transfer_ids']
+assert final['observation_transport']=='same_host_memfd_flock_v1'
+assert all(m['state']=='retired' for m in final['members'])
+ids={r['transfer_id'] for r in records}
+assert records and len(ids)==len(records)
+generations=set()
+for row in records:
+    assert row['state']=='finished'
+    assert row['operation_outcome'] in ('completed','cancelled')
+    if row['operation_outcome']=='cancelled':
+        assert row['operation_error_type']=='CancelledError' and row['caller_cancelled'] is True
+    assert row['projection_policy']=='same_host_memfd_flock_v1'
+    assert row['file_owner_id']==final['file_owner_id'] and row['clock_id']==final['clock_id']
+    assert row['created_at']<=row['io_started_at']<=row['io_joined_at']<=row['finished_at']
+    start,end=row['start_publication'],row['finish_publication']
+    for publication in (start,end):
+        assert publication['available'] is True and publication['native_acknowledgement'] is False
+        assert type(publication['revision']) is int
+        assert set(publication['active_transfer_ids'])<=ids
+        generations.add(publication['generation_id'])
+    assert start['revision']<end['revision']
+    assert row['transfer_id'] in start['active_transfer_ids']
+    assert row['transfer_id'] not in end['active_transfer_ids']
+    for owner,part in row['participants'].items():
+        assert part['state']=='finished' and part['native_acknowledgement'] is False
+        assert start['revision']<=part['start_publication_revision']<part['finish_publication_revision']==end['revision']
+assert len(generations)==1
+generation=next(iter(generations))
+metric=read(OUT/'completion/full4000.json')
+result=next(Path(r['path']) for r in metric['source_refs']
+    if Path(r['path']).name.startswith('experiment_results_full'))
+
+counts=collections.Counter()
+owners=collections.Counter()
+observations=[]
+with result.open('rb') as stream:
+    for request in ijson.items(stream,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        counts['requests']+=1
+        evidence=request['gpu_reference_evidence']
+        assert evidence.get('native_admission') is None
+        assert evidence['receipt'].get('admission') is None
+        counts['no_request_capacity_witness']+=1
+assert counts['requests']==4000
+counts['request_capacity_witness']=0
+seen_attempts=set()
+unobserved_reasons=collections.Counter()
+unobserved_examples=[]
+with outcome.open('rb') as stream:
+    for attempt in ijson.items(stream,'mechanism_events._ieee_gpu_preparation_plans.item.attempts.item',use_float=True):
+        aid=attempt['attempt_id']
+        assert aid not in seen_attempts
+        seen_attempts.add(aid)
+        counts['proactive_attempts']+=1
+        receipt=attempt.get('receipt') or {}
+        witness=receipt.get('admission')
+        if witness is None:
+            counts['proactive_attempts_without_admission_snapshot']+=1
+            continue
+        if 'observation_transport' not in witness:
+            counts['proactive_attempts_without_pressure_snapshot']+=1
+            reason=str(witness.get('reason',attempt.get('state')))
+            unobserved_reasons[reason]+=1
+            if len(unobserved_examples)<10:
+                unobserved_examples.append(dict(attempt_id=aid,state=attempt['state'],admission=witness))
+            continue
+        assert witness['observation_transport']=='same_host_memfd_flock_v1' 
+        assert witness['pressure_generation_id']==generation
+        assert witness['scheduler_held_during_commit'] is True
+        assert witness['physical_increment_reserved_bytes']==0
+        owner,revision=witness['scheduler_owner_id'],witness['transfer_sequence']
+        active=witness['active_transfer_ids']
+        assert type(revision) is int and revision>0
+        assert len(set(active))==len(active)==witness['snapshot']['active_transfers']
+        expected=projected_ids(records,owner,revision)
+        assert set(active)==expected,(aid,owner,revision,active,expected)
+        counts['proactive_admission_witness']+=1
+        counts['nonzero_pressure_witness']+=bool(active)
+        counts['admitted_witness']+=witness['admit'] is True
+        counts['deferred_witness']+=witness['admit'] is False
+        owners[owner]+=1
+        observations.append(dict(attempt_id=aid,lease_id=attempt['lease_id'],
+            owner_id=owner,revision=revision,active_transfer_ids=active,
+            captured_at=witness['snapshot']['captured_at'],admit=witness['admit'],
+            load_pressure=witness['load_pressure']))
+assert counts['proactive_admission_witness']>0
+save(OUT/'completion/shared_pressure_witnesses.json',dict(
+    passed=True,kind='d822_actual_proactive_pressure_revision_audit_v1',
+    generation_id=generation,counts=dict(counts),by_owner=dict(owners),
+    pressure_intervals=len(records),final_domain=final,observations=observations,
+    unobserved_reasons=dict(unobserved_reasons),unobserved_examples=unobserved_examples,
+    operation_outcomes=dict(collections.Counter(r['operation_outcome'] for r in records)),
+    cancelled_intervals=[r for r in records if r['operation_outcome']=='cancelled'],
+    limitations=['Observed proactive native admission receipts, not request-level capacity witnesses.',
+        'Attempts without a pressure snapshot remain separately counted; they do not prove native observation.',
+        'The same receipts copied under file plans and shutdown snapshots are not independent observations.',
+        'Publication/revision correspondence does not measure shared-lock wait or imply a per-core RPC ACK.',
+        'No physical KV reservation or all-request pressure verification is inferred.'],
+    source_refs=[ref(outcome),ref(result),ref(_template),ref(Path(__file__))]))
+# Reuse actual same-clock phase decomposition; no old per-core RPC attribution.
+diagnose_remote_preparation(RUN, OUT/'remote_preparation', OUT/'completion/stages')
+old_path=ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json'
+old=read(old_path)
+assert old['common_slo_sha256']==metric['common_slo_sha256']
+comparison=dict(previous=ref(old_path),current=ref(OUT/'completion/full4000.json'),
+    joint_slo_difference_percentage_points=100*(metric['joint_slo_fraction']-old['joint_slo_fraction']),
+    gpu_seconds_difference=metric['physical_gpu_seconds']-old['physical_gpu_seconds'],
+    gpu_seconds_increase_fraction=metric['physical_gpu_seconds']/old['physical_gpu_seconds']-1,
+    p95_ttft_reduction_fraction=1-metric['metrics']['ttft_ms']['p95_type1']/old['metrics']['ttft_ms']['p95_type1'],
+    accepted_as_improvement=False, independent_holdout=False, confidence_interval=None,
+    decision='Do not adopt shared-pressure transport as an improvement or expand it to W1/W0. Preserve all results; bounded offline attribution only, no same-key replay.')
+save(OUT/'candidate_decision.json',comparison)
+assert all(int(line.split()[1])==0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'closure.json',dict(passed=True, counts=metric['counts'], pressure_counts=dict(counts),
+    required_reclamations=len(required), n_correct=metric['n_correct'], ranking_eligible=False,
+    primary_targets_achieved=False, new_replays=0, previous_auxiliary_scope_removed=previous,
+    resources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')},
+    candidate_decision=comparison))
+save(OUT/'closure_manifest.json',dict(files=[ref(x) for x in sorted(OUT.rglob('*'))
+    if x.is_file() and x.name!='closure_manifest.json']))
+print(json.dumps(dict(passed=True,pressure_counts=dict(counts),comparison=comparison),indent=2))
