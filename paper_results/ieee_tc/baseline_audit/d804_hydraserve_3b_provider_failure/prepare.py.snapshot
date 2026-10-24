@@ -1,0 +1,189 @@
+"""Reuse D576's native delivery/HTTP path for the affected 3B model only.
+
+One existing 100-request prefix checks provider -> shared memory -> native
+worker, which D803's local-checkpoint numerical probe did not exercise. No
+new platform, trace, weights, performance point or parameter search.
+"""
+import ast
+from hashlib import sha256
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+OLD = RAW.parent/'d576_20261016'
+NUMERIC = RAW.parent/'d803_20261024'
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path[:0] = [str(BASE/'scripts'), str(BASE), str(MAIN)]
+from prepare_ieee_tc_serverless_stack import load_guard, load_http_replay_plan, validate_http_lifecycle_contract
+from HydraServe_project.runtime.native_delivery import replace_one, render_overlays
+from HydraServe_project.runtime.controller_runtime import render_controller_sources
+from HydraServe_project.scripts.probe_layer_identity import MODEL_3B, NATIVE, collect_witness
+p = load_guard(MAIN)
+
+
+def put(name, value):
+    path = RAW/name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('xb') as stream:
+        stream.write(value.encode() if isinstance(value, str) else value)
+
+
+def save(name, value):
+    put(name, json.dumps(value, indent=2, sort_keys=True, allow_nan=False))
+
+
+def retag(source):
+    source = source.replace('d576_20261016', RAW.name).replace('d576', 'd804')
+    source = source.replace('http_7b_4000.json', 'http_3b_100.json')
+    if 'from scripts import ieee_tc_preflight as p' in source:
+        source = replace_one(source, 'from scripts import ieee_tc_preflight as p',
+            "sys.path.insert(0, '/home/qhq/serverless_llm_baselines/scripts')\n"
+            "from prepare_ieee_tc_serverless_stack import load_guard\n"
+            "p = load_guard(Path('/home/qhq/serverless_llm_experiment_retry14_baseline'))")
+    return source
+
+
+own = p.scope_identity(p.cg_path().name)
+save('prepare_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, limit in [('memory.high', 3*p.GIB), ('memory.max', 4*p.GIB), ('memory.swap.max', 0)]:
+    assert (Path(own['path'])/name).read_text().strip() == str(limit)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+gate = p.preflight([RAW], predicted_growth=3*p.GIB)
+save('prepare_resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+for name in ['qualification', 'probe', 'result']:
+    closed = json.loads((NUMERIC/(name+'_closure.json')).read_text())
+    assert closed['passed'] and not Path(closed['identity']['path']).exists()
+assert json.loads((NUMERIC/'native_probe.json').read_text())['passed']
+assert json.loads((NUMERIC/'result_receipt.json').read_text())['passed']
+preserved = json.loads((NUMERIC/'qualification.json').read_text())['preserved']
+for path, digest in preserved.items():
+    assert p.digest(Path(path)) == digest, path
+
+template_hashes = {
+    'probe.py': 'fd6e5c0ba4b7031597b56f7f81eb4020be571824d678d583ddb068f4a38acf75',
+    'native_body.py': '35ed006648262cfcb2f6eaebf91a92fddc1c216a9b55f5f78ff6f9ddd045a6ad',
+    'request_witness.py': '3653907eba56b63abb167a6af3b18b9dc724a338c8bb12101a37a2844fceaf2d',
+    'prelaunch.py': '3813bf7967bf4d2ed618fa80cd268fc0c600c5cdbd2aa4f4e3485f8208a04451',
+    'launch.sh': '04615164a1edf7e3652873493e3e1096791041eb4e625078f0c9f0cb5ec588e6',
+    'run_and_close.sh': '90511f7699ff73f3b70a14db6c77e075863e12fd60870209d3345f9d7e6ee8eb',
+    'remote_prelaunch.py': '8c8796ac18a3d9113436d9c76dff8bb9be3ffef3d97fcd5083ef2d2627ef81ec',
+    'close_audit.py': 'c46d0ed6cf88c827aa21cc4fe5e92170cf3c9f7b60f19dd3b77dc14eaa483eaa',
+    'close_pause.py': '1b1919e9e2ee5a4eb712af8128ab60f5ae881e8fff0a3aade3ffb4814e903d32',
+    'collect_remote.py': '48bab070899f015a5368a349c51a0c39ffa93960bf5dcdaeda3e1b43e3a340b8',
+    'start_remote.sh': 'dde491d22a0447bd211bfc7cb88b8e27782ea39771bf77fa62827deaa8c1aa3d',
+    'containers.conf': '5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715',
+    'pull-auth.json': '81bcbd3f950f2b31b87a64e8eca0de39db52feb0060d2bc631d7d794696604eb',
+}
+for name, digest in template_hashes.items():
+    assert p.digest(OLD/name) == digest, name
+for name in ['containers.conf', 'pull-auth.json']:
+    put(name, (OLD/name).read_bytes())
+for name in ['close_pause.py', 'close_audit.py', 'collect_remote.py', 'start_remote.sh', 'run_and_close.sh']:
+    put(name, retag((OLD/name).read_text()))
+for name in ['prelaunch.py', 'launch.sh']:
+    source = retag((OLD/name).read_text()).replace('predicted_growth=20*p.GIB', 'predicted_growth=3*p.GIB')
+    source = source.replace('--predicted-growth-gib 20', '--predicted-growth-gib 3')
+    put(name, source)
+source = retag((OLD/'remote_prelaunch.py').read_text())
+before = "for mode in ('baseline','main'):\n    assert json.loads((RAW.parent/'d573_20261016'/f'publication_{mode}_receipt.json').read_text())['passed']"
+source = replace_one(source, before,
+    "assert json.loads((RAW.parent/'d803_20261024/result_receipt.json').read_text())['passed']")
+put('remote_prelaunch.py', source)
+
+cfg_source = RAW.parent.parent/'serverless_qualification/d764_20261023/http_3b_4000.json'
+cfg = json.loads(cfg_source.read_text())
+cfg.update(schema='ieee_tc_hydraserve_http_replay_v1', request_count=100,
+    model='tc-native-llama32-3b-fp16-20261024', url='http://127.0.0.1:8453/v1/chat/completions',
+    physical_lifecycle='hydraserve_container_union_v1',
+    experiment_role='affected_3b_native_provider_shared_memory_qualification')
+plan = load_http_replay_plan(cfg)
+validate_http_lifecycle_contract(cfg)
+save('http_3b_100.json', cfg)
+save('remote_input_config.json', {key: cfg[key] for key in ['ingress_mode', 'pool_index', 'pool_index_sha256', 'remote_artifacts']})
+pool = json.loads(Path(cfg['pool_index']).read_text())['artifacts']
+assert len(pool) == 500
+save('lora_registry.json', [dict(adapter_id=aid, adapter_index=i, adapter_path=str(RAW/'adapter_views'/aid))
+    for i, aid in enumerate(sorted(row['id'] for row in pool), 1)])
+
+# Source ModelInfo documents physical model size plus original online targets.
+# Derive only the missing 3B size; do not tune or replace native online targets.
+registration = json.loads((OLD/'model_registration.json').read_text())
+assert p.digest(Path(registration['source'])) == registration['source_sha256']
+index = json.loads((MODEL_3B/'model.safetensors.index.json').read_text())
+payload_bytes = index['metadata']['total_size']
+size_gib = (payload_bytes+p.GIB-1)//p.GIB
+assert size_gib == 6
+registration.update(mapped_model='llama32_3b', model_info=[size_gib, *registration['model_info'][1:]],
+    model_size_source='ceil(existing indexed unique tensor bytes / 2**30)',
+    model_size_payload_bytes=payload_bytes, model_index_sha256=p.digest(MODEL_3B/'model.safetensors.index.json'),
+    source_key='ModelSet[0]/test common non-size fields; 3B size derived from existing checkpoint',
+    scope='affected_model_qualification_not_frozen_performance')
+save('model_registration.json', registration)
+overlays = render_overlays(NATIVE, request_contract=True, shm_control=True,
+    lora_admission_capacity=True, llama_model_compat=True)
+overlays.update(render_controller_sources(NATIVE, control_observations=True, cancellation_ownership=True))
+for name, content in overlays.items():
+    put('overlays/'+name, content)
+save('overlays/manifest.json', {name: sha256(content).hexdigest() for name, content in overlays.items()})
+# Reuse D803's exact metadata/link tree; no second tensor pool or transformation.
+(RAW/'metadata').symlink_to(NUMERIC/'metadata', target_is_directory=True)
+save('model_witness.json', collect_witness(model=MODEL_3B,
+    pool=Path('/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope')))
+
+body = retag((OLD/'native_body.py').read_text())
+body = body.replace('/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf', str(MODEL_3B))
+body = body.replace('llama2_7b', 'llama32_3b').replace('4000 existing W0 requests', '100 existing W0-prefix requests; affected 3B delivery qualification')
+put('native_body.py', body)
+old_probe = retag((OLD/'probe.py').read_text())
+start, end = old_probe.index('    import asyncio\n'), old_probe.index('except Exception as exc:\n    result.update')
+put('probe.py', old_probe[:start]+body+'\n'+old_probe[end:])
+witness = retag((OLD/'request_witness.py').read_text()).replace('llama2_7b', 'llama32_3b')
+witness = replace_one(witness, "terminal['N_response']==4000", "terminal['N_response']==100")
+put('request_witness.py', witness.replace('full4000 W0', 'first100 W0 3B affected delivery qualification'))
+save('preregistration.json', dict(campaign=RAW.name, system='HydraServe', model='Llama-3.2-3B-Instruct',
+    plan_identity=plan.identity(), n_plan=100, formal_run=False, performance_result=False,
+    qualification_only=True, source_trace_seed=42, request_guard_s=1800, deployment_notice_s=60,
+    physical_lifecycle=cfg['physical_lifecycle'], preserved=preserved,
+    no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info=registration['model_info'],
+    runtime_thresholds_are_not_evaluation_thresholds=True, native_batch=8, native_idle_retirement_s=30,
+    numeric_probe=dict(path=str(NUMERIC/'native_probe.json'), sha256=p.digest(NUMERIC/'native_probe.json')),
+    source_heads={label: subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+                  for label, root in [('main', MAIN), ('baseline', BASE)]},
+    plan_sha256=p.check_plan(), reused_templates=template_hashes, input_config_source=str(cfg_source),
+    acceptance=['100 native-bound responses without fallback or token-count errors',
+        'actual original CPU provider/private shared-memory/worker delivery',
+        'compare retained req_00001 first three tokens with D803 independently checked prefix',
+        'actual resource containment, native idle retirement and complete release'],
+    limits=['not full workload performance', 'not independent 4000-request numerical proof',
+            'untriggered pipeline/consolidation remain unqualified'] ))
+paths = [*sorted(RAW.glob('*.py')), *sorted(RAW.glob('*.sh')),
+    *sorted(RAW.glob('*.json')), RAW/'overlays/manifest.json', RAW/'metadata/partition.json',
+    MAIN/'scripts/ieee_tc_preflight.py', MAIN/'faaslora/clock.py',
+    MAIN/'faaslora/storage/http_artifact_store.py', MAIN/'faaslora/datasets/workload_generator.py',
+    MAIN/'faaslora/metrics/metrics_collector.py', BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'scripts/ieee_tc_serverless_measurement.py', *sorted((BASE/'HydraServe_project/runtime').glob('*.py'))]
+snapshots = {}
+for i, path in enumerate(paths):
+    content = path.read_bytes()
+    name = f'executed_sources/{i:03d}_{path.name}'
+    put(name, content)
+    snapshots[str(path)] = dict(sha256=sha256(content).hexdigest(), snapshot=str(RAW/name))
+save('source_manifest.json', snapshots)
+for path in RAW.glob('*.py'):
+    if path.name != 'native_body.py':
+        ast.parse(path.read_text(), filename=str(path))
+for path in RAW.glob('*.sh'):
+    subprocess.run(['bash', '-n', str(path)], check=True)
+save('prepare_result.json', dict(passed=True, prepared_not_launched=True,
+    performance_result=False, n_plan=100, plan_identity=plan.identity(),
+    runtime_model_info=registration['model_info'], metadata_reused_from=str(NUMERIC/'metadata'),
+    source_manifest_sha256=p.digest(RAW/'source_manifest.json')))
+print(json.dumps(dict(passed=True, prepared_not_launched=True, n_plan=100)))

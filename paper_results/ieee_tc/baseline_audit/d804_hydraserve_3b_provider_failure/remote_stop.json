@@ -1,0 +1,24 @@
+{
+  "all_owned_units_inactive": true,
+  "collector_failure": "expected 7B transfer journal despite zero-arrival qualification",
+  "fabricated_transfer_journal": false,
+  "hashes": {
+    "remote_monitor.log": "bbb106dc47a0694d6f9058f011101713967140b07bc4488b4c1299551986cbad"
+  },
+  "original_collector_returncode": 1,
+  "original_stop_checked_exact_invocations": true,
+  "ports_18080_18081_absent": true,
+  "remote_read_only_recheck": true,
+  "transfer_checks": {
+    "3b": {
+      "clock_id": "remote-process-monotonic:cb5daeecd96647b095ed1df598ccb8a3",
+      "grep_returncode": 1,
+      "matching_transfer_journals": 0
+    },
+    "7b": {
+      "clock_id": "remote-process-monotonic:e1335592d0f848bda7bbfd10917ca26e",
+      "grep_returncode": 1,
+      "matching_transfer_journals": 0
+    }
+  }
+}

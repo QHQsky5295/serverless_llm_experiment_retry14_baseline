@@ -1,0 +1,77 @@
+"""Reuse explicit-path checkpoint checks for a preserved startup failure."""
+import ast
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+prior = RAW.parent.parent/'loquetier_qualification/d796_20261024/backup.py'
+assert p.digest(prior) == '2d6159d567e2077d40aa4ecce0a911fccc1de0a5cbd566158db9570e65d00ae0'
+nodes = [n for n in ast.parse(prior.read_bytes()).body
+    if isinstance(n, ast.FunctionDef) and n.name in ('checked', 'commit')
+    or isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'secret' for t in n.targets)]
+assert len(nodes) == 3
+exec(compile(ast.Module(body=nodes, type_ignores=[]), str(prior), 'exec'), globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json', own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+for name in ('prepare', 'remote_prelaunch', 'audit'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and not Path(closed['identity']['path']).exists()
+audit = read(RAW/'failure_audit.json')
+assert audit['audit_passed'] and not audit['experiment_passed'] and audit['n_arrived'] == 0
+assert audit['resource_closure'] and read(RAW/'remote_stop.json')['all_owned_units_inactive']
+for path, digest in read(RAW/'preregistration.json')['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+expected = {
+    'HydraServe_project/runtime/llama_model_compat.py': 'd3735a2cc722230ea9a7321d52877875392f71fa9dc6fee8d00b5677dab27ebf',
+    'HydraServe_project/runtime/native_delivery.py': '4b05f40144ae11de492cd5e42922a0b58e684d16847bdf1aa7f98694ba99a3f1',
+    'tests/test_ieee_tc_hydraserve_llama_model_compat.py': '3069b0852be4403b56fc2da30184380dea749f39834e26e45bf281910c306f62',
+}
+for name, digest in expected.items():
+    assert p.digest(BASE/name) == digest
+save(RAW/'test_receipt.json', dict(passed=True, tests=34, elapsed_seconds=.998,
+    command='taskset -c 2 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_ieee_tc_hydraserve_llama_model_compat tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_layer_identity -q',
+    execution='exec session31475 exit0, CPU-only; not native runtime qualification',
+    files_sha256=expected, numeric_model_equations_unchanged=True))
+assert call(BASE, 'git', 'rev-parse', 'HEAD') == '235b1e80d6f39d091ee271b9ae6185377848b6ce'
+assert call(BASE, 'git', 'ls-remote', 'origin', 'refs/heads/main').split()[0] == '235b1e80d6f39d091ee271b9ae6185377848b6ce'
+basehead = commit(BASE, [BASE/name for name in expected],
+    'tc: preserve native context limits before HydraServe Llama3 configuration', 'origin', 'refs/heads/main')
+save(RAW/'baseline_publication_receipt.json', dict(passed=True, baseline_head=basehead,
+    executed_head='235b1e80d6f39d091ee271b9ae6185377848b6ce', force_push=False,
+    correction_runtime_verified=False))
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d804_hydraserve_3b_provider_failure'
+OUT.mkdir(parents=True, exist_ok=False)
+sources = [RAW/name for name in ('prepare.py', 'audit.py', 'publish.py', 'close_cpu.py',
+    'preregistration.json', 'prepare_result.json', 'prepare_closure.json', 'remote_prelaunch_closure.json',
+    'audit_closure.json', 'http_3b_100.json', 'model_registration.json', 'model_witness.json',
+    'launch_gate.json', 'closure.json', 'result.json', 'source_manifest.json', 'failure_audit.json',
+    'remote_stop.log', 'remote_stop.json', 'remote_recheck.log', 'remote_collection.log',
+    'test_receipt.json', 'baseline_publication_receipt.json')]
+sources += [RAW/'platform/000011.stderr', RAW/'launch_gate.launch/service.log',
+            RAW/'launch_gate.launch/exec_receipt.json', RAW/'overlays/manifest.json']
+checked(sources)
+mapping = copy_sources(OUT, sources)
+save(OUT/'checkpoint_manifest.json', dict(passed=True, experiment_passed=False,
+    files=mapping, baseline_head=basehead, plan_sha256=p.check_plan(),
+    performance_results=0, n_plan=100, n_arrived=0, n_response=0, n_correct=None,
+    no_gpu_worker_started=True, no_unarrived_timeouts_invented=True,
+    failed_attempt_retained=True, other_project_k3s_changed=False,
+    raw_sources={str(path):p.digest(path) for path in
+        (RAW/'launch_gate.launch/replay.jsonl', RAW/'launch_gate.launch/watchdog.jsonl', RAW/'remote_monitor.log')},
+    next='reuse affected 3B native delivery prefix with source-derived context correction, then full W0/W1/W2'))
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == 'be60ae1987b6a3b494ede25b00d3631d03275cb8'
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D804_HYDRASERVE_3B_NATIVE_DELIVERY_20261024.md', *sorted(OUT.iterdir())]
+ref = 'refs/heads/backup/d804-hydraserve-3b-context-20261024'
+head = commit(MAIN, paths, 'tc: preserve HydraServe 3B provider failure and context correction (D804)',
+              'faaslora_origin', ref)
+save(RAW/'publication_receipt.json', dict(passed=True, head=head, baseline_head=basehead,
+    remote_ref=ref, force_push=False, v2_synchronized=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, baseline_head=basehead, remote_ref=ref)))

@@ -1,0 +1,16 @@
+{
+  "passed": false,
+  "kind": "native_backbone_delivery_init_qualification",
+  "native_backend_qualified": false,
+  "performance_result": false,
+  "pipeline_peer_identity_qualified": false,
+  "gpu_started": false,
+  "physical_measurement_complete": false,
+  "physical_native_contexts_qualified": false,
+  "error_type": "RuntimeError",
+  "error": "native component exited before listening: provider",
+  "cleanup": [],
+  "disk_free_after": 161407614976,
+  "gpu_apps_after": "",
+  "gpu_released": true
+}

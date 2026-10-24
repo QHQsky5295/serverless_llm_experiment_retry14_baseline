@@ -1,0 +1,35 @@
+{
+  "audit_passed": true,
+  "classification": "model_compatibility_configuration_error",
+  "event_max": {
+    "high": 0,
+    "low": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_group_kill": 0,
+    "oom_kill": 0
+  },
+  "evidence_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d804_20261024/closure.json": "3d3352b8bf56999b23dcd9fcc46d0ff19b0e2ddc8f23f208cb44999e6f1a0f1a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d804_20261024/launch_gate.json": "7ca43ff99a6937b65fc58b4188aa969a61b2471bbd2636bb41a355fe34011452",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d804_20261024/launch_gate.launch/replay.jsonl": "981cc25dbdcf900240bf9b0c3b42bee0d66dfc36e1a457a2cbdd0c6238e2aba3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d804_20261024/platform/000011.stderr": "9f9c14625561148469bc531d43c38dae9df8e50d0eed8e260a57489411dfb897",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d804_20261024/remote_stop.json": "289db4ff2cc1f2fec02c9c3a7925823c65118daa8d7058e047b40a9fb8e48523"
+  },
+  "experiment_passed": false,
+  "fault": "Llama3 max_position_embeddings multiplied by factor again; native context bound applied after config validation",
+  "gpu_worker_started": false,
+  "n_arrived": 0,
+  "n_correct": null,
+  "n_plan": 100,
+  "n_response": 0,
+  "n_terminal": 0,
+  "next": "source-derived native context bound before validation and correct llama3 max-length rule; affected path only",
+  "no_unarrived_timeouts_invented": true,
+  "performance_result": false,
+  "remote_closed": true,
+  "resource_closure": true,
+  "service_peak_bytes": 7208349696,
+  "source_snapshots_verified": true,
+  "swap_max": 0
+}

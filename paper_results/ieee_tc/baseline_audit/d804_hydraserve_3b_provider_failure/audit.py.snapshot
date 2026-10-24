@@ -1,0 +1,94 @@
+"""Preserve the pre-arrival provider failure and complete zero-fetch closure."""
+from collections import Counter
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, '/home/qhq/serverless_llm_baselines/scripts')
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(MAIN)
+
+
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, sort_keys=True)
+
+
+own = p.scope_identity(p.cg_path().name)
+save('audit_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (Path(own['path'])/'memory.max').read_text().strip() == str(4*p.GIB)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+launch = json.loads((RAW/'launch_gate.json').read_text())
+closure = json.loads((RAW/'closure.json').read_text())
+assert launch['service_returncode'] == 1 and launch['watchdog_returncode'] == 0
+assert launch['cleanup']['released'] and closure['service_gone'] and closure['actual_recursive_empty']
+assert not Path(closure['service']['path']).exists()
+rows = [json.loads(line) for line in (RAW/'launch_gate.launch/replay.jsonl').read_text().splitlines()]
+counts = Counter(row['event'] for row in rows)
+terminal = rows[-1]
+assert terminal['event'] == 'http_replay_incomplete'
+assert terminal['N_plan'] == 100 and terminal['N_arrived'] == terminal['N_terminal'] == terminal['N_response'] == 0
+assert counts['request_contract'] == 100 and not counts['http_response']
+error = (RAW/'platform/000011.stderr').read_text()
+assert 'max_model_len (4194304)' in error and 'max_num_batched_tokens (65536)' in error
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+# The original stop procedure checked invocation IDs before stopping all three
+# units. Its final grep expected a 7B transfer, invalid for this zero-request run.
+# Preserve that nonzero collector exit and verify actual inactivity, not rerun stop.
+remote_check = '''set -eu
+for unit in primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d804-hydraremote.service; do
+  test "$(systemctl --user show "$unit" -p ActiveState --value)" = inactive
+  test "$(systemctl --user show "$unit" -p MainPID --value)" = 0
+  systemctl --user show "$unit" -p Id -p ActiveState -p MainPID -p Result
+done
+test -z "$(ss -ltnH '( sport = :18080 or sport = :18081 )')"
+'''
+run = subprocess.run(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', '/bin/bash'],
+                     input=remote_check, text=True, capture_output=True, check=True, timeout=30)
+with (RAW/'remote_recheck.log').open('x') as stream:
+    stream.write(run.stdout)
+health = json.loads((RAW/'remote_health.json').read_text())
+transfer_checks = {}
+for model in ('3b', '7b'):
+    clock = health[model]['clock_id']
+    assert clock.startswith('remote-process-monotonic:') and len(clock.rsplit(':',1)[1]) == 32
+    remote_dir = f'/home/lab14/primelora_remote/tc/d80_20260927/{model}'
+    query = f'grep -l -- {clock} {remote_dir}/transfers-*.jsonl'
+    match = subprocess.run(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', query],
+                           text=True, capture_output=True, timeout=30)
+    assert match.returncode == 1 and not match.stdout and not match.stderr, (model, match.returncode, match.stderr)
+    transfer_checks[model] = dict(clock_id=clock, matching_transfer_journals=0, grep_returncode=1)
+remote_path = '/home/lab14/primelora_remote/tc/d804_20261024_hydraremote/remote_monitor.log'
+expected = subprocess.check_output(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', 'sha256sum', remote_path], text=True).split()[0]
+assert not (RAW/'remote_monitor.log').exists()
+subprocess.run(['scp', '-q', '-o', 'BatchMode=yes', 'primelora-artifact-174:'+remote_path,
+                str(RAW/'remote_monitor.log')], check=True, timeout=30)
+assert p.digest(RAW/'remote_monitor.log') == expected
+save('remote_stop.json', dict(all_owned_units_inactive=True, ports_18080_18081_absent=True,
+    original_stop_checked_exact_invocations=True, original_collector_returncode=1,
+    collector_failure='expected 7B transfer journal despite zero-arrival qualification',
+    remote_read_only_recheck=True, transfer_checks=transfer_checks,
+    hashes={'remote_monitor.log': expected}, fabricated_transfer_journal=False))
+for path, record in json.loads((RAW/'source_manifest.json').read_text()).items():
+    assert p.digest(Path(record['snapshot'])) == record['sha256'], path
+for path, digest in json.loads((RAW/'preregistration.json').read_text())['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+save('failure_audit.json', dict(audit_passed=True, experiment_passed=False,
+    classification='model_compatibility_configuration_error', performance_result=False,
+    n_plan=100, n_arrived=0, n_terminal=0, n_response=0, n_correct=None,
+    no_unarrived_timeouts_invented=True, source_snapshots_verified=True,
+    gpu_worker_started=False, service_peak_bytes=closure['peak_bytes'],
+    event_max=closure['event_max'], swap_max=closure['swap_max'],
+    fault='Llama3 max_position_embeddings multiplied by factor again; native context bound applied after config validation',
+    resource_closure=True, remote_closed=True,
+    evidence_sha256={str(path): p.digest(path) for path in
+        (RAW/'launch_gate.json', RAW/'closure.json', RAW/'platform/000011.stderr',
+         RAW/'launch_gate.launch/replay.jsonl', RAW/'remote_stop.json')},
+    next='source-derived native context bound before validation and correct llama3 max-length rule; affected path only'))
+print(json.dumps(dict(audit_passed=True, experiment_passed=False, n_arrived=0,
+                     gpu_started=False, remote_closed=True)))

@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/native_overlay_entry.py", line 55, in <module>
+    if __name__=='__main__':main()
+  File "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/native_overlay_entry.py", line 52, in main
+    exec(compile(source,str(root/entry),'exec'),{'__name__':'__main__','__file__':str(root/entry)})
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/remote_server.py", line 446, in <module>
+    engine = LLMEngine.from_engine_args(
+  File "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/lib/python3.10/site-packages/vllm/engine/llm_engine.py", line 376, in from_engine_args
+    engine_config = engine_args.create_engine_config()
+  File "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 557, in create_engine_config
+    scheduler_config = SchedulerConfig(
+  File "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/lib/python3.10/site-packages/vllm/config.py", line 645, in __init__
+    self._verify_args()
+  File "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/lib/python3.10/site-packages/vllm/config.py", line 650, in _verify_args
+    raise ValueError(
+ValueError: max_num_batched_tokens (65536) is smaller than max_model_len (4194304). This effectively limits the maximum sequence length to max_num_batched_tokens and makes vLLM reject longer sequences. Please increase max_num_batched_tokens or decrease max_model_len.

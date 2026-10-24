@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "tests": 34,
+  "elapsed_seconds": 0.998,
+  "command": "taskset -c 2 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_ieee_tc_hydraserve_llama_model_compat tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_layer_identity -q",
+  "execution": "exec session31475 exit0, CPU-only; not native runtime qualification",
+  "files_sha256": {
+    "HydraServe_project/runtime/llama_model_compat.py": "d3735a2cc722230ea9a7321d52877875392f71fa9dc6fee8d00b5677dab27ebf",
+    "HydraServe_project/runtime/native_delivery.py": "4b05f40144ae11de492cd5e42922a0b58e684d16847bdf1aa7f98694ba99a3f1",
+    "tests/test_ieee_tc_hydraserve_llama_model_compat.py": "3069b0852be4403b56fc2da30184380dea749f39834e26e45bf281910c306f62"
+  },
+  "numeric_model_equations_unchanged": true
+}

@@ -1,4 +1,76 @@
-# IEEE TC execution status — D803 HydraServe 3B PP1 numerics passed; native delivery next
+# IEEE TC execution status — D804 provider context defect preserved; necessary correction CPU-tested
+
+## 2026-10-24 18:03 CST D804启动前失败已关闭；上下文语义修正34项CPU检查通过
+
+D804真实终态不是成功。provider在create_engine_config阶段因
+max_model_len4194304大于max_num_batched_tokens65536退出；没有GPU worker。
+原100条request_contract已登记，但replay终态N_plan100/N_arrived0/
+N_terminal0/N_response0，不把未到达请求伪造超时。service1/watchdog0，
+服务/辅助域均消失，peak7208349696B、high/max/OOM/swap0。
+launch SHA7ca43ff99a6937b65fc58b4188aa969a61b2471bbd2636bb41a355fe34011452。
+这不是性能退化或SLO结果，分类为模型兼容配置错误，失败源码快照完整保存。
+
+原远端stop在核对InvocationID后已停止两个服务和监测；collector随后错误地
+要求存在7B transfer日志而返回1。本轮无请求，不能编造transfer记录过检查。
+新只读audit验证三服务inactive/PID0、端口消失，两个本次clock_id均无
+transfer日志，监测文件scp后SHA一致，补齐remote_stop.json。未再次stop/
+重启远端。audit辅助域0003精确关闭，peak37937152B，无资源事件/swap。
+
+按serving-llms-vllm模型加载诊断，重读既有日志/源码历史并联网核对官方
+vLLM v0.6.3.post1 config与HydraServe原LLMEngine：前者不再对llama3
+max_position_embeddings乘factor；后者原本会应用MAX_MODEL_LEN默认4096，
+但位置在配置校验之后。修正不是把上限/超时任意放大或缩小：在显式模型
+opt-in overlay中修正llama3长度推导；从绑定SHA的原engine AST提取已有
+context表达式，提前传给provider和三个initial/destination EngineArgs。
+不改attention、模型频率算术、共享传输、调度/批量、线上SLO、共同评价尺子。
+原默认overlay和7B历史路径保持不变。D803数值证据仍保留原身份。
+
+实际34项CPU检查0.998s通过（session31475/exit0），新增llama3自动长度、
+显式越界拒绝、旧linear/dynamic分支、原环境/default和provider/3个app
+参数一致性回归。尚未重新执行provider，不把CPU检查写成运行成功。
+已改3个BASE任务文件，用户两个dirty脚本未改/未stage。
+当前无模型/GPU/远端服务；下一先备份失败与必要修正，再复用同一100前缀
+核验受影响路径，成功后不再重复短资格，直接完成3B W0/W1/W2。
+全基线→PrimeLoRA优化→同版Full/全部机制敏感性和最终交付继续有效。
+
+## 2026-10-24 17:57 CST D803检查点已封存；D804只核验受影响交付路径
+
+D803结果已备份：MAIN be60ae1987b6a3b494ede25b00d3631d03275cb8，
+GitHub backup/d803-hydraserve-3b-numeric-20261024已核对；BASE
+235b1e80d6f39d091ee271b9ae6185377848b6ce与origin/main一致。
+result辅助域0005已精确关闭，peak37699584B、high/max/OOM/swap0。
+最终V2尚未同步，不将独立备份分支称为最终发布。
+
+本轮完整重读PLAN及当前状态/补充规范，run-experiment复用D576既有完整
+provider/private-SHM/native worker/HTTP入口，monitor-experiment只读监测。
+不接管用户明确非本项目的k3s，不构建新平台，不重新生成权重或trace。
+D803仅本地checkpoint PP1算术，尚未经过真实provider/共享内存；这是D804
+这一有界检查的具体未解问题，不重复未变化的平台资格或baseline参数搜索。
+
+D804复用3B原trace的100请求前缀、完整静态500-ID登记及D80真实远端缓存。
+新增路径 hydraserve_qualification/d804_20261024。模型元数据直接链接D803，
+不复制tensor；加入已经通过数值验证的模型overlay及原有controller overlay。
+3B ModelInfo仅按原索引unique tensor bytes/2**30向上取整，登记6GiB；
+保留原9000/200/1000000/1及batch8、30秒idle。在线目标不冒称共同评价阈值。
+重新核对官方ModelInfo/provider代码；不套用7B的13GiB，不进行性能调参。
+
+prepare辅助域0001及remote_prelaunch0002均通过并关闭，无资源事件/swap。
+174远端服务由既有专用SSH别名自动启动、认证health通过；没有发布新工件。
+17:57在tmux tc-d804-hydraserve-3b-delivery启动一次检查，pane PID977947；
+launch辅助域固定0009，完整身份和结果以实际launch_gate.json为准。
+计划100个原生绑定响应，核验provider/SHM路径、与D803独立参考核过的
+req_00001前三token对应及真实释放；不把这100请求当成完整性能结果。
+未触发pipeline/consolidation仍不声称已验证，不为触发而搜索部署形态。
+
+准备SHA f21a08208f534b5aa564aca123b656ac55a9600731ed31b685d4bb95155421f2；
+preregistration d3311e7d6a2db70f209f6f814e0ec31bc0c495dcd5318b1ceb661d3c0593651e；
+source_manifest eca023965f334c9fedbab9f498fc1516453dccc8cc4a5093756c01fd843f21ce。
+启动前磁盘161408536576B、MemAvailable111538884KiB，无GPU进程。
+当前仅D804运行，期间不清理/压缩/构建/push或调整远端。
+
+完成后按实际结果关闭/保存，再推进HydraServe3B完整W0/W1/W2；全基线
+比较后集中PrimeLoRA优化，同版Full/A1–A5/S1–S13/成本CE/Pareto/审稿
+文档/图表与最终V2全部保留。goal active；不将检查完成等同目标完成。
 
 ## 2026-10-24 17:48 CST D803实际GPU数值检查6/6通过并释放
 
