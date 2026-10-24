@@ -112,3 +112,8 @@ CSV另含平均TTFT/TPOT/E2E、U/offered、75%预算比和来源；JSON保留完
 整理：paper_results/ieee_tc/main_comparison/d810_available_3b/。
 核心文件：comparison.json、metrics.csv、source_registration.json、manifest.json。
 Git备份及后置清单以实际publication回执为准；备份分支不冒充最终V2已同步。
+
+22:40备份核实：MAIN 60c18a8e998e99f119cf24f84b3606b3d7622528与远端
+backup/d810-available-3b-20261024一致。D809后置回执已收入执行证据归档。
+publication资源域实际关闭，峰值53784576B、资源事件/swap为0；当前无活动
+实验。本后置文字与D810发布回执在下一正常检查点收入，不追改既有归档。

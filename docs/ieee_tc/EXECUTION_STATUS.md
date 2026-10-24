@@ -1,4 +1,33 @@
-# IEEE TC execution status — D810 available 3B comparison; PrimeLoRA resource/latency gap next
+# IEEE TC execution status — D811 current resource evidence; D812 max3 candidate registered
+
+## 2026-10-24 D811完成当前控制核查，D812唯一候选已登记、尚未启动
+
+本轮PROGRESS：完整重读PLAN/V1/V2与执行补充，复用D727流式解析D752已压缩
+outcome，不恢复大型副本、无新GPU回放。D811核对1936控制快照（业务1911），
+3次扩容均active触发、0缩容；4-ready的1714采样active median2/P95=5，
+queue median0/P95=1。1548低负载无pending样本全部不满足all-low。初始ready
+仅晚0.225s，不重复D726启动TTFT归因；不把采样占比当GPU利用率/容量证明。
+物理U14860.687045与四窗之和一致。辅助peak930242560B，事件/swap0，已关闭。
+147保护及3dirty未变。D713阈值改大833/1000失败、7B D614/D632与代码历史已核对；
+联网原Llumnix与Ray固定版本源码后，仅登记D812模型max4→3+3隔离路径。
+新测试/备份/完整4000回放尚待执行，不称已经优化成功。不改IEEE公式、共同
+SLO或baseline；不接管共享k3s。D810后置备份回执将在本正常检查点收录。
+其后同工作点W1/W2、全部Full/消融/敏感性、审稿文档/图表和最终V2仍保留。
+
+## 2026-10-24 22:40 CST D810已备份且资源关闭，下一为PrimeLoRA有界瓶颈定位
+
+MAIN提交60c18a8e998e99f119cf24f84b3606b3d7622528已推送并核对
+refs/heads/backup/d810-available-3b-20261024，11个明确路径，无force/凭据/
+用户manifest。BASE保持e1c433bab982366a82ad188ef703270d89d6ea06，origin/main
+一致。D809后置publication/storage/缓存回执已收入D810执行证据归档；不重写
+旧归档。publication0004已实际关闭，peak53784576B、high/max/OOM/swap0。
+当前没有活动实验、GPU任务或待工具session。磁盘余161321635840B。
+
+下一先查既有资源/控制失败历史和D752持卡/队列证据，再查原始论文/官方实现，
+确定一个可证伪候选；不能将无缩容直接视为bug、重复旧无效参数或只优化W0。
+3B当前版W1/W2仍未运行，全部后续消融/机制/敏感性与最终V2交付仍未完成。
+本次是备份分支，不是最终V2同步；本后置状态及D810publication回执留待下一
+正常检查点收录。完整goal保持active。
 
 ## 2026-10-24 22:39 CST D810完成18点离线对照，下一备份后回PrimeLoRA优化
 

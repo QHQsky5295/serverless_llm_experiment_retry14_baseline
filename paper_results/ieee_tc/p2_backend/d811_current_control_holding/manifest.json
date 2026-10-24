@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d811_current_control_holding/diagnosis.json",
+      "sha256": "7e6bf8e853fc21bb39aacf72eb703e6485f93b657024ce463872d4dbbf0c3b08",
+      "bytes": 72115
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d811_current_control_holding/analyze.py.snapshot",
+      "sha256": "9b8fc855a56c8b26333246f999b5c6264be468fbdc88dde1dbb47f783bd5c850",
+      "bytes": 5201
+    }
+  ]
+}

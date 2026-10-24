@@ -191,6 +191,49 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D812FullContract(unittest.TestCase):
+    def test_actual_controller_respects_three_including_pending(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        cfg = yaml.safe_load((ROOT/'configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml').read_text())['resource_coordination']
+        for ready, pending in ((1, 2), (2, 1), (3, 0)):
+            control = IEEEReplicaControl(cfg['ieee_scaling'],
+                interval_s=cfg['scale_eval_interval_s'], min_instances=cfg['min_instances'],
+                max_instances=cfg['max_instances'])
+            event = control.evaluate(now=0., queue_depth=100, active_requests=ready*8,
+                ready_capacity=ready*8, ready_instances=ready, pending_instances=pending)
+            self.assertEqual(event['action'], ScalingAction.NO_ACTION)
+            self.assertEqual(event['target_instances'], 3)
+            self.assertEqual(event['active_saturation'], 1.)
+
+    def test_only_model_replica_bound_and_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d752_3b_dense_alias_validation_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d812', after)
+        self.assertEqual(old['resource_coordination'].pop('max_instances'), 4)
+        self.assertEqual(new['resource_coordination'].pop('max_instances'), 3)
+        self.assertEqual(old, new)
+        self.assertEqual(new['resource_coordination']['min_instances'], 1)
+        self.assertEqual(new['model']['visible_device_ids'], [0, 1, 2, 3])
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_full_trace_and_qualified_3b_path(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d812\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        candidate = re.search(r'^if \[\[ "\$\{1:-d293\}" == d812 \]\]; then\n(.*?)^fi', shell, re.M | re.S).group(1)
+        self.assertIn('FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080', candidate)
+        self.assertIn('llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json', candidate)
+        self.assertIn('FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044', candidate)
+        self.assertIn('FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c', candidate)
+        self.assertNotIn('FAASLORA_TC_REPLAY_PROFILE=', candidate)
+        self.assertNotIn('d812', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+
 class D752FullContract(unittest.TestCase):
     def test_parent_configuration_only_changes_three_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261023_d749_3b_fresh_host_descriptor_full_w0.yaml').read_text())

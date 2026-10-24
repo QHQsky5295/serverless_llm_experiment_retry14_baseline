@@ -1,0 +1,92 @@
+"""D811: reuse D727 on sealed D752, streaming the existing compressed outcome."""
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+gate = p.preflight([ROOT], 16*1024*1024)
+save(RAW/'resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+preserved = {
+    ROOT/'configs/generated/lora_manifest_1000.json': '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'): '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',
+    Path('/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh'): '337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499',
+}
+for path, sha in preserved.items():
+    assert p.digest(path) == sha
+
+template = RAW.parent/'d727_20261022/analyze.py'
+code = template.read_text()
+old = """    ('D719', 'd719_stage_diagnosis/diagnosis.json',
+     'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml'),
+    ('D726', 'd726_3b_graph_full_w0/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261022_d726_3b_graph_full_w0.yaml'),"""
+new = """    ('D752', 'd752_3b_dense_alias_validation_full_w0/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261023_d752_3b_dense_alias_validation_full_w0.yaml'),"""
+assert code.count(old) == 1
+code = code.replace(old, new).replace('d727_control_feedback', 'd811_current_control_holding')
+code = code.replace('d727_closed_run_control_feedback_diagnosis_v1', 'd811_closed_run_control_feedback_diagnosis_v1')
+code = code.replace("physical_deployment/main_outcome.json'", "physical_deployment/main_outcome.json.gz'")
+code = code.replace("with outcome_path.open('rb') as handle:", "with gzip.open(outcome_path, 'rb') as handle:")
+assert code.count('with gzip.open(') == 1
+extra = """
+physical_path = raw/'launch.launch/physical_deployment/summary.json'
+physical = read(physical_path)
+assert physical['measurement_complete'] and not physical['open_lease_ids']
+assert abs(sum(b-a for spans in physical['device_intervals'].values() for a,b in spans)-physical['gpu_seconds']) < 1e-6
+assert abs(sum(physical['window_gpu_seconds'].values())-physical['gpu_seconds']) < 1e-6
+reports[0]['physical_holding'] = physical
+reports[0]['business_control_distribution'] = {
+    'ready_count_samples': dict(collections.Counter(e['ready_instances'] for e in business)),
+    'queue_depth': timing_stats([e['queue_depth'] for e in business]),
+    'active_requests': timing_stats([e['active_requests'] for e in business]),
+    'active_saturation': timing_stats([e['active_saturation'] for e in business]),
+    'p95_ttft_ms': timing_stats([e['p95_ttft_ms'] for e in business if e['p95_ttft_ms'] is not None]),
+    'four_ready': {
+        'n': sum(e['ready_instances']==4 for e in business),
+        'active_requests': timing_stats([e['active_requests'] for e in business if e['ready_instances']==4]),
+        'queue_depth': timing_stats([e['queue_depth'] for e in business if e['ready_instances']==4]),
+        'low_load_ttft': timing_stats([e['p95_ttft_ms'] for e in low_load if e['ready_instances']==4]),
+    },
+    'interpretation': 'Sampled request occupancy, not GPU utilization or a counterfactual capacity proof.'
+}
+reports[0]['source_refs'].append(ref(physical_path))
+reports[0]['source_refs'].append(ref(template))
+"""
+assert code.count('OUT.mkdir(parents=True)') == 1
+code = code.replace('OUT.mkdir(parents=True)', extra+'\nOUT.mkdir(parents=True)')
+exec(compile(code, str(template), 'exec'), globals())
+for path, sha in preserved.items():
+    assert p.digest(path) == sha
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+save(RAW/'analysis_receipt.json', dict(passed=True, output=str(OUT), identity=identity,
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')},
+    protected=protected, preserved={str(k):v for k,v in preserved.items()},
+    source_sha256=p.digest(template), wrapper_sha256=p.digest(Path(__file__)),
+    new_gpu_runs=0, production_changes=False))

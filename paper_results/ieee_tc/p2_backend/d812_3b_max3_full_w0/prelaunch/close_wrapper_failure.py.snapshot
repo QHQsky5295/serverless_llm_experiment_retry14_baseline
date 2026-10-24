@@ -1,0 +1,21 @@
+"""Archive and close the empty wrapper scope; no experiment was started."""
+import json
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+identity = p.scope_identity('primelora-tc-aux-d8120000000000000000000000000001.scope')
+group = Path(identity['path'])
+members = {str(path):path.read_text().split() for path in group.rglob('cgroup.procs')}
+assert members and all(not value for value in members.values())
+resources = p.cgroup_snapshot(group)
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not group.exists()
+with (RAW/'initial_wrapper_failure.json').open('x') as stream:
+    json.dump(dict(error='AssertionError: d752_20261023; template path derived from __file__, no literal present',
+        before_scope_registration=True, gpu_run_started=False, identity=identity,
+        source_sha256=p.digest(RAW/'start_wrapper_initial.py.snapshot'),
+        resources=resources, closure=closed),stream,indent=2)
+print(json.dumps(dict(closed=True, gpu_run_started=False)))

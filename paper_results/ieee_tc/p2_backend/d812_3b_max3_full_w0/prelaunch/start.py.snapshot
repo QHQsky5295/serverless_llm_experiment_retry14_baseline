@@ -1,0 +1,74 @@
+"""D812 reuses D752 qualification/backup/launch, with one resource bound change."""
+from pathlib import Path
+
+template = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/start.py')
+code = template.read_text()
+for before, after in (
+    ('D752', 'D812'),
+    ('20261023_d752_3b_dense_alias_validation_full_w0', '20261024_d812_3b_max3_full_w0'),
+    ('d752_3b_dense_alias_validation_full_w0', 'd812_3b_max3_full_w0'),
+    ('3b_dense_alias_validation_full_w0', '3b_max3_full_w0'),
+    ('tc-d752-3b-w0', 'tc-d812-3b-w0'),
+    ('D812_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023', 'D812_3B_MAX3_FULL_W0_20261024'),
+    ('d752-dense-alias-validation-fullw0-20261023', 'd812-max3-fullw0-20261024'),
+    ('tc-d752-3b-dense-alias-validation-full-w0', 'tc-d812-3b-max3-full-w0'),
+    ('configuration_only_three_paths_changed=True', 'configuration_only_max_instances_and_three_paths_changed=True'),
+    ('new_execution_contract_tests=2', 'new_execution_contract_tests=3, existing_control_tests=5'),
+    ('3B replay of dense alias validation', '3B maximum-three-replica working point'),
+    ("'tests.test_ieee_tc_d456_diagnostic_contract.D812FullContract', '-v'",
+     "'tests.test_ieee_tc_d456_diagnostic_contract.D812FullContract', 'tests.test_ieee_tc_launch.IEEEControlContract', '-v'"),
+):
+    assert before in code, before
+    code = code.replace(before, after)
+extra = """
+import hashlib, tarfile
+diagnosis = ROOT/'paper_results/ieee_tc/p2_backend/d811_current_control_holding'
+d811 = read(diagnosis/'diagnosis.json')
+assert d811['passed'] and d811['new_gpu_replays'] == 0
+assert call(['git','branch','--show-current']) == 'retry14_continuous_queue_v2'
+assert call(['git','rev-parse','HEAD']) == '60c18a8e998e99f119cf24f84b3606b3d7622528'
+for relative,sha in {
+    'scripts/replay_openai_trace.py':'04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',
+    'scripts/run_serverlessllm_relayserve_continuation.sh':'337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499',
+}.items():
+    assert p.digest(Path('/home/qhq/serverless_llm_baselines')/relative) == sha
+compressed = next(x for x in d811['runs'][0]['source_refs'] if x['path'].endswith('main_outcome.json.gz'))
+assert compressed['sha256'] == '8d8408eab5842ce4c871d5ede2336b9d322a6f815d9675b40218e2a5650a3143'
+assert p.digest(Path(compressed['path'])) == compressed['sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+save(OUT/'protected_147.json', protected)
+evidence = {}
+for path in sorted((RAW.parent/'d811_20261024').iterdir()):
+    assert path.is_file() and path.stat().st_size < 2*1024*1024
+    evidence['d811/'+path.name] = path
+post = RAW.parent.parent/'main_comparison/d810_20261024'
+for name in ('publication_identity.json','publication_receipt.json','publication_closure.json'):
+    evidence['d810_post/'+name] = post/name
+evidence['d752_start_template.py'] = template
+assert read(RAW.parent/'d811_20261024/analysis_closure.json')['passed']
+assert read(post/'publication_closure.json')['passed']
+archive = OUT/'prior_execution_evidence.tar.gz'
+for path in evidence.values():
+    assert path.stat().st_size < 2*1024*1024
+    assert not re.search(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+', path.read_text())
+with tarfile.open(archive,'x:gz') as bundle:
+    for name,path in evidence.items(): bundle.add(path,arcname=name,recursive=False)
+with tarfile.open(archive,'r:gz') as bundle:
+    assert set(bundle.getnames()) == set(evidence)
+    for name,path in evidence.items():
+        assert hashlib.sha256(bundle.extractfile(name).read()).hexdigest() == p.digest(path)
+with (OUT/'evidence.sha256').open('x') as stream:
+    stream.write(p.digest(archive)+'  '+str(archive)+'\\n')
+call(['sha256sum','-c',str(OUT/'evidence.sha256')])
+files += [str(path.relative_to(ROOT)) for path in sorted(diagnosis.iterdir()) if path.is_file()]
+files += ['docs/ieee_tc/D811_CURRENT_3B_CONTROL_HOLDING_20261024.md',
+          'docs/ieee_tc/D810_AVAILABLE_3B_COMPARISON_20261024.md']
+"""
+marker = 'members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))'
+assert code.count(marker) == 1
+code = code.replace(marker, extra+'\n'+marker)
+code = code.replace("for name in files: assert not secret.search((ROOT/name).read_text()), name",
+                    "for name in files:\n    if name.endswith('.tar.gz'): continue  # members verified above\n    assert not secret.search((ROOT/name).read_text()), name")
+exec(compile(code, str(template), 'exec'), globals())

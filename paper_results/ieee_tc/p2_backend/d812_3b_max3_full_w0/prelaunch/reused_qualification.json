@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "qualification_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualification.json",
+  "qualification_sha256": "92f7bdd87688ef7fa577572dbd9eb21c2c8b7b441485e00d166b2740e047262c",
+  "tests_reused": 9,
+  "graphs_reused": 4,
+  "native_cuda_sha256": "70a6845d950dff3073ffbb85395db80a7822c65bb1a39406b152414c8dca22b7",
+  "native_cuda_states_reused": 9,
+  "library": {
+    "kind": "fresh_native_tensor_descriptor_v1",
+    "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "torch_version": "2.13.0+cu130",
+    "python_abi": "cpython-312",
+    "tensor_state_cached": false
+  },
+  "new_component_or_gpu_microtests": 0,
+  "backup_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-74820261023000000000000000000002.scope",
+      "invocation_id": "75ebd09af2dc431e9e2065047feca49f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74820261023000000000000000000002.scope",
+      "inode": 30712775
+    },
+    "resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-74820261023000000000000000000002.scope",
+      "memory.current": 1552384,
+      "memory.peak": 48742400,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 748349\nuser_usec 488921\nsystem_usec 259427\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "closure": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    },
+    "backup": {
+      "passed": true,
+      "head": "890f1976f9849c038b71a03af638cc9b88fbee14",
+      "ref": "refs/heads/backup/d748-fresh-host-descriptor-integration-20261023",
+      "paths": [
+        "docs/ieee_tc/D748_FRESH_HOST_DESCRIPTOR_INTEGRATION_20261023.md",
+        "docs/ieee_tc/EXECUTION_STATUS.md",
+        "faaslora/memory/gpu_monitor.py",
+        "faaslora/memory/native_host_descriptor.py",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/backup.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/d747_backup_closure.json",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/manifest.json",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualification.json",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualification_closure.json",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualify.py.snapshot",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/test_receipt.json",
+        "paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/tests.txt",
+        "scripts/ieee_tc/host_descriptor_witness.py",
+        "tests/test_ieee_tc_native_host_descriptor.py"
+      ],
+      "v2_synchronized": false
+    },
+    "disk_free_bytes": 161836052480,
+    "mem_available": "MemAvailable:   109845404 kB",
+    "shared_k3s_untouched": true,
+    "no_running_gpu_task": true
+  }
+}
