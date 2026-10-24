@@ -20749,18 +20749,18 @@ class ScenarioRunner:
             frozen = validate_file_replacement_epoch(replacement_epoch)
             if frozen['owner_id'] != references.owner_id or trigger_reason == 'demand':
                 raise ValueError('file replacement requires its proactive physical owner')
-            loop = asyncio.get_running_loop()
-            binding = getattr(self, '_ieee_file_change_binding', None)
-            if binding is None:
-                subscriber = uuid.uuid4().hex
-                def changed(tiers):
-                    if tiers and not loop.is_closed():
-                        loop.call_soon_threadsafe(lambda: queue.wake(
-                            owner_id=references.owner_id, target_tiers=tiers))
-                references.subscribe_file_changes(subscriber, changed)
-                self._ieee_file_change_binding = (subscriber, loop)
-            elif binding[1] is not loop:
-                raise ValueError('file state notifications belong to another event loop')
+        loop = asyncio.get_running_loop()
+        binding = getattr(self, '_ieee_file_change_binding', None)
+        if binding is None:
+            subscriber = uuid.uuid4().hex
+            def changed(tiers):
+                if tiers and not loop.is_closed():
+                    loop.call_soon_threadsafe(lambda: queue.wake(
+                        owner_id=references.owner_id, target_tiers=tiers))
+            references.subscribe_file_changes(subscriber, changed)
+            self._ieee_file_change_binding = (subscriber, loop)
+        elif binding[1] is not loop:
+            raise ValueError('file state notifications belong to another event loop')
         identity = self._ieee_artifact_identities[adapter_id]
         content = identity['content_sha256']
         target = references.roots[target_tier.value] / adapter_id
@@ -20805,12 +20805,14 @@ class ScenarioRunner:
                 # Actual file IO/source cleanup and native pressure settlement
                 # have already joined. Only a real owner event enables recheck.
                 return MovementOutcome('deferred', reason=str(exc))
-        job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
-            intent_id=intent_id, metadata=metadata, density=density, action=attempt,
-            demand=trigger_reason == 'demand')
-        # Only the operation creator can bind this transfer to its own admitted
-        # source interval. A subscriber does not acquire the creator's timing.
-        result = copy.deepcopy(await queue.wait(intent_id))
+        with references.file_movement_interest(intent_id=intent_id, target=target,
+                content_sha256=content, required=trigger_reason == 'demand'):
+            job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
+                intent_id=intent_id, metadata=metadata, density=density, action=attempt,
+                demand=trigger_reason == 'demand')
+            # Only the operation creator can bind this transfer to its own admitted
+            # source interval. A subscriber does not acquire the creator's timing.
+            result = copy.deepcopy(await queue.wait(intent_id))
         result['_movement'] = dict(job_id=job_id, intent_id=intent_id,
             owns_io=result.pop('_io_owner_intent_id', None) == intent_id)
         return result
@@ -21091,34 +21093,38 @@ class ScenarioRunner:
                 owner = manager.local_source_references
                 view = owner.source_snapshot(adapter_id)
                 transfer_ms = 0.
-                if not view['sources']:
-                    transfer_evidence = {}
-                    ok, transfer_ms = await self._materialize_remote_adapter_async(
-                        adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
-                        transfer_evidence=transfer_evidence,
-                        movement_context=dict(trigger_reason='demand',
-                            plan_id=f'request:{reservation.request_id}',
-                            target_replica=reservation.slot.instance_id))
-                    if not ok:
-                        raise RuntimeError('IEEE remote materialization did not complete')
-                    if transfer_evidence:
-                        # A coalesced subscriber did not perform this transfer.
-                        # Keep its actual wait in service D, but do not publish
-                        # an empty dict as its own complete-load observation.
-                        reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
-                # Download workers publish other adapters on background threads.
-                # Their owner-wide epoch may change even without an asyncio yield.
-                # Re-observe and pin the completed copy in one owner transaction;
-                # no network, native RPC or await is allowed inside this lock.
-                with owner.lock:
-                    view = owner.source_snapshot(adapter_id)
-                    candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
-                    if not candidates:
-                        raise RuntimeError('completed remote materialization has no verified source')
-                    source = candidates[0]
-                    reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
-                        lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
-                        expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                from contextlib import nullcontext
+                # Retain request ownership across queue return -> read acquisition.
+                # A completed transfer is not yet a protected reader reference.
+                demand = (owner.file_movement_interest(intent_id=uuid.uuid4().hex,
+                    target=self.nvme_dir / adapter_id,
+                    content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
+                    required=True) if not view['sources'] else nullcontext())
+                with demand:
+                    if not view['sources']:
+                        transfer_evidence = {}
+                        ok, transfer_ms = await self._materialize_remote_adapter_async(
+                            adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
+                            transfer_evidence=transfer_evidence,
+                            movement_context=dict(trigger_reason='demand',
+                                plan_id=f'request:{reservation.request_id}',
+                                target_replica=reservation.slot.instance_id))
+                        if not ok:
+                            raise RuntimeError('IEEE remote materialization did not complete')
+                        if transfer_evidence:
+                            # A coalesced subscriber owns waiting, not this IO.
+                            reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
+                    # Re-observe and pin atomically against publishers/reclaimers;
+                    # no network, native RPC or await is allowed inside this lock.
+                    with owner.lock:
+                        view = owner.source_snapshot(adapter_id)
+                        candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
+                        if not candidates:
+                            raise RuntimeError('completed remote materialization has no verified source')
+                        source = candidates[0]
+                        reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
+                            lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                            expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
                 reservation.local_source_owner = manager
                 reservation.gpu_reference_evidence['local_source_reference'] = reference
                 self._nvme_cache[adapter_id] = source['path']

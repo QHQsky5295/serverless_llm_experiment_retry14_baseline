@@ -1,0 +1,55 @@
+W1025 02:52:37.119000 2404587 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_actual_request_reclaims_within_budget_then_pins_source (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_actual_request_reclaims_within_budget_then_pins_source) ... 2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancelled_request_does_not_leave_optional_work_required (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_cancelled_request_does_not_leave_optional_work_required) ...     remote artifact fetch b: 0.0 MB, 9.8 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+    remote artifact fetch a: 0.0 MB, 13.0 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_optional_staging_defers_then_joining_request_uses_same_writer (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_optional_staging_defers_then_joining_request_uses_same_writer) ...     remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 3.8 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_oversized_required_transfer_fails_without_eviction (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_oversized_required_transfer_fails_without_eviction) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 4.1 ms
+    remote artifact fetch a: 0.0 MB, 7.6 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_pending_plan_targets_wait_without_partial_eviction (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_pending_plan_targets_wait_without_partial_eviction) ...     remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_queue_return_to_read_lease_has_no_reclamation_gap (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_queue_return_to_read_lease_has_no_reclamation_gap) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 7.3 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_required_request_resumes_only_after_real_reader_release (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_required_request_resumes_only_after_real_reader_release) ...     remote artifact fetch b: 0.0 MB, 3.4 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 6.9 ms
+2026-10-25 02:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure (tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure) ...     remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 5.4 ms
+    remote artifact fetch a: 0.0 MB, 7.0 ms
+2026-10-25 02:52:39 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:52:39 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.728s
+
+OK

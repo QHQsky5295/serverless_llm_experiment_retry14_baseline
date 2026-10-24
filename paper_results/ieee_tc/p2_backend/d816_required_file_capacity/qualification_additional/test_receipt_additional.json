@@ -1,0 +1,8 @@
+{
+  "returncode": 0,
+  "tests": [
+    "tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity",
+    "tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure"
+  ],
+  "log_sha256": "4543ace1e1b09fd630e213ad941d439b6f66d4d8f30b56f4ae2907e6b9896d15"
+}

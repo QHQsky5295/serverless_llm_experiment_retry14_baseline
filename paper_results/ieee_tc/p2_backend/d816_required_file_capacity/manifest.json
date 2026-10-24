@@ -1,0 +1,52 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/execution_evidence.tar.gz",
+      "sha256": "1913088811e4781d0501576e50535d8b40beba61ce4decf2c9db4f27a82410c0"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification/qualification.json",
+      "sha256": "2a37a5000d05577ddb2199651f4345fe9f997c04d92cff973c0d960a7b90831a"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification/qualify.py.snapshot",
+      "sha256": "7b6dae33eb9d79c03a917187025a43d78113c69e26547b27be4ea2dd31053e75"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification/sources.json",
+      "sha256": "4d2b3a748f9a7bf4d7b3e3be8c80900a700d0b7d0a42993fc6365504d1fbf407"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification/test_receipt.json",
+      "sha256": "8b3a641f0c2ec42de9c262f3f127e8026bf378113b98c7b65b08892c442e45eb"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification/tests.txt",
+      "sha256": "c5f7e792a87e6d194701ebd7e5b72f525f7757a8cf3f4d38924d1ff7709b0b86"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json",
+      "sha256": "6f531c5b4890e3dcc428b856f3ebc909e83696ff3977567ddd1b7d024cb9bf51"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualify.py.snapshot",
+      "sha256": "b445e0cf9c40ff1f3a215acae2c79dfa77edf01ef59a4cdf733c933fbf1677fe"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/sources.json",
+      "sha256": "a304908ff56c5f8277854d4058cbb89e15778ceb02be918257c0d23b191c94d0"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/test_receipt_additional.json",
+      "sha256": "368318800076a8fe000bcac4b1990e36768267d49ba48d334b31d6b6cb091c07"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/tests_additional.txt",
+      "sha256": "4543ace1e1b09fd630e213ad941d439b6f66d4d8f30b56f4ae2907e6b9896d15"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d816_required_file_capacity/source_impact.json",
+      "sha256": "537dbb978a8a9f4e485dcfa0db4e81e8ed8bf6769fff4ea94047fdb7c0063aff"
+    }
+  ]
+}

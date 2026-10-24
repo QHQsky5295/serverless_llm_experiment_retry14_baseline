@@ -1,0 +1,10 @@
+{
+  "sources": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "scripts/run_all_experiments.py": "63bf1d1dc176f38b9770cbcab705b867c248ff7892b5d2d4e74e55afd3a972a5",
+    "tests/test_ieee_tc_transfer_pressure.py": "2064cc9b8725e3aea91b020f93cbdd0a09eb54b098cdcc60b851e650abe6a481"
+  },
+  "parent_commit": "6c932c346eeed7a3ebfea0e3aebfd3083eeaf4b0",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "scope": "request file capacity and optional staging only"
+}

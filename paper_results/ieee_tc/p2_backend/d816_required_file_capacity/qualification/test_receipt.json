@@ -1,0 +1,10 @@
+{
+  "returncode": 0,
+  "tests": [
+    "tests.test_ieee_tc_transfer_pressure",
+    "tests.test_ieee_tc_request_lifecycle",
+    "tests.test_ieee_tc_file_observation",
+    "tests.test_http_artifact_store"
+  ],
+  "log_sha256": "c5f7e792a87e6d194701ebd7e5b72f525f7757a8cf3f4d38924d1ff7709b0b86"
+}

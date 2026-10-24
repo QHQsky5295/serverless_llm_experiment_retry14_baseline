@@ -282,6 +282,7 @@ class LocalSourceReferences:
         self._closed_file_preparation_plans = set()
         self._file_replacement_contexts = {}
         self._file_replacement_events = []
+        self._file_movement_interests = {}
         self._file_change_callbacks = {}
         self._preparation_target_binding = None
         self._preparation_targets = None
@@ -304,6 +305,40 @@ class LocalSourceReferences:
         tiers = tuple(sorted(set(tiers)))
         for callback in tuple(self._file_change_callbacks.values()):
             callback(tiers)
+
+    @contextmanager
+    def file_movement_interest(self, *, intent_id, target, content_sha256, required):
+        """Live request/preparation interest, not a byte reservation.
+
+        Required interests allow ordinary request-driven replacement and keep
+        their completed source safe until the caller acquires its read lease.
+        A preparation joined by a request sees that same live fact under the
+        allocation lock; it is not permanently upgraded by a cancelled caller.
+        """
+        target = Path(target).resolve()
+        if (not isinstance(intent_id, str) or not intent_id or type(required) is not bool
+                or target.parent not in self.roots.values()
+                or not isinstance(content_sha256, str) or len(content_sha256) != 64
+                or any(c not in '0123456789abcdef' for c in content_sha256)):
+            raise ValueError('file movement interest requires managed target/content/role')
+        tier = next(t for t, root in self.roots.items() if target.parent == root)
+        with self.lock:
+            if intent_id in self._file_movement_interests:
+                raise ValueError('duplicate live file movement interest')
+            if any(row['target'] == target and row['content_sha256'] != content_sha256
+                   for row in self._file_movement_interests.values()):
+                raise ValueError('file movement interests disagree on target content')
+            self._file_movement_interests[intent_id] = dict(target=target,
+                content_sha256=content_sha256, required=required, tier=tier)
+            if required:
+                self._file_changed((tier,))
+        try:
+            yield
+        finally:
+            with self.lock:
+                del self._file_movement_interests[intent_id]
+                if required:
+                    self._file_changed((tier,))
 
     def replacement_source_snapshot(self):
         """Complete confirmed file view; not a snapshot of native tensor caches."""
@@ -332,6 +367,7 @@ class LocalSourceReferences:
         cached across observations or used to bypass execution revalidation.
         """
         protected = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
+        protected.update(row['target'] for row in self._file_movement_interests.values() if row['required'])
         held = {Path(row[1]) for row in self.leases.values()}
         moving = set(self.materializations.values())
         blocked = protected | held | moving
@@ -426,6 +462,7 @@ class LocalSourceReferences:
         shortfall = before + required - limit_bytes
         inventory = self._file_inventory()
         pending = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
+        pending.update(row['target'] for row in self._file_movement_interests.values() if row['required'])
         held = {Path(row[1]) for row in self.leases.values()}
         moving = set(self.materializations.values())
         eligible = []
@@ -500,9 +537,8 @@ class LocalSourceReferences:
 
     def _touch_file_source(self, record):
         """Only publication/new read leases affect LRU; observations do not."""
-        if self.file_cache_policy == 'demand_lru':
-            self._file_access_sequence += 1
-            record['last_access_sequence'] = self._file_access_sequence
+        self._file_access_sequence += 1
+        record['last_access_sequence'] = self._file_access_sequence
 
     def _reclaim_for_file_demand(self, transfer_id, target, required, limit_bytes, before):
         """Ordinary byte-bounded LRU inside the existing allocation transaction.
@@ -510,11 +546,16 @@ class LocalSourceReferences:
         Select all necessary victims before deleting any. Readers, live writers,
         shared/external inodes and unsettled allocations never yield capacity.
         No preparation objective, popularity, cost profile or benefit threshold
-        participates. Failure remains explicit when the protected working set
-        leaves insufficient space; it does not bypass the physical budget.
+        participates. Full uses this only for a live required request, never
+        for an optional preparation. A temporarily protected working set waits
+        for owner events; an intrinsically oversized transfer still fails.
         """
-        if (self.file_cache_policy != 'demand_lru' or self._file_preparation_plans
-                or self._file_replacement_contexts):
+        interests = {key: row for key, row in self._file_movement_interests.items()
+                     if row['target'] == target}
+        required_intents = sorted(key for key, row in interests.items() if row['required'])
+        if ((self.file_cache_policy == 'planned_only' and not required_intents)
+                or (self.file_cache_policy == 'demand_lru'
+                    and (self._file_preparation_plans or self._file_replacement_contexts))):
             raise ValueError('ordinary file LRU cannot execute a preparation objective')
         if required > limit_bytes:
             raise RuntimeError('local file capacity conflict: incoming transfer exceeds tier budget')
@@ -537,8 +578,11 @@ class LocalSourceReferences:
             if freed >= shortfall:
                 break
         if freed < shortfall:
+            if interests:
+                raise FilePreparationDeferred('insufficient_unreferenced_file_capacity')
             raise RuntimeError('local file capacity conflict: insufficient unreferenced LRU capacity')
-        receipt = dict(policy='demand_lru', state='claimed', transfer_id=transfer_id,
+        receipt = dict(policy='request_lru_v1' if self.file_cache_policy == 'planned_only' else 'demand_lru',
+            required_intent_ids=required_intents, state='claimed', transfer_id=transfer_id,
             shortfall_bytes=shortfall, expected_usable_bytes=freed, victims=selected)
         self._file_replacement_events.append(receipt)
         # The caller holds this owner's lock until incoming preallocation ends.
@@ -679,7 +723,9 @@ class LocalSourceReferences:
                          for path, content in sorted(row['targets'].items())])
                 for pid, row in sorted(self._file_preparation_plans.items())],
                 physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events),
-                file_cache_policy=self.file_cache_policy)
+                file_cache_policy=self.file_cache_policy,
+                movement_interests=[dict(intent_id=key, **{**row, 'target': str(row['target'])})
+                    for key, row in sorted(self._file_movement_interests.items())])
 
     def configure_host_budget(self, limit_bytes):
         """One managed HOST allowance, not a second whole-service RSS limit.
@@ -1202,6 +1248,9 @@ class LocalSourceReferences:
             if not expected:
                 raise ValueError('space reservation requires frozen payload files')
             content = self._expected_content(expected)
+            interests = [row for row in self._file_movement_interests.values() if row['target'] == target]
+            if any(row['content_sha256'] != content for row in interests):
+                raise ValueError('materialization differs from live movement content')
             for plan in self._file_preparation_plans.values():
                 if target in plan['pending'] and plan['targets'][target] != content:
                     raise ValueError('materialization differs from pending preparation content')
@@ -1217,12 +1266,24 @@ class LocalSourceReferences:
                     self._host_limit-sum(self._native_host_reservations.values())
                     -sum(self._activation_host_reservations.values()))
             replacement = None
-            if before + required > effective_limit and transfer_id in self._file_replacement_contexts:
+            request_required = any(row['required'] for row in interests)
+            if interests and required > effective_limit:
+                if request_required and required > limit_bytes:
+                    raise RuntimeError('local file capacity conflict: incoming transfer exceeds tier budget')
+                raise FilePreparationDeferred('file_transfer_exceeds_current_available_budget')
+            if before + required > effective_limit and request_required:
+                before, replacement = self._reclaim_for_file_demand(
+                    transfer_id, target, required, effective_limit, before)
+            elif before + required > effective_limit and transfer_id in self._file_replacement_contexts:
                 before, replacement = self._reclaim_for_file_preparation(
                     transfer_id, target, required, payload_required, effective_limit, before, content)
             elif before + required > effective_limit and self.file_cache_policy == 'demand_lru':
                 before, replacement = self._reclaim_for_file_demand(
                     transfer_id, target, required, effective_limit, before)
+            if before + required > effective_limit and interests:
+                # In particular, optional intermediate staging has no right to
+                # perform an unplanned eviction. Keep it pending, not failed.
+                raise FilePreparationDeferred('file_capacity_requires_release_or_request')
             if before + required > limit_bytes:
                 raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
             if tier == 'host' and self._host_limit is not None:
@@ -1713,6 +1774,9 @@ class LocalSourceReferences:
             busy = busy or any((target == path or target in path.parents or path in target.parents)
                 and not (publication and target == path)
                 for plan in self._file_preparation_plans.values() for path in plan['targets'])
+            busy = busy or any((target == row['target'] or target in row['target'].parents
+                or row['target'] in target.parents) and not (publication and target == row['target'])
+                for row in self._file_movement_interests.values() if row['required'])
             affected = {}
             if not busy:
                 affected = {source: record for source, record in self._confirmed_sources.items()

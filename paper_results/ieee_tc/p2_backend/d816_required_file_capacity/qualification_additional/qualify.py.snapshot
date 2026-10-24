@@ -1,0 +1,81 @@
+"""D816 file request-capacity qualification; reuse the D751 scoped test driver."""
+import ast
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+additional = sys.argv[1:] == ['--additional']
+assert sys.argv[1:] in ([], ['--additional'])
+suffix = '_additional' if additional else ''
+OUT = ROOT/('paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification'+suffix)
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+own = p.scope_identity(p.cg_path().name)
+save(RAW/('qualification_identity'+suffix+'.json'), own)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+OUT.mkdir(parents=True, exist_ok=False)
+protected = read(ROOT/'results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')['entries']
+assert len(protected) == 147
+user = {
+    ROOT/'configs/generated/lora_manifest_1000.json': '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'): '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',
+    Path('/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh'): '337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499',
+}
+def check_protected():
+    for name, row in protected.items():
+        assert p.digest(Path(name)) == row['sha256'], name
+    for name, digest in user.items():
+        assert p.digest(name) == digest, str(name)
+
+check_protected()
+names = ('faaslora/memory/residency_manager.py', 'scripts/run_all_experiments.py',
+    'tests/test_ieee_tc_transfer_pressure.py')
+sources = {name: p.digest(ROOT/name) for name in names}
+for name in names:
+    ast.parse((ROOT/name).read_text())
+save(OUT/'sources.json', dict(sources=sources, parent_commit=subprocess.check_output(
+    ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    plan_sha256=p.check_plan(), scope='request file capacity and optional staging only'))
+tests = ['tests.test_ieee_tc_transfer_pressure', 'tests.test_ieee_tc_request_lifecycle',
+    'tests.test_ieee_tc_file_observation', 'tests.test_http_artifact_store']
+if additional:
+    tests = ['tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity',
+        'tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure']
+    previous = read(OUT.parent/'qualification/sources.json')['sources']
+    assert all(sources[name] == digest for name, digest in previous.items()
+        if not name.startswith('tests/'))
+test_log, test_receipt = 'tests'+suffix+'.txt', 'test_receipt'+suffix+'.json'
+with (RAW/test_log).open('x') as log:
+    result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'], cwd=ROOT,
+        stdout=log, stderr=subprocess.STDOUT)
+save(RAW/test_receipt, dict(returncode=result.returncode, tests=tests,
+    log_sha256=p.digest(RAW/test_log)))
+check_protected()
+for name, digest in sources.items():
+    assert p.digest(ROOT/name) == digest, name
+resources = p.cgroup_snapshot(p.cg_path())
+save(OUT/'qualification.json', dict(passed=result.returncode == 0, tests=tests,
+    resources=resources, identity=own, protected_files_unchanged=147,
+    user_protected={str(path): digest for path, digest in user.items()}, new_gpu_replays=0,
+    caveat='Physical tiny-file tests, not complete workload or independent numerical correctness.'))
+for name in (test_log, test_receipt, 'qualify.py'):
+    target = name+'.snapshot' if name.endswith('.py') else name
+    with (OUT/target).open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+print(json.dumps(dict(passed=result.returncode == 0, resources=resources, tests=tests)), flush=True)
+assert result.returncode == 0
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0

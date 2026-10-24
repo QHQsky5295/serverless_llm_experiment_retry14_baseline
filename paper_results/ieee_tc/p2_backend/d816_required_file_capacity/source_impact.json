@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "modified_methods": {
+    "faaslora/memory/residency_manager.py": [
+      "LocalSourceReferences.__init__",
+      "LocalSourceReferences._file_replacement_capacity_from_inventory",
+      "LocalSourceReferences._prepare_file_allocation",
+      "LocalSourceReferences._reclaim_for_file_demand",
+      "LocalSourceReferences._reclaim_for_file_preparation",
+      "LocalSourceReferences._touch_file_source",
+      "LocalSourceReferences.file_movement_interest",
+      "LocalSourceReferences.file_preparation_snapshot",
+      "LocalSourceReferences.mutation"
+    ],
+    "scripts/run_all_experiments.py": [
+      "ScenarioRunner._ensure_local_async",
+      "ScenarioRunner._queue_ieee_file_preparation"
+    ]
+  },
+  "sources": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "scripts/run_all_experiments.py": "63bf1d1dc176f38b9770cbcab705b867c248ff7892b5d2d4e74e55afd3a972a5",
+    "tests/test_ieee_tc_transfer_pressure.py": "2064cc9b8725e3aea91b020f93cbdd0a09eb54b098cdcc60b851e650abe6a481"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  }
+}

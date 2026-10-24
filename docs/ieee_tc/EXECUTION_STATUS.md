@@ -1,4 +1,37 @@
-# IEEE TC execution status — D815 reproduces missing demand file-capacity path; implementation next
+# IEEE TC execution status — D816 required file-capacity repair tested; backup then complete D817 W2
+
+## 2026-10-25 D816请求容量根因修正完成，下一完整W2
+
+本轮PROGRESS，非阻塞。D815最小因果反例后仅实现同一请求必需物化路径：
+live required interest触发预算内request_lru_v1，可选无objective staging延期，
+真实reader/plan释放唤醒；取消撤销权限，发布到pin间隙保留所有权。Full仍是
+planned_only，主动收益/DP/替换和九公式不变，不扩大预算、不吞异常、不盲重试。
+详细论文边界、历史、官方参考见D816_REQUIRED_FILE_CAPACITY_20261025.md。
+
+四模块457测试通过；随后新增reader释放案例/加强HTTP取消测试，8聚焦测试
+通过（重叠，不相加）。两次生产SHA相同，峰值722972672/702898176B，
+high/max/OOM/swap0；147保护文件/三处user dirt未变。三个aux域自然关闭，
+GPU空，无远端/k3s修改，无新性能点。下一先明确路径备份，随后新D817完整
+3B W2：复用D814配置仅改三处路径，保留冻结trace/map/SLO/资源/生成协议，
+无需重复GPU资格。分析应保留合法延期fetch的服务器attempt字节，不能仅
+统计published而隐藏网络开销；原历史analyzer身份不追改。
+
+D812 W0 95.05%、D813 W1 93.975%、D814 W2截断均保留，3B未闭口。
+同版两模型主比较/Full、A1–A5、S1–S13、CE/成本/Pareto、两轮审稿文档、
+图文及最终V2范围不变。整体目标active；当前只保存数据不画性能图。
+
+## 2026-10-25 02:43 CST D815已备份，下一轮直接实现，不再做同一反例
+
+12条明确路径提交6c932c346eeed7a3ebfea0e3aebfd3083eeaf4b0，推送并ls-remote
+核实refs/heads/backup/d815-capacity-repro-20261025；非最终V2同步。
+首次备份因通用*.log规则未纳入两个共1366B的curated测试日志，在commit前
+停止；检查已有暂存清单后仅显式加入这两个小日志完成备份，没有批量加入
+raw logs或更改ignore。执行/恢复脚本和backup.json保留在D815 raw目录，
+finish_backup.py随下一个正常检查点纳入即可，不为回执递归反复备份。
+最后aux ...d815ca11000000000000000000000003.scope已inactive、空Invocation/
+ControlGroup，GPU空，暂存区空，唯一tracked用户dirt为原manifest。
+磁盘161486942208B，未重复删除/压缩。无待工具session、无运行实验。
+整体目标保持active；下一直接做上节所述容量根因修正及受影响测试。
 
 ## 2026-10-25 02:42 CST D815最小因果复现完成，下一直接修正容量路径
 

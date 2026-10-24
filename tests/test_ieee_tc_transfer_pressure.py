@@ -70,6 +70,7 @@ class FileCapacityIndex(unittest.TestCase):
         from faaslora.memory.residency_manager import LocalSourceReferences
         owner = LocalSourceReferences.__new__(LocalSourceReferences)
         owner._file_preparation_plans = {}
+        owner._file_movement_interests = {}
         owner.leases = {}
         owner.materializations = {}
         return owner
@@ -4941,10 +4942,13 @@ class SelectedFilePlans(unittest.TestCase):
         (fixture.host/'unrelated'/'weights').write_bytes(b'preserve')
         fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = 4096
         async def run():
-            with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
-                await self.call(runner, engine, plan)
+            task = asyncio.create_task(self.call(runner, engine, plan))
+            await FileObjectiveReplacement.deferred(self, queue)
             self.assertEqual((fixture.host/'unrelated'/'weights').read_bytes(), b'preserve')
             self.assertFalse((fixture.host/'a').exists())
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
             self.assertFalse(fixture.owner.materializations)
             self.assertFalse(fixture.owner.leases)
             self.assertEqual(fixture.owner.file_preparation_snapshot()['plans'], [])
@@ -5073,6 +5077,140 @@ class DeferredNativeHostCapacity(unittest.IsolatedAsyncioTestCase):
         await queue.close()
 
 
+class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
+    """D815 counterexample through existing physical fixtures; no GPU inference."""
+
+    def make(self, victims=('b', 'c', 'd')):
+        factory = FileObjectiveReplacement()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, engine, *_ = factory.make(victims=victims, target='nvme')
+        self.addAsyncCleanup(queue.close)
+        runner._remote_materialize_locks = {'a': asyncio.Lock()}
+        runner.nvme_dir, runner._nvme_cache = fixture.nvme, {}
+        reservation = NS(adapter_id='a', request_id='request', gpu_reference_evidence={},
+            local_source_owner=None, slot=NS(engine=engine, instance_id='replica'))
+        return factory, fixture, runner, queue, engine, reservation
+
+    def call(self, runner, engine, name, required):
+        return runner._queue_ieee_file_preparation(adapter_id='a', target_tier=StorageTier.NVME,
+            target_engine=engine, target_replica='replica',
+            trigger_reason='demand' if required else 'residency', plan_id=name, intent_id=name)
+
+    async def test_actual_request_reclaims_within_budget_then_pins_source(self):
+        _, fixture, runner, queue, _, reservation = self.make()
+        path, _ = await runner._ensure_local_async('a', reservation=reservation)
+        self.assertEqual(Path(path), fixture.nvme/'a')
+        owner = fixture.owner
+        event = owner._file_replacement_events[-1]
+        self.assertEqual(owner.file_cache_policy, 'planned_only')
+        self.assertEqual(event['policy'], 'request_lru_v1')
+        self.assertEqual([r['adapter_id'] for r in event['victims']], ['b','c','d'])
+        self.assertEqual(event['observed_released_bytes'], 24576)
+        self.assertEqual(owner.inventory()['tiers']['nvme']['allocated_file_bytes'], 16384)
+        self.assertTrue(owner.leases)
+        self.assertFalse(owner._file_movement_interests)
+        reference = reservation.gpu_reference_evidence['local_source_reference']
+        owner.release(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id)
+        self.assertFalse(owner.leases or owner.materializations or owner._transfer_workspaces)
+        self.assertEqual(queue.snapshot()[-1]['state'], 'completed')
+
+    async def test_optional_staging_defers_then_joining_request_uses_same_writer(self):
+        factory, fixture, runner, queue, engine, _ = self.make()
+        optional = asyncio.create_task(self.call(runner, engine, 'optional', False))
+        await factory.deferred(queue)
+        for _ in range(50):
+            await asyncio.sleep(0)
+        self.assertEqual(len(queue.snapshot()[-1]['attempts']), 1)
+        self.assertFalse(fixture.owner._file_replacement_events)
+        demand = asyncio.create_task(self.call(runner, engine, 'request', True))
+        first, second = await asyncio.wait_for(asyncio.gather(optional, demand), 2)
+        self.assertEqual(first['_movement']['job_id'], second['_movement']['job_id'])
+        self.assertTrue(first['_movement']['owns_io'])
+        self.assertFalse(second['_movement']['owns_io'])
+        self.assertEqual(fixture.owner._file_replacement_events[-1]['required_intent_ids'], ['request'])
+        self.assertFalse(fixture.owner._file_movement_interests)
+
+    async def test_cancelled_request_does_not_leave_optional_work_required(self):
+        factory, fixture, runner, queue, engine, _ = self.make()
+        owner = fixture.owner
+        for aid in 'bcd':
+            owner.acquire(path=fixture.nvme/aid, adapter_id=aid, lease_id=aid)
+        optional = asyncio.create_task(self.call(runner, engine, 'optional', False))
+        await factory.deferred(queue)
+        demand = asyncio.create_task(self.call(runner, engine, 'request', True))
+        while 'request' not in owner._file_movement_interests:
+            await asyncio.sleep(0)
+        await factory.deferred(queue)
+        demand.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await demand
+        self.assertFalse(any(row['required'] for row in owner._file_movement_interests.values()))
+        for aid in 'bcd':
+            owner.release(lease_id=aid, expected_owner_id=owner.owner_id)
+        await asyncio.sleep(.03)
+        await factory.deferred(queue)
+        self.assertFalse(owner._file_replacement_events)
+        self.assertTrue(all((fixture.nvme/aid).exists() for aid in 'bcd'))
+        optional.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await optional
+        self.assertFalse(owner._file_movement_interests or owner.materializations or owner.leases)
+
+    async def test_pending_plan_targets_wait_without_partial_eviction(self):
+        factory, fixture, runner, queue, engine, _ = self.make()
+        owner = fixture.owner
+        owner.register_file_preparation_plan(plan_id='old-targets', targets=[dict(
+            adapter_id=aid, tier='nvme', content_sha256=runner._ieee_artifact_identities[aid]['content_sha256'])
+            for aid in 'bc'])
+        demand = asyncio.create_task(self.call(runner, engine, 'request', True))
+        await factory.deferred(queue)
+        self.assertFalse(owner._file_replacement_events)
+        self.assertTrue(all((fixture.nvme/aid).exists() for aid in 'bcd'))
+        owner.close_file_preparation_plan(plan_id='old-targets')
+        await asyncio.wait_for(demand, 2)
+        self.assertEqual(queue.snapshot()[-1]['state'], 'completed')
+        self.assertFalse(owner._file_movement_interests or owner._file_preparation_plans)
+
+    async def test_required_request_resumes_only_after_real_reader_release(self):
+        factory, fixture, runner, queue, engine, _ = self.make()
+        owner = fixture.owner
+        owner.acquire(path=fixture.nvme/'b', adapter_id='b', lease_id='reader')
+        demand = asyncio.create_task(self.call(runner, engine, 'request', True))
+        await factory.deferred(queue)
+        for _ in range(50):
+            await asyncio.sleep(0)
+        self.assertEqual(len(queue.snapshot()[-1]['attempts']), 1)
+        self.assertFalse(owner._file_replacement_events)
+        owner.release(lease_id='reader', expected_owner_id=owner.owner_id)
+        await asyncio.wait_for(demand, 2)
+        self.assertEqual(queue.snapshot()[-1]['state'], 'completed')
+        self.assertFalse(owner.leases or owner._file_movement_interests)
+
+    async def test_oversized_required_transfer_fails_without_eviction(self):
+        _, fixture, runner, queue, engine, _ = self.make(victims=('b', 'c'))
+        with self.assertRaisesRegex(RuntimeError, 'incoming transfer exceeds tier budget'):
+            await self.call(runner, engine, 'request', True)
+        self.assertFalse(fixture.owner._file_replacement_events)
+        self.assertTrue(all((fixture.nvme/aid).exists() for aid in 'bc'))
+        self.assertFalse(fixture.owner._file_movement_interests or fixture.owner.materializations)
+        self.assertEqual(queue.snapshot()[-1]['state'], 'failed')
+
+    async def test_queue_return_to_read_lease_has_no_reclamation_gap(self):
+        _, fixture, runner, _, _, reservation = self.make()
+        materialize = runner._materialize_remote_adapter_async
+        async def transfer(*args, **kwargs):
+            result = await materialize(*args, **kwargs)
+            self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
+            self.assertTrue(any(row['required'] for row in fixture.owner._file_movement_interests.values()))
+            return result
+        runner._materialize_remote_adapter_async = transfer
+        path, _ = await runner._ensure_local_async('a', reservation=reservation)
+        self.assertTrue(Path(path).is_dir())
+        reference = reservation.gpu_reference_evidence['local_source_reference']
+        fixture.owner.release(lease_id=reference['lease_id'], expected_owner_id=fixture.owner.owner_id)
+        self.assertTrue(fixture.manager._delete_path(path))
+
+
 class OwnedFileMovement(unittest.TestCase):
     def make(self):
         from unittest.mock import Mock
@@ -5177,7 +5315,7 @@ class OwnedFileMovement(unittest.TestCase):
                 return super().read(*args)
         fixture.client._opener.open.side_effect = lambda *a, **kw: HeldResponse(archive_bytes(list(fixture.payload.items())))
         async def run():
-            task = asyncio.create_task(self.call(runner, engine, 'cancel'))
+            task = asyncio.create_task(self.call(runner, engine, 'cancel', reason='demand'))
             close = None
             try:
                 while not entered.is_set():
@@ -5188,6 +5326,7 @@ class OwnedFileMovement(unittest.TestCase):
                 await asyncio.sleep(.01)
                 self.assertFalse(task.done())
                 self.assertTrue(fixture.owner.materializations)
+                self.assertTrue(fixture.owner._file_movement_interests['cancel']['required'])
                 self.assertGreater(fixture.manager.local_file_inventory()['transfer_held_file_bytes'], 0)
                 self.assertEqual(ledger.snapshot()['active_transfers'], 1)
                 with self.assertRaisesRegex(RuntimeError, 'cancellation is still settling'):
@@ -5202,6 +5341,7 @@ class OwnedFileMovement(unittest.TestCase):
                 if close is not None:
                     await close
             self.assertFalse(fixture.owner.materializations)
+            self.assertFalse(fixture.owner._file_movement_interests)
             self.assertEqual(ledger.snapshot()['active_transfers'], 0)
             self.assertEqual(fixture.owner.source_snapshot('a')['sources'], [])
             self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
