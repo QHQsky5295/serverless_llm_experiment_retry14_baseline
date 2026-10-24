@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "protected_unchanged": true,
+  "cleanup": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d806_20261024",
+    "target": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 160153927680,
+    "disk_after_bytes": 161324843008,
+    "observed_reclaimed_bytes": 1170915328,
+    "before_receipt_sha256": "1b6a2356813c02928785b82cb2f4ac7f877503111760825049512d93ad25c2fd",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1792838440.559976
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8060000000000000000000000000005.scope",
+    "memory.current": 31109120,
+    "memory.peak": 46342144,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7928043\nuser_usec 6437035\nsystem_usec 1491008\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

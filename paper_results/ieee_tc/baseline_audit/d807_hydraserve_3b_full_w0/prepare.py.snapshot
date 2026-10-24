@@ -1,0 +1,58 @@
+"""Reuse qualified D806 native 3B delivery on the complete existing W0 once."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+QUAL = RAW.parent/'d806_20261024'
+audit = json.loads((QUAL/'delivery_numerical_audit.json').read_text())
+assert audit['experiment_passed'] and audit['native_binding_accounting_passed']
+assert audit['all_zero_output_count'] == 0 and audit['resource_release'] and audit['remote_closed']
+for name in ('publication', 'storage'):
+    assert json.loads((QUAL/(name+'_receipt.json')).read_text())['passed']
+    closed = json.loads((QUAL/(name+'_closure.json')).read_text())
+    assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+# Reuse qualification only while the actual native code and common measurement
+# sources still match. Metadata and tensors are links to the retained originals.
+for name, row in json.loads((QUAL/'source_manifest.json').read_text()).items():
+    if name.startswith('/home/qhq/serverless_llm_baselines/') or name.startswith('/home/qhq/serverless_llm_experiment_retry14_baseline/'):
+        assert hashlib.sha256(Path(name).read_bytes()).hexdigest() == row['sha256'], name
+original = RAW.parent/'d804_20261024/prepare.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'f21a08208f534b5aa564aca123b656ac55a9600731ed31b685d4bb95155421f2'
+source = data.decode()
+def replace(old, new, count=1):
+    global source
+    assert source.count(old) == count, (old, source.count(old), count)
+    source = source.replace(old, new)
+replace(".replace('d576', 'd804')", ".replace('d576', 'd807')")
+source = source.replace('http_3b_100.json', 'http_3b_4000.json')
+replace('request_count=100,', 'request_count=4000,')
+replace("experiment_role='affected_3b_native_provider_shared_memory_qualification'",
+        "experiment_role='full_3b_W0_development_observation'")
+replace('lora_admission_capacity=True, llama_model_compat=True)',
+        'lora_admission_capacity=True, llama_model_compat=True, bounded_shm_receive=True)')
+source = source.replace('predicted_growth=3*p.GIB', 'predicted_growth=20*p.GIB')
+source = source.replace("'predicted_growth=3*p.GIB'", "'predicted_growth=20*p.GIB'")
+source = source.replace("'--predicted-growth-gib 3'", "'--predicted-growth-gib 20'")
+replace("    put(name, retag((OLD/name).read_text()))", '''    if name == 'collect_remote.py':
+        qualified = RAW.parent/'d806_20261024/collect_remote.py'
+        assert p.digest(qualified) == '6c534af33f84f2036d2a7b402c0c8a1aa85ad93aea07b37b157932c99fab6eed'
+        put(name, qualified.read_text().replace('d806_20261024', RAW.name).replace('d806', 'd807'))
+    else:
+        put(name, retag((OLD/name).read_text()))''')
+replace('100 existing W0-prefix requests; affected 3B delivery qualification',
+        '4000 existing W0 requests; qualified 3B native delivery')
+replace('"terminal[\'N_response\']==100"', '"terminal[\'N_response\']==4000"')
+replace('first100 W0 3B affected delivery qualification', 'full4000 W0 3B qualified delivery')
+replace('n_plan=100, formal_run=False, performance_result=False,\n    qualification_only=True,',
+        "n_plan=4000, formal_run=False, performance_result=True, workload='W0',\n    qualification_only=False,")
+replace('no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info=',
+        "qualified_delivery='d806_20261024', bounded_shm_receive=True, "
+        "interpretation='complete known-trace single W0 observation; not independent holdout or full numerical proof', "
+        "no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info=")
+replace("'100 native-bound responses without fallback or token-count errors'",
+        "'4000 native-bound responses without fallback or token-count errors'")
+replace("limits=['not full workload performance',", "limits=['known-trace development identity, not independent holdout',")
+source = source.replace('n_plan=100', 'n_plan=4000')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

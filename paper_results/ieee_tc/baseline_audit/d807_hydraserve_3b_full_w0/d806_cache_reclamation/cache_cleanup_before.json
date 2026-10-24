@@ -1,0 +1,38 @@
+{
+  "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+  "campaign": "d806_20261024",
+  "target": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/remote_artifacts/objects",
+  "status": "verified_before_removal",
+  "files": 232,
+  "payload_bytes": 1170025980,
+  "disk_before_bytes": 160153927680,
+  "audit": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/http_audit.json",
+    "sha256": "c0c8c22e704feb69047d3d8f01cfc149cedb057fe8818a0ac472fbdfc2acc31e"
+  },
+  "source_index": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+  "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024",
+  "all_cache_bytes_previously_hashed_by_audit": true,
+  "current_original_bytes_rehashed": true,
+  "current_cache_bytes_rehashed": true,
+  "current_file_sizes_and_original_inodes_verified": true,
+  "owned_runtime_references": [],
+  "future_config_script_references": [],
+  "cache_symlinks_or_nested_mounts": false,
+  "metadata_retained_in_place": true,
+  "inactive_view_links_recorded": true,
+  "unreadable_same_uid_proc_entries": [
+    "2628",
+    "3360275",
+    "3361057"
+  ],
+  "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "recipe_sha256": "d91da1520e2b5b4531ebbe4b646be616c96ae71a224fae39ede401192b0f0c13",
+  "recorded_unix": 1792838440.291693
+}

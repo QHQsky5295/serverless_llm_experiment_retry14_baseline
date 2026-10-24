@@ -1,0 +1,11 @@
+"""Reuse sealed D805 cache cleanup on the now-closed D806 duplicate objects."""
+import hashlib
+from pathlib import Path
+original = Path(__file__).resolve().parent.parent/'d805_20261024/reclaim.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '62d966730f68c43be4a122dbc202181b9a0d4376d3b75b29eb1cae4f414125e8'
+source = data.decode().replace('d805_20261024', 'd806_20261024')
+old = "assert failure['audit_completed'] and not failure['experiment_passed']"
+assert source.count(old) == 1
+source = source.replace(old, "assert failure['audit_completed'] and failure['experiment_passed']")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

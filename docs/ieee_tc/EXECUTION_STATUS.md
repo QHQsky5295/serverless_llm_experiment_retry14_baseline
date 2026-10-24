@@ -1,4 +1,152 @@
-# IEEE TC execution status — D806 affected 3B delivery passed; full HydraServe 3B next
+# IEEE TC execution status — D807 HydraServe 3B full W0 audited
+
+## 2026-10-24 19:56 CST D807完整W0已结束并通过输入/计量核查，联合SLO未达标
+
+4000到达/终态/原生绑定响应、0失败、458224原生token，132实际逻辑adapter。
+平均/P95 TTFT=1205.146838/8155.903603ms，平均/P95 TPOT=
+61.858724/98.082168ms；TTFT达成88.325%，TPOT/联合0%。物理U=
+6089.653668431565GPU-s，1.5224134171078914GPU-s/合同请求。不能以低资源
+抵消共同SLO不达标，不搜索baseline参数或重复本键。所有输出非全零；
+req_00001相同prompt/adapter首3token=578/2326/1288匹配D803独立参考，
+但全量独立数值证明仍未知、n_correct仍null，不扩大局部正确性结论。
+
+41实际lease均有release、逐GPU并集核对通过；service/watchdog退出0，
+service域实际空/消失，peak40789508096B、保护事件/swap0；所有所测实例pp1，
+无pipeline/consolidation性能主张。远端132fetch/306360162wire bytes/pack0，
+自有服务已停止、端口消失、下载日志SHA一致。audit域0003已关闭，peak
+306577408B、事件/swap0。复用D576/D503分析器绑定3B D648冻结阈值，未改
+指标与历史数据；147保护文件及3用户dirty不变。当前无活动GPU性能任务。
+
+新增D807_HYDRASERVE_3B_FULL_W0_20261024.md；下一检查点备份（纳入D806
+storage回执）、核验回收本轮重复cache恢复下一次启动空间，再同配置W1/W2。
+之后全基线比较→PrimeLoRA优化→同版Full/全部A1–A5/S1–S13/成本CE/Pareto/
+审稿文档/图表/最终V2。goal active；本轮PROGRESS，不将局部W0判作目标完成。
+
+## 2026-10-24 19:11 CST D807完成1559条，保持原配置等待完整结果
+
+本轮为VERIFIED WAIT；完整重读PLAN(1–1567)/状态及monitor-experiment后，
+多次实际轮询service及tmux。19:11:46 service active，InvocationID仍
+ce651a79bc694e7780be8e0cd020086e，pane1089720仍存活；HTTP累计1568
+received/1559 completed/0 failed事件，平台stderr未见前述异常关键词。
+watchdog1634：host available75.9386GiB、service33.2888GiB、disk147.1163GiB，
+持有1张GPU，内存保护事件/swap0，无warning/abort。未重启、改配置、
+运行新测试、维护远端、清理或push；未从部分回放推造最终SLO/GPU-s。
+继续相同4000条W0至真实终态/自动收尾，再完整审计保存、必要缓存回收；
+后续W1/W2→全基线比较→PrimeLoRA优化→全部消融/机制/敏感性/交付不变。
+
+## 2026-10-24 19:03 CST D807完成1002/4000，未新增独立实验
+
+本轮为VERIFIED WAIT：完整重读PLAN/状态和monitor-experiment，在同一活动
+service上多次轻量检查，无重启、配置改动或并行重型工作。19:03:25实际
+service仍active，InvocationID ce651a79bc694e7780be8e0cd020086e；HTTP快照
+1023 received/1002 completed/0 failed事件。19:01服务event类型仅listening、
+received、completed。1002是完整W0的累计进度，不是另跑1000请求资格。
+watchdog1140：host available73.0477GiB、service35.4045GiB、disk147.5145GiB，
+当前3张GPU；所有内存保护事件/swap0，无warning/abort。不存在完整结果或
+SLO/资源最优结论。继续本轮至真实终态，之后审计保存、回收可重建缓存，
+再W1/W2→全基线比较→PrimeLoRA优化及完整剩余计划；目标active。
+
+## 2026-10-24 18:55 CST D807已完成509条，继续同一完整回放
+
+本轮为VERIFIED WAIT：完整复核PLAN和状态，复用monitor-experiment；多次
+实查同一service仍active，InvocationID ce651a79bc694e7780be8e0cd020086e，
+tmux pane1089720存活。18:55:45 HTTP快照516 received/509 completed/
+0 failed事件；stderr未见前述异常关键词。watchdog686：host available
+77.9443GiB，service30.1037GiB，disk148.1730GiB，持有2张GPU，所有内存
+保护事件/swap0，无warning/abort。148GiB低于下一重型任务150GiB启动线，
+高于本轮100GiB停止线；不在性能测量中清理或改门槛。
+
+无新配置、重复执行或性能结论。继续等待D807实际终态/自动收尾，再完整
+审计保存及必要存储回收；W1/W2、全基线比较、PrimeLoRA优化及完整后续不变。
+
+## 2026-10-24 18:51 CST D807同一轮持续推进；共享k3s保持不动
+
+用户确认现有Kubernetes不属于本项目，允许必要适配；沿用已验证的独立
+rootless Podman路径，不修改共享k3s的权限、服务或资源。本轮完整复核PLAN、
+AGENTS及当前执行规则，按monitor-experiment仅作轻量只读监测，无新运行、
+配置改动、构建、清理、压缩、远端维护或Git推送。
+
+18:51:44实际service仍active/running，InvocationID仍为
+ce651a79bc694e7780be8e0cd020086e。HTTP日志快照315 received、310 completed、
+0 failed事件；这不是完整4000请求结果，也不证明全部数值正确。平台stderr
+检查未见Traceback、recv边界、提前EOF、ValueError或RuntimeError关键词。
+watchdog样本448：服务current33,778,139,136B、peak33,780,183,040B，
+主机available82,117,591,040B，磁盘159,178,551,296B；high/max/OOM/swap0，
+无warning/abort，当前持有2张GPU。不用运行中点推算最终GPU时间或SLO。
+
+下一仍等待本次真实终态及自动资源释放/远端日志收集，不重启或重复执行。
+随后复用完整4000请求分析器，绑定3B冻结阈值及参考，保存实际结果；继续
+HydraServe 3B W1/W2→全基线比较→PrimeLoRA优化→同版Full与全部消融、机制、
+敏感性和最终交付。目标保持active。D806存储回执及D807源码/结果在后续
+正常检查点备份，不在活动性能测量中推送。
+
+## 2026-10-24 18:46 CST D807完整W0已启动，维持唯一活动性能运行
+
+上一goal turn属于PROGRESS：D806修正后真实交付通过、失败对照与新结果备份、
+重复cache核验回收且D807已准备。本轮完整重读PLAN(1–1567)/当前状态及
+AGENTS、存储/基线规则，采用run-experiment与monitor-experiment复用既有入口。
+没有重做资格、增添baseline调参、改变九公式或冻结评价尺子。
+
+D807 remote_prelaunch辅助域0002通过并精确关闭，peak72,015,872B、事件/
+swap0；147保护文件和用户dirty SHA、源码快照、认证health通过。启动前
+磁盘161,322,180,608B>150GiB，新增峰值按20GiB登记；实际链路1000Mb/s/full，
+不是旧100Mb/s。复用D80通知前发布缓存，不在请求中打包或重新生成工件。
+
+已启动tmux tc-d807-hydraserve-3b-w0，pane PID1089720；launch aux为
+primelora-tc-aux-d8070000000000000000000000000009.scope。
+实际service primelora-tc-svc-00ec07c5ac484cf5bc49c2d23615c3d3.scope，
+InvocationID ce651a79bc694e7780be8e0cd020086e，inode31728283；18:45:53
+systemctl再次确认active/running、tmux存活。RAW
+/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024。
+launch_gate.json尚无终态；不得重启、重复run_and_close或因监测暂时缺文件判失败。
+
+原4000请求W0已进入业务，当前首批请求完成；req_00001实际前三token
+578/2326/1288继续与独立参考一致。尚无完整性能/SLO结论。watchdog样本84
+服务current26,680,320,000B，主机available87,404,138,496B，保护事件/swap0，
+无warning/abort，当前1张GPU活动；不把运行中点当作最终资源账。
+期间只读轻量监测，不测试/构建/扫描/清理/压缩/push/维护远端。
+
+远端自有3b Invocation6a85751ebbed41d2b4589613ce28a6a4、7b
+89e237f6927c4734a7dd757227fd5a6d、monitor
+primelora-artifact-monitor-d807-hydraremote.service=01d24dea35ac4ea798e20109d8061075。
+3B clock_id remote-process-monotonic:113967b365d8435c918956a464b518e2。
+现有run_and_close会在本机释放后按这些身份关闭远端并采集3B日志。
+
+下一继续监测同一真实运行至终态，再按实际结果复用完整4000分析器、3B冻结
+SLO/物理资源口径审计并保存。尚未生成D807 audit脚本，不套用100请求断言。
+D806的storage回执待下次正常检查点curate；MAIN85e5400/BASEe1c433b已备份，
+当前新增状态文档未push（不在性能测量中备份）。继续同配置W1/W2→全基线
+比较→PrimeLoRA优化→同版Full/A1–A5/S1–S13/成本CE/Pareto/文档图表/最终V2。
+完整目标active，不将本次启动或局部正确性判作目标完成。
+
+## 2026-10-24 18:42 CST D806已备份，D807完整W0已准备但未启动
+
+D806检查点MAIN85e5400db9d431099b559ab6fc2219c7932e55da已与GitHub
+backup/d806-hydraserve-3b-delivery-20261024核对；BASE仍e1c433bab982366a82ad188ef703270d89d6ea06且origin/main一致。
+publication域0004精确关闭，peak52,097,024B、事件/swap0。未force，最终V2
+尚未同步；本轮不改变用户manifest或两个BASE dirty脚本。
+
+随后D806关闭的29份重复对象逐字节与保留3B池重新核验，回收1,170,915,328B；
+日志/数值/传输证据及147保护文件保留。storage域0005精确关闭，peak
+46,342,144B、事件/swap0；磁盘161,324,843,008B。reclaim复用D805原检查，
+未按目录名删除或改旧结果。回收回执在D806 raw，下次正常检查点纳入curated。
+
+D807新prepare复用D804/D576完整入口与D806已验证3B-aware collector，
+原4000条W0/500-ID静态池、固定生成、batch8/30秒idle/ModelInfo
+[6,9000,200,1000000,1]完全不改，显式bounded_shm_receive=true。无1000
+资格或参数搜索，模型元数据继续链接D803，不复制权重/trace。源与计量代码
+逐项SHA匹配D806资格。prepare通过并关闭，peak136,724,480B、事件/swap0。
+RAW hydraserve_qualification/d807_20261024；prepare SHA
+586ea1fd7e39affa2307ddfc30049c17b143f1c63ac83f2240c2326839727fab；
+source_manifest18a11310cb5b30bf92452d859e4c52c9d08a896052a068bc7b04b75a2fbccece；
+prereg0345c5e577756f015d673ba67324f5698954019a67e587dcdd5aed078835738d。
+
+当前无活动GPU、远端服务、tmux实验或待工具session。D807未做remote_prelaunch、
+未开始性能测量，不能写成已运行。下一完整复核PLAN/当前状态及启动资源后，
+用已生成remote_prelaunch.py（aux0002）→close_cpu.py remote_prelaunch→
+tmux tc-d807-hydraserve-3b-w0 /run_and_close.sh执行一次完整W0。
+随后实际收尾审计、保存，继续同配置W1/W2→全基线比较→PrimeLoRA优化→
+同版Full/全部A1–A5/S1–S13/成本CE/Pareto/审稿文档/图表/最终V2。goal active。
 
 ## 2026-10-24 18:37 CST D806真实交付检查通过，下一直接完整3B场景
 

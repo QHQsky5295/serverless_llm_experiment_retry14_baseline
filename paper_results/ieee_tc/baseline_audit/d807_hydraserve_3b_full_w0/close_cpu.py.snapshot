@@ -1,0 +1,3 @@
+from pathlib import Path
+original = Path(__file__).resolve().parent.parent/'d806_20261024/close_cpu.py'
+exec(compile(original.read_text(), str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

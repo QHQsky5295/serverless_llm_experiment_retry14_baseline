@@ -1,0 +1,184 @@
+{
+  "passed": true,
+  "files": {
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/prepare.py",
+      "sha256": "586ea1fd7e39affa2307ddfc30049c17b143f1c63ac83f2240c2326839727fab"
+    },
+    "audit.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit.py",
+      "sha256": "2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd"
+    },
+    "publish.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/publish.py",
+      "sha256": "89bcdbdf8171a750f171ff0f84b6858132d200baf518e74bb9beac79b07dd08b"
+    },
+    "close_cpu.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/close_cpu.py",
+      "sha256": "63e3dc3ee9a336a206867b58eaa608c889646e22f2571ac116e56caddbd2fc9b"
+    },
+    "preregistration.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/preregistration.json",
+      "sha256": "0345c5e577756f015d673ba67324f5698954019a67e587dcdd5aed078835738d"
+    },
+    "prepare_result.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/prepare_result.json",
+      "sha256": "f6160f1a5e17cc829948f969ab5fee27f1d89888fec6c719c44b94ac3a8c156a"
+    },
+    "prepare_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/prepare_closure.json",
+      "sha256": "5776cda4fcab086168d9aca52ea1f4704505faceb46d47f62fca2065691c5201"
+    },
+    "remote_prelaunch_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_prelaunch_closure.json",
+      "sha256": "4e2c0772a2f7ff8bcc00f9507b4596bcbd7d3c886533eb79fb6d9b6f6ab1c687"
+    },
+    "audit_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit_closure.json",
+      "sha256": "7c9a45d4c27fb64ec1469f70ce7eabcc0c108b9bdf4a5d89621ea0d0d4db811f"
+    },
+    "http_3b_4000.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/http_3b_4000.json",
+      "sha256": "7e61be72342a7f3eb8e9fa1a027f3dc2dd70ac1f80ec48f97bf7b0202eadcc42"
+    },
+    "model_registration.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/model_registration.json",
+      "sha256": "3488f2920532742b033c91d0c3adb8dd132e765c5115e561247341c1b686183f"
+    },
+    "model_witness.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/model_witness.json",
+      "sha256": "4ab23190fa6892debedf81666be2b2619ee452b5a09d6a4366a5ef61c574e678"
+    },
+    "launch_gate.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.json",
+      "sha256": "bc98a5a6ea439cb0ceb901d7e349ddef459cb67d22656bfdd467db786dd7dd12"
+    },
+    "closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/closure.json",
+      "sha256": "7ccfa77c8e11dd061af25aa898b30ca99ea17852efc30836ee7f7d86acc2a8f2"
+    },
+    "result.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/result.json",
+      "sha256": "a6e10701f2da5f9c15ca46827b38040731fd169c2f0a0e048c33362ebaacc827"
+    },
+    "source_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/source_manifest.json",
+      "sha256": "18a11310cb5b30bf92452d859e4c52c9d08a896052a068bc7b04b75a2fbccece"
+    },
+    "delivery_numerical_audit.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/delivery_numerical_audit.json",
+      "sha256": "ceafee3455794fac1ff8227cb32eb29688d8e6a72e28108353edc7d96fecd56c"
+    },
+    "http_audit.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/http_audit.json",
+      "sha256": "414d9ec0a0fe248ed12d511732782652a493e04e1213fbeb64bc2f80273d19b8"
+    },
+    "generation_result.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/generation_result.json",
+      "sha256": "1967a01f7ee2fa3c985d267c5635d1d2c329f3bdcc8b7e6482949d0902a70e8f"
+    },
+    "provider_ready.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/provider_ready.json",
+      "sha256": "781aa23fad18c4cc2cf23b03bd96533dae0f81df37c0d60a94666267185c4b14"
+    },
+    "shm_capacity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/shm_capacity.json",
+      "sha256": "44efff877762cfc4169d26d5ab3d0ec721a1276060172709de508b1d7aee5291"
+    },
+    "full_w0_evaluation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/full_w0_evaluation.json",
+      "sha256": "6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390"
+    },
+    "native_scheduler_after_requests.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/native_scheduler_after_requests.json",
+      "sha256": "32f80eff7589c8a250be2e1abd7cbc8de84178bfcf2bc4c4538c6afb2693aa65"
+    },
+    "remote_stop.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_stop.log",
+      "sha256": "a23dc99aeb69a34dcb55fd10c24d3d8d9bb842ea88ccb2d62dcdba560b8543cb"
+    },
+    "remote_stop.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_stop.json",
+      "sha256": "ebfe8d2afc96cf1b55320d6607abd3965be48fb5ddf56edd9302dd78539c00d0"
+    },
+    "remote_collection.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_collection.log",
+      "sha256": "3fd357b6a34c024a04274a85575ac62f62fb9aa16cacd82bb8c5a4ea4e3b811b"
+    },
+    "collect_remote.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/collect_remote.py",
+      "sha256": "412b0f0376e68f60ef35822b7d6032dc8a6f4f1b9e600d1d7e0400cb95ed1761"
+    },
+    "exec_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.launch/exec_receipt.json",
+      "sha256": "7c3fa6152a6696b731210f6413af0e1ade1494b7a49f9e8342db258f5ac60bbd"
+    },
+    "manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/overlays/manifest.json",
+      "sha256": "d5fc132af34538465fd1b99b0d2368d992f94799b0d91fe7e1eae1080c641422"
+    },
+    "summary.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/physical/summary.json",
+      "sha256": "66c2dfb20b2d8c40c70b55bf5e7f301268e165e2891c365b9b501543723a689c"
+    }
+  },
+  "storage_files": {
+    "reclaim.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/reclaim.py",
+      "sha256": "d91da1520e2b5b4531ebbe4b646be616c96ae71a224fae39ede401192b0f0c13"
+    },
+    "close_storage.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/close_storage.py",
+      "sha256": "a004c2cc27c41bec757562088efab1a35e67261053a67a899e6ceeef5a613a64"
+    },
+    "storage_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/storage_receipt.json",
+      "sha256": "183138ba972bd2226f57473cb47a5b134fd834246714afd4f6834267c818a1b9"
+    },
+    "storage_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/storage_closure.json",
+      "sha256": "e9ad6ffd91f69fcac2192cd8a415cd11e28975cf3db0632d817f4e18b8fb2e6b"
+    },
+    "cache_cleanup_before.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/cache_cleanup_before.json",
+      "sha256": "1b6a2356813c02928785b82cb2f4ac7f877503111760825049512d93ad25c2fd"
+    },
+    "cache_cleanup_after.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/cache_cleanup_after.json",
+      "sha256": "7751d2c2400981e7c0468a14db2838ed44a0eae7c2bc383b2f2e0c3d9054fd17"
+    },
+    "retained_cache_metadata.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/retained_cache_metadata.json",
+      "sha256": "b892b5471817ce4d8178e68e840c5d2c6092b21158be24e963d34c21db5843e2"
+    }
+  },
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "performance_results": 1,
+  "n_plan": 4000,
+  "n_arrived": 4000,
+  "n_response": 4000,
+  "n_correct": null,
+  "full_workload_numerical_correctness_proven": false,
+  "all_zero_output_count": 0,
+  "reference_prefix_verified": true,
+  "observed_joint_slo": 0.0,
+  "observed_g1_feasible": false,
+  "other_project_k3s_changed": false,
+  "reused_tests": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/test_receipt.json",
+    "sha256": "b0ebeeeeb4052574ec3b374628c4d7a672e968bda509b4bd68e7af11e16f9300",
+    "tests": 37
+  },
+  "raw_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.launch/replay.jsonl": "a5e237196078f9fc086bb8a3a4509edeeae59f99f2aadf71745a50d423776d0a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.launch/watchdog.jsonl": "cc0f8f22ad542be36697d22917fac9a15e8738ccc15a8c1ba54494c53611eb4d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_monitor.log": "f6c572e02382a15c499e7334f775efa06ca1fdf8403caeb4158570cf9a1fe431",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_transfers.jsonl": "b29f530a204885810ba50a66a231e2ee979fc0371f7bf21bf7da0bd30cfc2801",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/physical/summary.json": "66c2dfb20b2d8c40c70b55bf5e7f301268e165e2891c365b9b501543723a689c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/physical/container_allocations.jsonl": "e0b3b9a59c0294dee287ec230d081d4fb6f55a7a1a2cd507c7fd9699eb839640",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/request_metrics.json": "21b42f2883ba8df30bab9d1d6500a5a21dff91191c530b1d8cc58733f81ab86a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/full_w0_slo_rows.json": "be12eaa0ac0a586f919610dadc35f69a93b1274f7b5688c4d9826c03a77ed542"
+  },
+  "next": "reclaim verified closed private cache; unchanged HydraServe 3B W1/W2 then full comparison and PrimeLoRA optimization"
+}

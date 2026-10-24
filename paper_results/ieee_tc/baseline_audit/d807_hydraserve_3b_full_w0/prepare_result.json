@@ -1,0 +1,24 @@
+{
+  "metadata_reused_from": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/metadata",
+  "n_plan": 4000,
+  "passed": true,
+  "performance_result": false,
+  "plan_identity": {
+    "count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0,
+    "source_count": 4000,
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37"
+  },
+  "prepared_not_launched": true,
+  "runtime_model_info": [
+    6,
+    9000,
+    200,
+    1000000,
+    1
+  ],
+  "source_manifest_sha256": "18a11310cb5b30bf92452d859e4c52c9d08a896052a068bc7b04b75a2fbccece"
+}

@@ -1,0 +1,76 @@
+"""Explicit-path D807 complete observation checkpoint; reuse audited helpers."""
+import ast
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+prior = RAW.parent.parent/'loquetier_qualification/d796_20261024/backup.py'
+assert p.digest(prior) == '2d6159d567e2077d40aa4ecce0a911fccc1de0a5cbd566158db9570e65d00ae0'
+nodes = [node for node in ast.parse(prior.read_bytes()).body
+    if isinstance(node, ast.FunctionDef) and node.name in ('checked', 'commit')
+    or isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'secret' for t in node.targets)]
+assert len(nodes) == 3
+exec(compile(ast.Module(body=nodes, type_ignores=[]), str(prior), 'exec'), globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json', own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+for name in ('prepare', 'remote_prelaunch', 'audit'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and not Path(closed['identity']['path']).exists()
+numerical = read(RAW/'delivery_numerical_audit.json')
+evaluation = read(RAW/'full_w0_evaluation.json')
+assert numerical['affected_path_pass'] and not numerical['independent_full_correctness_proven']
+assert evaluation['full_audit_pass'] and evaluation['n_plan'] == evaluation['n_v1_contract_complete'] == 4000
+assert read(RAW/'remote_stop.json')['all_owned_units_inactive']
+for path, digest in read(RAW/'preregistration.json')['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+basehead = call(BASE, 'git', 'rev-parse', 'HEAD')
+assert basehead == 'e1c433bab982366a82ad188ef703270d89d6ea06'
+assert call(BASE, 'git', 'ls-remote', 'origin', 'refs/heads/main').split()[0] == basehead
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0'
+OUT.mkdir(parents=True, exist_ok=False)
+sources = [RAW/name for name in ('prepare.py', 'audit.py', 'publish.py', 'close_cpu.py',
+    'preregistration.json', 'prepare_result.json', 'prepare_closure.json', 'remote_prelaunch_closure.json',
+    'audit_closure.json', 'http_3b_4000.json', 'model_registration.json', 'model_witness.json',
+    'launch_gate.json', 'closure.json', 'result.json', 'source_manifest.json', 'delivery_numerical_audit.json',
+    'http_audit.json', 'generation_result.json', 'provider_ready.json', 'shm_capacity.json',
+    'full_w0_evaluation.json', 'native_scheduler_after_requests.json',
+    'remote_stop.log', 'remote_stop.json', 'remote_collection.log', 'collect_remote.py')]
+sources += [RAW/'launch_gate.launch/exec_receipt.json', RAW/'overlays/manifest.json', RAW/'physical/summary.json']
+checked(sources)
+mapping = copy_sources(OUT, sources)
+storage = OUT/'d806_cache_reclamation'
+storage.mkdir()
+old = RAW.parent/'d806_20261024'
+storage_sources = [old/name for name in ('reclaim.py', 'close_storage.py', 'storage_receipt.json',
+    'storage_closure.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json', 'retained_cache_metadata.json')]
+checked(storage_sources)
+storage_mapping = copy_sources(storage, storage_sources)
+save(OUT/'checkpoint_manifest.json', dict(passed=True,
+    files=mapping, storage_files=storage_mapping, baseline_head=basehead, plan_sha256=p.check_plan(),
+    performance_results=1, n_plan=4000, n_arrived=4000, n_response=4000, n_correct=None,
+    full_workload_numerical_correctness_proven=False, all_zero_output_count=0,
+    reference_prefix_verified=True, observed_joint_slo=evaluation['joint_slo'],
+    observed_g1_feasible=False, other_project_k3s_changed=False,
+    reused_tests=dict(path=str(RAW.parent/'d805_20261024/test_receipt.json'),
+        sha256=p.digest(RAW.parent/'d805_20261024/test_receipt.json'), tests=37),
+    raw_sources={str(path):p.digest(path) for path in
+        (RAW/'launch_gate.launch/replay.jsonl', RAW/'launch_gate.launch/watchdog.jsonl',
+         RAW/'remote_monitor.log', RAW/'remote_transfers.jsonl', RAW/'physical/summary.json',
+         RAW/'physical/container_allocations.jsonl', RAW/'request_metrics.json', RAW/'full_w0_slo_rows.json')},
+    next='reclaim verified closed private cache; unchanged HydraServe 3B W1/W2 then full comparison and PrimeLoRA optimization'))
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == '85e5400db9d431099b559ab6fc2219c7932e55da'
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D807_HYDRASERVE_3B_FULL_W0_20261024.md',
+    *sorted(path for path in OUT.rglob('*') if path.is_file())]
+ref = 'refs/heads/backup/d807-hydraserve-3b-full-w0-20261024'
+head = commit(MAIN, paths, 'tc: seal HydraServe 3B full W0 observation (D807)', 'faaslora_origin', ref)
+save(RAW/'publication_receipt.json', dict(passed=True, head=head, baseline_head=basehead,
+    remote_ref=ref, force_push=False, v2_synchronized=False,
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, baseline_head=basehead, remote_ref=ref)))

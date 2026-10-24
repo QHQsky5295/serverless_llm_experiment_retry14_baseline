@@ -1,0 +1,37 @@
+{
+  "affected_path_pass": true,
+  "all_zero_output_count": 0,
+  "all_zero_request_ids": [],
+  "audit_completed": true,
+  "expected_prefix": [
+    578,
+    2326,
+    1288
+  ],
+  "independent_full_correctness_proven": false,
+  "n_arrived": 4000,
+  "n_correct": null,
+  "n_plan": 4000,
+  "n_response": 4000,
+  "n_terminal": 4000,
+  "native_binding_accounting_passed": true,
+  "observed_prefix": [
+    578,
+    2326,
+    1288
+  ],
+  "reference_request_id": "req_00001",
+  "same_adapter_id": true,
+  "same_prompt_ids": true,
+  "scope": "One exact-input independent reference prefix; all native-bound responses checked, not 4000 independent numerical references",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d576_20261016/audit.py": "f35fcd266e29948c1da5c6153676e482c610506b8ed18512ef3705ac015f37a6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit.py": "2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/closure.json": "7ccfa77c8e11dd061af25aa898b30ca99ea17852efc30836ee7f7d86acc2a8f2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/full_w0_evaluation.json": "6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/http_audit.json": "414d9ec0a0fe248ed12d511732782652a493e04e1213fbeb64bc2f80273d19b8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.json": "bc98a5a6ea439cb0ceb901d7e349ddef459cb67d22656bfdd467db786dd7dd12",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_stop.json": "ebfe8d2afc96cf1b55320d6607abd3965be48fb5ddf56edd9302dd78539c00d0"
+  }
+}
