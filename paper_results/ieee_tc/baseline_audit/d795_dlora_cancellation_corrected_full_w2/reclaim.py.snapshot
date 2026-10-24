@@ -1,0 +1,9 @@
+"""Reuse duplicate-only W2 cache cleanup after audit and real GPU release."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/reclaim.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'd6b91d70f652aea9ada069e042b7a129c01893ecf6e94017fcfd5ec96947de5c'
+source = data.decode().replace('D792', 'D795').replace('d792', 'd795')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,0 +1,12 @@
+"""Reuse the existing complete W2 audit after D795's actual resource release.
+
+Use the qualified primelora_vllm0300_tc_20260925 environment and pass the
+observed --outcome. This performs no GPU replay or repeated qualifications.
+"""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/analyze.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'a492cc9f2c96dd9b658c11f1bc087856313f771f733842f2612b45e07dd71db8'
+exec(compile(data, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

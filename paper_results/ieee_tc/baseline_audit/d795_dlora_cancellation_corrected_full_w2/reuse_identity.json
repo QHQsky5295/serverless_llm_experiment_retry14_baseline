@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d794_20261024/native_3b.json": "1fd479ec432279f12fa32d9e1feb2e822c948290fccfcea4caa2fec77956f9e4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d794_20261024/run3b.sh": "ef86d8a31fe9a9dc4a8f61a1fb5e9803d46a8bedea5579b3c6037e922d2017cf",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d794_20261024/close.py": "eee2027f07574d5ef47d1abe68aac75f7b02ef4165aa405e00ed72914cb676c8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/http_3b_4000.json": "7a7264bd9c88244c5eb0a9ee63fc1ee303bb59c943b1c2b5b6b903a4227286d6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/freeze_inputs.py": "01acf177dfad5645648c0724d4bf15996ae6b3fd6c3f2a5a3db894ee04cc1357"
+  },
+  "prior_w2": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024",
+  "same_configuration_as_w1": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d794_20261024/native_3b.json",
+  "only_config_change_from_w1": "ray_root",
+  "performance_parameters_changed": false,
+  "http_bytes_unchanged": true,
+  "model_and_lifecycle_evidence_reused": "D790 bounded numeric parity and D793 55 CPU regressions",
+  "no_new_trace_or_weights": true,
+  "previous_results_preserved": true,
+  "prior_w2_reuse_class": "R3_cancellation_lifecycle",
+  "full_workload_numerical_correctness_proven": false,
+  "generated_sha256": {
+    "native_3b.json": "d76b50237ccc6bbe6960ff8075bb14d3e3d622aceda2acaf821526b81177f0e5",
+    "http_3b_4000.json": "7a7264bd9c88244c5eb0a9ee63fc1ee303bb59c943b1c2b5b6b903a4227286d6",
+    "freeze_inputs.py": "01acf177dfad5645648c0724d4bf15996ae6b3fd6c3f2a5a3db894ee04cc1357",
+    "close.py": "eee2027f07574d5ef47d1abe68aac75f7b02ef4165aa405e00ed72914cb676c8",
+    "run3b.sh": "9bdd26bc1b17d6d3cbd843bbd2e6563c4b7f3a7012dcbb64c6e9ad205976069c"
+  }
+}

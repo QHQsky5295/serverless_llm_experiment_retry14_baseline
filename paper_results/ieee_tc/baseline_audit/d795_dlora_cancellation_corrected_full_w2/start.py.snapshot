@@ -1,0 +1,16 @@
+"""Reuse D794's qualified launch, requiring its closed and backed-up outcome."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d794_20261024/start.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '8311d7cf58220072ca3585e10ba1bdb9c746baf2ae35591e95817c8df0827400'
+source = data.decode().replace('D794', 'D795').replace('d794', 'd795')
+source = source.replace('W1', 'W2').replace('w1', 'w2')
+before = '"BACKUP = RAW.parent/\'d793_20261024\'"'
+assert source.count(before) == 1
+source = source.replace(before, '"BACKUP = RAW.parent/\'d794_20261024\'"')
+before = '"for name in (\'qualification\',\'backup\'):"'
+assert source.count(before) == 1
+source = source.replace(before, '"for name in (\'start\',\'maintenance\',\'analysis\',\'storage\',\'backup\'):"')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
