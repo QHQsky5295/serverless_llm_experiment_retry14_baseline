@@ -1,0 +1,79 @@
+"""Reuse explicit-path publication helpers; preserve unrelated repository dirt."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d793_dlora_cancellation_lifecycle'
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+closed = read(RAW/'qualification_closure.json')
+assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+q = read(RAW/'qualification.json')
+assert q['passed'] and q['cpu_only'] and not q['performance_run_authorized']
+for path, digest in (q['refs'] | q['preserved']).items():
+    assert p.digest(Path(path)) == digest, path
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == q['previous_main_checkpoint']
+assert call(BASE, 'git', 'rev-parse', 'HEAD') == q['previous_baseline_checkpoint']
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def check(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size < 2*1024*1024, path
+        assert not secret.search(path.read_text()), path
+
+base_paths = ['scripts/ieee_tc_serverless_measurement.py',
+              'scripts/prepare_ieee_tc_serverless_stack.py',
+              'tests/test_ieee_tc_dlora_measurement.py']
+check([BASE/path for path in base_paths])
+assert not call(BASE, 'git', 'diff', '--cached', '--name-only')
+call(BASE, 'git', 'add', '--', *base_paths)
+assert set(call(BASE, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(base_paths)
+call(BASE, 'git', 'diff', '--cached', '--check')
+call(BASE, 'git', 'commit', '-m', 'tc: make native dLoRA cancellation and migration ownership coherent (D793)')
+basehead = call(BASE, 'git', 'rev-parse', 'HEAD')
+call(BASE, 'git', '-c', 'http.version=HTTP/1.1', 'push', 'origin', 'main')
+assert call(BASE, 'git', 'ls-remote', 'origin', 'refs/heads/main').split()[0] == basehead
+save(RAW/'baseline_backup_receipt.json', dict(passed=True, head=basehead,
+    remote_ref='origin/main', paths=base_paths, force_push=False))
+sources = [RAW/name for name in ('qualify.py', 'qualification.json', 'qualification_identity.json',
+    'qualification_closure.json', 'cpu_tests.log', 'baseline_backup_receipt.json', 'close.py', 'backup.py')]
+sources.append(RAW/'source_view/measurement_manifest.json')
+check(sources)
+OUT.mkdir(parents=True, exist_ok=False)
+mapping = copy_sources(OUT, sources)
+save(OUT/'manifest.json', dict(schema='ieee_tc_dlora_cancellation_lifecycle_checkpoint_v1',
+    files=mapping, baseline_head=basehead, plan_sha256=p.check_plan(), raw_root=str(RAW),
+    cpu_tests=55, cancellation_specific_tests=9, pre_repair_reproductions=2,
+    gpu_executions=0, performance_result=False, model_evidence_reused='D788-D790',
+    affected_previous_runs=['D791 W1', 'D792 W2'],
+    preserved_file_count=len(q['preserved']), metric_protocol_unchanged=True,
+    no_new_weights_or_trace=True))
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+         MAIN/'docs/ieee_tc/D792_DLORA_MODEL_CORRECTED_FULL_W2_20261024.md',
+         MAIN/'docs/ieee_tc/D793_DLORA_CANCELLATION_LIFECYCLE_20261024.md', *sorted(OUT.iterdir())]
+check(paths)
+relative = [str(path.relative_to(MAIN)) for path in paths]
+assert not call(MAIN, 'git', 'diff', '--cached', '--name-only')
+call(MAIN, 'git', 'add', '--', *relative)
+assert set(call(MAIN, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(relative)
+call(MAIN, 'git', 'diff', '--cached', '--check')
+call(MAIN, 'git', 'commit', '-m', 'tc: preserve dLoRA cancellation defect, bounded repair and qualification (D793)')
+head = call(MAIN, 'git', 'rev-parse', 'HEAD')
+ref = 'refs/heads/backup/d793-dlora-cancellation-lifecycle-20261024'
+call(MAIN, 'git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+ref)
+assert call(MAIN, 'git', 'ls-remote', 'faaslora_origin', ref).split()[0] == head
+for path, digest in q['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+save(RAW/'backup_receipt.json', dict(passed=True, head=head, baseline_head=basehead,
+    remote_ref=ref, force_push=False, v2_synchronized=False, paths=relative,
+    resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, head=head, baseline_head=basehead, remote_ref=ref,
+                      paths=len(relative))))

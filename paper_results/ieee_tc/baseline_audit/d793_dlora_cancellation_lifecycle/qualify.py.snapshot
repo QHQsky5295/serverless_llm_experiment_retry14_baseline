@@ -1,0 +1,58 @@
+"""Reuse D788's bounded CPU qualification and exclusive source-view protocol."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+import prepare_ieee_tc_serverless_stack as prepare
+
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+own = p.scope_identity(p.cg_path().name)
+save('qualification_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                     '--format=csv,noheader'], text=True).strip()
+prior = json.loads((RAW.parent/'d788_20261024/qualification.json').read_text())
+for path, digest in prior['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+command = [sys.executable, '-B', '-m', 'unittest', 'tests.test_ieee_tc_dlora_measurement', '-v']
+with (RAW/'cpu_tests.log').open('x') as stream:
+    result = subprocess.run(command, cwd=BASE, stdout=stream, stderr=subprocess.STDOUT)
+if result.returncode:
+    raise SystemExit(result.returncode)
+view = prepare.prepare_dlora_measurement_view(
+    BASE/'vendor_new_baselines/dLoRA_artifact_main_20260519', RAW/'source_view', MAIN,
+    canonical_input=True, worker_lifecycle=True, cpu_zero_mlp_views=True,
+    llama_model_compat=True, cancellation_lifecycle=True)
+changed = {'vllm/core/scheduler.py', 'vllm/engine/async_llm_engine.py',
+           'vllm/engine/engine_manager.py'}
+for path, digest in prior['source_view']['measured_sha256'].items():
+    if path not in changed:
+        assert view['measured_sha256'][path] == digest, path
+refs = [BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+        BASE/'scripts/ieee_tc_serverless_measurement.py',
+        BASE/'tests/test_ieee_tc_dlora_measurement.py', Path(__file__)]
+save('qualification.json', dict(passed=True, plan_sha256=p.check_plan(),
+    source_view=view, refs={str(path): p.digest(path) for path in refs},
+    preserved=prior['preserved'], commands=[command],
+    previous_main_checkpoint='f2e1284a5196c2b64d0ce3347572cac8b78f9401',
+    previous_baseline_checkpoint='cf421793e7b71342cf75ff063f8d64afe26d8169',
+    changed_native_paths=sorted(changed),
+    unchanged_model_evidence_reused='D788-D790 tied head/Llama3 RoPE and bounded native parity',
+    cpu_only=True, full_workload_independent_numerical_proof=False,
+    full_workload_rerun_pending=['3B W1', '3B W2'],
+    performance_run_authorized=False, resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True, source_view=str(RAW/'source_view'),
+                      cpu_only=True, full_workload_pending=True)))

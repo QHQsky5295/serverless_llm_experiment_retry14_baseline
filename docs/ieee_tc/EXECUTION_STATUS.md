@@ -1,5 +1,50 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 10:14 CST D793：取消/迁移缺陷已CPU重现并修复；待完整回放
+
+完整重读PLAN、AGENTS、六项补充及当前状态。先复用D792已完成的18.16GiB
+重复缓存回收；当前disk约150.64GiB、MemAvailable约107GiB，GPU空闲。
+未启动新的GPU任务，未修改远端及其他项目k3s。旧baseline性能调优方向未重开。
+
+研究来源复核官方75f1c439源码和D775历史；2项原生CPU测试实际重现批量取消
+跳过相邻项/计数未减，以及tracker已移除而native abort未确认的窗口。新增
+opt-in cancellation_lifecycle：快照遍历与活请求计数；tracker/native入队、
+取消与原迁移共用select_lock；取消等待当前owner后端确认。GPU step调用锁外，
+迁移求解和断言不变，不吞异常。9项专项通过；完整既有模块55/55通过，3.387s。
+D788未变模型/加载/观测SHA相等，复用D790算术证据，不追加短GPU资格。
+147项保护SHA未变。raw D793 qualification.json passed，尚不授权性能结论。
+
+W1与W2都有超时取消，修复也会纠正参与调度的活请求计数，因此D791/D792均
+受影响，旧记录保留为修复前诊断，不能只重跑W2后拼接W1。下一备份此最小
+正确性修复，再冻结同配置各一轮完整W1/W2。不调整负载/超时/资源/迁移策略，
+不声称全部778个超时已解释。结束后继续3B Loquetier/HydraServe、全部比较
+与PrimeLoRA优化、同版本Full、A1–A5/S1–S13/成本/文档/图表及最终V2。
+详见D793_DLORA_CANCELLATION_LIFECYCLE_20261024.md。当前仍active。
+
+## 2026-10-24 10:02 CST D792备份核验；取消/迁移的官方来源已定位
+
+D792结果、状态及Loquetier只读文档共46项明确路径已推送，MAIN HEAD
+f2e1284a5196c2b64d0ce3347572cac8b78f9401，remote ref为
+backup/d792-dlora-model-corrected-w2-20261024，远端匹配。BASE cf421793
+与origin/main一致，未改代码。backup资源域已实际关闭，staging为空，用户
+manifest保持dirty且未stage。RAW backup_receipt与backup_closure均passed。
+历史V2分叉仍未处理，不能称最终V2同步。所有本轮exec session/cell均已结束：
+30909维护、65833分析、17490回收、60237备份；4825/4848监测均不再等待。
+
+research-lookup限定官方固定commit源码核查（默认服务此前无认证，沿用web）。
+确认迁移fetch→stream pop→assert为官方路径；Scheduler批量abort遍历原list
+同时remove，相邻项可能跳过，且没有req_model_cnt更新；Tracker先移除stream，
+engine_step后提交native abort，期间可有新增请求RPC await。尚未执行最小
+CPU重现或确认完整因果，不把源码推断写成778超时的全部解释。D775既有owner
+测试未覆盖这些原生队列/异步交接。具体来源、历史及下一有界验证写入D792文档。
+
+下一只复用既有原生AST测试工具验证批量取消与迁移交接，必要时做保持策略的
+生命周期修复，再决定受影响键；不盲重跑W1/W2、不吞断言、不调参。此新问题
+未关闭前不能把W2当正常机制低性能证据。然后按原主线3B Loquetier/HydraServe、
+PrimeLoRA完整比较优化、同版本Full、全部A1–A5/S1–S13/成本/文档/图表及V2。
+本轮新增源码核查说明在上述检查点之后，待下一正常提交；不追改已封存raw。
+完整goal继续active，不是blocked、paused或complete。
+
 ## 2026-10-24 09:57 CST D792：完整W2已结束；迁移/取消异常待有界核查
 
 本轮完整重读PLAN、两仓AGENTS、六项补充、冻结V1／单轮V2及所用技能。

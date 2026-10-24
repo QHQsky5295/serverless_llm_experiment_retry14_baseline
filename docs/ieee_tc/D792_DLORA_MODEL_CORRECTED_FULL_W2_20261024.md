@@ -112,3 +112,36 @@ req_00727、req_00643、req_00990、req_01793的missing-stream警告；这些ID
 封存后先处理本轮具体迁移/取消异常，再完成3B Loquetier/HydraServe必要适配，
 然后PrimeLoRA全比较优化及同版本Full、A1–A5、S1–S13、CE/Pareto、两轮审稿
 文档、图表和最终V2交付。未完成范围不省略，不因基线SLO低无界调参。
+
+## 10:02后续只读核查及检查点
+
+46项明确路径已提交并推送，HEAD为
+`f2e1284a5196c2b64d0ce3347572cac8b78f9401`，远端为
+`backup/d792-dlora-model-corrected-w2-20261024`，远端HEAD已匹配核验。
+BASE仍为cf421793且origin/main核验一致。备份资源域已关闭、staging为空，
+用户manifest未stage；历史V2分叉未解决，不声称V2分支已最终同步。
+
+使用research-lookup的有界原始来源核查；默认检索此前无认证，复用可用web
+工具，不安装/登录或上传私有数据。官方固定commit的迁移确实先fetch、后pop
+stream及断言，并非这次测量代码新增该次序。
+[官方EngineManager](https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/engine/engine_manager.py)。
+
+官方Scheduler.abort_seq_group遍历state_queue同时remove元素；同一list中
+相邻待取消项可能被跳过，而且该函数没有更新req_model_cnt。官方
+RequestTracker先移除finished stream，再由engine_step提交后端abort；其中
+新增请求的远程await可处于两者之间。这些是可定位的源代码缺口及待测试交错，
+目前尚未执行该最小CPU重现，不能直接宣称已证明D792全部超时的因果链。
+[官方Scheduler](https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/core/scheduler.py)、
+[官方AsyncLLMEngine](https://raw.githubusercontent.com/LLMServe/dLoRA-artifact/75f1c439446fe194b1df8a24982ef9067841fab5/vllm/engine/async_llm_engine.py)。
+
+本地vendor的scheduler及async_llm_engine相对官方git diff为空；manager现有
+差异为已保存的Ray/placement适配，不包含迁移主体改变。D775的本地helper
+在select_lock下查当前stream owner再调用原生_abort，既有CPU测试只覆盖
+迁移后owner和stream.finished，未覆盖原生scheduler批量取消及RPC交错。
+因此不能因那个测试通过而排除此缺口，也不能无依据归咎于本地wrapper。
+
+下一有界验证复用tests/test_ieee_tc_dlora_measurement.py的原生AST测试工具，
+覆盖相邻批量取消、队列/计数一致性、cancel与迁移所有权交接；先最小重现，
+再决定必要修复。不得仅删断言、吞异常、广播abort、重置超时或更改ILP目标。
+不因W1未见断言就先宣布它一定不受影响；受影响执行键由具体修复路径决定。
+本节只读，没有改运行代码、启动模型或新增GPU测量。
