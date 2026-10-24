@@ -1,5 +1,16 @@
 # IEEE TC execution status — D816 required file-capacity repair tested; backup then complete D817 W2
 
+## 2026-10-25 D816备份完成，登记D817完整W2
+
+D816提交26f92bd1e0483bf447336258f470bc025e9d0001，18条明确路径推送并核实
+backup/d816-required-file-capacity-20261025（非最终V2同步）。AST核对只改变
+既定11个方法，源码/测试/保护/秘密检查通过；aux ...d816ca110...04已inactive、
+空Invocation/ControlGroup。D817配置仅D814三路径替换，复用原W2 frozen
+map及D748/D751资格，不再新增GPU smoke。正在执行既有完整启动入口，实际
+启动成功须以D817 start_receipt/launch为准，当前不提前声称已开始测量。
+旧closed-delivery analyzer的全published假设已识别；结果后按实际attempt
+记录补充严格分支，不删除延期字节、不放松完整性。其余未完范围如上。
+
 ## 2026-10-25 D816请求容量根因修正完成，下一完整W2
 
 本轮PROGRESS，非阻塞。D815最小因果反例后仅实现同一请求必需物化路径：

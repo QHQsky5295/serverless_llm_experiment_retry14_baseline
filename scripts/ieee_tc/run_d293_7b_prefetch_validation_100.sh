@@ -759,6 +759,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=100
     ;;
+  d817)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d817_20261025/3b_max3_full_w2
+    CONFIG=configs/ieee_tc/20261025_d817_3b_max3_full_w2.yaml
+    TAG=d817_3b_max3_full_w2
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d814)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2
     CONFIG=configs/ieee_tc/20261025_d814_3b_max3_full_w2.yaml
@@ -1004,7 +1011,7 @@ if [[ "${1:-d293}" == d812 ]]; then
   export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
   export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
 fi
-if [[ "${1:-d293}" == d814 ]]; then
+if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W2
   export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
   export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
