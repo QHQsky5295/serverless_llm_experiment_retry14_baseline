@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "kind": "d823_verified_analysis_checkpoint_v1",
+  "head_before": "9e562116250b96238a045ef7a7955cc6994789b3",
+  "protected_publication_files": 147,
+  "protected_user_files": 3,
+  "protected_union_files": 147,
+  "protected_manifest_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_refs_verified": 16,
+  "files": [
+    {
+      "path": "scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "c263aa5871d3f1e83630a403ed34f7de3946b3a7b99a898c99a15fe18d56d676",
+      "bytes": 94019
+    },
+    {
+      "path": "scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "53f4bd68f6300874679146a0871c85c639e671e6b16d0c58fa9118d450f514cb",
+      "bytes": 142442
+    },
+    {
+      "path": "tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "7c9235b24e82d99c7239ca9870b1344a99c0a563a1f72dc5525959b0737fa4fe",
+      "bytes": 33338
+    },
+    {
+      "path": "tests/test_ieee_tc_decode_overlap.py",
+      "sha256": "bb9827687727383e8780839493aa617cf25cabec9b33fb64f28206f407fca480",
+      "bytes": 55497
+    },
+    {
+      "path": "docs/ieee_tc/D823_PAIRED_W2_REGRESSION_20261025.md",
+      "sha256": "19fca8719652863455d62e59ac6841068740eb87402756cfd0ed725b40bccef1",
+      "bytes": 6739
+    },
+    {
+      "path": "docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "ac13ddd594fd949b66c0f5a4b57448d172609a41bc615666f0fcb82b77794aa9",
+      "bytes": 1258403
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d823_paired_w2_regression/execution_notes.json",
+      "sha256": "0ef474fa956546cd373efc36bcbe2b7754c7eabd382254da61e201a71a866e99",
+      "bytes": 1218
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d823_paired_w2_regression/analysis1/diagnosis.json",
+      "sha256": "b44201ecb97cf8caed8089af59f4558bbf7047fc785ae7fa8edecdc9dd538ebe",
+      "bytes": 247267
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d823_paired_w2_regression/analysis1/paired_requests.csv",
+      "sha256": "82860d3ec2f4983f8b34959328a6c79bbf3db974ab77cd8279aafca0c12fc6c3",
+      "bytes": 1258109
+    }
+  ],
+  "gpu_idle": true,
+  "scope_sample": {
+    "memory.peak": "24936448",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "scope_sample_is_final_peak": false,
+  "tests": {
+    "passed": 13,
+    "deselected": 209
+  },
+  "analysis_exit_code": 0,
+  "confidence_interval": null,
+  "raw_data_changed": false
+}

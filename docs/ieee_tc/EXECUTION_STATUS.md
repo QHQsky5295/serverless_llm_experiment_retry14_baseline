@@ -1,4 +1,36 @@
-# IEEE TC execution status — D822 rejected and backed up; storage maintenance closed
+# IEEE TC execution status — D823 paired regression diagnosis completed
+
+## 2026-10-25 D823完成：局部准备改善未解决完整服务质量
+
+只复用D817/D822的4000共同请求和小型物理账本，无GPU回放/工件/负载变化。
+配对：联合235条pass→fail、194条fail→pass，净−41；TPOT净−63，其中
+短输出2–64净增加52条违约、65–128增加11条。平均准备等待−32.565ms，
+到达→admission却+78.751ms（release+26.265、dispatch+6.791、slot+45.696），
+完整TTFT+69.942ms。共同GPU-hit组1437条也退化；不能归为全部网络变慢。
+总体peer重叠比例未增加，事后违约组关联不能证明prefill/主动准备因果。
+
+物理U增量649.144627由首次分配边界+651.666505与最终释放−2.521878精确
+组成；两张扩容GPU首次持有从326.198/350.764秒提前至10.725/12.753秒，
+不是cleanup拖延。这里只解释记账，不证明控制触发原因。D822继续否决，
+不跑该候选W1/W0、不重复同键、默认native_rpc_v1不变。
+
+既有离线脚本扩展与13项针对性检查通过。一次CSV条件load字段解析错误
+保留；去掉该嵌套条件字段的全体比较，不补零、不删请求；随后analysis1成功。
+路径paper_results/ieee_tc/p2_backend/d823_paired_w2_regression/，解释见
+D823_PAIRED_W2_REGRESSION_20261025.md。来源与配对全保留，不做CI/图表。
+
+下一主线：复用D730/D727已有pending/source边界解析，核对D817当前入口
+事务的容量等待、owner确认与控制工作，先排除D734–D751已消除的部分；
+有新证据才提出单一优化。不要重开D595/D598并行RPC、D628/D629移锁、
+D712/D713抬控制阈值或D730暂缓的bind合并，不靠删时延投影选候选。
+当前无推理任务；备份/保护核验待本轮后续回执。D711独立数值未知、3B
+W1/W2未达标、最终同版矩阵/消融/敏感性/文档/图表/V2同步均保留；目标active。
+
+最终备份快进已核实：9e562116250b96238a045ef7a7955cc6994789b3，远端
+backup/d822-complete-20261025一致（仍非最终V2同步）。aux17已inactive、
+Invocation/ControlGroup空，stage空；用户manifest仍为原dirty，未提交。
+没有待工具session或推理任务。以下下一主线保持不变，此收尾记录随下一
+正常检查点保存，不递归备份。
 
 ## 2026-10-25 06:47 CST D822收尾与存储已完成，返回3B主线
 

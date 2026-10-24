@@ -1212,10 +1212,11 @@ def routing_length_diagnosis(candidates, requests):
         caveat='Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature.')
 
 
-def lifecycle_pair_decomposition(runs):
+def lifecycle_pair_decomposition(runs, contrast=('d318', 'd323')):
     """Exact observed envelope-minus-gaps identity, not a policy counterfactual."""
-    if set(runs) != {'d318', 'd323'}:
-        raise ValueError('registered complete D318/D323 pair required')
+    if len(contrast) != 2 or contrast[0] == contrast[1] or set(runs) != set(contrast):
+        raise ValueError('complete explicitly identified reference/candidate pair required')
+    reference, candidate = contrast
     summaries, devices = {}, {}
     for name, run in runs.items():
         p, d = run['physical'], run['deployment']
@@ -1234,16 +1235,23 @@ def lifecycle_pair_decomposition(runs):
         if abs(envelope-life['released_gap_gpu_s']-life['observed_gpu_s']) > 1e-6:
             raise ValueError('envelope-minus-gap identity failed')
         summaries[name] = dict(**life, envelope_gpu_s=envelope, devices=devices[name])
-    if set(devices['d318']) != set(devices['d323']):
+    if set(devices[reference]) != set(devices[candidate]):
         raise ValueError('same physical device population required')
-    old, new = summaries['d318'], summaries['d323']
+    old, new = summaries[reference], summaries[candidate]
     boundary = new['envelope_gpu_s']-old['envelope_gpu_s']
     gaps = old['released_gap_gpu_s']-new['released_gap_gpu_s']
     delta = new['observed_gpu_s']-old['observed_gpu_s']
     if abs(boundary+gaps-delta) > 1e-6:
         raise ValueError('paired resource decomposition failed')
+    earlier_allocation = sum(old['devices'][gpu]['first_offset_s']-
+        new['devices'][gpu]['first_offset_s'] for gpu in old['devices'])
+    later_release = sum(new['devices'][gpu]['final_offset_s']-
+        old['devices'][gpu]['final_offset_s'] for gpu in old['devices'])
+    if abs(earlier_allocation+later_release-boundary) > 1e-6:
+        raise ValueError('allocation/release boundary identity failed')
     return dict(runs=summaries, candidate_minus_reference_gpu_s=delta,
         envelope_boundary_delta_gpu_s=boundary, reduced_release_gaps_gpu_s=gaps,
+        earlier_allocation_gpu_s=earlier_allocation, later_release_gpu_s=later_release,
         causal_savings=None, confidence_interval=None)
 
 

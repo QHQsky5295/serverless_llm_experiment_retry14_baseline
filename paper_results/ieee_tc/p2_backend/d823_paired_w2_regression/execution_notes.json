@@ -1,0 +1,18 @@
+{
+  "kind": "d823_offline_execution_notes_v1",
+  "gpu_replays": 0,
+  "tests_initial": {"passed": 13, "deselected": 209, "exit_code": 0},
+  "analysis_attempt_1": {
+    "exit_code": 1,
+    "error": "ValueError: could not convert string to float: ''",
+    "location": "compare_stage_audits CSV numeric conversion",
+    "cause": "final_native_load_ms is correctly absent for requests without an invoked native load (1783 reference, 1830 candidate). The first parser incorrectly assumed this conditional field was universal.",
+    "resolution": "Exclude this optional nested field from the all-request paired metric list. Preserve six exclusive TTFT stages and existing per-run conditional load analysis. Do not fill absent values with zero or omit requests.",
+    "output_directory_created": false,
+    "resource_sample_peak_bytes": 538320896,
+    "sample_memory_high_max_oom_swap": [0, 0, 0, 0],
+    "resource_sample_is_final_peak": false
+  },
+  "scope_limits": {"memory_high_bytes": 3221225472, "memory_max_bytes": 4294967296, "swap_max_bytes": 0, "cpus": [2, 3, 26, 27]},
+  "note": "An offline schema error, not a failed performance execution; original data are unchanged. Final verification is recorded separately."
+}

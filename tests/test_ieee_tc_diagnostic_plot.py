@@ -6,6 +6,66 @@ from pathlib import Path
 import pytest
 
 
+def d823_pair():
+    from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
+    rows = [dict(request_id=f'r{i}', ordinal=i, phase=0, adapter_id=f'a{i}',
+        prompt_tokens=24, output_tokens=64, output_bin='2-64', tier='gpu',
+        ttft_pass=True, tpot_pass=True, joint_pass=True,
+        ttft_ms=60., tpot_ms=5., e2e_ms=375., routing_nested_ms=3.,
+        final_native_load_ms=None, peer_prefill_fraction=0.,
+        peer_demand_load_fraction=0., peer_decode_fraction=.2,
+        **{key:10. for key in D716_TTFT_STAGES}) for i in range(4)]
+    rows[0].update(tpot_pass=False, joint_pass=False)
+    newer = copy.deepcopy(rows)
+    newer[0].update(tpot_pass=True, joint_pass=True)
+    newer[1].update(tpot_pass=False, joint_pass=False, tpot_ms=6.)
+    newer[2].update(tpot_pass=False, joint_pass=False, tpot_ms=8., tier='host')
+    newer[2]['admission_to_acquired_ms'] += 4.
+    newer[2]['ttft_ms'] += 4.
+    return rows, newer
+
+
+def test_d823_pair_retains_population_and_reconciles_changes_without_mutation():
+    from scripts.ieee_tc.audit_d703_3b_full import paired_stage_groups, D716_TTFT_STAGES
+    pair = d823_pair()
+    before = copy.deepcopy(pair)
+    result = paired_stage_groups(*pair)
+    assert pair == before
+    assert result['transitions']['joint_pass'] == {'fail->pass':1, 'pass->fail':2, 'pass->pass':1}
+    all_group = result['groups'][0]
+    assert all_group['n'] == 4
+    assert all_group['mean_paired_delta']['ttft_ms'] == 1.
+    assert 'final_native_load_ms' not in all_group['mean_paired_delta']
+    assert sum(all_group['mean_paired_delta'][k] for k in D716_TTFT_STAGES) == 1.
+    assert all_group['reference']['counts']['joint_pass'] == 3
+    assert all_group['candidate']['counts']['joint_pass'] == 2
+    assert result['confidence_interval'] is None and result['causal_performance_gain'] is None
+    assert all(g['grouping'] == 'post_treatment' for g in result['groups'] if 'transition' in g['dimension'])
+    assert {r['request_id'] for r in result['requests']} == {'r0','r1','r2','r3'}
+
+
+@pytest.mark.parametrize('fault', ['missing','duplicate','adapter','tokens','boolean','nan','stage','joint'])
+def test_d823_rejects_misaligned_or_invalid_pair(fault):
+    from scripts.ieee_tc.audit_d703_3b_full import paired_stage_groups
+    old, new = d823_pair()
+    if fault == 'missing': new.pop()
+    elif fault == 'duplicate': new.append(copy.deepcopy(new[0]))
+    elif fault == 'adapter': new[0]['adapter_id'] = 'other'
+    elif fault == 'tokens': new[0]['output_tokens'] += 1
+    elif fault == 'boolean': new[0]['tpot_pass'] = 'True'
+    elif fault == 'nan': new[0]['tpot_ms'] = float('nan')
+    elif fault == 'stage': new[0]['ttft_ms'] += 2.
+    elif fault == 'joint': new[1]['joint_pass'] = True
+    with pytest.raises(ValueError):
+        paired_stage_groups(old, new)
+
+
+def test_d823_existing_output_cannot_be_overwritten(tmp_path):
+    from scripts.ieee_tc.audit_d703_3b_full import compare_stage_audits
+    with pytest.raises(FileExistsError):
+        compare_stage_audits(tmp_path/'old', tmp_path/'new', tmp_path)
+
+
 def d721_rows():
     from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
     def row(rid, owner, start, first, last, tokens, load=False):

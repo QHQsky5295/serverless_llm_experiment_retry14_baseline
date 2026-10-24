@@ -63,6 +63,173 @@ D716_TTFT_STAGES = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
     'native_engine_queue_ms', 'native_prefill_ms')
 
 
+def paired_stage_groups(reference, candidate):
+    """D823: match observed requests, not counterfactual outcomes or iid trials.
+
+    Input phase/length groups are shared. Tier and pass/fail transitions are
+    explicitly post-treatment descriptive groups. Nested spans and peer overlap
+    are never added to the six exclusive TTFT stages.
+    """
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    identities = ('ordinal', 'phase', 'adapter_id', 'prompt_tokens', 'output_tokens', 'output_bin')
+    flags = ('ttft_pass', 'tpot_pass', 'joint_pass')
+    metrics = (*D716_TTFT_STAGES, 'ttft_ms', 'tpot_ms', 'e2e_ms',
+        'routing_nested_ms', 'peer_prefill_fraction',
+        'peer_demand_load_fraction', 'peer_decode_fraction')
+    indexes = []
+    for rows in (reference, candidate):
+        index = {r['request_id']: r for r in rows}
+        if not rows or len(index) != len(rows):
+            raise ValueError('nonempty unique request identities required')
+        for r in rows:
+            for key in flags:
+                if type(r[key]) is not bool:
+                    raise ValueError('typed SLO decisions required')
+            if r['joint_pass'] != (r['ttft_pass'] and r['tpot_pass']):
+                raise ValueError('joint SLO identity mismatch')
+            for key in metrics:
+                if type(r[key]) not in (int, float) or not math.isfinite(r[key]) or r[key] < 0:
+                    raise ValueError(f'finite nonnegative metric required: {key}')
+            if abs(sum(r[k] for k in D716_TTFT_STAGES)-r['ttft_ms']) > 1.:
+                raise ValueError('exclusive TTFT stage identity mismatch')
+            for key in identities:
+                if r[key] is None or r[key] == '':
+                    raise ValueError(f'input identity missing: {key}')
+        indexes.append(index)
+    old, new = indexes
+    if set(old) != set(new):
+        raise ValueError('same complete request population required')
+    pairs = [(old[rid], new[rid]) for rid in sorted(old, key=lambda rid: old[rid]['ordinal'])]
+    records = []
+    for a, b in pairs:
+        if any(a[k] != b[k] for k in identities):
+            raise ValueError('matched request input identity differs')
+        record = dict(request_id=a['request_id'], **{k: a[k] for k in identities},
+                      tier_transition=f"{a['tier']}->{b['tier']}")
+        for key in flags:
+            record[f'{key}_transition'] = ('pass' if a[key] else 'fail')+'->'+('pass' if b[key] else 'fail')
+        record.update({f'delta_{k}': b[k]-a[k] for k in metrics})
+        records.append(record)
+    groups = []
+    dimensions = ('all', 'phase', 'output_bin', 'tier_transition',
+                  *(f'{k}_transition' for k in flags))
+    for dimension in dimensions:
+        labels = ['all'] if dimension == 'all' else sorted({r[dimension] for r in records}, key=str)
+        for label in labels:
+            positions = [i for i, r in enumerate(records) if dimension == 'all' or r[dimension] == label]
+            selected = [pairs[i] for i in positions]
+            summary = dict(dimension=dimension, label=label, n=len(selected),
+                grouping='shared_input' if dimension in ('all', 'phase', 'output_bin') else 'post_treatment')
+            for name, side in (('reference', 0), ('candidate', 1)):
+                rows = [pair[side] for pair in selected]
+                summary[name] = dict(counts={k: sum(r[k] for r in rows) for k in flags},
+                    metrics={k: timing_stats([r[k] for r in rows]) for k in metrics})
+            summary['mean_paired_delta'] = {k: sum(b[k]-a[k] for a, b in selected)/len(selected) for k in metrics}
+            groups.append(summary)
+    transitions = {key: dict(collections.Counter(r[f'{key}_transition'] for r in records)) for key in flags}
+    for key in flags:
+        net = sum(b[key]-a[key] for a, b in pairs)
+        if net != transitions[key].get('fail->pass', 0)-transitions[key].get('pass->fail', 0):
+            raise ValueError('SLO transition reconciliation failed')
+    return dict(groups=groups, requests=records, transitions=transitions,
+                confidence_interval=None, causal_performance_gain=None)
+
+
+def compare_stage_audits(reference_path, candidate_path, output):
+    """Reuse two sealed complete D716 tables and small lifecycle files only."""
+    from scripts.ieee_tc.analyze_d297_full import lifecycle_pair_decomposition
+    if output.exists():
+        raise FileExistsError(output)
+    runs, rows_by_run, sources, metrics_by_run = {}, {}, [], {}
+    integer_fields = ('ordinal', 'phase', 'prompt_tokens', 'output_tokens')
+    boolean_fields = ('ttft_pass', 'tpot_pass', 'joint_pass')
+    numeric_fields = (*D716_TTFT_STAGES, 'ttft_ms', 'tpot_ms', 'e2e_ms',
+        'routing_nested_ms', 'peer_prefill_fraction',
+        'peer_demand_load_fraction', 'peer_decode_fraction')
+    for name, stage_path in (('reference', reference_path), ('candidate', candidate_path)):
+        diagnosis_path = stage_path/'diagnosis.json'
+        diagnosis = read(diagnosis_path)
+        if diagnosis['kind'] != 'd716_all_request_stage_diagnosis_v1' or diagnosis['passed'] is not True:
+            raise ValueError('sealed all-request stage audit required')
+        table = stage_path/'requests.csv'
+        if diagnosis['request_table']['path'] != str(table) or digest(table) != diagnosis['request_table']['sha256']:
+            raise ValueError('sealed request table changed')
+        refs = {Path(x['path']): x['sha256'] for x in diagnosis['source_refs']}
+        metric_paths = [x for x in refs if x.name == 'full4000.json']
+        if len(metric_paths) != 1:
+            raise ValueError('one complete metric audit required')
+        metric_path = metric_paths[0]
+        metric = read(metric_path)
+        if (digest(metric_path) != refs[metric_path] or metric['passed'] is not True
+                or metric['counts']['n'] != 4000 or metric['source_run'] != diagnosis['source_run']):
+            raise ValueError('complete same-run sealed metric audit required')
+        physical_path = Path(metric['source_run'])/'launch.launch/physical_deployment/summary.json'
+        deployment_path = physical_path.with_name('deployment.json')
+        physical, deployment = read(physical_path), read(deployment_path)
+        if (digest(physical_path) != refs[physical_path] or deployment['plan'] != metric['replay_plan']
+                or abs(physical['gpu_seconds']-metric['physical_gpu_seconds']) > 1e-6):
+            raise ValueError('physical/replay source mismatch')
+        protocol_paths = [ROOT/'docs/ieee_tc'/x for x in
+            ('METRIC_PROTOCOL_FROZEN_V1.md', 'METRIC_PROTOCOL_SINGLE_RUN_V2.md')]
+        for path in protocol_paths:
+            if digest(path) != refs[path]:
+                raise ValueError('frozen metric protocol changed')
+        with table.open() as handle:
+            rows = list(csv.DictReader(handle))
+        for r in rows:
+            for key in integer_fields:
+                r[key] = int(r[key])
+            for key in boolean_fields:
+                if r[key] not in ('True', 'False'):
+                    raise ValueError('explicit CSV boolean required')
+                r[key] = r[key] == 'True'
+            for key in numeric_fields:
+                r[key] = float(r[key])
+        if (len(rows) != 4000 or sorted(r['ordinal'] for r in rows) != list(range(4000))
+                or any(sum(r[k] for r in rows) != metric['counts'][k] for k in boolean_fields)):
+            raise ValueError('complete offered population/counts mismatch')
+        rows_by_run[name], metrics_by_run[name] = rows, metric
+        runs[name] = dict(physical=physical, deployment=deployment)
+        sources += [diagnosis_path, table, metric_path, physical_path, deployment_path, *protocol_paths]
+    old, new = metrics_by_run['reference'], metrics_by_run['candidate']
+    if old['replay_plan'] != new['replay_plan'] or old['common_slo_sha256'] != new['common_slo_sha256']:
+        raise ValueError('same frozen replay and common SLO required')
+    report = paired_stage_groups(rows_by_run['reference'], rows_by_run['candidate'])
+    paired_requests = report.pop('requests')
+    report['lifecycle'] = lifecycle_pair_decomposition(runs, contrast=('reference', 'candidate'))
+    windows = runs['reference']['physical']['window_gpu_seconds']
+    newer_windows = runs['candidate']['physical']['window_gpu_seconds']
+    if set(windows) != set(newer_windows):
+        raise ValueError('same exclusive lifecycle windows required')
+    for run in runs.values():
+        if abs(sum(run['physical']['window_gpu_seconds'].values())-run['physical']['gpu_seconds']) > 1e-6:
+            raise ValueError('exclusive lifecycle window identity mismatch')
+    report['window_gpu_seconds'] = {key: dict(reference=windows[key], candidate=newer_windows[key],
+        delta=newer_windows[key]-windows[key]) for key in windows}
+    sources += [Path(__file__), ROOT/'scripts/ieee_tc/analyze_d297_full.py',
+                ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+                Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
+    report.update(kind='d823_paired_stage_lifecycle_diagnosis_v1', passed=True,
+        source_runs={k:v['source_run'] for k,v in metrics_by_run.items()},
+        source_refs=[ref(x) for x in dict.fromkeys(sources)],
+        n_correct=None, numerical_adapter_correctness_qualified=False, ranking_eligible=False,
+        limitations=['Descriptive paired request changes, not independent repetitions or causal effects.',
+            'Tier/pass transitions condition on observed outcomes; they are not randomized cohorts.',
+            'Peer overlap excludes proactive preparation and does not measure kernel interference.',
+            'Reuses sealed timing/identity checks; does not revalidate raw tokens or numerical adapter correctness.',
+            'Lifecycle allocation boundaries explain accounting, not why the autoscaler triggered.',
+            'No latency subtraction, counterfactual SLO, new replay, changed thresholds or plot.'])
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'paired_requests.csv').open('x') as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(paired_requests[0]))
+        writer.writeheader(); writer.writerows(paired_requests)
+    report['request_table'] = ref(output/'paired_requests.csv')
+    with (output/'diagnosis.json').open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps(dict(passed=True, output=str(output), transitions=report['transitions'],
+                         lifecycle_delta=report['lifecycle']['candidate_minus_reference_gpu_s'])))
+
+
 def clipped_sequential_stages(start, end, boundaries):
     """Partition one local interval, including joined/already-finished work.
 
@@ -1311,14 +1478,20 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--diagnose-remote-preparation', type=Path)
+    parser.add_argument('--compare-stage-audits', type=Path)
+    parser.add_argument('--reference-stage-audit', type=Path)
     parser.add_argument('--stage-audit', type=Path)
     parser.add_argument('--metric-audit', type=Path)
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation, args.compare_stage_audits)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_remote_preparation is not None:
+    if args.compare_stage_audits is not None:
+        if args.reference_stage_audit is None or args.stage_audit is None:
+            parser.error('--reference-stage-audit and --stage-audit are required for --compare-stage-audits')
+        compare_stage_audits(args.reference_stage_audit.resolve(), args.stage_audit.resolve(), args.compare_stage_audits.resolve())
+    elif args.diagnose_remote_preparation is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-remote-preparation')
         diagnose_remote_preparation(args.raw, args.diagnose_remote_preparation, args.stage_audit)

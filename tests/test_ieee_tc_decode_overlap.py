@@ -351,6 +351,15 @@ class RetainedLifecycle(unittest.TestCase):
         self.assertIsNone(result['causal_savings'])
         self.assertIsNone(result['confidence_interval'])
 
+    def test_explicit_lifecycle_pair_preserves_default_accounting(self):
+        old = self.resource_pair()
+        pair = {'reference': old['d318'], 'candidate': old['d323']}
+        result = lifecycle_pair_decomposition(pair, contrast=('reference', 'candidate'))
+        self.assertEqual(result['candidate_minus_reference_gpu_s'], 7.)
+        self.assertEqual(result['earlier_allocation_gpu_s']+result['later_release_gpu_s'], 4.)
+        with self.assertRaises(ValueError):
+            lifecycle_pair_decomposition(pair, contrast=('reference', 'reference'))
+
     def test_pair_rejects_incomplete_or_different_device_population(self):
         for case in ('missing', 'device', 'empty', 'origin'):
             pair = self.resource_pair()
