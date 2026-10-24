@@ -1,0 +1,14 @@
+"""Reuse D812's twice-verified compressor for D813's closed outcome only."""
+from pathlib import Path
+
+_template = Path(__file__).resolve().parent.parent/'d812_20261024/storage_maintenance.py'
+_source = _template.read_text()
+for _old, _new in (
+    ('d812_20261024/3b_max3_full_w0', 'd813_20261025/3b_max3_full_w1'),
+    ('d812_3b_max3_full_w0', 'd813_3b_max3_full_w1'),
+    ('20261025_d812_closed_outcome', '20261025_d813_closed_outcome'),
+    ('D812', 'D813'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+exec(compile(_source, str(_template), 'exec'), globals())

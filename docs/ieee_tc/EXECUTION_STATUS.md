@@ -1,4 +1,40 @@
-# IEEE TC execution status — D813 W1 closed: within budget, joint SLO 93.975%; W2 next
+# IEEE TC execution status — D814 same-config W2 preparation; W1 remains nonfeasible
+
+## 2026-10-25 D814同配置W2准备，无新在线优化
+
+完整核查PLAN/当前状态/V1/V2及适用补充。D813封存、远端备份和无损压缩
+已完成，当前无GPU进程；disk约150.13GiB、MemAvailable约106GiB。
+新增独立D814路径，复用已冻结3B W2 map，不生成工件/负载。不改变D812
+控制配置，D813联合93.975%仍未达标。只扩展现有runner和离线W2身份检查，
+最小相关测试后备份启动，不重复原生资格，不调整baseline或共享k3s。
+使用run-experiment/github-sync，原始单轮与失败保留。完整主线仍active；
+W2完成后才依据阶段证据选一个优化方向；没有宣称G1/G2或最终V2已完成。
+
+## 2026-10-25 01:21 CST D813已远端备份并无损压缩；下一主线同配置W2
+
+本轮PROGRESS收尾：31个明确路径提交6c6f452f30de84fc1d1819b2e63bc54ce4c54342，
+已push并ls-remote核对refs/heads/backup/d813-complete-20261025。包含完整
+W1指标、请求阶段CSV/JSON、描述符/远端/资源闭环、147保护复核及执行恢复
+快照；未stage用户manifest，BASE未修改，无force/凭据，未宣称最终V2已同步。
+备份域已自然移除并核实inactive/空Invocation/path absent；退出前实测peak
+53190656B、事件/swap0，无事后计数补造，无GPU进程。
+
+复用D812/D752及现有compress_closed_main_outcomes，只压缩已审计/已备份
+D813 main_outcome：568629280B→72398992B，实际回收496234496B。源SHA
+b050d9cb344e4a3dee3943f8e109544a9c29940be4169f219dd1a5a709666a83，gzip SHA
+cd0d1b92f791a33cd8571aeeae7287f21672bc66ad4c8bef7202e3fd1ba84d17；两次
+解压SHA与原源一致后才移除未压缩副本。独立request result、缓存、工件/负载/
+旧投稿保持不变。storage peak105164800B、事件/swap0，域自然移除核验通过。
+现free161201369088B（约150.13GiB），已超过下一任务150GiB底线；新任务
+仍核对实际剩余量和预计增长，不把这一时点作为永久保证。
+
+存储回执在paper_results/ieee_tc/storage/20261025_d813_closed_outcome*，
+RAW保留post_backup_release/storage_identity/storage_closure及两维护入口。
+这些备份后新回执与本段文档在下一正常启动备份时一并收录，不重复push循环。
+目前没有后台实验、待工具session或新D814配置。下一仍是同配置3B W2，先
+按既有W2映射扩展离线视图身份核对与现有runner入口，不重复原生资格；W1
+93.975%未达标结果不隐藏、不重跑，不按W2场景切换在线参数。完成W2后结合
+阶段证据和历史已否定方向再选一个优化假设，保持完整目标active。
 
 ## 2026-10-25 01:17 CST D813完整结束，保存未达标结果后继续同配置W2
 

@@ -687,12 +687,14 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
 
 
 def registered_arrival_plan(identity, *, expected_count: int):
-    """Reconstruct the recorded W0/W1 view, never silently audit W1 as W0."""
+    """Reconstruct the recorded view, including W2's content-bound adapter map."""
     from faaslora.datasets.workload_generator import FrozenReplayPlan
-    if identity.get('profile') not in ('W0', 'W1'):
-        raise ValueError('registered W0/W1 arrival profile required')
+    if identity.get('profile') not in ('W0', 'W1', 'W2'):
+        raise ValueError('registered W0/W1/W2 arrival profile required')
     plan = FrozenReplayPlan.load(identity['source_path'], profile=identity['profile'],
-        count=expected_count, rate_scale=identity['rate_scale'])
+        count=expected_count, rate_scale=identity['rate_scale'],
+        adapter_map=identity.get('adapter_map'),
+        adapter_map_sha256=identity.get('adapter_map_sha256'))
     if plan.identity() != identity:
         raise ValueError('frozen source/prefix/arrival contract mismatch')
     return plan
@@ -702,7 +704,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
     """R1: append-only native SLO correction, with bounded streaming memory.
 
     No remote call, GPU launch, threshold change or modification of v1 evidence.
-    Registered W0/W1 views and prefixes use the SAME D648 thresholds.
+    Registered W0/W1/W2 views and permitted prefixes use the SAME D648 thresholds.
     """
     import ijson
     from faaslora.metrics.metrics_collector import NativeV1TokenTimeline

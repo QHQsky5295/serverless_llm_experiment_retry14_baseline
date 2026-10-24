@@ -759,6 +759,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=100
     ;;
+  d814)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2
+    CONFIG=configs/ieee_tc/20261025_d814_3b_max3_full_w2.yaml
+    TAG=d814_3b_max3_full_w2
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d813)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d813_20261025/3b_max3_full_w1
     CONFIG=configs/ieee_tc/20261025_d813_3b_max3_full_w1.yaml
@@ -989,6 +996,18 @@ if [[ "${1:-d293}" == d752 ]]; then
   export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
 fi
 if [[ "${1:-d293}" == d812 ]]; then
+  export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
+  export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+  export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
+fi
+if [[ "${1:-d293}" == d814 ]]; then
+  export FAASLORA_TC_REPLAY_PROFILE=W2
+  export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
+  export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
   export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
   export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c

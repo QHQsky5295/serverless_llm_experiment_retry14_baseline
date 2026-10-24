@@ -1,6 +1,7 @@
 """Offline timing/plot guards; no GPU or scientific-effect qualification."""
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -427,6 +428,41 @@ def test_d813_rejects_changed_arrival_identity(d813_arrival_source, field, value
     identity[field] = value
     with pytest.raises(ValueError):
         registered_arrival_plan(identity, expected_count=501)
+
+
+@pytest.fixture
+def d814_w2_plan():
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    root = Path(__file__).resolve().parents[1]
+    mapping = root/'paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json'
+    source = json.loads(mapping.read_text())['source_path']
+    return FrozenReplayPlan.load(source, profile='W2', adapter_map=mapping,
+        adapter_map_sha256='28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23')
+
+
+def test_d814_reconstructs_content_bound_w2(d814_w2_plan):
+    from scripts.ieee_tc.audit_d703_3b_full import registered_arrival_plan
+    restored = registered_arrival_plan(d814_w2_plan.identity(), expected_count=4000)
+    assert restored.entries == d814_w2_plan.entries
+    assert restored.identity() == d814_w2_plan.identity()
+
+
+@pytest.mark.parametrize('field,value', [('profile','W0'), ('source_sha256','0'*64),
+    ('view_sha256','0'*64), ('adapter_map_sha256','0'*64), ('rate_scale',2.), ('count',3999)])
+def test_d814_rejects_changed_w2_identity(d814_w2_plan, field, value):
+    from scripts.ieee_tc.audit_d703_3b_full import registered_arrival_plan
+    identity = d814_w2_plan.identity()
+    identity[field] = value
+    with pytest.raises(ValueError):
+        registered_arrival_plan(identity, expected_count=4000)
+
+
+def test_d814_rejects_missing_w2_map(d814_w2_plan):
+    from scripts.ieee_tc.audit_d703_3b_full import registered_arrival_plan
+    identity = d814_w2_plan.identity()
+    del identity['adapter_map']
+    with pytest.raises(ValueError):
+        registered_arrival_plan(identity, expected_count=4000)
 
 
 @pytest.mark.parametrize("count", [0, 99, 101, 3999])

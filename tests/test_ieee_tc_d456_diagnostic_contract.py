@@ -191,6 +191,52 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D814FullContract(unittest.TestCase):
+    def test_same_frozen_configuration_except_exclusive_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d814_3b_max3_full_w2.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section][field])
+            self.assertIn('d814', new[section].pop(field))
+        self.assertEqual(old, new)
+
+    def test_only_frozen_adapter_view_changes_in_qualified_launch(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        case = re.search(r'^  d814\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', case)
+        self.assertIn('SCENARIO=tc_ieee_full', case)
+        pattern = r'^if \[\[ "\$\{1:-d293\}" == %s \]\]; then\n(.*?)^fi'
+        old = re.search(pattern % 'd812', shell, re.M | re.S).group(1)
+        new = re.search(pattern % 'd814', shell, re.M | re.S).group(1)
+        prefix = ('  export FAASLORA_TC_REPLAY_PROFILE=W2\n'
+                  '  export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"\n'
+                  '  export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23\n')
+        self.assertEqual(new, prefix+old)
+        self.assertNotIn('d814', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+    def test_existing_w2_view_preserves_arrivals_prompts_and_targets(self):
+        import json
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        mapping = ROOT/'paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json'
+        source = json.loads(mapping.read_text())['source_path']
+        w0 = FrozenReplayPlan.load(source)
+        w2 = FrozenReplayPlan.load(source, profile='W2', adapter_map=mapping,
+            adapter_map_sha256='28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23')
+        self.assertEqual(len(w2.entries), 4000)
+        self.assertEqual(w2.identity()['view_sha256'], '5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174')
+        self.assertEqual(w0.source_sha256, w2.source_sha256)
+        for before, after in zip(w0.entries, w2.entries):
+            self.assertEqual((before.request_id, before.offset_s), (after.request_id, after.offset_s))
+            original, mapped = json.loads(before.source_json), json.loads(after.source_json)
+            provenance = mapped.pop('tc_adapter_rotation')
+            self.assertEqual(provenance['original_source_item_sha256'], before.source_sha256)
+            mapped['adapter_id'] = original['adapter_id']
+            mapped['body']['lora_adapter_name'] = original['body']['lora_adapter_name']
+            mapped['adapter_domain'] = original['adapter_domain']
+            self.assertEqual(original, mapped)
+
+
 class D813FullContract(unittest.TestCase):
     def test_same_frozen_configuration_except_exclusive_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml').read_text())

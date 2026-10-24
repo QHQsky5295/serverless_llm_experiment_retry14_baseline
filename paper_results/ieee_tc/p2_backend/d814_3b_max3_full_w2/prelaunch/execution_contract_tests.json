@@ -1,0 +1,4 @@
+{
+  "passed": true,
+  "output": "test_existing_w2_view_preserves_arrivals_prompts_and_targets (tests.test_ieee_tc_d456_diagnostic_contract.D814FullContract.test_existing_w2_view_preserves_arrivals_prompts_and_targets) ... ok\ntest_only_frozen_adapter_view_changes_in_qualified_launch (tests.test_ieee_tc_d456_diagnostic_contract.D814FullContract.test_only_frozen_adapter_view_changes_in_qualified_launch) ... ok\ntest_same_frozen_configuration_except_exclusive_paths (tests.test_ieee_tc_d456_diagnostic_contract.D814FullContract.test_same_frozen_configuration_except_exclusive_paths) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 2.189s\n\nOK"
+}
