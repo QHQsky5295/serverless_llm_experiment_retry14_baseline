@@ -1,0 +1,22 @@
+"""Read back actual post-backup release; no new resource domain is needed."""
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import time
+RAW=Path(__file__).resolve().parent
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+record=json.loads((RAW/'backup.json').read_text())
+identity=json.loads((RAW/'finish_backup_identity.json').read_text())
+state=subprocess.check_output(['systemctl','--user','show',identity['unit'],
+    '-p','ActiveState','-p','InvocationID','-p','ControlGroup'],text=True)
+assert 'ActiveState=inactive' in state and not Path(identity['path']).exists()
+gpu=subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True)
+assert not gpu.strip()
+assert not subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).strip()
+with (RAW/'post_backup_release.json').open('x') as h:
+    json.dump(dict(passed=True,checked_unix=time.time(),backup_head=record['head'],
+        backup_ref=record['ref'],scope=identity,state=state,path_exists=False,gpu_compute_empty=True,
+        disk_available_bytes=shutil.disk_usage(ROOT).free,staged_files=[]),h,indent=2)
+    h.write('\n')
+print(json.dumps(dict(passed=True,head=record['head'],disk_available_bytes=shutil.disk_usage(ROOT).free)))

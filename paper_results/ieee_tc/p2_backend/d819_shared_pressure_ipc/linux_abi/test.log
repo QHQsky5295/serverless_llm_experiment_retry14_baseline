@@ -1,0 +1,17 @@
+test_alternating_complete_revisions_with_spawned_readers (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_alternating_complete_revisions_with_spawned_readers) ... ok
+test_attach_during_io_and_retirement_project_only_owned_intervals (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_attach_during_io_and_retirement_project_only_owned_intervals) ... ok
+test_explicit_close_is_unavailable_not_zero_for_existing_reader (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_explicit_close_is_unavailable_not_zero_for_existing_reader) ... ok
+test_invalid_projection_never_replaces_valid_revision (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_invalid_projection_never_replaces_valid_revision) ... ok
+test_malformed_state_is_not_zero_pressure (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_malformed_state_is_not_zero_pressure) ... ok
+test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock) ... ok
+test_no_reader_write_privilege_and_no_cross_thread_reuse (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_no_reader_write_privilege_and_no_cross_thread_reuse) ... ok
+test_owner_exit_invalidates_readable_nonempty_memfd (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_owner_exit_invalidates_readable_nonempty_memfd) ... ok
+test_repeated_cancel_joins_real_publication_before_propagation (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_repeated_cancel_joins_real_publication_before_propagation) ... ok
+test_two_real_readers_see_one_physical_interval_without_event_rpcs (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_two_real_readers_see_one_physical_interval_without_event_rpcs) ... ok
+test_unresolved_interval_cannot_be_closed_as_idle (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_unresolved_interval_cannot_be_closed_as_idle) ... ok
+test_wrong_inode_generation_and_clock_cannot_attach (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_wrong_inode_generation_and_clock_cannot_attach) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.062s
+
+OK

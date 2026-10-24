@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checked_unix": 1792874262.7978265,
+  "backup_head": "f5b93734ecb2df4d05d8af18f47d15a42f9642eb",
+  "backup_ref": "refs/heads/backup/d818-remote-diagnosis-20261025",
+  "scope": {
+    "inode": 32016904,
+    "invocation_id": "93740f772cbc4c3fa8daa3ca59c2cdfa",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d818ca11000000000000000000000008.scope",
+    "unit": "primelora-tc-aux-d818ca11000000000000000000000008.scope"
+  },
+  "state": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "path_exists": false,
+  "gpu_compute_empty": true,
+  "disk_available_bytes": 161164206080,
+  "staged_files": []
+}

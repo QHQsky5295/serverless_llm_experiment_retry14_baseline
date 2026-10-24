@@ -1,0 +1,28 @@
+{
+  "disk_available_bytes": 161158025216,
+  "finished_unix": 1792874880.757225,
+  "gpu_performance_run": false,
+  "identity": {
+    "inode": 32022160,
+    "invocation_id": "458999f89b1e4907b7576bdd570ab4ff",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8190000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-d8190000000000000000000000000001.scope"
+  },
+  "kind": "bounded_cross_process_component_qualification",
+  "passed": false,
+  "production_wired": false,
+  "program_sha256": "0086c2f9a5887b535e0684fcd5ecda5bb04e8c953885474538d8b1eb433ffbcd",
+  "resources": {
+    "cpu.stat": "usage_usec 429087\nuser_usec 331067\nsystem_usec 98019\ncore_sched.force_idle_usec 0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.peak": "50663424",
+    "memory.swap.current": "0"
+  },
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py": "af93b773dfa4c2f448976a270cbd6eb1feb2fc6a49a61ea9b8001551eb5e9a7d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py": "fa2305229b8481f82b144a79c84ae84e5d1f65d47de0bd5354adf5c943b46024"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  }
+}

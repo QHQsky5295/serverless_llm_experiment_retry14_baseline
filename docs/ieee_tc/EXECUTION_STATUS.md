@@ -1,4 +1,50 @@
-# IEEE TC execution status — D818 offline diagnosis: shared pressure handoff is a candidate, no new production change
+# IEEE TC execution status — D819 shared-pressure IPC qualified; production integration is next
+
+## 2026-10-25 D819跨进程组件已验证，未接入生产
+
+本轮PROGRESS。确认用户已授权隔离适配：HydraServe现有独立适配与结果复用，
+不接入或修改非项目k3s，不重复询问。重读PLAN/AGENTS/状态和scope/storage/
+baseline规则；使用serving-llms-vllm核对原生边界，未采用其通用调参或目标。
+核查D595/D598失败候选、D818归因、当前domain/native/准入代码和官方vLLM/
+Python文档后，实现唯一候选的独立IPC组件shared_transfer_state.py。
+
+同物理域唯一writer匿名memfd、独立只读reader、跨进程flock及pidfd身份；
+read transaction覆盖观测/使用，publication取消仍join。attach/retire投影、
+未决区间、owner退出、损坏数据都不能变零压力，不修改九公式/压力分母。
+尚未连接SharedFileTransferDomain或native bridge，不宣称系统优化已生效。
+
+首12项在初始化失败：实际Conda未导出memfd/pidfd接口；失败log/源SHA/初版tar
+保留。改为明确Linux libc memfd绑定并复用既有_open_pidfd后，12项实际spawn
+跨进程/锁/取消/生命周期组件测试全过，2.062s；不是GPU实验或延迟microbenchmark。
+两aux峰值50663424/118521856B，high/max/OOM/swap0，均已真实inactive/路径移除。
+当前无待工具session，不动远端、数据、配置或旧结果；磁盘约150.1GiB，下一
+重型启动须重新复核。旧d788/d793三个scope是TasksCurrent=0残留，本轮未改动。
+
+文档D819_SHARED_PRESSURE_IPC_20261025.md；curated
+paper_results/ieee_tc/p2_backend/d819_shared_pressure_ipc/。
+下一先完成检查点备份，再**同一候选**接入既有domain生命周期与同core准入
+观测/提交事务；补受影响测试和必要原生资格后新键完整W2，不重做D818或
+无变化的组件资格，不叠加其他优化。须检查共享锁区间无跨进程回调依赖环。
+现有runner/residency_manager保持D816 SHA，实际主SLO结果仍D813 W1 93.975%、
+D817 W2 89.90%，D711数值身份未知；完整两模型同版主比较/Full、A1–A5、
+S1–S13、成本/CE/Pareto、两轮审稿文档及最终图文/V2保留，目标active，不画图。
+
+## 2026-10-25 04:37 CST D818备份与关闭完成
+
+31条明确路径提交f5b93734ecb2df4d05d8af18f47d15a42f9642eb，已push并ls-remote
+核实refs/heads/backup/d818-remote-diagnosis-20261025；非最终V2同步。
+其中包含D817备份后的存储/关闭回执，不递归重复备份。首备份因pytest原始
+日志空白行触发whitespace检查而停止在commit前；保留原log字节、只将其
+排除源码空白规范后完成。backup_recovery.json及原脚本/恢复脚本均保留。
+
+aux08真实inactive、Invocation/ControlGroup空、路径不存在，GPU空、stage空；
+post_backup_release.json保存回执。当前tracked修改仅用户manifest及此状态
+续记，生产两个SHA保持D816，不做新模型回放。磁盘161164201984B约150.1GiB，
+没有本轮额外回收或压缩，不把它当下一任务资源保证。无待工具session。
+
+下一直接进入下节唯一候选的语义/有界跨进程验证，不重复D818阶段分析、
+旧D595并行屏障或D628移hash锁；必要时先重新核查磁盘。整个目标active，
+未完矩阵和D711正确性限制不变。收尾回执随下一正常检查点纳入。
 
 ## 2026-10-25 D818离线分解完成，下一论证权威共享压力观测
 

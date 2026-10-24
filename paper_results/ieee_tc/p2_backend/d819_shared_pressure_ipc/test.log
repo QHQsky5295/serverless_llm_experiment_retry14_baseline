@@ -1,0 +1,161 @@
+test_alternating_complete_revisions_with_spawned_readers (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_alternating_complete_revisions_with_spawned_readers) ... ERROR
+test_attach_during_io_and_retirement_project_only_owned_intervals (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_attach_during_io_and_retirement_project_only_owned_intervals) ... ERROR
+test_explicit_close_is_unavailable_not_zero_for_existing_reader (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_explicit_close_is_unavailable_not_zero_for_existing_reader) ... ERROR
+test_invalid_projection_never_replaces_valid_revision (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_invalid_projection_never_replaces_valid_revision) ... ERROR
+test_malformed_state_is_not_zero_pressure (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_malformed_state_is_not_zero_pressure) ... ERROR
+test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock) ... ERROR
+test_no_reader_write_privilege_and_no_cross_thread_reuse (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_no_reader_write_privilege_and_no_cross_thread_reuse) ... ERROR
+test_owner_exit_invalidates_readable_nonempty_memfd (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_owner_exit_invalidates_readable_nonempty_memfd) ... ERROR
+test_repeated_cancel_joins_real_publication_before_propagation (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_repeated_cancel_joins_real_publication_before_propagation) ... ERROR
+test_two_real_readers_see_one_physical_interval_without_event_rpcs (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_two_real_readers_see_one_physical_interval_without_event_rpcs) ... ERROR
+test_unresolved_interval_cannot_be_closed_as_idle (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_unresolved_interval_cannot_be_closed_as_idle) ... ERROR
+test_wrong_inode_generation_and_clock_cannot_attach (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_wrong_inode_generation_and_clock_cannot_attach) ... ERROR
+
+======================================================================
+ERROR: test_alternating_complete_revisions_with_spawned_readers (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_alternating_complete_revisions_with_spawned_readers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_attach_during_io_and_retirement_project_only_owned_intervals (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_attach_during_io_and_retirement_project_only_owned_intervals)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_explicit_close_is_unavailable_not_zero_for_existing_reader (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_explicit_close_is_unavailable_not_zero_for_existing_reader)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_invalid_projection_never_replaces_valid_revision (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_invalid_projection_never_replaces_valid_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_malformed_state_is_not_zero_pressure (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_malformed_state_is_not_zero_pressure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_native_observation_use_turn_excludes_publication_and_preserves_nested_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_no_reader_write_privilege_and_no_cross_thread_reuse (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_no_reader_write_privilege_and_no_cross_thread_reuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_owner_exit_invalidates_readable_nonempty_memfd (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_owner_exit_invalidates_readable_nonempty_memfd)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_repeated_cancel_joins_real_publication_before_propagation (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_repeated_cancel_joins_real_publication_before_propagation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_two_real_readers_see_one_physical_interval_without_event_rpcs (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_two_real_readers_see_one_physical_interval_without_event_rpcs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_unresolved_interval_cannot_be_closed_as_idle (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_unresolved_interval_cannot_be_closed_as_idle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+======================================================================
+ERROR: test_wrong_inode_generation_and_clock_cannot_attach (tests.test_ieee_tc_shared_transfer_state.SharedTransferStateTests.test_wrong_inode_generation_and_clock_cannot_attach)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_transfer_state.py", line 52, in setUp
+    self.owner = SharedTransferStateOwner('physical-files')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/shared_transfer_state.py", line 64, in __init__
+    self._fd = os.memfd_create('primelora-transfer-pressure', os.MFD_CLOEXEC)
+               ^^^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'memfd_create'
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.097s
+
+FAILED (errors=12)

@@ -1,0 +1,46 @@
+{
+  "closed_qualifications": [
+    {
+      "identity": {
+        "inode": 32022160,
+        "invocation_id": "458999f89b1e4907b7576bdd570ab4ff",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8190000000000000000000000000001.scope",
+        "unit": "primelora-tc-aux-d8190000000000000000000000000001.scope"
+      },
+      "path_exists": false,
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "inode": 32022518,
+        "invocation_id": "d718270d5f064cebaf97699e50968b38",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8190000000000000000000000000002.scope",
+        "unit": "primelora-tc-aux-d8190000000000000000000000000002.scope"
+      },
+      "path_exists": false,
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    }
+  ],
+  "disk_available_bytes": 161157459968,
+  "no_gpu_compute": true,
+  "no_performance_replay": true,
+  "no_remote_mutation": true,
+  "passed": true,
+  "production_unchanged": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "scripts/run_all_experiments.py": "63bf1d1dc176f38b9770cbcab705b867c248ff7892b5d2d4e74e55afd3a972a5"
+  },
+  "protected": {
+    "changed": [],
+    "entry_count": 147,
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  },
+  "protected_user_files": {
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  }
+}
