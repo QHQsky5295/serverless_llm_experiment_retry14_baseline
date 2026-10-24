@@ -1,0 +1,29 @@
+"""Preserve the pre-GPU import failure and close only its verified empty scope."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+sys.path.insert(0, str(BASE/'scripts'))
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(MAIN)
+identity = p.scope_identity('primelora-tc-aux-d8030000000000000000000000000001.scope')
+assert identity['invocation_id'] == 'adf65c5942d245faa75068632120ce8b'
+group = Path(identity['path'])
+members = {str(path): path.read_text().split() for path in group.rglob('cgroup.procs')}
+assert members and all(not values for values in members.values())
+assert p.digest(RAW/'prepare_import_failure.py') == 'b0e46ef7fcc2f87162dd5dc831dde50c6162d1fcb366520272b5aa8282cf5c89'
+assert not any((RAW/name).exists() for name in ('qualification.json', 'qualification_identity.json', 'overlays', 'metadata', 'probe_launch.json'))
+resources = p.cgroup_snapshot(group)
+assert p.scope_still_owned(identity)
+subprocess.run(['systemctl', '--user', 'stop', identity['unit']], check=True)
+assert not group.exists()
+with (RAW/'prepare_import_failure_closure.json').open('x') as stream:
+    json.dump(dict(passed=True, identity=identity, resources=resources, path_gone=True,
+        actual_recursive_procs_empty=True, classification='protocol_or_launcher_error',
+        observed_returncode=1, source_sha256=p.digest(RAW/'prepare_import_failure.py'),
+        error="ImportError: cannot import name 'ieee_tc_preflight' from 'scripts' (baseline regular package)",
+        model_or_torch_loaded=False, gpu_run_executed=False, weights_or_trace_changed=False), stream, indent=2)
+print(json.dumps(dict(passed=True, scope_closed=True, gpu_run_executed=False)))

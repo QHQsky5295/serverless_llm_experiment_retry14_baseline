@@ -1,0 +1,32 @@
+{
+  "schema": "hydraserve_native_partition_v1",
+  "total_layers": 28,
+  "partitions": {
+    "1": [
+      28
+    ],
+    "2": [
+      14,
+      28
+    ],
+    "3": [
+      8,
+      20,
+      28
+    ],
+    "4": [
+      5,
+      14,
+      23,
+      28
+    ]
+  },
+  "model_config_sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+  "header_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct/model-00001-of-00002.safetensors": "58e68073fda43c094068939b0508e97f6e295cab178a83ec9464ade55688b42a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct/model-00002-of-00002.safetensors": "a13e271ba00a58d5a4d1ce7fe08c1178b8d6299fa5a7302a696a58ce06d7f2d0",
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/adapter_model.safetensors": "d9f990385e6ab3aa1dcac18f1ff7eae27b69e6471bce85751d54b557d11b5fb9",
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/medical_lora/adapter_model.safetensors": "d9f990385e6ab3aa1dcac18f1ff7eae27b69e6471bce85751d54b557d11b5fb9"
+  },
+  "source": "unchanged native get_layer_distribution"
+}

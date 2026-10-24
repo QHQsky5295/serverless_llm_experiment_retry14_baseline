@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "tests": 32,
+  "elapsed_seconds": 0.942,
+  "command": "taskset -c 2 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_ieee_tc_hydraserve_llama_model_compat tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_layer_identity -q",
+  "execution": "completed exec session 60302, exit0; no Torch/GPU in these CPU tests",
+  "files_sha256": {
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/scripts/probe_layer_identity.py": "a4e6640e7b285f626acc924267a73069256876a6e8da0dfe3ec2887db3bfa4c9",
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_layer_identity.py": "c3eeb51ae633803ed0f0f8cb23b40b64ad18db0d5f6638648f5a74b66735c0ba"
+  },
+  "change": "reuse existing explicit-file guard loader in preparation/native/reference paths"
+}

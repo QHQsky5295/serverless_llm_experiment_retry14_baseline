@@ -1,0 +1,78 @@
+"""Prepare the affected HydraServe 3B probe with existing delivery helpers.
+
+Do not execute while D802 is live. No model payload is copied or imported here.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+DONE = RAW.parent.parent/'loquetier_qualification/d802_20261024'
+sys.path[:0] = [str(MAIN), str(BASE)]
+from scripts import ieee_tc_preflight as p
+from HydraServe_project.runtime.native_delivery import render_overlays, materialize_metadata
+from HydraServe_project.scripts.probe_layer_identity import MODEL_3B, NATIVE
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, sort_keys=True, allow_nan=False)
+
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, value in (('memory.high', 3*p.GIB), ('memory.max', 4*p.GIB), ('memory.swap.max', 0)):
+    assert (Path(own['path'])/name).read_text().strip() == str(value)
+assert json.loads((DONE/'result_receipt.json').read_text())['passed']
+assert json.loads((DONE/'local_cleanup.json').read_text())['passed']
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+gate = p.preflight([RAW], predicted_growth=int(.1*p.GIB))
+save(RAW/'qualification_resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+preserved = json.loads((DONE/'preparation.json').read_text())['preserved']
+for path, digest in preserved.items():
+    assert p.digest(Path(path)) == digest, path
+
+# Preserve the same optional native integration as D576; add only the explicit
+# model compatibility overlay. The PP1 probe does not start the controller.
+overlays = render_overlays(NATIVE, request_contract=True, shm_control=True,
+                          lora_admission_capacity=True, llama_model_compat=True)
+manifest = {}
+for name, content in overlays.items():
+    path = RAW/'overlays'/name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('xb') as stream:
+        stream.write(content)
+    manifest[name] = hashlib.sha256(content).hexdigest()
+save(RAW/'overlays/manifest.json', manifest)
+partition = materialize_metadata(RAW/'metadata', 'llama32_3b', MODEL_3B, native_root=NATIVE)
+assert partition['total_layers'] == 28 and partition['partitions'][1] == [28]
+
+retained = RAW.parent.parent/'dlora_qualification/d790_20261024/native_probe.json'
+assert p.digest(retained) == 'c81d3376854fcc9d8f6b8ebb431908ae49df86c6a2d5d08cc3eb7f8de43c598d'
+sources = [RAW/'prepare.py', RAW/'run_probe.py', RAW/'close.py',
+           RAW/'overlays/manifest.json', RAW/'metadata/partition.json', retained,
+           MAIN/'scripts/ieee_tc_preflight.py',
+           BASE/'HydraServe_project/scripts/probe_layer_identity.py',
+           BASE/'Loquetier_project/scripts/run_loquetier_trace_gate.py']
+sources += sorted((BASE/'HydraServe_project/runtime').glob('*.py'))
+save(RAW/'qualification.json', dict(passed=True, prepared_not_launched=True,
+    refs={str(path): p.digest(path) for path in sources}, preserved=preserved,
+    overlay_manifest_sha256=p.digest(RAW/'overlays/manifest.json'),
+    partition_sha256=p.digest(RAW/'metadata/partition.json'),
+    source_heads={label: subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+                  for label, root in (('main', MAIN), ('baseline', BASE))},
+    retained_inputs=str(retained), retained_inputs_sha256=p.digest(retained),
+    performance_run=False, numerical_qualified=False, new_weights_or_trace=False,
+    scope='PP1 native prefill and two paged decode steps, two retained requests; sequential HF/PEFT reference',
+    criteria=dict(relative_l2_max=.01, cosine_min=.999, greedy_token_equal=True,
+                  rope_cache_max_abs_error_max=1e-3)))
+print(json.dumps(dict(passed=True, prepared_not_launched=True, performance_run=False)))

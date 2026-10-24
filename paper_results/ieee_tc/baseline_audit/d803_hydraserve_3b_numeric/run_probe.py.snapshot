@@ -1,0 +1,55 @@
+"""Reuse gated-launch and the existing HydraServe ModelRunner probe entry."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+ENV = BASE/'installs/hydraserve_native_d484_20261013'
+PYBASE = Path('/home/qhq/anaconda3/envs/hydraserve_py_20260520')
+CUDA = Path('/home/qhq/anaconda3/envs/slinfer_official_20260612')
+sys.path.insert(0, str(BASE/'scripts'))
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(MAIN)
+
+own = p.scope_identity(p.cg_path().name)
+with (RAW/'probe_identity.json').open('x') as stream:
+    json.dump(own, stream, indent=2)
+q = json.loads((RAW/'qualification.json').read_text())
+assert q['passed'] and q['prepared_not_launched']
+for path, digest in q['refs'].items():
+    assert p.digest(Path(path)) == digest, path
+closed = json.loads((RAW/'qualification_closure.json').read_text())
+assert closed['path_gone'] and not Path(closed['identity']['path']).exists()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+nccl = RAW.parent/'d486_20261013/private_home/.config/vllm/nccl/cu12/libnccl.so.2.18.1'
+assert p.digest(nccl) == '005503b62b9fe466b6b2f60ba2ad1daa4571196ffcb82a3d77a3c775bfcd5ac8'
+nv = CUDA/'lib/python3.11/site-packages/nvidia'
+libraries = [ENV/'lib/python3.10/site-packages/torch/lib', PYBASE/'lib',
+             *[path/'lib' for path in sorted(nv.iterdir()) if (path/'lib').is_dir()], CUDA/'lib']
+env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(MAIN), str(BASE))),
+    LD_LIBRARY_PATH=os.pathsep.join(map(str, libraries)), CUDA_VISIBLE_DEVICES='0',
+    TRANSFORMERS_OFFLINE='1', HF_HUB_OFFLINE='1', VLLM_NO_USAGE_STATS='1',
+    VLLM_NCCL_SO_PATH=str(nccl), PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1',
+    PP_RANK='0', PP_SIZE='1', DEST_PP_RANK='-1', DEST_PP_SIZE='1',
+    ENABLE_PARA='0', LOCAL_SERVER='0', LOCAL_INFERENCE='0', CPU_ENV='0', HYDRASERVE_HF_SHARDS='1',
+    HYDRASERVE_PARTITION_MANIFEST=str(RAW/'metadata/partition.json'),
+    HYDRASERVE_PARTITION_SHA256=q['partition_sha256'],
+    FAASLORA_TC_NVML_BINDING='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py',
+    FAASLORA_TC_NVML_SHA256='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea')
+script = BASE/'HydraServe_project/scripts/probe_layer_identity.py'
+with (RAW/'probe_launcher.log').open('x') as stream:
+    result = subprocess.run(['/usr/bin/python3', '-B', str(MAIN/'scripts/ieee_tc_preflight.py'),
+        'gated-launch', '--output', str(RAW/'probe_launch.json'), '--predicted-growth-gib', '0.1',
+        '--exec', str(ENV/'bin/python'), '-B', str(script), '--model-output-probe',
+        '--model', str(MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct'),
+        '--pool', '/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope',
+        '--retained-inputs', q['retained_inputs'], '--retained-inputs-sha256', q['retained_inputs_sha256'],
+        '--runtime-overlay', str(RAW/'overlays'), '--runtime-overlay-sha256', q['overlay_manifest_sha256'],
+        '--output', str(RAW/'native_probe.json')], cwd=BASE, env=env,
+        stdout=stream, stderr=subprocess.STDOUT)
+print(json.dumps(dict(launcher_returncode=result.returncode, receipt=str(RAW/'probe_launch.json'))))
+raise SystemExit(result.returncode)

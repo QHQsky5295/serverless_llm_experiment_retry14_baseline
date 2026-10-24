@@ -243,3 +243,20 @@ prepare明确在D802结果封存及本地资源释放后运行，沿用辅助域
 本次重新核对官方ModelRunner的实际input preparation、采样输出和本地原生
 worker/cache加载接口；仍使用此前预定数值阈值，不把既有两个逻辑adapter
 解释成两份独立训练权重。当前没有D803结果，不能声称数值验证已经通过。
+
+## 17:40补充：代码检查点已备份，尚未执行GPU验证
+
+D802完整W2结果在MAIN提交2e03240376d093884ff1ba7ef396e7f8ad2e9f0a并
+推送独立备份分支后，六个HydraServe任务文件单独提交至baseline仓库。
+HEAD为05be2d8a3c2120cf20754af3159781d38d42d639，已核对origin/main一致。
+源文件SHA与17:08的31项CPU测试回执一致，复用有效测试，没有重复执行
+不变的资格。此前两份CPU回执保留当时未提交状态，不原地追改历史字段。
+
+提交只含三个runtime/probe文件及三个对应测试；原生安装/模型权重未改，
+用户dirty脚本未提交。D803的backup_receipt.json/backup_closure.json保存
+跨仓身份与受限辅助域关闭证据。原D802仍绑定旧BASE8594922，不把新代码
+追记为其实际执行版本。本次没有Torch/GPU运行，不是数值或性能资格结果。
+
+后续复用已准备的D803最小模型检查入口，不重新适配其他项目Kubernetes。
+真实provider/shared-memory和pipeline/consolidation范围必须另按受影响
+路径核验；PP1小样本通过也不能代替这些证据或完整4000请求实验。

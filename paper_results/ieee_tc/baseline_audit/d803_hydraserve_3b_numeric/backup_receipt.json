@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "baseline_head": "05be2d8a3c2120cf20754af3159781d38d42d639",
+  "remote_ref": "refs/heads/main",
+  "main_result_head": "2e03240376d093884ff1ba7ef396e7f8ad2e9f0a",
+  "source_files_sha256": {
+    "HydraServe_project/runtime/llama_model_compat.py": "121e610a8bdbe108aea8e580e1edc2a8149b3f4b9701e21a6e6e5a07be2edcb7",
+    "HydraServe_project/runtime/native_delivery.py": "9dd9d0053bb3e92d7eadb294ae4ba833dd42044d1600f3bfa36c33177293e36b",
+    "HydraServe_project/scripts/probe_layer_identity.py": "cbad43e09caef4d10b79725b69327bf01127bf5a0339223d86a42035f40420b8",
+    "tests/test_ieee_tc_hydraserve_llama_model_compat.py": "153a2767ef6cef6e71559eaefab881a4d55cdebe30f3209816d4f93b4c4da2c4",
+    "tests/test_ieee_tc_hydraserve_native_delivery.py": "7f8ab08942258944e4c688e236fb1e34f154ff936b3628c61a8a36bacf3a88e3",
+    "tests/test_ieee_tc_hydraserve_layer_identity.py": "606dcaf77ba2058ce5c20791fd6baf0409daf80444942b31b8c76cdf487ec237"
+  },
+  "test_receipt": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/hydraserve_3b_probe_preparation_20261024/receipt.json",
+  "test_receipt_sha256": "caf06745b5e08c4065eade7bb8f94f70f80062a00059525f10a516003219f930",
+  "tests_reused_unchanged": 31,
+  "gpu_run_executed": false,
+  "performance_qualified": false,
+  "other_project_k3s_changed": false,
+  "force_push": false,
+  "new_weights_or_trace": false,
+  "preserved_unchanged": 147,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8030000000000000000000000000003.scope",
+    "memory.current": 14553088,
+    "memory.peak": 28405760,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 654625\nuser_usec 400832\nsystem_usec 253793\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

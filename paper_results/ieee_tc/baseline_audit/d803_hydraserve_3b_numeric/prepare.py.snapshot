@@ -1,0 +1,14 @@
+"""Reuse D803 preparation with the established explicit-file guard loader."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).with_name('prepare_import_failure.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'b0e46ef7fcc2f87162dd5dc831dde50c6162d1fcb366520272b5aa8282cf5c89'
+source = data.decode()
+before = 'from scripts import ieee_tc_preflight as p'
+assert source.count(before) == 1
+source = source.replace(before,
+    "sys.path.insert(0, str(BASE/'scripts'))\n"
+    "from prepare_ieee_tc_serverless_stack import load_guard\np = load_guard(MAIN)")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

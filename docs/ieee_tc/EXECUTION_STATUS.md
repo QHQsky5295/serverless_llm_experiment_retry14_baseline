@@ -1,4 +1,78 @@
-# IEEE TC execution status — D802 Loquetier 3B W2 completed; HydraServe 3B next
+# IEEE TC execution status — D803 HydraServe 3B PP1 numerics passed; native delivery next
+
+## 2026-10-24 17:48 CST D803实际GPU数值检查6/6通过并释放
+
+本轮PROGRESS：完整重读PLAN/当前状态，沿run-experiment/vLLM serving的
+受控模型诊断；monitor-experiment核验实际进程，analyze-results区分局部
+证据与完整系统，github-sync用于后置检查点。没有重开Loquetier实验。
+
+第一次prepare在导入安全模块前即退出：BASE regular scripts包遮蔽MAIN
+namespace目录。这是入口错误，不是模型失败；没有Torch、GPU、metadata
+或qualification创建。D574历史也出现过同类冲突，故复用已有load_guard
+具体文件加载器，统一prepare/原生probe/参考子进程，不再靠根路径顺序。
+原源码SHA b0e46e保留为prepare_import_failure.py；空域0001/invocation
+adf65c5942d245faa75068632120ce8b已精确关闭，failure_closure保留returncode1。
+新增对应CPU回归，相关三模块32项通过（0.942s）；模型/调度/内核未因此改变。
+
+prepare辅助域0004通过并关闭，实际metadata为既有权重链接/28层分片元数据，
+overlay manifest SHA c17b4455f928317ba27fc1ac79cbee2314bebd7392e81e5a115adc9b451680fa。
+随后同一D803启动一次GPU数值probe：tmux tc-d803-hydraserve-3b-numeric，
+service8d3801969a4c4d2a9ed3ce7d15f08a67/invocation db45d076da134b8abf61a2f97fd99f17。
+已真实终态，服务/watchdog0、context释放、服务域消失；probe辅助域0002已关闭。
+
+2个真实输入的prefill及后两步paged decode共6/6通过：最大relative L2
+0.0019939281046390533，最小cosine0.9999924898147583，最大绝对logits误差
+0.0322265625；greedy6/6相同、前1024位置RoPE cache误差0，真实GPU
+embedding/head参数别名保持、参数全FP16。原生peak allocated7099779584B，
+参考前已释放至42074112B；HF/PEFT使用既有环境顺序加载，不安装新依赖。
+两个逻辑ID同一独立权重内容；不扩大成两种权重可区分或全4000数值证明。
+provider_shared_memory/pipeline_consolidation/full_workload数值资格仍false。
+
+结果SHA a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5；
+native logits SHA4fd6208ae10e8da883f8ecec76027c3a324bcb16e6ec3dde9ace8a09f8b0b444。
+41个资源样本：host最小available106053029888B、服务peak8351453184B；
+high/max/OOM/kill/swap/abort0。无GPU进程/待工具session，Feishu无配置。
+17:47磁盘161417719808B；没有复制工件、清理唯一数据、维护远端或改其他k3s。
+
+新结果文档D803_HYDRASERVE_3B_MODEL_NUMERICS_20261024.md。当前准备执行
+有界result辅助域0005的显式检查点：BASE仅提交probe导入修正与对应测试，
+MAIN保存源码/结果/失败和32项测试回执；原始3MiB logits只保留raw并记SHA。
+当前执行HEAD05be2d8加已记录dirty源码身份，不追改为后置干净提交。
+
+下一复用D576/D579/D582原生provider/shared-memory、平台及HTTP入口，
+核验受影响的3B权重交付/共享及流水线路径，完成HydraServe3B完整场景。
+已通过的隔离平台不重做，未变的短资格不重复，不做baseline参数搜索。
+全基线比较→PrimeLoRA优化→同版Full/A1–A5/S1–S13/成本CE/Pareto/
+审稿文档/图表/最终V2全部保留，goal active；本检查不是性能结果或目标完成。
+
+## 2026-10-24 17:40 CST D802结果与HydraServe适配分别备份完成
+
+D802已在MAIN提交2e03240376d093884ff1ba7ef396e7f8ad2e9f0a并核对GitHub
+refs/heads/backup/d802-loquetier-3b-w2-result-20261024一致；结果辅助域0008
+关闭，峰值34844672B、保护事件0。没有force push，最终V2分支尚未同步，
+不把备份分支说成最终发布。D802仍记录实际执行BASE8594922，不追改身份。
+
+随后在独立D803辅助域0003复用既有显式路径/secret/diff检查，核对六文件
+SHA与31项CPU检查回执完全一致，只提交这些HydraServe文件到BASE main。
+新HEAD05be2d8a3c2120cf20754af3159781d38d42d639已核对origin/main一致。
+用户两个dirty脚本和MAIN manifest保持原SHA；无原模型/环境/后端安装修改。
+该提交是必要模型适配和数值检查入口，不是性能优化结果，也未开始GPU验证。
+RAW hydraserve_qualification/d803_20261024/backup_receipt.json保存源文件
+SHA/历史测试回执与跨仓身份；backup_closure.json确认域消失，峰值28405760B，
+high/max/OOM0、swap0。backup_source.py SHA
+d739beaed4cd5d92dc32c9bc1494b6390908cfffc0cd14392183e3459aab2961。
+
+当前没有GPU进程、运行中的实验或待工具session，远端本轮服务均已停止。
+17:39磁盘可用161420673024B，约150.34GiB；下一启动必须重新实测，不能
+把刚好超过门槛当成未来保证。D803 prepare/run_probe/close仍未执行，故
+qualification.json/probe_launch.json和数值结果尚不存在。下一先按现有
+受控入口物化小型元数据/overlay，最小验证PP1 prefill与paged decode，
+再核对受影响provider/共享权重/pipeline范围并完成HydraServe3B场景。
+不重做无变化的平台资格，不接管其他项目k3s，不补重复100/1000回放。
+
+完整目标仍active：HydraServe3B→全基线比较→PrimeLoRA按历史/源码/论文
+证据优化→同版Full/A1–A5/S1–S13、成本/CE/Pareto、审稿文档、图表与最终
+V2。当前所有Loquetier结果是单轮已知负载观测，不称独立正式留出或全局最优。
 
 ## 2026-10-24 17:38 CST D802真实结束、完整分析与缓存回收通过
 
