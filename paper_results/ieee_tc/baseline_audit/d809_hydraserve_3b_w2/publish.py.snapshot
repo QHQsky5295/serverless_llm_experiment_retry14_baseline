@@ -1,0 +1,48 @@
+"""Reuse D807's explicit-path checkpoint for W2 and closed D808 maintenance."""
+from hashlib import sha256
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d807_20261024/publish.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '89bcdbdf8171a750f171ff0f84b6858132d200baf518e74bb9beac79b07dd08b'
+source = data.decode()
+
+
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, (old, source.count(old))
+    source = source.replace(old, new)
+
+
+assert source.count('full_w0_evaluation.json') == 2
+source = source.replace('full_w0_evaluation.json', 'full_w2_evaluation.json')
+replace("RAW/'full_w0_slo_rows.json'", "RAW/'full_w2_slo_rows.json'")
+replace("assert numerical['affected_path_pass'] and not numerical['independent_full_correctness_proven']",
+        "assert numerical['delivery_sanity_pass'] and numerical['local_prefix_reference_pass'] and not numerical['independent_full_correctness_proven']")
+replace('d807_hydraserve_3b_full_w0', 'd809_hydraserve_3b_w2')
+replace('d806_cache_reclamation', 'd808_post_publication_and_storage')
+replace("old = RAW.parent/'d806_20261024'", "old = RAW.parent/'d808_20261024'")
+replace("'storage_closure.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json', 'retained_cache_metadata.json')]",
+        "'storage_closure.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json', 'retained_cache_metadata.json', "
+        "'publication_receipt.json', 'publication2_closure.json', 'close_publication_retry.py')]")
+replace('85e5400db9d431099b559ab6fc2219c7932e55da', 'd9f30a6203cf1f5917bb1544957b16b4f4ba34d3')
+replace('D807_HYDRASERVE_3B_FULL_W0_20261024.md', 'D809_HYDRASERVE_3B_W2_20261024.md')
+replace('backup/d807-hydraserve-3b-full-w0-20261024', 'backup/d809-hydraserve-3b-w2-20261024')
+replace('tc: seal HydraServe 3B full W0 observation (D807)', 'tc: seal HydraServe 3B W2 observation (D809)')
+replace('unchanged HydraServe 3B W1/W2 then full comparison', 'complete 3B baseline comparison')
+replace("paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',",
+        "paths = [MAIN/'docs/ieee_tc/D808_HYDRASERVE_3B_W1_20261024.md', MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',")
+replace("checked(sources)", "sources += [RAW/'w2_input_qualification.json', RAW/'protected_after_audit.json']\nchecked(sources)")
+replace("reference_prefix_verified=True, observed_joint_slo=evaluation['joint_slo'],",
+        "reference_prefix_verified=numerical['local_prefix_reference_pass'], local_reference_count=numerical['local_prefix_reference_count'], protected_unchanged=147, observed_joint_slo=evaluation['joint_slo'],")
+anchor = "OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d809_hydraserve_3b_w2'"
+replace(anchor, """protected_path = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(protected_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = read(protected_path)['entries']
+assert len(protected) == 147
+for path, record in protected.items():
+    assert Path(path).stat().st_size == record['size'] and p.digest(Path(path)) == record['sha256'], path
+save(RAW/'protected_after_audit.json', dict(passed=True, unchanged=len(protected),
+    source=str(protected_path), source_sha256=p.digest(protected_path)))
+""" + anchor)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

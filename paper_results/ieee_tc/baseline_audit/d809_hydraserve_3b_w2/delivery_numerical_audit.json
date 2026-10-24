@@ -1,0 +1,67 @@
+{
+  "all_zero_output_count": 0,
+  "all_zero_request_ids": [],
+  "audit_completed": true,
+  "delivery_sanity_pass": true,
+  "independent_full_correctness_proven": false,
+  "local_prefix_reference_count": 2,
+  "local_prefix_reference_pass": true,
+  "n_arrived": 4000,
+  "n_correct": null,
+  "n_plan": 4000,
+  "n_response": 4000,
+  "n_terminal": 4000,
+  "native_binding_accounting_passed": true,
+  "reference_comparisons": [
+    {
+      "actual_adapter_id": "finance_lora_0025",
+      "applicable": true,
+      "expected_prefix": [
+        578,
+        19114,
+        374
+      ],
+      "observed_prefix": [
+        578,
+        19114,
+        374
+      ],
+      "prefix_pass": true,
+      "reference_adapter_id": "finance_lora_0025",
+      "request_id": "req_00200",
+      "same_adapter_id": true,
+      "same_prompt_ids": true
+    },
+    {
+      "actual_adapter_id": "finance_lora",
+      "applicable": true,
+      "expected_prefix": [
+        578,
+        2326,
+        1288
+      ],
+      "observed_prefix": [
+        578,
+        2326,
+        1288
+      ],
+      "prefix_pass": true,
+      "reference_adapter_id": "finance_lora",
+      "request_id": "req_00001",
+      "same_adapter_id": true,
+      "same_prompt_ids": true
+    }
+  ],
+  "scope": "Native binding/accounting and nonzero delivery audited for all responses; exact-input reference prefixes only where prompt IDs and adapter both match; not full independent numerical correctness",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit.py": "2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/audit.py": "7f45d3dfdb8f4963369e81373dfd4692cd9c48d980a049c14c80641e0ca681c6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/closure.json": "5c838b4019a5c8426fa535cc0ab85bc4bc843e4e0ae9a118eb383eb81da98d67",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/full_w2_evaluation.json": "4541ad363f967dc7e3e8e571c6537703330ba524fc96b89bd5ec259e5061fd6c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/http_audit.json": "8f4f9d518f187504cd8c78cabe86f273a90e726a8c3ecda592b98adcda2bb24a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/launch_gate.json": "de8b08693443a3727161888e4b1cb2f538ea8f2014c55dcc017e1189f495c551",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/remote_stop.json": "eb5e017b3d9872d4e97f82233dd5414ad744a2603f870072a6ca3915f6ba9c84",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/w2_input_qualification.json": "38552ec0cfe96d7823b6ebbc782546aa5de33f6904ae7c9f5a2e99af2b2a7095"
+  }
+}

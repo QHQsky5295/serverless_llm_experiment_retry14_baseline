@@ -1,0 +1,48 @@
+{
+  "algorithm": "ours",
+  "original_idle_grace_s": 30,
+  "resource_gpus": [
+    [
+      24,
+      24,
+      24,
+      24
+    ]
+  ],
+  "instances": [
+    {
+      "id": 0,
+      "pp_size": 1,
+      "inited": true,
+      "num_reqs": -1,
+      "will_scale_down": false
+    },
+    {
+      "id": 43,
+      "pp_size": 1,
+      "inited": true,
+      "num_reqs": -1,
+      "will_scale_down": false
+    },
+    {
+      "id": 44,
+      "pp_size": 1,
+      "inited": true,
+      "num_reqs": -1,
+      "will_scale_down": false
+    }
+  ],
+  "native_stats": {
+    "model_size": 6,
+    "ttft_slo": 9000,
+    "tpot_slo": 200,
+    "cost_slo": 1000000,
+    "num_profile_points": 4000,
+    "tpot": 76.09195377451326,
+    "prefill_time": 443.7943316135057,
+    "cur_gpu_usage": 0,
+    "cur_usage_start_time": 1792846858.4769528,
+    "past_cost": 100208783.58626366,
+    "num_output_tokens": 458224
+  }
+}

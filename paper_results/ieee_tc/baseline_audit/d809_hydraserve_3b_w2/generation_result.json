@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "performance_result": false,
+  "qualification_only": true,
+  "native_http_open_loop": true,
+  "numerical_lora_qualified": false,
+  "counts": {
+    "event": "http_replay_complete",
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0
+  },
+  "observed_terminals": 4000,
+  "native_response_count": 4000,
+  "actual_native_idle_release": true
+}

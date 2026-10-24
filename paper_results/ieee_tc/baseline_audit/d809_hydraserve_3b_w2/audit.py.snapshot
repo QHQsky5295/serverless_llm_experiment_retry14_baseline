@@ -1,0 +1,71 @@
+"""Reuse the complete D807 3B audit for W2; compare references only on exact inputs."""
+from hashlib import sha256
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+original = RAW.parent/'d807_20261024/audit.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd'
+source = data.decode()
+old = '0345c5e577756f015d673ba67324f5698954019a67e587dcdd5aed078835738d'
+assert source.count(old) == 1
+source = source.replace(old, 'e1e4ab6f38cbab9d1248187624c620248ea842ea94f7ee63e94100108e7f4806')
+anchor = "scope = {'__name__': '__main__', '__file__': str(RAW/'audit.py')}"
+assert source.count(anchor) == 1
+source = source.replace(anchor,
+    "source = source.replace('full_w0', 'full_w2').replace('full-W0', 'full-W2').replace('observed_w0', 'observed_w2')\n" + anchor)
+reference_anchor = "reference_path = RAW.parent/'d803_20261024/native_probe.json'"
+assert source.count(reference_anchor) == 1
+source = source.split(reference_anchor)[0]
+environment = {'__name__': '__main__', '__file__': str(RAW/'audit.py')}
+exec(compile(source, str(original), 'exec'), environment)
+p, save, scope = environment['p'], environment['save'], environment['scope']
+assert len({row['adapter_id'] for row in scope['rows']}) == 497
+qualification = json.loads((RAW/'w2_input_qualification.json').read_text())
+assert qualification['passed'] and qualification['exact_4000_entries_equal']
+assert scope['plan'].identity() == qualification['common_plan']
+
+# W2 changes adapter assignments. A differing source JSON is not, by itself,
+# proof of a different prompt or adapter. Test the actual identities explicitly.
+reference_path = RAW.parent/'d803_20261024/native_probe.json'
+assert p.digest(reference_path) == 'a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5'
+reference = json.loads(reference_path.read_text())
+comparisons = []
+for item in reference['inputs']:
+    rid = item['request_id']
+    native = scope['raws'][rid]['body']['metrics']['ieee_tc']
+    same_prompt = native['native_prompt_token_ids'] == item['prompt_ids']
+    same_adapter = scope['contracts'][rid]['adapter_id'] == item['adapter_id']
+    checks = sorted((r for r in reference['checks'] if r['request_id'] == rid),
+                    key=lambda r: r['step'])
+    assert checks and all(r['passed'] and r['native_token'] == r['reference_token'] for r in checks)
+    expected = [r['reference_token'] for r in checks]
+    observed = native['completion_token_ids'][:len(expected)]
+    applicable = same_prompt and same_adapter
+    comparisons.append(dict(request_id=rid, same_prompt_ids=same_prompt,
+        same_adapter_id=same_adapter, reference_adapter_id=item['adapter_id'],
+        actual_adapter_id=scope['contracts'][rid]['adapter_id'],
+        applicable=applicable, expected_prefix=expected, observed_prefix=observed,
+        prefix_pass=observed == expected if applicable else None))
+matched = [r for r in comparisons if r['applicable']]
+all_zero = [rid for rid, row in scope['raws'].items()
+            if set(row['body']['metrics']['ieee_tc']['completion_token_ids']) == {0}]
+result = dict(audit_completed=True,
+    native_binding_accounting_passed=scope['result']['full_audit_pass'],
+    delivery_sanity_pass=not all_zero,
+    local_prefix_reference_count=len(matched),
+    local_prefix_reference_pass=all(r['prefix_pass'] for r in matched) if matched else None,
+    independent_full_correctness_proven=False, n_correct=None,
+    n_plan=4000, n_arrived=4000, n_terminal=4000, n_response=4000,
+    all_zero_output_count=len(all_zero), all_zero_request_ids=all_zero,
+    reference_comparisons=comparisons,
+    scope='Native binding/accounting and nonzero delivery audited for all responses; exact-input reference prefixes only where prompt IDs and adapter both match; not full independent numerical correctness',
+    source_sha256={str(path): p.digest(path) for path in
+        (RAW/'audit.py', original, reference_path, RAW/'full_w2_evaluation.json',
+         RAW/'http_audit.json', RAW/'launch_gate.json', RAW/'closure.json',
+         RAW/'remote_stop.json', RAW/'w2_input_qualification.json')})
+save('delivery_numerical_audit.json', result)
+assert not all_zero, 'retain all-zero native delivery failure'
+assert all(r['prefix_pass'] for r in matched), 'retain exact-input prefix mismatch for investigation'
+print(json.dumps({k:v for k,v in result.items() if k != 'source_sha256'}))

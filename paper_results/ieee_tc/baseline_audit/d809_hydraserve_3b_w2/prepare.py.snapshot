@@ -1,0 +1,58 @@
+"""Reuse qualified D807 delivery with the existing, common 3B W2 view."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+PREVIOUS = RAW.parent/'d808_20261024'
+evaluation = json.loads((PREVIOUS/'full_w1_evaluation.json').read_text())
+assert evaluation['full_audit_pass'] and evaluation['n_v1_contract_complete'] == 4000
+assert json.loads((PREVIOUS/'delivery_numerical_audit.json').read_text())['affected_path_pass']
+assert json.loads((PREVIOUS/'publication_receipt.json').read_text())['passed']
+for phase in ('prepare', 'remote_prelaunch', 'audit', 'publication', 'publication2', 'storage'):
+    closed = json.loads((PREVIOUS/(phase+'_closure.json')).read_text())
+    assert closed['passed'] and closed['path_gone']
+    assert not Path(closed['identity']['path']).exists()
+assert json.loads((PREVIOUS/'storage_receipt.json').read_text())['passed']
+assert not (PREVIOUS/'remote_artifacts/objects').exists()
+
+original = RAW.parent/'d807_20261024/prepare.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '586ea1fd7e39affa2307ddfc30049c17b143f1c63ac83f2240c2326839727fab'
+source = data.decode().replace("'d807'", "'d809'")
+anchor = "exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})"
+assert source.count(anchor) == 1
+source = source.replace(anchor, '''
+replace('serverless_qualification/d764_20261023/http_3b_4000.json',
+        'serverless_qualification/d766_20261023/http_3b_4000.json')
+replace('plan = load_http_replay_plan(cfg)', """assert p.digest(cfg_source) == '97c5c9c52c9589381c1e8078c6b385fabca49e2a38096b9b68e2382a19bae6ab'
+assert cfg['request_view'] == 'trace_w2_v1' and cfg['replay_profile'] == 'W2'
+assert p.digest(Path(cfg['adapter_map'])) == cfg['adapter_map_sha256'] == '28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23'
+plan = load_http_replay_plan(cfg)
+common = load_http_replay_plan(json.loads(cfg_source.read_text()))
+assert plan.identity() == common.identity()
+assert len(plan.entries) == 4000
+assert all((a.request_id, a.offset_s, a.source_sha256, a.source_json) ==
+           (b.request_id, b.offset_s, b.source_sha256, b.source_json)
+           for a, b in zip(plan.entries, common.entries))
+entries = [json.loads(row.source_json) for row in plan.entries]
+assert len({row['adapter_id'] for row in entries}) == 497
+assert sum(min(row['expected_output_tokens'], 256) for row in entries) == 458224
+prior_cfg = json.loads((RAW.parent/'d807_20261024/http_3b_4000.json').read_text())
+prior = load_http_replay_plan(prior_cfg)
+assert all(a.request_id == b.request_id and a.offset_s == b.offset_s
+           for a, b in zip(plan.entries, prior.entries))
+first = next(row for row in plan.entries if row.request_id == 'req_00001')
+prior_first = next(row for row in prior.entries if row.request_id == 'req_00001')
+save('w2_input_qualification.json', dict(passed=True, common_plan=plan.identity(),
+    exact_4000_entries_equal=True, actual_unique_adapters=497, target_tokens=458224,
+    common_config=str(cfg_source), common_config_sha256=p.digest(cfg_source),
+    map_sha256=cfg['adapter_map_sha256'], native_policy_unchanged=True,
+    same_w0_arrival_and_request_ids=True,
+    req_00001_same_w0_source=first.source_json == prior_first.source_json,
+    new_trace_or_weights=False))""")
+replace('compare retained req_00001 first three tokens with D803 independently checked prefix',
+        'compare req_00001 with D803 only if its input and adapter are unchanged; no cross-input numerical inference')
+source = source.replace('W0', 'W2')
+''' + anchor)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

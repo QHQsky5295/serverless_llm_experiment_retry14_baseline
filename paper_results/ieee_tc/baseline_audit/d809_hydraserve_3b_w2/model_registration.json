@@ -1,0 +1,17 @@
+{
+  "mapped_model": "llama32_3b",
+  "model_index_sha256": "0a57c30afc07c81610ae7fe013bea3b9d50365f9a8145ae98e8714220f3d7c7c",
+  "model_info": [
+    6,
+    9000,
+    200,
+    1000000,
+    1
+  ],
+  "model_size_payload_bytes": 6425499648,
+  "model_size_source": "ceil(existing indexed unique tensor bytes / 2**30)",
+  "scope": "affected_model_qualification_not_frozen_performance",
+  "source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/scripts/kubernetes/vllm/src/ModelInfo.py",
+  "source_key": "ModelSet[0]/test common non-size fields; 3B size derived from existing checkpoint",
+  "source_sha256": "896f93490f0bb9072f7eb21a279bf19eef6fc527f40657dad56b37065d3028d9"
+}

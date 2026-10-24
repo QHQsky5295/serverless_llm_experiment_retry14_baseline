@@ -1,0 +1,119 @@
+{
+  "contract": "hydraserve_container_union_v1",
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "measurement_complete": true,
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_correct": null,
+  "observed_until_s": 2358168.862348425,
+  "gpu_seconds_observed": 6113.169924866874,
+  "gpu_seconds": 6113.169924866874,
+  "gpu_seconds_per_correct_request": null,
+  "gpu_seconds_per_offered_observed": 1.5282924812167185,
+  "window_gpu_seconds": {
+    "pre_arrival": 0.0,
+    "arrival": 5992.807169305161,
+    "drain": 18.584989555180073,
+    "cleanup": 101.77776600653306
+  },
+  "device_intervals": {
+    "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+      [
+        2354098.179828504,
+        2358130.990159209
+      ]
+    ],
+    "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+      [
+        2354409.751535015,
+        2354646.122893555
+      ],
+      [
+        2354758.652752272,
+        2354823.859718657
+      ],
+      [
+        2354834.399848817,
+        2354927.306433394
+      ],
+      [
+        2355148.266886632,
+        2355352.494836638
+      ],
+      [
+        2355380.602228497,
+        2355431.8797645
+      ],
+      [
+        2355530.568791753,
+        2355620.731394822
+      ],
+      [
+        2355754.527630684,
+        2355889.753647483
+      ],
+      [
+        2356002.513074173,
+        2356068.062420395
+      ],
+      [
+        2356114.994971763,
+        2356209.23350296
+      ],
+      [
+        2356212.4662441,
+        2356297.224596188
+      ],
+      [
+        2356487.671268405,
+        2356552.086998504
+      ],
+      [
+        2356660.738809233,
+        2356769.303873079
+      ],
+      [
+        2356789.204126296,
+        2356860.305333792
+      ],
+      [
+        2356990.931254273,
+        2357042.139442354
+      ],
+      [
+        2357048.010456398,
+        2357383.980733097
+      ],
+      [
+        2357491.826675607,
+        2357562.925204107
+      ],
+      [
+        2357773.27543414,
+        2357825.221408837
+      ],
+      [
+        2358062.322762981,
+        2358113.771600954
+      ]
+    ],
+    "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+      [
+        2354852.875940733,
+        2354928.277791174
+      ],
+      [
+        2355181.094090111,
+        2355260.372781555
+      ]
+    ]
+  },
+  "open_lease_ids": [],
+  "owner_event_count": 90,
+  "eligible_correctness": false,
+  "owner_and_native_census_qualification_required": true,
+  "numerical_correctness_qualified": false,
+  "native_contexts_qualified": true,
+  "allocation_journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/physical/container_allocations.jsonl",
+  "allocation_journal_sha256": "1de0f52fed641a68d588e7d08453b100d4125b08809684510a22b6e2714c3183"
+}

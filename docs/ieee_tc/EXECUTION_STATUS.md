@@ -1,4 +1,158 @@
-# IEEE TC execution status — D808 HydraServe 3B W1 audited
+# IEEE TC execution status — D809 HydraServe 3B W2 audited; checkpoint next
+
+## 2026-10-24 22:13 CST D809完整W2已结束并核查，下一备份与缓存回收
+
+本轮持续直接轮询同一actual service至实际终态，没有重启、调参或并行重型
+工作；22:07确认4000响应，22:08确认服务/tmux结束与既有自动收尾完成。
+4000到达/终态/原生合同完成，0失败，458224原生输出token，497实际adapter。
+平均/P95 TTFT=1978.660761/10649.148907ms，平均/P95 TPOT=
+72.103609/127.505309ms；TTFT达成82.925%，TPOT/联合均0%。物理U=
+6113.169924866874 GPU-s，1.528292481/合同请求；不满足G1/G2联合要求。
+W2相对W0 P95 TTFT高30.5698%、U高0.3862%，仅为场景差异描述，不作机制
+因果或重复运行结论。远端497fetch/1153526020wireB，pack0。
+
+原生绑定、时间分解、45租约实际释放及逐卡并集核查通过；scheduler均pp1，
+不宣称pipeline效果。service/watchdog退出0，实际递归空/消失，峰值
+60828921856B，high/max/OOM/swap0；远端关闭、端口消失和日志SHA一致。
+audit0003已关闭，峰值336789504B/事件swap0。当前无活动GPU实验或工具session。
+
+已进一步解决此前W2数值参考措辞：req_00200与req_00001虽然source JSON
+有变化，但其实际prompt IDs及adapter身份分别与D803相同，两条首3token
+均匹配；全零输出0。仅局部数值参考，不冒充全量独立正确性，n_correct仍null。
+复用D807/D576/D503统计，不重跑、不新建baseline搜索。evaluation SHA
+4541ad363f967dc7e3e8e571c6537703330ba524fc96b89bd5ec259e5061fd6c。
+
+下一按显式路径检查/备份D809及D808后置publication2/storage回执，再核验回收
+本轮可重建缓存（当前盘约132GiB，不启动新的重型实验）。随后全3B基线比较
+→PrimeLoRA有证据优化→同版Full/A1–A5/S1–S13、成本CE/Pareto、审稿文档、
+图表和最终V2；完整goal active，未把本次baseline完成写成完整目标已达成。
+
+## 2026-10-24 21:25 CST D809完成1409条，隔离运行不改其他项目k3s
+
+本轮为VERIFIED WAIT：完整重读PLAN四段(1–1567)、两仓库AGENTS、最新执行
+补充及monitor-experiment；直接轮询同一actual service、tmux和轻量进度。
+21:25:07 service active，InvocationID0358edd0a52e468083f3a1fe16cc57e5，
+pane1514777存活；HTTP1426received/1409completed/0failed事件。
+watchdog1497：host available69.0197GiB，service44.4071GiB，disk143.3107GiB，
+实际持2GPU；high/max/OOM/swap均0，无warning/abort。仍是同一次4000请求
+回放，尚不能给出完整SLO、GPU-s或独立数值正确性结论。
+
+用户确认现有k3s不属于本项目；继续既有隔离rootless Podman适配，不接入或
+更改共享集群。未新建实验、重启、调参、构建、分析、扫描、清理、推送或维护
+远端，仅更新本状态记录。当前盘高于运行停止线，不在测量中回收缓存。
+继续同轮至真实终态/自动释放和远端收尾，再审计、备份及必要缓存回收；
+随后全基线比较→PrimeLoRA有证据优化→同版Full/A1–A5/S1–S13、成本CE/
+Pareto、审稿文档、图表及最终V2。完整goal保持active，无待工具exec session。
+
+## 2026-10-24 21:17 CST D809完成876条，继续同一完整回放
+
+上一goal turn和本轮均为VERIFIED WAIT。本轮重新读完整PLAN（首次长输出
+截断后已补读215–1050以覆盖遗漏）、当前状态及monitor-experiment；重复
+直接轮询同一实际service与tmux，无重启或参数改动。21:17:20服务active，
+InvocationID0358edd0a52e468083f3a1fe16cc57e5，HTTP884received/
+876completed/0failed事件。watchdog1036：host available73.5774GiB，
+服务37.5610GiB、disk145.5381GiB，持1GPU；high/max/OOM/swap0，
+无warning/abort。完整性能结果仍不存在，当前只是同轮连续进度。
+
+后续数值审计措辞校正：w2_input_qualification只直接证明req_00001的
+source_json与W0不相同，尚不能由此单独断言其prompt或adapter必然不同；
+须核对实际prompt IDs和adapter身份后决定D803前缀是否可比。此前“不同
+adapter”的表述不作为事实证据。仍不把局部前缀匹配扩大成全量独立数值证明。
+
+继续等待4000条真实终态/自动释放与远端收尾；结束后核查、保存备份并回收
+可重建缓存，再完整基线比较→PrimeLoRA优化→同版Full、A1–A5/S1–S13、
+成本CE/Pareto、审稿文档/图表/最终V2。运行中不分析、测试、构建、扫描、
+清理、推送或维护远端；未新增实验。完整goal active，无待exec工具session。
+
+## 2026-10-24 21:13 CST D809持续完成599条，无新配置或重跑
+
+上一goal turn与本轮均为VERIFIED WAIT；本轮完整重读PLAN(1–1567)、状态及
+monitor-experiment，多次核查同一实际service与tmux，不凭历史标记假定存活。
+21:13:21服务active，InvocationID仍0358edd0a52e468083f3a1fe16cc57e5，
+pane1514777存活；HTTP644received/599completed/0failed事件。watchdog801：
+host available74.5555GiB、服务35.1673GiB、disk146.8466GiB、实际持2GPU；
+high/max/OOM/swap0，无warning/abort。暂未结束，不推造完整SLO、GPU-s或
+pipeline/consolidation结论。期间无修改运行配置、额外资格、清理/压缩、分析、
+构建、推送或远端维护；不因盘低于新任务150GiB启动线而中断高于100GiB
+停止线的本轮。继续同一4000条至真实终态/自动释放后审计并备份。
+
+完整基线比较→PrimeLoRA优化→同版Full、A1–A5/S1–S13、成本CE/Pareto、
+审稿文档、图表和最终V2仍待推进。W2不同输入不套旧数值前缀，当前证据范围
+不变；未新增实验或改变评价尺子。完整goal active，无待工具session，实际
+服务和tmux仍运行。
+
+## 2026-10-24 21:08 CST D809同一次W2持续推进，完成363条
+
+上一goal turn为PROGRESS（D808收尾/备份/回收、D809准备启动）；本轮为
+VERIFIED WAIT：完整重读PLAN(1–1567)、当前状态及monitor-experiment，
+多次直接检查同一实际service、tmux与轻量计数，无重启、调参或并行重型任务。
+21:08:11 service仍active，InvocationID0358edd0a52e468083f3a1fe16cc57e5；
+HTTP累计370received/363completed/0failed事件，不能当作完整4000结果。
+watchdog495：host available76.6506GiB、服务32.1666GiB、disk147.7390GiB，
+实际持2卡；high/max/OOM/swap0，无warning/abort。磁盘低于下一新任务150GiB
+启动线但高于本轮100GiB停止线，不在测量中清理或改变门槛。
+
+继续等待同轮真实终态/既有自动收尾，随后W2审计/保存/备份与必要缓存回收。
+已知输入不同于W0，旧数值前缀不能强套；未得出最终SLO/GPU-s/机制结论。
+之后完整基线比较→PrimeLoRA有证据优化→同版Full、A1–A5/S1–S13、成本CE/
+Pareto、审稿文档、图表和最终V2范围不变。无新测试/分析/构建/推送/远端维护，
+无待工具exec session；tmux与实际服务继续运行，完整goal active。
+
+## 2026-10-24 21:00 CST D809已实际启动，保持同配置等待完整W2
+
+本轮PROGRESS：关闭D808备份重试域、完成可重建缓存回收、同合同D809准备与
+真实远端prelaunch、一次W2启动。tmux tc-d809-hydraserve-3b-w2，pane1514777；
+actual service primelora-tc-svc-f307c159040549579f5d6a7ba5150d43.scope，
+InvocationID0358edd0a52e468083f3a1fe16cc57e5、inode31797024，active/running。
+launch aux d8090000000000000000000000000009；exec_receipt绑定真实service。
+监测样本66：host available82.3527GiB、服务23.8667GiB、disk150.3005GiB，
+持1卡；high/max/OOM/swap0、无warning/abort。业务已开始接收，尚无完整结果。
+不因启动/部分回放状态重启或重复；无并行分析、扫描、压缩、测试、构建、推送。
+
+本次远端实际1000Mb/s/full；3B service Invocation7ed82397b6814b308b0192fcca1d5f8f，
+7B124e9d5d418844b782a18041049161d7；monitor
+primelora-artifact-monitor-d809-hydraremote.service Invocation93af02d8238b4864ab7d05260afba1b5。
+3B clock remote-process-monotonic:4078740646f04d29915a168841504896。
+remote_prelaunch0002已关闭、peak72290304B/事件swap0。推理前disk
+161652383744B>150GiB，增长估计20GiB；不改变推理机门槛。已设置原有自动
+实际释放→关闭自有远端→收集日志；运行中不维护远端，不接触其他项目k3s。
+
+下一持续轻量监测同一W2至终态；收尾后复用D807/D582审计并绑定本轮3B
+D648阈值、497adapter和W2来源。尤其不能把不同adapter的req_00001与D803
+旧W0前缀强比较；数值证明范围保持未知。D808后置回执/D809准备待正常
+结果检查点备份。W2→全基线比较→PrimeLoRA优化→同版Full/全部A1–A5、
+S1–S13、成本CE/Pareto、审稿文档、图表、最终V2均保留，完整goal active。
+
+## 2026-10-24 20:58 CST D808备份/回收已完成，D809同配置W2准备通过
+
+按用户最新回复，现有k3s属于其他项目，继续采用已验证的独立rootless
+Podman适配，不改共享集群权限、配置或工作负载。本轮完整重读PLAN、AGENTS、
+最新执行补充与冻结V1/单轮V2，未新增baseline参数搜索或重复资格。
+
+D808结果备份MAIN d9f30a6203cf1f5917bb1544957b16b4f4ba34d3 已核对
+backup/d808-hydraserve-3b-w1-20261024；BASE e1c433bab982366a82ad188ef703270d89d6ea06。
+publication2实际关闭，peak51908608B/事件swap0。首次归档W0文件名残留失败
+保留，只修正引用并核对已有副本，未重跑W1。最终V2尚未同步，不能混称。
+D808重复132对象/1056文件重哈希后回收5143781376B，剩161655963648B；
+原始结果/失败/传输/唯一工件不删，147保护与3用户dirty不变。storage0005
+实际关闭，peak47136768B/事件swap0；后置回执待下一检查点备份。
+
+D809复用D807/D806原生交付，同batch8/idle30/notice60/guard1800及
+ModelInfo [6,9000,200,1000000,1]。仅使用现有D766共同W2映射：4000请求、
+458224目标token、497实际adapter，arrival/request IDs同W0，无新权重/trace。
+W2 view5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174；
+map28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23。
+req_00001的source不同于W0，后续不得直接套D803旧prefix作同输入数值证明。
+
+RAW hydraserve_qualification/d809_20261024；prepare SHA
+7d50c4497314c8e7eb2a05e1cf274062f8dadc60cfa3eb2fc55d9164a4e9bbb8；prereg
+e1e4ab6f38cbab9d1248187624c620248ea842ea94f7ee63e94100108e7f4806；source
+manifest ae6c00cb46bd65b29f5d99036989abbc1d81a687eaad917f81334fdf934b9b94。
+prepare0001关闭，peak293285888B/事件swap0，overlays与D808逐字节一致。
+远端prelaunch通过且域0002关闭，正式请求仍复用D80只读发布、不动态打包。
+当前是准备完成，尚不能声称W2结果。下一只启动一次W2并轻量监测至终态；
+之后全基线比较→PrimeLoRA优化→同版Full/A1–A5/S1–S13/成本CE/Pareto/
+审稿文档/图表/最终V2，完整目标active，不因本轮阶段完成缩减范围。
 
 ## 2026-10-24 D808完整W1已核查，下一备份/回收后同配置W2
 
