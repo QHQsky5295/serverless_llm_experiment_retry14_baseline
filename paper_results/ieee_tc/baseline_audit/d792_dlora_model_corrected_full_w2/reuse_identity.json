@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "prior_campaign": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d787_20261024",
+  "source_sha256": {
+    "native_3b.json": "a21976504d23a941aad7024eb9da45cfaee0987413d0d54ff6df7b712f08844c",
+    "http_3b_4000.json": "7a7264bd9c88244c5eb0a9ee63fc1ee303bb59c943b1c2b5b6b903a4227286d6",
+    "run3b.sh": "1d81894748475f2c54a1e40a16d4e876687820a3cd68291a532ff85d6213d4a4",
+    "freeze_inputs.py": "01acf177dfad5645648c0724d4bf15996ae6b3fd6c3f2a5a3db894ee04cc1357",
+    "close.py": "83ba8795bc391b9485da55fbab4206cfcb0e5dd5713c256437cbe5f3d19b2e89"
+  },
+  "changed_config_fields": [
+    "ray_root",
+    "source_view",
+    "source_view_manifest_sha256"
+  ],
+  "same_performance_config_as_w1": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d791_20261024/native_3b.json",
+  "w1_config_sha256": "e742e69e2d9e99b41e2bec1f1a3c536b758a5d9daf42606ea84ae2b337503e26",
+  "http_bytes_unchanged": true,
+  "model_parity_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d790_20261024/native_probe.json",
+  "model_parity_sha256": "c81d3376854fcc9d8f6b8ebb431908ae49df86c6a2d5d08cc3eb7f8de43c598d",
+  "model_parity_scope": "Two existing prompts/adapters; prefill and two paged decode steps each",
+  "full_workload_numerical_correctness_proven": false,
+  "performance_parameters_changed": false,
+  "reference_package_overlay_used": false,
+  "previous_results_preserved": true,
+  "prior_execution_reuse_class": "R3_model_incompatibility",
+  "generated_sha256": {
+    "native_3b.json": "c38115a6079018c1a6d72b4551d197cd119db47ce6cbec249ad750c8326001a6",
+    "http_3b_4000.json": "7a7264bd9c88244c5eb0a9ee63fc1ee303bb59c943b1c2b5b6b903a4227286d6",
+    "run3b.sh": "beb84590ef7632e1e40f9e68fb99e30c18b46ae702404e48a6686c5a38387fde",
+    "freeze_inputs.py": "01acf177dfad5645648c0724d4bf15996ae6b3fd6c3f2a5a3db894ee04cc1357",
+    "close.py": "83ba8795bc391b9485da55fbab4206cfcb0e5dd5713c256437cbe5f3d19b2e89"
+  }
+}

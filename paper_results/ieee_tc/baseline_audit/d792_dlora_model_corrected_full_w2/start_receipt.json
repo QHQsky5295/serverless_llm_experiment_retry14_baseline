@@ -1,0 +1,18 @@
+{
+  "launched": true,
+  "head": "072633f04cab013e4682bd602ba54b2ea12cfe75",
+  "baseline_head": "cf421793e7b71342cf75ff063f8d64afe26d8169",
+  "tmux": "tc-d792-dlora-3b-w2",
+  "starter_identity": {
+    "unit": "primelora-tc-aux-d7920000000000000000000000000001.scope",
+    "invocation_id": "ca179f1cfc694d9d961825f672bdedb3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7920000000000000000000000000001.scope",
+    "inode": 31432054
+  },
+  "launcher_identity": {
+    "unit": "primelora-tc-aux-d7920000000000000000000000000002.scope",
+    "invocation_id": "819f83e976e94621ad1b28c2b02df095",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7920000000000000000000000000002.scope",
+    "inode": 31432254
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "allocation_journals": [
+    {
+      "events": 5,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/model3b/physical_allocations/3007c014c197423a9a47158af31599ec.jsonl",
+      "released": true,
+      "sha256": "b492a7f491f6b4b21f7510a93cbce9ee286f9910cf3fd2085b5328c68e158ade"
+    }
+  ],
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "contract": "physical_gpu_owner_union_v1",
+  "correctness_qualification": "not_inferred_from_token_contract",
+  "deployment_contract": "physical_gpu_deployment_v1",
+  "device_intervals": {
+    "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+      [
+        2308946.848457167,
+        2313899.019088167
+      ]
+    ],
+    "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+      [
+        2308946.848457167,
+        2313899.019088167
+      ]
+    ]
+  },
+  "eligible_correctness": false,
+  "gpu_seconds": 9904.341262000613,
+  "gpu_seconds_observed": 9904.341262000613,
+  "gpu_seconds_per_correct_request": null,
+  "gpu_seconds_per_offered_observed": 2.4760853155001534,
+  "measurement_complete": true,
+  "n_correct": null,
+  "n_interrupted": 0,
+  "n_native_contract_complete": 3222,
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "observed_until_s": 2313906.340710939,
+  "open_lease_ids": [],
+  "owner_and_native_census_qualification_required": true,
+  "owner_event_count": 2,
+  "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/model3b/physical/request_terminals.jsonl",
+  "request_terminals_sha256": "c28bbf1bb5d382fcabe3a5c9c9cff40a34a7216b491a081b5823e61d43cd50da",
+  "window_gpu_seconds": {
+    "arrival": 7733.583980429918,
+    "cleanup": 19.21618774626404,
+    "drain": 2151.5410938244313,
+    "pre_arrival": 0.0
+  }
+}

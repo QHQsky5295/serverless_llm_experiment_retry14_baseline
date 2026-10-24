@@ -1,0 +1,56 @@
+"""Reuse D787 W2 inputs and D791's verified model without performance retuning."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+OLD = RAW.parent / 'd787_20261024'
+VIEW = RAW.parent / 'd788_20261024/source_view'
+
+def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+expected = {
+    'native_3b.json': 'a21976504d23a941aad7024eb9da45cfaee0987413d0d54ff6df7b712f08844c',
+    'http_3b_4000.json': '7a7264bd9c88244c5eb0a9ee63fc1ee303bb59c943b1c2b5b6b903a4227286d6',
+    'run3b.sh': '1d81894748475f2c54a1e40a16d4e876687820a3cd68291a532ff85d6213d4a4',
+    'freeze_inputs.py': '01acf177dfad5645648c0724d4bf15996ae6b3fd6c3f2a5a3db894ee04cc1357',
+    'close.py': '83ba8795bc391b9485da55fbab4206cfcb0e5dd5713c256437cbe5f3d19b2e89',
+}
+for name, digest in expected.items():
+    assert sha(OLD/name) == digest, name
+assert sha(VIEW/'measurement_manifest.json') == '2d06f71560515a355a625880a221cbb6e8be3447c0afd9d9b080f7cf1df27e24'
+parity_path = RAW.parent/'d790_20261024/native_probe.json'
+parity = json.loads(parity_path.read_text())
+assert parity['passed'] and len(parity['checks']) == 6
+old = json.loads((OLD/'native_3b.json').read_text())
+new = dict(old, source_view=str(VIEW),
+           source_view_manifest_sha256=sha(VIEW/'measurement_manifest.json'),
+           ray_root='/tmp/tc-d792-ray')
+changed = sorted(key for key in old if old[key] != new[key])
+assert changed == ['ray_root', 'source_view', 'source_view_manifest_sha256']
+w1_path = RAW.parent/'d791_20261024/native_3b.json'
+w1 = json.loads(w1_path.read_text())
+assert sorted(key for key in w1 if w1[key] != new[key]) == ['ray_root']
+save('native_3b.json', new)
+for name in ('http_3b_4000.json', 'freeze_inputs.py', 'close.py', 'run3b.sh'):
+    content = (OLD/name).read_text()
+    if name == 'run3b.sh':
+        content = content.replace('d787', 'd792')
+    with (RAW/name).open('x') as stream:
+        stream.write(content)
+save('reuse_identity.json', dict(
+    passed=True, prior_campaign=str(OLD), source_sha256=expected,
+    changed_config_fields=changed,
+    same_performance_config_as_w1=str(w1_path), w1_config_sha256=sha(w1_path),
+    http_bytes_unchanged=sha(RAW/'http_3b_4000.json') == expected['http_3b_4000.json'],
+    model_parity_source=str(parity_path), model_parity_sha256=sha(parity_path),
+    model_parity_scope='Two existing prompts/adapters; prefill and two paged decode steps each',
+    full_workload_numerical_correctness_proven=False,
+    performance_parameters_changed=False, reference_package_overlay_used=False,
+    previous_results_preserved=True, prior_execution_reuse_class='R3_model_incompatibility',
+    generated_sha256={name:sha(RAW/name) for name in expected}))
+print(json.dumps(dict(prepared=True, changed_fields=changed,
+                      same_performance_config_as_w1=True)))

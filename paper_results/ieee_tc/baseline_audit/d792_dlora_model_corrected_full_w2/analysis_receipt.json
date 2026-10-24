@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "commands": [
+    {
+      "log": "analysis.log",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+        "-B",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+        "--root",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024",
+        "--baseline",
+        "/home/qhq/serverless_llm_baselines",
+        "--main",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "--scheduler-contract",
+        "dlora_native_manager_v1",
+        "--model-key",
+        "3b",
+        "--population",
+        "full4000_w2",
+        "--outcome",
+        "complete_with_failures",
+        "--slo-freeze",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/audit_full4000_w2.json"
+      ]
+    }
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7920000000000000000000000000004.scope",
+    "memory.current": 2663763968,
+    "memory.peak": 3221745664,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=1.23 avg60=0.99 avg300=0.37 total=1760625\nfull avg10=1.23 avg60=0.99 avg300=0.37 total=1760625",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 86661821\nuser_usec 72259504\nsystem_usec 14402316\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 21454,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "analyzer_sha256": "8a5f1bf18944a0c168525eddbde8eaed1b61e3b05d4f6279d0f9d81e8efec473"
+}

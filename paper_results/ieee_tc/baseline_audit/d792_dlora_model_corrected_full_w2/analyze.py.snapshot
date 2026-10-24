@@ -1,0 +1,13 @@
+"""Reuse full native audit, selecting W2 and the observed terminal outcome.
+
+Run after real cleanup in the qualified primelora_vllm0300_tc_20260925 venv;
+/usr/bin/python3 lacks NumPy. No GPU replay or repeated qualification tests.
+"""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d786_20261024/analyze.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1026bc8d1970763fac7734b6cf7ca93d325fd6d81c2e6f7555da94f157536023'
+source = data.decode().replace('full4000_w1', 'full4000_w2')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
