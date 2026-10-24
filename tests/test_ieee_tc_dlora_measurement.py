@@ -15,7 +15,7 @@ from enum import Enum
 from types import MethodType
 from unittest.mock import Mock
 from types import SimpleNamespace as NS
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 import unittest
 from unittest.mock import patch
 
@@ -993,6 +993,222 @@ class DloraLlamaModelCompatibilityTests(unittest.TestCase):
         for path in off: self.assertEqual(off[path],on[path])
         self.assertIn('rope_scaling=getattr(config, "rope_scaling", None)',
                       on['vllm/model_executor/models/llama.py'])
+
+
+class DloraCancellationLifecycleTests(unittest.TestCase):
+    """Native control-plane regressions; substitute RPC, never GPU inference."""
+
+    scheduler_path = 'vllm/core/scheduler.py'
+    async_path = 'vllm/engine/async_llm_engine.py'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fixed = p.dlora_measurement_sources(NATIVE, canonical_input=True,
+                                               cancellation_lifecycle=True)
+
+    def scheduler(self, source, ids=('a', 'b', 'c'), queue='waiting'):
+        scheduler = NS(waiting=[], running=[], swapped=[], ready=[],
+                       req_model_cnt={0: len(ids)}, freed=[])
+        for rid in ids:
+            seq = NS(status='live')
+            seq.is_finished = lambda seq=seq: seq.status != 'live'
+            getattr(scheduler, queue).append(NS(request_id=rid, model_id=0, seqs=[seq]))
+        def free(seq, status):
+            seq.status = status
+            scheduler.freed.append(seq)
+        scheduler.free_seq = free
+        scheduler.abort_seq_group = MethodType(method(source, 'Scheduler', 'abort_seq_group',
+            dict(Union=Union, Iterable=Iterable, SequenceStatus=NS(FINISHED_ABORTED='aborted'))), scheduler)
+        return scheduler
+
+    def engine(self, source, manager, *, pause_add=False, pause_abort=False):
+        tracker = tracker_namespace['RequestTracker'](Exec.LORA)
+        engine = NS(engine_id=len(manager.engines), request_tracker=tracker,
+                    engine_use_ray=True, log_requests=False, cnt_lock=asyncio.Lock(),
+                    native_ids=set(), add_entered=asyncio.Event(), add_release=asyncio.Event(),
+                    abort_entered=asyncio.Event(), abort_release=asyncio.Event(),
+                    step_entered=asyncio.Event(), step_release=asyncio.Event())
+        async def add(**request):
+            engine.add_entered.set()
+            if pause_add: await engine.add_release.wait()
+            engine.native_ids.add(request['request_id'])
+        async def abort(ids):
+            engine.abort_entered.set()
+            if pause_abort: await engine.abort_release.wait()
+            engine.native_ids.difference_update(ids)
+        async def step():
+            engine.step_entered.set()
+            await engine.step_release.wait()
+            return [], {0: len(engine.native_ids)}
+        engine.engine = NS(add_request=NS(remote=add), abort_request=NS(remote=abort),
+                           step=NS(remote=step))
+        engine.engine_step = MethodType(method(source, 'AsyncLLMEngine', 'engine_step', {}), engine)
+        engine._engine_abort = MethodType(method(source, 'AsyncLLMEngine', '_engine_abort',
+                                                 dict(Iterable=Iterable)), engine)
+        engine._abort = tracker.abort_request
+        if 'async with self.tc_request_lifecycle_lock:' in source:
+            engine.tc_request_lifecycle_lock = manager.select_lock
+        manager.engines.append(engine)
+        return engine
+
+    def test_upstream_adjacent_abort_leaves_live_request_and_stale_count(self):
+        scheduler = self.scheduler((NATIVE/self.scheduler_path).read_text())
+        scheduler.abort_seq_group(['a', 'b'])
+        self.assertEqual([g.request_id for g in scheduler.waiting], ['b', 'c'])
+        self.assertEqual(scheduler.req_model_cnt[0], 3)
+
+    def test_upstream_tracker_removal_precedes_native_abort_during_add_rpc(self):
+        async def check():
+            manager = NS(select_lock=asyncio.Lock(), engines=[])
+            engine = self.engine((NATIVE/self.async_path).read_text(), manager, pause_add=True)
+            engine.request_tracker.add_request('old')
+            engine.request_tracker.get_new_and_finished_requests()
+            engine.native_ids.add('old')
+            engine._abort('old')
+            engine.request_tracker.add_request('new')
+            task = asyncio.create_task(engine.engine_step())
+            await engine.add_entered.wait()
+            async with manager.select_lock:
+                self.assertIn('old', engine.native_ids)
+                self.assertNotIn('old', engine.request_tracker)
+            engine.add_release.set()
+            await engine.step_entered.wait()
+            engine.step_release.set()
+            await task
+        asyncio.run(check())
+
+    def test_batch_cancel_all_queues_counts_once_and_preserves_other_requests(self):
+        for queue in ('waiting', 'running', 'swapped', 'ready'):
+            with self.subTest(queue=queue):
+                scheduler = self.scheduler(self.fixed[self.scheduler_path], queue=queue)
+                scheduler.abort_seq_group(['a', 'b'])
+                self.assertEqual([g.request_id for g in getattr(scheduler, queue)], ['c'])
+                self.assertEqual(scheduler.req_model_cnt[0], 1)
+                self.assertEqual(len(scheduler.freed), 2)
+                scheduler.abort_seq_group(['a', 'b', 'missing'])
+                self.assertEqual((scheduler.req_model_cnt[0], len(scheduler.freed)), (1, 2))
+                scheduler.abort_seq_group('c')
+                self.assertEqual((scheduler.req_model_cnt[0], len(scheduler.freed)), (0, 3))
+
+    def test_already_finished_group_does_not_double_decrement_or_free(self):
+        scheduler = self.scheduler(self.fixed[self.scheduler_path], ids=('done',), queue='ready')
+        scheduler.ready[0].seqs[0].status = 'length'
+        scheduler.req_model_cnt[0] = 0  # Native _stop_sequences already decremented.
+        scheduler.abort_seq_group('done')
+        self.assertEqual((scheduler.ready, scheduler.req_model_cnt[0], scheduler.freed), ([], 0, []))
+
+    def test_migration_cannot_observe_half_committed_abort_but_gpu_step_is_unlocked(self):
+        async def check():
+            manager = NS(select_lock=asyncio.Lock(), engines=[])
+            engine = self.engine(self.fixed[self.async_path], manager, pause_add=True)
+            engine.request_tracker.add_request('old')
+            engine.request_tracker.get_new_and_finished_requests()
+            engine.native_ids.add('old')
+            engine._abort('old')
+            engine.request_tracker.add_request('new')
+            task = asyncio.create_task(engine.engine_step())
+            await engine.add_entered.wait()
+            observed = []
+            async def migration():
+                async with manager.select_lock:
+                    observed.append((set(engine.native_ids), set(engine.request_tracker._request_streams)))
+            move = asyncio.create_task(migration())
+            await asyncio.sleep(0)
+            self.assertFalse(move.done())
+            engine.add_release.set()
+            await engine.step_entered.wait()
+            await move  # Must finish even though GPU step is still pending.
+            self.assertEqual(observed, [({'new'}, {'new'})])
+            engine.step_release.set()
+            await task
+        asyncio.run(check())
+
+    def test_cancel_current_migrated_owner_awaits_backend_before_unlock(self):
+        async def check():
+            manager = NS(select_lock=asyncio.Lock(), engines=[])
+            initial = self.engine(self.fixed[self.async_path], manager)
+            owner = self.engine(self.fixed[self.async_path], manager, pause_abort=True)
+            stream = initial.request_tracker.add_request('moving')
+            initial.request_tracker.get_new_and_finished_requests()
+            async with manager.select_lock:
+                owner.request_tracker.add_requests(initial.request_tracker.pop_requests(['moving']))
+                owner.native_ids.add('moving')
+            abort = asyncio.create_task(m.dlora_abort_current_owner(manager, 'moving'))
+            await owner.abort_entered.wait()
+            self.assertTrue(manager.select_lock.locked())
+            self.assertTrue(stream.finished)
+            self.assertFalse(initial.abort_entered.is_set())
+            self.assertIn('moving', owner.native_ids)
+            owner.abort_release.set()
+            self.assertEqual(await abort, 1)
+            self.assertFalse(manager.select_lock.locked())
+            self.assertEqual(owner.native_ids, set())
+            owner.step_release.set()
+            await owner.engine_step()
+            self.assertNotIn('moving', owner.request_tracker)
+            self.assertIsNone(await m.dlora_abort_current_owner(manager, 'moving'))
+        asyncio.run(check())
+
+    def test_cancel_during_enqueue_cannot_leave_ghost_request(self):
+        async def check():
+            manager = NS(select_lock=asyncio.Lock(), engines=[])
+            engine = self.engine(self.fixed[self.async_path], manager, pause_add=True)
+            engine.request_tracker.add_request('a')
+            stream = engine.request_tracker.add_request('b')
+            task = asyncio.create_task(engine.engine_step())
+            await engine.add_entered.wait()
+            abort = asyncio.create_task(m.dlora_abort_current_owner(manager, 'b'))
+            await asyncio.sleep(0)
+            self.assertFalse(abort.done())
+            engine.add_release.set()
+            await engine.step_entered.wait()
+            self.assertEqual(await abort, 0)
+            self.assertTrue(stream.finished)
+            self.assertEqual(engine.native_ids, {'a'})
+            engine.step_release.set()
+            await task
+            await engine.engine_step()
+            self.assertEqual(set(engine.request_tracker._request_streams), {'a'})
+            self.assertEqual(engine.native_ids, {'a'})
+        asyncio.run(check())
+
+    def test_native_cancel_failure_is_propagated_not_swallowed(self):
+        async def check():
+            manager = NS(select_lock=asyncio.Lock(), engines=[])
+            engine = self.engine(self.fixed[self.async_path], manager)
+            engine.request_tracker.add_request('a')
+            async def fail(ids): raise RuntimeError('native abort failed')
+            engine.engine.abort_request.remote = fail
+            with self.assertRaisesRegex(RuntimeError, 'native abort failed'):
+                await m.dlora_abort_current_owner(manager, 'a')
+            self.assertFalse(manager.select_lock.locked())
+            engine.tc_request_lifecycle_lock = asyncio.Lock()
+            with self.assertRaisesRegex(ValueError, 'share ownership lock'):
+                await m.dlora_abort_current_owner(manager, 'a')
+        asyncio.run(check())
+
+    def test_opt_in_changes_only_cancel_handover_not_native_migration_solver(self):
+        path = 'vllm/engine/engine_manager.py'
+        def migration(source):
+            cls = next(n for n in ast.parse(source).body if isinstance(n, ast.ClassDef)
+                       and n.name == 'EngineManager')
+            return ast.dump(next(n for n in cls.body if getattr(n, 'name', '') == 'migration_schedule'))
+        self.assertEqual(migration(CANONICAL[path]), migration(self.fixed[path]))
+        self.assertIn('tc_request_lifecycle_lock = self.select_lock', self.fixed[path])
+        self.assertNotIn(self.scheduler_path, CANONICAL)
+        self.assertNotIn(self.async_path, CANONICAL)
+        with self.assertRaises(ValueError):
+            p.dlora_measurement_sources(NATIVE, cancellation_lifecycle=True)
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)/'view'
+            manifest = p.prepare_dlora_measurement_view(NATIVE, out, MAIN,
+                canonical_input=True, cancellation_lifecycle=True)
+            self.assertEqual(manifest['cancellation_lifecycle'], 'native_owner_backend_transaction_v1')
+            self.assertTrue(manifest['migration_assertion_preserved'])
+            self.assertFalse(manifest['gpu_step_under_lifecycle_lock'])
+            for path in (self.scheduler_path, self.async_path):
+                self.assertFalse((out/path).is_symlink())
+                self.assertEqual((out/path).read_text(), self.fixed[path])
 
 
 if __name__ == '__main__':

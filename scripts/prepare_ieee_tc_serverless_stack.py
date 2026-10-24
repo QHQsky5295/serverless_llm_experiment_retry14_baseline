@@ -457,7 +457,7 @@ def dlora_llama_model_sources(native_source: Path) -> dict[str, str]:
 
 def dlora_measurement_sources(native_source: Path, *, canonical_input=False,
                               worker_lifecycle=False, cpu_zero_mlp_views=False,
-                              llama_model_compat=False) -> dict[str, str]:
+                              llama_model_compat=False, cancellation_lifecycle=False) -> dict[str, str]:
     """Passive native event hooks in the retained dLoRA compatibility tree.
 
     SequenceGroup already migrates by deepcopy. Carry its measured timestamps
@@ -578,6 +578,43 @@ class LoRaEngine:
         replacements[path] = source
     if llama_model_compat:
         replacements.update(dlora_llama_model_sources(native_source))
+    if cancellation_lifecycle:
+        if not canonical_input:
+            raise ValueError('dLoRA cancellation repair requires canonical n=best_of=1 requests')
+        path = 'vllm/core/scheduler.py'
+        source = (native_source/path).read_text()
+        start = source.index('    def abort_seq_group(')
+        end = source.index('    def has_unfinished_seqs(', start)
+        abort = source[start:end]
+        abort = replace_once(abort, '            for seq_group in state_queue:\n',
+            '            for seq_group in list(state_queue):\n')
+        abort = replace_once(abort, '                    state_queue.remove(seq_group)\n',
+            '                    state_queue.remove(seq_group)\n'
+            '                    had_live_seq = any(not seq.is_finished() for seq in seq_group.seqs)\n')
+        abort = replace_once(abort, '                    request_ids.remove(seq_group.request_id)\n',
+            '                    if had_live_seq:\n'
+            '                        self.req_model_cnt[seq_group.model_id] -= 1\n'
+            '                    request_ids.remove(seq_group.request_id)\n')
+        replacements[path] = source[:start]+abort+source[end:]
+        # Migration already holds select_lock. Make tracker/backend handover a
+        # transaction under that same lock, but never hold it for GPU execution.
+        # Merely deleting the migration assertion would lose extracted groups.
+        path = 'vllm/engine/engine_manager.py'
+        replacements[path] = replace_once(replacements[path],
+            '            self.engines.append(AsyncLLMEngine.from_engine_args(engine_args, i))\n',
+            '            self.engines.append(AsyncLLMEngine.from_engine_args(engine_args, i))\n'
+            '            self.engines[-1].tc_request_lifecycle_lock = self.select_lock\n')
+        path = 'vllm/engine/async_llm_engine.py'
+        source = (native_source/path).read_text()
+        start = source.index('        new_requests, finished_requests = (',
+                             source.index('    async def engine_step('))
+        end = source.index('        if self.engine_use_ray:\n'
+                           '            request_outputs, req_model_cnt', start)
+        control = source[start:end]
+        source = source[:start]+('        async with self.tc_request_lifecycle_lock:\n'
+            + ''.join('    '+line if line.strip() else line
+                      for line in control.splitlines(keepends=True)))+source[end:]
+        replacements[path] = source
     for path, source in replacements.items():
         compile(source, path, 'exec')
     return replacements
@@ -585,7 +622,8 @@ class LoRaEngine:
 
 def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo: Path,
                                    *, canonical_input=False, worker_lifecycle=False,
-                                   cpu_zero_mlp_views=False, llama_model_compat=False) -> dict:
+                                   cpu_zero_mlp_views=False, llama_model_compat=False,
+                                   cancellation_lifecycle=False) -> dict:
     """Reuse the source-view approach; preserve vendor checkout and old results."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
@@ -595,7 +633,8 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
     replacements = dlora_measurement_sources(native_source, canonical_input=canonical_input,
                                               worker_lifecycle=worker_lifecycle,
                                               cpu_zero_mlp_views=cpu_zero_mlp_views,
-                                              llama_model_compat=llama_model_compat)
+                                              llama_model_compat=llama_model_compat,
+                                              cancellation_lifecycle=cancellation_lifecycle)
     support, shared = ROOT/'scripts/ieee_tc_serverless_measurement.py', main_repo/'faaslora'
     output.mkdir(mode=0o700)
     for parent, dirs, files in os.walk(native_source/'vllm'):
@@ -638,6 +677,11 @@ def prepare_dlora_measurement_view(native_source: Path, output: Path, main_repo:
         result.update(model_compatibility='tied_vocab_llama3_rope_pp1_v1',
             model_arithmetic_changed=True, native_attention_kernels_preserved=True,
             model_configuration_authoritative=True)
+    if cancellation_lifecycle:
+        result.update(cancellation_lifecycle='native_owner_backend_transaction_v1',
+            cancellation_scope='canonical_n1_bestof1',
+            migration_solver_changed=False, migration_assertion_preserved=True,
+            control_handover_serialized=True, gpu_step_under_lifecycle_lock=False)
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
     return result
@@ -2745,6 +2789,8 @@ def main() -> None:
                        help='Verify owned allocation before native Ray worker initialization.')
     dlora.add_argument('--llama-model-compat', action='store_true',
                        help='Apply configured tied vocabulary and Llama 3 RoPE in a new source view.')
+    dlora.add_argument('--cancellation-lifecycle', action='store_true',
+                       help='Serialize native request cancellation and migration ownership handover.')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2792,7 +2838,8 @@ def main() -> None:
         print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
             args.main_repo, canonical_input=args.canonical_input,
             worker_lifecycle=args.worker_lifecycle,
-            llama_model_compat=args.llama_model_compat), indent=2))
+            llama_model_compat=args.llama_model_compat,
+            cancellation_lifecycle=args.cancellation_lifecycle), indent=2))
         return
     if args.action == 'prepare-loquetier-measurement-view':
         print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,

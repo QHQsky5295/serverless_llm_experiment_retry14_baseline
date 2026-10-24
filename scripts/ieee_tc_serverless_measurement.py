@@ -798,10 +798,17 @@ async def dlora_abort_current_owner(manager, request_id):
         if len(owners) > 1:
             raise ValueError('dLoRA request has multiple native stream owners')
         if owners:
-            # Native _abort is synchronous and schedules cleanup in engine_step.
-            # No await between ownership lookup and this mutation.
-            owners[0]._abort(request_id)
-            return owners[0].engine_id
+            owner = owners[0]
+            lifecycle_lock = getattr(owner, 'tc_request_lifecycle_lock', None)
+            if lifecycle_lock is not None and lifecycle_lock is not manager.select_lock:
+                raise ValueError('dLoRA cancellation and migration must share ownership lock')
+            owner._abort(request_id)
+            if lifecycle_lock is not None:
+                # Opt-in source view also serializes tracker -> backend enqueue
+                # under this lock. Await native cancellation before migration can
+                # move the finished stream; the queued abort remains idempotent.
+                await owner._engine_abort({request_id})
+            return owner.engine_id
         return None
 
 
