@@ -1112,11 +1112,146 @@ def _summarize(records: list[RequestRecord], total_wall_s: float) -> dict[str, A
     }
 
 
+def attention_compatibility_probe(args) -> int:
+    """Bounded native attention arithmetic check, not a workload/performance run.
+
+    Keep the installed kernels untouched. Deterministic unit-test tensors isolate
+    GQA indexing from Llama-3.2 frequency scaling. The reference uses FP32 explicit
+    causal attention and the installed Transformers model-frequency definition.
+    This does not qualify full-model logits, LoRA binding, or the 500-ID workload.
+    """
+    if args.output.exists() or not args.output.is_absolute():
+        raise ValueError('new absolute attention evidence path required')
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts'))
+    from prepare_ieee_tc_serverless_stack import load_guard, stream_sha
+    guard = load_guard(args.main_repo)
+    admission = guard.verify_current_service()  # Before importing CUDA libraries.
+    import torch
+    import transformers
+    from transformers import AutoConfig
+    from transformers.modeling_rope_utils import (
+        _compute_default_rope_parameters, _compute_llama3_parameters,
+    )
+    from loquetier.ops import _kernels, init_kv, append_kv, batch_prefill, batch_decode
+    from loquetier.utils.kvcache import KvPool, KvCache, BatchedKvCache
+
+    config = AutoConfig.from_pretrained(str(args.base_model), local_files_only=True)
+    if config.rope_scaling.get('rope_type') != 'llama3':
+        raise ValueError('this bounded diagnostic requires the actual llama3 configuration')
+    head_dim = config.hidden_size // config.num_attention_heads
+    native_group = config.num_attention_heads // config.num_key_value_heads
+    device = torch.device(args.device)
+    dtype = getattr(torch, args.dtype)
+    result = dict(schema='ieee_tc_loquetier_attention_compatibility_v1',
+        performance_run=False, full_model_qualified=False, admission=admission,
+        config_sha256=stream_sha(args.base_model / 'config.json'),
+        script_sha256=stream_sha(Path(__file__)),
+        kernel_path=_kernels.__file__, kernel_sha256=stream_sha(Path(_kernels.__file__)),
+        torch_version=torch.__version__, transformers_version=transformers.__version__,
+        dtype=args.dtype, seed=796, lengths=[17, 257], native_group=native_group,
+        rope_scaling=config.rope_scaling, rows=[], completed=False,
+        limitations=['Synthetic unit-test tensors, not new workloads or adapters.',
+                     'Attention only; full-model/LoRA correctness remains unverified.'])
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+
+    def error(actual, reference):
+        a, r = actual.float(), reference.float()
+        finite = bool(torch.isfinite(a).all() and torch.isfinite(r).all())
+        if not finite:
+            return dict(finite=False, max_abs=None, relative_l2=None, close=False)
+        delta = a-r
+        return dict(finite=True, max_abs=float(delta.abs().max()),
+            relative_l2=float(delta.norm()/r.norm().clamp_min(1e-12)),
+            close=bool(torch.allclose(a, r, atol=0.005, rtol=0.005)))
+
+    def reference(q, k, v, inv_freq, *, decode):
+        # [tokens, heads, dim]; cached keys are unrotated in native Loquetier.
+        def rotate(x, positions):
+            phase = positions.float()[:, None] * inv_freq.float()[None, :]
+            phase = torch.cat((phase, phase), dim=-1)[:, None, :]
+            x = x.float()
+            half = x.shape[-1]//2
+            return x*phase.cos()+torch.cat((-x[..., half:], x[..., :half]), -1)*phase.sin()
+        kpos = torch.arange(k.shape[0], device=device)
+        qpos = kpos[-1:] if decode else kpos
+        q, k = rotate(q, qpos), rotate(k, kpos)
+        group = q.shape[1]//k.shape[1]
+        k, v = k.repeat_interleave(group, 1), v.float().repeat_interleave(group, 1)
+        scores = torch.einsum('qhd,khd->hqk', q, k)/math.sqrt(head_dim)
+        scores.masked_fill_(kpos[None, None, :] > qpos[None, :, None], -torch.inf)
+        return torch.einsum('hqk,khd->qhd', scores.softmax(-1), v)
+
+    with args.output.open('x') as handle:
+        try:
+            torch.set_num_threads(4)
+            torch.cuda.set_device(device)
+            torch.cuda.reset_peak_memory_stats(device)
+            frequencies = {
+                'default': _compute_default_rope_parameters(config, device)[0],
+                'llama3': _compute_llama3_parameters(config, device)[0],
+            }
+            result['frequency_max_abs_difference'] = float(
+                (frequencies['default']-frequencies['llama3']).abs().max())
+            generator = torch.Generator(device=device).manual_seed(796)
+            for group in sorted({1, native_group, 4}):
+                pool = KvPool(1, config.num_key_value_heads, head_dim, 16, dtype, device)
+                caches = [KvCache(pool, n) for n in result['lengths']]
+                lengths = result['lengths']
+                qs, ks, vs = [], [], []
+                for n in lengths:
+                    shape = (n, config.num_key_value_heads, head_dim)
+                    qs.append(torch.randn((n, shape[1]*group, head_dim), generator=generator,
+                                          device=device, dtype=dtype))
+                    ks.append(torch.randn(shape, generator=generator, device=device, dtype=dtype))
+                    vs.append(torch.randn(shape, generator=generator, device=device, dtype=dtype))
+                pointers = torch.tensor([0, lengths[0], sum(lengths)], dtype=torch.int32, device=device)
+                batched = BatchedKvCache(caches)
+                init_kv(batched, torch.cat(ks), torch.cat(vs), pointers, 0)
+                for phase in ('prefill', 'decode'):
+                    if phase == 'prefill':
+                        actual = batch_prefill(torch.cat(qs), pointers, batched, config.rope_theta, 0)
+                    else:
+                        for cache in caches:
+                            cache.acquire_one()
+                        batched = BatchedKvCache(caches)
+                        qs = [torch.randn((1, config.num_key_value_heads*group, head_dim),
+                              generator=generator, device=device, dtype=dtype) for _ in caches]
+                        newk = [torch.randn((1, config.num_key_value_heads, head_dim),
+                                generator=generator, device=device, dtype=dtype) for _ in caches]
+                        newv = [torch.randn(x.shape, generator=generator, device=device, dtype=dtype)
+                                for x in newk]
+                        ks, vs = [torch.cat(x) for x in zip(ks, newk)], [torch.cat(x) for x in zip(vs, newv)]
+                        append_kv(batched, torch.cat(newk), torch.cat(newv), 0)
+                        actual = batch_decode(torch.cat(qs), batched, config.rope_theta, 0)
+                    torch.cuda.synchronize(device)
+                    cache_matches = all(
+                        torch.equal(torch.cat([p[0, side].permute(1, 0, 2) for p in cache.pages])[:cache.seqlen], x)
+                        for cache, k, v in zip(caches, ks, vs) for side, x in ((0, k), (1, v)))
+                    row = dict(group_size=group, phase=phase, cache_matches=cache_matches,
+                        sequence_lengths=[c.seqlen for c in caches], comparisons={})
+                    for name, frequency in frequencies.items():
+                        expected = torch.cat([reference(q, k, v, frequency, decode=phase == 'decode')
+                                              for q, k, v in zip(qs, ks, vs)])
+                        row['comparisons'][name] = error(actual, expected)
+                    result['rows'].append(row)
+                for cache in caches:
+                    cache.release()
+            result.update(completed=True, peak_allocated_bytes=torch.cuda.max_memory_allocated(device))
+        except BaseException as exc:
+            result['error'] = dict(type=type(exc).__name__, message=str(exc))
+            raise
+        finally:
+            json.dump(result, handle, indent=2, allow_nan=False)
+            handle.write('\n')
+    print(json.dumps(dict(output=str(args.output), completed=True, rows=result['rows'])))
+    return 0
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--vendor", type=Path, default=DEFAULT_VENDOR)
     parser.add_argument("--base-model", type=Path, required=True)
-    parser.add_argument("--adapter-root", type=Path, required=True)
+    parser.add_argument("--adapter-root", type=Path)
     parser.add_argument("--trace", type=Path)
     parser.add_argument("--adapter-subset", type=Path)
     parser.add_argument("--output", type=Path, required=True)
@@ -1132,6 +1267,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--static-shards', type=int, default=4)
     parser.add_argument('--context-tokens', type=int, default=1024)
     parser.add_argument('--native-capacity-probe', action='store_true')
+    parser.add_argument('--attention-compatibility-probe', action='store_true')
     parser.add_argument('--inference-owner-probe', action='store_true')
     parser.add_argument('--forward-capacity-probe', action='store_true')
     parser.add_argument('--capacity-evidence', type=Path)
@@ -1154,6 +1290,14 @@ def _parse_args() -> argparse.Namespace:
         help="0 compresses all arrivals for smoke gates; 1 preserves trace spacing.",
     )
     args = parser.parse_args()
+    if args.attention_compatibility_probe:
+        if (args.main_repo is None or args.native_capacity_probe or args.static_capacity_only
+                or args.inference_owner_probe or args.forward_capacity_probe
+                or args.trace is not None or args.adapter_subset is not None):
+            parser.error('attention diagnostic requires main-repo and no workload/capacity mode')
+        return args
+    if args.adapter_root is None:
+        parser.error('--adapter-root is required outside the attention-only diagnostic')
     if args.inference_owner_probe and args.forward_capacity_probe:
         parser.error('owner equivalence and forward capacity are separate diagnostic execution keys')
     if args.capacity_score_mode != 'single_all_prefill_v1' and args.capacity_score_evidence is None:
@@ -1187,6 +1331,8 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = _parse_args()
+    if args.attention_compatibility_probe:
+        return attention_compatibility_probe(args)
     if args.native_capacity_probe:
         return native_capacity_probe(args)
     if args.static_capacity_only:

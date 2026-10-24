@@ -16,6 +16,27 @@ from Loquetier_project.scripts.run_loquetier_trace_gate import (
 
 
 class LoquetierCapacityTests(unittest.TestCase):
+    def test_attention_diagnostic_is_explicit_and_reads_no_workload(self):
+        args = ['gate', '--base-model', '/model', '--output', '/new.json',
+                '--main-repo', '/main', '--attention-compatibility-probe']
+        with patch('sys.argv', args):
+            parsed = _parse_args()
+        self.assertTrue(parsed.attention_compatibility_probe)
+        self.assertIsNone(parsed.adapter_root)
+        self.assertIsNone(parsed.trace)
+        for extra in (['--trace', '/trace'], ['--native-capacity-probe'],
+                      ['--inference-owner-probe'], ['--forward-capacity-probe']):
+            with patch('sys.argv', args + extra), self.assertRaises(SystemExit):
+                _parse_args()
+
+    def test_existing_workload_path_still_requires_adapter_root(self):
+        args = ['gate', '--base-model', '/model', '--output', '/new.json',
+                '--trace', '/trace', '--adapter-subset', '/subset']
+        with patch('sys.argv', args), self.assertRaises(SystemExit):
+            _parse_args()
+        with patch('sys.argv', args + ['--adapter-root', '/adapters']):
+            self.assertEqual(_parse_args().adapter_root, Path('/adapters'))
+
     def fixture(self, aid='a', rank=8):
         config = dict(peft_type='LORA', bias='none', r=rank, base_model_name_or_path='/model')
         tensors = {
