@@ -1586,6 +1586,7 @@ def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
     if workload not in ('W0', 'W1', 'W2'):
         raise ValueError('explicit workload required')
     plan = None
+    failed = 0
     if source_kind == 'published_w0':
         if workload != 'W0' or payload['common_slo_sha256'] != slo_sha:
             raise ValueError('W0/common SLO identity mismatch')
@@ -1597,20 +1598,47 @@ def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
         u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['metrics'])
         unknown, proof = source['raw_n_correct'], source['independent_numerical_proof']
         plan = payload['common_input']
-    elif source_kind == 'native_audit':
+    elif source_kind in ('native_audit', 'terminal_native_failure_audit'):
         source = payload
+        failure_diagnostic = source_kind == 'terminal_native_failure_audit'
+        failed = source['counts']['N_failed']
+        response = source['counts']['N_response']
         if (source['measurement_complete'] is not True or source['workload_passed'] is not True
-                or source['counts']['N_failed'] != 0 or source['native_revalidated_requests'] != 4000
+                or failed != 0 or source['native_revalidated_requests'] != 4000
                 or source['common_slo']['freeze_sha256'] != slo_sha
                 or any(source['counts'][k] != 4000 for k in
                        ('N_plan', 'N_arrived', 'N_submitted', 'N_terminal', 'N_response'))):
-            raise ValueError('complete sealed native audit required')
+            if not (failure_diagnostic and source['measurement_complete'] is True
+                    and source['workload_passed'] is False
+                    and type(failed) is int and 0 < failed < 4000
+                    and response + failed == 4000
+                    and source['native_revalidated_requests'] == response
+                    and source['common_slo']['binding_valid'] == response
+                    and source['common_slo']['freeze_sha256'] == slo_sha
+                    and all(source['counts'][k] == 4000 for k in
+                            ('N_plan', 'N_arrived', 'N_submitted', 'N_terminal'))):
+                raise ValueError('complete sealed native audit or explicit terminal failure diagnostic required')
+        if failure_diagnostic and failed == 0:
+            raise ValueError('failure diagnostic must preserve actual failures')
         n = source['common_slo']['binding_valid']
         joint, ttft, tpot = (source['common_slo'][k] for k in ('joint_good', 'ttft_good', 'tpot_good'))
         tokens = source['actual_native_output_tokens']
         u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['conditional_metrics'])
         unknown, proof = source['n_correct'], source['independent_lora_numerical_correctness']
         plan = source['source_plan']
+    elif source_kind == 'prime_w0_audit':
+        source = payload['audit']
+        if (workload != 'W0' or source['passed'] is not True or source['full_w0'] is not True
+                or source['common_slo_sha256'] != slo_sha):
+            raise ValueError('complete sealed PrimeLoRA W0 audit required')
+        n = source['counts']['n']
+        joint, ttft, tpot = (source['counts'][k] for k in ('joint_pass', 'ttft_pass', 'tpot_pass'))
+        # Caller sums the SHA-bound request CSV's measured output_tokens, not
+        # the trace's target lengths, and binds the audited launch plan.
+        tokens = payload['native_output_token_total']
+        plan = payload['source_plan']
+        u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['metrics'])
+        unknown, proof = source['n_correct'], source['numerical_adapter_correctness_qualified']
     elif source_kind == 'prime_summary':
         source = payload['actual_audit']
         if (payload['passed'] is not True or source['passed'] is not True
@@ -1651,7 +1679,8 @@ def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
         raise ValueError('unregistered sealed source schema')
     if plan is not None and (plan['profile'] != workload or plan['count'] != 4000):
         raise ValueError('source workload identity mismatch')
-    if n != 4000 or tokens != 458224 or unknown is not None or proof is not False:
+    if (n + failed != 4000 or (failed == 0 and tokens != 458224)
+            or type(tokens) is not int or tokens <= 0 or unknown is not None or proof is not False):
         raise ValueError('full fixed-work observation and explicit unknown numerical proof required')
     if (any(type(x) is not int or not 0 <= x <= n for x in (joint, ttft, tpot))
             or not max(0, ttft+tpot-n) <= joint <= min(ttft, tpot)):
@@ -1661,9 +1690,11 @@ def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
         if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
             raise ValueError('finite positive sealed observation required')
     return dict(system=system, run=run, workload=workload, n_binding_valid=n,
-        native_tokens=tokens, counts=dict(N=n, joint_pass=joint, ttft_pass=ttft, tpot_pass=tpot),
-        joint_slo=joint/n, observed_protocol_feasible=joint >= 3800,
+        native_tokens=tokens, counts=dict(N=4000, joint_pass=joint, ttft_pass=ttft, tpot_pass=tpot),
+        n_failed=failed, workload_complete=(failed == 0),
+        joint_slo=joint/4000, observed_protocol_feasible=(failed == 0 and joint >= 3800),
         physical_gpu_seconds=u, gpu_seconds_per_protocol_valid_request=u/n,
+        gpu_seconds_per_offered_request=u/4000,
         metrics={k: metrics[k] for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')},
         raw_n_correct=None, independent_numerical_proof=False,
         formal_run=False, independent_holdout=False, source_plan=copy.deepcopy(plan))

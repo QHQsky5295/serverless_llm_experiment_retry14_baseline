@@ -1,5 +1,6 @@
 """Aggregation guards; no inference or new correctness qualification."""
 import copy
+import csv
 import json
 import unittest
 from scripts.ieee_tc.check_d299_full_context import ROOT, sealed_matrix_row, sealed_matrix_view
@@ -95,6 +96,43 @@ class SealedMatrixTests(unittest.TestCase):
         with self.assertRaises(ValueError): sealed_matrix_view(rows+[rows[0]], registry, refs)
         refs['W2']['source_run'] = 'different'
         with self.assertRaises(ValueError): sealed_matrix_view(rows, registry, refs)
+
+    def test_terminal_failure_uses_offered_denominator(self):
+        source = json.loads((P/'baseline_audit/d794_dlora_cancellation_corrected_full_w1/audit_full4000_w1.json').read_text())
+        slo = source['common_slo']['freeze_sha256']
+        kwargs = dict(source_kind='terminal_native_failure_audit', system='dLoRA',
+                      run='D794', workload='W1', slo_sha=slo)
+        row = sealed_matrix_row(source, **kwargs)
+        self.assertEqual(row['n_failed'], 543)
+        self.assertEqual(row['n_binding_valid'], 3457)
+        self.assertEqual(row['joint_slo'], 17/4000)
+        self.assertFalse(row['observed_protocol_feasible'])
+        self.assertFalse(row['workload_complete'])
+        self.assertEqual(row['counts']['N'], 4000)
+        source['counts']['N_terminal'] -= 1
+        with self.assertRaises(ValueError): sealed_matrix_row(source, **kwargs)
+
+    def test_failure_cannot_be_promoted_to_complete(self):
+        source = json.loads((P/'baseline_audit/d794_dlora_cancellation_corrected_full_w1/audit_full4000_w1.json').read_text())
+        with self.assertRaises(ValueError):
+            sealed_matrix_row(source, source_kind='native_audit', system='dLoRA',
+                              run='D794', workload='W1', slo_sha=source['common_slo']['freeze_sha256'])
+
+    def test_prime_w0_native_csv_total_and_unknown_proof(self):
+        directory = P/'p2_backend/d752_3b_dense_alias_validation_full_w0/completion'
+        audit = json.loads((directory/'full4000.json').read_text())
+        with (directory/'stages/requests.csv').open() as stream:
+            tokens = sum(int(row['output_tokens']) for row in csv.DictReader(stream))
+        payload = dict(audit=audit, native_output_token_total=tokens,
+                       source_plan=dict(profile='W0', count=4000))
+        kwargs = dict(source_kind='prime_w0_audit', system='PrimeLoRA', run='D752',
+                      workload='W0', slo_sha=audit['common_slo_sha256'])
+        row = sealed_matrix_row(payload, **kwargs)
+        self.assertEqual(row['native_tokens'], 458224)
+        self.assertEqual(row['joint_slo'], .95775)
+        self.assertIsNone(row['raw_n_correct'])
+        payload['native_output_token_total'] -= 1
+        with self.assertRaises(ValueError): sealed_matrix_row(payload, **kwargs)
 
 
 if __name__ == '__main__':

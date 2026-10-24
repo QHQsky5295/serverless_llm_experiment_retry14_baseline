@@ -1,0 +1,1978 @@
+{
+  "schema": "sealed_available_3b_matrix_v1",
+  "results": {
+    "W0": {
+      "vLLM": {
+        "system": "vLLM",
+        "run": "D653",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 3999,
+          "ttft_pass": 4000,
+          "tpot_pass": 3999
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.99975,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 16119.239769904874,
+        "gpu_seconds_per_protocol_valid_request": 4.029809942476218,
+        "gpu_seconds_per_offered_request": 4.029809942476218,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 134.28738873795373,
+            "p50_type1": 126.55108934268355,
+            "p95_type1": 170.5774876754731
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 10.901749470235261,
+            "p50_type1": 10.759938812964124,
+            "p95_type1": 11.587116518057883
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 1376.8004529732862,
+            "p50_type1": 1091.663712868467,
+            "p95_type1": 2983.4086403716356
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d653_3b_full_w0/audit.json",
+          "sha256": "fa94e223f86cb108d0e808eea6b9e345463d9601e528c330545290af07132eb2",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W0 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3333333333333333,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "ServerlessLLM": {
+        "system": "ServerlessLLM",
+        "run": "D764",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 3909,
+          "ttft_pass": 3947,
+          "tpot_pass": 3962
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.97725,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 16090.730445874855,
+        "gpu_seconds_per_protocol_valid_request": 4.0226826114687135,
+        "gpu_seconds_per_offered_request": 4.0226826114687135,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 447.47454716300126,
+            "p50_type1": 130.64108742401004,
+            "p95_type1": 413.334624376148
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 16.703323132042268,
+            "p50_type1": 15.742557545847914,
+            "p95_type1": 22.389718902972984
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 2289.719046314829,
+            "p50_type1": 1556.4185460098088,
+            "p95_type1": 4522.741729393601
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d764_shared_tokenizer_full_w0/audit.json",
+          "sha256": "ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W0 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3309751308012887,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "S-LoRA": {
+        "system": "S-LoRA",
+        "run": "D771",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3621,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 15002.786413917318,
+        "gpu_seconds_per_protocol_valid_request": 3.7506966034793296,
+        "gpu_seconds_per_offered_request": 3.7506966034793296,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 12703.241552548832,
+            "p50_type1": 251.05721782892942,
+            "p95_type1": 108622.31069756672
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 78.70742098782797,
+            "p50_type1": 67.62062593183497,
+            "p95_type1": 184.2266649315904
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 21810.245158368023,
+            "p50_type1": 6527.110875118524,
+            "p95_type1": 132783.47063064575
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d771_slora_3b_full_w0_binding/gpu_full4000/audit_full4000.json",
+          "sha256": "ef89475e1ea62c232dc252d9a5db4222cc32094c538261d3a671e2c412f2f942",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W0 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.2409837873312106,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "Loquetier": {
+        "system": "Loquetier",
+        "run": "D800",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3047,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 14750.816418182105,
+        "gpu_seconds_per_protocol_valid_request": 3.687704104545526,
+        "gpu_seconds_per_offered_request": 3.687704104545526,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 38252.84326691867,
+            "p50_type1": 182.36749526113272,
+            "p95_type1": 323386.7846983485
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 53.06186697115223,
+            "p50_type1": 52.05455102259293,
+            "p95_type1": 60.77108672253934
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 44261.83343818539,
+            "p50_type1": 6367.158955428749,
+            "p95_type1": 332913.8982235454
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d800_loquetier_3b_w0_result/audit_full4000.json",
+          "sha256": "7e84af524b40927174113741ad88c71abd4d2827f719ab1f8d4c425c38569efb",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W0 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. No baseline optimization or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.2201416136859706,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "HydraServe": {
+        "system": "HydraServe",
+        "run": "D807",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3533,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 6089.653668431565,
+        "gpu_seconds_per_protocol_valid_request": 1.5224134171078914,
+        "gpu_seconds_per_offered_request": 1.5224134171078914,
+        "metrics": {
+          "ttft_ms": {
+            "n": 4000,
+            "mean": 1205.1468377859564,
+            "p50": 264.9067095480859,
+            "p95_type1": 8155.903603415936,
+            "p99": 12760.051403660327,
+            "max": 16309.76238194853
+          },
+          "tpot_ms": {
+            "n": 4000,
+            "mean": 61.858724436075676,
+            "p50": 55.057454467111945,
+            "p95_type1": 98.08216836642136,
+            "p99": 184.39757045019758,
+            "max": 628.9169224910438
+          },
+          "e2e_ms": {
+            "n": 4000,
+            "mean": 7596.2665417925455,
+            "p50": 6078.856995329261,
+            "p95_type1": 16394.13899788633,
+            "p99": 22401.897741947323,
+            "max": 34251.92977208644
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0,
+          "source_count": 4000,
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0/full_w0_evaluation.json",
+          "sha256": "6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390",
+          "source_kind": "hydra_evaluation"
+        },
+        "numerical_evidence_scope": {
+          "affected_path_pass": true,
+          "all_zero_output_count": 0,
+          "all_zero_request_ids": [],
+          "audit_completed": true,
+          "expected_prefix": [
+            578,
+            2326,
+            1288
+          ],
+          "independent_full_correctness_proven": false,
+          "n_arrived": 4000,
+          "n_correct": null,
+          "n_plan": 4000,
+          "n_response": 4000,
+          "n_terminal": 4000,
+          "native_binding_accounting_passed": true,
+          "observed_prefix": [
+            578,
+            2326,
+            1288
+          ],
+          "reference_request_id": "req_00001",
+          "same_adapter_id": true,
+          "same_prompt_ids": true,
+          "scope": "One exact-input independent reference prefix; all native-bound responses checked, not 4000 independent numerical references",
+          "source_sha256": {
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d576_20261016/audit.py": "f35fcd266e29948c1da5c6153676e482c610506b8ed18512ef3705ac015f37a6",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit.py": "2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/closure.json": "7ccfa77c8e11dd061af25aa898b30ca99ea17852efc30836ee7f7d86acc2a8f2",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/full_w0_evaluation.json": "6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/http_audit.json": "414d9ec0a0fe248ed12d511732782652a493e04e1213fbeb64bc2f80273d19b8",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/launch_gate.json": "bc98a5a6ea439cb0ceb901d7e349ddef459cb67d22656bfdd467db786dd7dd12",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/remote_stop.json": "ebfe8d2afc96cf1b55320d6607abd3965be48fb5ddf56edd9302dd78539c00d0"
+          }
+        },
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 0.50371719389241,
+        "budget_within_75pct": true,
+        "observed_g2_constraints": false
+      },
+      "PrimeLoRA": {
+        "system": "PrimeLoRA",
+        "run": "D752",
+        "workload": "W0",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 3831,
+          "ttft_pass": 3913,
+          "tpot_pass": 3917
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.95775,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 14860.687045203056,
+        "gpu_seconds_per_protocol_valid_request": 3.715171761300764,
+        "gpu_seconds_per_offered_request": 3.715171761300764,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 604.0233022231841,
+            "p50_type1": 437.7224110066891,
+            "p95_type1": 1546.4216843247414
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 15.922396937854389,
+            "p50_type1": 13.995062815956771,
+            "p95_type1": 27.49808764130604
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 2407.3327526043868,
+            "p50_type1": 2016.6173209436238,
+            "p95_type1": 5117.529953829944
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/full4000.json",
+          "sha256": "d87f17d959180ba11d12180e6ba3cddfccf8f16aaafdfd2047ccf9ad46a0dedf",
+          "source_kind": "prime_w0_audit"
+        },
+        "numerical_evidence_scope": "No simulation, rerun, threshold change or inference of independent numerical correctness.",
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.2292297699174313,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      }
+    },
+    "W1": {
+      "vLLM": {
+        "system": "vLLM",
+        "run": "D654",
+        "workload": "W1",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 4000,
+          "ttft_pass": 4000,
+          "tpot_pass": 4000
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 1.0,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 9006.378086880315,
+        "gpu_seconds_per_protocol_valid_request": 2.2515945217200786,
+        "gpu_seconds_per_offered_request": 2.2515945217200786,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 133.37957357725827,
+            "p50_type1": 125.38375309668481,
+            "p95_type1": 177.0024048164487
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 11.259356618468212,
+            "p50_type1": 10.996088536237092,
+            "p95_type1": 12.484282000783693
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 1416.877238735964,
+            "p50_type1": 1116.4336162619293,
+            "p95_type1": 3126.976480940357
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d654_3b_full_w1/audit.json",
+          "sha256": "e2ece3bb5486d0d458573e7746285969418f7ac89a11aacb846f356823616cda",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W1 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3333333333333333,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "ServerlessLLM": {
+        "system": "ServerlessLLM",
+        "run": "D765",
+        "workload": "W1",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 3203,
+          "ttft_pass": 3244,
+          "tpot_pass": 3933
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.80075,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 8980.542167644948,
+        "gpu_seconds_per_protocol_valid_request": 2.245135541911237,
+        "gpu_seconds_per_offered_request": 2.245135541911237,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 3070.7286963682855,
+            "p50_type1": 146.91813848912716,
+            "p95_type1": 16986.096993088722
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 19.40607352723705,
+            "p50_type1": 18.61483334362799,
+            "p95_type1": 27.255579272447072
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 5214.572280873079,
+            "p50_type1": 2571.376876439899,
+            "p95_type1": 18909.49724568054
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d765_shared_tokenizer_full_w1/audit.json",
+          "sha256": "b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W1 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3295085003114993,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "S-LoRA": {
+        "system": "S-LoRA",
+        "run": "D772",
+        "workload": "W1",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 1196,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 7885.918405623175,
+        "gpu_seconds_per_protocol_valid_request": 1.9714796014057938,
+        "gpu_seconds_per_offered_request": 1.9714796014057938,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 100705.66556089849,
+            "p50_type1": 61668.51602168754,
+            "p95_type1": 318727.890512906
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 152.58442131556757,
+            "p50_type1": 156.14600516490492,
+            "p95_type1": 216.2866455192367
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 118432.0151775931,
+            "p50_type1": 83782.9675511457,
+            "p95_type1": 336551.94030934945
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d772_slora_3b_w1_binding/gpu_full4000/audit_full4000.json",
+          "sha256": "5a6e287b03e8d2c95d02fff337beed6fb7d67645e46f2a2ccac3bc7810e11fe5",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W1 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.1674568592096861,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "Loquetier": {
+        "system": "Loquetier",
+        "run": "D801",
+        "workload": "W1",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 587,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 8049.341781659983,
+        "gpu_seconds_per_protocol_valid_request": 2.0123354454149958,
+        "gpu_seconds_per_offered_request": 2.0123354454149958,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 147224.73090950004,
+            "p50_type1": 79315.89558208361,
+            "p95_type1": 557695.3425249085
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 53.68619594996672,
+            "p50_type1": 52.988190351821046,
+            "p95_type1": 59.83451554890383
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 153300.3856958727,
+            "p50_type1": 84207.38493092358,
+            "p95_type1": 563930.8951841667
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d801_loquetier_3b_w1_result/audit_full4000.json",
+          "sha256": "9f1962fddd05da651e9c5e37a7b0a4efd6cb86c2b0914cc069c8fe4157adcf06",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W1 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. No baseline optimization or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.1916505842136538,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "HydraServe": {
+        "system": "HydraServe",
+        "run": "D808",
+        "workload": "W1",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 2612,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 6240.331505322363,
+        "gpu_seconds_per_protocol_valid_request": 1.5600828763305907,
+        "gpu_seconds_per_offered_request": 1.5600828763305907,
+        "metrics": {
+          "ttft_ms": {
+            "n": 4000,
+            "mean": 3548.7355358622735,
+            "p50": 630.6971721351147,
+            "p95_type1": 14716.18143375963,
+            "p99": 18411.204903852195,
+            "max": 26465.289358980954
+          },
+          "tpot_ms": {
+            "n": 4000,
+            "mean": 82.85027750294493,
+            "p50": 72.87486224782234,
+            "p95_type1": 140.40034404024482,
+            "p99": 249.34955577676496,
+            "max": 803.8945867680013
+          },
+          "e2e_ms": {
+            "n": 4000,
+            "mean": 12125.718285305931,
+            "p50": 11065.32509950921,
+            "p95_type1": 26147.138762287796,
+            "p99": 37253.89428157359,
+            "max": 52402.18187402934
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0,
+          "source_count": 4000,
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d808_hydraserve_3b_w1/full_w1_evaluation.json",
+          "sha256": "79d208bfbfcc3446bba1c5161e03b4be9dc0e9c55cf6e9c339d2be0d247f0447",
+          "source_kind": "hydra_evaluation"
+        },
+        "numerical_evidence_scope": {
+          "affected_path_pass": true,
+          "all_zero_output_count": 0,
+          "all_zero_request_ids": [],
+          "audit_completed": true,
+          "expected_prefix": [
+            578,
+            2326,
+            1288
+          ],
+          "independent_full_correctness_proven": false,
+          "n_arrived": 4000,
+          "n_correct": null,
+          "n_plan": 4000,
+          "n_response": 4000,
+          "n_terminal": 4000,
+          "native_binding_accounting_passed": true,
+          "observed_prefix": [
+            578,
+            2326,
+            1288
+          ],
+          "reference_request_id": "req_00001",
+          "same_adapter_id": true,
+          "same_prompt_ids": true,
+          "scope": "One exact-input independent reference prefix; all native-bound responses checked, not 4000 independent numerical references",
+          "source_sha256": {
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d576_20261016/audit.py": "f35fcd266e29948c1da5c6153676e482c610506b8ed18512ef3705ac015f37a6",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/audit.py": "64aa934439903c220c80c5941dee20367dcaf78cdfd4155d4b077c09859194ff",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/closure.json": "4e8b9b62bf27025e52eafd29926b4ffe953044d6cbc8a263101c3ddd486f45a4",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/full_w1_evaluation.json": "79d208bfbfcc3446bba1c5161e03b4be9dc0e9c55cf6e9c339d2be0d247f0447",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/http_audit.json": "830dd6a97dc2ff9c3d809fc583af5c1c0e402077c62b80a394d16be6c4395fb1",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/launch_gate.json": "faf96994a4db3481428b28420909020b20d2be6f41aec97e98f735cfd93415ac",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d808_20261024/remote_stop.json": "f8976a858c790cd3a856bbf1229bbefee0049fc7b3be6710930b1da60fa87fa2"
+          }
+        },
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 0.9238388536249615,
+        "budget_within_75pct": true,
+        "observed_g2_constraints": false
+      },
+      "dLoRA": {
+        "system": "dLoRA",
+        "run": "D794",
+        "workload": "W1",
+        "n_binding_valid": 3457,
+        "native_tokens": 391460,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 17,
+          "ttft_pass": 40,
+          "tpot_pass": 2327
+        },
+        "n_failed": 543,
+        "workload_complete": false,
+        "joint_slo": 0.00425,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 6068.813831485808,
+        "gpu_seconds_per_protocol_valid_request": 1.7555145592958656,
+        "gpu_seconds_per_offered_request": 1.517203457871452,
+        "metrics": {
+          "ttft_ms": {
+            "count": 3457,
+            "mean": 423476.10577682627,
+            "p50_type1": 248918.61710418016,
+            "p95_type1": 1436991.0084824078
+          },
+          "tpot_ms": {
+            "count": 3457,
+            "mean": 284.1766468816852,
+            "p50_type1": 31.51629258714178,
+            "p95_type1": 600.6448474611987
+          },
+          "e2e_ms": {
+            "count": 3457,
+            "mean": 459752.41272457445,
+            "p50_type1": 270182.188925799,
+            "p95_type1": 1528219.413781073
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W1",
+          "rate_scale": 1.0
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d794_dlora_cancellation_corrected_full_w1/audit_full4000_w1.json",
+          "sha256": "89bda071acd4d23b1a4293fb4b7f42e865b4c7ace7985b9818d95ab609d7d399",
+          "source_kind": "terminal_native_failure_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W1 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "dLoRA DP2/TP1 retains EngineManager and PERIOD_MIG; full remote pool is prepared after notice. Actual GPU lifetime includes native CPU LoRA loading and KV preparation; no claim that configured migration triggered.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.",
+          "All offered requests reached a terminal, but request failures remain; conditional latency and total resources do not constitute a feasible G1/G2 point. Failure attribution is separate."
+        ],
+        "status": "terminal_failure_diagnostic",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 0.898446822602501,
+        "budget_within_75pct": true,
+        "observed_g2_constraints": false
+      }
+    },
+    "W2": {
+      "vLLM": {
+        "system": "vLLM",
+        "run": "D656",
+        "workload": "W2",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 4000,
+          "ttft_pass": 4000,
+          "tpot_pass": 4000
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 1.0,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 16110.751826980617,
+        "gpu_seconds_per_protocol_valid_request": 4.0276879567451545,
+        "gpu_seconds_per_offered_request": 4.0276879567451545,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 165.21914081420982,
+            "p50_type1": 128.22127994149923,
+            "p95_type1": 441.6348978411406
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 10.89994488319495,
+            "p50_type1": 10.755487011074154,
+            "p95_type1": 11.585231064460599
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 1408.1000605057925,
+            "p50_type1": 1116.0535919480026,
+            "p95_type1": 3045.3203446231782
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d656_3b_full_w2/audit.json",
+          "sha256": "beb3de7a04dac838e09032e6b71a08c6d65f0d3f5bd6b4954b68cdb30f06a339",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3333333333333333,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "ServerlessLLM": {
+        "system": "ServerlessLLM",
+        "run": "D766",
+        "workload": "W2",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 3925,
+          "ttft_pass": 3948,
+          "tpot_pass": 3977
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.98125,
+        "observed_protocol_feasible": true,
+        "physical_gpu_seconds": 16084.201387144625,
+        "gpu_seconds_per_protocol_valid_request": 4.021050346786156,
+        "gpu_seconds_per_offered_request": 4.021050346786156,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 568.5485972203314,
+            "p50_type1": 143.2397784665227,
+            "p95_type1": 480.72437942028046
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 15.747297351734291,
+            "p50_type1": 14.821588184100156,
+            "p95_type1": 19.57120538926592
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 2329.8855401079636,
+            "p50_type1": 1530.979358125478,
+            "p95_type1": 4318.656759336591
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_full_w2/audit.json",
+          "sha256": "9ff674a6f4dd981abcfae0bde1256d9deb3a45e60766d688d6f50b40ea3c4a65",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.3311360065525493,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "S-LoRA": {
+        "system": "S-LoRA",
+        "run": "D773",
+        "workload": "W2",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3623,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 15003.934758741409,
+        "gpu_seconds_per_protocol_valid_request": 3.750983689685352,
+        "gpu_seconds_per_offered_request": 3.750983689685352,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 12525.430754942005,
+            "p50_type1": 244.16050454601645,
+            "p95_type1": 108627.53833504394
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 77.04188134479699,
+            "p50_type1": 66.29365053685272,
+            "p95_type1": 180.1473847189818
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 21441.33152403636,
+            "p50_type1": 6374.162717256695,
+            "p95_type1": 131671.49025714025
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d773_slora_3b_w2_binding/gpu_full4000/audit_full4000.json",
+          "sha256": "137195f249d737a61e27372a7b28c79a7a0a24e30370f296b0a37582522db51d",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.2417326366784343,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "Loquetier": {
+        "system": "Loquetier",
+        "run": "D802",
+        "workload": "W2",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3005,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 14726.752592459321,
+        "gpu_seconds_per_protocol_valid_request": 3.6816881481148305,
+        "gpu_seconds_per_offered_request": 3.6816881481148305,
+        "metrics": {
+          "ttft_ms": {
+            "count": 4000,
+            "mean": 28692.985493325163,
+            "p50_type1": 184.18014142662287,
+            "p95_type1": 235211.96985337883
+          },
+          "tpot_ms": {
+            "count": 4000,
+            "mean": 52.39814243737013,
+            "p50_type1": 51.671707911380366,
+            "p95_type1": 58.61942731391858
+          },
+          "e2e_ms": {
+            "count": 4000,
+            "mean": 34641.670422971365,
+            "p50_type1": 6430.063080973923,
+            "p95_type1": 244400.87834885344
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d802_loquetier_3b_w2_result/audit_full4000.json",
+          "sha256": "c892967ce4b96db1600bb63fc711e28ad1f0d18b3b6e10afa82b6aead5386e12",
+          "source_kind": "native_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. No baseline optimization or PrimeLoRA policy added.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+        ],
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 1.218792911352238,
+        "budget_within_75pct": false,
+        "observed_g2_constraints": false
+      },
+      "HydraServe": {
+        "system": "HydraServe",
+        "run": "D809",
+        "workload": "W2",
+        "n_binding_valid": 4000,
+        "native_tokens": 458224,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 0,
+          "ttft_pass": 3317,
+          "tpot_pass": 0
+        },
+        "n_failed": 0,
+        "workload_complete": true,
+        "joint_slo": 0.0,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 6113.169924866874,
+        "gpu_seconds_per_protocol_valid_request": 1.5282924812167185,
+        "gpu_seconds_per_offered_request": 1.5282924812167185,
+        "metrics": {
+          "ttft_ms": {
+            "n": 4000,
+            "mean": 1978.6607608669437,
+            "p50": 375.2093785442412,
+            "p95_type1": 10649.148906581104,
+            "p99": 21159.531051758677,
+            "max": 27585.646057501435
+          },
+          "tpot_ms": {
+            "n": 4000,
+            "mean": 72.10360852821351,
+            "p50": 62.14461298659444,
+            "p95_type1": 127.50530894845724,
+            "p99": 263.49537082326907,
+            "max": 864.0468750149012
+          },
+          "e2e_ms": {
+            "n": 4000,
+            "mean": 9163.313283201196,
+            "p50": 7620.8552601747215,
+            "p95_type1": 19828.713417984545,
+            "p99": 28960.217418614775,
+            "max": 46620.16363441944
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23",
+          "count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "source_count": 4000,
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d809_hydraserve_3b_w2/full_w2_evaluation.json",
+          "sha256": "4541ad363f967dc7e3e8e571c6537703330ba524fc96b89bd5ec259e5061fd6c",
+          "source_kind": "hydra_evaluation"
+        },
+        "numerical_evidence_scope": {
+          "all_zero_output_count": 0,
+          "all_zero_request_ids": [],
+          "audit_completed": true,
+          "delivery_sanity_pass": true,
+          "independent_full_correctness_proven": false,
+          "local_prefix_reference_count": 2,
+          "local_prefix_reference_pass": true,
+          "n_arrived": 4000,
+          "n_correct": null,
+          "n_plan": 4000,
+          "n_response": 4000,
+          "n_terminal": 4000,
+          "native_binding_accounting_passed": true,
+          "reference_comparisons": [
+            {
+              "actual_adapter_id": "finance_lora_0025",
+              "applicable": true,
+              "expected_prefix": [
+                578,
+                19114,
+                374
+              ],
+              "observed_prefix": [
+                578,
+                19114,
+                374
+              ],
+              "prefix_pass": true,
+              "reference_adapter_id": "finance_lora_0025",
+              "request_id": "req_00200",
+              "same_adapter_id": true,
+              "same_prompt_ids": true
+            },
+            {
+              "actual_adapter_id": "finance_lora",
+              "applicable": true,
+              "expected_prefix": [
+                578,
+                2326,
+                1288
+              ],
+              "observed_prefix": [
+                578,
+                2326,
+                1288
+              ],
+              "prefix_pass": true,
+              "reference_adapter_id": "finance_lora",
+              "request_id": "req_00001",
+              "same_adapter_id": true,
+              "same_prompt_ids": true
+            }
+          ],
+          "scope": "Native binding/accounting and nonzero delivery audited for all responses; exact-input reference prefixes only where prompt IDs and adapter both match; not full independent numerical correctness",
+          "source_sha256": {
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d807_20261024/audit.py": "2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/audit.py": "7f45d3dfdb8f4963369e81373dfd4692cd9c48d980a049c14c80641e0ca681c6",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/closure.json": "5c838b4019a5c8426fa535cc0ab85bc4bc843e4e0ae9a118eb383eb81da98d67",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/full_w2_evaluation.json": "4541ad363f967dc7e3e8e571c6537703330ba524fc96b89bd5ec259e5061fd6c",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/http_audit.json": "8f4f9d518f187504cd8c78cabe86f273a90e726a8c3ecda592b98adcda2bb24a",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/launch_gate.json": "de8b08693443a3727161888e4b1cb2f538ea8f2014c55dcc017e1189f495c551",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/remote_stop.json": "eb5e017b3d9872d4e97f82233dd5414ad744a2603f870072a6ca3915f6ba9c84",
+            "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d809_20261024/w2_input_qualification.json": "38552ec0cfe96d7823b6ebbc782546aa5de33f6904ae7c9f5a2e99af2b2a7095"
+          }
+        },
+        "status": "completed_observation",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 0.50592879343505,
+        "budget_within_75pct": true,
+        "observed_g2_constraints": false
+      },
+      "dLoRA": {
+        "system": "dLoRA",
+        "run": "D795",
+        "workload": "W2",
+        "n_binding_valid": 3122,
+        "native_tokens": 351924,
+        "counts": {
+          "N": 4000,
+          "joint_pass": 26,
+          "ttft_pass": 41,
+          "tpot_pass": 2283
+        },
+        "n_failed": 878,
+        "workload_complete": false,
+        "joint_slo": 0.0065,
+        "observed_protocol_feasible": false,
+        "physical_gpu_seconds": 9086.517108698376,
+        "gpu_seconds_per_protocol_valid_request": 2.910479535137212,
+        "gpu_seconds_per_offered_request": 2.271629277174594,
+        "metrics": {
+          "ttft_ms": {
+            "count": 3122,
+            "mean": 386545.49668122275,
+            "p50_type1": 158173.36813593283,
+            "p95_type1": 1566152.8849354945
+          },
+          "tpot_ms": {
+            "count": 3122,
+            "mean": 306.975873870761,
+            "p50_type1": 27.982901885277695,
+            "p95_type1": 206.22150129364695
+          },
+          "e2e_ms": {
+            "count": 3122,
+            "mean": 424927.4829285939,
+            "p50_type1": 183310.2659289725,
+            "p95_type1": 1648597.9875558987
+          }
+        },
+        "raw_n_correct": null,
+        "independent_numerical_proof": false,
+        "formal_run": false,
+        "independent_holdout": false,
+        "source_plan": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W2",
+          "rate_scale": 1.0,
+          "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+          "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+        },
+        "source_ref": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d795_dlora_cancellation_corrected_full_w2/audit_full4000_w2.json",
+          "sha256": "cdb01343ab56202cd22f2cd96b98d31c7e09252f27dc4e7041c923e3e508e75a",
+          "source_kind": "terminal_native_failure_audit"
+        },
+        "numerical_evidence_scope": [
+          "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+          "Raw unknown numerical correctness and old qualification flags are preserved.",
+          "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+          "dLoRA DP2/TP1 retains EngineManager and PERIOD_MIG; full remote pool is prepared after notice. Actual GPU lifetime includes native CPU LoRA loading and KV preparation; no claim that configured migration triggered.",
+          "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.",
+          "All offered requests reached a terminal, but request failures remain; conditional latency and total resources do not constitute a feasible G1/G2 point. Failure attribution is separate."
+        ],
+        "status": "terminal_failure_diagnostic",
+        "formal_g1_eligible": false,
+        "formal_g2_eligible": false,
+        "n_correct": null,
+        "ratio_to_resident_75pct_budget": 0.7520043927833104,
+        "budget_within_75pct": true,
+        "observed_g2_constraints": false
+      }
+    }
+  },
+  "missing": {
+    "W0": {
+      "dLoRA": "not_in_approved_scope"
+    },
+    "W1": {
+      "PrimeLoRA": "current_version_not_run"
+    },
+    "W2": {
+      "PrimeLoRA": "current_version_not_run"
+    }
+  },
+  "references": {
+    "W0": {
+      "kind": "single_run_resident_reference_v2",
+      "reference_id": "3b_W0_vllm0300_D653",
+      "model": "llama32_3b_main_modelscope",
+      "workload": "W0",
+      "reference_frozen": true,
+      "source_run": "D653",
+      "U_ref_gpu_seconds": 16119.239769904874,
+      "Q_ref_p95_ttft_ms": 170.5774876754731,
+      "budget_fraction": 0.75,
+      "B_gpu_seconds": 12089.429827428656,
+      "n_protocol_valid": 4000,
+      "raw_n_correct": null,
+      "independent_numerical_proof": false,
+      "reused_development_observation": true,
+      "independent_holdout": false,
+      "formal_independent_correctness_qualified": false,
+      "source_audit_sha256": "fa94e223f86cb108d0e808eea6b9e345463d9601e528c330545290af07132eb2",
+      "slo_eval_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "warm_reference_sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+      "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "qualification": "Retained full native/content/input/timing audit and newly checked closed four-device integral; not HTTP success alone.",
+      "reference_slo_requirement": false,
+      "source_observed_joint_slo": 0.99975,
+      "preregistration_document": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D653_3B_NATIVE_RESIDENT_W0.md",
+        "sha256": "098b5bfe29b332c0877cfa5a5991193646f41d5720917a0011b67944715434fb"
+      },
+      "cache_boundary": "Compiler disk cache retained; actual JIT counted; whole lower kernel-cache equivalence not proved.",
+      "scope": "Frozen numerical resource normalization, not independent numerical correctness, system optimum, or final G1/G2 achievement."
+    },
+    "W1": {
+      "kind": "single_run_resident_reference_v2",
+      "reference_id": "3b_W1_vllm0300_D654",
+      "model": "llama32_3b_main_modelscope",
+      "workload": "W1",
+      "reference_frozen": true,
+      "source_run": "D654",
+      "U_ref_gpu_seconds": 9006.378086880315,
+      "Q_ref_p95_ttft_ms": 177.0024048164487,
+      "budget_fraction": 0.75,
+      "B_gpu_seconds": 6754.783565160236,
+      "n_protocol_valid": 4000,
+      "raw_n_correct": null,
+      "independent_numerical_proof": false,
+      "reused_development_observation": true,
+      "independent_holdout": false,
+      "formal_independent_correctness_qualified": false,
+      "source_audit_sha256": "e2ece3bb5486d0d458573e7746285969418f7ac89a11aacb846f356823616cda",
+      "slo_eval_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "warm_reference_sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+      "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "qualification": "Retained full native/content/input/timing audit and newly checked closed four-device integral; not HTTP success alone.",
+      "reference_slo_requirement": false,
+      "source_observed_joint_slo": 1.0,
+      "preregistration_document": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D654_3B_NATIVE_RESIDENT_W1.md",
+        "sha256": "acc356232a9b20c02436de6cd349a37401ffe6dd4207cf5db6e464c5eca37698"
+      },
+      "cache_boundary": "Compiler disk cache retained; actual JIT counted; whole lower kernel-cache equivalence not proved.",
+      "scope": "Frozen numerical resource normalization, not independent numerical correctness, system optimum, or final G1/G2 achievement."
+    },
+    "W2": {
+      "kind": "single_run_resident_reference_v2",
+      "reference_id": "3b_W2_vllm0300_D656",
+      "model": "llama32_3b_main_modelscope",
+      "workload": "W2",
+      "reference_frozen": true,
+      "source_run": "D656",
+      "U_ref_gpu_seconds": 16110.751826980617,
+      "Q_ref_p95_ttft_ms": 441.6348978411406,
+      "budget_fraction": 0.75,
+      "B_gpu_seconds": 12083.063870235463,
+      "n_protocol_valid": 4000,
+      "raw_n_correct": null,
+      "independent_numerical_proof": false,
+      "reused_development_observation": true,
+      "independent_holdout": false,
+      "formal_independent_correctness_qualified": false,
+      "source_audit_sha256": "beb3de7a04dac838e09032e6b71a08c6d65f0d3f5bd6b4954b68cdb30f06a339",
+      "slo_eval_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+      "warm_reference_sha256": "7bbd7fd12ec03c4b80a8e8428686fab0daa23f7a68596647cfad9334f4181520",
+      "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "qualification": "Retained full native/content/input/timing audit and newly checked closed four-device integral; not HTTP success alone.",
+      "reference_slo_requirement": false,
+      "source_observed_joint_slo": 1.0,
+      "preregistration_document": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D656_3B_NATIVE_RESIDENT_W2.md",
+        "sha256": "06522451342237d4dbd60c0aedc18cef3c6397ebfe687d8d962f932d9c309fa4"
+      },
+      "cache_boundary": "Compiler disk cache retained; actual JIT counted; whole lower kernel-cache equivalence not proved.",
+      "scope": "Frozen numerical resource normalization, not independent numerical correctness, system optimum, or final G1/G2 achievement."
+    }
+  },
+  "PrimeLoRA_relative_observations": {
+    "W0": {
+      "vLLM": {
+        "gpu_seconds_relative_reduction": 0.07807767256192662,
+        "joint_slo_difference_percentage_points": -4.200000000000004,
+        "p95_ttft_relative_reduction": -8.065801738543822,
+        "both_observed_protocol_feasible": true,
+        "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."
+      },
+      "ServerlessLLM": {
+        "gpu_seconds_relative_reduction": 0.07644422388463677,
+        "joint_slo_difference_percentage_points": -1.9499999999999962,
+        "p95_ttft_relative_reduction": -2.741331098643813,
+        "both_observed_protocol_feasible": true,
+        "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."
+      },
+      "S-LoRA": {
+        "gpu_seconds_relative_reduction": 0.009471531807081083,
+        "joint_slo_difference_percentage_points": 95.775,
+        "p95_ttft_relative_reduction": 0.9857633144204565,
+        "both_observed_protocol_feasible": false,
+        "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."
+      },
+      "Loquetier": {
+        "gpu_seconds_relative_reduction": -0.007448443794983644,
+        "joint_slo_difference_percentage_points": 95.775,
+        "p95_ttft_relative_reduction": 0.9952180430447484,
+        "both_observed_protocol_feasible": false,
+        "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."
+      },
+      "HydraServe": {
+        "gpu_seconds_relative_reduction": -1.4403172748952955,
+        "joint_slo_difference_percentage_points": 95.775,
+        "p95_ttft_relative_reduction": 0.8103923538678101,
+        "both_observed_protocol_feasible": false,
+        "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."
+      }
+    },
+    "W1": null,
+    "W2": null
+  },
+  "fixed_configuration_sensitivity": {
+    "W0": [
+      {
+        "attainment": 0.9,
+        "observed_resource_order": [
+          "PrimeLoRA",
+          "ServerlessLLM",
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "PrimeLoRA",
+              "ServerlessLLM",
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.95,
+        "observed_resource_order": [
+          "PrimeLoRA",
+          "ServerlessLLM",
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "PrimeLoRA",
+              "ServerlessLLM",
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.99,
+        "observed_resource_order": [
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "vLLM"
+            ]
+          }
+        ]
+      }
+    ],
+    "W1": [
+      {
+        "attainment": 0.9,
+        "observed_resource_order": [
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.95,
+        "observed_resource_order": [
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.99,
+        "observed_resource_order": [
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "vLLM"
+            ]
+          }
+        ]
+      }
+    ],
+    "W2": [
+      {
+        "attainment": 0.9,
+        "observed_resource_order": [
+          "ServerlessLLM",
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "ServerlessLLM",
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.95,
+        "observed_resource_order": [
+          "ServerlessLLM",
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "ServerlessLLM",
+              "vLLM"
+            ]
+          }
+        ]
+      },
+      {
+        "attainment": 0.99,
+        "observed_resource_order": [
+          "vLLM"
+        ],
+        "budget_slices": [
+          {
+            "fraction": 0.5,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 0.75,
+            "observed_feasible_names": []
+          },
+          {
+            "fraction": 1.0,
+            "observed_feasible_names": [
+              "vLLM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "new_gpu_runs": 0,
+  "performance_runs_per_key": 1,
+  "confidence_interval": null,
+  "formal_m1_m2_complete": false,
+  "independent_numerical_qualification": false,
+  "independent_holdout": false,
+  "current_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_checkpoint": "2bc234e7c72f63920f287a173a44d3b462c9277e",
+  "common_slo_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "common_workload_identities": {
+    "W0": {
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37"
+    },
+    "W1": {
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f"
+    },
+    "W2": {
+      "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174"
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/BASELINE_PUBLICATION_REGISTRY_20261014.json",
+      "sha256": "55247e2f42e30a845b8a160a85737c9ace6aa981e6227c9a9fc2469b914bbae3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+      "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d653_3b_full_w0/audit.json",
+      "sha256": "fa94e223f86cb108d0e808eea6b9e345463d9601e528c330545290af07132eb2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d654_3b_full_w1/audit.json",
+      "sha256": "e2ece3bb5486d0d458573e7746285969418f7ac89a11aacb846f356823616cda"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/vllm/d656_3b_full_w2/audit.json",
+      "sha256": "beb3de7a04dac838e09032e6b71a08c6d65f0d3f5bd6b4954b68cdb30f06a339"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d764_shared_tokenizer_full_w0/audit.json",
+      "sha256": "ecd08782ad91eafdf59f4fc624fcb9bad4dcd4503d14754fc67d768a0e8ec18f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d765_shared_tokenizer_full_w1/audit.json",
+      "sha256": "b949ffdf08d5083073fc11891b818f2db43935f4db1f1d4758cacfdc610c4c71"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d766_shared_tokenizer_full_w2/audit.json",
+      "sha256": "9ff674a6f4dd981abcfae0bde1256d9deb3a45e60766d688d6f50b40ea3c4a65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d771_slora_3b_full_w0_binding/gpu_full4000/audit_full4000.json",
+      "sha256": "ef89475e1ea62c232dc252d9a5db4222cc32094c538261d3a671e2c412f2f942"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d772_slora_3b_w1_binding/gpu_full4000/audit_full4000.json",
+      "sha256": "5a6e287b03e8d2c95d02fff337beed6fb7d67645e46f2a2ccac3bc7810e11fe5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d773_slora_3b_w2_binding/gpu_full4000/audit_full4000.json",
+      "sha256": "137195f249d737a61e27372a7b28c79a7a0a24e30370f296b0a37582522db51d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d800_loquetier_3b_w0_result/audit_full4000.json",
+      "sha256": "7e84af524b40927174113741ad88c71abd4d2827f719ab1f8d4c425c38569efb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d801_loquetier_3b_w1_result/audit_full4000.json",
+      "sha256": "9f1962fddd05da651e9c5e37a7b0a4efd6cb86c2b0914cc069c8fe4157adcf06"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d802_loquetier_3b_w2_result/audit_full4000.json",
+      "sha256": "c892967ce4b96db1600bb63fc711e28ad1f0d18b3b6e10afa82b6aead5386e12"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0/full_w0_evaluation.json",
+      "sha256": "6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0/prepare_result.json",
+      "sha256": "f6160f1a5e17cc829948f969ab5fee27f1d89888fec6c719c44b94ac3a8c156a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0/delivery_numerical_audit.json",
+      "sha256": "ceafee3455794fac1ff8227cb32eb29688d8e6a72e28108353edc7d96fecd56c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d808_hydraserve_3b_w1/full_w1_evaluation.json",
+      "sha256": "79d208bfbfcc3446bba1c5161e03b4be9dc0e9c55cf6e9c339d2be0d247f0447"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d808_hydraserve_3b_w1/prepare_result.json",
+      "sha256": "700cc865cf0236a7e91063311f8570aa49c606cb6abc1e7a40b98934f7e20fd0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d808_hydraserve_3b_w1/delivery_numerical_audit.json",
+      "sha256": "7a8cdade49cffdab4ed5cb873d5d596e2e76d7e2556898438c3c8a96102ebdcf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d809_hydraserve_3b_w2/full_w2_evaluation.json",
+      "sha256": "4541ad363f967dc7e3e8e571c6537703330ba524fc96b89bd5ec259e5061fd6c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d809_hydraserve_3b_w2/prepare_result.json",
+      "sha256": "69460d4d8f6967bdff5fc27e0d38541739543dd29033d2caeb1e28401e5d7f80"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d809_hydraserve_3b_w2/delivery_numerical_audit.json",
+      "sha256": "47b1be81b5ea91abcb47840a5997840535474e7806e455c49eb6158293228e7c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d794_dlora_cancellation_corrected_full_w1/audit_full4000_w1.json",
+      "sha256": "89bda071acd4d23b1a4293fb4b7f42e865b4c7ace7985b9818d95ab609d7d399"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d795_dlora_cancellation_corrected_full_w2/audit_full4000_w2.json",
+      "sha256": "cdb01343ab56202cd22f2cd96b98d31c7e09252f27dc4e7041c923e3e508e75a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/full4000.json",
+      "sha256": "d87f17d959180ba11d12180e6ba3cddfccf8f16aaafdfd2047ccf9ad46a0dedf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/closed_outcome.json",
+      "sha256": "7910d742cd0dc9491df2ac940e8310b7db6882d6cbb0296396357951c8a40cf9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/3b_dense_alias_validation_full_w0/launch.json",
+      "sha256": "eb11ac7235f3a7e8667d5f2af93ea23ee2492033cf3d939f8ea512c1c0dc1bd5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/stages/requests.csv",
+      "sha256": "d8538ce728c409e731a73a3cc28e7d6c952ff759804840221a5a7693b1d53086"
+    }
+  ],
+  "caveats": [
+    "Reuse of sealed audits; no new independent full numerical qualification.",
+    "PrimeLoRA D752 W0 only; W1/W2 not measured for this version, never imputed.",
+    "dLoRA restricted to W1/W2; failures retained in offered denominator and conditional latency samples.",
+    "Source42 known workload, one observation per key, no independent holdout or CI.",
+    "HydraServe pp1 only; no pipeline/consolidation performance claim.",
+    "Baseline necessary adaptations and native versions retained; no performance search or global-optimum claim.",
+    "Numerical resource references are frozen; independent numerical proof remains explicitly unknown.",
+    "Sensitivity classifies existing points; it is not an optimized Pareto frontier."
+  ]
+}

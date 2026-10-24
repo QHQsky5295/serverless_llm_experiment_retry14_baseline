@@ -1,4 +1,55 @@
-# IEEE TC execution status — D809 HydraServe 3B W2 audited; checkpoint next
+# IEEE TC execution status — D810 available 3B comparison; PrimeLoRA resource/latency gap next
+
+## 2026-10-24 22:39 CST D810完成18点离线对照，下一备份后回PrimeLoRA优化
+
+本轮PROGRESS：完整重读PLAN/当前状态/V1/V2/执行补充；复用D593框架汇总
+3B五个外部主基线×W0/W1/W2、dLoRA限W1/W2及PrimeLoRA D752 W0，共18
+实测点。当前PrimeLoRA W1/W2明确未运行；dLoRA W0不在范围，不填数。
+没有GPU重跑、基线参数搜索、远端操作或共享k3s改动。使用analyze-results。
+
+D810机器可读CSV/JSON保存全部失败和共同SLO/输入SHA，D657预算不重冻。
+PrimeLoRA W0联合95.775%，U14860.687045；相对vLLM/ServerlessLLM节省
+7.8078%/7.6444%，联合低4.20/1.95pp，P95 TTFT为9.066/3.741倍。
+W0 U超75%预算22.923%；当前无已测3B点同时满足95%与75%预算。独立全量
+数值证据未知/n_correct=null保留，不宣布正式G1/G2或全局最优。dLoRA失败
+543/878保留在4000分母；所有原始低SLO行保留。具体见D810文档与curated。
+
+22项投影测试通过；两个分析工具错误（缺numpy、清单阶段变量名遮蔽）保留，
+前者复用现有LLM环境，后者只补清单、不覆盖三份已生成数据。分析scope0002
+peak782532608B、resume0003 peak34529280B，high/max/OOM/swap0，均实际
+关闭。147保护和3dirty SHA不变。上一D809后置备份/存储回执随本检查点归档。
+
+下一使用github-sync显式路径校验备份；随后核对既有控制/资源优化失败历史、
+D752实际持卡/队列/扩缩容证据及原始论文/官方代码，只选一个可证伪候选。
+本轮尚未改服务机制或启动新PrimeLoRA实验。当前盘约150.25GiB，重型运行
+前重新检查增长量，必要时先做有证据安全回收，不重复旧回收。其后同版本
+W0/W1/W2、最终Full/A1–A5/S1–S13、成本CE/Pareto、审稿文档、图表和最终
+V2仍全部保留；完整goal active，不把基线矩阵结束当作整个项目完成。
+
+## 2026-10-24 22:19 CST D809已封存备份并回收缓存，返回完整3B比较
+
+上一goal turn为VERIFIED WAIT；本轮为PROGRESS：持续确认同一服务存活直到
+实际结束，完成W2核查、文档、显式路径Git备份和安全缓存回收，未重跑/调参。
+MAIN提交2bc234e7c72f63920f287a173a44d3b462c9277e已推送核对
+backup/d809-hydraserve-3b-w2-20261024；BASE e1c433bab982366a82ad188ef703270d89d6ea06
+与origin/main一致。D808后置publication2/storage回执已入本备份。147保护
+文件及3个用户dirty未变；未stage无关文件/凭据，无force。最终V2尚未同步。
+publication0004实际关闭、peak53010432B/事件swap0。
+
+D809重复497对象/3976文件在与保留原件逐字节SHA/大小/不同inode及引用核查
+后回收，payload19379651180B，实际释放19394293760B，磁盘余161333837824B。
+唯一模型/工件/trace、原始结果/失败/传输证据均保留；private view映射记录。
+storage0005实际关闭、peak843067392B/事件swap0。不可读同UID进程条目
+2628/3360275/3361057已记录，不夸大检查覆盖。后置publication/storage回执
+及本状态更新待下一正常检查点纳入，不重写既有归档。
+
+当前无运行中的实验或待工具session。HydraServe3B W0/D807、W1/D808、
+W2/D809同配置均已完成，数值正确性范围仍按局部参考与全量原生绑定区分。
+下一复用已有分析框架汇总全部3B外部基线（dLoRA限W1/W2），对照PrimeLoRA
+当前D752及历史失败/改动；读冻结V1/单轮V2，按G1/G2识别真实差距，之后才
+选择有原始论文/官方源码依据的PrimeLoRA优化候选，不继续baseline参数搜索。
+同版Full、A1–A5/S1–S13、成本CE/Pareto、两轮审稿文档、图表和最终V2全部
+保留；完整goal active，不因本轮基线测量完成缩小目标。
 
 ## 2026-10-24 22:13 CST D809完整W2已结束并核查，下一备份与缓存回收
 
