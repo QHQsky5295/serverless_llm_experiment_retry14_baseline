@@ -12,10 +12,43 @@ from unittest.mock import patch
 from Loquetier_project.scripts.run_loquetier_trace_gate import (
     _adapter_footprint, _static_capacity_shards, _tensor_header,
     _ownership_prompt, _ownership_forward, _capacity_inputs, _capacity_forward,
-    _capacity_bound, _capacity_mixed_forward, _capacity_score_target, _capacity_score_targets, _parse_args)
+    _capacity_bound, _capacity_mixed_forward, _capacity_score_target, _capacity_score_targets,
+    _parse_args, _retained_model_inputs)
 
 
 class LoquetierCapacityTests(unittest.TestCase):
+    def test_retained_model_input_identity_no_output_reference(self):
+        rows = [dict(request_id='r'+str(i),adapter_id='a'+str(i),adapter_path='/pool/a'+str(i),
+            prompt_ids=[1,i],prompt_ids_sha256=hashlib.sha256(
+                json.dumps([1,i],separators=(',',':')).encode()).hexdigest()) for i in range(2)]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/'receipt.json'
+            value = dict(model='/model',inputs=rows,native_tokens=['not_used'])
+            data = json.dumps(value).encode()
+            path.write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest()
+            self.assertEqual(_retained_model_inputs(path,digest,Path('/model'),Path('/pool')),rows)
+            with self.assertRaises(ValueError):
+                _retained_model_inputs(path,'wrong',Path('/model'),Path('/pool'))
+            with self.assertRaises(ValueError):
+                _retained_model_inputs(path,digest,Path('/other'),Path('/pool'))
+            value['inputs'][0]['prompt_ids'] = [3]
+            data = json.dumps(value).encode(); path.write_bytes(data)
+            with self.assertRaises(ValueError):
+                _retained_model_inputs(path,hashlib.sha256(data).hexdigest(),Path('/model'),Path('/pool'))
+
+    def test_model_output_mode_requires_explicit_identity(self):
+        args = ['gate','--base-model','/model','--output','/new.json','--model-output-probe',
+            '--adapter-root','/pool','--main-repo','/main','--model-output-inputs','/inputs',
+            '--model-output-inputs-sha256','abc','--kernel-receipt','/receipt','--kernel-receipt-sha256','def']
+        with patch('sys.argv',args):
+            self.assertTrue(_parse_args().model_output_probe)
+        for extra in (['--trace','/trace'],['--attention-compatibility-probe'],['--native-capacity-probe']):
+            with patch('sys.argv',args+extra),self.assertRaises(SystemExit):
+                _parse_args()
+        with patch('sys.argv',args[:-2]),self.assertRaises(SystemExit):
+            _parse_args()
+
     def test_attention_diagnostic_is_explicit_and_reads_no_workload(self):
         args = ['gate', '--base-model', '/model', '--output', '/new.json',
                 '--main-repo', '/main', '--attention-compatibility-probe']

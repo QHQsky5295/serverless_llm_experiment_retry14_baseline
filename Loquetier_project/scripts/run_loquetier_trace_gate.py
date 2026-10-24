@@ -1247,6 +1247,190 @@ def attention_compatibility_probe(args) -> int:
     return 0
 
 
+def _retained_model_inputs(path: Path, expected_sha: str, base_model: Path,
+                           adapter_root: Path) -> list[dict]:
+    """Reuse the already retained D790 inputs, not its native outputs as truth."""
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != expected_sha:
+        raise ValueError('retained model-input receipt changed')
+    prior = json.loads(data)
+    rows = prior['inputs']
+    if Path(prior['model']).resolve() != base_model.resolve() or len(rows) != 2:
+        raise ValueError('two existing same-model inputs required')
+    if len({row['request_id'] for row in rows}) != 2 or len({row['adapter_id'] for row in rows}) != 2:
+        raise ValueError('retained request/adapter identities must be distinct')
+    for row in rows:
+        ids, aid = row['prompt_ids'], row['adapter_id']
+        if (Path(aid).name != aid or aid in ('.','..')
+                or Path(row['adapter_path']).resolve() != (adapter_root/aid).resolve()
+                or not ids or len(ids) > 760 or any(type(t) is not int or t < 0 for t in ids)
+                or hashlib.sha256(json.dumps(ids,separators=(',',':')).encode()).hexdigest()
+                    != row['prompt_ids_sha256']):
+            raise ValueError('retained native input identity differs')
+    return rows
+
+
+def model_output_probe(args) -> int:
+    """Native SMLM + configured attention versus sequential HF/PEFT reference.
+
+    Two retained real inputs, prefill and two decode tokens. This is bounded
+    arithmetic evidence, not all-request correctness or a performance run.
+    """
+    if args.output.exists() or not args.output.is_absolute():
+        raise ValueError('new absolute model-output evidence path required')
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]/'scripts'))
+    from prepare_ieee_tc_serverless_stack import load_guard, stream_sha
+    guard = load_guard(args.main_repo)
+    admission = guard.verify_current_service()
+    selected = _retained_model_inputs(args.model_output_inputs, args.model_output_inputs_sha256,
+                                      args.base_model, args.adapter_root)
+    if stream_sha(args.kernel_receipt) != args.kernel_receipt_sha256:
+        raise ValueError('configured native kernel receipt changed')
+    kernel_receipt = _load_json(args.kernel_receipt)
+    contract_path = args.kernel_receipt.parent/'kernel_src/tc_model_contract.json'
+    if (not kernel_receipt['compiled']
+            or stream_sha(contract_path) != kernel_receipt['model_contract_sha256']
+            or _load_json(contract_path)['model_config_sha256'] != stream_sha(args.base_model/'config.json')):
+        raise ValueError('native kernel was built for a different model configuration')
+    sys.path.insert(0, str(args.vendor/'src'))
+    import gc
+    import inspect
+    import torch
+    import transformers
+    import peft
+    from transformers import AutoConfig, AutoModelForCausalLM, GenerationConfig, LogitsProcessorList
+    from peft import PeftModel
+    from loquetier.ops import _kernels
+    from loquetier_src import LoquetierFramework, create_virtual_model
+    from loquetier_src.models.mixed_llama import MixedLlamaForCausalLM
+    from loquetier_src.models.mixed_lora import MixedLoraModel
+    from loquetier_src.model_generation import ModelGeneration, InputRequest, InferStatus
+    from ieee_tc_serverless_measurement import loquetier_bind_static_registry
+    if (Path(_kernels.__file__).resolve() != Path(kernel_receipt['kernel_path']).resolve()
+            or stream_sha(Path(_kernels.__file__)) != kernel_receipt['kernel_sha256']):
+        raise ValueError('actual native kernel differs from model-bound build')
+    result = dict(schema='ieee_tc_loquetier_model_output_v1', performance_run=False,
+        full_workload_numerical_correctness_proven=False, passed=False, completed=False,
+        admission=admission, inputs=selected, inputs_sha256=args.model_output_inputs_sha256,
+        kernel_sha256=kernel_receipt['kernel_sha256'], kernel_contract_sha256=stream_sha(contract_path),
+        runner_sha256=stream_sha(Path(__file__)), model_config_sha256=stream_sha(args.base_model/'config.json'),
+        torch_version=torch.__version__, transformers_version=transformers.__version__,
+        peft_version=peft.__version__, checks=[],
+        criteria=dict(relative_l2_max=.01,cosine_min=.999,greedy_token_equal=True),
+        scope='two retained inputs/adapters, mixed native prefill and two decode steps',
+        limitations=['Not an all-ID, full-output-length or performance qualification.',
+                     'Distinct logical IDs do not imply distinct trained weights.'])
+    result['source_sha256'] = {inspect.getfile(cls):stream_sha(Path(inspect.getfile(cls)))
+                              for cls in (ModelGeneration,MixedLlamaForCausalLM,MixedLoraModel)}
+    result['adapter_payload_sha256'] = {r['adapter_id']:stream_sha(Path(r['adapter_path'])/'adapter_model.safetensors')
+                                       for r in selected}
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    with args.output.open('x') as stream:
+        try:
+            config = AutoConfig.from_pretrained(str(args.base_model),local_files_only=True)
+            if not config.tie_word_embeddings or config.rope_scaling['rope_type'] != 'llama3':
+                raise ValueError('this bounded probe requires the retained tied-head Llama-3 model')
+            torch.set_num_threads(4)
+            torch.cuda.set_device(0)
+            torch.cuda.reset_peak_memory_stats(0)
+            device,dtype = torch.device('cuda:0'),torch.float16
+            def native_forward():
+                base = MixedLlamaForCausalLM.from_pretrained(str(args.base_model),
+                    low_cpu_mem_usage=True,torch_dtype=dtype,local_files_only=True).to(device).eval()
+                tied = base.lm_head.weight.data_ptr() == base.model.embed_tokens.weight.data_ptr()
+                result['tied_head_shared'] = tied
+                if not tied: raise ValueError('native configured tied head is not shared')
+                LoquetierFramework.BaseModelList[str(args.base_model)] = base
+                try:
+                    models = [LoquetierFramework.load_model(row['adapter_path'],use_fast=False,
+                              torch_dtype=dtype) for row in selected]
+                    mixed = MixedLoraModel(create_virtual_model(base),
+                        {r['adapter_id']:m.base_model for r,m in zip(selected,models)},
+                        dtype=dtype,device=device,apply_scaling='A')
+                    mixed.eval()
+                    generation = GenerationConfig.from_pretrained(str(args.base_model))
+                    generation.do_sample,generation.num_beams = False,1
+                    generation.eos_token_id,generation.max_length = None,1024
+                    gen = ModelGeneration(mixed,config,generation,device,dtype=dtype)
+                    result['registry'] = loquetier_bind_static_registry(gen,
+                        {r['adapter_id']:r['adapter_path'] for r in selected})
+                    logits,tokens = {i:[] for i in range(2)},{i:[] for i in range(2)}
+                    original = gen.generation_strategy
+                    def observe(scores):
+                        chosen = original(scores)
+                        for j,req in enumerate(gen.requests):
+                            i = req.mark_id
+                            if (req.lora_name != selected[i]['adapter_id']
+                                    or req.lora_id != gen._tc_loquetier_registry[req.lora_name]
+                                    or req.input_ids.tolist() != selected[i]['prompt_ids']+tokens[i]
+                                    or len(req.logits_processor) != 0):
+                                raise ValueError('native selected-adapter/prefix identity differs')
+                            values = scores[j].detach().float().cpu().clone()
+                            if not torch.isfinite(values).all(): raise ValueError('nonfinite native logits')
+                            token = int(chosen[j])
+                            if token != int(values.argmax()): raise ValueError('native output is not greedy')
+                            logits[i].append(values)
+                            tokens[i].append(token)
+                        return chosen
+                    gen.generation_strategy = observe
+                    gen.add_requests([InputRequest(status=InferStatus.Prefill,
+                        input_ids=torch.tensor(r['prompt_ids'],dtype=torch.long),
+                        next_input_ids=list(r['prompt_ids']),mark_id=i,lora_name=r['adapter_id'],
+                        logits_processor=LogitsProcessorList(),max_length=len(r['prompt_ids'])+3)
+                        for i,r in enumerate(selected)])
+                    for step in range(3):
+                        gen.generate()
+                        if (set(gen.output_with_mark_ids) != {0,1}
+                                or any(gen.output_with_mark_ids[i] != [tokens[i][step]] for i in (0,1))):
+                            raise ValueError('native completed-token mapping differs')
+                    if gen.requests_len or gen.kvpool.num_pages or gen.finished_mark_ids != {0,1}:
+                        raise ValueError('bounded native generation did not drain exactly')
+                    return logits,tokens
+                finally:
+                    LoquetierFramework.BaseModelList.pop(str(args.base_model),None)
+            native_logits,native_tokens = native_forward()
+            result['native_tokens'] = native_tokens
+            gc.collect()
+            torch.cuda.empty_cache()
+            result['allocated_before_reference_bytes'] = torch.cuda.memory_allocated(0)
+            # Sequential loading avoids keeping two model replicas live.
+            reference = AutoModelForCausalLM.from_pretrained(str(args.base_model),torch_dtype=dtype,
+                low_cpu_mem_usage=True,local_files_only=True,attn_implementation='eager')
+            reference = PeftModel.from_pretrained(reference,selected[0]['adapter_path'],adapter_name='adapter0')
+            reference.load_adapter(selected[1]['adapter_path'],adapter_name='adapter1')
+            reference = reference.eval().to(device)
+            for i,row in enumerate(selected):
+                reference.set_adapter('adapter'+str(i))
+                past = None
+                for step in range(3):
+                    ids = row['prompt_ids'] if step == 0 else [native_tokens[i][step-1]]
+                    with torch.inference_mode():
+                        out = reference(input_ids=torch.tensor([ids],device=device),past_key_values=past,use_cache=True)
+                        past = out.past_key_values
+                        expected = out.logits[0,-1].float().cpu()
+                    actual = native_logits[i][step]
+                    if not torch.isfinite(expected).all(): raise ValueError('nonfinite reference logits')
+                    delta = actual-expected
+                    rel = float(delta.norm()/expected.norm().clamp_min(1e-12))
+                    cosine = float(torch.nn.functional.cosine_similarity(actual[None],expected[None]))
+                    token = int(expected.argmax())
+                    result['checks'].append(dict(request_id=row['request_id'],adapter_id=row['adapter_id'],
+                        step=step,stage='prefill' if step == 0 else 'paged_decode',finite=True,
+                        max_abs_error=float(delta.abs().max()),relative_l2=rel,cosine=cosine,
+                        native_token=native_tokens[i][step],reference_token=token,
+                        passed=rel<=.01 and cosine>=.999 and native_tokens[i][step]==token))
+            result.update(completed=True,passed=all(r['passed'] for r in result['checks']),
+                peak_allocated_bytes=torch.cuda.max_memory_allocated(0))
+        except BaseException as exc:
+            result['error'] = dict(type=type(exc).__name__,message=str(exc))
+            raise
+        finally:
+            json.dump(result,stream,indent=2,allow_nan=False)
+            stream.write('\n')
+    print(json.dumps(dict(passed=result['passed'],checks=result['checks'],output=str(args.output))))
+    return 0 if result['passed'] else 1
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--vendor", type=Path, default=DEFAULT_VENDOR)
@@ -1268,6 +1452,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--context-tokens', type=int, default=1024)
     parser.add_argument('--native-capacity-probe', action='store_true')
     parser.add_argument('--attention-compatibility-probe', action='store_true')
+    parser.add_argument('--model-output-probe', action='store_true')
+    parser.add_argument('--model-output-inputs', type=Path)
+    parser.add_argument('--model-output-inputs-sha256')
+    parser.add_argument('--kernel-receipt', type=Path)
+    parser.add_argument('--kernel-receipt-sha256')
     parser.add_argument('--inference-owner-probe', action='store_true')
     parser.add_argument('--forward-capacity-probe', action='store_true')
     parser.add_argument('--capacity-evidence', type=Path)
@@ -1292,9 +1481,18 @@ def _parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.attention_compatibility_probe:
         if (args.main_repo is None or args.native_capacity_probe or args.static_capacity_only
+                or args.model_output_probe
                 or args.inference_owner_probe or args.forward_capacity_probe
                 or args.trace is not None or args.adapter_subset is not None):
             parser.error('attention diagnostic requires main-repo and no workload/capacity mode')
+        return args
+    if args.model_output_probe:
+        if (not all((args.main_repo,args.adapter_root,args.model_output_inputs,
+                     args.model_output_inputs_sha256,args.kernel_receipt,args.kernel_receipt_sha256))
+                or args.native_capacity_probe or args.static_capacity_only
+                or args.inference_owner_probe or args.forward_capacity_probe
+                or args.trace is not None or args.adapter_subset is not None):
+            parser.error('model-output diagnostic requires explicit retained inputs/kernel identity and no workload')
         return args
     if args.adapter_root is None:
         parser.error('--adapter-root is required outside the attention-only diagnostic')
@@ -1333,6 +1531,8 @@ def main() -> int:
     args = _parse_args()
     if args.attention_compatibility_probe:
         return attention_compatibility_probe(args)
+    if args.model_output_probe:
+        return model_output_probe(args)
     if args.native_capacity_probe:
         return native_capacity_probe(args)
     if args.static_capacity_only:
