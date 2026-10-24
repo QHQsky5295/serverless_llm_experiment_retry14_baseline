@@ -15,9 +15,11 @@ from pathlib import Path
 
 ROPE = 'vllm/model_executor/layers/rotary_embedding.py'
 LLAMA = 'vllm/model_executor/models/llama.py'
+CONFIG = 'vllm/config.py'
 SOURCE_SHA256 = {
     ROPE: '00652e44bc6bc5c8ad0f529c359c6a646ed888890f9477117fbcc4d5166e4ea7',
     LLAMA: '13b7e5f17b678ea73d35901649b856ca771b632ae9f81c986676606fe18a558a',
+    CONFIG: '5a17e5ca3741314175daa825024172be0decb56dd411d6e40ff146cfe15d8332',
 }
 
 
@@ -106,7 +108,12 @@ def render_overlays(native_root):
     llama = _replace(llama,
         'recv_states(self.read_socket, self.config.torch_dtype, device, shape)',
         'recv_states(self.read_socket, next(self.model.parameters()).dtype, device, shape)')
-    result = {ROPE: rope.encode(), LLAMA: llama.encode()}
+    # Llama3 declares its already-extended context in max_position_embeddings.
+    # Applying factor again is incorrect (vLLM v0.6.3.post1 config.py). Keep
+    # every other native scaling/validation branch unchanged.
+    config = _replace(sources[CONFIG], '        if rope_type != "su":\n',
+                      '        if rope_type not in ("su", "llama3"):\n')
+    result = {ROPE: rope.encode(), LLAMA: llama.encode(), CONFIG: config.encode()}
     for name, raw in result.items():
         compile(raw, name, 'exec')
     return result

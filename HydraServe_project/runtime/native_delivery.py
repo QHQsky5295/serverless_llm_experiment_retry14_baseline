@@ -16,6 +16,31 @@ WEIGHTS_SHA = '292478983397866ce11eacaf1332065f0bb682655aef257ce1d56f415188eefb'
 PROVIDER = 'scripts/kubernetes/vllm/storage_server/remote_server.py'
 APP = 'scripts/image/app.py'
 CONFIG_SHA = '5a17e5ca3741314175daa825024172be0decb56dd411d6e40ff146cfe15d8332'
+ENGINE = 'vllm/engine/llm_engine.py'
+ENGINE_SHA = 'e845285eda0a56bbdb87c4b6c904052a8bca993b13e97236f65241d83e2ade52'
+
+
+def native_context_expression(root):
+    """Move the native runtime context bound before EngineConfig validation.
+
+    The original engine applies this bound only after create_engine_config,
+    too late for long-context model registration. Derive the exact original
+    environment/default expression; this introduces no searched context cap.
+    """
+    raw = (Path(root)/ENGINE).read_bytes()
+    if sha256(raw).hexdigest() != ENGINE_SHA:
+        raise ValueError('native context-bound source drift')
+    owner = next(n for n in ast.parse(raw).body if isinstance(n, ast.ClassDef) and n.name == 'LLMEngine')
+    init = next(n for n in owner.body if getattr(n, 'name', None) == '__init__')
+    values = [n.value for n in init.body if isinstance(n, ast.Assign)
+              and len(n.targets) == 1 and isinstance(n.targets[0], ast.Name)
+              and n.targets[0].id == 'max_model_len']
+    if len(values) != 1:
+        raise ValueError('native context-bound declaration changed')
+    expression = ast.unparse(values[0])
+    if expression != "int(os.getenv('MAX_MODEL_LEN', '4096'))":
+        raise ValueError('native context-bound semantics changed')
+    return expression
 
 
 def native_lora_token_limit(root):
@@ -100,6 +125,11 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False,
         'if not model_list[0] or serverless_llm or serverless_pilot:\n'
         '    raise ValueError("unqualified provider model/mode")\n'
         'models = {}\n')
+    context_expression = native_context_expression(root) if llama_model_compat else None
+    if context_expression is not None:
+        source = replace_one(source, '                dtype="float16"\n',
+            '                dtype="float16",\n'
+            f'                max_model_len={context_expression}\n')
     overlays[PROVIDER]=source.encode()
     raw=(root/WEIGHTS).read_bytes()
     if sha256(raw).hexdigest()!=WEIGHTS_SHA:
@@ -137,6 +167,8 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False,
         return (match.group(0)
                 +(indent+f'dtype={provider_dtype!r},  # same declared dtype as native provider\n'
                   if provider_dtype is not None else '')
+                +(indent+f'max_model_len={context_expression},  # existing native context bound before config validation\n'
+                  if context_expression is not None else '')
                 +indent+'enable_lora=True,\n'+indent+'lora_extra_vocab_size=0,\n'
                 +indent+f'max_num_batched_tokens={token_limit},  # native LoRA kernel ceiling\n'
                 +(indent+f'max_loras={batch} * int(os.environ["PP_SIZE"]),  # native instance admission\n'

@@ -43,8 +43,8 @@ class ModelContractTests(unittest.TestCase):
                                        lora_admission_capacity=True)
         new = delivery.render_overlays(NATIVE, request_contract=True, shm_control=True,
                                        lora_admission_capacity=True, llama_model_compat=True)
-        self.assertEqual(new.keys() - old.keys(), {compat.ROPE, compat.LLAMA})
-        for name in old.keys() - {delivery.APP}:
+        self.assertEqual(new.keys() - old.keys(), {compat.ROPE, compat.LLAMA, compat.CONFIG})
+        for name in old.keys() - {delivery.APP, delivery.PROVIDER}:
             self.assertEqual(new[name], old[name], name)
         # Model opt-in additionally binds worker precision to the provider.
         # All three native initial/destination EngineArgs sites are covered.
@@ -55,10 +55,24 @@ class ModelContractTests(unittest.TestCase):
                     dtype = [kw for kw in node.keywords if kw.arg == 'dtype']
                     if len(dtype) != 1 or ast.literal_eval(dtype[0].value) != delivery.native_provider_dtype(NATIVE):
                         raise AssertionError('worker precision differs from native provider')
-                    node.keywords = [kw for kw in node.keywords if kw.arg != 'dtype']
+                    context = [kw for kw in node.keywords if kw.arg == 'max_model_len']
+                    if len(context) != 1 or ast.unparse(context[0].value) != delivery.native_context_expression(NATIVE):
+                        raise AssertionError('native context limit not applied before configuration')
+                    node.keywords = [kw for kw in node.keywords if kw.arg not in ('dtype', 'max_model_len')]
                 return node
         self.assertEqual(ast.dump(ast.parse(old[delivery.APP])),
                          ast.dump(RemoveDtype().visit(ast.parse(new[delivery.APP]))))
+        class RemoveContext(ast.NodeTransformer):
+            def visit_Call(self, node):
+                node = self.generic_visit(node)
+                if isinstance(node.func, ast.Name) and node.func.id == 'EngineArgs':
+                    context = [kw for kw in node.keywords if kw.arg == 'max_model_len']
+                    if len(context) != 1 or ast.unparse(context[0].value) != delivery.native_context_expression(NATIVE):
+                        raise AssertionError('provider uses different context bound')
+                    node.keywords = [kw for kw in node.keywords if kw.arg != 'max_model_len']
+                return node
+        self.assertEqual(ast.dump(ast.parse(old[delivery.PROVIDER])),
+                         ast.dump(RemoveContext().visit(ast.parse(new[delivery.PROVIDER]))))
         for name, digest in compat.SOURCE_SHA256.items():
             self.assertEqual(sha256((NATIVE/name).read_bytes()).hexdigest(), digest)
 
@@ -167,6 +181,26 @@ class ModelContractTests(unittest.TestCase):
 
 
 class RopeContractTests(unittest.TestCase):
+    def test_llama3_context_is_not_scaled_twice(self):
+        ns = selected(compat.render_overlays(NATIVE)[compat.CONFIG],
+                      {'_get_and_verify_max_len'}, {})
+        get_len = ns['_get_and_verify_max_len']
+        config = NS(max_position_embeddings=131072,
+                    rope_scaling=dict(rope_type='llama3', factor=32))
+        self.assertEqual(get_len(config, None), 131072)
+        self.assertEqual(get_len(config, 4096), 4096)
+        with self.assertRaises(ValueError):
+            get_len(config, 131073)
+        for kind in ('linear', 'dynamic'):
+            self.assertEqual(get_len(NS(max_position_embeddings=4096,
+                rope_scaling=dict(type=kind, factor=2)), None), 8192)
+        self.assertEqual(get_len(NS(max_position_embeddings=4096, rope_scaling=None), None), 4096)
+
+    def test_native_context_bound_retains_environment_and_default(self):
+        expression = delivery.native_context_expression(NATIVE)
+        self.assertEqual(eval(expression, {'os': NS(getenv=lambda key, default: default)}), 4096)
+        self.assertEqual(eval(expression, {'os': NS(getenv=lambda key, default: '2048')}), 2048)
+
     def test_native_dispatch_and_cache_use_complete_llama3_configuration(self):
         class Base:
             def __init__(self, *args): self.args = args
