@@ -7,6 +7,8 @@ import ast
 import copy
 import hashlib
 import importlib.util
+import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -39,6 +41,55 @@ class RemoveObservations(ast.NodeTransformer):
 
 
 class LoquetierSourceTests(unittest.TestCase):
+    def test_packed_query_rows_cover_every_token_head_once(self):
+        # Validate the actual index derivation independently of CUDA compilation.
+        for group in (1, 2, 3, 4, 8):
+            for frags in (1, 2):
+                rows_per_tile = 4*frags*16
+                for length in (1, 17, 257, 759):
+                    written = []
+                    for tile in range(math.ceil(length*group/rows_per_tile)):
+                        for warp in range(4):
+                            base = tile*rows_per_tile+warp*frags*16
+                            for fragment in range(frags):
+                                for half in range(2):
+                                    for lane_row in range(8):
+                                        packed = base+fragment*16+half*8+lane_row
+                                        token, head = divmod(packed, group)
+                                        if token < length:
+                                            written.append((token, head))
+                                        next_token, next_head = divmod(packed+8, group)
+                                        stride_n, stride_h = 8*group*128, 128
+                                        step = (next_token-token)*stride_n+(next_head-head)*stride_h
+                                        self.assertEqual(token*stride_n+head*stride_h+step,
+                                                         next_token*stride_n+next_head*stride_h)
+                    self.assertEqual(sorted(written), [(t,h) for t in range(length) for h in range(group)])
+
+    def test_configured_llama3_view_preserves_native_sources(self):
+        cfg = MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct/config.json'
+        native_headers = NATIVE/'kernel_src/third_party/flashinfer/include/flashinfer'
+        before = {name:source.sha((native_headers/name).read_bytes())
+                  for name in ('prefill.cuh', 'decode.cuh')}
+        with tempfile.TemporaryDirectory() as tmp:
+            view = Path(tmp)/'kernel'
+            receipt = source.prepare_loquetier_kernel_view(NATIVE, view, cfg)
+            self.assertFalse(receipt['compiled'])
+            self.assertFalse(receipt['model_qualified'])
+            self.assertEqual(receipt['model_config_sha256'], source.sha(cfg.read_bytes()))
+            pre = (view/'third_party/flashinfer/include/flashinfer/prefill.cuh').read_text()
+            self.assertNotIn('(8 / group_size)', pre)
+            self.assertNotIn('(16 / group_size)', pre)
+            self.assertIn('(qo_idx_base + fx * 16', pre)
+            self.assertIn('qo_idx % group_size', pre)
+            self.assertTrue((view/'csrc/smlm_forward/smlm_forward_cutlass.cu').is_symlink())
+            self.assertFalse((view/'csrc/flashinfer_adapter/generated').exists())
+            self.assertFalse((view/'src/loquetier/_build_meta.py').exists())
+            with self.assertRaises(ValueError):
+                source.prepare_loquetier_kernel_view(NATIVE, view, cfg)
+        self.assertEqual(before, {name:source.sha((native_headers/name).read_bytes()) for name in before})
+        with self.assertRaises(ValueError):
+            source.loquetier_llama3_kernel_sources(NATIVE, {'rope_scaling': None})
+
     def test_remove_only_observers_recovers_exact_native_ast(self):
         measured = source.loquetier_measurement_sources(NATIVE)['model_generation.py']
         original = (NATIVE/'src/loquetier_src/model_generation.py').read_text()

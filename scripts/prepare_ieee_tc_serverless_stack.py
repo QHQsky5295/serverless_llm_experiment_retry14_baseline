@@ -80,6 +80,147 @@ def loquetier_measurement_sources(native_source: Path) -> dict[str, str]:
     return {'model_generation.py': source}
 
 
+def loquetier_llama3_kernel_sources(native_source: Path, config: dict) -> dict[str, str]:
+    """Configured frequency transform and full packed-row indexing, no policy change.
+
+    The installed/7B kernels remain untouched. These sources are compiled in a
+    separate model-bound view, retaining the original SMLM, KV and attention APIs.
+    Packed-index arithmetic follows FlashInfer's upstream query/head convention.
+    """
+    root = native_source/'kernel_src/third_party/flashinfer/include/flashinfer'
+    expected = {'prefill.cuh': 'b2675489515234d8f51ce8764fe7e4d4a871c81463be46b2e3cfa8bf4b84ef26',
+                'decode.cuh': '70bb6e1edde0b98fd99c612b2b59d6f5ed6ca9d528d775cc883475f4266cd234'}
+    sources = {}
+    for name, digest in expected.items():
+        data = (root/name).read_bytes()
+        if sha(data) != digest:
+            raise ValueError('Loquetier attention source drift: '+name)
+        sources[name] = data.decode()
+    rope = config.get('rope_scaling') or {}
+    if rope.get('rope_type') != 'llama3':
+        raise ValueError('explicit configured llama3 frequency contract required')
+    factor, low, high, old = [float(rope[k]) for k in
+        ('factor', 'low_freq_factor', 'high_freq_factor', 'original_max_position_embeddings')]
+    if not all(math.isfinite(x) for x in (factor, low, high, old)) or not (factor >= 1 and 0 < low < high and old > 0):
+        raise ValueError('invalid llama3 frequency bands')
+
+    def change(name, before, after, count=1):
+        if sources[name].count(before) != count:
+            raise ValueError('Loquetier attention patch anchor: '+before)
+        sources[name] = sources[name].replace(before, after)
+
+    pre = 'prefill.cuh'
+    # q_idx/o_idx/qo_idx_base now carry packed rows, never an already truncated
+    # token position. Pointer advancement includes both quotient AND remainder.
+    change(pre, 'float(offset + (8 / group_size) * i)', 'float((offset + 8 * i) / group_size)')
+    change(pre, '*q_idx < qo_upper_bound', '*q_idx / group_size < qo_upper_bound')
+    change(pre, '*o_idx < qo_upper_bound', '*o_idx / group_size < qo_upper_bound')
+    for variable, dtype in (('q', 'DTypeIn'), ('o', 'DTypeOut')):
+        before = (f'      *{variable}_idx += (8 / group_size);\n'
+            f'      {variable}_smem_offset_w += 8 * num_cells_per_{"in" if variable == "q" else "out"}_channel - 4 * num_frags_y;\n'
+            f'      *{variable}_ptr += (8 / group_size) * qkv_info.get_qo_n_stride() -\n'
+            f'                2 * num_frags_y * cell_capacity<{dtype}>();')
+        after = (f'      const uint32_t previous_row = *{variable}_idx;\n'
+            f'      *{variable}_idx += 8;\n'
+            f'      {variable}_smem_offset_w += 8 * num_cells_per_{"in" if variable == "q" else "out"}_channel - 4 * num_frags_y;\n'
+            f'      *{variable}_ptr += int64_t(*{variable}_idx / group_size - previous_row / group_size) * int64_t(qkv_info.get_qo_n_stride())\n'
+            f'          + (int64_t(*{variable}_idx % group_size) - int64_t(previous_row % group_size)) * int64_t(qkv_info.get_qo_h_stride())\n'
+            f'          - int64_t(2 * num_frags_y * cell_capacity<{dtype}>());')
+        change(pre, before, after)
+    change(pre, '*q_idx + kv_len - qo_len, sm_scale', '*q_idx + (kv_len - qo_len) * group_size, sm_scale')
+    change(pre, '*q_idx += (16 / group_size)', '*q_idx += 16')
+    change(pre, 'qo_idx_base + (fx * 16 + tx / 4 + 8 * ((reg_id % 4) / 2)) / group_size',
+                '(qo_idx_base + fx * 16 + tx / 4 + 8 * ((reg_id % 4) / 2)) / group_size')
+    change(pre, '(bx * num_warps + ty) * num_frags_x * (16 / group_size)',
+                '(bx * num_warps + ty) * num_frags_x * 16')
+    change(pre, 'tile_idx * (num_rows_per_cta / group_size) + ty * num_frags_x * (16 / group_size)',
+                'tile_idx * num_rows_per_cta + ty * num_frags_x * 16')
+    change(pre, 'qo_idx_base + (tx / 4) / group_size', 'qo_idx_base + tx / 4', 6)
+    change(pre, 'get_qo_elem_offset(qo_idx, kv_head_idx * group_size + (tx / 4) % group_size,',
+                'get_qo_elem_offset(qo_idx / group_size, kv_head_idx * group_size + qo_idx % group_size,', 2)
+    change(pre, '(qo_indptr[request_idx] + qo_idx) * num_qo_heads + kv_head_idx * group_size +\n                    (tx / 4) % group_size',
+                '(qo_indptr[request_idx] + qo_idx / group_size) * num_qo_heads + kv_head_idx * group_size +\n                    qo_idx % group_size', 2)
+    change(pre, 'min(qo_len, (tile_idx + 1) * (num_rows_per_cta / group_size))', 'qo_len')
+    # The last packed row may be only part of a token's head group. The upper
+    # token bound is ceil(rows/group); the earliest token for masking is floor.
+    for block in ('bx', 'tile_idx'):
+        change(pre, f'(({block} + 1) * num_frags_x * num_warps) * (16 / group_size)',
+                    f'((({block} + 1) * num_frags_x * num_warps * 16 + group_size - 1) / group_size)')
+        change(pre, f'{block} * num_warps * num_frags_x * (16 / group_size)',
+                    f'({block} * num_warps * num_frags_x * 16 / group_size)')
+
+    # Specialize only immutable model frequency parameters, never workload or
+    # performance choices. Both prefill and decode use the same transformation.
+    sources['tc_llama3_rope.cuh'] = f'''// Config-derived Llama 3 frequency scaling; no request-dependent constants.
+#pragma once
+namespace flashinfer {{
+__device__ __forceinline__ float tc_llama3_frequency(float freq) {{
+  const float wavelength = 6.283185307179586f / freq;
+  if (wavelength > {old!r}f / {low!r}f) return freq / {factor!r}f;
+  if (wavelength < {old!r}f / {high!r}f) return freq;
+  const float smooth = ({old!r}f / wavelength - {low!r}f) / ({high!r}f - {low!r}f);
+  return (1.f - smooth) * freq / {factor!r}f + smooth * freq;
+}}
+}}
+'''
+    for name in (pre, 'decode.cuh'):
+        change(name, '#include "rope.cuh"', '#include "rope.cuh"\n#include "tc_llama3_rope.cuh"')
+    change(pre, '              float(head_dim));\n',
+                '              float(head_dim));\n      rope_freq[fy][j] = tc_llama3_frequency(rope_freq[fy][j]);\n')
+    # Match the two native decode frequency construction expressions, not Q/K
+    # arithmetic. Their group=3 path was numerically valid in D796.
+    pattern = r'(freq\[i\] =\s*rope_rcp_scale \*\s*(?:__)?powf\(rope_rcp_theta,\s*float\(2 \* \(\(tx \* vec_size \+ i\) % \(head_dim / 2\)\)\) / float\(head_dim\)\);)'
+    sources['decode.cuh'], count = re.subn(pattern, r'\1\n      freq[i] = tc_llama3_frequency(freq[i]);', sources['decode.cuh'])
+    if count != 2:
+        raise ValueError('Loquetier decode frequency anchors differ')
+    return sources
+
+
+def prepare_loquetier_kernel_view(native_source: Path, output: Path, model_config: Path) -> dict:
+    """Prepare, never install, an isolated native build from the existing source."""
+    native_source, model_config = native_source.resolve(strict=True), model_config.resolve(strict=True)
+    if output.exists() or output.is_symlink() or output.resolve().is_relative_to(native_source):
+        raise ValueError('new isolated Loquetier kernel view required')
+    root = native_source/'kernel_src'
+    config = json.loads(model_config.read_text())
+    changed = loquetier_llama3_kernel_sources(native_source, config)
+    header_prefix = Path('third_party/flashinfer/include/flashinfer')
+    replacements = {header_prefix/name: value for name, value in changed.items()}
+    output.mkdir(parents=True, mode=0o700)
+    # Preserve originals and existing build artifacts. Only compiler inputs are
+    # linked; generated dispatch/metadata/build products belong to the new view.
+    for name in ('setup.py', 'pyproject.toml', 'README.md', 'version.txt'):
+        (output/name).symlink_to(root/name)
+    for subtree in ('csrc', 'src', 'third_party/flashinfer/include'):
+        for parent, dirs, files in os.walk(root/subtree):
+            dirs[:] = [d for d in dirs if d not in ('__pycache__', 'generated')]
+            rel = Path(parent).relative_to(root)
+            (output/rel).mkdir(parents=True, exist_ok=True)
+            for name in files:
+                relative = rel/name
+                if name.endswith('.pyc') or name == '_build_meta.py':
+                    continue
+                if relative in replacements:
+                    (output/relative).write_text(replacements[relative])
+                else:
+                    (output/relative).symlink_to(Path(parent)/name)
+    extra = header_prefix/'tc_llama3_rope.cuh'
+    (output/extra).write_text(replacements[extra])
+    (output/'third_party/cutlass').symlink_to(root/'third_party/cutlass', target_is_directory=True)
+    manifest = dict(schema='ieee_tc_loquetier_llama3_kernel_view_v1',
+        native_source=str(native_source), model_config=str(model_config),
+        model_config_sha256=sha(model_config.read_bytes()), rope_scaling=config['rope_scaling'],
+        num_attention_heads=config['num_attention_heads'], num_key_value_heads=config['num_key_value_heads'],
+        head_dim=config['hidden_size']//config['num_attention_heads'], rope_theta=config['rope_theta'],
+        source_patch_sha256=sha(Path(__file__).read_bytes()),
+        changed_sha256={str(k):sha(v.encode()) for k,v in replacements.items()},
+        mechanism_changes=False, original_environment_modified=False, compiled=False,
+        model_qualified=False, performance_run_authorized=False)
+    with (output/'tc_model_contract.json').open('x') as handle:
+        json.dump(manifest, handle, indent=2)
+    return manifest
+
+
 def prepare_loquetier_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
     """Exclusive small source view, reusing the existing source-adapter method."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
@@ -2780,6 +2921,9 @@ def main() -> None:
     loquetier = sub.add_parser('prepare-loquetier-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         loquetier.add_argument('--'+name, type=Path, required=True)
+    kernel = sub.add_parser('prepare-loquetier-kernel-view')
+    for name in ('native-source', 'output', 'model-config'):
+        kernel.add_argument('--'+name, type=Path, required=True)
     dlora = sub.add_parser('prepare-dlora-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         dlora.add_argument('--'+name, type=Path, required=True)
@@ -2834,6 +2978,10 @@ def main() -> None:
     model.add_argument('--enforce-eager', action=argparse.BooleanOptionalAction, default=True,
                        help='Historical default is eager; --no-enforce-eager explicitly tests native CUDA graphs.')
     args = parser.parse_args()
+    if args.action == 'prepare-loquetier-kernel-view':
+        print(json.dumps(prepare_loquetier_kernel_view(args.native_source, args.output,
+            args.model_config), indent=2))
+        return
     if args.action == 'prepare-dlora-measurement-view':
         print(json.dumps(prepare_dlora_measurement_view(args.native_source, args.output,
             args.main_repo, canonical_input=args.canonical_input,
