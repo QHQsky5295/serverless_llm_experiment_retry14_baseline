@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "kind": "d817_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3687,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3900,
+    "joint_pass": 3596
+  },
+  "violation_partition": {
+    "ttft_only_fail": 304,
+    "tpot_only_fail": 91,
+    "both_fail": 9
+  },
+  "shortfall_to_3800": 204,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-d817ca11000000000000000000000002.scope",
+      "invocation_id": "3816bb35589c4c3da9c3d9bf3fc2b7a6",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000002.scope",
+      "inode": 32004629
+    },
+    {
+      "unit": "primelora-tc-aux-d817ca11000000000000000000000003.scope",
+      "invocation_id": "d109400543694672865eac0948b2ea92",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000003.scope",
+      "inode": 32005619
+    }
+  ],
+  "analysis_launcher_failure": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/analysis_launcher_failure.json",
+    "sha256": "c0fb4a0ac76b8e36b9cc74653f685fc7d0bc242c3bc0e5b9013d141222a11875"
+  },
+  "resources": {
+    "memory.peak": "608481280",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain complete W2 observation. Capacity failure did not recur and required reclaim was observed; joint SLO is below 95%. No same-key rerun, threshold change or final G1/G2 claim. Inspect actual remote preparation and residency history before the next single candidate."
+}

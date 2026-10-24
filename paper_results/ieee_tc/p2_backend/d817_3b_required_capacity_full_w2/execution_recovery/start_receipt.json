@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "f348022a8afcda823ac7bc6f189e3e17ca069848",
+  "backup_ref": "refs/heads/backup/d817-required-capacity-fullw2-20261025",
+  "tmux": "tc-d817-3b-required-capacity-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-d817ca11000000000000000000000001.scope",
+    "invocation_id": "a4ca6b124bc440a1bd80c6eb1655c2f5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000001.scope",
+    "inode": 31971718
+  },
+  "qualification_sha256": "c3e47f0780901cea38a64bb178a71310c4219ea3c5ad48d7d8f5d5578ba222d6"
+}

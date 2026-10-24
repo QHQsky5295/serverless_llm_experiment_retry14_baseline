@@ -1,0 +1,116 @@
+"""D752 closure, reused from D749; execute only after physical release."""
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW / '3b_max3_full_w2'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion'
+PYTHON = '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'completion_resume_identity.json', own)
+group = Path(own['path'])
+events_before = (group/'memory.events').read_text()
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+metric = OUT/'full4000.json'
+assert read(metric)['passed'] and read(OUT/'stages/diagnosis.json')['passed']
+previous = read(RAW/'completion_identity.json')
+closed = subprocess.check_output(['systemctl','--user','show',previous['unit'],
+    '-p','ActiveState','-p','InvocationID','-p','ControlGroup'],text=True)
+assert 'ActiveState=inactive' in closed and not Path(previous['path']).exists()
+save(OUT/'analysis_launcher_failure.json',dict(
+    type='KeyError',field='protected',
+    effect='Metrics and stage audit completed; only protection/comparison/final accounting interrupted.',
+    performance_execution_failed=False, new_replays=0,
+    previous_identity=previous, previous_scope_status=closed,
+    partial_analysis_resources=None,
+    repair='Use the recorded D816 user protection and immutable 147-file seal; no weakened checks.',
+    retained_outputs=[ref(metric),ref(OUT/'stages/diagnosis.json')]))
+from scripts.ieee_tc.check_d299_full_context import project
+meta, transfers = project(RUN/'launch.launch/physical_deployment/main_outcome.json')
+save(RAW/'remote_client_projection.json',dict(meta=meta,transfers=transfers))
+qualification = read(OUT.parent / 'prelaunch/qualification.json')
+# D817's prelaunch reused D816 protection and the immutable 147-file seal.
+protected = ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json'
+for path, sha in read(protected)['user_protected'].items():
+    assert p.digest(Path(path)) == sha, path
+seal_path = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal = p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT/'protected_147_after.json', seal)
+head = read(RAW/'start_receipt.json')['head']
+evolving_docs = {
+    ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D817_REQUIRED_CAPACITY_FULL_W2_20261025.md',
+}
+for name, sha in qualification['refs'].items():
+    path = Path(name)
+    if path in evolving_docs:
+        content = subprocess.check_output(
+            ['git', 'show', head+':'+str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+actual = read(metric)
+
+assert actual['workload'] == 'W2' and actual['full_replay'] and not actual['full_w0']
+reference_path = ROOT/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json'
+assert p.digest(reference_path) == 'f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a'
+reference = read(reference_path)['W2']
+assert reference['workload'] == actual['workload']
+assert reference['slo_eval_sha256'] == actual['common_slo_sha256']
+comparison = dict(
+    kind='d817_single_w2_frozen_resource_reference_observation_v1',
+    current=ref(metric), reference=ref(reference_path), reference_workload='W2',
+    reference_id=reference['reference_id'],
+    reference_gpu_seconds=reference['U_ref_gpu_seconds'],
+    budget_gpu_seconds=reference['B_gpu_seconds'],
+    observed_within_budget=actual['physical_gpu_seconds'] <= reference['B_gpu_seconds'],
+    budget_utilization=actual['physical_gpu_seconds']/reference['B_gpu_seconds'],
+    gpu_seconds_reduction_fraction=1-actual['physical_gpu_seconds']/reference['U_ref_gpu_seconds'],
+    gpu_seconds_per_binding_valid_request=actual['physical_gpu_seconds']/4000,
+    joint_slo_delta_percentage_points=100*(actual['joint_slo_fraction']-reference['source_observed_joint_slo']),
+    normalized_p95_ttft=actual['metrics']['ttft_ms']['p95_type1']/reference['Q_ref_p95_ttft_ms'],
+    joint_slo_margin_requests=actual['counts']['joint_pass']-3800,
+    n_correct=actual['n_correct'], ranking_eligible=False, confidence_interval=None,
+    complete_g1_g2=False, independent_holdout=False,
+    scope='Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking.')
+save(OUT / 'comparison.json', comparison)
+assert (group / 'memory.events').read_text() == events_before
+assert (group / 'memory.swap.current').read_text().strip() == '0'
+save(OUT / 'analysis_resources.json', dict(identity=own, resources={
+    key: (group / key).read_text().strip()
+    for key in ('memory.peak', 'memory.events', 'memory.swap.current')}))
+with (OUT / 'complete.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT / 'manifest.json', dict(files=[
+    dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+    for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(counts=actual['counts'], joint_slo_fraction=actual['joint_slo_fraction'],
+    physical_gpu_seconds=actual['physical_gpu_seconds'], metrics=actual['metrics'],
+    n_correct=actual['n_correct'], comparison=comparison), indent=2))

@@ -1,0 +1,8 @@
+"""Reuse the explicit empty/removed backup-scope closure for D817."""
+from pathlib import Path
+
+_template=Path(__file__).resolve().parent.parent/'d813_20261025/post_backup_release.py'
+_source=_template.read_text()
+assert 'D813' in _source
+_source=_source.replace('D813','D817')
+exec(compile(_source,str(_template),'exec'),globals())

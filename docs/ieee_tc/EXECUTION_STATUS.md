@@ -1,4 +1,112 @@
-# IEEE TC execution status — D816 required file-capacity repair tested; backup then complete D817 W2
+# IEEE TC execution status — D817 full W2 closed, joint SLO 89.90%; preserve result, next evidence-led optimization
+
+## 2026-10-25 04:17 CST D817完整结束并完成离线核算，正在备份
+
+本轮从VERIFIED WAIT转为PROGRESS。重读完整PLAN、执行规范、冻结V1+单轮V2；
+监测原同一Invocation至4000/4000正常完成，不重启、不并行重型任务、不改
+运行配置。监测cell6807/6813自然结束，6816在实际服务inactive后仅终止
+监测器；没有向被测服务发送终止信号。真实GPU/所有worker和远端服务已释放。
+
+D817原生绑定/数量/时间合同4000/4000，joint3596=89.90%，TTFT3687=92.175%，
+TPOT3900=97.5%；U11283.832798304502，P95TTFT2693.5871988534927ms，
+平均TTFT825.1793945539976ms。W2预算12083.063870235463，使用93.3855%，
+但SLO未达标；n_correct仍null，不宣布G1/G2/独立数值正确性或全任务完成。
+metric SHA3b043862801d6c7045d6324b9493553fbe9f900b3f4eaddeb3218715fba1bca4。
+
+完整505次remote尝试全published、逐ID/SHA/字节匹配，客户端/服务器字节
+1172100920，无请求打包；确认适用旧严格delivery审计后才复用，无新放宽。
+18次request_lru_v1实际触发，incoming_allocated/回收字节/required intent
+一致，Full仍planned_only；无主动文件replacement，不夸称planner增益。
+304TTFT-only/91TPOT-only/9both；313TTFT失败中267条来自selected Remote，
+主要阶段指向制品准备，但仍是条件关联，具体因果待核。详细数字及限制见
+D817_REQUIRED_CAPACITY_FULL_W2_20261025.md及curated completion/closure。
+
+aux02离线脚本在metrics/stages之后因旧protected字段失败；aux03复用已写数据
+按D817实际保护来源续接，aux04完成delivery/回收/收尾。全部已自然移除，
+无待工具session；没有性能重跑。147旧保护文件和三处user dirt均未变。
+内存峰值33077305344B，high/max/OOM/swap0，运行最低磁盘144661876736B。
+
+下一：明确路径备份本次完整观测和离线恢复证据，关闭备份aux；必要时先对
+已封存日志无损压缩，再基于W1/W2完整阶段证据、历史无效方向及官方参考
+选择一个优化假设。不要重跑D817或把W2跑通当作达标；D813 W1仍93.975%。
+同最终版本两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿
+文档、图文及最终V2交付完整保留，当前不画图。整体目标active，未完成。
+
+## 2026-10-25 03:33 CST D817完成1899条，仍在原W2
+
+上一目标轮和本轮均VERIFIED WAIT，非阻塞。完整重读PLAN、AGENTS、当前
+状态及monitor-experiment；13次实测同一service/tmux/worker与12次45秒等待。
+监测cell6800已正常结束，只是监测器结束，真实实验active，无待工具session。
+03:33:22仍为Invocation793ea1bae54c4a87be71d8c6be7ed006、pane2425164，
+worker2426827/2442041/2443094 CPU时间20:36/16:37/13:01持续增加。
+arrived1902/done1899/ok1899/fail0，业务elapsed30:15，3实例；未完整4000，
+不报整轮SLO/GPU-s/胜负。watchdog sample1853 monotonic2377648.70307554：
+host available98417197056B、svc peak25447718912B、disk151672463360B，
+high/max/OOM/swap0，无foreign compute、保护告警或中止。
+
+未改代码/配置、未并发重型任务、推送、清理压缩或远端维护。磁盘高于运行
+100GiB停止线、低于新任务150GiB启动线，等待真实释放后维护。下一直接
+继续原D817至终态；不因监测结束重启。闭合后按已登记W2合同统计并核查
+请求容量回收、延期attempt/server bytes；原all-published analyzer不能
+隐藏未发布尝试。保留D711数值正确性未知、W1未达标及所有历史失败。
+同版两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿和图文/
+最终V2完整范围不变。整体目标active，无新增完成性能点，不标完成或blocked。
+
+## 2026-10-25 03:23 CST D817已完成1152条，继续同一运行
+
+上一目标轮PROGRESS（D816修正备份/D817登记启动）后等待；本轮VERIFIED WAIT，
+非阻塞。完整重读PLAN、当前状态、AGENTS及monitor-experiment；实测原service/
+tmux/worker持续活动，13次定时观测+12次45秒等待。监测cell6794正常结束，
+结束的只是监测器；真实实验仍active，无待工具session，不重新启动。
+
+03:23:31仍为Invocation793ea1bae54c4a87be71d8c6be7ed006、pane2425164，
+worker2426827/2442041/2443094 CPU时间13:47/09:45/07:39继续增加。
+arrived1154/done1152/ok1152/fail0，业务elapsed20:25，3实例；尚未完整4000，
+不报告整轮SLO/GPU-s/胜负。watchdog sample1270，monotonic2377057.79008302：
+host available98646036480B、svc peak21811351552B、disk154904911872B，
+high/max/OOM/swap0，无foreign compute、保护告警或中止。未改运行代码/配置，
+未并发重型任务、清理压缩、推送或远端维护。磁盘高于本轮100GiB停止线、
+低于新任务150GiB启动线；真实释放后再核实维护，不在测量期间清理。
+
+下一继续原D817至完整终态并核查容量回收/延期触发；闭合后完整统计，合法
+not_published仍须逐attempt关联服务器并保留真实字节，不能照搬旧全published
+断言或任意接受未知失败。D711数值身份未知与W1未达标保留。两模型同版
+主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档及图文/V2均未
+删减，目标active；本轮没有新增完成的性能点，不标全任务完成。
+
+## 2026-10-25 03:13 CST D817已启动并完成487条，继续同一完整W2
+
+本轮PROGRESS后进入VERIFIED WAIT，非阻塞。完整重读PLAN/状态、AGENTS、
+冻结V1+单轮V2和所用技能；完成D816文档/AST差异/测试来源/保护/秘密检查及
+备份26f92bd1。D817复用D814启动入口，配置仅三路径改名，D748/D751原生
+资格和W2身份测试复用；2新执行键测试+2旧身份回归通过。提交
+f348022a8afcda823ac7bc6f189e3e17ca069848已推送核实
+backup/d817-required-capacity-fullw2-20261025；非最终V2同步。
+
+03:02启动tmux tc-d817-3b-required-capacity-full-w2，pane2425164；真实服务
+primelora-tc-svc-79260ca9f0ed441aa2ccc14e6c6a5b2c.scope，Invocation
+793ea1bae54c4a87be71d8c6be7ed006。启动管理aux ...d817ca110...01已自然
+移除，start_closure记录空身份/路径不存在，未向运行服务发信号。
+只启用原冻结D80远端3B/7B和本轮monitor，无共享k3s/缓存重发布/新数据。
+Raw: results/ieee_tc/p2_backend_qualification/d817_20261025/；curated:
+paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/prelaunch/。
+
+13次观测+12次45秒等待，同一Invocation，监测cell6787已正常结束，结束的
+只是监测器；实验仍active，没有待工具session。03:13:02已arrived489、
+done487/ok487/fail0，业务elapsed09:57，自然扩至3实例；真实worker
+2426827/2442041/2443094。尚未完整4000，不报整轮SLO/GPU-s/胜负。
+watchdog sample651 monotonic2376430.356548396：host available98901458944B，
+svc peak18479976448B，disk158210355200B，high/max/OOM/swap0，foreign
+compute为空、无告警/中止。磁盘低于新任务150GiB启动线、高于本轮100GiB
+停止线；不在运行中清理，真实释放后再按证据维护。运行中未改代码/配置。
+
+下一直接监测同一D817至终态，不重启、不加另一GPU任务。收尾沿D813/D814
+模板按W2完整统计，合法deferred/not_published必须逐attempt/server join并
+保留服务器字节，旧all-published分析不能直接套用；未知原因不能随意放行。
+D711数值正确性仍null。D813 W1 93.975%未闭口，同最终版本两模型主比较/
+Full、A1–A5、S1–S13、CE/成本/Pareto、两轮审稿文档与图文/V2全部保留，
+整体目标active，不标完成。close_start.py及本轮启动后回执在下一正常检查点
+保存，不为回执递归备份，不在性能测量中推送。
 
 ## 2026-10-25 D816备份完成，登记D817完整W2
 

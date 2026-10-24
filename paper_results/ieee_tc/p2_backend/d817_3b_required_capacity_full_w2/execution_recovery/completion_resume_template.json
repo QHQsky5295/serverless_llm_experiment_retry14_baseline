@@ -1,0 +1,5 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d817_20261025/completion_program.py.snapshot",
+  "sha256": "5d44215f8d09bccb1488b79eb8ff7f68a12dff939067b05b48bfd0c6a717440d",
+  "change": "Resume after completed metrics/stages; adapt only explicit D817 protection schema."
+}

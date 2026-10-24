@@ -1,0 +1,31 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d813_20261025/completion_program.py.snapshot",
+  "sha256": "51a5b1f967b619ef86be93ca74a28dae928639f5e5024b9d3d7b4806165c5ed8",
+  "replacements": [
+    [
+      "3b_max3_full_w1",
+      "3b_max3_full_w2"
+    ],
+    [
+      "d813_3b_max3_full_w2",
+      "d817_3b_required_capacity_full_w2"
+    ],
+    [
+      "d813_20261025",
+      "d817_20261025"
+    ],
+    [
+      "D813_3B_MAX3_FULL_W1_20261025.md",
+      "D817_REQUIRED_CAPACITY_FULL_W2_20261025.md"
+    ],
+    [
+      "d813_single_w1_frozen_resource_reference_observation_v1",
+      "d817_single_w2_frozen_resource_reference_observation_v1"
+    ],
+    [
+      "W1",
+      "W2"
+    ]
+  ],
+  "analysis_change": "Same native metrics/stages and W2 reference; separate attempt-aware remote closure remains required."
+}

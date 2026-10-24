@@ -1,0 +1,26 @@
+{
+  "type": "KeyError",
+  "field": "protected",
+  "effect": "Metrics and stage audit completed; only protection/comparison/final accounting interrupted.",
+  "performance_execution_failed": false,
+  "new_replays": 0,
+  "previous_identity": {
+    "unit": "primelora-tc-aux-d817ca11000000000000000000000002.scope",
+    "invocation_id": "3816bb35589c4c3da9c3d9bf3fc2b7a6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d817ca11000000000000000000000002.scope",
+    "inode": 32004629
+  },
+  "previous_scope_status": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "partial_analysis_resources": null,
+  "repair": "Use the recorded D816 user protection and immutable 147-file seal; no weakened checks.",
+  "retained_outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/full4000.json",
+      "sha256": "3b043862801d6c7045d6324b9493553fbe9f900b3f4eaddeb3218715fba1bca4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion/stages/diagnosis.json",
+      "sha256": "52cf441549a74931ffa51badc2f3678eb49d75b969c03c152f478e8e64964cca"
+    }
+  ]
+}

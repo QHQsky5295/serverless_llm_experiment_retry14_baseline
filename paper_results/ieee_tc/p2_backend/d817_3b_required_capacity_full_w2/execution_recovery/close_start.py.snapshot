@@ -1,0 +1,39 @@
+"""Release only the completed launch-management scope, not the live run."""
+import json
+import subprocess
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+receipt = json.loads((RAW/'start_receipt.json').read_text())
+assert receipt['launched'] is True
+identity = receipt['identity']
+path = Path(identity['path'])
+if not path.exists():
+    state = dict(line.split('=', 1) for line in subprocess.check_output([
+        'systemctl', '--user', 'show', identity['unit'], '-p', 'ActiveState',
+        '-p', 'InvocationID', '-p', 'ControlGroup'], text=True).splitlines())
+    assert state == {'ActiveState': 'inactive', 'InvocationID': '', 'ControlGroup': ''}
+    qualification = ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/prelaunch/qualification.json'
+    checkpoint = json.loads(qualification.read_text())
+    assert checkpoint['identity'] == identity
+    with (RAW/'start_closure.json').open('x') as f:
+        json.dump(dict(identity=identity, automatically_removed=True, released=True,
+            path_gone=True, state=state, signals_sent=False,
+            resources_at_qualification_checkpoint=checkpoint['resources'],
+            post_removal_resources=None, running_service_not_signalled=True), f, indent=2)
+        f.write('\n')
+    print(json.dumps(dict(released=True, automatically_removed=True,
+        running_service_not_signalled=True)))
+    raise SystemExit(0)
+assert p.scope_still_owned(identity) and not p.owned_pids(path)
+resources = p.cgroup_snapshot(path)
+closed = p.stop_scope_identity(identity, grace_seconds=0)
+assert closed['released'] and not closed['targets'] and not path.exists()
+with (RAW/'start_closure.json').open('x') as f:
+    json.dump(dict(identity=identity, resources=resources, closure=closed,
+        running_service_not_signalled=True), f, indent=2, allow_nan=False)
+    f.write('\n')
+print(json.dumps(dict(released=True, running_service_not_signalled=True)))

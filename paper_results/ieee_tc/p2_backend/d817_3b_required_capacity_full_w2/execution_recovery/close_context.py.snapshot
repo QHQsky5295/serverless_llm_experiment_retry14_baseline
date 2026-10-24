@@ -1,0 +1,90 @@
+"""Audit actual D817 transfers and file-reclamation events after real release."""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2'
+sys.path.insert(0,str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import audit_closed_outcome
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path))
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_identity.json',own)
+group=Path(own['path'])
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+for row in read(OUT/'completion/manifest.json')['files']:
+    assert p.digest(ROOT/row['path'])==row['sha256']
+projection=read(RAW/'remote_client_projection.json')
+states=collections.Counter(row['state'] for row in projection['transfers'])
+# Inspect all actual attempts first. Never discard a failed/deferred attempt
+# just to reuse the historical all-published audit.
+assert states and set(states)=={'published'}
+audit_closed_outcome(RUN,OUT/'completion/closed_outcome.json',OUT/'completion/full4000.json')
+server=[json.loads(line) for line in (RAW/'remote_transfers.jsonl').read_text().splitlines() if line.strip()]
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as stream:
+    caches=list(ijson.items(stream,'coordination_after_shutdown.ieee_file_cache',use_float=True))
+assert len(caches)==1
+cache=caches[0]
+assert cache['file_cache_policy']=='planned_only'
+replacements=cache['replacements']
+required=[row for row in replacements if row['policy']=='request_lru_v1']
+assert all(row['state']=='incoming_allocated' for row in replacements)
+for row in required:
+    assert row['required_intent_ids']
+    assert row['observed_released_bytes']==row['expected_usable_bytes']
+    assert row['observed_released_bytes']>=row['shortfall_bytes']>0
+    assert sum(v['usable_bytes'] for v in row['victims'])==row['observed_released_bytes']
+assert not cache['movement_interests'] and not cache['plans']
+summary=dict(passed=True,kind='d817_observed_delivery_and_required_reclamation_v1',
+    client_attempt_states=dict(states),all_attempts_included=True,
+    client_received_bytes=sum(r['transferred_bytes'] for r in projection['transfers']),
+    server_read_bytes=sum(r['bytes_read'] for r in server),
+    server_written_bytes=sum(r['bytes_written'] for r in server),
+    unchanged_legacy_audit_applicable=True,
+    applicability='Actual complete population contains only published attempts; no deferred-attempt acceptance was added.',
+    file_cache_policy=cache['file_cache_policy'],
+    replacement_policies=dict(collections.Counter(r['policy'] for r in replacements)),
+    required_reclamations=len(required),
+    required_released_bytes=sum(r['observed_released_bytes'] for r in required),
+    cache_snapshot=cache,
+    limitation='Receipts prove observed reclaim bytes and live required intent; independent victim-safety interleavings are covered by D816 tests, not reconstructed from these receipts.',
+    source_refs=[ref(x) for x in (outcome,RAW/'remote_client_projection.json',RAW/'remote_transfers.jsonl',Path(__file__))])
+save(OUT/'completion/delivery_applicability_and_reclamation.json',summary)
+metric=read(OUT/'completion/full4000.json')
+counts=metric['counts']
+partition=dict(ttft_only_fail=counts['tpot_pass']-counts['joint_pass'],
+    tpot_only_fail=counts['ttft_pass']-counts['joint_pass'],
+    both_fail=counts['n']-counts['ttft_pass']-counts['tpot_pass']+counts['joint_pass'])
+assert sum(partition.values())==counts['n']-counts['joint_pass']
+identities=[read(RAW/name) for name in ('completion_identity.json','completion_resume_identity.json')]
+for identity in identities:
+    assert not Path(identity['path']).exists()
+assert all(int(line.split()[1])==0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'closure.json',dict(passed=True,kind='d817_full_w2_closure_v1',
+    counts=counts,violation_partition=partition,shortfall_to_3800=3800-counts['joint_pass'],
+    numerical_correctness_qualified=False,n_correct=metric['n_correct'],ranking_eligible=False,
+    primary_targets_achieved=False,new_replays=0,confidence_interval=None,
+    previous_auxiliary_scopes_removed=identities,
+    analysis_launcher_failure=ref(OUT/'completion/analysis_launcher_failure.json'),
+    resources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')},
+    decision='Retain complete W2 observation. Capacity failure did not recur and required reclaim was observed; joint SLO is below 95%. No same-key rerun, threshold change or final G1/G2 claim. Inspect actual remote preparation and residency history before the next single candidate.'))
+save(OUT/'closure_manifest.json',dict(files=[ref(x) for x in sorted((OUT/'completion').rglob('*')) if x.is_file()]+[ref(OUT/'closure.json')]))
+print(json.dumps(dict(passed=True,states=dict(states),replacement_policies=summary['replacement_policies'],
+    required_reclamations=len(required),violation_partition=partition),indent=2))

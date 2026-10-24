@@ -1,0 +1,59 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/backup_results.py",
+  "sha256": "b37a7f600853e628db324760aa22bfaed98a5b11c16787d7a1c578e134a5e245",
+  "replacements": [
+    [
+      "files += [OUT / 'completion/manifest.json', OUT / 'closure.json',\n          OUT / 'seal.py.snapshot', OUT / 'backup_results.py.snapshot',\n          ROOT / 'docs/ieee_tc/D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md',\n          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']",
+      "files += [OUT / 'closure_manifest.json', OUT / 'backup_results.py.snapshot',\n          ROOT / 'docs/ieee_tc/D817_REQUIRED_CAPACITY_FULL_W2_20261025.md',\n          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']"
+    ],
+    [
+      "('resume_start.py', 'finish_start.py', 'resume_identity.json',\n             'finish_identity.json', 'interrupted_start_closure.json',\n             'interrupted_resume_closure.json', 'start_closure.json',\n             'start_receipt.json', 'commit.json', 'backup.json')",
+      "('complete.py', 'completion_template.json', 'completion_program.py.snapshot',\n             'completion_identity.json', 'resume_completion.py', 'completion_resume_template.json',\n             'completion_resume_program.py.snapshot', 'completion_resume_identity.json',\n             'close_context.py', 'context_identity.json', 'close_start.py', 'start_closure.json',\n             'start_receipt.json', 'commit.json', 'backup.json', 'post_backup_release.py',\n             'backup_template.json')"
+    ],
+    [
+      "d752_3b_dense_alias_validation_full_w0",
+      "d817_3b_required_capacity_full_w2"
+    ],
+    [
+      "D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md",
+      "D817_REQUIRED_CAPACITY_FULL_W2_20261025.md"
+    ],
+    [
+      "identity = read(RAW / 'closure_identity.json')",
+      "identity = read(RAW / 'context_identity.json')"
+    ],
+    [
+      "for manifest in ('completion/manifest.json',):",
+      "for manifest in ('closure_manifest.json',):"
+    ],
+    [
+      "('complete.py', 'seal.py', 'backup_results.py', 'resume_start.py', 'finish_start.py')",
+      "('complete.py','resume_completion.py','close_context.py','backup_results.py','post_backup_release.py')"
+    ],
+    [
+      "ROOT/'docs/ieee_tc/HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md'",
+      "OUT/'execution_recovery/manifest.json'"
+    ],
+    [
+      "files += recovery_files + [recovery/'manifest.json',\n    OUT/'execution_recovery/manifest.json']",
+      "files += recovery_files + [recovery/'manifest.json']"
+    ],
+    [
+      "tc: seal D752 3B W0 joint SLO attainment and resource tradeoff",
+      "tc: retain complete D817 W2 capacity recovery and joint SLO shortfall"
+    ],
+    [
+      "refs/heads/backup/d752-complete-20261023",
+      "refs/heads/backup/d817-complete-20261025"
+    ],
+    [
+      "q['protected']",
+      "protected"
+    ],
+    [
+      "v2_synchronized=False, closed_previous_scope=closed",
+      "v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own[\"path\"])), closed_previous_scope=closed"
+    ]
+  ],
+  "protection": "Existing 147-file immutable seal plus D816 user dirt."
+}

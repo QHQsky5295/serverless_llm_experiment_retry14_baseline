@@ -1,0 +1,60 @@
+"""Finish offline D817 accounting after the explicit prelaunch-schema mismatch.
+
+Reuse the completed native metrics/stages, do not replay or overwrite evidence.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw/'completion_program.py.snapshot'
+_source = _template.read_text()
+_prefix = _source[:_source.index('own = p.scope_identity')]
+_tail = _source[_source.index('qualification = read(OUT.parent'):]
+_old = """for path, sha in qualification['protected'].items():
+    assert p.digest(Path(path)) == sha, path
+"""
+assert _tail.count(_old) == 1
+_tail = _tail.replace(_old, """# D817's prelaunch reused D816 protection and the immutable 147-file seal.
+protected = ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json'
+for path, sha in read(protected)['user_protected'].items():
+    assert p.digest(Path(path)) == sha, path
+seal_path = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal = p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT/'protected_147_after.json', seal)
+""")
+_setup = """
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'completion_resume_identity.json', own)
+group = Path(own['path'])
+events_before = (group/'memory.events').read_text()
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+metric = OUT/'full4000.json'
+assert read(metric)['passed'] and read(OUT/'stages/diagnosis.json')['passed']
+previous = read(RAW/'completion_identity.json')
+closed = subprocess.check_output(['systemctl','--user','show',previous['unit'],
+    '-p','ActiveState','-p','InvocationID','-p','ControlGroup'],text=True)
+assert 'ActiveState=inactive' in closed and not Path(previous['path']).exists()
+save(OUT/'analysis_launcher_failure.json',dict(
+    type='KeyError',field='protected',
+    effect='Metrics and stage audit completed; only protection/comparison/final accounting interrupted.',
+    performance_execution_failed=False, new_replays=0,
+    previous_identity=previous, previous_scope_status=closed,
+    partial_analysis_resources=None,
+    repair='Use the recorded D816 user protection and immutable 147-file seal; no weakened checks.',
+    retained_outputs=[ref(metric),ref(OUT/'stages/diagnosis.json')]))
+from scripts.ieee_tc.check_d299_full_context import project
+meta, transfers = project(RUN/'launch.launch/physical_deployment/main_outcome.json')
+save(RAW/'remote_client_projection.json',dict(meta=meta,transfers=transfers))
+"""
+_program = _prefix + _setup + _tail
+with (_raw/'completion_resume_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        change='Resume after completed metrics/stages; adapt only explicit D817 protection schema.'),_stream,indent=2)
+    _stream.write('\n')
+with (_raw/'completion_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_program)
+exec(compile(_program,str(_raw/'completion_resume_program.py.snapshot'),'exec'),globals())

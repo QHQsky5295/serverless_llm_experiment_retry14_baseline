@@ -1,0 +1,64 @@
+"""Reuse explicit-path D752 publication, with D817 schema and closure sources."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw=Path(__file__).resolve().parent
+_template=_raw.parent/'d752_20261023/backup_results.py'
+_source=_template.read_text()
+_old_files="""files += [OUT / 'completion/manifest.json', OUT / 'closure.json',
+          OUT / 'seal.py.snapshot', OUT / 'backup_results.py.snapshot',
+          ROOT / 'docs/ieee_tc/D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md',
+          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']"""
+_new_files="""files += [OUT / 'closure_manifest.json', OUT / 'backup_results.py.snapshot',
+          ROOT / 'docs/ieee_tc/D817_REQUIRED_CAPACITY_FULL_W2_20261025.md',
+          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']"""
+_old_recovery="""('resume_start.py', 'finish_start.py', 'resume_identity.json',
+             'finish_identity.json', 'interrupted_start_closure.json',
+             'interrupted_resume_closure.json', 'start_closure.json',
+             'start_receipt.json', 'commit.json', 'backup.json')"""
+_new_recovery="""('complete.py', 'completion_template.json', 'completion_program.py.snapshot',
+             'completion_identity.json', 'resume_completion.py', 'completion_resume_template.json',
+             'completion_resume_program.py.snapshot', 'completion_resume_identity.json',
+             'close_context.py', 'context_identity.json', 'close_start.py', 'start_closure.json',
+             'start_receipt.json', 'commit.json', 'backup.json', 'post_backup_release.py',
+             'backup_template.json')"""
+_pairs=[
+    (_old_files,_new_files),
+    (_old_recovery,_new_recovery),
+    ('d752_3b_dense_alias_validation_full_w0','d817_3b_required_capacity_full_w2'),
+    ('D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md','D817_REQUIRED_CAPACITY_FULL_W2_20261025.md'),
+    ("identity = read(RAW / 'closure_identity.json')","identity = read(RAW / 'context_identity.json')"),
+    ("for manifest in ('completion/manifest.json',):","for manifest in ('closure_manifest.json',):"),
+    ("('complete.py', 'seal.py', 'backup_results.py', 'resume_start.py', 'finish_start.py')",
+     "('complete.py','resume_completion.py','close_context.py','backup_results.py','post_backup_release.py')"),
+    ("ROOT/'docs/ieee_tc/HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md'",
+     "OUT/'execution_recovery/manifest.json'"),
+    ("files += recovery_files + [recovery/'manifest.json',\n    OUT/'execution_recovery/manifest.json']",
+     "files += recovery_files + [recovery/'manifest.json']"),
+    ('tc: seal D752 3B W0 joint SLO attainment and resource tradeoff',
+     'tc: retain complete D817 W2 capacity recovery and joint SLO shortfall'),
+    ('refs/heads/backup/d752-complete-20261023','refs/heads/backup/d817-complete-20261025'),
+    ('q[\'protected\']','protected'),
+    ('v2_synchronized=False, closed_previous_scope=closed',
+     'v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own["path"])), closed_previous_scope=closed'),
+]
+for _old,_new in _pairs:
+    assert _old in _source,_old
+    _source=_source.replace(_old,_new)
+_marker="q = read(OUT / 'prelaunch/qualification.json')"
+assert _source.count(_marker)==1
+_source=_source.replace(_marker,_marker+"""
+seal_path=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected={path:entry['sha256'] for path,entry in read(seal_path)['entries'].items()}
+assert len(protected)==147
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected'])
+""")
+with (_raw/'backup_template.json').open('x') as _stream:
+    json.dump(dict(path=str(_template),sha256=hashlib.sha256(_template.read_bytes()).hexdigest(),
+        replacements=_pairs,protection='Existing 147-file immutable seal plus D816 user dirt.'),_stream,indent=2)
+    _stream.write('\n')
+with (_raw/'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source,str(_raw/'backup_program.py.snapshot'),'exec'),globals())
