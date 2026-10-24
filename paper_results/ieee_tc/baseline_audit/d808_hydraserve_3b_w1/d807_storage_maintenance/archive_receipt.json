@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "receipt": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261024_d807_closed_d703_outcome.json",
+  "receipt_sha256": "f7706151a73c498551b2d76773daf167b0cdf7b2b42c4c6fa5e56b797d9a0157",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8070000000000000000000000000006.scope",
+    "memory.current": 172118016,
+    "memory.peak": 1226760192,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 41280127\nuser_usec 38272382\nsystem_usec 3007745\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected_and_user_dirty_unchanged": 147,
+  "restoration": "Before running an analyzer requiring the old uncompressed path, restore the archive to that exact path and verify the retained source SHA."
+}

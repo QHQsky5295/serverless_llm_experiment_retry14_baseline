@@ -1,0 +1,9 @@
+{
+  "run": "d703_20261019/3b_full_w0",
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+  "source_sha256": "e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211",
+  "audit_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile/audit.json",
+  "audit_sha256": "c6e6d56ff39734eb87ced593bf1858db6c781f467c771a359794e0e1a0e0e997",
+  "launch_sha256": "643bb8d77b7721b7394835ad96c7d922b005f0bdf17f281758a91e951a0f00fe",
+  "note": "Storage only: D703 historical mislabeled SLO and its later correction are unchanged; no promotion to correctness or ranking eligibility."
+}

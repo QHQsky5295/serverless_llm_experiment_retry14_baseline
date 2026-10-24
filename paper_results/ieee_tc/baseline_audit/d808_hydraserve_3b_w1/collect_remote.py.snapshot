@@ -1,0 +1,30 @@
+"""Reuse prior exact-invocation remote stop/collection AFTER local GPU release."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+RAW=Path(__file__).resolve().parent
+MAIN=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0,str(MAIN))
+sys.path.insert(0, '/home/qhq/serverless_llm_baselines/scripts')
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(Path('/home/qhq/serverless_llm_experiment_retry14_baseline'))
+assert json.loads((RAW/'closure.json').read_text())['actual_recursive_empty']
+old=RAW.parent.parent/'p2_backend_qualification/d476_20261012'
+source=(old/'stop_remote.sh').read_text()
+source=source.replace('p2_backend_qualification/d476_20261012','hydraserve_qualification/d808_20261024')
+source=source.replace('d476_20261012_hostexecw0','d808_20261024_hydraremote').replace('d476-hostexecw0','d808-hydraremote')
+source=source.replace("jq -e '.native_gpu_context_release_confirmed and .service_path_removed' \"$raw/7b_full_w0/launch.json\" >/dev/null",
+    "jq -e '.service_gone and .actual_recursive_empty' \"$raw/closure.json\" >/dev/null")
+source=source.replace('7b".clock_id', '3b".clock_id').replace('/7b/transfers-', '/3b/transfers-')
+source=source.replace('grep -l "$clock_id" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl', 'grep -l "$clock_id" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl || test "$?" -eq 1')
+with (RAW/'stop_remote.sh').open('x') as f:f.write(source)
+subprocess.run(['bash',str(RAW/'stop_remote.sh')],check=True,timeout=60)
+source=(old/'collect_closure.py').read_text()
+start=source.index("stop = (raw/'remote_stop.log').read_text()")
+end=source.index("\nsource = next(run.glob",start)
+source=source[start:end].replace('d476_20261012_hostexecw0','d808_20261024_hydraremote')
+source=source.replace('/7b/transfers-', '/3b/transfers-').replace('assert len(transfer_paths) == 1', 'assert len(transfer_paths) <= 1')
+source=source.replace("    'remote_transfers.jsonl': transfer_paths[0],\n", '')
+source=source.replace('hashes = {}', "if transfer_paths: paths['remote_transfers.jsonl'] = transfer_paths[0]\nhashes = {}")
+exec(compile(source,str(RAW/'collect_remote_reused.py'),'exec'),dict(raw=RAW,p=p,json=json,subprocess=subprocess))

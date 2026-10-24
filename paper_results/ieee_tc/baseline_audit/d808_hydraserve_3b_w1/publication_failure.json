@@ -1,0 +1,12 @@
+{
+  "phase": "publication",
+  "execution_exit_code": 1,
+  "script_sha256": "1917388e3ab63e8fc9977eeede8766dacba5519bda1c1e8d729e4a5b7c97bb8f",
+  "error_type": "FileNotFoundError",
+  "missing_path": "full_w0_slo_rows.json",
+  "actual_scenario_file": "full_w1_slo_rows.json",
+  "performance_run_changed": false,
+  "checkpoint_manifest_created": false,
+  "git_staging_empty_after_failure": true,
+  "scope_closed_by": "publication_closure.json"
+}

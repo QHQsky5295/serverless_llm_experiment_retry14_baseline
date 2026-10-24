@@ -1,0 +1,57 @@
+"""Reuse lossless compressor on the closed D703 outcome; no result reclassification."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, data):
+    with path.open('x') as stream:
+        json.dump(data, stream, indent=2, allow_nan=False)
+
+
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'archive_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert read(RAW/'storage_closure.json')['path_gone']
+preserved = read(RAW/'preregistration.json')['preserved']
+for path, expected in preserved.items():
+    assert p.digest(Path(path)) == expected, path
+run = 'd703_20261019/3b_full_w0'
+audit_path = ROOT/'paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile/audit.json'
+audit = read(audit_path)
+source = c.RAW_ROOT/run/'launch.launch/physical_deployment/main_outcome.json'
+assert audit['outcome']['path'] == str(source)
+assert audit['outcome']['sha256'] == 'e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211'
+assert str(source) not in preserved and c.digest(source) == audit['outcome']['sha256']
+launch = read(c.RAW_ROOT/run/'launch.json')
+c.require_closed_launch(launch)
+assert not Path(launch['service_identity']['path']).exists()
+save(RAW/'archive_binding.json', dict(run=run, source=str(source),
+    source_sha256=audit['outcome']['sha256'], audit_path=str(audit_path), audit_sha256=p.digest(audit_path),
+    launch_sha256=p.digest(c.RAW_ROOT/run/'launch.json'),
+    note='Storage only: D703 historical mislabeled SLO and its later correction are unchanged; no promotion to correctness or ranking eligibility.'))
+c.TARGETS = [dict(run=run, audit_sha=audit['outcome']['sha256'])]
+c.OUT = ROOT/'paper_results/ieee_tc/storage/20261024_d807_closed_d703_outcome.json'
+assert c.main() == 0
+for path, expected in preserved.items():
+    assert p.digest(Path(path)) == expected, path
+save(RAW/'archive_receipt.json', dict(passed=True, receipt=str(c.OUT), receipt_sha256=p.digest(c.OUT),
+    compressor_sha256=p.digest(Path(c.__file__)), resources=p.cgroup_snapshot(group),
+    protected_and_user_dirty_unchanged=len(preserved),
+    restoration='Before running an analyzer requiring the old uncompressed path, restore the archive to that exact path and verify the retained source SHA.'))

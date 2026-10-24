@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792843264.6144972,
+  "before": {
+    "available_bytes": 160973434880
+  },
+  "after": {
+    "available_bytes": 161888051200
+  },
+  "entries": [
+    {
+      "run": "d703_20261019/3b_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d703_20261019/3b_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211",
+      "audit_sha256": "e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109584190,
+        "size": 1052583652,
+        "mtime_ns": 1792398181231607361,
+        "ctime_ns": 1792398181231607361,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2055840
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "643bb8d77b7721b7394835ad96c7d922b005f0bdf17f281758a91e951a0f00fe",
+      "archive_sha256": "174c9d38ed448f601aef45af0cba49a9bd6c0ee4bae9b828a7338d0658cf78d9",
+      "archive_bytes": 137922191,
+      "archive_allocated_bytes": 137928704,
+      "first_roundtrip_sha256": "e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211",
+      "second_roundtrip_sha256": "e4c2c52c8ad4c730aca1e8a9dedf3690427c5cd85e4a72fd6a31a217eb696211",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 914661376
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

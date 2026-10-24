@@ -1,0 +1,3 @@
+from pathlib import Path
+original = Path(__file__).resolve().parent.parent/'d570_20261016/close.py'
+exec(compile(original.read_text(), str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

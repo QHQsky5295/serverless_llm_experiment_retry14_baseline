@@ -1,0 +1,17 @@
+"""Reuse D807's complete 3B audit for the unchanged W1 configuration."""
+from hashlib import sha256
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d807_20261024/audit.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '2a0724d7272903222e714721bceaa8b46494459331bc6a0d72a62b62b35882dd'
+source = data.decode()
+old = '0345c5e577756f015d673ba67324f5698954019a67e587dcdd5aed078835738d'
+assert source.count(old) == 1
+source = source.replace(old, '1858eb34d62d7f5bc6827f74889d8b0574d9660e32e2789a1ca7cd5da653144a')
+source = source.replace('full_w0_evaluation.json', 'full_w1_evaluation.json')
+anchor = "scope = {'__name__': '__main__', '__file__': str(RAW/'audit.py')}"
+assert source.count(anchor) == 1
+source = source.replace(anchor,
+    "source = source.replace('full_w0', 'full_w1').replace('full-W0', 'full-W1').replace('observed_w0', 'observed_w1')\n" + anchor)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

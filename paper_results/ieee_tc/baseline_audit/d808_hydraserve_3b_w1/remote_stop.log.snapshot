@@ -1,0 +1,14 @@
+MainPID=0
+Result=success
+Id=primelora-artifact-tc-3b.service
+ActiveState=inactive
+MainPID=0
+Result=success
+Id=primelora-artifact-tc-7b.service
+ActiveState=inactive
+MainPID=0
+Result=success
+Id=primelora-artifact-monitor-d808-hydraremote.service
+ActiveState=inactive
+/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-b9b5ea47627f499396c8c8ab762553c8.jsonl
+e69c93c600f1377280ec77c3b92de91a7fbb0f02b151065135f3bde37147a9e2  /home/lab14/primelora_remote/tc/d808_20261024_hydraremote/remote_monitor.log

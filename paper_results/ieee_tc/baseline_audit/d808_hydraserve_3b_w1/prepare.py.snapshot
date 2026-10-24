@@ -1,0 +1,33 @@
+"""Reuse D807's qualified 3B native path with the existing common W1 view."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+PREVIOUS = RAW.parent/'d807_20261024'
+evaluation = json.loads((PREVIOUS/'full_w0_evaluation.json').read_text())
+assert evaluation['full_audit_pass'] and evaluation['n_v1_contract_complete'] == 4000
+assert json.loads((PREVIOUS/'delivery_numerical_audit.json').read_text())['affected_path_pass']
+assert json.loads((PREVIOUS/'publication_receipt.json').read_text())['passed']
+for phase in ('prepare', 'remote_prelaunch', 'audit', 'publication', 'storage', 'archive'):
+    closed = json.loads((PREVIOUS/(phase+'_closure.json')).read_text())
+    assert closed['passed'] and closed['path_gone']
+    assert not Path(closed['identity']['path']).exists()
+assert json.loads((PREVIOUS/'storage_receipt.json').read_text())['passed']
+assert json.loads((PREVIOUS/'archive_receipt.json').read_text())['passed']
+assert not (PREVIOUS/'remote_artifacts/objects').exists()
+
+original = PREVIOUS/'prepare.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '586ea1fd7e39affa2307ddfc30049c17b143f1c63ac83f2240c2326839727fab'
+source = data.decode().replace("'d807'", "'d808'")
+anchor = "exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})"
+assert source.count(anchor) == 1
+source = source.replace(anchor, '''
+replace('serverless_qualification/d764_20261023/http_3b_4000.json',
+        'serverless_qualification/d765_20261023/http_3b_4000.json')
+replace('plan = load_http_replay_plan(cfg)',
+        "assert cfg['request_view'] == 'trace_w1_v1' and cfg['replay_profile'] == 'W1'\\nplan = load_http_replay_plan(cfg)")
+source = source.replace('W0', 'W1')
+''' + anchor)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

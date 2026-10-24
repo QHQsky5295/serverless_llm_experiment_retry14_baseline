@@ -1,0 +1,24 @@
+"""Reuse D805 full-content verification for D807's closed 132-object cache."""
+import hashlib
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d805_20261024/reclaim.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '62d966730f68c43be4a122dbc202181b9a0d4376d3b75b29eb1cae4f414125e8'
+source = data.decode().replace('d805_20261024', 'd807_20261024')
+
+
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+
+
+replace("assert failure['audit_completed'] and not failure['experiment_passed']",
+        "assert failure['audit_completed'] and failure['affected_path_pass']")
+replace("assert failure['resource_release'] and failure['remote_closed']",
+        "assert read(RAW/'closure.json')['service_gone'] and read(RAW/'remote_stop.json')['all_owned_units_inactive']")
+replace("audit['n_native_contract_complete'] == 100", "audit['n_native_contract_complete'] == 4000")
+replace("audit['remote_transfers'] == 29", "audit['remote_transfers'] == 132")
+replace("RAW/'http_3b_100.json'", "RAW/'http_3b_4000.json'")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

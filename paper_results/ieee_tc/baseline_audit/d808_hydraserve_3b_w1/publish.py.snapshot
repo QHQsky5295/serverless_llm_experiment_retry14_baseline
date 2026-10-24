@@ -1,0 +1,34 @@
+"""Reuse D807 checkpoint logic for W1 and the closed D807 storage receipts."""
+from hashlib import sha256
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d807_20261024/publish.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '89bcdbdf8171a750f171ff0f84b6858132d200baf518e74bb9beac79b07dd08b'
+source = data.decode()
+
+
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, (old, source.count(old))
+    source = source.replace(old, new)
+
+
+# Both the read and curated-source list name the same scenario-specific file.
+assert source.count('full_w0_evaluation.json') == 2
+source = source.replace('full_w0_evaluation.json', 'full_w1_evaluation.json')
+replace('d807_hydraserve_3b_full_w0', 'd808_hydraserve_3b_w1')
+replace('d806_cache_reclamation', 'd807_storage_maintenance')
+replace("old = RAW.parent/'d806_20261024'", "old = RAW.parent/'d807_20261024'")
+replace("'storage_closure.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json', 'retained_cache_metadata.json')]",
+        "'storage_closure.json', 'cache_cleanup_before.json', 'cache_cleanup_after.json', 'retained_cache_metadata.json', "
+        "'compress_closed.py', 'close_archive.py', 'archive_binding.json', 'archive_receipt.json', 'archive_closure.json')]")
+replace('85e5400db9d431099b559ab6fc2219c7932e55da', '33fb9e8ad787e2f573723e36a497f57a5caad3f3')
+replace('D807_HYDRASERVE_3B_FULL_W0_20261024.md', 'D808_HYDRASERVE_3B_W1_20261024.md')
+replace('backup/d807-hydraserve-3b-full-w0-20261024', 'backup/d808-hydraserve-3b-w1-20261024')
+replace('tc: seal HydraServe 3B full W0 observation (D807)', 'tc: seal HydraServe 3B W1 observation (D808)')
+replace('unchanged HydraServe 3B W1/W2 then full comparison', 'unchanged HydraServe 3B W2 then full comparison')
+replace("paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',",
+        "paths = [MAIN/'paper_results/ieee_tc/storage/20261024_d807_closed_d703_outcome.json', "
+        "MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

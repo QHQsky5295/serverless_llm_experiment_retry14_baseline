@@ -1,0 +1,37 @@
+"""Resume the failed archive reference without overwriting any copied evidence."""
+from hashlib import sha256
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+closed = json.loads((RAW/'publication_closure.json').read_text())
+assert closed['passed'] and not Path(closed['identity']['path']).exists()
+original = RAW/'publish.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '1917388e3ab63e8fc9977eeede8766dacba5519bda1c1e8d729e4a5b7c97bb8f'
+source = data.decode()
+anchor = "exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})"
+assert source.count(anchor) == 1
+patches = '''
+replace("RAW/'full_w0_slo_rows.json'", "RAW/'full_w1_slo_rows.json'")
+replace("RAW/'publication_identity.json'", "RAW/'publication2_identity.json'")
+replace("OUT.mkdir(parents=True, exist_ok=False)", "assert OUT.is_dir()")
+replace("storage.mkdir()", "assert storage.is_dir()")
+replace("checked(sources)", "sources += [RAW/'publish_resume.py', RAW/'publication_failure.json', RAW/'publication_closure.json', RAW/'close_publication_retry.py']\\nchecked(sources)")
+replace("mapping = copy_sources(OUT, sources)", """def verify_or_copy(target, sources):
+    records = {}
+    for source_path in sources:
+        name = source_path.name + ('.snapshot' if source_path.suffix in ('.py', '.sh', '.log') else '')
+        target_path = target/name
+        if target_path.exists():
+            assert p.digest(target_path) == p.digest(source_path), target_path
+            records[name] = dict(source=str(source_path), sha256=p.digest(source_path))
+        else:
+            records.update(copy_sources(target, [source_path]))
+    return records
+mapping = verify_or_copy(OUT, sources)""")
+replace("storage_mapping = copy_sources(storage, storage_sources)",
+        "storage_mapping = verify_or_copy(storage, storage_sources)")
+'''
+source = source.replace(anchor, patches + anchor)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
