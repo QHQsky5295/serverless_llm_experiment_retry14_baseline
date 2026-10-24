@@ -1,0 +1,7 @@
+"""Reuse the already verified exact-owned empty auxiliary closure."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d788_20261024/close.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '5ffcb241dd42c733905e2030fab0b801fef3ab165edb5451ee0bf150b7e422ab'
+exec(compile(data, str(original), 'exec'), {'__name__':'__main__', '__file__':str(Path(__file__))})

@@ -1,4 +1,58 @@
-# IEEE TC execution status — dLoRA 3B necessary measurement adaptation
+# IEEE TC execution status — next: correct confirmed Loquetier 3B attention incompatibility
+
+## 2026-10-24 13:06 CST D796确认注意力兼容问题，下一隔离模型适配
+
+本轮完整重读PLAN、最新状态、两仓AGENTS及六项执行补充；采用run-experiment
+复用原runner和资源保护，research-lookup核验官方Loquetier/Transformers/
+FlashInfer源码。Parallel未认证，改用网页工具，无私有数据上传或依赖安装。
+
+D796一次小型原生注意力诊断已完成：两序列17/257、追加后18/258，group1/4
+prefill/decode及group3 decode符合普通RoPE；group3 prefill非有限，六条
+路径均不符合实际Llama-3.2分频RoPE。KV写入均逐元素相同。详见
+D796_LOQUETIER_3B_ATTENTION_DIAGNOSTIC_20261024.md及原始d796_20261024。
+这是必要正确性证据，不是性能实验或完整模型/LoRA资格；不能用旧HTTP成功
+替代数值证据。7B配置、原始工件、负载及已安装二进制均未改变。
+
+session9570已实际结束，service/watchdog均0，GPU进程为空、服务路径移除；
+probe辅助资源域已按身份关闭。无待wait句柄。只扩展原runner的显式诊断模式
+及两项参数回归；CPU静态测试20/20通过。执行后仅补充互斥参数校验，须保留
+执行时runner SHA及其快照，不把修改后SHA冒充已执行身份。备份尚待完成。
+
+下一在新隔离源视图修正完整packed-row的token/head索引和llama3分频RoPE，
+包括query读写、位置、mask、tile边界；参考官方FlashInfer的packed索引，
+不重编译无关组件或更换原生SMLM/调度，必要时仅构建受影响原生版本。
+完成受影响注意力和既有真实输入完整模型/LoRA检查后，Loquetier 3B W0/W1/W2，
+再HydraServe 3B，既有他项目k3s不改，不重新开无变化的7B平台资格。
+完整比较/PrimeLoRA优化/同版Full/A1–A5/S1–S13/成本/文档/图表/最终V2全保留，
+goal active，本轮PROGRESS，尚未进行Loquetier必要服务代码修正或构建。
+
+## 2026-10-24 12:53 CST D795已备份并全部关闭，下一Loquetier 3B
+
+MAIN HEAD为2ae4fcf7a107cd215945eb50488bdced09c6ba76；45条明确路径已提交、
+推送并与faaslora_origin的backup/d795-dlora-cancellation-corrected-w2-20261024
+核对一致。BASE32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586与origin/main一致，
+本轮未改服务代码。用户manifest/replay/relayserve修改均未stage。V2既有
+分叉仍未解决，不强推，也不称最终V2已同步。backup资源域已实际关闭。
+
+D795一次完整W2、一次现有analyzer；3122响应、878超时、联合0.65%、
+U9086.517108698376 GPU-s。数值正确性未知和G1/G2不可行保留；修复前
+D792不择优替换。D794同版W1也已封存。暂无新具体错误证据要求继续dLoRA
+性能搜索。完整文档与curated来源在D795_DLORA_CANCELLATION_CORRECTED_FULL_W2
+及paper_results/ieee_tc/baseline_audit/d795_dlora_cancellation_corrected_full_w2。
+
+本轮所有cell5056/5061/5064/5066/5071/5072/5076/5080/5082/5083/5086
+均已完成；exec sessions24041/56630/38618/34517均结束。D795 tmux已结束、
+GPU进程为空、服务/回放/维护/分析/存储/备份资源域均实际关闭，远端本轮
+服务和监控已关闭。不再wait这些句柄或重新运行D795。原始结果全留；仅回收
+已验证重复缓存19497304064bytes，可用约150.13GiB，147项保护/dirty不变。
+
+下一先重读PLAN、本文、LOQUETIER_3B_COMPATIBILITY_AUDIT_20261024，
+按现有D589/D560环境及probe核查Llama-3.2 RoPE和GQA3 prefill具体数值问题；
+不重新搜索7B配置、不重复单卡500池OOM、不重开工件填充审计、不盲目构建。
+本轮只读复核该文档，尚未启动Loquetier模型或修改内核。必要正确性适配完成
+后按3B W0/W1/W2，再HydraServe必要适配及完整矩阵，原有他项目k3s不改。
+全基线比较/PrimeLoRA优化/同版Full/A1–A5/S1–S13/成本/Pareto/两轮审稿
+文档/图表/最终V2均保留；全局最优尚未证明。完整goal active，本轮PROGRESS。
 
 ## 2026-10-24 12:52 CST D795回收完成，进入明确路径备份
 

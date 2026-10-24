@@ -1,0 +1,8 @@
+{
+  "script_sha256": "b05c48a045dbbd77a8405d7ac909ee86a084ada3090d4e809ab2fff56af56903",
+  "kernel_sha256": "100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9",
+  "main_head": "2ae4fcf7a107cd215945eb50488bdced09c6ba76",
+  "base_head": "32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586",
+  "performance_run": false,
+  "existing_assets_unchanged": true
+}

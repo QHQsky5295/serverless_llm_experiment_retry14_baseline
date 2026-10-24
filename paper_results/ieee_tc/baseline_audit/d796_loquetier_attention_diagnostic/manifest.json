@@ -1,0 +1,79 @@
+{
+  "schema": "ieee_tc_loquetier_attention_diagnostic_checkpoint_v1",
+  "files": {
+    "run_probe.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/run_probe.py",
+      "sha256": "83db2f83f3968a2684b4165b187926983c02524b7fca52ce83f289cba23cf3db"
+    },
+    "close.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/close.py",
+      "sha256": "1168f4821aaa23a0448a70eac55b589c546fc33095708b255f5a65d89ab672ea"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/backup.py",
+      "sha256": "2d6159d567e2077d40aa4ecce0a911fccc1de0a5cbd566158db9570e65d00ae0"
+    },
+    "execution_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/execution_identity.json",
+      "sha256": "e7307f7600756dea9f4a0d07915a0f270ce3dbf480da76a5ec610430552a6f87"
+    },
+    "probe_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_identity.json",
+      "sha256": "58d7eecac0481796ec5d3b9195194796f3ae1cfdea92a1832d60049b21456c7a"
+    },
+    "probe_launch.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_launch.json",
+      "sha256": "d3eef4e7ff958af38af9c5b225fa61c60149265670cb1a08def4a8a9c8b306e3"
+    },
+    "probe_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_closure.json",
+      "sha256": "28f91bc2c46d56829e6701e6af167fffa26d7414fd99ef66f520718eec4f93a0"
+    },
+    "attention.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/attention.json",
+      "sha256": "45175fbb135b59742b251723538112134f42ddd8f926e7831fd2c78ede689310"
+    },
+    "executed_runner.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/executed_runner.py.snapshot",
+      "sha256": "b05c48a045dbbd77a8405d7ac909ee86a084ada3090d4e809ab2fff56af56903"
+    },
+    "test_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/test_receipt.json",
+      "sha256": "4ae373293850c5ce74c888f31931ba4bed9da609ab247c0586767c3dbaf21206"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/baseline_backup_receipt.json",
+      "sha256": "8c8c44dbe16cacd40a76443d2c1262e924147adba2a74c82001cd5a4695591e7"
+    },
+    "service.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_launch.launch/service.log",
+      "sha256": "0f3b8719f93f8eef5b680dfd6b95ae497a01afb8d4dbc8e8bc7e734dd72ffdd0"
+    },
+    "exec_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_launch.launch/exec_receipt.json",
+      "sha256": "2b4f8f1ec110368298506f6228aa7656436742117c1e856c93095fa1d02a3bb4"
+    }
+  },
+  "baseline_head": "3b04deaa7c213546c87be62a0b59fd5eadf0592e",
+  "executed_identity": {
+    "script_sha256": "b05c48a045dbbd77a8405d7ac909ee86a084ada3090d4e809ab2fff56af56903",
+    "kernel_sha256": "100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9",
+    "main_head": "2ae4fcf7a107cd215945eb50488bdced09c6ba76",
+    "base_head": "32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586",
+    "performance_run": false,
+    "existing_assets_unchanged": true
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "gpu_diagnostics": 1,
+  "performance_experiments": 0,
+  "full_model_qualified": false,
+  "numerical_defects_retained": true,
+  "installed_kernel_unchanged": true,
+  "new_workload_or_weights": false,
+  "protected_and_user_dirty_unchanged": 147,
+  "raw_sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_launch.launch/watchdog.jsonl": "3205a3a0d67fdeac75fabf05728ca1428795fa0668a72f9a6e0c816f30b75e56",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/probe_launcher.log": "3ddc2212246897b9f7706d075eadd27ea151ee98fa6ea879b1a0171715dbd3c3"
+  },
+  "next": "isolated native packed-index and configured llama3 RoPE correctness adaptation"
+}

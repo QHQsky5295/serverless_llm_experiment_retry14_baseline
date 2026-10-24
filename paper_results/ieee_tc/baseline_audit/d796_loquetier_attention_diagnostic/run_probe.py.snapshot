@@ -1,0 +1,40 @@
+"""Reuse the qualified native resource launcher for one attention diagnostic."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+identity = p.scope_identity(p.cg_path().name)
+with (RAW/'probe_identity.json').open('x') as stream:
+    json.dump(identity, stream, indent=2)
+script = BASE/'Loquetier_project/scripts/run_loquetier_trace_gate.py'
+kernel = Path('/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so')
+assert p.digest(kernel) == '100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9'
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+with (RAW/'execution_identity.json').open('x') as stream:
+    json.dump(dict(script_sha256=p.digest(script), kernel_sha256=p.digest(kernel),
+        main_head=subprocess.check_output(['git','-C',str(MAIN),'rev-parse','HEAD'],text=True).strip(),
+        base_head=subprocess.check_output(['git','-C',str(BASE),'rev-parse','HEAD'],text=True).strip(),
+        performance_run=False, existing_assets_unchanged=True), stream, indent=2)
+env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(MAIN), str(BASE/'scripts'))),
+    CUDA_VISIBLE_DEVICES='0', TRANSFORMERS_OFFLINE='1', HF_HUB_OFFLINE='1',
+    PYTHONDONTWRITEBYTECODE='1',
+    FAASLORA_TC_NVML_BINDING='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py',
+    FAASLORA_TC_NVML_SHA256='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea')
+with (RAW/'probe_launcher.log').open('x') as stream:
+    result = subprocess.run(['/usr/bin/python3','-B',str(MAIN/'scripts/ieee_tc_preflight.py'),
+        'gated-launch','--output',str(RAW/'probe_launch.json'),'--predicted-growth-gib','0.01',
+        '--exec','/home/qhq/anaconda3/envs/loquetier_20260520/bin/python','-B',str(script),
+        '--attention-compatibility-probe','--main-repo',str(MAIN),
+        '--base-model',str(MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct'),
+        '--output',str(RAW/'attention.json')], cwd=BASE, env=env,
+        stdout=stream, stderr=subprocess.STDOUT)
+print(json.dumps(dict(returncode=result.returncode, receipt=str(RAW/'probe_launch.json'))))
+raise SystemExit(result.returncode)

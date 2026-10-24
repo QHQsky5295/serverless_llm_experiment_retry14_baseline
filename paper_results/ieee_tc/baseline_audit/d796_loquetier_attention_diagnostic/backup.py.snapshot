@@ -1,0 +1,98 @@
+"""Reuse explicit-path checkpoint helpers; preserve a failed numeric observation."""
+import ast
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN, 'nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader')
+closed = read(RAW/'probe_closure.json')
+assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+launch, result = read(RAW/'probe_launch.json'), read(RAW/'attention.json')
+assert launch['service_returncode'] == launch['watchdog_returncode'] == 0
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+assert result['completed'] and not result['full_model_qualified'] and len(result['rows']) == 6
+assert all(row['cache_matches'] for row in result['rows'])
+assert not result['rows'][2]['comparisons']['default']['finite']
+assert all(not row['comparisons']['llama3']['close'] for row in result['rows'])
+preserved = read(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification.json'))['preserved']
+for path, digest in preserved.items():
+    assert p.digest(Path(path)) == digest, path
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+def checked(paths):
+    for path in paths:
+        assert path.is_file() and path.stat().st_size < 2*1024*1024, path
+        assert not secret.search(path.read_text()), path
+        if path.suffix == '.py':
+            ast.parse(path.read_text(), filename=str(path))
+def commit(repo, paths, message, remote, ref):
+    checked(paths)
+    relative = [str(path.relative_to(repo)) for path in paths]
+    assert not call(repo, 'git', 'diff', '--cached', '--name-only')
+    call(repo, 'git', 'add', '--', *relative)
+    assert set(call(repo, 'git', 'diff', '--cached', '--name-only').splitlines()) == set(relative)
+    call(repo, 'git', 'diff', '--cached', '--check')
+    call(repo, 'git', 'commit', '-m', message)
+    head = call(repo, 'git', 'rev-parse', 'HEAD')
+    call(repo, 'git', '-c', 'http.version=HTTP/1.1', 'push', remote, 'HEAD:'+ref)
+    assert call(repo, 'git', 'ls-remote', remote, ref).split()[0] == head
+    return head
+
+assert call(BASE, 'git', 'rev-parse', 'HEAD') == '32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586'
+assert call(BASE, 'git', 'ls-remote', 'origin', 'refs/heads/main').split()[0] == '32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586'
+runner = BASE/'Loquetier_project/scripts/run_loquetier_trace_gate.py'
+test = BASE/'tests/test_loquetier_static_capacity.py'
+# Only a parser exclusion line was added after the executed probe. Recover and
+# hash the exact executed diagnostic source; do not relabel current bytes as run.
+line = '                or args.inference_owner_probe or args.forward_capacity_probe\n'
+current = runner.read_text()
+assert current.count(line) == 1
+executed = current.replace(line, '')
+assert hashlib.sha256(executed.encode()).hexdigest() == result['script_sha256']
+with (RAW/'executed_runner.py.snapshot').open('x') as stream:
+    stream.write(executed)
+save(RAW/'test_receipt.json', dict(passed=True, tests=20, elapsed_seconds=0.105,
+    command='/usr/bin/python3 -B -m unittest tests.test_loquetier_static_capacity -q',
+    execution='completed interactively before checkpoint; exit0',
+    runner_sha256=p.digest(runner), test_sha256=p.digest(test),
+    post_probe_change='parser mutually exclusive mode check only'))
+basehead = commit(BASE, [runner, test], 'tc: isolate Loquetier GQA and RoPE arithmetic diagnostics',
+                  'origin', 'refs/heads/main')
+save(RAW/'baseline_backup_receipt.json', dict(passed=True, head=basehead,
+    remote='origin/main', force_push=False, service_code_changed=False))
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d796_loquetier_attention_diagnostic'
+OUT.mkdir(parents=True, exist_ok=False)
+sources = [RAW/name for name in ('run_probe.py','close.py','backup.py','execution_identity.json',
+    'probe_identity.json','probe_launch.json','probe_closure.json','attention.json',
+    'executed_runner.py.snapshot','test_receipt.json','baseline_backup_receipt.json')]
+sources += [RAW/'probe_launch.launch/service.log', RAW/'probe_launch.launch/exec_receipt.json']
+checked(sources)
+mapping = copy_sources(OUT, sources)
+save(OUT/'manifest.json', dict(schema='ieee_tc_loquetier_attention_diagnostic_checkpoint_v1',
+    files=mapping, baseline_head=basehead, executed_identity=read(RAW/'execution_identity.json'),
+    plan_sha256=p.check_plan(), gpu_diagnostics=1, performance_experiments=0,
+    full_model_qualified=False, numerical_defects_retained=True,
+    installed_kernel_unchanged=True, new_workload_or_weights=False,
+    protected_and_user_dirty_unchanged=len(preserved),
+    raw_sources={str(path):p.digest(path) for path in
+        (RAW/'probe_launch.launch/watchdog.jsonl', RAW/'probe_launcher.log')},
+    next='isolated native packed-index and configured llama3 RoPE correctness adaptation'))
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D796_LOQUETIER_3B_ATTENTION_DIAGNOSTIC_20261024.md', *sorted(OUT.iterdir())]
+assert call(MAIN, 'git', 'rev-parse', 'HEAD') == '2ae4fcf7a107cd215945eb50488bdced09c6ba76'
+ref = 'refs/heads/backup/d796-loquetier-attention-diagnostic-20261024'
+head = commit(MAIN, paths, 'tc: preserve Loquetier 3B attention incompatibility evidence (D796)',
+              'faaslora_origin', ref)
+for path, digest in preserved.items():
+    assert p.digest(Path(path)) == digest, path
+save(RAW/'backup_receipt.json', dict(passed=True, head=head, baseline_head=basehead,
+    remote_ref=ref, force_push=False, v2_synchronized=False,
+    paths=[str(path.relative_to(MAIN)) for path in paths],
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, baseline_head=basehead, remote_ref=ref)))

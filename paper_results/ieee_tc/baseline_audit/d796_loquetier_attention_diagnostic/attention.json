@@ -1,0 +1,225 @@
+{
+  "schema": "ieee_tc_loquetier_attention_compatibility_v1",
+  "performance_run": false,
+  "full_model_qualified": false,
+  "admission": {
+    "service_identity": {
+      "unit": "primelora-tc-svc-febd60f3e62e4e91b040fc8d138c6cd1.scope",
+      "invocation_id": "85e4977c5bf84358aeca2b0d43f9cacb",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-febd60f3e62e4e91b040fc8d138c6cd1.scope",
+      "inode": 31562627
+    },
+    "pid": 273260,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-febd60f3e62e4e91b040fc8d138c6cd1.scope",
+    "affinity": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "production_launch_authorized": false
+  },
+  "config_sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+  "script_sha256": "b05c48a045dbbd77a8405d7ac909ee86a084ada3090d4e809ab2fff56af56903",
+  "kernel_path": "/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so",
+  "kernel_sha256": "100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9",
+  "torch_version": "2.1.2+cu121",
+  "transformers_version": "4.45.2",
+  "dtype": "float16",
+  "seed": 796,
+  "lengths": [
+    17,
+    257
+  ],
+  "native_group": 3,
+  "rope_scaling": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_type": "llama3"
+  },
+  "rows": [
+    {
+      "group_size": 1,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0011868476867675781,
+          "relative_l2": 0.0003196457982994616,
+          "close": true
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.03897414356470108,
+          "relative_l2": 0.012208462692797184,
+          "close": false
+        }
+      }
+    },
+    {
+      "group_size": 1,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0003243684768676758,
+          "relative_l2": 0.00019861928012687713,
+          "close": true
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.01620468497276306,
+          "relative_l2": 0.011007932014763355,
+          "close": false
+        }
+      }
+    },
+    {
+      "group_size": 3,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": false,
+          "max_abs": null,
+          "relative_l2": null,
+          "close": false
+        },
+        "llama3": {
+          "finite": false,
+          "max_abs": null,
+          "relative_l2": null,
+          "close": false
+        }
+      }
+    },
+    {
+      "group_size": 3,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0003991127014160156,
+          "relative_l2": 0.00020797083561774343,
+          "close": true
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.02280464768409729,
+          "relative_l2": 0.01290844939649105,
+          "close": false
+        }
+      }
+    },
+    {
+      "group_size": 4,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0013170242309570312,
+          "relative_l2": 0.00031632959144189954,
+          "close": true
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.09929919242858887,
+          "relative_l2": 0.0125774797052145,
+          "close": false
+        }
+      }
+    },
+    {
+      "group_size": 4,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0004572868347167969,
+          "relative_l2": 0.0002073674404527992,
+          "close": true
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0189531147480011,
+          "relative_l2": 0.013215445913374424,
+          "close": false
+        }
+      }
+    }
+  ],
+  "completed": true,
+  "limitations": [
+    "Synthetic unit-test tensors, not new workloads or adapters.",
+    "Attention only; full-model/LoRA correctness remains unverified."
+  ],
+  "frequency_max_abs_difference": 0.000984656740911305,
+  "peak_allocated_bytes": 121020416
+}

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "tests": 20,
+  "elapsed_seconds": 0.105,
+  "command": "/usr/bin/python3 -B -m unittest tests.test_loquetier_static_capacity -q",
+  "execution": "completed interactively before checkpoint; exit0",
+  "runner_sha256": "bf6c7e5e7782ef95d19ba7d15b5a18494f1d084f64746c0f34915cce274bc424",
+  "test_sha256": "17e8ee600a692e6cc90c54a2bf520f5ac25be57443d1c623b4ac11509d35d135",
+  "post_probe_change": "parser mutually exclusive mode check only"
+}
