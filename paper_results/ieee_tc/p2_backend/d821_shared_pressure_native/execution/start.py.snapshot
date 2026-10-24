@@ -1,0 +1,106 @@
+"""D725/D817 explicit prelaunch/backup procedure for one native integration check."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d821_shared_pressure_native'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'start_identity.json', own)
+assert call(['git', 'rev-parse', 'HEAD']) == 'c4922fe9e7f5403c1c0d1130a97fda00c7805cab'
+assert call(['git', 'branch', '--show-current']) == 'retry14_continuous_queue_v2'
+assert not call(['git', 'diff', '--cached', '--name-only'])
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+previous = read(OUT / 'preparation.json')
+assert previous['passed'] and previous['request_count'] == 48
+assert p.digest(ROOT / previous['config']) == previous['config_sha256'] == 'd79089cb9c6955f0ce0df7c709adab451014f6e7736e12fc52850d77aa9348c3'
+assert p.digest(OUT / 'source_spec.json') == previous['spec_sha256']
+identity = previous['identity']
+assert 'ActiveState=inactive' in call(['systemctl', '--user', 'show', identity['unit'], '-p', 'ActiveState'])
+assert not Path(identity['path']).exists()
+qualification = read(ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/qualification.json')
+for path, sha in qualification['sources'].items():
+    assert p.digest(Path(path)) == sha
+protected = read(ROOT / 'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected']
+for path, sha in protected.items():
+    assert p.digest(Path(path)) == sha
+seal = p.verify_seal(RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT / 'protected_147.json', seal)
+descriptor = read(ROOT / 'paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration/qualification.json')['descriptor']
+assert p.digest(Path(descriptor['library'])) == 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+script = ROOT / 'scripts/ieee_tc/run_d298_capacity_source.sh'
+call(['bash', '-n', str(script)])
+body = script.read_text()
+assert body.count('"${1:-d298}" == d821') == 2 and '  d821)\n' in body
+assert 'd821_shared_pressure_native/source_spec.json' in body
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+execution = OUT / 'execution'
+execution.mkdir(exist_ok=False)
+for source in sorted(RAW.iterdir()):
+    if source.suffix not in ('.py', '.sh'):
+        continue
+    if source.suffix == '.py':
+        ast.parse(source.read_text())
+    else:
+        call(['bash', '-n', str(source)])
+    assert not secret.search(source.read_text()), str(source)
+    with (execution / (source.name + '.snapshot')).open('xb') as handle:
+        handle.write(source.read_bytes())
+for name in ('close.py', 'post_backup_release.json'):
+    source = RAW.parent / 'd820_20261025' / name
+    with (execution / ('d820_' + name + ('.snapshot' if name.endswith('.py') else ''))).open('xb') as handle:
+        handle.write(source.read_bytes())
+save(OUT / 'prelaunch.json', dict(passed=True, identity=own, request_count=48,
+    preparation_scope_closed=True, production_sources=qualification['sources'],
+    source_tests_reused=55, no_new_cpu_tests=True, numerical_correctness_unknown=True,
+    no_profile_export=True, resources=p.cgroup_snapshot(Path(own['path']))))
+files = sorted(x for x in OUT.rglob('*') if x.is_file())
+files += [script, ROOT / 'docs/ieee_tc/D821_SHARED_PRESSURE_NATIVE_20261025.md',
+          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']
+save(OUT / 'manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x)) for x in files]))
+files.append(OUT / 'manifest.json')
+paths = [str(x.relative_to(ROOT)) for x in files]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+for source in files:
+    assert not secret.search(source.read_text()), str(source)
+call(['git', 'diff', '--check', '--', *paths])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: register real native shared-pressure integration qualification (D821)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d821-shared-pressure-native-20261025'
+save(RAW / 'commit.json', dict(head=head, ref=ref, paths=paths))
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup.json', dict(passed=True, head=head, ref=ref, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 8 * p.GIB)
+save(RAW / 'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+session = 'tc-d821-shared-pressure-native'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW / 'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW / 'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT), shlex.join(['bash', str(RAW / 'run_and_release.sh')])])
+save(RAW / 'start_receipt.json', dict(launched=True, head=head, ref=ref, tmux=session, identity=own))
+print(json.dumps(dict(launched=True, head=head, ref=ref, tmux=session)))

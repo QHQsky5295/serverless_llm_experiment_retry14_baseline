@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/d820_close.py.snapshot",
+      "sha256": "5bb9e80abfc4870e655383651dfe5e5f480bb35708a5981e8b58e2e3df85180d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/d820_post_backup_release.json",
+      "sha256": "5eaa0539e3ae66a061daf8584d620b9e5ec32bb983a0c44ee5b571fd0020143d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/prepare.py.snapshot",
+      "sha256": "b0bb752399e404577c998bf098eae90b710d59f527670bd5b6ff2bfd304dcd23"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/run_and_release.sh.snapshot",
+      "sha256": "7570fd5c4088e08aada7a8360ce753bfe668def829b68c8f9ff3932ecc2d84db"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/start.py.snapshot",
+      "sha256": "7c7e8933d08c7926f635834f66a9d4f602a99de1686d1daf2afd1cfc1299bc5f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/start_remote.sh.snapshot",
+      "sha256": "f0221795af0ccf3a4f35f5a62798bf954ae2f0f8c1238b04dc61974e302d8505"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/execution/stop_remote.sh.snapshot",
+      "sha256": "425d4e7193d85837230b5cdf4f861ddaf688523adc39bc7dd27b8b70e993619f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/prelaunch.json",
+      "sha256": "f4da6987c406f7e41b3163d16953475c8a271b8e9893ed9d3fa3f7a24c09385d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/preparation.json",
+      "sha256": "26644e04349fdbd4265927a5c318aec0c89a623ce1d0d0896e2616117932885e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/prepare.py.snapshot",
+      "sha256": "b0bb752399e404577c998bf098eae90b710d59f527670bd5b6ff2bfd304dcd23"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/protected_147.json",
+      "sha256": "5c5aff40eb378e5a8cc3999cf114c2f38439434eee04fbaaab26617f71f1e136"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d821_shared_pressure_native/source_spec.json",
+      "sha256": "59e3531ff29500d315e7abe8b085c04ffde8a8db65cee2c68cec2864d7a14b93"
+    },
+    {
+      "path": "scripts/ieee_tc/run_d298_capacity_source.sh",
+      "sha256": "b45113123122f2c1197a351b921877a45a3801f1949345bced261ad5d7db2f2c"
+    },
+    {
+      "path": "docs/ieee_tc/D821_SHARED_PRESSURE_NATIVE_20261025.md",
+      "sha256": "de56e65f53e940e287f88c1d0c945ae8ac2ea6dc32ebe1c97bbb1010f3530a0b"
+    },
+    {
+      "path": "docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "c5e0ef6b17f0bee531eea3240a48f4acadc6684f3ab0736f97cb8f206d26b154"
+    }
+  ]
+}

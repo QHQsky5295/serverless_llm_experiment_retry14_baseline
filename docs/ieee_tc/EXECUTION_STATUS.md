@@ -1,5 +1,36 @@
 # IEEE TC execution status — D820 opt-in shared pressure integrated; native path validation next
 
+## 2026-10-25 D821实际native验证已准备，尚未启动
+
+上一目标轮PROGRESS（D820接入/55项/备份关闭）。本轮完整重读PLAN/状态并
+复核当前GPU空、磁盘约150.1GiB、MemAvailable约106GiB；无活跃旧实验。
+使用run-experiment与monitor-experiment，沿既有tmux/gated路径，不用技能
+旧环境默认值。D821复用D725前6完整波次48请求，GPU/Remote/NVMe/fileHOST/
+nativeHOST/GPU，原D724图配置；只在source spec启用same_host_memfd_flock_v1。
+不造工件/负载、不导出新profile、不重做D819/D820 CPU测试或Full前缀。
+
+raw results/ieee_tc/p2_backend_qualification/d821_20261025；curated
+paper_results/ieee_tc/p2_backend/d821_shared_pressure_native。prepare.py已完成
+原wave逐引用复制与SHA登记，尚无GPU结果；D298脚本新增d821路径和3B/toolchain
+分支，远端脚本沿D817身份管理，未运行。启动前还需准确备份/实测gate。
+下一直接启动这次必要真实进程验证，实际关闭后保存；若通过，再新键完整W2。
+不能用48请求证明95%或数值身份。完整主比较/消融/敏感性范围及D711限制不变。
+
+## 2026-10-25 D820检查点已备份并关闭
+
+23条明确路径提交c4922fe9e7f5403c1c0d1130a97fda00c7805cab，已push且ls-remote
+核实refs/heads/backup/d820-shared-pressure-integration-20261025；非最终V2同步。
+初/终两版source tar逐成员SHA、55项当前源码、147旧投稿与三处用户修改SHA、
+AST/diff/secret均通过，未stage用户manifest，BASE未改。三个本轮aux均已
+inactive且实际路径移除；post_backup_release.json记录备份关闭、GPU空/stage空。
+没有运行的模型/远端作业或待工具session；磁盘约150.1GiB，未新增清理。
+本次关闭脚本/回执随下一正常检查点纳入，不递归备份。
+
+下一直接做下节必要实际native进程接入验证，然后新键完整W2；不重复D819
+跨进程组件或D820 CPU集成检查，不重做D818分析。coordination通道已接入，
+无正式配置启用；现有profile/native模型参数不变。整体目标active，尚不能
+声称候选降低TTFT或达到G1/G2；完整未完矩阵与D711限制保留。
+
 ## 2026-10-25 D820共享压力接入与受影响测试完成，待备份
 
 本轮PROGRESS。完整PLAN/当前状态/AGENTS及必读规则、冻结V1/单轮V2已核对。

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checked_unix": 1792876005.3039768,
+  "backup_head": "c4922fe9e7f5403c1c0d1130a97fda00c7805cab",
+  "backup_ref": "refs/heads/backup/d820-shared-pressure-integration-20261025",
+  "scope": {
+    "inode": 32030902,
+    "invocation_id": "7d1ace8fc000431298977532554f0eb6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d820ca11000000000000000000000003.scope",
+    "unit": "primelora-tc-aux-d820ca11000000000000000000000003.scope"
+  },
+  "state": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "path_exists": false,
+  "gpu_compute_empty": true,
+  "disk_available_bytes": 161143758848,
+  "staged_files": []
+}

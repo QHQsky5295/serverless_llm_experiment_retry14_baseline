@@ -1,0 +1,55 @@
+"""Reuse six pre-existing native source waves; no new trace, weights or timings."""
+import copy
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d821_shared_pressure_native'
+SOURCE = ROOT / 'paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/source_spec.json'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+identity = p.scope_identity(p.cg_path().name)
+save(RAW / 'prepare_identity.json', identity)
+evidence = json.loads((ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/qualification.json').read_text())
+assert evidence['passed']
+for path, sha in evidence['sources'].items():
+    assert p.digest(Path(path)) == sha
+for path, sha in evidence['user_protected'].items():
+    assert p.digest(Path(path)) == sha
+source = json.loads(SOURCE.read_text())
+assert len(source['waves']) == 76
+spec = copy.deepcopy(source)
+spec['waves'] = copy.deepcopy(source['waves'][:6])
+assert [w['source'] for w in spec['waves']] == ['gpu', 'remote', 'nvme', 'file_host', 'native_host', 'gpu']
+count = sum(len(w['requests']) for w in spec['waves'])
+assert count == 48
+spec['file_pressure_transport'] = 'same_host_memfd_flock_v1'
+spec['purpose'] = 'D820 native shared-pressure integration, not profile export or Full performance'
+spec['qualification_derivation'] = dict(source_spec=str(SOURCE), source_sha256=p.digest(SOURCE),
+    wave_indices=list(range(6)), requests_changed=False, weights_changed=False,
+    timing_samples_reused=False, profile_export_authorized=False)
+OUT.mkdir(exist_ok=False)
+save(OUT / 'source_spec.json', spec)
+with (OUT / 'prepare.py.snapshot').open('xb') as handle:
+    handle.write(Path(__file__).read_bytes())
+save(OUT / 'preparation.json', dict(passed=True, request_count=count, identity=identity,
+    existing_wave_indices=list(range(6)), source_sha256=p.digest(SOURCE),
+    spec_sha256=p.digest(OUT / 'source_spec.json'), model_config_unchanged=True,
+    config='configs/ieee_tc/20261022_d724_3b_graph_native.yaml',
+    config_sha256=p.digest(ROOT / 'configs/ieee_tc/20261022_d724_3b_graph_native.yaml'),
+    qualification_sha256=p.digest(ROOT / 'paper_results/ieee_tc/p2_backend/d820_shared_pressure_integration/coordinator_contract/qualification.json'),
+    no_new_trace_or_weights=True, resources=p.cgroup_snapshot(Path(identity['path']))))
+print(json.dumps(dict(passed=True, requests=count, sources=[w['source'] for w in spec['waves']])))
