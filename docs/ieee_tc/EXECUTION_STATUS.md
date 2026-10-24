@@ -1,4 +1,49 @@
-# IEEE TC execution status — D814 W2 truncated by file-capacity failure; no rerun
+# IEEE TC execution status — D815 reproduces missing demand file-capacity path; implementation next
+
+## 2026-10-25 02:42 CST D815最小因果复现完成，下一直接修正容量路径
+
+本轮PROGRESS，非阻塞。完整重读PLAN/状态/执行规范，核对D277、D449及文件
+修改历史、IEEE Eq.(4)–(7)/replacement段落和官方vLLM0.30源码。复用既有
+FileObjectiveReplacement夹具及真实_ensure_local_async/文件预分配/队列：
+24KiB预算、3个eligible副本共24KiB、新传输峰值20KiB时，请求入口0B接收即
+容量失败；相同布局的主动objective入口可合法回收并发布16KiB新副本。
+随后同键主动提交的failed-movement错误也复现，证实它是后果而非首因。
+三个已有针对性测试通过；没有生产代码修改/GPU回放/远端操作。
+
+curated d815_file_capacity_reproduction保留两案例、测试/源码SHA和脚本快照。
+memory peak637317120B，high/max/OOM/swap0，147保护文件未变；aux
+primelora-tc-aux-d815ca11000000000000000000000001.scope自然移除，当前GPU空。
+包装脚本redirect_stdout提前关闭导致后续logger输出警告，断言测试全部
+通过且数据完整；不是生产错误，不重跑性能。后续包装不要复用这个输出模式。
+本次反例不等于恢复了D814当时全部victim引用状态，勿过度归因。
+
+下一直接实现同一根因的请求必需物化/可选准备容量协议：沿现有owner和队列
+接足额回收/事件等待，保护真实reader/pending/shared bytes；中间NVMe staging
+及请求合并/撤销一并覆盖。具体需求回收策略尚未冻结，须保持IEEE主动收益
+选择与物理预算，不全局改Full为LRU、扩大缓存、吞异常或盲重试failed job。
+不再重复D815反例，不增加无关GPU资格；有界受影响测试后新版本完整场景。
+D812/W0、D813/W1、D814/W2原结果保留，W1及W2仍未闭口。完整两模型同版
+比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿和图文/V2不删减。
+目标active；本轮证据随正常检查点备份，不标全任务完成。
+
+## 2026-10-25 02:31 CST D814失败检查点已推送，下一做文件容量最小复现
+
+本轮PROGRESS，非阻塞/等待。25条明确路径、14/14既有归档测试、SHA/secrets/
+diff检查后，提交afc1890b44ddd5474d5836c67ff7855cb6a6824d，push并ls-remote
+核实`refs/heads/backup/d814-failure-20261025`。未stage用户manifest，BASE
+未修改；非最终V2同步。备份域已自然移除，post_backup_release.json核实
+inactive/空Invocation/空ControlGroup及GPU释放，无待工具session或运行任务。
+此前监测cell6684由主代理主动停止的是监测器，不是被测服务；真实服务因
+容量错误自发收尾，其失败与所有中断请求均已保留。
+
+下一先核对当前PLAN和协议，再复用既有LocalSourceReferences/文件搬运测试
+构造同预算且含可回收副本的demand miss反例。D814证据不足以直接宣布已知
+全部可驱逐对象；先因果复现，再按论文保留层级选择/引用/物理预算语义修正。
+不要仅放大NVMe、放松预算、吞掉失败、给failed movement盲重试，或把Full
+切成普通LRU。新修正需记录与D277/D449/旧文件替换历史的区别、固定版本官方
+实现参考和最小验证，再完整三场景。原D814不重复，无需重做无关GPU资格。
+两模型同版主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档、
+图文及最终V2范围不变；整体目标active且尚未达到。
 
 ## 2026-10-25 D814失败已关闭封存，转向容量根因，不重复回放
 

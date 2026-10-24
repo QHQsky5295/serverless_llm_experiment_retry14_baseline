@@ -1,0 +1,11 @@
+2026-10-25 02:38:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:38:20 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 6.0 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.5 ms
+2026-10-25 02:38:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 02:38:20 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.2 ms
+    remote artifact fetch c: 0.0 MB, 3.3 ms
+    remote artifact fetch d: 0.0 MB, 5.0 ms
+    remote artifact fetch a: 0.0 MB, 9.0 ms

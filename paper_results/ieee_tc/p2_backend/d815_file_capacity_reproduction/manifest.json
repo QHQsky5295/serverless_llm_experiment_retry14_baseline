@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction/reproduce_file_capacity.py.snapshot",
+      "sha256": "a73f9789c319db11e22609bec4ed6f2d6ababf5e63e791c784f40a33bce85da5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction/reproduction.json",
+      "sha256": "a9230e91be1c5062dfbc32e4a4692665d06b8f8ed84bbe3ff17b970933d3dbdd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction/sources.json",
+      "sha256": "2eadff0f19d41e22187730fd7ce0899986470baa05b49a4abe2e5b3b14debb00"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction/validation.json",
+      "sha256": "b42e78defaade67ef68a6b76c608ac7b585c6675e41a57ef5ccfdb41f8fa5242"
+    }
+  ]
+}

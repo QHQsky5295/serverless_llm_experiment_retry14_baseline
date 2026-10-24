@@ -1,0 +1,34 @@
+[
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+    "sha256": "4a0269d2098d5dc4a6fc13fd3b88f0f7b446f535c0c37e77196dcdcd356ca6a6"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+    "sha256": "825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+    "sha256": "82bee7a52f9f3887e00d62d92ee525b5b8d6157e6dadd2d9fcc241d931e5772e"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+    "sha256": "3e7328d1dd0f8903c7c3f47daf1944d0ae04c176ec602458ea2462772fa4df02"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+    "sha256": "9124d29da39ad8dc7bd25fd8167bbc9bdc0290641dbdc88571991397a584d0cf"
+  },
+  {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/context.json",
+    "sha256": "44f11a8bfd925001b9aa84ea2fef1bfc89937e46d101d5186e14175424d2792d"
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d815_20261025/reproduce_file_capacity.py",
+    "sha256": "a73f9789c319db11e22609bec4ed6f2d6ababf5e63e791c784f40a33bce85da5"
+  }
+]

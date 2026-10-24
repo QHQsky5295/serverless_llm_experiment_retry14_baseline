@@ -1,0 +1,16 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d815ca11000000000000000000000001.scope",
+    "invocation_id": "380adca9d2da4fb3a11a3209776dbe07",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d815ca11000000000000000000000001.scope",
+    "inode": 31960443
+  },
+  "systemd_state": {
+    "ControlGroup": "",
+    "ActiveState": "inactive",
+    "InvocationID": ""
+  },
+  "path_removed": true,
+  "no_running_gpu_task": true,
+  "protected_files": 147
+}

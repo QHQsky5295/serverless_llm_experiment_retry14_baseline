@@ -1,0 +1,101 @@
+"""D815 explicit-path checkpoint, using the D814/D752 backup procedure."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert call(['git', 'branch', '--show-current']) == 'retry14_continuous_queue_v2'
+assert call(['git', 'rev-parse', 'HEAD']) == 'afc1890b44ddd5474d5836c67ff7855cb6a6824d'
+validation = read(OUT/'validation.json')
+assert validation['tests_passed'] == 3
+identity = read(RAW/'identity.json')
+state = call(['systemctl', '--user', 'show', identity['unit'],
+    '-p', 'ActiveState', '-p', 'InvocationID', '-p', 'ControlGroup'])
+fields = dict(row.split('=', 1) for row in state.splitlines() if '=' in row)
+assert fields == dict(ActiveState='inactive', InvocationID='', ControlGroup='')
+assert not Path(identity['path']).exists()
+protected = read(ROOT/'results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')['entries']
+for name, row in protected.items():
+    assert p.digest(Path(name)) == row['sha256'], name
+user_paths = {
+    ROOT/'configs/generated/lora_manifest_1000.json': '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'): '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',
+    Path('/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh'): '337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499',
+}
+for path, digest in user_paths.items():
+    assert p.digest(path) == digest, str(path)
+files = []
+for row in read(OUT/'manifest.json')['files']:
+    path = Path(row['path'])
+    assert p.digest(path) == row['sha256']
+    files.append(path)
+for row in read(OUT/'sources.json'):
+    assert p.digest(Path(row['path'])) == row['sha256']
+for name in ('tests.log', 'fixture_output.log'):
+    with (OUT/name).open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+    files.append(OUT/name)
+for source, target in (
+        (RAW.parent/'d814_20261025/post_backup_release.json', OUT/'d814_post_backup_release.json'),
+        (Path(__file__), OUT/'backup_reproduction.py.snapshot')):
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(source) == p.digest(target)
+    files.append(target)
+save(OUT/'closure.json', dict(identity=identity, systemd_state=fields,
+    path_removed=True, no_running_gpu_task=True, protected_files=len(protected)))
+files.extend([OUT/'closure.json', OUT/'manifest.json',
+    ROOT/'docs/ieee_tc/D815_FILE_CAPACITY_REPRODUCTION_20261025.md',
+    ROOT/'docs/ieee_tc/EXECUTION_STATUS.md'])
+for name in ('reproduce_file_capacity.py', 'backup_reproduction.py'):
+    ast.parse((RAW/name).read_text())
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *paths])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+assert not set(paths) & {str(path.relative_to(ROOT)) for path in user_paths if path.is_relative_to(ROOT)}
+call(['git', 'diff', '--cached', '--check'])
+save(RAW/'precommit.json', dict(passed=True, paths=paths, protected_files=len(protected),
+    production_source_unchanged=True, source_checks=read(OUT/'sources.json')))
+call(['git', 'commit', '-m', 'tc: reproduce Full demand file-capacity failure without changing policy (D815)'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d815-capacity-repro-20261025'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=ref, paths=paths,
+    v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

@@ -1,0 +1,8 @@
+test_default_full_does_not_silently_gain_demand_lru (tests.test_ieee_tc_request_lifecycle.OrdinaryArtifactLRU.test_default_full_does_not_silently_gain_demand_lru) ... ok
+test_real_source_reference_release_wakes_deferred_replacement (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_real_source_reference_release_wakes_deferred_replacement) ... ok
+test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry (tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.215s
+
+OK

@@ -1,0 +1,42 @@
+{
+  "tests_passed": 3,
+  "names": [
+    "tests.test_ieee_tc_request_lifecycle.OrdinaryArtifactLRU.test_default_full_does_not_silently_gain_demand_lru",
+    "tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_real_source_reference_release_wakes_deferred_replacement",
+    "tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry"
+  ],
+  "source_tests": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d815_20261025/tests.log",
+    "sha256": "c90e39a24fd2b715e890d27dab09bf03bebcc353c9dfd2648c2359d6b43ce982"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d815ca11000000000000000000000001.scope",
+    "invocation_id": "380adca9d2da4fb3a11a3209776dbe07",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d815ca11000000000000000000000001.scope",
+    "inode": 31960443
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d815ca11000000000000000000000001.scope",
+    "memory.current": 621252608,
+    "memory.peak": 637317120,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10235113\nuser_usec 8791636\nsystem_usec 1443477\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected_files_unchanged": 147,
+  "disk_free_bytes": 161489485824
+}

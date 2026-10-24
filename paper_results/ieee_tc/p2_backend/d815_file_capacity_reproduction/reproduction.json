@@ -1,0 +1,2542 @@
+{
+  "cases": [
+    {
+      "role": "request_without_objective",
+      "before": {
+        "owner_id": "edda9bbc7877429e87259388d8df1c13",
+        "scope": "linked_inode_storage_v1",
+        "logical_file_bytes": 90,
+        "file_path_bytes": 90,
+        "allocated_bytes": 81920,
+        "allocated_file_bytes": 49152,
+        "unique_file_count": 12,
+        "allocations": [
+          {
+            "device": 2050,
+            "inode": 188484102,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485331,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485933,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485936,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485745,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485996,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486011,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485825,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486045,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486110,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188483582,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485890,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485989,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486012,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486111,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486112,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486137,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486138,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486145,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486188,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          }
+        ],
+        "tiers": {
+          "host": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          },
+          "nvme": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          }
+        },
+        "tier_totals_additive": true,
+        "content_verified": false,
+        "capacity_reserved": false,
+        "physical_release_proven": false,
+        "pending_file_increment_bytes": 0,
+        "transfer_held_file_bytes": 0
+      },
+      "eligible_nvme": [
+        {
+          "path": "/tmp/tmplbo_7ufc/nvme/b",
+          "usable_bytes": 8192,
+          "eligible": true
+        },
+        {
+          "path": "/tmp/tmplbo_7ufc/nvme/c",
+          "usable_bytes": 8192,
+          "eligible": true
+        },
+        {
+          "path": "/tmp/tmplbo_7ufc/nvme/d",
+          "usable_bytes": 8192,
+          "eligible": true
+        }
+      ],
+      "file_policy": "planned_only",
+      "controlled_objective": {
+        "kind": "ieee_file_replacement_objective_v1",
+        "scope": "managed_file_copies_only",
+        "owner_id": "edda9bbc7877429e87259388d8df1c13",
+        "epoch": 12,
+        "physical_resources_reserved": false,
+        "size_edges_bytes": [
+          8192
+        ],
+        "profile_id": "controlled-file-costs-not-measurements",
+        "cost_sequence": 0,
+        "planning_sha256": "818b4ce2fc311cc47d333e43ba1bc729b73e389f1ac8263fa823d8cf8f848e93",
+        "total_arrivals": 103,
+        "arrival_counts": {
+          "a": 80,
+          "b": 1,
+          "c": 2,
+          "d": 20
+        },
+        "demand_observed_at": 100.0,
+        "window_seconds": 60.0,
+        "candidates": [
+          {
+            "adapter_id": "a",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "source_tier": "remote",
+            "target_tier": "nvme",
+            "source_class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "target_footprint_bytes": 16384,
+            "source_load_ms": 80.0,
+            "target_load_ms": 20.0,
+            "benefit_ms": 46.601941747572816
+          }
+        ],
+        "victims": [
+          {
+            "adapter_id": "b",
+            "path": "/tmp/tmplbo_7ufc/host/b",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmplbo_7ufc/nvme/b"
+            },
+            "loss_ms": 0.14563106796116504
+          },
+          {
+            "adapter_id": "b",
+            "path": "/tmp/tmplbo_7ufc/nvme/b",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmplbo_7ufc/host/b"
+            },
+            "loss_ms": 0.0
+          },
+          {
+            "adapter_id": "c",
+            "path": "/tmp/tmplbo_7ufc/host/c",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmplbo_7ufc/nvme/c"
+            },
+            "loss_ms": 0.2912621359223301
+          },
+          {
+            "adapter_id": "c",
+            "path": "/tmp/tmplbo_7ufc/nvme/c",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmplbo_7ufc/host/c"
+            },
+            "loss_ms": 0.0
+          },
+          {
+            "adapter_id": "d",
+            "path": "/tmp/tmplbo_7ufc/host/d",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmplbo_7ufc/nvme/d"
+            },
+            "loss_ms": 2.912621359223301
+          },
+          {
+            "adapter_id": "d",
+            "path": "/tmp/tmplbo_7ufc/nvme/d",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmplbo_7ufc/host/d"
+            },
+            "loss_ms": 0.0
+          }
+        ],
+        "plan_sha256": "d711394bf3ff96264abbfcbbb1fd014013754ef7c05d28ee661f2e715bf1b781"
+      },
+      "expected_payload_bytes": 16384,
+      "nvme_limit_bytes": 24576,
+      "first_error": {
+        "type": "RuntimeError",
+        "message": "local file capacity conflict: retained copies plus transfer exceed tier budget"
+      },
+      "subsequent_error": {
+        "type": "RuntimeError",
+        "message": "failed movement requires explicit owner recovery, not an automatic retry"
+      },
+      "after": {
+        "owner_id": "edda9bbc7877429e87259388d8df1c13",
+        "scope": "linked_inode_storage_v1",
+        "logical_file_bytes": 90,
+        "file_path_bytes": 90,
+        "allocated_bytes": 81920,
+        "allocated_file_bytes": 49152,
+        "unique_file_count": 12,
+        "allocations": [
+          {
+            "device": 2050,
+            "inode": 188484102,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485331,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485933,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485936,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/b/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485745,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485996,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486011,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/c/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485825,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486045,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486110,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/host/d/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188483582,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485890,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485989,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486012,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/b/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486111,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486112,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486137,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/c/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486138,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486145,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486188,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmplbo_7ufc/nvme/d/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          }
+        ],
+        "tiers": {
+          "host": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          },
+          "nvme": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          }
+        },
+        "tier_totals_additive": true,
+        "content_verified": false,
+        "capacity_reserved": false,
+        "physical_release_proven": false,
+        "pending_file_increment_bytes": 0,
+        "transfer_held_file_bytes": 0
+      },
+      "movements": [
+        {
+          "job_id": "ca2e29c2475a40cb9cae9072c0138459",
+          "key": [
+            "edda9bbc7877429e87259388d8df1c13",
+            "nvme",
+            "a",
+            "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0"
+          ],
+          "state": "failed",
+          "created_at": 2374347.699218104,
+          "finished_at": 2374347.701978013,
+          "ready": true,
+          "active_intents": [],
+          "subscriptions": {
+            "b9bb0d869fca44fb8fee850a60803058": {
+              "metadata": {
+                "trigger_reason": "demand",
+                "plan_id": "request:d815-request",
+                "activation_id": null,
+                "target_replica": "replica"
+              },
+              "density": 0.0,
+              "demand": true,
+              "attached_at": 2374347.699233605,
+              "observed_terminal_at": 2374347.701999698
+            }
+          },
+          "attempts": [
+            {
+              "attempt_id": "bcff8b3ca2ad4d628b0c3cebae3ee9b0",
+              "started_at": 2374347.699296324,
+              "state": "failed",
+              "error_type": "RuntimeError",
+              "finished_at": 2374347.701978013
+            }
+          ],
+          "queue_owns_physical_storage": false
+        }
+      ],
+      "file_state": {
+        "owner_id": "edda9bbc7877429e87259388d8df1c13",
+        "plans": [],
+        "physical_resources_reserved": false,
+        "replacements": [],
+        "file_cache_policy": "planned_only"
+      },
+      "transfers": [
+        {
+          "artifact_id": "a",
+          "state": "not_published",
+          "transfer_id": "92ed8e8762bb4eb5be3c30c20f4eb047",
+          "local_source_owner_id": "edda9bbc7877429e87259388d8df1c13",
+          "target_path": "/tmp/tmplbo_7ufc/nvme/a",
+          "content_manifest_sha256": "69b300590f4eddf0f5465b6fdae9eb904a68996d7fba34fecff91dcc6197fff1",
+          "transferred_bytes": 0,
+          "content_verified": false,
+          "http_transfer_id": "650b58e58e884fe6afdfb9fa7fd91bdc",
+          "remote_timing_available": false,
+          "remote_pack_ms": null,
+          "stages_clock": "client_monotonic",
+          "remote_spans_additive_to_client_total": false,
+          "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "loading_started_monotonic_s": 2374347.700095265,
+          "headers_received_monotonic_s": 2374347.700597916,
+          "archive_bytes_declared": 162,
+          "payload_bytes_expected": 12295,
+          "elapsed_ms": 1.8083960749208927,
+          "client_completed_monotonic_s": 2374347.701746429,
+          "client_stage_ms": {
+            "request_to_headers_ms": 0.5026506260037422,
+            "reserve_receive_and_write_ms": null,
+            "extract_and_verify_ms": null
+          }
+        }
+      ]
+    },
+    {
+      "role": "proactive_with_objective",
+      "before": {
+        "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+        "scope": "linked_inode_storage_v1",
+        "logical_file_bytes": 90,
+        "file_path_bytes": 90,
+        "allocated_bytes": 81920,
+        "allocated_file_bytes": 49152,
+        "unique_file_count": 12,
+        "allocations": [
+          {
+            "device": 2050,
+            "inode": 188484102,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmpfnati03m/host"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485331,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485933,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485936,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485745,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485996,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486011,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485825,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486045,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486110,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188483582,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485890,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/b"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485989,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486012,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/b/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486111,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/c"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486112,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486137,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/c/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486138,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/d"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486145,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486188,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/d/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          }
+        ],
+        "tiers": {
+          "host": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          },
+          "nvme": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          }
+        },
+        "tier_totals_additive": true,
+        "content_verified": false,
+        "capacity_reserved": false,
+        "physical_release_proven": false,
+        "pending_file_increment_bytes": 0,
+        "transfer_held_file_bytes": 0
+      },
+      "eligible_nvme": [
+        {
+          "path": "/tmp/tmpfnati03m/nvme/b",
+          "usable_bytes": 8192,
+          "eligible": true
+        },
+        {
+          "path": "/tmp/tmpfnati03m/nvme/c",
+          "usable_bytes": 8192,
+          "eligible": true
+        },
+        {
+          "path": "/tmp/tmpfnati03m/nvme/d",
+          "usable_bytes": 8192,
+          "eligible": true
+        }
+      ],
+      "file_policy": "planned_only",
+      "controlled_objective": {
+        "kind": "ieee_file_replacement_objective_v1",
+        "scope": "managed_file_copies_only",
+        "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+        "epoch": 12,
+        "physical_resources_reserved": false,
+        "size_edges_bytes": [
+          8192
+        ],
+        "profile_id": "controlled-file-costs-not-measurements",
+        "cost_sequence": 0,
+        "planning_sha256": "818b4ce2fc311cc47d333e43ba1bc729b73e389f1ac8263fa823d8cf8f848e93",
+        "total_arrivals": 103,
+        "arrival_counts": {
+          "a": 80,
+          "b": 1,
+          "c": 2,
+          "d": 20
+        },
+        "demand_observed_at": 100.0,
+        "window_seconds": 60.0,
+        "candidates": [
+          {
+            "adapter_id": "a",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "source_tier": "remote",
+            "target_tier": "nvme",
+            "source_class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "target_footprint_bytes": 16384,
+            "source_load_ms": 80.0,
+            "target_load_ms": 20.0,
+            "benefit_ms": 46.601941747572816
+          }
+        ],
+        "victims": [
+          {
+            "adapter_id": "b",
+            "path": "/tmp/tmpfnati03m/host/b",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmpfnati03m/nvme/b"
+            },
+            "loss_ms": 0.14563106796116504
+          },
+          {
+            "adapter_id": "b",
+            "path": "/tmp/tmpfnati03m/nvme/b",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmpfnati03m/host/b"
+            },
+            "loss_ms": 0.0
+          },
+          {
+            "adapter_id": "c",
+            "path": "/tmp/tmpfnati03m/host/c",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmpfnati03m/nvme/c"
+            },
+            "loss_ms": 0.2912621359223301
+          },
+          {
+            "adapter_id": "c",
+            "path": "/tmp/tmpfnati03m/nvme/c",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmpfnati03m/host/c"
+            },
+            "loss_ms": 0.0
+          },
+          {
+            "adapter_id": "d",
+            "path": "/tmp/tmpfnati03m/host/d",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 5.0,
+            "fallback_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 20.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "nvme",
+              "path": "/tmp/tmpfnati03m/nvme/d"
+            },
+            "loss_ms": 2.912621359223301
+          },
+          {
+            "adapter_id": "d",
+            "path": "/tmp/tmpfnati03m/nvme/d",
+            "tier": "nvme",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "current_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "current_footprint_bytes": 8192,
+            "current_load_ms": 20.0,
+            "fallback_class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "fallback_load_ms": 5.0,
+            "fallback_footprint_bytes": 8192,
+            "fallback": {
+              "tier": "host",
+              "path": "/tmp/tmpfnati03m/host/d"
+            },
+            "loss_ms": 0.0
+          }
+        ],
+        "plan_sha256": "ca1e0aa1481bae7d663788f4a662b0e0d09668b08a297057e4a5dbc5a7542a65"
+      },
+      "expected_payload_bytes": 16384,
+      "nvme_limit_bytes": 24576,
+      "movement_result": {
+        "state": "published",
+        "target_path": "/tmp/tmpfnati03m/nvme/a",
+        "io_ms": 9.024005848914385,
+        "remote_transfer": {
+          "artifact_id": "a",
+          "state": "published",
+          "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+          "local_source_owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+          "target_path": "/tmp/tmpfnati03m/nvme/a",
+          "content_manifest_sha256": "69b300590f4eddf0f5465b6fdae9eb904a68996d7fba34fecff91dcc6197fff1",
+          "transferred_bytes": 162,
+          "content_verified": true,
+          "http_transfer_id": "bfef6e3e07ef4628bbfe38cf8b7f32fe",
+          "remote_timing_available": false,
+          "remote_pack_ms": null,
+          "stages_clock": "client_monotonic",
+          "remote_spans_additive_to_client_total": false,
+          "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "loading_started_monotonic_s": 2374347.76579672,
+          "headers_received_monotonic_s": 2374347.766325903,
+          "archive_bytes_declared": 162,
+          "payload_bytes_expected": 12295,
+          "file_reservation": {
+            "scope": "preallocated_regular_files_v1",
+            "allocation_contract": "bounded_extent_allocation_v2",
+            "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+            "transfer_kind": "remote_archive",
+            "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+            "tier": "nvme",
+            "limit_bytes": 24576,
+            "used_file_bytes_before": 0,
+            "reserved_file_bytes": 20480,
+            "used_bytes_before_includes_pending": true,
+            "allocated_file_bytes_after": 20480,
+            "pending_file_increment_bytes": 0,
+            "charged_file_bytes_after": 20480,
+            "data_preallocated_bytes": 20480,
+            "filesystem": "ext4",
+            "filesystem_allocation_unit_bytes": 4096,
+            "replacement": {
+              "state": "incoming_allocated",
+              "shortfall_bytes": 20480,
+              "incoming_benefit_ms": 46.601941747572816,
+              "total_eviction_loss_ms": 0.0,
+              "expected_usable_bytes": 24576,
+              "objective_sha256": "ca1e0aa1481bae7d663788f4a662b0e0d09668b08a297057e4a5dbc5a7542a65",
+              "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+              "victims": [
+                {
+                  "adapter_id": "b",
+                  "path": "/tmp/tmpfnati03m/nvme/b",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/b"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                },
+                {
+                  "adapter_id": "c",
+                  "path": "/tmp/tmpfnati03m/nvme/c",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/c"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                },
+                {
+                  "adapter_id": "d",
+                  "path": "/tmp/tmpfnati03m/nvme/d",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/d"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                }
+              ],
+              "observed_released_bytes": 24576
+            }
+          },
+          "body_received_monotonic_s": 2374347.771997343,
+          "extraction_started_monotonic_s": 2374347.772033523,
+          "extraction_completed_monotonic_s": 2374347.772512756,
+          "confirmed_file_publication": {
+            "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+            "epoch": 16,
+            "adapter_id": "a",
+            "path": "/tmp/tmpfnati03m/nvme/a",
+            "tier": "nvme",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 12295,
+            "allocated_file_bytes": 16384,
+            "allocated_bytes": 20480,
+            "unique_file_count": 2
+          },
+          "published_monotonic_s": 2374347.774695296,
+          "payload_bytes_verified": 12295,
+          "elapsed_ms": 9.47898393496871,
+          "client_completed_monotonic_s": 2374347.775152278,
+          "client_stage_ms": {
+            "request_to_headers_ms": 0.5291830748319626,
+            "reserve_receive_and_write_ms": 5.671439692378044,
+            "extract_and_verify_ms": 0.4792329855263233
+          }
+        },
+        "attempt_id": "893431bb88aa4edb9ee711da4c793851",
+        "_movement": {
+          "job_id": "7f65533ccb0e4bbdb99dcdbdb80afa36",
+          "intent_id": "9b6e54e6ca864998bd4f1d2c9f4ce246",
+          "owns_io": true
+        }
+      },
+      "after": {
+        "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+        "scope": "linked_inode_storage_v1",
+        "logical_file_bytes": 12340,
+        "file_path_bytes": 12340,
+        "allocated_bytes": 65536,
+        "allocated_file_bytes": 40960,
+        "unique_file_count": 8,
+        "allocations": [
+          {
+            "device": 2050,
+            "inode": 188484102,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 5,
+            "paths": [
+              "/tmp/tmpfnati03m/host"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485331,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485933,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485936,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/b/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485745,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485996,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486011,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/c/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188485825,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486045,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d/adapter_config.json"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486110,
+            "kind": "file",
+            "logical_bytes": 8,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/host/d/weights"
+            ],
+            "path_tiers": [
+              "host"
+            ],
+            "tiers": [
+              "host"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188483582,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 3,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188485989,
+            "kind": "directory",
+            "logical_bytes": 0,
+            "allocated_bytes": 4096,
+            "link_count": 2,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/a"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": null
+          },
+          {
+            "device": 2050,
+            "inode": 188486012,
+            "kind": "file",
+            "logical_bytes": 7,
+            "allocated_bytes": 4096,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/a/adapter_config.json"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          },
+          {
+            "device": 2050,
+            "inode": 188486111,
+            "kind": "file",
+            "logical_bytes": 12288,
+            "allocated_bytes": 12288,
+            "link_count": 1,
+            "paths": [
+              "/tmp/tmpfnati03m/nvme/a/weights"
+            ],
+            "path_tiers": [
+              "nvme"
+            ],
+            "tiers": [
+              "nvme"
+            ],
+            "external_link_count": 0,
+            "pending_increment_bytes": 0
+          }
+        ],
+        "tiers": {
+          "host": {
+            "logical_file_bytes": 45,
+            "file_path_bytes": 45,
+            "allocated_bytes": 40960,
+            "allocated_file_bytes": 24576,
+            "unique_file_count": 6,
+            "pending_file_increment_bytes": 0
+          },
+          "nvme": {
+            "logical_file_bytes": 12295,
+            "file_path_bytes": 12295,
+            "allocated_bytes": 24576,
+            "allocated_file_bytes": 16384,
+            "unique_file_count": 2,
+            "pending_file_increment_bytes": 0
+          }
+        },
+        "tier_totals_additive": true,
+        "content_verified": false,
+        "capacity_reserved": false,
+        "physical_release_proven": false,
+        "pending_file_increment_bytes": 0,
+        "transfer_held_file_bytes": 0
+      },
+      "movements": [
+        {
+          "job_id": "7f65533ccb0e4bbdb99dcdbdb80afa36",
+          "key": [
+            "e9b40fb090dc4a2da725b684ba259c40",
+            "nvme",
+            "a",
+            "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0"
+          ],
+          "state": "completed",
+          "created_at": 2374347.764695416,
+          "finished_at": 2374347.775792479,
+          "ready": true,
+          "active_intents": [],
+          "subscriptions": {
+            "9b6e54e6ca864998bd4f1d2c9f4ce246": {
+              "metadata": {
+                "trigger_reason": "residency",
+                "plan_id": "controlled-replacement",
+                "activation_id": null,
+                "target_replica": "replica"
+              },
+              "density": 0.0,
+              "demand": false,
+              "attached_at": 2374347.764709004,
+              "observed_terminal_at": 2374347.775818537
+            }
+          },
+          "attempts": [
+            {
+              "attempt_id": "893431bb88aa4edb9ee711da4c793851",
+              "started_at": 2374347.764746787,
+              "state": "completed",
+              "reason": "",
+              "finished_at": 2374347.775792479
+            }
+          ],
+          "queue_owns_physical_storage": false
+        }
+      ],
+      "file_state": {
+        "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+        "plans": [],
+        "physical_resources_reserved": false,
+        "replacements": [
+          {
+            "state": "incoming_allocated",
+            "shortfall_bytes": 20480,
+            "incoming_benefit_ms": 46.601941747572816,
+            "total_eviction_loss_ms": 0.0,
+            "expected_usable_bytes": 24576,
+            "objective_sha256": "ca1e0aa1481bae7d663788f4a662b0e0d09668b08a297057e4a5dbc5a7542a65",
+            "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+            "victims": [
+              {
+                "adapter_id": "b",
+                "path": "/tmp/tmpfnati03m/nvme/b",
+                "tier": "nvme",
+                "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                "current_class": {
+                  "tier": "nvme",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "current_footprint_bytes": 8192,
+                "current_load_ms": 20.0,
+                "fallback_class": {
+                  "tier": "host",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "fallback_load_ms": 5.0,
+                "fallback_footprint_bytes": 8192,
+                "fallback": {
+                  "tier": "host",
+                  "path": "/tmp/tmpfnati03m/host/b"
+                },
+                "loss_ms": 0.0,
+                "usable_bytes": 8192
+              },
+              {
+                "adapter_id": "c",
+                "path": "/tmp/tmpfnati03m/nvme/c",
+                "tier": "nvme",
+                "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                "current_class": {
+                  "tier": "nvme",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "current_footprint_bytes": 8192,
+                "current_load_ms": 20.0,
+                "fallback_class": {
+                  "tier": "host",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "fallback_load_ms": 5.0,
+                "fallback_footprint_bytes": 8192,
+                "fallback": {
+                  "tier": "host",
+                  "path": "/tmp/tmpfnati03m/host/c"
+                },
+                "loss_ms": 0.0,
+                "usable_bytes": 8192
+              },
+              {
+                "adapter_id": "d",
+                "path": "/tmp/tmpfnati03m/nvme/d",
+                "tier": "nvme",
+                "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                "current_class": {
+                  "tier": "nvme",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "current_footprint_bytes": 8192,
+                "current_load_ms": 20.0,
+                "fallback_class": {
+                  "tier": "host",
+                  "representation": "verified_regular_file_tree_v1",
+                  "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "size_bin": 0
+                },
+                "fallback_load_ms": 5.0,
+                "fallback_footprint_bytes": 8192,
+                "fallback": {
+                  "tier": "host",
+                  "path": "/tmp/tmpfnati03m/host/d"
+                },
+                "loss_ms": 0.0,
+                "usable_bytes": 8192
+              }
+            ],
+            "observed_released_bytes": 24576
+          }
+        ],
+        "file_cache_policy": "planned_only"
+      },
+      "transfers": [
+        {
+          "artifact_id": "a",
+          "state": "published",
+          "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+          "local_source_owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+          "target_path": "/tmp/tmpfnati03m/nvme/a",
+          "content_manifest_sha256": "69b300590f4eddf0f5465b6fdae9eb904a68996d7fba34fecff91dcc6197fff1",
+          "transferred_bytes": 162,
+          "content_verified": true,
+          "http_transfer_id": "bfef6e3e07ef4628bbfe38cf8b7f32fe",
+          "remote_timing_available": false,
+          "remote_pack_ms": null,
+          "stages_clock": "client_monotonic",
+          "remote_spans_additive_to_client_total": false,
+          "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "loading_started_monotonic_s": 2374347.76579672,
+          "headers_received_monotonic_s": 2374347.766325903,
+          "archive_bytes_declared": 162,
+          "payload_bytes_expected": 12295,
+          "file_reservation": {
+            "scope": "preallocated_regular_files_v1",
+            "allocation_contract": "bounded_extent_allocation_v2",
+            "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+            "transfer_kind": "remote_archive",
+            "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+            "tier": "nvme",
+            "limit_bytes": 24576,
+            "used_file_bytes_before": 0,
+            "reserved_file_bytes": 20480,
+            "used_bytes_before_includes_pending": true,
+            "allocated_file_bytes_after": 20480,
+            "pending_file_increment_bytes": 0,
+            "charged_file_bytes_after": 20480,
+            "data_preallocated_bytes": 20480,
+            "filesystem": "ext4",
+            "filesystem_allocation_unit_bytes": 4096,
+            "replacement": {
+              "state": "incoming_allocated",
+              "shortfall_bytes": 20480,
+              "incoming_benefit_ms": 46.601941747572816,
+              "total_eviction_loss_ms": 0.0,
+              "expected_usable_bytes": 24576,
+              "objective_sha256": "ca1e0aa1481bae7d663788f4a662b0e0d09668b08a297057e4a5dbc5a7542a65",
+              "transfer_id": "fc0a79dae77f421c99d3602195496b10",
+              "victims": [
+                {
+                  "adapter_id": "b",
+                  "path": "/tmp/tmpfnati03m/nvme/b",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/b"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                },
+                {
+                  "adapter_id": "c",
+                  "path": "/tmp/tmpfnati03m/nvme/c",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/c"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                },
+                {
+                  "adapter_id": "d",
+                  "path": "/tmp/tmpfnati03m/nvme/d",
+                  "tier": "nvme",
+                  "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                  "current_class": {
+                    "tier": "nvme",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "current_footprint_bytes": 8192,
+                  "current_load_ms": 20.0,
+                  "fallback_class": {
+                    "tier": "host",
+                    "representation": "verified_regular_file_tree_v1",
+                    "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+                    "size_bin": 0
+                  },
+                  "fallback_load_ms": 5.0,
+                  "fallback_footprint_bytes": 8192,
+                  "fallback": {
+                    "tier": "host",
+                    "path": "/tmp/tmpfnati03m/host/d"
+                  },
+                  "loss_ms": 0.0,
+                  "usable_bytes": 8192
+                }
+              ],
+              "observed_released_bytes": 24576
+            }
+          },
+          "body_received_monotonic_s": 2374347.771997343,
+          "extraction_started_monotonic_s": 2374347.772033523,
+          "extraction_completed_monotonic_s": 2374347.772512756,
+          "confirmed_file_publication": {
+            "owner_id": "e9b40fb090dc4a2da725b684ba259c40",
+            "epoch": 16,
+            "adapter_id": "a",
+            "path": "/tmp/tmpfnati03m/nvme/a",
+            "tier": "nvme",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 12295,
+            "allocated_file_bytes": 16384,
+            "allocated_bytes": 20480,
+            "unique_file_count": 2
+          },
+          "published_monotonic_s": 2374347.774695296,
+          "payload_bytes_verified": 12295,
+          "elapsed_ms": 9.47898393496871,
+          "client_completed_monotonic_s": 2374347.775152278,
+          "client_stage_ms": {
+            "request_to_headers_ms": 0.5291830748319626,
+            "reserve_receive_and_write_ms": 5.671439692378044,
+            "extract_and_verify_ms": 0.4792329855263233
+          }
+        }
+      ]
+    }
+  ],
+  "reproduced": true,
+  "performance_experiment": false,
+  "production_code_changed": false,
+  "inference": "Identical physical budget and reusable victims permit the proactive objective path but reject request materialization before payload reception.",
+  "caveat": "Tiny controlled fixtures prove the missing path; they do not reconstruct D814 live victim eligibility."
+}

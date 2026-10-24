@@ -1,0 +1,154 @@
+"""D815: reuse actual file-owner/HTTP fixtures to isolate D814's failure.
+
+Synthetic tiny files and controlled costs, not GPU or performance evidence.
+No production policy changes, actual remote calls, or full replay retries.
+"""
+import asyncio
+import contextlib
+import io
+import json
+import os
+import shutil
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d815_file_capacity_reproduction'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from tests.test_ieee_tc_transfer_pressure import FileObjectiveReplacement
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+async def reproduce(role):
+    factory = FileObjectiveReplacement()
+    fixture, runner, queue, engine, epoch, *_ = factory.make(
+        victims=('b', 'c', 'd'), target='nvme')
+    owner = fixture.owner
+    runner._remote_materialize_locks = {'a': asyncio.Lock()}
+    runner.nvme_dir = fixture.nvme
+    runner._nvme_cache = {}
+    reservation = SimpleNamespace(adapter_id='a', request_id='d815-request',
+        slot=SimpleNamespace(engine=engine, instance_id='replica'),
+        gpu_reference_evidence={}, local_source_owner=None)
+    before = owner.inventory(_settle_allocations=True)
+    capacity = owner._file_replacement_capacity()
+    assert len(capacity) == 6  # Three verified copies in each file tier.
+    eligible = [row for row in capacity if row['eligible']
+        and Path(row['path']).parent == fixture.nvme]
+    assert len(eligible) == 3 and sum(row['usable_bytes'] for row in eligible) == 24576
+    transfers_before = len(runner._remote_transfer_evidence)
+    result = dict(role=role, before=before, eligible_nvme=eligible,
+        file_policy=owner.file_cache_policy, controlled_objective=epoch,
+        expected_payload_bytes=16384, nvme_limit_bytes=24576)
+    try:
+        if role == 'request_without_objective':
+            try:
+                await runner._ensure_local_async('a', reservation=reservation)
+            except RuntimeError as exc:
+                assert str(exc) == ('local file capacity conflict: retained copies '
+                    'plus transfer exceed tier budget')
+                result['first_error'] = dict(type=type(exc).__name__, message=str(exc))
+            else:
+                raise AssertionError('D814 missing-capacity-path hypothesis was not reproduced')
+            # The observed subsequent error is a consequence of the same failed
+            # movement, not a new remote/network failure.
+            try:
+                await factory.call(fixture, runner, engine, epoch)
+            except RuntimeError as exc:
+                assert str(exc) == ('failed movement requires explicit owner recovery, '
+                    'not an automatic retry')
+                result['subsequent_error'] = dict(type=type(exc).__name__, message=str(exc))
+            else:
+                raise AssertionError('failed movement was silently retried')
+            assert not owner._file_replacement_events
+            assert all((fixture.nvme/aid).is_dir() for aid in 'bcd')
+            assert not (fixture.nvme/'a').exists()
+            transfer = runner._remote_transfer_evidence[-1]
+            assert transfer['state'] == 'not_published' and transfer['transferred_bytes'] == 0
+        elif role == 'proactive_with_objective':
+            result['movement_result'] = await factory.call(fixture, runner, engine, epoch)
+            receipt = owner._file_replacement_events[-1]
+            assert receipt['state'] == 'incoming_allocated'
+            assert receipt['observed_released_bytes'] == 24576
+            assert [r['adapter_id'] for r in receipt['victims']] == ['b', 'c', 'd']
+            assert (fixture.nvme/'a').is_dir()
+            assert all(not (fixture.nvme/aid).exists() for aid in 'bcd')
+            assert all((fixture.host/aid).is_dir() for aid in 'bcd')
+        else:
+            raise AssertionError(role)
+        result.update(after=owner.inventory(_settle_allocations=True),
+            movements=queue.snapshot(), file_state=owner.file_preparation_snapshot(),
+            transfers=runner._remote_transfer_evidence[transfers_before:])
+        assert not owner.materializations and not owner._transfer_workspaces and not owner.leases
+    finally:
+        await queue.close()
+        factory.doCleanups()
+    return result
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ.get('CUDA_VISIBLE_DEVICES') == ''
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'identity.json', identity)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+assert shutil.disk_usage(RAW).free >= 150*1024**3
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == (
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df')
+protected_path = ROOT/'results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'
+protected = json.loads(protected_path.read_text())['entries']
+assert len(protected) == 147
+for name, entry in protected.items():
+    assert p.digest(Path(name)) == entry['sha256'], name
+OUT.mkdir(parents=True, exist_ok=False)
+sources = [ROOT/'faaslora/memory/residency_manager.py',
+    ROOT/'faaslora/preloading/preloading_manager.py', ROOT/'scripts/run_all_experiments.py',
+    ROOT/'tests/test_ieee_tc_transfer_pressure.py', ROOT/'tests/test_ieee_tc_request_lifecycle.py',
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'),
+    ROOT/'paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/context.json',
+    Path(__file__)]
+save(OUT/'sources.json', [ref(path) for path in sources])
+with (RAW/'fixture_output.log').open('x') as output, contextlib.redirect_stdout(output):
+    results = [asyncio.run(reproduce(role)) for role in
+        ('request_without_objective', 'proactive_with_objective')]
+save(OUT/'reproduction.json', dict(cases=results, reproduced=True,
+    performance_experiment=False, production_code_changed=False,
+    inference='Identical physical budget and reusable victims permit the proactive objective path '
+        'but reject request materialization before payload reception.',
+    caveat='Tiny controlled fixtures prove the missing path; they do not reconstruct D814 live victim eligibility.'))
+names = [
+    'tests.test_ieee_tc_request_lifecycle.OrdinaryArtifactLRU.test_default_full_does_not_silently_gain_demand_lru',
+    'tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_real_source_reference_release_wakes_deferred_replacement',
+    'tests.test_ieee_tc_transfer_pressure.FileObjectiveReplacement.test_exact_benefit_loss_tie_defers_without_deletion_or_busy_retry',
+]
+with (RAW/'tests.log').open('x') as output:
+    suite = unittest.defaultTestLoader.loadTestsFromNames(names)
+    outcome = unittest.TextTestRunner(stream=output, verbosity=2).run(suite)
+assert outcome.wasSuccessful() and outcome.testsRun == len(names)
+for name, entry in protected.items():
+    assert p.digest(Path(name)) == entry['sha256'], name
+group = Path(identity['path'])
+resources = p.cgroup_snapshot(group)
+assert all(int(row.split()[1]) == 0 for row in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'validation.json', dict(tests_passed=outcome.testsRun, names=names,
+    source_tests=ref(RAW/'tests.log'), identity=identity, resources=resources,
+    protected_files_unchanged=147, disk_free_bytes=shutil.disk_usage(RAW).free))
+with (OUT/'reproduce_file_capacity.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json', dict(files=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(reproduced=True, tests_passed=outcome.testsRun, output=str(OUT))))
