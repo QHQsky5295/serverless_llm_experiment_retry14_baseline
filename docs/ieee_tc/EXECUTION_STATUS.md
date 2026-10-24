@@ -1,4 +1,38 @@
-# IEEE TC execution status — D799 Loquetier 3B full500 coverage sealed; next full W0
+# IEEE TC execution status — D800 Loquetier 3B full W0 bound; preparing launch
+
+## 2026-10-24 14:07 CST D800完整W0输入绑定通过，待备份后唯一启动
+
+本轮完整重读PLAN/状态及冻结指标V1、单轮V2。上一轮PROGRESS：D799真实
+覆盖/审计/回收/备份已完成。当前GPU空，D799终态不重跑。剩余几个D788/D793
+历史测试scope主cgroup.procs为空，不视为运行中的性能任务，不动其他项目k3s。
+
+D800复用D799 native_3b.json逐字节SHA3b5a0274...，只改HTTP为原W0全4000
+视图；实际132个adapter、目标458224token，逐条source JSON及view SHA与
+D771 W0相同。沿用batch4/四分片/顺序启动/原PEFT owners/D797模型kernel，
+无新trace/权重/构建/配置搜索，不加100/1000门禁。prepare session69492结束，
+aux0001真实关闭。下一明确路径备份登记→一次tmux完整W0；尚未启动性能。
+当前磁盘约150.05GiB，启动前继续原门槛，绝不放宽；内存与GPU正常。
+
+全goal仍active，本轮PROGRESS。后续W1/W2/HydraServe3B/全对比/PrimeLoRA
+优化/同版Full/A1–A5/S1–S13/成本/文档/图表/最终V2不缩减。详见D800文档。
+
+## 2026-10-24 14:03 CST D799结果备份完成，全部本轮资源域关闭
+
+MAIN HEAD 889970cfd3218f5982ef07ff6eebb07ce8c5a6f4已推送并核对
+faaslora_origin/backup/d799-loquetier-3b-coverage-20261024；BASE仍为
+8594922093ee4625dcc6614ecc11746af277219d，与origin/main一致。没有force，
+既有V2分叉仍未处理，不称最终V2同步。显式stage/源码语法/来源checksum/
+secrets与147保护项检查通过，用户dirty未stage。result session61369已结束，
+aux0008真实关闭；之前analysis/storage/remote/launch会话也全结束，无待wait
+句柄，无GPU计算进程。没有启动D800或另一性能实验，D799不要重跑。
+
+清理域因大文件逐字节核验有memory.high=5463，max/OOM=0；它发生在真实
+推理释放和远端停止之后，不是D799服务内存事件，服务high/max/OOM仍全0。
+缓存回收后可用空间约150.049GiB，下一启动须重查，必要时先无损压缩已关闭
+证据，不删唯一数据、不改变门槛。下一按相同冻结native_3b/batch4/静态分片
+绑定一次完整W0（原4000输入），然后W1/W2与HydraServe3B；不重复资格、不
+因覆盖视图低SLO优化baseline。主表/PrimeLoRA优化/同版Full/A1–A5/S1–S13/
+成本/Pareto/审稿文档/图表/最终V2全部保留。完整goal仍active，本轮PROGRESS。
 
 ## 2026-10-24 14:02 CST D799覆盖分析与重复缓存回收结束，准备结果备份
 

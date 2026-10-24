@@ -1,0 +1,11 @@
+"""Reuse the existing Loquetier native service launch for complete 3B W0."""
+import hashlib
+from pathlib import Path
+import subprocess
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/run7b.sh')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '46454e3fef37a8bb913d464fdf56764f7bd99865f3c66e3f0deba71056d789c3'
+source = data.decode().replace('d589_20261016','d800_20261024').replace('d589000','d800000')
+source = source.replace('launch7b','launch3b').replace('http_7b_4000','http_3b_4000')
+source = source.replace('native_7b','native_3b').replace('model7b','model3b').replace('tc-d589-7bl','tc-d800-3bl')
+raise SystemExit(subprocess.run(['bash','-c',source]).returncode)

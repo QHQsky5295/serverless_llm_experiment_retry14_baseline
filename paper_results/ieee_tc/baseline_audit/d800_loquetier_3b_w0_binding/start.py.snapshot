@@ -1,0 +1,10 @@
+"""Reuse D799's exact-identity starter, with a distinct W0 campaign only."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/start.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '441a8e61486c7ba0cc9b36e550ed4db095eb86c9fdcf5e18ea76c16d4fb15f5b'
+source = data.decode().replace('d799_20261024','d800_20261024').replace('tc-d799-3bl','tc-d800-3bl')
+source = source.replace('d799-coverage','d800-full-w0').replace('tc-d799-loquetier-3b-coverage','tc-d800-loquetier-3b-w0')
+source = source.replace('full500 compatibility/coverage, not a W0 performance run','complete 4000 W0 development observation, unchanged native configuration')
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

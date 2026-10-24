@@ -1,0 +1,65 @@
+"""Bind unchanged qualified Loquetier 3B to the existing complete W0 trace."""
+import json
+import os
+from pathlib import Path
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+PRIOR = RAW.parent/'d799_20261024'
+sys.path[:0] = [str(MAIN),str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import load_http_replay_plan
+from replay_vllm_engine_trace import validate_loquetier_service_config, verify_loquetier_source_view
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json',own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert read(PRIOR/'result_receipt.json')['passed']
+assert read(PRIOR/'result_closure.json')['path_gone']
+prior = read(PRIOR/'preparation.json')
+for path,digest in (prior['refs'] | prior['preserved']).items(): assert p.digest(Path(path)) == digest,path
+audit_path = PRIOR/'audit_coverage500.json'
+assert p.digest(audit_path) == 'c42e38d21050324962a184060eec51552713acc17eb12f7d4b8c6134058b6ca5'
+audit = read(audit_path)
+assert audit['workload_passed'] and audit['native_revalidated_requests'] == 500
+assert audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500
+native_path = PRIOR/'native_3b.json'
+assert p.digest(native_path) == '3b5a0274271a95965317bc6bf803728e4eb246d6026ab4338bb640dfc7bff800'
+native = read(native_path)
+with (RAW/'native_3b.json').open('xb') as stream: stream.write(native_path.read_bytes())
+http = read(PRIOR/'http_3b_coverage500.json')
+http.update(request_count=4000,request_view='trace_prefix_v1',replay_profile='W0',
+    experiment_role='native_3b_full_w0_development_observation')
+assert http['qualification_only'] and not http['formal_run']
+validate_loquetier_service_config(native,http)
+verify_loquetier_source_view(dict(native,main_repo=str(MAIN)))
+inputs = load_http_replay_plan(http)
+reference_path = RAW.parent.parent/'slora_qualification/d771_20261023/http_3b_4000.json'
+reference = load_http_replay_plan(read(reference_path))
+assert inputs.identity() == reference.identity()
+assert [entry.source_json for entry in inputs.entries] == [entry.source_json for entry in reference.entries]
+rows = [json.loads(entry.source_json) for entry in inputs.entries]
+assert len(rows) == 4000
+assert sum(min(row['expected_output_tokens'],256) for row in rows) == 458224
+assert inputs.identity()['view_sha256'] == '0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37'
+save(RAW/'http_3b_4000.json',http)
+refs = dict(prior['refs'])
+for path in (RAW/'native_3b.json',RAW/'http_3b_4000.json',audit_path,reference_path,
+             PRIOR/'result_receipt.json',PRIOR/'result_closure.json',
+             MAIN/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'):
+    refs[str(path)] = p.digest(path)
+save(RAW/'preparation.json',dict(passed=True,plan_sha256=p.check_plan(),refs=refs,
+    preserved=prior['preserved'],input_identity=inputs.identity(),request_count=4000,
+    actual_unique_adapters=len({row['adapter_id'] for row in rows}),target_tokens=458224,
+    native_config_byte_identical_to=str(native_path),native_config_sha256=p.digest(native_path),
+    reused_coverage=str(audit_path),input_matches_existing_slora_w0=True,
+    no_new_trace=True,no_new_weights=True,baseline_configuration_search=False,
+    tests_reused=prior['tests'],performance_run_started=False,
+    independent_full_workload_numerical_correctness_proven=False,
+    next='one full W0, then unchanged W1/W2; no additional prefix gates'))
+print(json.dumps(dict(passed=True,input=inputs.identity(),actual_unique_adapters=len({r['adapter_id'] for r in rows}),target_tokens=458224)))
