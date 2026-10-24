@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "tests_reused": 8,
+  "prior_test_receipt_sha256": "0fb9a90978518d77c37fba4a3db4c93bfb5ceff600445a621e4d41c8bd4be947",
+  "control_and_request_path_unchanged": true,
+  "previous_full_closure_sha256": "cb1678cd9333a35001c9f6ada8b4f53c9d103538620174f616d116ad43632bf1",
+  "new_gpu_microtests": 0
+}

@@ -1,0 +1,17 @@
+"""Reuse lossless, twice-hash-verified compression on the closed D812 outcome."""
+from pathlib import Path
+
+_template = Path(__file__).resolve().parent.parent/'d752_20261023/storage_maintenance.py'
+_source = _template.read_text()
+_pairs = [
+    ('20261023_d752_closed_older_outcomes.json', '20261025_d812_closed_outcome.json'),
+    ('d752_3b_dense_alias_validation_full_w0', 'd812_3b_max3_full_w0'),
+    ("('d742_20261023/3b_execution_view_full_w0', 'd742_3b_execution_view_full_w0'),\n    ('d749_20261023/3b_fresh_host_descriptor_full_w0', 'd749_3b_fresh_host_descriptor_full_w0'),",
+     "('d812_20261024/3b_max3_full_w0', 'd812_3b_max3_full_w0'),"),
+    ('D752 remains uncompressed.',
+     'D812 is now losslessly archived; its descriptor, timing, context and stage audits were completed and backed up before compression. Keep its separate request result and materialized cache unchanged.'),
+]
+for _old, _new in _pairs:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+exec(compile(_source, str(_template), 'exec'), globals())

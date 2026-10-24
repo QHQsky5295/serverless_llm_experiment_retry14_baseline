@@ -1,0 +1,4 @@
+{
+  "passed": true,
+  "output": "test_existing_w1_view_preserves_all_work_and_registered_timing (tests.test_ieee_tc_d456_diagnostic_contract.D813FullContract.test_existing_w1_view_preserves_all_work_and_registered_timing) ... ok\ntest_only_arrival_view_changes_in_qualified_launch (tests.test_ieee_tc_d456_diagnostic_contract.D813FullContract.test_only_arrival_view_changes_in_qualified_launch) ... ok\ntest_same_frozen_configuration_except_exclusive_paths (tests.test_ieee_tc_d456_diagnostic_contract.D813FullContract.test_same_frozen_configuration_except_exclusive_paths) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 1.238s\n\nOK"
+}

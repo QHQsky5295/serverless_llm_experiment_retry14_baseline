@@ -398,6 +398,37 @@ def test_registered_common_slo_population_still_requires_completed_source(tmp_pa
     assert not (tmp_path / "audit.json").exists()
 
 
+@pytest.fixture
+def d813_arrival_source(tmp_path):
+    path = tmp_path/'source.json'
+    path.write_text(json.dumps({'requests': [dict(request_id=f'r{i:04d}',
+        arrival_time_s=i*2., adapter_id='adapter', expected_output_tokens=8)
+        for i in range(501)]}))
+    return path
+
+
+@pytest.mark.parametrize('profile', ['W0', 'W1'])
+def test_d813_reconstructs_recorded_arrival_view(d813_arrival_source, profile):
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    from scripts.ieee_tc.audit_d703_3b_full import registered_arrival_plan
+    source = FrozenReplayPlan.load(d813_arrival_source, profile=profile)
+    restored = registered_arrival_plan(source.identity(), expected_count=501)
+    assert restored.identity() == source.identity()
+    assert restored.entries[-1].offset_s == (529. if profile == 'W1' else 1000.)
+
+
+@pytest.mark.parametrize('field,value', [('profile','W0'), ('profile','W2'),
+    ('profile','unknown'), ('view_sha256','0'*64), ('source_sha256','0'*64),
+    ('count',500), ('rate_scale',2.), ('source_count',500)])
+def test_d813_rejects_changed_arrival_identity(d813_arrival_source, field, value):
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    from scripts.ieee_tc.audit_d703_3b_full import registered_arrival_plan
+    identity = FrozenReplayPlan.load(d813_arrival_source, profile='W1').identity()
+    identity[field] = value
+    with pytest.raises(ValueError):
+        registered_arrival_plan(identity, expected_count=501)
+
+
 @pytest.mark.parametrize("count", [0, 99, 101, 3999])
 def test_unregistered_common_slo_population_rejected(tmp_path, count):
     from scripts.ieee_tc.audit_d703_3b_full import reevaluate_common_slo

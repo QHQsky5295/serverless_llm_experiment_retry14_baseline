@@ -1,0 +1,21 @@
+{
+  "kind": "prelaunch_test_environment_error",
+  "stage": "offline_arrival_audit_tests",
+  "returncode": 1,
+  "cause": "LLM_vllm0102 interpreter has no pytest module; verified by python -m pytest --version",
+  "original_test_stdout_retained": false,
+  "new_gpu_replays": 0,
+  "remote_services_started": false,
+  "completed_execution_contract_tests": 3,
+  "correction": "Use the existing qualified vLLM0300 environment containing pytest; no dependency installation or performance change",
+  "failed_scope_unit": "primelora-tc-aux-d8132026102500000000000000000001.scope",
+  "failed_scope_invocation": "a4a70ef858de4554a45dc39f3ad3b116",
+  "observed_after_exit": {
+    "ActiveState": "inactive",
+    "InvocationID": "",
+    "ControlGroup": "",
+    "cgroup_path_absent": true
+  },
+  "signals_sent": false,
+  "post_removal_memory_counters": null
+}

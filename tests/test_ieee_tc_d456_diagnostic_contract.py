@@ -191,6 +191,49 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D813FullContract(unittest.TestCase):
+    def test_same_frozen_configuration_except_exclusive_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d813_3b_max3_full_w1.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d813', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['resource_coordination']['max_instances'], 3)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_only_arrival_view_changes_in_qualified_launch(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        case = re.search(r'^  d813\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', case)
+        self.assertIn('SCENARIO=tc_ieee_full', case)
+        pattern = r'^if \[\[ "\$\{1:-d293\}" == %s \]\]; then\n(.*?)^fi'
+        old = re.search(pattern % 'd812', shell, re.M | re.S).group(1)
+        new = re.search(pattern % 'd813', shell, re.M | re.S).group(1)
+        self.assertEqual(new, '  export FAASLORA_TC_REPLAY_PROFILE=W1\n'+old)
+        self.assertNotIn('d813', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+    def test_existing_w1_view_preserves_all_work_and_registered_timing(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        source = Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/'
+            '20260509_134259_llama32_3b_main_s8/shared_artifacts/'
+            'llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+        w0 = FrozenReplayPlan.load(source)
+        w1 = FrozenReplayPlan.load(source, profile='W1')
+        self.assertEqual(len(w1.entries), 4000)
+        self.assertEqual(w1.source_sha256, '4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d')
+        self.assertEqual(w1.identity()['view_sha256'], '8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f')
+        self.assertEqual([(e.request_id, e.source_sha256) for e in w0.entries],
+                         [(e.request_id, e.source_sha256) for e in w1.entries])
+        for i, entry in enumerate(w1.entries):
+            if i % 500 == 0:
+                phase_base = 0. if i == 0 else w1.entries[i-1].offset_s+30.
+            expected = phase_base+(w0.entries[i].offset_s-w0.entries[i//500*500].offset_s)/2.
+            self.assertAlmostEqual(entry.offset_s, expected, places=6)
+
+
 class D812FullContract(unittest.TestCase):
     def test_actual_controller_respects_three_including_pending(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction

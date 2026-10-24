@@ -1,4 +1,48 @@
-# IEEE TC execution status — D812 3B max3 W0 completed; seal and backup, then W1/W2
+# IEEE TC execution status — D813 same-config 3B W1 preparation; D812 sealed/backed
+
+## 2026-10-25 D813准备：冻结D812配置，只切换既定W1到达视图
+
+完整重读PLAN、当前状态、指标V1/V2及执行补充规则。用户再次明确共享k3s
+不是本项目部署，继续不修改其配置/权限/服务；已完成HydraServe隔离适配
+和3B W0/W1/W2结果保留，不重复基础适配或基线性能搜索。
+
+登记D813 3B max3/min1的完整W1。相对D812无在线算法/参数变化，只改变
+W1到达时间视图和3条隔离输出路径；复用全部4000请求/工件/生成工作量。
+改正离线auditor默认W0的限制：从launch身份重建W0/W1并严格校验视图，
+旧计量结果不覆盖。仅测试改变的入口/视图与既有完整性拒绝规则，D748/
+D751/D812原生资格直接复用，不新增GPU smoke。
+
+本轮尚无新性能结果。D812联合95.05%只多2条、W0 U11841.427433，不能代表
+W1/W2。下一进行显式路径备份、刷新资源准入后启动一次完整W1；正常终态
+实际释放后分析、保存，再W2。全部同版Full/A1–A5/S1–S13、成本CE/Pareto、
+审稿文档、图表与最终V2继续开放，完整goal active。运行时不扫描/压缩/
+构建/push/维护远端，不改指标，不筛赢家，不重复已关闭方向。
+
+## 2026-10-25 00:18 CST D812备份与存储完成，下一主线W1/W2
+
+MAIN提交04b5cb82f646db6f564181aea5c5af55228ab1b0已推送并ls-remote核对
+refs/heads/backup/d812-complete-20261025，33明确路径。BASE保持原版本，
+不stage用户manifest、不force；最终V2未同步。D812完整metrics/context/
+stages/descriptor与resource_quality结果均封存，不重跑同键。
+
+publication首次关闭时非空而拒绝，3个PID自然退出后同规则实际关闭，
+首次检查回执保留；peak846348288B/事件swap0。仅无损压缩D812 outcome，
+986844780→130139235B，两次解压SHA通过，回收856702976B，盘余
+161681731584B（约150.58GiB），原生请求结果/下载缓存/工件/trace均不变。
+压缩资源域自动移除已核实inactive/空Invocation/path absent；pre-exit
+peak164651008B/事件swap0，不补造post-exit计数。无GPU或待工具session。
+
+后置publication/storage/首次关闭拒绝及close_storage脚本回执留RAW，
+storage三份curated在paper_results/ieee_tc/storage/20261025_d812_closed_outcome*，
+随下个正常检查点收录。不为后置状态再开重复备份。D812 outcome现在仅.gz，
+后续诊断用流式gzip；如旧工具硬需原路径，先按封存SHA受限恢复，不能报丢失。
+
+下一读PLAN/状态/V1/V2并刷新资源准入，复用已有W1视图和runner：3B同一
+max3/min1/D725 profile/C8/4096/公式/阈值配置，只有W1输入视图与隔离输出
+路径变化。W0联合95.05%只多2条、U/B=.979486，不是稳健或完整G1/G2；
+不要另开W0阈值/后端资格测试或基线搜索。先W1，再W2，按实际结果决定
+后续有证据优化。全部同版Full/A1–A5/S1–S13、成本CE/Pareto、审稿文档、
+图表及最终V2交付未删减，完整goal active。本轮为PROGRESS。
 
 ## 2026-10-25 D812完整回放与核查完成：资源减少，联合SLO刚达标
 

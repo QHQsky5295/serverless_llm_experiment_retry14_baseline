@@ -1,0 +1,158 @@
+"""Resume only unexecuted D813 prelaunch stages after a missing pytest module."""
+import ast, json, os, re, shlex, subprocess, sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+CHECK = ROOT / 'paper_results/ieee_tc/p2_backend/d748_fresh_host_descriptor_integration'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d813_3b_max3_full_w1/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    result = subprocess.run(args, cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, timeout=55)
+    if result.returncode:
+        save(RAW/'resume_command_failure.json', dict(args=args,
+            returncode=result.returncode, output=result.stdout))
+        raise RuntimeError(result.stdout[-5000:])
+    return result.stdout.strip()
+
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'resume_identity.json',own)
+group = Path(own['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert call(['git','rev-parse','HEAD']) == '04b5cb82f646db6f564181aea5c5af55228ab1b0'
+assert not call(['git','diff','--cached','--name-only'])
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not (RAW/'3b_max3_full_w1').exists()
+assert not (RAW/'remote_start.log').exists()
+assert not Path('/dev/shm/tc-d813-3b-w1').exists()
+for name in ('reused_qualification.json','reused_alias_qualification.json',
+             'execution_contract_tests.json','reused_d812_control.json'):
+    assert read(OUT/name)['passed']
+assert 'Ran 3 tests' in read(OUT/'execution_contract_tests.json')['output']
+assert read(OUT/'protected_147.json')['pass']
+q = read(CHECK/'qualification.json')
+descriptor = q['descriptor']
+alias = read(ROOT/'paper_results/ieee_tc/p2_backend/d751_dense_alias_validation_probe/qualification/qualification.json')
+parent = ROOT/'paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0'
+previous = read(parent/'prelaunch/qualification.json')
+prior = RAW.parent/'d812_20261024'
+files = ['configs/ieee_tc/20261025_d813_3b_max3_full_w1.yaml',
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'scripts/ieee_tc/audit_d703_3b_full.py','tests/test_ieee_tc_diagnostic_plot.py',
+    'docs/ieee_tc/D813_3B_MAX3_FULL_W1_20261025.md',
+    'docs/ieee_tc/D812_3B_MAX3_FULL_W0_20261024.md','docs/ieee_tc/EXECUTION_STATUS.md']
+refs = dict(q['source_shas'])
+refs.update({str(ROOT/name):sha for name,sha in alias['sources'].items()})
+refs[descriptor['library']] = descriptor['sha256']
+for name,sha in previous['refs'].items():
+    if name in ('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md',
+                str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+                str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')) or '/d725_3b_graph_profile/export/' in name or name.endswith('20261017_3b_slo_d648_frozen.json'):
+        assert p.digest(Path(name)) == sha
+        refs[name] = sha
+for name in files + ['scripts/run_all_experiments.py','faaslora/memory/residency_manager.py',
+    'faaslora/coordination/autoscaler.py','faaslora/datasets/workload_generator.py',
+    'scripts/run_all_experiments_user_scope.sh','scripts/ieee_tc_preflight.py']:
+    refs[str(ROOT/name)] = p.digest(ROOT/name)
+before = (OUT/'start.py.snapshot').read_text()
+after = (RAW/'start.py').read_text()
+assert before.replace(
+    "audit_tests = call(['/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python'",
+    "audit_tests = call(['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'") == after
+for source,target in ((RAW/'start.py',OUT/'start_corrected.py.snapshot'),
+                      (Path(__file__),OUT/'resume_start.py.snapshot'),
+                      (RAW/'initial_prelaunch_failure.json',OUT/'initial_prelaunch_failure.json')):
+    if source.suffix == '.py': ast.parse(source.read_text())
+    with target.open('xb') as f: f.write(source.read_bytes())
+    refs[str(source)] = p.digest(source)
+# The failed management scope is already gone. Do not invent resource samples.
+failed = read(RAW/'start_identity.json')
+assert not Path(failed['path']).exists()
+assert call(['systemctl','--user','show',failed['unit'],'-p','ActiveState','--value']) == 'inactive'
+
+audit_tests = call(['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python','-B','-m','pytest',
+    '-p','no:cacheprovider','-q','tests/test_ieee_tc_diagnostic_plot.py',
+    '-k','d813 or registered_common_slo_population or unregistered_common_slo_population'])
+assert '17 passed' in audit_tests
+save(OUT/'arrival_audit_tests.json', dict(passed=True, output=audit_tests,
+    new_view_tests=10, existing_population_tests=7))
+import hashlib, tarfile
+evidence = {name: prior/name for name in (
+    'backup_completion.json','backup_completion_identity.json','post_backup_release.json',
+    'post_backup_first_check.json','post_backup_release.py','storage_maintenance.py',
+    'close_storage.py','storage_identity.json','storage_closure.json')}
+evidence['d752_start_template.py'] = RAW.parent/'d752_20261023/start.py'
+archive = OUT/'prior_execution_evidence.tar.gz'
+secret_members = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in evidence.values():
+    assert path.stat().st_size < 2*1024*1024
+    assert not secret_members.search(path.read_text()), path
+with tarfile.open(archive,'x:gz') as bundle:
+    for name,path in evidence.items(): bundle.add(path,arcname=name,recursive=False)
+with tarfile.open(archive,'r:gz') as bundle:
+    assert set(bundle.getnames()) == set(evidence)
+    for name,path in evidence.items():
+        assert hashlib.sha256(bundle.extractfile(name).read()).hexdigest() == p.digest(path)
+with (OUT/'evidence.sha256').open('x') as stream:
+    stream.write(p.digest(archive)+'  '+str(archive)+'\n')
+call(['sha256sum','-c',str(OUT/'evidence.sha256')])
+storage_prefix = ROOT/'paper_results/ieee_tc/storage'
+for name in ('20261025_d812_closed_outcome.json','20261025_d812_closed_outcome_verification.json',
+             '20261025_d812_closed_outcome.py.snapshot'):
+    files.append(str((storage_prefix/name).relative_to(ROOT)))
+verification = read(storage_prefix/'20261025_d812_closed_outcome_verification.json')
+assert verification['passed']
+assert p.digest(storage_prefix/'20261025_d812_closed_outcome.json') == verification['receipt_sha256']
+assert p.digest(storage_prefix/'20261025_d812_closed_outcome.py.snapshot') == verification['source_script_sha256']
+
+save(OUT/'qualification.json', dict(passed=True, identity=own, refs=refs, protected=q['protected'],
+    full_source_count=4000, diagnostic_prefix_count=None, configuration_only_three_paths_changed=True,
+    candidate_environment={'FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY': descriptor['library'],
+                           'FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256': descriptor['sha256'],
+                           'FAASLORA_TC_REPLAY_PROFILE': 'W1'},
+    reused_interface_tests=9, reused_alias_tests=51, new_execution_contract_tests=3, new_arrival_audit_tests=10, reused_d812_control_tests=8,
+    formal_performance_result=False, numerical_scope='D711 retained; no automatic n_correct certification',
+    resources=p.cgroup_snapshot(group)))
+members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in files:
+    if name.endswith('.tar.gz'): continue  # member checks above
+    assert not secret.search((ROOT/name).read_text()), name
+assert 'configs/generated/lora_manifest_1000.json' not in files
+call(['git', 'diff', '--check', '--', *files])
+call(['git', 'add', '--', *files])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(files)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: register same-config D813 3B W1 and audit recorded arrival views'])
+head = call(['git', 'rev-parse', 'HEAD']); ref = 'refs/heads/backup/d813-max3-fullw1-20261025'
+save(RAW/'commit.json', dict(head=head, ref=ref, files=files))
+call(['git', 'push', 'faaslora_origin', 'HEAD:'+ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=ref, files=files, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d813-3b-max3-full-w1'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT), shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=ref,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=ref, tmux=session)))

@@ -686,14 +686,25 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
     print(json.dumps({k:v for k,v in audit.items() if k != 'source_refs'}, indent=2))
 
 
+def registered_arrival_plan(identity, *, expected_count: int):
+    """Reconstruct the recorded W0/W1 view, never silently audit W1 as W0."""
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    if identity.get('profile') not in ('W0', 'W1'):
+        raise ValueError('registered W0/W1 arrival profile required')
+    plan = FrozenReplayPlan.load(identity['source_path'], profile=identity['profile'],
+        count=expected_count, rate_scale=identity['rate_scale'])
+    if plan.identity() != identity:
+        raise ValueError('frozen source/prefix/arrival contract mismatch')
+    return plan
+
+
 def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> None:
     """R1: append-only native SLO correction, with bounded streaming memory.
 
     No remote call, GPU launch, threshold change or modification of v1 evidence.
-    Both D703 full W0 and D713's registered prefix use the SAME D648 thresholds.
+    Registered W0/W1 views and prefixes use the SAME D648 thresholds.
     """
     import ijson
-    from faaslora.datasets.workload_generator import FrozenReplayPlan
     from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
     from scripts.ieee_tc.check_d299_full_context import (
         closed_physical_integral, common_slo_flags, matched_controller_rows)
@@ -727,8 +738,8 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
     if digest(Path(summary['request_terminals_path'])) != summary['request_terminals_sha256']:
         raise ValueError('request terminal journal changed')
     ext = launch['external_replay']
-    plan = FrozenReplayPlan.load(ext['plan']['source_path'], count=expected_count)
-    if plan.identity() != ext['plan'] or abs(ext['replay_t0_s']-ext['deployment_notice_s']-60) > 1e-6:
+    plan = registered_arrival_plan(ext['plan'], expected_count=expected_count)
+    if abs(ext['replay_t0_s']-ext['deployment_notice_s']-60) > 1e-6:
         raise ValueError('frozen source/prefix/arrival contract mismatch')
     freeze_path = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
     if digest(freeze_path) != 'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8':
@@ -805,7 +816,8 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
         tpot_conditional_fraction=counts['tpot_pass']/counts['tpot_eligible'] if counts['tpot_eligible'] else None,
         observed_latency_feasible=counts['joint_pass']*100 >= expected_count*95,
         numerical_adapter_correctness_qualified=False, n_correct=summary['n_correct'], ranking_eligible=False,
-        full_w0=expected_count==4000, development_only=True, confidence_interval=None,
+        full_w0=expected_count==4000 and plan.profile=='W0', full_replay=expected_count==4000,
+        workload=plan.profile, replay_plan=plan.identity(), development_only=True, confidence_interval=None,
         physical_gpu_seconds=gpu_s, gpu_seconds_per_offered_request=gpu_s/expected_count,
         metrics={k:timing_stats(v) for k,v in metrics.items()}, max_recompute_error_ms=max_error,
         phases_500=[dict(x) for x in phases], slo_violations=failed_slo,

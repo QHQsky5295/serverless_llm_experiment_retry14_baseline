@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-eb3528f6d581477ab3c7d2c6e51a533e.scope",
+    "invocation_id": "e2020c3f9d5449abb6eabc7d9ed6a174",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-eb3528f6d581477ab3c7d2c6e51a533e.scope",
+    "inode": 31893448
+  },
+  "protected_files": 145,
+  "receipt_sha256": "c355f310dd6272c86f8d636fc678a059a5fa2dae1cc4ce5087ef0410b68af39f",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "ff8c408c61755b1548ed2a58ac91b6f1b5f506f8597fe84109493b37d4679588",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-eb3528f6d581477ab3c7d2c6e51a533e.scope",
+    "memory.current": 163840000,
+    "memory.peak": 164651008,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 38463276\nuser_usec 36024376\nsystem_usec 2438899\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "note": "Restore the original path from its archive and verify source_sha256 before reusing an analyzer requiring an uncompressed outcome. D812 is now losslessly archived; its descriptor, timing, context and stage audits were completed and backed up before compression. Keep its separate request result and materialized cache unchanged."
+}
