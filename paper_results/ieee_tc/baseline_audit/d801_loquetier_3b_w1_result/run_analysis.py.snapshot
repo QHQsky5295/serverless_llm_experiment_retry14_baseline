@@ -1,0 +1,11 @@
+"""Reuse the bounded post-release analyzer for complete 3B W1."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/run_analysis.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'd38d6ee63ac79abd5d7a8151883e02202cd2883d001a7fecc5a2f6d001fee243'
+source = data.decode().replace('D589','D801').replace("'full4000_w2'","'full4000_w1'")
+source = source.replace("'--scheduler-contract', 'loquetier_static_shards_v1',",
+    "'--scheduler-contract', 'loquetier_static_shards_v1', '--model-key', '3b',")
+source = source.replace('20261010_7b_slo_d394_frozen.json','20261017_3b_slo_d648_frozen.json')
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

@@ -1,4 +1,98 @@
-# IEEE TC execution status — D801 Loquetier 3B W1 bound, not yet launched
+# IEEE TC execution status — D801 Loquetier 3B W1 audited; result checkpoint next
+
+## 2026-10-24 16:22 CST D801完整W1核验、释放和重复缓存回收完成
+
+继续同一D801至4000条响应和实际GPU释放，没有重启或第二个性能attempt。
+launch3b.json确认pass=true、service/watchdog均0、native context释放和
+服务资源域移除；local_cleanup通过，本轮远端两模型制品服务及监测均按
+精确身份停止，其他项目k3s保持不动。
+
+analysis辅助域0006完整收尾后已关闭，peak576208896B、high/max/OOM0、
+swap0。audit_full4000.json SHA9f1962fddd05da651e9c5e37a7b0a4efd6cb86c2b0914cc069c8fe4157adcf06：
+4000 planned/arrived/submitted/terminal/response、0失败、4000原生生成/绑定
+重验、458224 tokens、132实际ID/500准备ID，计时最大重算误差0。TTFT
+均值147.224731s/P95 557.695343s，TPOT均值53.686196ms/P95 59.834516ms，
+E2E均值153.300386s；TTFT达成14.675%、TPOT条件/联合0。U8049.341782 GPU-s，
+binding-valid分母2.012335，不将原n_correct=null/独立数值未知升级为证明。
+后六phase的router queue很短但原生后端首token等待仍长；低SLO不触发新的
+baseline性能搜索，完整保存不达标和适配范围。新D801结果文档已形成。
+
+回收沿既有重复件规则重验当前下载/保留池SHA、引用和进程占用，仅删
+/tmp/tc-d801-3bl/remote_artifacts/objects：4000文件、19482573296B payload，
+实际释放19497291776B，回收后空闲161564618752B（大于150GiB）。147项
+旧投稿/用户修改核对不变；存储维护资源事件另存，不混入已结束的服务指标。
+
+本轮另外完成HydraServe 3B静态模型审计文档：现有隔离部署复用，旧专用
+vLLM缺llama3 RoPE分支且tied head路径须对齐，元数据限定32层7B；联网
+核对官方vLLM/Transformers语义。没有改其运行代码、导入模型、启动集群
+或虚构3B资格。文档随本次安全结果检查点备份。
+
+当前下一：明确路径保存/备份D801结果和静态审计 → 同配置Loquetier3B W2
+→ 隔离HydraServe3B → 全比较/PrimeLoRA优化 → 同版Full、A1–A5、S1–S13、
+成本/CE、两轮审稿文档、图表和最终V2。完整goal active，本轮PROGRESS；
+不因本次结果差或主线较长删除任何未完成实验。
+
+## 2026-10-24 15:44 CST D801同一轮W1继续，未重启
+
+本轮完整重读PLAN、两仓AGENTS、执行补充和monitor-experiment；按实际tmux、
+PID、服务invocation及watchdog核验，而非仅凭启动回执。唯一会话仍为
+tc-d801-loquetier-3b-w1，pane628301；服务invocation仍
+44b94e666bd641a5a46497bc2929f450，watchdog629493。没有新的性能attempt。
+
+15:44:10完整日志行前缀计数：request_created1129、http_headers_sent1128、
+http_response591；这些是运行中进度，不是最终正确完成数。sample701实际持有
+4张GPU，主机available90.523GiB、服务current33.697GiB、磁盘132.493GiB；
+memory high/max/OOM/kill全0，无warning/abort/foreign compute。launch3b.json
+尚未产生；D801仍在运行，不执行close_launch/stop_remote/run_analysis，不把
+阶段性返回样本用于最终SLO或尾延迟结论，不在测量中清理、构建、调参或push。
+
+等待期间只读核对后续HydraServe已有隔离部署：D574/D576的原生生命周期、
+rootless Podman和7B结果继续复用，不改其他项目k3s。D576实际使用ENV
+installs/hydraserve_native_d484_20261013；现有rotary_embedding.py的get_rope
+分支未包含llama3（SHA00652e44bc6bc5c8ad0f529c359c6a646ed888890f9477117fbcc4d5166e4ea7），
+而既有3B配置明确rope_type=llama3及tie_word_embeddings=true。其llama.py SHA
+13b7e5f17b678ea73d35901649b856ca771b632ae9f81c986676606fe18a558a。
+这是后续3B必要模型适配的静态线索，尚未做运行资格或改动；不能据此推断
+当前7B失败、整系统不支持或已经证明3B数值正确。后续先核对实际overlay、
+官方实现与既有3B适配历史，仅验证具体受影响路径，不重开无关平台资格。
+
+本轮为VERIFIED_WAIT，完整goal active；下一继续监测同一D801至真实终态/
+释放，随后严格核验保存、重复下载缓存回收、结果备份，再同配置Loquetier
+3B W2、隔离HydraServe3B、完整比较与PrimeLoRA优化。同版Full、A1–A5、
+S1–S13、成本/CE、审稿文档、图表和最终V2同步全部保留；不因等待或低SLO
+删减主线。没有待functions.wait/write_stdin句柄；实际运行载体是上述tmux。
+
+## 2026-10-24 15:34 CST D801完整W1已启动并持续运行
+
+绑定检查点MAIN d37b068a89ac06db09c914053330095704836221已核验推送到
+faaslora_origin/backup/d801-loquetier-3b-w1-binding-20261024；BASE仍8594922，
+未stage用户修改、未force push，最终V2分歧仍保留。prepare/prepare2/backup/
+start四个短CPU辅助域均已关闭，high/max/OOM0；没有待write_stdin启动句柄。
+
+唯一tmux tc-d801-loquetier-3b-w1实际pane628301/bash存活。服务unit
+primelora-tc-svc-1b722eed32104b4db211a4b9bdd8203d.scope，invocation
+44b94e666bd641a5a46497bc2929f450、inode31635550，实际active/running；
+长运行辅助域d801...0005仍工作。remote monitor为d801-full-w1，实际本轮
+3B/7B/monitor invocation记录1438a6c282b0480c80e565b6df0eb503 /
+7fc0943a0ecc4a3b8981fafa6b2f1aa1 / 4415968f74e44d0fa76e27ae67024ad9。
+3B clock_id为remote-process-monotonic:084576c55bbb459eb1977169fc8fa1d7。
+真实D80预发布gzip健康检查通过；未在运行中维护远端。
+
+15:34:16请求按open-loop进入，日志含req_00050创建（不是完成数）；sample86
+主机available105.910GiB、服务11.003GiB、磁盘143.142GiB，high/max/OOM0，
+无warning/abort/foreign compute。仍在准备/逐分片初始化，无launch3b.json
+终态，不重启、不提前收尾，不将请求提交当作生成/数值/SLO通过。
+
+仅预备四个终态后小包装入口，复用D589/D800流程：close_launch.py SHA
+ca347c8a...、stop_remote.py ebc1c0a7...、preserve_evidence.py 6ee33531...、
+run_analysis.py 98384178...。CPU2展开AST/bash -n通过；未执行关闭、SSH采集
+或分析，未修改运行中的服务/配置。分析固定--model-key 3b、full4000_w1、
+D648共同阈值、实际outcome；后置脚本随结果备份，不在测量中push。
+
+本轮PROGRESS（完成绑定/备份/实际启动）并有VERIFIED_WAIT。下一持续同一
+D801至真实终态/释放→核验保存/重复缓存回收→同配置W2→隔离HydraServe3B
+→全比较/PrimeLoRA优化/同版Full/A1–A5/S1–S13/成本/审稿文档/图表/最终V2。
+不削减任何未完成范围，完整goal保持active。
 
 ## 2026-10-24 15:31 CST D801同配置W1输入登记完成
 

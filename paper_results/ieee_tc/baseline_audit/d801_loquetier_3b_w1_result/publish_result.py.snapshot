@@ -1,0 +1,35 @@
+"""Reuse explicit-path result publication for the complete D801 W1 observation."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '13866fcfdb80fe5d7222f3c3d3c6c4d68f63ead4cb66084bb7af050f006a6953'
+source = data.decode()
+changes = {
+    'completed coverage evidence': 'completed W1 evidence',
+    "'audit_coverage500.json'": "'audit_full4000.json'",
+    "audit['native_revalidated_requests'] == 500": "audit['native_revalidated_requests'] == 4000",
+    "audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500":
+        "audit['served_adapter_ids'] == 132 and audit['deployment_prepared_adapters'] == 500",
+    '482ff4d378ffc8358764b34834ab9c0017e8071f': 'd37b068a89ac06db09c914053330095704836221',
+    'd799_loquetier_3b_coverage': 'd801_loquetier_3b_w1_result',
+    "'analysis_config_alias.json',": '',
+    'http_3b_coverage500.json': 'http_3b_4000.json',
+    'ieee_tc_loquetier_full500_coverage_v1': 'ieee_tc_loquetier_full4000_w1_result_v1',
+    'adapter_pool_functional_coverage': 'native_3b_full_w1_development_observation',
+    'independent_full_pool_numerical_correctness_proven': 'independent_full_workload_numerical_correctness_proven',
+    'unchanged Loquetier 3B W0/W1/W2, then isolated HydraServe 3B and full comparison':
+        'unchanged Loquetier 3B W2, then isolated HydraServe 3B and full comparison',
+    "MAIN/'docs/ieee_tc/D799_LOQUETIER_3B_COVERAGE_RESULT_20261024.md',*sorted(OUT.iterdir())":
+        "MAIN/'docs/ieee_tc/D801_LOQUETIER_3B_W1_RESULT_20261024.md', "
+        "MAIN/'docs/ieee_tc/HYDRASERVE_3B_MODEL_COMPATIBILITY_AUDIT_20261024.md',*sorted(OUT.iterdir())",
+    'backup/d799-loquetier-3b-coverage-20261024': 'backup/d801-loquetier-3b-w1-result-20261024',
+    'tc: seal Loquetier 3B complete500 coverage evidence (D799)':
+        'tc: seal Loquetier 3B W1 and record HydraServe model compatibility (D801)',
+}
+for before, after in changes.items():
+    expected = 2 if before == "'audit_coverage500.json'" else 1
+    assert source.count(before) == expected, (before, source.count(before))
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
