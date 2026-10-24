@@ -1,0 +1,33 @@
+{
+  "head": "05e793bf0dabbec30d03eb8b35d39bb169284155",
+  "ref": "refs/heads/backup/d814-max3-fullw2-20261025",
+  "files": [
+    "configs/ieee_tc/20261025_d814_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D814_3B_MAX3_FULL_W2_20261025.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "scripts/ieee_tc/audit_d703_3b_full.py",
+    "tests/test_ieee_tc_diagnostic_plot.py",
+    "docs/ieee_tc/D813_3B_MAX3_FULL_W1_20261025.md",
+    "paper_results/ieee_tc/storage/20261025_d813_closed_outcome.json",
+    "paper_results/ieee_tc/storage/20261025_d813_closed_outcome_verification.json",
+    "paper_results/ieee_tc/storage/20261025_d813_closed_outcome.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/arrival_audit_tests.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/close_start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/evidence.sha256",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/execution_contract_tests.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/prior_execution_evidence.tar.gz",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/reused_alias_qualification.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/reused_d812_control.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/reused_qualification.json",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/prelaunch/stop_remote.sh.snapshot"
+  ]
+}

@@ -1,0 +1,166 @@
+"""D814 failure receipt; reuse D311 projection and the closed-outcome compressor.
+
+No complete-run metric claim, no inference, no modification of source evidence.
+"""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.check_d299_full_context import project_incomplete
+from scripts.ieee_tc import compress_closed_main_outcomes as compressor
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'failure_closure_identity.json', own)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+launch = read(RUN/'launch.json')
+assert launch['pass'] is False
+assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert launch['watchdog_returncode'] == 0
+stop = (RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive') == stop.count('MainPID=0') == 3
+remote_paths = [x for x in stop.splitlines() if x.startswith(
+    '/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and x.endswith('.jsonl')]
+assert len(remote_paths) == 1
+for local, remote in [('remote_transfers.jsonl', remote_paths[0]),
+    ('remote_monitor.log', '/home/lab14/primelora_remote/tc/d814_20261025/remote_monitor.log')]:
+    with (RAW/local).open('xb') as stream:
+        subprocess.run(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', 'cat', remote],
+            stdout=stream, stderr=subprocess.PIPE, check=True, timeout=60)
+assert p.digest(RAW/'remote_monitor.log') == next(x.split()[0] for x in stop.splitlines()
+    if x.endswith('/d814_20261025/remote_monitor.log'))
+physical_dir = RUN/'launch.launch/physical_deployment'
+summary = read(physical_dir/'summary.json')
+physical = read(physical_dir/'physical_resource_summary.json')
+assert summary['n_plan'] == physical['n_plan'] == 4000
+assert not summary['measurement_complete'] and not physical['measurement_complete']
+assert summary['n_correct'] is None and physical['physical_gpu_seconds_total'] is None
+assert not summary['open_lease_ids'] and not physical['open_lease_ids']
+assert p.digest(physical_dir/'summary.json') == physical['summary_sha256']
+for entry in summary['allocation_journals']:
+    assert entry['released'] and p.digest(Path(entry['path'])) == entry['sha256']
+terminals_path = Path(summary['request_terminals_path'])
+assert p.digest(terminals_path) == summary['request_terminals_sha256']
+terminals = [json.loads(x) for x in terminals_path.read_text().splitlines()]
+assert len({x['request_id'] for x in terminals}) == len(terminals)
+terminal_counts = collections.Counter((x['event'], x['success']) for x in terminals)
+failed_requests = [x for x in terminals if not x['success']]
+with (RUN/'launch.launch/replay.jsonl').open() as stream:
+    for line in stream:
+        replay = json.loads(line)
+assert replay['event'] == 'replay_incomplete' and replay['N_plan'] == 4000
+outcome = physical_dir/'main_outcome.json'
+print('Projecting retained incomplete outcome without loading the request tree.', flush=True)
+projected = project_incomplete(outcome)
+assert projected['planned_request_count'] == 4000
+transfers = projected.pop('remote_transfers')
+server_rows = [json.loads(x) for x in (RAW/'remote_transfers.jsonl').read_text().splitlines()]
+server = {r['transfer_id']: r for r in server_rows}
+assert len(server) == len(server_rows)
+matched = []
+for row in transfers:
+    remote = server.get(row.get('http_transfer_id'))
+    if remote is not None:
+        assert row['artifact_id'] == remote['artifact_id']
+        matched.append(remote['transfer_id'])
+    if row.get('state') == 'published':
+        assert remote and row['content_verified'] and row['published_archive_verified']
+        assert row['remote_archive_sha256'] == remote['archive_sha256']
+        assert row['transferred_bytes'] == remote['archive_bytes'] == remote['bytes_read'] == remote['bytes_written']
+        assert remote['outcome'] == 'sent'
+    assert row.get('remote_pack_performed') is False
+assert all(not row['pack_performed'] and not row['temporary_created'] for row in server_rows)
+events, memory = collections.Counter(), collections.Counter()
+peak = swap = 0
+available = disk = None
+aborts = []
+watchdog = RUN/'launch.launch/watchdog.jsonl'
+with watchdog.open() as stream:
+    for line in stream:
+        row = json.loads(line)
+        events[row['event']] += 1
+        if row['event'] != 'resource_sample':
+            continue
+        peak = max(peak, row['service']['memory.peak'])
+        swap = max(swap, row['service']['memory.swap.current'])
+        av = row['host']['available_bytes']
+        ds = min(x['free_bytes'] for x in row['filesystems'])
+        available = av if available is None else min(available, av)
+        disk = ds if disk is None else min(disk, ds)
+        for key, value in row['service']['memory.events'].items():
+            memory[key] = max(memory[key], value)
+        if row['decision']['abort_reasons']:
+            aborts.append(row['decision'])
+assert events['gpu_terminal_census'] == events['service_domain_gone'] == 1
+protected_path = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.digest(protected_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = read(protected_path)['entries']
+assert len(protected) == 147
+for name, entry in protected.items():
+    assert p.digest(Path(name)) == entry['sha256'], name
+OUT.mkdir(parents=True, exist_ok=False)
+context = dict(kind='d814_incomplete_w2_evidence_v1', run=str(RUN),
+    replay_terminal=replay, summary=summary, physical=physical,
+    terminal_counts=[dict(event=k[0], success=k[1], count=v) for k, v in terminal_counts.items()],
+    terminal_meta=projected, launch_classification=launch['classification'],
+    underlying_failure='Request local-file capacity conflict, followed by residency submission of an already-failed movement; exact capacity/reclamation cause remains under investigation.',
+    resources=dict(event_counts=dict(events), memory_events=dict(memory), peak_bytes=peak,
+        max_swap_bytes=swap, min_host_available_bytes=available, min_disk_free_bytes=disk, aborts=aborts),
+    remote=dict(client_records=len(transfers), server_records=len(server_rows),
+        matched_records=len(matched), client_states=dict(collections.Counter(r['state'] for r in transfers)),
+        unmatched_server_ids=sorted(set(server)-set(matched)),
+        published_wire_bytes=sum(r['transferred_bytes'] for r in transfers if r['state']=='published'),
+        pack_performed=False),
+    n_correct=None, n_good=None, full_replay=False, ranking_eligible=False, confidence_interval=None,
+    protected_files=147, protected_source=ref(protected_path),
+    caveats=['Unarrived requests are not imputed as timeouts.',
+        'Observed GPU-s is truncated, not a complete low-resource performance point.',
+        'Native token/binding evidence does not establish independent numerical correctness.',
+        'Launcher classification is preserved separately from the preceding service error.'])
+save(OUT/'context.json', context)
+save(OUT/'failed_requests.json', failed_requests)
+save(OUT/'failed_transfers.json', [r for r in transfers if r['state'] != 'published'])
+source_paths = [outcome, RUN/'launch.json', watchdog, RUN/'launch.launch/replay.jsonl',
+    RUN/'launch.launch/service.log', physical_dir/'summary.json', physical_dir/'physical_resource_summary.json',
+    terminals_path, RAW/'remote_stop.log', RAW/'remote_transfers.jsonl', RAW/'remote_monitor.log',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md', Path(__file__)]
+source_refs = [ref(path) for path in source_paths]
+save(OUT/'sources.json', source_refs)
+print(json.dumps(dict(replay=replay, terminal_counts=context['terminal_counts'],
+    resources=context['resources'], remote=context['remote'], error=projected['error'])), flush=True)
+# Maintenance reuses the explicit failure-aware compressor after real release.
+compressor.TARGETS = [dict(run='d814_20261025/3b_max3_full_w2', audit_sha=source_refs[0]['sha256'])]
+compressor.OUT = OUT/'storage.json'
+assert compressor.main(allow_closed_failure=True) == 0
+for name, entry in protected.items():
+    assert p.digest(Path(name)) == entry['sha256'], name
+group = Path(own['path'])
+assert all(int(row.split()[1]) == 0 for row in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'analysis_resources.json', dict(identity=own, snapshot=p.cgroup_snapshot(group)))
+with (OUT/'close_failed.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json', dict(files=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()],
+    compressor=ref(Path(compressor.__file__)), no_performance_ranking=True))
+print(json.dumps(dict(saved=str(OUT), disk_free_bytes=os.statvfs(RAW).f_bavail*os.statvfs(RAW).f_frsize)), flush=True)

@@ -1,0 +1,34 @@
+[
+  {
+    "artifact_id": "writing_lora_0419",
+    "state": "not_published",
+    "transfer_id": "9f51ac8e140141aa99953d4ab8c8e9db",
+    "local_source_owner_id": "17b648ebc3bc412897af1dad128b8eca",
+    "target_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0419",
+    "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+    "transferred_bytes": 0,
+    "content_verified": false,
+    "http_transfer_id": "952de9e9c2da4058a4da4eb5616e9e97",
+    "remote_timing_available": true,
+    "remote_pack_ms": 0.0,
+    "stages_clock": "client_monotonic",
+    "remote_spans_additive_to_client_total": false,
+    "loading_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "loading_started_monotonic_s": 2373282.970698929,
+    "headers_received_monotonic_s": 2373282.973297296,
+    "remote_timing_contract": "artifact_timing_v2",
+    "remote_delivery_mode": "prepublished_gzip_v1",
+    "remote_pack_performed": false,
+    "remote_pack_duration_basis": "absent_by_published_contract",
+    "remote_archive_sha256": "c146fd3229d403e19d588d1ad6366351fd2b75c84ca9fca5d5df5e01e77bad92",
+    "archive_bytes_declared": 2318346,
+    "payload_bytes_expected": 37453100,
+    "elapsed_ms": 979.0960261598229,
+    "client_completed_monotonic_s": 2373283.949254054,
+    "client_stage_ms": {
+      "request_to_headers_ms": 2.598367165774107,
+      "reserve_receive_and_write_ms": null,
+      "extract_and_verify_ms": null
+    }
+  }
+]

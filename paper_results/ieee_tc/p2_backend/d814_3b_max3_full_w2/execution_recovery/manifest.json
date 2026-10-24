@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/close_failed.py.snapshot",
+      "sha256": "b40c4301c67b1b2199d5eca24123c44207f2b9c05bf6dd2590bcdf5c7a141f5f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/failure_closure_identity.json",
+      "sha256": "1b6f9d65fb1c0f553b4602e5645a194fb238b2e405b2bf785f24fc686a00702e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/compress_closed_results.py.snapshot",
+      "sha256": "81b5bb9e8c1ca9290b84d07a226b2cae49409a54b607531a9301ae9174cfa3a9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/compress_closed_results_attempt1.py.snapshot",
+      "sha256": "697e65ba729418861c2600f9859e59ac1da2c0833e176a2274846a9edd5d9145"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/additional_storage_identity.json",
+      "sha256": "d362fd52ce85800611edc0cb18deba4566f0c706c1828bb470a27e2e2f736993"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/additional_storage_identity2.json",
+      "sha256": "2c6b866e0d8378db94cf01f5dc49a97fb89e73a53083015aab360c71d680d7f0"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/start_closure.json",
+      "sha256": "c3cb01623e15772e928071308660acaa2b85c47bf4f4419cbd0d776ff76e450a"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/start_receipt.json",
+      "sha256": "a6601703eb21b44994f01ddfa1dc03b2192baca6a7e539bdb7107603b7a36c74"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/commit.json",
+      "sha256": "6163e5ba0b831c2378b1ec89ef7de30ca5d0230e376b57657404132e4a40c8db"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/execution_recovery/backup.json",
+      "sha256": "c8b81c99d41317c0fbdb1465e6dec82d418cac04368d317d897691359bac6acf"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d814fa11000000000000000000000003.scope",
+    "invocation_id": "d8c45ff82e514486a8641cfdf5c1d36b",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d814fa11000000000000000000000003.scope",
+    "inode": 31955261
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d814fa11000000000000000000000003.scope",
+    "memory.current": 135962624,
+    "memory.peak": 136781824,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 26468723\nuser_usec 24815491\nsystem_usec 1653231\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected_files": 147,
+  "receipt_sha256": "21d940c8034b23ddc5043df5de28b599c913010f67ab1a1e5d8d170b5e7ba04e",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "81b5bb9e8c1ca9290b84d07a226b2cae49409a54b607531a9301ae9174cfa3a9",
+  "prior_attempt": "Initial maintenance stopped before compression: D812 predates full_replay and records full_w0. Exact executed script and scope identity retained; explicit case-specific field checked, not defaulted.",
+  "restoration": "Restore exact original bytes from .gz and verify source_sha256 before an analyzer requiring the original path. No metric or source identity is rewritten."
+}

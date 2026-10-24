@@ -1,4 +1,151 @@
-# IEEE TC execution status — D814 same-config W2 preparation; W1 remains nonfeasible
+# IEEE TC execution status — D814 W2 truncated by file-capacity failure; no rerun
+
+## 2026-10-25 D814失败已关闭封存，转向容量根因，不重复回放
+
+上一目标轮VERIFIED WAIT；本轮PROGRESS。完整重读PLAN/当前状态/指标V1+
+单轮V2和相关技能；监测cell6684第15次发现原worker退出、首条请求失败，
+仅终止监测器，未手工杀推理或重启。约02:20:52开始正常错误收尾，02:22
+真实GPU/服务释放，自有3B/7B/monitor远端均inactive。launch/summary及
+native census闭合，无open lease。原tmux执行已结束，勿重启D814。
+
+4000计划，外置replay arrived3398/submitted3342；正常原生终态3289，失败1，
+interrupted3。n_correct仍null，measurement_complete=false。U_obs
+9082.862811430823 GPU-s是截断量，不能报完整资源优势/整轮SLO/G1/G2。
+`writing_lora_0419`/req_03285收到headers后本地容量预留失败，客户端0B；
+随后residency再次提交已失败movement触发错误，回放连接断开在后。
+launch原`protocol_or_launcher_error`保留，不能代替服务根因分析。
+421客户端/服务端transfer IDs匹配，420published/1not_published，已发布
+线上974812652B，request packing0。high/max/OOM/swap0，svc peak
+32687804416B，minhost96581042176B，mindisk144754327552B，未触发watchdog。
+
+`d814_3b_max3_full_w2/closed_failure/`保存context/failed requests/transfers/
+source SHA/分析资源/压缩回执。复用D311 project_incomplete与既有压缩器，
+未放松完整运行analyzer；147保护文件未变。D814 main_outcome.json原
+1095614616B SHA5a3c45c10da2a752d348b1a35ba86b3082304519c322ea6edcc0911152af55e5
+已无损gzip146176624B，SHA751a33b9d1c291564534728eaaf5fbad9acc3d06b26dc86d21923e1b05b95ea1，
+回收949440512B。D812/D813 experiment_results JSON也经两次解压SHA后压缩，
+另回收545222656B；合计1494663168B。需要原路径的旧analyzer先恢复并核SHA，
+不要将缺少未压缩文件当丢失数据。磁盘约150.4GiB，启动前仍须重新检查。
+首个附加存储attempt在压缩前因D812旧schema字段停止，源脚本/身份保留；
+第二次按每案例明确字段成功，未改旧指标。分析/存储aux域均已自然移除。
+
+新的具体假设：Full planned_only下demand miss未带replacement epoch，
+而文件回收只处理有objective或demand_lru的入口；GPU/HOST准备的中间NVMe
+搬运也要检查。尚未证明本轮所有阻塞副本可驱逐。对照D277的GPU lease修复、
+D449普通LRU及D680文件历史和官方vLLM容量管理，下一在既有fixture中做同
+预算且有可回收副本的最小复现，随后保持九公式修正合法入场/回收/延期路径。
+不放大预算、不吞异常、不盲重试、不把Full改为ElasticLocality。
+
+先完成D814失败/存储检查点备份，再做该因果验证。W0 95.05%、W1 93.975%、
+W2截断均保留，3B未达跨场景目标。两模型同版主比较/Full、A1–A5、S1–S13、
+CE/成本/Pareto、审稿文档和最终图文/V2全部保留，目标保持active。
+
+## 2026-10-25 02:09 CST D814完成2528条，原W2仍在推进
+
+上一目标轮和本轮均VERIFIED WAIT；非阻塞。完整重读PLAN、当前状态及
+monitor-experiment，连续13次实测同一service/tmux/worker，12次45秒等待。
+cell6679已正常结束，仅监测器结束，真实实验仍active，无待工具session。
+
+02:08:54 Invocation6225d468f98f4a899ab80c98501f8673、pane2205998持续，
+worker2207716/2209554/2209682 CPU时间23:36/21:18/24:25。
+arrived2530/done2528/ok2528/fail0，elapsed38:17；仍未完整4000，不报告
+最终SLO/GPU-s或胜负。watchdog sample2333、monotonic2372581.252873792：
+host available98266443776B、service peak28538052608B、disk148424609792B，
+high/max/OOM/swap0，无foreign compute、保护告警或中止。
+
+未改在线源码/配置、未运行其他重型工作或远端维护。磁盘仍高于本轮100GiB
+停止线，低于新任务150GiB启动线；待本轮真实释放后维护，不在测量中清理。
+继续同一W2至完整终态，随后按D813模板（W2参考/映射）分析封存并备份。
+W1联合93.975%仍未达标，后续优化须合看W0/W1/W2，保留全部结果和未知
+数值正确性边界。同版两模型主比较/Full、A1–A5、S1–S13、成本/CE/Pareto、
+两轮审稿文档与图文/V2交付完整保留；目标active，不重复启动当前执行键。
+
+## 2026-10-25 01:59 CST D814完成1761条，继续同一W2
+
+本目标轮VERIFIED WAIT，上一目标轮同为VERIFIED WAIT，外部实验持续推进，
+不是阻塞。完整重读PLAN、当前状态、AGENTS及monitor-experiment，核对活动
+完整目标；13次定时实测与12次45秒等待，同一service/tmux/worker未重启。
+监测cell6674已正常结束，结束的只是监测器，真实实验仍active。
+
+01:59 Invocation6225d468f98f4a899ab80c98501f8673、pane2205998不变，
+worker2207716/2209554/2209682 CPU时间17:35/15:20/18:12持续增加。
+arrived1768/done1761/ok1761/fail0，elapsed28:32；尚未完整4000，
+不报告最终SLO、GPU-s或胜负。watchdog sample1755、monotonic
+2371995.383018765：host available98310029312B、service peak24653303808B、
+disk152140066816B，high/max/OOM/swap0，无foreign compute或保护告警。
+磁盘低于新任务150GiB启动线但高于本轮100GiB停止线；不在测量中清理。
+
+未改在线源码或配置、未运行测试/构建/扫描/压缩/推送/远端维护；除本状态
+记录外仅只读监测。下一继续原W2至完整终态与真实释放，复用D813完成/封存
+流程并使用W2映射与参考，保留n_correct未知与单轮身份；再保存备份并安全
+恢复磁盘余量。W1联合SLO93.975%未达标仍待证据驱动优化。完整两模型同版
+主比较/Full、A1–A5、S1–S13、CE/成本/Pareto、两轮审稿文档、最终图文和V2
+交付未删减；目标保持active，无待工具session，不重复启动此执行键。
+
+## 2026-10-25 01:46 CST D814完成858条，原运行继续
+
+上一目标轮、本轮均VERIFIED WAIT。完整重读PLAN、当前状态及
+monitor-experiment；连续13次实测同一service/tmux/worker，中间12次
+45秒等待。监测cell6668已正常结束，仅监测器结束，真实实验仍active；
+没有待工具session、重启、源码/参数修改、远端维护、扫描压缩或推送。
+
+01:46同一Invocation6225d468f98f4a899ab80c98501f8673、pane2205998、
+worker2207716/2209554/2209682持续，CPU时间分别09:29/08:08/09:37。
+arrived862/done858/ok858/fail0，elapsed15:51；尚未完整4000，
+不输出最终SLO/资源或胜负结论。sample1003/monotonic2371233.169278092：
+host98722775040B、service peak19971428352B、disk156285771776B，
+high/max/OOM/swap0，无foreign compute和保护告警。
+
+继续监测同一W2至完整终态、真实释放和远端关闭，再复用D813完成/封存
+流程（须改用W2参考和映射），保留n_correct未知及单轮身份。随后保存、
+正常检查点备份与有证据存储维护；运行时不为150GiB新任务门槛清理。
+W1未达标仍待有证据优化，完整两模型主比较/Full、A1–A5、S1–S13、
+CE/成本/Pareto、两轮审稿文档及最终图文/V2未删除，目标保持active。
+
+## 2026-10-25 01:36 CST D814通过前两次轮换，继续原运行
+
+上一目标轮PROGRESS（完成准备/备份/启动）；本轮VERIFIED WAIT。完整重读
+PLAN、当前状态与monitor-experiment后，四次45秒等待并核验实际进程。
+同一service Invocation6225d468f98f4a899ab80c98501f8673仍active，
+tmux pane2205998及worker2207716/2209554/2209682持续，CPU时间增长。
+01:36 arrived257/done255/ok255/fail0，elapsed05:48；尚未完成，
+不把局部样本或终端5000ms展示当成冻结共同SLO结果。
+
+watchdog sample409/monotonic2370630.997092925：host available
+98978992128B，service peak17248403456B，disk159100104704B，
+high/max/OOM/swap0，无foreign compute和保护告警。磁盘已低于新任务
+150GiB启动线，但高于当前运行100GiB停止线；不在测量中清理。结束后再
+依据已关闭证据和可重建缓存恢复启动余量，不能删唯一数据或降低门槛。
+
+未改运行源码/配置、未开新测试、未操作远端或推送。下一继续监测同一
+W2直到正常终态与真实释放，再审计/保存/备份及存储维护。W1未达标、
+完整优化目标和所有后续主比较/消融/敏感性/成本/图文交付仍保留且active。
+
+## 2026-10-25 01:31 CST D814已备份启动，原W2回放持续
+
+本目标轮PROGRESS：D814配置与D812仅三个独立输出路径不同；既有W2 map/
+view复用，runner新增入口与audit_d703的map身份重建，无在线算法改动。
+3条新合同测试＋25条离线视图/分母测试通过，复用D748/D751/D812资格。
+147保护通过、未stage用户manifest/BASE改动，secrets/diff/归档SHA检查后
+提交05e793bf0dabbec30d03eb8b35d39bb169284155，push并ls-remote核对
+refs/heads/backup/d814-max3-fullw2-20261025。D813备份后压缩/释放证据
+已纳入本检查点。未宣称最终V2已同步，原生资格不重跑。
+
+01:29启动tmux tc-d814-3b-max3-full-w2，pane2205998；实际service
+primelora-tc-svc-d6fb3611540a4356be31d5da85c21019.scope，
+Invocation6225d468f98f4a899ab80c98501f8673；worker2207716/2209554/2209682。
+launch记录source/view/map均与预登记3B W2一致，4000/60秒合同不变。
+01:31 request_terminals10条，未结束，无整轮SLO/U推断。sample101
+monotonic2370318.762255844：host100535619584B、disk161107582976B，
+service memory13002723328B、high/max/OOM/swap0，无保护告警。
+远端启动记录1000Mb/s/full；两个制品服务及本轮monitor仍为原运行使用，
+不得重启、压缩、扫描、构建或推送。prelaunch管理scope已自然移除并核实
+inactive/空Invocation/path absent，未对实际service发信号；无挂起exec session。
+
+下一只监测同一运行至完成，再真实释放/审计/保存/备份；D813 W1未达95%
+仍保留。W2后按历史与原始论文/官方实现挑一个可证伪优化，不改评价尺子、
+不按场景换参数、不重复同键求胜。完整两模型同版主比较/Full、A1–A5、
+S1–S13、CE/Pareto/成本、两轮审稿文档及最终图文/V2仍待续，目标active。
 
 ## 2026-10-25 D814同配置W2准备，无新在线优化
 

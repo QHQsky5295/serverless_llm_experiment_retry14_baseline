@@ -1,0 +1,208 @@
+{
+  "kind": "d814_incomplete_w2_evidence_v1",
+  "run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2",
+  "replay_terminal": {
+    "event": "replay_incomplete",
+    "N_plan": 4000,
+    "N_arrived": 3398,
+    "N_submitted": 3342,
+    "error": "ConnectionResetError: Connection lost"
+  },
+  "summary": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/90532ee49cbc48a08931c66648164e42.jsonl",
+        "released": true,
+        "sha256": "9d1df8a1677b6cf4b8c6638f93c4b95b78f81f3d85e877a67c54d2b3f0dadecd"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/abb11cd1b43d4246b6563e7607d8c398.jsonl",
+        "released": true,
+        "sha256": "6c783248262b0dc6f91327bb5cff948c03706d9f77b9c0f49652d83e9ec2d5e1"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/ca5fac81f7234569ad2ffbed84e86d9d.jsonl",
+        "released": true,
+        "sha256": "e203ee8236db1c44abab14fdc736f57b27749a5de2cc54afce2384c64d215055"
+      }
+    ],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "contract": "physical_gpu_owner_union_v1",
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "device_intervals": {
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          2370288.444485905,
+          2373300.380697436
+        ]
+      ],
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          2370243.151727451,
+          2373300.837558439
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          2370286.391559298,
+          2373299.63232821
+        ]
+      ]
+    },
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 9082.862811430823,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 2.270715702857706,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 3,
+    "n_native_contract_complete": 3289,
+    "n_plan": 4000,
+    "n_terminal": 3290,
+    "observed_until_s": 2373373.465026116,
+    "open_lease_ids": [],
+    "owner_and_native_census_qualification_required": true,
+    "owner_event_count": 6,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "77f81d770e1253a38ade7a6302183fc6b22e27cb041b00ba75655935b875603f",
+    "window_gpu_seconds": {
+      "arrival": 9048.63195655588,
+      "cleanup": 0.0,
+      "drain": 0.0,
+      "pre_arrival": 34.23085487494245
+    }
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/90532ee49cbc48a08931c66648164e42.jsonl",
+        "released": true,
+        "sha256": "9d1df8a1677b6cf4b8c6638f93c4b95b78f81f3d85e877a67c54d2b3f0dadecd"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/abb11cd1b43d4246b6563e7607d8c398.jsonl",
+        "released": true,
+        "sha256": "6c783248262b0dc6f91327bb5cff948c03706d9f77b9c0f49652d83e9ec2d5e1"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_allocations/ca5fac81f7234569ad2ffbed84e86d9d.jsonl",
+        "released": true,
+        "sha256": "e203ee8236db1c44abab14fdc736f57b27749a5de2cc54afce2384c64d215055"
+      }
+    ],
+    "contract": "physical_gpu_resource_summary_v1",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "eligible_physical_measurement": false,
+    "legacy_fields_not_accepted": [
+      "infra_gpu_seconds_total",
+      "instance_lifecycle_log"
+    ],
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 3,
+    "n_native_contract_complete": 3289,
+    "n_plan": 4000,
+    "n_terminal": 3290,
+    "open_lease_ids": [],
+    "physical_gpu_seconds_observed": 9082.862811430823,
+    "physical_gpu_seconds_per_correct_request": null,
+    "physical_gpu_seconds_total": null,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "77f81d770e1253a38ade7a6302183fc6b22e27cb041b00ba75655935b875603f",
+    "result_file": {
+      "exists": false,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d814_3b_max3_full_w2.json",
+      "sha256": null
+    },
+    "summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d814_20261025/3b_max3_full_w2/launch.launch/physical_deployment/summary.json",
+    "summary_sha256": "b7f6beae14bb72720cd4743d088cdfcc374dda4ac7161dca5938e3e95edd2f59"
+  },
+  "terminal_counts": [
+    {
+      "event": "request_terminal",
+      "success": true,
+      "count": 3289
+    },
+    {
+      "event": "request_terminal",
+      "success": false,
+      "count": 1
+    },
+    {
+      "event": "request_interrupted",
+      "success": false,
+      "count": 3
+    }
+  ],
+  "terminal_meta": {
+    "planned_request_count": 4000,
+    "run_completed": false,
+    "error": {
+      "stage": "main_execution",
+      "type": "RuntimeError",
+      "message": "failed movement requires explicit owner recovery, not an automatic retry",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 25883, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16691, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14493, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13658, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13970, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14108, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14162, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20061, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20323, in _run_ieee_file_preparation_plan\n    return await self._execute_ieee_file_preparation_plan(plan=plan,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20672, in _execute_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20613, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19756, in _run_ieee_gpu_preparation_plan\n    result = await asyncio.gather(*waiters)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19710, in stage_and_submit\n    context = await prepare_source(aid, plan_id)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20589, in prepare_gpu_source\n    feedback['remote'] = await move(aid, 'nvme', None, candidate.density)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20530, in move\n    return await self._queue_ieee_file_preparation(adapter_id=aid,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20808, in _queue_ieee_file_preparation\n    job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 91, in submit\n    raise RuntimeError('failed movement requires explicit owner recovery, not an automatic retry')\nRuntimeError: failed movement requires explicit owner recovery, not an automatic retry\n"
+    },
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "launch_classification": "protocol_or_launcher_error",
+  "underlying_failure": "Request local-file capacity conflict, followed by residency submission of an already-failed movement; exact capacity/reclamation cause remains under investigation.",
+  "resources": {
+    "event_counts": {
+      "watchdog_ready": 1,
+      "resource_sample": 3116,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "peak_bytes": 32687804416,
+    "max_swap_bytes": 0,
+    "min_host_available_bytes": 96581042176,
+    "min_disk_free_bytes": 144754327552,
+    "aborts": []
+  },
+  "remote": {
+    "client_records": 421,
+    "server_records": 421,
+    "matched_records": 421,
+    "client_states": {
+      "published": 420,
+      "not_published": 1
+    },
+    "unmatched_server_ids": [],
+    "published_wire_bytes": 974812652,
+    "pack_performed": false
+  },
+  "n_correct": null,
+  "n_good": null,
+  "full_replay": false,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "protected_files": 147,
+  "protected_source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  },
+  "caveats": [
+    "Unarrived requests are not imputed as timeouts.",
+    "Observed GPU-s is truncated, not a complete low-resource performance point.",
+    "Native token/binding evidence does not establish independent numerical correctness.",
+    "Launcher classification is preserved separately from the preceding service error."
+  ]
+}

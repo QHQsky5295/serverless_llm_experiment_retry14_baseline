@@ -1,0 +1,64 @@
+"""Reuse the existing compressor on two verified, closed result JSONs."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'additional_storage_identity2.json', own)
+previous = read(RAW/'failure_closure_identity.json')
+assert not Path(previous['path']).exists()
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+protected_path = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.digest(protected_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = read(protected_path)['entries']
+for name, row in protected.items():
+    assert p.digest(Path(name)) == row['sha256']
+targets = []
+for campaign, run, curated, full_field in [
+    ('d812_20261024', '3b_max3_full_w0', 'd812_3b_max3_full_w0', 'full_w0'),
+    ('d813_20261025', '3b_max3_full_w1', 'd813_3b_max3_full_w1', 'full_replay')]:
+    metric_path = ROOT/'paper_results/ieee_tc/p2_backend'/curated/'completion/full4000.json'
+    metric = read(metric_path)
+    assert metric['passed'] and metric[full_field]
+    source = next(x for x in metric['source_refs']
+        if Path(x['path']).name.startswith('experiment_results_full'))
+    path = Path(source['path'])
+    assert path.parent == c.RAW_ROOT/campaign/run
+    assert p.digest(path) == source['sha256']
+    targets.append(dict(run=campaign+'/'+run, run_result=path.name, audit_sha=source['sha256']))
+c.TARGETS = targets
+c.OUT = OUT/'closed_results_storage.json'
+assert c.main() == 0
+for name, row in protected.items():
+    assert p.digest(Path(name)) == row['sha256']
+resources = p.cgroup_snapshot(Path(own['path']))
+assert all(value == 0 for value in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+save(OUT/'closed_results_storage_verification.json', dict(passed=True,
+    identity=own, resources=resources, protected_files=len(protected),
+    receipt_sha256=p.digest(c.OUT), compressor_sha256=p.digest(Path(c.__file__)),
+    source_script_sha256=p.digest(Path(__file__)),
+    prior_attempt='Initial maintenance stopped before compression: D812 predates full_replay and records full_w0. Exact executed script and scope identity retained; explicit case-specific field checked, not defaulted.',
+    restoration='Restore exact original bytes from .gz and verify source_sha256 before an analyzer requiring the original path. No metric or source identity is rewritten.'))
+with (OUT/'compress_closed_results.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True, disk_free_bytes=os.statvfs(RAW).f_bavail*os.statvfs(RAW).f_frsize)))

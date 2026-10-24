@@ -1,0 +1,37 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/analysis_resources.json",
+      "sha256": "44e9d8007471887e20d968dc42d29cadec94f2b45826551ebd484e2b7e3b3fce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/close_failed.py.snapshot",
+      "sha256": "b40c4301c67b1b2199d5eca24123c44207f2b9c05bf6dd2590bcdf5c7a141f5f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/context.json",
+      "sha256": "44f11a8bfd925001b9aa84ea2fef1bfc89937e46d101d5186e14175424d2792d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/failed_requests.json",
+      "sha256": "e3c1a12c5d864a0ed9414435faaf87d08d7470a55314c609a7319a72e133cccf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/failed_transfers.json",
+      "sha256": "1004f9dca773aa8e559d68724c6d702da9c4d0cc7bff688d3add7b81669000a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/sources.json",
+      "sha256": "ddc8006ab0b42169a6b0be35b0dafa733697b9f3839ccea8567a91843e250bfe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d814_3b_max3_full_w2/closed_failure/storage.json",
+      "sha256": "5383fd4d110f269894bab93b3fb9faa857cf1f9193e21e868bee14dc4dfb5d0c"
+    }
+  ],
+  "compressor": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/compress_closed_main_outcomes.py",
+    "sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6"
+  },
+  "no_performance_ranking": true
+}
