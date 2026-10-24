@@ -3324,6 +3324,62 @@ class ConfirmedFilePublication(unittest.TestCase):
         source['tier'] = 'gpu'
         self.assertEqual(self.owner.source_snapshot('a')['sources'][0]['tier'], 'nvme')
 
+    def test_owner_verification_hashes_each_destination_once_before_visibility(self):
+        import hashlib
+        from faaslora.storage import http_artifact_store as http
+        real_hash = hashlib.sha256
+        hashed = []
+        class CountedHash:
+            def __init__(inner, *args, **kwargs):
+                inner.hash = real_hash(*args, **kwargs)
+            def update(inner, data):
+                hashed.append((len(data), self.owner.lock._is_owned()))
+                inner.hash.update(data)
+            def hexdigest(inner):
+                return inner.hash.hexdigest()
+        original = self.owner.publish_transfer
+        def publish(*args, **kwargs):
+            self.assertEqual(hashed, [], 'extraction must not hash payload in owner mode')
+            self.assertFalse((self.nvme / 'a').exists())
+            return original(*args, **kwargs)
+        with patch.object(http.hashlib, 'sha256', CountedHash), \
+                patch.object(self.owner, 'publish_transfer', side_effect=publish):
+            self.assertTrue(self.fetch()[0])
+        self.assertEqual(sum(size for size, _ in hashed), sum(map(len, self.payload.values())))
+        self.assertTrue(all(locked for _, locked in hashed))
+        receipt = self.runner._remote_transfer_evidence[-1]
+        self.assertEqual(receipt['content_verification'], 'owner_publication')
+        self.assertFalse(receipt['stream_content_verified'])
+        self.assertTrue(receipt['content_verified'])
+
+    def test_owner_rejects_same_size_bad_content_and_preserves_confirmed_copy(self):
+        self.fetch()
+        before = self.owner.source_snapshot('a')
+        bad = self.payload | {'nested/weights': b'X' * len(self.payload['nested/weights'])}
+        with self.assertRaisesRegex(RuntimeError, 'payload content changed'):
+            self.fetch(bad)
+        after = self.owner.source_snapshot('a')
+        self.assertEqual(after['sources'], before['sources'])
+        self.assertEqual(after['epoch'], before['epoch'])
+        receipt = self.runner._remote_transfer_evidence[-1]
+        self.assertEqual(receipt['state'], 'not_published')
+        self.assertFalse(receipt['content_verified'])
+        self.assertFalse(self.owner.materializations)
+        self.assertFalse(self.owner._transfer_workspaces)
+
+    def test_owner_receipt_is_required_before_content_verification_is_reported(self):
+        from faaslora.storage.http_artifact_store import RemoteArtifactError
+        for result in (None, {}, {'content_verified': True}):
+            with self.subTest(result=result), \
+                    patch.object(self.owner, 'publish_transfer', return_value=result), \
+                    self.assertRaisesRegex(RemoteArtifactError, 'owner did not confirm'):
+                self.fetch()
+            receipt = self.runner._remote_transfer_evidence[-1]
+            self.assertFalse(receipt['content_verified'])
+            self.assertEqual(receipt['state'], 'not_published')
+            self.assertFalse((self.nvme / 'a').exists())
+            self.assertFalse(self.owner.materializations)
+
     def test_directory_existence_is_not_confirmed_local_or_remote(self):
         (self.nvme / 'a').mkdir()
         (self.nvme / 'a' / 'unknown').write_bytes(b'x')

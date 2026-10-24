@@ -1,0 +1,184 @@
+{
+  "kind": "d825_single_destination_verification_component_v1",
+  "passed": true,
+  "rows": [
+    {
+      "index": 0,
+      "mode": "stream",
+      "phases": {
+        "extract": {
+          "wall_ms": 111.46282125264406,
+          "cpu_ms": 111.451368
+        },
+        "publish": {
+          "wall_ms": 103.12654497101903,
+          "cpu_ms": 103.10945299999985
+        }
+      },
+      "total_wall_ms": 214.5893662236631,
+      "total_cpu_ms": 214.56082099999986,
+      "hash_bytes": 67179604,
+      "hash_wall_ms": 177.7791823260486,
+      "hash_cpu_ms": 177.65231300000005,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.0018379651010036469,
+        "held_ms": 103.10596786439419
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    },
+    {
+      "index": 1,
+      "mode": "owner_publication",
+      "phases": {
+        "extract": {
+          "wall_ms": 24.399349000304937,
+          "cpu_ms": 24.379670000000075
+        },
+        "publish": {
+          "wall_ms": 92.3287938348949,
+          "cpu_ms": 92.32160100000009
+        }
+      },
+      "total_wall_ms": 116.72814283519983,
+      "total_cpu_ms": 116.70127100000016,
+      "hash_bytes": 33589802,
+      "hash_wall_ms": 83.06872239336371,
+      "hash_cpu_ms": 83.0156829999984,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.002118293195962906,
+        "held_ms": 92.31638396158814
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    },
+    {
+      "index": 2,
+      "mode": "owner_publication",
+      "phases": {
+        "extract": {
+          "wall_ms": 25.447199121117592,
+          "cpu_ms": 25.446668999999922
+        },
+        "publish": {
+          "wall_ms": 93.29194016754627,
+          "cpu_ms": 93.28344
+        }
+      },
+      "total_wall_ms": 118.73913928866386,
+      "total_cpu_ms": 118.73010899999991,
+      "hash_bytes": 33589802,
+      "hash_wall_ms": 84.14821838960052,
+      "hash_cpu_ms": 84.09650599999985,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.002895016223192215,
+        "held_ms": 93.2800960727036
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    },
+    {
+      "index": 3,
+      "mode": "stream",
+      "phases": {
+        "extract": {
+          "wall_ms": 112.14722273871303,
+          "cpu_ms": 112.13624200000005
+        },
+        "publish": {
+          "wall_ms": 91.17815690115094,
+          "cpu_ms": 91.17027799999988
+        }
+      },
+      "total_wall_ms": 203.32537963986397,
+      "total_cpu_ms": 203.30651999999992,
+      "hash_bytes": 67179604,
+      "hash_wall_ms": 168.86386135593057,
+      "hash_cpu_ms": 168.75627899999924,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.0015920959413051605,
+        "held_ms": 91.16770001128316
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    },
+    {
+      "index": 4,
+      "mode": "stream",
+      "phases": {
+        "extract": {
+          "wall_ms": 110.63460167497396,
+          "cpu_ms": 110.60706399999987
+        },
+        "publish": {
+          "wall_ms": 91.22216096147895,
+          "cpu_ms": 91.21445599999988
+        }
+      },
+      "total_wall_ms": 201.8567626364529,
+      "total_cpu_ms": 201.82151999999974,
+      "hash_bytes": 67179604,
+      "hash_wall_ms": 167.38363821059465,
+      "hash_cpu_ms": 167.25681700000194,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.0019059516489505768,
+        "held_ms": 91.21033595874906
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    },
+    {
+      "index": 5,
+      "mode": "owner_publication",
+      "phases": {
+        "extract": {
+          "wall_ms": 26.786023285239935,
+          "cpu_ms": 26.785623000000314
+        },
+        "publish": {
+          "wall_ms": 90.53123090416193,
+          "cpu_ms": 90.5232589999998
+        }
+      },
+      "total_wall_ms": 117.31725418940187,
+      "total_cpu_ms": 117.30888200000011,
+      "hash_bytes": 33589802,
+      "hash_wall_ms": 81.99627697467804,
+      "hash_cpu_ms": 81.94521399999921,
+      "lock": {
+        "thread": 125341256046400,
+        "wait_ms": 0.002153683453798294,
+        "held_ms": 90.5212452635169
+      },
+      "content_sha256": "6531b221ea672cbbf00299e8df2beb726331f67d3d8b87ad41a9957fba0f1ef0"
+    }
+  ],
+  "payload_bytes": 33589802,
+  "source_files": {
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_config.json": {
+      "sha256": "7efc9f4dc736f0c1dd9976aa25234ed4d3b93221ba7241367362af202217dd80",
+      "bytes": 1050
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_model.safetensors": {
+      "sha256": "763a734f248ff2557d156beaa0b78e35bdb97d02a8572de6e2e46466dcc69040",
+      "bytes": 33588752
+    }
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py": "761bf207d641d3b00bf2cc6906204d8c0232dad323005636b15cfd5f79dcf523",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "e5994f9a75ceda5e9b78efb5ce391a2c6243d1f162d067d79fa5d5a777481e88"
+  },
+  "method": "existing_regular_files_as_tar_member_streams_no_gzip_no_network",
+  "retained_destination_hash": true,
+  "owner_lock_unchanged": true,
+  "formal_performance": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "resources": {
+    "memory.peak": "347521024",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

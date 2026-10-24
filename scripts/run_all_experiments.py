@@ -19386,6 +19386,7 @@ class ScenarioRunner:
                                     source, destination, transfer_id=transfer_id),
                                 verified_files=verified_files),
                             cancel_event=cancel_event, require_content_manifest=True,
+                            content_verification='owner_publication',
                             evidence=transfer_evidence)
                 else:
                     ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(

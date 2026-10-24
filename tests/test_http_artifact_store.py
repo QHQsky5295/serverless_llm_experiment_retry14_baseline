@@ -612,6 +612,18 @@ class AtomicArtifactPublication(unittest.TestCase):
         self.client._opener.open.assert_not_called()
         self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
 
+    def test_publication_verification_requires_the_managed_owner_before_io(self):
+        self.client.configure_content_manifest(content_manifest())
+        for kwargs in ({}, {'publish_verified': Mock()},
+                       {'publish_verified': Mock(), 'workspace': Mock(), 'reserve_files': None}):
+            with self.subTest(kwargs=tuple(kwargs)), self.assertRaises(ValueError):
+                self.client.download_artifact('a', str(self.target), require_content_manifest=True,
+                    content_verification='owner_publication', **kwargs)
+        with self.assertRaisesRegex(ValueError, 'verification mode'):
+            self.client.download_artifact('a', str(self.target), content_verification='unchecked')
+        self.client._opener.open.assert_not_called()
+        self.assertEqual((self.target / 'old').read_bytes(), b'previous-valid-copy')
+
     def test_verified_transfer_rejects_same_length_wrong_content_without_publication(self):
         self.client.configure_content_manifest(content_manifest(
             files={'adapter_model.safetensors': b'wrong-test-bytes!'}))

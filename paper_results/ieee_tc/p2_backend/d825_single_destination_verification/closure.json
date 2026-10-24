@@ -1,0 +1,87 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_user_files": 3,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "cpu_scopes": [
+    {
+      "unit": "primelora-tc-aux-82500000000000000000000000000001.scope",
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "inactive": true
+    },
+    {
+      "unit": "primelora-tc-aux-82500000000000000000000000000002.scope",
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "inactive": true
+    },
+    {
+      "unit": "primelora-tc-aux-82500000000000000000000000000003.scope",
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "inactive": true
+    },
+    {
+      "unit": "primelora-tc-aux-82500000000000000000000000000004.scope",
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "inactive": true
+    },
+    {
+      "unit": "primelora-tc-aux-82500000000000000000000000000005.scope",
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "inactive": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "metric_changes": false,
+  "production_candidate": true,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D825_SINGLE_DESTINATION_VERIFICATION_20261025.md",
+    "sha256": "3bdfca9714e6dd17383d6e7a5b62d0d856238e98b87de5114b3b4fc3caf69086",
+    "bytes": 6579
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py": "761bf207d641d3b00bf2cc6906204d8c0232dad323005636b15cfd5f79dcf523",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "e5994f9a75ceda5e9b78efb5ce391a2c6243d1f162d067d79fa5d5a777481e88"
+  },
+  "source_files": {
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_config.json": {
+      "sha256": "7efc9f4dc736f0c1dd9976aa25234ed4d3b93221ba7241367362af202217dd80",
+      "bytes": 1050
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_model.safetensors": {
+      "sha256": "763a734f248ff2557d156beaa0b78e35bdb97d02a8572de6e2e46466dcc69040",
+      "bytes": 33588752
+    }
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-82500000000000000000000000000006.scope",
+    "invocation_id": "a0a198efbbe84f84973bb5ad86d094f2",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82500000000000000000000000000006.scope",
+    "inode": 32098041
+  },
+  "resources": {
+    "memory.peak": "28315648",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161438650368,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}

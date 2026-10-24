@@ -1,4 +1,42 @@
-# IEEE TC execution status — D824 current ingress/control diagnosis completed
+# IEEE TC execution status — D825 single-destination verification CPU-qualified
+
+D825收尾核验通过：25个raw证据成员归档后逐SHA读回，147保护集合及3处
+用户文件不变；CPU aux1–5均inactive、group路径消失，GPU空。aux6发布
+已退出0，当前磁盘161438650368B；BASE HEAD仍e1c433bab982366a82ad188ef703270d89d6ea06。
+curated位于paper_results/ieee_tc/p2_backend/d825_single_destination_verification/。
+本候选尚无GPU性能结果；仅待正常明确路径提交备份后进入下一完整W2。
+
+## 2026-10-25 D825：减少一次重复SHA，完整3B W2尚未运行
+
+本轮在D824/D818本地物化证据上选择单一新候选：解包流不再重复hash全部
+未压缩payload，由原owner在发布前完整读取并校验实际文件。最终SHA、锁、
+签名、预算、归档SHA、取消和confirmed时点不变；不重复D628移锁候选，
+不重开D595/D598、D712/D713或D822。默认HTTP/baseline路径仍stream校验。
+
+HTTP37、生命周期222、传输/准备187项通过，共446项不同检查；focused32
+是生命周期子集不重复计数。首次新测试误比较capture时间、一次wrapper的
+phase替换错误均保留，修正限于测试/入口，未放宽生产校验或指标。
+实际33589802B既有工件固定六次组件：双SHA合计201.857–214.589ms，单SHA
+116.728–118.739ms；完整最终SHA仍在owner锁内。此组件无gzip/HTTP/GPU，
+不等同3B端到端收益，不是新性能结果。峰值347521024B；最终回归568651776B，
+high/max/OOM/swap0。147保护集合在各资格检查中不变；收尾及备份待后置回执。
+
+说明见D825_SINGLE_DESTINATION_VERIFICATION_20261025.md；raw为
+results/ieee_tc/p2_backend_qualification/d825_20261025/。当前无推理运行。
+下一主线：封存CPU资格后，复用D817合同进行本候选一次完整3B W2，不追加
+短Full。通过/否决由全4000请求联合SLO、物理U与尾TTFT决定，不能投影删
+时延或按胜负重复；native_rpc_v1不变。仍不能宣布3B达标或最终排名。
+
+HydraServe已完成项目独立适配，非项目k3s不改。D711数值未知、3B W1/W2
+未达标、最终同版两模型主比较/Full、A1–A5、S1–S13、成本/CE、两轮审稿
+文档、图表及最终V2同步全部保留，整体目标active。
+
+备份已核实：9ff11900cd10b4538a8c140b206ea239d8b34a87，20条明确路径已推送
+faaslora_origin/backup/d824-current-ingress-control-20261025且远端ref一致；
+不是最终V2同步。aux1–7均inactive，工具session均终结，GPU空、stage空；
+BASE HEAD仍e1c433bab982366a82ad188ef703270d89d6ea06。磁盘161454280704B。
+用户manifest未提交；本后置回执随下一正常检查点保存，不递归建立备份。
+下一主线及完整未完成范围如下，整体目标active。
 
 本轮收尾核验通过：147保护集合及其中3处用户SHA不变，25条分析来源已
 逐SHA核对；4000条身份/计数和脚本语法检查通过。入口/控制分析峰值分别

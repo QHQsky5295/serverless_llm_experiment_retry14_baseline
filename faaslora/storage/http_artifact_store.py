@@ -336,7 +336,8 @@ class HttpArtifactStoreClient:
     def download_artifact(self, artifact_id: str, target_path: str, *,
                           publish=None, publish_verified=None, cancel_event=None, require_content_manifest=False,
                           evidence=None, workspace=None, reserve_files=None,
-                          require_remote_timing=False) -> Tuple[bool, float, int]:
+                          require_remote_timing=False,
+                          content_verification='stream') -> Tuple[bool, float, int]:
         """Download and extract one adapter directory into ``target_path``.
 
         Returns ``(ok, elapsed_ms, size_bytes)``.  The tarball is downloaded to a
@@ -344,6 +345,9 @@ class HttpArtifactStoreClient:
         checks. Only completed extraction reaches the publication callback.
         Strict mode checks the frozen file set, sizes and SHA while extracting;
         this proves transferred bytes, not that the model applies a valid LoRA.
+        A managed owner may instead verify destination content at publication.
+        That mode retains structural extraction checks and archive verification,
+        and requires a matching confirmed receipt before reporting success.
         """
 
         quoted = _quote_artifact_id(artifact_id)  # Validate before constructing local paths.
@@ -356,10 +360,16 @@ class HttpArtifactStoreClient:
             raise ValueError('file reservation requires a managed workspace and frozen content')
         if publish_verified is not None and (expected is None or publish is not None):
             raise ValueError('verified publication requires frozen content and one publication callback')
+        if content_verification not in ('stream', 'owner_publication'):
+            raise ValueError('unknown artifact content verification mode')
+        owner_verifies = content_verification == 'owner_publication'
+        if owner_verifies and (publish_verified is None or workspace is None or reserve_files is None):
+            raise ValueError('owner publication verification requires managed reservation and publisher')
         evidence = evidence if evidence is not None else {}
         evidence.update(artifact_id=artifact_id, content_manifest_sha256=(
             self.content_manifest_sha256 if expected is not None else None),
-            state='started', transferred_bytes=0, content_verified=False)
+            state='started', transferred_bytes=0, content_verified=False,
+            content_verification=content_verification, stream_content_verified=False)
         transfer_id = uuid.uuid4().hex
         # File ownership already has a transfer_id. Keep the HTTP attempt's
         # correlation separate instead of overwriting that physical reservation.
@@ -439,8 +449,9 @@ class HttpArtifactStoreClient:
                         _safe_extract(tar, staging)
                     else:
                         verified_files = _extract_verified(tar, staging, expected, check_cancelled,
-                                                          preallocated=reserve_files is not None)
-                        evidence['content_verified'] = True
+                            preallocated=reserve_files is not None, verify_content=not owner_verifies)
+                        evidence['stream_content_verified'] = not owner_verifies
+                        evidence['content_verified'] = not owner_verifies
                 evidence['extraction_completed_monotonic_s'] = time.monotonic()
                 check_cancelled()
                 size_bytes = _path_size(staging)
@@ -448,6 +459,18 @@ class HttpArtifactStoreClient:
                     raise RemoteArtifactError('empty artifact extraction cannot be published')
                 if publish_verified is not None:
                     publication = publish_verified(staging, target, verified_files)
+                    if owner_verifies:
+                        canonical = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+                            for name, (size, digest) in sorted(expected.items())],
+                            sort_keys=True, separators=(',', ':')).encode()
+                        if (not isinstance(publication, dict)
+                                or publication.get('content_verified') is not True
+                                or publication.get('path') != str(target.resolve())
+                                or publication.get('adapter_id') != artifact_id
+                                or publication.get('content_sha256') != hashlib.sha256(canonical).hexdigest()
+                                or publication.get('file_path_bytes') != size_bytes):
+                            raise RemoteArtifactError('owner did not confirm the frozen destination content')
+                        evidence['content_verified'] = True
                     evidence['confirmed_file_publication'] = publication
                 else:
                     (publish or publish_directory)(staging, target)
@@ -551,12 +574,16 @@ def _verified_file_signature(info):
             info.st_nlink, info.st_mtime_ns, info.st_ctime_ns)
 
 
-def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=False):
-    """Materialize only the frozen regular-file payload, hashing while writing.
+def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=False,
+                      verify_content=True):
+    """Materialize only the frozen regular-file payload, optionally hashing it.
 
     Do not use extractall: entry sizes are checked *before* writing a file, and
     duplicate/extra files, sparse representations and links cannot redefine the
     expected write footprint or overwrite an already-verified member.
+    With verify_content=False the receipts bind expected hashes and closed file
+    identities, NOT verified content; the managed publication owner must reread
+    and hash those destination files before making them visible.
     """
     directories = {str(parent) for name in expected for parent in PurePosixPath(name).parents
                    if str(parent) != '.'}
@@ -582,7 +609,7 @@ def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=Fa
             raise RemoteArtifactError('artifact member size differs from frozen manifest')
         path = target / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        digest, remaining = hashlib.sha256(), size
+        digest, remaining = (hashlib.sha256() if verify_content else None), size
         with tar.extractfile(member) as source, path.open('r+b' if preallocated else 'xb') as destination:
             if preallocated and os.fstat(destination.fileno()).st_size != size:
                 raise RemoteArtifactError('preallocated file size differs from frozen manifest')
@@ -592,9 +619,10 @@ def _extract_verified(tar, target, expected, check_cancelled, *, preallocated=Fa
                 if not chunk:
                     raise RemoteArtifactError('artifact member ended before its frozen size')
                 remaining -= len(chunk)
-                digest.update(chunk)
+                if digest is not None:
+                    digest.update(chunk)
                 destination.write(chunk)
-        if digest.hexdigest() != expected_sha:
+        if digest is not None and digest.hexdigest() != expected_sha:
             raise RemoteArtifactError('artifact content SHA differs from frozen manifest')
         # The writer is closed/flushed before capturing identity. The cooperative
         # owner will revalidate it before publication; later routing need not hash
