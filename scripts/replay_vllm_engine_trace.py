@@ -1175,6 +1175,8 @@ def load_loquetier_static_plan(cfg, pool_ids=None):
             or plan.get('sharding_rule') != 'descending_static_bytes_then_ID_least_bytes_count_index_v1'
             or plan.get('context_tokens') != cfg['native_args']['context_tokens']
             or plan.get('base_model') != cfg['native_args']['model_dir']
+            or plan.get('base_config_sha256') != _sha(Path(plan['base_model'])/'config.json')
+            or type(plan.get('batch_size')) is not int or plan['batch_size'] <= 0
             or len(shards) != len(cfg['gpu_ids']) or len(ids) != 500 or len(set(ids)) != 500
             or any(type(s.get('index')) is not int or s['index'] != i
                    or not s.get('adapter_ids') for i, s in enumerate(shards))
@@ -1183,6 +1185,43 @@ def load_loquetier_static_plan(cfg, pool_ids=None):
         raise ValueError('Loquetier complete static shards differ from frozen input-only plan')
     loquetier_capacity_evidence(cfg, plan)
     return plan
+
+
+def loquetier_model_kernel(cfg):
+    """Bind an opt-in model-specific native build without replacing the environment.
+
+    Legacy deployments keep their original import path. A Llama-3 build is
+    selected only by its immutable build receipt and exact backbone config;
+    compilation alone is not a numerical or performance qualification.
+    """
+    binding = cfg.get('model_kernel')
+    if binding is None:
+        model = _load_json(Path(cfg['native_args']['model_dir'])/'config.json')
+        if (model.get('rope_scaling') or {}).get('rope_type') == 'llama3':
+            raise ValueError('Llama-3 RoPE requires an explicit model-bound native kernel')
+        return None
+    if (not isinstance(binding, dict)
+            or set(binding) != {'receipt', 'receipt_sha256', 'python_root'}
+            or any(not isinstance(binding.get(k), str) or not Path(binding[k]).is_absolute()
+                   for k in ('receipt', 'python_root'))
+            or _sha(binding['receipt']) != binding['receipt_sha256']):
+        raise ValueError('explicit SHA-bound Loquetier model kernel required')
+    receipt = _load_json(Path(binding['receipt']))
+    contract_path = Path(binding['receipt']).parent/'kernel_src/tc_model_contract.json'
+    root = Path(binding['python_root']).resolve()
+    kernel = Path(cfg['native_kernel']).resolve()
+    if (receipt.get('compiled') is not True
+            or receipt.get('original_environment_modified') is not False
+            or Path(receipt['kernel_path']).resolve() != kernel
+            or receipt.get('kernel_sha256') != cfg['native_kernel_sha256']
+            or _sha(kernel) != cfg['native_kernel_sha256']
+            or kernel.parent != root/'loquetier/ops'
+            or not (root/'loquetier/__init__.py').is_file()
+            or _sha(contract_path) != receipt['model_contract_sha256']
+            or _load_json(contract_path)['model_config_sha256'] !=
+                _sha(Path(cfg['native_args']['model_dir'])/'config.json')):
+        raise ValueError('Loquetier model kernel/backbone/import identity differs')
+    return str(root)
 
 
 def validate_loquetier_service_config(cfg, http):
@@ -1195,7 +1234,7 @@ def validate_loquetier_service_config(cfg, http):
     plan = load_loquetier_static_plan(cfg)
     capacity = loquetier_capacity_evidence(cfg, plan)
     required = dict(model_dir=http['backbone'], dtype='float16',
-                    batch_size=capacity['candidate_batch_size'] if capacity else 2,
+                    batch_size=capacity['candidate_batch_size'] if capacity else plan['batch_size'],
                     context_tokens=1024, apply_scaling='A')
     if (cfg.get('schema') != 'ieee_tc_loquetier_native_service_v1'
             or http.get('schema') != 'ieee_tc_loquetier_http_replay_v1'
@@ -1219,6 +1258,7 @@ def validate_loquetier_service_config(cfg, http):
     if (plan['pool_index'] != http['pool_index']
             or plan['pool_index_sha256'] != http['pool_index_sha256']):
         raise ValueError('Loquetier placement and common remote pool differ')
+    loquetier_model_kernel(cfg)
     return endpoint.port
 
 
@@ -1242,6 +1282,7 @@ def verify_loquetier_source_view(cfg):
         for name,digest in manifest[key].items():
             if _sha(base/name) != digest:
                 raise ValueError('Loquetier guarded source changed: '+name)
+    loquetier_model_kernel(cfg)
     return manifest
 
 
@@ -1254,9 +1295,11 @@ def loquetier_worker_environment(cfg, device, environ=None):
         raise ValueError('existing Loquetier native Python3.9/torch environment required')
     env = dict(os.environ if environ is None else environ)
     env.pop('PYTHONHOME', None)
+    kernel_root = loquetier_model_kernel(cfg)
+    python_path = ([kernel_root] if kernel_root else []) + [cfg['source_view']]
     env.update(PATH=str(python.parent)+os.pathsep+env.get('PATH', ''),
         LD_LIBRARY_PATH=str(torchlib)+os.pathsep+str(root/'lib')+os.pathsep+env.get('LD_LIBRARY_PATH', ''),
-        PYTHONPATH=cfg['source_view'], PYTHONNOUSERSITE='1', PYTHONUNBUFFERED='1',
+        PYTHONPATH=os.pathsep.join(python_path), PYTHONNOUSERSITE='1', PYTHONUNBUFFERED='1',
         PYTHONDONTWRITEBYTECODE='1', CUDA_VISIBLE_DEVICES=str(device), MAX_JOBS='2',
         TRANSFORMERS_OFFLINE='1', HF_DATASETS_OFFLINE='1')
     return env

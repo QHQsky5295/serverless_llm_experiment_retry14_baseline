@@ -49,6 +49,52 @@ def configs():
 
 
 class ConfigurationAndGuard(unittest.TestCase):
+    def test_fixed_model_batch_comes_from_frozen_static_plan_not_7b_default(self):
+        cfg, http, plan = configs()
+        with tempfile.TemporaryDirectory() as tmp:
+            plan['batch_size'] = 4
+            path = Path(tmp)/'static.json'
+            path.write_text(json.dumps(plan))
+            cfg.update(static_plan=str(path), static_plan_sha256=service._sha(path))
+            cfg['native_args']['batch_size'] = 4
+            self.assertEqual(service.validate_loquetier_service_config(cfg, http), 18090)
+            cfg['native_args']['batch_size'] = 2
+            with self.assertRaisesRegex(ValueError, 'batch differs'):
+                service.validate_loquetier_service_config(cfg, http)
+
+    def test_model_kernel_binding_checks_backbone_receipt_and_actual_import_path(self):
+        cfg, _, _ = configs()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'python/loquetier/ops').mkdir(parents=True)
+            (root/'python/loquetier/__init__.py').touch()
+            kernel = root/'python/loquetier/ops/_kernels.so'
+            kernel.write_bytes(b'synthetic CPU fixture, never imported')
+            (root/'model').mkdir()
+            (root/'model/config.json').write_text('{"model":"synthetic"}')
+            (root/'kernel_src').mkdir()
+            contract = root/'kernel_src/tc_model_contract.json'
+            contract.write_text(json.dumps(dict(model_config_sha256=service._sha(root/'model/config.json'))))
+            receipt = root/'receipt.json'
+            data = dict(compiled=True, original_environment_modified=False,
+                kernel_path=str(kernel), kernel_sha256=service._sha(kernel),
+                model_contract_sha256=service._sha(contract))
+            receipt.write_text(json.dumps(data))
+            cfg.update(native_kernel=str(kernel), native_kernel_sha256=service._sha(kernel),
+                model_kernel=dict(receipt=str(receipt), receipt_sha256=service._sha(receipt),
+                                  python_root=str(root/'python')))
+            cfg['native_args']['model_dir'] = str(root/'model')
+            self.assertEqual(service.loquetier_model_kernel(cfg), str(root/'python'))
+            env = service.loquetier_worker_environment(cfg, 0, {})
+            self.assertEqual(env['PYTHONPATH'], str(root/'python')+':'+cfg['source_view'])
+            for key, value in [('python_root', str(root/'other')), ('receipt_sha256', '0'*64)]:
+                bad = dict(cfg, model_kernel=dict(cfg['model_kernel'], **{key:value}))
+                with self.subTest(key=key), self.assertRaises(ValueError):
+                    service.loquetier_model_kernel(bad)
+            (root/'model/config.json').write_text('{"model":"different"}')
+            with self.assertRaisesRegex(ValueError, 'backbone/import identity'):
+                service.loquetier_model_kernel(cfg)
+
     def capacity_config(self):
         cfg = json.loads((ROOT/'configs/ieee_tc/loquetier_7b_prepared_capacity_v1.json').read_text())
         _, http, plan = configs()
