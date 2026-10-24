@@ -1,0 +1,9 @@
+"""Reuse exact-owned closure only after the full 3B W0 run terminates."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/close_launch.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '48ef7c97c0918dddeee7485a1e2e87d080d320d13dfd24a1c972101608ca50b5'
+source = data.decode().replace('launch7b', 'launch3b')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

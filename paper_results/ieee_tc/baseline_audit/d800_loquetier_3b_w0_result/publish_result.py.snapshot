@@ -1,0 +1,38 @@
+"""Reuse explicit-path result backup for completed D800 full W0."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '13866fcfdb80fe5d7222f3c3d3c6c4d68f63ead4cb66084bb7af050f006a6953'
+source = data.decode()
+changes = {
+    'audit_coverage500.json':'audit_full4000.json',
+    "audit['native_revalidated_requests'] == 500":"audit['native_revalidated_requests'] == 4000",
+    "audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500":
+        "audit['served_adapter_ids'] == 132 and audit['deployment_prepared_adapters'] == 500",
+    '482ff4d378ffc8358764b34834ab9c0017e8071f':'145a0cfae56415dc3039e635df0ad4d4d7417ea8',
+    'd799_loquetier_3b_coverage':'d800_loquetier_3b_w0_result',
+    "'analysis_config_alias.json',":"",
+    'http_3b_coverage500.json':'http_3b_4000.json',
+    'ieee_tc_loquetier_full500_coverage_v1':'ieee_tc_loquetier_full4000_w0_result_v1',
+    "role='adapter_pool_functional_coverage'":"role='native_3b_full_w0_development_observation'",
+    'independent_full_pool_numerical_correctness_proven':'independent_full_workload_numerical_correctness_proven',
+    'unchanged Loquetier 3B W0/W1/W2':'unchanged Loquetier 3B W1/W2',
+    'D799_LOQUETIER_3B_COVERAGE_RESULT_20261024.md':'D800_LOQUETIER_3B_W0_RESULT_20261024.md',
+    'backup/d799-loquetier-3b-coverage-20261024':'backup/d800-loquetier-3b-w0-result-20261024',
+    'tc: seal Loquetier 3B complete500 coverage evidence (D799)':
+        'tc: seal Loquetier 3B complete W0 observation (D800)',
+}
+for before, after in changes.items():
+    assert before in source, before
+    source = source.replace(before, after)
+source = source.replace("for name in ('analysis','storage'):", "for name in ('analysis','storage','compression'):")
+source = source.replace("'run_analysis.py','reclaim.py','close.py','publish_result.py')",
+    "'run_analysis.py','reclaim.py','close.py','publish_result.py','compress.py','compression_closure.json')")
+needle = "ref = 'refs/heads/backup/d800-loquetier-3b-w0-result-20261024'"
+assert source.count(needle) == 1
+source = source.replace(needle, "paths += [MAIN/'paper_results/ieee_tc/storage'/name for name in (\n"
+    "    '20261024_d800_closed_d726_outcome.json',\n"
+    "    '20261024_d800_closed_d726_outcome_verification.json',\n"
+    "    '20261024_d800_closed_d726_outcome.py.snapshot')]\n" + needle)
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

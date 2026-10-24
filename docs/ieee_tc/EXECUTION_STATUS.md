@@ -1,4 +1,165 @@
-# IEEE TC execution status — D800 Loquetier 3B full W0 bound; preparing launch
+# IEEE TC execution status — D800 Loquetier 3B full W0 audited and reclaimed
+
+## 2026-10-24 15:28 CST D800核验完成；缓存回收与旧日志无损压缩完成
+
+audit_full4000.json SHA7e84af52...：4000 planned/arrived/submitted/terminal/
+response，0失败、4000原生生成/绑定重验，458224原生token，实际服务132个
+逻辑adapter、部署准备500个；计时重算误差0。TTFT均值38.252843s/P95
+323.386785s，TPOT均值53.061867ms/P95 60.771087ms，E2E均值44.261833s；
+TTFT达成76.175%，TPOT条件与联合均0。U=14750.816418GPU-s；只报
+binding-valid分母3.687704，原n_correct=null/独立数值正确性false/正式资格
+false保持。早期长队列和持续TPOT超共同阈值分别解释，不外推原论文全局缺陷。
+
+分析/证据保存aux0006已关闭，peak679124992B，high/max/OOM0。服务自身
+峰值38254252032B、high/max/OOM0、swap0；主机最小available95378288640B。
+实际本地/远端闭合与全部源记录已保留。reclaim复用既有严格重复件检查，
+重新核对原池/下载SHA和引用后只删/tmp/tc-d800-3bl/remote_artifacts/objects，
+4000文件、19482573296B payload，释放19497320448B。存储维护aux0007有
+high1120、max/OOM0、swap0；发生在已结束后的哈希维护，不混进服务性能条件。
+
+回收后仍低于150GiB，复用既有压缩器无损压缩已关闭D726的main_outcome，
+两次解压SHA及当前源SHA匹配既有审计0ce7e844...，释放950956032B，空闲
+161781805056B（约150.671GiB）。D800原始日志不压缩，原池/负载/旧投稿保留；
+147项保护与用户修改核对通过。新D800结果文档、curated与维护回执待本轮备份。
+下一同配置Loquetier3B W1/W2，不加prefix门禁/参数搜索；然后隔离HydraServe3B
+与全比较，再PrimeLoRA有证据优化及完整后续。goal保持active，本轮PROGRESS。
+
+## 2026-10-24 15:20 CST D800完整回放结束，实际释放后核验中
+
+继续原D800，不重跑。launch3b.json确认service/watchdog/replay returncode均0、
+pass=true、native_gpu_context_release_confirmed=true；4000条http_response、
+0条http_error。实际GPU进程已清空，local_cleanup.json确认原服务及辅助域均
+关闭且递归进程为空；remote_stop.log记录两模型制品服务及本轮监测均inactive、
+MainPID=0。不能仅凭上述事实升级为4000数值正确或SLO达标。
+
+本轮压缩后完整重读PLAN、AGENTS、六份执行补充、指标V1/单轮V2，采用现有
+analyze-results/run-experiment流程；已启动aux0006内的run_analysis.py，
+3/4GiB、swap0、CPU2,3,26,27。依次保留远端与本地计量证据，再用3B冻结
+阈值和full4000身份分析。无新推理/配置搜索，尚未回收缓存或生成结果备份。
+下一：核验并保存D800→有证据回收重复缓存/必要无损压缩→同配置W1/W2→
+隔离HydraServe3B→全比较/PrimeLoRA优化→同版Full/A1–A5/S1–S13/成本/
+审稿文档/图表/最终V2。现有非本项目k3s不改动，完整goal保持active。
+
+## 2026-10-24 14:55 CST D800已记录至少3038响应，仍运行中
+
+继续同一D800，tmux pane425991实际存活，sample2744四个服务GPU仍持有，
+无foreign compute；完整日志前缀至少3038条http_response/0条http_error，
+服务约33.165GiB、主机available91.014GiB、磁盘131.802GiB，high/max/OOM
+均0，无warning/abort。无终态launch3b.json，不重启、不提前释放。
+
+本轮完整重读指标V1/单轮V2及analyze-results，SHA分别5f0732ef.../
+193bf153...，3B SLO d1512357...未变。尚未运行分析/收尾；此前准备的四个
+终态后入口继续复用。14:50:53一次监测jq读到正在追加的最后半行而报EOF，
+实际服务和后续响应正常；这是观察器读并发日志的边界，不是请求失败。
+监测改取完整行前缀（去掉最后一行，计数保守少至多一个完整事件），不修改
+任何日志或服务；正式终态分析仍读全量并严格校验，不吞错误/不丢请求。
+全部后续范围及资源保护不变，goal保持active，目前VERIFIED_WAIT。
+
+## 2026-10-24 14:42 CST D800响应过半，终态后入口准备完成
+
+完整重读PLAN（首次输出中部截断后补读155–400行）、最新状态及监测技能。
+14:41:40同一tmux pane425991实际存活，原服务invocation
+a4e3dcaefb66431aaeca8546b3d6c261仍active/running；四个实际GPU worker仍为
+433108/438371/443650/449035。已有2028条http_response、0条http_error；
+不是最终4000完整性、数值资格或SLO结论。sample1966主机available97838166016B、
+服务35573989376B、磁盘141546643456B，high/max/OOM全0，无warning/abort/
+foreign compute。没有launch3b.json终态，不得收尾或启动下一实验。
+
+本轮仅在D800 RAW新增四个终态后包装入口，复用已验证D589/D799路径：
+close_launch.py（SHA9006eaf3...）、stop_remote.py（d0bc7534...）、
+preserve_evidence.py（08f9a5a1...）、run_analysis.py（17d92ed4...）。
+小型CPU2静态检查确认原脚本SHA、展开Python AST/bash -n及模型/场景选择；
+没有执行关闭/SSH/采集/analyzer。分析明确--model-key 3b、--population full4000、
+20261017_3b_slo_d648_frozen.json；直接使用http_3b_4000.json，不产生覆盖别名。
+native配置SHA3b5a0274...与HTTP009d9f37...复核未变，不触碰正在测量的实现。
+这些后置入口尚未纳入新结果备份，待真实收尾后随结果curated一起备份；
+运行中不推送、不清理、不压缩、不维护远端。本轮有准备进展及VERIFIED_WAIT，
+但没有新增完成性能实验，完整goal保持active。
+
+只读核对HydraServe已有隔离决定、D574/D576入口、D498/D499适配记录与旧
+May20 gate：旧平台障碍已被后续隔离路径替代，不能再次从陌生k3s开始；3B
+仍需模型相关资格，不能继承7B完整数值证明。没有启动新的审核/构建/推理。
+下一继续D800→真实释放/按实际outcome审计/保存/有证据回收重复缓存→同配置
+W1/W2→隔离HydraServe3B→全比较/PrimeLoRA优化→同版Full/A1–A5/S1–S13/
+成本/审稿文档/图表/最终V2，不缩减范围。
+
+## 2026-10-24 14:28 CST D800响应超过四分之一，仍同一运行（VERIFIED_WAIT）
+
+本轮沿已完整阅读的PLAN继续同一监测任务，复核SHA仍为d7acd081...，读取
+最新状态和monitor-experiment；约每分钟轻量读取实际tmux/监控与响应日志，
+统计命令限CPU2，未做其他性能/维护任务。14:28:04累计1003条http_response、
+0条http_error（原4000分母；不是最终完整性/数值正确性审计）。
+
+14:28再次systemctl核验原invocation a4e3dcaefb66431aaeca8546b3d6c261仍为
+active/running，tmux pane425991持续存活；sample1172实际worker PIDs为
+433108/438371/443650/449035，四卡全部在本服务内，无外部compute。
+主机available97837785088B、服务35515318272B、磁盘141564542976B，
+high/max/OOM均0，无warning/abort。无终态launch3b.json；不结束、不重启，
+不因局部进度宣称G1/G2可行。下一仍等待完整到达/生成/释放，再按原路径
+核验/保存/回收重复缓存；W1/W2、HydraServe3B及全部后续范围不变。
+本轮VERIFIED_WAIT而非阻塞，完整goal保持active；没有新运行、调参或图表。
+
+## 2026-10-24 14:20 CST D800四分片全部ready，继续同一完整回放（VERIFIED_WAIT）
+
+本轮再次完整阅读PLAN及最新状态，使用monitor-experiment低扰动观察。
+14:19:57服务仍为原invocation a4e3dcaefb66431aaeca8546b3d6c261、active，
+tmux pane425991实际bash仍存活；worker_0..3均有ready记录，端口8523/8533/
+8543/8553。sample678观察4张本服务持卡，foreign compute为空；主机available
+97920065536B、服务35472576512B/peak38254252032B，high/max/OOM全0，
+无warning/abort，磁盘141590089728B。14:20低扰动计数已有297条http_response，
+无http_error匹配；这是进行中响应计数，不是4000全部通过或数值正确性结论。
+
+没有终态、没有重启或新实验；准备/启动/队列及真实GPU占用完整保留。
+继续等待同一D800完成，不在运行中修改/维护/清理，完整后续主线见14:16。
+本轮VERIFIED_WAIT，完整goal仍active；不将逐分片就绪当作完成性能实验。
+
+## 2026-10-24 14:16 CST D800同一完整W0持续推进（VERIFIED_WAIT）
+
+本轮压缩后完整重读1567行PLAN、AGENTS、六份执行补充与monitor-experiment；
+不启动新实验、不改配置。14:16:15实际核验tmux pane425991/bash仍存活，
+服务unit及invocation与14:10记录一致、active/running；worker433108/438371
+也实际存活。没有终态launch3b.json，不能提前分析为完整性能结果或收尾。
+
+watchdog sample460：主机available103244128256B，service30332657664B，
+磁盘141596491776B（仍高于100GiB运行底线）；high/max/OOM均0，无warning/
+abort。已经有worker_0/worker_1两份ready记录，监控观察3张本服务持有GPU，
+其余静态分片仍按冻结顺序启动。原生响应继续写入，最新尾部含req_00323，
+protocol_valid=true；请求可乱序完成，编号不是完成计数，数值资格仍保留未知。
+未扫描/清理/压缩/构建/推送/调整远端；目前磁盘低于下一启动150GiB门槛，
+仅本轮真实结束后按既有规则回收已验证重复缓存，不降低保护线。
+
+本轮是已核验运行中任务的等待，不是阻塞，也不是新完成一个性能实验。
+接续同一D800至终态→真实释放→原生计量/完整性审计与备份→同配置W1/W2
+→隔离HydraServe3B→完整比较/PrimeLoRA优化/同版Full/A1–A5/S1–S13/
+成本/审稿文档/图表/最终V2。其他项目k3s保持不动，完整goal保持active。
+
+## 2026-10-24 14:10 CST D800唯一完整W0已启动且确认存活
+
+MAIN HEAD 145a0cfae56415dc3039e635df0ad4d4d7417ea8已推送并核对
+faaslora_origin/backup/d800-loquetier-3b-w0-binding-20261024；BASE保持8594922、
+origin/main一致，无force，不称最终V2同步。prepare/backup/start辅助域已真实
+关闭；session69492/3435/38397均结束，无待wait旧句柄。当前只有本轮性能任务。
+
+tmux `tc-d800-loquetier-3b-w0`，pane PID425991，14:09:58实际bash存活；
+服务unit primelora-tc-svc-cad8f055489f47ce817b2b0420bb363a.scope，invocation
+a4e3dcaefb66431aaeca8546b3d6c261，systemctl确认active；aux为d800...0005。
+RAW `results/ieee_tc/loquetier_qualification/d800_20261024`，private root
+`/tmp/tc-d800-3bl`。启动前原preflight通过；目前准备完整静态池，已有286份
+下载回执；sample88主机available114234466304B，service11972210688B，
+high/max/OOM全0、无warning/abort；磁盘152988413952B仍高于100GiB运行底线。
+当前不是终态，不能重启、清理、压缩、构建、推送或调整配置/远端。
+
+远端本轮实测1000Mb/s/full；monitor `primelora-artifact-monitor-d800-full-w0.service`
+invocation e2e42664a9b94e7faa8082030f9ecef5，目录
+/home/lab14/primelora_remote/tc/d800_20261024。3B服务invocation
+ea3118e4592e4232b6d7e5acf95b812d，clock remote-process-monotonic:4a7c8c5085ad4c5dafa3950dbb835ffb；
+7B服务invocation83c2f36fbdf04434aee028807fc7a36b，两者均由本次开启，结束后
+按精确身份停止，不能运行中维护。D80发布gzip复用、请求不打包、无新工件/trace。
+
+终态后沿D799收尾/分析/保存路径（3B full4000、http_3b_4000已有无需别名）
+处理；只实际释放后清理重复对象，保留所有失败、未知数值证明和原始测量。
+随后同配置W1/W2、隔离HydraServe3B、全比较/PrimeLoRA优化及全部消融/敏感性/
+成本/文档/图表/最终V2；goal保持active，本轮PROGRESS。其他项目k3s不动。
 
 ## 2026-10-24 14:07 CST D800完整W0输入绑定通过，待备份后唯一启动
 

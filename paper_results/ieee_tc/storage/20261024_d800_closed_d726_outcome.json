@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1792826739.3640814,
+  "before": {
+    "available_bytes": 160830885888
+  },
+  "after": {
+    "available_bytes": 161781805056
+  },
+  "entries": [
+    {
+      "run": "d726_20261022/3b_graph_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d726_20261022/3b_graph_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "0ce7e844c32d501b8f9e11ab11fd300ecf7032c5f3df910a240ee19492738ec0",
+      "audit_sha256": "0ce7e844c32d501b8f9e11ab11fd300ecf7032c5f3df910a240ee19492738ec0",
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109584559,
+        "size": 1092861085,
+        "mtime_ns": 1792655920376600705,
+        "ctime_ns": 1792655920376600705,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2134504
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "04b2e511dce7b7d68c05f08c7877eec992c748e2d70e02fd37cccb539e15989e",
+      "archive_sha256": "57800892e42667d6e990b93a7cb004003ed4b54641eeb8d2e6dd73820a96185e",
+      "archive_bytes": 141904448,
+      "archive_allocated_bytes": 141910016,
+      "first_roundtrip_sha256": "0ce7e844c32d501b8f9e11ab11fd300ecf7032c5f3df910a240ee19492738ec0",
+      "second_roundtrip_sha256": "0ce7e844c32d501b8f9e11ab11fd300ecf7032c5f3df910a240ee19492738ec0",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 950956032
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

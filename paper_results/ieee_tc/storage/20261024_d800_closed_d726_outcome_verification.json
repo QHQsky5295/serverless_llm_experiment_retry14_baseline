@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d8000000000000000000000000000008.scope",
+    "invocation_id": "c8e17afa0db44c96941ea2ae3d4934e2",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8000000000000000000000000000008.scope",
+    "inode": 31631780
+  },
+  "protected_files": 147,
+  "receipt_sha256": "50f0ba49351ede45621e752b5f71334d157288b8980582d0be179f7ba85283f0",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "bb0223b9a8e54e372ba0bcf88cec438f82fcb2b12989dd6cac53e082dd05f5c4",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8000000000000000000000000000008.scope",
+    "memory.current": 176754688,
+    "memory.peak": 1272782848,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 42624433\nuser_usec 39479639\nsystem_usec 3144794\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "note": "Restore the original path from its archive and verify source_sha256 before reusing an analyzer requiring an uncompressed outcome. D726 is preserved losslessly; current D800 logs remain uncompressed."
+}

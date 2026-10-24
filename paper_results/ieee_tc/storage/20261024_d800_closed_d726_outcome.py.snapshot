@@ -1,0 +1,23 @@
+"""Reuse lossless archival for the closed D726 outcome; keep D800 raw logs."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/storage.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1ea29097f648cbd02d1b5b6ae9c2033e20704526d39208a502b0691520d11bb6'
+source = data.decode()
+changes = {
+    '20261023_d764_closed_d752_outcome.json':'20261024_d800_closed_d726_outcome.json',
+    "RAW/'storage_identity.json'":"RAW/'compression_identity.json'",
+    "RAW/'result_closure.json'":"RAW/'analysis_closure.json'",
+    "RAW/'contract_closure.json'":"RAW/'storage_closure.json'",
+    "RAW/'qualification.json'":"RAW/'preparation.json'",
+    "q['protected']":"q['preserved']",
+    "('d752_20261023/3b_dense_alias_validation_full_w0', 'd752_3b_dense_alias_validation_full_w0'),":
+        "('d726_20261022/3b_graph_full_w0', 'd726_3b_graph_full_w0'),",
+    'D752 is preserved losslessly; current D764 logs remain uncompressed.':
+        'D726 is preserved losslessly; current D800 logs remain uncompressed.',
+}
+for before, after in changes.items():
+    assert before in source, before
+    source = source.replace(before, after)
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})
