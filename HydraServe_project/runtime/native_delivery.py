@@ -56,6 +56,25 @@ def native_admission_batch(root):
     return value
 
 
+def native_provider_dtype(root):
+    """Use the native provider's declared dtype throughout the serving path.
+
+    The 3B checkpoint is BF16, so the app's original dtype='auto' differs from
+    its FP16 CPU provider. This is a model contract, not a precision search.
+    """
+    raw = (Path(root)/PROVIDER).read_bytes()
+    if sha256(raw).hexdigest() != loopback_transport.SOURCE_SHA256[PROVIDER]:
+        raise ValueError('native provider dtype source drift')
+    calls = [node for node in ast.walk(ast.parse(raw)) if isinstance(node, ast.Call)
+             and isinstance(node.func, ast.Name) and node.func.id == 'EngineArgs']
+    if len(calls) != 1:
+        raise ValueError('native provider dtype declaration changed')
+    values = [ast.literal_eval(k.value) for k in calls[0].keywords if k.arg == 'dtype']
+    if len(values) != 1 or values[0] not in ('float16', 'bfloat16', 'float32'):
+        raise ValueError('explicit native provider dtype required')
+    return values[0]
+
+
 def replace_one(source, old, new):
     if source.count(old) != 1:
         raise ValueError('native delivery splice count changed')
@@ -63,7 +82,7 @@ def replace_one(source, old, new):
 
 
 def render_overlays(native_root, *, request_contract=False, shm_control=False,
-                    lora_admission_capacity=False):
+                    lora_admission_capacity=False, llama_model_compat=False):
     root=Path(native_root)
     overlays=loopback_transport.render_overlays(root)
     source=overlays[PROVIDER].decode()
@@ -112,9 +131,13 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False,
     pattern=r'(?m)^([ \t]*)gpu_memory_utilization=gpu_memory_utilization,\n'
     token_limit=native_lora_token_limit(root)
     batch=native_admission_batch(root) if lora_admission_capacity else None
+    provider_dtype=native_provider_dtype(root) if llama_model_compat else None
     def enable(match):
         indent=match.group(1)
-        return (match.group(0)+indent+'enable_lora=True,\n'+indent+'lora_extra_vocab_size=0,\n'
+        return (match.group(0)
+                +(indent+f'dtype={provider_dtype!r},  # same declared dtype as native provider\n'
+                  if provider_dtype is not None else '')
+                +indent+'enable_lora=True,\n'+indent+'lora_extra_vocab_size=0,\n'
                 +indent+f'max_num_batched_tokens={token_limit},  # native LoRA kernel ceiling\n'
                 +(indent+f'max_loras={batch} * int(os.environ["PP_SIZE"]),  # native instance admission\n'
                   if batch is not None else ''))
@@ -131,6 +154,9 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False,
     if shm_control:
         from .shm_control import render_app
         overlays[APP]=render_app(overlays[APP].decode(),root).encode()
+    if llama_model_compat:
+        from . import llama_model_compat as model_compat
+        overlays.update(model_compat.render_overlays(root))
     for name,raw in overlays.items():compile(raw,name,'exec')
     return overlays
 
@@ -159,23 +185,25 @@ def readonly_shard_iterator(files, safe_open):
 def materialize_metadata(destination, model_id, model, *, native_root):
     """Only Llama metadata and symlinks; derive exact native partitions by header.
 
-    The existing D447 witness is restricted to the same untied 7B input. Fail
-    closed for another model until its configuration/header has been qualified.
+    Original 7B and registered 3B metadata use the same pinned native heuristic.
+    Metadata is not GPU/numerical qualification and never copies tensor payloads.
     """
     from HydraServe_project.scripts.probe_layer_identity import (
-        MODEL, NATIVE, collect_witness, native_functions)
+        MODEL, MODEL_3B, POOL, POOL_3B, NATIVE, collect_witness, native_functions)
     if Path(native_root).resolve()!=NATIVE.resolve():
         raise ValueError('unqualified native partition source')
     model=Path(model)
-    if model.resolve()!=MODEL.resolve():
-        raise ValueError('model-specific native partition not yet qualified')
+    pools={MODEL.resolve():POOL, MODEL_3B.resolve():POOL_3B}
+    if model.resolve() not in pools:
+        raise ValueError('model-specific native partition not registered')
     if not model_id or Path(model_id).is_absolute() or '..' in Path(model_id).parts:
         raise ValueError('invalid local model ID')
     destination=Path(destination)
     destination.mkdir(exist_ok=False)
     config=json.loads((model/'config.json').read_text())
     index=json.loads((model/'model.safetensors.index.json').read_text())
-    witness=collect_witness()
+    witness=collect_witness(model=model,pool=pools[model.resolve()])
+    tied_keys=witness['tied_weight_keys']
     partitions=witness['partitions']
     transform=native_functions('scripts/kubernetes/vllm/download/download.py',
                                {'transform'})['transform']
@@ -202,8 +230,9 @@ def materialize_metadata(destination, model_id, model, *, native_root):
                 if path.name!='config.json':(view/path.name).symlink_to(path)
             old_names={}
             for name in keys:
-                owner,local=transform(name,ends,None)
-                if owner==rank:old_names[name]=local
+                owner,local=transform(name,ends,tied_keys)
+                owners=(owner,) if isinstance(owner,int) else owner
+                if rank in owners:old_names[name]=local
             for dest_size,dest_ends in partitions.items():
                 if dest_size>=size:continue
                 for dest_rank in range(dest_size):
@@ -211,8 +240,14 @@ def materialize_metadata(destination, model_id, model, *, native_root):
                     (view/f'dest_info-{dest_rank}-{dest_size}').write_text(str(count))
                     mapping={}
                     for name,local in old_names.items():
-                        owner,dest_local=transform(name,dest_ends,None)
-                        if owner==dest_rank:mapping[local]=dest_local
+                        owner,dest_local=transform(name,dest_ends,tied_keys)
+                        owners=(owner,) if isinstance(owner,int) else owner
+                        if dest_rank in owners:mapping[local]=dest_local
+                    if tied_keys and rank==size-1 and dest_rank==dest_size-1:
+                        # No independent head payload exists. Preserve the
+                        # shared *module* at last-stage consolidation too, so
+                        # the native LoRA manager keeps its logits ownership.
+                        mapping['lm_head.weight']='lm_head.weight'
                     (view/f'duplicate_state_dict-{dest_rank}-{dest_size}.json').write_text(json.dumps(mapping,sort_keys=True))
     partition=dict(schema='hydraserve_native_partition_v1',total_layers=config['num_hidden_layers'],
         partitions=partitions,model_config_sha256=witness['model_config_sha256'],

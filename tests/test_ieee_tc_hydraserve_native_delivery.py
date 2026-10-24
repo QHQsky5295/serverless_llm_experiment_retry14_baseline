@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from HydraServe_project.runtime import native_delivery as delivery
 from HydraServe_project.runtime.native_overlay_entry import SourceOverlay
-from HydraServe_project.scripts.probe_layer_identity import NATIVE, MODEL
+from HydraServe_project.scripts.probe_layer_identity import NATIVE, MODEL, MODEL_3B
 
 
 class DeliveryTests(unittest.TestCase):
@@ -72,6 +72,13 @@ class DeliveryTests(unittest.TestCase):
         with patch.object(Path,'read_bytes',read),self.assertRaisesRegex(ValueError,'admission source drift'):
             delivery.native_admission_batch(NATIVE)
 
+    def test_model_dtype_is_derived_from_source_pinned_provider(self):
+        self.assertEqual(delivery.native_provider_dtype(NATIVE), 'float16')
+        read = Path.read_bytes
+        with patch.object(Path, 'read_bytes', lambda path: read(path)+b'\n'):
+            with self.assertRaisesRegex(ValueError, 'provider dtype source drift'):
+                delivery.native_provider_dtype(NATIVE)
+
     def fixture(self,missing=False):
         mapping={'a':'part1.safetensors','b':'part2.safetensors'}
         (self.root/'model.safetensors.index.json').write_text(json.dumps({'weight_map':mapping}))
@@ -127,6 +134,25 @@ class DeliveryTests(unittest.TestCase):
         self.assertIsNone(loader.find_spec('torch'))
         path.write_text('VALUE = 43\n')
         with self.assertRaisesRegex(ValueError,'drift'):loader.exec_module(m)
+
+    def test_tied_3b_metadata_preserves_first_last_and_shared_head_ownership(self):
+        out=self.root/'views3b'
+        partition=delivery.materialize_metadata(out,'llama32_3b',MODEL_3B,native_root=NATIVE)
+        self.assertEqual(partition['total_layers'],28)
+        for pp in (2,3,4):
+            for rank in range(pp):
+                view=out/f'llama32_3b-{rank}-{pp}'
+                mapping=json.loads((view/'duplicate_state_dict-0-1.json').read_text())
+                self.assertEqual('model.embed_tokens.weight' in mapping,rank in (0,pp-1))
+                self.assertEqual('lm_head.weight' in mapping,rank==pp-1)
+                if rank==pp-1:
+                    self.assertEqual(mapping['lm_head.weight'],'lm_head.weight')
+                config=json.loads((view/'config.json').read_text())
+                self.assertTrue(config['tie_word_embeddings'])
+                self.assertEqual(config['rope_scaling']['rope_type'],'llama3')
+                self.assertTrue((view/'model-00001-of-00002.safetensors').is_symlink())
+        total=sum(p.stat().st_size for p in out.rglob('*') if p.is_file() and not p.is_symlink())
+        self.assertLess(total,1024**2)
 
 
 if __name__=='__main__':unittest.main()
