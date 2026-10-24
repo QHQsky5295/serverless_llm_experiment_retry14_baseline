@@ -1,0 +1,28 @@
+{
+  "schema": "ieee_tc_loquetier_llama3_kernel_view_v1",
+  "native_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520",
+  "model_config": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct/config.json",
+  "model_config_sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+  "rope_scaling": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_type": "llama3"
+  },
+  "num_attention_heads": 24,
+  "num_key_value_heads": 8,
+  "head_dim": 128,
+  "rope_theta": 500000.0,
+  "source_patch_sha256": "32c9a9f37e85675741f6dd2e2d6184c7d4fde0f69829d72623e7c19c56cff931",
+  "changed_sha256": {
+    "third_party/flashinfer/include/flashinfer/prefill.cuh": "e902d9ccc70a32c74cd009137f19cb840f5468b4c40ca830191f6bc2af8f77b8",
+    "third_party/flashinfer/include/flashinfer/decode.cuh": "f1d0b4e552a1a3933b9a6e704e4340db5eadec625201c9cb73e302b2270f778a",
+    "third_party/flashinfer/include/flashinfer/tc_llama3_rope.cuh": "e0b3123fb289c6df324b6230ba6840c1de751060fd364e75f2e0bbd18f0a012a"
+  },
+  "mechanism_changes": false,
+  "original_environment_modified": false,
+  "compiled": false,
+  "model_qualified": false,
+  "performance_run_authorized": false
+}

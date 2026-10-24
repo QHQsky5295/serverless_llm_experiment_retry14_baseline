@@ -1,0 +1,26 @@
+"""Existing guarded launch, in tmux, for a single two-job native build."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+own = p.scope_identity(p.cg_path().name)
+with (RAW/'build_identity.json').open('x') as stream:
+    json.dump(own, stream, indent=2)
+env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(MAIN), str(BASE/'scripts'))),
+    CUDA_VISIBLE_DEVICES='0', TRANSFORMERS_OFFLINE='1', HF_HUB_OFFLINE='1',
+    PYTHONDONTWRITEBYTECODE='1',
+    FAASLORA_TC_NVML_BINDING='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py',
+    FAASLORA_TC_NVML_SHA256='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea')
+with (RAW/'build_launcher.log').open('x') as stream:
+    result = subprocess.run(['/usr/bin/python3','-B',str(MAIN/'scripts/ieee_tc_preflight.py'),
+        'gated-launch','--output',str(RAW/'build_launch.json'),'--predicted-growth-gib','1',
+        '--exec','/home/qhq/anaconda3/envs/loquetier_20260520/bin/python','-B',str(RAW/'build.py')],
+        cwd=BASE, env=env, stdout=stream, stderr=subprocess.STDOUT)
+print(json.dumps(dict(returncode=result.returncode)))
+raise SystemExit(result.returncode)

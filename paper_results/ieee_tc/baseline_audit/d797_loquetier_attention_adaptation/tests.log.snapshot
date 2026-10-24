@@ -1,0 +1,10 @@
+test_configured_llama3_view_preserves_native_sources (tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests) ... ok
+test_exclusive_view_preserves_originals_and_links_only_unmodified_files (tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests) ... ok
+test_packed_query_rows_cover_every_token_head_once (tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests) ... ok
+test_remove_only_observers_recovers_exact_native_ast (tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests) ... ok
+test_source_drift_rejected_before_view_creation (tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.111s
+
+OK

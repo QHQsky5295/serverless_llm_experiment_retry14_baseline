@@ -1,0 +1,83 @@
+"""Reuse the explicit-path checkpoint, preserving native and failed evidence."""
+import ast
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')], str(original), 'exec'), globals())
+prior = RAW.parent/'d796_20261024/backup.py'
+prior_bytes = prior.read_bytes()
+tree = ast.parse(prior_bytes)
+nodes = [node for node in tree.body if
+    isinstance(node, ast.FunctionDef) and node.name in ('checked','commit') or
+    isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'secret' for t in node.targets)]
+assert len(nodes) == 3
+exec(compile(ast.Module(body=nodes,type_ignores=[]),str(prior),'exec'),globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_identity.json',own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('build','probe'):
+    closed = read(RAW/(name+'_closure.json'))
+    launch = read(RAW/(name+'_launch.json'))
+    assert closed['passed'] and closed['path_gone'] and not Path(closed['identity']['path']).exists()
+    assert launch['service_returncode'] == launch['watchdog_returncode'] == 0
+    assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+result = read(RAW/'attention.json')
+assert result['completed'] and not result['full_model_qualified'] and len(result['rows']) == 6
+assert all(r['cache_matches'] and r['comparisons']['llama3']['close'] for r in result['rows'])
+receipt = read(RAW/'build_receipt.json')
+assert receipt['compiled'] and p.digest(Path(receipt['kernel_path'])) == receipt['kernel_sha256']
+old_kernel = Path('/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so')
+assert p.digest(old_kernel) == '100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9'
+preserved = read(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification.json'))['preserved']
+for path,digest in preserved.items(): assert p.digest(Path(path)) == digest,path
+test_command = ['/usr/bin/python3','-B','-m','unittest',
+    'tests.test_ieee_tc_loquetier_measurement.LoquetierSourceTests','-v']
+with (RAW/'tests.log').open('x') as stream:
+    test = subprocess.run(test_command,cwd=BASE,stdout=stream,stderr=subprocess.STDOUT)
+assert test.returncode == 0
+save(RAW/'test_receipt.json',dict(passed=True,command=test_command,tests=5,
+    test_log_sha256=p.digest(RAW/'tests.log'),performance_run=False))
+assert call(BASE,'git','rev-parse','HEAD') == '3b04deaa7c213546c87be62a0b59fd5eadf0592e'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0] == '3b04deaa7c213546c87be62a0b59fd5eadf0592e'
+basehead = commit(BASE,[BASE/'scripts/prepare_ieee_tc_serverless_stack.py',
+    BASE/'tests/test_ieee_tc_loquetier_measurement.py'],
+    'tc: isolate configured Loquetier Llama3 attention compatibility', 'origin','refs/heads/main')
+save(RAW/'baseline_backup_receipt.json',dict(passed=True,head=basehead,remote='origin/main',force_push=False))
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d797_loquetier_attention_adaptation'
+OUT.mkdir(parents=True,exist_ok=False)
+sources = [RAW/name for name in ('build.py','run_build.py','run_probe.py','close.py','backup.py',
+    'build_receipt.json','build_inputs.json','build_launch.json','build_closure.json','build.log',
+    'probe_launch.json','probe_closure.json','attention.json','execution_identity.json',
+    'test_receipt.json','tests.log','baseline_backup_receipt.json')]
+sources += [RAW/'kernel_src/tc_model_contract.json']
+sources += [RAW/'kernel_src/third_party/flashinfer/include/flashinfer'/name
+    for name in ('prefill.cuh','decode.cuh','tc_llama3_rope.cuh')]
+checked(sources)
+mapping = copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(schema='ieee_tc_loquetier_attention_adaptation_checkpoint_v1',
+    files=mapping,baseline_head=basehead,plan_sha256=p.check_plan(),
+    build_count=1,attention_diagnostics=1,performance_experiments=0,
+    full_model_qualified=False,prior_failure_retained=True,original_environment_modified=False,
+    protected_and_user_dirty_unchanged=len(preserved),
+    raw_sources={str(path):p.digest(path) for path in
+        (RAW/'build_launch.launch/watchdog.jsonl',RAW/'probe_launch.launch/watchdog.jsonl')},
+    native_kernel_sha256=receipt['kernel_sha256'],
+    next='actual retained-input full-model/LoRA correctness, then unchanged 3B baseline matrix'))
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D797_LOQUETIER_3B_ATTENTION_ADAPTATION_20261024.md',*sorted(OUT.iterdir())]
+assert call(MAIN,'git','rev-parse','HEAD') == 'cf27cbada44cff9fb55b97c39786e62edd02ccde'
+ref = 'refs/heads/backup/d797-loquetier-attention-adaptation-20261024'
+head = commit(MAIN,paths,'tc: preserve necessary Loquetier 3B attention adaptation (D797)',
+    'faaslora_origin',ref)
+for path,digest in preserved.items(): assert p.digest(Path(path)) == digest,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,
+    remote_ref=ref,force_push=False,v2_synchronized=False,
+    paths=[str(path.relative_to(MAIN)) for path in paths],
+    reused_checkpoint_helper_sha256=hashlib.sha256(prior_bytes).hexdigest(),
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref)))

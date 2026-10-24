@@ -1,0 +1,10 @@
+{
+  "returncode": 0,
+  "compiled": true,
+  "model_qualified": false,
+  "original_environment_modified": false,
+  "build_log_sha256": "679bd2a47f4ebbce67a25b20b4ff383cb11b5ffe22c2b91c0a6336ee61c5c7f0",
+  "kernel_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d797_20261024/python/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so",
+  "kernel_sha256": "b1f4b70ef8d816183a9d3ca0211b79a022f05af16a9228f34346bbe4ef2e1d41",
+  "model_contract_sha256": "669a53c4de02173f3f082fca6ae4bc9ac767aba443f2c3247c96a3bf7e7a8698"
+}

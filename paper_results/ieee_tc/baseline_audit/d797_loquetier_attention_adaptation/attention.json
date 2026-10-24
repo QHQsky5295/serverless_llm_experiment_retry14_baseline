@@ -1,0 +1,225 @@
+{
+  "schema": "ieee_tc_loquetier_attention_compatibility_v1",
+  "performance_run": false,
+  "full_model_qualified": false,
+  "admission": {
+    "service_identity": {
+      "unit": "primelora-tc-svc-4aad4214651547fa8bfcafd5c703909f.scope",
+      "invocation_id": "22201bb90740432fb21b30b993c13ca9",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-4aad4214651547fa8bfcafd5c703909f.scope",
+      "inode": 31571132
+    },
+    "pid": 312986,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-4aad4214651547fa8bfcafd5c703909f.scope",
+    "affinity": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "production_launch_authorized": false
+  },
+  "config_sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+  "script_sha256": "bf6c7e5e7782ef95d19ba7d15b5a18494f1d084f64746c0f34915cce274bc424",
+  "kernel_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d797_20261024/python/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so",
+  "kernel_sha256": "b1f4b70ef8d816183a9d3ca0211b79a022f05af16a9228f34346bbe4ef2e1d41",
+  "torch_version": "2.1.2+cu121",
+  "transformers_version": "4.45.2",
+  "dtype": "float16",
+  "seed": 796,
+  "lengths": [
+    17,
+    257
+  ],
+  "native_group": 3,
+  "rope_scaling": {
+    "factor": 32.0,
+    "high_freq_factor": 4.0,
+    "low_freq_factor": 1.0,
+    "original_max_position_embeddings": 8192,
+    "rope_type": "llama3"
+  },
+  "rows": [
+    {
+      "group_size": 1,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.038561731576919556,
+          "relative_l2": 0.012205461971461773,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0012884140014648438,
+          "relative_l2": 0.0003089795936830342,
+          "close": true
+        }
+      }
+    },
+    {
+      "group_size": 1,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.016207074746489525,
+          "relative_l2": 0.011006481945514679,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0003857612609863281,
+          "relative_l2": 0.00020241076708771288,
+          "close": true
+        }
+      }
+    },
+    {
+      "group_size": 3,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.06112551689147949,
+          "relative_l2": 0.012049307115375996,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0013223439455032349,
+          "relative_l2": 0.00030378950759768486,
+          "close": true
+        }
+      }
+    },
+    {
+      "group_size": 3,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.0228416845202446,
+          "relative_l2": 0.01290921401232481,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.00046646595001220703,
+          "relative_l2": 0.00020488294831011444,
+          "close": true
+        }
+      }
+    },
+    {
+      "group_size": 4,
+      "phase": "prefill",
+      "cache_matches": true,
+      "sequence_lengths": [
+        17,
+        257
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.09913653135299683,
+          "relative_l2": 0.012574516236782074,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0012636184692382812,
+          "relative_l2": 0.00030690946732647717,
+          "close": true
+        }
+      }
+    },
+    {
+      "group_size": 4,
+      "phase": "decode",
+      "cache_matches": true,
+      "sequence_lengths": [
+        18,
+        258
+      ],
+      "comparisons": {
+        "default": {
+          "finite": true,
+          "max_abs": 0.018962986767292023,
+          "relative_l2": 0.013211422599852085,
+          "close": false
+        },
+        "llama3": {
+          "finite": true,
+          "max_abs": 0.0004420280456542969,
+          "relative_l2": 0.00020507241424638778,
+          "close": true
+        }
+      }
+    }
+  ],
+  "completed": true,
+  "limitations": [
+    "Synthetic unit-test tensors, not new workloads or adapters.",
+    "Attention only; full-model/LoRA correctness remains unverified."
+  ],
+  "frequency_max_abs_difference": 0.000984656740911305,
+  "peak_allocated_bytes": 121020416
+}

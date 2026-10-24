@@ -1,4 +1,39 @@
-# IEEE TC execution status — next: correct confirmed Loquetier 3B attention incompatibility
+# IEEE TC execution status — next: Loquetier 3B full-model/LoRA correctness
+
+## 2026-10-24 13:20 CST D797隔离注意力适配通过，准备备份
+
+完整重读PLAN、最新状态、两仓AGENTS与六项执行补充；复用run-experiment/
+monitor-experiment，按research-lookup复核官方源码。原D797构建已真实结束，
+没有重复启动。新模型专用内核编译成功；一次D796同定义数值probe六条均符合
+Llama-3.2参考，最大绝对误差0.001322344、group3 prefill恢复有限输出，
+KV全部逐元素一致。完整模型/LoRA数值资格仍未完成，不是性能结果。
+
+原环境/7B/vendor未改；源适配仅packed-row完整索引和配置导出的分频RoPE，
+原生SMLM、调度、静态分片不变。build/probe服务与watchdog均0，实际GPU
+释放、服务路径移除，辅助资源域均关闭；tmux两会话结束，无待wait句柄。
+详见D797_LOQUETIER_3B_ATTENTION_ADAPTATION_20261024.md及原始d797_20261024。
+当前BASE两项任务文件待提交；用户manifest/replay/relayserve保持不stage。
+
+下一明确路径测试/保护检查/备份，再一次真实输入完整模型与LoRA检查，
+然后Loquetier 3B W0/W1/W2及HydraServe 3B。他项目k3s不改，不重复7B
+资格或单卡500池OOM。全比较/PrimeLoRA优化/同版Full及A1–A5/S1–S13/
+成本/两轮审稿文档/图表/最终V2全保留，完整goal active。
+
+## 2026-10-24 13:07 CST D796检查点已推送，全部资源已关闭
+
+BASE HEAD为3b04deaa7c213546c87be62a0b59fd5eadf0592e，origin/main已核验；
+MAIN HEAD为cf27cbada44cff9fb55b97c39786e62edd02ccde，对应远端
+backup/d796-loquetier-attention-diagnostic-20261024已核验。只stage明确的
+runner、测试、文档和小型证据，147项保护/用户dirty未变；V2既有分叉未处理，
+无force push，不称最终V2同步。执行时runner快照按原SHA完整保留，修改后
+仅多一个互斥参数条件。20项CPU回归通过。
+
+session9570与94219均结束，不再wait；probe/backup资源域实际关闭，GPU
+进程为空，无当前运行实验。raw d796_20261024保留完整数值失败与watchdog，
+curated在paper_results/ieee_tc/baseline_audit/d796_loquetier_attention_diagnostic。
+没有修改Loquetier服务源码、构建内核或启动完整3B负载，下一按上述具体
+packed-index/RoPE必要兼容路径推进；不能把这个检查点当作模型已修好。
+全部后续实验不删减，goal active，本轮PROGRESS。
 
 ## 2026-10-24 13:06 CST D796确认注意力兼容问题，下一隔离模型适配
 

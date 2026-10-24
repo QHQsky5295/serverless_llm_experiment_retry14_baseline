@@ -1,0 +1,58 @@
+"""Build the isolated configured native Loquetier kernel; no model/performance run."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import prepare_loquetier_kernel_view
+
+admission = p.verify_current_service()
+native = BASE/'vendor_new_baselines/Loquetier_main_20260520'
+view = RAW/'kernel_src'
+config = MAIN/'models/LLM-Research--Llama-3.2-3B-Instruct/config.json'
+manifest = prepare_loquetier_kernel_view(native, view, config)
+with (RAW/'build_admission.json').open('x') as stream:
+    json.dump(admission, stream, indent=2)
+env = dict(os.environ, CUDA_HOME='/home/qhq/anaconda3/envs/loquetier_20260520',
+    MAX_JOBS='2', TORCH_CUDA_ARCH_LIST='8.6', LOQUETIER_PAGE_SIZES='16',
+    LOQUETIER_GROUP_SIZES='1,3,4', LOQUETIER_HEAD_DIMS='128',
+    LOQUETIER_BUILD_VERSION='0.0.1+tc.llama3.d797', PYTHONDONTWRITEBYTECODE='1')
+command = [sys.executable, '-B', 'setup.py', 'build_ext', '--build-lib', str(RAW/'python'),
+           '--build-temp', str(RAW/'build_temp')]
+identity = dict(command=command, environment={k:env[k] for k in
+    ('CUDA_HOME','MAX_JOBS','TORCH_CUDA_ARCH_LIST','LOQUETIER_PAGE_SIZES',
+     'LOQUETIER_GROUP_SIZES','LOQUETIER_HEAD_DIMS','LOQUETIER_BUILD_VERSION')},
+    source_manifest=manifest, compiler=subprocess.check_output(['/usr/bin/g++','--version'],text=True).splitlines()[0],
+    model_qualified=False, performance_run=False)
+with (RAW/'build_inputs.json').open('x') as stream:
+    json.dump(identity, stream, indent=2)
+with (RAW/'build.log').open('x') as stream:
+    proc = subprocess.run(command, cwd=view, env=env, stdout=stream, stderr=subprocess.STDOUT)
+receipt = dict(returncode=proc.returncode, compiled=False, model_qualified=False,
+               original_environment_modified=False, build_log_sha256=p.digest(RAW/'build.log'))
+if proc.returncode == 0:
+    # Standard build_ext produces the extension; reuse the original Python API
+    # and utilities through links, not a second attention implementation.
+    package = RAW/'python/loquetier'
+    for parent, dirs, files in os.walk(view/'src/loquetier'):
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        relative = Path(parent).relative_to(view/'src/loquetier')
+        target = package/relative
+        target.mkdir(parents=True, exist_ok=True)
+        for name in files:
+            if name.endswith('.py'):
+                (target/name).symlink_to(Path(parent)/name)
+    kernels = list((package/'ops').glob('_kernels*.so'))
+    assert len(kernels) == 1
+    receipt.update(compiled=True, kernel_path=str(kernels[0]), kernel_sha256=p.digest(kernels[0]),
+        model_contract_sha256=p.digest(view/'tc_model_contract.json'))
+with (RAW/'build_receipt.json').open('x') as stream:
+    json.dump(receipt, stream, indent=2)
+print(json.dumps(receipt))
+raise SystemExit(proc.returncode)
