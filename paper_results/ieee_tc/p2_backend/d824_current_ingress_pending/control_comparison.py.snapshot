@@ -1,0 +1,77 @@
+"""Reuse D730's exact controller audit, only on already closed D822 data."""
+import csv
+import gzip
+import json
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+import ijson
+import yaml
+from scripts.ieee_tc.audit_d703_3b_full import read, ref, digest, p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d824_current_ingress_pending'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+scope = p.scope_identity(p.cg_path().name)
+with (RAW/'control_identity.json').open('x') as handle:
+    json.dump(scope, handle, indent=2)
+template = ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/analyze.py.snapshot'
+text = template.read_text()
+block = text[text.index("run = Path(stage['source_run'])"):text.index('OUT.mkdir(parents=True)')]
+block = block.replace('20261022_d729_3b_bulk_loader_full_w0.yaml',
+                      '20261025_d822_3b_max3_full_w2.yaml')
+block = block.replace("with outcome_path.open('rb') as f:",
+                      "assert str(outcome_path) == receipt['source']\nwith gzip.open(archive, 'rb') as f:")
+stage_path = ROOT/'paper_results/ieee_tc/p2_backend/d822_3b_shared_pressure_full_w2/completion/stages/diagnosis.json'
+stage = read(stage_path)
+assert stage['passed'] and stage['counts']['n'] == 4000
+receipt_path = Path(stage['source_run'])/'compression_receipt.json'
+receipt = read(receipt_path)
+assert receipt['source_sha256'] == receipt['audit_sha256'] == 'b093894d2fdf48db75697f5ad141c7d4b6da810ea28fe964772f22c1d4b40e28'
+assert receipt['launch_pass']
+archive = Path(receipt['archive'])
+assert digest(archive) == receipt['archive_sha256']
+with (OUT/'control_executed.py.snapshot').open('x') as handle:
+    handle.write(block)
+exec(compile(block, str(OUT/'control_executed.py.snapshot'), 'exec'), globals())
+assert digest(launch_path) == receipt['launch_sha256']
+parent = read(OUT/'diagnosis.json')['control']
+assert parent['limits'] == control['limits']
+# No simulated policy or SLO: the dominant component is read from actual events.
+def actions(value):
+    return [dict(relative_s=e['relative_s'], action=e['action'],
+                 trigger_components=[k for k,v in e['ratios'].items()
+                                     if v is not None and v > 1],
+                 ratios=e['ratios'], ttft_sample_count=e['ttft_sample_count'])
+            for e in value['actions']]
+counts = {}
+with (OUT/'requests.csv').open(newline='') as handle:
+    for row in csv.DictReader(handle):
+        entry = counts.setdefault(row['tier'], dict(n=0, joint_fail=0, ttft_fail=0, tpot_fail=0))
+        entry['n'] += 1
+        for key in ('joint', 'ttft', 'tpot'):
+            assert row[key+'_pass'] in ('True', 'False')
+            entry[key+'_fail'] += row[key+'_pass'] == 'False'
+report = dict(kind='d824_actual_control_comparison_v1', passed=True,
+    new_gpu_replays=0, production_changes=False, metric_changes=False,
+    d817=parent, d822=control, actions=dict(d817=actions(parent), d822=actions(control)),
+    d817_tier_failure_counts=counts, n_correct=None, ranking_eligible=False,
+    limitations=['Actual trigger arithmetic identifies the controller input, not the cause of the input latency.',
+                'Tier-conditioned groups are descriptive, not matched counterfactuals.',
+                'No arithmetic stage deletion, threshold adjustment or repeated-run inference.'],
+    sources=[ref(x) for x in (Path(__file__), template, OUT/'control_executed.py.snapshot',
+        stage_path, receipt_path, archive, launch_path, config_path,
+        OUT/'diagnosis.json', OUT/'requests.csv')], scope=scope)
+with (OUT/'control_comparison.json').open('x') as handle:
+    json.dump(report, handle, indent=2, allow_nan=False)
+cg = p.cg_path()
+with (OUT/'control_resources.json').open('x') as handle:
+    json.dump(dict(scope=scope, peak_bytes=int((cg/'memory.peak').read_text()),
+        events=(cg/'memory.events').read_text(), swap_bytes=int((cg/'memory.swap.current').read_text())), handle, indent=2)
+with (OUT/'control_comparison.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+print(json.dumps(dict(passed=True, actions=report['actions'], d817_tier_failure_counts=counts)))

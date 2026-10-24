@@ -1,0 +1,14 @@
+{
+  "kind": "d824_offline_execution_notes_v1",
+  "new_gpu_replays": 0,
+  "production_changes": false,
+  "attempts": [
+    {"id": 1, "exit_code": 1, "stage": "source_fragment_replacement", "reason": "generic run-name replacement preceded the exact config-name replacement", "data_read": false, "snapshot": "execution/attempt1.py.snapshot"},
+    {"id": 2, "exit_code": 1, "stage": "outcome_receipt_resolution", "reason": "main_outcome receipt is at the run root, not adjacent to the source file", "request_parse_completed": true, "curated_output_created": false, "snapshot": "execution/attempt2.py.snapshot", "generated_snapshot": "execution/attempt2_executed.py.snapshot"},
+    {"id": 3, "exit_code": 0, "stage": "complete_ingress_and_control_analysis", "n_requests": 4000, "max_partition_error_ms": 0.0, "snapshot": "analyze.py.snapshot", "generated_snapshot": "execution/attempt3_executed.py.snapshot"}
+  ],
+  "control_comparison_exit_code": 0,
+  "failed_attempts_are_performance_runs": false,
+  "source_data_modified": false,
+  "notes": "Failure descriptions are retained from the execution transcript; no fabricated stderr file is provided. Only explicit source-path/schema corrections were made. All valid performance measurements remain unchanged."
+}

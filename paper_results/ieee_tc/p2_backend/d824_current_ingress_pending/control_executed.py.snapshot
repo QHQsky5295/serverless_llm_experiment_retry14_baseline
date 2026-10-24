@@ -1,0 +1,27 @@
+run = Path(stage['source_run'])
+launch_path = run/'launch.json'
+launch = read(launch_path)
+t0 = launch['external_replay']['replay_t0_s']
+outcome_path = run/'launch.launch/physical_deployment/main_outcome.json'
+config_path = ROOT/'configs/ieee_tc/20261025_d822_3b_max3_full_w2.yaml'
+limits = yaml.safe_load(config_path.read_text())['resource_coordination']['ieee_scaling']
+assert str(outcome_path) == receipt['source']
+with gzip.open(archive, 'rb') as f:
+    events = list(ijson.items(f, 'mechanism_events._ieee_control_events.item', use_float=True))
+for e in events:
+    ratios = dict(queue=e['queue_depth']/limits['queue_upper'],
+        active=e['active_saturation']/limits['active_upper'],
+        ttft=None if e['p95_ttft_ms'] is None else e['p95_ttft_ms']/limits['ttft_upper_ms'])
+    assert ratios == e['ratios']
+    assert e['score'] == max(v for v in ratios.values() if v is not None)
+    assert e['current_instances'] == e['ready_instances']+e['pending_instances']
+    assert e['all_low'] == (e['queue_depth'] < limits['queue_lower'] and
+        e['active_saturation'] < limits['active_lower'] and e['p95_ttft_ms'] is not None and
+        e['p95_ttft_ms'] < limits['ttft_lower_ms'])
+low = [e for e in events if e['observed_at'] >= t0 and e['ready_instances']>1 and
+       not e['pending_instances'] and e['queue_depth']<limits['queue_lower'] and
+       e['active_saturation']<limits['active_lower'] and e['p95_ttft_ms'] is not None]
+control = dict(n=len(events), limits=limits,
+    actions=[dict(e, relative_s=e['observed_at']-t0) for e in events if e['action']!='no_action'],
+    low_queue_active_no_pending_n=len(low), all_low_n=sum(e['all_low'] for e in events),
+    low_load_p95_ttft_ms=timing_stats([e['p95_ttft_ms'] for e in low]))

@@ -1,0 +1,96 @@
+"""Close the D824 offline analysis with existing protection/hash conventions."""
+import csv
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d824_current_ingress_pending'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+scope = p.scope_identity(p.cg_path().name)
+with (RAW/'verification_identity.json').open('x') as handle:
+    json.dump(scope, handle, indent=2)
+def read(path):
+    return json.loads(Path(path).read_text())
+def ref(path):
+    path = Path(path)
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+protected_path = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.digest(protected_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = read(protected_path)['entries']
+for path, row in protected.items():
+    assert p.digest(Path(path)) == row['sha256'], path
+user = read(ROOT/'paper_results/ieee_tc/p2_backend/d823_paired_w2_regression/verification.json')['user_protected']
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha, path
+    assert path in protected
+assert len(protected) == 147 and len(user) == 3
+sources = {}
+for name in ('diagnosis.json', 'control_comparison.json'):
+    report = read(OUT/name)
+    assert report['passed'] and report['new_gpu_replays'] == 0
+    assert report['production_changes'] is False and report['metric_changes'] is False
+    assert report['n_correct'] is None and report['ranking_eligible'] is False
+    for row in report['sources']:
+        assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+        if row['path'] in sources:
+            assert sources[row['path']] == row['sha256']
+        sources[row['path']] = row['sha256']
+for row in read(OUT/'manifest.json')['files']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+with (OUT/'requests.csv').open(newline='') as handle:
+    rows = list(csv.DictReader(handle))
+assert len(rows) == len({r['request_id'] for r in rows}) == 4000
+assert sum(r['joint_pass'] == 'True' for r in rows) == 3596
+assert sum(r['ttft_pass'] == 'False' for r in rows) == 313
+assert sum(r['tpot_pass'] == 'False' for r in rows) == 100
+assert sum(r['ttft_pass'] == r['tpot_pass'] == 'False' for r in rows) == 9
+assert sum(r['tier']=='remote' and r['joint_pass']=='False' for r in rows) == 270
+assert sum(r['tier']=='gpu' and r['ttft_pass']=='False' for r in rows) == 7
+closure = []
+for name in ('resources.json', 'control_resources.json'):
+    resource = read(OUT/name)
+    assert resource['swap_bytes'] == 0
+    assert all(int(line.split()[1]) == 0 for line in resource['events'].splitlines())
+    identity = resource['scope']
+    assert not p.scope_still_owned(identity)
+    props = subprocess.check_output(['systemctl', '--user', 'show', identity['unit'],
+        '-p', 'ActiveState', '-p', 'ControlGroup', '-p', 'InvocationID'], text=True)
+    assert 'ActiveState=inactive' in props and 'ControlGroup=\n' in props and 'InvocationID=\n' in props
+    assert not Path(identity['path']).exists()
+    closure.append(dict(identity=identity, current_properties=props, path_removed=True))
+gpu = subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,used_memory','--format=csv,noheader'], text=True)
+assert not gpu.strip()
+head = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT,text=True).strip()
+assert head == '107185c45f49a891c0b391b1140b7d765e83daea'
+assert subprocess.check_output(['git','branch','--show-current'],cwd=ROOT,text=True).strip() == 'retry14_continuous_queue_v2'
+assert not subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).strip()
+subprocess.run(['git','diff','--check'],cwd=ROOT,check=True)
+for path in [*OUT.rglob('*.py.snapshot'), Path(__file__)]:
+    compile(path.read_text(), str(path), 'exec')
+cg = p.cg_path()
+verification = dict(kind='d824_offline_closure_v1', passed=True, head_before=head,
+    protected_union_files=147, protected_user_files=3, user_protected=user,
+    protected_manifest=ref(protected_path), source_refs_verified=len(sources),
+    request_identity_and_counts_passed=True, new_gpu_replays=0, production_changes=False,
+    metric_changes=False, gpu_idle=True, analysis_scope_closure=closure,
+    plan=ref(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')),
+    doc=ref(ROOT/'docs/ieee_tc/D824_CURRENT_INGRESS_AND_CONTROL_20261025.md'),
+    scope=scope, scope_sample={k:(cg/k).read_text().strip() for k in
+        ('memory.peak','memory.events','memory.swap.current','memory.high','memory.max','memory.swap.max')},
+    scope_sample_is_final_peak=False, disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize)
+with (OUT/'closure.json').open('x') as handle:
+    json.dump(verification, handle, indent=2)
+with (OUT/'verify.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+members = [ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]
+with (OUT/'final_manifest.json').open('x') as handle:
+    json.dump(dict(kind='d824_complete_derived_manifest_v1', files=members), handle, indent=2)
+print(json.dumps(dict(passed=True, protected=147, user_protected=3,
+    sources=len(sources), files=len(members), gpu_idle=True)))

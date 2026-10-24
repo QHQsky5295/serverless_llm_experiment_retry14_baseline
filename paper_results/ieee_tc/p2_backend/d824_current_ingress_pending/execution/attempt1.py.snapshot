@@ -1,0 +1,74 @@
+"""D824: reuse D730's existing ingress/pending analysis on sealed D817.
+
+Only source paths, lossless-compression access and output identity change.
+Remove old stage-deletion arithmetic: it is not a causal optimization result.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+template = ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/analyze.py.snapshot'
+source = template.read_text()
+replacements = {
+    "import collections\n": "import collections\nimport gzip\n",
+    "d730_ingress_pending_diagnosis": "d824_current_ingress_pending",
+    "d729_3b_bulk_loader_full_w0": "d817_3b_required_capacity_full_w2",
+    "20261022_d729_3b_bulk_loader_full_w0.yaml": "20261025_d817_3b_required_capacity_full_w2.yaml",
+    "d730_closed_ingress_pending_partition_v1": "d824_closed_ingress_pending_partition_v1",
+    "d730_derived_evidence_v1": "d824_derived_evidence_v1",
+    "with result.open('rb') as f:": "with open_source(result) as f:",
+    "with outcome_path.open('rb') as f:": "with open_source(outcome_path) as f:",
+    "assert digest(result) == source['sha256']": "result = retained_source(result, source['sha256'])",
+    "config_path = ROOT/": "outcome_path = retained_source(outcome_path)\nconfig_path = ROOT/",
+    "sources=[ref(x) for x in (Path(__file__), stage_path":
+        "sources=[ref(x) for x in (*compression_sources, template, RAW/'executed.py.snapshot', Path(__file__), stage_path",
+    "'Arithmetic removals are fixed-trace prioritization bounds, not an achievable policy, prediction, or publishable SLO.',":
+        "'No arithmetic deletion of stages or inferred counterfactual SLO is performed.',",
+    "print(json.dumps(dict(passed=True, groups=groups, arithmetic=arithmetic, control=control),indent=2))":
+        "print(json.dumps(dict(passed=True, output=str(OUT), n=len(rows), groups=len(groups), control_actions=len(control['actions']), max_partition_error_ms=max(errors))))",
+}
+for old, new in replacements.items():
+    if old not in source:
+        raise ValueError(f'expected existing analysis fragment absent: {old}')
+    source = source.replace(old, new)
+start = source.index('# Not an achievable counterfactual:')
+end = source.index('# Reuse D727', start)
+source = source[:start]+'arithmetic = []\n\n'+source[end:]
+# The old manifest opened itself before enumerating members. Keep its historical
+# bytes and use D730's documented closure correction in this new output only.
+source = source.replace("with (OUT/'manifest.json').open('x') as f:\n",
+    "manifest_files = [ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]\nwith (OUT/'manifest.json').open('x') as f:\n")
+source = source.replace("files=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]", "files=manifest_files")
+compression_sources = []
+
+
+def retained_source(original, expected=None):
+    receipt_path = Path(str(original)+'.compression_receipt.json')
+    receipt = json.loads(receipt_path.read_text())
+    archive = Path(receipt['archive'])
+    if (receipt['source'] != str(original) or receipt['source_sha256'] != receipt['audit_sha256']
+            or (expected is not None and receipt['source_sha256'] != expected)):
+        raise ValueError('sealed compressed-source identity mismatch')
+    h = hashlib.sha256()
+    with archive.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024*1024), b''):
+            h.update(chunk)
+    if h.hexdigest() != receipt['archive_sha256']:
+        raise ValueError('retained archive changed')
+    compression_sources.extend([receipt_path, archive])
+    return archive
+
+
+def open_source(path):
+    import gzip
+    return gzip.open(path, 'rb')
+
+
+with (RAW/'template.json').open('x') as handle:
+    json.dump(dict(path=str(template), sha256=hashlib.sha256(template.read_bytes()).hexdigest(),
+        new_gpu_replays=0, source='D817 complete W2', stage_removal_arithmetic=False), handle, indent=2)
+with (RAW/'executed.py.snapshot').open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(RAW/'executed.py.snapshot'), 'exec'), globals())
