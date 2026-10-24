@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d822ca11000000000000000000000015.scope",
+    "invocation_id": "42cf83a72d374b1c9cd7ae45b9f943ed",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000015.scope",
+    "inode": 32078120
+  },
+  "protected_files": 147,
+  "receipt_sha256": "66361778cf3c268c7d58054c82678f4ddf2b275157259801add95ee9d33e6b84",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "75913eed0d54691a3bc6d2e3dffbe35a0df6e309a88b5fb0ea2130f9a9dfdbf7",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d822ca11000000000000000000000015.scope",
+    "memory.current": 239890432,
+    "memory.peak": 240697344,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 58190903\nuser_usec 53935670\nsystem_usec 4255232\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "note": "Restore the original path from its archive and verify source_sha256 before reusing an analyzer requiring an uncompressed outcome. D822 outcome and request result are losslessly archived after completed audits and verified backup. Prefer streaming gzip for further diagnostics; restore only with exact source SHA when a legacy analyzer requires it."
+}

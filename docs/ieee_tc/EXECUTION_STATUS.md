@@ -1,6 +1,46 @@
-# IEEE TC execution status — D822 complete; negative candidate, offline closure
+# IEEE TC execution status — D822 rejected and backed up; storage maintenance closed
 
-## 2026-10-25 06:48 CST D822实际主动准入与结果审计完成，待备份/压缩
+## 2026-10-25 06:47 CST D822收尾与存储已完成，返回3B主线
+
+三份D822关闭日志无损压缩回收1312997376B；另十份明确已释放历史运行的
+remote_monitor日志回收608251904B。合计1921249280B（约1.789GiB），
+原SHA/归档SHA/两次解压SHA均验证，旧投稿保护未变。当前空闲约
+161469759488B（150.380GiB），只代表当前实测；下一重型仍需实际增长量
+与内存门槛准入。aux15/16均inactive且路径移除，GPU空、远端关闭、无待
+工具session；内存high/max/OOM/swap0。没有新性能实验、图表或原始数据丢弃。
+
+结果检查点ec2d5e3c已在backup/d822-complete-20261025；存储小回执/本状态
+随同一备份分支的正常快进保存。backup_completion中的protected_user_files=0
+误用了“集合新增数”：三个明确用户文件已经包含在147项保护集合中，实际均
+逐SHA检查，不能解释为未检查用户修改。原回执不覆写；此处明确计数语义。
+
+下一具体问题：D822的Remote准备变快，但全体TTFT违约数313→322、TPOT
+违约数100→163，整体GPU时间增加649.145秒。只用已保存D817/D822请求阶段
+表和物理生命周期核对退化落在哪些共同请求/阶段，不重复读整池或新开GPU。
+这是候选否决后的有界归因，不预设锁/网络为原因，不继续优化共享通道，不
+把条件集合变化当因果结论。之后才根据新证据、历史否定记录和原始来源确定
+单一下一候选；保持默认native_rpc_v1、论文公式与冻结尺度，持续3B主线。
+
+当前D812 W0 95.05%、D813 W1 93.975%、D817 W2 89.90%为各自开发观测，
+不能拼成最终同版本全场景达标；D822不替代它们。D711数值限制、同版主比较
+与Full、A1–A5、S1–S13、成本/CE/Pareto、两轮审稿文档、图表及最终V2同步
+全部保留，整体目标active。HydraServe现有隔离适配/结果复用，不改非项目k3s。
+
+## 2026-10-25 06:44 CST D822结果检查点备份已验证，存储维护进行中
+
+59条明确产物/文档路径检查后提交ec2d5e3c7a17a45890870ee21a295b6c9d61b6a9，
+push/ls-remote核实refs/heads/backup/d822-complete-20261025；这是备份，不是
+最终V2分支同步。147旧投稿与三处用户修改SHA保持不变，未stage用户manifest，
+BASE仓库未改。备份aux14已inactive且路径移除，GPU空、stage空；精确关闭
+回执在raw/post_backup_release.json，不递归为收尾回执建立新检查点。
+
+当前仅aux15执行既有无损压缩器：D822关闭的main_outcome、请求结果和远端
+monitor日志。每文件原SHA/两次解压SHA/归档SHA与关闭证据均核验，尚未以
+启动状态宣称空间已回收。无模型推理/远端服务，不改工件、负载或历史数据。
+完成后更新实际空间与关闭回执，下一主线仍是3B整体SLO/资源差距的有界诊断；
+不再运行D822相同候选、不开展W1/W0扩展。完整未完成范围与D711限制保留。
+
+## 2026-10-25 06:43 CST D822实际主动准入与结果审计完成，待备份/压缩
 
 最终分析session78816退出0，aux13已inactive且Invocation/ControlGroup空。
 实际压力快照在主动准备receipt而非请求记录：4768唯一attempt，2663快照

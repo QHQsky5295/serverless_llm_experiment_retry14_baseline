@@ -1,0 +1,45 @@
+"""Reuse the compressor for ten explicitly selected, released monitor logs."""
+from pathlib import Path
+
+_template=Path(__file__).resolve().parent.parent/'d752_20261023/storage_maintenance.py'
+_source=_template.read_text()
+_source=_source.replace('20261023_d752_closed_older_outcomes.json',
+    '20261025_d822_closed_monitors.json')
+_source=_source.replace("save(RAW/'storage_identity.json', own)",
+    "save(RAW/'monitor_storage_identity.json', own)")
+_start=_source.index("q = read(ROOT/")
+_end=_source.index('c.TARGETS, c.OUT = targets, OUT',_start)
+_source=_source[:_start]+'''
+seal=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected={name:item['sha256'] for name,item in read(seal)['entries'].items()}
+assert len(protected)==147
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected'])
+for name,sha in protected.items():
+    assert p.digest(Path(name))==sha,name
+targets=[]
+for run in (
+    'd629_20261017/7b_private_verify_full_w2',
+    'd632_20261017/7b_min2_full_w2',
+    'd636_20261017/7b_min2_full_w0',
+    'd665_20261018/3b_full_w0',
+    'd672_20261018/3b_full_w0',
+    'd677_20261018/3b_full_w0',
+    'd682_20261018/3b_full_w0',
+    'd688_20261018/3b_full_w0',
+    'd695_20261018/3b_full_w0',
+    'd697_20261019/3b_full_w0',
+):
+    raw=c.RAW_ROOT/run
+    launch=read(raw/'launch.json')
+    c.require_closed_launch(launch)
+    source=raw.parent/'remote_monitor.log'
+    assert str(source) not in protected
+    targets.append(dict(run=run,audit_sha=None,remote_monitor_log='remote_monitor.log'))
+'''+_source[_end:]
+_source=_source.replace("q['protected']",'protected')
+_source=_source.replace('D752 remains uncompressed.',
+    'Only ten explicit closed remote-monitor logs were archived; performance identities and unique evidence are unchanged. Existing gzip-aware readers should stream the archives.')
+with (Path(__file__).resolve().parent/'monitor_storage_program.py.snapshot').open('x') as stream:
+    stream.write(_source)
+exec(compile(_source,str(_template),'exec'),globals())
