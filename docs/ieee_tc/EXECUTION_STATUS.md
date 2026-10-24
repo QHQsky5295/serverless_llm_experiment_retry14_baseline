@@ -1,4 +1,27 @@
-# IEEE TC execution status — D825 single-destination verification CPU-qualified
+# IEEE TC execution status — D826 full 3B W2 registered, launch pending
+
+## 2026-10-25 D826：进入D825候选的完整3B W2
+
+前轮为progress：D825实现、446项不同检查、实际组件、147保护核验及备份
+均完成。本轮已读完整PLAN、当前状态、冻结V1/单轮V2及必要技能。只新增
+D826运行身份、独占结果/NVMe/HOST路径与现有入口的分支；max3、控制阈值、
+4000请求、已有W2映射、profile、60s部署、1800s保护、远端与资源包络不变。
+不再跑CPU组件/短Full。D825是唯一候选；D822压力通道仍不启用。
+
+说明D826_SINGLE_VERIFICATION_FULL_W2_20261025.md；raw为
+results/ieee_tc/p2_backend_qualification/d826_20261025/，tmux预定
+tc-d826-3b-single-verification-full-w2。目前尚待新入口7项身份检查、明确
+路径备份、实际资源准入与远端健康核对；不能将本登记当作运行已启动。
+本轮将按完整联合SLO、物理GPU-s、尾TTFT判断，不按局部阶段收益投影达标。
+D711数值未知与最终同版两模型主矩阵、A1–A5、S1–S13、成本/CE、文档/图表
+及最终V2同步均保留。目标active，无共用k3s改动，无历史覆盖。
+
+备份已核实：4a7c979ba2efe1cc47bc9d8f915df7896181e614，11条明确路径已推送
+faaslora_origin/backup/d825-single-destination-verification-20261025，远端ref一致。
+仍非最终V2同步。aux1–7全部inactive，所有工具session终结，stage空，GPU空；
+用户manifest未提交。磁盘161436205056B；下次完整W2前需重新按实际增长
+检查门槛。此后置回执随下一正常检查点保存，不递归建立备份。
+下一动作是D825候选一次完整3B W2评估，不重复已经完成的CPU组件或资格。
 
 D825收尾核验通过：25个raw证据成员归档后逐SHA读回，147保护集合及3处
 用户文件不变；CPU aux1–5均inactive、group路径消失，GPU空。aux6发布

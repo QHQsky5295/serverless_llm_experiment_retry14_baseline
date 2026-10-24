@@ -1,0 +1,115 @@
+"""Reuse the D817/D822 launch/checkpoint procedure for the D825 qualified HTTP path."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False, sort_keys=True)
+        handle.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'start_identity.json', own)
+group = Path(own['path'])
+assert (group / 'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group / 'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group / 'memory.swap.max').read_text().strip() == '0'
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not call(['git','diff','--cached','--name-only'])
+assert call(['git','branch','--show-current']) == 'retry14_continuous_queue_v2'
+assert call(['git','rev-parse','HEAD']) == '4a7c979ba2efe1cc47bc9d8f915df7896181e614'
+assert not (RAW / '3b_max3_full_w2').exists() and not Path('/dev/shm/tc-d826-3b-w2').exists()
+OUT.mkdir(parents=True, exist_ok=False)
+qualified_dir = ROOT / 'paper_results/ieee_tc/p2_backend/d825_single_destination_verification'
+q = read(qualified_dir / 'qualification.json')
+closure = read(qualified_dir / 'closure.json')
+assert q['passed'] and q['unique_tests'] == 446 and closure['passed']
+assert closure['new_gpu_replays'] == 0 and not closure['end_to_end_performance_accepted']
+assert 'ActiveState=inactive' in call(['systemctl','--user','show',closure['scope']['unit'],'-p','ActiveState'])
+assert not Path(closure['scope']['path']).exists()
+refs = dict(closure['production_sources'])
+refs.update(q['receipts']['regression']['sources'])
+for path, sha in (refs | closure['user_protected']).items():
+    assert p.digest(Path(path)) == sha, path
+for row in read(qualified_dir / 'manifest.json')['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+reused = {str(qualified_dir / name):p.digest(qualified_dir / name)
+          for name in ('qualification.json','component.json','closure.json','manifest.json')}
+old = read(ROOT / 'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/prelaunch/qualification.json')
+for path, sha in old['refs'].items():
+    if (path.endswith(('.json','.so','.md')) and 'D817_' not in path and 'EXECUTION_STATUS' not in path
+            and '/d817_20261025/' not in path):
+        assert p.digest(Path(path)) == sha, path
+        refs[path] = sha
+seal = p.verify_seal(RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT / 'protected_147.json', seal)
+tests = call(['/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python','-B','-m','unittest',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D826FullContract',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D822FullContract',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D817FullContract',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D814FullContract.test_only_frozen_adapter_view_changes_in_qualified_launch','-v'])
+assert 'Ran 7 tests' in tests and tests.endswith('OK')
+save(OUT / 'execution_contract_tests.json', dict(passed=True, output=tests, new_tests=2, affected_existing_tests=5))
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in sorted(RAW.iterdir()):
+    if path.suffix not in ('.py','.sh'): continue
+    if path.suffix == '.py': ast.parse(path.read_text())
+    else: call(['bash','-n',str(path)])
+    assert not secret.search(path.read_text()), path
+    with (OUT / (path.name + '.snapshot')).open('xb') as handle: handle.write(path.read_bytes())
+    refs[str(path)] = p.digest(path)
+files = ['configs/ieee_tc/20261025_d826_3b_max3_full_w2.yaml',
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'docs/ieee_tc/D826_SINGLE_VERIFICATION_FULL_W2_20261025.md','docs/ieee_tc/EXECUTION_STATUS.md']
+call(['bash','-n',str(ROOT / files[1])])
+for name in files: refs[str(ROOT / name)] = p.digest(ROOT / name)
+save(OUT / 'qualification.json', dict(passed=True, identity=own, refs=refs, reused=reused,
+    full_source_count=4000, diagnostic_prefix_count=None,
+    changes='three exclusive paths; D825 single destination verification; native_rpc_v1 unchanged',
+    source_tests_reused=446, new_execution_contract_tests=2, affected_existing_tests=5,
+    additional_gpu_microtests=0,
+    numerical_correctness_qualified=False, end_to_end_performance_accepted=False,
+    resources=p.cgroup_snapshot(group)))
+save(OUT / 'manifest.json', dict(files=[dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]))
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+assert 'configs/generated/lora_manifest_1000.json' not in files
+for name in files: assert not secret.search((ROOT / name).read_text()), name
+call(['git','diff','--check','--',*files])
+call(['git','add','--',*files])
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(files)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: register complete 3B W2 for single destination verification (D826)'])
+head = call(['git','rev-parse','HEAD'])
+ref = 'refs/heads/backup/d826-single-verification-fullw2-20261025'
+save(RAW / 'commit.json', dict(head=head,ref=ref,files=files))
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW / 'backup.json', dict(passed=True,head=head,ref=ref,v2_synchronized=False))
+gate = p.preflight([ROOT,RAW],32*p.GIB)
+save(RAW / 'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+session = 'tc-d826-3b-single-verification-full-w2'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode != 0
+call(['bash',str(RAW / 'start_remote.sh')])
+call(['/usr/bin/python3','-B',str(RAW / 'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(['bash',str(RAW / 'run_and_release.sh')])])
+save(RAW / 'start_receipt.json', dict(launched=True,head=head,backup_ref=ref,tmux=session,
+    identity=own,qualification_sha256=p.digest(OUT / 'qualification.json')))
+print(json.dumps(dict(launched=True,head=head,ref=ref,tmux=session)))

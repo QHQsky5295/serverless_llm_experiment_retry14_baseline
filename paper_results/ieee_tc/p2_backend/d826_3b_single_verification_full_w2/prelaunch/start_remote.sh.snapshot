@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Reuse the frozen published-service procedure; campaign paths only.
+set -euo pipefail
+set -o noclobber
+raw=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025
+ssh -o BatchMode=yes primelora-artifact-174 /bin/bash <<'REMOTE' > "$raw/remote_start.log" 2>&1
+set -euo pipefail
+base=/home/lab14/primelora_remote/tc/d80_20260927
+out=/home/lab14/primelora_remote/tc/d826_20261025
+test "$(loginctl show-user lab14 -p Linger --value)" = yes
+test "$(awk '/^MemAvailable:/{print $2}' /proc/meminfo)" -ge 27525120
+test "$(df -B1 --output=avail "$base" | tail -1 | tr -d ' ')" -ge 17280532480
+test -z "$(ss -ltnH '( sport = :18080 or sport = :18081 )')"
+test ! -e "$out"
+for model in 3b 7b; do
+  test "$(systemctl --user show primelora-artifact-tc-${model}.service -p ActiveState --value)" = inactive
+  cmp "$base/primelora-artifact-tc-${model}.service" "/home/lab14/.config/systemd/user/primelora-artifact-tc-${model}.service"
+done
+mkdir "$out"
+iface=$(ip -o route get 192.168.4.178 | awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1);exit}}')
+test -n "$iface"
+cat "/sys/class/net/$iface/speed" "/sys/class/net/$iface/duplex"
+systemctl --user start primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service
+systemd-run --user --unit=primelora-artifact-monitor-d826-max3-fullw2.service \
+  -p Type=exec -p UMask=0077 -p MemoryHigh=128M -p MemoryMax=256M -p MemorySwapMax=0 \
+  -p CPUAffinity='0 20' -p TasksMax=32 -p NoNewPrivileges=yes \
+  -p TimeoutStopSec=30 -p Restart=no \
+  -p StandardOutput="append:$out/remote_monitor.log" \
+  -p StandardError="append:$out/remote_monitor.log" \
+  /bin/bash "$base/monitor_remote_services_v2.sh"
+systemctl --user show primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d826-max3-fullw2.service \
+  -p Id -p InvocationID -p MainPID -p ActiveState -p MemoryHigh -p MemoryMax -p MemorySwapMax
+REMOTE

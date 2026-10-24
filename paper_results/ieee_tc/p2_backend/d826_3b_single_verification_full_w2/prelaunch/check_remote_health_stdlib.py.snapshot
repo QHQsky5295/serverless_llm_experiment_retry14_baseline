@@ -1,0 +1,33 @@
+import json
+import importlib.util
+import sys
+import time
+from pathlib import Path
+# Load the stdlib-only HTTP client without the storage package's optional ML
+# imports. This management check does not load a model or change serving code.
+spec = importlib.util.spec_from_file_location('tc_health_http_client',
+    '/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py')
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+HttpArtifactStoreClient = module.HttpArtifactStoreClient
+
+token = Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_text().strip()
+results = {}
+for model, port in [('3b',18080),('7b',18081)]:
+    client = HttpArtifactStoreClient(endpoint=f'http://192.168.4.174:{port}', token=token,
+        timeout_s=5, required_delivery_mode='prepublished_gzip_v1')
+    for attempt in range(10):
+        try:
+            data = client.health()
+            break
+        except (OSError, RuntimeError):
+            if attempt == 9:
+                raise
+            time.sleep(1)
+    assert data['ok'] and data['delivery_mode'] == 'prepublished_gzip_v1'
+    assert data['timing_contract'] == 'artifact_timing_v2'
+    results[model] = data
+with (Path(__file__).resolve().parent/'remote_health.json').open('x') as f:
+    json.dump(results, f, indent=2)
+print(json.dumps(results))
