@@ -1,0 +1,30 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 38812)
+Traceback (most recent call last):
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 616, in process_request
+    self.finish_request(request, client_address)
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/remote_server.py", line 418, in handle
+    send_state_dict(state_dict, self.request, thread_id, num_thread, is_query)
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/remote_server.py", line 334, in send_state_dict
+    socket.sendall(tensor_info[2][tensor_start_pos:tensor_end_pos])
+ConnectionResetError: [Errno 104] Connection reset by peer
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 54724)
+Traceback (most recent call last):
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 616, in process_request
+    self.finish_request(request, client_address)
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/socketserver.py", line 747, in __init__
+    self.handle()
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/remote_server.py", line 418, in handle
+    send_state_dict(state_dict, self.request, thread_id, num_thread, is_query)
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/remote_server.py", line 334, in send_state_dict
+    socket.sendall(tensor_info[2][tensor_start_pos:tensor_end_pos])
+ConnectionResetError: [Errno 104] Connection reset by peer
+----------------------------------------

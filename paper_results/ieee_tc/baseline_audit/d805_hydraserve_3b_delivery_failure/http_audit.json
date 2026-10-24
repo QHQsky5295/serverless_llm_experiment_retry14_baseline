@@ -1,0 +1,112 @@
+{
+  "passed": true,
+  "qualification_only": true,
+  "performance_result": false,
+  "n_native_contract_complete": 100,
+  "n_correct": null,
+  "numerical_lora_qualified": false,
+  "actual_unique_adapters": 29,
+  "remote_transfers": 29,
+  "remote_wire_bytes": 67350156,
+  "pack_performed": false,
+  "physical": {
+    "contract": "hydraserve_container_union_v1",
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "measurement_complete": true,
+    "n_plan": 100,
+    "n_terminal": 100,
+    "n_correct": null,
+    "observed_until_s": 2344314.797681653,
+    "gpu_seconds_observed": 241.2621557628736,
+    "gpu_seconds": 241.2621557628736,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 2.4126215576287358,
+    "window_gpu_seconds": {
+      "pre_arrival": 0.0,
+      "arrival": 183.41067572683096,
+      "drain": 12.637499782256782,
+      "cleanup": 45.21398025378585
+    },
+    "device_intervals": {
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          2344044.535523762,
+          2344285.797679525
+        ]
+      ]
+    },
+    "open_lease_ids": [],
+    "owner_event_count": 4,
+    "eligible_correctness": false,
+    "owner_and_native_census_qualification_required": true,
+    "numerical_correctness_qualified": false,
+    "native_contexts_qualified": true,
+    "allocation_journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/physical/container_allocations.jsonl",
+    "allocation_journal_sha256": "cb89467eb6a89bcc57d54e652de687167fe62001ecd5e29c7656d050f7019264"
+  },
+  "metrics": {
+    "ttft_ms": {
+      "n": 100,
+      "mean": 1242.318980358541,
+      "p50": 344.1106267273426,
+      "p95": 6835.76002297923,
+      "max": 17225.54058767855
+    },
+    "tpot_ms": {
+      "n": 100,
+      "mean": 59.891429750247624,
+      "p50": 59.98331361870263,
+      "p95": 70.28828816050115,
+      "max": 110.97209754710396
+    },
+    "e2e_ms": {
+      "n": 100,
+      "mean": 11512.704143184237,
+      "p50": 12869.968004990369,
+      "p95": 18411.136930808425,
+      "max": 24728.45262568444
+    },
+    "submit_lag_ms": {
+      "n": 100,
+      "mean": 3.452309691347182,
+      "p50": 2.260979264974594,
+      "p95": 5.1720100454986095,
+      "max": 62.56289407610893
+    },
+    "dispatch_wait_after_submit_ms": {
+      "n": 100,
+      "mean": 505.586134637706,
+      "p50": 2.107835840433836,
+      "p95": 4771.995742339641,
+      "max": 14783.477129880339
+    },
+    "service_ttft_ms": {
+      "n": 100,
+      "mean": 733.2805360294878,
+      "p50": 306.5749150700867,
+      "p95": 2251.408392097801,
+      "max": 3092.979216016829
+    },
+    "decode_ms": {
+      "n": 100,
+      "mean": 10227.01208899729,
+      "p50": 11606.72336211428,
+      "p95": 16712.822412140667,
+      "max": 17923.513480927795
+    },
+    "artifact_resolve_ms": {
+      "n": 100,
+      "mean": 155.86566120386124,
+      "p50": 2.033454831689596,
+      "p95": 498.19021625444293,
+      "max": 1567.0333388261497
+    }
+  },
+  "prior_output_comparison": [],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/launch_gate.launch/replay.jsonl": "b102b05fcb11b8ce92e3f378a5a5d6745da92688c760e8dd28c919ee1ae0d08b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/remote_transfers.jsonl": "68e74c6c1da7a614349cf3cbe8be16a693f42e2d54330ead7d03aa8a64adaa13",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/physical/summary.json": "f36e06a63c2830cbc6b6ea66efefbc272d04be6782783f265ef0582d354c0420",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/http_3b_100.json": "d788b8bfb0967c67e09854bff5fd57d1a520e23d1ce1ccbdfc57e49220127e5a"
+  }
+}

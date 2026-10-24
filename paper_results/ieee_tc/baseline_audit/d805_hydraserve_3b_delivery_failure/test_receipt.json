@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "tests": 37,
+  "elapsed_seconds": 1.607,
+  "command": "/usr/bin/python3 -B -m unittest tests.test_ieee_tc_hydraserve_shm_control tests.test_ieee_tc_hydraserve_native_delivery tests.test_ieee_tc_hydraserve_llama_model_compat -v",
+  "execution": "exec session31785 exit0; primelora-tc-check-d805-receive.service success; CPU-only",
+  "files_sha256": {
+    "HydraServe_project/runtime/shm_control.py": "bd60c997f99c9bb70afb68602a01fa5f58d2bf0116eef00cb63210ca2b01b0f4",
+    "HydraServe_project/runtime/native_delivery.py": "4e36ad4617de7204be2c6e3c82b3dfc057b4c6b149ed46a7faeba58b71ff7d14",
+    "tests/test_ieee_tc_hydraserve_shm_control.py": "e72a24f43ae40c609e3c07591a380105e430439bab71f2686d3a929876624b49"
+  },
+  "runtime_correction_verified": false,
+  "old_default_overlay_preserved": true
+}

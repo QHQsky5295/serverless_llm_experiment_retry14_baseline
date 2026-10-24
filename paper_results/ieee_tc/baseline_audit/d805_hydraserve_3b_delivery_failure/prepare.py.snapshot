@@ -1,0 +1,27 @@
+"""Repeat only D804's affected path after its concrete context defect is fixed.
+
+The failed D804 attempt stays immutable; this creates a new execution identity.
+No additional 1000-request gate, trace generation or baseline parameter search.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+previous = RAW.parent/'d804_20261024'
+original = previous/'prepare.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'f21a08208f534b5aa564aca123b656ac55a9600731ed31b685d4bb95155421f2'
+failure = json.loads((previous/'failure_audit.json').read_text())
+assert failure['audit_passed'] and not failure['experiment_passed']
+assert failure['resource_closure'] and failure['remote_closed']
+assert json.loads((previous/'publication_receipt.json').read_text())['passed']
+assert json.loads((previous/'publication_closure.json').read_text())['path_gone']
+source = data.decode().replace(".replace('d576', 'd804')", ".replace('d576', 'd805')")
+needle = 'no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info='
+assert source.count(needle) == 1
+source = source.replace(needle,
+    "corrects_failed_attempt='d804_20261024', "
+    "correction='native context bound before config validation; no second llama3 length scaling', "
+    + needle)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

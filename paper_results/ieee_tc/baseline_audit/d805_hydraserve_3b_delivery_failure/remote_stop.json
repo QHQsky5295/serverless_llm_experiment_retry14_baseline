@@ -1,0 +1,14 @@
+{
+  "all_owned_units_inactive": true,
+  "collector_failure": "7B journal lookup in a 3B run",
+  "fabricated_transfer_journal": false,
+  "hashes": {
+    "remote_monitor.log": "f421e92e7036d56ee1ffd7e21c30418eb1aa08e03b81f0519ea8ed87895da659",
+    "remote_transfers.jsonl": "68e74c6c1da7a614349cf3cbe8be16a693f42e2d54330ead7d03aa8a64adaa13"
+  },
+  "original_collector_returncode": 1,
+  "original_stop_checked_exact_invocations": true,
+  "ports_18080_18081_absent": true,
+  "remote_read_only_recheck": true,
+  "transfer_clock_id": "remote-process-monotonic:33328451c8da4a8ab426269988434067"
+}

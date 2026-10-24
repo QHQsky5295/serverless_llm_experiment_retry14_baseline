@@ -1,0 +1,20 @@
+Start to initialize 6GB shared memory.
+Initialize shared memory elapsed 5.274909734725952 seconds.
+Serving on ('127.77.49.10', 6666)
+Check Initialization!
+Received pre-load request for llama32_3b/0 at 55.13595533370972 s
+Start download model for llama32_3b/0
+allocate_buffer [0]: (0, 6425520819)
+blocks = [[6425520819, 6442450944]]
+Process pre-load request for llama32_3b/0 time cost = 3.0471978187561035 seconds
+Received model request for llama32_3b/0 at 60.81296253204346 s
+free_buffer: (0, 6425520819)
+Process model request for llama32_3b/0 time cost = 8.817801713943481 seconds
+Received pre-load request for llama32_3b/0 at 111.48478174209595 s
+Start download model for llama32_3b/0
+allocate_buffer [0]: (0, 6425520819)
+blocks = [[6425520819, 6442450944]]
+Process pre-load request for llama32_3b/0 time cost = 3.0816705226898193 seconds
+Received model request for llama32_3b/0 at 115.75039672851562 s
+free_buffer: (0, 6425520819)
+Process model request for llama32_3b/0 time cost = 3.50003981590271 seconds

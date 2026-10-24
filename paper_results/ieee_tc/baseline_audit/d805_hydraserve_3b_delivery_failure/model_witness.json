@@ -1,0 +1,265 @@
+{
+  "adapter_views": [
+    {
+      "adapter": "finance_lora",
+      "derived_name_view_correct": true,
+      "pp": 1,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 28,
+          "modules": 112,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        }
+      ]
+    },
+    {
+      "adapter": "finance_lora",
+      "derived_name_view_correct": true,
+      "pp": 2,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 14,
+          "modules": 56,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 14,
+          "end": 28,
+          "modules": 56,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 56
+        }
+      ]
+    },
+    {
+      "adapter": "finance_lora",
+      "derived_name_view_correct": true,
+      "pp": 3,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 8,
+          "modules": 32,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 8,
+          "end": 20,
+          "modules": 48,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 48
+        },
+        {
+          "begin": 20,
+          "end": 28,
+          "modules": 32,
+          "rank": 2,
+          "unadapted_wrong_global_identity": 32
+        }
+      ]
+    },
+    {
+      "adapter": "finance_lora",
+      "derived_name_view_correct": true,
+      "pp": 4,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 5,
+          "modules": 20,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 5,
+          "end": 14,
+          "modules": 36,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 36
+        },
+        {
+          "begin": 14,
+          "end": 23,
+          "modules": 36,
+          "rank": 2,
+          "unadapted_wrong_global_identity": 36
+        },
+        {
+          "begin": 23,
+          "end": 28,
+          "modules": 20,
+          "rank": 3,
+          "unadapted_wrong_global_identity": 20
+        }
+      ]
+    },
+    {
+      "adapter": "medical_lora",
+      "derived_name_view_correct": true,
+      "pp": 1,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 28,
+          "modules": 112,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        }
+      ]
+    },
+    {
+      "adapter": "medical_lora",
+      "derived_name_view_correct": true,
+      "pp": 2,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 14,
+          "modules": 56,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 14,
+          "end": 28,
+          "modules": 56,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 56
+        }
+      ]
+    },
+    {
+      "adapter": "medical_lora",
+      "derived_name_view_correct": true,
+      "pp": 3,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 8,
+          "modules": 32,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 8,
+          "end": 20,
+          "modules": 48,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 48
+        },
+        {
+          "begin": 20,
+          "end": 28,
+          "modules": 32,
+          "rank": 2,
+          "unadapted_wrong_global_identity": 32
+        }
+      ]
+    },
+    {
+      "adapter": "medical_lora",
+      "derived_name_view_correct": true,
+      "pp": 4,
+      "stages": [
+        {
+          "begin": 0,
+          "end": 5,
+          "modules": 20,
+          "rank": 0,
+          "unadapted_wrong_global_identity": 0
+        },
+        {
+          "begin": 5,
+          "end": 14,
+          "modules": 36,
+          "rank": 1,
+          "unadapted_wrong_global_identity": 36
+        },
+        {
+          "begin": 14,
+          "end": 23,
+          "modules": 36,
+          "rank": 2,
+          "unadapted_wrong_global_identity": 36
+        },
+        {
+          "begin": 23,
+          "end": 28,
+          "modules": 20,
+          "rank": 3,
+          "unadapted_wrong_global_identity": 20
+        }
+      ]
+    }
+  ],
+  "backbone_tensor_count": 254,
+  "consolidation": {
+    "destination_pp": 1,
+    "fixture": "inert CPU Python objects, not native torch modules",
+    "identity_preserved": true,
+    "shared_decoder_objects": 14,
+    "source_pp": 2,
+    "source_rank": 1
+  },
+  "excluded_non_fp16_rotary_buffer_count": 0,
+  "executed_partition": false,
+  "gpu_forward_qualified": false,
+  "header_sha256": {
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/adapter_model.safetensors": "d9f990385e6ab3aa1dcac18f1ff7eae27b69e6471bce85751d54b557d11b5fb9",
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/medical_lora/adapter_model.safetensors": "d9f990385e6ab3aa1dcac18f1ff7eae27b69e6471bce85751d54b557d11b5fb9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct/model-00001-of-00002.safetensors": "58e68073fda43c094068939b0508e97f6e295cab178a83ec9464ade55688b42a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct/model-00002-of-00002.safetensors": "a13e271ba00a58d5a4d1ce7fe08c1178b8d6299fa5a7302a696a58ce06d7f2d0"
+  },
+  "installed_runtime_adaptation": false,
+  "limitations": [
+    "Derived name view is a diagnostic, not an installed LoRA manager.",
+    "Shared-object witness does not establish slot/mapping ownership or race freedom.",
+    "Headers do not reverify full weight contents or prove nonzero numerical effects."
+  ],
+  "model": "Llama-3.2-3B",
+  "model_config_sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a",
+  "model_index_sha256": "0a57c30afc07c81610ae7fe013bea3b9d50365f9a8145ae98e8714220f3d7c7c",
+  "numerical_qualified": false,
+  "partitions": {
+    "1": [
+      28
+    ],
+    "2": [
+      14,
+      28
+    ],
+    "3": [
+      8,
+      20,
+      28
+    ],
+    "4": [
+      5,
+      14,
+      23,
+      28
+    ]
+  },
+  "performance_run": false,
+  "read_tensor_payload": false,
+  "schema": "hydraserve_cpu_layer_identity_witness_v1",
+  "source_sha256": {
+    "scripts/kubernetes/vllm/download/download.py": "4f0317559d18f1209af7b7a9db9e22646f86957cea18b0c488a1368ec79864ba",
+    "vllm/lora/models.py": "b0abca52a2027bfc4a6a7f92beba68b802e2f138fa11a9c697a4e93a56989170",
+    "vllm/lora/utils.py": "4fac00fb4eb3d75eb4fe6df228c5013bad4a50e8b2367074337942bd1c8e77a3",
+    "vllm/model_executor/models/llama.py": "13b7e5f17b678ea73d35901649b856ca771b632ae9f81c986676606fe18a558a",
+    "vllm/model_executor/utils.py": "affa28fb27ca345d372570d84ebe161caec8d76218c8012817e055f05d0e87a9"
+  },
+  "storage_dtypes": [
+    "BF16"
+  ],
+  "tied_weight_keys": [
+    "lm_head.weight"
+  ],
+  "upstream_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b"
+}

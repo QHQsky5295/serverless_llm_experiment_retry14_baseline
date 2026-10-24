@@ -1,0 +1,112 @@
+"""Post-release D805 audit: retain transport success and numerical failure separately."""
+from collections import Counter
+from hashlib import sha256
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, '/home/qhq/serverless_llm_baselines/scripts')
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(MAIN)
+
+
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, sort_keys=True)
+
+
+own = p.scope_identity(p.cg_path().name)
+save('audit_identity.json', own)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (Path(own['path'])/'memory.max').read_text().strip() == str(4*p.GIB)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+launch = json.loads((RAW/'launch_gate.json').read_text())
+closure = json.loads((RAW/'closure.json').read_text())
+assert launch['cleanup']['released'] and closure['service_gone'] and closure['actual_recursive_empty']
+assert not Path(closure['service']['path']).exists()
+# The inherited collector stops the exact owned services before an incorrect 7B
+# journal lookup. Keep its failure; only collect the actual 3B journal here.
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+remote_check = '''set -eu
+for unit in primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d805-hydraremote.service; do
+  test "$(systemctl --user show "$unit" -p ActiveState --value)" = inactive
+  test "$(systemctl --user show "$unit" -p MainPID --value)" = 0
+  systemctl --user show "$unit" -p Id -p ActiveState -p MainPID -p Result
+done
+test -z "$(ss -ltnH '( sport = :18080 or sport = :18081 )')"
+'''
+run = subprocess.run(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', '/bin/bash'],
+                     input=remote_check, text=True, capture_output=True, check=True, timeout=30)
+with (RAW/'remote_recheck.log').open('x') as stream:
+    stream.write(run.stdout)
+health = json.loads((RAW/'remote_health.json').read_text())
+clock = health['3b']['clock_id']
+assert clock.startswith('remote-process-monotonic:') and len(clock.rsplit(':', 1)[1]) == 32
+query = f'grep -l -- {clock} /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl'
+paths = subprocess.check_output(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174', query],
+                                text=True, timeout=30).splitlines()
+assert len(paths) == 1 and paths[0].startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-')
+downloads = {'remote_transfers.jsonl': paths[0],
+             'remote_monitor.log': '/home/lab14/primelora_remote/tc/d805_20261024_hydraremote/remote_monitor.log'}
+hashes = {}
+for name, remote in downloads.items():
+    expected = subprocess.check_output(['ssh', '-o', 'BatchMode=yes', 'primelora-artifact-174',
+                                       'sha256sum', remote], text=True, timeout=30).split()[0]
+    assert not (RAW/name).exists()
+    subprocess.run(['scp', '-q', '-o', 'BatchMode=yes', 'primelora-artifact-174:'+remote, str(RAW/name)],
+                   check=True, timeout=30)
+    assert p.digest(RAW/name) == expected
+    hashes[name] = expected
+save('remote_stop.json', dict(all_owned_units_inactive=True, ports_18080_18081_absent=True,
+    original_stop_checked_exact_invocations=True, original_collector_returncode=1,
+    collector_failure='7B journal lookup in a 3B run', remote_read_only_recheck=True,
+    hashes=hashes, transfer_clock_id=clock, fabricated_transfer_journal=False))
+
+for path, record in json.loads((RAW/'source_manifest.json').read_text()).items():
+    assert p.digest(Path(path)) == p.digest(Path(record['snapshot'])) == record['sha256'], path
+for path, digest in json.loads((RAW/'preregistration.json').read_text())['preserved'].items():
+    assert p.digest(Path(path)) == digest, path
+
+original = RAW.parent/'d503_20261013/audit.py'
+assert p.digest(original) == 'bbb64378e11f125ce97fc3534cf5e3c51f49853d5dce49164923b55bb0857d5a'
+source = original.read_text().replace('http_7b_100.json', 'http_3b_100.json')
+source = source.replace('from scripts import ieee_tc_preflight as p',
+                        'from prepare_ieee_tc_serverless_stack import load_guard\np = load_guard(MAIN)')
+old = "prior={r['request_id']:r for r in json.loads((RAW.parent/'d502_20261013/generation_result.json').read_text())['requests']}"
+assert source.count(old) == 1
+source = source.replace(old, 'prior={}  # old 7B outputs are not a 3B numerical reference')
+scope = {'__name__': '__main__', '__file__': str(RAW/'audit.py')}
+exec(compile(source, str(original), 'exec'), scope)
+
+reference_path = RAW.parent/'d803_20261024/native_probe.json'
+assert p.digest(reference_path) == 'a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5'
+reference = json.loads(reference_path.read_text())
+ref_input = next(row for row in reference['inputs'] if row['request_id'] == 'req_00001')
+native = scope['raws']['req_00001']['body']['metrics']['ieee_tc']
+assert native['native_prompt_token_ids'] == ref_input['prompt_ids']
+assert scope['contracts']['req_00001']['adapter_id'] == ref_input['adapter_id']
+checks = sorted((row for row in reference['checks'] if row['request_id'] == 'req_00001'), key=lambda row: row['step'])
+assert all(row['passed'] and row['native_token'] == row['reference_token'] for row in checks)
+expected = [row['reference_token'] for row in checks]
+observed = native['completion_token_ids'][:len(expected)]
+all_zero = [rid for rid, row in scope['raws'].items()
+            if set(row['body']['metrics']['ieee_tc']['completion_token_ids']) == {0}]
+save('delivery_numerical_audit.json', dict(audit_completed=True,
+    experiment_passed=observed == expected, native_binding_accounting_passed=scope['summary']['passed'],
+    performance_result=False, full_workload_qualified=False, independent_full_correctness_proven=False,
+    classification='model_delivery_numerical_mismatch' if observed != expected else 'affected_path_pass',
+    n_plan=100, n_arrived=100, n_terminal=100, n_response=100, n_correct=None,
+    all_zero_output_count=len(all_zero), all_zero_request_ids=all_zero,
+    reference_request_id='req_00001', same_prompt_ids=True, same_adapter_id=True,
+    expected_prefix=expected, observed_prefix=observed,
+    scope='100 native delivery requests; one exact-input reference prefix; no full-workload inference',
+    original_launcher_pass=launch['pass'], resource_release=True, remote_closed=True,
+    source_sha256={str(path): p.digest(path) for path in
+        (RAW/'audit.py', original, reference_path, RAW/'http_audit.json', RAW/'launch_gate.json',
+         RAW/'closure.json', RAW/'remote_stop.json', RAW/'launch_gate.launch/replay.jsonl')}))
+print(json.dumps(dict(audit_completed=True, experiment_passed=observed == expected,
+                     expected_prefix=expected, observed_prefix=observed, all_zero_outputs=len(all_zero))))

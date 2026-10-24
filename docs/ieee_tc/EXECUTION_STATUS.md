@@ -1,4 +1,81 @@
-# IEEE TC execution status — D804 provider context defect preserved; necessary correction CPU-tested
+# IEEE TC execution status — D805 numerical delivery failure retained; bounded receiver CPU tests passed
+
+## 2026-10-24 18:24 CST D805真实输出失败已封存，接收边界修正37项CPU检查通过
+
+D805不是合格性能点：100到达/100响应/0传输失败，但100条输出全部token0。
+req_00001与D803参考的477个输入token及adapter ID完全一致，前三输出0/0/0
+而参考578/2326/1288；新增delivery_numerical_audit明确experiment_passed=false。
+原launcher pass=true仅传输/生命周期，原记录不追改。29次真实远端获取、
+67,350,156线上字节、打包0；n_correct未知，不把HTTP成功当模型正确。
+
+service/watchdog0，GPU与服务域实际释放，peak30,710,648,832B，保护事件/
+swap0。collector在精确停止3个远端服务后因旧7B日志路径返回1；保留错误，
+只读复查inactive/PID0与端口、收集实际3B clock_id传输日志及monitor，SHA
+核验通过。audit域0003关闭，peak127,410,176B。无活动GPU/远端服务。
+
+日志确认local_server两个接收进程均报buffer too small；6GiB池中分配
+6,425,520,819B，末尾余量16,930,125B小于32MiB chunk。原父进程不查
+exitcode而发布完整进度，worker随后加载未完整交付的权重。联网核对官方
+HydraServe与Python socket资料、历史修改后，仅在既有shm_control与
+native_delivery增加显式bounded_shm_receive：按剩余分区限长，提前EOF
+失败，join/exitcode成功后才发布完成。不放大池、不改原生策略/数学/计量。
+
+37项CPU测试1.607s通过（session31785/exit0），含真实socket重现原越界、
+分段与尾块、不越邻接分区、EOF及父进程完成语义；未做修正后GPU验证。
+原默认overlay保持不变；3个BASE任务文件待本次独立备份，用户dirty不变。
+实际执行BASE仍71b2ba1，MAIN6e41733，不能用后置修正冒充本轮执行身份。
+
+当前磁盘160187551744B，低于150GiB新重型启动门槛；下一先备份失败/修正，
+核验回收D805可重建重复缓存，再新身份验证受影响交付路径（collector按3B
+修正）。不重做平台、D803数学或1000门槛，不启动尚未合格的完整性能回放。
+通过后HydraServe3B W0/W1/W2→全基线比较→PrimeLoRA优化→同版Full/全部
+A1–A5/S1–S13与成本CE/Pareto、审稿文档/图表/最终V2。goal active。
+
+## 2026-10-24 18:12 CST D805已启动，继续隔离运行而不改其他项目k3s
+
+本轮收到用户再次确认：原k3s不属于本项目，采用合适的适配方式。沿用已经
+验证的隔离rootless Podman平台、原生HydraServe控制器/provider/worker，不
+接管既有集群、不重部署平台。完整重读PLAN、当前状态及基线/存储补充；
+run-experiment与monitor-experiment用于已有入口与真实状态监测。
+
+D805 remote_prelaunch辅助域0002已通过并关闭，peak46485504B，事件/swap0；
+源快照、147项旧投稿保护、用户dirty SHA与认证health均通过。复用D80发布
+缓存；启动前磁盘161392263168B、MemAvailable114338852864B，无GPU任务。
+tmux tc-d805-hydraserve-3b-delivery、pane1010793已启动；只运行一次同100
+原trace前缀的受影响3B交付检查。调度/批量/30秒idle与远程语义不改，不
+重复D803已通过数学检查，不扩展成1000请求门槛。结果以实际终态为准。
+
+已知继承的远端collector仍按7B匹配传输日志；冻结运行入口不在测量期间
+修改。其精确InvocationID停止步骤适用两模型，若后置日志查找失败，保留
+错误并只读核对实际3B clock_id及SHA后补齐收尾；这不是模型/性能失败，
+也不伪造无传输日志。当前期间不清理、压缩、构建、push或维护远端。
+
+下一按真实终态关闭、保存交付证据，再完成HydraServe3B W0/W1/W2；随后
+全基线比较及PrimeLoRA优化、同版Full/A1–A5/S1–S13和最终文档/图表/V2
+继续，未删减任何完整计划内容。D804真实失败不覆盖，goal active。
+
+## 2026-10-24 18:06 CST 必要修正与失败已备份，下一受影响检查已准备
+
+D804检查点真实完成：MAIN6e41733b78b1b7533a0f858f4e691a2845552a6c与
+GitHub backup/d804-hydraserve-3b-context-20261024核对一致；BASE
+71b2ba170ddbd9b753e689c20f795f542d129cec与origin/main一致。后者只含
+3个上下文适配/回归文件；两用户dirty脚本与MAIN manifest未stage。
+publication辅助域0004已关闭，peak34709504B、保护事件/swap0。
+未force push，最终V2仍未同步；失败结果保留为failed，不换标签成通过。
+
+已准备D805的新执行身份，复用D804的prepare模板、同100请求前缀/500-ID
+静态池、D803 metadata链接和D576平台入口，仅当前context修正不同。
+prepare.py明确要求D804失败审计/资源释放/备份完成；不运行重复数字数学
+probe，不新增1000请求门槛，不改负载或baseline参数。prepare辅助域0001
+通过且关闭，prepare_result=true/prepared_not_launched=true；尚未启动
+远端、provider或GPU。下一按既有remote_prelaunch→tmux run_and_close
+运行一次受影响检查，检查成功后直接进入HydraServe3B完整W0/W1/W2。
+
+当前无活动模型/GPU/远端服务、无待工具session。磁盘最近实测161405456384B，
+启动仍需重新核验。D804已核对失败原因、完整冻结快照、0到达分母及远端
+0-fetch关闭；不因无传输日志编造记录。全目标active，剩余全基线比较、
+PrimeLoRA优化、同版Full/A1–A5/S1–S13/成本CE/Pareto、审稿文档/图表与
+最终V2全部保留。下一不是重做平台资格或任意baseline性能搜索。
 
 ## 2026-10-24 18:03 CST D804启动前失败已关闭；上下文语义修正34项CPU检查通过
 

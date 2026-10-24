@@ -1,0 +1,18 @@
+Process Process-2:
+Traceback (most recent call last):
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/local_server.py", line 210, in recv_part_content
+    new_len = sock.recv_into(shm.buf[cur_recv_len:cur_recv_len+self.chunk_size], nbytes=self.chunk_size)
+ValueError: buffer too small for requested bytes
+Process Process-4:
+Traceback (most recent call last):
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/qhq/anaconda3/envs/hydraserve_py_20260520/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/hydra-overlay/scripts/kubernetes/vllm/storage_server/local_server.py", line 210, in recv_part_content
+    new_len = sock.recv_into(shm.buf[cur_recv_len:cur_recv_len+self.chunk_size], nbytes=self.chunk_size)
+ValueError: buffer too small for requested bytes
