@@ -1,0 +1,50 @@
+"""Check the affected SHM delivery path once after D805's bounded receive fix.
+
+Reuse the D804/D805 100-request qualification and D576 platform, not a new
+baseline configuration or repeated numerical model qualification.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+previous = RAW.parent/'d805_20261024'
+failure = json.loads((previous/'delivery_numerical_audit.json').read_text())
+assert failure['audit_completed'] and not failure['experiment_passed']
+assert failure['resource_release'] and failure['remote_closed']
+for name in ('publication', 'storage'):
+    assert json.loads((previous/(name+'_receipt.json')).read_text())['passed']
+    assert json.loads((previous/(name+'_closure.json')).read_text())['path_gone']
+original = RAW.parent/'d804_20261024/prepare.py'
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'f21a08208f534b5aa564aca123b656ac55a9600731ed31b685d4bb95155421f2'
+source = data.decode()
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+replace(".replace('d576', 'd804')", ".replace('d576', 'd806')")
+replace('lora_admission_capacity=True, llama_model_compat=True)',
+        'lora_admission_capacity=True, llama_model_compat=True, bounded_shm_receive=True)')
+replace('no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info=',
+    "corrects_failed_attempt='d805_20261024', bounded_shm_receive=True, "
+    "correction='partition-bounded receive and successful-child completion publication', "
+    "no_native_scheduling_policy_change=True, no_parameter_search=True, runtime_model_info=")
+# Fix the inherited collector's model binding before the new run is frozen.
+# A startup failure may have zero transfers; preserve that state rather than
+# inventing a journal or failing before saving the real remote cleanup receipt.
+replace("    put(name, retag((OLD/name).read_text()))", '''    content = retag((OLD/name).read_text())
+    if name == 'collect_remote.py':
+        needle = "with (RAW/'stop_remote.sh').open('x') as f:f.write(source)"
+        assert content.count(needle) == 1
+        addition = "source=source.replace('7b\\\".clock_id', '3b\\\".clock_id').replace('/7b/transfers-', '/3b/transfers-')\\n"
+        addition += "source=source.replace('grep -l \\\"$clock_id\\\" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl', 'grep -l \\\"$clock_id\\\" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl || test \\\"$?\\\" -eq 1')\\n"
+        content = content.replace(needle, addition + needle)
+        needle = "exec(compile(source,str(RAW/'collect_remote_reused.py'),'exec'),dict(raw=RAW,p=p,json=json,subprocess=subprocess))"
+        assert content.count(needle) == 1
+        addition = "source=source.replace('/7b/transfers-', '/3b/transfers-').replace('assert len(transfer_paths) == 1', 'assert len(transfer_paths) <= 1')\\n"
+        addition += "source=source.replace(\\\"    'remote_transfers.jsonl': transfer_paths[0],\\\\n\\\", '')\\n"
+        addition += "source=source.replace('hashes = {}', \\\"if transfer_paths: paths['remote_transfers.jsonl'] = transfer_paths[0]\\\\nhashes = {}\\\")\\n"
+        content = content.replace(needle, addition + needle)
+    put(name, content)''')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,0 +1,74 @@
+"""Reuse D532's byte-verified cache reclamation after D805 failure is sealed."""
+import json
+import os
+from pathlib import Path
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, '/home/qhq/serverless_llm_baselines/scripts')
+from prepare_ieee_tc_serverless_stack import load_guard
+p = load_guard(MAIN)
+def read(path): return json.loads(path.read_text())
+def save(name, value):
+    with (RAW/name).open('x') as stream: json.dump(value, stream, indent=2)
+own = p.scope_identity(p.cg_path().name)
+save('storage_identity.json', own)
+group = Path(own['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+for name in ('prepare', 'remote_prelaunch', 'audit', 'publication'):
+    closed = read(RAW/(name+'_closure.json'))
+    assert closed['passed'] and closed['path_gone']
+    assert not Path(closed['identity']['path']).exists()
+assert read(RAW/'publication_receipt.json')['passed']
+failure = read(RAW/'delivery_numerical_audit.json')
+assert failure['audit_completed'] and not failure['experiment_passed']
+assert failure['resource_release'] and failure['remote_closed']
+preserved = read(RAW/'preregistration.json')['preserved']
+for path, digest in preserved.items(): assert p.digest(Path(path)) == digest, path
+seal = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.verify_seal(seal)['pass']
+original = RAW.parent.parent/'vllm_qualification/d532_20261015/reclaim_objects.py'
+assert p.digest(original) == 'e66e17f0a2ca0f72c0c0ae9f6bb6c6da8351b924f4d72ce4f7e93c64476892bb'
+source = original.read_text()
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+replace("'d532_20261015'", "'d805_20261024'")
+replace("Path('/tmp/tc-d532-7bv/remote_artifacts/objects')", "ROOT/'remote_artifacts/objects'")
+replace('llama2_7b_a500_v2_publicmix', 'llama32_3b_a500_v1_modelscope')
+replace("launch = json.loads((ROOT/'launch7b.json').read_text())\nassert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed'] and launch['service_returncode'] == 0",
+    "closed = json.loads((ROOT/'closure.json').read_text())\nassert closed['actual_recursive_empty'] and closed['service_gone']\nassert not Path(closed['service']['path']).exists()")
+replace("MAIN/'paper_results/ieee_tc/main_comparison/d532_vllm_w1/result1/audit.json'", "ROOT/'http_audit.json'")
+replace('f3b2344147c51db9407b9711ec6dbc59af8c6c5007dd7c9d90fdd68efcf6ddb7', p.digest(RAW/'http_audit.json'))
+replace("assert audit['workload_passed'] and audit['offered_unique_adapters'] == 132 and audit['verified_materialized_bytes'] == 3300789780", """assert audit['passed'] and audit['n_native_contract_complete'] == 100
+receipts = [json.loads(path.read_text()) for path in (ROOT/'remote_artifacts/receipts').glob('*.json')]
+assert len(receipts) == audit['remote_transfers'] == 29
+assert all(row['evidence']['content_verified'] for row in receipts)
+audit['offered_unique_adapters'] = len(receipts)
+audit['verified_materialized_bytes'] = sum(row['evidence']['payload_bytes_verified'] for row in receipts)
+""")
+replace('20260927_7b_materialized_content_index.json', '20260927_3b_remote_content_index.json')
+replace('e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c', read(RAW/'http_3b_100.json')['pool_index_sha256'])
+replace("ROOT/'remote_resolver_evidence/receipts'", "ROOT/'remote_artifacts/receipts'")
+start = source.index('metadata = TARGET.parent')
+end = source.index("before = shutil.disk_usage('/home/qhq').free")
+replace(source[start:end], """metadata = TARGET.parent
+# Preserve all transfer evidence in place. These private views are only
+# symlinks, not unique weights; retain their mapping and reclaim only objects.
+retained_metadata = {str(path):digest(path) for path in metadata.rglob('*')
+    if path.is_file() and not path.is_relative_to(TARGET)}
+view_links = {str(path):os.readlink(path) for path in (ROOT/'adapter_views').rglob('*') if path.is_symlink()}
+assert view_links and all(Path(target).is_relative_to(TARGET) for target in view_links.values())
+write_json(ROOT/'retained_cache_metadata.json', dict(files=retained_metadata,
+    inactive_private_view_links=view_links, views_become_nonoperative_after_cache_reclamation=True))
+""")
+replace('metadata_copies_hash_match=True', 'metadata_retained_in_place=True,inactive_view_links_recorded=True')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
+for path, digest in preserved.items(): assert p.digest(Path(path)) == digest, path
+assert p.verify_seal(seal)['pass']
+save('storage_receipt.json', dict(passed=True, protected_unchanged=True,
+    cleanup=read(RAW/'cache_cleanup_after.json'), resources=p.cgroup_snapshot(group)))

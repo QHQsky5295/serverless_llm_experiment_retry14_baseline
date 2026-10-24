@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d8060000000000000000000000000002.scope",
+    "invocation_id": "a7742eaa24a449ee981954bf2b2d51c9",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8060000000000000000000000000002.scope",
+    "inode": 31721570
+  },
+  "actual_recursive_procs_empty": true,
+  "path_gone": true,
+  "resources": {
+    "memory.peak": "72032256",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "source_sha256": "9c76d49c28393d3563f245980ae8393256c0618ced3f877baee6944a004b1a12"
+}

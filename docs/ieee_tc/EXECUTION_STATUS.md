@@ -1,6 +1,61 @@
-# IEEE TC execution status — D805 numerical delivery failure retained; bounded receiver CPU tests passed
+# IEEE TC execution status — D806 affected 3B delivery passed; full HydraServe 3B next
 
-## 2026-10-24 18:24 CST D805真实输出失败已封存，接收边界修正37项CPU检查通过
+## 2026-10-24 18:37 CST D806真实交付检查通过，下一直接完整3B场景
+
+D806已真实终态：100到达/100终态/100原生绑定响应，0失败；全零序列0
+（D805为100）。req_00001同477prompt IDs和adapter下前三token
+578/2326/1288，与D803独立参考一致。仅局部数值与受影响交付资格通过，
+不冒称4000完整数值证明/性能点；n_correct继续null。
+29真实远端fetch/67,350,156wire bytes/pack0；输入/原生计时/物理生命周期
+审计通过。修正后未见原接收越界，provider/SHM/worker真实执行。
+
+service/watchdog0；scope08cc564acca54d88b1ec2af8061ddcff/invocation
+e36ac213fcd54051a777dcab0fe20fd5实际递归清空/消失，GPU释放。peak
+30,736,326,656B、所有保护事件/swap0。collector本轮3B绑定成功，3自有
+远端服务inactive/PID0、端口消失，日志双边SHA一致；无事后修复。
+audit域0003已关闭，peak120,033,280B。tmux任务已终止，无待工具session。
+
+新文档D806_HYDRASERVE_3B_DELIVERY_20261024.md；准备SHA c6bcfa2e3a888f92427aece4231b5b19903ce08383b957ddf3890773f0c8b480，
+launch SHA250c9289e005871609bd8b0e74feecc854914102930421cf4f74569b7ca0ba1c。
+执行BASE e1c433b，MAIN bef1572，不改历史源码身份。下一备份本次证据，
+回收已关闭重复cache恢复150GiB，再直接HydraServe3B W0/W1/W2，无1000
+资格重复；全基线比较→PrimeLoRA优化→全部剩余实验与最终交付，goal active。
+
+## 2026-10-24 D806受影响交付检查已准备；不接管其他项目k3s
+
+本轮按用户授权继续沿用已验证rootless Podman隔离适配，不修改原k3s。
+完整重读PLAN和当前状态/存储/基线补充；run-experiment与monitor-experiment
+用于既有入口与实际结果，github-sync用于后置独立备份。D805失败与37项CPU
+测试直接复用，不重复D803模型数学、平台或1000请求资格。
+
+D805关闭重复cache核验后回收1,170,915,328B；232文件/1,170,025,980内容
+字节与保留3B原池逐项SHA一致，transfer元数据/失败日志不删。私有view链接
+映射已记录，缓存移除后不再可运行；不修改历史结果。147保护文件与用户dirty
+SHA未变。storage域0005精确关闭，峰值46,694,400B、事件/swap0；磁盘
+161,353,203,712B。三个不可读同UID进程入口如实记录，不称系统级全量扫描。
+
+D806复用同100条3B W0前缀/500-ID登记/原30秒idle和batch8，仅显式开启已
+备份bounded_shm_receive；无新权重/负载/调参。collector冻结前改为3B
+clock_id/传输路径，允许真实零fetch启动失败保留无journal状态，不造数据。
+prepare已通过/关闭，峰值119,894,016B、事件/swap0。尚未启动GPU；下一
+remote_prelaunch→tmux run_and_close，验证100原生绑定和D803同输入参考。
+通过才推进HydraServe3B W0/W1/W2→全基线比较→PrimeLoRA优化及完整后续。
+
+## 2026-10-24 18:23 CST D805失败与必要修正已完成独立备份
+
+MAIN bef1572ae3f6d194ed6830637da07f23ec862424已与GitHub
+backup/d805-hydraserve-shm-receive-20261024核对；BASE
+e1c433bab982366a82ad188ef703270d89d6ea06已与origin/main核对。仅3个BASE
+任务文件入库，旧manifest和两个用户dirty脚本SHA均未变。publication辅助
+域0004精确关闭，peak36,220,928B、事件/swap0；CPU检查service已inactive。
+无活动GPU、远端服务或待工具session。最终V2仍未同步，不将备份称最终发布。
+
+下一主线仍是安全回收已关闭D805重复缓存以恢复150GiB，再新执行身份启用
+bounded_shm_receive验证受影响3B交付。下一collector必须绑定3B clock_id。
+当前尚未创建或启动D806，不把CPU37项通过冒称GPU修复成功。修正默认关闭，
+旧7B及D805源码快照身份不变。完整后续实验目标保持active。
+
+## 2026-10-24 18:22 CST D805真实输出失败已封存，接收边界修正37项CPU检查通过
 
 D805不是合格性能点：100到达/100响应/0传输失败，但100条输出全部token0。
 req_00001与D803参考的477个输入token及adapter ID完全一致，前三输出0/0/0

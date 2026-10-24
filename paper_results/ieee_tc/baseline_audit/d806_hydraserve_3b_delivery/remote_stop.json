@@ -1,0 +1,11 @@
+{
+  "all_owned_units_inactive": true,
+  "ports_18080_18081_absent": true,
+  "local_gpu_release_verified_before_remote_stop": true,
+  "download_hashes_match_remote": true,
+  "hashes": {
+    "remote_monitor.log": "22a3ddd51cdcfed44f14b9d24cc1a323701be4ba30120896a465a5396274a0fc",
+    "remote_transfers.jsonl": "bad60ebe7603f6a0185a07cb3e97aa0ef556b31a7e9d588d0dc105c7b768deab"
+  },
+  "stop_log_sha256": "3a3195bef20df54e24183650a72eaece0804d024125e06996a262926f8555748"
+}

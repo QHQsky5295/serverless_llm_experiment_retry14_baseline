@@ -1,0 +1,43 @@
+{
+  "all_zero_output_count": 0,
+  "all_zero_request_ids": [],
+  "audit_completed": true,
+  "classification": "affected_path_pass",
+  "expected_prefix": [
+    578,
+    2326,
+    1288
+  ],
+  "experiment_passed": true,
+  "full_workload_qualified": false,
+  "independent_full_correctness_proven": false,
+  "n_arrived": 100,
+  "n_correct": null,
+  "n_plan": 100,
+  "n_response": 100,
+  "n_terminal": 100,
+  "native_binding_accounting_passed": true,
+  "observed_prefix": [
+    578,
+    2326,
+    1288
+  ],
+  "original_launcher_pass": true,
+  "performance_result": false,
+  "reference_request_id": "req_00001",
+  "remote_closed": true,
+  "resource_release": true,
+  "same_adapter_id": true,
+  "same_prompt_ids": true,
+  "scope": "100 native delivery requests; one exact-input reference prefix; no full-workload inference",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d503_20261013/audit.py": "bbb64378e11f125ce97fc3534cf5e3c51f49853d5dce49164923b55bb0857d5a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d803_20261024/native_probe.json": "a8445cfbbf280707a08a270cca98bd5f1d80607ea9a0269c0b7b3cd596a8b1a5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/audit.py": "9aa64a9663f23cd873dc3740136436de45f78320cef02e9794cbf79ccbecfcfc",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/closure.json": "847fe1295d015e2804d451c3647f178b3319b08a68c18d46e7ca9da99e3e2426",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/http_audit.json": "c0c8c22e704feb69047d3d8f01cfc149cedb057fe8818a0ac472fbdfc2acc31e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/launch_gate.json": "250c9289e005871609bd8b0e74feecc854914102930421cf4f74569b7ca0ba1c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/launch_gate.launch/replay.jsonl": "81cce53b711f693a71b7cef69399dfb5527b1d1684fb8d1e56511484dd21fa79",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d806_20261024/remote_stop.json": "6d267ef177d51751fba2f29cf9a355d9b1ad35069792517d3411bd96e8bd3eb1"
+  }
+}

@@ -1,0 +1,7 @@
+from pathlib import Path
+original = Path(__file__).resolve().parent.parent/'d570_20261016/close.py'
+source = original.read_text()
+old = "('review', 'review2', 'curation', 'curation2', 'publication', 'publication2')"
+assert source.count(old) == 1
+source = source.replace(old, "('storage',)")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

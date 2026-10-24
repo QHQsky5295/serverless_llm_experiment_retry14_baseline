@@ -1,0 +1,13 @@
+{
+  "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+  "campaign": "d805_20261024",
+  "target": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d805_20261024/remote_artifacts/objects",
+  "removed": true,
+  "disk_before_bytes": 160182288384,
+  "disk_after_bytes": 161353203712,
+  "observed_reclaimed_bytes": 1170915328,
+  "before_receipt_sha256": "c2fd74ecd4758e35ff6284dd7038d52c9538443dc140f700b7738e7aaa56bc16",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "recorded_unix": 1792837807.0610282
+}

@@ -1,0 +1,18 @@
+"""Reuse D805's input-bound audit after normal model-aware remote collection."""
+from hashlib import sha256
+from pathlib import Path
+
+original = Path(__file__).resolve().parent.parent/'d805_20261024/audit.py'
+data = original.read_bytes()
+assert sha256(data).hexdigest() == '2a2cab8ff0319f58fd91e326c9cf9b105f80b6520d1458966e8bcb7949d2f530'
+source = data.decode()
+start = source.index('# The inherited collector stops')
+end = source.index('\nfor path, record in json.loads', start)
+source = source[:start] + '''# This run used the frozen 3B-aware collector; no post-hoc remote repair.
+assert json.loads((RAW/'remote_stop.json').read_text())['all_owned_units_inactive']
+assert json.loads((RAW/'remote_stop.json').read_text())['download_hashes_match_remote']
+assert (RAW/'remote_stop.log').read_text().count('ActiveState=inactive') == 3
+''' + source[end:]
+source = source.replace("experiment_passed=observed == expected", "experiment_passed=observed == expected and not all_zero")
+source = source.replace("if observed != expected else 'affected_path_pass'", "if observed != expected or all_zero else 'affected_path_pass'")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
