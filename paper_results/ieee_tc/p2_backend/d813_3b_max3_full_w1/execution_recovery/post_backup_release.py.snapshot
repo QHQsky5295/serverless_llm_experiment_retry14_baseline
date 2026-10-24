@@ -1,0 +1,35 @@
+"""Verify actual empty or automatically removed D813 publication scope."""
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+identity = json.loads((RAW/'backup_completion_identity.json').read_text())
+backup = json.loads((RAW/'backup_completion.json').read_text())
+assert backup['passed']
+path = Path(identity['path'])
+if path.exists():
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    resources = p.cgroup_snapshot(path)
+    closed = p.stop_scope_identity(identity, grace_seconds=0)
+    assert closed['released'] and not closed['targets'] and not path.exists()
+else:
+    state = subprocess.check_output(['systemctl', '--user', 'show', path.name,
+        '-p', 'ActiveState', '-p', 'InvocationID', '-p', 'ControlGroup'], text=True)
+    fields = dict(line.split('=', 1) for line in state.splitlines() if '=' in line)
+    assert fields['ActiveState'] == 'inactive' and not fields['InvocationID'] and not fields['ControlGroup']
+    resources = None
+    closed = dict(already_removed=True, released=True, signals_sent=False, systemd_state=fields)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+with (RAW/'post_backup_release.json').open('x') as stream:
+    json.dump(dict(passed=True, identity=identity, resources_after_exit=resources,
+        closure=closed, backup=backup, disk_free_bytes=shutil.disk_usage(RAW).free,
+        no_running_gpu_task=True, shared_k3s_untouched=True), stream, indent=2)
+print(json.dumps(dict(passed=True, backup=backup['head'],
+    disk_free_bytes=shutil.disk_usage(RAW).free, automatically_removed=closed.get('already_removed', False))))

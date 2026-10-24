@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "files": 147,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  }
+}

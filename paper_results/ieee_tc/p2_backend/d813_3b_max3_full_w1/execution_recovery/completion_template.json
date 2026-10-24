@@ -1,0 +1,23 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/complete.py",
+  "sha256": "708d0027d70534cad19c3dc01f601f160a96fbde74b57ec73a825872403610de",
+  "replacements": [
+    [
+      "3b_dense_alias_validation_full_w0",
+      "3b_max3_full_w1"
+    ],
+    [
+      "d752_3b_max3_full_w1",
+      "d813_3b_max3_full_w1"
+    ],
+    [
+      "d752_20261023",
+      "d813_20261025"
+    ],
+    [
+      "D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md",
+      "D813_3B_MAX3_FULL_W1_20261025.md"
+    ]
+  ],
+  "comparison_change": "Replace W0 direct-parent deltas with frozen D657 W1 resource-reference comparison."
+}

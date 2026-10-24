@@ -1,0 +1,40 @@
+"""Reuse D752's explicit-path backup procedure for the complete W1 observation."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d752_20261023/backup_results.py'
+_source = _template.read_text()
+_old_recovery = """('resume_start.py', 'finish_start.py', 'resume_identity.json',
+             'finish_identity.json', 'interrupted_start_closure.json',
+             'interrupted_resume_closure.json', 'start_closure.json',
+             'start_receipt.json', 'commit.json', 'backup.json')"""
+_new_recovery = """('complete.py', 'completion_template.json', 'completion_program.py.snapshot',
+             'completion_identity.json', 'seal.py', 'seal_template.json',
+             'seal_program.py.snapshot', 'closure_identity.json',
+             'close_start.py', 'start_closure.json', 'start_receipt.json',
+             'commit.json', 'backup.json', 'post_backup_release.py', 'backup_template.json')"""
+_replacements = [
+    ('d752_3b_dense_alias_validation_full_w0', 'd813_3b_max3_full_w1'),
+    ('D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md',
+     'D813_3B_MAX3_FULL_W1_20261025.md'),
+    ("('complete.py', 'seal.py', 'backup_results.py', 'resume_start.py', 'finish_start.py')",
+     "('complete.py', 'seal.py', 'backup_results.py', 'post_backup_release.py')"),
+    (_old_recovery, _new_recovery),
+    ("ROOT/'docs/ieee_tc/HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md'",
+     "OUT/'protected_147_after.json'"),
+    ('tc: seal D752 3B W0 joint SLO attainment and resource tradeoff',
+     'tc: seal D813 W1 resource saving and joint SLO shortfall'),
+    ('refs/heads/backup/d752-complete-20261023', 'refs/heads/backup/d813-complete-20261025'),
+    ('v2_synchronized=False, closed_previous_scope=closed',
+     'v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own["path"])), closed_previous_scope=closed'),
+]
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+with (_raw/'backup_template.json').open('x') as _stream:
+    json.dump(dict(path=str(_template), sha256=hashlib.sha256(
+        _template.read_bytes()).hexdigest(), replacements=_replacements), _stream, indent=2)
+    _stream.write('\n')
+exec(compile(_source, str(_template), 'exec'), globals())

@@ -1,4 +1,128 @@
-# IEEE TC execution status — D813 same-config 3B W1 preparation; D812 sealed/backed
+# IEEE TC execution status — D813 W1 closed: within budget, joint SLO 93.975%; W2 next
+
+## 2026-10-25 01:17 CST D813完整结束，保存未达标结果后继续同配置W2
+
+上一目标轮VERIFIED WAIT，本轮PROGRESS。完整重读PLAN、V1(含301–312尾部)、
+V2及monitor-experiment/analyze-results/github-sync；持续核验同一原运行，
+4000/4000终态、0失败后才开始离线分析。01:13 actual release，三个原生GPU
+进程退出，service removed，launch三个返回码0且pass；本项目远端三个服务
+均inactive/MainPID0。没有同键重跑、线上改参数或运行中维护。
+
+D813联合3759/4000=93.975%，低于3800要求41条；TTFT3921、TPOT3832，
+互斥违约73/162/6。U6546.972614198457，D657 W1预算6754.783565160236，
+U/B0.9692349948807206，较常驻vLLM W1参考少27.3074%，但联合不达标，
+不能判G1/G2成功。平均/P95 TTFT668.188462/1568.039811ms，TPOT18.639346/
+32.910002ms，E2E2743.229738/5917.490412ms。n_correct仍null，原生绑定/
+token计量通过不等于独立数值证明；ranking_eligible=false，无CI/独立留出。
+
+完整审计复用D752 complete/seal，明确W1视图和D657 W1参考，不作W0跨负载
+因果改善比较。full4000 SHA04904c9712db12d611bbca4218de719bb50788d3186d169e4e8ecae1c2057bd1。
+132次获取/306360162B双端对应、pack0；3allocation全释放，2up/0down；
+4000请求10930条新鲜描述符回执。147保护项核对通过。服务peak20751179776B，
+high/max/OOM/swap0，最低host97939828736B、disk156496842752B；分析peak
+780566528B、事件0。完整阶段恒等式误差0。TPOT违约168条中153条输出≤64，
+仅为定位线索，不将观测重叠或长度关联直接归因为kernel/加载干扰。
+
+当前结果与文档正在备份（尚未写成已push），随后恢复磁盘启动余量，再做
+同配置W2。D813原始证据全保留，不反复跑至获胜；W2后才结合两场景做有证据
+优化。7B/3B同版主比较/Full、A1–A5、S1–S13、CE/Pareto/成本、两轮审稿
+文档与图表/最终V2完整待续；goal active，未完成或缩减总体任务。
+
+## 2026-10-25 00:58 CST D813完成前五阶段，继续同一运行
+
+上一目标轮和本轮均为VERIFIED WAIT。本轮先完整重读PLAN、当前状态及
+monitor-experiment，再作四次45秒等待与实时核验。00:58仍是原service
+d65838e19e5545b3bb9a5c36ebd11ff4、tmux pane2074961和三个原生worker
+2076308/2079391/2080370，CPU时间持续增长；arrived2541/done2535/ok2535/
+fail0、elapsed21:42。前五个500请求阶段已过，尚未结束，不推断整轮SLO。
+
+watchdog采样1351/monotonic2368339.04080236：host available98533277696B，
+service19145961472B，high/max/OOM/swap0，disk157788286976B，warning/abort
+均无。维持原测量，不压缩/扫描/push/构建/修改服务/重启/新回放。只读查看
+D752/D812既有complete/seal复用入口，未创建或执行D813后处理程序。
+
+下一步仍等待原4000请求及物理释放；D813是W1，不得复用模板里的W0比较
+标签或W0预算。完成后以D648阈值和D657 W1预算审计、保存和备份，再恢复
+磁盘新任务启动余量并继续同配置W2。独立数值正确性未知不改写为已证明；
+全部同版比较、消融、敏感性、文档与图表交付仍待完成，goal active。
+
+## 2026-10-25 00:53 CST D813持续同一突发回放，1897条终态
+
+本轮为VERIFIED WAIT，上一目标轮亦为VERIFIED WAIT。按AGENTS在上下文恢复后
+完整重读PLAN、当前状态及monitor-experiment；本轮六次45秒等待并直接核查
+原service/worker身份。没有重启、改配置、追加回放或开启其他重型任务。
+service InvocationID仍为d65838e19e5545b3bb9a5c36ebd11ff4，tmux/pane2074961
+存活，EngineCore2076308/2079391/2080370仍持有原三张GPU且CPU时间递增。
+最新Live为arrived1903/done1897/ok1897/fail0、elapsed16:36；此为运行进度，
+不把Live的5000ms TTFT或tokenproxy CE解释为整轮共同联合SLO。
+
+最新完整watchdog采样1046/monotonic2368029.785895553，无warning/abort，
+host available98740011008B、service18267811840B、high/max/OOM/swap0，
+disk158538665984B。磁盘低于下一重任务150GiB启动线、仍高于本轮100GiB
+停止线，不因此打断有效回放；压缩/清理放在实际释放之后，不引入测量期I/O。
+本轮仅更新状态文档，不push/构建/扫描/修改远端或共享k3s；无待工具session。
+
+下一步继续等待原4000请求终态和实际GPU/远端释放，随后复用已有审计入口，
+使用明确W1视图、D648共同阈值及D657 W1预算，核验/封存/备份。D813完成后
+才恢复磁盘启动余量并推进同配置W2。独立数值正确性未知仍保留未知；同版主
+比较/Full、A1–A5、S1–S13、CE/成本/Pareto、审稿文档/图表/最终V2均未删减。
+完整goal继续active，不将此等待或单个W0达标标为整体完成。
+
+## 2026-10-25 00:43 CST D813首个突发阶段完成，持续同一回放
+
+上一目标轮为PROGRESS，本轮为VERIFIED WAIT。完整重读PLAN 1–1567及当前
+状态、monitor-experiment；四次45秒等待和直接进程核验确认原service
+InvocationID d65838e19e5545b3bb9a5c36ebd11ff4持续active，tmux/pane2074961
+存活。原生EngineCore2076308/2079391/2080370的CPU时间持续递增；没有
+重启、换配置或追加实验。首phase500/500终态、0失败，随后按既定30秒
+阶段间隔自然进入第二phase。00:43观察arrived586/done577/ok577/fail0，
+三个实例。尚非整轮结果，不根据前缀判共同SLO、预算或排名。
+
+最新完整watchdog采样432/monotonic2367407.509292222，无warning/abort，
+host available99165863936B、service16526770176B、high/max/OOM/swap0，
+disk159786020864B。运行中保持原监控与远端服务，不扫描/清理/压缩/
+构建/push/更动共享k3s。无待工具session，原后台回放和watchdog继续运行。
+
+下一仍等待原4000请求终态及实际GPU/远端释放，再按D648和D657的W1参考
+复用完整审计、封存备份，恢复下一重任务磁盘准入后推进同配置W2。不得把
+W1误作W0，不能把独立数值正确性未知补作已证。全部同版Full/A1–A5/
+S1–S13、成本CE/Pareto、两轮审稿文档、图表与最终V2完整保留；goal active。
+
+## 2026-10-25 00:37 CST D813已启动一次完整W1，继续原运行
+
+本轮PROGRESS：保持D812全部online配置/公式/后端，只改既定W1到达视图和
+3条隔离路径；离线D703审计支持明确W0/W1身份，不改历史结果。3项入口/
+真实输入检查及17项离线检查通过，D748/D751/D812既有资格复用，无新GPU微测。
+
+首次prelaunch在旧0102环境无pytest处停止，尚未启动GPU/远端，源码快照和
+错误分类保留；初次stdout未被包装保留，未声称有原始日志。改用现有0300
+环境，resume仅执行未完成步骤。无安装、线上配置变化或性能重复。两管理
+域现已自动移除/实际inactive、空Invocation/path absent，不补造post-exit计数；
+resume资格时peak660840448B/事件swap0，不称总收尾峰值。close_start修正只
+处理已自动移除的空管理域，未触碰运行服务，后置脚本回执留RAW。
+
+30路径提交d627f7860fc9f5eb2fde0c209dae507aee65b789，已push/ls-remote核对
+backup/d813-max3-fullw1-20261025。D812后置publication/storage证据随本次
+收录，用户manifest及BASE用户修改保留，最终V2未同步。启动前147旧投稿
+保护检查通过。运行中不再push/扫描/压缩/构建/修改远端或生产源码。
+
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d813_20261025
+run=3b_max3_full_w1；curated=paper_results/ieee_tc/p2_backend/d813_3b_max3_full_w1。
+tmux tc-d813-3b-max3-full-w1/pane2074961；service
+primelora-tc-svc-0a0566485574467a8d88eb54adbc0d12.scope，InvocationID
+d65838e19e5545b3bb9a5c36ebd11ff4；外置aux-f7c1383d538d4f21a6b7f22243a736bf。
+已核验实际W1视图8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f、
+4000请求、60秒窗口。远端真实1000Mb/s/full，监控d813-max3-fullw1自有服务。
+00:36:57 arrived24/done16/ok16/fail0；原生EngineCore2076308运行。最近
+watchdog sample82无warning/abort，host available106080690176B、service
+8049848320B、事件/swap0、disk161668829184B。尚无完整结果，不判前缀胜负。
+
+下一继续monitor同一回放至4000终态/实际释放，再复用D752 complete/seal
+流程但必须正确标W1及D657 W1预算6754.783565160236，不误写full_w0。
+新auditor registered_arrival_plan已支持W1，旧closed_outcome/stages路径可
+复用；当前未创建D813 complete.py。完成后保存备份/存储准入，再同配置W2。
+完整同版Full/A1–A5/S1–S13、成本CE/Pareto、审稿文档、图表与最终V2保持
+开放；共享k3s不改，HydraServe已完成隔离适配证据复用，不新开基线搜索。
 
 ## 2026-10-25 D813准备：冻结D812配置，只切换既定W1到达视图
 

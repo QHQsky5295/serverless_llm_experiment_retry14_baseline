@@ -1,0 +1,38 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/backup_results.py",
+  "sha256": "b37a7f600853e628db324760aa22bfaed98a5b11c16787d7a1c578e134a5e245",
+  "replacements": [
+    [
+      "d752_3b_dense_alias_validation_full_w0",
+      "d813_3b_max3_full_w1"
+    ],
+    [
+      "D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md",
+      "D813_3B_MAX3_FULL_W1_20261025.md"
+    ],
+    [
+      "('complete.py', 'seal.py', 'backup_results.py', 'resume_start.py', 'finish_start.py')",
+      "('complete.py', 'seal.py', 'backup_results.py', 'post_backup_release.py')"
+    ],
+    [
+      "('resume_start.py', 'finish_start.py', 'resume_identity.json',\n             'finish_identity.json', 'interrupted_start_closure.json',\n             'interrupted_resume_closure.json', 'start_closure.json',\n             'start_receipt.json', 'commit.json', 'backup.json')",
+      "('complete.py', 'completion_template.json', 'completion_program.py.snapshot',\n             'completion_identity.json', 'seal.py', 'seal_template.json',\n             'seal_program.py.snapshot', 'closure_identity.json',\n             'close_start.py', 'start_closure.json', 'start_receipt.json',\n             'commit.json', 'backup.json', 'post_backup_release.py', 'backup_template.json')"
+    ],
+    [
+      "ROOT/'docs/ieee_tc/HISTORICAL_SLO_REUSE_CLARIFICATION_20261023.md'",
+      "OUT/'protected_147_after.json'"
+    ],
+    [
+      "tc: seal D752 3B W0 joint SLO attainment and resource tradeoff",
+      "tc: seal D813 W1 resource saving and joint SLO shortfall"
+    ],
+    [
+      "refs/heads/backup/d752-complete-20261023",
+      "refs/heads/backup/d813-complete-20261025"
+    ],
+    [
+      "v2_synchronized=False, closed_previous_scope=closed",
+      "v2_synchronized=False, resources_before_exit=p.cgroup_snapshot(Path(own[\"path\"])), closed_previous_scope=closed"
+    ]
+  ]
+}

@@ -1,0 +1,112 @@
+"""Close D752 and audit actual descriptor receipts; no new replay or policy."""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d813_3b_max3_full_w1'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path): return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', own)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+for item in read(OUT/'completion/manifest.json')['files']:
+    assert p.digest(ROOT/item['path']) == item['sha256']
+q = read(OUT/'prelaunch/qualification.json')
+metric_path = OUT/'completion/full4000.json'
+metric = read(metric_path)
+source = next(Path(s['path']) for s in metric['source_refs'] if Path(s['path']).name.startswith('experiment_results_full'))
+expected = q['candidate_environment']
+receipts = 0
+workers = collections.Counter()
+requests = 0
+
+def descriptors(value):
+    if isinstance(value, dict):
+        if 'native_host_descriptor' in value:
+            yield value['native_host_descriptor'], value.get('worker_pid', value.get('pid'))
+        for child in value.values():
+            yield from descriptors(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from descriptors(child)
+
+with source.open('rb') as stream:
+    for row in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        found = list(descriptors(row['gpu_reference_evidence']))
+        assert found, row['request_id']
+        for desc, pid in found:
+            assert desc['kind'] == 'fresh_native_tensor_descriptor_v1'
+            assert desc['library'] == expected['FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY']
+            assert desc['sha256'] == expected['FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256']
+            assert desc['tensor_state_cached'] is False
+            assert desc['torch_version'] == '2.13.0+cu130' and desc['python_abi'] == 'cpython-312'
+            assert isinstance(pid, int) and pid > 0
+            workers[pid] += 1
+        receipts += len(found)
+        requests += 1
+assert requests == 4000
+assert len(workers) == read(OUT/'completion/closed_outcome.json')['physical_allocation_count']
+
+
+assert metric['workload'] == 'W1' and metric['full_replay'] and not metric['full_w0']
+comparisons = [read(OUT/'completion/comparison.json')]
+protected_path = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.digest(protected_path) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = read(protected_path)['entries']
+assert len(protected) == 147
+for name, entry in protected.items():
+    assert p.digest(Path(name)) == entry['sha256'], name
+save(OUT/'protected_147_after.json', dict(passed=True, files=len(protected), source=ref(protected_path)))
+counts = metric['counts']
+partition = dict(ttft_only_fail=counts['tpot_pass']-counts['joint_pass'],
+    tpot_only_fail=counts['ttft_pass']-counts['joint_pass'],
+    both_fail=counts['n']-counts['ttft_pass']-counts['tpot_pass']+counts['joint_pass'])
+assert sum(partition.values()) == counts['n']-counts['joint_pass']
+
+run = Path(metric['source_run'])
+launch = read(run/'launch.json')
+assert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+identities = [read(RAW/name) for name in ('completion_identity.json',)]
+aux = Path(read(run/'launch.launch/exec_receipt.json')['auxiliary_path'])
+if aux.exists(): identities.append(p.scope_identity(aux.name))
+closures = []
+for identity in identities:
+    path = Path(identity['path'])
+    if path.exists():
+        assert p.scope_still_owned(identity) and not p.owned_pids(path)
+        result = p.stop_scope_identity(identity, grace_seconds=0)
+        assert result['released'] and not result['targets']
+    else: result = dict(already_removed=True, released=True)
+    closures.append(dict(identity=identity, result=result))
+group = Path(own['path'])
+assert all(int(line.split()[1]) == 0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'closure.json', dict(kind='d813_closed_w1_descriptor_observation_v1', passed=True,
+    actual_descriptor=dict(requests=requests, receipts=receipts, worker_receipts=dict(workers), configuration=expected),
+    counts=counts, violation_partition=partition, shortfall_to_3800=max(0,3800-counts['joint_pass']),
+    metric_source=ref(metric_path), comparisons=comparisons,
+    candidate_disposition='retain_d813_single_w1_observation_pending_w2',
+    observed_latency_feasible=metric['observed_latency_feasible'],
+    n_correct=metric['n_correct'], ranking_eligible=False, confidence_interval=None,
+    primary_targets_achieved=False, new_replays=0,
+    decision='Freeze this single W1 observation with its actual joint latency and budget feasibility. No same-key repeat, threshold change, independent numerical correctness claim, or final G1/G2 ranking. W2 remains required under the same configuration. Preserve all prior points and the complete remaining matrix.',
+    closures=closures, qualification_protected_files=len(q['protected']), protected_publication_and_user_files=len(protected),
+    analysis_launcher_failure=None,
+    resources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}))
+with (OUT/'seal.py.snapshot').open('xb') as stream: stream.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True, descriptor_requests=requests, receipts=receipts, workers=dict(workers), comparisons=comparisons, violation_partition=partition), indent=2))

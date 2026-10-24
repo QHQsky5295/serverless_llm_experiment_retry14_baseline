@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "d627f7860fc9f5eb2fde0c209dae507aee65b789",
+  "backup_ref": "refs/heads/backup/d813-max3-fullw1-20261025",
+  "tmux": "tc-d813-3b-max3-full-w1",
+  "identity": {
+    "unit": "primelora-tc-aux-d8132026102500000000000000000002.scope",
+    "invocation_id": "6ac73759e3064c9580430cbd91f19976",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8132026102500000000000000000002.scope",
+    "inode": 31901669
+  },
+  "qualification_sha256": "570bad99350131e35c7537afbe5d86ea6ff27622c0d11ae4ea61b32f4a6a44af"
+}
