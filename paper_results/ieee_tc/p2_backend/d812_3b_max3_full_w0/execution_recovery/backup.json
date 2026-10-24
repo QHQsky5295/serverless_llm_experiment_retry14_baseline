@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "head": "0a065200744ae6a043e29338c44b917e21104710",
+  "ref": "refs/heads/backup/d812-max3-fullw0-20261024",
+  "files": [
+    "configs/ieee_tc/20261024_d812_3b_max3_full_w0.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D812_3B_MAX3_FULL_W0_20261024.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d811_current_control_holding/analyze.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d811_current_control_holding/diagnosis.json",
+    "paper_results/ieee_tc/p2_backend/d811_current_control_holding/manifest.json",
+    "docs/ieee_tc/D811_CURRENT_3B_CONTROL_HOLDING_20261024.md",
+    "docs/ieee_tc/D810_AVAILABLE_3B_COMPARISON_20261024.md",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/close_start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/close_wrapper_failure.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/evidence.sha256",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/execution_contract_tests.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/prior_execution_evidence.tar.gz",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/reused_alias_qualification.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/reused_qualification.json",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/prelaunch/stop_remote.sh.snapshot"
+  ],
+  "v2_synchronized": false
+}

@@ -1,0 +1,37 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d8120000000000000000000000000002.scope",
+    "invocation_id": "33ff641e60f54e3e85f6e013989d3dea",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8120000000000000000000000000002.scope",
+    "inode": 31855513
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8120000000000000000000000000002.scope",
+    "memory.current": 739913728,
+    "memory.peak": 1246867456,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 13578610\nuser_usec 10800868\nsystem_usec 2777741\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "closure": {
+    "targets": [],
+    "departed_during_census": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "running_service_not_signalled": true
+}

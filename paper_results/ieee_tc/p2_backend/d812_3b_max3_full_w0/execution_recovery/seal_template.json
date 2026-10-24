@@ -1,0 +1,34 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/seal.py",
+  "sha256": "77acbea5a64794bc268b7f9f87eaba58ced328151ab97cc8dcce8754b5de9995",
+  "replacements": [
+    [
+      "d752_3b_dense_alias_validation_full_w0",
+      "d812_3b_max3_full_w0"
+    ],
+    [
+      "assert requests == 4000 and len(workers) == 4",
+      "assert requests == 4000 and len(workers) == 3"
+    ],
+    [
+      "D749_direct_parent",
+      "D752_direct_parent"
+    ],
+    [
+      "d749_3b_fresh_host_descriptor_full_w0/completion/full4000.json",
+      "d752_3b_dense_alias_validation_full_w0/completion/full4000.json"
+    ],
+    [
+      "d752_closed_fresh_descriptor_observation_v1",
+      "d812_closed_max3_resource_observation_v1"
+    ],
+    [
+      "retain_d751_w0_latency_feasible_not_complete_g1_g2",
+      "retain_d812_single_w0_latency_and_budget_observation_pending_w1_w2"
+    ],
+    [
+      "Freeze this single W0 observation: common joint latency attainment exceeds 95%, but physical GPU time increased versus D749. Retain D751 without claiming resource improvement, complete G1/G2, cross-workload superiority, or independent numerical adapter correctness. Do not repeat this key. Preserve direct-parent and historical comparisons, all failed candidates, and the complete remaining matrix.",
+      "Freeze this single W0 observation: 3802/4000 satisfy common joint latency limits, with reduced GPU time versus D752 and U below the frozen W0 budget. The 2-request margin is descriptive, not a robustness guarantee. Retain the same max3 configuration for W1/W2; do not repeat this key, change thresholds or claim complete G1/G2, cross-workload superiority or independent numerical adapter correctness. Preserve all prior points and the complete remaining matrix."
+    ]
+  ]
+}

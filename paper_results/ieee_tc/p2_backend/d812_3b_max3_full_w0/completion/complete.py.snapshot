@@ -1,0 +1,30 @@
+"""Reuse D752's closed-run auditor for D812; no metric or serving changes."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd752_20261023/complete.py'
+_source = _template.read_text()
+_replacements = [
+    ('3b_dense_alias_validation_full_w0', '3b_max3_full_w0'),
+    ('d752_3b_max3_full_w0', 'd812_3b_max3_full_w0'),
+    ('d752_20261023', 'd812_20261024'),
+    ('D752_3B_DENSE_ALIAS_VALIDATION_FULL_W0_20261023.md',
+     'D812_3B_MAX3_FULL_W0_20261024.md'),
+    ('d749_3b_fresh_host_descriptor_full_w0/completion/full4000.json',
+     'd752_3b_dense_alias_validation_full_w0/completion/full4000.json'),
+    ('d752_vs_d749_single_run_observation_v1',
+     'd812_vs_d752_single_run_observation_v1'),
+]
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+with (_raw / 'completion_template.json').open('x') as _stream:
+    json.dump(dict(path=str(_template), sha256=hashlib.sha256(
+        _template.read_bytes()).hexdigest(), replacements=_replacements),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw / 'completion_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw / 'completion_program.py.snapshot'), 'exec'), globals())

@@ -1,0 +1,4 @@
+"""Reuse actual empty-scope closure; D812 identity comes from its own receipt."""
+from pathlib import Path
+_template = Path(__file__).resolve().parent.parent/'d752_20261023/post_backup_release.py'
+exec(compile(_template.read_text(), str(_template), 'exec'), globals())

@@ -1,4 +1,168 @@
-# IEEE TC execution status — D811 current resource evidence; D812 max3 candidate registered
+# IEEE TC execution status — D812 3B max3 W0 completed; seal and backup, then W1/W2
+
+## 2026-10-25 D812完整回放与核查完成：资源减少，联合SLO刚达标
+
+本轮先持续监测同一运行至4000/4000、0请求失败，未重启/改配置/并行重任务。
+00:08已实际释放3个GPU分配、service path removed；远端3自有服务均正常
+停止。复用D752完整计量/关闭/阶段审计，D648联合3802/4000=95.05%，
+U11841.427433227189，TTFT mean774.695416827/P951559.926862363ms，
+TPOT mean16.404388528/P9529.032538005ms，E2E mean2579.399525669ms。
+相对D752 U减20.317093%，联合减0.725pp、P95 TTFT增加13.505178ms；
+比3800门槛仅多2条，单轮描述，不宣称稳健/显著。W0 U/B=.979486，
+相对D657常驻参考U减26.538549%。n_correct=null/独立数值未知保留，
+不宣称正式G1/G2或跨场景最优。
+
+原生绑定/计时4000核查通过，11060新鲜HOST描述符/3worker；132真实fetch/
+306360162线上字节、双端ID/SHA相符、线上打包0。服务peak22320852992B、
+high/max/OOM/swap0，分析peak811397120B/事件swap0。完成分析scope及原
+launcher aux已实际空后关闭；seal scope由紧随的备份程序核实关闭。初次
+包装未启动GPU的失败与启动/备份后置回执一并保留，不隐藏失败。
+
+当前将按显式路径备份D812数据与文档，使用github-sync检查；不stage用户
+manifest、不force。盘仍低于下一重任务150GiB，备份后先有证据回收关闭
+缓存/必要无损压缩。随后固定相同max3工作点完成W1/W2，不扫阈值，不重跑
+D812挑赢家，不重复外部基线性能搜索。全部同版Full/A1–A5/S1–S13、成本
+CE/Pareto、审稿文档、图表和最终V2交付保留；完整goal active。
+
+## 2026-10-24 23:39 CST D812完成2542条，仍为同一次三实例完整回放
+
+上一轮与本轮均VERIFIED WAIT；本轮重读完整PLAN(1–1567)、当前状态及
+monitor-experiment，五次45秒等待后直接核验同一service InvocationID
+fd98d67bdf7a486a86e79aa65c6be893。tmux pane1844854存活，EngineCore
+PID1847967/1849476/1849501存活且CPU时间递增。最新arrived2545/done2542/
+ok2542/fail0、实例3、扩容2/缩容0；尚非完整结果，不作前缀排名。
+watchdog sample2346/monotonic2363610.33305618，无warning/abort；host
+available98277036032B、service memory20602769408B、high/max/OOM/swap均0，
+磁盘157463445504B。未重启/调参/分析/新增资格/扫描/清理/压缩/构建/push，
+未维护远端或更动共享k3s。无待工具session，原服务与外置监控继续运行。
+
+下一仍为原4000终态与实际资源释放/远端收尾后，复用已读D752 complete.py
+及共同D648原生审计，保存备份，再恢复下一重任务磁盘准入。W1/W2、有证据
+PrimeLoRA优化、同版Full、A1–A5/S1–S13、成本CE/Pareto、审稿文档、图表与
+最终V2全部保留；完整goal active。没有因持续等待将任务误判为阻塞或完成。
+
+## 2026-10-24 23:33 CST D812超过半程，2067完成且继续原回放
+
+上一轮与本轮均VERIFIED WAIT；本轮完整重读PLAN(1–1567)、当前状态及
+monitor-experiment。六次45秒等待/直接轮询确认同一service InvocationID
+fd98d67bdf7a486a86e79aa65c6be893持续active；tmux pane1844854及三
+EngineCore PID1847967/1849476/1849501存活，CPU时间递增。最新arrived2068/
+done2067/ok2067/fail0，实例3、扩容2/缩容0；无完整最终指标，不作前缀排名。
+watchdog sample1995/monotonic2363254.487315652，无warning/abort；host
+available98465607680B、service memory19920224256B、high/max/OOM/swap均0，
+磁盘157982756864B。原运行继续，无重启、代码/配置修改、分析、额外资格、
+扫描/清理/压缩/构建/push或远端维护；无待工具session。
+
+仍等待同一次4000请求终态及自动实际释放，随后复用D752收尾入口核对共同
+D648联合SLO、物理U和no-pack来源，保存备份后安全回收缓存，再按证据推进
+W1/W2或有界诊断。所有同版Full、A1–A5/S1–S13、成本CE/Pareto、审稿文档、
+图表与最终V2继续开放，完整goal active，不缩小范围。
+
+## 2026-10-24 23:26 CST D812完成1519条，保持原配置等待完整终态
+
+上一轮及本轮均VERIFIED WAIT。本轮完整重读PLAN三段(1–440/441–1220/
+1221–1567)、当前状态及monitor-experiment。连续六次45秒等待中直接轮询
+同一service InvocationID fd98d67bdf7a486a86e79aa65c6be893；最后tmux
+pane1844854存活，EngineCore PID1847967/1849476/1849501存活且CPU时间
+持续增加。最新arrived1521/done1519/ok1519/fail0、实例3、扩容2/缩容0。
+没有将前缀、旧5000ms或CE视为最终评价，没有因启动期不利数据重启。
+
+最后watchdog sample1593/monotonic2362846.949863323，warning=false、
+abort_reasons为空；host available98649505792B、service memory19168878592B、
+high/max/OOM/swap均0，磁盘158482210816B，当前安全但下一重任务前须恢复
+150GiB准入。无在线扫描、压缩、清理、测试、构建、push或远端维护。
+
+只读核对D752 complete.py、D812 run_and_release.sh/stop_remote.sh与现有
+audit_d703_3b_full.py的closed/native SLO入口：保留真实释放后分析、共同
+D648阈值、流式逐请求和物理积分、远端no-pack关联及n_correct未知边界。
+未执行分析或创建新脚本；结束后复用该入口，仅调整D812路径/父点引用及
+D725 profile绑定，不误用D703历史profile专用审计。运行中没有代码修改。
+
+下一继续原4000回放→实际释放/远端收尾→完整审计/保存/备份→有证据缓存
+回收→同配置W1/W2或有界诊断。全部同版Full、A1–A5/S1–S13、成本CE/Pareto、
+审稿文档、图表和最终V2交付未删减，完整goal active。无待工具session；
+tmux、服务及既有外置监控继续运行，不启动第二任务。
+
+## 2026-10-24 23:18 CST D812完成955条，继续监测原运行
+
+上一轮及本轮均为VERIFIED WAIT。本轮重读完整PLAN（长输出截断处另行补读）、
+当前状态及monitor-experiment；直接核验同一service InvocationID
+fd98d67bdf7a486a86e79aa65c6be893、tmux pane1844854与三个EngineCore
+PID1847967/1849476/1849501。两次45秒等待中日志持续推进，最新arrived962/
+done955/ok955/fail0，实例3、扩容2、缩容0；PID存活且CPU时间递增。
+本轮不是完成实验，也不使用前缀或控制台旧5000ms比例判断共同G1/G2。
+
+最新watchdog sample1122/monotonic2362369.49008398：warning=false、
+abort_reasons为空，主机available98777964544B、服务memory18581348352B、
+high/max/OOM/swap均0，磁盘158963609600B。当前运行高于保护底线；结束后
+才做必要缓存回收以恢复下一重任务准入。不扫描/压缩/清理/测试/构建/push，
+不改配置、不重启、不维护远端。无待工具session，实际回放继续存活。
+
+下一保持原回放至真实终态、释放与远端收尾后核查完整共同SLO和物理U，
+保存备份，再依据结果推进同工作点W1/W2或有界诊断；不重复基线性能搜索。
+同版Full、A1–A5/S1–S13、成本CE/Pareto、审稿文档、图表与最终V2全部保留，
+完整goal active，未缩小目标。
+
+## 2026-10-24 23:14 CST D812推进至775完成，继续同一完整回放
+
+本轮VERIFIED WAIT：完整重读PLAN(1–1567)、当前状态与monitor-experiment，
+直接核对service InvocationID fd98d67bdf7a486a86e79aa65c6be893、tmux
+pane1844854及三个EngineCore PID1847967/1849476/1849501；CPU时间与日志
+均持续推进。一次45秒等待及复查后，最新arrived778/done775/ok775/fail0，
+实例3、扩容2、缩容0。未重启、改配置或新增实验；不以旧5000ms控制台统计
+代替共同联合SLO，也不以运行前缀作完整G1/G2结论。启动期长等待保留。
+
+watchdog sample894/monotonic2362138.341340133：无warning/abort，主机
+available98717057024B，服务memory18372722688B，high/max/OOM/swap均0；
+磁盘159131447296B，仍高于当前运行底线、低于下一重任务启动门槛。
+运行期间不扫描/压缩/清理/测试/构建/push，不维护远端，不接管其他项目k3s。
+当前无待工具session；tmux、服务及外置监控继续执行原冻结回放。
+
+下一仍为真实终态及既有自动释放后，复用分析核查共同SLO、物理GPU时间与
+完整来源，保存备份后安全回收缓存；再依证据决定同配置W1/W2。完整基线
+比较已完成的结果不重跑，PrimeLoRA优化、同版Full/A1–A5/S1–S13、成本CE/
+Pareto、审稿文档、图表与最终V2交付范围不变，完整goal保持active。
+
+## 2026-10-24 23:07 CST D812同一回放持续运行；本轮VERIFIED WAIT
+
+上一轮PROGRESS（D811证据、新候选/测试/备份/实际启动）；本轮完整重读PLAN
+及当前状态，使用monitor-experiment。实际核验同一服务InvocationID
+fd98d67bdf7a486a86e79aa65c6be893，PID1847967/1849476/1849501持续存在且
+CPU时间递增；tmux与外置监控存活，不仅依赖锁或旧状态文件。经两次45秒
+等待后日志从174完成推进到arrived325/done321/ok321/fail0，实例3，扩容2。
+尚非完整结果，不采用控制台旧5000ms比例作为共同联合SLO，不计算前缀排名。
+早期存在较长等待，保留并待完整启动/准备/排队分解，不因不利而重启或删点。
+
+最后watchdog sample460/monotonic2361698.442747819，无告警/中止；主机
+available98957500416B、服务memory17669009408B、high/max/OOM/swap均0，
+磁盘159591067648B（低于新重任务150GiB准入、高于当前100GiB运行底线）。
+因此继续同一实验，禁止并行新任务或在线压缩；结束后先真实释放与审计，再
+做有证据缓存回收/无损压缩恢复下一任务空间。没有生产代码修改/新回放/push
+或远端维护。下一仍是D812完整终态审计，再根据共同G1/G2决定同配置W1/W2；
+全部消融/敏感性/审稿文档/最终V2交付不删减，完整goal保持active。
+
+## 2026-10-24 23:01 CST D812完整W0实际运行；本轮PROGRESS
+
+唯一新工作点max4→3，其余D752语义不变。8项相关CPU检查通过、旧9/51资格
+SHA复用；25路径提交0a065200744ae6a043e29338c44b917e21104710已推送核对
+backup/d812-max3-fullw0-20261024。D811和D810后置回执收入；BASE没有修改。
+用户manifest未stage、147保护未变、无force，最终V2尚未同步。
+
+实际tmux tc-d812-3b-max3-full-w0，raw p2_backend_qualification/d812_20261024/
+3b_max3_full_w0，服务primelora-tc-svc-b478e9d02401437aa72e43092e04c550.scope，
+辅助primelora-tc-aux-6b7e7e44d5d9409bb2648236cbd84dac.scope。已观测GPU0
+13557MiB与request_received记录；非完整结果，不能宣告通过或取消因果不利前缀。
+23:01样本主机available106961940480B，服务high/max/OOM/swap0，尚无安全中止。
+远端1000Mb/s/full，复用D80无动态打包。运行期间只轻量监控，不改配置、
+扫描/压缩/构建/测试/push或维护远端。共享k3s不变。
+
+管理域0002peak1246867456B/事件swap0已空后关闭，运行服务未被信号；初次
+包装仅不必要字面量断言失败、未启动GPU，快照/错误/空域关闭回执保留。
+下一继续同一回放，按现有release→共同SLO/物理U/来源核查→保存/备份。
+不要重新启动D812或重做baseline。若通过推进同工作点W1/W2，若退化保留并
+做有界证据诊断；不回到D713已拒绝阈值搜索。7B同版本最终点、Full/消融、
+S1–S13、成本/CE/Pareto、审稿说明/图表和最终V2交付全部开放，goal active。
+本后置状态及D812启动/备份/初次包装失败回执待下一正常检查点收录。
 
 ## 2026-10-24 D811完成当前控制核查，D812唯一候选已登记、尚未启动
 

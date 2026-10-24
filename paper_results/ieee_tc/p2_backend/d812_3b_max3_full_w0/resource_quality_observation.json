@@ -1,0 +1,36 @@
+{
+  "kind": "d812_single_w0_resource_quality_observation_v1",
+  "current": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d812_3b_max3_full_w0/completion/full4000.json",
+    "sha256": "e9f08b512eac3621a90d8dd95d1b2f5cb97606f0da8ee48420a2fbfee07b720d"
+  },
+  "reference": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+    "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+  },
+  "parent_comparison": {
+    "label": "D752_direct_parent",
+    "source": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/full4000.json",
+      "sha256": "d87f17d959180ba11d12180e6ba3cddfccf8f16aaafdfd2047ccf9ad46a0dedf"
+    },
+    "previous_joint_slo": 0.95775,
+    "previous_gpu_seconds": 14860.687045203056,
+    "joint_difference_percentage_points": -0.7249999999999979,
+    "gpu_seconds_reduction_fraction": 0.20317093030705244
+  },
+  "budget_gpu_seconds": 12089.429827428656,
+  "observed_within_budget": true,
+  "budget_utilization": 0.9794860140021826,
+  "gpu_seconds_per_binding_valid_request": 2.960356858306797,
+  "resident_gpu_time_reduction_fraction": 0.26538548949836305,
+  "joint_slo_margin_requests": 2,
+  "mean_ttft_change_ms": 170.67211460333783,
+  "p95_ttft_change_ms": 13.505178038030863,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "independent_holdout": false,
+  "confidence_interval": null,
+  "complete_g1_g2": false,
+  "note": "W0-only development observation; near-threshold attainment and unresolved independent numerical proof remain explicit. No same-key rerun. W1/W2 use the same configuration."
+}
