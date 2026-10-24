@@ -1,5 +1,121 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 D791：完整W1结束并审计通过，598超时保留（PROGRESS）
+
+本轮完整重读PLAN、状态、冻结V1/单轮V2；上一轮为实际进程持续推进的
+VERIFIED WAIT。本轮等待至4000终态，3402有效原生响应、598 TimeoutError，
+382057输出tokens，联合19/4000＝0.475%，U=6262.210177884437GPU-s。
+不是G1/G2达标点，n_correct及独立全工作负载数值证明仍未知；D790六点
+模型数值证据单独引用，D786/D787模型错误结果不用于性能优势比较。
+
+实际tmux已终止、service/replay1/1、watchdog0，GPU context release和
+service path gone成立，维护80950返回0并闭合；远端服务/监控已关闭。
+第一分析41137因/usr/bin/python3缺numpy退出，原始失败保留并闭合；复用
+D786合格venv的analysis2（59327）返回0并闭合，同一analyzer/同一原始数据，
+没有GPU重跑或新资格。分析high事件属于离线检查，不混入性能资源。
+
+完整阶段统计及有界native日志核查写入D791_DLORA_MODEL_CORRECTED_FULL_W1_20261024.md。
+主等待在后端dispatch之后，不称纯GPU计算；43次ILP求解总37.5120604s，
+43条迁移决策打印不能冒称完整迁移成功。11个missing-stream ID均已超时且
+先有Aborted；额外正常Finished的req_01000也先Aborted，保留为失败。
+
+storage会话94746已返回0并闭合，仅回收本轮4000个重复objects文件，实测
+19497250816bytes，之后可用162065883136bytes；147项保护未变，原始证据
+和唯一工件保留。三项不可读同UID FD范围如实记录。下一明确路径备份（github-sync），
+再以同一修正模型配置推进W2。所有后续3B基线、PrimeLoRA优化、同版本Full、
+A1–A5、S1–S13、CE/Pareto、审稿文档、图表/V2均保留。goal active未完成。
+
+## 2026-10-24 D791：W1仍有新增响应；收尾入口已准备，未执行（VERIFIED WAIT）
+
+本轮再次完整读取PLAN、两仓AGENTS、六份执行补充及冻结指标V1/单轮V2，
+使用monitor-experiment检查实际运行；没有新性能运行、基线调参、服务修改、
+远端调整或共享k3s操作。tmux tc-d791-dlora-3b-w1仍alive，owner3617529、
+driver3624054和GPU worker3626826/3627180由ps确认存活。
+
+观察从1596条http_response/2894条request_created推进到2167/3633，
+尚未完整终态，不把部分响应数当N_correct或正式性能结论。最新watchdog
+sample1967，主机available34.3938102722168GiB，磁盘132.93941497802734GiB，
+high3302、max/oom/oom_kill均0，无warning/abort。运行期间磁盘低于启动
+150GiB但高于既定100GiB停止线；不在性能运行中扫描、压缩或清理。
+
+现有D791 reclaim.py已准备但未执行。本轮新增仅RAW内backup.py，复用D785
+明确路径备份流程，改为读取D791实际完整终态，不预设成功/失败数；引用D790
+模型数值证据但不扩大为全4000请求独立数值证明。AST语法检查通过；实际
+分析、清理、git提交/推送均须等待本轮终态和GPU释放。没有修改被测代码。
+
+下一仍是同一W1完成→真实释放→保存/审计→重复缓存回收→检查点备份，
+然后同一修正模型配置W2，再3B Loquetier/HydraServe与PrimeLoRA全比较优化。
+同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、图表及V2交付全部保留。
+这是真实推进中的等待，不是阻塞或完成；goal继续active。
+
+## 2026-10-24 D791：完整W1持续推进，原生输出异常未在抽查中复现（VERIFIED WAIT）
+
+本轮完整重读PLAN及冻结指标V1/单轮V2，沿用monitor-experiment与
+analyze-results方法；没有启动第二轮或改变系统配置。实际tmux pane
+3616317仍alive，service owner3617529、native driver3624054及两GPU
+worker3626826/3627180均由ps确认存活；watchdog持续更新，不以旧状态文件
+代替活性证据。启动器25857已终态，不再轮询该句柄。
+
+worker ready实际时刻2304985.702303018，现已进入生成。最后观察到2081条
+request_created、1151条http_response（仍是partial、不是完整正确数）。
+较早的300行有界检查含48条成功响应，原生token数组长度与native计数一致，
+整段全token0的响应为0；这只描述抽查，不能升级为4000条独立数值证明。
+样本1145：服务71.99822235107422GiB、主机available34.22576904296875GiB，
+high3236、max/OOM/kill0，磁盘132.97033309936523GiB，无外部GPU计算作业，
+watchdog无abort。软上限回收/节流是实际性能条件，不因此作废或重跑。
+
+只准备了复用D786的close_and_preserve.py、preserve_evidence.py、analyze.py
+入口，尚未执行收尾/最终分析；未修改被测代码、远端服务或并行清理/推送。
+下一继续同一tc-d791-dlora-3b-w1，等待真正终态及GPU释放后才维护、审计、
+保存和备份；按实际结果选择success/complete_with_failures，不能预填成功。
+随后同一修正模型配置W2，再Loquetier/HydraServe3B和PrimeLoRA全比较优化；
+同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、图表/V2均未删除。
+本轮等待已由实际进程及新增响应验证，非阻塞，goal active未完成。
+
+## 2026-10-24 D791：模型修正后的完整3B W1已启动（PROGRESS）
+
+已完整重读PLAN、两仓AGENTS及六份最新执行补充。复用D786的完整4000请求
+W1、500池、DP2/TP1/PP1与全部原生性能参数；只将source view改为D788已
+通过D790数值检查的模型语义适配，并更换私有结果/Ray路径。HTTP配置字节
+不变，view SHA仍8a7fa829…、实际unique132、目标458224tokens；未重新
+生成工件或负载、未引入参考PEFT overlay。D788/D789/D786/D787证据保留。
+
+prepare首回因摘要抄录close.py SHA错误在写配置前退出，校对已读取的实际
+wrapper后纠正；preparation_note保留，不是性能失败或重复跑。D791启动器
+25857返回0，tmux tc-d791-dlora-3b-w1已运行；start辅助域实际关闭。
+启动前实际可用内存115055165440B、磁盘162323361792B、无GPU计算作业，
+既定门槛通过。远端自动启动并health通过，链路1000Mb/s/full，仍为D80
+prepublished_gzip；不改共享k3s、不在请求中打包。服务启动和输入预处理
+正在进行，尚无完整性能结果；监测不得因观察超时误重启同一执行键。
+
+MAIN执行c833cde62cfae38edf8f3b9debc0d0a1f0d6cddb、BASE执行
+cf421793e7b71342cf75ff063f8d64afe26d8169，上一检查点远端已核验。
+后续轻量观察：500/500工件均cold获取、prepublished_gzip，线上总字节
+1160474851，准备span153.24455367494375s；两个原生RayWorker已持有GPU并
+持续使用CPU做初始化，尚无worker ready/完整请求结果。watchdog sample355
+服务62.434974670410156GiB，high/max/OOM均0，磁盘约133GiB，外部GPU计算
+作业为空。不是卡死证据、不重启；保留正常启动排队和原始资源计量。
+性能期间不压缩清理、构建、推送或修改服务。下一持续同一W1→实际释放/
+审计/保存→同配置W2；随后Loquetier/HydraServe3B、PrimeLoRA完整比较与
+优化/同版本Full、A1–A5、S1–S13、CE/Pareto、审稿文档、图表/V2均保留。
+goal active未完成；W1启动不是达标或最优结论。
+
+## 2026-10-24 D790：代码与证据检查点已备份，下一恢复受影响W1
+
+BASE三个任务文件已提交并核验origin/main：
+`cf421793e7b71342cf75ff063f8d64afe26d8169`。MAIN小型证据、来源、46项回归、
+6个数值点及D788/D789失败已提交并核验备份分支：
+`c833cde62cfae38edf8f3b9debc0d0a1f0d6cddb`，
+`faaslora_origin/backup/d790-dlora-model-parity-20261024`。
+backup21866返回0、辅助域已关闭；147项旧投稿/用户dirty校验未变，未stage
+保护配置或无关文件，无force push。V2远端最终同步尚未完成，不冒称已同步。
+当前无GPU作业、无远端artifact服务，尚未开始修正模型后的W1/W2。
+下一沿用D786完整W1输入、DP2/TP1/PP1及既定性能配置，只换为D788模型
+语义修正视图，先W1再W2；参考PEFT overlay只用于数值验证，不进入正式
+native后端环境。已通过数值检查无需再跑无关100/500/1000资格。
+完整其余3B基线、PrimeLoRA全比较优化/同版本Full、A1–A5、S1–S13、
+CE/Pareto、审稿文档、图表及V2交付均未删除，goal active。
+
 ## 2026-10-24 D790：真实模型数值对照通过，准备冻结并恢复W1/W2
 
 D790真实检查已通过（launch pass=true，service/watchdog0/0），6/6原生

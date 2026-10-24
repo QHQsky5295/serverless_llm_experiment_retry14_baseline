@@ -1,0 +1,50 @@
+"""Reuse D786's complete W1, changing only campaign and verified model view."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+OLD = RAW.parent / 'd786_20261024'
+VIEW = RAW.parent / 'd788_20261024/source_view'
+
+def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+expected = {
+    'native_3b.json': '9737438c1bc09daf0d49c3b3f234e3eb3db4c0c3a93f75e2ad4bcd97cb4ef122',
+    'http_3b_4000.json': 'cbdfd9f0b2064646ebe272fcf0e50969ccaaf0e49d1e105f0f71314fb5ab1ff7',
+    'run3b.sh': '5492a02f62beb375b869b9681efc949ba82e6977fdd8cf92a6d63fa4ad988853',
+    'freeze_inputs.py': 'a67876edc2e0a260c64b29912f26a863fe77f0eeaa54bb3f2b7018f5d7bce603',
+    'close.py': 'eee2027f07574d5ef47d1abe68aac75f7b02ef4165aa405e00ed72914cb676c8',
+}
+for name, digest in expected.items():
+    assert sha(OLD/name) == digest, name
+assert sha(VIEW/'measurement_manifest.json') == '2d06f71560515a355a625880a221cbb6e8be3447c0afd9d9b080f7cf1df27e24'
+parity = json.loads((RAW.parent/'d790_20261024/native_probe.json').read_text())
+assert parity['passed'] and len(parity['checks']) == 6
+old = json.loads((OLD/'native_3b.json').read_text())
+new = dict(old, source_view=str(VIEW),
+           source_view_manifest_sha256=sha(VIEW/'measurement_manifest.json'),
+           ray_root='/tmp/tc-d791-ray')
+changed = sorted(key for key in old if old[key] != new[key])
+assert changed == ['ray_root', 'source_view', 'source_view_manifest_sha256']
+save('native_3b.json', new)
+for name in ('http_3b_4000.json', 'freeze_inputs.py', 'close.py', 'run3b.sh'):
+    content = (OLD/name).read_text()
+    if name == 'run3b.sh':
+        content = content.replace('d786', 'd791')
+    with (RAW/name).open('x') as stream:
+        stream.write(content)
+save('reuse_identity.json', dict(
+    passed=True, prior_campaign=str(OLD), source_sha256=expected,
+    changed_config_fields=changed, http_bytes_unchanged=sha(RAW/'http_3b_4000.json') == expected['http_3b_4000.json'],
+    model_parity_source=str(RAW.parent/'d790_20261024/native_probe.json'),
+    model_parity_sha256=sha(RAW.parent/'d790_20261024/native_probe.json'),
+    model_parity_scope='Two existing prompts/adapters; prefill and two paged decode steps each',
+    full_workload_numerical_correctness_proven=False,
+    performance_parameters_changed=False, reference_package_overlay_used=False,
+    previous_results_preserved=True, prior_execution_reuse_class='R3_model_incompatibility',
+    generated_sha256={name:sha(RAW/name) for name in expected} ))
+print(json.dumps(dict(prepared=True, changed_fields=changed)))

@@ -1,0 +1,13 @@
+"""Reuse the same offline audit in the qualified environment; preserve attempt 1."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d786_20261024/analyze.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1026bc8d1970763fac7734b6cf7ca93d325fd6d81c2e6f7555da94f157536023'
+source = data.decode()
+before = "exec(compile(source, str(original), 'exec'),"
+assert source.count(before) == 1
+source = source.replace(before,
+    "source = source.replace('analysis_identity', 'analysis2_identity').replace('analysis_receipt', 'analysis2_receipt').replace('analysis.log', 'analysis2.log')\n" + before)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,0 +1,8 @@
+"""After D791 terminates, reuse exact-owned closure and evidence preservation."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d786_20261024/close_and_preserve.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'eb1a5e4400b91e54d50e6a84ba8b60154c72b97fa8748b7a90564b16a1b5007d'
+source = data.decode().replace('D786', 'D791').replace('d786', 'd791')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

@@ -1,0 +1,54 @@
+"""After actual closure, reuse explicit-path publication for D791's observed outcome."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d785_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '5f961ff9971ce79a33fb385c2d875573c8310ebb49cf3b915f47ab54f23b7520'
+source = data.decode().replace('D785', 'D791').replace('d785', 'd791')
+source = source.replace('prefix1000_compatibility', 'model_corrected_full_w1')
+source = source.replace('PREFIX1000_COMPATIBILITY', 'MODEL_CORRECTED_FULL_W1')
+source = source.replace('audit_prefix1000.json', 'audit_full4000_w1.json')
+source = source.replace('http_3b_1000.json', 'http_3b_4000.json')
+source = source.replace("('start', 'maintenance', 'analysis', 'storage')", "('start', 'maintenance', 'analysis', 'analysis2', 'storage')")
+source = source.replace("read(RAW/'analysis_receipt.json')['passed']", "read(RAW/'analysis2_receipt.json')['passed']")
+source = source.replace('offline_analysis_attempts=1', 'offline_analysis_attempts=2')
+source = source.replace("'analyze.py','analysis.log','analysis_receipt.json','analysis_closure.json',",
+    "'analyze.py','analysis.log','analysis_receipt.json','analysis_closure.json',\n"
+    "    'analyze2.py','analysis2.log','analysis2_receipt.json','analysis2_closure.json',")
+source = source.replace('d782_20261024/qualification.json', 'd790_20261024/qualification.json')
+source = source.replace('59a3fde4ed163bb8e88434439bfb7d9a68c7313e', 'c833cde62cfae38edf8f3b9debc0d0a1f0d6cddb')
+source = source.replace('8fcb6bf95fdde6f4f0e6f396c2ba604b861db554', 'cf421793e7b71342cf75ff063f8d64afe26d8169')
+
+def replace_once(before, after):
+    global source
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+
+replace_once("assert audit['workload_passed'] and audit['native_revalidated_requests'] == 1000",
+    "assert audit['measurement_complete']\n"
+    "assert audit['counts']['N_plan'] == audit['counts']['N_terminal'] == 4000\n"
+    "assert audit['counts']['N_response'] == audit['native_revalidated_requests']\n"
+    "assert audit['outcome_contract'] in ('success', 'complete_with_failures')")
+replace_once("assert audit['actual_native_output_tokens'] == 122510 and audit['served_adapter_ids'] == 60",
+    "assert 0 < audit['actual_native_output_tokens'] <= 458224\n"
+    "assert 0 < audit['served_adapter_ids'] <= 132")
+replace_once("assert launch['service_returncode'] == launch['replay_returncode'] == launch['watchdog_returncode'] == 0",
+    "assert all(type(launch[k]) is int for k in ('service_returncode', 'replay_returncode'))\n"
+    "assert launch['watchdog_returncode'] == 0")
+replace_once("schema='ieee_tc_dlora_prefix_compatibility_checkpoint_v1'",
+    "schema='ieee_tc_dlora_model_corrected_full_w1_checkpoint_v1'")
+replace_once('prepared_adapters=500, served_adapters=60,',
+    "prepared_adapters=500, served_adapters=audit['served_adapter_ids'], counts=audit['counts'],\n"
+    "    outcome_contract=audit['outcome_contract'], measurement_complete=audit['measurement_complete'],\n"
+    "    workload_passed=audit['workload_passed'],\n"
+    "    model_parity_evidence='D790: two existing prompt/adapter pairs, prefill plus two decode steps; 6/6 greedy agreement',\n"
+    "    model_parity_scope='bounded path evidence, not independent full-workload numerical proof',")
+replace_once("tests_reused_from='D783: unchanged dLoRA analyzer/runtime and D770 approved prefix1000 view'",
+    "tests_reused_from='D783 unchanged analyzer; D772 W1 input; D788-D790 model-compatibility tests and bounded native parity'")
+replace_once("'start.py','start_identity.json'", "'prepare.py','preparation_note.md','start.py','start_identity.json'")
+replace_once('tc: seal dLoRA 3B prefix1000 compatibility (D791)',
+    'tc: seal model-corrected dLoRA 3B complete W1 outcome (D791)')
+replace_once('backup/d791-dlora-prefix1000-20261024',
+    'backup/d791-dlora-model-corrected-w1-20261024')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

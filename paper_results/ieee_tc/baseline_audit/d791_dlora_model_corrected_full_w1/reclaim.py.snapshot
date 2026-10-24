@@ -1,0 +1,27 @@
+"""Reuse duplicate-only cleanup after complete D791 measurement and real release.
+
+No performance success requirement: failed requests are evidence, not live cache
+owners. Existing content, retained-original, mount/link/open-file and release
+checks remain. This file is not invoked while the performance run is active.
+"""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d783_20261024/reclaim.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '7476bee26075e92cf526be97089b833a6214836a0f062eeda51809409f7b23d1'
+source = data.decode().replace('D783', 'D791').replace('d783', 'd791')
+source = source.replace('analysis3_', 'analysis2_').replace('audit_prefix100.json', 'audit_full4000_w1.json')
+source = source.replace('http_3b_100.json', 'http_3b_4000.json')
+source = source.replace("'d782_20261024/qualification.json'", "'d790_20261024/qualification.json'")
+before = "assert audit['workload_passed'] and audit['native_revalidated_requests']==100"
+assert source.count(before) == 2
+source = source.replace(before,
+    "assert audit['measurement_complete'] "
+    "and audit['counts']['N_plan']==audit['counts']['N_terminal']==4000 "
+    "and audit['native_revalidated_requests']==audit['counts']['N_response']")
+before = 'for before,after in changes.items():'
+assert source.count(before) == 1
+source = source.replace(before,
+    'changes["and launch[\'service_returncode\'] == 0"] = "and type(launch[\'service_returncode\']) is int"\n' + before)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
