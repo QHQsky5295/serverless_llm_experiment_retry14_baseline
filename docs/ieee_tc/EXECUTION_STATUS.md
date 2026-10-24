@@ -1,4 +1,25 @@
-# IEEE TC execution status — D801 Loquetier 3B W1 audited; result checkpoint next
+# IEEE TC execution status — D801 W1 sealed; D802 Loquetier 3B W2 prepared
+
+## 2026-10-24 16:24 CST D801备份完成，D802同配置W2输入登记通过
+
+D801结果与HydraServe模型静态审计已提交MAIN
+5fb6e1e20d42f0f5fe92c37066815db8b3ab0c61，核验远端
+faaslora_origin/backup/d801-loquetier-3b-w1-result-20261024同SHA；BASE
+仍8594922093ee4625dcc6614ecc11746af277219d并与origin/main一致。结果辅助域
+已关闭，high/max/OOM0；147项保护和用户修改不变，没有force push或声称
+最终V2分歧已解决。D801存储维护同样high/max/OOM0，空间回收回执保留。
+
+D802沿D800登记/备份和D589原生launcher复用，已展开AST及bash -n检查，
+prepare辅助域已关闭。既有W2映射SHA28c97dc7...、view SHA5558de43...，
+与D773逐条输入一致：4000请求、497个实际逻辑ID、458224目标token。
+native配置逐字节同D799/D800/D801（SHA3b5a0274...），没有新的权重、trace、
+短回放或baseline参数搜索。修正既知tests_reused元数据字段，不重演D801
+登记失败。D802完整W2登记文档已保存；尚未开始远端或GPU服务。
+
+下一明确路径备份D802绑定并启动唯一W2；随后隔离HydraServe3B、全基线
+比较/PrimeLoRA优化、同版Full/A1–A5/S1–S13、成本/CE、审稿文档、图表和
+最终V2全部保留。本轮PROGRESS，完整goal active；不存在需用户手动接管
+非本项目k3s的步骤。
 
 ## 2026-10-24 16:22 CST D801完整W1核验、释放和重复缓存回收完成
 

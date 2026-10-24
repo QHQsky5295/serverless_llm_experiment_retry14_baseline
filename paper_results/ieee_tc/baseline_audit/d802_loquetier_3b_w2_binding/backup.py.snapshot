@@ -1,0 +1,22 @@
+"""Reuse explicit-path backup for the unchanged complete W2 binding."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d800_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '2cdad05643c469c6099784dfc3aa0e1530bfb55ae9284c481aca90b648fcb834'
+source = data.decode()
+changes = {
+    '889970cfd3218f5982ef07ff6eebb07ce8c5a6f4': '5fb6e1e20d42f0f5fe92c37066815db8b3ab0c61',
+    'd800_loquetier_3b_w0_binding': 'd802_loquetier_3b_w2_binding',
+    'ieee_tc_loquetier_3b_w0_binding_v1': 'ieee_tc_loquetier_3b_w2_binding_v1',
+    'D800_LOQUETIER_3B_FULL_W0_20261024.md': 'D802_LOQUETIER_3B_FULL_W2_20261024.md',
+    'backup/d800-loquetier-3b-w0-binding-20261024': 'backup/d802-loquetier-3b-w2-binding-20261024',
+    'tc: bind unchanged Loquetier 3B to full W0 (D800)':
+        'tc: bind unchanged Loquetier 3B to full W2 (D802)',
+    'D799 full500 coverage; D798 bounded numeric check':
+        'D799 full500 coverage; D798 bounded numeric check; D800 W0 and D801 W1',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, (before, source.count(before))
+    source = source.replace(before, after)
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

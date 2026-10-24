@@ -1,0 +1,35 @@
+"""Reuse full-workload binding for unchanged Loquetier 3B and the existing W2 map."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d800_20261024/prepare.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '35412e516064b378aca6c108b39fcd2eba09465db5b5a5d5355cd4116f5f2bb1'
+source = data.decode()
+changes = {
+    "RAW.parent/'d799_20261024'": "RAW.parent/'d801_20261024'",
+    'audit_coverage500.json': 'audit_full4000.json',
+    'c42e38d21050324962a184060eec51552713acc17eb12f7d4b8c6134058b6ca5':
+        '9f1962fddd05da651e9c5e37a7b0a4efd6cb86c2b0914cc069c8fe4157adcf06',
+    "audit['native_revalidated_requests'] == 500": "audit['native_revalidated_requests'] == 4000",
+    "audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500":
+        "audit['served_adapter_ids'] == 132 and audit['deployment_prepared_adapters'] == 500",
+    'http_3b_coverage500.json': 'http_3b_4000.json',
+    "request_view='trace_prefix_v1',replay_profile='W0'": "request_view='trace_w2_v1',replay_profile='W2'",
+    "experiment_role='native_3b_full_w0_development_observation')":
+        "experiment_role='native_3b_full_w2_development_observation',\n"
+        "    adapter_map=str(MAIN/'paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json'),\n"
+        "    adapter_map_sha256='28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23')",
+    'slora_qualification/d771_20261023': 'slora_qualification/d773_20261023',
+    '0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37':
+        '5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174',
+    'reused_coverage=str(audit_path),input_matches_existing_slora_w0=True':
+        'prior_full_w1=str(audit_path),input_matches_existing_slora_w2=True',
+    "tests_reused=prior['tests']": "tests_reused=prior['tests_reused']",
+    'one full W0, then unchanged W1/W2; no additional prefix gates':
+        'one full W2, then isolated HydraServe 3B; no additional prefix gates',
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, (before, source.count(before))
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})
