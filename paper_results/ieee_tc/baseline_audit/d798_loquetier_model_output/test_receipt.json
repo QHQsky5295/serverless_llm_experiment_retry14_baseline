@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "tests": 22,
+  "seconds": 0.157,
+  "command": "/usr/bin/taskset -c 2,3,26,27 /usr/bin/python3 -B -m unittest tests.test_loquetier_static_capacity -q",
+  "execution": "completed interactively before GPU launch; exit0",
+  "runner_sha256": "5051760453bfa3a8be9578073a227a844f2da6d9927fb44a62672111f80da20d",
+  "test_sha256": "41953f74f84f3fdb984657a5f2cfdd0fcacdac9c439b431c71c65d2593e4b72b",
+  "post_probe_source_change": false
+}

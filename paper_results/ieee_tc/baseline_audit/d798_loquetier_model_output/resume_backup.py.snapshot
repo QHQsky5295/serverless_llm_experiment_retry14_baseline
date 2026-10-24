@@ -1,0 +1,40 @@
+"""Finish only the already-staged checkpoint; preserve upstream source bytes."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+source = data.decode()
+exec(compile(source[:source.index('own=p.scope_identity')], str(original), 'exec'), globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'publication_identity.json',own)
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d797_loquetier_attention_adaptation'
+manifest = read(OUT/'manifest.json')
+for name,row in manifest['files'].items():
+    assert p.digest(OUT/name) == row['sha256']
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D797_LOQUETIER_3B_ATTENTION_ADAPTATION_20261024.md',*sorted(OUT.iterdir())]
+relative = [str(path.relative_to(MAIN)) for path in paths]
+assert set(call(MAIN,'git','diff','--cached','--name-only').splitlines()) == set(relative)
+# The one whitespace diagnostic is inherited verbatim from the upstream header.
+# Do not edit a measured source snapshot to satisfy cosmetic Git checks.
+observed = subprocess.run(['git','diff','--cached','--check'],cwd=MAIN,capture_output=True,text=True)
+expected = 'paper_results/ieee_tc/baseline_audit/d797_loquetier_attention_adaptation/decode.cuh:1112: trailing whitespace.\n+  \n'
+assert observed.returncode == 2 and observed.stdout == expected and not observed.stderr
+call(MAIN,'git','diff','--cached','--check','--','.',
+     ':(exclude)paper_results/ieee_tc/baseline_audit/d797_loquetier_attention_adaptation/decode.cuh')
+call(MAIN,'git','-c','core.whitespace=-blank-at-eol','diff','--cached','--check')
+assert call(MAIN,'git','rev-parse','HEAD') == 'cf27cbada44cff9fb55b97c39786e62edd02ccde'
+basehead = manifest['baseline_head']
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0] == basehead
+call(MAIN,'git','commit','-m','tc: preserve necessary Loquetier 3B attention adaptation (D797)')
+head = call(MAIN,'git','rev-parse','HEAD')
+ref = 'refs/heads/backup/d797-loquetier-attention-adaptation-20261024'
+call(MAIN,'git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert call(MAIN,'git','ls-remote','faaslora_origin',ref).split()[0] == head
+preserved = read(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d782_20261024/qualification.json'))['preserved']
+for path,digest in preserved.items(): assert p.digest(Path(path)) == digest,path
+save(RAW/'backup_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,paths=relative,protected_unchanged=len(preserved),
+    upstream_whitespace_exception=expected,prior_checkpoint_stopped_before_main_commit=True))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref)))

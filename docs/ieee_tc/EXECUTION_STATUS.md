@@ -1,4 +1,47 @@
-# IEEE TC execution status — next: Loquetier 3B full-model/LoRA correctness
+# IEEE TC execution status — next: bind Loquetier 3B static deployment and full matrix
+
+## 2026-10-24 13:27 CST D798完整模型有界数值通过，待备份
+
+D798一次真实输入检查完成：两个现有输入长度760/477，各prefill与两步
+decode共6项，全部符合relative L2<=.01、cosine>=.999且greedy token一致；
+最大relative L2 .006469116、最小cosine .999972939。实际共享head、112模块
+rank8原生指针映射通过。两个逻辑adapter payload SHA相同，只是一个独立
+权重内容；不称全池/完整4000数值证明。详见D798_LOQUETIER_3B_MODEL_OUTPUT。
+
+执行使用D797已通过注意力检查的模型专用kernel，原生model/SMLM/generation
+无修改；22项CPU测试通过。service/watchdog0、GPU实际释放、服务路径移除，
+probe辅助域关闭，tmux结束，无pending cell/session。21采样无high/max/OOM，
+最小主机available107719073792B。原始证据保存d798_20261024，当前准备明确
+路径备份，不重跑任何已完成探针或性能点。
+
+下一3B完整静态池部署绑定：现有service校验/capacity probe包含7B D437/D565
+身份，必须用真实3B静态容量/必要受影响证据绑定，不能改名套用7B数据；
+worker_environment当前固定PYTHONPATH为source_view，须接入D797模型专用
+内核路径并核对实际配置，保留7B旧默认。优先复用现有runner/映射/原生策略，
+有界适配后Loquetier W0/W1/W2，再HydraServe3B，不开基线参数搜索/重复旧OOM。
+所有全比较/PrimeLoRA优化/同版Full/A1–A5/S1–S13/成本/文档/图表/最终V2保留。
+他项目k3s不改，原始数据和用户dirty保护继续，完整goal active，本轮PROGRESS。
+
+## 2026-10-24 13:25 CST D797已备份；D798真实输入模型对照启动
+
+D797 BASE afef3a2fa447eb19c9c428debf8624680cf46516已与origin/main核对；
+MAIN b56a5a83c47f210fdd86df821d240c5871b6d2d0已推送并核对
+backup/d797-loquetier-attention-adaptation-20261024。5项源码回归通过，
+147项保护/用户dirty不变。首次主仓检查因原生decode.cuh原有两空格行停止；
+没有修改实测源码快照，而是核对唯一已知空白例外后继续提交，失败流程保留。
+两个备份辅助域均关闭，session85788/5369都已结束，无待wait句柄。
+
+D798仅扩展既有runner的显式model-output模式，22项CPU回归通过；复用
+D790保存的两条真实输入（长度760/477）和两个逻辑LoRA ID，旧输出不作
+真值；D797内核绑定实际模型配置，使用原生SMLM和ModelGeneration，参考为
+同环境HF/PEFT。预登记prefill及两步decode、共享head/指针映射与逐步logits，
+判据沿用D790 relative L2<=.01、cosine>=.999且greedy token相等。
+两逻辑ID不自动等于两份独立权重，本检查不构成全池/4000请求正确性证明。
+
+再次完整重读PLAN与最新状态后，原始d798_20261024的一次必要对照已启动；
+tmux tc-d798-loquetier-model，尚未取得数值结果。启动前磁盘161173381120
+bytes、MemAvailable112724984kB、GPU计算进程空。之后按Loquetier/HydraServe
+3B矩阵继续，不新增基线参数搜索。全后续范围保留，goal active。
 
 ## 2026-10-24 13:20 CST D797隔离注意力适配通过，准备备份
 

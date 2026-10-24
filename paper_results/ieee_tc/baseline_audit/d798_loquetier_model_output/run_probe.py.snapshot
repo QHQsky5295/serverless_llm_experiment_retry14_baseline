@@ -1,0 +1,21 @@
+"""Reuse the existing bounded native launcher for the affected full model."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d796_20261024/run_probe.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '83db2f83f3968a2684b4165b187926983c02524b7fca52ce83f289cba23cf3db'
+source = data.decode()
+source = source.replace(
+    "kernel = Path('/home/qhq/anaconda3/envs/loquetier_20260520/lib/python3.9/site-packages/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so')",
+    "kernel = RAW.parent/'d797_20261024/python/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so'")
+source = source.replace('100efcf29d3f8a53d8b2fe31b877d1589634024c742c8fff6ff30110f5a57ec9',
+    'b1f4b70ef8d816183a9d3ca0211b79a022f05af16a9228f34346bbe4ef2e1d41')
+source = source.replace("str(MAIN), str(BASE/'scripts')", "str(RAW.parent/'d797_20261024/python'), str(MAIN), str(BASE/'scripts')")
+source = source.replace("'--attention-compatibility-probe'", "'--model-output-probe'")
+source = source.replace("'--output',str(RAW/'attention.json')", """'--adapter-root','/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope',
+        '--model-output-inputs','/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d790_20261024/native_probe.json',
+        '--model-output-inputs-sha256','c81d3376854fcc9d8f6b8ebb431908ae49df86c6a2d5d08cc3eb7f8de43c598d',
+        '--kernel-receipt',str(RAW.parent/'d797_20261024/build_receipt.json'),
+        '--kernel-receipt-sha256','7fa3bfcf64699c011bd12ad2c49513acc932effb0a77a7123a049f817683c502',
+        '--output',str(RAW/'native_probe.json')""")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})
