@@ -8,7 +8,8 @@ import unittest
 
 from HydraServe_project.scripts.probe_layer_identity import (
     SOURCES, NATIVE, MODEL_3B, POOL_3B, collect_witness, native_functions,
-    model_probe_options, probe_model_outputs, probe_reference, REFERENCE_PYTHON)
+    model_probe_options, probe_model_outputs, probe_reference, REFERENCE_PYTHON,
+    load_service_guard)
 
 
 class HydraServeLayerIdentityTests(unittest.TestCase):
@@ -104,6 +105,15 @@ class HydraServeLayerIdentityTests(unittest.TestCase):
         self.assertLess(ref.index('preflight.verify_current_service()'), ref.index('import torch'))
         self.assertIn('allow_pickle=False', ref)
         self.assertNotIn('import vllm', ref)
+
+    def test_service_guard_is_explicit_even_with_baseline_scripts_loaded(self):
+        import scripts
+        self.assertEqual(Path(scripts.__file__).resolve().parent,
+                         Path(__file__).resolve().parents[1]/'scripts')
+        main = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        guard = load_service_guard(main)
+        self.assertEqual(Path(guard.__file__).resolve(), main/'scripts/ieee_tc_preflight.py')
+        self.assertTrue(callable(guard.verify_current_service))
 
 
 if __name__ == '__main__':

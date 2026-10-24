@@ -200,6 +200,13 @@ def model_probe_options(model):
         swap_space=0, seed=42)
 
 
+def load_service_guard(main):
+    """Use the existing explicit-file loader, avoiding two `scripts` packages."""
+    sys.path.insert(0, str(ROOT/'scripts'))
+    from prepare_ieee_tc_serverless_stack import load_guard
+    return load_guard(main)
+
+
 def probe_model_outputs(args):
     """Prefill + two native paged-decode steps on the retained D790 inputs.
 
@@ -210,8 +217,7 @@ def probe_model_outputs(args):
     """
     # Verify the actual service boundary before any CUDA/model import.
     main = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
-    sys.path.insert(0, str(main))
-    from scripts import ieee_tc_preflight as preflight
+    preflight = load_service_guard(main)
     admission = preflight.verify_current_service()
     from Loquetier_project.scripts.run_loquetier_trace_gate import _retained_model_inputs
     selected = _retained_model_inputs(args.retained_inputs, args.retained_inputs_sha256,
@@ -367,8 +373,7 @@ def probe_model_outputs(args):
 def probe_reference(input_path):
     """Existing HF/PEFT environment; no HydraServe/native imports in this child."""
     main = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
-    sys.path.insert(0, str(main))
-    from scripts import ieee_tc_preflight as preflight
+    preflight = load_service_guard(main)
     admission = preflight.verify_current_service()
     from Loquetier_project.scripts.run_loquetier_trace_gate import _retained_model_inputs
     record = json.loads(input_path.read_text())
