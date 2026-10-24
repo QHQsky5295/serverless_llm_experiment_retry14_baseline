@@ -1,0 +1,26 @@
+"""Reuse the existing post-release analyzer for the explicit 3B coverage view."""
+import hashlib
+import json
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/run_analysis.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'd38d6ee63ac79abd5d7a8151883e02202cd2883d001a7fecc5a2f6d001fee243'
+raw = Path(__file__).resolve().parent
+launch = json.loads((raw/'launch3b.json').read_text())
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+# audit_layout's existing coverage filename differs from the frozen launcher name.
+# Publish a byte-identical alias only after release; never edit the executed input.
+original_config = raw/'http_3b_coverage500.json'
+alias = raw/'http_3b_500.json'
+config_bytes = original_config.read_bytes()
+with alias.open('xb') as stream: stream.write(config_bytes)
+with (raw/'analysis_config_alias.json').open('x') as stream:
+    json.dump(dict(source=str(original_config),alias=str(alias),
+        sha256=hashlib.sha256(config_bytes).hexdigest(),byte_identical=True,
+        executed_config_unchanged=True,reason='existing analyzer audit_layout filename'),stream,indent=2)
+source = data.decode().replace('D589','D799').replace("'full4000_w2'","'adapter_coverage_v1'")
+source = source.replace("'--scheduler-contract', 'loquetier_static_shards_v1',",
+    "'--scheduler-contract', 'loquetier_static_shards_v1', '--model-key', '3b',")
+source = source.replace('20261010_7b_slo_d394_frozen.json','20261017_3b_slo_d648_frozen.json')
+source = source.replace('audit_full4000.json','audit_coverage500.json')
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

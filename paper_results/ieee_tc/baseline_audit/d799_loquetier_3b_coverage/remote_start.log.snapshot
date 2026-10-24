@@ -1,0 +1,26 @@
+1000
+full
+Running as unit: primelora-artifact-monitor-d799-coverage.service; invocation ID: a44138dd9f48496298e62f9c27b44531
+MainPID=2159470
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-3b.service
+ActiveState=active
+InvocationID=4a111dd91913468abaa4fab1b93e974b
+
+MainPID=2159479
+MemoryHigh=2147483648
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=primelora-artifact-tc-7b.service
+ActiveState=active
+InvocationID=cfbe088635094c61b5323eb320ee5163
+
+MainPID=2159482
+MemoryHigh=134217728
+MemoryMax=268435456
+MemorySwapMax=0
+Id=primelora-artifact-monitor-d799-coverage.service
+ActiveState=active
+InvocationID=a44138dd9f48496298e62f9c27b44531

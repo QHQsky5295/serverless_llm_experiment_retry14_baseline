@@ -1,0 +1,66 @@
+"""Back up completed coverage evidence using the existing explicit-path helpers."""
+import ast
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/publish_result.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '1852265b403fa717ec44014d031950f34317b9f7bce1d7b8a02a22fa2a9448c4'
+recipe = data.decode()
+exec(compile(recipe[:recipe.index('own=p.scope_identity')],str(original),'exec'),globals())
+prior = RAW.parent/'d796_20261024/backup.py'
+assert p.digest(prior) == '2d6159d567e2077d40aa4ecce0a911fccc1de0a5cbd566158db9570e65d00ae0'
+tree = ast.parse(prior.read_bytes())
+nodes = [n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ('checked','commit')
+    or isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id == 'secret' for t in n.targets)]
+assert len(nodes) == 3
+exec(compile(ast.Module(body=nodes,type_ignores=[]),str(prior),'exec'),globals())
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'result_identity.json',own)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not call(MAIN,'nvidia-smi','--query-compute-apps=pid','--format=csv,noheader')
+for name in ('analysis','storage'):
+    row = read(RAW/(name+'_closure.json'))
+    assert row['path_gone'] and not Path(row['identity']['path']).exists()
+assert read(RAW/'analysis_receipt.json')['passed']
+assert read(RAW/'storage_receipt.json')['passed']
+assert read(RAW/'local_cleanup.json')['passed']
+audit = read(RAW/'audit_coverage500.json')
+assert audit['workload_passed'] and audit['native_revalidated_requests'] == 500
+assert audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500
+assert audit['counts']['N_failed'] == 0
+assert not audit['independent_lora_numerical_correctness']
+q = read(RAW/'preparation.json')
+for path,digest in q['preserved'].items(): assert p.digest(Path(path)) == digest,path
+basehead = call(BASE,'git','rev-parse','HEAD')
+assert basehead == '8594922093ee4625dcc6614ecc11746af277219d'
+assert call(BASE,'git','ls-remote','origin','refs/heads/main').split()[0] == basehead
+assert call(MAIN,'git','rev-parse','HEAD') == '482ff4d378ffc8358764b34834ab9c0017e8071f'
+OUT = MAIN/'paper_results/ieee_tc/baseline_audit/d799_loquetier_3b_coverage'
+OUT.mkdir(parents=True,exist_ok=False)
+sources = [RAW/name for name in ('audit_coverage500.json','analysis_config_alias.json',
+    'launch3b.json','local_cleanup.json','analysis_receipt.json','analysis_closure.json',
+    'storage_receipt.json','storage_closure.json','cache_cleanup_before.json','cache_cleanup_after.json',
+    'evidence_copy_receipt.json','remote_health.json','remote_start.log','remote_stop.log',
+    'http_3b_coverage500.json','close_launch.py','stop_remote.py','preserve_evidence.py',
+    'run_analysis.py','reclaim.py','close.py','publish_result.py')]
+sources += sorted((RAW/'model3b/worker_receipts').glob('*.json'))
+checked(sources)
+mapping = copy_sources(OUT,sources)
+save(OUT/'manifest.json',dict(schema='ieee_tc_loquetier_full500_coverage_v1',files=mapping,
+    baseline_head=basehead,plan_sha256=p.check_plan(),runs=1,ci=None,
+    role='adapter_pool_functional_coverage',formal_performance_qualified=False,
+    independent_full_pool_numerical_correctness_proven=False,
+    protected_and_dirty_unchanged=len(q['preserved']),new_weights_or_trace=False,
+    raw_sources={str(path):p.digest(path) for path in
+        (RAW/'launch3b.launch/replay.jsonl',RAW/'launch3b.launch/watchdog.jsonl',
+         RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log',RAW/'preparation.json')},
+    next='unchanged Loquetier 3B W0/W1/W2, then isolated HydraServe 3B and full comparison'))
+paths = [MAIN/'docs/ieee_tc/EXECUTION_STATUS.md',
+    MAIN/'docs/ieee_tc/D799_LOQUETIER_3B_COVERAGE_RESULT_20261024.md',*sorted(OUT.iterdir())]
+ref = 'refs/heads/backup/d799-loquetier-3b-coverage-20261024'
+head = commit(MAIN,paths,'tc: seal Loquetier 3B complete500 coverage evidence (D799)','faaslora_origin',ref)
+for path,digest in q['preserved'].items(): assert p.digest(Path(path)) == digest,path
+save(RAW/'result_receipt.json',dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref,
+    force_push=False,v2_synchronized=False,protected_and_dirty_unchanged=len(q['preserved']),
+    resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True,head=head,baseline_head=basehead,remote_ref=ref)))

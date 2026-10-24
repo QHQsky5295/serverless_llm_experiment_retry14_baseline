@@ -1,0 +1,9 @@
+"""Reuse closed-run evidence preservation; do not copy the object pool."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d589_20261016/preserve_evidence.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'ff8563bec723126a8a00316d25e03a8b4c9e8e7375735aee80d60fc7e5c1f7a7'
+source = data.decode().replace('D589','D799').replace('d589_20261016','d799_20261024')
+source = source.replace('launch7b','launch3b').replace('tc-d589-7bl','tc-d799-3bl').replace('d80_20260927/7b/','d80_20260927/3b/')
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

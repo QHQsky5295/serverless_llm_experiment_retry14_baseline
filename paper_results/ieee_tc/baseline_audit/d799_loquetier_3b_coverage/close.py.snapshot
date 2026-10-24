@@ -1,0 +1,9 @@
+"""Reuse exact-owned empty auxiliary-domain closure."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d764_20261023/close_storage.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '8314fb578317de54afa646672664f5162b5e68aa8071084e9db5c804d4c60049'
+source = data.decode().replace("name = 'storage'\nassert name == 'storage'",
+    "name = sys.argv[1]\nassert name in ('prepare','backup','start','analysis','service_aux','storage','result')")
+exec(compile(source,str(original),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

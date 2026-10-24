@@ -1,4 +1,55 @@
-# IEEE TC execution status — next: bind Loquetier 3B static deployment and full matrix
+# IEEE TC execution status — D799 Loquetier 3B full500 coverage sealed; next full W0
+
+## 2026-10-24 14:02 CST D799覆盖分析与重复缓存回收结束，准备结果备份
+
+storage session79532结束，aux0007实际为空并关闭。仅删除/tmp/tc-d799-3bl/
+remote_artifacts/objects中的4000个已逐字节验证的重复文件，保留原池与全部
+请求/传输证据；释放19,497,254,912B，磁盘可用161,114,263,552B（略高150GiB）。
+下次重型启动前仍按既定门槛重查，不降低保护。analysis/remote/local收尾全部
+完成，当前无性能实验或pending exec。结果curated与文档正在备份，随后直接
+沿已冻结batch4/静态分片配置完成3B W0/W1/W2；不因为覆盖视图SLO0%搜索参数。
+完整后续范围见下方，本轮PROGRESS，goal保持active，不改其他项目k3s。
+
+## 2026-10-24 14:00 CST D799覆盖与原生计量通过，正在仅回收重复下载缓存
+
+D799一次500-ID功能视图完成：500响应/0失败/500实际adapter、68,925原生token，
+500请求生成/绑定/时间重验通过，4实际ready receipts；不宣称全池独立数值证明。
+平均TTFT206.407s、平均TPOT53.641ms，联合SLO0%；只是覆盖视图，不与4000
+主结果比较。U=2246.453670 GPU-s，远端500次/1,160,474,851线上B，无请求打包。
+service/watchdog均0，GPU真实释放、服务域与空aux0005关闭；精确远端调用已停。
+analysis session78519结束、aux0006关闭；收尾session69519也结束，无待wait旧句柄。
+原生audit与远端证据已保存；服务峰值35.924GiB、主机最低available88.956GiB，
+high/max/OOM均0。现storage aux0007/session79532仅核验并回收本轮重复对象，
+不删除原始工件/测量。完成后关闭、备份结果，下一直接3B W0/W1/W2，不加小回放。
+
+完整PLAN、六补充和指标V1/V2已重读；本轮PROGRESS，完整goal保持active。
+他项目k3s不动，HydraServe3B复用隔离路径。后续全比较/PrimeLoRA优化/同版Full/
+A1–A5/S1–S13/成本/Pareto/审稿文档/图表/最终V2均未缩减。详见
+D799_LOQUETIER_3B_COVERAGE_RESULT_20261024.md。当前无GPU性能运行。
+
+## 2026-10-24 13:41 CST D799已备份并启动一次完整池覆盖
+
+BASE HEAD 8594922093ee4625dcc6614ecc11746af277219d已核对origin/main；
+MAIN HEAD 482ff4d378ffc8358764b34834ab9c0017e8071f已核对远端
+backup/d799-loquetier-static-binding-20261024。没有force，既有V2分叉未处理，
+不称最终V2同步。37项测试/显式stage/保护与secrets检查已完成。准备/备份/
+starter辅助域真实关闭；session19065/61165/62098均结束，无待wait句柄。
+
+再次完整阅读PLAN后，已启动唯一tmux `tc-d799-loquetier-3b-coverage`，
+RAW `results/ieee_tc/loquetier_qualification/d799_20261024`。服务域
+primelora-tc-svc-6402065941b74e36b807656f320e7605.scope，invocation
+b41a2565f9a34de18154387d974c8102；唯一活跃aux为d799...0005。
+使用原有gated-launch、watchdog、native-http-service，无新运行框架。
+远端monitor `primelora-artifact-monitor-d799-coverage.service`，目录
+/home/lab14/primelora_remote/tc/d799_20261024；两artifact服务当前由本次开启。
+启动实测1000Mb/s/full，D80已发布gzip，无请求打包，健康记录已保存。
+
+这是500-ID功能视图而非主W0性能点。当前处于完整远端池准备，尚无覆盖
+完成结论；最近采样host available114937221120B，无资源告警/中止。
+运行期间不扫描/压缩/推送/构建/调整远端。只监控同一运行，不重复启动。
+结束后用现有清理/分析路径保留远端证据、实际释放、核查500原生生成与绑定，
+只删除可重建本轮解包缓存；随后3B W0/W1/W2、HydraServe3B与完整后续矩阵。
+全goal仍active，本轮PROGRESS；所有未知数值覆盖与未完成实验继续保留。
 
 ## 2026-10-24 13:39 CST D799静态部署与模型内核绑定已验证，待备份/覆盖
 
