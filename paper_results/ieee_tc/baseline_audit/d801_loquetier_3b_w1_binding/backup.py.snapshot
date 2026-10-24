@@ -1,0 +1,26 @@
+"""Reuse explicit-path backup for the unchanged complete W1 binding."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d800_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '2cdad05643c469c6099784dfc3aa0e1530bfb55ae9284c481aca90b648fcb834'
+source = data.decode()
+changes = {
+    '889970cfd3218f5982ef07ff6eebb07ce8c5a6f4':'514310c93564d7760c70c89b5770530b03c5ef5e',
+    'd800_loquetier_3b_w0_binding':'d801_loquetier_3b_w1_binding',
+    'ieee_tc_loquetier_3b_w0_binding_v1':'ieee_tc_loquetier_3b_w1_binding_v1',
+    'D800_LOQUETIER_3B_FULL_W0_20261024.md':'D801_LOQUETIER_3B_FULL_W1_20261024.md',
+    'backup/d800-loquetier-3b-w0-binding-20261024':'backup/d801-loquetier-3b-w1-binding-20261024',
+    'tc: bind unchanged Loquetier 3B to full W0 (D800)':
+        'tc: bind unchanged Loquetier 3B to full W1 (D801)',
+    'D799 full500 coverage; D798 bounded numeric check':
+        'D799 full500 coverage; D798 bounded numeric check; D800 full W0',
+}
+for before, after in changes.items():
+    assert before in source, before
+    source = source.replace(before, after)
+source = source.replace("assert read(RAW/'prepare_closure.json')['path_gone']",
+    "assert read(RAW/'prepare_closure.json')['path_gone']\nassert read(RAW/'prepare2_closure.json')['path_gone']")
+source = source.replace("'preparation.json','prepare_closure.json','native_3b.json','http_3b_4000.json')",
+    "'preparation.json','prepare_closure.json','prepare2_closure.json','prepare_error.json','finish_prepare.py','native_3b.json','http_3b_4000.json')")
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

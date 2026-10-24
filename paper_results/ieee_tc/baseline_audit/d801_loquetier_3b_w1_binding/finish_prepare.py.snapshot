@@ -1,0 +1,25 @@
+"""Finish metadata-only preparation without rewriting the already-bound configs."""
+import ast
+import hashlib
+from pathlib import Path
+original = Path(__file__).with_name('prepare.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '12c6a7d9e2d7aa93870d6d3eb3d246bb057ac792f7c8d4e55541592e6214687a'
+tree = ast.parse(data)
+assert isinstance(tree.body[-1], ast.Expr) and isinstance(tree.body[-1].value, ast.Call)
+assert isinstance(tree.body[-1].value.func, ast.Name) and tree.body[-1].value.func.id == 'exec'
+ns = {'__file__':str(original), '__name__':'prepare_recipe'}
+exec(compile(ast.Module(body=tree.body[:-1],type_ignores=[]),str(original),'exec'),ns)
+source = ns['source']
+changes = {
+    "RAW/'prepare_identity.json'":"RAW/'prepare2_identity.json'",
+    "tests_reused=prior['tests']":"tests_reused=prior['tests_reused']",
+    "with (RAW/'native_3b.json').open('xb') as stream: stream.write(native_path.read_bytes())":
+        "assert (RAW/'native_3b.json').read_bytes() == native_path.read_bytes()",
+    "save(RAW/'http_3b_4000.json',http)":"assert read(RAW/'http_3b_4000.json') == http",
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before,after)
+assert (original.parent/'prepare_closure.json').is_file()
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(original)})

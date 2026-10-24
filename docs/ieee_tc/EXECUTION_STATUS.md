@@ -1,4 +1,37 @@
-# IEEE TC execution status — D800 Loquetier 3B full W0 audited and reclaimed
+# IEEE TC execution status — D801 Loquetier 3B W1 bound, not yet launched
+
+## 2026-10-24 15:31 CST D801同配置W1输入登记完成
+
+上一goal轮为PROGRESS：D800完成核验/释放/保全/重复缓存回收/必要压缩/备份。
+本轮完整重读PLAN（首段输出截断已补读155–310行）、当前状态和run-experiment/
+monitor-experiment/github-sync；现有GPU空闲，磁盘161780137984B，主机
+MemAvailable111574516KiB。没有调baseline性能配置或重跑D800。
+
+D801复用原4000请求W1视图，与D772逐条输入一致，view SHA8a7fa829...，
+132个实际adapter、458224目标token；native SHA3b5a0274...与D799/D800
+逐字节相同，HTTP SHA5a1493d2...。首次登记仅在tests/tests_reused回执字段
+名处失败，GPU/远端均未启动，已有两个配置不覆盖；失败脚本和错误回执保留。
+finish_prepare.py重验并仅完成正确字段登记，两次CPU资源域已关闭，无OOM。
+新增D801实验文档说明输入、复用资格、资源及未知独立数值正确性边界。
+
+下一按明确路径备份W1绑定，再启动唯一tmux完整W1；原模型/SMLM/batch4/
+四静态分片/顺序启动/PEFT owner/D797 kernel保持。之后W2→隔离HydraServe3B
+→全比较/PrimeLoRA优化/完整消融机制敏感性与交付，goal active。
+
+## 2026-10-24 15:29 CST D800结果检查点已备份并关闭
+
+MAIN提交514310c93564d7760c70c89b5770530b03c5ef5e，已核验远端
+faaslora_origin/backup/d800-loquetier-3b-w0-result-20261024同SHA；BASE仍为
+8594922093ee4625dcc6614ecc11746af277219d并与origin/main一致。本轮只提交
+明确路径的结果文档、curated、收尾脚本快照及D726无损压缩回执，没有stage
+用户manifest或其他修改。没有force push；最终V2分支既有分歧仍未处理，不
+冒称V2最终同步完成。result辅助域已按精确身份关闭，结果保存回执在RAW。
+
+D800全部运行/分析/清理/压缩/备份会话已完成，无待wait会话、无运行中GPU
+任务。下一直接绑定并执行同native配置的Loquetier3B W1，然后W2；准备文件
+尚未创建，不重启D800，不加短回放，不为0 SLO搜索参数。HydraServe3B继续
+复用独立隔离路径，不读取或改动非本项目k3s权限/服务。本轮PROGRESS、完整
+goal active。D800数值正确性边界、未达标结果和全部后续问题保留。
 
 ## 2026-10-24 15:28 CST D800核验完成；缓存回收与旧日志无损压缩完成
 

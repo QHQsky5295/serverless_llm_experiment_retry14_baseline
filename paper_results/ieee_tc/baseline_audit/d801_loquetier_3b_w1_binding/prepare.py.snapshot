@@ -1,0 +1,30 @@
+"""Reuse the W0 binding checks for unchanged Loquetier 3B on predefined W1."""
+import hashlib
+from pathlib import Path
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d800_20261024/prepare.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '35412e516064b378aca6c108b39fcd2eba09465db5b5a5d5355cd4116f5f2bb1'
+source = data.decode()
+changes = {
+    "RAW.parent/'d799_20261024'":"RAW.parent/'d800_20261024'",
+    'audit_coverage500.json':'audit_full4000.json',
+    'c42e38d21050324962a184060eec51552713acc17eb12f7d4b8c6134058b6ca5':
+        '7e84af524b40927174113741ad88c71abd4d2827f719ab1f8d4c425c38569efb',
+    "audit['native_revalidated_requests'] == 500":"audit['native_revalidated_requests'] == 4000",
+    "audit['served_adapter_ids'] == audit['deployment_prepared_adapters'] == 500":
+        "audit['served_adapter_ids'] == 132 and audit['deployment_prepared_adapters'] == 500",
+    'http_3b_coverage500.json':'http_3b_4000.json',
+    "request_view='trace_prefix_v1',replay_profile='W0'":"request_view='trace_w1_v1',replay_profile='W1'",
+    'native_3b_full_w0_development_observation':'native_3b_full_w1_development_observation',
+    'slora_qualification/d771_20261023':'slora_qualification/d772_20261023',
+    '0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37':
+        '8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f',
+    'reused_coverage=str(audit_path),input_matches_existing_slora_w0=True':
+        'prior_full_w0=str(audit_path),input_matches_existing_slora_w1=True',
+    'one full W0, then unchanged W1/W2; no additional prefix gates':
+        'one full W1, then unchanged W2; no additional prefix gates',
+}
+for before, after in changes.items():
+    assert before in source, before
+    source = source.replace(before, after)
+exec(compile(source,str(original),'exec'), {'__name__':'__main__','__file__':str(Path(__file__))})

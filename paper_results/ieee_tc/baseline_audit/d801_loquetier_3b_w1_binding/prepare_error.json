@@ -1,0 +1,13 @@
+{
+  "stage": "metadata_registration_after_input_and_native_checks",
+  "returncode": 1,
+  "error": "KeyError: tests",
+  "cause": "D800 preparation stores inherited tests as tests_reused, not tests",
+  "executed_recipe_sha256": "12c6a7d9e2d7aa93870d6d3eb3d246bb057ac792f7c8d4e55541592e6214687a",
+  "native_config_sha256": "3b5a0274271a95965317bc6bf803728e4eb246d6026ab4338bb640dfc7bff800",
+  "http_config_sha256": "5a1493d2fa95637ae8419c71b8958d1fd916fce1971f506ae4e325039224f280",
+  "gpu_run_started": false,
+  "remote_started": false,
+  "existing_configs_preserved": true,
+  "resolution": "Reuse expanded binding checks, read the exact inherited tests_reused field, verify existing configs without overwriting, then exclusively create preparation.json"
+}
