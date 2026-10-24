@@ -1,5 +1,146 @@
 # IEEE TC execution status — dLoRA 3B necessary measurement adaptation
 
+## 2026-10-24 11:24 CST D794存储维护已完成，准备备份与同版本W2
+
+session18332已经结束；仅回收本轮重复objects，19497271296bytes，磁盘
+可用161484460032bytes约150.4GiB。147项保护/用户dirty SHA均未变，
+原始结果、失败、远端工件与唯一原池保留。storage资源域已关闭。维护/
+分析/存储均非新的GPU性能实验。D795已用apply_patch登记同版本W2绑定
+脚本，尚未执行；HTTP复用D792，native配置复用D794，性能参数不变。
+下一备份D794的完整失败观测，再核验当前资源并启动所需W2；不重跑W1。
+后续3B Loquetier/HydraServe、PrimeLoRA优化和所有原计划任务继续保留。
+
+## 2026-10-24 11:22 CST D794完整W1结束并审计；存储回收进行中
+
+本轮完整重读PLAN、最新状态、两仓AGENTS、六项补充、冻结V1/单轮V2。
+复用analyze-results现有完整analyzer，一次离线分析通过。4000计划/到达/
+提交/终态；3457绑定及原生计量有效响应、543 TimeoutError，391460输出
+tokens逐响应与目标一致。联合17/4000=0.425%，TTFT40/4000；U为
+6068.813831485808 GPU-s，条件均值/P95 TTFT423476.105777/1436991.008482ms。
+完整失败保留，独立全工作负载数值正确性未知，G1/G2不可行，不以低U判优。
+
+原生36次ILP求解、34条move决策（514次请求提及，不冒充成功迁移数）；
+Finished3457、Aborted543，未见旧迁移断言/Traceback/RuntimeError。
+等待主要在原生服务内部，不能称为纯计算或全部网络开销；没有新缺陷证据
+要求为低SLO继续调优基线。详见D794_DLORA_CANCELLATION_CORRECTED_FULL_W1。
+
+本地实际GPU释放、service path消失；维护已停止身份匹配的两远端服务及
+监控，保存54项Ray和全部传输/resolver证据。session29953/44239均完成；
+maintenance/analysis资源域已实际关闭。服务high2959、max/OOM/kill0。
+当前session18332为重复objects回收，非推理实验；结束后核验closure和空间，
+使用github-sync只备份明确文档/小型结果。原始失败及唯一工件保留。
+
+下一同D793版本完整W2，不改参数或重跑W1；再3B Loquetier/HydraServe、
+完整基线比较与PrimeLoRA优化、同版本Full和全部消融/机制/敏感性/成本/
+文档/图表/最终V2。goal active；原有他项目k3s未改。
+
+## 2026-10-24 10:57 CST D794全部请求已到达，仍在drain（VERIFIED WAIT）
+
+上一轮VERIFIED WAIT；本轮重读完整PLAN、状态和monitor-experiment，连续
+只读监测同一运行，未重启、改参数、构建、维护远端、清理或推送。10:57:30，
+4000条request_created、2551条http_response、135条http_request_failed，
+不是完整终态或可行性结论。实际pane4068509及worker4077447/4077826均仍活跃。
+10:57:40原生日志继续出现Finished request与Aborted request；截至监测没有
+Traceback/AssertionError/RuntimeError。首三条失败req_00032/00099/00107均
+为TimeoutError，不能据此把全部等待归因于旧取消缺陷或宣布它已完全解决。
+不延长共同超时，不以成功返回子集报告完整正确完成。
+
+10:58:04轻量复核：当时全部162条HTTP失败的error均为TimeoutError；原生
+Aborted request计数也是162。这里只是类型/条数观察，未冒称逐请求映射、
+后端取消完成或完整迁移正确性已审计；后续仍须复用正式结束后analyzer。
+
+watchdog sample2267：host34.052582GiB、service71.751942GiB、disk132.396351GiB；
+high2959，max/OOM/oom_kill均0，无warning/abort。没有安全停止依据，保持
+同一轮至所有请求终态和实际释放；drain及清理期间持卡时间照常计量。
+监测cell4970（19次）和4971（17次）均已完成关闭，无待wait的exec句柄。
+只继续观察实验tmux/日志；未新增性能运行。
+
+D794结束后的审计、保存、重复缓存回收和备份仍待执行；随后同D793版本W2，
+再3B Loquetier/HydraServe、全基线比较与PrimeLoRA优化、同版本Full及全部
+消融/机制/敏感性/成本/文档/图表/最终V2。完整goal保持active，不是blocked。
+
+## 2026-10-24 10:39 CST D794同一完整W1继续（VERIFIED WAIT）
+
+上一轮分类为VERIFIED WAIT。本轮完整重读PLAN与最新状态，使用
+monitor-experiment对同一tmux作17次只读观察，未改代码、参数、远端、k3s，
+未启动额外实验或执行维护。10:39:17，pane4068509仍alive；2206请求已创建，
+1256条HTTP响应、0请求失败。不是最终结果或独立数值正确性证明；实际服务
+继续产生Finished request，截至监测未见Traceback/AssertionError/RuntimeError。
+
+watchdog sample1189：host34.037579GiB、service71.994259GiB、disk132.427216GiB；
+memory.high=2864，max/OOM/oom_kill为0，无warning/abort。固定资源包络下的
+内存回收继续记录；不改门槛、不在性能运行中清理。监测cell4964已完成并关闭，
+不要再等待该句柄；实验tmux本身仍活跃，下一继续观察同一轮直到实际终态。
+
+下一顺序不变：D794结束后释放、审计和保留全部证据，维护并备份；然后同版
+完整W2，再补3B Loquetier/HydraServe、全基线比较与PrimeLoRA优化，保留
+同版本Full、全部消融/机制/敏感性、成本、文档、图表及最终V2交付。goal active。
+
+## 2026-10-24 10:30 CST D794已进入服务阶段（VERIFIED WAIT）
+
+本轮重读完整PLAN、最新状态、执行补充及monitor-experiment；仅观察同一轮，
+未重启、调参、构建、清理或改变远端/他项目k3s。10:30:14，tmux pane4068509
+仍alive；1014条request_created、400条http_response、0条http_request_failed。
+这些是实时进度，不等于400条独立数值正确性已验证或完整4000请求结果。
+两实际GPU worker4077447/4077826仍在运行；原生日志已出现Finished request，
+截至本次检查没有Traceback/AssertionError/RuntimeError。不能据此提前宣称
+完整取消路径已通过，须观察本轮全部终态。
+
+watchdog sample654：host available34.006935GiB、service71.986496GiB、
+disk132.447773GiB；memory.high=2806，max/OOM/oom_kill均0，无warning/abort。
+high为已冻结共同资源包络下的真实回收压力，保留，不当作无压力运行；当前
+磁盘高于运行停止门槛，不在性能期清理，也不以此启动另一重型任务。
+
+只读监测cell4958已完成6次观察并关闭，无待wait的exec句柄。实验tmux仍活跃。
+下一继续监测D794直到结束，然后实际释放→审计保存→必要缓存回收→备份，
+再同D793版本的完整W2。3B Loquetier/HydraServe、全baseline比较、PrimeLoRA
+优化、同版本Full、A1–A5/S1–S13、成本、文档、图表和最终V2均未省略。
+本轮为VERIFIED WAIT而非新性能结论；完整goal保持active。
+
+## 2026-10-24 10:24 CST D794继续原生初始化（VERIFIED WAIT）
+
+tmux pane4068509 alive；410条request_created、0响应/0失败，不是完整结果。
+500工件preparation记录已形成；实际GPU进程4077447/4077826各约6606MiB。
+原生日志仍处初始化，未见Traceback/AssertionError；有Ray metrics exporter
+连接警告，不能仅据此归为服务失败或丢弃运行。外置资源监测仍正常。
+sample283：host62.139721GiB、service62.659630GiB、disk132.470650GiB；
+high/max/OOM均0、无warning/abort。仍是同一冻结W1，没有重启或改参数。
+
+监测cell4942完成6次只读观察并已关闭；session84552/35011/73363全部结束，
+不要继续等待这些旧句柄。下一只监测现有tmux/日志/资源；当前run结束后才
+分析、维护或启动W2。D794尚未有收尾/分析脚本绑定，可届时复用D791/D792
+对应脚本，保留旧输入身份和D793新source-view/helper SHA。RAW原始证据不覆盖。
+本轮已完成必要代码修复、55项CPU验证和双仓远端备份，为PROGRESS；当前
+进入VERIFIED WAIT，不是blocked。完整后续实验与交付均保留。
+
+## 2026-10-24 10:20 CST D793已备份；D794修复后完整W1已启动
+
+D793 MAIN d6c49023167899ea54c155eacbe1bf0231ae24a4已推送并核验
+backup/d793-dlora-cancellation-lifecycle-20261024；BASE
+32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586与origin/main一致。13项明确
+MAIN路径与3项BASE代码，staging为空，用户dirty未stage；qualification/backup
+资源域均实际关闭，high/max/OOM0。未解决既有V2分叉，不称最终V2同步。
+
+启动前再次重读完整PLAN、最新状态、冻结V1/单轮V2。D794复用D791的HTTP
+输入字节，W1 view 8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f，
+4000请求/132 offered IDs/500部署/458224目标tokens。只换D793 source-view
+manifest fd0916a07bc7365d35b78ac6b54b0d5481b849f25056927019f78471f82c6ca1及
+独有路径，原性能参数不变。沿用D780原生Ray和D790有界模型证据，不加短GPU
+资格或新参数搜索。RAW为results/ieee_tc/dlora_qualification/d794_20261024。
+
+tmux tc-d794-dlora-3b-w1，pane4068509 alive；service资源域
+primelora-tc-svc-2904e1467f1e45bd916c9de1b2b0ea55.scope。start_receipt已写，
+starter资源域已关闭。exec session73363已经结束，不再等待它。远端两模型
+health通过，1Gbps/full，prepublished_gzip_v1/artifact_timing_v2；monitor
+Invocation3bade39d25b64bf49e151e69a5b89860。不在推理期间调整/维护远端。
+
+监测sample17仅处于准备：host available114650914816B、disk161742303232B，
+service约2.2GiB，high/max/OOM0，无warning/abort。4000条request_contract
+只是输入登记，不是4000到达或完成。当前无性能/可行性结论。
+monitor-experiment仅观察这一轮；不再启动、构建、清理或推送。运行结束后
+实际释放→原生/失败/计量审计→保留结果→必要重复缓存回收→备份，再同版W2。
+其余完整计划不删除，goal active。原有他项目k3s未改。
+
 ## 2026-10-24 10:14 CST D793：取消/迁移缺陷已CPU重现并修复；待完整回放
 
 完整重读PLAN、AGENTS、六项补充及当前状态。先复用D792已完成的18.16GiB

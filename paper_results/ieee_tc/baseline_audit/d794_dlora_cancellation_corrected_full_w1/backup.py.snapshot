@@ -1,0 +1,21 @@
+"""Reuse explicit-path checkpointing; preserve this complete failed W1 outcome."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d792_20261024/backup.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == 'dd564f444d0091613feb39b69595a8b60cc8d962080fe91faea3841b9be2b5ea'
+source = data.decode().replace('D792', 'D794').replace('d792', 'd794')
+source = source.replace('model_corrected', 'cancellation_corrected').replace('MODEL_CORRECTED', 'CANCELLATION_CORRECTED')
+source = source.replace('full_w2', 'full_w1').replace('FULL_W2', 'FULL_W1').replace('full4000_w2', 'full4000_w1')
+source = source.replace('W2', 'W1').replace('<= 497', '<= 132')
+source = source.replace('072633f04cab013e4682bd602ba54b2ea12cfe75', 'd6c49023167899ea54c155eacbe1bf0231ae24a4')
+source = source.replace('cf421793e7b71342cf75ff063f8d64afe26d8169', '32c8d0fc4735165306ca0b9f5f6d5a6ce23cc586')
+start = source.index('replace_once("paths = [MAIN/')
+end = source.index("replace_once('tc: seal", start)
+source = source[:start] + source[end:]
+source = source.replace('seal model-corrected', 'seal cancellation-corrected')
+source = source.replace('dlora-model-corrected-w2', 'dlora-cancellation-corrected-w1')
+source = source.replace('D783 unchanged analyzer; D773/D787 W1 input; D788-D790 model-compatibility tests and bounded native parity',
+    'D783 unchanged analyzer; D791 W1 input; D790 bounded native parity; D793 55 CPU lifecycle regressions')
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

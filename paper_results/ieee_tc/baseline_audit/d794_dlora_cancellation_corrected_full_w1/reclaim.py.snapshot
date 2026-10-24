@@ -1,0 +1,10 @@
+"""Reuse verified duplicate-only cache reclamation after closed D794 W1 audit."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d791_20261024/reclaim.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '071e47489064a49e218b21dcdb772c86cf49c36b8c549e73fb27d756bb6f388f'
+source = data.decode().replace('D791', 'D794').replace('d791', 'd794')
+source = source.replace("'analysis2_'", "'analysis_'")
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

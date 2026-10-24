@@ -1,0 +1,36 @@
+"""Reuse the admitted D781 launch path for D793-repaired complete W1."""
+import hashlib
+from pathlib import Path
+
+original = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/dlora_qualification/d781_20261024/start.py')
+data = original.read_bytes()
+assert hashlib.sha256(data).hexdigest() == '031635552050b647225bf22c491d5df1ed0d09973293bd68b68a8779dca2b2b8'
+source = data.decode().replace('D781', 'D794').replace('d781', 'd794')
+changes = {
+    "PRIOR = RAW.parent/'d778_20261024'": "PRIOR = RAW.parent/'d793_20261024'",
+    "BACKUP = RAW.parent/'d780_20261024'": "BACKUP = RAW.parent/'d793_20261024'",
+    "for name in ('backup','maintenance','start','qualification','qualification2'):":
+        "for name in ('qualification','backup'):",
+    "startup=read(BACKUP/'qualification2.json')": "startup=read(RAW.parent/'d780_20261024/qualification2.json')",
+    "binding['refs'] | startup['refs']": "startup['refs'] | binding['refs']",
+    "startup_qualification_sha256=p.digest(BACKUP/'qualification2.json')":
+        "startup_qualification_sha256=p.digest(RAW.parent/'d780_20261024/qualification2.json')",
+    "session = 'tc-d794-dlora-3b-prefix100'": "session = 'tc-d794-dlora-3b-w1'",
+    "assert binding['passed'] and binding['source_view']['worker_lifecycle']":
+        "assert binding['passed'] and binding['source_view']['worker_lifecycle']\n"
+        "assert binding['source_view']['model_compatibility'] == 'tied_vocab_llama3_rope_pp1_v1'\n"
+        "assert binding['source_view']['cancellation_lifecycle'] == 'native_owner_backend_transaction_v1'\n"
+        "assert read(RAW.parent/'d790_20261024/native_probe.json')['passed']\n"
+        "assert read(RAW/'reuse_identity.json')['passed']\n"
+        "assert read(RAW/'native_3b.json')['source_view_manifest_sha256'] == p.digest(Path(binding['source_view']['source_view'])/'measurement_manifest.json')",
+    "qualification_only=True, independent_numerical_correctness_proven=False,":
+        "qualification_only=True, independent_numerical_correctness_proven=False,\n"
+        "    bounded_model_parity_passed=True, model_parity_sha256=p.digest(RAW.parent/'d790_20261024/native_probe.json'),\n"
+        "    cancellation_lifecycle_qualified=True,\n"
+        "    experiment_role='native_3b_full_w1_development_observation',\n"
+        "    reuse_identity_sha256=p.digest(RAW/'reuse_identity.json'),",
+}
+for before, after in changes.items():
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+exec(compile(source, str(original), 'exec'), {'__name__': '__main__', '__file__': str(Path(__file__))})

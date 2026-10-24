@@ -1,0 +1,49 @@
+"""Reuse D791 W1; change only the verified cancellation view and owned paths."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+OLD = RAW.parent/'d791_20261024'
+VIEW = RAW.parent/'d793_20261024/source_view'
+def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+expected = {
+    'native_3b.json': 'e742e69e2d9e99b41e2bec1f1a3c536b758a5d9daf42606ea84ae2b337503e26',
+    'http_3b_4000.json': 'cbdfd9f0b2064646ebe272fcf0e50969ccaaf0e49d1e105f0f71314fb5ab1ff7',
+    'run3b.sh': '26cad3c753b00cffc8df73748bf4dbea983d4ad36733a219e90b1ab0d163de15',
+    'freeze_inputs.py': 'a67876edc2e0a260c64b29912f26a863fe77f0eeaa54bb3f2b7018f5d7bce603',
+    'close.py': 'eee2027f07574d5ef47d1abe68aac75f7b02ef4165aa405e00ed72914cb676c8',
+}
+for name, digest in expected.items():
+    assert sha(OLD/name) == digest, name
+assert sha(VIEW/'measurement_manifest.json') == 'fd0916a07bc7365d35b78ac6b54b0d5481b849f25056927019f78471f82c6ca1'
+view = json.loads((VIEW/'measurement_manifest.json').read_text())
+assert view['cancellation_lifecycle'] == 'native_owner_backend_transaction_v1'
+parity_path = RAW.parent/'d790_20261024/native_probe.json'
+assert json.loads(parity_path.read_text())['passed']
+old = json.loads((OLD/'native_3b.json').read_text())
+new = dict(old, source_view=str(VIEW),
+           source_view_manifest_sha256=sha(VIEW/'measurement_manifest.json'),
+           ray_root='/tmp/tc-d794-ray')
+changed = sorted(key for key in old if old[key] != new[key])
+assert changed == ['ray_root', 'source_view', 'source_view_manifest_sha256']
+save('native_3b.json', new)
+for name in ('http_3b_4000.json', 'freeze_inputs.py', 'close.py', 'run3b.sh'):
+    content = (OLD/name).read_text()
+    if name == 'run3b.sh': content = content.replace('d791', 'd794')
+    with (RAW/name).open('x') as stream: stream.write(content)
+save('reuse_identity.json', dict(passed=True, prior_campaign=str(OLD), source_sha256=expected,
+    changed_config_fields=changed,
+    http_bytes_unchanged=sha(RAW/'http_3b_4000.json') == expected['http_3b_4000.json'],
+    lifecycle_qualification=str(RAW.parent/'d793_20261024/qualification.json'),
+    model_parity_source=str(parity_path), model_parity_sha256=sha(parity_path),
+    model_parity_scope='Two existing prompts/adapters; prefill and two paged decode steps each',
+    full_workload_numerical_correctness_proven=False, performance_parameters_changed=False,
+    cancellation_implementation_changed=True, reference_package_overlay_used=False,
+    previous_results_preserved=True, prior_execution_reuse_class='R3_cancellation_lifecycle',
+    generated_sha256={name:sha(RAW/name) for name in expected}))
+print(json.dumps(dict(prepared=True, changed_fields=changed, no_new_trace_or_weights=True)))
