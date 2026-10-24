@@ -1,0 +1,73 @@
+{
+  "schema": "ieee_tc_loquetier_static_model_binding_v1",
+  "passed": true,
+  "baseline_head": "8594922093ee4625dcc6614ecc11746af277219d",
+  "files": {
+    "prepare.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/prepare.py",
+      "sha256": "62d54d44c11066012681c74801012e0e5f67e17814404c2576063f28c4e19931"
+    },
+    "close.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/close.py",
+      "sha256": "0718230c3cdc3181d072067440d2267ede48427141d73558afd55d7286c166ca"
+    },
+    "close_prepare_parse_failure.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/close_prepare_parse_failure.py",
+      "sha256": "40461cfa33be9f194d1b844a19e5c65c930c3097a191fa3b5de07bb713481597"
+    },
+    "run3b.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/run3b.py",
+      "sha256": "e1b58c94a20a600cba68a800aa2895c9d03a989aa1e35917329b94962abe9f7d"
+    },
+    "start.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/start.py",
+      "sha256": "441a8e61486c7ba0cc9b36e550ed4db095eb86c9fdcf5e18ea76c16d4fb15f5b"
+    },
+    "backup.py.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/backup.py",
+      "sha256": "89dd33e74eb719038ed5adb6c37f7fe4f87232a9aee8de474ff70ac5de55a8c0"
+    },
+    "static_capacity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/static_capacity.json",
+      "sha256": "26315ce4ae1b0ef59f5d1867789203c643127df2604cf3aa3a18faeadc2cdcd9"
+    },
+    "preparation.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/preparation.json",
+      "sha256": "f4b92d298c54bf9d6dfb0900b51e3575eb372205d080e3f400c0ada7cb0f5fa5"
+    },
+    "native_3b.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/native_3b.json",
+      "sha256": "3b5a0274271a95965317bc6bf803728e4eb246d6026ab4338bb640dfc7bff800"
+    },
+    "http_3b_coverage500.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/http_3b_coverage500.json",
+      "sha256": "0efdc1de049e99793888edf38ab5b9ad00fb2006a3e95e4ff5b3f9be90631609"
+    },
+    "prepare_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/prepare_closure.json",
+      "sha256": "5b16fb472c9a4535c6ee70399d9af72ac4fb3687ec9dc6e152b5511ae91d78e1"
+    },
+    "prepare_parse_failure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/prepare_parse_failure.json",
+      "sha256": "b84a48bf6417228d4a6f4e1ee35730d5a9a964548054e2314272f86677db09be"
+    },
+    "baseline_backup_receipt.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/baseline_backup_receipt.json",
+      "sha256": "b78bfd525bdaa4c6c189b670e9a0a157dc6bd5209a54d67f9bf7dc7897006bd4"
+    },
+    "tests.log.snapshot": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/tests.log",
+      "sha256": "a91dfc60afa673d2d295ad44f68e5abb194947488b0ae3e21e9bd7e975f42c46"
+    },
+    "measurement_manifest.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/source_view/measurement_manifest.json",
+      "sha256": "aebe030412db7d767b8ffb7a76a2859ca15ded85e7910e5150878a796113f8f9"
+    }
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "cpu_tests": 37,
+  "gpu_experiments_this_checkpoint": 0,
+  "coverage_started": false,
+  "full_workload_numerical_correctness_proven": false,
+  "next": "one full500 functional coverage then unchanged 3B W0/W1/W2"
+}

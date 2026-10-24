@@ -1,5 +1,42 @@
 # IEEE TC execution status — next: bind Loquetier 3B static deployment and full matrix
 
+## 2026-10-24 13:39 CST D799静态部署与模型内核绑定已验证，待备份/覆盖
+
+完整重读PLAN、状态、六项执行补充及冻结指标V1/单轮V2，核对旧3B gate
+实际batch4，复核官方ModelGeneration。500池静态分为4×125，较大分片
+权重+batch4/context1024 KV=12,180,308,736B，未含workspace，不是实测容量。
+没有3B静态计划，已用原inspect_static_capacity生成metadata，不新造工件/trace。
+
+现有服务只解除7B初始batch2硬编码、绑定实际静态batch，并加入显式模型
+kernel receipt/config/PYTHONPATH绑定；Llama-3不能误用旧RoPE内核。保持
+历史3B batch4与PEFT owners，不套用7B D565容量/owner-release证据，不搜索
+baseline配置。37项CPU测试1.299秒通过；准备脚本执行前语法失败已保存，
+无GPU启动，失败域与prepare域均真实关闭。当前无运行中实验/待wait句柄。
+
+D799准备复用原500-ID coverage一次，同时核查四worker完整池/生成/资源，
+不再增加100/1000门禁。下一备份必要代码/绑定→500覆盖→Loquetier 3B
+W0/W1/W2→HydraServe3B→全比较/PrimeLoRA优化→同版Full/A1–A5/S1–S13/
+成本/Pareto/审稿文档/图表/最终V2。完整goal active，本轮PROGRESS。
+他项目k3s不动，保护/用户dirty不变。详见D799_LOQUETIER_3B_STATIC_BINDING。
+
+## 2026-10-24 13:29 CST D798备份与释放完成，下一3B静态部署绑定
+
+BASE HEAD 2e3b1939d81cf1aec251f53fc47712ac67fa36ec已推送并核对origin/main；
+MAIN HEAD 9f8003172ccca9e559133d48f97d1abd0d380ee8已推送并核对
+backup/d798-loquetier-model-output-20261024。stage仅明确runner/测试/文档/
+小型证据路径，147保护及用户dirty不变。V2既有分叉未强推，不称最终交付同步。
+session28953结束、backup辅助域实际关闭，GPU计算进程空，无运行中实验或
+待wait句柄；D797/D798都不要重复启动。本轮PROGRESS，完整goal仍active。
+
+完整模型检查6/6通过但仅两prompt、两个同payload逻辑adapter；所用原生
+ModelGeneration/MixedLlama/MixedLora源码SHA与既有D560一致。3B静态容量
+文件在已检索现有loquetier configs/curated中未找到，旧256池2token返回不能
+替代500池当前完整合同。下一复用inspect_static_capacity、既有native容量/
+服务入口，做必要3B几何与模型专用kernel绑定；不复制7B D565数据，不另造
+运行框架，不重复单卡500池OOM，不无界调参。既有3B工件/trace/原始证据全留。
+随后Loquetier3B W0/W1/W2、HydraServe3B→全比较及PrimeLoRA优化→同版Full/
+A1–A5/S1–S13/成本/Pareto/两轮审稿文档/图表/最终V2，全范围继续。
+
 ## 2026-10-24 13:27 CST D798完整模型有界数值通过，待备份
 
 D798一次真实输入检查完成：两个现有输入长度760/477，各prefill与两步

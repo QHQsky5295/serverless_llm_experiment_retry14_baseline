@@ -1,0 +1,30 @@
+{
+  "schema": "ieee_tc_loquetier_measurement_view_v1",
+  "native_source": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/Loquetier_main_20260520",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/source_view",
+  "original_sha256": {
+    "model_generation.py": "31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2",
+    "models/mixed_lora.py": "93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e",
+    "models/mixed_llama.py": "39f7d0f8b5dd2bf57e09a90dd746e5f8a6ad8442a7a8e1d8ddd03c08fb7e76fa",
+    "virtual_model.py": "d1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def",
+    "kernel_utils.py": "65200eb49b8ccfe00620a5295bd802b6ca07131eb0e71ea0483a8583b9c6ac02"
+  },
+  "measured_sha256": {
+    "model_generation.py": "05eefcce371ca5689d7de5f1e577ba9e5317cf2391a583286f7334d49e3de385"
+  },
+  "helper_path": "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_serverless_measurement.py",
+  "helper_sha256": "85dbb7af00372cd66a578d8dc4b0c3300c22dcaeaa5c1d015b642f0234fee78e",
+  "source_adapter_sha256": "32c9a9f37e85675741f6dd2e2d6184c7d4fde0f69829d72623e7c19c56cff931",
+  "shared_package": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora",
+  "shared_source_sha256": {
+    "faaslora/clock.py": "dfb56eee569afc35d6b944dd86a1cc663a31ab5ee6917b9205a10ad3f75ee4cb"
+  },
+  "supported_observation": "native_loquetier_inference_fixed_length_greedy_v1",
+  "timing_boundary": "immediately_after_each_existing_native_token_item_before_output_update",
+  "added_per_token_cuda_synchronization": false,
+  "startup_pointer_table_cpu_readback": true,
+  "scheduling_policy_changed": false,
+  "loading_policy_changed": false,
+  "sampling_policy_changed": false,
+  "performance_run_authorized": false
+}

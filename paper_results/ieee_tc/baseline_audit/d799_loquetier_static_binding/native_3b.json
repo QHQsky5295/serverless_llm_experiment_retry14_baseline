@@ -1,0 +1,39 @@
+{
+  "schema": "ieee_tc_loquetier_native_service_v1",
+  "python": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+  "native_python": "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python",
+  "source_view": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/source_view",
+  "source_view_manifest_sha256": "aebe030412db7d767b8ffb7a76a2859ca15ded85e7910e5150878a796113f8f9",
+  "static_plan": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d799_20261024/static_capacity.json",
+  "static_plan_sha256": "26315ce4ae1b0ef59f5d1867789203c643127df2604cf3aa3a18faeadc2cdcd9",
+  "native_kernel": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d797_20261024/python/loquetier/ops/_kernels.cpython-39-x86_64-linux-gnu.so",
+  "native_kernel_sha256": "b1f4b70ef8d816183a9d3ca0211b79a022f05af16a9228f34346bbe4ef2e1d41",
+  "routing": "static_shards_v1",
+  "worker_startup": "sequential_v1",
+  "generation_contract": "fixed_length_greedy_v1",
+  "gpu_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "router_port": 8511,
+  "worker_ports": [
+    8523,
+    8533,
+    8543,
+    8553
+  ],
+  "native_args": {
+    "model_dir": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+    "dtype": "float16",
+    "batch_size": 4,
+    "context_tokens": 1024,
+    "apply_scaling": "A"
+  },
+  "model_kernel": {
+    "receipt": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d797_20261024/build_receipt.json",
+    "receipt_sha256": "7fa3bfcf64699c011bd12ad2c49513acc932effb0a77a7123a049f817683c502",
+    "python_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d797_20261024/python"
+  }
+}

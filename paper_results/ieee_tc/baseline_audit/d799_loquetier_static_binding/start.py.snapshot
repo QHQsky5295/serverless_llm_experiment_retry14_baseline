@@ -1,0 +1,52 @@
+"""Launch the existing static-shard service with exact prepared identities."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0,str(MAIN))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2)
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json',identity)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+q = read(RAW/'preparation.json')
+for path,digest in (q['refs'] | q['preserved']).items(): assert p.digest(Path(path)) == digest,path
+assert read(RAW/'backup_receipt.json')['passed']
+assert read(RAW/'backup_closure.json')['path_gone']
+assert read(RAW/'prepare_closure.json')['path_gone']
+assert not Path('/tmp/tc-d799-3bl').exists()
+assert not any((RAW/name).exists() for name in ('launch3b.json','launch3b.launch','model3b','remote_start.log'))
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+gate = p.preflight([MAIN],20*p.GIB)
+assert gate['preflight_pass'],gate['issues']
+save(RAW/'launch_gate.json',dict(passed=True,preflight=gate,preparation_sha256=p.digest(RAW/'preparation.json'),
+    script_sha256={str(x):p.digest(x) for x in (RAW/'start.py',RAW/'run3b.py')},
+    role='full500 compatibility/coverage, not a W0 performance run'))
+original = RAW.parent.parent/'slora_qualification/d767_20261023/start_remote.sh'
+assert p.digest(original) == 'ed93130b195f570ad302e97fc91472d2f43cee7a66bbb07d10a42d182f513aff'
+source = original.read_text().replace('/slora_qualification/d767_20261023','/loquetier_qualification/d799_20261024')
+source = source.replace('d767_20261023','d799_20261024').replace('d767-smoke','d799-coverage')
+save(RAW/'remote_management_source.json',dict(source=str(original),sha256=p.digest(original),executed=source))
+subprocess.run(['bash','-c',source],check=True)
+health = original.parent/'check_remote_health_stdlib.py'
+exec(compile(health.read_text(),str(health),'exec'),{'__name__':'__main__','__file__':str(RAW/'check_remote_health_stdlib.py')})
+session = 'tc-d799-loquetier-3b-coverage'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode != 0
+subprocess.run(['tmux','new-session','-d','-s',session,'-c',str(BASE),
+    f'/usr/bin/python3 -B {RAW}/run3b.py > {RAW}/runner.log 2>&1'],check=True)
+deadline = time.monotonic()+210
+receipt = RAW/'launch3b.launch/exec_receipt.json'
+while not receipt.exists():
+    if time.monotonic() > deadline: raise TimeoutError('observe existing tmux; do not restart')
+    time.sleep(.1)
+actual = p.scope_identity(Path(read(receipt)['auxiliary_path']).name)
+save(RAW/'service_aux_identity.json',actual)
+save(RAW/'start_receipt.json',dict(launched=True,tmux=session,auxiliary=actual))
+print(json.dumps(dict(launched=True,tmux=session)))

@@ -1,0 +1,85 @@
+"""Bind existing 3B assets to the qualified static service; no new workload."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+BASE = Path('/home/qhq/serverless_llm_baselines')
+RAW = Path(__file__).resolve().parent
+sys.path[:0] = [str(MAIN), str(BASE/'scripts')]
+from scripts import ieee_tc_preflight as p
+from prepare_ieee_tc_serverless_stack import prepare_loquetier_measurement_view, load_http_replay_plan
+from replay_vllm_engine_trace import validate_loquetier_service_config, verify_loquetier_source_view
+
+def read(path):
+    return json.loads(Path(path).read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json', identity)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+preserved = read(RAW.parent.parent/'dlora_qualification/d782_20261024/qualification.json')['preserved']
+for path, digest in preserved.items():
+    assert p.digest(Path(path)) == digest, path
+
+tests = ['tests.test_ieee_tc_loquetier_worker.ConfigurationAndGuard', 'tests.test_loquetier_static_capacity']
+with (RAW/'tests.log').open('x') as stream:
+    result = subprocess.run(['/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python',
+        '-B','-m','unittest',*tests,'-q'], cwd=BASE, stdout=stream, stderr=subprocess.STDOUT)
+assert result.returncode == 0
+view = RAW/'source_view'
+prepare_loquetier_measurement_view(BASE/'vendor_new_baselines/Loquetier_main_20260520', view, MAIN)
+previous = RAW.parent/'d589_20261016/native_7b.json'
+native = read(previous)
+native.pop('inference_capacity')  # 7B capacity evidence must NOT be relabeled as 3B.
+plan = read(RAW/'static_capacity.json')
+kernel_receipt_path = RAW.parent/'d797_20261024/build_receipt.json'
+kernel = read(kernel_receipt_path)
+native.update(source_view=str(view),source_view_manifest_sha256=p.digest(view/'measurement_manifest.json'),
+    static_plan=str(RAW/'static_capacity.json'),static_plan_sha256=p.digest(RAW/'static_capacity.json'),
+    native_kernel=kernel['kernel_path'],native_kernel_sha256=kernel['kernel_sha256'],
+    model_kernel=dict(receipt=str(kernel_receipt_path),receipt_sha256=p.digest(kernel_receipt_path),
+                      python_root=str(kernel_receipt_path.parent/'python')))
+native['native_args'].update(model_dir=plan['base_model'],batch_size=plan['batch_size'])
+old_gate = BASE/'results/paper_experiments/15_new_serverless_baselines_remote_v1/gates/loquetier/loquetier_llama32_3b_limit256_filtered1024_gate_20260520.json'
+assert p.digest(old_gate) == 'f60586f61fb42f7191f165e28e1a7cda25071003d8dbbc51241adb18e155d2a6'
+assert read(old_gate)['config']['max_batch_size'] == native['native_args']['batch_size'] == 4
+source_http = RAW.parent.parent/'dlora_qualification/d795_20261024/http_3b_4000.json'
+http = read(source_http)
+for key in ('adapter_map','adapter_map_sha256','replay_profile'):
+    http.pop(key, None)
+http.update(schema='ieee_tc_loquetier_http_replay_v1',request_count=500,
+    experiment_role='adapter_pool_functional_coverage',request_view='adapter_coverage_v1',
+    physical_lifecycle='loquetier_static_shards_v1',url='http://127.0.0.1:8510/v1/chat/completions')
+assert p.digest(Path(http['trace'])) == http['trace_sha256']
+assert p.digest(Path(http['pool_index'])) == http['pool_index_sha256']
+validate_loquetier_service_config(native,http)
+verify_loquetier_source_view(dict(native,main_repo=str(MAIN)))
+inputs = load_http_replay_plan(http)
+rows = [json.loads(entry.source_json) for entry in inputs.entries]
+assert len(rows) == len({row['adapter_id'] for row in rows}) == 500
+save(RAW/'native_3b.json',native)
+save(RAW/'http_3b_coverage500.json',http)
+refs = [BASE/'scripts/replay_vllm_engine_trace.py',BASE/'tests/test_ieee_tc_loquetier_worker.py',
+    BASE/'scripts/prepare_ieee_tc_serverless_stack.py',BASE/'scripts/ieee_tc_serverless_measurement.py',
+    RAW/'native_3b.json',RAW/'http_3b_coverage500.json',RAW/'static_capacity.json',
+    view/'measurement_manifest.json',kernel_receipt_path,
+    RAW.parent/'d798_20261024/native_probe.json',previous,old_gate,source_http,
+    MAIN/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',MAIN/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']
+save(RAW/'preparation.json',dict(passed=True,performance_run=False,plan_sha256=p.check_plan(),
+    input_identity=inputs.identity(),actual_unique_adapters=500,
+    target_tokens=sum(min(row['expected_output_tokens'],256) for row in rows),
+    refs={str(path):p.digest(path) for path in refs},preserved=preserved,
+    reused_batch_size=4,batch_source=str(old_gate),static_shards=4,
+    numerical_scope='D798 two prompts/one distinct payload only; full-pool numerical correctness not proven',
+    capacity_scope='static bytes only; forthcoming native full-pool coverage tests actual deployment',
+    tests=dict(returncode=0,modules=tests,log_sha256=p.digest(RAW/'tests.log')),
+    no_new_weights=True,no_new_trace=True,no_7b_capacity_relabeling=True,
+    next='one existing full500 coverage view, then W0/W1/W2 without extra 100/1000 gates'))
+print(json.dumps(dict(passed=True,batch_size=4,full_pool=500,input=inputs.identity())))

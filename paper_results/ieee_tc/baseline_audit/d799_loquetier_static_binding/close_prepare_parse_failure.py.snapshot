@@ -1,0 +1,19 @@
+"""Close the empty scope from the pre-execution Python parse error only."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+sys.path.insert(0,'/home/qhq/serverless_llm_experiment_retry14_baseline')
+from scripts import ieee_tc_preflight as p
+raw = Path(__file__).resolve().parent
+identity = p.scope_identity('primelora-tc-aux-d7990000000000000000000000000001.scope')
+assert identity['invocation_id'] == '5479cd981c9f41abba511e39fe421a4c'
+group = Path(identity['path'])
+assert all(not path.read_text().split() for path in group.rglob('cgroup.procs'))
+assert p.scope_still_owned(identity)
+subprocess.run(['systemctl','--user','stop',identity['unit']],check=True)
+assert not group.exists()
+with (raw/'prepare_parse_failure.json').open('x') as stream:
+    json.dump(dict(classification='protocol_or_launcher_error',gpu_started=False,
+        reason='unmatched closing parenthesis at prepare.py line84; corrected before execution',
+        identity=identity,closed=True,path_gone=True),stream,indent=2)

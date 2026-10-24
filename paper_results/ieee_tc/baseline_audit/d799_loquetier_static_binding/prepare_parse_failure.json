@@ -1,0 +1,13 @@
+{
+  "classification": "protocol_or_launcher_error",
+  "gpu_started": false,
+  "reason": "unmatched closing parenthesis at prepare.py line84; corrected before execution",
+  "identity": {
+    "unit": "primelora-tc-aux-d7990000000000000000000000000001.scope",
+    "invocation_id": "5479cd981c9f41abba511e39fe421a4c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d7990000000000000000000000000001.scope",
+    "inode": 31580548
+  },
+  "closed": true,
+  "path_gone": true
+}
