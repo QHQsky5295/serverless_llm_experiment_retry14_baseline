@@ -1,0 +1,38 @@
+"""Reuse D859 explicit artifact-aware backup, with no recursive post-receipt commit."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d859_20261026/backup_finish.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'e4c2cee9e51ee1888533ee1dfc2dd59b82d7ca2a99ed2b925dd2bb7b91fa3fca'
+_source = _template.read_text()
+_extra_snapshot = """snapshot = OUT/'execution/backup_finish.py.snapshot'
+with snapshot.open('xb') as handle:
+    handle.write(Path(__file__).read_bytes())
+"""
+assert _source.count(_extra_snapshot) == 1
+_source = _source.replace(_extra_snapshot, '')
+_changes = {
+    'D859 evidence': 'D862 evidence',
+    'd859_single_lease_residual_diagnosis': 'd862_source_projection_residual',
+    '1b2127ad9d2536ba711fd809b8bb790c3b7ba1f4': '56aea71902cd82b177e203026120ff1070a334ed',
+    "assert len(git('diff','--cached','--name-only').splitlines()) == 16":
+        "assert not git('diff','--cached','--name-only').strip()",
+    'D859_SINGLE_LEASE_RESIDUAL_DIAGNOSIS_20261026.md': 'D862_SOURCE_PROJECTION_RESIDUAL_20261026.md',
+    "         ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',":
+        "         ROOT/'docs/ieee_tc/EXECUTION_STATUS.md', ROOT/'faaslora/memory/residency_manager.py', ROOT/'tests/test_ieee_tc_file_observation.py',",
+    'assert len(paths) == len(set(paths)) == 17': 'assert len(paths) == len(set(paths)) and len(paths) > 20',
+    'backup/d859-residual-diagnosis-20261026': 'backup/d862-residual-and-rollback-20261026',
+    'assert len(csv_paths) == 2 and len(snapshot_paths) == 5': 'assert len(csv_paths) == 2 and len(snapshot_paths) >= 6',
+    'tc: preserve full W2 paired residual and delivery diagnosis (D859)':
+        'tc: explain 3B scaling feedback and withdraw source-projection candidate (D862)',
+    "'closed analysis and strict count/source checks'":
+        "'two closed analyses, source/count checks, exact D857 bytes and reuse of 86 targeted tests'",
+}
+for _old, _new in _changes.items():
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec')
+with (_raw/'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec'), globals())

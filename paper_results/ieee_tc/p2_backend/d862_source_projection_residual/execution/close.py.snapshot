@@ -1,0 +1,63 @@
+"""Reuse D859 closure; verify both D862 analyses and exact D860 rollback."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d859_20261026/close.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'fc1bc17522befe377c35f6607e8b5d371f723f14d5e5be55986a7ea7ba804d76'
+_source = _template.read_text()
+_changes = {
+    'D859 residual evidence': 'D862 residual evidence',
+    'd859_single_lease_residual_diagnosis': 'd862_source_projection_residual',
+    "'fail->fail': 102, 'pass->pass': 3563, 'fail->pass': 183, 'pass->fail': 152":
+        "'fail->fail': 89, 'pass->pass': 3570, 'fail->pass': 165, 'pass->fail': 176",
+    "'pass': 3746, 'ttft_only': 175, 'tpot_only': 69, 'both': 10":
+        "'pass': 3735, 'ttft_only': 172, 'tpot_only': 81, 'both': 12",
+    "for name in ('analyze.py', 'identity.json', 'backup.py', 'close.py'):":
+        "for name in ('analyze.py', 'analysis_program.py.snapshot', 'identity.json', 'template_reuse.json', 'startup.py', 'startup_executed.py.snapshot', 'startup_template.json', 'startup_resources.json', 'backup.py', 'close.py', 'closure_program.py.snapshot'):",
+    'D859_SINGLE_LEASE_RESIDUAL_DIAGNOSIS_20261026.md': 'D862_SOURCE_PROJECTION_RESIDUAL_20261026.md',
+    'd859_offline_residual_diagnosis_v1': 'd862_offline_residual_diagnosis_and_exact_rollback_v1',
+    'production_unchanged=production': 'production_after_rollback=production, rollback=rollback',
+    'closed_tasks=[dict(identity=prior,path_removed=True)]': 'closed_tasks=[dict(identity=prior,path_removed=True), dict(identity=startup_identity,path_removed=True)]',
+    'new_gpu_replays=0, production_changes=False': 'new_gpu_replays=0, production_changes="exact D860 rollback only"',
+    'D857 single-lease observation retained after D858; 3B W2 nonfeasible.':
+        'D857 restored exactly; D860/D861 rejected as a performance improvement. 3B W2 remains nonfeasible.',
+    'passed=True, closed_tasks=1': 'passed=True, closed_tasks=2',
+}
+for _old, _new in _changes.items():
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_extra = '''
+startup_resources = read(RAW/'startup_resources.json')
+startup_identity = startup_resources['scope']
+assert not p.scope_still_owned(startup_identity) and not Path(startup_identity['path']).exists()
+assert not any(startup_resources['resources']['memory.events'].values())
+assert startup_resources['resources']['memory.swap.current'] == 0
+startup = read(OUT/'startup/diagnosis.json')
+assert startup['passed'] and startup['new_gpu_replays'] == 0
+assert [r['label'] for r in startup['runs']] == ['D858', 'D861']
+for report in [startup, *startup['runs']]:
+    for source in report['source_refs']:
+        assert p.digest(Path(source['path'])) == source['sha256']
+prior_test_path = ROOT/'paper_results/ieee_tc/p2_backend/d857_single_lease_observation/after.json'
+prior_test = read(prior_test_path)
+assert prior_test['passed'] and prior_test['tests'] == 86
+assert p.digest(ROOT/'faaslora/memory/residency_manager.py') == prior_test['source_sha256']
+assert p.digest(ROOT/'tests/test_ieee_tc_file_observation.py') == prior_test['test_sha256']
+for path in (ROOT/'faaslora/memory/residency_manager.py', ROOT/'tests/test_ieee_tc_file_observation.py'):
+    original = subprocess.check_output(['git','show', 'd5dcf5b406d2e8eed410248677edfd5c6fb3fff3^:'+str(path.relative_to(ROOT))], cwd=ROOT)
+    assert path.read_bytes() == original
+    compile(path.read_text(), str(path), 'exec')
+rollback = dict(candidate='d5dcf5b406d2e8eed410248677edfd5c6fb3fff3',
+    exact_parent_bytes=True, prior_tests=ref(prior_test_path), reused_tests=86,
+    source_sha256=prior_test['source_sha256'], test_sha256=prior_test['test_sha256'],
+    new_tests=0, new_gpu_replays=0, performance_acceptance=False,
+    note='Exact rollback; preserve D860 tests and failed/successful evidence in original commit and snapshots.')
+'''
+_anchor = "execution = OUT/'execution'"
+assert _source.count(_anchor) == 1
+_source = _source.replace(_anchor, _extra+'\n'+_anchor)
+compile(_source, str(_raw/'closure_program.py.snapshot'), 'exec')
+with (_raw/'closure_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'closure_program.py.snapshot'), 'exec'), globals())

@@ -1,0 +1,32 @@
+"""D862: reuse D859 full-population residual analysis for D858 versus D861."""
+import hashlib
+import json
+from pathlib import Path
+import re
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd859_20261026/analyze.py'
+_sha = '9dbcbe2402a9cb8adcbb8813b9638c2a74adf6fb428fed320de1dbadd9fb677f'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == _sha
+_changes = {
+    'D859': 'D862',
+    'd859_single_lease_residual_diagnosis': 'd862_source_projection_residual',
+    'd846_3b_staging_identity_full_w2': 'd858_3b_single_lease_full_w2',
+    'd858_3b_single_lease_full_w2': 'd861_3b_source_projection_full_w2',
+    "'d846_20261025'": "'d858_20261026'",
+    "'d858_20261026'": "'d861_20261026'",
+    'D846/D858': 'D858/D861',
+}
+_source = _template.read_text()
+for _old in _changes:
+    assert _old in _source, _old
+_pattern = '|'.join(re.escape(key) for key in sorted(_changes, key=len, reverse=True))
+_source = re.sub(_pattern, lambda match: _changes[match.group(0)], _source)
+compile(_source, str(_raw / 'analysis_program.py.snapshot'), 'exec')
+with (_raw / 'analysis_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+with (_raw / 'template_reuse.json').open('x') as _stream:
+    json.dump(dict(template=str(_template), sha256=_sha, replacements=_changes,
+                   analysis_rules_changed=False), _stream, indent=2)
+    _stream.write('\n')
+exec(compile(_source, str(_raw / 'analysis_program.py.snapshot'), 'exec'), globals())

@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "kind": "d862_offline_residual_diagnosis_and_exact_rollback_v1",
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D862_SOURCE_PROJECTION_RESIDUAL_20261026.md",
+    "sha256": "4d7900c6288378155f2700d119f8da80e7fdd02671e44ebb0ec16d501b2eeff3",
+    "bytes": 8076
+  },
+  "production_after_rollback": {
+    "faaslora/memory/residency_manager.py": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403"
+  },
+  "rollback": {
+    "candidate": "d5dcf5b406d2e8eed410248677edfd5c6fb3fff3",
+    "exact_parent_bytes": true,
+    "prior_tests": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d857_single_lease_observation/after.json",
+      "sha256": "16015e7543cc5434c0147a906e8820a4d93ecd89420fefce790fbb64c36833fa",
+      "bytes": 1276
+    },
+    "reused_tests": 86,
+    "source_sha256": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "test_sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564",
+    "new_tests": 0,
+    "new_gpu_replays": 0,
+    "performance_acceptance": false,
+    "note": "Exact rollback; preserve D860 tests and failed/successful evidence in original commit and snapshots."
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-8bf4238c7e5581e0a6bfc64a4046f8ee.scope",
+        "invocation_id": "fcde7a7e41ce403998544039eba6840c",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8bf4238c7e5581e0a6bfc64a4046f8ee.scope",
+        "inode": 32713036
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-9dd30cdb07a125dc470aa0b81d70dd5b.scope",
+        "invocation_id": "1ad79f0847de4213aa9a0773e526ea1b",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9dd30cdb07a125dc470aa0b81d70dd5b.scope",
+        "inode": 32714263
+      },
+      "path_removed": true
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-7db8e48f1bf62b80bae340a807bf4c36.scope",
+    "invocation_id": "e808120a61f14a138645599310e2d6c9",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7db8e48f1bf62b80bae340a807bf4c36.scope",
+    "inode": 32718176
+  },
+  "prior_full_run_reused": true,
+  "new_gpu_replays": 0,
+  "production_changes": "exact D860 rollback only",
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "final_v2_synced": false,
+  "current_production": "D857 restored exactly; D860/D861 rejected as a performance improvement. 3B W2 remains nonfeasible.",
+  "disk_free_bytes": 179794886656
+}

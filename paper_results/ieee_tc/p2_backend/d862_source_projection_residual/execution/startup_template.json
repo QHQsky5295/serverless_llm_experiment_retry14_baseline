@@ -1,0 +1,17 @@
+{
+  "template": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d847_20261025/startup_executed.py.snapshot",
+  "sha256": "e3c82c62823ede4af9a2447b57f7ce3da2aee825feba1f7ca96dedf1be2ec773",
+  "changes": {
+    "d847_3b_scaling_feedback/startup": "d862_source_projection_residual/startup",
+    "d847_closed_run_startup_feedback_v1": "d862_closed_run_startup_feedback_v1",
+    "d840_3b_single_thread_decoder_full_w2": "d858_3b_single_lease_full_w2",
+    "d846_3b_staging_identity_full_w2": "d861_3b_source_projection_full_w2",
+    "20261025_d840_3b_max3_full_w2.yaml": "20261026_d858_3b_max3_full_w2.yaml",
+    "20261025_d846_3b_max3_full_w2.yaml": "20261026_d861_3b_max3_full_w2.yaml",
+    "'D840'": "'D858'",
+    "'D846'": "'D861'",
+    "gzip.open(outcome_path, 'rb')": "outcome_path.open('rb')",
+    "ref(Path(report['source_run'])/'compression_receipt.json'), ": ""
+  },
+  "source_form": "Existing uncompressed originals; no restore or rescan of weights."
+}

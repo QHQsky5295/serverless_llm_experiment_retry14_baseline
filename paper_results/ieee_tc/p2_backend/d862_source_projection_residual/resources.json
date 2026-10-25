@@ -1,0 +1,38 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-8bf4238c7e5581e0a6bfc64a4046f8ee.scope",
+    "invocation_id": "fcde7a7e41ce403998544039eba6840c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8bf4238c7e5581e0a6bfc64a4046f8ee.scope",
+    "inode": 32713036
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8bf4238c7e5581e0a6bfc64a4046f8ee.scope",
+    "memory.current": 632102912,
+    "memory.peak": 635801600,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10785789\nuser_usec 9373126\nsystem_usec 1412662\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "program": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d862_20261026/analyze.py",
+    "sha256": "c47382794163db19e22ccf6396c7a9d2c154bac4e3a33d4721c7cf1e86e60ab2",
+    "bytes": 1477
+  },
+  "production_changes": false,
+  "new_gpu_replays": 0,
+  "disk_free_bytes": 179806523392
+}
