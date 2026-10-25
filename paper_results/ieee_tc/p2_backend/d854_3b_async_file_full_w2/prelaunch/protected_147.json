@@ -1,0 +1,8 @@
+{
+  "kind": "protected_artifact_verification",
+  "pass": true,
+  "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+  "changed": [],
+  "entry_count": 147,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

@@ -1,4 +1,25 @@
-# IEEE TC execution status — D853 full async-file candidate integrated; full W2 pending
+# IEEE TC execution status — D854 complete 3B W2 registered; launch pending
+
+## 2026-10-25 D854接续完整候选，直接全长W2
+
+完整PLAN/V1/V2与最新goal核查；不再增加局部候选/短跑/profiling。D851–D853
+候选代码已在5ac133e7e74d168d48c500e0fb774c28dcbf04f6备份，本轮只登记
+D854独占路径，复用D846原负载/工件/配置和完整W2入口、D853的187项检查。
+当前准备4项执行合同检查、保护核验、预登记备份和启动，尚未产生GPU结果。
+假设与判定见D854_ASYNC_FILE_FULL_W2_20261025.md。
+
+父点仍3715/4000联合通过、U11929.629332，预算12083.063870；不改95%/75%。
+D711独立数值未知不变。约171.7GiB可用，原资源保护不变；不动共享k3s，
+只使用既有远端只读交付服务。性能实验中不维护。后续完整主矩阵、A1–A5、
+S1–S13及文档/图表/最终V2未完成，goal active。
+
+以下为历史记录，不重跑已完成任务。
+
+D853检查点5ac133e7e74d168d48c500e0fb774c28dcbf04f6已推送并核实远端
+backup/d853-async-file-complete-20261025同SHA，31明确文件；最终V2未同步，
+未force/未stage用户manifest。01–06本轮scope已结束。下一直接复用D846
+全长W2入口登记新执行版本，不再增加本候选局部检查或profiling。本后置
+回执随下一正常检查点保存，不为回执递归备份。
 
 ## 2026-10-25 D853剩余路径完成，187项针对性检查闭合，尚无新性能点
 

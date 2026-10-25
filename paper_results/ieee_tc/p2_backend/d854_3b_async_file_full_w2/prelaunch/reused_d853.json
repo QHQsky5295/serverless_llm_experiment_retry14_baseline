@@ -1,0 +1,21 @@
+{
+  "cpu_tests": 187,
+  "new_cpu_functional_tests": 0,
+  "closure_sha256": "1f287830743f9ee0e0e77848b821afee9a3f84a3d01c59fe767bd7d97a725576",
+  "manifest_sha256": "2285cf3f83f4fd96569954bb730200ae602d1eeff5abe19aaf88f0ab27b81a3e",
+  "candidate_changes": [
+    "faaslora/memory/residency_manager.py",
+    "faaslora/preloading/preloading_manager.py",
+    "faaslora/scheduling/resource_coordinator.py",
+    "scripts/ieee_tc/audit_d703_3b_full.py",
+    "scripts/run_all_experiments.py",
+    "tests/test_ieee_tc_diagnostic_plot.py",
+    "tests/test_ieee_tc_file_observation.py",
+    "tests/test_ieee_tc_launch.py",
+    "tests/test_ieee_tc_native_retirement.py",
+    "tests/test_ieee_tc_planning_snapshot.py",
+    "tests/test_ieee_tc_request_lifecycle.py",
+    "tests/test_ieee_tc_transfer_pressure.py"
+  ],
+  "numerical_correctness_qualified": false
+}
