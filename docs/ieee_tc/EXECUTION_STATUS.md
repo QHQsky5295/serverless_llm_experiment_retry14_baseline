@@ -1,4 +1,13 @@
-# IEEE TC execution status — D839 decoder integration CPU checks passed
+# IEEE TC execution status — D839 backed up; D840 full W2 registered
+
+## 2026-10-25 D839备份与D840完整W2预登记
+
+D839十个明确路径提交10828360fc5ee30b16a946837a3f5de5bcf9c566，远端
+backup/d839-single-thread-decoder-20261025同SHA，未force、最终V2未同步。
+CPU检查144次通过，生产只接入显式单线程isal；基础环境不变。
+D840复用D835完整W2入口/配置，三独占路径和显式decoder/overlay；D834已撤回。
+正在执行入口合同、备份与资源准入，尚未声称回放启动或SLO改善。资源保护、
+147旧文件、用户修改、D711限制及全矩阵不变。下一启动一次完整W2。
 
 ## 2026-10-25 D839受影响路径检查通过，准备完整W2
 

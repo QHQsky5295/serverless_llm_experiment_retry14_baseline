@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/execution_contract_tests.json",
+      "sha256": "398a0af3b369290b711fee97a6f44d64e5a0a60cc2d5448c63dfe8b55fee8b0f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/protected_147.json",
+      "sha256": "5c5aff40eb378e5a8cc3999cf114c2f38439434eee04fbaaab26617f71f1e136"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/qualification.json",
+      "sha256": "969800a696474ed8fac8cfe3eb3c73dda0d56fcfb39f5f85aa1c593a7be5dd3c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/run_and_release.sh.snapshot",
+      "sha256": "ced5e50d4663c27ecc1c2944e3fd5f21259fb7058deac509bdf3e2c0857257a2"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/start.py.snapshot",
+      "sha256": "0be1ed5d6055723133bc5c244b7f38b6bb53ed5d050401673baf8722eb65f357"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/start_remote.sh.snapshot",
+      "sha256": "dd68ad03bb6c437b75f6d01938038cf00c123b20c7a27328cd0fbd55e3a7a484"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/prelaunch/stop_remote.sh.snapshot",
+      "sha256": "4fa19fecce50e12107acd131ddddc9dee7b14702a19b0fe9a4bf4c1b6e233420"
+    }
+  ]
+}

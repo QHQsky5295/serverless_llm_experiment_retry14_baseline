@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+set -o noclobber
+raw=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025
+jq -e '.native_gpu_context_release_confirmed and .service_path_removed' "$raw/3b_max3_full_w2/launch.json" >/dev/null
+test -z "$(nvidia-smi --query-compute-apps=pid --format=csv,noheader)"
+ids=()
+for unit in primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d840-max3-fullw2.service; do
+  id=$(awk -F= -v want="$unit" '$1=="Id" {id=$2} $1=="InvocationID" && id==want {print $2}' "$raw/remote_start.log")
+  [[ "$id" =~ ^[a-f0-9]{32}$ ]]
+  ids+=("$id")
+done
+clock_id=$(jq -er '."3b".clock_id' "$raw/remote_health.json")
+[[ "$clock_id" =~ ^remote-process-monotonic:[a-f0-9]{32}$ ]]
+ssh -o BatchMode=yes primelora-artifact-174 /bin/bash -s -- "${ids[@]}" "$clock_id" <<'REMOTE' > "$raw/remote_stop.log" 2>&1
+set -euo pipefail
+units=(primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d840-max3-fullw2.service)
+ids=("$1" "$2" "$3")
+clock_id=$4
+for i in 0 1 2; do
+  test "$(systemctl --user show "${units[$i]}" -p InvocationID --value)" = "${ids[$i]}"
+done
+systemctl --user stop "${units[2]}"
+for i in 0 1; do
+  state=$(systemctl --user show "${units[$i]}" -p ActiveState --value)
+  if test "$state" != inactive; then
+    test "$(systemctl --user show "${units[$i]}" -p InvocationID --value)" = "${ids[$i]}"
+    systemctl --user stop "${units[$i]}"
+  fi
+done
+for unit in "${units[@]}"; do
+  test "$(systemctl --user show "$unit" -p ActiveState --value)" = inactive
+  test "$(systemctl --user show "$unit" -p MainPID --value)" = 0
+  systemctl --user show "$unit" -p Id -p ActiveState -p MainPID -p Result
+done
+test -z "$(ss -ltnH '( sport = :18080 or sport = :18081 )')"
+grep -l "$clock_id" /home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-*.jsonl || test "$?" -eq 1
+sha256sum /home/lab14/primelora_remote/tc/d840_20261025/remote_monitor.log
+REMOTE

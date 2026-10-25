@@ -1,0 +1,42 @@
+"""Reuse D829 full replay procedure; D839 single-thread decoder is the only candidate."""
+from pathlib import Path
+import hashlib
+
+template = Path(__file__).resolve().parent.parent/'d829_20261025/start.py'
+source = template.read_text()
+for old, new in (
+    ('d829', 'd840'), ('D829', 'D840'),
+    ('3b_admitted_owner_anchor_full_w2', '3b_single_thread_decoder_full_w2'),
+    ('084e2068375d1090127484656064f9457d9a8560', '10828360fc5ee30b16a946837a3f5de5bcf9c566'),
+    ('d828_post_file_owner_turn', 'd839_single_thread_decoder'),
+    ("closure['distinct_regression_tests'] == 370", "closure['test_executions'] == 144"),
+    ("('summary.json','closure.json','manifest.json')", "('closure.json','manifest.json')"),
+    ("'tests.test_ieee_tc_d456_diagnostic_contract.D840FullContract',",
+     "'tests.test_ieee_tc_d456_diagnostic_contract.D840FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D835FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D832FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D829FullContract',"),
+    ("'Ran 9 tests'", "'Ran 16 tests'"),
+    ('new_tests=2, affected_existing_tests=7', 'new_tests=3, affected_existing_tests=13'),
+    ('D840_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md', 'D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md'),
+    ('three exclusive paths; D828 admitted native owner anchor; native_rpc_v1 unchanged',
+     'three exclusive paths; D839 explicit single-thread ISA-L decoder and verified D838 overlay; native_rpc_v1 unchanged'),
+    ('source_tests_reused=370, new_execution_contract_tests=2, affected_existing_tests=7',
+     'source_test_executions_reused=144, new_execution_contract_tests=3, affected_existing_tests=13'),
+    ('tc: register complete 3B W2 for admitted owner anchor (D840)',
+     'tc: register complete 3B W2 for single-thread decoder (D840)'),
+    ('d840-admitted-owner-anchor-fullw2-20261025', 'd840-single-thread-decoder-fullw2-20261025'),
+    ('tc-d840-3b-admitted-owner-anchor-full-w2', 'tc-d840-3b-single-thread-decoder-full-w2'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+marker = "refs = dict(closure['production_sources'])"
+extra = '''
+assert closure['decoder'] == 'isal' and closure['decoder_version'] == '1.8.0'
+dependency = closure['dependency']
+assert p.digest(Path(dependency['path'])) == dependency['sha256']
+for row in closure['dependency_files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+    refs[row['path']] = row['sha256']
+refs[dependency['path']] = dependency['sha256']
+'''
+assert marker in source
+source = source.replace(marker, marker+'\n'+extra)
+exec(compile(source, str(template), 'exec'), globals())
