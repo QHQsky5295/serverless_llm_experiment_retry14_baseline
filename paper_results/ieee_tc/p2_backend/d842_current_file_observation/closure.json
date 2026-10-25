@@ -1,0 +1,61 @@
+{
+  "passed": true,
+  "closed_scopes": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84100000000000000000000000000001.scope",
+        "invocation_id": "b5733de0145d4645916b885948f80744",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84100000000000000000000000000001.scope",
+        "inode": 32359737
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84100000000000000000000000000002.scope",
+        "invocation_id": "151de177293e437e9f63b563a40e2ddb",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84100000000000000000000000000002.scope",
+        "inode": 32362386
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84100000000000000000000000000003.scope",
+        "invocation_id": "ddd873b69a184b4cbff532b837c9ec24",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84100000000000000000000000000003.scope",
+        "inode": 32363218
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84200000000000000000000000000001.scope",
+        "invocation_id": "71c2249b027246099ceb138856e1cee0",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84200000000000000000000000000001.scope",
+        "inode": 32364287
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84200000000000000000000000000002.scope",
+        "invocation_id": "55ad8e7b3e454a3f9496420d75913be7",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84200000000000000000000000000002.scope",
+        "inode": 32365672
+      },
+      "path_removed": true
+    }
+  ],
+  "protected_147_unchanged": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D841_STORAGE_AND_D842_CURRENT_CONTROL_20261025.md",
+    "sha256": "bfd19aacc35e394609fc90028417b2762fce3a6fac18aeb93f21423d16f2ca14"
+  },
+  "new_gpu_runs": 0,
+  "production_changes": false,
+  "disk_free_bytes": 164113199104
+}

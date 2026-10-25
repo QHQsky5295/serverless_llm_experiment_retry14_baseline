@@ -1,0 +1,1466 @@
+{
+  "kind": "d842_observed_file_round_ingress_overlap_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/3b_max3_full_w2",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3758,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3917,
+    "joint_pass": 3684
+  },
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "new_performance_runs": 0,
+  "new_instrumentation": false,
+  "production_changes": false,
+  "epochs": 3364,
+  "unique_rounds": 1684,
+  "max_partition_error_ms": 0.0,
+  "rounds_elapsed_ms": {
+    "count": 1684,
+    "mean": 200.74348509806094,
+    "p50_type1": 139.31323401629925,
+    "p95_type1": 889.2145999707282
+  },
+  "round_phase_groups": [
+    {
+      "phase": 0,
+      "n": 294,
+      "elapsed_ms": {
+        "count": 294,
+        "mean": 44.859733366008314,
+        "p50_type1": 36.096107214689255,
+        "p95_type1": 67.56191095337272
+      }
+    },
+    {
+      "phase": 1,
+      "n": 207,
+      "elapsed_ms": {
+        "count": 207,
+        "mean": 109.9504714332305,
+        "p50_type1": 64.36238996684551,
+        "p95_type1": 528.4023210406303
+      }
+    },
+    {
+      "phase": 2,
+      "n": 202,
+      "elapsed_ms": {
+        "count": 202,
+        "mean": 170.08879135067733,
+        "p50_type1": 90.16451891511679,
+        "p95_type1": 783.5833560675383
+      }
+    },
+    {
+      "phase": 3,
+      "n": 141,
+      "elapsed_ms": {
+        "count": 141,
+        "mean": 188.469173492375,
+        "p50_type1": 109.33078918606043,
+        "p95_type1": 799.7932662256062
+      }
+    },
+    {
+      "phase": 4,
+      "n": 140,
+      "elapsed_ms": {
+        "count": 140,
+        "mean": 228.41976494528353,
+        "p50_type1": 139.44639172405005,
+        "p95_type1": 977.4894746951759
+      }
+    },
+    {
+      "phase": 5,
+      "n": 170,
+      "elapsed_ms": {
+        "count": 170,
+        "mean": 283.94222886520714,
+        "p50_type1": 159.83397886157036,
+        "p95_type1": 1159.9235800094903
+      }
+    },
+    {
+      "phase": 6,
+      "n": 209,
+      "elapsed_ms": {
+        "count": 209,
+        "mean": 310.89902552441833,
+        "p50_type1": 180.52394594997168,
+        "p95_type1": 1335.9345640055835
+      }
+    },
+    {
+      "phase": 7,
+      "n": 321,
+      "elapsed_ms": {
+        "count": 321,
+        "mean": 298.89279769333166,
+        "p50_type1": 183.15654899924994,
+        "p95_type1": 1394.9684859253466
+      }
+    }
+  ],
+  "groups": [
+    {
+      "dimension": "all",
+      "label": "all",
+      "n": 4000,
+      "joint_pass": 3684,
+      "ttft_pass": 3758,
+      "tpot_pass": 3917,
+      "total_receive_ms": 314970.68553231657,
+      "total_overlap_ms": 98603.74869126827,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 4000,
+          "mean": 1.894890209659934,
+          "p50_type1": 1.4220564626157284,
+          "p95_type1": 4.3959179893136024
+        },
+        "publisher_submit_ms": {
+          "count": 4000,
+          "mean": 0.6978660052409396,
+          "p50_type1": 0.2342723309993744,
+          "p95_type1": 0.3032190725207329
+        },
+        "submit_to_service_receive_ms": {
+          "count": 4000,
+          "mean": 78.74267138307914,
+          "p50_type1": 1.1120880953967571,
+          "p95_type1": 552.9965069144964
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 4000,
+          "mean": 9.49094664666336,
+          "p50_type1": 0.5884789861738682,
+          "p95_type1": 27.14123297482729
+        },
+        "file_observation_overlap_ms": {
+          "count": 4000,
+          "mean": 24.650937172817066,
+          "p50_type1": 0.0,
+          "p95_type1": 108.32456219941378
+        },
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 796.0206063156947,
+          "p50_type1": 516.7046901769936,
+          "p95_type1": 2327.0460558123887
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 16.0133503114647,
+          "p50_type1": 14.04073142067908,
+          "p95_type1": 27.586726636132774
+        },
+        "admission_to_acquired_ms": {
+          "count": 4000,
+          "mean": 227.28927179507446,
+          "p50_type1": 82.08873681724072,
+          "p95_type1": 1416.3365829735994
+        },
+        "runtime_slot_wait_ms": {
+          "count": 4000,
+          "mean": 216.2953687615227,
+          "p50_type1": 131.96924421936274,
+          "p95_type1": 673.1233960017562
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 0,
+      "n": 500,
+      "joint_pass": 471,
+      "ttft_pass": 483,
+      "tpot_pass": 488,
+      "total_receive_ms": 4534.007853828371,
+      "total_overlap_ms": 277.82494155690074,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 2.063446907326579,
+          "p50_type1": 1.597606111317873,
+          "p95_type1": 4.942366853356361
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.6803405806422234,
+          "p50_type1": 0.23713521659374237,
+          "p95_type1": 0.3055250272154808
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 9.068015707656741,
+          "p50_type1": 0.9059109725058079,
+          "p95_type1": 30.787884257733822
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 4.229943522252142,
+          "p50_type1": 0.5655679851770401,
+          "p95_type1": 1.0845218785107136
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 0.5556498831138015,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 590.4902077913284,
+          "p50_type1": 397.49906584620476,
+          "p95_type1": 1517.7697036415339
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 16.83966645890232,
+          "p50_type1": 14.761075121807117,
+          "p95_type1": 27.842632339646418
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 139.3747980678454,
+          "p50_type1": 80.88894421234727,
+          "p95_type1": 542.7596080116928
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 125.86593140754849,
+          "p50_type1": 83.57055298984051,
+          "p95_type1": 368.53706277906895
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 1,
+      "n": 500,
+      "joint_pass": 470,
+      "ttft_pass": 488,
+      "tpot_pass": 480,
+      "total_receive_ms": 18251.23071251437,
+      "total_overlap_ms": 4744.825713802129,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 1.8619093457236886,
+          "p50_type1": 1.3753040693700314,
+          "p95_type1": 4.14946349337697
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.7262114891782403,
+          "p50_type1": 0.23806607350707054,
+          "p95_type1": 0.301877036690712
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 36.50246142502874,
+          "p50_type1": 1.074854750186205,
+          "p95_type1": 227.9162178747356
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 6.475864049047232,
+          "p50_type1": 0.5841022357344627,
+          "p95_type1": 24.64675484225154
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 9.489651427604258,
+          "p50_type1": 0.0,
+          "p95_type1": 56.91767483949661
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 745.5522461272776,
+          "p50_type1": 529.831713065505,
+          "p95_type1": 2050.2959256991744
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 17.317821028251768,
+          "p50_type1": 14.456800981424749,
+          "p95_type1": 34.017409420693696
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 198.82498855143785,
+          "p50_type1": 80.21243009716272,
+          "p95_type1": 1217.6412399858236
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 226.78560325317085,
+          "p50_type1": 131.79702404886484,
+          "p95_type1": 762.7250482328236
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 2,
+      "n": 500,
+      "joint_pass": 475,
+      "ttft_pass": 482,
+      "tpot_pass": 492,
+      "total_receive_ms": 29502.04759463668,
+      "total_overlap_ms": 9207.924074027687,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 2.0520423371344805,
+          "p50_type1": 1.4066915027797222,
+          "p95_type1": 4.33565117418766
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.8077625818550587,
+          "p50_type1": 0.23453403264284134,
+          "p95_type1": 0.32049184665083885
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 59.00409518927336,
+          "p50_type1": 1.098251435905695,
+          "p95_type1": 443.98043397814035
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 7.676031428389251,
+          "p50_type1": 0.5922149866819382,
+          "p95_type1": 20.51752293482423
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 18.415848148055375,
+          "p50_type1": 0.0,
+          "p95_type1": 113.81309200078249
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 721.5644075209275,
+          "p50_type1": 532.45854889974,
+          "p95_type1": 1807.452317327261
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 15.879590329004088,
+          "p50_type1": 14.113828326191973,
+          "p95_type1": 27.85775757087541
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 201.6392176495865,
+          "p50_type1": 82.46472990140319,
+          "p95_type1": 1251.108894124627
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 207.8780991435051,
+          "p50_type1": 132.57788959890604,
+          "p95_type1": 654.3158479034901
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 3,
+      "n": 500,
+      "joint_pass": 466,
+      "ttft_pass": 474,
+      "tpot_pass": 492,
+      "total_receive_ms": 22212.533090729266,
+      "total_overlap_ms": 6083.455211482942,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 1.5797709543257952,
+          "p50_type1": 1.3548550195991993,
+          "p95_type1": 3.293123096227646
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.8283292585983872,
+          "p50_type1": 0.2327333204448223,
+          "p95_type1": 0.30449312180280685
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 44.42506618145853,
+          "p50_type1": 1.0981587693095207,
+          "p95_type1": 265.9351397305727
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 4.5883032297715545,
+          "p50_type1": 0.5844510160386562,
+          "p95_type1": 3.8265581242740154
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 12.166910422965884,
+          "p50_type1": 0.0,
+          "p95_type1": 29.22306628897786
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 724.8845162242651,
+          "p50_type1": 470.22245172411203,
+          "p95_type1": 2147.129219956696
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 16.33795314039022,
+          "p50_type1": 14.537231314794294,
+          "p95_type1": 27.8839274747845
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 218.73166604992002,
+          "p50_type1": 82.99772627651691,
+          "p95_type1": 1568.8541270792484
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 210.08572853263468,
+          "p50_type1": 131.79248804226518,
+          "p95_type1": 623.7040841951966
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 4,
+      "n": 500,
+      "joint_pass": 454,
+      "ttft_pass": 464,
+      "tpot_pass": 488,
+      "total_receive_ms": 36568.89754254371,
+      "total_overlap_ms": 9304.144898895174,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 1.538454508408904,
+          "p50_type1": 1.2890659272670746,
+          "p95_type1": 3.6602988839149475
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.6544599831104279,
+          "p50_type1": 0.23281527683138847,
+          "p95_type1": 0.29735034331679344
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 73.13779508508742,
+          "p50_type1": 1.2922431342303753,
+          "p95_type1": 468.60806411132216
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 7.845266033895314,
+          "p50_type1": 0.5905330181121826,
+          "p95_type1": 27.869904413819313
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 18.60828979779035,
+          "p50_type1": 0.0,
+          "p95_type1": 32.044085673987865
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 868.169768651016,
+          "p50_type1": 566.4588306099176,
+          "p95_type1": 2580.743448343128
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 16.341298656176175,
+          "p50_type1": 14.218360913628844,
+          "p95_type1": 27.410851858024085
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 263.56741574034095,
+          "p50_type1": 84.31856706738472,
+          "p95_type1": 1697.61468982324
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 260.9119064165279,
+          "p50_type1": 152.5694616138935,
+          "p95_type1": 763.6589650064707
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 5,
+      "n": 500,
+      "joint_pass": 461,
+      "ttft_pass": 470,
+      "tpot_pass": 491,
+      "total_receive_ms": 46197.15291261673,
+      "total_overlap_ms": 16735.607816837728,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 1.8036348894238472,
+          "p50_type1": 1.363168004900217,
+          "p95_type1": 4.098839126527309
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.7603691685944796,
+          "p50_type1": 0.23288000375032425,
+          "p95_type1": 0.2951999194920063
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 92.39430582523346,
+          "p50_type1": 1.2016920372843742,
+          "p95_type1": 603.6000372841954
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 10.166745009832084,
+          "p50_type1": 0.5802661180496216,
+          "p95_type1": 28.276069089770317
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 33.471215633675456,
+          "p50_type1": 0.0,
+          "p95_type1": 136.581270955503
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 812.3804875770584,
+          "p50_type1": 539.6076338365674,
+          "p95_type1": 2250.5009854212403
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 15.505853511422519,
+          "p50_type1": 13.533114604393226,
+          "p95_type1": 25.541780443745665
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 239.70124285388738,
+          "p50_type1": 77.63954717665911,
+          "p95_type1": 1346.6990948654711
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 218.0413252292201,
+          "p50_type1": 139.59195604547858,
+          "p95_type1": 750.5899732932448
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 6,
+      "n": 500,
+      "joint_pass": 446,
+      "ttft_pass": 453,
+      "tpot_pass": 490,
+      "total_receive_ms": 75020.71045059711,
+      "total_overlap_ms": 29774.172259494662,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 1.9356365520507097,
+          "p50_type1": 1.4207237400114536,
+          "p95_type1": 4.780893679708242
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.5850135749205947,
+          "p50_type1": 0.23355986922979355,
+          "p95_type1": 0.3033396787941456
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 150.04142090119421,
+          "p50_type1": 1.690379809588194,
+          "p95_type1": 1004.5395619235933
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 16.01358979847282,
+          "p50_type1": 0.6104027852416039,
+          "p95_type1": 115.39184302091599
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 59.548344518989325,
+          "p50_type1": 0.0,
+          "p95_type1": 536.5863409824669
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 955.5427780328318,
+          "p50_type1": 612.8543158993125,
+          "p95_type1": 2608.57162065804
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 15.560395391865757,
+          "p50_type1": 13.73487849372859,
+          "p95_type1": 26.289414562698866
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 259.6790086887777,
+          "p50_type1": 84.24084912985563,
+          "p95_type1": 1651.2685231864452
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 267.64462847821414,
+          "p50_type1": 171.56217014417052,
+          "p95_type1": 839.6443570964038
+        }
+      }
+    },
+    {
+      "dimension": "phase",
+      "label": 7,
+      "n": 500,
+      "joint_pass": 441,
+      "ttft_pass": 444,
+      "tpot_pass": 496,
+      "total_receive_ms": 82684.10537485033,
+      "total_overlap_ms": 22475.79377517104,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 500,
+          "mean": 2.324226182885468,
+          "p50_type1": 1.7813467420637608,
+          "p95_type1": 5.9106480330228806
+        },
+        "publisher_submit_ms": {
+          "count": 500,
+          "mean": 0.5404414050281048,
+          "p50_type1": 0.23179827257990837,
+          "p95_type1": 0.298467930406332
+        },
+        "submit_to_service_receive_ms": {
+          "count": 500,
+          "mean": 165.36821074970067,
+          "p50_type1": 1.2810342013835907,
+          "p95_type1": 1103.6267913877964
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 500,
+          "mean": 18.931830101646483,
+          "p50_type1": 0.6130780093371868,
+          "p95_type1": 167.162308935076
+        },
+        "file_observation_overlap_ms": {
+          "count": 500,
+          "mean": 44.95158755034208,
+          "p50_type1": 0.0,
+          "p95_type1": 337.9628271795809
+        },
+        "ttft_ms": {
+          "count": 500,
+          "mean": 949.5804386008531,
+          "p50_type1": 534.1892265714705,
+          "p95_type1": 2993.31092229113
+        },
+        "tpot_ms": {
+          "count": 500,
+          "mean": 14.324223975704731,
+          "p50_type1": 13.230635764479052,
+          "p95_type1": 21.23217037561434
+        },
+        "admission_to_acquired_ms": {
+          "count": 500,
+          "mean": 296.79583675879985,
+          "p50_type1": 80.5005501024425,
+          "p95_type1": 2175.0112548470497
+        },
+        "runtime_slot_wait_ms": {
+          "count": 500,
+          "mean": 213.1497276313603,
+          "p50_type1": 122.83102096989751,
+          "p95_type1": 585.5842577293515
+        }
+      }
+    },
+    {
+      "dimension": "tier",
+      "label": "gpu",
+      "n": 1770,
+      "joint_pass": 1719,
+      "ttft_pass": 1751,
+      "tpot_pass": 1737,
+      "total_receive_ms": 147805.83879956976,
+      "total_overlap_ms": 42755.690642632544,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 1770,
+          "mean": 1.944214896967182,
+          "p50_type1": 1.3951947912573814,
+          "p95_type1": 4.382383078336716
+        },
+        "publisher_submit_ms": {
+          "count": 1770,
+          "mean": 0.7030022633130436,
+          "p50_type1": 0.23417407646775246,
+          "p95_type1": 0.300409272313118
+        },
+        "submit_to_service_receive_ms": {
+          "count": 1770,
+          "mean": 83.50612361557613,
+          "p50_type1": 1.0864618234336376,
+          "p95_type1": 585.2357251569629
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 1770,
+          "mean": 9.3999495929749,
+          "p50_type1": 0.5891770124435425,
+          "p95_type1": 31.18558321148157
+        },
+        "file_observation_overlap_ms": {
+          "count": 1770,
+          "mean": 24.155757425216127,
+          "p50_type1": 0.0,
+          "p95_type1": 108.76378789544106
+        },
+        "ttft_ms": {
+          "count": 1770,
+          "mean": 528.8453188119719,
+          "p50_type1": 373.6038184724748,
+          "p95_type1": 1424.0079545415938
+        },
+        "tpot_ms": {
+          "count": 1770,
+          "mean": 15.914741316519876,
+          "p50_type1": 13.90058167790081,
+          "p95_type1": 27.494213922182098
+        },
+        "admission_to_acquired_ms": {
+          "count": 1770,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "runtime_slot_wait_ms": {
+          "count": 1770,
+          "mean": 215.1781178087438,
+          "p50_type1": 136.20852306485176,
+          "p95_type1": 587.4283132143319
+        }
+      }
+    },
+    {
+      "dimension": "tier",
+      "label": "host",
+      "n": 1109,
+      "joint_pass": 1052,
+      "ttft_pass": 1077,
+      "tpot_pass": 1084,
+      "total_receive_ms": 80421.51665780693,
+      "total_overlap_ms": 29476.992161013186,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 1109,
+          "mean": 1.8267618430101518,
+          "p50_type1": 1.421804539859295,
+          "p95_type1": 4.266064614057541
+        },
+        "publisher_submit_ms": {
+          "count": 1109,
+          "mean": 0.4859160950173925,
+          "p50_type1": 0.23422064259648323,
+          "p95_type1": 0.2988590858876705
+        },
+        "submit_to_service_receive_ms": {
+          "count": 1109,
+          "mean": 72.51714757241382,
+          "p50_type1": 1.1287089437246323,
+          "p95_type1": 528.316609095782
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 1109,
+          "mean": 8.52999412618423,
+          "p50_type1": 0.5905330181121826,
+          "p95_type1": 22.525835782289505
+        },
+        "file_observation_overlap_ms": {
+          "count": 1109,
+          "mean": 26.57979455456554,
+          "p50_type1": 0.0,
+          "p95_type1": 111.1988048069179
+        },
+        "ttft_ms": {
+          "count": 1109,
+          "mean": 710.1684070026,
+          "p50_type1": 532.45854889974,
+          "p95_type1": 1810.7584002427757
+        },
+        "tpot_ms": {
+          "count": 1109,
+          "mean": 16.107796911234892,
+          "p50_type1": 14.081409467118126,
+          "p95_type1": 28.121811104938388
+        },
+        "admission_to_acquired_ms": {
+          "count": 1109,
+          "mean": 115.17616374816198,
+          "p50_type1": 92.70650707185268,
+          "p95_type1": 227.46412781998515
+        },
+        "runtime_slot_wait_ms": {
+          "count": 1109,
+          "mean": 249.74251660493994,
+          "p50_type1": 156.20513074100018,
+          "p95_type1": 780.6467767804861
+        }
+      }
+    },
+    {
+      "dimension": "tier",
+      "label": "nvme",
+      "n": 610,
+      "joint_pass": 592,
+      "ttft_pass": 600,
+      "tpot_pass": 602,
+      "total_receive_ms": 50384.66967875138,
+      "total_overlap_ms": 14295.276198070496,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 610,
+          "mean": 1.8521267195522297,
+          "p50_type1": 1.4257286675274372,
+          "p95_type1": 4.755642265081406
+        },
+        "publisher_submit_ms": {
+          "count": 610,
+          "mean": 0.7811611777812731,
+          "p50_type1": 0.23498805239796638,
+          "p95_type1": 0.3167688846588135
+        },
+        "submit_to_service_receive_ms": {
+          "count": 610,
+          "mean": 82.59781914549407,
+          "p50_type1": 1.150699332356453,
+          "p95_type1": 560.5657291598618
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 610,
+          "mean": 10.125643860731946,
+          "p50_type1": 0.5896957591176033,
+          "p95_type1": 27.14123297482729
+        },
+        "file_observation_overlap_ms": {
+          "count": 610,
+          "mean": 23.434879013230322,
+          "p50_type1": 0.0,
+          "p95_type1": 113.81309200078249
+        },
+        "ttft_ms": {
+          "count": 610,
+          "mean": 735.3636965125066,
+          "p50_type1": 571.2136761285365,
+          "p95_type1": 1740.0099989026785
+        },
+        "tpot_ms": {
+          "count": 610,
+          "mean": 15.547724374580284,
+          "p50_type1": 13.879306685541653,
+          "p95_type1": 25.100415520783926
+        },
+        "admission_to_acquired_ms": {
+          "count": 610,
+          "mean": 131.42349013112118,
+          "p50_type1": 112.11060406640172,
+          "p95_type1": 272.10866194218397
+        },
+        "runtime_slot_wait_ms": {
+          "count": 610,
+          "mean": 197.61387182506505,
+          "p50_type1": 111.96257080882788,
+          "p95_type1": 622.2983407787979
+        }
+      }
+    },
+    {
+      "dimension": "tier",
+      "label": "remote",
+      "n": 511,
+      "joint_pass": 321,
+      "ttft_pass": 330,
+      "tpot_pass": 494,
+      "total_receive_ms": 36358.6603961885,
+      "total_overlap_ms": 12075.789689552039,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 511,
+          "mean": 1.9229438124906177,
+          "p50_type1": 1.5598470345139503,
+          "p95_type1": 4.361468367278576
+        },
+        "publisher_submit_ms": {
+          "count": 511,
+          "mean": 1.0406276850857263,
+          "p50_type1": 0.23378711193799973,
+          "p95_type1": 0.3055250272154808
+        },
+        "submit_to_service_receive_ms": {
+          "count": 511,
+          "mean": 71.15197729195401,
+          "p50_type1": 1.1681243777275085,
+          "p95_type1": 482.7308519743383
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 511,
+          "mean": 11.133991323097986,
+          "p50_type1": 0.5825730040669441,
+          "p95_type1": 27.716490905731916
+        },
+        "file_observation_overlap_ms": {
+          "count": 511,
+          "mean": 23.63168236702943,
+          "p50_type1": 0.0,
+          "p95_type1": 60.268869157880545
+        },
+        "ttft_ms": {
+          "count": 511,
+          "mean": 1980.1909838103254,
+          "p50_type1": 1872.371128294617,
+          "p95_type1": 3650.4098889417946
+        },
+        "tpot_ms": {
+          "count": 511,
+          "mean": 16.70577391891417,
+          "p50_type1": 14.552608486630168,
+          "p95_type1": 29.72839413476842
+        },
+        "admission_to_acquired_ms": {
+          "count": 511,
+          "mean": 1372.3256215334682,
+          "p50_type1": 1217.6412399858236,
+          "p95_type1": 2788.01231412217
+        },
+        "runtime_slot_wait_ms": {
+          "count": 511,
+          "mean": 169.8772872728888,
+          "p50_type1": 65.5687521211803,
+          "p95_type1": 620.6369432620704
+        }
+      }
+    },
+    {
+      "dimension": "slo_group",
+      "label": "both",
+      "n": 9,
+      "joint_pass": 0,
+      "ttft_pass": 0,
+      "tpot_pass": 0,
+      "total_receive_ms": 1647.1075685694814,
+      "total_overlap_ms": 0.0,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 9,
+          "mean": 1.2319253033234014,
+          "p50_type1": 0.9684562683105469,
+          "p95_type1": 2.7501387521624565
+        },
+        "publisher_submit_ms": {
+          "count": 9,
+          "mean": 0.19309649036990273,
+          "p50_type1": 0.22657308727502823,
+          "p95_type1": 0.24186866357922554
+        },
+        "submit_to_service_receive_ms": {
+          "count": 9,
+          "mean": 183.01195206327571,
+          "p50_type1": 37.62579942122102,
+          "p95_type1": 591.6652199812233
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 9,
+          "mean": 46.15272597099344,
+          "p50_type1": 1.470695249736309,
+          "p95_type1": 278.05755427107215
+        },
+        "file_observation_overlap_ms": {
+          "count": 9,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "ttft_ms": {
+          "count": 9,
+          "mean": 3173.517517383314,
+          "p50_type1": 3249.9196785502136,
+          "p95_type1": 4842.598105315119
+        },
+        "tpot_ms": {
+          "count": 9,
+          "mean": 42.92210434805598,
+          "p50_type1": 42.63450843947275,
+          "p95_type1": 65.46452599154277
+        },
+        "admission_to_acquired_ms": {
+          "count": 9,
+          "mean": 1792.9618198217618,
+          "p50_type1": 1743.4828081168234,
+          "p95_type1": 3510.5460532940924
+        },
+        "runtime_slot_wait_ms": {
+          "count": 9,
+          "mean": 632.5563258594937,
+          "p50_type1": 511.57326763495803,
+          "p95_type1": 1169.5920550264418
+        }
+      }
+    },
+    {
+      "dimension": "slo_group",
+      "label": "pass",
+      "n": 3684,
+      "joint_pass": 3684,
+      "ttft_pass": 3684,
+      "tpot_pass": 3684,
+      "total_receive_ms": 256985.19330937415,
+      "total_overlap_ms": 80807.1970762685,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 3684,
+          "mean": 1.9087931371307107,
+          "p50_type1": 1.4305501244962215,
+          "p95_type1": 4.452993627637625
+        },
+        "publisher_submit_ms": {
+          "count": 3684,
+          "mean": 0.6858486761556418,
+          "p50_type1": 0.23462064564228058,
+          "p95_type1": 0.3039948642253876
+        },
+        "submit_to_service_receive_ms": {
+          "count": 3684,
+          "mean": 69.7571100188312,
+          "p50_type1": 1.0941289365291595,
+          "p95_type1": 478.73911960050464
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 3684,
+          "mean": 8.2132630890749,
+          "p50_type1": 0.5854051560163498,
+          "p95_type1": 20.82310291007161
+        },
+        "file_observation_overlap_ms": {
+          "count": 3684,
+          "mean": 21.93463547129981,
+          "p50_type1": 0.0,
+          "p95_type1": 103.25171705335379
+        },
+        "ttft_ms": {
+          "count": 3684,
+          "mean": 662.5554359642623,
+          "p50_type1": 480.78564647585154,
+          "p95_type1": 1768.1690650060773
+        },
+        "tpot_ms": {
+          "count": 3684,
+          "mean": 15.335528567014332,
+          "p50_type1": 13.90201527917502,
+          "p95_type1": 24.98478344641626
+        },
+        "admission_to_acquired_ms": {
+          "count": 3684,
+          "mean": 138.22390256516826,
+          "p50_type1": 79.04602494090796,
+          "p95_type1": 883.2413968630135
+        },
+        "runtime_slot_wait_ms": {
+          "count": 3684,
+          "mean": 201.63510020012814,
+          "p50_type1": 128.41397570446134,
+          "p95_type1": 610.7673840597272
+        }
+      }
+    },
+    {
+      "dimension": "slo_group",
+      "label": "tpot_only",
+      "n": 74,
+      "joint_pass": 0,
+      "ttft_pass": 74,
+      "tpot_pass": 0,
+      "total_receive_ms": 5283.665801398456,
+      "total_overlap_ms": 1656.9198053330183,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 74,
+          "mean": 1.4521460665540922,
+          "p50_type1": 1.3485727831721306,
+          "p95_type1": 2.744065597653389
+        },
+        "publisher_submit_ms": {
+          "count": 74,
+          "mean": 0.21961349616380962,
+          "p50_type1": 0.22652512416243553,
+          "p95_type1": 0.28470391407608986
+        },
+        "submit_to_service_receive_ms": {
+          "count": 74,
+          "mean": 71.40088920808725,
+          "p50_type1": 0.9767753072082996,
+          "p95_type1": 443.98043397814035
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 74,
+          "mean": 11.610108591314104,
+          "p50_type1": 0.6323428824543953,
+          "p95_type1": 95.44495400041342
+        },
+        "file_observation_overlap_ms": {
+          "count": 74,
+          "mean": 22.390808180175924,
+          "p50_type1": 0.0,
+          "p95_type1": 32.044085673987865
+        },
+        "ttft_ms": {
+          "count": 74,
+          "mean": 1029.9829838205935,
+          "p50_type1": 835.8732210472226,
+          "p95_type1": 2284.359167329967
+        },
+        "tpot_ms": {
+          "count": 74,
+          "mean": 45.05800347169512,
+          "p50_type1": 43.03232803940773,
+          "p95_type1": 67.97706126235425
+        },
+        "admission_to_acquired_ms": {
+          "count": 74,
+          "mean": 209.08594547418525,
+          "p50_type1": 84.62857408449054,
+          "p95_type1": 1304.827859159559
+        },
+        "runtime_slot_wait_ms": {
+          "count": 74,
+          "mean": 342.5663461770258,
+          "p50_type1": 217.8915748372674,
+          "p95_type1": 1041.5858360938728
+        }
+      }
+    },
+    {
+      "dimension": "slo_group",
+      "label": "ttft_only",
+      "n": 233,
+      "joint_pass": 0,
+      "ttft_pass": 0,
+      "tpot_pass": 233,
+      "total_receive_ms": 51054.718852974474,
+      "total_overlap_ms": 16139.631809666753,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 233,
+          "mean": 1.8412909218681728,
+          "p50_type1": 1.3304841704666615,
+          "p95_type1": 4.246849101036787
+        },
+        "publisher_submit_ms": {
+          "count": 233,
+          "mean": 1.059262793463187,
+          "p50_type1": 0.23220200091600418,
+          "p95_type1": 0.306583009660244
+        },
+        "submit_to_service_receive_ms": {
+          "count": 233,
+          "mean": 219.1189650342252,
+          "p50_type1": 6.104337051510811,
+          "p95_type1": 1145.4226430505514
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 233,
+          "mean": 27.603445480709553,
+          "p50_type1": 0.647909939289093,
+          "p95_type1": 131.47682463750243
+        },
+        "file_observation_overlap_ms": {
+          "count": 233,
+          "mean": 69.2688060500719,
+          "p50_type1": 0.0,
+          "p95_type1": 577.2755090147257
+        },
+        "ttft_ms": {
+          "count": 233,
+          "mean": 2740.1193163573516,
+          "p50_type1": 2721.053501125425,
+          "p95_type1": 4154.786122962832
+        },
+        "tpot_ms": {
+          "count": 233,
+          "mean": 16.466621497596766,
+          "p50_type1": 14.935834572522664,
+          "p95_type1": 28.206083857055223
+        },
+        "admission_to_acquired_ms": {
+          "count": 233,
+          "mean": 1580.8206600288945,
+          "p50_type1": 1697.61468982324,
+          "p95_type1": 3124.650019686669
+        },
+        "runtime_slot_wait_ms": {
+          "count": 233,
+          "mean": 391.9092247166667,
+          "p50_type1": 176.31461890414357,
+          "p95_type1": 1547.345238737762
+        }
+      }
+    },
+    {
+      "dimension": "submitted_inside_observation",
+      "label": false,
+      "n": 3664,
+      "joint_pass": 3380,
+      "ttft_pass": 3449,
+      "tpot_pass": 3586,
+      "total_receive_ms": 210515.4737844132,
+      "total_overlap_ms": 7527.128771878779,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 3664,
+          "mean": 1.9023544730783306,
+          "p50_type1": 1.4144685119390488,
+          "p95_type1": 4.43610642105341
+        },
+        "publisher_submit_ms": {
+          "count": 3664,
+          "mean": 0.6999942861948829,
+          "p50_type1": 0.2347179688513279,
+          "p95_type1": 0.3042612224817276
+        },
+        "submit_to_service_receive_ms": {
+          "count": 3664,
+          "mean": 57.45509655688133,
+          "p50_type1": 1.025184988975525,
+          "p95_type1": 371.8615579418838
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 3664,
+          "mean": 9.847052488120184,
+          "p50_type1": 0.5896957591176033,
+          "p95_type1": 27.973453048616648
+        },
+        "file_observation_overlap_ms": {
+          "count": 3664,
+          "mean": 2.054347372237658,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "ttft_ms": {
+          "count": 3664,
+          "mean": 773.4445980020522,
+          "p50_type1": 489.5469769835472,
+          "p95_type1": 2304.105539340526
+        },
+        "tpot_ms": {
+          "count": 3664,
+          "mean": 16.059261505729854,
+          "p50_type1": 14.06597686166476,
+          "p95_type1": 27.842632339646418
+        },
+        "admission_to_acquired_ms": {
+          "count": 3664,
+          "mean": 226.30709534694998,
+          "p50_type1": 82.08554098382592,
+          "p95_type1": 1397.2003073431551
+        },
+        "runtime_slot_wait_ms": {
+          "count": 3664,
+          "mean": 214.88224725492145,
+          "p50_type1": 122.79448006302118,
+          "p95_type1": 682.5443678535521
+        }
+      }
+    },
+    {
+      "dimension": "submitted_inside_observation",
+      "label": true,
+      "n": 336,
+      "joint_pass": 304,
+      "ttft_pass": 309,
+      "tpot_pass": 331,
+      "total_receive_ms": 104455.21174790338,
+      "total_overlap_ms": 91076.61991938949,
+      "metrics": {
+        "publisher_wakeup_ms": {
+          "count": 336,
+          "mean": 1.8134941942878955,
+          "p50_type1": 1.5071737580001354,
+          "p95_type1": 4.204402677714825
+        },
+        "publisher_submit_ms": {
+          "count": 336,
+          "mean": 0.6746576081717476,
+          "p50_type1": 0.23087672889232635,
+          "p95_type1": 0.2951999194920063
+        },
+        "submit_to_service_receive_ms": {
+          "count": 336,
+          "mean": 310.87860639256957,
+          "p50_type1": 151.43131185323,
+          "p95_type1": 1073.0295614339411
+        },
+        "service_receive_to_dequeue_ms": {
+          "count": 336,
+          "mean": 5.607697232681814,
+          "p50_type1": 0.5751149728894234,
+          "p95_type1": 20.052120089530945
+        },
+        "file_observation_overlap_ms": {
+          "count": 336,
+          "mean": 271.0613688077068,
+          "p50_type1": 113.81309200078249,
+          "p95_type1": 1013.9477588236332
+        },
+        "ttft_ms": {
+          "count": 336,
+          "mean": 1042.2066017358918,
+          "p50_type1": 788.909858558327,
+          "p95_type1": 2529.1836699470878
+        },
+        "tpot_ms": {
+          "count": 336,
+          "mean": 15.512699669239897,
+          "p50_type1": 13.694550372336222,
+          "p95_type1": 26.745477505028248
+        },
+        "admission_to_acquired_ms": {
+          "count": 336,
+          "mean": 237.9996721103366,
+          "p50_type1": 82.23068993538618,
+          "p95_type1": 1464.3127168528736
+        },
+        "runtime_slot_wait_ms": {
+          "count": 336,
+          "mean": 231.7051223335078,
+          "p50_type1": 172.15106869116426,
+          "p95_type1": 490.09539000689983
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Same-clock observed synchronous-call wall intervals, not pure CPU or lock-holding time.",
+    "An interval overlaps socket delivery/receiver scheduling; no counterfactual latency subtraction or improved SLO is computed.",
+    "Conditional overlap cohorts differ in arrival, tier and load; association is not a randomized causal comparison.",
+    "Duplicate per-replica observations are counted once per round; no source-state caching is introduced.",
+    "No new numerical correctness evidence and no promotion of development results."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/stages/diagnosis.json",
+      "sha256": "e29f5912bf1cf55442f077a221961bd860b366d3d1b8bc685b2958d065bc8e42",
+      "bytes": 229387
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/stages/requests.csv",
+      "sha256": "c1c9a2271f9f2e77c5700587be083a62f7798e19436bf71da0ee1249028e3ef5",
+      "bytes": 2453658
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d842_20261025/analyze.py",
+      "sha256": "1ca53f0594b27e1c532c0c97a46b12f418237b3ee65e911c3144f179dc64d2ce",
+      "bytes": 9701
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "09e686f536c613f31bf20b27400128bbdfbf8b360b388559751a7444d438dad4",
+      "bytes": 104795
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "8a5f1bf18944a0c168525eddbde8eaed1b61e3b05d4f6279d0f9d81e8efec473",
+      "bytes": 88017
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "82eb8dc67173d99d7bf01ddbf5aa742de994f55d12d3910425efa3c5d8abf315",
+      "bytes": 1358426
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+      "bytes": 263323
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "bytes": 82192
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/3b_max3_full_w2/compression_receipt.json",
+      "sha256": "c96f180c9bb709a8f652126410d36c4a3c9ca4bc0c3610f20286db024fcc8732",
+      "bytes": 1477
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "sha256": "4b50fb38087faba3d023bd7cdcb196e6d7609d8948616b9fa94fb84863f6a38d",
+      "bytes": 114922078
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d840_3b_max3_full_w2.json.compression_receipt.json",
+      "sha256": "7f2da744a8b9a325887cd8a01abf4ac1a19e9a2d943cd1554932aa07e430d6d4",
+      "bytes": 1554
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d840_3b_max3_full_w2.json.gz",
+      "sha256": "ae36bfa6c233cf3dbe5b1908f6228d242f27db70d249aa7c6a92c4a33b293127",
+      "bytes": 51726623
+    }
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84200000000000000000000000000001.scope",
+    "memory.current": 619761664,
+    "memory.peak": 619761664,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 28798538\nuser_usec 27303289\nsystem_usec 1495249\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

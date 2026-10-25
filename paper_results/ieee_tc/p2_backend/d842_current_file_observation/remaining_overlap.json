@@ -1,0 +1,214 @@
+{
+  "passed": true,
+  "n": 4000,
+  "groups": [
+    {
+      "label": "all",
+      "n": 4000,
+      "intervals": {
+        "arrival_to_first": {
+          "overlapping_requests": 1388,
+          "overlap_ms": {
+            "count": 4000,
+            "mean": 68.52006470703054,
+            "p50_type1": 0.0,
+            "p95_type1": 339.5393346436322
+          }
+        },
+        "admission_to_acquired": {
+          "overlapping_requests": 343,
+          "overlap_ms": {
+            "count": 4000,
+            "mean": 15.995555994100869,
+            "p50_type1": 0.0,
+            "p95_type1": 91.95981035009027
+          }
+        },
+        "decode": {
+          "overlapping_requests": 2294,
+          "overlap_ms": {
+            "count": 4000,
+            "mean": 132.1789320402313,
+            "p50_type1": 52.60050809010863,
+            "p95_type1": 564.7279820404947
+          }
+        }
+      }
+    },
+    {
+      "label": "ttft_fail",
+      "n": 242,
+      "intervals": {
+        "arrival_to_first": {
+          "overlapping_requests": 197,
+          "overlap_ms": {
+            "count": 242,
+            "mean": 277.96442403789024,
+            "p50_type1": 157.426078338176,
+            "p95_type1": 1176.5948687680066
+          }
+        },
+        "admission_to_acquired": {
+          "overlapping_requests": 118,
+          "overlap_ms": {
+            "count": 242,
+            "mean": 153.71657959724322,
+            "p50_type1": 0.0,
+            "p95_type1": 671.9458717852831
+          }
+        },
+        "decode": {
+          "overlapping_requests": 123,
+          "overlap_ms": {
+            "count": 242,
+            "mean": 109.35675266414327,
+            "p50_type1": 16.272021923214197,
+            "p95_type1": 391.47027721628547
+          }
+        }
+      }
+    },
+    {
+      "label": "remote_ttft_fail",
+      "n": 181,
+      "intervals": {
+        "arrival_to_first": {
+          "overlapping_requests": 156,
+          "overlap_ms": {
+            "count": 181,
+            "mean": 301.0669412086229,
+            "p50_type1": 172.5460891611874,
+            "p95_type1": 1184.4163900241256
+          }
+        },
+        "admission_to_acquired": {
+          "overlapping_requests": 114,
+          "overlap_ms": {
+            "count": 181,
+            "mean": 203.34943861170615,
+            "p50_type1": 115.27586914598942,
+            "p95_type1": 833.3008568733931
+          }
+        },
+        "decode": {
+          "overlapping_requests": 96,
+          "overlap_ms": {
+            "count": 181,
+            "mean": 116.88548235418223,
+            "p50_type1": 46.5218098834157,
+            "p95_type1": 391.47027721628547
+          }
+        }
+      }
+    },
+    {
+      "label": "nonremote_ttft_fail",
+      "n": 61,
+      "intervals": {
+        "arrival_to_first": {
+          "overlapping_requests": 41,
+          "overlap_ms": {
+            "count": 61,
+            "mean": 209.4143321050606,
+            "p50_type1": 37.84161899238825,
+            "p95_type1": 1018.6589416116476
+          }
+        },
+        "admission_to_acquired": {
+          "overlapping_requests": 4,
+          "overlap_ms": {
+            "count": 61,
+            "mean": 6.445309406787645,
+            "p50_type1": 0.0,
+            "p95_type1": 40.159186348319054
+          }
+        },
+        "decode": {
+          "overlapping_requests": 27,
+          "overlap_ms": {
+            "count": 61,
+            "mean": 87.01740719042108,
+            "p50_type1": 0.0,
+            "p95_type1": 363.2418988272548
+          }
+        }
+      }
+    },
+    {
+      "label": "tpot_fail",
+      "n": 83,
+      "intervals": {
+        "arrival_to_first": {
+          "overlapping_requests": 36,
+          "overlap_ms": {
+            "count": 83,
+            "mean": 109.84248100746288,
+            "p50_type1": 0.0,
+            "p95_type1": 691.5693818591535
+          }
+        },
+        "admission_to_acquired": {
+          "overlapping_requests": 9,
+          "overlap_ms": {
+            "count": 83,
+            "mean": 44.20415078660092,
+            "p50_type1": 0.0,
+            "p95_type1": 363.37148677557707
+          }
+        },
+        "decode": {
+          "overlapping_requests": 13,
+          "overlap_ms": {
+            "count": 83,
+            "mean": 14.649187730827245,
+            "p50_type1": 0.0,
+            "p95_type1": 92.34559675678611
+          }
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/stages/requests.csv",
+      "sha256": "c1c9a2271f9f2e77c5700587be083a62f7798e19436bf71da0ee1249028e3ef5",
+      "bytes": 2453658
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d842_current_file_observation/rounds.csv",
+      "sha256": "f6937c976124c97b920f3b7675e4d49ceb6bf4636dbac204fc89477056f7803d",
+      "bytes": 225738
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d842_20261025/remaining_overlap.py",
+      "sha256": "2284bbda81e17692b8849c969c603f1103b36de0f4ab8346bef29ff64b32fd37",
+      "bytes": 3045
+    }
+  ],
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84200000000000000000000000000002.scope",
+    "memory.current": 612462592,
+    "memory.peak": 612462592,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 24234915\nuser_usec 23005274\nsystem_usec 1229640\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "limitations": [
+    "Overlapping envelopes are associations, not attributable delay, pure CPU, GPU stalls or achievable speedup.",
+    "Controller and native decode run in different processes. No counterfactual SLO and no added requests."
+  ]
+}

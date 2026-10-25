@@ -1,0 +1,9 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/inventory_storage.py",
+  "source_sha256": "d614c31f8ed1da36e6b1b4212c81376918759cd86b0aaf53b7cb4bf06bb2fa42",
+  "changes": [
+    "all-home read-only metadata scope",
+    "verify retained protection seal instead of prior maintenance dependency"
+  ],
+  "no_deletion": true
+}

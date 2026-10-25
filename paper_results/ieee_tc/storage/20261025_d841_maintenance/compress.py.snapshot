@@ -1,0 +1,48 @@
+"""Reuse the unchanged closed-evidence archiver; keep all historical bytes."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+own = p.scope_identity(p.cg_path().name)
+with (RAW/'storage_identity.json').open('x') as f:
+    json.dump(own, f, indent=2)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+user = ROOT/'configs/generated/lora_manifest_1000.json'
+user_sha = p.digest(user)
+assert user_sha == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+targets = ['d719_20261022/3b_identity_full_w0', 'd629_20261017/7b_private_verify_full_w2',
+           'd632_20261017/7b_min2_full_w2', 'd624_20261017/7b_device_domain_full_w0',
+           'd633_20261017/7b_min2_full_w1', 'd668_20261018/3b_full_w0_prefix1',
+           'd734_20261022/3b_controller_prefix1000', 'd713_20261022/3b_control_prefix1000']
+inventory = {row['run']: row for row in json.loads((RAW/'uncompressed_candidates.json').read_text())}
+for run in targets:
+    row = inventory[run]
+    assert row['released'] and row['launch_pass'] and not row['already_archived']
+    assert Path(row['path']).stat().st_size == row['bytes']
+c.TARGETS = [dict(run=run, audit_sha=None) for run in targets]
+c.OUT = ROOT/'paper_results/ieee_tc/storage/20261025_d841_closed_outcomes.json'
+assert c.main() == 0
+assert p.verify_seal(seal)['pass'] and p.digest(user) == user_sha
+group = Path(own['path'])
+receipt = json.loads(c.OUT.read_text())
+verification = dict(passed=True, identity=own, resources=p.cgroup_snapshot(group),
+    protected_147_unchanged=True, user_manifest_sha256=user_sha,
+    compressor_sha256=p.digest(Path(c.__file__)), source_script_sha256=p.digest(Path(__file__)),
+    receipt_sha256=p.digest(c.OUT), reclaimed_bytes=sum(r['allocated_bytes_reclaimed'] for r in receipt['entries']),
+    known_prior_analysis_sha_checked=False,
+    limitation='Archive preserves each current source exactly; absent audit_sha does not qualify historical metrics for reuse. All source hashes and two round trips retained.',
+    no_new_performance_run=True)
+assert all(int(row.split()[1]) == 0 for row in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+with c.OUT.with_name(c.OUT.stem+'_verification.json').open('x') as f:
+    json.dump(verification, f, indent=2)
+print(json.dumps(verification), flush=True)

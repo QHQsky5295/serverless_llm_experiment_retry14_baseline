@@ -1,0 +1,35 @@
+"""D841 bounded storage inventory, reusing D483 without deleting any data."""
+import json
+import os
+from pathlib import Path
+import sys
+
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+
+source = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/inventory_storage.py')
+program = source.read_text()
+program = program.replace("assert json.loads((ROOT/'storage_closure.json').read_text())['passed']", "assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']")
+start = program.index('roots = [')
+end = program.index('\nstart = time.monotonic()', start)
+program = program[:start] + "roots = ['/home/qhq']\n" + program[end:]
+program = program.replace('Read-only metadata, known experiment/cache roots only;', 'Read-only /home/qhq filesystem metadata including other projects;')
+with (RAW/'inventory_reuse.json').open('x') as out:
+    json.dump({'source': str(source), 'source_sha256': p.digest(source), 'changes': ['all-home read-only metadata scope', 'verify retained protection seal instead of prior maintenance dependency'], 'no_deletion': True}, out, indent=2)
+exec(compile(program, str(source), 'exec'), {'__file__': str(__file__), '__name__': '__main__'})
+rows = []
+for path in RAW.parent.glob('*/*/launch.launch/physical_deployment/main_outcome.json'):
+    if path.is_symlink() or not path.is_file():
+        continue
+    run = path.parents[2]
+    launch = run/'launch.json'
+    if not launch.exists():
+        continue
+    state = json.loads(launch.read_text())
+    st = path.stat()
+    rows.append({'path': str(path), 'run': str(run.relative_to(RAW.parent)), 'bytes': st.st_size, 'allocated_bytes': st.st_blocks*512, 'launch_pass': state.get('pass'), 'released': state.get('service_path_removed') is True and state.get('native_gpu_context_release_confirmed') is True, 'already_archived': path.with_suffix('.json.gz').exists()})
+with (RAW/'uncompressed_candidates.json').open('x') as out:
+    json.dump(sorted(rows, key=lambda r: r['allocated_bytes'], reverse=True), out, indent=2)
+print(json.dumps({'candidate_count': len(rows), 'top_candidates': sorted(rows, key=lambda r: r['allocated_bytes'], reverse=True)[:12]}), flush=True)

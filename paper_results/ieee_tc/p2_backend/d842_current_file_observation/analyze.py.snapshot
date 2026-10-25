@@ -1,0 +1,152 @@
+"""Join existing synchronous file-observation intervals to all D840 arrivals.
+
+No counterfactual latency subtraction, new profiling, or production change.
+Uses retained D703 stage/interval and D402 descriptive-statistics helpers.
+"""
+import bisect
+import csv
+import gzip
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import clipped_interval_union, ref, digest
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d842_current_file_observation'
+if OUT.exists():
+    raise FileExistsError(OUT)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+own = p.scope_identity(p.cg_path().name)
+with (RAW/'identity.json').open('x') as f:
+    json.dump(own, f, indent=2)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+stage_path = ROOT/'paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/stages/diagnosis.json'
+stage = json.loads(stage_path.read_text())
+assert stage['passed'] and stage['counts']['n'] == 4000
+table = Path(stage['request_table']['path'])
+assert digest(table) == stage['request_table']['sha256']
+with table.open(newline='') as f:
+    retained = {r['request_id']: r for r in csv.DictReader(f)}
+assert len(retained) == 4000
+run = Path(stage['source_run'])
+outcome = run/'launch.launch/physical_deployment/main_outcome.json'
+result_ref = next(x for x in stage['source_refs'] if Path(x['path']).name.startswith('experiment_results_full'))
+sources = [stage_path, table, Path(__file__), ROOT/'scripts/ieee_tc/audit_d703_3b_full.py',
+    ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py', ROOT/'scripts/run_all_experiments.py',
+    ROOT/'faaslora/memory/residency_manager.py', ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md', Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
+
+def archive(original, receipt_path, expected=None):
+    receipt = json.loads(receipt_path.read_text())
+    compressed = Path(receipt['archive'])
+    assert receipt['source'] == str(original)
+    assert receipt['first_roundtrip_sha256'] == receipt['second_roundtrip_sha256'] == receipt['source_sha256']
+    if expected is not None:
+        assert receipt['source_sha256'] == expected
+    assert digest(compressed) == receipt['archive_sha256']
+    sources.extend([receipt_path, compressed])
+    return compressed
+
+outcome_archive = archive(outcome, run/'compression_receipt.json', '913f261443c1879b703a7f094234c9aa48121aaf7d369d4fd594cbc573f5ec01')
+result_archive = archive(Path(result_ref['path']), Path(result_ref['path']+'.compression_receipt.json'), result_ref['sha256'])
+rounds, epochs = {}, 0
+with gzip.open(outcome_archive, 'rb') as f:
+    for event in ijson.items(f, 'mechanism_events._ieee_residency_epochs.item', use_float=True):
+        observation = event['shared_file_observation']
+        epochs += 1
+        rid = observation['round_id']
+        if rid in rounds:
+            assert rounds[rid] == observation
+        else:
+            assert observation['physical_resources_reserved'] is False
+            assert all(math.isfinite(observation[k]) for k in ('started_at','captured_at','elapsed_ms'))
+            assert observation['elapsed_ms'] >= 0
+            assert observation['started_at'] <= observation['captured_at'] <= observation['started_at']+observation['elapsed_ms']/1000
+            rounds[rid] = observation
+ordered = sorted(rounds.values(), key=lambda x:x['started_at'])
+spans = [(r['started_at'], r['started_at']+r['elapsed_ms']/1000) for r in ordered]
+assert spans and all(a[1] <= b[0] for a,b in zip(spans,spans[1:]))
+rows = []
+errors = []
+with gzip.open(result_archive, 'rb') as f:
+    for request in ijson.items(f, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        old = retained[request['request_id']]
+        ext = request['external_arrival_timing']
+        assert ext['index'] == int(old['ordinal'])
+        times = [ext[k] for k in ('planned_arrival_s','task_created_s','client_submit_s','server_received_s','service_dequeued_s')]
+        assert all(math.isfinite(t) for t in times) and times == sorted(times)
+        publisher_wakeup, publisher_submit, transport, dequeue = [(b-a)*1000 for a,b in zip(times,times[1:])]
+        errors.append(abs(publisher_wakeup+publisher_submit+transport-float(old['arrival_release_lateness_ms'])))
+        overlap, count = clipped_interval_union(times[2], times[3], spans)
+        assert -1e-6 <= overlap*1000 <= transport+1e-6
+        active_at_submit = [r for r in ordered if r['started_at'] <= times[2] < r['started_at']+r['elapsed_ms']/1000]
+        assert len(active_at_submit) <= 1
+        rows.append(dict(request_id=request['request_id'], ordinal=ext['index'], phase=ext['index']//500,
+            tier=old['tier'], slo_group=old['slo_group'], joint_pass=old['joint_pass']=='True',
+            ttft_pass=old['ttft_pass']=='True', tpot_pass=old['tpot_pass']=='True',
+            planned_arrival_s=times[0], client_submit_s=times[2], server_received_s=times[3],
+            publisher_wakeup_ms=publisher_wakeup,publisher_submit_ms=publisher_submit,
+            submit_to_service_receive_ms=transport,service_receive_to_dequeue_ms=dequeue,
+            file_observation_overlap_ms=overlap*1000,file_observation_overlap_count=count,
+            submitted_inside_observation=bool(active_at_submit),
+            containing_round_id=active_at_submit[0]['round_id'] if active_at_submit else None,
+            **{k:float(old[k]) for k in ('ttft_ms','tpot_ms','admission_to_acquired_ms','runtime_slot_wait_ms')}))
+rows.sort(key=lambda r:r['ordinal'])
+assert [r['ordinal'] for r in rows] == list(range(4000)) and max(errors) < 1
+assert sum(r['joint_pass'] for r in rows) == stage['counts']['joint_pass']
+arrival_boundaries = [rows[index]['planned_arrival_s'] for index in range(0,4000,500)]
+round_rows = [dict(r,phase=max(0,bisect.bisect_right(arrival_boundaries,r['started_at'])-1)) for r in ordered]
+metrics = ('publisher_wakeup_ms','publisher_submit_ms','submit_to_service_receive_ms',
+    'service_receive_to_dequeue_ms','file_observation_overlap_ms','ttft_ms','tpot_ms',
+    'admission_to_acquired_ms','runtime_slot_wait_ms')
+groups = []
+for dimension in ('all','phase','tier','slo_group','submitted_inside_observation'):
+    labels = ['all'] if dimension=='all' else sorted({r[dimension] for r in rows}, key=str)
+    for label in labels:
+        selected = rows if dimension=='all' else [r for r in rows if r[dimension]==label]
+        groups.append(dict(dimension=dimension,label=label,n=len(selected),
+            joint_pass=sum(r['joint_pass'] for r in selected),ttft_pass=sum(r['ttft_pass'] for r in selected),
+            tpot_pass=sum(r['tpot_pass'] for r in selected),
+            total_receive_ms=math.fsum(r['submit_to_service_receive_ms'] for r in selected),
+            total_overlap_ms=math.fsum(r['file_observation_overlap_ms'] for r in selected),
+            metrics={key:timing_stats([r[key] for r in selected]) for key in metrics}))
+report = dict(kind='d842_observed_file_round_ingress_overlap_v1',passed=True,source_run=str(run),
+    counts=stage['counts'],n_correct=None,ranking_eligible=False,confidence_interval=None,
+    new_performance_runs=0,new_instrumentation=False,production_changes=False,
+    epochs=epochs,unique_rounds=len(ordered),max_partition_error_ms=max(errors),
+    rounds_elapsed_ms=timing_stats([r['elapsed_ms'] for r in ordered]),
+    round_phase_groups=[dict(phase=phase,n=sum(r['phase']==phase for r in round_rows),
+        elapsed_ms=timing_stats([r['elapsed_ms'] for r in round_rows if r['phase']==phase])) for phase in range(8)],
+    groups=groups,limitations=[
+        'Same-clock observed synchronous-call wall intervals, not pure CPU or lock-holding time.',
+        'An interval overlaps socket delivery/receiver scheduling; no counterfactual latency subtraction or improved SLO is computed.',
+        'Conditional overlap cohorts differ in arrival, tier and load; association is not a randomized causal comparison.',
+        'Duplicate per-replica observations are counted once per round; no source-state caching is introduced.',
+        'No new numerical correctness evidence and no promotion of development results.'])
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+OUT.mkdir(parents=True,exist_ok=False)
+for name,data in (('requests',rows),('rounds',round_rows)):
+    with (OUT/(name+'.csv')).open('x',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(data[0]),lineterminator='\n')
+        writer.writeheader();writer.writerows(data)
+report['source_refs']=[ref(path) for path in sources]
+report['resources']=p.cgroup_snapshot(Path(own['path']))
+with (OUT/'diagnosis.json').open('x') as f:
+    json.dump(report,f,indent=2,allow_nan=False)
+with (OUT/'analyze.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+files=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()]
+with (OUT/'manifest.json').open('x') as f:
+    json.dump(dict(files=files,protected_147_unchanged=True),f,indent=2)
+print(json.dumps({key:report[key] for key in ('passed','unique_rounds','rounds_elapsed_ms','round_phase_groups','max_partition_error_ms')}),flush=True)
+print(json.dumps([g for g in groups if g['dimension'] in ('all','submitted_inside_observation')]),flush=True)

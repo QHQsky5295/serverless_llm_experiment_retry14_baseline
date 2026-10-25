@@ -1,0 +1,12 @@
+{
+  "status": "bounded_partial_timeout",
+  "timeout_s": 300,
+  "raw_exit_code": 1,
+  "roots": [
+    "/home/qhq"
+  ],
+  "inventory_sha256": "f875e74a1ae8b3f198fc7f8aa99f63dedc58edc1d1142051d4a28d7465b68fb2",
+  "errors_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scope": "Metadata inventory reached other projects but did not complete the entire home directory; no data removed. Do not rerun the broad scan for this maintenance.",
+  "launch_script_sha256": "053a9ab6950a045cae7eacbec74766d24b9df635a52eee6ede734a068a8f2c4b"
+}

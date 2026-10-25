@@ -1,0 +1,722 @@
+[
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d719_20261022/3b_identity_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d719_20261022/3b_identity_full_w0",
+    "bytes": 839015510,
+    "allocated_bytes": 839020544,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d629_20261017/7b_private_verify_full_w2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d629_20261017/7b_private_verify_full_w2",
+    "bytes": 589079699,
+    "allocated_bytes": 589086720,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d632_20261017/7b_min2_full_w2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d632_20261017/7b_min2_full_w2",
+    "bytes": 568741902,
+    "allocated_bytes": 568750080,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d624_20261017/7b_device_domain_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d624_20261017/7b_device_domain_full_w0",
+    "bytes": 518234197,
+    "allocated_bytes": 518242304,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d633_20261017/7b_min2_full_w1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d633_20261017/7b_min2_full_w1",
+    "bytes": 353537633,
+    "allocated_bytes": 353542144,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d668_20261018/3b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d668_20261018/3b_full_w0_prefix1",
+    "bytes": 277914301,
+    "allocated_bytes": 277921792,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d734_20261022/3b_controller_prefix1000/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d734_20261022/3b_controller_prefix1000",
+    "bytes": 218348548,
+    "allocated_bytes": 218353664,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d713_20261022/3b_control_prefix1000/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d713_20261022/3b_control_prefix1000",
+    "bytes": 179151130,
+    "allocated_bytes": 179159040,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d664_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d664_20261018/3b_full_smoke100",
+    "bytes": 31926747,
+    "allocated_bytes": 31928320,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d694_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d694_20261018/3b_full_smoke100",
+    "bytes": 30788485,
+    "allocated_bytes": 30789632,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d718_20261022/3b_identity_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d718_20261022/3b_identity_smoke100",
+    "bytes": 30524366,
+    "allocated_bytes": 30527488,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/3b_step_components100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d723_20261022/3b_step_components100",
+    "bytes": 30058277,
+    "allocated_bytes": 30060544,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d659_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d659_20261018/3b_full_smoke100",
+    "bytes": 29199491,
+    "allocated_bytes": 29200384,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d310_20261007/7b_prefill_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d310_20261007/7b_prefill_validation_100",
+    "bytes": 28106552,
+    "allocated_bytes": 28106752,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d676_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d676_20261018/3b_full_smoke100",
+    "bytes": 27939365,
+    "allocated_bytes": 27942912,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d298_20261007/7b_capacity_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d298_20261007/7b_capacity_validation_100",
+    "bytes": 26538144,
+    "allocated_bytes": 26542080,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d302_20261007/7b_frontier_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d302_20261007/7b_frontier_validation_100",
+    "bytes": 26514945,
+    "allocated_bytes": 26517504,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d312_20261007/7b_prefill_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d312_20261007/7b_prefill_validation_100",
+    "bytes": 25775537,
+    "allocated_bytes": 25776128,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d378_20261010/7b_capacity_revalidation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d378_20261010/7b_capacity_revalidation_100",
+    "bytes": 23995084,
+    "allocated_bytes": 23998464,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d110_20260928/3b_full_w0_profile4/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d110_20260928/3b_full_w0_profile4",
+    "bytes": 23847702,
+    "allocated_bytes": 23851008,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d331_20261008/7b_planning_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d331_20261008/7b_planning_validation_100",
+    "bytes": 23798168,
+    "allocated_bytes": 23801856,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d296_20261007/7b_lifecycle_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d296_20261007/7b_lifecycle_validation_100",
+    "bytes": 23187151,
+    "allocated_bytes": 23187456,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d96_20260928/3b_full_w0_attempt3/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d96_20260928/3b_full_w0_attempt3",
+    "bytes": 23016024,
+    "allocated_bytes": 23019520,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d352_20261008/7b_hit_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d352_20261008/7b_hit_validation_100",
+    "bytes": 22851424,
+    "allocated_bytes": 22851584,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d293_20261006/7b_prefetch_validation_100",
+    "bytes": 22718174,
+    "allocated_bytes": 22720512,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d363_20261009/7b_file_demand_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d363_20261009/7b_file_demand_validation_100",
+    "bytes": 22003810,
+    "allocated_bytes": 22007808,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d331_20261008/7b_planning_validation_100_attempt2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d331_20261008/7b_planning_validation_100_attempt2",
+    "bytes": 21766770,
+    "allocated_bytes": 21770240,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d317_20261007/7b_copy_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d317_20261007/7b_copy_validation_100",
+    "bytes": 20806617,
+    "allocated_bytes": 20807680,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d268_20261006/7b_identity_diag_prefix/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d268_20261006/7b_identity_diag_prefix",
+    "bytes": 20674241,
+    "allocated_bytes": 20676608,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry7/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d216_20261004/7b_route_identity_scope_validation_retry7",
+    "bytes": 20443795,
+    "allocated_bytes": 20447232,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d345_20261008/7b_capacity_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d345_20261008/7b_capacity_validation_100",
+    "bytes": 20124152,
+    "allocated_bytes": 20127744,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d322_20261007/7b_length_validation_100_attempt2",
+    "bytes": 20068230,
+    "allocated_bytes": 20070400,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d308_20261007/7b_prefill_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d308_20261007/7b_prefill_validation_100",
+    "bytes": 19696118,
+    "allocated_bytes": 19697664,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_full_w0_attempt1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d92_20260928/3b_full_w0_attempt1",
+    "bytes": 19014585,
+    "allocated_bytes": 19017728,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d290_20261006/7b_route_frontier_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d290_20261006/7b_route_frontier_validation_100",
+    "bytes": 18221182,
+    "allocated_bytes": 18223104,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_route_identity_cold_validation/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d215_20261004/7b_route_identity_cold_validation",
+    "bytes": 17930084,
+    "allocated_bytes": 17932288,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d217_20261005/7b_confirmed_snapshot_cache_validation_retry10/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d217_20261005/7b_confirmed_snapshot_cache_validation_retry10",
+    "bytes": 17887019,
+    "allocated_bytes": 17887232,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d263_20261006/7b_router_smoke_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d263_20261006/7b_router_smoke_100",
+    "bytes": 17394610,
+    "allocated_bytes": 17395712,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d334_20261008/7b_native_pending_validation_100",
+    "bytes": 16562034,
+    "allocated_bytes": 16564224,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d369_20261010/7b_stale_identity_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d369_20261010/7b_stale_identity_validation_100",
+    "bytes": 16427070,
+    "allocated_bytes": 16429056,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d464_20261012/7b_host_queue_validation_100",
+    "bytes": 16131665,
+    "allocated_bytes": 16134144,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d357_20261008/7b_interleave_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d357_20261008/7b_interleave_validation_100",
+    "bytes": 15832330,
+    "allocated_bytes": 15835136,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d123_20260930/7b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d123_20260930/7b_full_w0_prefix1",
+    "bytes": 15077467,
+    "allocated_bytes": 15081472,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d597_20261017/7b_parallel_pressure_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d597_20261017/7b_parallel_pressure_validation_100",
+    "bytes": 11558991,
+    "allocated_bytes": 11563008,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d550_20261015/7b_initial_control_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d550_20261015/7b_initial_control_validation_100",
+    "bytes": 8384569,
+    "allocated_bytes": 8388608,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d471_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d471_20261012/7b_cpu_frontend_validation_100",
+    "bytes": 8081473,
+    "allocated_bytes": 8085504,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d515_20261014/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d515_20261014/7b_cpu_frontend_validation_100",
+    "bytes": 7923882,
+    "allocated_bytes": 7925760,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d475_20261012/7b_cpu_frontend_validation_100",
+    "bytes": 5871936,
+    "allocated_bytes": 5873664,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d528_20261014/7b_cpu_frontend_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d528_20261014/7b_cpu_frontend_validation_100",
+    "bytes": 5679659,
+    "allocated_bytes": 5681152,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d103_20260928/3b_full_w0_profile1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d103_20260928/3b_full_w0_profile1",
+    "bytes": 5410241,
+    "allocated_bytes": 5410816,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d366_20261009/7b_file_identity_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d366_20261009/7b_file_identity_validation_100",
+    "bytes": 5153336,
+    "allocated_bytes": 5156864,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d340_20261008/7b_prebuild_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d340_20261008/7b_prebuild_validation_100",
+    "bytes": 4413353,
+    "allocated_bytes": 4415488,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry7/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d214_20261004/7b_route_identity_validation_retry7",
+    "bytes": 4317322,
+    "allocated_bytes": 4321280,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d107_20260928/3b_full_w0_profile3",
+    "bytes": 3149672,
+    "allocated_bytes": 3149824,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d384_20261010/7b_native_token_witness_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d384_20261010/7b_native_token_witness_100",
+    "bytes": 2917621,
+    "allocated_bytes": 2920448,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d238_20261006/7b_proactive_admission_diag_22req_retry4/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d238_20261006/7b_proactive_admission_diag_22req_retry4",
+    "bytes": 2453833,
+    "allocated_bytes": 2457600,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d105_20260928/3b_full_w0_profile2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d105_20260928/3b_full_w0_profile2",
+    "bytes": 2339200,
+    "allocated_bytes": 2342912,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d696_20261018/3b_full_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d696_20261018/3b_full_smoke100",
+    "bytes": 1797893,
+    "allocated_bytes": 1798144,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d238_20261006/7b_proactive_admission_diag_22req_retry6/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d238_20261006/7b_proactive_admission_diag_22req_retry6",
+    "bytes": 1685488,
+    "allocated_bytes": 1687552,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d238_20261006/7b_proactive_admission_diag_22req_retry5/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d238_20261006/7b_proactive_admission_diag_22req_retry5",
+    "bytes": 1657226,
+    "allocated_bytes": 1658880,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d702_20261019/3b_profile_smoke100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d702_20261019/3b_profile_smoke100",
+    "bytes": 1604625,
+    "allocated_bytes": 1605632,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d238_20261006/7b_proactive_admission_diag_22req_retry3/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d238_20261006/7b_proactive_admission_diag_22req_retry3",
+    "bytes": 1411232,
+    "allocated_bytes": 1413120,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d243_retry2_20261006/7b_token_capture_22req/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d243_retry2_20261006/7b_token_capture_22req",
+    "bytes": 1074500,
+    "allocated_bytes": 1077248,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d243_retry1_20261006/7b_token_capture_22req/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d243_retry1_20261006/7b_token_capture_22req",
+    "bytes": 929273,
+    "allocated_bytes": 929792,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d260_20261006/7b_rpc_prefix8/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d260_20261006/7b_rpc_prefix8",
+    "bytes": 581129,
+    "allocated_bytes": 581632,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d227_20261006/7b_admission_gate_22req_retry2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d227_20261006/7b_admission_gate_22req_retry2",
+    "bytes": 345220,
+    "allocated_bytes": 348160,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d261_20261006/7b_rpc_prefix8_retry2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d261_20261006/7b_rpc_prefix8_retry2",
+    "bytes": 331362,
+    "allocated_bytes": 331776,
+    "launch_pass": true,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d218_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d218_20261005/7b_confirmed_snapshot_cache_full_replay",
+    "bytes": 185125,
+    "allocated_bytes": 188416,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry5/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d216_20261004/7b_route_identity_scope_validation_retry5",
+    "bytes": 170853,
+    "allocated_bytes": 172032,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d377_20261010/7b_capacity_revalidation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d377_20261010/7b_capacity_revalidation_100",
+    "bytes": 113914,
+    "allocated_bytes": 114688,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry6/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d216_20261004/7b_route_identity_scope_validation_retry6",
+    "bytes": 78662,
+    "allocated_bytes": 81920,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d254_20261006/7b_readiness_8phase_full_retry2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d254_20261006/7b_readiness_8phase_full_retry2",
+    "bytes": 47794,
+    "allocated_bytes": 49152,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d217_20261005/7b_confirmed_snapshot_cache_validation_retry6/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d217_20261005/7b_confirmed_snapshot_cache_validation_retry6",
+    "bytes": 41050,
+    "allocated_bytes": 45056,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d217_20261005/7b_confirmed_snapshot_cache_validation_retry7/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d217_20261005/7b_confirmed_snapshot_cache_validation_retry7",
+    "bytes": 41052,
+    "allocated_bytes": 45056,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d217_20261005/7b_confirmed_snapshot_cache_validation_retry3/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d217_20261005/7b_confirmed_snapshot_cache_validation_retry3",
+    "bytes": 18765,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d292_20261006/7b_prefetch_validation_100/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d292_20261006/7b_prefetch_validation_100",
+    "bytes": 19644,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry2/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d214_20261004/7b_route_identity_full_retry2",
+    "bytes": 18547,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry1/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d214_20261004/7b_route_identity_full_retry1",
+    "bytes": 18650,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry5/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d214_20261004/7b_route_identity_validation_retry5",
+    "bytes": 18680,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  },
+  {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry6/launch.launch/physical_deployment/main_outcome.json",
+    "run": "d214_20261004/7b_route_identity_validation_retry6",
+    "bytes": 18576,
+    "allocated_bytes": 20480,
+    "launch_pass": false,
+    "released": true,
+    "already_archived": false
+  }
+]

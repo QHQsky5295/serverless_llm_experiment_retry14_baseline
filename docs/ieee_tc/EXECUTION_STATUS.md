@@ -1,4 +1,30 @@
-# IEEE TC execution status — D840 complete 3B W2: 92.10%, not qualified
+# IEEE TC execution status — D841 storage restored; D842 current W2 control diagnosis
+
+## 2026-10-25 D841维护与D842现有时间线分析完成
+
+本轮为progress，未新增GPU回放/生产机制/远端操作。完整PLAN、V1/单轮V2、
+存储优先及baseline停止规则已读。D840仍3684/4000=92.10%，差116；
+U11235.329655在12083.063870预算内但不达标，D711数值身份未知保留。
+
+D841按已有受限inventory对/home/qhq只读扫描，在300秒停止，保留部分97行
+清单，不称全盘完成、不删其他项目。对本项目80份未压缩outcome逐项元数据
+检查后明确选8份关闭释放日志，复用未改压缩器，两次解压SHA通过；回收
+3111559168B，可用164112011264B约152.84GiB。147保护与用户manifest不变；
+维护峰值975659008B、high/max/OOM/swap0，scope均结束。未降低启动门槛。
+
+D842关联D840全部4000请求与1684个现有同步file-observation区间，无插桩、
+无大JSON恢复，阶段误差0。观察均值200.743ms、P95 889.215ms；按500请求
+时间边界，首/末阶段均值44.860/298.893ms。提交→接收均值78.743ms，与观察
+交集24.651ms、累计约31.31%；不能当CPU或可删时延。Remote TTFT违约181条，
+114条在准备段与观察相交；83条TPOT违约仅13条decode与controller观察相交。
+不以此直接重构整个file owner、to_thread、改GC或复活D733否决方向。
+
+下一：封存本轮/备份；围绕当前3B W2后半程同步长停顿检查已有调用证据。
+旧D734短前缀早于后续优化且不覆盖当前晚期；确无现有函数证据时，仅一次
+既有frame observer完整W2诊断，明确非性能排名，不重复短前缀或连续剖析。
+详见D841_STORAGE_AND_D842_CURRENT_CONTROL_20261025.md。解码分支收尾，
+不重跑D840。不重复HydraServe基础适配/不碰共享k3s。全矩阵/消融/敏感性/
+审稿文档/最终图表与V2同步仍未完成，goal保持active。
 
 ## 2026-10-25 16:21 D840结果已备份，关闭证据无损压缩完成
 

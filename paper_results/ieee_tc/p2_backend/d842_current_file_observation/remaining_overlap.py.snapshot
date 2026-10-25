@@ -1,0 +1,50 @@
+"""Reuse the already saved D842 intervals for complete TTFT/decode context."""
+import csv
+import json
+import math
+import os
+from pathlib import Path
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d842_current_file_observation'
+sys.path.insert(0,str(ROOT))
+from scripts.ieee_tc.audit_d703_3b_full import clipped_interval_union,ref,p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+with (RAW/'remaining_identity.json').open('x') as f:json.dump(own,f,indent=2)
+with (OUT/'rounds.csv').open() as f:rounds=list(csv.DictReader(f))
+spans=[(float(r['started_at']),float(r['started_at'])+float(r['elapsed_ms'])/1000) for r in rounds]
+stage=ROOT/'paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/stages/requests.csv'
+with stage.open() as f:old=list(csv.DictReader(f))
+rows=[]
+for r in old:
+    first,last,admitted=(float(r[k]) for k in ('first','last','admitted'))
+    arrival=first-float(r['ttft_ms'])/1000
+    acquired=admitted+float(r['admission_to_acquired_ms'])/1000
+    row={k:r[k] for k in ('request_id','ordinal','tier','slo_group')}
+    for key,a,b in (('arrival_to_first',arrival,first),('admission_to_acquired',admitted,acquired),('decode',first,last)):
+        overlap,count=clipped_interval_union(a,b,spans)
+        row.update({key+'_overlap_ms':overlap*1000,key+'_count':count})
+    rows.append(row)
+assert len(rows)==4000 and len({r['request_id'] for r in rows})==4000
+groups=[]
+for name,predicate in (
+    ('all',lambda r:True),('ttft_fail',lambda r:r['slo_group'] in ('ttft_only','both')),
+    ('remote_ttft_fail',lambda r:r['tier']=='remote' and r['slo_group'] in ('ttft_only','both')),
+    ('nonremote_ttft_fail',lambda r:r['tier']!='remote' and r['slo_group'] in ('ttft_only','both')),
+    ('tpot_fail',lambda r:r['slo_group'] in ('tpot_only','both'))):
+    selection=[r for r in rows if predicate(r)]
+    groups.append(dict(label=name,n=len(selection),intervals={key:dict(
+        overlapping_requests=sum(r[key+'_count']>0 for r in selection),
+        overlap_ms=timing_stats([r[key+'_overlap_ms'] for r in selection]))
+        for key in ('arrival_to_first','admission_to_acquired','decode')}))
+with (OUT/'remaining_requests.csv').open('x',newline='') as f:
+    w=csv.DictWriter(f,fieldnames=list(rows[0]),lineterminator='\n');w.writeheader();w.writerows(rows)
+report=dict(passed=True,n=4000,groups=groups,sources=[ref(x) for x in (stage,OUT/'rounds.csv',Path(__file__))],
+    resources=p.cgroup_snapshot(Path(own['path'])),
+    limitations=['Overlapping envelopes are associations, not attributable delay, pure CPU, GPU stalls or achievable speedup.',
+        'Controller and native decode run in different processes. No counterfactual SLO and no added requests.'])
+with (OUT/'remaining_overlap.json').open('x') as f:json.dump(report,f,indent=2)
+print(json.dumps(report),flush=True)

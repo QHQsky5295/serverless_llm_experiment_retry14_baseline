@@ -1,0 +1,69 @@
+"""Curate D841/D842 and reuse the existing explicit-path backup procedure."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+STORAGE=RAW.parent/'d841_20261025'
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d842_current_file_observation'
+STORE_OUT=ROOT/'paper_results/ieee_tc/storage/20261025_d841_maintenance'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+save(RAW/'closure_identity.json',p.scope_identity(p.cg_path().name))
+closed=[]
+for parent,names in ((STORAGE,('inventory_identity.json','candidate_identity.json','storage_identity.json')),
+                     (RAW,('identity.json','remaining_identity.json'))):
+    for name in names:
+        identity=json.loads((parent/name).read_text())
+        assert not Path(identity['path']).exists(),name
+        closed.append(dict(identity=identity,path_removed=True))
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+seal=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+user=ROOT/'configs/generated/lora_manifest_1000.json'
+assert p.digest(user)=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+for name in ('diagnosis.json','remaining_overlap.json'):
+    report=json.loads((OUT/name).read_text());assert report['passed']
+    assert all(value==0 for value in report['resources']['memory.events'].values())
+    assert report['resources']['memory.swap.current']==0
+for row in json.loads((OUT/'manifest.json').read_text())['files']:
+    assert p.digest(Path(row['path']))==row['sha256']
+STORE_OUT.mkdir(parents=True,exist_ok=False)
+for name in ('inventory.py','resume_inventory.py','compress.py','inventory_reuse.json','inventory_timeout.json',
+             'uncompressed_candidates.json','inventory_identity.json','candidate_identity.json','storage_identity.json'):
+    target=STORE_OUT/(name+'.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as f:f.write((STORAGE/name).read_bytes())
+for name in ('remaining_overlap.py','close_and_backup.py'):
+    with (OUT/(name+'.snapshot')).open('xb') as f:f.write((RAW/name).read_bytes())
+doc=ROOT/'docs/ieee_tc/D841_STORAGE_AND_D842_CURRENT_CONTROL_20261025.md'
+save(OUT/'closure.json',dict(passed=True,closed_scopes=closed,protected_147_unchanged=True,
+    user_protected={str(user):p.digest(user)},doc=dict(path=str(doc),sha256=p.digest(doc)),
+    new_gpu_runs=0,production_changes=False,disk_free_bytes=os.statvfs('/home/qhq').f_bavail*os.statvfs('/home/qhq').f_frsize))
+template=RAW.parent/'d824_20261025/backup.py'
+program=template.read_text()
+for old,new in (
+    ('d824_current_ingress_pending','d842_current_file_observation'),
+    ('107185c45f49a891c0b391b1140b7d765e83daea','085d7cf5a028444bb8b3fd60414c1fb47c6bbaae'),
+    ('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md','D841_STORAGE_AND_D842_CURRENT_CONTROL_20261025.md'),
+    ('assert len(paths) == len(set(paths)) == 20','assert len(paths) == len(set(paths))'),
+    ('backup/d824-current-ingress-control-20261025','backup/d842-control-and-storage-20261025'),
+    ('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)',
+     'tc: preserve D841 storage maintenance and D842 current W2 control diagnosis'),
+    ("paths = [str(path.relative_to(ROOT)) for path in files]",
+     "files.extend(path for path in sorted(STORE_OUT.rglob('*')) if path.is_file())\nfiles.extend([ROOT/'paper_results/ieee_tc/storage/20261025_d841_closed_outcomes.json', ROOT/'paper_results/ieee_tc/storage/20261025_d841_closed_outcomes_verification.json'])\npaths = [str(path.relative_to(ROOT)) for path in files]"),
+):
+    assert old in program,old
+    program=program.replace(old,new)
+compile(program,str(RAW/'backup_program.py.snapshot'),'exec')
+with (RAW/'backup_program.py.snapshot').open('x') as f:f.write(program)
+with (OUT/'backup_program.py.snapshot').open('x') as f:f.write(program)
+save(OUT/'backup_template.json',dict(path=str(template),sha256=p.digest(template),
+    reused='D824 explicit-path staged diff, checksum, protected user file, secret pattern and remote verification procedure'))
+files=[dict(path=str(path),sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'final_manifest.json',dict(files=files))
+exec(compile(program,str(RAW/'backup_program.py.snapshot'),'exec'),globals())

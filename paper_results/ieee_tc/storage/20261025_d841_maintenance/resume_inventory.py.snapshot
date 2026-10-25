@@ -1,0 +1,23 @@
+"""Keep the bounded partial whole-home inventory; inspect only closed run metadata."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+RAW = Path(__file__).resolve().parent
+MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(MAIN))
+from scripts import ieee_tc_preflight as p
+with (RAW/'candidate_identity.json').open('x') as f:
+    json.dump(p.scope_identity(p.cg_path().name), f, indent=2)
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+with (RAW/'inventory_timeout.json').open('x') as f:
+    json.dump(dict(status='bounded_partial_timeout', timeout_s=300, raw_exit_code=1,
+        roots=['/home/qhq'], inventory_sha256=p.digest(RAW/'inventory_allocated.tsv'),
+        errors_sha256=p.digest(RAW/'inventory_errors.log'),
+        scope='Metadata inventory reached other projects but did not complete the entire home directory; no data removed. Do not rerun the broad scan for this maintenance.',
+        launch_script_sha256=p.digest(RAW/'inventory.py')), f, indent=2)
+source = (RAW/'inventory.py').read_text()
+source = source[source.index('rows = []'):]
+exec(compile(source, str(RAW/'inventory.py'), 'exec'), globals())
