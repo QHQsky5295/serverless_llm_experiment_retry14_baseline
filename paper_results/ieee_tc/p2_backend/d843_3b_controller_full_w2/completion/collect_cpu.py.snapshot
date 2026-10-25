@@ -1,0 +1,175 @@
+"""Adapt D123's per-role stack accounting to D843 timestamped Python frames.
+
+Only run after terminal/physical cleanup. Occurrence counts are NOT CPU-time
+percentages; all frames include idle threads and sampling is GIL-scheduled.
+"""
+import collections
+import hashlib
+import json
+import math
+from pathlib import Path
+import subprocess
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+
+
+def rows(path):
+    """Bound each record, stream the file; final partial line is explicit."""
+    with path.open('rb') as stream:
+        while line := stream.readline(1024 * 1024 + 1):
+            if len(line) > 1024 * 1024:
+                raise ValueError(f'oversized diagnostic record: {path}')
+            if not line.endswith(b'\n'):
+                yield None, len(line)
+                return
+            yield json.loads(line), 0
+
+
+def digest(path):
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        while chunk := stream.read(1024 * 1024):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def top(counter, denominator):
+    return [dict(file=k[0], function=k[1], samples=v,
+                 occurrence_fraction=v / denominator)
+            for k, v in counter.most_common(30)] if denominator else []
+
+
+def collect_one(meta_path, t0, last_terminal):
+    meta = json.loads(meta_path.read_text())
+    assert meta['kind'] == 'diagnostic_python_frames_v1'
+    assert meta['gil_scheduling_bias'] and meta['cpu_time_profile'] is False
+    path = meta_path.with_suffix('.stacks.jsonl')
+    phases = collections.Counter()
+    leaves = collections.Counter()
+    nearest = collections.Counter()
+    inclusive = collections.Counter()
+    serving_nearest = collections.Counter()
+    roles = set()
+    intervals, lags = [], []
+    count = missing_main = truncated = partial_bytes = 0
+    previous_time = meta['capture_start_monotonic_s']
+    previous_cpu = previous_observer = 0.0
+    first_time = final_time = None
+    for row, partial in rows(path):
+        if row is None:
+            partial_bytes = partial
+            break
+        count += 1
+        assert row['event'] == 'python_frames'
+        assert row['index'] == count and row['pid'] == meta['pid']
+        for field in ('observed_monotonic_s', 'scheduled_monotonic_s',
+                      'interval_seconds', 'scheduler_delay_seconds',
+                      'process_cpu_seconds', 'process_cpu_delta_seconds',
+                      'observer_cpu_seconds_before_sample', 'snapshot_wall_seconds'):
+            assert type(row[field]) in (int, float) and math.isfinite(row[field])
+            assert row[field] >= 0, field
+        at = row['observed_monotonic_s']
+        assert at > previous_time and row['interval_seconds'] >= 2
+        assert row['process_cpu_seconds'] >= previous_cpu
+        assert row['observer_cpu_seconds_before_sample'] >= previous_observer
+        first_time = at if first_time is None else first_time
+        final_time = at
+        intervals.append(row['interval_seconds'])
+        lags.append(row['scheduler_delay_seconds'])
+        previous_time = at
+        previous_cpu = row['process_cpu_seconds']
+        previous_observer = row['observer_cpu_seconds_before_sample']
+        thread_ids = [t['ident'] for t in row['threads']]
+        assert len(thread_ids) == len(set(thread_ids))
+        assert row['observer_thread_ident'] in thread_ids
+        main = [t for t in row['threads'] if t['ident'] == meta['main_thread_ident']]
+        if not main:
+            missing_main += 1
+            continue
+        main = main[0]
+        assert type(main['truncated']) is bool and len(main['frames']) <= 100
+        truncated += int(main['truncated'])
+        chain = main['frames']  # leaf first, unlike py-spy speedscope
+        for file, name, line in chain:
+            assert isinstance(file, str) and isinstance(name, str) and type(line) is int
+            if file.endswith('/scripts/run_all_experiments.py'):
+                roles.add('controller')
+            if file.endswith('/faaslora/preloading/planning_cpu.py') and name == 'execute_planning_message':
+                roles.add('planner')
+            if file.endswith('/scripts/dedicated_engine_worker.py'):
+                roles.add('frontend')
+            if file.endswith('/vllm/v1/engine/core.py') and name == 'run_engine_core':
+                roles.add('gpu_core')
+        local = [(f, n) for f, n, _ in chain if f.startswith(str(ROOT) + '/')]
+        key = local[0] if local else ('', 'no_project_frame')
+        leaves[tuple(chain[0][:2]) if chain else ('', 'empty_stack')] += 1
+        nearest[key] += 1
+        inclusive.update(set(local))
+        phase = ('pre_arrival' if at < t0 else
+                 'post_requests' if last_terminal is not None and at > last_terminal
+                 else 'request_window')
+        phases[phase] += 1
+        if phase == 'request_window':
+            serving_nearest[key] += 1
+    main_count = count - missing_main
+    assert sum(nearest.values()) == sum(leaves.values()) == sum(phases.values()) == main_count
+    return dict(pid=meta['pid'], start_ticks=meta['start_ticks'], parent_pid=meta['parent_pid'],
+        cgroup=meta['cgroup'], role_evidence=sorted(roles), samples=count,
+        missing_main_samples=missing_main, truncated_main_samples=truncated,
+        final_partial_line_bytes=partial_bytes, first_sample_s=first_time, last_sample_s=final_time,
+        max_interval_s=max(intervals) if intervals else None,
+        max_schedule_lag_s=max(lags) if lags else None,
+        process_cpu_at_last_sample_s=previous_cpu if count else None,
+        observer_cpu_before_last_sample_s=previous_observer if count else None,
+        observer_cpu_excludes_last_sample=True, main_phase_counts=dict(phases),
+        leaf_frames=top(leaves, main_count), nearest_project_frames=top(nearest, main_count),
+        inclusive_project_frames=top(inclusive, main_count),
+        request_window_nearest_project=top(serving_nearest, phases['request_window']),
+        source_refs=[dict(path=str(p), bytes=p.stat().st_size, sha256=digest(p))
+                     for p in (meta_path, path)])
+
+
+def main():
+    raw = Path(__file__).resolve().parent
+    evidence = raw / '3b_max3_full_w2/launch.launch'
+    receipt = json.loads((evidence / 'exec_receipt.json').read_text())
+    unit = receipt['service_identity']['unit']
+    assert subprocess.check_output(['systemctl', '--user', 'show', unit,
+        '-p', 'ActiveState', '--value'], text=True).strip() == 'inactive'
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+        '--format=csv,noheader'], text=True).strip()
+    launch = json.loads((raw / '3b_max3_full_w2/launch.json').read_text())
+    assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+    terminals = []
+    for row, partial in rows(evidence / 'physical_deployment/request_terminals.jsonl'):
+        assert not partial
+        terminals.append(row)
+    assert len(terminals) == len({r['request_id'] for r in terminals})
+    assert len(terminals) <= 4000
+    expected_clock = receipt['external_replay']['clock_id']
+    assert all(r['clock_id'] == expected_clock for r in terminals)
+    last_terminal = max(r['at'] for r in terminals) if len(terminals) == 4000 else None
+    processes = [collect_one(p, receipt['external_replay']['replay_t0_s'], last_terminal)
+                 for p in sorted((evidence / 'diagnostic_stacks').glob('*.json'))]
+    assert processes and all(p['cgroup'] == receipt['service_identity']['path'] for p in processes)
+    result = dict(kind='d843_python_frame_occurrences_v1', finalized=True,
+        diagnostic_replay_count=4000, source_count=4000, full_qualification=False,
+        formal_performance_result=False, cpu_time_profile=False, gil_scheduling_bias=True,
+        terminal_count=len(terminals), terminal_successes=sum(r['success'] for r in terminals),
+        terminal_failures=sum(not r['success'] for r in terminals), processes=processes,
+        caveats=['Occurrences are not CPU-time percentages or wall-time phases.',
+                 'Main-thread counters exclude the observer; idle frames remain included.',
+                 'Inclusive frame counts overlap; per-process denominators differ.',
+                 'GIL delay can hide busy intervals; C/CUDA internal frames absent.',
+                 'Process CPU includes native threads; observer CPU excludes final sample.',
+                 'Final partial lines and missing roles are explicit, not zero overhead.',
+                 'Request window includes drain; absent full terminal population has no inferred end.'])
+    with (raw / 'full4000_cpu_samples.json').open('x') as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+    print(json.dumps(dict(output=str(raw / 'full4000_cpu_samples.json'),
+        processes=[{k:p[k] for k in ('pid','role_evidence','samples','missing_main_samples',
+                                     'final_partial_line_bytes','max_schedule_lag_s')} for p in processes])))
+
+
+if __name__ == '__main__':
+    main()

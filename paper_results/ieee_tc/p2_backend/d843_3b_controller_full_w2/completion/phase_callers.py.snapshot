@@ -1,0 +1,198 @@
+"""Reuse D603 per-source phase caller accounting and D842 file-round dedup.
+
+Eight 500-request planned-arrival windows, not independent repeated runs.
+Frame occurrence is not CPU share; overlap is not a causal latency reduction.
+"""
+import bisect
+import collections
+import csv
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
+from scripts.ieee_tc.plot_d290_diagnostic import percentile
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f: json.dump(value,f,indent=2,allow_nan=False)
+identity=p.scope_identity(p.cg_path().name)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+run=RAW/'3b_max3_full_w2'
+launch=read(run/'launch.json')
+assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+evidence=run/'launch.launch'
+receipt=read(evidence/'exec_receipt.json')
+assert not Path(receipt['service_identity']['path']).exists()
+cpu=read(RAW/'full4000_cpu_samples.json')
+assert cpu['terminal_count']==cpu['terminal_successes']==4000
+t0=receipt['external_replay']['replay_t0_s']
+wi=receipt['external_replay']['plan']
+plan=FrozenReplayPlan.load(wi['source_path'],count=4000,profile='W2',
+    adapter_map=wi['adapter_map'],adapter_map_sha256=wi['adapter_map_sha256'])
+assert plan.identity()==wi
+spec=importlib.util.spec_from_file_location('reader',RAW/'collect_cpu.py')
+reader=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(reader)
+terminals=[]
+for row,partial in reader.rows(evidence/'physical_deployment/request_terminals.jsonl'):
+    assert not partial and row['clock_id']==receipt['external_replay']['clock_id']
+    terminals.append(row)
+assert len(terminals)==4000 and {r['request_id'] for r in terminals}=={r.request_id for r in plan.entries}
+end=max(r['at'] for r in terminals)
+boundaries=[t0+plan.entries[i].offset_s for i in range(0,4000,500)]+[end]
+assert boundaries==sorted(set(boundaries)) and boundaries[0]==t0
+stages=read(OUT/'stages/diagnosis.json')
+source=Path(stages['request_table']['path'])
+assert p.digest(source)==stages['request_table']['sha256']
+with source.open(newline='') as f: requests=list(csv.DictReader(f))
+requests.sort(key=lambda r:int(r['ordinal']))
+assert [int(r['ordinal']) for r in requests]==list(range(4000))
+assert all(r['request_id']==plan.entries[i].request_id for i,r in enumerate(requests))
+request_phases=[]
+for phase in range(8):
+    selected=requests[phase*500:(phase+1)*500]
+    request_phases.append(dict(phase=phase,n=500,
+        joint=sum(r['joint_pass']=='True' for r in selected),
+        metrics={k:timing_stats([float(r[k]) for r in selected]) for k in
+            (*D716_TTFT_STAGES,'ttft_ms','tpot_ms','e2e_ms')},
+        tiers=dict(collections.Counter(r['tier'] for r in selected))))
+assert sum(r['joint'] for r in request_phases)==stages['counts']['joint_pass']
+rounds={}
+outcome=evidence/'physical_deployment/main_outcome.json'
+with outcome.open('rb') as f:
+    for event in ijson.items(f,'mechanism_events._ieee_residency_epochs.item',use_float=True):
+        observation=event['shared_file_observation']
+        rid=observation['round_id']
+        if rid in rounds: assert rounds[rid]==observation
+        else: rounds[rid]=observation
+ordered=sorted(rounds.values(),key=lambda r:r['started_at'])
+observation_starts=[r['started_at'] for r in ordered]
+observation_ends=[r['started_at']+r['elapsed_ms']/1000 for r in ordered]
+assert all(a<=b for a,b in zip(observation_ends,observation_starts[1:]))
+round_phases=[]
+for phase in range(8):
+    selected=[r for r in ordered if boundaries[phase]<=r['started_at']<boundaries[phase+1]]
+    round_phases.append(dict(phase=phase,n=len(selected),
+        elapsed_ms=timing_stats([r['elapsed_ms'] for r in selected])))
+
+def counter_rows(counter, fields):
+    return [dict(zip(fields, key), occurrences=value) for key, value in counter.most_common()]
+
+processes = []
+for process in cpu['processes']:
+    for ref in process['source_refs']:
+        assert p.digest(Path(ref['path'])) == ref['sha256']
+    labels = process['role_evidence']
+    role = 'frontend' if 'frontend' in labels else labels[0] if len(labels) == 1 else 'unclassified'
+    meta_path = Path(process['source_refs'][0]['path'])
+    meta = read(meta_path)
+    assert meta['replay_scope'] == 'full_source_v1' and meta['replay_count'] == 4000
+    stats = [dict(samples=0, missing_main=0, truncated_main=0, cpu_interval_s=0.0,
+                  cpu_interval_wall_s=0.0, cpu_intervals=0, lags=[],
+                  leaf=collections.Counter(), nearest=collections.Counter(),
+                  inclusive=collections.Counter(), callers=collections.Counter(), examples={},
+                  file_observation_samples=0, observation_nearest=collections.Counter())
+             for _ in range(8)]
+    previous = meta['capture_start_monotonic_s']
+    crossed = []
+    window_count = 0
+    for row, partial in reader.rows(meta_path.with_suffix('.stacks.jsonl')):
+        if partial:
+            assert partial == process['final_partial_line_bytes']
+            break
+        at = row['observed_monotonic_s']
+        q = min(7, bisect.bisect_right(boundaries, at) - 1)
+        if boundaries[0] <= at <= end:
+            assert 0 <= q < 8
+            s = stats[q]
+            s['lags'].append(row['scheduler_delay_seconds'])
+            if previous >= boundaries[q]:
+                s['cpu_interval_s'] += row['process_cpu_delta_seconds']
+                s['cpu_interval_wall_s'] += at - previous
+                s['cpu_intervals'] += 1
+            else:
+                crossed.append(dict(phase=q, from_s=previous, to_s=at,
+                                    process_cpu_delta_s=row['process_cpu_delta_seconds']))
+            main = [thread for thread in row['threads'] if thread['ident'] == meta['main_thread_ident']]
+            if not main:
+                s['missing_main'] += 1
+            else:
+                main, = main
+                frames = main['frames']
+                s['samples'] += 1
+                window_count += 1
+                s['truncated_main'] += int(main['truncated'])
+                local_frames = [(i, f.removeprefix(str(ROOT)+'/'), n, line)
+                    for i, (f,n,line) in enumerate(frames) if f.startswith(str(ROOT)+'/')]
+                s['leaf'][tuple(frames[0][:2]) if frames else ('','empty_stack')] += 1
+                s['nearest'][(local_frames[0][1], local_frames[0][2]) if local_frames
+                             else ('','no_project_frame')] += 1
+                s['inclusive'].update(set((f,n) for _,f,n,_ in local_frames))
+                interval_i = bisect.bisect_right(observation_starts, at)-1
+                if role == 'controller' and interval_i >= 0 and at <= observation_ends[interval_i]:
+                    s['file_observation_samples'] += 1
+                    key = (local_frames[0][1],local_frames[0][2]) if local_frames else ('','no_project_frame')
+                    s['observation_nearest'][key] += 1
+                for i,f,n,line in local_frames:
+                    caller = frames[i+1] if i+1 < len(frames) else ['','truncated',0]
+                    s['callers'][(f,n,line,*caller)] += 1
+                    if (f,n) not in s['examples']:
+                        s['examples'][(f,n)] = dict(sample_index=row['index'], at_s=at,
+                            frames=frames[:min(len(frames),i+5)])
+        previous = at
+    # First source arrival is zero; otherwise a separate gap must be reported.
+    assert boundaries[0] == t0
+    assert window_count == process['main_phase_counts'].get('request_window',0)
+    for q,s in enumerate(stats):
+        assert sum(s['nearest'].values()) == sum(s['leaf'].values()) == s['samples']
+        assert all(v <= s['samples'] for v in s['inclusive'].values())
+        s['phase'] = q
+        s['lag_p95_s'] = percentile(s['lags'],.95) if s['lags'] else None
+        s['lag_max_s'] = max(s.pop('lags'),default=None)
+        for key in ('leaf','nearest','inclusive','observation_nearest'):
+            s[key] = counter_rows(s[key],('file','function'))
+        s['callers'] = counter_rows(s['callers'],('file','function','line','caller_file','caller_function','caller_line'))
+        s['examples'] = [dict(file=k[0],function=k[1],**v) for k,v in s['examples'].items()]
+    processes.append(dict(pid=process['pid'],role=role,window_samples=window_count,
+        phases=stats,boundary_crossing_cpu_intervals=crossed))
+    for ref in process['source_refs']:
+        assert p.digest(Path(ref['path'])) == ref['sha256']
+
+
+assert p.digest(source)==stages['request_table']['sha256']
+assert (group/'memory.swap.current').read_text().strip()=='0'
+for path,sha in read(OUT.parent/'prelaunch/qualification.json')['protected'].items():
+    assert p.digest(Path(path))==sha,path
+sources=[Path(__file__),RAW/'collect_cpu.py',RAW/'full4000_cpu_samples.json',
+    OUT/'stages/diagnosis.json',source,evidence/'exec_receipt.json',outcome,
+    Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d603_20261017/quarter_callers.py'),
+    Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d842_20261025/analyze.py')]
+save(OUT/'phase_callers.json',dict(kind='d843_full_w2_500_request_phase_callers_v1',
+    passed=True,source_phase_size=500,request_phases=request_phases,
+    sample_time_boundaries_s=boundaries,unique_file_observation_rounds=len(ordered),
+    file_observation_phases=round_phases,processes=processes,
+    formal_performance_result=False,ranking_eligible=False,n_correct=None,
+    caveats=cpu['caveats']+[
+        'Phases use source planned-arrival boundaries; they are not independent repeats.',
+        'CPU intervals crossing boundaries remain separate; no split or imputation.',
+        'File observation is same-clock synchronous-call wall time, not owner lock hold or CPU time.',
+        'Main-frame overlap with file observation is association, not removable latency.',
+        'The final sampling window includes drain, but post-terminal observations are excluded.'],
+    source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in sources],
+    resources=p.cgroup_snapshot(group)))
+print(json.dumps(dict(passed=True,phase_counts=[r['joint'] for r in request_phases],
+    unique_rounds=len(ordered),processes=[dict(pid=r['pid'],role=r['role'],window_samples=r['window_samples'])
+        for r in processes])))

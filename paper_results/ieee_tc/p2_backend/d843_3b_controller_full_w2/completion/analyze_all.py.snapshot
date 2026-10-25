@@ -1,0 +1,49 @@
+"""Run retained D843 closure/frame analyzers in one bounded CPU-only scope."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+for name in ('complete.py', 'collect_cpu.py', 'curate_callers.py', 'phase_callers.py'):
+    with (RAW/(name+'.log')).open('x') as log:
+        subprocess.run([sys.executable, '-B', str(RAW/name)], cwd=ROOT,
+            stdout=log, stderr=subprocess.STDOUT, check=True)
+    print(json.dumps(dict(completed=name)), flush=True)
+for name in ('complete.py', 'collect_cpu.py', 'curate_callers.py', 'phase_callers.py',
+             'analyze_all.py', 'completion_template.json'):
+    target = OUT/(name+'.snapshot' if name.endswith('.py') else name)
+    if target.exists():
+        assert p.digest(target) == p.digest(RAW/name)
+    else:
+        with target.open('xb') as stream:
+            stream.write((RAW/name).read_bytes())
+with (OUT/'stack_samples.json').open('xb') as stream:
+    stream.write((RAW/'full4000_cpu_samples.json').read_bytes())
+resources = p.cgroup_snapshot(group)
+assert all(value == 0 for value in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+with (OUT/'analysis_complete.json').open('x') as stream:
+    json.dump(dict(passed=True, formal_performance_result=False, ranking_eligible=False,
+        n_correct=None, production_changed=False, new_instrumentation=False,
+        resources=resources, identity=identity), stream, indent=2)
+with (OUT/'analysis_manifest.json').open('x') as stream:
+    json.dump(dict(files=[dict(path=str(path), sha256=p.digest(path))
+        for path in sorted(OUT.rglob('*')) if path.is_file()
+        and path.name != 'analysis_manifest.json']), stream, indent=2)
+print(json.dumps(dict(passed=True, output=str(OUT), resources=resources)), flush=True)

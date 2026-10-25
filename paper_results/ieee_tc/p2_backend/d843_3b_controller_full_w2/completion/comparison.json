@@ -1,0 +1,30 @@
+{
+  "kind": "d843_diagnostic_w2_resource_reference_observation_v1",
+  "current": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/full4000.json",
+    "sha256": "7c24fc51382156c1ab01177d4d75917dfd429880e2d75071ea5a743bed0cbd92"
+  },
+  "reference": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+    "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+  },
+  "reference_workload": "W2",
+  "reference_id": "3b_W2_vllm0300_D656",
+  "reference_gpu_seconds": 16110.751826980617,
+  "budget_gpu_seconds": 12083.063870235463,
+  "observed_within_budget": true,
+  "budget_utilization": 0.9877051362723565,
+  "gpu_seconds_reduction_fraction": 0.2592211477957326,
+  "gpu_seconds_per_binding_valid_request": 2.9836260616346264,
+  "joint_slo_delta_percentage_points": -7.15,
+  "normalized_p95_ttft": 4.8115337040039226,
+  "joint_slo_margin_requests": -86,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "complete_g1_g2": false,
+  "independent_holdout": false,
+  "includes_observer_overhead": true,
+  "formal_performance_result": false,
+  "scope": "Full W2 frame diagnostic with observer overhead included; not a new performance candidate, causal speed comparison, independent numerical proof or ranking point."
+}

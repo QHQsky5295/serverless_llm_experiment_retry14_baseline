@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "diagnostic_complete": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "protected_147_unchanged": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md",
+    "sha256": "16e4676d7f256228f7e1c7da19457d8326fad6a0c193bebf0707ec5966dc2d46"
+  },
+  "actual_gpu_released": true,
+  "service_path_removed": true,
+  "auxiliary_path_removed": true,
+  "analysis_scope_removed": true,
+  "remote_units_inactive": true,
+  "pending": [
+    "D843 per-transfer delivery/owner settlement aggregation remains separate; D840 receipts are not substituted."
+  ],
+  "new_production_changes": false,
+  "next": "One bounded transaction-local fresh-metadata batching candidate; no further full profiling replay.",
+  "disk_free_bytes": 162561269760
+}

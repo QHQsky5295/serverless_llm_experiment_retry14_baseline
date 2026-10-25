@@ -1,0 +1,72 @@
+"""Curate D843 closure and reuse D824's explicit-path backup checks."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save_file(path,value):
+    with path.open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+assert os.sched_getaffinity(0)=={2,3,26,27}
+analysis=read(OUT/'analysis_complete.json')
+assert analysis['passed'] and not Path(analysis['identity']['path']).exists()
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'3b_max3_full_w2/launch.json')
+assert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+receipt=read(RAW/'3b_max3_full_w2/launch.launch/exec_receipt.json')
+assert not Path(receipt['service_identity']['path']).exists()
+assert not Path(receipt['auxiliary_path']).exists()
+for row in read(OUT/'analysis_manifest.json')['files']:
+    assert p.digest(Path(row['path']))==row['sha256'],row['path']
+assert read(OUT/'phase_callers.json')['passed']
+assert read(OUT/'full4000.json')['counts']['joint_pass']==3714
+assert read(OUT/'full4000.json')['n_correct'] is None
+assert p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')['pass']
+protected=read(OUT.parent/'prelaunch/qualification.json')['protected']
+for path,sha in protected.items(): assert p.digest(Path(path))==sha,path
+for path in (RAW/'complete.py',RAW/'collect_cpu.py',RAW/'curate_callers.py',
+             RAW/'phase_callers.py',RAW/'analyze_all.py',Path(__file__)):
+    ast.parse(path.read_text(),filename=str(path))
+for name in ('analysis_launcher_attempt1.json','completion_identity.json',
+             'remote_stop.log','backup_results.py'):
+    target=OUT/(name+'.snapshot' if name.endswith('.py') else name.replace('.log','.txt'))
+    with target.open('xb') as stream: stream.write((RAW/name).read_bytes())
+doc=ROOT/'docs/ieee_tc/D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md'
+save_file(OUT/'closure.json',dict(passed=True,diagnostic_complete=True,
+    formal_performance_result=False,ranking_eligible=False,n_correct=None,
+    protected_147_unchanged=True,user_protected=protected,
+    doc=dict(path=str(doc),sha256=p.digest(doc)),
+    actual_gpu_released=True,service_path_removed=True,auxiliary_path_removed=True,
+    analysis_scope_removed=True,remote_units_inactive=True,
+    pending=['D843 per-transfer delivery/owner settlement aggregation remains separate; D840 receipts are not substituted.'],
+    new_production_changes=False,next='One bounded transaction-local fresh-metadata batching candidate; no further full profiling replay.',
+    disk_free_bytes=os.statvfs('/home/qhq').f_bavail*os.statvfs('/home/qhq').f_frsize))
+template=RAW.parent/'d824_20261025/backup.py'
+program=template.read_text()
+for old,new in (
+    ('d824_current_ingress_pending','d843_3b_controller_full_w2/completion'),
+    ('107185c45f49a891c0b391b1140b7d765e83daea','76d066a58f9a71b0344cfa0fff686e0771d42fb7'),
+    ('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md','D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md'),
+    ('assert len(paths) == len(set(paths)) == 20','assert len(paths) == len(set(paths))'),
+    ('backup/d824-current-ingress-control-20261025','backup/d843-complete-20261025'),
+    ('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)',
+     'tc: preserve D843 complete W2 diagnostic and current phase caller evidence'),
+    ("with (RAW/name).open('x') as handle:","with (RAW/('results_'+name)).open('x') as handle:"),
+):
+    assert old in program,old
+    program=program.replace(old,new)
+compile(program,str(RAW/'backup_program.py.snapshot'),'exec')
+with (RAW/'backup_program.py.snapshot').open('x') as stream: stream.write(program)
+with (OUT/'backup_program.py.snapshot').open('x') as stream: stream.write(program)
+save_file(OUT/'backup_template.json',dict(path=str(template),sha256=p.digest(template),
+    reused='D824 explicit staging, checksum, secret-pattern and remote ref verification. Preserve V2 divergence; no force push.'))
+save_file(OUT/'final_manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path))
+    for path in sorted(OUT.rglob('*')) if path.is_file() and path.name!='final_manifest.json']))
+exec(compile(program,str(RAW/'backup_program.py.snapshot'),'exec'),globals())

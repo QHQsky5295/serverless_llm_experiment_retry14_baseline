@@ -1,0 +1,31 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/completion_program.py.snapshot",
+  "sha256": "078dbc38e7dc5d6843173a8f96fe03b02ef5a646014adfa50bdd284a8c825c8c",
+  "replacements": [
+    [
+      "d840_3b_single_thread_decoder_full_w2",
+      "d843_3b_controller_full_w2"
+    ],
+    [
+      "d840_20261025",
+      "d843_20261025"
+    ],
+    [
+      "D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md",
+      "D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md"
+    ],
+    [
+      "d840_single_w2_frozen_resource_reference_observation_v1",
+      "d843_diagnostic_w2_resource_reference_observation_v1"
+    ],
+    [
+      "protected = ROOT/'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json'\nassert p.digest(protected) == qualification['reused'][str(protected)]\nfor path, sha in read(protected)['user_protected'].items():",
+      "for path, sha in qualification['protected'].items():"
+    ],
+    [
+      "scope='Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking.'",
+      "includes_observer_overhead=True, formal_performance_result=False, scope='Full W2 frame diagnostic with observer overhead included; not a new performance candidate, causal speed comparison, independent numerical proof or ranking point.'"
+    ]
+  ],
+  "changes": "Reuse complete 4000-request metrics/stages/resource accounting; bind D843 protected refs and full-source diagnostic identity. No observer-cost subtraction or performance-ranking claim."
+}

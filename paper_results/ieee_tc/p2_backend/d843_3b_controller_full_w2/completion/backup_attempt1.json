@@ -1,0 +1,8 @@
+{
+  "kind": "backup_precommit_check_failure",
+  "performance_rerun": false,
+  "reason": "Default git diff --check treats the retained csv.DictWriter CRLF terminators as trailing whitespace.",
+  "repair": "Use command-local core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol. No repository/global config or archived data changes.",
+  "original_manifest_sha256": "e1d556138e2c3d024f0b1e3d745e82102ded82f86e1e6e4ee6ed39563daedf05",
+  "original_csv_sha256": "1dd535e8a842d6517e4f224fbc88f680ab22ca0d8108f4d8411de6356bef9a78"
+}

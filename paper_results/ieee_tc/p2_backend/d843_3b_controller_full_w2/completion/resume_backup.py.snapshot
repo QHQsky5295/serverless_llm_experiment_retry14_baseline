@@ -1,0 +1,40 @@
+"""Resume D843 explicit backup without changing retained CRLF CSV bytes."""
+import json
+from pathlib import Path
+
+RAW=Path(__file__).resolve().parent
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion'
+import sys
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+for row in json.loads((OUT/'final_manifest.json').read_text())['files']:
+    assert p.digest(Path(row['path']))==row['sha256']
+failure=dict(kind='backup_precommit_check_failure',performance_rerun=False,
+    reason='Default git diff --check treats the retained csv.DictWriter CRLF terminators as trailing whitespace.',
+    repair='Use command-local core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol. No repository/global config or archived data changes.',
+    original_manifest_sha256=p.digest(OUT/'final_manifest.json'),
+    original_csv_sha256=p.digest(OUT/'stages/requests.csv'))
+with (OUT/'backup_attempt1.json').open('x') as f: json.dump(failure,f,indent=2)
+program=(RAW/'backup_program.py.snapshot').read_text()
+for old,new in (
+    ("RAW/'backup_identity.json'","RAW/'backup_resume_identity.json'"),
+    ("['git', *args]","['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol', *args]"),
+    ("assert not git('diff','--cached','--name-only').strip()\nclosure",
+     "initial_staged=set(git('diff','--cached','--name-only').splitlines())\nclosure"),
+    ("OUT/'final_manifest.json'","OUT/'final_manifest_v2.json'"),
+    ("assert len(paths) == len(set(paths))",
+     "assert len(paths) == len(set(paths))\nassert initial_staged.issubset(set(paths))"),
+):
+    assert old in program,old
+    program=program.replace(old,new)
+compile(program,str(RAW/'backup_resume_program.py.snapshot'),'exec')
+for target,content in ((RAW/'backup_resume_program.py.snapshot',program.encode()),
+    (OUT/'backup_resume_program.py.snapshot',program.encode()),
+    (OUT/'resume_backup.py.snapshot',Path(__file__).read_bytes())):
+    with target.open('xb') as f: f.write(content)
+with (OUT/'final_manifest_v2.json').open('x') as f:
+    json.dump(dict(files=[dict(path=str(path),sha256=p.digest(path))
+        for path in sorted(OUT.rglob('*')) if path.is_file()
+        and path.name!='final_manifest_v2.json']),f,indent=2)
+exec(compile(program,str(RAW/'backup_resume_program.py.snapshot'),'exec'),globals())

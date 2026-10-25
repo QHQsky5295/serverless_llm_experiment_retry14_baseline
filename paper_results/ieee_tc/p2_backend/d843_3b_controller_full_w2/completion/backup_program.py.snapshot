@@ -1,0 +1,65 @@
+"""Back up only the verified D824 evidence; preserve the existing V2 divergence."""
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+scope = p.scope_identity(p.cg_path().name)
+with (RAW/'backup_identity.json').open('x') as handle:
+    json.dump(scope, handle, indent=2)
+def git(*args):
+    return subprocess.check_output(['git', *args], cwd=ROOT, text=True)
+def save(name, value):
+    with (RAW/('results_'+name)).open('x') as handle:
+        json.dump(value, handle, indent=2)
+assert git('rev-parse','HEAD').strip() == '76d066a58f9a71b0344cfa0fff686e0771d42fb7'
+assert not git('diff','--cached','--name-only').strip()
+closure = json.loads((OUT/'closure.json').read_text())
+assert closure['passed']
+for path, sha in closure['user_protected'].items():
+    assert p.digest(Path(path)) == sha
+for row in json.loads((OUT/'final_manifest.json').read_text())['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+assert p.digest(Path(closure['doc']['path'])) == closure['doc']['sha256']
+files = [ROOT/'docs/ieee_tc/D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md',
+         ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+         *[path for path in sorted(OUT.rglob('*')) if path.is_file()]]
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert all('lora_manifest_1000.json' not in path for path in paths)
+assert all(not path.startswith(('figs/paper/', 'paper_results/final_v2/')) for path in paths)
+branch = 'refs/heads/backup/d843-complete-20261025'
+assert not git('ls-remote','faaslora_origin', branch).strip()
+git('diff','--check')
+git('add','--',*paths)
+assert set(git('diff','--cached','--name-only').splitlines()) == set(paths)
+git('diff','--cached','--check')
+added = '\n'.join(line[1:] for line in git('diff','--cached','--unified=0').splitlines()
+                  if line.startswith('+') and not line.startswith('+++'))
+patterns = [r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
+            r'\b(?:ghp_|github_pat_)[A-Za-z0-9_]{20,}', r'\bAKIA[0-9A-Z]{16}\b',
+            r'(?i)(?:password|passwd|api_key|access_token)\s*[=:]\s*[\"\x27][^\"\x27\n]{8,}[\"\x27]']
+assert not any(re.search(pattern, added) for pattern in patterns), 'possible staged secret: inspect locally, do not print content'
+save('precommit.json',dict(paths=paths,files=[dict(path=str(path),sha256=p.digest(path)) for path in files],
+    checks=['closed analysis and strict count/source checks', 'script compile', 'diff check',
+            'explicit staging', 'protected user SHAs', 'added-text secret patterns'],
+    scope=scope, backup_ref=branch, final_v2_synced=False))
+git('commit','-m','tc: preserve D843 complete W2 diagnostic and current phase caller evidence')
+commit = git('rev-parse','HEAD').strip()
+save('commit.json',dict(commit=commit,backup_ref=branch,files=paths,final_v2_synced=False))
+subprocess.run(['git','push','faaslora_origin','HEAD:'+branch],cwd=ROOT,check=True,timeout=120)
+remote = git('ls-remote','faaslora_origin',branch).strip().split()
+assert remote == [commit, branch]
+assert not git('diff','--cached','--name-only').strip()
+save('backup.json',dict(passed=True,commit=commit,remote='faaslora_origin',ref=branch,
+    remote_verified=True,final_v2_synced=False,explicit_files=len(paths),scope=scope))
+print(json.dumps(dict(passed=True,commit=commit,ref=branch,files=len(paths),final_v2_synced=False)))

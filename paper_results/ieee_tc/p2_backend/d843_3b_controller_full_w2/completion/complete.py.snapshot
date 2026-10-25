@@ -1,0 +1,56 @@
+"""D843 diagnostic closure: reuse D840 full-W2 metrics after actual release.
+
+This is not a new performance candidate or a ranking point. Only run/output
+identities and diagnostic qualification differ from the retained analyzer.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd840_20261025/completion_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '078dbc38e7dc5d6843173a8f96fe03b02ef5a646014adfa50bdd284a8c825c8c'
+_source = _template.read_text()
+_replacements = (
+    ('d840_3b_single_thread_decoder_full_w2', 'd843_3b_controller_full_w2'),
+    ('d840_20261025', 'd843_20261025'),
+    ('D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md',
+     'D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md'),
+    ('d840_single_w2_frozen_resource_reference_observation_v1',
+     'd843_diagnostic_w2_resource_reference_observation_v1'),
+    ("protected = ROOT/'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json'\n"
+     "assert p.digest(protected) == qualification['reused'][str(protected)]\n"
+     "for path, sha in read(protected)['user_protected'].items():",
+     "for path, sha in qualification['protected'].items():"),
+    ("scope='Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking.'",
+     "includes_observer_overhead=True, formal_performance_result=False, "
+     "scope='Full W2 frame diagnostic with observer overhead included; not a new performance candidate, causal speed comparison, independent numerical proof or ranking point.'"),
+)
+for _old, _new in _replacements:
+    assert _source.count(_old) >= 1, _old
+    _source = _source.replace(_old, _new)
+_anchor = "actual = read(metric)"
+assert _source.count(_anchor) == 1
+_source = _source.replace(_anchor, """metadata = sorted((RUN/'launch.launch/diagnostic_stacks').glob('*.json'))
+assert len(metadata) == 9
+for path in metadata:
+    descriptor = read(path)
+    assert descriptor['replay_scope'] == 'full_source_v1'
+    assert descriptor['replay_count'] == 4000
+    assert descriptor['formal_performance_result'] is False
+    assert descriptor['gil_scheduling_bias'] and descriptor['cpu_time_profile'] is False
+save(OUT/'diagnostic_identity.json', dict(passed=True, full_source_count=4000,
+    process_descriptors=[ref(path) for path in metadata],
+    formal_performance_result=False, ranking_eligible=False,
+    includes_observer_overhead=True, cpu_time_profile=False, gil_scheduling_bias=True))
+""" + _anchor)
+compile(_source, str(_raw/'completion_program.py.snapshot'), 'exec')
+with (_raw/'completion_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template), sha256=_sha, replacements=_replacements,
+        changes='Reuse complete 4000-request metrics/stages/resource accounting; bind D843 protected refs and full-source diagnostic identity. No observer-cost subtraction or performance-ranking claim.'),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw/'completion_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'completion_program.py.snapshot'), 'exec'), globals())

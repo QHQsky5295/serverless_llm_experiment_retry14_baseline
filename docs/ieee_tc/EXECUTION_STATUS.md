@@ -1,4 +1,74 @@
-# IEEE TC execution status — D843 current full-W2 diagnostic registration
+# IEEE TC execution status — D843 complete; bounded fresh-inventory candidate next
+
+## 2026-10-25 D843完整诊断和函数关联已完成
+
+本轮由verified wait推进为完整运行/分析完成。沿用同一InvocationID直至4000
+请求返回，18:05已确认GPU实际释放、服务域移除、tmux结束和三个远端服务
+inactive；无重启、同键重跑、运行中维护或生产修改。冻结口径联合3714/4000
+=92.85%，距3800差86，U11934.504247、P95 TTFT2124.941ms。它是带观察开销
+的诊断，不替代D840未插桩92.10%的性能点；D711独立数值正确性未知不变。
+
+复用D840完整指标/stages、D734帧分析和D603八段调用者方法。controller业务
+1937样本，无缺失/截断；file-observation内104样本中66位于inventory调用、
+7在进入锁处，最近项目帧54为_local_file_inventory。八段文件观察均值
+61.514→300.142ms、P95 110.992→1289.785ms。频次不是CPU占比；GIL采样
+偏差和native core截断保留，不将重叠当可删时延。另有RPC解码125个最近帧，
+但不同时开第二优化分支。详见D843文档和curated completion/phase_callers.json。
+
+离线首次CPU绑定入口失败，未产生分析数据；加taskset后03辅助域完成，
+峰值855896064B、high/max/OOM/swap0，已退出。147保护、用户manifest不变。
+新增5个raw分析入口及curated源码快照，无生产机制改动。发布/结算逐transfer
+复核尚未对D843单独汇总，明确待办，不冒用D840回执。正在备份结果检查点。
+
+下一只检验一个新假设：事务内批量新鲜元数据观察减少逐路径Python/解释器
+边界成本；保持两遍stat、settlement后重查、完整身份/容量语义。先有界组件
+验证，通过再进入普通完整W2；不再追加profiling、不重复D605/D606字符串
+改写或D610扫描合并，不恢复D329缓存/D733整体异步/D627发布锁失败方向。
+已核查当前源码、修改历史及Python/vLLM官方资料；仍未实现或宣称收益。
+存储因运行正常收尾恢复到162640351232B，下一重型启动仍实际核查，不降低
+150/100GiB门槛。两模型完整比较、A1–A5、S1–S13、审稿文档/图表/V2全部
+开放，不重开HydraServe适配/共享k3s。goal保持active。
+
+## 2026-10-25 17:13:25 D843连续监控：852请求，原运行继续
+
+上一turn为progress；本轮为verified wait。重读完整PLAN、AGENTS、执行记录和
+monitor-experiment后，先核查244完成，再以55秒间隔10次只读观察同一tmux及
+服务scope。InvocationID始终b6ea8138ae294468b07777d2c747a8e9，当前active，
+没有重启、另开同键、改变策略、构建/压缩/清理/推送或其他重型任务。
+业务15:42，856已到达、852完成、852成功/0失败，3副本。全部观察无warning、
+abort、high/max/OOM/swap或foreign compute；最新主机可用98795376640B、
+服务19973820416B、磁盘159171878912B约148.24GiB。低于新重型150GiB启动线，
+仍高于当前100GiB停止线；结束释放后再回收，不在运行中维护或降低门槛。
+本段仅进度，不是完整SLO、数值正确性或性能排名。继续同一D843至完整终态
+与实际释放，再按已登记早/晚阶段、file observation和请求跨度复用现有函数
+分析；该单次诊断后形成一个可证伪候选或排除，不扩展连续profiling支线。
+两模型完整比较、A1–A5、S1–S13、审稿文档/图表/V2范围不减，goal active。
+
+## 2026-10-25 17:01:35 D843已启动并持续监控，135条完成
+
+本轮为progress后verified wait，不是重复同键性能试验。26项针对性入口测试
+通过，147保护及用户manifest不变；15个明确路径提交76d066a58f9a71b0344cfa0fff686e0771d42fb7，
+远端backup/d843-controller-fullw2-20261025已核实同SHA，未force、未stage用户文件。
+备份不等于最终V2同步。raw/d843_20261025/start_receipt.json和backup.json保存回执。
+辅助scope843…01已inactive且路径移除，实际完整诊断在tmux
+tc-d843-3b-controller-full-w2运行；服务scope
+primelora-tc-svc-033f977a6b0b410caab1d84c37950c9b.scope，InvocationID
+b6ea8138ae294468b07777d2c747a8e9。不得重启或另开同键。
+
+16:56启动远端时链路1000/full，两模型交付服务及本轮monitor正常；继续复用
+已发布gzip，无请求打包、无链路改动。完整W2源/视图/map SHA与D840一致；
+9个实际进程observer descriptor均full_source_v1/count4000/formal=false。
+目前业务03:46，137到达、135完成、135成功/0失败，已自然扩容2次至3副本。
+最新watchdog sample296无warning/abort/foreign compute，high/max/OOM为0，
+主机可用99019587584B、服务16323842048B、磁盘162664112128B。未改变配置，
+未并行压缩/扫描/构建/备份或运行其他实验；没有将live旧5000ms值当冻结联合SLO。
+
+下一继续同一D843完整回放和真实释放，再复用D734/D603既有stack/caller分析，
+按当前原500请求时间边界关联file observation和请求跨度，检验晚期函数/事务。
+单次有界观察后形成一项可证伪候选或明确排除，不追加短前缀/连续profiling。
+D840当前性能结论仍92.10%、预算内未达标，D711数值身份未知不变；两模型
+完整主比较、A1–A5、S1–S13、审稿文档/图表/V2未完成，goal保持active。
+本段运行状态在启动后追加，仅文档变化，下一正常收尾检查点备份，不在运行中push。
 
 ## 2026-10-25 D843一次完整当前W2观察，准备启动
 

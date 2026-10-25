@@ -1,0 +1,9 @@
+{
+  "kind": "offline_analysis_launcher_error",
+  "unit": "primelora-tc-aux-84300000000000000000000000000002.scope",
+  "returncode": 1,
+  "failure": "AllowedCPUs alone did not establish the exact process affinity expected by the existing analysis contract.",
+  "stopped_before_analysis_outputs": true,
+  "performance_run_repeated": false,
+  "repair": "Add taskset -c 2,3,26,27 to the existing bounded CPU-only launch; retain the failed attempt."
+}
