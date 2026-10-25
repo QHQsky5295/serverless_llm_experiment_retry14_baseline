@@ -1,4 +1,24 @@
-# IEEE TC execution status — D834 binding-reuse CPU-qualified; full W2 pending
+# IEEE TC execution status — D835 complete 3B W2 registered, launch pending
+
+## 2026-10-25 D835：进入同合同完整W2，不再增加局部资格
+
+上轮为progress：D834完成452项不同CPU测试和可回退备份。本轮完整重读PLAN
+与当前状态，保持冻结G1/G2；复用D832配置与完整入口，仅新执行键的三个
+隔离路径不同。13项入口检查、来源与明确路径备份后，按实际资源准入启动
+唯一完整4000请求。尚未启动/出结果，不把登记当作实验完成。
+详细合同见D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md。
+当前最新完整性能仍D832联合92.075%、预算内但差117条；D711数值身份未知。
+不调整后端/profile/SLO/预算/trace或远端交付，不动baseline和共享k3s。
+所有未完成主比较、消融/机制/敏感性、成本文档图表与最终V2同步仍保留。
+
+后置备份回执：8条明确路径已提交fa56318e5cd3b77a9cdc8a8716534896c4b5395d，
+推送并核实backup/d834-completed-membership-reuse-20261025；不是最终V2
+同步，未force。测试峰值baseline517308416、focused516792320、regression
+1659650048B，high/max/OOM/swap0。D834全部scope已inactive且身份/路径空，
+stage空，只有原用户manifest为其他tracked dirty；四卡15MiB/0util，无
+compute-apps。磁盘161513136128B，主机可用106GiB。本回执不递归提交。
+下一从该候选checkpoint复用D832正式入口，登记唯一新执行键并完成3B W2；
+不重跑CPU资格，不再次构建已发布远端缓存，不动共享k3s。整体目标active。
 
 ## 2026-10-25 D834：完成绑定复用，未新增性能结果
 

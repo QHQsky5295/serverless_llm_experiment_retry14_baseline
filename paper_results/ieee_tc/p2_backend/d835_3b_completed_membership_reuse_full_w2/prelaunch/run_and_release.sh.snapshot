@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -uo pipefail
+root=/home/qhq/serverless_llm_experiment_retry14_baseline
+raw=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d835_20261025
+cd "$root" || exit
+bash scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh d835
+run_status=$?
+bash "$raw/stop_remote.sh"
+release_status=$?
+printf 'run_exit=%s remote_release_exit=%s\n' "$run_status" "$release_status"
+if test "$run_status" -ne 0; then exit "$run_status"; fi
+exit "$release_status"

@@ -1,0 +1,29 @@
+"""Reuse D829 complete replay procedure for the D834 binding-reuse candidate."""
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d829_20261025/start.py'
+source = template.read_text()
+for old, new in (
+    ('d829', 'd835'),
+    ('D829', 'D835'),
+    ('3b_admitted_owner_anchor_full_w2', '3b_completed_membership_reuse_full_w2'),
+    ('084e2068375d1090127484656064f9457d9a8560', 'fa56318e5cd3b77a9cdc8a8716534896c4b5395d'),
+    ('d828_post_file_owner_turn', 'd834_completed_membership_reuse'),
+    ("closure['distinct_regression_tests'] == 370", "closure['distinct_tests'] == 452"),
+    ("('summary.json','closure.json','manifest.json')", "('closure.json','manifest.json')"),
+    ("'tests.test_ieee_tc_d456_diagnostic_contract.D835FullContract',",
+     "'tests.test_ieee_tc_d456_diagnostic_contract.D835FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D832FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D829FullContract',"),
+    ("'Ran 9 tests'", "'Ran 13 tests'"),
+    ('affected_existing_tests=7', 'affected_existing_tests=11'),
+    ('D835_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md', 'D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md'),
+    ('three exclusive paths; D828 admitted native owner anchor; native_rpc_v1 unchanged',
+     'three exclusive paths; D834 completed binding reuse; native_rpc_v1 unchanged'),
+    ('source_tests_reused=370', 'source_tests_reused=452'),
+    ('tc: register complete 3B W2 for admitted owner anchor (D835)',
+     'tc: register complete 3B W2 for completed binding reuse (D835)'),
+    ('d835-admitted-owner-anchor-fullw2-20261025', 'd835-completed-membership-reuse-fullw2-20261025'),
+    ('tc-d835-3b-admitted-owner-anchor-full-w2', 'tc-d835-3b-completed-membership-reuse-full-w2'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+exec(compile(source, str(template), 'exec'), globals())

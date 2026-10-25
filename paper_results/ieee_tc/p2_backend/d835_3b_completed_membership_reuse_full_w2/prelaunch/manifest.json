@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/execution_contract_tests.json",
+      "sha256": "360838d5836d0b966a156e4ebff5c17220888ed715b2726f10b313c070a3e5a3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/protected_147.json",
+      "sha256": "5c5aff40eb378e5a8cc3999cf114c2f38439434eee04fbaaab26617f71f1e136"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/qualification.json",
+      "sha256": "4232f8d28ed724c6e4d5cbee1db5b156cbc9401c01c2b7c45ea600e3ab4b25f2"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/run_and_release.sh.snapshot",
+      "sha256": "b46febed30e5148ffb0e12bcee4deec95942f9c97478cf215ef668fa18f68a67"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/start.py.snapshot",
+      "sha256": "e5d7bf92b87fc389c60ae1811d1db16bcbabdb19ff10eafba37a84b0cb9db883"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/start_remote.sh.snapshot",
+      "sha256": "c0ca90bb0337cda3447938d187fcab86f060a01201b7852e46060f160950c9dd"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/stop_remote.sh.snapshot",
+      "sha256": "072d9cd9adbe3f7d8541cdfb94f3b6a7884ba0cc2ef0fa942fce5a85d72e86f8"
+    }
+  ]
+}
