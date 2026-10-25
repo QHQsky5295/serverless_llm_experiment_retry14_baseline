@@ -1,4 +1,42 @@
-# IEEE TC execution status — D826 complete; joint SLO still below target
+# IEEE TC execution status — D827 closed component; no cleanup candidate
+
+## 2026-10-25 D827：组件完成，不选择独立清理候选
+
+唯一受限CPU组件退出0且scope已inactive/path gone，无GPU或远端运行。
+无附加库存的退役wall依次0.381/0.431/0.321ms；附加999文件/1003路径
+依次140.266/10.158/11.118ms，全部保留。对应inventory为139.838/
+9.776/10.709ms，rmtree约0.10–0.12ms。长点线程CPU140.240ms，
+无竞争锁获取0.001727ms；具体内部原因未知，不追认GC/冷缓存或线上锁等待。
+D686的另一组件GC证据已复查，不重新开展GC/pin/描述格式局部调参。
+
+该组件不是3B线上工作集，不用其值从D826的116.368ms包络扣出所谓在线
+等待，也不推算反事实SLO。关闭“单独删/异步化清理即可解决差距”方向，
+不修改生产逻辑、不再运行此组件、不新增GPU回放。后续回到完整路径的
+发布后交接与控制竞争；须有不同于D595/D628/D687/D822的新证据才选候选。
+内存峰值343113728B，high/max/OOM/swap均0；源工件、生产文件、只读
+元数据库存及147项保护核验不变。数据/脚本待本轮正常检查点保存备份。
+当前3B W2仍以D826联合3610/4000（90.25%）为准，未达95%，D711
+独立数值身份限制保留。最终同版两模型M1/M2与Full、A1–A5、S1–S13、
+成本/CE、两轮审稿文档、图表及最终V2同步均继续开放，整体目标active。
+
+以下为本轮执行前登记，不代表组件仍在运行：
+
+前轮progress已封存D826完整结果及准备分解；本轮已完整阅读PLAN和冻结
+V1/单轮V2，核对D606、D609/D610、D627/D628/D631及当前代码，并联网复核
+ServerlessLLM/HF/Python官方资料。先复用D605/D627/D825组件入口测workspace
+退役wall/thread CPU、锁和库存/rmtree嵌套工作；不将D826的116.368ms包络
+冒称纯清理CPU时间，不复活已否决候选。此时仅登记，尚无D827测量结果。
+最多一份32MiB临时payload、既有只读元数据基数，无GPU/远端/工件池生成。
+说明D827_WORKSPACE_RETIREMENT_PROFILE_20261025.md；生产代码和配置不变。
+联合SLO仍以D826的3610/4000为最新观测；D711限制及全后续范围均保留。
+
+后置检查点已完成：de048c01f1c6310983b3ed896ad44b08e55c9688已推送并核实
+backup/d826-analysis-20261025，23条明确路径保存补充归因和无损压缩回执。
+aux1–9均已inactive、路径消失，所有本轮工具session结束，GPU空、stage空；
+BASE HEAD仍e1c433bab982366a82ad188ef703270d89d6ea06，用户manifest未提交。
+实测可用磁盘161198600192B，下一重型重新准入。非最终V2同步。
+下文“当前仅剩…备份”已由本回执完成；下一主线是核查有证据的交接/文件
+清理候选，不重复D826。此后置回执随下一正常检查点保存，不递归提交。
 
 ## 2026-10-25 D826 completed: one final content verification, mixed small effects
 

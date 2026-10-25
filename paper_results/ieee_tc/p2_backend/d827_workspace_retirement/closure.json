@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "component_scope": {
+    "unit": "primelora-tc-aux-82700000000000000000000000000001.scope",
+    "invocation_id": "08054c3e53d541fd85a66fdb7826147b",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82700000000000000000000000000001.scope",
+    "inode": 32140852
+  },
+  "component_properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "component_path_removed": true,
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": false,
+  "production_changed": false,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "decision": "No standalone deletion/asynchronous cleanup candidate; retain all six calls including the long inventory point.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D827_WORKSPACE_RETIREMENT_PROFILE_20261025.md",
+    "sha256": "0ce83d5e2942ae472863ab55600e42298db801a0fade5cd9ed9901d7f38dec7b",
+    "bytes": 7853
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py": "761bf207d641d3b00bf2cc6906204d8c0232dad323005636b15cfd5f79dcf523",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "e5994f9a75ceda5e9b78efb5ce391a2c6243d1f162d067d79fa5d5a777481e88"
+  },
+  "source_files": {
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_config.json": {
+      "sha256": "7efc9f4dc736f0c1dd9976aa25234ed4d3b93221ba7241367362af202217dd80",
+      "bytes": 1050
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora_0062/adapter_model.safetensors": {
+      "sha256": "763a734f248ff2557d156beaa0b78e35bdb97d02a8572de6e2e46466dcc69040",
+      "bytes": 33588752
+    }
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-82700000000000000000000000000002.scope",
+    "invocation_id": "cb0e23b2eaa3400a825ef9a78d4fcad0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82700000000000000000000000000002.scope",
+    "inode": 32142948
+  },
+  "resources": {
+    "memory.peak": "28786688",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161195184128,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}

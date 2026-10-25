@@ -1,0 +1,99 @@
+{
+  "archive_members": [
+    {
+      "member": "raw/backup.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/backup.py",
+      "sha256": "1970d65f0b1d745d62053449624a0c0b67f69581d156b316d8932e1bb089376b",
+      "bytes": 1052
+    },
+    {
+      "member": "raw/component.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/component.py",
+      "sha256": "83b7f8b7652dd4c2a74af5167dd14186c8eda4fd57f81ef4303b87399c881a98",
+      "bytes": 6328
+    },
+    {
+      "member": "raw/publish.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/publish.py",
+      "sha256": "b7a64b28cd5e97510638fee86ecb136a366c3c66b4fb699fb9dcb5da24365ef5",
+      "bytes": 5984
+    },
+    {
+      "member": "raw/component.log",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/component.log",
+      "sha256": "c0d48af33e8543641413ef39048c5f3f806a30c7ee2a7a957d955580b06a1fae",
+      "bytes": 6927
+    },
+    {
+      "member": "raw/component_identity.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/component_identity.json",
+      "sha256": "6898d6a39168946e0dbb7fe2756bccd09f3825a49ba76ad16f900c0e50f9d6af",
+      "bytes": 286
+    },
+    {
+      "member": "raw/component_resource_gate.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/component_resource_gate.json",
+      "sha256": "dc08240b4df2afb6f988ef9e17ead69d0c05f8e8b3cfc23b5b2cbcfcdc01c44f",
+      "bytes": 6471
+    },
+    {
+      "member": "raw/component_result.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/component_result.json",
+      "sha256": "3c71acd0c0661cf0224df9e90b23a1b0a507bac0947da9b889d8001a6709c95d",
+      "bytes": 6926
+    },
+    {
+      "member": "raw/publication_identity.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d827_20261025/publication_identity.json",
+      "sha256": "0ecb5acccd426768cc8df2b24aae8b2642dd91f3be8f238000c1bd6c94d4e12e",
+      "bytes": 286
+    },
+    {
+      "member": "reused/d605_20261017/compare_inventory.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d605_20261017/compare_inventory.py",
+      "sha256": "eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b",
+      "bytes": 10864
+    },
+    {
+      "member": "reused/d627_20261017/component.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d627_20261017/component.py",
+      "sha256": "c154225a2b1348987a61594321ae894723a7639879f348395d2f65c2d6ca8dca",
+      "bytes": 8450
+    },
+    {
+      "member": "reused/d825_20261025/component.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d825_20261025/component.py",
+      "sha256": "4c6968af51dfc441715bc86ad42ecd7b49bb9cb2e9dd9ce0b72d5de4304ce637",
+      "bytes": 7103
+    },
+    {
+      "member": "reused/d825_20261025/publish.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d825_20261025/publish.py",
+      "sha256": "045f8880589016172e32461339822da2629e7ed42b9e34de79909a4b17a62e6a",
+      "bytes": 6315
+    },
+    {
+      "member": "reused/d824_20261025/backup.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d824_20261025/backup.py",
+      "sha256": "ee84b28423f93cea5a6764c529174b4531ad1bcf7c38ee4e1d37c95bc0b951c8",
+      "bytes": 3709
+    }
+  ],
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d827_workspace_retirement/closure.json",
+      "sha256": "8c04d5e8a0add9dd09ae84e0f7b31603049a8245f85f5a8ac7ff6c99d8cf25fa",
+      "bytes": 3638
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d827_workspace_retirement/component.json",
+      "sha256": "3c71acd0c0661cf0224df9e90b23a1b0a507bac0947da9b889d8001a6709c95d",
+      "bytes": 6926
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d827_workspace_retirement/evidence.tar.gz",
+      "sha256": "422422d1f817fac3bb5353266bf0ae54d81acbf5933a450a1971a361eccc5956",
+      "bytes": 18971
+    }
+  ]
+}
