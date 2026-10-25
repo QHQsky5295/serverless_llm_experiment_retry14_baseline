@@ -83,10 +83,13 @@ class FrozenReplayPlan:
              coverage_pool_index=None, coverage_pool_index_sha256=None,
              adapter_map=None, adapter_map_sha256=None):
         if profile == 'W2':
-            if (rate_scale != 1. or (count is not None and (type(count) is not int or count != 4000))
+            if (rate_scale != 1. or (count is not None and (type(count) is not int or not 0 < count <= 4000))
                     or coverage_pool_index is not None or coverage_pool_index_sha256 is not None):
                 raise ValueError('W2 requires the complete unscaled 4000-request source')
-            return cls.load(path).with_adapter_rotation(adapter_map, adapter_map_sha256)
+            # Validate the complete frozen map before projecting a diagnostic
+            # prefix. Never rotate a truncated source or regenerate local ranks.
+            plan = cls.load(path).with_adapter_rotation(adapter_map, adapter_map_sha256)
+            return plan if count is None else replace(plan, entries=plan.entries[:count])
         if adapter_map is not None or adapter_map_sha256 is not None:
             raise ValueError('adapter map requires the explicit W2 profile')
         if profile == 'ADAPTER_COVERAGE_V1':

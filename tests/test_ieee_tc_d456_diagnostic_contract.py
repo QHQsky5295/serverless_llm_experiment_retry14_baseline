@@ -191,6 +191,29 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D863Attempt2Contract(unittest.TestCase):
+    def test_failed_prelaunch_preserved_and_same_policy_in_new_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d863_3b_native_prefix1000.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d863_attempt2_3b_native_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('attempt2', after)
+        self.assertEqual(old, new)
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d863_attempt2\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000\n', block)
+        self.assertIn('d863_20261026_attempt2/3b_native_prefix1000', block)
+        blocks = re.findall(r'^if \[\[ ([^\n]+)\]\]; then\n(.*?)^fi', shell, re.M | re.S)
+        selected = [body for condition, body in blocks if '== d863_attempt2' in condition]
+        self.assertEqual(len(selected), 3)
+        self.assertIn('FAASLORA_TC_REPLAY_PROFILE=W2', selected[1])
+        self.assertIn('FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal', selected[2])
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertEqual(wrapper.count('d863_attempt2_3b_native_prefix1000'), 1)
+
+
 class D863DiagnosticContract(unittest.TestCase):
     def test_d858_policy_only_three_exclusive_paths_change(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d858_3b_max3_full_w2.yaml').read_text())

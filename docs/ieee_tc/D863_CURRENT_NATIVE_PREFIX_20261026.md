@@ -2,6 +2,28 @@
 
 2026-10-26，预登记；尚未产生结果。沿用已批准主线P3，非新性能候选。
 
+## 首次启动入口错误与原样前缀适配
+
+16项定向检查通过、e8e36dcf已远端备份后，第一次启动在preflight创建服务
+资源域之前失败：W2入口原先只支持4000条完整源，拒绝任何diagnostic prefix。
+没有模型加载、请求测量或launch.json；不是性能失败。原launcher.log、备份
+和首次回执保留，tmux创建成功不等于服务运行成功。核对GPU空闲、该辅助域
+已inactive且无launch证据后，以原InvocationID停止两个远端服务及监控；
+stop_prelaunch_failure回执显示全部inactive/MainPID0。
+
+修正为数据投影语义，而非绕过映射验证：始终对原4000条源与完整冻结W2 map
+逐条核验，再从所得完整W2 entries取原序前缀。未执行尾部的错误映射也必须
+拒绝；不重新生成rank/arrival/prompt/adapter，不修改原始文件。完整4000
+路径输出不变，formal/full身份仍拒绝短前缀。服务和外置publisher使用同一
+view SHA及完整source/map SHA。preflight允许这种明确非formal Unix前缀，
+保留资源控制、完整source_count4000和严格prefix身份核对。
+
+新增测试覆盖精确前缀、未执行尾部损坏、正式身份拒绝、service/publisher一致，
+并复用现有完整W2/W0/W1/coverage测试。新执行使用d863_20261026_attempt2，
+不覆盖原launch失败目录；这是协议错误修复后的同一诊断，不是同键择优。
+涉及workload_generator和preflight的诊断投影支持；生产调度、数值执行、
+core_timing及九公式仍未改。下表原登记路径之外新增attempt2配置和管理快照。
+
 ## 问题和已有证据
 
 D862已经复用D858/D861完整4000请求，解释了首次TTFT跨在线扩容线与

@@ -1336,9 +1336,9 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
         raise ValueError('coverage pool requires functional profile')
     rotation = replay_profile == 'W2'
     if rotation:
-        if (not adapter_map or not adapter_map_sha256 or tiny or diagnostic_prefix_count is not None
+        if (not adapter_map or not adapter_map_sha256 or tiny
                 or replay_trace is None or http_replay_config is not None):
-            raise ValueError('W2 requires a frozen adapter map and full Unix replay')
+            raise ValueError('W2 requires a frozen adapter map and Unix replay')
     elif adapter_map is not None or adapter_map_sha256 is not None:
         raise ValueError('adapter map requires explicit W2 replay')
     require_watchdog_primitives()
@@ -1471,7 +1471,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                         replay_ready['plan'].get('profile') != 'W2'
                         or replay_ready['plan'].get('adapter_map') != str(Path(adapter_map).resolve())
                         or replay_ready['plan'].get('adapter_map_sha256') != adapter_map_sha256
-                        or replay_ready['plan'].get('count') != 4000
+                        or replay_ready['plan'].get('count') != (
+                            4000 if diagnostic_prefix_count is None else diagnostic_prefix_count)
                         or replay_ready['plan'].get('source_count') != 4000):
                     raise ValueError('W2 publisher differs from the frozen requested adapter map')
                 if diagnostic_prefix_count is not None and (

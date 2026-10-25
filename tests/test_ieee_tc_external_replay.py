@@ -196,13 +196,54 @@ class FrozenRotationViews(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(),raw)
         self.assertEqual(FrozenReplayPlan.load(self.path).identity(),self.old.identity())
 
-    def test_w2_rejects_missing_map_prefix_rate_or_conflicting_profile(self):
+    def test_w2_rejects_missing_map_invalid_prefix_rate_or_conflicting_profile(self):
         for change in (dict(adapter_map=None),dict(adapter_map_sha256=None),
-                       dict(adapter_map_sha256='wrong'),dict(count=100),dict(count=True),
+                       dict(adapter_map_sha256='wrong'),dict(count=0),dict(count=True),
+                       dict(count=4001),dict(count=100.0),
                        dict(rate_scale=2.),dict(profile='W0'),dict(profile='W1'),
                        dict(coverage_pool_index=self.pool)):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 FrozenReplayPlan.load(self.path,**{**self.options,**change})
+
+    def test_w2_prefix_is_exact_projection_after_complete_map_validation(self):
+        full = FrozenReplayPlan.load(self.path, **self.options)
+        prefix = FrozenReplayPlan.load(self.path, count=1000, **self.options)
+        self.assertEqual(prefix.entries, full.entries[:1000])
+        for key in ('source_path', 'source_sha256', 'source_count', 'adapter_map',
+                    'adapter_map_sha256', 'profile', 'rate_scale'):
+            self.assertEqual(prefix.identity()[key], full.identity()[key])
+        self.assertEqual(FrozenReplayPlan.load(self.path, count=4000, **self.options), full)
+        context = dict(plan=prefix.identity(), tiny_witness=False,
+            replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=1000)
+        self.assertEqual(FrozenReplayPlan.from_launch_context(context), prefix)
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.from_launch_context(context, formal_run=True)
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.from_launch_context(dict(context, replay_scope='full_source_v1'))
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.from_launch_context(dict(context, diagnostic_prefix_count=999))
+        changed = copy.deepcopy(self.mapping)
+        changed['rows'][3999]['adapter_id'] = 'wrong-outside-prefix'
+        self.freeze(changed)
+        with self.assertRaises(ValueError):
+            FrozenReplayPlan.load(self.path, count=1000, **self.options)
+
+    def test_integrated_service_prefix_uses_the_same_full_rotation_entries(self):
+        from types import SimpleNamespace
+        from scripts.run_all_experiments import _load_shared_trace_requests
+        plan = FrozenReplayPlan.load(self.path, count=1000, **self.options)
+        context = dict(plan=plan.identity(), tiny_witness=False,
+            replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=1000)
+        _, traces, metadata = _load_shared_trace_requests(str(self.path),
+            allowed_adapter_ids=self.mapping['adapter_order'],
+            external_replay=SimpleNamespace(plan=plan, context=context))
+        self.assertEqual(len(traces), 1000)
+        self.assertEqual(metadata['replay_plan'], plan.identity())
+        for trace, entry in zip(traces, plan.entries):
+            row = json.loads(entry.source_json)
+            self.assertEqual(trace.adapter_id, row['adapter_id'])
+            self.assertEqual(trace.chat_messages, row['body']['messages'])
+            self.assertEqual(trace.expected_output_tokens, row['expected_output_tokens'])
 
     def test_integrated_service_uses_the_same_derived_adapter_and_prompt(self):
         from types import SimpleNamespace
@@ -258,12 +299,28 @@ class FrozenRotationViews(unittest.TestCase):
         valid = dict(replay_trace=self.path,replay_profile='W2',
                      adapter_map=self.map,adapter_map_sha256=self.options['adapter_map_sha256'])
         for change in (dict(adapter_map=None),dict(adapter_map_sha256=None),dict(tiny=True),
-                       dict(diagnostic_prefix_count=100),dict(replay_trace=None),
+                       dict(diagnostic_prefix_count=0),dict(replay_trace=None),
                        dict(http_replay_config=self.path),dict(replay_profile='W0')):
             with self.subTest(change=change), patch.object(preflight,'require_watchdog_primitives') as guard:
                 with self.assertRaises(ValueError):
                     preflight.gated_launch(['never-start'],self.map,**{**valid,**change})
                 guard.assert_not_called()
+
+    def test_launcher_accepts_nonformal_w2_prefix_but_not_formal_before_resources(self):
+        from scripts import ieee_tc_preflight as preflight
+        from unittest.mock import patch
+        options = dict(replay_trace=self.path, replay_profile='W2',
+            adapter_map=self.map, adapter_map_sha256=self.options['adapter_map_sha256'],
+            diagnostic_prefix_count=1000)
+        with patch.dict('os.environ', {'FAASLORA_FORMAL_RUN': '0'}), patch.object(
+                preflight, 'require_watchdog_primitives', side_effect=RuntimeError('reached guard')):
+            with self.assertRaisesRegex(RuntimeError, 'reached guard'):
+                preflight.gated_launch(['never-start'], self.map, **options)
+        with patch.dict('os.environ', {'FAASLORA_FORMAL_RUN': '1'}), patch.object(
+                preflight, 'require_watchdog_primitives') as guard:
+            with self.assertRaises(ValueError):
+                preflight.gated_launch(['never-start'], self.map, **options)
+            guard.assert_not_called()
 
 
 class CanonicalHTTPInput(unittest.TestCase):

@@ -1,0 +1,146 @@
+"""D863 attempt2: reuse D734's bounded validation/backup/start sequence, no new runtime."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d863_3b_native_prefix1000/prelaunch_attempt2'
+PYTHON = '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=55).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json', own)
+group = Path(own['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+events_before = (group/'memory.events').read_text()
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not call(['git', 'diff', '--cached', '--name-only'])
+assert set(call(['git', 'diff', '--name-only', 'HEAD', '--', 'faaslora', 'scripts/run_all_experiments.py']).splitlines()) == {'faaslora/datasets/workload_generator.py'}
+assert not (RAW/'3b_native_prefix1000').exists()
+assert not Path('/dev/shm/tc-d863-attempt2-3b-native-prefix1000').exists()
+OUT.mkdir(parents=True, exist_ok=False)
+previous = read(ROOT/'paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/qualification.json')
+changed = {str(ROOT/name) for name in (
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'docs/ieee_tc/EXECUTION_STATUS.md',
+    'docs/ieee_tc/D858_SINGLE_LEASE_FULL_W2_20261026.md')}
+refs = {name: sha for name, sha in previous['refs'].items() if name not in changed}
+protected = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+seal = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+save(OUT/'protected_147.json', seal)
+assert call(['git','branch','--show-current']) == 'retry14_continuous_queue_v2'
+assert call(['git','rev-parse','HEAD']) == 'e8e36dcfc84430a2f06c5a76ff07aea4ac70e5ed'
+qualified = ROOT/'paper_results/ieee_tc/p2_backend/d857_single_lease_observation'
+closure = read(qualified/'closure.json')
+assert closure['passed'] and closure['cpu_semantics_passed'] and closure['tests'] == 86
+for row in closure['source_files']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+save(OUT/'reused_d857.json', dict(cpu_tests=86, new_cpu_functional_tests=0,
+    closure_sha256=p.digest(qualified/'closure.json'),
+    numerical_correctness_qualified=False))
+for name, sha in (refs | protected).items():
+    assert p.digest(Path(name)) == sha, name
+files = [
+    'configs/ieee_tc/20261026_d863_attempt2_3b_native_prefix1000.yaml',
+    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    'scripts/ieee_tc/profile_d328_controller_python.sh',
+    'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'docs/ieee_tc/D863_CURRENT_NATIVE_PREFIX_20261026.md',
+    'docs/ieee_tc/EXECUTION_STATUS.md',
+    'faaslora/datasets/workload_generator.py',
+    'scripts/ieee_tc_preflight.py',
+    'tests/test_ieee_tc_external_replay.py',
+]
+for name in files + [
+    'scripts/run_all_experiments.py', 'faaslora/memory/residency_manager.py',
+    'faaslora/utils/logger.py', 'faaslora/utils/core_timing.py']:
+    refs[str(ROOT/name)] = p.digest(ROOT/name)
+for name in ('scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+             'scripts/ieee_tc/profile_d328_controller_python.sh'):
+    call(['bash', '-n', str(ROOT/name)])
+for path in sorted(RAW.iterdir()):
+    if path.suffix not in ('.py', '.sh'):
+        continue
+    if path.suffix == '.py': ast.parse(path.read_text())
+    else: call(['bash', '-n', str(path)])
+    with (OUT/(path.name+'.snapshot')).open('xb') as f: f.write(path.read_bytes())
+    refs[str(path)] = p.digest(path)
+with (OUT/'tests.txt').open('x') as log:
+    subprocess.run([PYTHON, '-B', '-m', 'unittest',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D863Attempt2Contract',
+        'tests.test_ieee_tc_external_replay.FrozenViews',
+        'tests.test_ieee_tc_external_replay.FrozenRotationViews',
+        'tests.test_ieee_tc_external_replay.OpenLoopTransport',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D861FullContract',
+        'tests.test_ieee_tc_core_timing.CoreTiming', '-v'],
+        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=55)
+assert (group/'memory.events').read_text() == events_before
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT/'qualification.json', dict(passed=True, identity=own, refs=refs,
+    protected=protected,
+    targeted_tests=int(re.search(r'Ran (\d+) tests', (OUT/'tests.txt').read_text()).group(1)),
+    full_source_count=4000, diagnostic_prefix_count=1000, replay_profile='W2',
+    replay_scope='diagnostic_prefix_v1', inference_policy_unchanged=True,
+    new_production_instrumentation=False, cpu_time_profile=False,
+    diagnostic_projection_adapter=True, failed_prelaunch_preserved=True,
+    observer='host_spans_v1', max_bytes_per_process=64*1024*1024,
+    max_spans_per_process=200000, numerical_correctness_qualified=False,
+    ranking_eligible=False, source_cpu_tests_reused=86,
+    formal_performance_result=False, resources={key: (group/key).read_text().strip()
+        for key in ('memory.peak', 'memory.events', 'memory.swap.current')}))
+members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'manifest.json', dict(files=members))
+files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for name in files:
+    assert not secret.search((ROOT/name).read_text()), name
+assert 'configs/generated/lora_manifest_1000.json' not in files
+call(['git', 'diff', '--check', '--', *files])
+call(['git', 'add', '--', *files])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(files)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: support validated W2 diagnostic prefix and preserve D863 prelaunch failure'])
+head = call(['git', 'rev-parse', 'HEAD'])
+branch = 'refs/heads/backup/d863-native-prefix1000-attempt2-20261026'
+save(RAW/'commit.json', dict(head=head, ref=branch, files=files))
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:'+branch])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', branch]).split()[0] == head
+save(RAW/'backup.json', dict(passed=True, head=head, ref=branch, files=files, v2_synchronized=False))
+gate = p.preflight([ROOT, RAW], 32*p.GIB)
+save(RAW/'launch_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+session = 'tc-d863-attempt2-3b-native-prefix1000'
+assert subprocess.run(['tmux', 'has-session', '-t', session], stderr=subprocess.DEVNULL).returncode != 0
+call(['bash', str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3', '-B', str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux', 'new-session', '-d', '-s', session, '-c', str(ROOT),
+      shlex.join(['bash', str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json', dict(launched=True, head=head, backup_ref=branch,
+    tmux=session, identity=own, qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True, head=head, ref=branch, tmux=session)))

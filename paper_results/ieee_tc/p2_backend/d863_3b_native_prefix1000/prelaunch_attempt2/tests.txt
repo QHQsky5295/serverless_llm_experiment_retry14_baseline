@@ -1,0 +1,57 @@
+test_d858_policy_only_three_exclusive_paths_change (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_d858_policy_only_three_exclusive_paths_change) ... ok
+test_native_spans_only_no_components_inventory_or_frames (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_native_spans_only_no_components_inventory_or_frames) ... ok
+test_original_w2_prefix1000_uses_shared_remote_and_decoder (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_original_w2_prefix1000_uses_shared_remote_and_decoder) ... ok
+test_failed_prelaunch_preserved_and_same_policy_in_new_paths (tests.test_ieee_tc_d456_diagnostic_contract.D863Attempt2Contract.test_failed_prelaunch_preserved_and_same_policy_in_new_paths) ... ok
+test_coverage_preserves_source_and_matches_existing_http_derivation (tests.test_ieee_tc_external_replay.FrozenViews.test_coverage_preserves_source_and_matches_existing_http_derivation) ... ok
+test_integrated_prefix_needs_explicit_scope_and_retains_full_source_identity (tests.test_ieee_tc_external_replay.FrozenViews.test_integrated_prefix_needs_explicit_scope_and_retains_full_source_identity) ... ok
+test_invalid_trace_or_transform_rejected (tests.test_ieee_tc_external_replay.FrozenViews.test_invalid_trace_or_transform_rejected) ... ok
+test_prefix_and_rate_are_declared_views_not_new_input (tests.test_ieee_tc_external_replay.FrozenViews.test_prefix_and_rate_are_declared_views_not_new_input) ... ok
+test_sort_identity_and_content_hash_without_rewriting_source (tests.test_ieee_tc_external_replay.FrozenViews.test_sort_identity_and_content_hash_without_rewriting_source) ... ok
+test_w1_exact_phase_formula_not_service_drain (tests.test_ieee_tc_external_replay.FrozenViews.test_w1_exact_phase_formula_not_service_drain) ... ok
+test_changed_pool_or_source_never_reuses_frozen_map (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_changed_pool_or_source_never_reuses_frozen_map) ... ok
+test_integrated_service_prefix_uses_the_same_full_rotation_entries (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_integrated_service_prefix_uses_the_same_full_rotation_entries) ... W1026 05:12:34.305000 1931894 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceRequest(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class SystemStatusResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class PreloadingRequest(BaseModel):
+ok
+test_integrated_service_uses_the_same_derived_adapter_and_prompt (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_integrated_service_uses_the_same_derived_adapter_and_prompt) ... ok
+test_launcher_accepts_nonformal_w2_prefix_but_not_formal_before_resources (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_launcher_accepts_nonformal_w2_prefix_but_not_formal_before_resources) ... ok
+test_launcher_rejects_invalid_w2_before_any_resource_or_service_operation (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_launcher_rejects_invalid_w2_before_any_resource_or_service_operation) ... ok
+test_rehashed_but_incorrect_map_is_rejected (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_rehashed_but_incorrect_map_is_rejected) ... ok
+test_rotation_preserves_each_rank_prompt_target_arrival_and_source (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_rotation_preserves_each_rank_prompt_target_arrival_and_source) ... ok
+test_w2_prefix_is_exact_projection_after_complete_map_validation (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_w2_prefix_is_exact_projection_after_complete_map_validation) ... ok
+test_w2_rejects_missing_map_invalid_prefix_rate_or_conflicting_profile (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_w2_rejects_missing_map_invalid_prefix_rate_or_conflicting_profile) ... ok
+test_cancel_keeps_full_planned_denominator (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_cancel_keeps_full_planned_denominator) ... ok
+test_clock_or_plan_mismatch_is_not_silent_fallback (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_clock_or_plan_mismatch_is_not_silent_fallback) ... ok
+test_close_during_startup_preserves_observed_prefix (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_close_during_startup_preserves_observed_prefix) ... Executing <Task pending name='Task-19' coro=<ExternalReplayIngress._pump() running at /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py:567> wait_for=<Future pending cb=[Task.task_wakeup()] created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:448> created at /home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:420> took 0.113 seconds
+ok
+test_consecutive_windows_preserve_single_replay_cursor (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_consecutive_windows_preserve_single_replay_cursor) ... ok
+test_early_or_changed_payload_is_rejected (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_early_or_changed_payload_is_rejected) ... ok
+test_late_service_does_not_shift_arrivals_or_clock_origin (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_late_service_does_not_shift_arrivals_or_clock_origin) ... ok
+test_observer_gets_prior_received_history_once_then_live_arrivals (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_observer_gets_prior_received_history_once_then_live_arrivals) ... ok
+test_reception_during_startup_precedes_service_consumption (tests.test_ieee_tc_external_replay.OpenLoopTransport.test_reception_during_startup_precedes_service_consumption) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D861FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D861FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_byte_cap_and_close_footer_are_bounded (tests.test_ieee_tc_core_timing.CoreTiming.test_byte_cap_and_close_footer_are_bounded) ... ok
+test_cap_stops_recording_not_native_work (tests.test_ieee_tc_core_timing.CoreTiming.test_cap_stops_recording_not_native_work) ... ok
+test_default_does_not_patch_native_methods_or_scheduler (tests.test_ieee_tc_core_timing.CoreTiming.test_default_does_not_patch_native_methods_or_scheduler) ... ok
+test_foreign_pid_thread_core_and_collision_reject (tests.test_ieee_tc_core_timing.CoreTiming.test_foreign_pid_thread_core_and_collision_reject) ... ok
+test_install_gate_actual_output_and_shutdown_close (tests.test_ieee_tc_core_timing.CoreTiming.test_install_gate_actual_output_and_shutdown_close) ... ok
+test_nested_spans_preserve_methods_results_order_and_private_payload (tests.test_ieee_tc_core_timing.CoreTiming.test_nested_spans_preserve_methods_results_order_and_private_payload) ... ok
+test_original_exception_identity_is_preserved (tests.test_ieee_tc_core_timing.CoreTiming.test_original_exception_identity_is_preserved) ... ok
+test_short_write_is_not_silently_accepted (tests.test_ieee_tc_core_timing.CoreTiming.test_short_write_is_not_silently_accepted) ... ok
+test_unknown_labels_never_echo_payload (tests.test_ieee_tc_core_timing.CoreTiming.test_unknown_labels_never_echo_payload) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 16.984s
+
+OK
