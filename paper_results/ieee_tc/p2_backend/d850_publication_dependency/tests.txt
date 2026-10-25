@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 230 items / 228 deselected / 2 selected
+
+tests/test_ieee_tc_request_lifecycle.py FF                               [100%]
+
+=================================== FAILURES ===================================
+_ ConfirmedFilePublication.test_d850_preissued_read_lease_still_joins_witness_owner_lock _
+tests/test_ieee_tc_request_lifecycle.py:3288: in test_d850_preissued_read_lease_still_joins_witness_owner_lock
+    self._check_d850_publication_cleanup_dependency('witness')
+tests/test_ieee_tc_request_lifecycle.py:3259: in _check_d850_publication_cleanup_dependency
+    self.assertEqual(self.runner._remote_transfer_evidence[-1]['state'], 'published')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:03:35 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+    remote artifact fetch a: 0.0 MB, 5.5 ms
+_ ConfirmedFilePublication.test_d850_published_source_snapshot_still_joins_workspace_lock _
+tests/test_ieee_tc_request_lifecycle.py:3285: in test_d850_published_source_snapshot_still_joins_workspace_lock
+    self._check_d850_publication_cleanup_dependency('snapshot')
+tests/test_ieee_tc_request_lifecycle.py:3259: in _check_d850_publication_cleanup_dependency
+    self.assertEqual(self.runner._remote_transfer_evidence[-1]['state'], 'published')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:03:36 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+    remote artifact fetch a: 0.0 MB, 4.6 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_request_lifecycle.py::ConfirmedFilePublication::test_d850_preissued_read_lease_still_joins_witness_owner_lock
+FAILED tests/test_ieee_tc_request_lifecycle.py::ConfirmedFilePublication::test_d850_published_source_snapshot_still_joins_workspace_lock
+=============== 2 failed, 228 deselected, 19 warnings in 10.31s ================

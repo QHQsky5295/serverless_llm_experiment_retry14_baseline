@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-85000000000000000000000000000003.scope",
+    "invocation_id": "8b955f942bd94767adef9105ce622ef7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85000000000000000000000000000003.scope",
+    "inode": 32521385
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-85000000000000000000000000000001.scope",
+        "invocation_id": "88d8e59be3384425a0bcd05757c34a73",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85000000000000000000000000000001.scope",
+        "inode": 32519089
+      },
+      "path_removed": true,
+      "returncode": 1
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-85000000000000000000000000000002.scope",
+        "invocation_id": "3e28f925b146405095b4c612a5d8df6a",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85000000000000000000000000000002.scope",
+        "inode": 32519842
+      },
+      "path_removed": true,
+      "returncode": 0
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md",
+    "sha256": "cd548d20058d9fa55957c7f2be037d09844a5e6832153519276f0035e70e8404",
+    "bytes": 5775
+  },
+  "production_changes": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "tests": {
+    "passed": 2,
+    "failed_attempt_retained": true
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+    "sha256": "281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e",
+    "bytes": 324172
+  },
+  "failed_source_archive": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d850_publication_dependency/failed_fixture_source.tar.gz",
+    "sha256": "548b8366ae032baac442a7f1b5e5c05e5e68048bff3b79a37836f2d80d423ef3",
+    "bytes": 53417
+  },
+  "candidate_accepted": false,
+  "conclusion": "Early notification or preissued lease alone does not remove the existing owner-lock dependency.",
+  "disk_free_bytes": 184391843840
+}

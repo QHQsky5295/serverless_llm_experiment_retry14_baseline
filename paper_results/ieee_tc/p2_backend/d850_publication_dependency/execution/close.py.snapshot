@@ -1,0 +1,75 @@
+"""Reuse D849 source/protection closure for the bounded D850 CPU witness."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tarfile
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d850_publication_dependency'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+closed = []
+for directory, expected_rc in ((OUT, 1), (OUT/'attempt2', 0)):
+    resource = read(directory/'resources.json')
+    identity = resource['identity']
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    assert resource['test_returncode'] == expected_rc
+    assert resource['production_unchanged']
+    assert resource['resources']['memory.swap.current'] == 0
+    assert all(v == 0 for v in resource['resources']['memory.events'].values())
+    for name, sha in resource['production_before'].items():
+        assert p.digest(ROOT/name) == sha
+    closed.append(dict(identity=identity, path_removed=True, returncode=expected_rc))
+assert '2 failed, 228 deselected, 19 warnings' in (OUT/'tests.txt').read_text()
+assert '2 passed, 228 deselected, 19 warnings' in (OUT/'attempt2/tests.txt').read_text()
+assert p.digest(RAW/'test_source_attempt1.py.snapshot') == read(OUT/'resources.json')['test_source_sha256']
+assert p.digest(ROOT/'tests/test_ieee_tc_request_lifecycle.py') == read(OUT/'attempt2/resources.json')['test_source_sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT/'execution'
+execution.mkdir()
+for name in ('check.py', 'close.py', 'backup.py'):
+    path = RAW/name
+    compile(path.read_text(), str(path), 'exec')
+    shutil.copyfile(path, execution/(name+'.snapshot'))
+archive = OUT/'failed_fixture_source.tar.gz'
+with tarfile.open(archive, 'x:gz') as bundle:
+    bundle.add(RAW/'test_source_attempt1.py.snapshot', arcname='test_source_attempt1.py.snapshot')
+with tarfile.open(archive, 'r:gz') as bundle:
+    import hashlib
+    assert hashlib.sha256(bundle.extractfile('test_source_attempt1.py.snapshot').read()).hexdigest() == read(OUT/'resources.json')['test_source_sha256']
+doc = ROOT/'docs/ieee_tc/D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md'
+save(OUT/'closure.json', dict(passed=True, scope=scope, closed_tasks=closed,
+    protected=protected, user_protected=user, doc=ref(doc), production_changes=False,
+    new_gpu_replays=0, n_correct=None, ranking_eligible=False,
+    tests=dict(passed=2, failed_attempt_retained=True), source=ref(ROOT/'tests/test_ieee_tc_request_lifecycle.py'),
+    failed_source_archive=ref(archive), candidate_accepted=False,
+    conclusion='Early notification or preissued lease alone does not remove the existing owner-lock dependency.',
+    disk_free_bytes=shutil.disk_usage(ROOT).free))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, new_gpu_replays=0,
+    candidate_accepted=False, production_changes=False)))

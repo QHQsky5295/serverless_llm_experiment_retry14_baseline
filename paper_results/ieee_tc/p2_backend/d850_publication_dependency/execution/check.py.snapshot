@@ -1,0 +1,49 @@
+"""Bounded D850 dependency tests; reuse D849's contained pytest entry."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+attempt = sys.argv[1] if len(sys.argv) == 2 else 'attempt1'
+assert attempt in ('attempt1', 'attempt2')
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d850_publication_dependency'
+if attempt == 'attempt2':
+    OUT = OUT/'attempt2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+OUT.mkdir(parents=True, exist_ok=False)
+with (RAW/('identity.json' if attempt == 'attempt1' else 'identity_attempt2.json')).open('x') as stream:
+    json.dump(identity, stream, indent=2)
+production = ['faaslora/memory/residency_manager.py',
+    'faaslora/storage/http_artifact_store.py', 'scripts/run_all_experiments.py',
+    'faaslora/scheduling/resource_coordinator.py',
+    'faaslora/preloading/preloading_manager.py']
+before = {name: p.digest(ROOT/name) for name in production}
+rc = None
+try:
+    with (OUT/'tests.txt').open('x') as stream:
+        rc = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q',
+            '-p', 'no:cacheprovider', 'tests/test_ieee_tc_request_lifecycle.py',
+            '-k', 'd850'], cwd=ROOT, stdout=stream,
+            stderr=subprocess.STDOUT, timeout=60).returncode
+    assert rc == 0
+finally:
+    after = {name: p.digest(ROOT/name) for name in production}
+    with (OUT/'resources.json').open('x') as stream:
+        json.dump(dict(identity=identity, resources=p.cgroup_snapshot(Path(identity['path'])),
+            test_returncode=rc, program_sha256=p.digest(Path(__file__)),
+            test_source_sha256=p.digest(ROOT/'tests/test_ieee_tc_request_lifecycle.py'),
+            production_before=before, production_after=after,
+            production_unchanged=before == after,
+            new_gpu_replays=0, n_correct=None, ranking_eligible=False), stream, indent=2)
+print(json.dumps(dict(passed=rc == 0, production_unchanged=before == after,
+    new_gpu_replays=0)))

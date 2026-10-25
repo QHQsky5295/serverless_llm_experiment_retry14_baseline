@@ -1,4 +1,35 @@
-# IEEE TC execution status — D849 current preparation diagnosed; no new GPU replay
+# IEEE TC execution status — D850 early publication handoff dependency closed
+
+## 2026-10-25 D850有界验证完成：仅提前通知/预发租约不接入生产
+
+完整PLAN已核对，D849之后无生产修改。D850复用真实文件fixture，在完整发布
+事务内预发真实读租约；workspace仍持有原file-owner锁时，source_snapshot和
+demand_witness均出现真实非阻塞锁获取失败。解除屏障后清理/校验/释放完成。
+两项测试通过；不是GPU性能或线上锁等待份额。第一次两项因读取尚未追加的
+完成记录失败，改为调用者持有的进行中证据后通过；原失败日志/源码保留。
+两次内存峰值693084160/693497856B、high/max/OOM/swap0。详见
+D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md。新生产候选=false，无新GPU
+回放、图表、baseline/远端/shared-k3s操作；只补两条CPU测试和证据文档。
+
+当前3B仍D846联合3715/4000=92.875%、U11929.629332，预算12083.063870；
+未到95%，D711独立数值未知仍n_correct=null。D848已回收22.174GB，目前
+约171.7GiB可用；不再重复全盘扫描。D849备份已完成，D850证据准备备份。
+
+下一仅检查完整file-owner事务的off-loop调用边界：routing/planning、实际
+读引用/需求witness、HOST预算、释放和publication/cleanup；保持全部实时
+容量/身份/取消/终态检查。D733是暂缓全owner异步化，不是完整架构实测否决；
+本次新依据D843当前全长栈+D850实际锁依赖，不再试一次snapshot的to_thread，
+也不新GPU profiling。先判断能否形成完整事务边界，再决定实现，不冒称性能
+收益。所有同版本两模型主比较、A1–A5、S1–S13、论文文档/图表、最终V2仍开放。
+
+以下为历史记录，不重跑已完成任务。
+
+D849检查点b21a1b8719200ed43a88eb586386c7f0c2b9cfb5已推送，远端
+backup/d849-current-preparation-20261025核实同SHA，24明确文件；最终V2未
+同步。首次备份停在pytest原始日志空白格式检查，未提交；保留原字节/SHA，
+复用明确日志格式处理后完成，失败与恢复回执保留。后续备份原始tests.txt
+应直接采用该明确路径规则，不修改日志来过检查。当前无GPU、扫描、压缩或
+分析任务；下一仅按下节核查租约/通知依赖。本回执随下一正常检查点保存。
 
 ## 2026-10-25 D849当前准备分解完成，下一核查确认发布后的真实依赖
 

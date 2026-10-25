@@ -3177,6 +3177,122 @@ class ConfirmedFilePublication(unittest.TestCase):
             (self.payload if payload is None else payload).items())))
         return self.runner._materialize_remote_adapter('a', self.nvme / 'a')
 
+    def _check_d850_publication_cleanup_dependency(self, operation):
+        """Force retirement to overlap a consumer of an already leased source.
+
+        A failed nonblocking acquisition proves contention; elapsed time is not
+        an assertion or a performance estimate. The real publication, lease,
+        workspace retirement and post-retirement validation remain in use.
+        """
+        from contextlib import contextmanager
+        from faaslora.storage import http_artifact_store as http
+
+        retiring, release, blocked, consumed = (threading.Event() for _ in range(4))
+        actual_lock = self.owner.lock
+        actual_workspace = http.staged_directory
+        actual_publish = self.owner.publish_transfer
+        handoff, results, errors, transfer_evidence = {}, {}, [], {}
+
+        class ObservedLock:
+            def __enter__(inner):
+                if not actual_lock.acquire(blocking=False):
+                    if threading.current_thread().name == 'd850-consumer':
+                        blocked.set()
+                    actual_lock.acquire()
+                return inner
+
+            def __exit__(inner, *exc):
+                actual_lock.release()
+
+        @contextmanager
+        def held_retirement(target):
+            with actual_workspace(target) as staging:
+                try:
+                    yield staging
+                finally:
+                    retiring.set()
+                    if not release.wait(5):
+                        raise RuntimeError('D850 deterministic retirement barrier expired')
+
+        def publish_and_pin(*args, **kwargs):
+            # Give early handoff its strongest version: issue a real lease in
+            # the same owner transaction, rather than only sending a callback.
+            with self.owner.lock:
+                publication = actual_publish(*args, **kwargs)
+                reference = self.owner.acquire_confirmed(path=publication['path'],
+                    adapter_id='a', lease_id='d850-reader',
+                    expected_owner_id=publication['owner_id'],
+                    expected_epoch=publication['epoch'],
+                    expected_content_sha256=publication['content_sha256'])
+                handoff.update(reference=reference, publication=publication)
+                return publication
+
+        def fetch():
+            try:
+                from tests.test_http_artifact_store import archive_bytes, SizedResponse
+                self.client._opener.open.return_value = SizedResponse(
+                    archive_bytes(list(self.payload.items())))
+                results['fetch'] = self.runner._materialize_remote_adapter(
+                    'a', self.nvme/'a', transfer_evidence=transfer_evidence)
+            except BaseException as exc:
+                errors.append(exc)
+
+        def consume():
+            try:
+                if operation == 'snapshot':
+                    results['consumer'] = self.owner.source_snapshot('a')
+                else:
+                    results['consumer'] = self.owner.demand_witness(handoff['reference'],
+                        content_sha256=handoff['publication']['content_sha256'])
+                consumed.set()
+            except BaseException as exc:
+                errors.append(exc)
+
+        writer = threading.Thread(target=fetch, name='d850-writer')
+        reader = threading.Thread(target=consume, name='d850-consumer')
+        with patch.object(self.owner, 'lock', ObservedLock()), \
+                patch.object(self.owner, 'publish_transfer', side_effect=publish_and_pin), \
+                patch.object(http, 'staged_directory', held_retirement):
+            writer.start()
+            try:
+                self.assertTrue(retiring.wait(3))
+                self.assertFalse(errors)
+                self.assertIn('d850-reader', self.owner.leases)
+                self.assertTrue(self.owner.materializations)
+                self.assertTrue(self.owner._transfer_workspaces)
+                # The completed-attempt list is appended only after retirement;
+                # inspect the actual caller-owned in-flight evidence instead.
+                self.assertEqual(transfer_evidence['state'], 'published')
+                self.assertTrue(any(self.nvme.rglob('artifact.tar.gz')))
+                for name, content in self.payload.items():
+                    self.assertEqual((self.nvme/'a'/name).read_bytes(), content)
+                reader.start()
+                self.assertTrue(blocked.wait(3))
+                self.assertFalse(consumed.is_set())
+            finally:
+                release.set()
+                writer.join(5)
+                if reader.ident is not None:
+                    reader.join(5)
+                self.assertFalse(writer.is_alive() or reader.is_alive())
+        self.assertFalse(errors)
+        self.assertTrue(results['fetch'][0] and consumed.is_set())
+        self.assertFalse(self.owner.materializations or self.owner._transfer_workspaces)
+        self.assertFalse(any(self.nvme.rglob('artifact.tar.gz')))
+        self.assertIn('d850-reader', self.owner.leases)
+        if operation == 'snapshot':
+            self.assertEqual(results['consumer']['sources'][0]['path'], str(self.nvme/'a'))
+        else:
+            self.assertEqual(results['consumer']['lease_id'], 'd850-reader')
+        self.owner.release(lease_id='d850-reader', expected_owner_id=self.owner.owner_id)
+        self.assertFalse(self.owner.leases)
+
+    def test_d850_published_source_snapshot_still_joins_workspace_lock(self):
+        self._check_d850_publication_cleanup_dependency('snapshot')
+
+    def test_d850_preissued_read_lease_still_joins_witness_owner_lock(self):
+        self._check_d850_publication_cleanup_dependency('witness')
+
     def test_file_demand_witness_requires_actual_live_confirmed_lease(self):
         self.assertTrue(self.fetch()[0])
         reference=self.owner.acquire(path=str(self.nvme/'a'),adapter_id='a',lease_id='file')

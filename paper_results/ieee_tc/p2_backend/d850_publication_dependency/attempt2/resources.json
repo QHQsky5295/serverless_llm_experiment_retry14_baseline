@@ -1,0 +1,51 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-85000000000000000000000000000002.scope",
+    "invocation_id": "3e28f925b146405095b4c612a5d8df6a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85000000000000000000000000000002.scope",
+    "inode": 32519842
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85000000000000000000000000000002.scope",
+    "memory.current": 11264000,
+    "memory.peak": 693497856,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 12515513\nuser_usec 11053505\nsystem_usec 1462008\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "test_returncode": 0,
+  "program_sha256": "96f9879ebbe1dd965a71bca18e4d6d35f18da58844668175dfc9be33e352c687",
+  "test_source_sha256": "281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e",
+  "production_before": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "faaslora/storage/http_artifact_store.py": "777f3b6170c0922bbd993875c9d651fcd5eb964c8515804e12cfbb9dba3d0d5a",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "faaslora/preloading/preloading_manager.py": "9d678d8296ea18a4621171bfff2aee2fd40ee6157ae5dc3b5919ec8aeaf15222"
+  },
+  "production_after": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "faaslora/storage/http_artifact_store.py": "777f3b6170c0922bbd993875c9d651fcd5eb964c8515804e12cfbb9dba3d0d5a",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "faaslora/preloading/preloading_manager.py": "9d678d8296ea18a4621171bfff2aee2fd40ee6157ae5dc3b5919ec8aeaf15222"
+  },
+  "production_unchanged": true,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false
+}

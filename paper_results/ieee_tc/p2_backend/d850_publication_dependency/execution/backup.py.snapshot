@@ -1,0 +1,34 @@
+"""Reuse D847 explicit-file checkpoint with D849 raw-log whitespace handling."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d847_20261025/backup_executed.py.snapshot').read_text()
+for old, new in (
+    ('d847_3b_scaling_feedback', 'd850_publication_dependency'),
+    ('D847_STARTUP_FEEDBACK_AND_CURRENT_VIOLATIONS_20261025.md', 'D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md'),
+    ('435f9a1b2c5cda16e1a432728f0779727ffa4980', 'b21a1b8719200ed43a88eb586386c7f0c2b9cfb5'),
+    ('backup/d847-startup-feedback-20261025', 'backup/d850-publication-dependency-20261025'),
+    ('tc: preserve D847 startup feedback and physical holding diagnosis',
+     'tc: preserve bounded early-publication lease dependency evidence (D850)'),
+    ("ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',", "ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',\n         ROOT/'tests/test_ieee_tc_request_lifecycle.py',"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+begin = source.index('ordinary = [path for path in paths')
+end = source.index("added = '\\n'.join", begin)
+source = source[:begin] + '''ordinary = [path for path in paths if not path.endswith(('.csv','.snapshot','tests.txt'))]
+csvs = [path for path in paths if path.endswith('.csv')]
+snapshots = [path for path in paths if path.endswith('.snapshot')]
+logs = [path for path in paths if path.endswith('/tests.txt')]
+git('diff','--cached','--check','--',*ordinary)
+for selected, whitespace in (
+    (csvs, 'blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol'),
+    (snapshots, 'blank-at-eol,space-before-tab,-blank-at-eof'),
+    (logs, '-blank-at-eol,-blank-at-eof,space-before-tab'),
+):
+    if selected:
+        git('-c','core.whitespace='+whitespace,'diff','--cached','--check','--',*selected)
+''' + source[end:]
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'backup_executed.py.snapshot'), 'exec'), globals())
