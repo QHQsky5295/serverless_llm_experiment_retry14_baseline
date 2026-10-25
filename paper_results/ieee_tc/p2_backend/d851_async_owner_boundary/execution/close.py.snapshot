@@ -1,0 +1,70 @@
+"""D850-style source/closure receipt for the D851 integration foundation."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d851_async_owner_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+resource = read(OUT/'resources.json')
+identity = resource['identity']
+assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+assert resource['test_returncode'] == 0 and resource['previous_methods_unchanged']
+assert resource['resources']['memory.swap.current'] == 0
+assert all(v == 0 for v in resource['resources']['memory.events'].values())
+assert '22 passed, 19 warnings' in (OUT/'tests.txt').read_text()
+owner = ROOT/'faaslora/memory/residency_manager.py'
+test = ROOT/'tests/test_ieee_tc_file_observation.py'
+assert p.digest(owner) == resource['owner_source_sha256']
+assert p.digest(test) == resource['test_source_sha256']
+calls = read(OUT/'callsites.json')
+assert len(calls['rows']) == 60
+for source in calls['sources']:
+    assert p.digest(Path(source['path'])) == source['sha256']
+assert '.call_async(' not in (ROOT/'scripts/run_all_experiments.py').read_text()
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT/'execution'
+execution.mkdir()
+for name in ('check.py', 'close.py', 'backup.py'):
+    path = RAW/name
+    compile(path.read_text(), str(path), 'exec')
+    shutil.copyfile(path, execution/(name+'.snapshot'))
+doc = ROOT/'docs/ieee_tc/D851_ASYNC_FILE_OWNER_BOUNDARY_20261025.md'
+save(OUT/'closure.json', dict(passed=True, scope=scope,
+    closed_tasks=[dict(identity=identity, path_removed=True)], protected=protected,
+    user_protected=user, doc=ref(doc), production_sources_changed=[ref(owner)],
+    test_source=ref(test), previous_owner_methods_unchanged=True,
+    production_integration_complete=False, new_gpu_replays=0, n_correct=None,
+    ranking_eligible=False, tests=dict(passed=22, new=6, existing=16),
+    callsite_candidates=60, complete_dataflow_proof=False,
+    next_step='Preserve target-join/close atomicity, then integrate all business file-owner boundaries.',
+    disk_free_bytes=shutil.disk_usage(ROOT).free))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, new_gpu_replays=0,
+    integration_complete=False)))

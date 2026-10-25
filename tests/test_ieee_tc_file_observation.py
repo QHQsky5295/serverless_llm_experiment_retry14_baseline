@@ -342,5 +342,160 @@ class FreshFileObservation(unittest.TestCase):
                 owner._planning_source_observations(bad, stats)
 
 
+class AsyncFileOwnerTurn(unittest.IsolatedAsyncioTestCase):
+    """D851 transaction boundary; no GPU or inference performance assertions."""
+
+    def make(self):
+        from tests.test_ieee_tc_request_lifecycle import ConfirmedFilePublication
+        case = ConfirmedFilePublication()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        self.assertTrue(case.fetch()[0])
+        return case, case.owner
+
+    async def controlled(self, owner, operation, *, on_result=None):
+        import threading
+        loop = asyncio.get_running_loop()
+        started, release = asyncio.Event(), threading.Event()
+        worker_threads = []
+        def held():
+            worker_threads.append(threading.get_ident())
+            loop.call_soon_threadsafe(started.set)
+            if not release.wait(5):
+                raise RuntimeError('D851 transaction barrier expired')
+            return operation()
+        task = asyncio.create_task(owner.call_async(held, on_result=on_result))
+        await asyncio.wait_for(started.wait(), 2)
+        self.addCleanup(release.set)
+        return task, release, worker_threads
+
+    async def test_d851_file_read_runs_off_loop_without_reusing_an_old_snapshot(self):
+        import threading
+        case, owner = self.make()
+        initial = owner.source_snapshot('a')
+        seen = []
+        task, release, workers = await self.controlled(owner,
+            lambda: owner.source_snapshot('a'),
+            on_result=lambda value: seen.append((threading.get_ident(), value)))
+        try:
+            heartbeat = asyncio.get_running_loop().create_future()
+            asyncio.get_running_loop().call_soon(heartbeat.set_result, True)
+            self.assertTrue(await asyncio.wait_for(heartbeat, 1))
+            self.assertFalse(task.done())
+        finally:
+            release.set()
+        result = await task
+        self.assertEqual(result['sources'], initial['sources'])
+        self.assertGreater(result['captured_monotonic_s'], initial['captured_monotonic_s'])
+        self.assertNotEqual(workers, [threading.get_ident()])
+        self.assertEqual(seen, [(threading.get_ident(), result)])
+        path = case.nvme/'a'/'nested/weights'
+        stat = path.stat()
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns+1_000_000_000))
+        with self.assertRaisesRegex(RuntimeError, 'changed outside'):
+            await owner.call_async(owner.source_snapshot, 'a')
+
+    async def test_d851_cancelled_acquisition_is_adopted_then_released(self):
+        import threading
+        case, owner = self.make()
+        adopted = []
+        def acquire():
+            view = owner.source_snapshot('a')
+            source = view['sources'][0]
+            return owner.acquire_confirmed(path=source['path'], adapter_id='a',
+                lease_id='d851-cancelled', expected_owner_id=view['owner_id'],
+                expected_epoch=view['epoch'], expected_content_sha256=source['content_sha256'])
+        task, release, _ = await self.controlled(owner, acquire,
+            on_result=lambda value: adopted.append((threading.get_ident(), value)))
+        try:
+            task.cancel()
+            await asyncio.sleep(0)
+            task.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(task.done())
+            self.assertEqual(adopted, [])
+        finally:
+            release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(len(adopted), 1)
+        self.assertEqual(adopted[0][0], threading.get_ident())
+        reference = adopted[0][1]
+        self.assertIn(reference['lease_id'], owner.leases)
+        # The existing request/preparation cleanup owner receives the lease
+        # even when cancellation coincides with a successful physical acquire.
+        await owner.call_async(owner.release, lease_id=reference['lease_id'],
+            expected_owner_id=reference['owner_id'])
+        self.assertFalse(owner.leases)
+
+    async def test_d851_late_worker_error_is_not_hidden_by_cancellation(self):
+        _, owner = self.make()
+        adopted = []
+        def fail():
+            raise RuntimeError('actual owner failure')
+        task, release, _ = await self.controlled(owner, fail, on_result=adopted.append)
+        task.cancel()
+        await asyncio.sleep(0)
+        release.set()
+        with self.assertRaisesRegex(RuntimeError, 'actual owner failure'):
+            await task
+        self.assertFalse(adopted)
+
+    async def test_d851_transaction_lock_covers_snapshot_and_pin(self):
+        import threading
+        case, owner = self.make()
+        loop = asyncio.get_running_loop()
+        snapshot_done, competitor_checked = asyncio.Event(), threading.Event()
+        lock_observations = []
+        def attempt_other_owner_mutation():
+            acquired = owner.lock.acquire(blocking=False)
+            lock_observations.append(acquired)
+            if acquired:
+                owner.lock.release()
+            competitor_checked.set()
+        def transaction():
+            view = owner.source_snapshot('a')
+            loop.call_soon_threadsafe(snapshot_done.set)
+            if not competitor_checked.wait(3):
+                raise RuntimeError('D851 competing mutation did not execute')
+            source = view['sources'][0]
+            return owner.acquire_confirmed(path=source['path'], adapter_id='a',
+                lease_id='d851-atomic', expected_owner_id=view['owner_id'],
+                expected_epoch=view['epoch'], expected_content_sha256=source['content_sha256'])
+        task = asyncio.create_task(owner.call_async(transaction))
+        await asyncio.wait_for(snapshot_done.wait(), 2)
+        competitor = threading.Thread(target=attempt_other_owner_mutation)
+        competitor.start()
+        reference = await task
+        competitor.join(2)
+        self.assertFalse(competitor.is_alive())
+        self.assertEqual(lock_observations, [False])
+        await owner.call_async(owner.release, lease_id=reference['lease_id'],
+            expected_owner_id=reference['owner_id'])
+
+    async def test_d851_release_result_is_adopted_before_cancel_propagates(self):
+        case, owner = self.make()
+        reference = owner.acquire(path=str(case.nvme/'a'), adapter_id='a', lease_id='d851-release')
+        task, release, _ = await self.controlled(owner,
+            lambda: owner.release(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id),
+            on_result=lambda _: reference.update(state='released'))
+        task.cancel()
+        await asyncio.sleep(0)
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(reference['state'], 'released')
+        self.assertFalse(owner.leases)
+
+    async def test_d851_refuses_async_transaction_or_async_adoption(self):
+        _, owner = self.make()
+        async def invalid(*args):
+            return None
+        for operation, adopt in ((invalid, None), (lambda: None, invalid),
+                                 (lambda: invalid(), None), (lambda: None, lambda _: invalid())):
+            with self.subTest(operation=operation, adopt=adopt), self.assertRaises(TypeError):
+                await owner.call_async(operation, on_result=adopt)
+
+
 if __name__ == '__main__':
     unittest.main()

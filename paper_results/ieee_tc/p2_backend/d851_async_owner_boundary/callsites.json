@@ -1,0 +1,969 @@
+{
+  "kind": "conservative_static_owner_call_inventory_v1",
+  "rows": [
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 9653,
+      "receiver": "owner",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_ieee_request_snapshot",
+          "line": 9600,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 10152,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "file_preparation_snapshot",
+      "scopes": [
+        {
+          "name": "_current_coord_metrics",
+          "line": 10126,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 10176,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "host_budget_snapshot",
+      "scopes": [
+        {
+          "name": "_current_coord_metrics",
+          "line": 10126,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 10177,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "file_preparation_snapshot",
+      "scopes": [
+        {
+          "name": "_current_coord_metrics",
+          "line": 10126,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 14853,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "unsubscribe_file_changes",
+      "scopes": [
+        {
+          "name": "_shutdown_instance_pool_runtimes",
+          "line": 14804,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 15195,
+      "receiver": "files",
+      "operation": "configure_host_budget",
+      "scopes": [
+        {
+          "name": "_add_ieee_dedicated_instance",
+          "line": 15175,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 15196,
+      "receiver": "files",
+      "operation": "reserve_activation_host",
+      "scopes": [
+        {
+          "name": "_add_ieee_dedicated_instance",
+          "line": 15175,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 15236,
+      "receiver": "files",
+      "operation": "preparation_snapshot",
+      "scopes": [
+        {
+          "name": "_add_ieee_dedicated_instance",
+          "line": 15175,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 15322,
+      "receiver": "files",
+      "operation": "host_budget_snapshot",
+      "scopes": [
+        {
+          "name": "_add_ieee_dedicated_instance",
+          "line": 15175,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 15323,
+      "receiver": "files",
+      "operation": "cancel_activation_host",
+      "scopes": [
+        {
+          "name": "_add_ieee_dedicated_instance",
+          "line": 15175,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 17583,
+      "receiver": "local_owner",
+      "operation": "acquire_local_source",
+      "scopes": [
+        {
+          "name": "_acquire_runtime_gpu_reference",
+          "line": 17505,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 17712,
+      "receiver": "local_owner.local_source_references",
+      "operation": "demand_witness",
+      "scopes": [
+        {
+          "name": "_acquire_runtime_gpu_reference",
+          "line": 17505,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 18122,
+      "receiver": "manager.local_source_references",
+      "operation": "acquire_confirmed",
+      "scopes": [
+        {
+          "name": "_ieee_protect_selected_source",
+          "line": 18008,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 18135,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_ieee_protect_selected_source",
+          "line": 18008,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 18245,
+      "receiver": "reservation.local_source_owner",
+      "operation": "release_local_source",
+      "scopes": [
+        {
+          "name": "_release_runtime_local_source",
+          "line": 18242,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19463,
+      "receiver": "references",
+      "operation": "materializing",
+      "scopes": [
+        {
+          "name": "_materialize_remote_adapter",
+          "line": 19441,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19469,
+      "receiver": "references",
+      "operation": "transfer_workspace",
+      "scopes": [
+        {
+          "name": "_materialize_remote_adapter",
+          "line": 19441,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19470,
+      "receiver": "references",
+      "operation": "prepare_transfer",
+      "scopes": [
+        {
+          "name": "_materialize_remote_adapter",
+          "line": 19441,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19473,
+      "receiver": "references",
+      "operation": "publish_transfer",
+      "scopes": [
+        {
+          "name": "_materialize_remote_adapter",
+          "line": 19441,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19475,
+      "receiver": "owner",
+      "operation": "publish_local_source",
+      "scopes": [
+        {
+          "name": "_materialize_remote_adapter",
+          "line": 19441,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19620,
+      "receiver": "references",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "checked_binding_conflict",
+          "line": 19615,
+          "asynchronous": false
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19630,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "checked_binding_conflict",
+          "line": 19615,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19696,
+      "receiver": "references",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19637,
+          "asynchronous": true
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19699,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19637,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19703,
+      "receiver": "references",
+      "operation": "acquire_confirmed",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19637,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19720,
+      "receiver": "references",
+      "operation": "release",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19637,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19759,
+      "receiver": "references",
+      "operation": "release",
+      "scopes": [
+        {
+          "name": "_run_ieee_gpu_preparation_plan",
+          "line": 19533,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19637,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19918,
+      "receiver": "references",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_supersede_ieee_native_file_copy",
+          "line": 19909,
+          "asynchronous": false
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 19919,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_supersede_ieee_native_file_copy",
+          "line": 19909,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20011,
+      "receiver": "references",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_queue_ieee_native_host_preparation",
+          "line": 19931,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19985,
+          "asynchronous": true
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20012,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_queue_ieee_native_host_preparation",
+          "line": 19931,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19985,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20016,
+      "receiver": "references",
+      "operation": "acquire_confirmed",
+      "scopes": [
+        {
+          "name": "_queue_ieee_native_host_preparation",
+          "line": 19931,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19985,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20066,
+      "receiver": "references",
+      "operation": "release",
+      "scopes": [
+        {
+          "name": "_queue_ieee_native_host_preparation",
+          "line": 19931,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 19985,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20105,
+      "receiver": "manager.local_source_references",
+      "operation": "preparation_snapshot",
+      "scopes": [
+        {
+          "name": "_ieee_preparation_file_snapshot",
+          "line": 20101,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20477,
+      "receiver": "references",
+      "operation": "replacement_source_snapshot",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20526,
+      "receiver": "references",
+      "operation": "register_file_preparation_plan",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20590,
+      "receiver": "references",
+      "operation": "bind_file_native_fallbacks",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "protect_native_fallbacks",
+          "line": 20541,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20596,
+      "receiver": "references",
+      "operation": "unbind_file_native_fallbacks",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "release_native_fallbacks",
+          "line": 20594,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20635,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 20632,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20654,
+      "receiver": "references",
+      "operation": "finish_file_preparation_target",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 20632,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20720,
+      "receiver": "references",
+      "operation": "finish_file_preparation_target",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "execute_gpu",
+          "line": 20694,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20803,
+      "receiver": "references",
+      "operation": "close_file_preparation_plan",
+      "scopes": [
+        {
+          "name": "_execute_ieee_file_preparation_plan",
+          "line": 20429,
+          "asynchronous": true
+        },
+        {
+          "name": "close_files_after_join",
+          "line": 20797,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20861,
+      "receiver": "references",
+      "operation": "subscribe_file_changes",
+      "scopes": [
+        {
+          "name": "_queue_ieee_file_preparation",
+          "line": 20828,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20874,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_queue_ieee_file_preparation",
+          "line": 20828,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 20871,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20889,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_queue_ieee_file_preparation",
+          "line": 20828,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 20871,
+          "asynchronous": true
+        },
+        {
+          "name": "io_ready",
+          "line": 20885,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20907,
+      "receiver": "references",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_queue_ieee_file_preparation",
+          "line": 20828,
+          "asynchronous": true
+        },
+        {
+          "name": "execute",
+          "line": 20871,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20920,
+      "receiver": "references",
+      "operation": "file_movement_interest",
+      "scopes": [
+        {
+          "name": "_queue_ieee_file_preparation",
+          "line": 20828,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 20985,
+      "receiver": "files",
+      "operation": "configure_host_budget",
+      "scopes": [
+        {
+          "name": "_attach_ieee_host_budget",
+          "line": 20958,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21014,
+      "receiver": "files",
+      "operation": "reserve_native_host",
+      "scopes": [
+        {
+          "name": "_attach_ieee_host_budget",
+          "line": 20958,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21057,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "retire_native_host",
+      "scopes": [
+        {
+          "name": "_retire_ieee_host_budget",
+          "line": 21050,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21072,
+      "receiver": "self._stack.residency_manager.local_source_references",
+      "operation": "configure_host_budget",
+      "scopes": [
+        {
+          "name": "_run_ieee_file_transfer",
+          "line": 21062,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21121,
+      "receiver": "manager",
+      "operation": "materialize_confirmed_source",
+      "scopes": [
+        {
+          "name": "_materialize_confirmed_source_async",
+          "line": 21102,
+          "asynchronous": true
+        },
+        {
+          "name": "operation",
+          "line": 21119,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21221,
+      "receiver": "owner",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_ensure_local_async",
+          "line": 21213,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21226,
+      "receiver": "owner",
+      "operation": "file_movement_interest",
+      "scopes": [
+        {
+          "name": "_ensure_local_async",
+          "line": 21213,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21273,
+      "receiver": "owner",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_ensure_local_async",
+          "line": 21213,
+          "asynchronous": true
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21274,
+      "receiver": "owner",
+      "operation": "source_snapshot",
+      "scopes": [
+        {
+          "name": "_ensure_local_async",
+          "line": 21213,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 21279,
+      "receiver": "owner",
+      "operation": "acquire_confirmed",
+      "scopes": [
+        {
+          "name": "_ensure_local_async",
+          "line": 21213,
+          "asynchronous": true
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 24865,
+      "receiver": "owner",
+      "operation": "lock_context",
+      "scopes": [
+        {
+          "name": "_cleanup_ieee_run_workspaces",
+          "line": 24853,
+          "asynchronous": false
+        }
+      ],
+      "review": "compound_transaction_boundary"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 24869,
+      "receiver": "owner",
+      "operation": "inventory",
+      "scopes": [
+        {
+          "name": "_cleanup_ieee_run_workspaces",
+          "line": 24853,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "line": 24875,
+      "receiver": "owner",
+      "operation": "inventory",
+      "scopes": [
+        {
+          "name": "_cleanup_ieee_run_workspaces",
+          "line": 24853,
+          "asynchronous": false
+        }
+      ],
+      "review": "candidate_not_yet_proved_file_owner"
+    }
+  ],
+  "complete_dataflow_proof": false,
+  "integration_complete": false,
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py",
+      "sha256": "0f039f7b4cd99a6c7a3844de83080a561b368a61d909373f16ae0abdc26e01aa"
+    }
+  ],
+  "old_owner_methods_unchanged": true,
+  "new_api": "call_async"
+}

@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-85100000000000000000000000000002.scope",
+    "invocation_id": "91b8b5053b324d0b8fc940b7c36b1666",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85100000000000000000000000000002.scope",
+    "inode": 32530359
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-85100000000000000000000000000001.scope",
+        "invocation_id": "a2b1f50c099c4e65aca0d5f9458ce42b",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85100000000000000000000000000001.scope",
+        "inode": 32527236
+      },
+      "path_removed": true
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D851_ASYNC_FILE_OWNER_BOUNDARY_20261025.md",
+    "sha256": "7c8c817cb1d3bc8c46470f7515d52313424d6e445907ad1d6fe56e8a8b163cf6",
+    "bytes": 7728
+  },
+  "production_sources_changed": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "2dcf6b8c81c948177622598f588a64ded39b4d6412e9f481d55befdcdf96bce5",
+      "bytes": 265778
+    }
+  ],
+  "test_source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+    "sha256": "ae5e41a16a2be9c5952c30919ee61d09598f299e0e657f0d5c85a2141f0c20bd",
+    "bytes": 26497
+  },
+  "previous_owner_methods_unchanged": true,
+  "production_integration_complete": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "tests": {
+    "passed": 22,
+    "new": 6,
+    "existing": 16
+  },
+  "callsite_candidates": 60,
+  "complete_dataflow_proof": false,
+  "next_step": "Preserve target-join/close atomicity, then integrate all business file-owner boundaries.",
+  "disk_free_bytes": 184377753600
+}

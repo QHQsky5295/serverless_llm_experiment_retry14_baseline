@@ -288,6 +288,56 @@ class LocalSourceReferences:
         self._preparation_targets = None
         self.source_epoch = 0
 
+    async def call_async(self, operation, /, *args, on_result=None, **kwargs):
+        """Run one complete file-owner transaction outside the asyncio loop.
+
+        The original RLock still encloses the whole synchronous transaction,
+        including every fresh observation. This is not a cached owner view and
+        is not for network transfers or native worker operations. It uses the
+        existing service executor, not an unaccounted process/resource domain.
+
+        A cancelled caller joins the actual thread, even on repeated cancel.
+        ``on_result`` runs synchronously on the caller's event loop *before*
+        cancellation is propagated. Resource-acquiring callers must use it to
+        adopt the returned lease/registration into their existing cleanup owner;
+        otherwise cancellation could lose a successfully acquired resource.
+        Worker errors remain errors, including errors received after cancel.
+        Mutable operation inputs must be frozen by the caller before submission.
+        """
+        import inspect
+        if not callable(operation) or inspect.iscoroutinefunction(operation):
+            raise TypeError('file owner requires a synchronous transaction')
+        if on_result is not None and (not callable(on_result)
+                or inspect.iscoroutinefunction(on_result)):
+            raise TypeError('file owner result adoption must be synchronous')
+
+        def execute():
+            with self.lock:
+                value = operation(*args, **kwargs)
+                if inspect.isawaitable(value):
+                    if inspect.iscoroutine(value):
+                        value.close()
+                    raise TypeError('file owner transaction cannot return an awaitable')
+                return value
+
+        future = asyncio.get_running_loop().run_in_executor(None, execute)
+        interrupted = False
+        while not future.done():
+            try:
+                await asyncio.shield(future)
+            except asyncio.CancelledError:
+                interrupted = True
+        value = future.result()
+        if on_result is not None:
+            adopted = on_result(value)
+            if inspect.isawaitable(adopted):
+                if inspect.iscoroutine(adopted):
+                    adopted.close()
+                raise TypeError('file owner result adoption cannot return an awaitable')
+        if interrupted:
+            raise asyncio.CancelledError()
+        return value
+
     def subscribe_file_changes(self, subscriber_id, callback):
         """Callbacks only enqueue notifications; never perform IO under this lock."""
         with self.lock:

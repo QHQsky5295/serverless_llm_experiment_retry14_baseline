@@ -1,4 +1,36 @@
-# IEEE TC execution status — D850 early publication handoff dependency closed
+# IEEE TC execution status — D851 async owner primitive verified; full integration pending
+
+## 2026-10-25 D851完整候选的事务入口完成，尚未接入性能路径
+
+上一轮D850为实质进展，已排除提前通知/预发租约。完整PLAN、本轮最新状态
+及D733/D843/D850历史已核对，网上复核Python/vLLM官方实现与CPU隔离说明。
+新增LocalSourceReferences.call_async：保持完整RLock事务及全部新鲜检查，
+在既有service executor执行；取消仍join原线程，成功结果先经loop上的
+on_result交给现有资源清理owner再传播取消，晚到实际错误不隐藏。
+22项通过（原16、新6），峰值738377728B，high/max/OOM/swap0。没有GPU或
+远端任务。所有旧owner方法AST不变，runner未调用新入口；当前不是性能接入
+完成，不启动只含此基础接口的GPU回放。详见D851_ASYNC_FILE_OWNER_BOUNDARY_20261025.md。
+
+静态清单60处候选/20外层方法（非全程序证明），发现join_target_operations
+要求最后join与owner.close之间不await，机械异步化会让新writer插入。下一
+按同一完整候选，先保留queue/file-owner关闭事务的原子性，再接入routing/
+request、planning/handoff、HOST预算、读引用/interest/finish/release所有
+业务期边界。不能只移一次snapshot；不能新增profiling或重开解码/清理微调。
+资源获取必须在取消抛出前由request/plan实际接管，继续保留原公式/真实容量。
+完成接入和针对性验证后才做一次完整W2，结果不能预先保证。
+
+当前性能仍D846的3715/4000=92.875%，U11929.629332、预算12083.063870，
+未达95%；D711独立数值未知n_correct=null。D848回收22.174GB已完成，可用
+约171.7GiB；不重扫/压缩正在测量数据。检查点准备备份。完整同版本两模型
+主比较、A1–A5、S1–S13、成本/CE、两轮审稿文档/后续图表和最终V2仍开放。
+
+以下为历史记录，不重跑已完成任务。
+
+D850检查点d6d499429f30cd27e90433700b22e9695c8c7a30已推送，远端
+backup/d850-publication-dependency-20261025核实同SHA，13明确文件；最终V2
+仍未同步。147保护项/用户manifest核验通过；01–04 scope均inactive/dead且
+路径消失，无活动GPU或辅助任务。当前只剩用户manifest及本条后置回执未
+提交；本回执随下一正常检查点保存，不为回执递归提交。
 
 ## 2026-10-25 D850有界验证完成：仅提前通知/预发租约不接入生产
 

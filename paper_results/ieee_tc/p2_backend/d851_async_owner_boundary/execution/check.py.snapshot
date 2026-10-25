@@ -1,0 +1,96 @@
+"""Reuse D850 bounded pytest/closure inputs; inventory the actual owner APIs."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d851_async_owner_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+OUT.mkdir(parents=True, exist_ok=False)
+save(RAW/'identity.json', identity)
+source_path = ROOT/'faaslora/memory/residency_manager.py'
+before = subprocess.check_output(['git', 'show', 'HEAD:faaslora/memory/residency_manager.py'], cwd=ROOT).decode()
+current = source_path.read_text()
+def methods(text):
+    node = next(n for n in ast.parse(text).body if isinstance(n, ast.ClassDef) and n.name == 'LocalSourceReferences')
+    return {n.name: ast.dump(n, include_attributes=False) for n in node.body
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+old, new = methods(before), methods(current)
+assert set(new)-set(old) == {'call_async'}
+assert all(new[name] == value for name, value in old.items())
+owner_names = set(new) - {'__init__'}
+manager_names = {'acquire_local_source', 'release_local_source', 'local_source_inventory',
+    'local_file_budget_snapshot', 'materialize_confirmed_source', 'publish_local_source'}
+rows = []
+class Calls(ast.NodeVisitor):
+    def __init__(self, path):
+        self.path, self.scopes = path, []
+    def visit_FunctionDef(self, node):
+        self.scopes.append(dict(name=node.name, line=node.lineno, asynchronous=False))
+        self.generic_visit(node)
+        self.scopes.pop()
+    def visit_AsyncFunctionDef(self, node):
+        self.scopes.append(dict(name=node.name, line=node.lineno, asynchronous=True))
+        self.generic_visit(node)
+        self.scopes.pop()
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Attribute) and node.func.attr in owner_names | manager_names:
+            receiver = ast.unparse(node.func.value)
+            if (node.func.attr in manager_names or 'local_source_references' in receiver
+                    or receiver in ('owner', 'references', 'files', 'file_owner')):
+                rows.append(dict(path=str(self.path.relative_to(ROOT)), line=node.lineno,
+                    receiver=receiver, operation=node.func.attr, scopes=list(self.scopes),
+                    review='candidate_not_yet_proved_file_owner'))
+        self.generic_visit(node)
+    def visit_With(self, node):
+        for item in node.items:
+            context = item.context_expr
+            if isinstance(context, ast.Attribute) and context.attr == 'lock':
+                receiver = ast.unparse(context.value)
+                if receiver in ('owner', 'references', 'files', 'file_owner') or 'local_source_references' in receiver:
+                    rows.append(dict(path=str(self.path.relative_to(ROOT)), line=node.lineno,
+                        receiver=receiver, operation='lock_context', scopes=list(self.scopes),
+                        review='compound_transaction_boundary'))
+        self.generic_visit(node)
+paths = [ROOT/'scripts/run_all_experiments.py', ROOT/'faaslora/experiment/experiment_stack.py']
+for path in paths:
+    Calls(path).visit(ast.parse(path.read_text()))
+save(OUT/'callsites.json', dict(kind='conservative_static_owner_call_inventory_v1',
+    rows=rows, complete_dataflow_proof=False, integration_complete=False,
+    sources=[dict(path=str(path), sha256=p.digest(path)) for path in paths],
+    old_owner_methods_unchanged=True, new_api='call_async'))
+rc = None
+try:
+    with (OUT/'tests.txt').open('x') as stream:
+        rc = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q',
+            '-p', 'no:cacheprovider', 'tests/test_ieee_tc_file_observation.py'],
+            cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, timeout=120).returncode
+    assert rc == 0
+finally:
+    save(OUT/'resources.json', dict(identity=identity,
+        resources=p.cgroup_snapshot(Path(identity['path'])), test_returncode=rc,
+        program_sha256=p.digest(Path(__file__)),
+        test_source_sha256=p.digest(ROOT/'tests/test_ieee_tc_file_observation.py'),
+        owner_source_sha256=p.digest(source_path),
+        previous_owner_sha256=hashlib.sha256(before.encode()).hexdigest(),
+        previous_methods_unchanged=True, production_integration_complete=False,
+        new_gpu_replays=0, n_correct=None, ranking_eligible=False))
+print(json.dumps(dict(passed=rc == 0, callsite_candidates=len(rows),
+    integration_complete=False, new_gpu_replays=0)))
