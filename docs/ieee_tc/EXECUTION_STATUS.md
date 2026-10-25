@@ -1,4 +1,20 @@
-# IEEE TC execution status — D864 fresh native HOST graph CPU checks passed
+# IEEE TC execution status — D864 native graph qualification completed
+
+## D864实际原生微测完成（2026-10-26，生产尚未接入）
+
+完整计划/AGENTS/V1/V2复核后，入口检查点80264f4c已备份并远端核验。
+一次实际pin/整图验证完成，无前缀或完整回放：9种状态/4种图逐字段一致，
+20对全部保留；当前逐view均值10.42458ms、中位4.60914ms，候选3.68335ms、
+3.64431ms，20/20调用更短。均值减少64.67%含参照119.94ms长点；典型中位
+改善约20.9%，不能声称稳定64.67%或完整系统收益。无运行间CI/挑点/重测。
+服务与watchdog退出0，GPU真实释放。无远端/模型池/trace变更。
+
+离线统计完成；首次归档清单误含D747历史文件，保存部分档案与失败说明，
+只恢复打包，未重跑测量。见native_completion/manifest.json及D864文档。
+当前生产仍D857，完整3B W2仍93.65%、11311.40 GPU-s，数值n_correct未知。
+下一：备份此次结果后，整图原生生产接入/必要检查，再完整W2，不追加诊断。
+同版本两模型全场景、baseline/dLoRA、A1–A5、S1–S13、数值证明、论文图文、
+最终V2同步均未完成，goal active；当前turn有实质progress。
 
 ### D864原生验证准备（本轮继续，未启动时状态）
 

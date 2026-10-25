@@ -1,0 +1,96 @@
+"""Seal the single D864 native component test, retaining all long samples."""
+import csv,json,os,statistics,subprocess,sys,tarfile
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+BASE=ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph'
+OUT=BASE/'native_completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False)
+        f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+OUT.mkdir(parents=True,exist_ok=False)
+launch=read(RAW/'native_launch.json')
+assert launch['pass'] and launch['service_path_removed']
+assert launch['service_returncode']==launch['watchdog_returncode']==0
+assert launch['native_gpu_context_release_confirmed']
+assert not Path(launch['service_identity']['path']).exists()
+start=read(RAW/'start_identity.json');path=Path(start['path'])
+resources=None
+if path.exists():
+    assert p.scope_still_owned(start) and not p.owned_pids(path)
+    resources=p.cgroup_snapshot(path)
+    closed=p.stop_scope_identity(start,grace_seconds=0)
+    assert closed['released'] and not closed['targets'] and not path.exists()
+else:
+    closed=dict(released=True,targets=[],already_inactive=True)
+save(OUT/'start_closure.json',dict(passed=True,identity=start,resources=resources,closure=closed))
+prepared=read(BASE/'native_prelaunch/preparation.json')
+for path,sha in prepared['source_shas'].items():assert p.digest(Path(path))==sha,path
+qualification=read(BASE/'cpu_attempt3/qualification.json')
+for name,sha in qualification['production'].items():
+    if name!='scripts/ieee_tc_preflight.py':assert p.digest(ROOT/name)==sha
+result=read(RAW/'native_graph.json')
+assert result['pass'] and result['stage']=='complete' and result['kind']=='native_fresh_host_graph_d864_v1'
+assert len(result['cases'])==9 and len(result['inventory_equality'])==4
+assert all(row['native']==row['direct']==row['expected'] for row in result['cases'])
+assert all(row['equal'] for row in result['inventory_equality'])
+assert result['descriptor_library_sha256']==p.digest(Path(prepared['reference_library']))
+assert result['graph_library_sha256']==p.digest(Path(prepared['graph_library']))
+rows=result['measurements'];assert len(rows)==40
+groups={key:[row for row in rows if row['variant']==key] for key in ('native','direct')}
+assert all(len(group)==20 and {row['index'] for row in group}==set(range(20)) for group in groups.values())
+pairs={key:{row['index']:row['wall_ns'] for row in group} for key,group in groups.items()}
+ratios=[pairs['direct'][i]/pairs['native'][i] for i in range(20)]
+ratio=statistics.mean(row['wall_ns'] for row in groups['direct'])/statistics.mean(row['wall_ns'] for row in groups['native'])
+summary=dict(passed=True,kind='d864_native_graph_single_component_observation_v1',
+    semantics_passed=True,variant_labels=result['variant_labels'],production_integrated=False,full_performance_run=False,
+    measurements_per_variant=20,ci=False,all_measurements_retained=True,
+    wall_ms={key:dict(mean=statistics.mean(row['wall_ns'] for row in group)/1e6,
+        median=statistics.median(row['wall_ns'] for row in group)/1e6,
+        min=min(row['wall_ns'] for row in group)/1e6,max=max(row['wall_ns'] for row in group)/1e6)
+        for key,group in groups.items()},
+    cpu_ms={key:statistics.mean(row['cpu_ns'] for row in group)/1e6 for key,group in groups.items()},
+    paired_ratio_median=statistics.median(ratios),candidate_faster_pairs=sum(r<1 for r in ratios),
+    candidate_mean_wall_ratio=ratio,candidate_mean_reduction_fraction=1-ratio,
+    longest_candidate_sample=max(groups['direct'],key=lambda row:row['wall_ns']),
+    long_sample_cause='not_measured_no_posthoc_exclusion_or_additional_microtest',
+    interpretation=('Component mean and most pairs improve; supports production integration and a complete ordinary replay, not a system performance conclusion.' if ratio<1 and sum(r<1 for r in ratios)>10 else 'Component costs do not support integration; archive this candidate without repeat sampling.'),
+    source_sha256=p.digest(RAW/'native_graph.json'),plan_sha256=p.check_plan(),
+    production_sha256=p.digest(ROOT/'faaslora/memory/gpu_monitor.py'),
+    numerical_scope='tiny native tensors, not full model numeric correctness',
+    latest_full_3b=dict(run='D858',joint_timing_slo=.9365,n_correct=None,
+                      physical_gpu_seconds=11311.401340661105,ranking_eligible=False))
+save(OUT/'summary.json',summary)
+save(OUT/'native_graph.json',result)
+with (OUT/'measurements.csv').open('x',newline='') as f:
+    writer=csv.DictWriter(f,fieldnames=('index','variant','wall_ns','cpu_ns'))
+    writer.writeheader();writer.writerows(rows)
+seal=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')==prepared['user_manifest_sha256']
+resources=p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'completion.json',dict(passed=True,launch=launch,analysis_identity=identity,analysis_resources=resources,
+    protected_files_unchanged=seal['entry_count'],seal=seal,
+    no_remote_operations=True,no_new_artifacts_or_trace=True,no_production_change=True))
+with (OUT/'analyze.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+sources=[RAW/name for name in ('native_launch.json','native_graph.json','launch.py',
+    'launch_system.py','initial_launcher_failure.json','start_identity.json',
+    'start_system_identity.json')]
+sources+=sorted(path for path in (RAW/'native_launch.launch').rglob('*') if path.is_file())
+with tarfile.open(OUT/'execution_evidence.tar.gz','x:gz') as bundle:
+    for path in sources:bundle.add(path,arcname=str(path.relative_to(RAW)),recursive=False)
+save(OUT/'manifest.json',dict(sources={str(path):p.digest(path) for path in sources},
+    files=[dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path),bytes=path.stat().st_size)
+           for path in sorted(OUT.iterdir()) if path.is_file()],
+    unchanged_cpu_checkpoint_manifest_sha256=p.digest(BASE/'manifest.json'),
+    unchanged_prelaunch_manifest_sha256=p.digest(BASE/'native_prelaunch/manifest.json')))
+print(json.dumps(summary,indent=2))

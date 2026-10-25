@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-9df3cd07ba7c4f128b61e31836f8e6d2.scope",
+    "invocation_id": "08e40ce8af2144d4a1de0b40bedcf12f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9df3cd07ba7c4f128b61e31836f8e6d2.scope",
+    "inode": 32747293
+  },
+  "resources": null,
+  "closure": {
+    "released": true,
+    "targets": [],
+    "already_inactive": true
+  }
+}

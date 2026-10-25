@@ -1,0 +1,53 @@
+"""Verify and back up D864 native evidence before any production integration."""
+import json,os,re,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+BASE=ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph'
+OUT=BASE/'native_completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=60).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+save(RAW/'native_backup_identity.json',p.scope_identity(p.cg_path().name))
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+identity=read(RAW/'finalize_identity.json');path=Path(identity['path'])
+resources=None
+if path.exists():
+    assert p.scope_still_owned(identity) and not p.owned_pids(path)
+    resources=p.cgroup_snapshot(path)
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets'] and not path.exists()
+else:
+    closed=dict(released=True,targets=[],already_inactive=True)
+save(OUT/'finalize_closure.json',dict(passed=True,identity=identity,resources=resources,closure=closed))
+for directory in (BASE,BASE/'native_prelaunch',OUT):
+    for item in read(directory/'manifest.json')['files']:
+        assert p.digest(ROOT/item['path'])==item['sha256'],item['path']
+seal=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+for path,sha in read(BASE/'native_prelaunch/preparation.json')['source_shas'].items():assert p.digest(Path(path))==sha
+assert not call(['git','diff','--cached','--name-only'])
+with (OUT/'backup_native.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+files=sorted(path for path in OUT.iterdir() if path.is_file())
+files += [ROOT/'docs/ieee_tc/D864_NATIVE_HOST_GRAPH_20261026.md',ROOT/'docs/ieee_tc/EXECUTION_STATUS.md']
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert path.stat().st_size<2*1024*1024
+    if path.suffix!='.gz':assert not secret.search(path.read_text()),str(path)
+paths=[str(path.relative_to(ROOT)) for path in files]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines())==set(paths)
+call(['git','diff','--cached','--check','--',*[x for x in paths if not x.endswith('.snapshot')]])
+call(['git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eol,-blank-at-eof','diff','--cached','--check','--',*[x for x in paths if x.endswith('.snapshot')]])
+call(['git','commit','-m','tc: retain complete D864 native graph measurements and qualification evidence'])
+head=call(['git','rev-parse','HEAD']);ref='refs/heads/backup/d864-native-host-graph-complete-20261026'
+call(['git','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','ls-remote','faaslora_origin',ref]).split()[0]==head
+save(RAW/'native_backup_completion.json',dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))

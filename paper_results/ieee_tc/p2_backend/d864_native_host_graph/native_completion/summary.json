@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "kind": "d864_native_graph_single_component_observation_v1",
+  "semantics_passed": true,
+  "variant_labels": {
+    "native": "current_fused_per_view_descriptor",
+    "direct": "same_call_native_graph"
+  },
+  "production_integrated": false,
+  "full_performance_run": false,
+  "measurements_per_variant": 20,
+  "ci": false,
+  "all_measurements_retained": true,
+  "wall_ms": {
+    "native": {
+      "mean": 10.42458145,
+      "median": 4.609142,
+      "min": 4.451339,
+      "max": 119.941522
+    },
+    "direct": {
+      "mean": 3.68334955,
+      "median": 3.6443135,
+      "min": 3.494581,
+      "max": 3.92774
+    }
+  },
+  "cpu_ms": {
+    "native": 10.8473771,
+    "direct": 3.8271974500000003
+  },
+  "paired_ratio_median": 0.786314618185237,
+  "candidate_faster_pairs": 20,
+  "candidate_mean_wall_ratio": 0.3533330875360948,
+  "candidate_mean_reduction_fraction": 0.6466669124639052,
+  "longest_candidate_sample": {
+    "index": 2,
+    "variant": "direct",
+    "wall_ns": 3927740,
+    "cpu_ns": 3998332
+  },
+  "long_sample_cause": "not_measured_no_posthoc_exclusion_or_additional_microtest",
+  "interpretation": "Component mean and most pairs improve; supports production integration and a complete ordinary replay, not a system performance conclusion.",
+  "source_sha256": "3c3965f8b852682e2c31ceb389b8462ecbe0ab899331510797c1123a87bbff73",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "production_sha256": "17beb61bc3c595680b24c6da695911d50f7f572e776e44b5b8ff76dac14df198",
+  "numerical_scope": "tiny native tensors, not full model numeric correctness",
+  "latest_full_3b": {
+    "run": "D858",
+    "joint_timing_slo": 0.9365,
+    "n_correct": null,
+    "physical_gpu_seconds": 11311.401340661105,
+    "ranking_eligible": false
+  }
+}

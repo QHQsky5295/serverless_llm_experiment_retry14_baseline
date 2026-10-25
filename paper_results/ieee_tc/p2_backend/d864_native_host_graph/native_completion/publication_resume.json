@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "failure": "CSV CRLF flagged by default Git whitespace check; no measurement error",
+  "measurement_reruns": 0,
+  "csv_bytes_unchanged": true,
+  "csv_sha256": "c48dbbb0452f7588ec7da589578d02abe4e34df2eaa5fe1265f446f79e3c92c7",
+  "prior_backup_identity": {
+    "unit": "primelora-tc-aux-7fd9572c34d140d8b025e31cd9d7ce4c.scope",
+    "invocation_id": "c540183c481d4f7cb911fc0df21b2d80",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7fd9572c34d140d8b025e31cd9d7ce4c.scope",
+    "inode": 32748488
+  },
+  "prior_backup_resources": null,
+  "prior_backup_closure": {
+    "released": true,
+    "targets": [],
+    "already_inactive": true
+  },
+  "protected_files": 147,
+  "failed_script_sha256": "5b9e6d7a76fcaa7e1dcff9872d521d4ade624439539f7579e7040ec68143a0d6"
+}

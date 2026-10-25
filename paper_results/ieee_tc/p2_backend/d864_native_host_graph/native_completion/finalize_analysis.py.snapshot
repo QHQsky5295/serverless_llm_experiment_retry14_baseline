@@ -1,0 +1,46 @@
+"""Finish D864 evidence packaging only; preserve the first partial archive."""
+import json, os, subprocess, sys, tarfile
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+BASE=ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph'
+OUT=BASE/'native_completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f: json.dump(value,f,indent=2,allow_nan=False)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'finalize_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+prior=read(RAW/'analysis_identity.json'); path=Path(prior['path'])
+if path.exists():
+    assert p.scope_still_owned(prior) and not p.owned_pids(path)
+    closed=p.stop_scope_identity(prior,grace_seconds=0)
+    assert closed['released'] and not closed['targets'] and not path.exists()
+else: closed=dict(released=True,targets=[],already_inactive=True)
+save(OUT/'analysis_closure.json',dict(passed=True,identity=prior,closure=closed))
+assert read(OUT/'summary.json')['passed'] and read(OUT/'completion.json')['passed']
+assert p.digest(OUT/'native_graph.json')==p.digest(RAW/'native_graph.json') or read(OUT/'native_graph.json')==read(RAW/'native_graph.json')
+save(OUT/'packaging_recovery.json',dict(error_type='FileNotFoundError',
+    cause='Reused D747 archive list retained launch_system.py, which is not part of D864.',
+    partial_archive='execution_evidence.tar.gz',partial_archive_sha256=p.digest(OUT/'execution_evidence.tar.gz'),
+    original_analysis_source_sha256=p.digest(RAW/'analyze.py'),
+    measurements_unchanged=True,analysis_not_reexecuted=True,gpu_microtest_not_reexecuted=True))
+sources=[RAW/name for name in ('native_launch.json','native_graph.json','launch.py','start.sh',
+    'start.txt','start_identity.json','backup_completion.json','post_backup_release.json','analyze.py')]
+sources+=sorted(path for path in (RAW/'native_launch.launch').rglob('*') if path.is_file())
+with tarfile.open(OUT/'execution_evidence_complete.tar.gz','x:gz') as bundle:
+    for path in sources: bundle.add(path,arcname=str(path.relative_to(RAW)),recursive=False)
+    
+with (OUT/'finalize_analysis.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+resources=p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'packaging_completion.json',dict(passed=True,identity=identity,resources=resources))
+save(OUT/'manifest.json',dict(sources={str(path):p.digest(path) for path in sources},
+    files=[dict(path=str(path.relative_to(ROOT)),sha256=p.digest(path),bytes=path.stat().st_size)
+           for path in sorted(OUT.iterdir()) if path.is_file()],
+    unchanged_cpu_checkpoint_manifest_sha256=p.digest(BASE/'manifest.json'),
+    unchanged_prelaunch_manifest_sha256=p.digest(BASE/'native_prelaunch/manifest.json')))
+print(json.dumps(dict(passed=True,full_evidence_archive='execution_evidence_complete.tar.gz',performance_rerun=False)))
