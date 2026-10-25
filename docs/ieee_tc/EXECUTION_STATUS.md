@@ -1,4 +1,27 @@
-# IEEE TC execution status — D845 staging-source candidate CPU-qualified
+# IEEE TC execution status — D846 ordinary full W2 registration
+
+## 2026-10-25 D846直接完整回放预登记
+
+本轮已按计划/更新/冻结V1与单轮V2核对主线。D845生产候选保持45572418，
+复用67项已通过CPU检查，未重复资格/局部计时/诊断采样。新D846复用D840
+完整3B W2合同，仅三条独占路径和runner执行身份；不启用D843观察器。
+父点92.10%、U11235.329655，预算12083.063870；独立数值正确性仍未知。
+当前GPU空闲、磁盘约151.36GiB，先完成最小运行合同检查与明确路径备份，
+随后直接一次4000请求真实远端回放。完整结果决定保留/撤回，未宣布达标。
+不会重开HydraServe隔离适配或操作非本项目k3s；全部剩余矩阵/消融/敏感性/
+论文文档与最终图表保留。goal仍active。
+
+## 2026-10-25 D845备份已核实，下一完整W2尚未启动
+
+33个明确路径提交45572418d71211efdcdda3bd08edb7e32c6d006a，远端
+backup/d845-staging-source-20261025已核实同SHA；未force、未stage用户manifest，
+最终V2未同步。raw/d845_20261025/backup.json及backup_resources.json有回执。
+147项历史保护与用户manifest核对通过。六个辅助域均inactive且路径移除，
+最后备份域峰值42684416B、high/max/OOM/swap0；四卡无compute进程。
+当前磁盘162524618752B约151.36GiB。生产候选已备份，尚未做完整性能回放。
+下一按下节直接进入同合同新键完整3B W2，不复做CPU资格、profiling或局部
+组件研究。本段为实际备份后的状态补记，随下一正常检查点提交，不递归创建
+只有备份回执的提交；goal仍active，不判定实验目标已达成。
 
 ## 2026-10-25 D845实际调用归类与单点候选
 

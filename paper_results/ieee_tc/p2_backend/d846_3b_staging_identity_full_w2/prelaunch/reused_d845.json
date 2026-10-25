@@ -1,0 +1,23 @@
+{
+  "cpu_tests": 67,
+  "new_cpu_functional_tests": 0,
+  "closure_sha256": "702d55e8dc9adc879c8c399dc44e91d2fc4605cca7cf73d1f3a507d785a64969",
+  "manifest_sha256": "cf55162dd74df5aff118c22c33678d05b8fb843055efa42668a45b6205ddd038",
+  "single_production_change": {
+    "parent_commit": "a9a0e7c8d9c40ec21285acc22abec49c6a865d0c",
+    "changes": [
+      {
+        "old": "source_snapshot",
+        "new": "source_identity_snapshot",
+        "old_line": 20665,
+        "new_line": 20668
+      }
+    ],
+    "candidate_sha256": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "template": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d737_20261023/test_unittest.py",
+      "sha256": "833dfe534a81f9b38f2a9bd96300ccee3df1cc171c9a55583be497a0a6b9b3f3"
+    }
+  },
+  "numerical_correctness_qualified": false
+}

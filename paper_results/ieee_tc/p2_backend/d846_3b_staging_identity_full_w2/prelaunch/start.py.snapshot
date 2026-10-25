@@ -1,0 +1,47 @@
+"""Reuse D843's bounded registration/start sequence, without its observer."""
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d843_20261025/start.py'
+source = template.read_text()
+for old, new in (
+    ('d843', 'd846'), ('D843', 'D846'),
+    ('3b_controller_full_w2', '3b_staging_identity_full_w2'),
+    ('4ffad9066d21e55f88d5cb1336943721bde6c0f4', '45572418d71211efdcdda3bd08edb7e32c6d006a'),
+    ('D846_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md', 'D846_STAGING_IDENTITY_FULL_W2_20261025.md'),
+    ("    'scripts/ieee_tc/profile_d328_controller_python.sh',\n", ''),
+    ("for name in ('scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',\n             'scripts/ieee_tc/profile_d328_controller_python.sh'):", "for name in ('scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',):"),
+    ('D846DiagnosticContract', 'D846FullContract'),
+    ("        'tests.test_ieee_tc_d456_diagnostic_contract.D734DiagnosticContract',\n        'tests.test_ieee_tc_d456_diagnostic_contract.D456DiagnosticContract', '-v'],",
+     "        'tests.test_ieee_tc_d456_diagnostic_contract.D843DiagnosticContract', '-v'],"),
+    ('tc: register one current full 3B W2 controller diagnostic (D846)',
+     'tc: register full 3B W2 for fresh staging identity (D846)'),
+    ('backup/d846-controller-fullw2-20261025', 'backup/d846-staging-identity-fullw2-20261025'),
+    ('tc-d846-3b-controller-full-w2', 'tc-d846-3b-staging-identity-full-w2'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+marker = "for name, sha in (refs | protected).items():"
+extra = """
+qualified = ROOT/'paper_results/ieee_tc/p2_backend/d845_saved_rpc_callers'
+closure = read(qualified/'closure.json')
+assert closure['passed'] and closure['cpu_tests'] == 67
+assert closure['production_unchanged_between_test_attempts'] and closure['new_gpu_runs'] == 0
+assert not closure['performance_candidate_accepted']
+assert p.digest(ROOT/'scripts/run_all_experiments.py') == closure['ast_scope']['candidate_sha256']
+for row in read(qualified/'final_manifest.json')['files']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+save(OUT/'reused_d845.json', dict(cpu_tests=67, new_cpu_functional_tests=0,
+    closure_sha256=p.digest(qualified/'closure.json'),
+    manifest_sha256=p.digest(qualified/'final_manifest.json'),
+    single_production_change=closure['ast_scope'],
+    numerical_correctness_qualified=False))
+"""
+assert marker in source
+source = source.replace(marker, extra+'\n'+marker)
+source = source.replace(
+    "    formal_performance_result=False, resources=",
+    "    formal_performance_result=False, observer_enabled=False, source_cpu_tests_reused=67,\n    numerical_correctness_qualified=False, performance_candidate_accepted=False, resources=")
+snapshot = Path(__file__).resolve().parent/'start_program.py.snapshot'
+with snapshot.open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(template), 'exec'), globals())
