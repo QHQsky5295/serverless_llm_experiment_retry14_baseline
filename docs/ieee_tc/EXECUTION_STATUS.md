@@ -1,5 +1,18 @@
 # IEEE TC execution status — D843 complete; bounded fresh-inventory candidate next
 
+## 2026-10-25 D843结果检查点已推送
+
+36个明确路径已提交92a627085630eae785d70894fd216f3060ff9171，远端
+backup/d843-complete-20261025核实同SHA。未force、未stage用户manifest；
+备份不等于最终V2同步。raw/results_backup.json保存回执。第一次提交前检查
+将原CSV的CRLF误报为空白；保留原CSV及全部SHA，以command-local cr-at-eol
+解释标准换行后通过，未改全局/仓库配置、未改实验数据，失败记录随备份保存。
+本轮原生服务/回放和离线03/04/05辅助域均已结束，没有运行中的GPU实验。
+
+下一先复用既有D840工具完成D843尚待的逐transfer交付/owner结算汇总，保持
+诊断身份及数值正确性未知；随后只做上节登记的事务内批量新鲜文件观察候选。
+不要重新运行D843、重新profiling或恢复已否决方向。完整计划和goal保持active。
+
 ## 2026-10-25 D843完整诊断和函数关联已完成
 
 本轮由verified wait推进为完整运行/分析完成。沿用同一InvocationID直至4000
