@@ -1,0 +1,223 @@
+{
+  "passed": true,
+  "groups": {
+    "all": {
+      "previous_n": 503,
+      "current_n": 498,
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "previous_mean": 1861.3918868206426,
+          "current_mean": 1793.8213702216444,
+          "current_minus_previous": -67.57051659899821
+        },
+        "after_last_boundary_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "before_extract_ms": {
+          "previous_mean": 0.1273843058001687,
+          "current_mean": 0.1645700933119978,
+          "current_minus_previous": 0.03718578751182908
+        },
+        "before_fetch_ms": {
+          "previous_mean": 366.87638676793836,
+          "current_mean": 382.9817808033098,
+          "current_minus_previous": 16.105394035371432
+        },
+        "extract_verify_ms": {
+          "previous_mean": 325.9661632254868,
+          "current_mean": 198.74797720297514,
+          "current_minus_previous": -127.21818602251167
+        },
+        "file_publication_envelope_ms": {
+          "previous_mean": 342.9088714545515,
+          "current_mean": 329.28308784722327,
+          "current_minus_previous": -13.62578360732823
+        },
+        "headers_ms": {
+          "previous_mean": 3.378091025430983,
+          "current_mean": 3.4736066329177007,
+          "current_minus_previous": 0.09551560748671761
+        },
+        "native_load_ms": {
+          "previous_mean": 39.501574397768465,
+          "current_mean": 40.16321449237595,
+          "current_minus_previous": 0.6616400946074847
+        },
+        "partition_error_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "published_to_native_start_ms": {
+          "previous_mean": 532.2494903731181,
+          "current_mean": 595.5847829606489,
+          "current_minus_previous": 63.33529258753083
+        },
+        "reserve_receive_write_ms": {
+          "previous_mean": 250.3839252705484,
+          "current_mean": 243.4223501888818,
+          "current_minus_previous": -6.961575081666581
+        },
+        "ttft_ms": {
+          "previous_mean": 2422.4211250331855,
+          "current_mean": 2355.638240226526,
+          "current_minus_previous": -66.7828848066597
+        }
+      }
+    },
+    "ttft_fail": {
+      "previous_n": 262,
+      "current_n": 245,
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "previous_mean": 2441.8843696160484,
+          "current_mean": 2450.7927308144162,
+          "current_minus_previous": 8.908361198367857
+        },
+        "after_last_boundary_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "before_extract_ms": {
+          "previous_mean": 0.17296655444812228,
+          "current_mean": 0.26110521878819076,
+          "current_minus_previous": 0.08813866434006848
+        },
+        "before_fetch_ms": {
+          "previous_mean": 532.4557837248133,
+          "current_mean": 578.2277580635737,
+          "current_minus_previous": 45.7719743387604
+        },
+        "extract_verify_ms": {
+          "previous_mean": 356.3648803579045,
+          "current_mean": 217.59759466715005,
+          "current_minus_previous": -138.76728569075445
+        },
+        "file_publication_envelope_ms": {
+          "previous_mean": 437.8490882644871,
+          "current_mean": 424.1898385123635,
+          "current_minus_previous": -13.659249752123571
+        },
+        "headers_ms": {
+          "previous_mean": 3.5440936446445814,
+          "current_mean": 3.6765939651095136,
+          "current_minus_previous": 0.1325003204649322
+        },
+        "native_load_ms": {
+          "previous_mean": 39.616370559421206,
+          "current_mean": 40.06839085712421,
+          "current_minus_previous": 0.452020297703001
+        },
+        "partition_error_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "published_to_native_start_ms": {
+          "previous_mean": 711.6845112510794,
+          "current_mean": 846.007466861712,
+          "current_minus_previous": 134.32295561063268
+        },
+        "reserve_receive_write_ms": {
+          "previous_mean": 360.19667525925024,
+          "current_mean": 340.763982668595,
+          "current_minus_previous": -19.432692590655222
+        },
+        "ttft_ms": {
+          "previous_mean": 3143.4823487465846,
+          "current_mean": 3181.385288725854,
+          "current_minus_previous": 37.90293997926938
+        }
+      }
+    },
+    "ttft_pass": {
+      "previous_n": 241,
+      "current_n": 253,
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "previous_mean": 1230.3170714994963,
+          "current_mean": 1157.6238075922806,
+          "current_minus_previous": -72.69326390721562
+        },
+        "after_last_boundary_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "before_extract_ms": {
+          "previous_mean": 0.07783015996712372,
+          "current_mean": 0.07108746192200853,
+          "current_minus_previous": -0.006742698045115195
+        },
+        "before_fetch_ms": {
+          "previous_mean": 186.86890957830667,
+          "current_mean": 193.90958938526776,
+          "current_minus_previous": 7.040679806961094
+        },
+        "extract_verify_ms": {
+          "previous_mean": 292.91859522260944,
+          "current_mean": 180.4943950736358,
+          "current_minus_previous": -112.42420014897365
+        },
+        "file_publication_envelope_ms": {
+          "previous_mean": 239.69585566947632,
+          "current_mean": 237.37734115568426,
+          "current_minus_previous": -2.318514513792053
+        },
+        "headers_ms": {
+          "previous_mean": 3.1976234476966976,
+          "current_mean": 3.2770378724947986,
+          "current_minus_previous": 0.07941442479810101
+        },
+        "native_load_ms": {
+          "previous_mean": 39.37677525107544,
+          "current_mean": 40.255039751809456,
+          "current_minus_previous": 0.8782645007340122
+        },
+        "partition_error_ms": {
+          "previous_mean": 0.0,
+          "current_mean": 0.0,
+          "current_minus_previous": 0.0
+        },
+        "published_to_native_start_ms": {
+          "previous_mean": 337.1790527381559,
+          "current_mean": 353.08060289835447,
+          "current_minus_previous": 15.901550160198553
+        },
+        "reserve_receive_write_ms": {
+          "previous_mean": 131.0024294322086,
+          "current_mean": 149.1587139931121,
+          "current_minus_previous": 18.156284560903487
+        },
+        "ttft_ms": {
+          "previous_mean": 1638.5288403323113,
+          "current_mean": 1556.0017703358717,
+          "current_minus_previous": -82.52706999643965
+        }
+      }
+    }
+  },
+  "new_replays": 0,
+  "caveat": "Conditional selected-Remote cohorts may differ; not paired causal effects or counterfactual SLO. extract_verify_ms retains the existing analyzer name, but D826 stream payload SHA is disabled and final owner SHA remains in publication.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/partition/diagnosis.json",
+      "sha256": "be50d1ef64c9dc91ab5aff2d6c139dcf9de6c3501f7e353851b18f828b48c526"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/preparation_analysis/partition/diagnosis.json",
+      "sha256": "36c5eb1eb39cf431e3244a317e80d80ea3b66962aa9bcfdb08bedcac2d903700"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d826_closed_results.json",
+      "sha256": "f4c8252f31255c1369a0f1aae6017f03aced1f5c3d735d5ba1cea7a391acef3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025/diagnose_preparation.py",
+      "sha256": "a5f1354646364c4f1d8453592284727736a28aeaa6277457677c66ccb7d017df"
+    }
+  ]
+}

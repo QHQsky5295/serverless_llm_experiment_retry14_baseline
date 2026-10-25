@@ -1,0 +1,75 @@
+"""Reuse D594 receipts to localize shared transfer start/finish gaps, offline."""
+import csv, json, math, os, subprocess, sys
+from pathlib import Path
+from statistics import fmean
+import ijson
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/main_comparison/d594_reference_and_ttft'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,obj):
+    with path.open('x') as f: json.dump(obj,f,indent=2,allow_nan=False)
+def desc(xs):
+    xs=sorted(xs)
+    return dict(n=len(xs),mean=fmean(xs) if xs else None,
+        p95_type1=xs[math.ceil(.95*len(xs))-1] if xs else None,max=xs[-1] if xs else None)
+identity=p.scope_identity(p.cg_path().name);cg=Path(identity['path'])
+save(RAW/'pressure_diagnosis_identity.json',identity)
+assert (cg/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (cg/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (cg/'memory.swap.max').read_text().strip()=='0'
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+gate=p.preflight([ROOT],4*1024*1024);save(RAW/'pressure_diagnosis_resource_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+record=json.loads((RAW/'remote_diagnosis_receipt.json').read_text())
+sources={r['path']:r['sha256'] for r in record['source_refs']}
+assert p.digest(OUT/'remote_stages.csv')==record['outputs']['remote_stages.csv']
+with (OUT/'remote_stages.csv').open() as f: rows=list(csv.DictReader(f))
+results={};prefix='metadata.scenario_coordination.tc_ieee_full.'
+for run,w in [('D551','W1'),('D554','W2')]:
+    source=next(Path(k) for k in sources if f'/{run.lower()}_' in k and '/experiment_results_' in k)
+    assert p.digest(source)==sources[str(source)]
+    with source.open('rb') as f: remotes={r['http_transfer_id']:r for r in ijson.items(f,prefix+'remote_artifact_transfers.item',use_float=True)}
+    with source.open('rb') as f: pressure=[r for r in ijson.items(f,prefix+'adapter_transfer_pressure.item',use_float=True) if r['source_tier']=='remote']
+    values=[]
+    for old in rows:
+        if old['run']!=run: continue
+        r=remotes[old['transfer_id']]
+        matches=[s for s in pressure if s['adapter_id']==r['artifact_id'] and s['operation_outcome']=='completed'
+            and s['io_started_at']<=r['loading_started_monotonic_s']<=r['client_completed_monotonic_s']<=s['io_joined_at']]
+        assert len(matches)==1
+        s=matches[0]
+        assert s['state']=='finished' and s['clock_id']==r['loading_clock_id']
+        start=s['created_at'];io=s['io_started_at'];joined=s['io_joined_at'];end=s['finished_at']
+        assert start<=io<=joined<=end
+        row=dict(run=run,request_id=old['request_id'],source_quarter=int(old['source_quarter']),
+            joint=old['joint']=='True',participants=len(s['participants']),
+            pressure_start_ms=1000*(io-start),operation_thread_start_ms=1000*(r['loading_started_monotonic_s']-io),
+            thread_return_ms=1000*(joined-r['client_completed_monotonic_s']),pressure_finish_ms=1000*(end-joined),
+            before_pressure_create_ms=float(old['admission_to_download_start_ms'])-1000*(r['loading_started_monotonic_s']-start),
+            after_pressure_finish_to_load_ms=float(old['download_return_to_native_load_ms'])-1000*(end-r['client_completed_monotonic_s']))
+        assert min(row[k] for k in row if k.endswith('_ms'))>=-.001
+        for label in ('start','finish'):
+            receipts=[v[label+'_receipt'] for v in s['participants'].values()]
+            assert all(x['clock_id']==s['clock_id'] for x in receipts)
+            for metric in ('parent_rpc_channel_acquire_ms','parent_rpc_send_flush_ms','parent_rpc_wait_response_ms'):
+                row[label+'_rpc_sum_'+metric]=sum(x['timing'][metric] for x in receipts)
+        values.append(row)
+    groups=[('all','all',values)]+[('quarter',str(i),[v for v in values if v['source_quarter']==i]) for i in range(1,5)]
+    results[w]=dict(run=run,matched=len(values),remote_pressure_records=len(pressure),
+        groups=[dict(group=k,label=l,metrics={m:desc(x[m] for x in vs) for m in values[0]
+            if m.endswith('_ms') or m=='participants'}) for k,l,vs in groups],rows=values)
+    assert p.digest(source)==sources[str(source)]
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass'] and protected['entry_count']==147
+save(OUT/'pressure_diagnosis.json',dict(passed=True,results=results,caveats=[
+    'Within retained owned remote requests only; no causal intervention or counterfactual latency.',
+    'RPC sums are nested inside pressure start/finish; not additive with the enclosing phase.',
+    'Uninstrumented start gap includes lock/queue/controller scheduling, not pure RPC time.']))
+resources={k:(cg/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}
+save(RAW/'pressure_diagnosis_receipt.json',dict(passed=True,identity=identity,resources=resources,protected=protected,
+    sources={str(RAW/'pressure_diagnosis.py'):p.digest(RAW/'pressure_diagnosis.py'),**sources},
+    outputs={'pressure_diagnosis.json':p.digest(OUT/'pressure_diagnosis.json')}))
+print(json.dumps(dict(passed=True,resources=resources,means={w:{m:v['mean'] for m,v in r['groups'][0]['metrics'].items()} for w,r in results.items()})))

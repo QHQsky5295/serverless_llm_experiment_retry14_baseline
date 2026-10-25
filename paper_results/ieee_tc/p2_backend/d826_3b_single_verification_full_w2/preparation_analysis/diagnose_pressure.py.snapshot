@@ -1,0 +1,21 @@
+"""Reuse D818/D594 unchanged pressure joins for the completed D826 cohort."""
+import hashlib
+import json
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd818_20261025/pressure.py'
+source = template.read_text()
+for old, new in (
+    ('d818_3b_remote_preparation', 'd826_3b_single_verification_full_w2/preparation_analysis'),
+    ('d817_20261025', 'd826_20261025'),
+    ("RAW/'resume_identity.json'", "RAW/'preparation_identity.json'"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+with (raw / 'pressure_template.json').open('x') as stream:
+    json.dump(dict(path=str(template), sha256=hashlib.sha256(template.read_bytes()).hexdigest(),
+                   changes='Run/output/preceding-scope identities only; unique interval and timing semantics unchanged.'), stream, indent=2)
+with (raw / 'pressure_program.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(template), 'exec'), globals())

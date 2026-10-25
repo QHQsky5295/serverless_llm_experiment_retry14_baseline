@@ -1,0 +1,111 @@
+"""Explicit-path final D826 analysis/storage checkpoint; reuse the backup contract."""
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+                                   stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'finish_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+scopes = []
+for name in ('start_identity.json', 'completion_identity.json', 'context_identity.json',
+             'backup_completion_identity.json', 'backup_resume_identity.json',
+             'storage_identity.json', 'preparation_identity.json', 'pressure_identity.json'):
+    identity = read(RAW / name)
+    state = call(['systemctl', '--user', 'show', identity['unit'],
+                  '-p', 'ActiveState', '-p', 'InvocationID', '-p', 'ControlGroup'])
+    assert 'ActiveState=inactive' in state and not Path(identity['path']).exists(), name
+    scopes.append(dict(identity=identity, state=state))
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(read(ROOT / 'paper_results/ieee_tc/p2_backend/d825_single_destination_verification/closure.json')['user_protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+assert call(['git', '-C', '/home/qhq/serverless_llm_baselines', 'rev-parse', 'HEAD']) == 'e1c433bab982366a82ad188ef703270d89d6ea06'
+assert not call(['git', 'diff', '--cached', '--name-only'])
+prep = OUT / 'preparation_analysis'
+assert read(prep / 'partition/diagnosis.json')['passed']
+assert read(prep / 'pressure_diagnosis.json')['passed']
+files = [prep / name for name in (
+    'partition/diagnosis.json', 'partition/remote_requests.csv', 'partition/transfers.csv',
+    'pressure_requests.csv', 'pressure_receipt.json', 'pressure_diagnosis.json',
+    'resources.json', 'versus_d818.json', 'diagnose_preparation.py.snapshot',
+    'd594_pressure_diagnosis.py.snapshot')]
+for name in ('diagnose_pressure.py', 'pressure_program.py.snapshot', 'pressure_template.json',
+             'finish_checkpoint.py', 'backup_completion.json', 'post_backup_release.json'):
+    source = RAW / name
+    if name.endswith('.py'):
+        ast.parse(source.read_text())
+    target = prep / (name + '.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    files.append(target)
+storage = ROOT / 'paper_results/ieee_tc/storage'
+files += [storage / name for name in ('20261025_d826_closed_results.json',
+          '20261025_d826_closed_results_verification.json', '20261025_d826_closed_results.py.snapshot')]
+for row in read(files[-3])['entries']:
+    assert row['audit_sha_matches']
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert p.digest(Path(row['archive'])) == row['archive_sha256']
+save(prep / 'checkpoint_verification.json', dict(passed=True, scopes=scopes,
+     protected_files=len(protected), gpu_idle=True, new_replays=0,
+     numerical_correctness_qualified=False, ranking_eligible=False,
+     data_backup=read(RAW / 'backup_completion.json'),
+     disk_free_bytes=os.statvfs('/home/qhq').f_bavail * os.statvfs('/home/qhq').f_frsize,
+     resources=p.cgroup_snapshot(Path(own['path']))))
+files.append(prep / 'checkpoint_verification.json')
+save(prep / 'manifest.json', dict(files=[dict(path=str(path.relative_to(ROOT)),
+     sha256=p.digest(path)) for path in files]))
+files += [prep / 'manifest.json', ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+          ROOT / 'docs/ieee_tc/D826_SINGLE_VERIFICATION_FULL_W2_20261025.md']
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+for suffix, whitespace in (
+    ('ordinary', 'blank-at-eol,blank-at-eof,space-before-tab'),
+    ('.csv', 'blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol'),
+    ('.snapshot', 'blank-at-eol,space-before-tab,-blank-at-eof')):
+    chosen = [path for path in paths if (not path.endswith(('.csv', '.snapshot'))
+              if suffix == 'ordinary' else path.endswith(suffix))]
+    call(['git', '-c', 'core.whitespace=' + whitespace, 'diff', '--cached', '--check', '--', *chosen])
+call(['git', 'commit', '-m', 'tc: archive D826 preparation diagnosis and lossless storage receipts'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d826-analysis-20261025'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'finish_checkpoint.json', dict(passed=True, head=head, ref=ref,
+     v2_synchronized=False, files=paths, protected_files=len(protected)))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))

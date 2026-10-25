@@ -1,0 +1,64 @@
+"""Apply the existing D818 decomposition to D826; no new replay or policy change."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT / 'paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2'
+OUT = BASE / 'preparation_analysis'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_remote_preparation
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+identity = p.scope_identity(p.cg_path().name)
+save(RAW / 'preparation_identity.json', identity)
+assert not Path(read(RAW / 'storage_identity.json')['path']).exists()
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+compression = ROOT / 'paper_results/ieee_tc/storage/20261025_d826_closed_results.json'
+for row in read(compression)['entries']:
+    assert row['audit_sha_matches']
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert p.digest(Path(row['archive'])) == row['archive_sha256']
+OUT.mkdir(exist_ok=False)
+try:
+    diagnose_remote_preparation(RAW / '3b_max3_full_w2', OUT / 'partition', BASE / 'completion/stages')
+    previous_path = ROOT / 'paper_results/ieee_tc/p2_backend/d818_3b_remote_preparation/partition/diagnosis.json'
+    current_path = OUT / 'partition/diagnosis.json'
+    old, new = read(previous_path), read(current_path)
+    comparisons = {}
+    for group in ('all', 'ttft_fail', 'ttft_pass'):
+        a, b = old['groups'][group], new['groups'][group]
+        assert set(a['metrics']) == set(b['metrics'])
+        comparisons[group] = dict(previous_n=a['n'], current_n=b['n'], metrics={
+            key: dict(previous_mean=a['metrics'][key]['mean'],
+                      current_mean=b['metrics'][key]['mean'],
+                      current_minus_previous=b['metrics'][key]['mean']-a['metrics'][key]['mean'])
+            for key in a['metrics']})
+    save(OUT / 'versus_d818.json', dict(
+        passed=True, groups=comparisons, new_replays=0,
+        caveat='Conditional selected-Remote cohorts may differ; not paired causal effects or counterfactual SLO. extract_verify_ms retains the existing analyzer name, but D826 stream payload SHA is disabled and final owner SHA remains in publication.',
+        source_refs=[dict(path=str(path), sha256=p.digest(path))
+                     for path in (previous_path, current_path, compression, Path(__file__))]))
+finally:
+    group = Path(identity['path'])
+    save(OUT / 'resources.json', dict(identity=identity,
+        resources={name: (group/name).read_text().strip() for name in
+                   ('memory.peak', 'memory.events', 'memory.swap.current', 'cpu.stat')}))
+with (OUT / 'diagnose_preparation.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())

@@ -1,0 +1,235 @@
+{
+  "all_remote_pressure_records": 505,
+  "caveats": [
+    "Same-adapter, same-clock unique containing IO interval join, not shared transfer ID.",
+    "RPC sums are nested and not additive with containing stages.",
+    "Domain envelopes include unmeasured lock and scheduling waits, not pure RPC or GPU time.",
+    "Remote socket blocking is not proof of physical network bottleneck."
+  ],
+  "cohort_count": 498,
+  "groups": {
+    "all": {
+      "metrics": {
+        "after_pressure_finish_to_load_ms": {
+          "count": 498,
+          "mean": 195.43594713266714,
+          "p50_type1": 109.68293715268373,
+          "p95_type1": 625.6197588518262
+        },
+        "before_pressure_create_ms": {
+          "count": 498,
+          "mean": 159.68158905184922,
+          "p50_type1": 2.7326550334692,
+          "p95_type1": 666.2895157933235
+        },
+        "finish_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 498,
+          "mean": 5.93496943790331,
+          "p50_type1": 1.38788390904665,
+          "p95_type1": 13.13989283517003
+        },
+        "finish_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 498,
+          "mean": 0.1800509242632662,
+          "p50_type1": 0.15119323506951332,
+          "p95_type1": 0.32828841358423233
+        },
+        "finish_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 498,
+          "mean": 174.53240521951582,
+          "p50_type1": 117.97852767631412,
+          "p95_type1": 547.6014325395226
+        },
+        "operation_thread_start_ms": {
+          "count": 498,
+          "mean": 13.302218759933629,
+          "p50_type1": 1.8035839311778545,
+          "p95_type1": 35.21361481398344
+        },
+        "participants": {
+          "count": 498,
+          "mean": 2.7771084337349397,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "pressure_finish_ms": {
+          "count": 498,
+          "mean": 241.86687687333358,
+          "p50_type1": 170.05442222580314,
+          "p95_type1": 752.6055928319693
+        },
+        "pressure_start_ms": {
+          "count": 498,
+          "mean": 209.99797299152698,
+          "p50_type1": 126.35865807533264,
+          "p95_type1": 791.0249470733106
+        },
+        "publication_to_client_complete_ms": {
+          "count": 498,
+          "mean": 116.36834701216485,
+          "p50_type1": 71.76550664007664,
+          "p95_type1": 397.3359656520188
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 498,
+          "mean": 12.436601459553623,
+          "p50_type1": 1.2860107235610485,
+          "p95_type1": 22.21477637067437
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 498,
+          "mean": 0.16367871662130556,
+          "p50_type1": 0.14237407594919205,
+          "p95_type1": 0.32074470072984695
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 498,
+          "mean": 166.05972755330066,
+          "p50_type1": 93.40267907828093,
+          "p95_type1": 545.1410114765167
+        },
+        "thread_return_ms": {
+          "count": 498,
+          "mean": 41.9136119424833,
+          "p50_type1": 9.487110190093517,
+          "p95_type1": 174.08899497240782
+        }
+      },
+      "n": 498
+    },
+    "ttft_fail": {
+      "metrics": {
+        "after_pressure_finish_to_load_ms": {
+          "count": 245,
+          "mean": 262.4542306405397,
+          "p50_type1": 152.73289289325476,
+          "p95_type1": 801.3782710768282
+        },
+        "before_pressure_create_ms": {
+          "count": 245,
+          "mean": 258.11666450748334,
+          "p50_type1": 99.61454477161169,
+          "p95_type1": 852.0185528323054
+        },
+        "finish_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 245,
+          "mean": 9.61478632323596,
+          "p50_type1": 1.8372568301856518,
+          "p95_type1": 23.54643400758505
+        },
+        "finish_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 245,
+          "mean": 0.1891625988088092,
+          "p50_type1": 0.15236297622323036,
+          "p95_type1": 0.40388572961091995
+        },
+        "finish_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 245,
+          "mean": 248.09971061554185,
+          "p50_type1": 194.21872915700078,
+          "p95_type1": 688.3571026846766
+        },
+        "operation_thread_start_ms": {
+          "count": 245,
+          "mean": 22.715141464556968,
+          "p50_type1": 2.039478160440922,
+          "p95_type1": 93.88962015509605
+        },
+        "participants": {
+          "count": 245,
+          "mean": 2.9918367346938775,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "pressure_finish_ms": {
+          "count": 245,
+          "mean": 357.43897845588475,
+          "p50_type1": 262.6009159721434,
+          "p95_type1": 945.286588743329
+        },
+        "pressure_start_ms": {
+          "count": 245,
+          "mean": 297.39595209153333,
+          "p50_type1": 202.1261379122734,
+          "p95_type1": 943.850880023092
+        },
+        "publication_to_client_complete_ms": {
+          "count": 245,
+          "mean": 159.33787469391007,
+          "p50_type1": 93.76865532249212,
+          "p95_type1": 511.95465214550495
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 245,
+          "mean": 19.535927029744702,
+          "p50_type1": 1.6027758829295635,
+          "p95_type1": 23.71755102649331
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 245,
+          "mean": 0.18318777675835454,
+          "p50_type1": 0.15320256352424622,
+          "p95_type1": 0.38898875936865807
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 245,
+          "mean": 225.5970389525197,
+          "p50_type1": 158.44891499727964,
+          "p95_type1": 758.4931780584157
+        },
+        "thread_return_ms": {
+          "count": 245,
+          "mean": 66.77638307137757,
+          "p50_type1": 25.497551076114178,
+          "p95_type1": 263.6333191767335
+        }
+      },
+      "n": 245
+    }
+  },
+  "passed": true,
+  "request_timing_keys": {
+    "load_timing": [
+      "parent_rpc_channel_acquire_ms",
+      "parent_rpc_request_bytes",
+      "parent_rpc_response_bytes",
+      "parent_rpc_response_pickup_delay_ms",
+      "parent_rpc_send_flush_ms",
+      "parent_rpc_thread_resume_delay_ms",
+      "parent_rpc_transport",
+      "parent_rpc_wait_response_ms"
+    ],
+    "snapshot_timing": [
+      "parent_rpc_channel_acquire_ms",
+      "parent_rpc_request_bytes",
+      "parent_rpc_response_bytes",
+      "parent_rpc_response_pickup_delay_ms",
+      "parent_rpc_send_flush_ms",
+      "parent_rpc_thread_resume_delay_ms",
+      "parent_rpc_transport",
+      "parent_rpc_wait_response_ms"
+    ]
+  },
+  "server_nested_not_additive": {
+    "object_read_wall_ms": {
+      "count": 505,
+      "mean": 2.094977483168317,
+      "p50_type1": 1.217146,
+      "p95_type1": 3.519969
+    },
+    "socket_write_wall_ms": {
+      "count": 505,
+      "mean": 217.73039267128712,
+      "p50_type1": 127.981197,
+      "p95_type1": 834.352965
+    }
+  },
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d826_3b_max3_full_w2.json.gz": "6c6e854341f845063ee210170aab4b66eb26388d589cf51de991ad26ffccf6df",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz": "552865e4e483771dcc74bc8990b0838899c1a41ac1ee45de8d2dac891455dc63",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025/diagnose_pressure.py": "f35b59d7d4bfaf97c1571fb294d24fe2762f6761935160e04f3689aee2850de3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d826_20261025/remote_transfers.jsonl": "610a99fee702baefc16603ec2a8bfd650a148926384880901e99e14b70155be5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/execution_evidence.tar.gz": "7217b3ac8ad4f69c681594ea02df6153d3157010fda4bf9a5f73c1fc919e37a9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/completion/stages/requests.csv": "a3285fc79885257979cba6f065b6c6590d9167d84f428014ef1021a0ead0dc53"
+  }
+}
