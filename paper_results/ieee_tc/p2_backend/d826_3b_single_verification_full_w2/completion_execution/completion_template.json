@@ -1,0 +1,23 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d817_20261025/completion_program.py.snapshot",
+  "sha256": "5d44215f8d09bccb1488b79eb8ff7f68a12dff939067b05b48bfd0c6a717440d",
+  "replacements": [
+    [
+      "d817_3b_required_capacity_full_w2",
+      "d826_3b_single_verification_full_w2"
+    ],
+    [
+      "d817_20261025",
+      "d826_20261025"
+    ],
+    [
+      "D817_REQUIRED_CAPACITY_FULL_W2_20261025.md",
+      "D826_SINGLE_VERIFICATION_FULL_W2_20261025.md"
+    ],
+    [
+      "d817_single_w2_frozen_resource_reference_observation_v1",
+      "d826_single_w2_frozen_resource_reference_observation_v1"
+    ]
+  ],
+  "changes": "Reuse native metrics/stages and W2 references; use recorded D825 user protection and immutable 147-file seal. Actual delivery/owner confirmation audit remains separate."
+}

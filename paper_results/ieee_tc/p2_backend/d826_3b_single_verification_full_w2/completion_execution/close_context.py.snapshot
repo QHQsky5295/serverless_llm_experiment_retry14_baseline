@@ -1,0 +1,94 @@
+"""Reuse D817 closure, adding the changed owner-verification evidence only."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d817_20261025/close_context.py'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '52a6be201ff762e6d8899a9d182a7ed4a35822dcd9b40d3923f5f9bf5ede2ea9'
+_source = _template.read_text()
+for _old, _new in (
+    ('d817_3b_required_capacity_full_w2', 'd826_3b_single_verification_full_w2'),
+    ('d817_observed_delivery_and_required_reclamation_v1', 'd826_observed_delivery_and_required_reclamation_v1'),
+    ('d817_full_w2_closure_v1', 'd826_full_w2_closure_v1'),
+    ("('completion_identity.json','completion_resume_identity.json')", "('completion_identity.json',)"),
+    ("    analysis_launcher_failure=ref(OUT/'completion/analysis_launcher_failure.json'),\n", ''),
+    ('Retain complete W2 observation. Capacity failure did not recur and required reclaim was observed; joint SLO is below 95%. No same-key rerun, threshold change or final G1/G2 claim. Inspect actual remote preparation and residency history before the next single candidate.',
+     'Retain this complete W2 observation and all earlier candidates. Single final verification has mixed small observed effects, not joint-SLO feasibility or a G1/G2 win. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate.'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_old = "projection=read(RAW/'remote_client_projection.json')"
+_new = """outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as stream:
+    transfers=list(ijson.items(stream,'remote_transfers.item',use_float=True))
+projection=dict(transfers=transfers)
+save(RAW/'remote_client_projection.json',projection)
+"""
+assert _source.count(_old) == 1
+_source = _source.replace(_old, _new)
+_marker = "metric=read(OUT/'completion/full4000.json')"
+_extra = """# The changed path must actually execute and finish with the original owner's
+# confirmed final-content receipt. Stream verification is intentionally absent.
+for row in transfers:
+    assert row['content_verification']=='owner_publication'
+    assert row['stream_content_verified'] is False
+    assert row['content_verified'] is True
+    publication=row['confirmed_file_publication']
+    assert publication['content_verified'] is True
+    assert publication['adapter_id']==row['artifact_id']
+    assert publication['file_path_bytes']==row['payload_bytes_verified']>0
+    digest=publication['content_sha256']
+    assert len(digest)==64 and all(x in '0123456789abcdef' for x in digest)
+save(OUT/'completion/owner_publication_actual.json',dict(
+    passed=True,attempts=len(transfers),all_attempts_included=True,
+    verification_modes=dict(collections.Counter(row['content_verification'] for row in transfers)),
+    stream_content_verified=sum(row['stream_content_verified'] is True for row in transfers),
+    final_content_verified=sum(row['content_verified'] is True for row in transfers),
+    source_refs=[ref(outcome),ref(RAW/'remote_client_projection.json')],
+    scope='Runtime confirmation of final destination content, not independent numerical adapter correctness. Frozen implementation/source verification is retained in prelaunch and completion manifests.'))
+current=read(OUT/'completion/full4000.json')
+old_dir=ROOT/'paper_results/ieee_tc/p2_backend/d817_3b_required_capacity_full_w2/completion'
+old=read(old_dir/'full4000.json')
+assert current['counts']['n']==old['counts']['n']==4000
+assert current['common_slo_sha256']==old['common_slo_sha256']
+assert current['workload']==old['workload']=='W2'
+metrics={}
+for name in ('ttft_ms','tpot_ms','e2e_ms'):
+    metrics[name]={}
+    for stat in ('mean','p50_type1','p95_type1'):
+        a,b=old['metrics'][name][stat],current['metrics'][name][stat]
+        metrics[name][stat]=dict(previous=a,current=b,current_minus_previous=b-a,
+            lower_better_improvement_fraction=(a-b)/a)
+old_stages=read(old_dir/'stages/diagnosis.json')
+new_stages=read(OUT/'completion/stages/diagnosis.json')
+def all_group(value):
+    groups=[g for g in value['groups'] if g['dimension']=='all' and g['label']=='all']
+    assert len(groups)==1 and groups[0]['n']==4000
+    return groups[0]['metrics']
+a,b=all_group(old_stages),all_group(new_stages)
+stage_means={key:dict(previous=a[key]['mean'],current=b[key]['mean'],
+    current_minus_previous=b[key]['mean']-a[key]['mean']) for key in a if key in b}
+save(OUT/'completion/versus_d817.json',dict(
+    kind='d826_vs_d817_single_observation_v1',previous_counts=old['counts'],current_counts=current['counts'],
+    joint_delta_requests=current['counts']['joint_pass']-old['counts']['joint_pass'],
+    joint_delta_percentage_points=100*(current['joint_slo_fraction']-old['joint_slo_fraction']),
+    previous_gpu_seconds=old['physical_gpu_seconds'],current_gpu_seconds=current['physical_gpu_seconds'],
+    gpu_seconds_delta=current['physical_gpu_seconds']-old['physical_gpu_seconds'],
+    gpu_seconds_improvement_fraction=1-current['physical_gpu_seconds']/old['physical_gpu_seconds'],
+    metrics=metrics,all_request_stage_means=stage_means,confidence_interval=None,
+    numerical_correctness_qualified=False,ranking_eligible=False,
+    source_refs=[ref(old_dir/'full4000.json'),ref(OUT/'completion/full4000.json'),
+        ref(old_dir/'stages/diagnosis.json'),ref(OUT/'completion/stages/diagnosis.json')]))
+"""
+assert _source.count(_marker) == 1
+_source = _source.replace(_marker, _extra + '\n' + _marker)
+compile(_source, str(_raw/'context_program.py.snapshot'), 'exec')
+with (_raw/'context_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template),sha256=_sha,
+        changes='Reuse full delivery/control/reclamation checks; replace prior-run identity and remove nonexistent resume failure. Add actual owner-publication confirmation and descriptive D817 comparison; no metric changes.'),_stream,indent=2)
+    _stream.write('\n')
+with (_raw/'context_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source,str(_raw/'context_program.py.snapshot'),'exec'),globals())

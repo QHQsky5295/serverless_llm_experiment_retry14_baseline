@@ -1,0 +1,5 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d817_20261025/close_context.py",
+  "sha256": "52a6be201ff762e6d8899a9d182a7ed4a35822dcd9b40d3923f5f9bf5ede2ea9",
+  "changes": "Reuse full delivery/control/reclamation checks; replace prior-run identity and remove nonexistent resume failure. Add actual owner-publication confirmation and descriptive D817 comparison; no metric changes."
+}

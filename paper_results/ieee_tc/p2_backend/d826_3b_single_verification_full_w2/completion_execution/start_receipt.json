@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d826-single-verification-fullw2-20261025",
+  "head": "a127c50cbaaa0bcf63d2f6b32ca83e7994aade85",
+  "identity": {
+    "inode": 32099863,
+    "invocation_id": "989df91741fe495f8fadd82a892b28e8",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82600000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-82600000000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "a04b8b88d3cc3b029211ac2eb606e7e05ad758e202be19e765b659579219747c",
+  "tmux": "tc-d826-3b-single-verification-full-w2"
+}

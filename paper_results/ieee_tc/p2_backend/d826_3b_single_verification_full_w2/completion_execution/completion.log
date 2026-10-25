@@ -1,0 +1,60 @@
+{
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3690,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3899,
+    "joint_pass": 3610
+  },
+  "joint_slo_fraction": 0.9025,
+  "physical_gpu_seconds": 11307.065764717292,
+  "metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 827.4087492236868,
+      "p50_type1": 510.40663942694664,
+      "p95_type1": 2654.5131276361644
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 15.989752690198607,
+      "p50_type1": 13.992675510691662,
+      "p95_type1": 27.38042615325839
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 2634.029912244645,
+      "p50_type1": 2243.310566060245,
+      "p95_type1": 5535.755090881139
+    }
+  },
+  "n_correct": null,
+  "comparison": {
+    "kind": "d826_single_w2_frozen_resource_reference_observation_v1",
+    "current": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/completion/full4000.json",
+      "sha256": "0492232687ee0151ef5fe6e208e6f5250370b2eae5afe24e1118c1c654c06e0c"
+    },
+    "reference": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+      "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+    },
+    "reference_workload": "W2",
+    "reference_id": "3b_W2_vllm0300_D656",
+    "reference_gpu_seconds": 16110.751826980617,
+    "budget_gpu_seconds": 12083.063870235463,
+    "observed_within_budget": true,
+    "budget_utilization": 0.935778034954387,
+    "gpu_seconds_reduction_fraction": 0.2981664737842097,
+    "gpu_seconds_per_binding_valid_request": 2.826766441179323,
+    "joint_slo_delta_percentage_points": -9.750000000000004,
+    "normalized_p95_ttft": 6.010650744794658,
+    "joint_slo_margin_requests": -190,
+    "n_correct": null,
+    "ranking_eligible": false,
+    "confidence_interval": null,
+    "complete_g1_g2": false,
+    "independent_holdout": false,
+    "scope": "Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking."
+  }
+}

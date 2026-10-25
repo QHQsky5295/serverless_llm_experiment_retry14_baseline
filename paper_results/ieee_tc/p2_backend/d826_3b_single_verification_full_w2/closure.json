@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "kind": "d826_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3690,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3899,
+    "joint_pass": 3610
+  },
+  "violation_partition": {
+    "ttft_only_fail": 289,
+    "tpot_only_fail": 80,
+    "both_fail": 21
+  },
+  "shortfall_to_3800": 190,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-82600000000000000000000000000002.scope",
+      "invocation_id": "edc9447c26d4484195481459a40d8740",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82600000000000000000000000000002.scope",
+      "inode": 32133248
+    }
+  ],
+  "resources": {
+    "memory.peak": "605614080",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete W2 observation and all earlier candidates. Single final verification has mixed small observed effects, not joint-SLO feasibility or a G1/G2 win. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate."
+}

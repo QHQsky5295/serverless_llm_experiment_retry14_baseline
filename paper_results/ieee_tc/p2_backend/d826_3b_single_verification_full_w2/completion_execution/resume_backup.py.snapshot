@@ -1,0 +1,40 @@
+"""Finish D826 backup after Git's *.log ignore rule rejected six small receipts."""
+from pathlib import Path
+
+source = Path(__file__).with_name('backup_results.py').read_text()
+prefix, tail = source.split("call(['git', 'add', '--', *paths])", 1)
+prefix = prefix[:prefix.index('assert os.sched_getaffinity')]
+exec(compile(prefix, str(Path(__file__).with_name('backup_results.py')), 'exec'), globals())
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_resume_identity.json', own)
+assert not Path(read(RAW / 'backup_completion_identity.json')['path']).exists()
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+evidence = OUT / 'completion_execution'
+files = [Path(row['path']) for row in read(OUT / 'closure_manifest.json')['files']]
+files += [OUT / 'closure_manifest.json']
+files += [ROOT / row['path'] for row in read(evidence / 'manifest.json')['files']]
+files += [evidence / 'manifest.json', ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+          ROOT / 'docs/ieee_tc/D826_SINGLE_VERIFICATION_FULL_W2_20261025.md']
+for name in ('backup_results.log', 'resume_backup.py'):
+    path = evidence / (name + '.snapshot')
+    with path.open('xb') as stream:
+        stream.write((RAW / name).read_bytes())
+    files.append(path)
+for manifest in (OUT / 'closure_manifest.json', evidence / 'manifest.json'):
+    for row in read(manifest)['files']:
+        assert p.digest(ROOT / row['path']) == row['sha256']
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) <= set(paths)
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+protected = read(ROOT / 'paper_results/ieee_tc/p2_backend/d825_single_destination_verification/closure.json')['user_protected']
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha
+remote_sha = '3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417'
+# Only this explicit curated small-file set; -f overrides ignore, not remote history.
+call(['git', 'add', '-f', '--', *paths])
+exec(compile(tail, str(Path(__file__).with_name('backup_results.py')), 'exec'), globals())

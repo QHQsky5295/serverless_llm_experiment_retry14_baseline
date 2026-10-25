@@ -1,0 +1,20 @@
+{
+  "files": [
+    "configs/ieee_tc/20261025_d826_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D826_SINGLE_VERIFICATION_FULL_W2_20261025.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/execution_contract_tests.json",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/prelaunch/stop_remote.sh.snapshot"
+  ],
+  "head": "a127c50cbaaa0bcf63d2f6b32ca83e7994aade85",
+  "ref": "refs/heads/backup/d826-single-verification-fullw2-20261025"
+}

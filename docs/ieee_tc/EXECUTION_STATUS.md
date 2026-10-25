@@ -1,4 +1,76 @@
-# IEEE TC execution status — D826 full 3B W2 registered, launch pending
+# IEEE TC execution status — D826 complete; joint SLO still below target
+
+## 2026-10-25 D826 completed: one final content verification, mixed small effects
+
+同一次完整3B W2已正常结束，4000/4000请求终态成功且原生生成合同匹配；
+实际service Invocation、GPU进程及远端本项目服务均已释放，没有第二次回放。
+冻结共同SLO得到TTFT3690、TPOT3899、联合3610/4000（90.25%），
+较D817的3596/4000增加14条、0.35个百分点，仍距3800差190条。
+物理U=11307.065764717292 GPU-s，较D817增加23.23296641279012；
+P95TTFT=2654.5131276361644ms（此前2693.5871988534927ms），
+平均TTFT=827.4087492236868ms（此前825.1793945539976ms）。
+这是已知seed42上的单轮、混合方向小幅变化，不是95%可行点或G1/G2胜出。
+D711独立数值身份限制未解决，N_correct=null、ranking_eligible=false；
+内容SHA及token数量正确不能替代该证据。未计算CI、未绘图、未改评价阈值。
+
+既有完整分析和实际交付核查通过：505次真实远端获取、1172100920线上字节，
+客户端/服务端ID、字节和归档SHA一致；505次均由owner完成最终内容校验，
+没有流内重复payload SHA或请求内打包。18次按需LRU回收可追溯。
+服务峰值33053667328B；high/max/OOM/swap均0。147旧投稿保护和用户文件
+不变。aux2/3分析已退出0且scope消失，全部数据保存于
+paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/。
+
+当前工作：明确路径备份完整结果，并无损压缩已关闭大日志恢复150GiB启动余量。
+下一科学问题：复用完整阶段和传输证据，判断剩余TTFT违约是否由本地准备/
+交接或容量等待主导；先对照D818/D824及已否决历史，不自动扩展本候选W1/W0，
+不重复同键或用局部组件收益投影达标。不重开HydraServe基础适配或共用k3s。
+最终同版两模型M1/M2与Full、A1–A5、S1–S13、成本/CE、两轮审稿文档、
+图表和最终V2同步均未完成且保留；整体目标active。
+
+以下保留运行中历史快照，不代表当前仍在运行。
+
+2026-10-25 07:51 CST续核：本轮为verified wait；重新完整阅读PLAN后，
+连续20次轮询同一实际service Invocation、launcher PID及请求终态。
+07:51:20实测service active、Invocation4df7f4335ba54092af015f35ba8681d6未变，
+pane3055253、launcher3055265存活；1193/4000终态，success与native合同
+匹配均1193、失败0。已持有3张GPU；没有重启、第二次回放或运行中配置改动。
+watchdog sample1328：MemAvailable98579660800B、service peak21856112640B，
+high/max/OOM/swap均0、无warning/abort，磁盘剩余154749788160B。
+本轮观察工具cell7350正常结束，但真实D826仍由原tmux/scope继续运行，
+不能因观察工具结束而重启实验。原始watchdog/终态保留本次观察来源。
+下一动作不变：等待同一次4000完成，核实GPU/远端释放后复用既有分析入口；
+候选未接受、最终SLO/U未知，D711数值限制与完整未完成范围继续保留。
+下一重型前须先恢复150GiB启动余量；当前不清理、压缩、扫描或推送。
+
+2026-10-25 07:34 CST续核：已重新完整读取PLAN及冻结V1/单轮V2，按实际
+tmux、PID、scope Invocation及请求终态核验，同一次D826仍在运行，未重启。
+pane3055253、launcher3055265存活，service Invocation仍为
+4df7f4335ba54092af015f35ba8681d6。143/4000已有终态，success及
+native_contract_matched均143，尚无失败；这不是独立数值正确性证明或最终SLO。
+watchdog sample302：MemAvailable105526054912B，service current9941565440B、
+peak13233500160B，high/max/OOM/swap均0，无warning/abort，磁盘剩余
+159736848384B（运行中仍高于100GiB停止线；下一重型前需恢复150GiB启动门槛）。
+本段仅记录实时状态，没有新实验、配置修改或性能结论；不在运行期间清理。
+下一步仍是等待这一次完整4000回放、按原身份释放，再审计联合SLO与物理U。
+HydraServe已完成的独立适配和结果继续复用，不重新改动非项目k3s。
+
+2026-10-25约07:30 CST实际核查：D826已启动且存活，不是仅有登记文件。
+tmux=tc-d826-3b-single-verification-full-w2，pane PID3055253，launcher
+PID3055265；service scope primelora-tc-svc-61ffe3e08bac4e66929a9ae3c3cbf675
+InvocationID4df7f4335ba54092af015f35ba8681d6 active；外置scope
+primelora-tc-aux-0c7840d3559f40eebd3b117a70caba03 active，实际GPU worker
+PID3056792。后续应轮询这些实际句柄和原launch，不因观察超时重启。
+
+本轮入口7项身份检查通过，启动前备份a127c50cbaaa0bcf63d2f6b32ca83e7994aade85
+已推送backup/d826-single-verification-fullw2-20261025并核实ref；不是最终V2同步。
+启动aux1已inactive；用户manifest未stage。实际完整W2 source/view/map SHA
+保持冻结，4000/source_count4000、rate_scale1。远端启动记录为1000/full，
+D80已发布合同健康；3B/7B服务及本轮监控Invocation已记录，结束按身份释放。
+
+watchdog sample92：MemAvailable105999982592B，服务peak13233500160B，
+high/max/OOM/swap0、无warning/abort。已有首批请求终态，但完整4000和SLO/U
+尚未完成，禁止把局部结果作性能结论。运行期间不做清理/压缩/推送或配置
+改动；等待同一次回放完成，再收尾和分析。完整未完成范围及D711限制不变。
 
 ## 2026-10-25 D826：进入D825候选的完整3B W2
 
