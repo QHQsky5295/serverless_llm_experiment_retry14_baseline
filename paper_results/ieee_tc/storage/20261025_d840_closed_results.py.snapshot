@@ -1,0 +1,22 @@
+"""Reuse verified compression for closed, remotely backed-up D840 evidence."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d835_20261025/storage_program.py.snapshot'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'b82de3ff6338a8a10c0765438275ffc2bf0d78b709e20e7f7dfe09b3fbecb434'
+_source = _template.read_text()
+for _old, _new in (
+    ('d835_3b_completed_membership_reuse_full_w2', 'd840_3b_single_thread_decoder_full_w2'),
+    ('20261025_d835_closed_results', '20261025_d840_closed_results'),
+    ('d835_20261025/3b_max3_full_w2', 'd840_20261025/3b_max3_full_w2'),
+    ('d834_completed_membership_reuse/closure.json', 'd839_single_thread_decoder/closure.json'),
+    ("'backup_completion_identity.json', 'context_resume_identity.json', 'settlement_identity.json'):",
+     "'backup_completion_identity.json', 'backup_resume_identity.json', 'settlement_identity.json', 'settlement_resume_identity.json'):"),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw/'storage_program.py.snapshot'), 'exec')
+with (_raw/'storage_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'storage_program.py.snapshot'), 'exec'), globals())
