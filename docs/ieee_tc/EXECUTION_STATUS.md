@@ -1,4 +1,20 @@
-# IEEE TC execution status — D831 owned file readiness CPU-qualified; target unmet
+# IEEE TC execution status — D832 complete W2 registered; target unmet
+
+## 2026-10-25 D832：准备完整3B W2，尚未启动
+
+D831已归档36份当前/复用材料并逐项读回SHA，10条明确路径已提交
+beb6a1bba213b33df86711f83a13fc4679adac07，推送并核实
+backup/d831-owned-file-readiness-20261025。七个aux已终态，归档/备份scope
+inactive且ControlGroup/Invocation空；stage空，用户manifest未stage。
+435不同CPU验证通过；不是性能达标或最终V2同步。
+
+新登记D832只增加完整W2执行身份和三个输出/缓存路径，复用D829全部其他
+冻结配置、输入与远端管理。仍是D831唯一候选，不再补短Full或堆叠优化。
+当前磁盘161528700928B，实际启动由既有完整准入判断。详见
+D832_OWNED_FILE_READINESS_FULL_W2_20261025.md；下一步入口检查、备份和
+完整4000回放。现有3B仍90.95%，D711数值未知及完整未完成范围不变。
+
+以下为D831已完成记录：
 
 ## 2026-10-25 D831：文件可消费与压力结算分离，CPU验证完成
 

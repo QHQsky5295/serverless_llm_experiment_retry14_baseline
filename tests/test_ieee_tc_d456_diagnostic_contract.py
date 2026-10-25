@@ -191,6 +191,26 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D832FullContract(unittest.TestCase):
+    def test_same_d829_configuration_except_exclusive_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d829_3b_max3_full_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d832_3b_max3_full_w2.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertEqual(old[section].pop(field).replace('d829', 'd832'), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertNotIn('ieee_file_pressure_transport', new['resource_coordination'])
+
+    def test_shared_w2_environment_and_full_request_set(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        old = re.search(r'^  d829\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        new = re.search(r'^  d832\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertEqual(old.replace('d829', 'd832'), new)
+        self.assertIn('PREFIX_COUNT=\n', new)
+        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 ]]; then', shell)
+        self.assertNotIn('d832', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+
 class D829FullContract(unittest.TestCase):
     def test_same_d826_configuration_except_exclusive_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d826_3b_max3_full_w2.yaml').read_text())
@@ -207,7 +227,7 @@ class D829FullContract(unittest.TestCase):
         new = re.search(r'^  d829\)(.*?)^    ;;', shell, re.M | re.S).group(1)
         self.assertEqual(old.replace('d826', 'd829'), new)
         self.assertIn('PREFIX_COUNT=\n', new)
-        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 ]]; then', shell)
+        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 ]]; then', shell)
         self.assertNotIn('d829', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
 
 
@@ -227,7 +247,7 @@ class D826FullContract(unittest.TestCase):
         new = re.search(r'^  d826\)(.*?)^    ;;', shell, re.M | re.S).group(1)
         self.assertEqual(old.replace('d817', 'd826'), new)
         self.assertIn('PREFIX_COUNT=\n', new)
-        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 ]]; then', shell)
+        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 ]]; then', shell)
         self.assertNotIn('d826', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
 
 
@@ -248,7 +268,7 @@ class D822FullContract(unittest.TestCase):
         new = re.search(r'^  d822\)(.*?)^    ;;', shell, re.M | re.S).group(1)
         self.assertEqual(old.replace('d817', 'd822'), new)
         self.assertIn('PREFIX_COUNT=\n', new)
-        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 ]]; then', shell)
+        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 ]]; then', shell)
         self.assertNotIn('d822', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
 
 
@@ -267,7 +287,7 @@ class D817FullContract(unittest.TestCase):
         new = re.search(r'^  d817\)(.*?)^    ;;', shell, re.M | re.S).group(1)
         self.assertEqual(old.replace('d814', 'd817'), new)
         self.assertIn('PREFIX_COUNT=\n', new)
-        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 ]]; then', shell)
+        self.assertIn('if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 ]]; then', shell)
         self.assertNotIn('d817', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
 
 
@@ -288,7 +308,7 @@ class D814FullContract(unittest.TestCase):
         self.assertIn('SCENARIO=tc_ieee_full', case)
         pattern = r'^if \[\[ "\$\{1:-d293\}" == %s \]\]; then\n(.*?)^fi'
         old = re.search(pattern % 'd812', shell, re.M | re.S).group(1)
-        new = re.search(pattern % r'd814 \|\| "\$\{1:-d293\}" == d817 \|\| "\$\{1:-d293\}" == d822 \|\| "\$\{1:-d293\}" == d826 \|\| "\$\{1:-d293\}" == d829', shell, re.M | re.S).group(1)
+        new = re.search(pattern % r'd814 \|\| "\$\{1:-d293\}" == d817 \|\| "\$\{1:-d293\}" == d822 \|\| "\$\{1:-d293\}" == d826 \|\| "\$\{1:-d293\}" == d829 \|\| "\$\{1:-d293\}" == d832', shell, re.M | re.S).group(1)
         prefix = ('  export FAASLORA_TC_REPLAY_PROFILE=W2\n'
                   '  export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"\n'
                   '  export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23\n')

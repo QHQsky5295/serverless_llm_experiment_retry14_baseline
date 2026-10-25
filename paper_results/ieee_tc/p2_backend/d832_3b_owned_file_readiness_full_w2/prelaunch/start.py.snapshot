@@ -1,0 +1,29 @@
+"""Reuse D829 complete replay, qualified for D831 owned file readiness."""
+from pathlib import Path
+
+_template = Path(__file__).resolve().parent.parent/'d829_20261025/start.py'
+_source = _template.read_text()
+for _old, _new in (
+    ('d829', 'd832'),
+    ('D829', 'D832'),
+    ('3b_admitted_owner_anchor_full_w2', '3b_owned_file_readiness_full_w2'),
+    ('084e2068375d1090127484656064f9457d9a8560', 'beb6a1bba213b33df86711f83a13fc4679adac07'),
+    ('d828_post_file_owner_turn', 'd831_owned_file_readiness'),
+    ("closure['distinct_regression_tests'] == 370", "closure['distinct_regression_tests'] == 435"),
+    ("('summary.json','closure.json','manifest.json')", "('closure.json','manifest.json')"),
+    ("'tests.test_ieee_tc_d456_diagnostic_contract.D832FullContract',",
+     "'tests.test_ieee_tc_d456_diagnostic_contract.D832FullContract',\n    'tests.test_ieee_tc_d456_diagnostic_contract.D829FullContract',"),
+    ("'Ran 9 tests'", "'Ran 11 tests'"),
+    ('affected_existing_tests=7', 'affected_existing_tests=9'),
+    ('D832_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md', 'D832_OWNED_FILE_READINESS_FULL_W2_20261025.md'),
+    ('three exclusive paths; D828 admitted native owner anchor; native_rpc_v1 unchanged',
+     'three exclusive paths; D831 owned file readiness; native_rpc_v1 unchanged'),
+    ('source_tests_reused=370', 'source_tests_reused=435'),
+    ('tc: register complete 3B W2 for admitted owner anchor (D832)',
+     'tc: register complete 3B W2 for owned file readiness (D832)'),
+    ('d832-admitted-owner-anchor-fullw2-20261025', 'd832-owned-file-readiness-fullw2-20261025'),
+    ('tc-d832-3b-admitted-owner-anchor-full-w2', 'tc-d832-3b-owned-file-readiness-full-w2'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+exec(compile(_source, str(_template), 'exec'), globals())

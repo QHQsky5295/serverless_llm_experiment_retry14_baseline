@@ -1,0 +1,70 @@
+{
+  "additional_gpu_microtests": 0,
+  "affected_existing_tests": 9,
+  "changes": "three exclusive paths; D831 owned file readiness; native_rpc_v1 unchanged",
+  "diagnostic_prefix_count": null,
+  "end_to_end_performance_accepted": false,
+  "full_source_count": 4000,
+  "identity": {
+    "inode": 32205569,
+    "invocation_id": "ee818c7542dd4434bac235c0e50e60fe",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-83200000000000000000000000000001.scope"
+  },
+  "new_execution_contract_tests": 2,
+  "numerical_correctness_qualified": false,
+  "passed": true,
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/check_remote_health_stdlib.py": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/run_and_release.sh": "563f726ff12e3ffa1a1374d20dee0a86e0b009113e1699cbb534cdc37faa6491",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/start.py": "9da81ecd6a0ed7e1e99a60df34bceb2d9157d012c4b28a1deabc3eee273e902d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/start_remote.sh": "65c027eda11ea88d352c5777cc781aa293891e84763335b8710e8ce54a4da14f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/stop_remote.sh": "06d7dc67325525521e5e9f2df471839bc3848478b0277b53d90ee2f925ea7b04",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261025_d832_3b_max3_full_w2.yaml": "32dba1a80bc3c14ea1f9defe5b63193628f72673591f148bb7b2bfeda2c12a1d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md": "43a2c93326ab4477c7bb0cb05acbd1334350fad67648dabf73563656079081a3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/EXECUTION_STATUS.md": "d9c340fa8af7f2fa355d12600119184fd6c422bcffb21f0ded0401c2eb0c3ec3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py": "9d678d8296ea18a4621171bfff2aee2fd40ee6157ae5dc3b5919ec8aeaf15222",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/preparation.json": "9080ca04278a8e6378e80374bcf5a77f4778f171119610a75c74a8de8ee5ad75",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d725_3b_graph_profile/export/service.json": "b0d6d57ac79ad7ae397d4953836dd484139263607f7267a5e23f4aff6f681100",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "d3f394ecc429bca19b651c1c391a299ba9d58f24c1562fe209d84b67b7c727d9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "82eb8dc67173d99d7bf01ddbf5aa742de994f55d12d3910425efa3c5d8abf315",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_d456_diagnostic_contract.py": "50bcf474a929e8c9b11f6c9191073e977f59d9e71ca4911b597397d669f49550",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py": "74f1ca9aa5c7e4c9754a917bcdc572ee95f0326a376ec182a6f425181c3751df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "da55ef4df2c347eafd143bc37f5d9396ac0d9bc378531f25b306bc5c54e7bdae",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "resources": {
+    "cgroup.controllers": "memory pids",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 408189\nuser_usec 318587\nsystem_usec 89602\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "memory.current": 11669504,
+    "memory.events": {
+      "high": 0,
+      "low": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_group_kill": 0,
+      "oom_kill": 0
+    },
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.peak": 28090368,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000001.scope"
+  },
+  "reused": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json": "9ace87973610a42c428f663b56f417f9582e0ece6f29d51813bbbe18371a7004",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/manifest.json": "8d1eda5b6cf975053224dff986004aabb12abea168c697f2b08e5db04ce14766"
+  },
+  "source_tests_reused": 435
+}
