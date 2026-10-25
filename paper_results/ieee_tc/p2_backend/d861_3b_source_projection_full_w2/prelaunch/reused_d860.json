@@ -1,0 +1,18 @@
+{
+  "cpu_tests": 88,
+  "new_cpu_functional_tests": 0,
+  "closure_sha256": "0b448a61e8f8703eb9e43ef34724718dc0a663dbdf1c91b3d66314b20977fe26",
+  "manifest_sha256": "0d7f0e9732e70d8146b03227d2fb74abae4fac4e0fc76e96f60bd0d0c3e08409",
+  "candidate_changes": [
+    "faaslora/memory/residency_manager.py",
+    "scripts/ieee_tc/audit_d703_3b_full.py",
+    "scripts/ieee_tc/file_stat_batch_witness.py",
+    "scripts/ieee_tc/native_file_stat_batch.c",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "tests/test_ieee_tc_diagnostic_plot.py",
+    "tests/test_ieee_tc_file_observation.py",
+    "tests/test_ieee_tc_request_lifecycle.py"
+  ],
+  "numerical_correctness_qualified": false
+}

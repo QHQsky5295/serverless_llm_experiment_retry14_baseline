@@ -1,4 +1,20 @@
-# IEEE TC execution status — D860 source projection qualified; full 3B W2 next
+# IEEE TC execution status — D861 full 3B W2 registered; not yet a performance result
+
+## 2026-10-26 D861：来源投影进入唯一完整回放
+
+D860已提交d5dcf5b406d2e8eed410248677edfd5c6fb3fff3，17个明确文件推送
+backup/d860-source-observation-projection-20261026并核验远端同SHA。
+首轮备份因原始unittest失败子项行尾空格被默认whitespace拒绝；只对这一个
+原始日志保留原字节、关闭行尾空格检查，其余文件默认严格检查。错误尝试
+保留，无CPU/GPU重跑，用户manifest未stage，最终V2尚未同步。
+
+登记D861沿用D858/D846参数、3B W2完整4000请求及三个独占新路径；复用D860
+88项，不增加短前缀或observer。父点3746/4000、U11311.401341，数值正确性
+仍未知。下一检查运行合同、备份、按既有安全/远端流程启动唯一完整测量；
+当前本段尚不表示已经启动。新性能由全量结果判定，不重跑同键或改阈值。
+完整两模型/基线/dLoRA、A1–A5、S1–S13、数值证明和交付全部保留。
+
+以下D860为已完成CPU验证记录。
 
 ## 2026-10-26 D860：删去来源记录的第三遍读取
 

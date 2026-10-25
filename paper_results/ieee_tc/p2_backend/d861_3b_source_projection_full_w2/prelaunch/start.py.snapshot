@@ -1,0 +1,29 @@
+"""Reuse D858 registration/start with the qualified D860 projection only."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d858_20261026/start_executed.py.snapshot').read_text()
+for old, new in (
+    ('D858: reuse', 'D861: reuse'),
+    ('d858_3b_single_lease_full_w2', 'd861_3b_source_projection_full_w2'),
+    ('20261026_d858', '20261026_d861'),
+    ('D858_SINGLE_LEASE_FULL_W2_20261026.md', 'D861_SOURCE_PROJECTION_FULL_W2_20261026.md'),
+    ('D858FullContract', 'D861FullContract'),
+    ('80fd863e4d56cfa9318d6b20bf61b5d56b7dd51a', 'd5dcf5b406d2e8eed410248677edfd5c6fb3fff3'),
+    ('d857_single_lease_observation', 'd860_source_observation_projection'),
+    ("closure['tests'] == 86", "closure['tests'] == 88"),
+    ('reused_d857.json', 'reused_d860.json'),
+    ('cpu_tests=86', 'cpu_tests=88'),
+    ('source_cpu_tests_reused=86', 'source_cpu_tests_reused=88'),
+    ('tc: register full 3B W2 for single-observation file read leases (D858)',
+     'tc: register full 3B W2 for checked source projection (D861)'),
+    ('backup/d858-single-lease-fullw2-20261026', 'backup/d861-source-projection-fullw2-20261026'),
+    ('tc-d858-3b-single-lease-full-w2', 'tc-d861-3b-source-projection-full-w2'),
+    ('tc-d858-3b-w2', 'tc-d861-3b-w2'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+assert 'd858' not in source.lower()
+with (RAW/'start_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'start_executed.py.snapshot'), 'exec'), globals())
