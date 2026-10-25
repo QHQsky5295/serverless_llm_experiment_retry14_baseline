@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration/qualification.json",
+      "sha256": "55d588c1226f9334268fd37038b2158d6559c24b8d73ff1593d4c057f523329a",
+      "bytes": 3719
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration/qualify.py.snapshot",
+      "sha256": "d979382fb030226717879e78636d4dc9292c8ef144a8b6f041365f69a5a59a37",
+      "bytes": 8314
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration/test_receipt.json",
+      "sha256": "a02d222e1be4a3d356cac5372aa177b9048c9baaa90b42f86d8cfae4569f1286",
+      "bytes": 21
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration/tests.txt",
+      "sha256": "1f19ccf4812f1cb0938031d96bcdac6f249333a7bef901bda711406a42a01b45",
+      "bytes": 4068
+    }
+  ]
+}

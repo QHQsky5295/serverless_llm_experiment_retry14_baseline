@@ -1,0 +1,117 @@
+"""D865 bounded integration check, reusing D748 driver and D864 native evidence."""
+import ast, inspect, json, os, subprocess, sys, textwrap
+from pathlib import Path
+from types import SimpleNamespace as NS
+from unittest.mock import patch
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration'
+PREV = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026')
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f: json.dump(value, f, indent=2, allow_nan=False)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+save(RAW / 'qualification_identity.json', p.scope_identity(p.cg_path().name))
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+OUT.mkdir(parents=True, exist_ok=False)
+backup = read(PREV / 'native/native_backup_completion.json')
+assert backup['passed']
+seal = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert seal['pass'] and seal['entry_count'] == 147
+user_sha = p.digest(ROOT/'configs/generated/lora_manifest_1000.json')
+assert user_sha == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+library = PREV/'attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'
+library_sha = '30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80'
+assert p.digest(library) == library_sha
+os.environ['TC_NATIVE_GRAPH_TEST_LIBRARY'] = str(library)
+tests = ['tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection',
+         'tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath',
+         'tests.test_ieee_tc_native_host_descriptor.ProductionGraphPath',
+         'tests.test_ieee_tc_native_host_descriptor.ProductionNativeGraph',
+         'tests.test_ieee_tc_host_descriptor_witness.DescriptorSubstitution',
+         'tests.test_ieee_tc_native_host_graph.NativeGraph',
+         'tests.test_ieee_tc_native_host_graph.GraphWitnessGuard']
+with (RAW / 'tests.txt').open('x') as log:
+    done = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+                          cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+save(RAW / 'test_receipt.json', dict(returncode=done.returncode))
+assert done.returncode == 0
+import torch
+from faaslora.memory import gpu_monitor as monitor
+from faaslora.memory.native_host_descriptor import native_host_descriptor
+from tests.test_ieee_tc_worker_observation import NativeHostFootprint
+
+old_source = subprocess.check_output(['git', 'show', 'e36b530ce66608d19f565518a67d063138eb8780:faaslora/memory/gpu_monitor.py'], cwd=ROOT, text=True)
+old_fn = next(n for n in ast.parse(old_source).body if isinstance(n, ast.FunctionDef) and n.name == '_ieee_lora_host_inventory')
+current = ast.parse(textwrap.dedent(inspect.getsource(monitor._ieee_lora_host_inventory))).body[0]
+selection = next(n for n in current.body if isinstance(n, ast.Assign) and ast.unparse(n.targets[0]) == '(descriptor, implementation)')
+i = current.body.index(selection)
+assert ast.unparse(current.body[i+1].test) == "implementation.get('kind') == 'fresh_native_host_graph_v1'"
+del current.body[i:i+2]
+position = next(i for i,n in enumerate(current.body) if isinstance(n, ast.Assign) and ast.unparse(n.targets[0]) == 'adapter_dtypes')
+current.body.insert(position+1, ast.parse('descriptor, _ = native_host_descriptor()').body[0])
+assert ast.unparse(current.body[-2].value).startswith('_ieee_host_inventory_result(')
+helper = ast.parse(textwrap.dedent(inspect.getsource(monitor._ieee_host_inventory_result))).body[0]
+current.body[-2:] = helper.body[1:]
+assert ast.dump(current) == ast.dump(old_fn), 'non-graph inventory logic changed'
+from scripts.ieee_tc.host_descriptor_witness import load_descriptor_module
+old_library = PREV.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'
+assert p.digest(old_library) == 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+reference_module = load_descriptor_module(old_library)
+namespace = {**monitor.__dict__, 'native_host_descriptor': lambda: (reference_module.read, {})}
+exec(compile(ast.Module(body=[old_fn], type_ignores=[]), '<D864-parent-inventory>', 'exec'), namespace)
+original = namespace['_ieee_lora_host_inventory']
+native_host_descriptor.cache_clear()
+os.environ['FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY'] = str(library.resolve())
+os.environ['FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256'] = library_sha
+os.environ['FAASLORA_IEEE_HOST_INVENTORY_MODE'] = 'graph'
+reader, receipt = native_host_descriptor()
+assert receipt['kind'] == 'fresh_native_host_graph_v1'
+manager, models = NativeHostFootprint().native_models()
+staged = NS(id=99, rank=models[7].rank, loras=models[7].loras)
+equalities = []
+for label, options in [('full', {}), ('runtime', dict(include_tensor_views=False)),
+                       ('requested', dict(include_tensor_views=False, requested_adapter_ids=[7])),
+                       ('staged_shared', dict(include_tensor_views=False, staged_models={99: staged}))]:
+    assert monitor._ieee_lora_host_inventory(manager, **options) == original(manager, **options), label
+    equalities.append(label)
+before = monitor._ieee_lora_host_inventory(manager)
+models[7].loras['private'].lora_a.untyped_storage().resize_(4096)
+after = monitor._ieee_lora_host_inventory(manager)
+assert after != before and after == original(manager)
+from vllm.lora.lora_model import LoRAModel
+from vllm.lora.peft_helper import PEFTHelper
+with patch('vllm.lora.lora_model.PIN_MEMORY', False):
+    model = LoRAModel.from_lora_tensors(1, {
+        'base_model.model.model.layers.0.self_attn.q_proj.lora_A.weight': torch.empty(4, 8),
+        'base_model.model.model.layers.0.self_attn.q_proj.lora_B.weight': torch.empty(8, 4),
+    }, PEFTHelper(r=4, lora_alpha=4, target_modules=['q_proj']), device='cpu', dtype=torch.float16)
+assert all(type(t) is torch.Tensor for layer in model.loras.values() for t in (layer.lora_a, layer.lora_b))
+native_manager = NS(list_adapters=lambda: {1: model, 2: model.clone(2)})
+assert monitor._ieee_lora_host_inventory(native_manager) == original(native_manager)
+assert not torch.cuda.is_initialized()
+assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == user_sha
+resources = p.cgroup_snapshot(p.cg_path())
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+sources = [ROOT / name for name in ('faaslora/memory/gpu_monitor.py', 'faaslora/memory/native_host_descriptor.py',
+           'scripts/ieee_tc/host_descriptor_witness.py', 'tests/test_ieee_tc_native_host_descriptor.py')]
+save(OUT / 'qualification.json', dict(passed=True, tests=tests, graphs=equalities,
+    native_loader_exact_tensor_and_clone=True, fresh_resize=True, default_inventory_ast_identical=True,
+    binary_rebuilt=False, new_cuda_microtests=0, new_full_runs=0,
+    reused_d864_cuda_sha256=p.digest(PREV / 'native/native_graph.json'), descriptor=receipt,
+    source_shas={str(x): p.digest(x) for x in sources}, seal=seal, user_manifest_sha256=user_sha,
+    plan_sha256=p.check_plan(), resources=resources, identity=read(RAW / 'qualification_identity.json'),
+    numerical_correctness_limitation='D711 remains; tiny interface checks do not certify the 3B pool'))
+for name in ('tests.txt', 'test_receipt.json'):
+    with (OUT / name).open('xb') as f: f.write((RAW / name).read_bytes())
+with (OUT / 'qualify.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+save(OUT / 'manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x), bytes=x.stat().st_size)
+                                    for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True, graphs=equalities, native_loader=True, reused_binary=True,
+                      cpu_only=True, peak_bytes=resources['memory.peak'])))

@@ -1,0 +1,5 @@
+{
+  "reason": "Existing status document exceeds old 1MiB script limit; use already established 2MiB text limit.",
+  "tests_repeated": false,
+  "initial_script_sha256": "87ef728edb57561ad2796f4af8579033306c5a627205784894341e4dcde45d91"
+}

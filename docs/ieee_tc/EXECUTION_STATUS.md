@@ -1,4 +1,29 @@
-# IEEE TC execution status — D864 native graph qualification completed
+# IEEE TC execution status — D865 native graph production integration checked
+
+## D865接入检查完成（2026-10-26，尚无完整性能结果）
+
+上一轮为progress。完整计划/AGENTS/V1/V2、历史负向方向和官方实现已复核。
+复用D864同一库，无重编译/新GPU微测：新增显式graph模式，保留scope验证
+与共享结果计量，无缓存或静默回退。26项定向检查通过；生产四图、实际
+vLLM加载/clone、即时resize均与D747旧库参照一致。归一化AST与父版相同。
+CPU峰值651141120B，high/max/OOM/swap0，CUDA未初始化；147项及用户修改
+不变。见D865文档与paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration。
+下一备份接入检查点，登记一次完整3B W2；不重复D864或新增前缀诊断。
+当前完整结果仍D858：93.65%、11311.40GPU-s、n_correct未知，不宣称达标。
+完整同版本两模型、baseline/dLoRA、A1–A5、S1–S13、数值证据、图文及
+最终V2保持开放，目标active。
+
+### D864结果备份回执（提交后记录）
+
+e36b530ce66608d19f565518a67d063138eb8780已推送并ls-remote核验
+refs/heads/backup/d864-native-host-graph-complete-20261026，共19明确路径。
+CRLF CSV触发默认whitespace检查后，复用已有cr-at-eol发布规则；数据字节
+未改、没有重跑实验。snapshot保留原始空白，普通代码/文档检查通过；两份
+归档内部同样完成凭据检查。用户manifest未stage，旧147项不变，无force。
+发布辅助域inactive/dead，当前GPU无compute；磁盘约166.9GiB。最终V2仍
+未同步，不能冒称全部交付。raw native/native_backup_completion.json保留
+回执。本段为提交后追加，随下一正常检查点纳入，不重复此次发布。
+下一直接做候选生产接入及必要路径验证，随后完整3B W2；不再重跑D864。
 
 ## D864实际原生微测完成（2026-10-26，生产尚未接入）
 

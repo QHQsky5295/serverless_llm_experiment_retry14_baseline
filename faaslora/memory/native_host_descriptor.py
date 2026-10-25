@@ -1,4 +1,4 @@
-"""Opt-in, process-local loader for the qualified fresh tensor descriptor.
+"""Opt-in, process-local loader for qualified fresh HOST observations.
 
 Only executable code is cached. Tensor/storage/pinning state is never cached.
 An explicitly configured library must load successfully; no silent fallback.
@@ -17,7 +17,12 @@ def native_host_descriptor():
     """Select the immutable process-start configuration at first worker use."""
     library = os.environ.get('FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY')
     expected = os.environ.get('FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256')
+    mode = os.environ.get('FAASLORA_IEEE_HOST_INVENTORY_MODE', 'descriptor')
+    if mode not in ('descriptor', 'graph'):
+        raise RuntimeError('native HOST inventory mode must be descriptor or graph')
     if library is None and expected is None:
+        if mode == 'graph':
+            raise RuntimeError('native HOST graph requires an explicit library and SHA256')
         return None, {'kind': 'python_tensor_descriptor_v1'}
     if (not library or not expected or not re.fullmatch('[0-9a-f]{64}', expected)
             or not Path(library).is_absolute()):
@@ -33,9 +38,12 @@ def native_host_descriptor():
     spec = importlib.util.spec_from_file_location('_ieee_native_host_descriptor', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    if not callable(getattr(module, 'read', None)):
-        raise RuntimeError('native HOST descriptor is missing its read entry point')
-    return module.read, {'kind': 'fresh_native_tensor_descriptor_v1',
+    entry = 'graph' if mode == 'graph' else 'read'
+    function = getattr(module, entry, None)
+    if not callable(function):
+        raise RuntimeError(f'native HOST descriptor is missing its {entry} entry point')
+    return function, {'kind': ('fresh_native_host_graph_v1' if mode == 'graph'
+                               else 'fresh_native_tensor_descriptor_v1'),
                          'library': str(path), 'sha256': actual,
                          'torch_version': str(torch.__version__),
                          'python_abi': sys.implementation.cache_tag,

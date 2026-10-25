@@ -1,0 +1,44 @@
+"""Publish only tested D865 paths; no replay, rebuild, or baseline changes."""
+import json, os, re, subprocess, sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d865_native_host_graph_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f: json.dump(value, f, indent=2, allow_nan=False)
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=60).strip()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+save(RAW/'backup_resume_identity.json', p.scope_identity(p.cg_path().name))
+qualification = read(OUT/'qualification.json')
+assert qualification['passed']
+for name, sha in qualification['source_shas'].items(): assert p.digest(Path(name)) == sha, name
+for item in read(OUT/'manifest.json')['files']: assert p.digest(ROOT/item['path']) == item['sha256']
+assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == qualification['user_manifest_sha256']
+assert not call(['git','diff','--cached','--name-only'])
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+save(OUT/'publication_resume.json', dict(reason='Existing status document exceeds old 1MiB script limit; use already established 2MiB text limit.', tests_repeated=False, initial_script_sha256=p.digest(RAW/'backup.py')))
+with (OUT/'backup_resume.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+files = [Path(x) for x in qualification['source_shas']]
+files += [ROOT / 'docs/ieee_tc/D865_NATIVE_HOST_GRAPH_INTEGRATION_20261026.md',
+          ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md']
+files += sorted(x for x in OUT.iterdir() if x.is_file())
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert path.stat().st_size < 2 * 1024 * 1024 and not secret.search(path.read_text()), str(path)
+paths = sorted(str(x.relative_to(ROOT)) for x in files if call(['git','status','--porcelain','--',str(x.relative_to(ROOT))]))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git', 'diff', '--check', '--', *paths])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+call(['git', 'diff', '--cached', '--check'])
+call(['git', 'commit', '-m', 'tc: integrate qualified fresh native HOST graph without state caching D865'])
+head = call(['git', 'rev-parse', 'HEAD']); ref = 'refs/heads/backup/d865-native-host-graph-integration-20261026'
+call(['git', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup_completion.json', dict(passed=True, head=head, ref=ref, paths=paths, v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, paths=len(paths))))

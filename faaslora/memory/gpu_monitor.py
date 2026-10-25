@@ -76,11 +76,19 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         if set(models) & set(staged_models):
             raise ValueError('native CPU object cannot be both staged and registered')
         models = {**models, **staged_models}
+    descriptor, implementation = native_host_descriptor()
+    if implementation.get('kind') == 'fresh_native_host_graph_v1':
+        # D865: one fresh native traversal, no cross-call tensor/state cache.
+        # Scope validation above and accounting below are shared with the
+        # reference path. Errors must propagate; never silently change mode.
+        graph = descriptor(models, include_tensor_views)
+        return _ieee_host_inventory_result(graph['host_allocations'],
+            graph['host_adapter_footprints'], graph.get('host_tensor_views'),
+            include_tensor_views, staged_models, requested_adapter_ids)
     allocations = {}
     views = []
     adapters = []
     adapter_dtypes = {}
-    descriptor, _ = native_host_descriptor()
 
     def contains_tensor(value):
         if torch.is_tensor(value):
@@ -174,6 +182,14 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
                                                 if len(row['adapter_ids']) == 1)
         adapter['dtypes'] = sorted(adapter_dtypes[adapter['adapter_int_id']])
+    result = _ieee_host_inventory_result(physical, adapters, views,
+        include_tensor_views, staged_models, requested_adapter_ids)
+    return result
+
+
+def _ieee_host_inventory_result(physical, adapters, views, include_tensor_views,
+                                staged_models, requested_adapter_ids):
+    """Apply the same accounting scope to either freshly validated graph."""
     result = {'host_allocations': physical,
             **({'host_tensor_views': views} if include_tensor_views else {}),
             'host_adapter_footprints': adapters,
