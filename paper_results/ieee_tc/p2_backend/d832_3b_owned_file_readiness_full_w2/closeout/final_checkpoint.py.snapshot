@@ -1,0 +1,82 @@
+"""Back up D832's verified lossless-storage receipts and final status only."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2'
+STORAGE = ROOT/'paper_results/ieee_tc/storage'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'final_checkpoint_identity.json', own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not call(['git','diff','--cached','--name-only'])
+previous = read(RAW/'storage_identity.json')
+assert not Path(previous['path']).exists()
+props = call(['systemctl','--user','show',previous['unit'],'-p','ActiveState','-p','ControlGroup','-p','InvocationID'])
+assert 'ActiveState=inactive' in props
+receipt = STORAGE/'20261025_d832_closed_results.json'
+verification = receipt.with_name(receipt.stem+'_verification.json')
+verified = read(verification)
+assert verified['passed'] and verified['receipt_sha256'] == p.digest(receipt)
+storage = read(receipt)
+for row in storage['entries']:
+    assert row['audit_sha_matches'] and row['removed_uncompressed_duplicate']
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert p.digest(Path(row['archive'])) == row['archive_sha256']
+    assert not Path(row['source']).exists()
+for name, sha in read(ROOT/'paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json')['user_protected'].items():
+    assert p.digest(Path(name)) == sha
+assert call(['git','-C','/home/qhq/serverless_llm_baselines','rev-parse','HEAD']) == 'e1c433bab982366a82ad188ef703270d89d6ea06'
+evidence = OUT/'closeout'
+evidence.mkdir(exist_ok=False)
+files = [receipt, verification, receipt.with_name(receipt.stem+'.py.snapshot'),
+    ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md']
+for name in ('final_checkpoint.py', 'storage_program.py.snapshot', 'storage_identity.json',
+             'backup_finish_identity.json', 'backup_completion.json', 'post_backup_release.json'):
+    source = RAW/name
+    if name.endswith('.py'): ast.parse(source.read_text())
+    target = evidence/(name+'.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as stream: stream.write(source.read_bytes())
+    assert p.digest(target) == p.digest(source)
+    files.append(target)
+group = Path(own['path'])
+assert all(int(line.split()[1]) == 0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(evidence/'manifest.json', dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in files],
+    identity=own, previous_storage_scope=props, protected_147_verification=str(verification),
+    resources=p.cgroup_snapshot(group), disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize,
+    production_code_changed=False, new_performance_runs=0, goal_complete=False))
+files.append(evidence/'manifest.json')
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files: assert not secret.search(path.read_text()), str(path)
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git','diff','--check','--',*paths])
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+call(['git','diff','--cached','--check'])
+call(['git','commit','-m','tc: preserve D832 storage receipts and next main-line task'])
+head = call(['git','rev-parse','HEAD'])
+ref = 'refs/heads/backup/d832-storage-20261025'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW/'final_checkpoint.json', dict(passed=True,head=head,ref=ref,files=paths,v2_synchronized=False))
+print(json.dumps(dict(passed=True,head=head,ref=ref,files=len(paths))))

@@ -1,0 +1,82 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d832_closed_results.json",
+      "sha256": "f370d58514f50a4fdb78c2482b22f069d36e271b262ba0d7e6ff1c59b0e69d38"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d832_closed_results_verification.json",
+      "sha256": "575dd72581416332c2185cf140720b16b7573998e9e64c7c91567f21b9707757"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d832_closed_results.py.snapshot",
+      "sha256": "45a911a34769b3b3f82f83d6f6a719d95eadfa17d972bf34e2eb17e04dc45a73"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "5b82c50f34b5193ea53c09c6f0e36f1c122c61b986ec6afde72b45ecc3127764"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md",
+      "sha256": "ecd2ad45076621332ae257ba5e580cf7e139901630f569681cb5faed533a2101"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/final_checkpoint.py.snapshot",
+      "sha256": "dbbbe813604519876d77b55fc1ef774a987efac938dde0a55678854fe0e2c766"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/storage_program.py.snapshot",
+      "sha256": "ee03df67efca0fc38d581b50e50e4f78ab5221c967bae44e4acef7a379464aa6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/storage_identity.json",
+      "sha256": "c54e7b598f23bc8b51f77b064223a3e2015229b940542adac58a92714258c88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/backup_finish_identity.json",
+      "sha256": "14c83939bb14898e2f0d6dea0d9ea2c6b70c7a215fa95ca8b794b9e5ae2421ba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/backup_completion.json",
+      "sha256": "f9eb2e235ada8df01e5c35f76ea62308b4dc6a854a82842d282eac02190cc7e1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/closeout/post_backup_release.json",
+      "sha256": "150bb1dad8e7dfd9520bd68d3416b069a8f65a51b3823df9344bb870bdf20541"
+    }
+  ],
+  "identity": {
+    "unit": "primelora-tc-aux-83200000000000000000000000000013.scope",
+    "invocation_id": "530f224a67e8477b8a3fd87811928f96",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000013.scope",
+    "inode": 32246210
+  },
+  "previous_storage_scope": "ControlGroup=\nActiveState=inactive\nInvocationID=",
+  "protected_147_verification": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d832_closed_results_verification.json",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000013.scope",
+    "memory.current": 11726848,
+    "memory.peak": 28409856,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 692640\nuser_usec 600687\nsystem_usec 91952\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "disk_free_bytes": 161525153792,
+  "production_code_changed": false,
+  "new_performance_runs": 0,
+  "goal_complete": false
+}

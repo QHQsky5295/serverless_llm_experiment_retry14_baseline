@@ -88,6 +88,13 @@ D822压力memfd、D628移hash锁或D827清理等方向，除非有改变前提�
 `paired_diagnosis/`及`preparation_analysis/`；完整来源SHA与原始执行身份
 分别保留。生产代码在本次离线核对中未改动，共享k3s及baseline未改。
 
+结果与分析59条明确路径已提交`de3ee5785b4d5b9192fc1bdd9ca0f33fe927680c`，
+远端`backup/d832-complete-20261025`已核验。备份过程的空scope/小日志
+ignore失败也保留；未改源结果。之后三份已关闭大日志无损压缩，两次解压
+SHA一致，释放1172545536B；原始大数据不入Git。压缩回执在
+`paper_results/ieee_tc/storage/20261025_d832_closed_results.json`，后续优先
+流式读取gzip。旧投稿和用户修改不变；独立备份不冒称最终V2分支同步。
+
 以下保留原执行前登记，不追改启动证据：
 
 执行前登记，不代表已启动或性能接受。唯一候选为D831：实际文件IO及清理

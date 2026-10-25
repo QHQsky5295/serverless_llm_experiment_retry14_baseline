@@ -1,0 +1,81 @@
+"""Reuse D752's verified compressor on D826's closed and backed-up raw evidence."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+CURATED = ROOT / 'paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2'
+OUT = ROOT / 'paper_results/ieee_tc/storage/20261025_d832_closed_results.json'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'storage_identity.json', own)
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+for name in ('start_identity.json', 'completion_identity.json', 'context_identity.json',
+             'backup_completion_identity.json', 'backup_resume_identity.json', 'backup_finish_identity.json', 'settlement_identity.json'):
+    assert not Path(read(RAW / name)['path']).exists(), name
+backup = read(RAW / 'backup_completion.json')
+assert backup['passed']
+remote_ref = subprocess.check_output(
+    ['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', backup['ref']],
+    cwd=ROOT, text=True, timeout=60).split()[0]
+assert remote_ref == backup['head']
+save(RAW / 'post_backup_release.json', dict(passed=True, head=remote_ref,
+     all_previous_scopes_removed=True, gpu_idle=True))
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(read(ROOT / 'paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json')['user_protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+audit = read(CURATED / 'completion/closed_outcome.json')
+assert audit['passed'] and audit['all_allocations_released']
+source = RAW / '3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json'
+outcome_ref = next(row for row in audit['source_refs'] if Path(row['path']) == source)
+metric = read(CURATED / 'completion/full4000.json')
+result_ref = next(row for row in metric['source_refs']
+                  if Path(row['path']).name.startswith('experiment_results_full'))
+monitor_sha = backup['remote_monitor_sha256']
+for path, sha in ((source, outcome_ref['sha256']),
+                  (Path(result_ref['path']), result_ref['sha256']),
+                  (RAW / 'remote_monitor.log', monitor_sha)):
+    assert p.digest(path) == sha
+run = 'd832_20261025/3b_max3_full_w2'
+c.TARGETS = [dict(run=run, audit_sha=outcome_ref['sha256']),
+             dict(run=run, audit_sha=result_ref['sha256'],
+                  run_result=Path(result_ref['path']).name),
+             dict(run=run, audit_sha=monitor_sha, remote_monitor_log='remote_monitor.log')]
+c.OUT = OUT
+assert c.main() == 0
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+group = Path(own['path'])
+assert all(int(row.split()[1]) == 0 for row in (group / 'memory.events').read_text().splitlines())
+assert (group / 'memory.swap.current').read_text().strip() == '0'
+save(OUT.with_name(OUT.stem + '_verification.json'), dict(
+    passed=True, identity=own, protected_files=len(protected),
+    receipt_sha256=p.digest(OUT), compressor_sha256=p.digest(Path(c.__file__)),
+    source_script_sha256=p.digest(Path(__file__)), resources=p.cgroup_snapshot(group),
+    backup_head=backup['head'],
+    note='All original bytes preserved and twice read-back verified. Use streaming gzip for diagnostics; restore exact source SHA only if required by a legacy analyzer. No performance result identity changed.'))
+with OUT.with_name(OUT.stem + '.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
