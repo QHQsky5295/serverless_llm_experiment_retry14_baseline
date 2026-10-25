@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "kind": "d859_offline_residual_diagnosis_v1",
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D859_SINGLE_LEASE_RESIDUAL_DIAGNOSIS_20261026.md",
+    "sha256": "dde2a816544a772cbce357a7a2696c455c0a20268560928719b0c72b9c95277e",
+    "bytes": 7216
+  },
+  "production_unchanged": {
+    "faaslora/memory/residency_manager.py": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-7263d4919ecc4c838222c717c2361d91.scope",
+        "invocation_id": "9c0a8ac681c1402e98ef7e9209f368c5",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-7263d4919ecc4c838222c717c2361d91.scope",
+        "inode": 32665791
+      },
+      "path_removed": true
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-cff41bb26cec4b10bd1cc659249cc886.scope",
+    "invocation_id": "f6597c4e50e44035b8b6d2fc353ba935",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-cff41bb26cec4b10bd1cc659249cc886.scope",
+    "inode": 32668914
+  },
+  "prior_full_run_reused": true,
+  "new_gpu_replays": 0,
+  "production_changes": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "final_v2_synced": false,
+  "current_production": "D857 single-lease observation retained after D858; 3B W2 nonfeasible.",
+  "disk_free_bytes": 181355274240
+}

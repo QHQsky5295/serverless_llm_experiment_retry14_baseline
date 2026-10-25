@@ -1,0 +1,23 @@
+{
+  "kind": "d859_backup_packaging_recovery_v1",
+  "first_backup_returncode": 1,
+  "first_failed_command": "git diff --cached --check",
+  "first_commit_created": false,
+  "gpu_replay_repeated": false,
+  "reason": "CRLF CSV and exact Python snapshot terminal blank lines; no source/data mutation",
+  "exception_source": "Observed tool traceback; original stderr was not captured to a file",
+  "first_driver": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d859_20261026/backup.py",
+    "sha256": "8c7f9b0276f8d8c1dfe7814843655bd3e2abeb5a5878671f167fe8c32b78206d"
+  },
+  "resume": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d859_single_lease_residual_diagnosis/execution/backup_resume.py.snapshot",
+    "sha256": "cd44bf0db7a039c0103757b6a6119ac92d761d1dfc8cd17038214d647cfb9ce5"
+  },
+  "checks": [
+    "strict default whitespace on docs/JSON",
+    "CSV CRLF recognized as line ending; other whitespace checks retained",
+    "exact Python source snapshots compiled; terminal empty line accepted",
+    "original final_manifest and doc SHAs unchanged"
+  ]
+}

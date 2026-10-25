@@ -1,0 +1,158 @@
+"""D859: reuse sealed D846/D858 request tables and D848 transfer partition.
+
+Offline descriptive comparison only. No raw-token rescan, new GPU replay,
+production change, counterfactual latency, or numerical-correctness inference.
+"""
+import csv
+from collections import Counter
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d859_single_lease_residual_diagnosis'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+from scripts.ieee_tc.audit_d703_3b_full import compare_stage_audits, D716_TTFT_STAGES
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+save(RAW/'identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+sources = [Path(__file__), RAW.parent/'d848_20261025/close.py',
+    RAW.parent/'d855_20261026/analyze.py']
+base = ROOT/'paper_results/ieee_tc/p2_backend'
+reference = base/'d846_3b_staging_identity_full_w2'
+candidate = base/'d858_3b_single_lease_full_w2'
+try:
+    compare_stage_audits(reference/'completion/stages',
+        candidate/'completion/stages', OUT/'paired_stages')
+    # Unchanged six-span definitions from D848, applied to all transfers,
+    # not the narrower owner/native-load request cohorts from D849.
+    boundaries = ('loading_started_monotonic_s', 'headers_received_monotonic_s',
+        'body_received_monotonic_s', 'extraction_started_monotonic_s',
+        'extraction_completed_monotonic_s', 'published_monotonic_s',
+        'client_completed_monotonic_s')
+    names = ('headers_ms', 'reserve_receive_write_ms', 'before_extract_ms',
+        'extract_verify_ms', 'file_publication_envelope_ms', 'after_publication_ms')
+    reports, tables = {}, []
+    for name, record, raw in (
+        ('reference', reference, RAW.parent/'d846_20261025'),
+        ('candidate', candidate, RAW.parent/'d858_20261026'),
+    ):
+        audit_path = record/'completion/delivery_applicability_and_reclamation.json'
+        audit = read(audit_path)
+        refs = {r['path']: r['sha256'] for r in audit['source_refs']}
+        client_path, server_path = raw/'remote_client_projection.json', raw/'remote_transfers.jsonl'
+        for path in (client_path, server_path):
+            assert p.digest(path) == refs[str(path)]
+        client = read(client_path)['transfers']
+        server = [json.loads(line) for line in server_path.read_text().splitlines()]
+        assert len(client) == len(server) == 505
+        assert len({t['http_transfer_id'] for t in client}) == 505
+        assert {t['http_transfer_id'] for t in client} == {t['transfer_id'] for t in server}
+        rows, server_rows = [], []
+        for t in client:
+            times = [t[key] for key in boundaries]
+            assert all(type(v) in (int, float) and math.isfinite(v) for v in times)
+            assert times == sorted(times) and t['state'] == 'published'
+            row = {key: 1000*(b-a) for key, a, b in zip(names, times, times[1:])}
+            row['total_ms'] = 1000*(times[-1]-times[0])
+            assert abs(math.fsum(row[key] for key in names)-row['total_ms']) < 1e-6
+            rows.append(row)
+            tables.append(dict(run=name, transfer_id=t['http_transfer_id'], **row))
+        for t in server:
+            assert t['event'] == 'artifact_transfer' and t['outcome'] == 'sent'
+            assert t['pack_performed'] is False
+            server_rows.append(dict(
+                object_open_ms=(t['object_open_completed_ns']-t['object_open_started_ns'])/1e6,
+                object_read_ms=t['object_read_wall_ns']/1e6,
+                socket_write_ms=t['socket_write_wall_ns']/1e6,
+                send_envelope_ms=(t['send_completed_ns']-t['send_started_ns'])/1e6,
+                handler_ms=(t['handler_completed_ns']-t['handler_started_ns'])/1e6))
+        reports[name] = dict(n=len(rows),
+            client={key: timing_stats([r[key] for r in rows]) for key in rows[0]},
+            server={key: timing_stats([r[key] for r in server_rows]) for key in server_rows[0]})
+        sources += [audit_path, client_path, server_path]
+    with (OUT/'transfers.csv').open('x') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(tables[0]))
+        writer.writeheader()
+        writer.writerows(tables)
+    save(OUT/'transfers.json', dict(passed=True, runs=reports,
+        sources=[ref(path) for path in sources], request_table=ref(OUT/'transfers.csv'),
+        n_correct=None, ranking_eligible=False, confidence_interval=None,
+        limitations=[
+            'Unpaired transfer populations; identical counts do not establish identical request cohorts.',
+            'Client receive includes reservation/write; socket write includes possible backpressure.',
+            'Client/server spans overlap; no cross-host subtraction or quantile addition.',
+            'No removal of measured latency, counterfactual SLO, or causal threading attribution.',
+            'All 4000 request outcomes retained separately in the existing paired-stage audit.']))
+
+    # Reuse the already validated full-population stage table, without new token
+    # scans or redefining SLO. Conditional groups are descriptive, not causal.
+    residual_runs = {}
+    for name, record in (('reference', reference), ('candidate', candidate)):
+        table = record/'completion/stages/requests.csv'
+        with table.open() as stream:
+            requests = list(csv.DictReader(stream))
+        assert len(requests) == 4000
+        groups = {}
+        for row in requests:
+            t, p_flag = row['ttft_pass'] == 'True', row['tpot_pass'] == 'True'
+            label = ('pass' if t and p_flag else 'ttft_only' if not t and p_flag
+                     else 'tpot_only' if t and not p_flag else 'both')
+            groups.setdefault(label, []).append(row)
+        assert sum(map(len, groups.values())) == 4000
+        result = {}
+        for label, rows in sorted(groups.items()):
+            metrics = (*D716_TTFT_STAGES, 'ttft_ms', 'tpot_ms', 'e2e_ms',
+                'arrival_release_lateness_ms', 'dispatch_window_wait_ms',
+                'runtime_slot_wait_ms', 'routing_nested_ms', 'before_final_load_ms',
+                'final_native_load_ms', 'peer_prefill_fraction',
+                'peer_demand_load_fraction', 'peer_decode_fraction')
+            result[label] = dict(n=len(rows),
+                tiers=dict(Counter(r['tier'] for r in rows)),
+                output_bins=dict(Counter(r['output_bin'] for r in rows)),
+                output_tokens=dict(sorted(Counter(int(r['output_tokens']) for r in rows).items())),
+                phase=dict(Counter(r['phase'] for r in rows)),
+                dominant_ttft_stage=dict(Counter(r['dominant_ttft_stage'] for r in rows)),
+                metrics={k: timing_stats([float(r[k]) for r in rows if r[k] != ''])
+                         for k in metrics})
+        residual_runs[name] = result
+        sources.append(table)
+    save(OUT/'residual.json', dict(passed=True, runs=residual_runs,
+        sources=[ref(path) for path in sources], n_correct=None, ranking_eligible=False,
+        confidence_interval=None, limitations=[
+            'Groups depend on each observed run outcome and are descriptive only.',
+            'No request excluded, threshold changed, missing span set to zero, or output length altered.',
+            'The six TTFT stages are exclusive; other spans and peer overlaps are nested.',
+            'Short output association does not establish the cause of native TPOT violations.']))
+
+    print(json.dumps(dict(passed=True, transfers_per_run=505,
+        client_means={run: {k: v['mean'] for k, v in data['client'].items()}
+                      for run, data in reports.items()})))
+finally:
+    save(OUT/'resources.json', dict(identity=identity, resources=p.cgroup_snapshot(group),
+        program=ref(Path(__file__)), production_changes=False, new_gpu_replays=0,
+        disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+

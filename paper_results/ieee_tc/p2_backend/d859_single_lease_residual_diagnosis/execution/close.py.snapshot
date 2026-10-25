@@ -1,0 +1,83 @@
+"""Seal D859 residual evidence; reuse D848 append-only closure."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d859_single_lease_residual_diagnosis'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', identity)
+
+prior = read(RAW/'identity.json')
+assert not p.scope_still_owned(prior) and not Path(prior['path']).exists()
+analysis = read(OUT/'resources.json')
+assert not any(analysis['resources']['memory.events'].values())
+assert analysis['resources']['memory.swap.current'] == 0
+paired = read(OUT/'paired_stages/diagnosis.json')
+assert paired['passed'] and paired['transitions']['joint_pass'] == {
+    'fail->fail': 102, 'pass->pass': 3563, 'fail->pass': 183, 'pass->fail': 152}
+transfer = read(OUT/'transfers.json')
+assert transfer['passed'] and all(row['n'] == 505 for row in transfer['runs'].values())
+residual = read(OUT/'residual.json')
+assert residual['passed']
+assert {k: v['n'] for k,v in residual['runs']['candidate'].items()} == {
+    'pass': 3746, 'ttft_only': 175, 'tpot_only': 69, 'both': 10}
+assert sum(v['n'] for v in residual['runs']['reference'].values()) == 4000
+for report in (paired, transfer, residual):
+    for source in report.get('source_refs', report.get('sources', [])):
+        assert p.digest(Path(source['path'])) == source['sha256']
+production = {
+    'faaslora/memory/residency_manager.py': '95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802',
+    'scripts/run_all_experiments.py': '0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403'}
+for name, sha in production.items():
+    assert p.digest(ROOT/name) == sha
+user_protected = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for name, sha in user_protected.items():
+    assert p.digest(Path(name)) == sha
+seal = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+execution = OUT/'execution'
+execution.mkdir()
+for name in ('analyze.py', 'identity.json', 'backup.py', 'close.py'):
+    path = RAW/name
+    target = execution/(name+'.snapshot' if path.suffix == '.py' else name)
+    if path.suffix == '.py':
+        compile(path.read_text(), str(path), 'exec')
+    with target.open('xb') as stream:
+        stream.write(path.read_bytes())
+    assert p.digest(target) == p.digest(path)
+doc = ROOT/'docs/ieee_tc/D859_SINGLE_LEASE_RESIDUAL_DIAGNOSIS_20261026.md'
+save(OUT/'closure.json', dict(passed=True, kind='d859_offline_residual_diagnosis_v1',
+    doc=ref(doc), production_unchanged=production, user_protected=user_protected,
+    protected=protected, closed_tasks=[dict(identity=prior,path_removed=True)], scope=identity,
+    prior_full_run_reused=True, new_gpu_replays=0, production_changes=False,
+    numerical_adapter_correctness_qualified=False, n_correct=None,
+    ranking_eligible=False, confidence_interval=None, final_v2_synced=False,
+    current_production='D857 single-lease observation retained after D858; 3B W2 nonfeasible.',
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, closed_tasks=1, protected_files=147,
+    new_gpu_replays=0, production_changes=False, ranking_eligible=False)))
+
