@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "component_scope": {
+    "unit": "primelora-tc-aux-83700000000000000000000000000001.scope",
+    "invocation_id": "7b774a589dfe45f68fffcdb0ccf527f6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83700000000000000000000000000001.scope",
+    "inode": 32304619
+  },
+  "component_properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "component_path_removed": true,
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": false,
+  "production_changed": false,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "decision": "Reject direct tar stream mode for this object; retain all six measurements; no online performance claim.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D837_GZIP_EXTRACTION_PROFILE_20261025.md",
+    "sha256": "24f07921c68eef2526b523766ccc7be8e5a39b7c09e06199831ec195f36ced8d",
+    "bytes": 6012
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py": "761bf207d641d3b00bf2cc6906204d8c0232dad323005636b15cfd5f79dcf523",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "82eb8dc67173d99d7bf01ddbf5aa742de994f55d12d3910425efa3c5d8abf315"
+  },
+  "source_files": {
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/adapter_config.json": {
+      "bytes": 545,
+      "sha256": "2fd5d614008fe02c854926c4b17510c171e0453bda9f672e7a6fc5bfa7fb2f08"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/adapter_data.bin": {
+      "bytes": 24349407,
+      "sha256": "7677782aeb2124bff5d232a95f90dab659ad5ea90c0cebd7e2a3f922f178343f"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/adapter_model.safetensors": {
+      "bytes": 9204480,
+      "sha256": "dfd99d29ccc482c8634823bef3eb290a928e79e9de52bcf0fdabc5b581ab7bf3"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/config.json": {
+      "bytes": 878,
+      "sha256": "39fb36dc5416f445ebc4e71cb71fbcf6727e80a35836d8ba1a1474c318467b7a"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/generation_config.json": {
+      "bytes": 189,
+      "sha256": "88effbb63300dbbc7390143fbbdd9d9fa50587b37e8bfd16c8c90d4970a74a36"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/special_tokens_map.json": {
+      "bytes": 296,
+      "sha256": "6f38c73729248f6c127296386e3cdde96e254636cc58b4169d3fd32328d9a8ec"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/tokenizer.json": {
+      "bytes": 9085657,
+      "sha256": "79e3e522635f3171300913bb421464a87de6222182a0570b9b2ccba2a964b2b4"
+    },
+    "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope/finance_lora/tokenizer_config.json": {
+      "bytes": 54528,
+      "sha256": "9823dcfdc1121869029da45192238e85cf44f0b232a6d9dc20e4fe6f4242a14e"
+    }
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-83700000000000000000000000000002.scope",
+    "invocation_id": "22241e8f09b44d439bf7b61905a60592",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83700000000000000000000000000002.scope",
+    "inode": 32307584
+  },
+  "resources": {
+    "memory.peak": "29077504",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161256071168,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}
