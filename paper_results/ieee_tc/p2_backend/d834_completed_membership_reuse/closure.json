@@ -1,0 +1,89 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "closed_scopes": [
+    {
+      "phase": "before/focused",
+      "identity": {
+        "unit": "primelora-tc-aux-83400000000000000000000000000001.scope",
+        "invocation_id": "9c705c480d5347a18a005ab48657cc99",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83400000000000000000000000000001.scope",
+        "inode": 32256621
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    },
+    {
+      "phase": "focused",
+      "identity": {
+        "unit": "primelora-tc-aux-83400000000000000000000000000002.scope",
+        "invocation_id": "5478225d839545c9b44374b479f12bef",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83400000000000000000000000000002.scope",
+        "inode": 32256821
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    },
+    {
+      "phase": "regression",
+      "identity": {
+        "unit": "primelora-tc-aux-83400000000000000000000000000003.scope",
+        "invocation_id": "e8acfec718d34986938135ad6cbc1acf",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83400000000000000000000000000003.scope",
+        "inode": 32257021
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": true,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "distinct_regression_tests": 438,
+  "focused_tests": 17,
+  "distinct_tests": 452,
+  "retained_prechange_failures": 2,
+  "decision": "Completed binding reuse CPU-qualified; actual admission remains atomic; complete 3B W2 next.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D834_COMPLETED_MEMBERSHIP_REUSE_20261025.md",
+    "sha256": "5c16505a1a257ddfc0194c76a2685ef512a29e254eaa8c76a8953318411d3c40",
+    "bytes": 5616
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py": "f0c20d0c9a9956b82f916ff4f523142b9607a4f9da49c441a08afb18482e3b4e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "a9897df61210851fe5384bfe2e8c41b5987b62624f7fdcadf1d436901d6a29af",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_pressure_integration.py": "b8f80f689655a98b85723373e0482d0cb65c49d3d2241391a0df2ec0d89f5ed2"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-83400000000000000000000000000004.scope",
+    "invocation_id": "2b88effc2ba943b089ba62dec4db52bf",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83400000000000000000000000000004.scope",
+    "inode": 32258327
+  },
+  "resources": {
+    "memory.peak": "28565504",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161514987520,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}

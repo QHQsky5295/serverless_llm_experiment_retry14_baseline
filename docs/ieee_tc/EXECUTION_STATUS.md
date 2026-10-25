@@ -1,4 +1,33 @@
-# IEEE TC execution status — D833 pre-fetch diagnosis complete; 3B W2 still 92.075%
+# IEEE TC execution status — D834 binding-reuse CPU-qualified; full W2 pending
+
+## 2026-10-25 D834：完成绑定复用，未新增性能结果
+
+本轮progress。完整重读PLAN/V1/单轮V2和最新规则；核对D116成员生命周期、
+D595/D598与D822等负例及官方asyncio/vLLM实现。只改pressure domain的
+已完成attach返回：native首次ACK完成/shared首次publication完成才可直接
+复用；实际run的target检查和start/finish串行、退休/取消、HOST预算不变。
+没有baseline/远端/共享k3s改动，没有新配置阈值或图表。
+
+修改前事件固定的反例3项中2项复用断言失败，原证据保留；修改后focused17、
+regression438通过，去重452项。初次launcher名称不合32位scope规则导致
+0测试退出已记录，只更正启动身份。147项保护及用户修改不变。
+新增2个snapshot计数仅表示复用及当时锁持有，不是等待节省时间。
+60.436ms仍是snapshot/调度/attach包络；不能冒称已移除全部开销。
+
+见D834_COMPLETED_MEMBERSHIP_REUSE_20261025.md与
+paper_results/ieee_tc/p2_backend/d834_completed_membership_reuse/。
+下一备份后复用D832入口跑一次新版本完整3B W2，不增加无必要短回放。
+D832仍为最新性能：联合92.075%、U11308.666183GPU-s、预算内但差117条；
+D711独立数值未知，不宣布G1/G2。完整两模型主比较、消融/机制/敏感性、
+CE/Pareto、文档图表及最终V2同步仍保留；目标active。
+
+后置备份回执：18条明确路径已提交0c93a6d92e2e7708c313f0c543e837cbe7118c9b，
+推送并核实backup/d833-prefetch-control-20261025。不是最终V2同步，未force。
+147项保护及用户修改、D831生产源SHA一致；stage空，四卡15MiB/0util、无
+compute-apps，磁盘161522614272B。备份曾因原样pytest日志空行尾空格、随后
+恢复脚本的字面量自匹配先后停止；保存两次记录，只修正备份检查，不改测量、
+测试或生产逻辑。日志原字节保留，其余源码/文档严格whitespace检查通过。
+此回执不递归提交。下一按下面单一成员依赖问题继续；整体目标active。
 
 ## 2026-10-25 D833：复用D832，获取前等待已分清
 

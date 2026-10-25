@@ -609,6 +609,106 @@ class TransferPressure(unittest.TestCase):
         asyncio.run(run())
 
 
+class ReusedPressureMembership(unittest.IsolatedAsyncioTestCase):
+    """Subscription reuse is not a transfer-admission or settlement barrier."""
+
+    async def test_existing_binding_returns_during_finish_but_new_io_and_join_wait(self):
+        runner, first, left = TransferPressure().runner()
+        _, second, right = TransferPressure().runner()
+        _, third, extra = TransferPressure().runner()
+        domain = runner._ieee_file_pressure_domain()
+        owner = await domain.attach(first)
+        await domain.attach(second)
+        entered, release = asyncio.Event(), asyncio.Event()
+        original = second.ieee_transfer_event
+
+        async def held_finish(**command):
+            receipt = await original(**command)
+            if command['operation'] == 'finish' and not entered.is_set():
+                entered.set()
+                await release.wait()
+            return receipt
+
+        second.ieee_transfer_event = held_finish
+        old_io = asyncio.create_task(domain.run('a', 'remote', 'nvme', AsyncMock()))
+        await asyncio.wait_for(entered.wait(), 5)
+        next_body = AsyncMock(return_value='next-copy')
+        reuse = asyncio.create_task(domain.attach(first))
+        join = asyncio.create_task(domain.attach(third))
+        next_io = asyncio.create_task(domain.run('b', 'remote', 'nvme', next_body,
+                                                required_engine=first))
+        try:
+            await asyncio.sleep(0)
+            self.assertTrue(domain.lock.locked())
+            self.assertTrue(reuse.done(), 'an existing binding must not await unrelated finish ACKs')
+            self.assertEqual(reuse.result(), owner)
+            self.assertFalse(join.done())
+            self.assertFalse(next_io.done())
+            next_body.assert_not_awaited()
+            self.assertFalse(old_io.done())
+        finally:
+            release.set()
+            await asyncio.gather(old_io, reuse, join, next_io)
+        self.assertEqual(next_io.result(), 'next-copy')
+        self.assertEqual([ledger.snapshot()['active_transfers']
+                          for ledger in (left, right, extra)], [0, 0, 0])
+        self.assertFalse(domain.active)
+
+    async def test_reused_binding_does_not_bypass_a_queued_target_retirement(self):
+        runner, engine, ledger = TransferPressure().runner()
+        domain = runner._ieee_file_pressure_domain()
+        await domain.attach(engine)
+        await domain.lock.acquire()
+        retirement = asyncio.create_task(domain.retire(engine))
+        await asyncio.sleep(0)  # Retirement is first in the actual transaction queue.
+        reuse = asyncio.create_task(domain.attach(engine))
+        body = AsyncMock()
+        transfer = asyncio.create_task(domain.run('a', 'remote', 'nvme', body,
+                                                 required_engine=engine))
+        try:
+            await asyncio.sleep(0)
+            self.assertTrue(reuse.done())
+            self.assertFalse(transfer.done())
+            body.assert_not_awaited()
+        finally:
+            domain.lock.release()
+            results = await asyncio.gather(retirement, reuse, transfer, return_exceptions=True)
+        self.assertIsNone(results[0])
+        self.assertIsInstance(results[2], RuntimeError)
+        self.assertIn('target file pressure subscription is not available', str(results[2]))
+        body.assert_not_awaited()
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+        self.assertEqual(domain.members[id(engine)]['state'], 'retired')
+
+    async def test_duplicate_first_binding_waits_for_original_acknowledgement(self):
+        runner, engine, _ = TransferPressure().runner()
+        domain = runner._ieee_file_pressure_domain()
+        entered, release = asyncio.Event(), asyncio.Event()
+        original = engine.ieee_transfer_event
+        calls = []
+
+        async def held_attach(**command):
+            calls.append(command['operation'])
+            receipt = await original(**command)
+            entered.set()
+            await release.wait()
+            return receipt
+
+        engine.ieee_transfer_event = held_attach
+        first = asyncio.create_task(domain.attach(engine))
+        await asyncio.wait_for(entered.wait(), 5)
+        duplicate = asyncio.create_task(domain.attach(engine))
+        try:
+            await asyncio.sleep(0)
+            self.assertFalse(duplicate.done())
+            self.assertEqual(domain.members[id(engine)]['state'], 'attaching')
+        finally:
+            release.set()
+            await asyncio.gather(first, duplicate)
+        self.assertEqual(first.result(), duplicate.result())
+        self.assertEqual(calls, ['attach_domain'])
+
+
 class SharedPressure(unittest.IsolatedAsyncioTestCase):
     """Actual runner/domain/native journals, no GPU or performance claims."""
     def make(self):
