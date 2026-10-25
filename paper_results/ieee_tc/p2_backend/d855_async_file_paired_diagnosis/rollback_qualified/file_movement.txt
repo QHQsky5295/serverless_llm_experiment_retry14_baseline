@@ -1,0 +1,19 @@
+W1026 01:09:08.403000 1354545 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_queue_return_to_read_lease_has_no_reclamation_gap (tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_queue_return_to_read_lease_has_no_reclamation_gap) ... 2026-10-26 01:09:09 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-26 01:09:09 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure (tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure) ...     remote artifact fetch b: 0.0 MB, 5.8 ms
+    remote artifact fetch c: 0.0 MB, 3.4 ms
+    remote artifact fetch d: 0.0 MB, 3.7 ms
+    remote artifact fetch a: 0.0 MB, 7.1 ms
+2026-10-26 01:09:09 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-26 01:09:09 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_request_settlement_repeated_cancel_still_joins_writer (tests.test_ieee_tc_transfer_pressure.OwnedFileReadiness.test_request_settlement_repeated_cancel_still_joins_writer) ... ok
+test_exit_witness_not_cache_eviction_or_shutdown_ack_returns_allowance (tests.test_ieee_tc_transfer_pressure.ManagedHostOwnership.test_exit_witness_not_cache_eviction_or_shutdown_ack_returns_allowance) ... 2026-10-26 01:09:09 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.192s
+
+OK

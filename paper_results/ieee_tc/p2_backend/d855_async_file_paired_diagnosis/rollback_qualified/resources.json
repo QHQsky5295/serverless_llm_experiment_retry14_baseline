@@ -1,0 +1,71 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d8552026102600000000000000000003.scope",
+    "invocation_id": "2baf9bcce360456e8e8ce452fe38ff0a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000003.scope",
+    "inode": 32607997
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000003.scope",
+    "memory.current": 75587584,
+    "memory.peak": 699731968,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 34846339\nuser_usec 30142073\nsystem_usec 4704265\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "tests": {
+    "planning": {
+      "returncode": 0,
+      "tests": [
+        "tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement",
+        "tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling"
+      ],
+      "log": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis/rollback_qualified/planning.txt",
+        "sha256": "e17f1169020b7c3c504d053c118266eb928767bafe44c24148d8f35ddd738c82"
+      }
+    },
+    "file_movement": {
+      "returncode": 0,
+      "tests": [
+        "tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_queue_return_to_read_lease_has_no_reclamation_gap",
+        "tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure",
+        "tests.test_ieee_tc_transfer_pressure.OwnedFileReadiness.test_request_settlement_repeated_cancel_still_joins_writer",
+        "tests.test_ieee_tc_transfer_pressure.ManagedHostOwnership.test_exit_witness_not_cache_eviction_or_shutdown_ack_returns_allowance"
+      ],
+      "log": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis/rollback_qualified/file_movement.txt",
+        "sha256": "01529b811851a39dbcac95b72f4b0521eb796e1dca2f724967ff8e905f5abb24"
+      }
+    },
+    "retirement": {
+      "returncode": 0,
+      "tests": [
+        "tests.test_ieee_tc_native_retirement.RuntimeQuarantine.test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack"
+      ],
+      "log": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis/rollback_qualified/retirement.txt",
+        "sha256": "a5d39d144615d43889285cb731fcaf9e35785220cdc6b9eb37e602f797284060"
+      }
+    }
+  },
+  "program": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d855_20261026/qualify_resume.py",
+    "sha256": "c5383ebe180bffa182cc8f0c530ae21eabe4ef0ced5656b36cb38c658c6e8d48"
+  },
+  "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python"
+}

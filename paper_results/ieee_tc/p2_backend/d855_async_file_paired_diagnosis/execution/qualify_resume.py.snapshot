@@ -1,0 +1,23 @@
+"""Correct the reuse comparison: D850 added tests after D846, not production.
+
+The first driver stopped before tests because it compared the retained D850
+request-lifecycle tests with the older D846 test hash. All ten restored files
+already matched the requested D850 parent. Keep the failed driver/output intact.
+"""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+template = RAW/'qualify.py'
+source = template.read_text()
+for old, new in (
+    ("d855_async_file_paired_diagnosis/rollback'", "d855_async_file_paired_diagnosis/rollback_qualified'"),
+    ("RAW/'qualification_identity.json'", "RAW/'qualification_resume_identity.json'"),
+    ("for name in ('scripts/run_all_experiments.py', 'faaslora/memory/residency_manager.py',\n"
+     "             'tests/test_ieee_tc_request_lifecycle.py'):",
+     "for name in ('scripts/run_all_experiments.py', 'faaslora/memory/residency_manager.py'):"),
+):
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+with (RAW/'qualification_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'qualification_executed.py.snapshot'), 'exec'), globals())

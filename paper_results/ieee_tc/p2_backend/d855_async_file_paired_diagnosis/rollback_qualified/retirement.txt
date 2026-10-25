@@ -1,0 +1,9 @@
+W1026 01:09:19.337000 1354922 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack (tests.test_ieee_tc_native_retirement.RuntimeQuarantine.test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack) ... 2026-10-26 01:09:20 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-10-26 01:09:20 - faaslora.experiment.instance_pool - INFO - Instance inst_1 removed (total=0)
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.049s
+
+OK

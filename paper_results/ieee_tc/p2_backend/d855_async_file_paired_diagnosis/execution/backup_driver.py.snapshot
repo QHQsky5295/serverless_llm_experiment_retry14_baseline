@@ -1,0 +1,33 @@
+"""Reuse D824 explicit-file backup for D855 evidence and exact source rollback."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d824_20261025/backup.py').read_text()
+for old, new in (
+    ('d824_current_ingress_pending', 'd855_async_file_paired_diagnosis'),
+    ('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md', 'D855_ASYNC_REGRESSION_AND_ROLLBACK_20261026.md'),
+    ('107185c45f49a891c0b391b1140b7d765e83daea', 'b28d471f9fb87ab0e5b21f7c6ad3c458aaf610ab'),
+    ('len(paths) == len(set(paths)) == 20', 'len(paths) == len(set(paths))'),
+    ('backup/d824-current-ingress-control-20261025', 'backup/d855-async-rollback-20261026'),
+    ('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)',
+     'tc: retire async file regression with paired evidence and exact rollback (D855)'),
+    ("*[path for path in sorted(OUT.rglob('*')) if path.is_file()]]",
+     "*[path for path in sorted(OUT.rglob('*')) if path.is_file()],\n"
+     "         *[ROOT/name for name in closure['restored']]]"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+old = "git('diff','--cached','--check')"
+new = """ordinary = [path for path in paths if not path.endswith(('.csv','.snapshot'))]
+csvs = [path for path in paths if path.endswith('.csv')]
+patches = [path for path in paths if path.endswith('/restoration.diff.snapshot')]
+snapshots = [path for path in paths if path.endswith('.snapshot') and path not in patches]
+git('diff','--cached','--check','--',*ordinary)
+git('-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol','diff','--cached','--check','--',*csvs)
+git('-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof','diff','--cached','--check','--',*snapshots)
+git('-c','core.whitespace=space-before-tab,-blank-at-eol,-blank-at-eof','diff','--cached','--check','--',*patches)"""
+assert source.count(old) == 1
+source = source.replace(old, new)
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'backup_executed.py.snapshot'), 'exec'), globals())

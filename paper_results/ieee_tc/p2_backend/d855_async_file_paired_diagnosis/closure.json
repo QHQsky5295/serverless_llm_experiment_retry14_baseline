@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "kind": "d855_offline_pair_and_exact_rollback_v1",
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D855_ASYNC_REGRESSION_AND_ROLLBACK_20261026.md",
+    "sha256": "1ac7c2706307f5d9b0a15f3881ee58aaa734190be1f6997e76313e6704395c92",
+    "bytes": 9046
+  },
+  "restored": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "faaslora/preloading/preloading_manager.py": "9d678d8296ea18a4621171bfff2aee2fd40ee6157ae5dc3b5919ec8aeaf15222",
+    "faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "tests/test_ieee_tc_file_observation.py": "06e64382e900e5eee48251561b70e8f32d9a929ea038859bc7597d68a282f672",
+    "tests/test_ieee_tc_launch.py": "2b2da737b7b0b63b79a175eb7571e06e02574e99f86231cab2f1de930e2e5452",
+    "tests/test_ieee_tc_native_retirement.py": "031bd342ba59483625077bc9e7b3c079ca47dd5fcc98fdc2cf56538c38d5f0f2",
+    "tests/test_ieee_tc_planning_snapshot.py": "8cbc6923e952f079a4b2cad35df5897e8b9e1e0648b03199e380689842fec077",
+    "tests/test_ieee_tc_request_lifecycle.py": "281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e",
+    "tests/test_ieee_tc_transfer_pressure.py": "da55ef4df2c347eafd143bc37f5d9396ac0d9bc378531f25b306bc5c54e7bdae"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d8552026102600000000000000000001.scope",
+        "invocation_id": "45a93b3406024631b2508149c90f8c4e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000001.scope",
+        "inode": 32604911
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d8552026102600000000000000000002.scope",
+        "invocation_id": "d812d728d6e14635a56455f7d7212168",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000002.scope",
+        "inode": 32607560
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d8552026102600000000000000000003.scope",
+        "invocation_id": "2baf9bcce360456e8e8ce452fe38ff0a",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000003.scope",
+        "inode": 32607997
+      },
+      "path_removed": true
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d8552026102600000000000000000004.scope",
+    "invocation_id": "413ec8b8763d41e4a9e8af7e4c88c974",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8552026102600000000000000000004.scope",
+    "inode": 32610330
+  },
+  "targeted_tests": 7,
+  "prior_full_run_reused": true,
+  "new_gpu_replays": 0,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "final_v2_synced": false,
+  "performance_candidate_accepted": false,
+  "current_production": "Exact pre-async parent d6d49942; D846 remains nonfeasible reference.",
+  "disk_free_bytes": 182719143936
+}

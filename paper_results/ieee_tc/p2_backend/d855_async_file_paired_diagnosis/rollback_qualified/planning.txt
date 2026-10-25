@@ -1,0 +1,21 @@
+W1026 01:08:57.247000 1354181 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_cancel_observation_never_submits_plan_or_reserves_movement (tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement) ... 2026-10-26 01:08:58 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-26 01:08:58 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling (tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling) ...     remote artifact fetch b: 0.0 MB, 6.0 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+2026-10-26 01:08:58 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-26 01:08:58 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.3 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 6.0 ms
+2026-10-26 01:08:58 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.135s
+
+OK

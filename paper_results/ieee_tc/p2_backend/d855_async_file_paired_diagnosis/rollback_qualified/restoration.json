@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "parent_commit": "d6d499429f30cd27e90433700b22e9695c8c7a30",
+  "rejected_candidate_commit": "5ac133e7e74d168d48c500e0fb774c28dcbf04f6",
+  "restored": {
+    "faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "faaslora/preloading/preloading_manager.py": "9d678d8296ea18a4621171bfff2aee2fd40ee6157ae5dc3b5919ec8aeaf15222",
+    "faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "scripts/run_all_experiments.py": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "tests/test_ieee_tc_file_observation.py": "06e64382e900e5eee48251561b70e8f32d9a929ea038859bc7597d68a282f672",
+    "tests/test_ieee_tc_launch.py": "2b2da737b7b0b63b79a175eb7571e06e02574e99f86231cab2f1de930e2e5452",
+    "tests/test_ieee_tc_native_retirement.py": "031bd342ba59483625077bc9e7b3c079ca47dd5fcc98fdc2cf56538c38d5f0f2",
+    "tests/test_ieee_tc_planning_snapshot.py": "8cbc6923e952f079a4b2cad35df5897e8b9e1e0648b03199e380689842fec077",
+    "tests/test_ieee_tc_request_lifecycle.py": "281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e",
+    "tests/test_ieee_tc_transfer_pressure.py": "da55ef4df2c347eafd143bc37f5d9396ac0d9bc378531f25b306bc5c54e7bdae"
+  },
+  "applied_reverse_diff": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d855_20261026/restoration.diff",
+    "sha256": "c82e2d35b973217adad6a2743426a9a3b97dc6f1513d1b7bcc826c46410730aa"
+  },
+  "reused_full_observation": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/full4000.json",
+    "sha256": "6ea6d3a956ec584550666b97230c3849adafe84713791fd22de6bffbf57ee00b"
+  },
+  "reused_prelaunch_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/prelaunch/qualification.json",
+    "sha256": "f964fd193e0a234769e359da9cde20a0d49b058fe06e7745a07bee90aecbeea3"
+  },
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "new_gpu_replays": 0,
+  "ranking_eligible": false
+}

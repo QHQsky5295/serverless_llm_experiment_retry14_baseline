@@ -1,0 +1,99 @@
+"""Reuse the D746 exact-restoration verification flow, with scoped tests."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis/rollback'
+PARENT = 'd6d499429f30cd27e90433700b22e9695c8c7a30'
+REJECTED = '5ac133e7e74d168d48c500e0fb774c28dcbf04f6'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                   '--format=csv,noheader'], text=True).strip()
+OUT.mkdir(parents=True, exist_ok=False)
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', identity)
+paths = (
+    'faaslora/memory/residency_manager.py', 'faaslora/preloading/preloading_manager.py',
+    'faaslora/scheduling/resource_coordinator.py', 'scripts/run_all_experiments.py',
+    'tests/test_ieee_tc_file_observation.py', 'tests/test_ieee_tc_launch.py',
+    'tests/test_ieee_tc_native_retirement.py', 'tests/test_ieee_tc_planning_snapshot.py',
+    'tests/test_ieee_tc_request_lifecycle.py', 'tests/test_ieee_tc_transfer_pressure.py',
+)
+restored = {}
+for name in paths:
+    expected = subprocess.check_output(['git', 'show', PARENT+':'+name], cwd=ROOT)
+    assert (ROOT/name).read_bytes() == expected, name
+    ast.parse(expected, filename=name)
+    restored[name] = hashlib.sha256(expected).hexdigest()
+prior = ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2'
+qualification = json.loads((prior/'prelaunch/qualification.json').read_text())
+for name in ('scripts/run_all_experiments.py', 'faaslora/memory/residency_manager.py',
+             'tests/test_ieee_tc_request_lifecycle.py'):
+    assert p.digest(ROOT/name) == qualification['refs'][str(ROOT/name)]
+for name, sha in qualification['protected'].items():
+    assert p.digest(Path(name)) == sha
+save(OUT/'restoration.json', dict(passed=True, parent_commit=PARENT,
+    rejected_candidate_commit=REJECTED, restored=restored,
+    applied_reverse_diff=ref(RAW/'restoration.diff'),
+    reused_full_observation=ref(prior/'completion/full4000.json'),
+    reused_prelaunch_qualification=ref(prior/'prelaunch/qualification.json'),
+    numerical_adapter_correctness_qualified=False, n_correct=None,
+    new_gpu_replays=0, ranking_eligible=False))
+tests = {
+    'planning': [
+        'tests.test_ieee_tc_planning_snapshot.PlanningSnapshot.test_cancel_observation_never_submits_plan_or_reserves_movement',
+        'tests.test_ieee_tc_planning_snapshot.ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling',
+    ],
+    'file_movement': [
+        'tests.test_ieee_tc_transfer_pressure.RequiredFileCapacity.test_queue_return_to_read_lease_has_no_reclamation_gap',
+        'tests.test_ieee_tc_transfer_pressure.OwnedFileMovement.test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure',
+        'tests.test_ieee_tc_transfer_pressure.OwnedFileReadiness.test_request_settlement_repeated_cancel_still_joins_writer',
+        'tests.test_ieee_tc_transfer_pressure.ManagedHostOwnership.test_exit_witness_not_cache_eviction_or_shutdown_ack_returns_allowance',
+    ],
+    'retirement': [
+        'tests.test_ieee_tc_native_retirement.RuntimeQuarantine.test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack',
+    ],
+}
+results = {}
+try:
+    for name, selected in tests.items():
+        with (OUT/(name+'.txt')).open('x') as log:
+            result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *selected, '-v'],
+                                    cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+        results[name] = dict(returncode=result.returncode, tests=selected,
+                            log=ref(OUT/(name+'.txt')))
+        assert result.returncode == 0, name
+    for name, sha in restored.items():
+        assert p.digest(ROOT/name) == sha, name
+    for name, sha in qualification['protected'].items():
+        assert p.digest(Path(name)) == sha
+    seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+    protected = p.verify_seal(seal)
+    assert protected['pass'] and protected['entry_count'] == 147
+    save(OUT/'result.json', dict(passed=True, tests=results, targeted_tests=7,
+        restored=restored, protected=protected, user_protected=qualification['protected'],
+        new_gpu_replays=0, numerical_adapter_correctness_qualified=False,
+        n_correct=None, ranking_eligible=False))
+    print(json.dumps(dict(passed=True, restored_files=len(restored), targeted_tests=7,
+                         protected=147, new_gpu_replays=0)))
+finally:
+    save(OUT/'resources.json', dict(identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+        tests=results, program=ref(Path(__file__)), python=sys.executable))

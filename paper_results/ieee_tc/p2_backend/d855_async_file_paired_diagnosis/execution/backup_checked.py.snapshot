@@ -1,0 +1,25 @@
+"""D855 backup: unified-diff evidence contains meaningful blank context lines.
+
+Preserve the raw diff byte-for-byte. Check ordinary source normally; exclude
+only trailing context whitespace in this one archived patch, not source/tests.
+The original D855 backup driver was prepared but has not been executed.
+"""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+OUT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis')
+source = (RAW/'backup.py').read_text()
+old = "snapshots = [path for path in paths if path.endswith('.snapshot')]"
+new = ("patches = [path for path in paths if path.endswith('/restoration.diff.snapshot')]\n"
+       "snapshots = [path for path in paths if path.endswith('.snapshot') and path not in patches]")
+assert source.count(old) == 1
+source = source.replace(old, new)
+old = "git('-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof','diff','--cached','--check','--',*snapshots)"
+new = old + "\ngit('-c','core.whitespace=space-before-tab,-blank-at-eol,-blank-at-eof','diff','--cached','--check','--',*patches)"
+assert source.count(old) == 1
+source = source.replace(old, new)
+with (OUT/'execution/backup_checked.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+with (OUT/'execution/backup_driver.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(OUT/'execution/backup_driver.py.snapshot'), 'exec'), globals())

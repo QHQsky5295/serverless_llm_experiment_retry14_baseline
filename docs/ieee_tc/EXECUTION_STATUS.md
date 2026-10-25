@@ -1,4 +1,35 @@
-# IEEE TC execution status — D854 full W2 closed, candidate not accepted
+# IEEE TC execution status — D855 paired diagnosis and exact async rollback
+
+## 2026-10-26 D855：负向候选已撤回，3B W2目标仍开放
+
+全4000请求配对及各505次交付完成；无新GPU运行。联合pass→fail238、
+fail→pass156，净−82。文件发布＋发布后交接均值467.409962→531.095838ms；
+远端对象读取约2ms，两轮均GPU命中的1445请求TTFT也+34.931ms。不能归咎
+远端打包／更多下载，亦未证明锁或GIL因果。新证据见D855文档与curated。
+
+apply_patch精确恢复D851–D853涉及10个生产／测试文件到d6d49942；所有旧
+结果/失败/配置/文档保留，候选及D854已有备份。7项必要CPU检查通过，147
+保护项/user manifest不变。首次driver误比D850新增测试与D846旧测试SHA，
+测试前中断，原入口保留；修正的是复用范围，不是生产或断言。资源峰值
+636186624/699731968B，high/max/OOM/swap0，GPU未启动。下一先封存/备份。
+
+恢复参照D846仍92.875%/U11929.629332，未达到95%；数值正确性D711仍未知，
+n_correct=null/ranking=false。下一仅核查完整新鲜文件观察的事务内表示／
+native执行边界：复用D843/D844，不重做第二遍stat局部FFI，不加线程/TTL，
+真实遍历、两遍fresh stat、extent/引用/预算不降级。未发现具体冗余不得开
+GPU或重复微测。D329是HOST tensor而非文件inode反例，勿过度泛化。
+
+完整同版两模型主矩阵、baseline/dLoRA、A1–A5、S1–S13、数值正确性、文档/
+图表/最终V2未完成，goal active。HydraServe隔离结果复用，原k3s不动。
+以下为已关闭历史记录，不代表D854仍运行或异步候选仍接入。
+
+备份回执（2026-10-26）：61个明确文件已提交b28d471f9fb87ab0e5b21f7c6ad3c458aaf610ab，
+推送backup/d854-complete-20261026且ls-remote核实同SHA；没有force push，最终V2
+尚未同步。首次git add因小型curated日志被*.log忽略而中断，保留记录后仅显式
+加入这些日志；首次推送返回128，正常重试成功。147保护项不变，用户manifest
+未stage。02–06辅助域均结束，GPU空闲，磁盘约170.2GiB可用。此后置回执随
+下一正常检查点保存，不递归新增备份。下一仍为既有D846/D854证据分析，
+不重复D854、不在未解释的退化候选上继续叠加；完整goal保持active。
 
 ## 2026-10-26 D854完整负向结果：90.825%，预算内，未达标
 

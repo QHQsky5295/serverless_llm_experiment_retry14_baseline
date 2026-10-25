@@ -310,92 +310,12 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(calls.count('configure_host_budget'), 1)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             with self.assertRaisesRegex(RuntimeError, 'has not exited'):
-                await runner._retire_ieee_host_budget(engine)
+                runner._retire_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            await runner._retire_ieee_host_budget(engine)
-            await runner._retire_ieee_host_budget(alias)
+            runner._retire_ieee_host_budget(engine)
+            runner._retire_ieee_host_budget(alias)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
-        asyncio.run(run())
-
-    def test_cancelled_file_reservation_adopts_pidfd_and_keeps_allowance_until_exit(self):
-        async def run():
-            _, files, _ = self.make()
-            child = self.child()
-            runner, engine, calls = self.runner(files, child.pid)
-            loop = asyncio.get_running_loop()
-            entered, release = asyncio.Event(), threading.Event()
-            original = files.reserve_native_host
-            def reserve(**kwargs):
-                value = original(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise TimeoutError('test reservation was not released')
-                return value
-            with patch.object(files, 'reserve_native_host', side_effect=reserve):
-                job = asyncio.create_task(runner._attach_ieee_host_budget(engine))
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    await asyncio.sleep(0)
-                    job.cancel()
-                    self.assertFalse(job.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-            member = runner._ieee_host_budget_members[id(engine)]
-            self.assertEqual(member['state'], 'installation_unresolved')
-            self.assertEqual(os.readlink(f"/proc/self/fd/{member['pidfd']}"), 'anon_inode:[pidfd]')
-            self.assertNotIn('configure_host_budget', calls)
-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
-            child.stdin.close()
-            child.wait(timeout=5)
-            await runner._retire_ieee_host_budget(engine)
-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
-        asyncio.run(run())
-
-    def test_cancelled_real_retirement_closes_one_shared_pidfd_after_transaction(self):
-        async def run():
-            _, files, _ = self.make()
-            child = self.child()
-            runner, engine, _ = self.runner(files, child.pid)
-            await runner._attach_ieee_host_budget(engine)
-            alias = NS(ieee_gpu_reference=engine.ieee_gpu_reference)
-            await runner._attach_ieee_host_budget(alias)
-            member = runner._ieee_host_budget_members[id(engine)]
-            child.stdin.close()
-            child.wait(timeout=5)
-            entered, release = asyncio.Event(), threading.Event()
-            loop = asyncio.get_running_loop()
-            original = files.retire_native_host
-            def retire(**kwargs):
-                value = original(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise TimeoutError('test retirement was not released')
-                return value
-            with patch.object(files, 'retire_native_host', side_effect=retire) as retire_call:
-                job = asyncio.create_task(runner._retire_ieee_host_budget(engine))
-                other = None
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    other = asyncio.create_task(runner._retire_ieee_host_budget(alias))
-                    await asyncio.sleep(0)
-                    self.assertFalse(job.done())
-                    self.assertFalse(other.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-                    if other is not None:
-                        await other
-                retire_call.assert_called_once()
-            self.assertEqual(member['state'], 'retired')
-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
-            with self.assertRaises(OSError):
-                os.fstat(member['pidfd'])
         asyncio.run(run())
 
     def test_lost_installation_ack_retains_budget_until_process_exit(self):
@@ -417,7 +337,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            await runner._retire_ieee_host_budget(engine)
+            runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_workspace_contract_is_forwarded_acknowledged_and_frozen_for_aliases(self):
@@ -445,7 +365,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            await runner._retire_ieee_host_budget(engine)
+            runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
@@ -473,7 +393,7 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             child.stdin.close()
             child.wait(timeout=5)
-            await runner._retire_ieee_host_budget(engine)
+            runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
 
@@ -694,26 +614,6 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
     def make(self):
         runner, engine, ledger = TransferPressure().runner()
         return runner, engine, ledger
-
-    async def test_async_notification_failure_preserves_actual_io_join_boundary(self):
-        runner, engine, ledger = self.make()
-        joined = []
-        async def operation():
-            return 'verified-output'
-        async def notification(value):
-            self.assertEqual(value, 'verified-output')
-            row = runner._adapter_transfer_pressure_evidence[-1]
-            joined.append(row['io_joined_at'])
-            await asyncio.sleep(0)
-            raise ValueError('observer failed after IO')
-        with self.assertRaisesRegex(ValueError, 'observer failed after IO'):
-            await runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine,
-                                                operation, on_io_joined=notification)
-        row = runner._adapter_transfer_pressure_evidence[-1]
-        self.assertEqual(row['io_joined_at'], joined[0])
-        self.assertGreaterEqual(row['notification_failed_at'], joined[0])
-        self.assertEqual(row['operation_outcome'], 'failed')
-        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
 
     async def test_physical_domain_binding_and_wrong_domain_rejection(self):
         runner, engine, ledger = self.make()
@@ -1079,86 +979,6 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
                           activation_id='activation' if reason == 'handoff' else None),
             density=density, action=action, demand=reason == 'demand', ready=ready)
 
-    async def test_target_close_hold_joins_existing_writer_and_only_delays_new_matching_starts(self):
-        queue = OwnedMovementQueue(2)
-        entered, release = asyncio.Event(), asyncio.Event()
-        async def old(_):
-            entered.set()
-            await release.wait()
-            return MovementOutcome('completed', 'old')
-        self.submit(queue, 'old', old, adapter='a', reason='demand')
-        await entered.wait()
-        key = ('files', 'nvme', 'a', 'sha')
-        new = AsyncMock(return_value=MovementOutcome('completed', 'new'))
-        other = AsyncMock(return_value=MovementOutcome('completed', 'other'))
-        with queue.hold_target_starts((key,)):
-            join = asyncio.create_task(queue.join_target_operations((key,)))
-            await asyncio.sleep(0)
-            self.assertFalse(join.done())
-            self.assertFalse(queue._intents['old']['stop_requested'])
-            release.set()
-            joined = await join
-            self.assertEqual(joined[0]['key'], list(key))
-            self.assertEqual(await queue.wait('old'), 'old')
-            self.submit(queue, 'new', new, adapter='a', reason='demand')
-            self.submit(queue, 'other', other, adapter='b')
-            self.assertEqual(await queue.wait('other'), 'other')
-            new.assert_not_awaited()
-            self.assertEqual(queue._intents['new']['state'], 'pending')
-        self.assertEqual(await queue.wait('new'), 'new')
-        self.assertFalse(queue._target_start_holds)
-        await queue.close()
-
-    async def test_nested_target_holds_keep_original_priority_and_independent_ownership(self):
-        queue, order = OwnedMovementQueue(1), []
-        a, b = ('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha')
-        async def run(_, name):
-            order.append(name)
-            return MovementOutcome('completed')
-        with queue.hold_target_starts((a, b, a)):
-            with queue.hold_target_starts((a,)):
-                self.submit(queue, 'a', lambda token: run(token, 'a'), density=50.)
-                self.submit(queue, 'b', lambda token: run(token, 'b'), reason='demand')
-            await asyncio.sleep(0)
-            self.assertEqual(order, [])
-            self.assertEqual(queue._target_start_holds, {a: 1, b: 1})
-        await asyncio.gather(queue.wait('a'), queue.wait('b'))
-        self.assertEqual(order, ['b', 'a'])
-        await queue.close()
-
-    async def test_hold_does_not_wake_deferred_work_or_leave_orphan_after_withdrawal(self):
-        queue = OwnedMovementQueue(1)
-        deferred = AsyncMock(return_value=MovementOutcome('deferred', reason='capacity'))
-        self.submit(queue, 'deferred', deferred, adapter='a')
-        await queue.join_target_operations((('files', 'nvme', 'a', 'sha'),))
-        action = AsyncMock(return_value=MovementOutcome('completed'))
-        with queue.hold_target_starts((('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha'))):
-            self.submit(queue, 'cancelled', action, adapter='b')
-            await queue.withdraw('cancelled')
-        await asyncio.sleep(0)
-        deferred.assert_awaited_once()
-        action.assert_not_awaited()
-        self.assertEqual(queue._intents['deferred']['state'], 'deferred')
-        self.assertFalse(queue._target_start_holds)
-        await queue.close()
-
-    async def test_hold_exception_and_invalid_keys_do_not_leak_target_exclusion(self):
-        queue = OwnedMovementQueue(1)
-        key = ('files', 'nvme', 'a', 'sha')
-        with self.assertRaises(ValueError):
-            with queue.hold_target_starts((key, ('bad',))):
-                self.fail('invalid key accepted')
-        self.assertFalse(queue._target_start_holds)
-        action = AsyncMock(return_value=MovementOutcome('completed'))
-        with self.assertRaisesRegex(RuntimeError, 'actual close failure'):
-            with queue.hold_target_starts((key,)):
-                self.submit(queue, 'later', action, adapter='a')
-                raise RuntimeError('actual close failure')
-        await queue.wait('later')
-        action.assert_awaited_once()
-        self.assertFalse(queue._target_start_holds)
-        await queue.close()
-
     async def test_shared_interests_one_operation_and_cancelling_one_does_not_cancel_writer(self):
         queue, entered, proceed = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
         calls = []
@@ -1320,39 +1140,6 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
 
 
 class OwnedNativeHostMovement(unittest.TestCase):
-    def test_cancelled_file_pin_is_adopted_and_released_before_any_native_load(self):
-        async def run():
-            fixture, runner, queue, engine, ledger, native, slot = await self.make()
-            entered, release = asyncio.Event(), threading.Event()
-            loop = asyncio.get_running_loop()
-            original = fixture.owner.acquire_confirmed
-            def acquire(**kwargs):
-                value = original(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise TimeoutError('test file pin was not released')
-                return value
-            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire), \
-                 patch.object(native.owner, 'file_host_loader', wraps=native.owner.file_host_loader) as load:
-                job = asyncio.create_task(self.call(fixture, runner, slot))
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    await asyncio.sleep(0)
-                    self.assertFalse(job.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-                load.assert_not_called()
-            self.assertFalse(fixture.owner.leases)
-            self.assertFalse(native.owner._host_leases)
-            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
-            evidence = runner._ieee_native_host_preparations[-1]['attempts'][-1]
-            self.assertTrue(evidence['file_reference_released'])
-            await queue.close()
-        asyncio.run(run())
-
     def test_modified_file_publication_cannot_expire_native_objective_as_same_content(self):
         factory = MixedOwnedPreparation()
         self.addCleanup(factory.doCleanups)
@@ -1360,9 +1147,9 @@ class OwnedNativeHostMovement(unittest.TestCase):
         before = owner.snapshot()
         (fixture.host/'c'/'weights').write_bytes(b'not-the-published-content')
         with self.assertRaisesRegex(RuntimeError, 'confirmed source changed outside its managed publication'):
-            asyncio.run(runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
+            runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
                 adapter_id='c', source_path=fixture.host/'c', plan_id='old-copy',
-                stage='native_target_copy', record={}))
+                stage='native_target_copy', record={})
         self.assertEqual(owner.snapshot(), before)
         self.assertFalse(loads)
         self.assertFalse(fixture.owner.leases)
@@ -1435,16 +1222,11 @@ class OwnedNativeHostMovement(unittest.TestCase):
                     value['native_host_allocator'] = dict(state)
                 return value
             engine.ieee_gpu_reference = observed
-            finished = asyncio.Event()
-            original_execute = queue._execute
-            async def observed_execute(job):
-                try:
-                    return await original_execute(job)
-                finally:
-                    finished.set()
-            queue._execute = observed_execute
             task = asyncio.create_task(self.call(fixture, runner, slot))
-            await asyncio.wait_for(finished.wait(), 2)
+            for _ in range(50):
+                await asyncio.sleep(0)
+                if queue.deferred_observations(target_tier='host', reasons=('native_host_tensor_budget',)):
+                    break
             self.assertEqual(len(calls), 1)
             self.assertFalse(task.done())
             for _ in range(3):
@@ -1787,18 +1569,10 @@ class OwnedNativeHostMovement(unittest.TestCase):
                 return dict(admitted=False, reason='native_host_tensor_budget')
             native.owner.file_host_loader = defer
             runner._ieee_gpu_movement_owners = {native.owner.owner_id: engine}
-            finished = asyncio.Event()
-            original_execute = queue._execute
-            async def observed_execute(job):
-                try:
-                    return await original_execute(job)
-                finally:
-                    finished.set()
-            queue._execute = observed_execute
             task = asyncio.create_task(self.call(fixture, runner, slot))
-            # Observe actual deferred completion, not a fixed number of loop
-            # turns that can finish before the file executor is scheduled.
-            await asyncio.wait_for(finished.wait(), 2)
+            # Drain ready callbacks, without a timer-triggered capacity retry.
+            for _ in range(40):
+                await asyncio.sleep(0)
             self.assertEqual(len(calls), 1)
             self.assertFalse(task.done())
             self.assertFalse(fixture.owner.leases)
@@ -2076,37 +1850,6 @@ class ActivationPreparation(unittest.TestCase):
 
     The fixture's timing/layout constants are not measured model profiles.
     """
-    def test_cancelled_activation_reservation_returns_bytes_before_startup(self):
-        fixture, runner, queue, engine, _ = self.make()
-        async def run():
-            runner.engine_factory = AsyncMock(return_value=(engine, None))
-            entered, release = asyncio.Event(), threading.Event()
-            loop = asyncio.get_running_loop()
-            original = fixture.owner.reserve_activation_host
-            def reserve(**kwargs):
-                value = original(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise TimeoutError('test activation reservation was not released')
-                return value
-            with patch.object(fixture.owner, 'reserve_activation_host', side_effect=reserve):
-                job = asyncio.create_task(runner._add_ieee_dedicated_instance(
-                    device_id=0, activation_kind='natural_scaleout'))
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    await asyncio.sleep(0)
-                    self.assertFalse(job.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-            runner.engine_factory.assert_not_awaited()
-            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
-            self.assertEqual(runner._ieee_activations[0]['state'], 'cancelled')
-            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
-            await queue.close()
-        asyncio.run(run())
     def make(self, policy='full'):
         import copy
         import json
@@ -2747,61 +2490,6 @@ class MixedOwnedPreparation(unittest.TestCase):
     def test_cancel_during_superseded_target_join_does_not_cancel_demand(self):
         self._check_superseded_shared_target(cancel=True)
 
-    def test_async_plan_close_keeps_later_target_writer_pending_until_real_close(self):
-        self._check_async_target_close(cancel=False)
-
-    def test_repeated_cancel_during_async_plan_close_keeps_target_hold_until_real_close(self):
-        self._check_async_target_close(cancel=True)
-
-    def _check_async_target_close(self, *, cancel):
-        fixture, runner, queue, slot, native, _, _ = self.make(remote_gpu=True)
-        files = fixture.owner
-        original = files.close_file_preparation_plan
-        async def run():
-            loop = asyncio.get_running_loop()
-            entered, release = asyncio.Event(), threading.Event()
-            close_ids, starts = [], []
-            def close(**kwargs):
-                close_ids.append(kwargs['plan_id'])
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise RuntimeError('actual file plan close barrier expired')
-                return original(**kwargs)
-            files.close_file_preparation_plan = close
-            task = asyncio.create_task(self.execute(runner, slot))
-            async def later(_):
-                self.assertIn(close_ids[0], files._closed_file_preparation_plans)
-                starts.append('after-real-close')
-                return MovementOutcome('completed')
-            try:
-                await asyncio.wait_for(entered.wait(), 3)
-                key = next(iter(queue._target_start_holds))
-                queue.submit(key=key, intent_id='later-target-writer',
-                    metadata=dict(trigger_reason='demand', plan_id='later-request', target_replica=slot.instance_id),
-                    density=0., demand=True, action=later)
-                if cancel:
-                    task.cancel()
-                    await asyncio.sleep(0)
-                    task.cancel()
-                await asyncio.sleep(0)
-                self.assertFalse(task.done())
-                self.assertEqual(starts, [])
-                self.assertEqual(queue._intents['later-target-writer']['state'], 'pending')
-            finally:
-                release.set()
-            if cancel:
-                with self.assertRaises(asyncio.CancelledError):
-                    await task
-            else:
-                await task
-            await queue.wait('later-target-writer')
-            self.assertEqual(starts, ['after-real-close'])
-            self.assertFalse(queue._target_start_holds)
-            self.assertTrue(runner._ieee_file_preparation_plans[-1]['close_receipt']['closed'])
-            self.check_clean(fixture, runner, native)
-            await queue.close()
-        asyncio.run(run())
-
     def _check_superseded_shared_target(self, *, cancel):
         from tests.test_http_artifact_store import archive_bytes, SizedResponse
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
@@ -2969,37 +2657,6 @@ class ProactiveCostFeedback(unittest.TestCase):
 
 
 class IntegratedNativeHostReplacement(unittest.TestCase):
-    def test_cancelled_fallback_pins_join_and_release_before_native_commit(self):
-        factory, (fixture, runner, queue, slot, owner, _, _) = self.make()
-        async def run():
-            entered, release = asyncio.Event(), threading.Event()
-            loop = asyncio.get_running_loop()
-            original = fixture.owner.acquire_confirmed
-            blocked = []
-            def acquire(**kwargs):
-                value = original(**kwargs)
-                if owner.staged_models() and kwargs['adapter_id'] in ('b', 'c') and not blocked:
-                    blocked.append(value['lease_id'])
-                    loop.call_soon_threadsafe(entered.set)
-                    if not release.wait(5):
-                        raise TimeoutError('test fallback pin was not released')
-                return value
-            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire):
-                job = asyncio.create_task(factory.execute(runner, slot, mode='residency'))
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    await asyncio.sleep(0)
-                    self.assertFalse(job.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-            self.assertEqual(len(blocked), 1)
-            factory.check_clean(fixture, runner, owner)
-            await queue.close()
-        asyncio.run(run())
-
     def test_fallback_uses_pinned_observation_not_earlier_snapshot(self):
         """D634 receipt composition, not a reconstruction of a kernel event.
 
@@ -5121,40 +4778,6 @@ class FileObjectiveReplacement(unittest.TestCase):
 
 class SelectedFilePlans(unittest.TestCase):
     """Actual selector -> shared queue -> verified file owner, no GPU/model."""
-    def test_cancelled_registration_closes_actual_pending_targets_without_starting_io(self):
-        fixture, runner, queue, engine, _, plan = self.make()
-        async def run():
-            entered, release = asyncio.Event(), threading.Event()
-            loop = asyncio.get_running_loop()
-            original = fixture.owner.register_file_preparation_plan
-            def register(**kwargs):
-                value = original(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise TimeoutError('test file registration was not released')
-                return value
-            with patch.object(fixture.owner, 'register_file_preparation_plan', side_effect=register):
-                job = asyncio.create_task(self.call(runner, engine, plan))
-                try:
-                    await asyncio.wait_for(entered.wait(), 2)
-                    job.cancel()
-                    await asyncio.sleep(0)
-                    self.assertFalse(job.done())
-                finally:
-                    release.set()
-                    with self.assertRaises(asyncio.CancelledError):
-                        await job
-            record = runner._ieee_file_preparation_plans[0]
-            self.assertTrue(record['registration']['registered'])
-            self.assertTrue(record['close_receipt']['closed'])
-            self.assertEqual(record['state'], 'cancelled')
-            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
-            self.assertFalse(fixture.owner.materializations)
-            self.assertFalse(queue.snapshot())
-            fixture.client._opener.open.assert_not_called()
-            await queue.close()
-        asyncio.run(run())
-
     def make(self, *, source='remote', target='host', mode='handoff'):
         from faaslora.preloading.preloading_planner import (
             PreparationClass, PreparationOption, PreparationCostModel, PreloadingPlanner)
@@ -5618,7 +5241,7 @@ class OwnedFileReadiness(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['state'], 'finished')
         self.assertIsNone(reservation.file_preparation_task)
         self.assertFalse(fixture.owner._file_movement_interests)
-        await runner._release_runtime_local_source(reservation)
+        runner._release_runtime_local_source(reservation)
         self.assertFalse(fixture.owner.leases)
 
     async def test_real_verified_file_is_consumable_before_all_finish_acknowledgements(self):

@@ -1,0 +1,20 @@
+{
+  "phase": "before_tests",
+  "kind": "reuse_scope_mismatch",
+  "explanation": "D850 added request-lifecycle tests after D846; production and exact parent restoration matched. The first driver incorrectly required the newer test file to match the D846 test SHA.",
+  "failed_driver": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d855_20261026/qualify.py",
+    "sha256": "437d5d9c4acd4fafb5e3d446402af17f115c396eeb8c448b5f89aad611fd5968",
+    "bytes": 5286
+  },
+  "corrected_driver": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d855_20261026/qualify_resume.py",
+    "sha256": "c5383ebe180bffa182cc8f0c530ae21eabe4ef0ced5656b36cb38c658c6e8d48",
+    "bytes": 1173
+  },
+  "original_test_sha": "fcc75a085014332df32ea5ad93df934643fa3b4e20cd8a7fb606b28d8d613150",
+  "retained_d850_test_sha": "281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e",
+  "evidence_origin": "Observed tool exception and git history; not a captured subprocess stderr log.",
+  "tests_started_in_failed_driver": false,
+  "production_modified_by_resume": false
+}

@@ -1,0 +1,81 @@
+"""Seal D855 paired evidence and rollback; reuse D848 append-only closure."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', identity)
+closed = []
+for name in ('identity.json', 'qualification_identity.json', 'qualification_resume_identity.json'):
+    prior = read(RAW/name)
+    assert not p.scope_still_owned(prior) and not Path(prior['path']).exists()
+    closed.append(dict(identity=prior, path_removed=True))
+analysis, tests = read(OUT/'resources.json'), read(OUT/'rollback_qualified/result.json')
+assert tests['passed'] and tests['targeted_tests'] == 7
+for name, sha in tests['restored'].items():
+    assert p.digest(ROOT/name) == sha
+for name, sha in tests['user_protected'].items():
+    assert p.digest(Path(name)) == sha
+for resources in (analysis['resources'], read(OUT/'rollback_qualified/resources.json')['resources']):
+    assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+paired = read(OUT/'paired_stages/diagnosis.json')
+assert paired['passed'] and paired['transitions']['joint_pass'] == {
+    'fail->fail': 129, 'pass->pass': 3477, 'fail->pass': 156, 'pass->fail': 238}
+transfer = read(OUT/'transfers.json')
+assert transfer['passed'] and all(row['n'] == 505 for row in transfer['runs'].values())
+execution = OUT/'execution'
+execution.mkdir()
+names = ('analyze.py', 'identity.json', 'qualify.py', 'qualification_identity.json',
+    'qualify_resume.py', 'qualification_resume_identity.json',
+    'qualification_executed.py.snapshot', 'restoration.diff', 'backup.py', 'close.py')
+for name in names:
+    path = RAW/name
+    target = execution/(name+'.snapshot' if path.suffix in ('.py', '.diff') else name)
+    if path.suffix == '.py' or name.endswith('.py.snapshot'):
+        compile(path.read_text(), str(path), 'exec')
+    with target.open('xb') as stream:
+        stream.write(path.read_bytes())
+    assert p.digest(target) == p.digest(path)
+doc = ROOT/'docs/ieee_tc/D855_ASYNC_REGRESSION_AND_ROLLBACK_20261026.md'
+save(OUT/'qualification_failure_record.json', dict(
+    phase='before_tests', kind='reuse_scope_mismatch',
+    explanation='D850 added request-lifecycle tests after D846; production and exact parent restoration matched. The first driver incorrectly required the newer test file to match the D846 test SHA.',
+    failed_driver=ref(RAW/'qualify.py'), corrected_driver=ref(RAW/'qualify_resume.py'),
+    original_test_sha='fcc75a085014332df32ea5ad93df934643fa3b4e20cd8a7fb606b28d8d613150',
+    retained_d850_test_sha='281f5d75480f4a69305c8f55b8630df2922002f8ecd1e12df1c6285c9e24321e',
+    evidence_origin='Observed tool exception and git history; not a captured subprocess stderr log.',
+    tests_started_in_failed_driver=False, production_modified_by_resume=False))
+save(OUT/'closure.json', dict(passed=True, kind='d855_offline_pair_and_exact_rollback_v1',
+    doc=ref(doc), restored=tests['restored'], user_protected=tests['user_protected'],
+    protected=tests['protected'], closed_tasks=closed, scope=identity,
+    targeted_tests=7, prior_full_run_reused=True, new_gpu_replays=0,
+    numerical_adapter_correctness_qualified=False, n_correct=None,
+    ranking_eligible=False, confidence_interval=None, final_v2_synced=False,
+    performance_candidate_accepted=False,
+    current_production='Exact pre-async parent d6d49942; D846 remains nonfeasible reference.',
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, closed_tasks=len(closed), restored_files=10,
+                     targeted_tests=7, new_gpu_replays=0, ranking_eligible=False)))

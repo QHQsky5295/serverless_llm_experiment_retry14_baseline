@@ -1,0 +1,220 @@
+{
+  "passed": true,
+  "runs": {
+    "reference": {
+      "n": 505,
+      "client": {
+        "headers_ms": {
+          "count": 505,
+          "mean": 3.372914352371256,
+          "p50_type1": 2.8264103457331657,
+          "p95_type1": 6.496638059616089
+        },
+        "reserve_receive_write_ms": {
+          "count": 505,
+          "mean": 254.72391038616695,
+          "p50_type1": 154.9375457689166,
+          "p95_type1": 1031.1452592723072
+        },
+        "before_extract_ms": {
+          "count": 505,
+          "mean": 0.14273770393268898,
+          "p50_type1": 0.0614621676504612,
+          "p95_type1": 0.21397601813077927
+        },
+        "extract_verify_ms": {
+          "count": 505,
+          "mean": 85.17810139841963,
+          "p50_type1": 62.580601777881384,
+          "p95_type1": 153.5340929403901
+        },
+        "file_publication_envelope_ms": {
+          "count": 505,
+          "mean": 352.5022680539232,
+          "p50_type1": 272.82203966751695,
+          "p95_type1": 1096.7582166194916
+        },
+        "after_publication_ms": {
+          "count": 505,
+          "mean": 114.90769392561795,
+          "p50_type1": 67.99650471657515,
+          "p95_type1": 347.8055400773883
+        },
+        "total_ms": {
+          "count": 505,
+          "mean": 810.8276258204316,
+          "p50_type1": 633.6026494391263,
+          "p95_type1": 1881.1289961449802
+        }
+      },
+      "server": {
+        "object_open_ms": {
+          "count": 505,
+          "mean": 0.05216002178217822,
+          "p50_type1": 0.05071,
+          "p95_type1": 0.072646
+        },
+        "object_read_ms": {
+          "count": 505,
+          "mean": 2.1241204772277227,
+          "p50_type1": 1.265087,
+          "p95_type1": 3.535823
+        },
+        "socket_write_ms": {
+          "count": 505,
+          "mean": 230.80050857227724,
+          "p50_type1": 131.063049,
+          "p95_type1": 1013.757025
+        },
+        "send_envelope_ms": {
+          "count": 505,
+          "mean": 232.95542224554455,
+          "p50_type1": 134.381261,
+          "p95_type1": 1017.00231
+        },
+        "handler_ms": {
+          "count": 505,
+          "mean": 233.4740792910891,
+          "p50_type1": 134.877178,
+          "p95_type1": 1017.521725
+        }
+      }
+    },
+    "candidate": {
+      "n": 505,
+      "client": {
+        "headers_ms": {
+          "count": 505,
+          "mean": 4.139179601748981,
+          "p50_type1": 2.838906366378069,
+          "p95_type1": 11.509109754115343
+        },
+        "reserve_receive_write_ms": {
+          "count": 505,
+          "mean": 277.12331726722937,
+          "p50_type1": 162.1652147732675,
+          "p95_type1": 1218.0570978671312
+        },
+        "before_extract_ms": {
+          "count": 505,
+          "mean": 0.19807358281594692,
+          "p50_type1": 0.057077035307884216,
+          "p95_type1": 0.3346940502524376
+        },
+        "extract_verify_ms": {
+          "count": 505,
+          "mean": 88.45314077645688,
+          "p50_type1": 69.10632317885756,
+          "p95_type1": 159.2755038291216
+        },
+        "file_publication_envelope_ms": {
+          "count": 505,
+          "mean": 379.1351664110576,
+          "p50_type1": 297.996680252254,
+          "p95_type1": 1332.979393657297
+        },
+        "after_publication_ms": {
+          "count": 505,
+          "mean": 151.9606718046609,
+          "p50_type1": 89.49662512168288,
+          "p95_type1": 392.68948417156935
+        },
+        "total_ms": {
+          "count": 505,
+          "mean": 901.0095494439696,
+          "p50_type1": 705.8148868381977,
+          "p95_type1": 2167.1998538076878
+        }
+      },
+      "server": {
+        "object_open_ms": {
+          "count": 505,
+          "mean": 0.059450164356435645,
+          "p50_type1": 0.057025,
+          "p95_type1": 0.082582
+        },
+        "object_read_ms": {
+          "count": 505,
+          "mean": 2.031397413861386,
+          "p50_type1": 1.140299,
+          "p95_type1": 3.651752
+        },
+        "socket_write_ms": {
+          "count": 505,
+          "mean": 241.97679860792078,
+          "p50_type1": 136.880518,
+          "p95_type1": 1172.587918
+        },
+        "send_envelope_ms": {
+          "count": 505,
+          "mean": 244.038593390099,
+          "p50_type1": 138.863528,
+          "p95_type1": 1173.706428
+        },
+        "handler_ms": {
+          "count": 505,
+          "mean": 244.5714108851485,
+          "p50_type1": 139.396745,
+          "p95_type1": 1174.224137
+        }
+      }
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d855_20261026/analyze.py",
+      "sha256": "f063fb16deb0d1e5fe3847db54c83339b9d358903af589fe926269d5715f264a",
+      "bytes": 6077
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/close.py",
+      "sha256": "0ec53a77ea026ab134a3d2e6aa9ea3c27f23c1decd445b9b0b3f7f848ab50544",
+      "bytes": 7232
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "3e654494827259d3d616ad9b3e1e13ad0dc9a5a3e4d7298feeba65f842bfe4d4",
+      "bytes": 45081
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/remote_client_projection.json",
+      "sha256": "cf6b9b3fb9b8f32e3b375891a8f703e57fe255d2eda51081550f7d1334f44b9a",
+      "bytes": 1879862
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/remote_transfers.jsonl",
+      "sha256": "5611dab511409f14757a0f9df7eb9b1bc38582f0d0b0749104f4963bfd040e8b",
+      "bytes": 422984
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d854_3b_async_file_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "f472524884c783274e4f919d893fecdf4577a4406cc06a183fe555ec9a203b44",
+      "bytes": 43338
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/remote_client_projection.json",
+      "sha256": "273ed4cb59dc442ac0e907db7a8205a8667b927e5d55182bd0155e8d708e5362",
+      "bytes": 1878112
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/remote_transfers.jsonl",
+      "sha256": "b681feef8a28d8003a6d41b91c7b101f0f16321541622b8ec9ae98d0f9a526eb",
+      "bytes": 423024
+    }
+  ],
+  "request_table": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d855_async_file_paired_diagnosis/transfers.csv",
+    "sha256": "b4bb6eb0bf45250d7f6ff878fafd158e6db848ec1eda10fd16696ab40180d405",
+    "bytes": 176019
+  },
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "limitations": [
+    "Unpaired transfer populations; identical counts do not establish identical request cohorts.",
+    "Client receive includes reservation/write; socket write includes possible backpressure.",
+    "Client/server spans overlap; no cross-host subtraction or quantile addition.",
+    "No removal of measured latency, counterfactual SLO, or causal threading attribution.",
+    "All 4000 request outcomes retained separately in the existing paired-stage audit."
+  ]
+}

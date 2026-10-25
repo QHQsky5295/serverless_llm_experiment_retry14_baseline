@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
-from contextlib import contextmanager, asynccontextmanager
+from contextlib import contextmanager
 from types import MappingProxyType
 
 from .gpu_monitor import GPUMemoryMonitor
@@ -288,56 +288,6 @@ class LocalSourceReferences:
         self._preparation_targets = None
         self.source_epoch = 0
 
-    async def call_async(self, operation, /, *args, on_result=None, **kwargs):
-        """Run one complete file-owner transaction outside the asyncio loop.
-
-        The original RLock still encloses the whole synchronous transaction,
-        including every fresh observation. This is not a cached owner view and
-        is not for network transfers or native worker operations. It uses the
-        existing service executor, not an unaccounted process/resource domain.
-
-        A cancelled caller joins the actual thread, even on repeated cancel.
-        ``on_result`` runs synchronously on the caller's event loop *before*
-        cancellation is propagated. Resource-acquiring callers must use it to
-        adopt the returned lease/registration into their existing cleanup owner;
-        otherwise cancellation could lose a successfully acquired resource.
-        Worker errors remain errors, including errors received after cancel.
-        Mutable operation inputs must be frozen by the caller before submission.
-        """
-        import inspect
-        if not callable(operation) or inspect.iscoroutinefunction(operation):
-            raise TypeError('file owner requires a synchronous transaction')
-        if on_result is not None and (not callable(on_result)
-                or inspect.iscoroutinefunction(on_result)):
-            raise TypeError('file owner result adoption must be synchronous')
-
-        def execute():
-            with self.lock:
-                value = operation(*args, **kwargs)
-                if inspect.isawaitable(value):
-                    if inspect.iscoroutine(value):
-                        value.close()
-                    raise TypeError('file owner transaction cannot return an awaitable')
-                return value
-
-        future = asyncio.get_running_loop().run_in_executor(None, execute)
-        interrupted = False
-        while not future.done():
-            try:
-                await asyncio.shield(future)
-            except asyncio.CancelledError:
-                interrupted = True
-        value = future.result()
-        if on_result is not None:
-            adopted = on_result(value)
-            if inspect.isawaitable(adopted):
-                if inspect.iscoroutine(adopted):
-                    adopted.close()
-                raise TypeError('file owner result adoption cannot return an awaitable')
-        if interrupted:
-            raise asyncio.CancelledError()
-        return value
-
     def subscribe_file_changes(self, subscriber_id, callback):
         """Callbacks only enqueue notifications; never perform IO under this lock."""
         with self.lock:
@@ -389,28 +339,6 @@ class LocalSourceReferences:
                 del self._file_movement_interests[intent_id]
                 if required:
                     self._file_changed((tier,))
-
-    @asynccontextmanager
-    async def async_file_movement_interest(self, *, intent_id, target, content_sha256, required):
-        """The same interest, with both owner transactions outside the loop.
-
-        file_movement_interest releases its lock before yielding. Do not use
-        this pattern for a context that holds a thread lock across its body.
-        A cancelled successful enter is adopted before cancellation propagates,
-        so the finally still performs the real exit; neither edge is abandoned.
-        """
-        interest = self.file_movement_interest(intent_id=intent_id, target=target,
-            content_sha256=content_sha256, required=required)
-        entered = False
-        def adopt(_):
-            nonlocal entered
-            entered = True
-        try:
-            await self.call_async(interest.__enter__, on_result=adopt)
-            yield
-        finally:
-            if entered:
-                await self.call_async(interest.__exit__, None, None, None)
 
     def replacement_source_snapshot(self):
         """Complete confirmed file view; not a snapshot of native tensor caches."""

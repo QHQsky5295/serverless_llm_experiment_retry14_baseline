@@ -1,0 +1,2301 @@
+diff --git a/faaslora/memory/residency_manager.py b/faaslora/memory/residency_manager.py
+index 3a05791a..99b6b333 100644
+--- a/faaslora/memory/residency_manager.py
++++ b/faaslora/memory/residency_manager.py
+@@ -21,7 +21,7 @@ from pathlib import Path
+ from typing import Dict, List, Optional, Set, Tuple, Any
+ from dataclasses import dataclass
+ from enum import Enum
+-from contextlib import contextmanager, asynccontextmanager
++from contextlib import contextmanager
+ from types import MappingProxyType
+ 
+ from .gpu_monitor import GPUMemoryMonitor
+@@ -288,56 +288,6 @@ class LocalSourceReferences:
+         self._preparation_targets = None
+         self.source_epoch = 0
+ 
+-    async def call_async(self, operation, /, *args, on_result=None, **kwargs):
+-        """Run one complete file-owner transaction outside the asyncio loop.
+-
+-        The original RLock still encloses the whole synchronous transaction,
+-        including every fresh observation. This is not a cached owner view and
+-        is not for network transfers or native worker operations. It uses the
+-        existing service executor, not an unaccounted process/resource domain.
+-
+-        A cancelled caller joins the actual thread, even on repeated cancel.
+-        ``on_result`` runs synchronously on the caller's event loop *before*
+-        cancellation is propagated. Resource-acquiring callers must use it to
+-        adopt the returned lease/registration into their existing cleanup owner;
+-        otherwise cancellation could lose a successfully acquired resource.
+-        Worker errors remain errors, including errors received after cancel.
+-        Mutable operation inputs must be frozen by the caller before submission.
+-        """
+-        import inspect
+-        if not callable(operation) or inspect.iscoroutinefunction(operation):
+-            raise TypeError('file owner requires a synchronous transaction')
+-        if on_result is not None and (not callable(on_result)
+-                or inspect.iscoroutinefunction(on_result)):
+-            raise TypeError('file owner result adoption must be synchronous')
+-
+-        def execute():
+-            with self.lock:
+-                value = operation(*args, **kwargs)
+-                if inspect.isawaitable(value):
+-                    if inspect.iscoroutine(value):
+-                        value.close()
+-                    raise TypeError('file owner transaction cannot return an awaitable')
+-                return value
+-
+-        future = asyncio.get_running_loop().run_in_executor(None, execute)
+-        interrupted = False
+-        while not future.done():
+-            try:
+-                await asyncio.shield(future)
+-            except asyncio.CancelledError:
+-                interrupted = True
+-        value = future.result()
+-        if on_result is not None:
+-            adopted = on_result(value)
+-            if inspect.isawaitable(adopted):
+-                if inspect.iscoroutine(adopted):
+-                    adopted.close()
+-                raise TypeError('file owner result adoption cannot return an awaitable')
+-        if interrupted:
+-            raise asyncio.CancelledError()
+-        return value
+-
+     def subscribe_file_changes(self, subscriber_id, callback):
+         """Callbacks only enqueue notifications; never perform IO under this lock."""
+         with self.lock:
+@@ -390,28 +340,6 @@ class LocalSourceReferences:
+                 if required:
+                     self._file_changed((tier,))
+ 
+-    @asynccontextmanager
+-    async def async_file_movement_interest(self, *, intent_id, target, content_sha256, required):
+-        """The same interest, with both owner transactions outside the loop.
+-
+-        file_movement_interest releases its lock before yielding. Do not use
+-        this pattern for a context that holds a thread lock across its body.
+-        A cancelled successful enter is adopted before cancellation propagates,
+-        so the finally still performs the real exit; neither edge is abandoned.
+-        """
+-        interest = self.file_movement_interest(intent_id=intent_id, target=target,
+-            content_sha256=content_sha256, required=required)
+-        entered = False
+-        def adopt(_):
+-            nonlocal entered
+-            entered = True
+-        try:
+-            await self.call_async(interest.__enter__, on_result=adopt)
+-            yield
+-        finally:
+-            if entered:
+-                await self.call_async(interest.__exit__, None, None, None)
+-
+     def replacement_source_snapshot(self):
+         """Complete confirmed file view; not a snapshot of native tensor caches."""
+         with self.lock:
+diff --git a/faaslora/preloading/preloading_manager.py b/faaslora/preloading/preloading_manager.py
+index ceaa188e..73dfbaac 100644
+--- a/faaslora/preloading/preloading_manager.py
++++ b/faaslora/preloading/preloading_manager.py
+@@ -15,7 +15,6 @@ from typing import Dict, List, Optional, Any, Callable
+ from dataclasses import dataclass
+ from enum import Enum
+ from collections import deque
+-from contextlib import contextmanager
+ 
+ from .preloading_planner import PreloadingPlanner, PreloadingPlanResult, PreparationPlanSuperseded
+ from ..registry.schema import StorageTier, PreloadingPlan, ArtifactStatus
+@@ -53,7 +52,6 @@ class OwnedMovementQueue:
+         self._loop = None
+         self._jobs, self._keys, self._intents = {}, {}, {}
+         self._revision = {}
+-        self._target_start_holds = {}
+         self._closed = False
+ 
+     def _bind(self):
+@@ -122,8 +120,7 @@ class OwnedMovementQueue:
+             return
+         running = sum(j['state'] == 'executing' for j in self._keys.values())
+         candidates = [j for j in self._keys.values() if j['state'] == 'pending'
+-                      and j['ready'] and j['intents']
+-                      and j['key'] not in self._target_start_holds]
++                      and j['ready'] and j['intents']]
+         def order(j):
+             intents = tuple(j['intents'].values())
+             return (not any(i['demand'] for i in intents), -max(i['density'] for i in intents),
+@@ -299,41 +296,6 @@ class OwnedMovementQueue:
+         self._bind()
+         return await asyncio.shield(self._intents[intent_id]['future'])
+ 
+-    @staticmethod
+-    def _target_keys(keys):
+-        keys = tuple(keys)
+-        if any(not isinstance(key, tuple) or len(key) != 4
+-               or any(not isinstance(value, str) or not value for value in key)
+-               or key[1] not in ('gpu', 'host', 'nvme') for key in keys):
+-            raise ValueError('target join requires exact physical owner/tier/content keys')
+-        return tuple(dict.fromkeys(keys))
+-
+-    @contextmanager
+-    def hold_target_starts(self, keys):
+-        """Keep join -> async owner close atomic against new target writers.
+-
+-        This loop-owned hold admits submissions and subscriptions and never
+-        cancels an executing operation. Only new starts for these exact keys
+-        wait; unrelated work retains the usual concurrency/demand/density order.
+-        The caller must join existing operations and settle the real owner close
+-        before leaving, including on cancellation. Nested/overlapping closures
+-        release only their own holds. No owner lock spans an await here.
+-        """
+-        self._bind()
+-        keys = self._target_keys(keys)
+-        for key in keys:
+-            self._target_start_holds[key] = self._target_start_holds.get(key, 0) + 1
+-        try:
+-            yield
+-        finally:
+-            for key in keys:
+-                remaining = self._target_start_holds[key] - 1
+-                if remaining:
+-                    self._target_start_holds[key] = remaining
+-                else:
+-                    del self._target_start_holds[key]
+-            self._pump()
+-
+     async def join_target_operations(self, keys):
+         """Join already executing physical targets, without subscribing to them.
+ 
+@@ -341,11 +303,14 @@ class OwnedMovementQueue:
+         request writes one of its protected targets. Its pending protection must
+         survive that writer too. Pending/deferred jobs own no active IO and are
+         not awakened here. Re-observe after each actual task completion; the
+-        caller must close the physical owner's plan without another await, or
+-        hold_target_starts across both this join and the settled async close.
++        caller must close the physical owner's plan without another await.
+         """
+         self._bind()
+-        keys = self._target_keys(keys)
++        keys = tuple(keys)
++        if any(not isinstance(key, tuple) or len(key) != 4
++               or any(not isinstance(value, str) or not value for value in key)
++               or key[1] not in ('gpu', 'host', 'nvme') for key in keys):
++            raise ValueError('target join requires exact physical owner/tier/content keys')
+         joined = {}
+         while True:
+             jobs = [self._keys[key] for key in keys if key in self._keys
+diff --git a/faaslora/scheduling/resource_coordinator.py b/faaslora/scheduling/resource_coordinator.py
+index b6c3a48b..5dbcbc71 100644
+--- a/faaslora/scheduling/resource_coordinator.py
++++ b/faaslora/scheduling/resource_coordinator.py
+@@ -9,7 +9,6 @@ allocation and preemption remain the backend's authority.
+ import asyncio
+ import contextvars
+ import hashlib
+-import inspect
+ import json
+ import math
+ import os
+@@ -446,9 +445,7 @@ class SharedFileTransferDomain:
+             # protect/use the verified output while this SAME owned operation
+             # settles conservative pressure acknowledgements in its finally.
+             if on_io_joined is not None:
+-                notification = on_io_joined(result)
+-                if inspect.isawaitable(notification):
+-                    await notification
++                on_io_joined(result)
+             return result
+         except BaseException as exc:
+             if isinstance(exc, UnresolvedTransferOperation):
+@@ -457,13 +454,7 @@ class SharedFileTransferDomain:
+                               operation_error_type=type(exc).__name__)
+             else:
+                 record.update(operation_outcome='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+-                              operation_error_type=type(exc).__name__)
+-                if 'io_joined_at' in record:
+-                    # A post-IO observer failure is still a failed operation,
+-                    # but must not move the actual IO settlement boundary.
+-                    record['notification_failed_at'] = time.monotonic()
+-                else:
+-                    record['io_joined_at'] = time.monotonic()
++                              operation_error_type=type(exc).__name__, io_joined_at=time.monotonic())
+             if isinstance(exc, asyncio.CancelledError):
+                 record['caller_cancelled'] = True
+             raise
+diff --git a/scripts/run_all_experiments.py b/scripts/run_all_experiments.py
+index 4e3ed895..8164767e 100755
+--- a/scripts/run_all_experiments.py
++++ b/scripts/run_all_experiments.py
+@@ -9601,9 +9601,8 @@ class ScenarioRunner:
+         """Commit received source and live controller state before target selection.
+ 
+         RPCs collect native observations without pinning candidates. After the
+-        last await, received native/file observations, live counts, profile
+-        estimates and membership form one controller view. Selection/reservation
+-        follows without yielding;
++        last await, file-source, counts, profile estimates and membership form one
++        received controller view. Selection/reservation follows without yielding;
+         selected-copy revalidation remains a separate required transaction.
+         """
+         from faaslora.experiment.instance_pool import (
+@@ -9621,11 +9620,7 @@ class ScenarioRunner:
+         else:
+             collector = self._ieee_collect_native_sources
+         observations, collection = await collector(slots, requested_adapter_ids=requested_ids)
+-        adapter_id = trace.adapter_id
+-        files = (await owner.call_async(owner.source_snapshot, adapter_id)
+-                 if observations is not None and adapter_id else None)
+-        # Recheck after BOTH native and file observation. A file read must not
+-        # open a yield between the whole-view validation and target reservation.
++        # Scale-up/removal during RPC collection is not a complete current view.
+         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
+                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+             stats = self._ieee_source_observation_stats
+@@ -9654,6 +9649,8 @@ class ScenarioRunner:
+                 slot.native_device_uuid = device_uuid
+             if index not in reused_indexes:
+                 self._ieee_publish_identity_frontier(slot, state)
++        adapter_id = trace.adapter_id
++        files = owner.source_snapshot(adapter_id) if adapter_id else None
+         if files is not None:
+             captured = files.get('captured_monotonic_s')
+             if (type(captured) not in (int, float) or not math.isfinite(captured)
+@@ -14043,7 +14040,7 @@ class ScenarioRunner:
+         await self._refresh_ieee_deferred_host_capacity()
+         # NoHandoff disables only the activating-replica path, not this ready
+         # steady-state path. Existing in-flight plans keep their immutable epoch.
+-        await self._schedule_ieee_residency_epochs()
++        self._schedule_ieee_residency_epochs()
+         return changed
+ 
+     async def _refresh_ieee_deferred_host_capacity(self):
+@@ -14111,7 +14108,7 @@ class ScenarioRunner:
+                 del tasks[key]
+                 task.result()  # A failed epoch is evidence, not a swallowed warning/retry.
+ 
+-    async def _schedule_ieee_residency_epochs(self):
++    def _schedule_ieee_residency_epochs(self):
+         if not self._hierarchical_residency_enabled:
+             return
+         if not hasattr(self, '_ieee_residency_tasks'):
+@@ -14130,7 +14127,6 @@ class ScenarioRunner:
+             active_engines.add(key)
+         if not eligible:
+             return
+-        observed_engines = {id(slot): slot.engine for slot in eligible}
+         policy = getattr(self, 'coord_cfg', {}).get('ieee_residency_file_observation')
+         if policy not in (None, 'control_round_v1'):
+             raise ValueError('unknown residency file observation policy')
+@@ -14144,26 +14140,12 @@ class ScenarioRunner:
+             # carried into a later round. This is a planning observation, NOT
+             # an atomic cross-owner snapshot, source lease or byte reservation.
+             started = time.monotonic()
+-            shared_files = await self._ieee_preparation_file_snapshot()
++            shared_files = self._ieee_preparation_file_snapshot()
+             observation = dict(round_id=uuid.uuid4().hex,
+                 owner_id=shared_files['owner_id'], epoch=shared_files['epoch'],
+                 captured_at=shared_files['captured_at'], started_at=started,
+                 elapsed_ms=1000*(time.monotonic()-started), replicas=len(eligible),
+                 physical_resources_reserved=False)
+-        # File-owner IO may yield. Retiring/replaced replicas or a concurrent
+-        # control round must not acquire another epoch from this observation.
+-        # Validate and register without yielding; new replicas join next round.
+-        live_slots = {id(slot): slot for slot in self.instance_pool.get_slots()}
+-        active_engines = {id(engine) for task, engine in (
+-            getattr(self, '_ieee_file_plan_engines', {}) |
+-            getattr(self, '_ieee_gpu_plan_engines', {})).items() if not task.done()}
+-        eligible = [slot for slot in eligible
+-            if live_slots.get(id(slot)) is slot
+-            and slot.engine is observed_engines[id(slot)]
+-            and id(slot.engine) not in self._ieee_residency_tasks
+-            and id(slot.engine) not in active_engines]
+-        if observation is not None:
+-            observation['replicas'] = len(eligible)
+         for slot in eligible:
+             key = id(slot.engine)
+             record = dict(target_replica=slot.instance_id, state='planning', trigger_reason='residency',
+@@ -14741,8 +14723,8 @@ class ScenarioRunner:
+                 allocation = getattr(slot.engine, '_physical_allocation', None)
+                 if allocation is None or allocation.released is not True:
+                     raise RuntimeError('runtime cleanup requires confirmed physical release')
+-            await self._retire_ieee_host_budget(slot.engine)
+-            await self._settle_exited_runtime_reservations(slot)
++            self._retire_ieee_host_budget(slot.engine)
++            self._settle_exited_runtime_reservations(slot)
+         self._sync_stack_gpu_accounting()
+         await self._notify_dispatch_capacity_changed(wake_all=True)
+         if residency_failure is not None:
+@@ -14868,9 +14850,8 @@ class ScenarioRunner:
+             await preloading.ieee_movements.close()
+         binding = getattr(self, '_ieee_file_change_binding', None)
+         if binding is not None:
+-            files = self._stack.residency_manager.local_source_references
+-            await files.call_async(files.unsubscribe_file_changes, binding[0],
+-                on_result=lambda _: setattr(self, '_ieee_file_change_binding', None))
++            self._stack.residency_manager.local_source_references.unsubscribe_file_changes(binding[0])
++            self._ieee_file_change_binding = None
+         tasks = list(getattr(self, "_pending_scale_up_tasks", set()) or [])
+         for task in tasks:
+             if task is not None and not task.done():
+@@ -15050,7 +15031,7 @@ class ScenarioRunner:
+                     await domain.retire(new_engine)
+             finally:
+                 await new_engine.shutdown()
+-                await self._retire_ieee_host_budget(new_engine)
++                self._retire_ieee_host_budget(new_engine)
+             raise
+         runtime_startup_latency_ms = max(
+             0.0,
+@@ -15211,8 +15192,9 @@ class ScenarioRunner:
+         layout = profiles.activation_layout()
+         activation_id = 'ieee-activation-' + uuid.uuid4().hex
+         files = self._stack.residency_manager.local_source_references
+-        host_limit = self.model_cfg['ieee_host_budget_bytes']
+-        native_limit = self.model_cfg['ieee_native_host_tensor_budget_bytes']
++        files.configure_host_budget(self.model_cfg['ieee_host_budget_bytes'])
++        files.reserve_activation_host(activation_id=activation_id,
++            limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
+         record = dict(activation_id=activation_id, target_replica=activation_id,
+             category=activation_kind, policy=policy, trigger_at=time.monotonic(),
+             clock_id=local_monotonic_clock_id(), state='planning', plan_sha256=None)
+@@ -15247,14 +15229,13 @@ class ScenarioRunner:
+             self._ieee_file_plan_engines.pop(task, None)
+ 
+         try:
+-            await files.call_async(files.configure_host_budget, host_limit,
+-                on_result=lambda _: record.update(host_budget_configured=True))
+-            await files.call_async(files.reserve_activation_host, activation_id=activation_id,
+-                limit_bytes=native_limit,
+-                on_result=lambda _: record.update(host_allowance_reserved=True))
+             plan = None
+             if policy != 'no_handoff':
+-                view = await self._ieee_preparation_file_snapshot()
++                manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
++                manager = self._stack.residency_manager
++                view = files.preparation_snapshot(manifests=manifests,
++                    limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
++                            for tier in files.roots})
+                 plan = await self._stack.plan_ieee_owned_preparation_async(mode='handoff', native_snapshot=None,
+                     file_snapshot=view, identities=self._ieee_artifact_identities,
+                     adapter_int_ids={a: InferenceEngine._lora_int_id(a) for a in self._ieee_artifact_identities},
+@@ -15333,16 +15314,13 @@ class ScenarioRunner:
+                 if member is not None and member['state'] == 'attached':
+                     await settle(domain.retire(engine))
+                 await settle(engine.shutdown())
+-                await settle(self._retire_ieee_host_budget(engine))
++                self._retire_ieee_host_budget(engine)
+                 if published:
+                     self.instance_pool.remove_instance(activation_id)
+             # Unadopted bytes never enabled native adapter allocation. Startup
+             # and file readers above have joined; adopted bytes use pidfd only.
+-            if record.get('host_budget_configured'):
+-                def release_unadopted():
+-                    if activation_id in files.host_budget_snapshot()['activation_reservations']:
+-                        return files.cancel_activation_host(activation_id=activation_id)
+-                await settle(files.call_async(release_unadopted))
++            if activation_id in files.host_budget_snapshot()['activation_reservations']:
++                files.cancel_activation_host(activation_id=activation_id)
+             raise
+ 
+     def _handle_pending_scale_up_task_done(self, task: asyncio.Task) -> None:
+@@ -17602,10 +17580,10 @@ class ScenarioRunner:
+             # Protect physical input before the first cancellable native RPC.
+             # This is a read reference, not a claim of confirmed dispatch tier.
+             local_owner = self._stack.residency_manager
+-            await local_owner.local_source_references.call_async(
+-                local_owner.acquire_local_source, path=local_path,
+-                adapter_id=adapter_id, lease_id=uuid.uuid4().hex,
+-                on_result=lambda value: self._adopt_runtime_local_source(reservation, local_owner, value))
++            source_reference = local_owner.acquire_local_source(
++                path=local_path, adapter_id=adapter_id, lease_id=uuid.uuid4().hex)
++            reservation.local_source_owner = local_owner
++            reservation.gpu_reference_evidence['local_source_reference'] = source_reference
+         clock_id = local_monotonic_clock_id()
+         def validate_snapshot(value):
+             if (not isinstance(value, dict) or value.get('clock_id') != clock_id
+@@ -17731,9 +17709,8 @@ class ScenarioRunner:
+                     or reference.get('adapter_id') != adapter_id
+                     or reference.get('path') != local_path):
+                 raise ValueError('atomic file demand requires the selected owned file source')
+-            files = local_owner.local_source_references
+-            intent['file_source_witness'] = await files.call_async(files.demand_witness,
+-                copy.deepcopy(reference), content_sha256=intent.get('expected_content_sha256'))
++            intent['file_source_witness'] = local_owner.local_source_references.demand_witness(
++                reference, content_sha256=intent.get('expected_content_sha256'))
+         if cached_only:
+             intent['required_source_tier'] = selected_source.tier
+         if guarded_source is not None:
+@@ -17898,7 +17875,7 @@ class ScenarioRunner:
+                     reference['protected_until_native_acquisition'] = {
+                         key: receipt[key] for key in ('owner_id', 'lease_id', 'lora_path',
+                             'clock_id', 'acquired_monotonic_s')}
+-                await self._release_runtime_local_source(reservation)
++                self._release_runtime_local_source(reservation)
+                 return receipt
+             evidence['last_conflict'] = dict(receipt)
+             if receipt.get('reason') == 'native_host_tensor_budget':
+@@ -18142,21 +18119,20 @@ class ScenarioRunner:
+         elif source['tier'] in ('host', 'nvme'):
+             manager = self._stack.residency_manager
+             try:
+-                files = manager.local_source_references
+-                await files.call_async(files.acquire_confirmed,
++                reference = manager.local_source_references.acquire_confirmed(
+                     path=source['path'], adapter_id=reservation.adapter_id,
+                     lease_id=uuid.uuid4().hex, expected_owner_id=source['owner_id'],
+-                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'],
+-                    on_result=lambda value: self._adopt_runtime_local_source(reservation, manager, value))
++                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'])
+             except ConfirmedSourceConflict as exc:
+                 evidence['file_source_conflict'] = str(exc)
+                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
+                 return False
++            reservation.local_source_owner = manager
++            evidence['local_source_reference'] = reference
+         elif source['tier'] == 'remote':
+             # No local copy is borrowed. Do not turn an intervening completed
+             # file publication into a request classified as a Remote miss.
+-            files = self._stack.residency_manager.local_source_references
+-            current = await files.call_async(files.source_snapshot, reservation.adapter_id)
++            current = self._stack.residency_manager.local_source_references.source_snapshot(reservation.adapter_id)
+             if current['owner_id'] != source['owner_id'] or current['epoch'] != source['epoch']:
+                 evidence['file_source_conflict'] = 'Remote source view changed before admission'
+                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
+@@ -18263,19 +18239,12 @@ class ScenarioRunner:
+             reservation.ieee_load_pending = False
+ 
+     @staticmethod
+-    def _adopt_runtime_local_source(reservation, manager, reference):
+-        # Resource adoption precedes cancellation propagation from call_async.
+-        reservation.local_source_owner = manager
+-        reservation.gpu_reference_evidence['local_source_reference'] = reference
+-
+-    @staticmethod
+-    async def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
++    def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
+         reference = reservation.gpu_reference_evidence.get('local_source_reference')
+         if reference is not None and reference['state'] == 'held':
+-            manager = reservation.local_source_owner
+-            await manager.local_source_references.call_async(manager.release_local_source,
+-                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'],
+-                on_result=lambda _: reference.update(state='released'))
++            reservation.local_source_owner.release_local_source(
++                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
++            reference['state'] = 'released'
+ 
+     @staticmethod
+     async def _settle_runtime_file_preparation(reservation, *, cancel=False):
+@@ -18463,7 +18432,7 @@ class ScenarioRunner:
+                 entry['control_event']['outcome'] = 'retirement_'+record['state']
+             raise
+ 
+-    async def _settle_exited_runtime_reservations(self, slot) -> None:
++    def _settle_exited_runtime_reservations(self, slot) -> None:
+         reservations = [r for r in getattr(self, '_unsettled_runtime_reservations', {}).values()
+                         if r.slot is slot and not r.released]
+         if not reservations:
+@@ -18487,7 +18456,6 @@ class ScenarioRunner:
+             pending = reservation.ieee_pending_admission
+             if pending is not None and pending['state'] != 'closed':
+                 pending['state'] = 'retired_with_runtime'
+-            await self._release_runtime_local_source(reservation)
+             self._release_runtime_controller_accounting(reservation, native_outcome='runtime_exited')
+ 
+     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
+@@ -18562,7 +18530,6 @@ class ScenarioRunner:
+                 raise
+         try:
+             await self._release_ieee_host_source(reservation)
+-            await self._release_runtime_local_source(reservation)
+         except BaseException:
+             self._retain_runtime_request_reservation(reservation)
+             raise
+@@ -18577,8 +18544,7 @@ class ScenarioRunner:
+         if reservation.released:
+             return
+         slot = reservation.slot
+-        if reservation.gpu_reference_evidence.get('local_source_reference', {}).get('state') == 'held':
+-            raise RuntimeError('controller release requires the actual file lease release first')
++        self._release_runtime_local_source(reservation)
+         self._settle_native_reference_intent(reservation, 'gpu', native_outcome)
+         self._settle_native_reference_intent(reservation, 'host', native_outcome)
+         self._complete_ieee_pending_load(reservation)
+@@ -19646,16 +19612,15 @@ class ScenarioRunner:
+                 raise ValueError('GPU preparation acknowledgement owner/clock differs')
+             return value
+         source_feedback = {}
+-        async def checked_binding_conflict(observed):
++        def checked_binding_conflict(observed):
+             conflict = native_preparation_source_conflict(frozen=frozen, observed=observed,
+                                                         binding_targets=targets)
+             references = self._stack.residency_manager.local_source_references
+-            identities = copy.deepcopy(self._ieee_artifact_identities)
+-            def confirm_copies():
+-                confirmations = []
++            confirmations = []
++            with references.lock:
+                 for change in conflict['changed_source_bindings']:
+                     aid, name = change['adapter_int_id'], change['adapter_id']
+-                    identity = identities[name]
++                    identity = self._ieee_artifact_identities[name]
+                     content = (rows[aid]['content_sha256'] if mixed else
+                         rows[aid]['host_class']['layout_id'].removeprefix('exact_content_sha256:'))
+                     if (InferenceEngine._lora_int_id(name) != aid
+@@ -19668,8 +19633,7 @@ class ScenarioRunner:
+                         expected_path=change['expected_lora_path'], observed_path=change['observed_lora_path'])
+                     confirmations.append(dict(adapter_id=name, content_sha256=content,
+                         file_owner_id=references.owner_id, file_epoch=files['epoch'], confirmed_files=copies))
+-                return confirmations
+-            return conflict, await references.call_async(confirm_copies)
++            return conflict, confirmations
+         async def execute(aid, attempt_id):
+             row = rows[aid]
+             evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
+@@ -19696,7 +19660,7 @@ class ScenarioRunner:
+                 evidence.update(state='source_identity_conflict', expected_source=dict(
+                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
+                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
+-                await self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
++                self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
+                     adapter_id=row['adapter_id'], source_path=row['lora_path'],
+                     plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
+             cpu_ids = set(current['registered_cpu_adapter_ids'])
+@@ -19706,7 +19670,7 @@ class ScenarioRunner:
+                     and (r.get('adapter_id') != rows[r['adapter_int_id']]['adapter_id']
+                          or r.get('content_sha256') != rows[r['adapter_int_id']].get('content_sha256'))
+                     for r in current['sources'])):
+-                conflict, copies = await checked_binding_conflict(current)
++                conflict, copies = checked_binding_conflict(current)
+                 evidence.update(state='superseded', prepare_rpc_submitted=False, binding_confirmations=copies)
+                 raise PreparationPlanSuperseded(dict(plan_id=plan_id,
+                     plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective_binding')
+@@ -19725,12 +19689,11 @@ class ScenarioRunner:
+             file_holds, file_fallbacks = [], {}
+             if staged is not None:
+                 references = self._stack.residency_manager.local_source_references
+-                def acquire_fallbacks():
+-                    acquired, fallbacks = [], {}
++                try:
+                     # Hold each actual fastest remaining file copy before the
+                     # native transaction. No predicted path or stale snapshot
+                     # is used as a fallback after CPU/GPU reclamation.
+-                    try:
++                    with references.lock:
+                         for registered_aid in current['registered_cpu_adapter_ids']:
+                             victim = rows[registered_aid]
+                             view = references.source_snapshot(victim['adapter_id'])
+@@ -19741,7 +19704,7 @@ class ScenarioRunner:
+                                     adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
+                                     expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                                     expected_content_sha256=victim['content_sha256'])
+-                                acquired.append(held)
++                                file_holds.append(held)
+                                 # The read pin revalidates this copy and may
+                                 # refresh its bounded physical allocation. Bind
+                                 # all fallback fields to that single confirmed
+@@ -19751,25 +19714,10 @@ class ScenarioRunner:
+                                                 footprint_bytes=confirmed['allocated_file_bytes'])
+                             else:
+                                 fallback, held = victim['remote_fallback'], None
+-                            fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
+-                    except BaseException:
+-                        for held in acquired:
+-                            references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+-                        raise
+-                    return acquired, fallbacks
+-                def adopt_fallbacks(value):
+-                    file_holds.extend(value[0])
+-                    file_fallbacks.update(value[1])
+-                def release_fallbacks():
++                            file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
++                except BaseException:
+                     for held in file_holds:
+                         references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+-                try:
+-                    await references.call_async(acquire_fallbacks, on_result=adopt_fallbacks)
+-                except BaseException:
+-                    # Cancellation can arrive after successful acquisition but
+-                    # before any native call. Release the adopted real pins.
+-                    if file_holds:
+-                        await settle(references.call_async(release_fallbacks))
+                     raise
+             evidence['host_file_fallbacks'] = file_fallbacks
+             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
+@@ -19794,9 +19742,7 @@ class ScenarioRunner:
+                             or receipt['source_observation'].get('epoch') != receipt['epoch']):
+                         raise ValueError('GPU objective rejection does not match its submitted command')
+                     if receipt['reason'] == 'preparation_source_binding_changed':
+-                        (conflict, copies), interrupted = await settle(
+-                            checked_binding_conflict(receipt['source_observation']))
+-                        cancelled |= interrupted
++                        conflict, copies = checked_binding_conflict(receipt['source_observation'])
+                         if (receipt.get('native_operation_applied') is not False
+                                 or receipt.get('changed_source_bindings') != conflict['changed_source_bindings']):
+                             raise ValueError('GPU binding rejection lacks its matching no-operation witness')
+@@ -19809,9 +19755,8 @@ class ScenarioRunner:
+                 # The RPC may still be reclaiming against these exact copies.
+                 # Retain unknown ownership; do not make them evictable.
+                 raise
+-            if file_holds:
+-                _, interrupted = await settle(references.call_async(release_fallbacks))
+-                cancelled |= interrupted
++            for held in file_holds:
++                references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+             evidence['host_file_fallbacks_released'] = True
+             evidence['receipt'] = receipt
+             if receipt.get('acquired') is True:
+@@ -19961,28 +19906,27 @@ class ScenarioRunner:
+             if cleanup_cancelled or cancelled:
+                 raise asyncio.CancelledError()
+ 
+-    async def _supersede_ieee_native_file_copy(self, *, observed, owner_id, adapter_id,
++    def _supersede_ieee_native_file_copy(self, *, observed, owner_id, adapter_id,
+             source_path, plan_id, stage, record):
+         """A different verified origin expires a physical plan, never relabels it."""
+         from faaslora.preloading.preloading_planner import (
+             supersede_confirmed_native_file_copy, PreparationPlanSuperseded)
+         references = self._stack.residency_manager.local_source_references
+-        identity = copy.deepcopy(self._ieee_artifact_identities[adapter_id])
++        identity = self._ieee_artifact_identities[adapter_id]
+         # Read both publications through their real owner, not directory names.
+         # Nothing is acquired or mutated; no stale file evidence authorizes IO.
+-        def confirm_copy():
++        with references.lock:
+             files = references.source_snapshot(adapter_id)
+-            supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
+-                adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
+-                lora_path=str(source_path), expected_rank=identity['rank'],
+-                content_sha256=identity['content_sha256'], files=files,
+-                file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
+-        try:
+-            await references.call_async(confirm_copy)
+-        except PreparationPlanSuperseded as exc:
+-            record.update(state='superseded', preparation_supersession=dict(
+-                stage=exc.stage, receipt=exc.receipt))
+-            raise
++            try:
++                supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
++                    adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
++                    lora_path=str(source_path), expected_rank=identity['rank'],
++                    content_sha256=identity['content_sha256'], files=files,
++                    file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
++            except PreparationPlanSuperseded as exc:
++                record.update(state='superseded', preparation_supersession=dict(
++                    stage=exc.stage, receipt=exc.receipt))
++                raise
+ 
+     async def _queue_ieee_native_host_preparation(self, *, slot, adapter_id, source_path,
+             trigger_reason, plan_id, activation_id=None, density=0.):
+@@ -20054,7 +19998,7 @@ class ScenarioRunner:
+                 record['source_identity_conflict'] = dict(attempt_id=attempt_id,
+                     expected_source=dict(adapter_id=adapter_id, lora_path=str(source_path)),
+                     observed_source=copy.deepcopy(native), observed_epoch=observed['epoch'])
+-                await self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
++                self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
+                     adapter_id=adapter_id, source_path=source_path, plan_id=plan_id,
+                     stage='native_target_copy', record=record)
+             if native is not None and native['gpu_slot'] is not None:
+@@ -20064,32 +20008,16 @@ class ScenarioRunner:
+             # the same owner lock, then release the lock before any native RPC.
+             # Routing's independently selected stale-snapshot rejection remains
+             # strict; this is the preparation path's current-source acquisition.
+-            def acquire_source():
++            with references.lock:
+                 state = references.source_snapshot(adapter_id)
+                 source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
+                 if source is None or source['content_sha256'] != content:
+                     raise ValueError('native HOST preparation has no matching confirmed file source')
+-                return references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
++                file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                     lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
+                     expected_epoch=state['epoch'], expected_content_sha256=content)
+-            file_ref = None
+-            evidence = dict(attempt_id=attempt_id, state='acquiring_file')
++            evidence = dict(attempt_id=attempt_id, file_reference=file_ref, state='file_held')
+             record['attempts'].append(evidence)
+-            def adopt_source(value):
+-                nonlocal file_ref
+-                file_ref = value
+-                evidence.update(file_reference=value, state='file_held')
+-            async def release_source():
+-                await references.call_async(references.release,
+-                    lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'],
+-                    on_result=lambda _: evidence.update(file_reference_released=True))
+-            try:
+-                await references.call_async(acquire_source, on_result=adopt_source)
+-            except BaseException:
+-                if file_ref is not None:
+-                    await settle(release_source())
+-                raise
+-            source = file_ref['confirmed_source']
+             known = True
+             async def materialize():
+                 nonlocal known
+@@ -20135,7 +20063,8 @@ class ScenarioRunner:
+                 return await self._run_ieee_file_transfer(adapter_id, source['tier'], 'native_host', engine, owned_materialize)
+             finally:
+                 if known:
+-                    await release_source()
++                    references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
++                    evidence['file_reference_released'] = True
+                 else:
+                     # Lost replies can still have a reader/pin. The failed run
+                     # retains ownership, rather than evicting an in-use file.
+@@ -20169,15 +20098,11 @@ class ScenarioRunner:
+             if cancelled:
+                 raise asyncio.CancelledError()
+ 
+-    async def _ieee_preparation_file_snapshot(self):
++    def _ieee_preparation_file_snapshot(self):
+         """One fresh complete observation of the shared physical file owner."""
+         manager = self._stack.residency_manager
+         manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
+-        files = manager.local_source_references
+-        # The client returns detached FrozenPreparationDescriptions, including
+-        # immutable nested file records. Share it as designed, not a mutable
+-        # dict or a deepcopy of its non-pickleable mapping proxies.
+-        return await files.call_async(files.preparation_snapshot, manifests=manifests,
++        return manager.local_source_references.preparation_snapshot(manifests=manifests,
+             limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
+                     for tier in manager.local_source_references.roots})
+ 
+@@ -20205,7 +20130,7 @@ class ScenarioRunner:
+         # Physical execution/deferred-capacity checks keep their full reports.
+         observed_engine = slot.engine
+         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
+-        files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
++        files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+         plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
+             file_snapshot=files, identities=self._ieee_artifact_identities,
+             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
+@@ -20549,7 +20474,7 @@ class ScenarioRunner:
+         if replacement_costs is not None:
+             from faaslora.preloading.preloading_planner import freeze_file_replacement_epoch
+             replacement_epoch = freeze_file_replacement_epoch(
+-                file_snapshot=await references.call_async(references.replacement_source_snapshot), plan=plan,
++                file_snapshot=references.replacement_source_snapshot(), plan=plan,
+                 identities=self._ieee_artifact_identities, profiles=self._preparation_profiles,
+                 costs=replacement_costs)
+         options = {(row['artifact_id'], row['target']['tier']): row for row in plan['options']}
+@@ -20598,9 +20523,10 @@ class ScenarioRunner:
+                                   and bool(recipes))
+         if owned_file_replacement:
+             replacement_epoch = objectives['file']
++        registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
+         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
+             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
+-            state='registering', started_at=time.monotonic(), results=[])
++            state='registered', registration=registration, started_at=time.monotonic(), results=[])
+         if not hasattr(self, '_ieee_file_preparation_plans'):
+             self._ieee_file_preparation_plans = []
+         self._ieee_file_preparation_plans.append(record)
+@@ -20661,18 +20587,14 @@ class ScenarioRunner:
+                         raise PreparationPlanSuperseded(conflict, stage='native_file_fallback')
+                     if cancelled:
+                         raise asyncio.CancelledError()
+-                await references.call_async(references.bind_file_native_fallbacks, plan_id=plan_id,
+-                    objective=copy.deepcopy(replacement_epoch),
+-                    receipts=copy.deepcopy([e['receipt'] for e in native_fallbacks]),
+-                    on_result=lambda value: record.update(fallback_binding=value))
++                record['fallback_binding'] = references.bind_file_native_fallbacks(plan_id=plan_id,
++                    objective=replacement_epoch, receipts=[e['receipt'] for e in native_fallbacks])
+             fallback_ready.set()
+         record['native_fallbacks'] = native_fallbacks
+         async def release_native_fallbacks():
+             async with fallback_cleanup_lock:
+-                if 'registration' not in record:
+-                    return  # Failed registration created no owned file plan.
+-                _, interrupted_cleanup = await settle(references.call_async(
+-                    references.unbind_file_native_fallbacks, plan_id=plan_id))
++                references.unbind_file_native_fallbacks(plan_id=plan_id)
++                interrupted_cleanup = False
+                 unresolved = False
+                 for evidence in native_fallbacks:
+                     if evidence['state'] in ('rejected', 'released'):
+@@ -20710,7 +20632,7 @@ class ScenarioRunner:
+         async def execute(candidate, row, content):
+             await fallback_ready.wait()
+             aid, tier = candidate.artifact_id, candidate.target_tier.value
+-            state = await references.call_async(references.source_snapshot, aid)
++            state = references.source_snapshot(aid)
+             sources = {s['tier']: s for s in state['sources']}
+             if any(s['content_sha256'] != content for s in sources.values()):
+                 raise ValueError('file plan execution observed different content')
+@@ -20729,7 +20651,7 @@ class ScenarioRunner:
+             # copy; successful queue return joins publication and cleanup.
+             for target_tier, target_aid in targets:
+                 if target_aid == aid:
+-                    await references.call_async(references.finish_file_preparation_target, plan_id=plan_id,
++                    references.finish_file_preparation_target(plan_id=plan_id,
+                         tier=target_tier, adapter_id=aid)
+             record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
+             return result
+@@ -20752,7 +20674,7 @@ class ScenarioRunner:
+                     record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
+                         expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
+                         observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])
+-                    await self._supersede_ieee_native_file_copy(observed=observed,
++                    self._supersede_ieee_native_file_copy(observed=observed,
+                         owner_id=gpu_objective['owner_id'], adapter_id=aid,
+                         source_path=row['lora_path'], plan_id=native_plan_id,
+                         stage='native_staging_copy', record=record)
+@@ -20795,8 +20717,7 @@ class ScenarioRunner:
+                 for _, _, row in gpu_recipes.values():
+                     for tier, aid in targets:
+                         if aid == row['adapter_id']:
+-                            await references.call_async(references.finish_file_preparation_target,
+-                                plan_id=plan_id, tier=tier, adapter_id=aid)
++                            references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
+                 record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
+                     for (_, _, row), value in zip(gpu_recipes.values(), result))
+                 return result
+@@ -20834,9 +20755,6 @@ class ScenarioRunner:
+             if cancelled: raise asyncio.CancelledError()
+             return results
+         try:
+-            await references.call_async(references.register_file_preparation_plan,
+-                plan_id=plan_id, targets=copy.deepcopy(list(targets.values())),
+-                on_result=lambda value: record.update(state='registered', registration=value))
+             if delayed:
+                 # Only the start boundary changes. No new h/d, selection or
+                 # planning budget is sampled for the controlled comparison.
+@@ -20877,19 +20795,12 @@ class ScenarioRunner:
+                 _, interrupted = await settle(release_native_fallbacks())
+                 cancelled |= interrupted
+                 async def close_files_after_join():
+-                    if 'registration' not in record:
+-                        return [], None
+-                    keys = tuple(
++                    joined = await queue.join_target_operations(tuple(
+                         (references.owner_id, tier, aid, target['content_sha256'])
+-                        for (tier, aid), target in targets.items())
+-                    # The close now yields to the event loop. Keep new writers
+-                    # pending until the real owner transaction has settled;
+-                    # existing demand writers still finish without cancellation.
+-                    with queue.hold_target_starts(keys):
+-                        joined = await queue.join_target_operations(keys)
+-                        closed = await references.call_async(
+-                            references.close_file_preparation_plan, plan_id=plan_id)
+-                        return joined, closed
++                        for (tier, aid), target in targets.items()))
++                    # No task handoff between the final target observation and
++                    # the owner's existing atomic close invariant.
++                    return joined, references.close_file_preparation_plan(plan_id=plan_id)
+                 (joined, closed), interrupted = await settle(close_files_after_join())
+                 cancelled |= interrupted
+                 record['shared_target_joins'] = joined
+@@ -20940,20 +20851,17 @@ class ScenarioRunner:
+             if frozen['owner_id'] != references.owner_id or trigger_reason == 'demand':
+                 raise ValueError('file replacement requires its proactive physical owner')
+         loop = asyncio.get_running_loop()
+-        if not hasattr(self, '_ieee_file_change_lock'):
+-            self._ieee_file_change_lock = asyncio.Lock()
+-        async with self._ieee_file_change_lock:
+-            binding = getattr(self, '_ieee_file_change_binding', None)
+-            if binding is None:
+-                subscriber = uuid.uuid4().hex
+-                def changed(tiers):
+-                    if tiers and not loop.is_closed():
+-                        loop.call_soon_threadsafe(lambda: queue.wake(
+-                            owner_id=references.owner_id, target_tiers=tiers))
+-                await references.call_async(references.subscribe_file_changes, subscriber, changed,
+-                    on_result=lambda _: setattr(self, '_ieee_file_change_binding', (subscriber, loop)))
+-            elif binding[1] is not loop:
+-                raise ValueError('file state notifications belong to another event loop')
++        binding = getattr(self, '_ieee_file_change_binding', None)
++        if binding is None:
++            subscriber = uuid.uuid4().hex
++            def changed(tiers):
++                if tiers and not loop.is_closed():
++                    loop.call_soon_threadsafe(lambda: queue.wake(
++                        owner_id=references.owner_id, target_tiers=tiers))
++            references.subscribe_file_changes(subscriber, changed)
++            self._ieee_file_change_binding = (subscriber, loop)
++        elif binding[1] is not loop:
++            raise ValueError('file state notifications belong to another event loop')
+         identity = self._ieee_artifact_identities[adapter_id]
+         content = identity['content_sha256']
+         target = references.roots[target_tier.value] / adapter_id
+@@ -20963,7 +20871,7 @@ class ScenarioRunner:
+         async def execute(attempt_id):
+             # A completed old Future is never a residency claim. Re-observe
+             # the physical owner each time before deciding a copy is reusable.
+-            state = await references.call_async(references.source_snapshot, adapter_id)
++            state = references.source_snapshot(adapter_id)
+             for source in state['sources']:
+                 if source['tier'] == target_tier.value:
+                     if source['content_sha256'] != content or source['path'] != str(target):
+@@ -20974,11 +20882,11 @@ class ScenarioRunner:
+                 if target_tier != StorageTier.NVME or self._remote_artifact_client is None:
+                     raise ValueError('remote preparation must enter the owned NVMe stage')
+                 transfer = {}
+-                async def io_ready(value):
++                def io_ready(value):
+                     ok, elapsed = value
+                     if not ok:
+                         raise RuntimeError('remote movement did not publish its target')
+-                    observed = await references.call_async(references.source_snapshot, adapter_id)
++                    observed = references.source_snapshot(adapter_id)
+                     if not any(s['tier'] == target_tier.value and s['path'] == str(target)
+                                and s['content_sha256'] == content for s in observed['sources']):
+                         raise RuntimeError('file readiness lacks matching confirmed publication')
+@@ -20996,7 +20904,7 @@ class ScenarioRunner:
+                 result = await self._materialize_confirmed_source_async(adapter_id, source_path,
+                     target_tier, target_engine=target_engine, _movement_owned=True,
+                     expected_content_sha256=content, replacement_epoch=replacement_epoch)
+-            observed = await references.call_async(references.source_snapshot, adapter_id)
++            observed = references.source_snapshot(adapter_id)
+             if not any(s['tier'] == target_tier.value and s['path'] == str(target)
+                        and s['content_sha256'] == content for s in observed['sources']):
+                 raise RuntimeError('file movement lacks matching confirmed publication')
+@@ -21009,7 +20917,7 @@ class ScenarioRunner:
+                 # Actual file IO/source cleanup and native pressure settlement
+                 # have already joined. Only a real owner event enables recheck.
+                 return MovementOutcome('deferred', reason=str(exc))
+-        async with references.async_file_movement_interest(intent_id=intent_id, target=target,
++        with references.file_movement_interest(intent_id=intent_id, target=target,
+                 content_sha256=content, required=trigger_reason == 'demand'):
+             job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
+                 intent_id=intent_id, metadata=metadata, density=density, action=attempt,
+@@ -21074,7 +20982,7 @@ class ScenarioRunner:
+             self._ieee_host_budget_members = {}
+         async with self._ieee_host_budget_lock:
+             files = self._stack.residency_manager.local_source_references
+-            await files.call_async(files.configure_host_budget, total)
++            files.configure_host_budget(total)
+             old = self._ieee_host_budget_members.get(id(engine))
+             if old is not None:
+                 if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
+@@ -21100,24 +21008,17 @@ class ScenarioRunner:
+                     self._ieee_host_budget_members[id(engine)] = member
+                     return member['receipt']
+             fd = _open_pidfd(pid)
+-            member = dict(engines=[engine], owner_id=owner_id, pidfd=fd,
+-                          process_identity=identity, state='installing')
+-            def adopt_allowance(_):
+-                self._ieee_host_budget_members[id(engine)] = member
+             try:
+                 if gpu_process_identity(pid) != identity:
+                     raise RuntimeError('native HOST process changed during pidfd binding')
+-                await files.call_async(files.reserve_native_host, owner_id=owner_id,
+-                    limit_bytes=native, exit_pidfd=fd, on_result=adopt_allowance,
++                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd,
+                     activation_id=getattr(self, '_ieee_host_activation_ids', {}).get(id(engine)))
+             except BaseException:
+-                if self._ieee_host_budget_members.get(id(engine)) is member:
+-                    # A cancelled successful reservation still owns bytes and
+-                    # its pidfd; the existing shutdown path must retire it.
+-                    member['state'] = 'installation_unresolved'
+-                else:
+-                    os.close(fd)
++                os.close(fd)
+                 raise
++            member = dict(engines=[engine], owner_id=owner_id, pidfd=fd,
++                          process_identity=identity, state='installing')
++            self._ieee_host_budget_members[id(engine)] = member
+             # Cancellation cannot abandon an in-flight installation or return
+             # its bytes. Join the exact command before propagating cancellation.
+             task = asyncio.create_task(engine.ieee_gpu_reference(operation='configure_host_budget',
+@@ -21146,23 +21047,17 @@ class ScenarioRunner:
+                 raise asyncio.CancelledError()
+             return receipt
+ 
+-    async def _retire_ieee_host_budget(self, engine):
++    def _retire_ieee_host_budget(self, engine):
+         members = getattr(self, '_ieee_host_budget_members', {})
+         member = members.get(id(engine))
+         if member is None or member['state'] == 'retired':
+             return
+-        async with self._ieee_host_budget_lock:
+-            if member['state'] == 'retired':
+-                return
+-            # Only actual process exit returns the allowance. Adopt the real
+-            # release before cancellation; aliases share one fd/retirement.
+-            def adopt_retirement(receipt):
+-                os.close(member['pidfd'])
+-                member.update(state='retired', retirement_receipt=receipt)
+-            files = self._stack.residency_manager.local_source_references
+-            await files.call_async(files.retire_native_host,
+-                owner_id=member['owner_id'], exit_pidfd=member['pidfd'],
+-                on_result=adopt_retirement)
++        # Only an actual native process exit returns its entire allowance,
++        # including allocator caches. Shared logical slots do not call this.
++        receipt = self._stack.residency_manager.local_source_references.retire_native_host(
++            owner_id=member['owner_id'], exit_pidfd=member['pidfd'])
++        os.close(member['pidfd'])
++        member.update(state='retired', retirement_receipt=receipt)
+ 
+     async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation,
+                                       *, on_io_joined=None):
+@@ -21174,16 +21069,13 @@ class ScenarioRunner:
+         """
+         total = self.model_cfg.get('ieee_host_budget_bytes')
+         if total is not None:
+-            files = self._stack.residency_manager.local_source_references
+-            await files.call_async(files.configure_host_budget, total)
++            self._stack.residency_manager.local_source_references.configure_host_budget(total)
+         if self.model_cfg.get('ieee_admission_profile') is None:
+             if engine is not None:
+                 await self._attach_ieee_host_budget(engine)
+             result = await operation()
+             if on_io_joined is not None:
+-                notification = on_io_joined(result)
+-                if inspect.isawaitable(notification):
+-                    await notification
++                on_io_joined(result)
+             return result
+         domain = self._ieee_file_pressure_domain()
+         # Runtime activation joins the domain before pool publication. Its
+@@ -21326,17 +21218,16 @@ class ScenarioRunner:
+                     raise ValueError('IEEE materialization requires its request owner and real remote client')
+                 manager = self._stack.residency_manager
+                 owner = manager.local_source_references
+-                content = self._ieee_artifact_identities[adapter_id]['content_sha256']
+-                view = await owner.call_async(owner.source_snapshot, adapter_id)
++                view = owner.source_snapshot(adapter_id)
+                 transfer_ms = 0.
+                 from contextlib import nullcontext
+                 # Retain request ownership across source readiness -> read acquisition.
+                 # A completed transfer is not yet a protected reader reference.
+-                demand = (owner.async_file_movement_interest(intent_id=uuid.uuid4().hex,
++                demand = (owner.file_movement_interest(intent_id=uuid.uuid4().hex,
+                     target=self.nvme_dir / adapter_id,
+-                    content_sha256=content,
++                    content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
+                     required=True) if not view['sources'] else nullcontext())
+-                async with demand:
++                with demand:
+                     if not view['sources']:
+                         transfer_evidence = {}
+                         if reservation.file_preparation_task is not None:
+@@ -21379,7 +21270,7 @@ class ScenarioRunner:
+                             reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
+                     # Re-observe and pin atomically against publishers/reclaimers;
+                     # no network, native RPC or await is allowed inside this lock.
+-                    def acquire_source():
++                    with owner.lock:
+                         view = owner.source_snapshot(adapter_id)
+                         candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
+                         if not candidates:
+@@ -21387,10 +21278,9 @@ class ScenarioRunner:
+                         source = candidates[0]
+                         reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
+                             lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+-                            expected_content_sha256=content)
+-                        return source, reference
+-                    source, reference = await owner.call_async(acquire_source,
+-                        on_result=lambda value: self._adopt_runtime_local_source(reservation, manager, value[1]))
++                            expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
++                reservation.local_source_owner = manager
++                reservation.gpu_reference_evidence['local_source_reference'] = reference
+                 self._nvme_cache[adapter_id] = source['path']
+                 return source['path'], float(transfer_ms)
+             if adapter_id in self._nvme_cache:
+diff --git a/tests/test_ieee_tc_file_observation.py b/tests/test_ieee_tc_file_observation.py
+index 0e494a40..e4439ee0 100644
+--- a/tests/test_ieee_tc_file_observation.py
++++ b/tests/test_ieee_tc_file_observation.py
+@@ -342,211 +342,5 @@ class FreshFileObservation(unittest.TestCase):
+                 owner._planning_source_observations(bad, stats)
+ 
+ 
+-class AsyncFileOwnerTurn(unittest.IsolatedAsyncioTestCase):
+-    """D851 transaction boundary; no GPU or inference performance assertions."""
+-
+-    def make(self):
+-        from tests.test_ieee_tc_request_lifecycle import ConfirmedFilePublication
+-        case = ConfirmedFilePublication()
+-        case.setUp()
+-        self.addCleanup(case.doCleanups)
+-        self.assertTrue(case.fetch()[0])
+-        return case, case.owner
+-
+-    async def test_cancelled_async_interest_enter_still_exits_real_owner(self):
+-        import threading
+-        from contextlib import contextmanager
+-        case, owner = self.make()
+-        original = owner.file_movement_interest
+-        content = owner.source_snapshot('a')['sources'][0]['content_sha256']
+-        loop = asyncio.get_running_loop()
+-        entered, release = asyncio.Event(), threading.Event()
+-        exits = []
+-        @contextmanager
+-        def held(**kwargs):
+-            with original(**kwargs):
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise RuntimeError('interest enter barrier expired')
+-                try:
+-                    yield
+-                finally:
+-                    exits.append(threading.get_ident())
+-        owner.file_movement_interest = held
+-        async def use():
+-            async with owner.async_file_movement_interest(intent_id='cancel-enter',
+-                    target=case.nvme/'a', content_sha256=content, required=True):
+-                self.fail('cancelled enter reached the consumer')
+-        task = asyncio.create_task(use())
+-        try:
+-            await asyncio.wait_for(entered.wait(), 2)
+-            task.cancel()
+-            await asyncio.sleep(0)
+-            task.cancel()
+-            self.assertFalse(task.done())
+-        finally:
+-            release.set()
+-        with self.assertRaises(asyncio.CancelledError):
+-            await task
+-        self.assertEqual(len(exits), 1)
+-        self.assertNotEqual(exits[0], threading.get_ident())
+-        self.assertFalse(owner._file_movement_interests)
+-
+-    async def test_async_interest_body_failure_releases_interest_without_holding_owner_lock(self):
+-        case, owner = self.make()
+-        content = owner.source_snapshot('a')['sources'][0]['content_sha256']
+-        with self.assertRaisesRegex(RuntimeError, 'actual consumer failure'):
+-            async with owner.async_file_movement_interest(intent_id='body-failure',
+-                    target=case.nvme/'a', content_sha256=content, required=True):
+-                self.assertIn('body-failure', owner._file_movement_interests)
+-                view = await owner.call_async(owner.source_snapshot, 'a')
+-                self.assertTrue(view['sources'])
+-                raise RuntimeError('actual consumer failure')
+-        self.assertFalse(owner._file_movement_interests)
+-
+-    async def controlled(self, owner, operation, *, on_result=None):
+-        import threading
+-        loop = asyncio.get_running_loop()
+-        started, release = asyncio.Event(), threading.Event()
+-        worker_threads = []
+-        def held():
+-            worker_threads.append(threading.get_ident())
+-            loop.call_soon_threadsafe(started.set)
+-            if not release.wait(5):
+-                raise RuntimeError('D851 transaction barrier expired')
+-            return operation()
+-        task = asyncio.create_task(owner.call_async(held, on_result=on_result))
+-        await asyncio.wait_for(started.wait(), 2)
+-        self.addCleanup(release.set)
+-        return task, release, worker_threads
+-
+-    async def test_d851_file_read_runs_off_loop_without_reusing_an_old_snapshot(self):
+-        import threading
+-        case, owner = self.make()
+-        initial = owner.source_snapshot('a')
+-        seen = []
+-        task, release, workers = await self.controlled(owner,
+-            lambda: owner.source_snapshot('a'),
+-            on_result=lambda value: seen.append((threading.get_ident(), value)))
+-        try:
+-            heartbeat = asyncio.get_running_loop().create_future()
+-            asyncio.get_running_loop().call_soon(heartbeat.set_result, True)
+-            self.assertTrue(await asyncio.wait_for(heartbeat, 1))
+-            self.assertFalse(task.done())
+-        finally:
+-            release.set()
+-        result = await task
+-        self.assertEqual(result['sources'], initial['sources'])
+-        self.assertGreater(result['captured_monotonic_s'], initial['captured_monotonic_s'])
+-        self.assertNotEqual(workers, [threading.get_ident()])
+-        self.assertEqual(seen, [(threading.get_ident(), result)])
+-        path = case.nvme/'a'/'nested/weights'
+-        stat = path.stat()
+-        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns+1_000_000_000))
+-        with self.assertRaisesRegex(RuntimeError, 'changed outside'):
+-            await owner.call_async(owner.source_snapshot, 'a')
+-
+-    async def test_d851_cancelled_acquisition_is_adopted_then_released(self):
+-        import threading
+-        case, owner = self.make()
+-        adopted = []
+-        def acquire():
+-            view = owner.source_snapshot('a')
+-            source = view['sources'][0]
+-            return owner.acquire_confirmed(path=source['path'], adapter_id='a',
+-                lease_id='d851-cancelled', expected_owner_id=view['owner_id'],
+-                expected_epoch=view['epoch'], expected_content_sha256=source['content_sha256'])
+-        task, release, _ = await self.controlled(owner, acquire,
+-            on_result=lambda value: adopted.append((threading.get_ident(), value)))
+-        try:
+-            task.cancel()
+-            await asyncio.sleep(0)
+-            task.cancel()
+-            await asyncio.sleep(0)
+-            self.assertFalse(task.done())
+-            self.assertEqual(adopted, [])
+-        finally:
+-            release.set()
+-        with self.assertRaises(asyncio.CancelledError):
+-            await task
+-        self.assertEqual(len(adopted), 1)
+-        self.assertEqual(adopted[0][0], threading.get_ident())
+-        reference = adopted[0][1]
+-        self.assertIn(reference['lease_id'], owner.leases)
+-        # The existing request/preparation cleanup owner receives the lease
+-        # even when cancellation coincides with a successful physical acquire.
+-        await owner.call_async(owner.release, lease_id=reference['lease_id'],
+-            expected_owner_id=reference['owner_id'])
+-        self.assertFalse(owner.leases)
+-
+-    async def test_d851_late_worker_error_is_not_hidden_by_cancellation(self):
+-        _, owner = self.make()
+-        adopted = []
+-        def fail():
+-            raise RuntimeError('actual owner failure')
+-        task, release, _ = await self.controlled(owner, fail, on_result=adopted.append)
+-        task.cancel()
+-        await asyncio.sleep(0)
+-        release.set()
+-        with self.assertRaisesRegex(RuntimeError, 'actual owner failure'):
+-            await task
+-        self.assertFalse(adopted)
+-
+-    async def test_d851_transaction_lock_covers_snapshot_and_pin(self):
+-        import threading
+-        case, owner = self.make()
+-        loop = asyncio.get_running_loop()
+-        snapshot_done, competitor_checked = asyncio.Event(), threading.Event()
+-        lock_observations = []
+-        def attempt_other_owner_mutation():
+-            acquired = owner.lock.acquire(blocking=False)
+-            lock_observations.append(acquired)
+-            if acquired:
+-                owner.lock.release()
+-            competitor_checked.set()
+-        def transaction():
+-            view = owner.source_snapshot('a')
+-            loop.call_soon_threadsafe(snapshot_done.set)
+-            if not competitor_checked.wait(3):
+-                raise RuntimeError('D851 competing mutation did not execute')
+-            source = view['sources'][0]
+-            return owner.acquire_confirmed(path=source['path'], adapter_id='a',
+-                lease_id='d851-atomic', expected_owner_id=view['owner_id'],
+-                expected_epoch=view['epoch'], expected_content_sha256=source['content_sha256'])
+-        task = asyncio.create_task(owner.call_async(transaction))
+-        await asyncio.wait_for(snapshot_done.wait(), 2)
+-        competitor = threading.Thread(target=attempt_other_owner_mutation)
+-        competitor.start()
+-        reference = await task
+-        competitor.join(2)
+-        self.assertFalse(competitor.is_alive())
+-        self.assertEqual(lock_observations, [False])
+-        await owner.call_async(owner.release, lease_id=reference['lease_id'],
+-            expected_owner_id=reference['owner_id'])
+-
+-    async def test_d851_release_result_is_adopted_before_cancel_propagates(self):
+-        case, owner = self.make()
+-        reference = owner.acquire(path=str(case.nvme/'a'), adapter_id='a', lease_id='d851-release')
+-        task, release, _ = await self.controlled(owner,
+-            lambda: owner.release(lease_id=reference['lease_id'], expected_owner_id=owner.owner_id),
+-            on_result=lambda _: reference.update(state='released'))
+-        task.cancel()
+-        await asyncio.sleep(0)
+-        release.set()
+-        with self.assertRaises(asyncio.CancelledError):
+-            await task
+-        self.assertEqual(reference['state'], 'released')
+-        self.assertFalse(owner.leases)
+-
+-    async def test_d851_refuses_async_transaction_or_async_adoption(self):
+-        _, owner = self.make()
+-        async def invalid(*args):
+-            return None
+-        for operation, adopt in ((invalid, None), (lambda: None, invalid),
+-                                 (lambda: invalid(), None), (lambda: None, lambda _: invalid())):
+-            with self.subTest(operation=operation, adopt=adopt), self.assertRaises(TypeError):
+-                await owner.call_async(operation, on_result=adopt)
+-
+-
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tests/test_ieee_tc_launch.py b/tests/test_ieee_tc_launch.py
+index 76d721cb..e19471f3 100644
+--- a/tests/test_ieee_tc_launch.py
++++ b/tests/test_ieee_tc_launch.py
+@@ -1652,18 +1652,6 @@ class IEEEControlContract(unittest.TestCase):
+ 
+ 
+ class IEEEActualControl(unittest.TestCase):
+-    @classmethod
+-    def setUpClass(cls):
+-        # This suite exercises control/ownership, not process transport. Reuse
+-        # the same serialized selector fixture as the file integration tests.
+-        from tests import test_ieee_tc_transfer_pressure as fixtures
+-        fixtures.setUpModule()
+-
+-    @classmethod
+-    def tearDownClass(cls):
+-        from tests import test_ieee_tc_transfer_pressure as fixtures
+-        fixtures.tearDownModule()
+-
+     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):
+         fixture, files, service, queue, engine = self.make('no_handoff')
+         coord, preload = elastic_locality_configuration_fixture()
+@@ -1687,7 +1675,7 @@ class IEEEActualControl(unittest.TestCase):
+                               AsyncMock(side_effect=AssertionError('proactive preparation'))):
+                 self.assertTrue(await self.evaluate(service,result,coord_enabled=False))
+                 await service._wait_for_pending_scale_up_tasks()
+-                await service._schedule_ieee_residency_epochs()
++                service._schedule_ieee_residency_epochs()
+             self.assertEqual(service.instance_pool.count(),1)
+             self.assertEqual(len(result.scale_up_events),1)
+             event = result.scale_up_events[0]
+@@ -1783,9 +1771,9 @@ class IEEEActualControl(unittest.TestCase):
+         async def run():
+             self.assertFalse((files.nvme/'a').exists())
+             service._hierarchical_residency_enabled=True
+-            await service._schedule_ieee_residency_epochs()
++            service._schedule_ieee_residency_epochs()
+             task=service._ieee_residency_tasks[id(engine)]
+-            await service._schedule_ieee_residency_epochs()
++            service._schedule_ieee_residency_epochs()
+             self.assertIs(service._ieee_residency_tasks[id(engine)],task)
+             await task
+             service._reap_ieee_residency_tasks()
+@@ -1818,7 +1806,7 @@ class IEEEActualControl(unittest.TestCase):
+             service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+             service._hierarchical_residency_enabled=True
+             service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=ValueError('missing class'))
+-            await service._schedule_ieee_residency_epochs()
++            service._schedule_ieee_residency_epochs()
+             await asyncio.gather(*service._ieee_residency_tasks.values(),return_exceptions=True)
+             with self.assertRaisesRegex(ValueError,'missing class'): service._reap_ieee_residency_tasks()
+             self.assertEqual(service._ieee_residency_epochs[0]['state'],'failed')
+@@ -1952,9 +1940,9 @@ class IEEEActualControl(unittest.TestCase):
+             service._scaleup_runtime_handoff_plans={}
+             service._scaleup_runtime_lora_request_ordinals={}
+             service._cancel_runtime_gpu_forward_tasks=AsyncMock()
+-            service._retire_ieee_host_budget = AsyncMock()
++            service._retire_ieee_host_budget=Mock()
+             service._sync_stack_gpu_accounting=Mock()
+-            await service._schedule_ieee_residency_epochs()
++            service._schedule_ieee_residency_epochs()
+             await entered.wait()
+             removed=service.instance_pool.remove_instance(sid)
+             retiring=asyncio.create_task(service._cleanup_removed_slot(removed))
+@@ -1971,16 +1959,6 @@ class IEEEActualControl(unittest.TestCase):
+ 
+ 
+ class IEEEInitialDeployment(unittest.TestCase):
+-    @classmethod
+-    def setUpClass(cls):
+-        from tests import test_ieee_tc_transfer_pressure as fixtures
+-        fixtures.setUpModule()
+-
+-    @classmethod
+-    def tearDownClass(cls):
+-        from tests import test_ieee_tc_transfer_pressure as fixtures
+-        fixtures.tearDownModule()
+-
+     def test_main_deployment_contract_rejects_reuse_and_nonowned_runtime(self):
+         model = dict(backend='vllm', ieee_gpu_references=True)
+         coord = dict(routing_policy='ieee_confirmed', instance_mode='dedicated')
+@@ -2046,7 +2024,7 @@ class IEEEInitialDeployment(unittest.TestCase):
+         service._cancel_runtime_gpu_forward_tasks = AsyncMock()
+         service._sync_stack_gpu_accounting = Mock()
+         # CPU fixture uses this test process, not an exited native worker.
+-        service._retire_ieee_host_budget = AsyncMock()
++        service._retire_ieee_host_budget = Mock()
+         return fixture, files, service, queue, engine
+ 
+     def test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin(self):
+@@ -2524,7 +2502,7 @@ class FullPreparationEntryIsolation(unittest.TestCase):
+         service=runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+         service._hierarchical_residency_enabled=False
+         service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=AssertionError('proactive'))
+-        asyncio.run(service._schedule_ieee_residency_epochs())
++        service._schedule_ieee_residency_epochs()
+         service._run_ieee_owned_preparation_plan.assert_not_called()
+         self.assertFalse(hasattr(service, '_ieee_residency_tasks'))
+ 
+diff --git a/tests/test_ieee_tc_native_retirement.py b/tests/test_ieee_tc_native_retirement.py
+index c6d7ecca..698ed2d9 100644
+--- a/tests/test_ieee_tc_native_retirement.py
++++ b/tests/test_ieee_tc_native_retirement.py
+@@ -312,7 +312,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
+         r._mark_instance_lifecycle_removed = Mock()
+         r._cancel_runtime_gpu_forward_tasks = AsyncMock()
+         r._runtime_forward_task_key = Mock(return_value='owned')
+-        r._retire_ieee_host_budget = AsyncMock()
++        r._retire_ieee_host_budget = Mock()
+         r._sync_stack_gpu_accounting = Mock()
+         r._notify_dispatch_capacity_changed = AsyncMock()
+         r._refresh_slot_runtime_hints = Mock()
+@@ -654,21 +654,15 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
+         self.assertFalse(reservation.released or allocation.released)
+ 
+     async def test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack(self):
+-        from tests.test_ieee_tc_request_lifecycle import LocalSourceOwnership
+-        fixture = LocalSourceOwnership()
+-        fixture.setUp()
+-        self.addCleanup(fixture.doCleanups)
+         r, slot, _ = self.build()
+         reservation = self.pending(r, slot)
+-        local = dict(fixture.acquire('local'), state='held')
++        local = dict(state='held', lease_id='local', owner_id='file-owner')
+         reservation.gpu_reference_evidence['local_source_reference'] = local
+-        reservation.local_source_owner = fixture.manager
++        reservation.local_source_owner = NS(release_local_source=Mock())
+         reservation.ieee_pending_admission = dict(state='registering', intent_id='pending')
+-        with patch.object(fixture.manager, 'release_local_source',
+-                          wraps=fixture.manager.release_local_source) as release:
+-            await r._runtime_retirements[id(slot.engine)]['task']
+-        release.assert_called_once_with(lease_id='local', expected_owner_id=local['owner_id'])
+-        self.assertFalse(fixture.manager.local_source_references.leases)
++        await r._runtime_retirements[id(slot.engine)]['task']
++        reservation.local_source_owner.release_local_source.assert_called_once_with(
++            lease_id='local', expected_owner_id='file-owner')
+         self.assertEqual(local['state'], 'released')
+         self.assertEqual(reservation.ieee_pending_admission['state'], 'retired_with_runtime')
+         self.assertNotIn('release_receipt', reservation.gpu_reference_evidence)
+diff --git a/tests/test_ieee_tc_planning_snapshot.py b/tests/test_ieee_tc_planning_snapshot.py
+index 44c956d4..47902507 100644
+--- a/tests/test_ieee_tc_planning_snapshot.py
++++ b/tests/test_ieee_tc_planning_snapshot.py
+@@ -8,7 +8,6 @@ import json
+ import os
+ from pathlib import Path
+ import tempfile
+-import threading
+ import time
+ from types import SimpleNamespace as NS
+ import unittest
+@@ -252,75 +251,6 @@ class CapacityConsumer(unittest.IsolatedAsyncioTestCase):
+ 
+ 
+ class ControlRoundFileObservation(unittest.TestCase):
+-    def test_file_observation_yield_rechecks_removed_and_replaced_replicas(self):
+-        for change in ('remove', 'replace'):
+-            with self.subTest(change=change):
+-                files, runner, slots, _ = self.make(count=1)
+-                async def run():
+-                    entered, release = asyncio.Event(), threading.Event()
+-                    loop = asyncio.get_running_loop()
+-                    original = files.owner.preparation_snapshot
+-                    def read(**kwargs):
+-                        value = original(**kwargs)
+-                        loop.call_soon_threadsafe(entered.set)
+-                        if not release.wait(5):
+-                            raise TimeoutError('test file observation was not released')
+-                        return value
+-                    with patch.object(files.owner, 'preparation_snapshot', side_effect=read), \
+-                         patch.object(runner, '_run_ieee_owned_preparation_plan', new=AsyncMock()) as execute:
+-                        job = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+-                        try:
+-                            await asyncio.wait_for(entered.wait(), 2)
+-                            if change == 'remove':
+-                                slots.clear()
+-                            else:
+-                                slots[0].engine = object()
+-                        finally:
+-                            release.set()
+-                            await job
+-                        self.assertFalse(runner._ieee_residency_tasks)
+-                        self.assertFalse(runner._ieee_residency_epochs)
+-                        execute.assert_not_awaited()
+-                asyncio.run(run())
+-
+-    def test_overlapping_file_observations_register_only_one_epoch(self):
+-        files, runner, slots, _ = self.make(count=1)
+-        async def run():
+-            entered, second_requested = asyncio.Event(), asyncio.Event()
+-            release = threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original, call = files.owner.preparation_snapshot, files.owner.call_async
+-            calls = 0
+-            def read(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test shared observation was not released')
+-                return value
+-            async def observe(*args, **kwargs):
+-                nonlocal calls
+-                calls += 1
+-                if calls == 2:
+-                    second_requested.set()
+-                return await call(*args, **kwargs)
+-            with patch.object(files.owner, 'preparation_snapshot', side_effect=read), \
+-                 patch.object(files.owner, 'call_async', side_effect=observe), \
+-                 patch.object(runner, '_run_ieee_owned_preparation_plan',
+-                              new=AsyncMock(return_value=dict(plan={'plan_sha256': 'test'}))) as execute:
+-                first = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+-                second = None
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    second = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+-                    await asyncio.wait_for(second_requested.wait(), 2)
+-                finally:
+-                    release.set()
+-                    await asyncio.gather(first, *([second] if second is not None else []))
+-                await asyncio.gather(*runner._ieee_residency_tasks.values())
+-                self.assertEqual(len(runner._ieee_residency_epochs), 1)
+-                execute.assert_awaited_once()
+-        asyncio.run(run())
+-
+     """Real file owner and selector; controlled independent native reports."""
+ 
+     @classmethod
+@@ -388,9 +318,9 @@ class ControlRoundFileObservation(unittest.TestCase):
+             with patch.object(files.owner, 'preparation_snapshot',
+                               wraps=files.owner.preparation_snapshot) as read, \
+                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 first_tasks = dict(runner._ieee_residency_tasks)
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 self.assertEqual(runner._ieee_residency_tasks, first_tasks)
+                 self.assertEqual(read.call_count, 1)
+                 await asyncio.gather(*first_tasks.values())
+@@ -414,7 +344,7 @@ class ControlRoundFileObservation(unittest.TestCase):
+                 self.assertEqual(read.call_count, 2)
+                 # A new control round must re-read; no epoch/TTL reuse.
+                 old_capture = views[0]['files']['captured_at']
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 await asyncio.gather(*runner._ieee_residency_tasks.values())
+                 runner._reap_ieee_residency_tasks()
+                 self.assertEqual(read.call_count, 3)
+@@ -438,7 +368,7 @@ class ControlRoundFileObservation(unittest.TestCase):
+                 kw.pop('capacity_only')
+                 return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
+             with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 await entered.wait()
+                 pending = runner._ieee_residency_tasks[id(slots[0].engine)]
+                 sibling = runner._ieee_residency_tasks[id(slots[1].engine)]
+@@ -461,13 +391,13 @@ class ControlRoundFileObservation(unittest.TestCase):
+         async def run():
+             with patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read, \
+                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 await asyncio.gather(*runner._ieee_residency_tasks.values())
+                 runner._reap_ieee_residency_tasks()
+                 self.assertEqual(read.call_count, 2)
+                 self.assertTrue(all('shared_file_observation' not in r for r in runner._ieee_residency_epochs))
+                 slots.clear()
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 self.assertEqual(read.call_count, 2)
+         asyncio.run(run())
+ 
+@@ -476,13 +406,13 @@ class ControlRoundFileObservation(unittest.TestCase):
+         async def run():
+             with self.assertRaisesRegex(ValueError, 'only for steady-state'):
+                 await runner._plan_ieee_preparation_for_slot(slot=slots[0], mode='handoff',
+-                    file_snapshot=await runner._ieee_preparation_file_snapshot())
++                    file_snapshot=runner._ieee_preparation_file_snapshot())
+             slots[0].engine.ieee_gpu_reference.assert_not_awaited()
+         asyncio.run(run())
+ 
+     def test_received_shared_view_is_detached_and_still_uses_normal_executor(self):
+         files, runner, slots, _ = self.make(count=1)
+-        snapshot = asyncio.run(runner._ieee_preparation_file_snapshot())
++        snapshot = runner._ieee_preparation_file_snapshot()
+         original = copy.deepcopy(snapshot)
+         async def execute(**kw):
+             self.assertEqual(kw['plan']['source_view']['files'], original)
+@@ -514,7 +444,7 @@ class ControlRoundFileObservation(unittest.TestCase):
+         async def run():
+             try:
+                 self.assertFalse((files.nvme/'a').exists())
+-                await runner._schedule_ieee_residency_epochs()
++                runner._schedule_ieee_residency_epochs()
+                 await asyncio.gather(*runner._ieee_residency_tasks.values())
+                 runner._reap_ieee_residency_tasks()
+                 self.assertEqual((files.nvme/'a'/'weights').read_bytes(), b'a'*12288)
+diff --git a/tests/test_ieee_tc_request_lifecycle.py b/tests/test_ieee_tc_request_lifecycle.py
+index 90505ffe..439fa31e 100644
+--- a/tests/test_ieee_tc_request_lifecycle.py
++++ b/tests/test_ieee_tc_request_lifecycle.py
+@@ -241,9 +241,6 @@ class PredecisionRoutingIntegration(unittest.TestCase):
+         files.source_snapshot.side_effect = lambda aid: dict(kind='confirmed_file_sources_v1',
+             owner_id='files', epoch=1, clock_id=local_monotonic_clock_id(), adapter_id=aid,
+             snapshot_holds_reference=False, captured_monotonic_s=time.monotonic(), sources=[])
+-        # This fixture isolates routing; real off-loop ownership is exercised
+-        # by the file-owner and selected-source integration fixtures.
+-        files.call_async = AsyncMock(side_effect=lambda operation, *args, **kwargs: operation(*args, **kwargs))
+         runner._stack = SimpleNamespace(residency_manager=SimpleNamespace(local_source_references=files))
+         b = InstanceSlot('inst-b', engine=SimpleNamespace(), coordinator=None)
+         slots = [a, b]
+@@ -298,25 +295,6 @@ class PredecisionRoutingIntegration(unittest.TestCase):
+         runner._refresh_all_slot_runtime_hints.assert_not_called()
+         files.source_snapshot.assert_called_once_with(trace.adapter_id)
+ 
+-    def test_membership_change_during_async_file_observation_rejects_whole_view(self):
+-        runner, slots, trace, plan, files = self.build()
+-        async def run():
+-            entered, release = asyncio.Event(), asyncio.Event()
+-            async def held(operation, *args, **kwargs):
+-                value = operation(*args, **kwargs)
+-                entered.set()
+-                await release.wait()
+-                return value
+-            files.call_async.side_effect = held
+-            task = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
+-            await entered.wait()
+-            slots.pop()
+-            release.set()
+-            self.assertIsNone(await task)
+-            self.assertEqual(runner._ieee_routing_epoch, 0)
+-            self.assertIsNone(slots[0].native_source_state)
+-        asyncio.run(run())
+-
+     def test_live_counts_make_infeasible_rows_without_fabricating_missing_cost(self):
+         runner, (a, b), trace, plan, _ = self.build()
+         a.active_requests = 2
+@@ -2209,14 +2187,6 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
+         client._opener.open.side_effect=lambda *a,**kw: HeldResponse(original(*a,**kw).getvalue())
+         queue=runner._stack.preloading_manager.ieee_movements
+         async def run():
+-            subscribed = asyncio.Event()
+-            submit = queue.submit
+-            def observed_submit(**kwargs):
+-                value = submit(**kwargs)
+-                if kwargs['metadata']['trigger_reason'] == 'demand':
+-                    subscribed.set()
+-                return value
+-            queue.submit = observed_submit
+             creator=asyncio.create_task(runner._queue_ieee_file_preparation(
+                 adapter_id=trace.adapter_id,target_tier=StorageTier.NVME,target_engine=slot.engine,
+                 target_replica=slot.instance_id,trigger_reason='residency',plan_id='proactive'))
+@@ -2224,15 +2194,12 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
+             try:
+                 self.assertTrue(await asyncio.to_thread(entered.wait,2))
+                 request=asyncio.create_task(runner._exec_request(trace,4,0.,request_plan=plan))
+-                try:
+-                    await asyncio.wait_for(subscribed.wait(),2)
+-                except TimeoutError:
+-                    chain, current = [], request.get_coro()
+-                    while current is not None:
+-                        code = getattr(current, 'cr_code', getattr(current, 'gi_code', None))
+-                        if code is not None: chain.append(code.co_name)
+-                        current = getattr(current, 'cr_await', getattr(current, 'gi_yieldfrom', None))
+-                    self.fail(f'demand did not subscribe: {chain}; {queue.snapshot()}')
++                async def subscribed():
++                    while not any(row['metadata']['trigger_reason']=='demand'
++                            for job in queue.snapshot() for row in job['subscriptions'].values()):
++                        if request.done(): request.result()
++                        await asyncio.sleep(0)
++                await asyncio.wait_for(subscribed(),2)
+             finally:
+                 release.set()
+                 await asyncio.gather(creator,*([request] if request else []),return_exceptions=True)
+@@ -2259,16 +2226,14 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
+         selected_paths = []
+ 
+         async def publish_host_after_remote(*args, **kwargs):
++            outcome = await materialize(*args, **kwargs)
+             if not kwargs.get('_movement_owned'):
+-                notify = kwargs['on_source_ready']
+-                def publish_before_notification(value):
+-                    # Readiness, not eventual operation return, is the actual
+-                    # consumer boundary. Force this legal promotion before it.
+-                    manager._materialize_into_tier_dir(trace.adapter_id,
+-                        str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
+-                    notify(value)
+-                kwargs['on_source_ready'] = publish_before_notification
+-            return await materialize(*args, **kwargs)
++                self.assertTrue(outcome[0])
++                # A legal completed promotion before the request reselects its
++                # physical source. Use the real content-verifying file owner.
++                manager._materialize_into_tier_dir(trace.adapter_id,
++                    str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
++            return outcome
+ 
+         load = owner.demand_loader
+         def guarded_load(**kwargs):
+@@ -2310,14 +2275,13 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
+ 
+     def test_changed_file_copy_invalid_evidence_still_fails_and_releases(self):
+         runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
+-        materialize = runner._materialize_remote_adapter
+-        def corrupt_publication_receipt(*args, **kwargs):
+-            outcome = materialize(*args, **kwargs)
+-            # Corrupt the actual IO receipt before either ready or terminal
+-            # copies are delivered, rather than racing an eventual return.
+-            kwargs['transfer_evidence']['confirmed_file_publication']['content_sha256'] = 'b'*64
++        materialize = runner._materialize_remote_adapter_async
++        async def corrupt_publication_receipt(*args, **kwargs):
++            outcome = await materialize(*args, **kwargs)
++            if not kwargs.get('_movement_owned'):
++                kwargs['transfer_evidence']['confirmed_file_publication']['content_sha256'] = 'b'*64
+             return outcome
+-        runner._materialize_remote_adapter = corrupt_publication_receipt
++        runner._materialize_remote_adapter_async = corrupt_publication_receipt
+         with self.assertRaisesRegex(ValueError, 'remote_copy.*false'):
+             asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+         slot.engine.generate_prepared.assert_not_awaited()
+@@ -2327,41 +2291,6 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
+         self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+         self.assertEqual(slot.active_requests, 0)
+ 
+-    def test_cancel_during_actual_file_owner_acquisition_adopts_and_releases_lease(self):
+-        runner, slot, trace, plan, native, _ = self.build('remote')
+-        self.file_source(runner, trace, publish=True)
+-        files = runner._stack.residency_manager.local_source_references
+-        acquire = files.acquire_confirmed
+-        async def run():
+-            loop = asyncio.get_running_loop()
+-            entered, release = asyncio.Event(), threading.Event()
+-            def held(**kwargs):
+-                value = acquire(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise RuntimeError('actual file acquire barrier expired')
+-                return value
+-            files.acquire_confirmed = held
+-            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+-            try:
+-                await asyncio.wait_for(entered.wait(), 2)
+-                self.assertEqual(len(files.leases), 1)
+-                task.cancel()
+-                await asyncio.sleep(0)
+-                task.cancel()
+-                await asyncio.sleep(0)
+-                self.assertFalse(task.done())
+-            finally:
+-                release.set()
+-            with self.assertRaises(asyncio.CancelledError):
+-                await task
+-        asyncio.run(run())
+-        slot.engine.generate_prepared.assert_not_awaited()
+-        self.assertFalse(files.leases)
+-        self.assertEqual(native.snapshot()['live_leases'], 0)
+-        self.assertEqual(slot.active_requests, 0)
+-        self.assertFalse(runner._unsettled_runtime_reservations)
+-
+     def test_changed_file_copy_cancel_before_native_acquisition_releases_held_input(self):
+         runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
+         entered = asyncio.Event()
+diff --git a/tests/test_ieee_tc_transfer_pressure.py b/tests/test_ieee_tc_transfer_pressure.py
+index ad66cab9..0e19a7be 100644
+--- a/tests/test_ieee_tc_transfer_pressure.py
++++ b/tests/test_ieee_tc_transfer_pressure.py
+@@ -310,94 +310,14 @@ class ManagedHostOwnership(unittest.TestCase):
+             self.assertEqual(calls.count('configure_host_budget'), 1)
+             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+             with self.assertRaisesRegex(RuntimeError, 'has not exited'):
+-                await runner._retire_ieee_host_budget(engine)
++                runner._retire_ieee_host_budget(engine)
+             child.stdin.close()
+             child.wait(timeout=5)
+-            await runner._retire_ieee_host_budget(engine)
+-            await runner._retire_ieee_host_budget(alias)
++            runner._retire_ieee_host_budget(engine)
++            runner._retire_ieee_host_budget(alias)
+             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+         asyncio.run(run())
+ 
+-    def test_cancelled_file_reservation_adopts_pidfd_and_keeps_allowance_until_exit(self):
+-        async def run():
+-            _, files, _ = self.make()
+-            child = self.child()
+-            runner, engine, calls = self.runner(files, child.pid)
+-            loop = asyncio.get_running_loop()
+-            entered, release = asyncio.Event(), threading.Event()
+-            original = files.reserve_native_host
+-            def reserve(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test reservation was not released')
+-                return value
+-            with patch.object(files, 'reserve_native_host', side_effect=reserve):
+-                job = asyncio.create_task(runner._attach_ieee_host_budget(engine))
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    await asyncio.sleep(0)
+-                    job.cancel()
+-                    self.assertFalse(job.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-            member = runner._ieee_host_budget_members[id(engine)]
+-            self.assertEqual(member['state'], 'installation_unresolved')
+-            self.assertEqual(os.readlink(f"/proc/self/fd/{member['pidfd']}"), 'anon_inode:[pidfd]')
+-            self.assertNotIn('configure_host_budget', calls)
+-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+-            child.stdin.close()
+-            child.wait(timeout=5)
+-            await runner._retire_ieee_host_budget(engine)
+-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+-        asyncio.run(run())
+-
+-    def test_cancelled_real_retirement_closes_one_shared_pidfd_after_transaction(self):
+-        async def run():
+-            _, files, _ = self.make()
+-            child = self.child()
+-            runner, engine, _ = self.runner(files, child.pid)
+-            await runner._attach_ieee_host_budget(engine)
+-            alias = NS(ieee_gpu_reference=engine.ieee_gpu_reference)
+-            await runner._attach_ieee_host_budget(alias)
+-            member = runner._ieee_host_budget_members[id(engine)]
+-            child.stdin.close()
+-            child.wait(timeout=5)
+-            entered, release = asyncio.Event(), threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original = files.retire_native_host
+-            def retire(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test retirement was not released')
+-                return value
+-            with patch.object(files, 'retire_native_host', side_effect=retire) as retire_call:
+-                job = asyncio.create_task(runner._retire_ieee_host_budget(engine))
+-                other = None
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    other = asyncio.create_task(runner._retire_ieee_host_budget(alias))
+-                    await asyncio.sleep(0)
+-                    self.assertFalse(job.done())
+-                    self.assertFalse(other.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-                    if other is not None:
+-                        await other
+-                retire_call.assert_called_once()
+-            self.assertEqual(member['state'], 'retired')
+-            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+-            with self.assertRaises(OSError):
+-                os.fstat(member['pidfd'])
+-        asyncio.run(run())
+-
+     def test_lost_installation_ack_retains_budget_until_process_exit(self):
+         async def run():
+             _, files, _ = self.make()
+@@ -417,7 +337,7 @@ class ManagedHostOwnership(unittest.TestCase):
+                 await runner._attach_ieee_host_budget(engine)
+             child.stdin.close()
+             child.wait(timeout=5)
+-            await runner._retire_ieee_host_budget(engine)
++            runner._retire_ieee_host_budget(engine)
+         asyncio.run(run())
+ 
+     def test_workspace_contract_is_forwarded_acknowledged_and_frozen_for_aliases(self):
+@@ -445,7 +365,7 @@ class ManagedHostOwnership(unittest.TestCase):
+                 await runner._attach_ieee_host_budget(engine)
+             child.stdin.close()
+             child.wait(timeout=5)
+-            await runner._retire_ieee_host_budget(engine)
++            runner._retire_ieee_host_budget(engine)
+         asyncio.run(run())
+ 
+     def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
+@@ -473,7 +393,7 @@ class ManagedHostOwnership(unittest.TestCase):
+             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+             child.stdin.close()
+             child.wait(timeout=5)
+-            await runner._retire_ieee_host_budget(engine)
++            runner._retire_ieee_host_budget(engine)
+         asyncio.run(run())
+ 
+ 
+@@ -695,26 +615,6 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
+         runner, engine, ledger = TransferPressure().runner()
+         return runner, engine, ledger
+ 
+-    async def test_async_notification_failure_preserves_actual_io_join_boundary(self):
+-        runner, engine, ledger = self.make()
+-        joined = []
+-        async def operation():
+-            return 'verified-output'
+-        async def notification(value):
+-            self.assertEqual(value, 'verified-output')
+-            row = runner._adapter_transfer_pressure_evidence[-1]
+-            joined.append(row['io_joined_at'])
+-            await asyncio.sleep(0)
+-            raise ValueError('observer failed after IO')
+-        with self.assertRaisesRegex(ValueError, 'observer failed after IO'):
+-            await runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine,
+-                                                operation, on_io_joined=notification)
+-        row = runner._adapter_transfer_pressure_evidence[-1]
+-        self.assertEqual(row['io_joined_at'], joined[0])
+-        self.assertGreaterEqual(row['notification_failed_at'], joined[0])
+-        self.assertEqual(row['operation_outcome'], 'failed')
+-        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+-
+     async def test_physical_domain_binding_and_wrong_domain_rejection(self):
+         runner, engine, ledger = self.make()
+         await runner._attach_ieee_file_pressure(engine)
+@@ -1079,86 +979,6 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
+                           activation_id='activation' if reason == 'handoff' else None),
+             density=density, action=action, demand=reason == 'demand', ready=ready)
+ 
+-    async def test_target_close_hold_joins_existing_writer_and_only_delays_new_matching_starts(self):
+-        queue = OwnedMovementQueue(2)
+-        entered, release = asyncio.Event(), asyncio.Event()
+-        async def old(_):
+-            entered.set()
+-            await release.wait()
+-            return MovementOutcome('completed', 'old')
+-        self.submit(queue, 'old', old, adapter='a', reason='demand')
+-        await entered.wait()
+-        key = ('files', 'nvme', 'a', 'sha')
+-        new = AsyncMock(return_value=MovementOutcome('completed', 'new'))
+-        other = AsyncMock(return_value=MovementOutcome('completed', 'other'))
+-        with queue.hold_target_starts((key,)):
+-            join = asyncio.create_task(queue.join_target_operations((key,)))
+-            await asyncio.sleep(0)
+-            self.assertFalse(join.done())
+-            self.assertFalse(queue._intents['old']['stop_requested'])
+-            release.set()
+-            joined = await join
+-            self.assertEqual(joined[0]['key'], list(key))
+-            self.assertEqual(await queue.wait('old'), 'old')
+-            self.submit(queue, 'new', new, adapter='a', reason='demand')
+-            self.submit(queue, 'other', other, adapter='b')
+-            self.assertEqual(await queue.wait('other'), 'other')
+-            new.assert_not_awaited()
+-            self.assertEqual(queue._intents['new']['state'], 'pending')
+-        self.assertEqual(await queue.wait('new'), 'new')
+-        self.assertFalse(queue._target_start_holds)
+-        await queue.close()
+-
+-    async def test_nested_target_holds_keep_original_priority_and_independent_ownership(self):
+-        queue, order = OwnedMovementQueue(1), []
+-        a, b = ('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha')
+-        async def run(_, name):
+-            order.append(name)
+-            return MovementOutcome('completed')
+-        with queue.hold_target_starts((a, b, a)):
+-            with queue.hold_target_starts((a,)):
+-                self.submit(queue, 'a', lambda token: run(token, 'a'), density=50.)
+-                self.submit(queue, 'b', lambda token: run(token, 'b'), reason='demand')
+-            await asyncio.sleep(0)
+-            self.assertEqual(order, [])
+-            self.assertEqual(queue._target_start_holds, {a: 1, b: 1})
+-        await asyncio.gather(queue.wait('a'), queue.wait('b'))
+-        self.assertEqual(order, ['b', 'a'])
+-        await queue.close()
+-
+-    async def test_hold_does_not_wake_deferred_work_or_leave_orphan_after_withdrawal(self):
+-        queue = OwnedMovementQueue(1)
+-        deferred = AsyncMock(return_value=MovementOutcome('deferred', reason='capacity'))
+-        self.submit(queue, 'deferred', deferred, adapter='a')
+-        await queue.join_target_operations((('files', 'nvme', 'a', 'sha'),))
+-        action = AsyncMock(return_value=MovementOutcome('completed'))
+-        with queue.hold_target_starts((('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha'))):
+-            self.submit(queue, 'cancelled', action, adapter='b')
+-            await queue.withdraw('cancelled')
+-        await asyncio.sleep(0)
+-        deferred.assert_awaited_once()
+-        action.assert_not_awaited()
+-        self.assertEqual(queue._intents['deferred']['state'], 'deferred')
+-        self.assertFalse(queue._target_start_holds)
+-        await queue.close()
+-
+-    async def test_hold_exception_and_invalid_keys_do_not_leak_target_exclusion(self):
+-        queue = OwnedMovementQueue(1)
+-        key = ('files', 'nvme', 'a', 'sha')
+-        with self.assertRaises(ValueError):
+-            with queue.hold_target_starts((key, ('bad',))):
+-                self.fail('invalid key accepted')
+-        self.assertFalse(queue._target_start_holds)
+-        action = AsyncMock(return_value=MovementOutcome('completed'))
+-        with self.assertRaisesRegex(RuntimeError, 'actual close failure'):
+-            with queue.hold_target_starts((key,)):
+-                self.submit(queue, 'later', action, adapter='a')
+-                raise RuntimeError('actual close failure')
+-        await queue.wait('later')
+-        action.assert_awaited_once()
+-        self.assertFalse(queue._target_start_holds)
+-        await queue.close()
+-
+     async def test_shared_interests_one_operation_and_cancelling_one_does_not_cancel_writer(self):
+         queue, entered, proceed = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
+         calls = []
+@@ -1320,39 +1140,6 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
+ 
+ 
+ class OwnedNativeHostMovement(unittest.TestCase):
+-    def test_cancelled_file_pin_is_adopted_and_released_before_any_native_load(self):
+-        async def run():
+-            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+-            entered, release = asyncio.Event(), threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original = fixture.owner.acquire_confirmed
+-            def acquire(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test file pin was not released')
+-                return value
+-            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire), \
+-                 patch.object(native.owner, 'file_host_loader', wraps=native.owner.file_host_loader) as load:
+-                job = asyncio.create_task(self.call(fixture, runner, slot))
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    await asyncio.sleep(0)
+-                    self.assertFalse(job.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-                load.assert_not_called()
+-            self.assertFalse(fixture.owner.leases)
+-            self.assertFalse(native.owner._host_leases)
+-            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+-            evidence = runner._ieee_native_host_preparations[-1]['attempts'][-1]
+-            self.assertTrue(evidence['file_reference_released'])
+-            await queue.close()
+-        asyncio.run(run())
+-
+     def test_modified_file_publication_cannot_expire_native_objective_as_same_content(self):
+         factory = MixedOwnedPreparation()
+         self.addCleanup(factory.doCleanups)
+@@ -1360,9 +1147,9 @@ class OwnedNativeHostMovement(unittest.TestCase):
+         before = owner.snapshot()
+         (fixture.host/'c'/'weights').write_bytes(b'not-the-published-content')
+         with self.assertRaisesRegex(RuntimeError, 'confirmed source changed outside its managed publication'):
+-            asyncio.run(runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
++            runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
+                 adapter_id='c', source_path=fixture.host/'c', plan_id='old-copy',
+-                stage='native_target_copy', record={}))
++                stage='native_target_copy', record={})
+         self.assertEqual(owner.snapshot(), before)
+         self.assertFalse(loads)
+         self.assertFalse(fixture.owner.leases)
+@@ -1435,16 +1222,11 @@ class OwnedNativeHostMovement(unittest.TestCase):
+                     value['native_host_allocator'] = dict(state)
+                 return value
+             engine.ieee_gpu_reference = observed
+-            finished = asyncio.Event()
+-            original_execute = queue._execute
+-            async def observed_execute(job):
+-                try:
+-                    return await original_execute(job)
+-                finally:
+-                    finished.set()
+-            queue._execute = observed_execute
+             task = asyncio.create_task(self.call(fixture, runner, slot))
+-            await asyncio.wait_for(finished.wait(), 2)
++            for _ in range(50):
++                await asyncio.sleep(0)
++                if queue.deferred_observations(target_tier='host', reasons=('native_host_tensor_budget',)):
++                    break
+             self.assertEqual(len(calls), 1)
+             self.assertFalse(task.done())
+             for _ in range(3):
+@@ -1787,18 +1569,10 @@ class OwnedNativeHostMovement(unittest.TestCase):
+                 return dict(admitted=False, reason='native_host_tensor_budget')
+             native.owner.file_host_loader = defer
+             runner._ieee_gpu_movement_owners = {native.owner.owner_id: engine}
+-            finished = asyncio.Event()
+-            original_execute = queue._execute
+-            async def observed_execute(job):
+-                try:
+-                    return await original_execute(job)
+-                finally:
+-                    finished.set()
+-            queue._execute = observed_execute
+             task = asyncio.create_task(self.call(fixture, runner, slot))
+-            # Observe actual deferred completion, not a fixed number of loop
+-            # turns that can finish before the file executor is scheduled.
+-            await asyncio.wait_for(finished.wait(), 2)
++            # Drain ready callbacks, without a timer-triggered capacity retry.
++            for _ in range(40):
++                await asyncio.sleep(0)
+             self.assertEqual(len(calls), 1)
+             self.assertFalse(task.done())
+             self.assertFalse(fixture.owner.leases)
+@@ -2076,37 +1850,6 @@ class ActivationPreparation(unittest.TestCase):
+ 
+     The fixture's timing/layout constants are not measured model profiles.
+     """
+-    def test_cancelled_activation_reservation_returns_bytes_before_startup(self):
+-        fixture, runner, queue, engine, _ = self.make()
+-        async def run():
+-            runner.engine_factory = AsyncMock(return_value=(engine, None))
+-            entered, release = asyncio.Event(), threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original = fixture.owner.reserve_activation_host
+-            def reserve(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test activation reservation was not released')
+-                return value
+-            with patch.object(fixture.owner, 'reserve_activation_host', side_effect=reserve):
+-                job = asyncio.create_task(runner._add_ieee_dedicated_instance(
+-                    device_id=0, activation_kind='natural_scaleout'))
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    await asyncio.sleep(0)
+-                    self.assertFalse(job.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-            runner.engine_factory.assert_not_awaited()
+-            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
+-            self.assertEqual(runner._ieee_activations[0]['state'], 'cancelled')
+-            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
+-            await queue.close()
+-        asyncio.run(run())
+     def make(self, policy='full'):
+         import copy
+         import json
+@@ -2747,61 +2490,6 @@ class MixedOwnedPreparation(unittest.TestCase):
+     def test_cancel_during_superseded_target_join_does_not_cancel_demand(self):
+         self._check_superseded_shared_target(cancel=True)
+ 
+-    def test_async_plan_close_keeps_later_target_writer_pending_until_real_close(self):
+-        self._check_async_target_close(cancel=False)
+-
+-    def test_repeated_cancel_during_async_plan_close_keeps_target_hold_until_real_close(self):
+-        self._check_async_target_close(cancel=True)
+-
+-    def _check_async_target_close(self, *, cancel):
+-        fixture, runner, queue, slot, native, _, _ = self.make(remote_gpu=True)
+-        files = fixture.owner
+-        original = files.close_file_preparation_plan
+-        async def run():
+-            loop = asyncio.get_running_loop()
+-            entered, release = asyncio.Event(), threading.Event()
+-            close_ids, starts = [], []
+-            def close(**kwargs):
+-                close_ids.append(kwargs['plan_id'])
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise RuntimeError('actual file plan close barrier expired')
+-                return original(**kwargs)
+-            files.close_file_preparation_plan = close
+-            task = asyncio.create_task(self.execute(runner, slot))
+-            async def later(_):
+-                self.assertIn(close_ids[0], files._closed_file_preparation_plans)
+-                starts.append('after-real-close')
+-                return MovementOutcome('completed')
+-            try:
+-                await asyncio.wait_for(entered.wait(), 3)
+-                key = next(iter(queue._target_start_holds))
+-                queue.submit(key=key, intent_id='later-target-writer',
+-                    metadata=dict(trigger_reason='demand', plan_id='later-request', target_replica=slot.instance_id),
+-                    density=0., demand=True, action=later)
+-                if cancel:
+-                    task.cancel()
+-                    await asyncio.sleep(0)
+-                    task.cancel()
+-                await asyncio.sleep(0)
+-                self.assertFalse(task.done())
+-                self.assertEqual(starts, [])
+-                self.assertEqual(queue._intents['later-target-writer']['state'], 'pending')
+-            finally:
+-                release.set()
+-            if cancel:
+-                with self.assertRaises(asyncio.CancelledError):
+-                    await task
+-            else:
+-                await task
+-            await queue.wait('later-target-writer')
+-            self.assertEqual(starts, ['after-real-close'])
+-            self.assertFalse(queue._target_start_holds)
+-            self.assertTrue(runner._ieee_file_preparation_plans[-1]['close_receipt']['closed'])
+-            self.check_clean(fixture, runner, native)
+-            await queue.close()
+-        asyncio.run(run())
+-
+     def _check_superseded_shared_target(self, *, cancel):
+         from tests.test_http_artifact_store import archive_bytes, SizedResponse
+         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+@@ -2969,37 +2657,6 @@ class ProactiveCostFeedback(unittest.TestCase):
+ 
+ 
+ class IntegratedNativeHostReplacement(unittest.TestCase):
+-    def test_cancelled_fallback_pins_join_and_release_before_native_commit(self):
+-        factory, (fixture, runner, queue, slot, owner, _, _) = self.make()
+-        async def run():
+-            entered, release = asyncio.Event(), threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original = fixture.owner.acquire_confirmed
+-            blocked = []
+-            def acquire(**kwargs):
+-                value = original(**kwargs)
+-                if owner.staged_models() and kwargs['adapter_id'] in ('b', 'c') and not blocked:
+-                    blocked.append(value['lease_id'])
+-                    loop.call_soon_threadsafe(entered.set)
+-                    if not release.wait(5):
+-                        raise TimeoutError('test fallback pin was not released')
+-                return value
+-            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire):
+-                job = asyncio.create_task(factory.execute(runner, slot, mode='residency'))
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    await asyncio.sleep(0)
+-                    self.assertFalse(job.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-            self.assertEqual(len(blocked), 1)
+-            factory.check_clean(fixture, runner, owner)
+-            await queue.close()
+-        asyncio.run(run())
+-
+     def test_fallback_uses_pinned_observation_not_earlier_snapshot(self):
+         """D634 receipt composition, not a reconstruction of a kernel event.
+ 
+@@ -5121,40 +4778,6 @@ class FileObjectiveReplacement(unittest.TestCase):
+ 
+ class SelectedFilePlans(unittest.TestCase):
+     """Actual selector -> shared queue -> verified file owner, no GPU/model."""
+-    def test_cancelled_registration_closes_actual_pending_targets_without_starting_io(self):
+-        fixture, runner, queue, engine, _, plan = self.make()
+-        async def run():
+-            entered, release = asyncio.Event(), threading.Event()
+-            loop = asyncio.get_running_loop()
+-            original = fixture.owner.register_file_preparation_plan
+-            def register(**kwargs):
+-                value = original(**kwargs)
+-                loop.call_soon_threadsafe(entered.set)
+-                if not release.wait(5):
+-                    raise TimeoutError('test file registration was not released')
+-                return value
+-            with patch.object(fixture.owner, 'register_file_preparation_plan', side_effect=register):
+-                job = asyncio.create_task(self.call(runner, engine, plan))
+-                try:
+-                    await asyncio.wait_for(entered.wait(), 2)
+-                    job.cancel()
+-                    await asyncio.sleep(0)
+-                    self.assertFalse(job.done())
+-                finally:
+-                    release.set()
+-                    with self.assertRaises(asyncio.CancelledError):
+-                        await job
+-            record = runner._ieee_file_preparation_plans[0]
+-            self.assertTrue(record['registration']['registered'])
+-            self.assertTrue(record['close_receipt']['closed'])
+-            self.assertEqual(record['state'], 'cancelled')
+-            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
+-            self.assertFalse(fixture.owner.materializations)
+-            self.assertFalse(queue.snapshot())
+-            fixture.client._opener.open.assert_not_called()
+-            await queue.close()
+-        asyncio.run(run())
+-
+     def make(self, *, source='remote', target='host', mode='handoff'):
+         from faaslora.preloading.preloading_planner import (
+             PreparationClass, PreparationOption, PreparationCostModel, PreloadingPlanner)
+@@ -5618,7 +5241,7 @@ class OwnedFileReadiness(unittest.IsolatedAsyncioTestCase):
+             self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['state'], 'finished')
+         self.assertIsNone(reservation.file_preparation_task)
+         self.assertFalse(fixture.owner._file_movement_interests)
+-        await runner._release_runtime_local_source(reservation)
++        runner._release_runtime_local_source(reservation)
+         self.assertFalse(fixture.owner.leases)
+ 
+     async def test_real_verified_file_is_consumable_before_all_finish_acknowledgements(self):

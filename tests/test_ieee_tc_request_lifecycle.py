@@ -241,9 +241,6 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         files.source_snapshot.side_effect = lambda aid: dict(kind='confirmed_file_sources_v1',
             owner_id='files', epoch=1, clock_id=local_monotonic_clock_id(), adapter_id=aid,
             snapshot_holds_reference=False, captured_monotonic_s=time.monotonic(), sources=[])
-        # This fixture isolates routing; real off-loop ownership is exercised
-        # by the file-owner and selected-source integration fixtures.
-        files.call_async = AsyncMock(side_effect=lambda operation, *args, **kwargs: operation(*args, **kwargs))
         runner._stack = SimpleNamespace(residency_manager=SimpleNamespace(local_source_references=files))
         b = InstanceSlot('inst-b', engine=SimpleNamespace(), coordinator=None)
         slots = [a, b]
@@ -297,25 +294,6 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         self.assertEqual(rows[0].epoch, rows[1].epoch)
         runner._refresh_all_slot_runtime_hints.assert_not_called()
         files.source_snapshot.assert_called_once_with(trace.adapter_id)
-
-    def test_membership_change_during_async_file_observation_rejects_whole_view(self):
-        runner, slots, trace, plan, files = self.build()
-        async def run():
-            entered, release = asyncio.Event(), asyncio.Event()
-            async def held(operation, *args, **kwargs):
-                value = operation(*args, **kwargs)
-                entered.set()
-                await release.wait()
-                return value
-            files.call_async.side_effect = held
-            task = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
-            await entered.wait()
-            slots.pop()
-            release.set()
-            self.assertIsNone(await task)
-            self.assertEqual(runner._ieee_routing_epoch, 0)
-            self.assertIsNone(slots[0].native_source_state)
-        asyncio.run(run())
 
     def test_live_counts_make_infeasible_rows_without_fabricating_missing_cost(self):
         runner, (a, b), trace, plan, _ = self.build()
@@ -2209,14 +2187,6 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         client._opener.open.side_effect=lambda *a,**kw: HeldResponse(original(*a,**kw).getvalue())
         queue=runner._stack.preloading_manager.ieee_movements
         async def run():
-            subscribed = asyncio.Event()
-            submit = queue.submit
-            def observed_submit(**kwargs):
-                value = submit(**kwargs)
-                if kwargs['metadata']['trigger_reason'] == 'demand':
-                    subscribed.set()
-                return value
-            queue.submit = observed_submit
             creator=asyncio.create_task(runner._queue_ieee_file_preparation(
                 adapter_id=trace.adapter_id,target_tier=StorageTier.NVME,target_engine=slot.engine,
                 target_replica=slot.instance_id,trigger_reason='residency',plan_id='proactive'))
@@ -2224,15 +2194,12 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             try:
                 self.assertTrue(await asyncio.to_thread(entered.wait,2))
                 request=asyncio.create_task(runner._exec_request(trace,4,0.,request_plan=plan))
-                try:
-                    await asyncio.wait_for(subscribed.wait(),2)
-                except TimeoutError:
-                    chain, current = [], request.get_coro()
-                    while current is not None:
-                        code = getattr(current, 'cr_code', getattr(current, 'gi_code', None))
-                        if code is not None: chain.append(code.co_name)
-                        current = getattr(current, 'cr_await', getattr(current, 'gi_yieldfrom', None))
-                    self.fail(f'demand did not subscribe: {chain}; {queue.snapshot()}')
+                async def subscribed():
+                    while not any(row['metadata']['trigger_reason']=='demand'
+                            for job in queue.snapshot() for row in job['subscriptions'].values()):
+                        if request.done(): request.result()
+                        await asyncio.sleep(0)
+                await asyncio.wait_for(subscribed(),2)
             finally:
                 release.set()
                 await asyncio.gather(creator,*([request] if request else []),return_exceptions=True)
@@ -2259,16 +2226,14 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         selected_paths = []
 
         async def publish_host_after_remote(*args, **kwargs):
+            outcome = await materialize(*args, **kwargs)
             if not kwargs.get('_movement_owned'):
-                notify = kwargs['on_source_ready']
-                def publish_before_notification(value):
-                    # Readiness, not eventual operation return, is the actual
-                    # consumer boundary. Force this legal promotion before it.
-                    manager._materialize_into_tier_dir(trace.adapter_id,
-                        str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
-                    notify(value)
-                kwargs['on_source_ready'] = publish_before_notification
-            return await materialize(*args, **kwargs)
+                self.assertTrue(outcome[0])
+                # A legal completed promotion before the request reselects its
+                # physical source. Use the real content-verifying file owner.
+                manager._materialize_into_tier_dir(trace.adapter_id,
+                    str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
+            return outcome
 
         load = owner.demand_loader
         def guarded_load(**kwargs):
@@ -2310,14 +2275,13 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
 
     def test_changed_file_copy_invalid_evidence_still_fails_and_releases(self):
         runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
-        materialize = runner._materialize_remote_adapter
-        def corrupt_publication_receipt(*args, **kwargs):
-            outcome = materialize(*args, **kwargs)
-            # Corrupt the actual IO receipt before either ready or terminal
-            # copies are delivered, rather than racing an eventual return.
-            kwargs['transfer_evidence']['confirmed_file_publication']['content_sha256'] = 'b'*64
+        materialize = runner._materialize_remote_adapter_async
+        async def corrupt_publication_receipt(*args, **kwargs):
+            outcome = await materialize(*args, **kwargs)
+            if not kwargs.get('_movement_owned'):
+                kwargs['transfer_evidence']['confirmed_file_publication']['content_sha256'] = 'b'*64
             return outcome
-        runner._materialize_remote_adapter = corrupt_publication_receipt
+        runner._materialize_remote_adapter_async = corrupt_publication_receipt
         with self.assertRaisesRegex(ValueError, 'remote_copy.*false'):
             asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
         slot.engine.generate_prepared.assert_not_awaited()
@@ -2326,41 +2290,6 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertEqual(owner.snapshot()['live_leases'], 0)
         self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
         self.assertEqual(slot.active_requests, 0)
-
-    def test_cancel_during_actual_file_owner_acquisition_adopts_and_releases_lease(self):
-        runner, slot, trace, plan, native, _ = self.build('remote')
-        self.file_source(runner, trace, publish=True)
-        files = runner._stack.residency_manager.local_source_references
-        acquire = files.acquire_confirmed
-        async def run():
-            loop = asyncio.get_running_loop()
-            entered, release = asyncio.Event(), threading.Event()
-            def held(**kwargs):
-                value = acquire(**kwargs)
-                loop.call_soon_threadsafe(entered.set)
-                if not release.wait(5):
-                    raise RuntimeError('actual file acquire barrier expired')
-                return value
-            files.acquire_confirmed = held
-            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
-            try:
-                await asyncio.wait_for(entered.wait(), 2)
-                self.assertEqual(len(files.leases), 1)
-                task.cancel()
-                await asyncio.sleep(0)
-                task.cancel()
-                await asyncio.sleep(0)
-                self.assertFalse(task.done())
-            finally:
-                release.set()
-            with self.assertRaises(asyncio.CancelledError):
-                await task
-        asyncio.run(run())
-        slot.engine.generate_prepared.assert_not_awaited()
-        self.assertFalse(files.leases)
-        self.assertEqual(native.snapshot()['live_leases'], 0)
-        self.assertEqual(slot.active_requests, 0)
-        self.assertFalse(runner._unsettled_runtime_reservations)
 
     def test_changed_file_copy_cancel_before_native_acquisition_releases_held_input(self):
         runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
