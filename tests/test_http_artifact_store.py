@@ -41,6 +41,8 @@ def archive_bytes(files=None):
 
 
 class AtomicArtifactPublication(unittest.TestCase):
+    gzip_decoder = 'stdlib'
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
@@ -48,7 +50,8 @@ class AtomicArtifactPublication(unittest.TestCase):
         self.target = self.root / 'a'
         self.target.mkdir()
         (self.target / 'old').write_bytes(b'previous-valid-copy')
-        self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1',
+                                              gzip_decoder=self.gzip_decoder)
         self.client._opener = Mock()
 
     def test_routing_identity_uses_exact_frozen_config_and_logical_payload(self):

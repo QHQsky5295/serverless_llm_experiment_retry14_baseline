@@ -12,6 +12,7 @@ import json
 import hashlib
 import os
 import math
+import platform
 import re
 import shutil
 import tarfile
@@ -172,7 +173,8 @@ def endpoint_from_env(
         )
     timeout_s = float(os.getenv(timeout_env, "300") or 300)
     return HttpArtifactStoreClient(endpoint=endpoint, token_env=token_env, timeout_s=timeout_s,
-        required_delivery_mode=os.getenv('FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE') or None)
+        required_delivery_mode=os.getenv('FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE') or None,
+        gzip_decoder=os.getenv('FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER', 'stdlib'))
 
 
 class HttpArtifactStoreClient:
@@ -187,6 +189,7 @@ class HttpArtifactStoreClient:
         timeout_s: float = 300.0,
         use_env_proxy: bool = False,
         required_delivery_mode: Optional[str] = None,
+        gzip_decoder: str = 'stdlib',
     ) -> None:
         endpoint = endpoint.strip().rstrip("/")
         if not endpoint:
@@ -199,6 +202,16 @@ class HttpArtifactStoreClient:
         if required_delivery_mode not in (None, 'dynamic_gzip_v1', 'prepublished_gzip_v1'):
             raise ValueError('unknown required artifact delivery mode')
         self.required_delivery_mode = required_delivery_mode
+        if gzip_decoder not in ('stdlib', 'isal'):
+            raise ValueError('unknown artifact gzip decoder')
+        self._gzip_open = None
+        self._gzip_decoder_info = dict(name='stdlib', version=platform.python_version())
+        if gzip_decoder == 'isal':
+            # Select once before serving. Never change decoder after an error or
+            # depend on optional-package availability to choose a performance path.
+            from isal import __version__, igzip
+            self._gzip_open = igzip.open
+            self._gzip_decoder_info = dict(name='isal', version=__version__)
         self._content_manifest = None
         self._preparation_descriptions = None
         self.content_manifest_sha256 = None
@@ -369,7 +382,8 @@ class HttpArtifactStoreClient:
         evidence.update(artifact_id=artifact_id, content_manifest_sha256=(
             self.content_manifest_sha256 if expected is not None else None),
             state='started', transferred_bytes=0, content_verified=False,
-            content_verification=content_verification, stream_content_verified=False)
+            content_verification=content_verification, stream_content_verified=False,
+            gzip_decoder=dict(self._gzip_decoder_info))
         transfer_id = uuid.uuid4().hex
         # File ownership already has a transfer_id. Keep the HTTP attempt's
         # correlation separate instead of overwriting that physical reservation.
@@ -444,7 +458,7 @@ class HttpArtifactStoreClient:
                 check_cancelled()
                 staging.mkdir(exist_ok=reserve_files is not None)
                 evidence['extraction_started_monotonic_s'] = time.monotonic()
-                with tarfile.open(archive, 'r:gz') as tar:
+                with self._open_archive(archive) as tar:
                     if expected is None:
                         _safe_extract(tar, staging)
                     else:
@@ -500,6 +514,27 @@ class HttpArtifactStoreClient:
             evidence['client_stage_ms'] = {name: (1000 * (evidence[end] - evidence[start])
                 if start in evidence and end in evidence else None)
                 for name, (start, end) in intervals.items()}
+
+    @contextmanager
+    def _open_archive(self, archive: Path):
+        """Decode the same gzip bytes; ownership and content checks stay outside.
+
+        The optional reader is single-threaded. Both wrappers close on errors,
+        including cancellation inside extraction. No global tar/gzip patching.
+        """
+        if self._gzip_open is None:
+            with tarfile.open(archive, 'r:gz') as tar:
+                yield tar
+        else:
+            with self._gzip_open(archive, 'rb') as decoded:
+                try:
+                    tar = tarfile.open(fileobj=decoded, mode='r:')
+                except OSError as exc:
+                    # Match tarfile.gzopen's malformed-header error boundary.
+                    # Errors while extracting still propagate without retry.
+                    raise tarfile.ReadError('not a gzip file') from exc
+                with tar:
+                    yield tar
 
     def _json_request(self, path: str) -> Dict[str, Any]:
         req = self._request(path)

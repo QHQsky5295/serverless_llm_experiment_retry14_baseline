@@ -3145,6 +3145,8 @@ class OrdinaryArtifactLRU(unittest.TestCase):
 
 class ConfirmedFilePublication(unittest.TestCase):
     """Actual download/owner publication with tiny files, not inference evidence."""
+    gzip_decoder = 'stdlib'
+
     def setUp(self):
         from faaslora.memory.residency_manager import ResidencyManager
         from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
@@ -3158,7 +3160,8 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.manager = ResidencyManager({'memory': {'nvme': {'cache_dir': str(self.nvme)},
             'host': {'cache_dir': str(self.host)}}}, Mock(), Mock())
         self.owner = self.manager.local_source_references
-        self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        self.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1',
+                                              gzip_decoder=self.gzip_decoder)
         self.payload = {'adapter_config.json': b'{"r":8}', 'nested/weights': b'tiny-test-fixture'}
         self.client.configure_content_manifest(content_manifest(files=self.payload))
         self.client._opener = Mock()

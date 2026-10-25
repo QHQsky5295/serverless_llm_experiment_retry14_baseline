@@ -1,0 +1,219 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "closed_scopes": [
+    {
+      "phase": "focused",
+      "identity": {
+        "unit": "primelora-tc-aux-83900000000000000000000000000001.scope",
+        "invocation_id": "01cbf679b5154c02abb339f5c2f96b98",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83900000000000000000000000000001.scope",
+        "inode": 32312576
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    },
+    {
+      "phase": "regression",
+      "identity": {
+        "unit": "primelora-tc-aux-83900000000000000000000000000002.scope",
+        "invocation_id": "290f97036d1042d591da07598593e2e3",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83900000000000000000000000000002.scope",
+        "inode": 32314356
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": true,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "test_executions": 144,
+  "candidate_tests": 75,
+  "standard_tests": 69,
+  "decision": "Explicit single-thread ISA-L decoder passed targeted checks; one complete 3B W2 next. No performance claim yet.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D839_SINGLE_THREAD_DECODER_INTEGRATION_20261025.md",
+    "sha256": "2bdbec9b8c7102cf1df15df6d01e46e0c07633b348fe6f78050c859d1e3b07b8",
+    "bytes": 3732
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py": "777f3b6170c0922bbd993875c9d651fcd5eb964c8515804e12cfbb9dba3d0d5a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/pyproject.toml": "57dc8e624366fa7a03f2a3485451cc6db7b09f00cb7864413fd3ebaf9998bc90",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_http_artifact_store.py": "0f2b62e98f8e67ae50ef4770f05bc4a62936c24b0b439ebf702e0898e9996d86",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py": "fcc75a085014332df32ea5ad93df934643fa3b4e20cd8a7fb606b28d8d613150",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gzip_decoder.py": "fbde09042ca9219a285e5f992557be58797907920acb9e7123669a98ab5bdbf4"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-83900000000000000000000000000003.scope",
+    "invocation_id": "c645e71ff1b0404ebe6f40818892d6a6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83900000000000000000000000000003.scope",
+    "inode": 32314872
+  },
+  "resources": {
+    "memory.peak": "28512256",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161244303360,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06",
+  "dependency": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/installation.json",
+    "sha256": "f6b98f1507f0b05b1f5a8e197dbf741601dda0b257ee8735b47813b4a3d7f3b5",
+    "bytes": 8035
+  },
+  "dependency_files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/__init__.py",
+      "bytes": 594,
+      "sha256": "0d451462a2520e00e81a39719508bbf1cb2e7123147a790bce14bcd96ff43d8d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 384,
+      "sha256": "467cb7132a91afab5251625fda6f2b3a8346a89506376a292b41431bca33f38b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/__pycache__/_version.cpython-312.pyc",
+      "bytes": 769,
+      "sha256": "e1b906c67aef0a652fec74f8840ce254470b5f1376fcfda22abbca103aaa84b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/__pycache__/igzip.cpython-312.pyc",
+      "bytes": 15285,
+      "sha256": "281cd08f6072e39283e677cfc1a632de8e7a655a8d687a43a88afbfdef436dca"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/__pycache__/igzip_threaded.cpython-312.pyc",
+      "bytes": 21665,
+      "sha256": "6e4988d5a647be1fc5f7b683a1f95bbad3d62edcb8cde4eee57ed5543cfde54e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/_isal.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 16112,
+      "sha256": "8b8058d7532e459dadef7f111b4276bf7e89ef7fca1c2905fd44365baa400632"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/_isal.pyi",
+      "bytes": 405,
+      "sha256": "a2ff6b29f584171d15f001a5a0933733d9b574fbb949c440979f541d21bc86b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/_version.py",
+      "bytes": 712,
+      "sha256": "41f857cd218895b62e5f42bb0b806c20e035ac8e47aaff0a6eac19c5248dc56a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/_version.pyi",
+      "bytes": 332,
+      "sha256": "ef88b494c3e2ab62b4925975fb60c482cc115978ac8e2c4558688cecd99394d2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/igzip.py",
+      "bytes": 15448,
+      "sha256": "a742036652ad19599377407f805faf9414f471270c94aa083c6859b9264090c6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/igzip_lib.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 368752,
+      "sha256": "e947d0707348b0d26e075a74123c022d86c515ef669bf3ce25927040c1bc9dfe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/igzip_lib.pyi",
+      "bytes": 1623,
+      "sha256": "70c807c3eb208b04be9df861ff7fa5029b7b832980bdfaf9d3bad9fb8d5bab16"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/igzip_threaded.py",
+      "bytes": 15610,
+      "sha256": "ff0979527e1cc56af57713b0167dfad6a598673412f900f92cef1fb1bec40765"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/isa-l/LICENSE",
+      "bytes": 1600,
+      "sha256": "bc8fd4a3d031e65e05e9c9e2add2c3f336ce527fa85c1e31031c808b58216217"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/isa-l/README.md",
+      "bytes": 4406,
+      "sha256": "004953184951d0766b78b457edb44442a27bf2a3c5ab126b2c7114a1c5c9c9b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/isa-l/Release_notes.txt",
+      "bytes": 11541,
+      "sha256": "bb17ab586ecff93612b08934753547bf6062988569fefe4656da903f24379beb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/isal_zlib.cpython-312-x86_64-linux-gnu.so",
+      "bytes": 394648,
+      "sha256": "94b45b98b4ad88f6298395dfcb1728c89567d814f7597ca7345db9c606bca0ef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/isal_zlib.pyi",
+      "bytes": 2459,
+      "sha256": "2c98b561baa90d5be33780893ae1e40a77f5877d9bbc35b9e0813f8b43ea6301"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal/py.typed",
+      "bytes": 27,
+      "sha256": "6d67b0f661e0332f0ba8cbbb46ea905c55cb071876091c747546d2c7edf0138f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/METADATA",
+      "bytes": 10792,
+      "sha256": "194381d67f643c9648fd74d649b0cbfba176003d22c39ca646fd0ac1b3d38809"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/RECORD",
+      "bytes": 1958,
+      "sha256": "2d98f99cc3f6c5767434ba169a30bc483c997562796be297f1e60cb96f7b1f0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/REQUESTED",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/WHEEL",
+      "bytes": 190,
+      "sha256": "0f1467590cfe2a9f7ee1ae217431ec4afd0a502dc7eec37d35b79fdfef118d75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/licenses/LICENSE",
+      "bytes": 2484,
+      "sha256": "83b042fc7d6aca0f10d68e45efa56b9bc0a1496608e7e7728fe09d1a534a054a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency/isal-1.8.0.dist-info/top_level.txt",
+      "bytes": 5,
+      "sha256": "b29203fd76dfe50ccb5d2aaf5f2382cfc4d49353f3d8ccbc08336cddb256c40c"
+    }
+  ],
+  "dependency_target": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency",
+  "decoder": "isal",
+  "decoder_version": "1.8.0"
+}
