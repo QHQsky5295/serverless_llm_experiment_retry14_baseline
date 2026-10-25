@@ -93,3 +93,9 @@ prefill103.206ms。它们是阶段描述；嵌套runtime-slot/routing和各阶�
 结束分别454/132/14/12条；这些是重叠观察，不相加成节省时延。所有审计复用
 既有D840分析，没有增加GPU实验或重跑资格。辅助03峰值721072128B，内存
 事件及swap均0；原pending状态保留，通过delivery_closure/resolved.json补齐。
+
+结果备份：941640e692f7a853dbc5c011957a0f10cd485c73，已核实远端
+backup/d846-complete-20261025。最终V2尚未同步，无force push。
+三份关闭原始日志无损压缩，双次解压SHA均一致，回收1285332992B；恢复
+路径与原SHA见`paper_results/ieee_tc/storage/20261025_d846_closed_results.json`。
+旧147项及用户manifest保持不变；原始指标和失败记录未删除或择优替换。

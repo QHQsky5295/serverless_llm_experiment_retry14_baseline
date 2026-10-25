@@ -1,0 +1,23 @@
+"""Reuse D840 verified lossless compression for closed, backed-up D846 evidence."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d840_20261025/storage_program.py.snapshot'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'a8fff070cd6be5d0e43ee7090db67ab2fac1776ab2f1efbc2dbc94a238a56900'
+_source = _template.read_text()
+for _old, _new in (
+    ('d840_3b_single_thread_decoder_full_w2', 'd846_3b_staging_identity_full_w2'),
+    ('20261025_d840_closed_results', '20261025_d846_closed_results'),
+    ('d840_20261025/3b_max3_full_w2', 'd846_20261025/3b_max3_full_w2'),
+    ("'backup_completion_identity.json', 'backup_resume_identity.json', 'settlement_identity.json', 'settlement_resume_identity.json'):",
+     "'backup_completion_identity.json', 'backup_resume_identity.json', 'settlement_resume_identity.json'):"),
+    ("protected.update(read(ROOT / 'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json')['user_protected'])",
+     "protected.update(read(CURATED/'prelaunch/qualification.json')['protected'])"),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw/'storage_program.py.snapshot'), 'exec')
+with (_raw/'storage_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'storage_program.py.snapshot'), 'exec'), globals())
