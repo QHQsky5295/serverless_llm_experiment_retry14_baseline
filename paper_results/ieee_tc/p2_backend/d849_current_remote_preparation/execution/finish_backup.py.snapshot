@@ -1,0 +1,32 @@
+"""Resume the exact staged checkpoint; retain raw pytest whitespace and hashes."""
+import json
+from pathlib import Path
+import subprocess
+
+RAW = Path(__file__).resolve().parent
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation'
+prior = json.loads((RAW/'backup_identity.json').read_text())
+assert not Path(prior['path']).exists()
+source = (RAW/'backup_executed.py.snapshot').read_text()
+for old,new in (
+    ("RAW/'backup_identity.json'","RAW/'backup_recovery_identity.json'"),
+    ("assert not git('diff','--cached','--name-only').strip()\nclosure", "# Exact already-staged set is checked below before any new staging.\nclosure"),
+    ("git('add','--',*paths)", "staged = set(git('diff','--cached','--name-only').splitlines())\nassert staged <= set(paths) and 'configs/generated/lora_manifest_1000.json' not in staged\ngit('add','--',*paths)"),
+    ("ordinary = [path for path in paths if not path.endswith(('.csv','.snapshot'))]", "raw_log = 'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/tests.txt'\nordinary = [path for path in paths if not path.endswith(('.csv','.snapshot')) and path != raw_log]"),
+    ("git('diff','--cached','--check','--',*ordinary)", "git('diff','--cached','--check','--',*ordinary)\ngit('-c','core.whitespace=-blank-at-eol,-blank-at-eof,space-before-tab','diff','--cached','--check','--',raw_log)"),
+):
+    assert old in source,old
+    source = source.replace(old,new)
+failure = dict(stage='staged whitespace verification',returncode=2,
+    reason='Unmodified pytest output contains two spaces on a blank line at tests.txt:13.',
+    effects='No commit or push occurred; original log and all sealed data remain unchanged.',
+    recovery='Keep exact source/log SHAs, use explicit raw-log whitespace interpretation; code/docs remain strict.',
+    prior_scope=prior, prior_path_removed=True)
+with (OUT/'backup_recovery.json').open('x') as stream:
+    json.dump(failure,stream,indent=2); stream.write('\n')
+with (OUT/'execution/finish_backup.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+with (RAW/'backup_recovery_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source,str(RAW/'backup_recovery_executed.py.snapshot'),'exec'),globals())

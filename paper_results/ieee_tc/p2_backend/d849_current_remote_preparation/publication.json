@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "request_count": 505,
+  "groups": {
+    "all": {
+      "n": 505,
+      "metrics": {
+        "published_to_native_start_ms": {
+          "count": 505,
+          "mean": 277.44278220256956,
+          "p50_type1": 211.0213073901832,
+          "p95_type1": 701.0969137772918
+        },
+        "partition_error_ms": {
+          "count": 505,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "publication_to_client_complete_ms": {
+          "count": 505,
+          "mean": 114.90769392561795,
+          "p50_type1": 67.99650471657515,
+          "p95_type1": 347.8055400773883
+        },
+        "client_complete_to_source_ready_ms": {
+          "count": 505,
+          "mean": 46.26821326645147,
+          "p50_type1": 13.293351978063583,
+          "p95_type1": 166.9999063014984
+        },
+        "source_ready_to_native_load_ms": {
+          "count": 505,
+          "mean": 116.26687501050016,
+          "p50_type1": 89.76791333407164,
+          "p95_type1": 284.4246351160109
+        }
+      }
+    },
+    "ttft_fail": {
+      "n": 139,
+      "metrics": {
+        "published_to_native_start_ms": {
+          "count": 139,
+          "mean": 402.6541026650841,
+          "p50_type1": 270.2248408459127,
+          "p95_type1": 1429.9604268744588
+        },
+        "partition_error_ms": {
+          "count": 139,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "publication_to_client_complete_ms": {
+          "count": 139,
+          "mean": 182.81588816291674,
+          "p50_type1": 85.14007600024343,
+          "p95_type1": 851.2569651938975
+        },
+        "client_complete_to_source_ready_ms": {
+          "count": 139,
+          "mean": 91.90250770691381,
+          "p50_type1": 25.280856993049383,
+          "p95_type1": 352.06711012870073
+        },
+        "source_ready_to_native_load_ms": {
+          "count": 139,
+          "mean": 127.93570679525355,
+          "p50_type1": 104.0587741881609,
+          "p95_type1": 296.4514489285648
+        }
+      }
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/partition/diagnosis.json",
+      "sha256": "8efe281769c541e6a79d912f699052f9e122a5b8361ad615e0833fbb73a82c87"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/settlement_analysis/summary.json",
+      "sha256": "4a010528ef4236ced1bfa94a0aa1c1c835e10427ad3fc92ff0b6a7dc61496331"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/stages/diagnosis.json",
+      "sha256": "05dcf4bdbac7cb783b44c29d27843628a686514801e1b16503f7e2cc9781198d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/remote_client_projection.json",
+      "sha256": "cf6b9b3fb9b8f32e3b375891a8f703e57fe255d2eda51081550f7d1334f44b9a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d849_20261025/publication.py",
+      "sha256": "02714ecee2b768c6b822224fc29d5c6c82216a5b5d543938fefc63f55433c21f"
+    }
+  ],
+  "output": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/publication.csv",
+    "sha256": "9eb7bf111dd9a688cb6f92365dc050af2874d171a9206cf80aef3ef720a67f91"
+  },
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "scope": {
+    "unit": "primelora-tc-aux-84900000000000000000000000000003.scope",
+    "invocation_id": "1797aa1af00946728576c71daa2428b5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84900000000000000000000000000003.scope",
+    "inode": 32511811
+  },
+  "limits": [
+    "Readiness boundary reconstructed from recorded same-request span and endpoint, not directly remeasured.",
+    "Client completion includes workspace cleanup; later callback includes scheduling and revalidation.",
+    "Conditional diagnosis only; no hypothetical gain or modified SLO."
+  ]
+}

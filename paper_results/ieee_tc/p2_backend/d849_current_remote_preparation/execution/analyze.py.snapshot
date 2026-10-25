@@ -1,0 +1,36 @@
+"""Reuse D818 on the current closed D846 W2, without another GPU replay."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW.parent/'d846_20261025/3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation'
+BASE = ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_remote_preparation
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+with (RAW/'identity.json').open('x') as stream:
+    json.dump(identity,stream,indent=2)
+OUT.mkdir(parents=True,exist_ok=False)
+compression = ROOT/'paper_results/ieee_tc/storage/20261025_d846_closed_results.json'
+for row in json.loads(compression.read_text())['entries']:
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert row['audit_sha_matches'] and p.digest(Path(row['archive'])) == row['archive_sha256']
+try:
+    diagnose_remote_preparation(RUN,OUT/'partition',BASE/'completion/stages')
+finally:
+    with (OUT/'resources.json').open('x') as stream:
+        json.dump(dict(identity=identity, resources=p.cgroup_snapshot(group),
+            program_sha256=p.digest(Path(__file__)),
+            compression_receipt=dict(path=str(compression),sha256=p.digest(compression)),
+            n_correct=None,new_gpu_replays=0,production_changes=False),stream,indent=2)

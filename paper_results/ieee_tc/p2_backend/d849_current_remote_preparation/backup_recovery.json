@@ -1,0 +1,14 @@
+{
+  "stage": "staged whitespace verification",
+  "returncode": 2,
+  "reason": "Unmodified pytest output contains two spaces on a blank line at tests.txt:13.",
+  "effects": "No commit or push occurred; original log and all sealed data remain unchanged.",
+  "recovery": "Keep exact source/log SHAs, use explicit raw-log whitespace interpretation; code/docs remain strict.",
+  "prior_scope": {
+    "unit": "primelora-tc-aux-84900000000000000000000000000005.scope",
+    "invocation_id": "728d1cde609e487796ba49da2ddaf949",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84900000000000000000000000000005.scope",
+    "inode": 32513712
+  },
+  "prior_path_removed": true
+}

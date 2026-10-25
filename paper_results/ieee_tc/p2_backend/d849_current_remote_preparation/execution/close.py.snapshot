@@ -1,0 +1,74 @@
+"""Seal existing-source D849 evidence and its small gzip-identity correction."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False); stream.write('\n')
+def ref(path):
+    return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json',scope)
+closed = []
+for identity in (read(RAW/'identity.json'),read(RAW/'control_identity.json'),read(OUT/'publication.json')['scope']):
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    closed.append(dict(identity=identity,path_removed=True))
+for path in (OUT/'resources.json',OUT/'control_resources.json'):
+    resource = read(path)['resources']
+    assert resource['memory.swap.current'] == 0
+    assert all(value == 0 for value in resource['memory.events'].values())
+prep, control, publication = (read(OUT/name) for name in
+    ('partition/diagnosis.json','control/diagnosis.json','publication.json'))
+assert prep['passed'] and prep['joined_remote_requests'] == 505 and prep['request_population'] == 4000
+assert control['passed'] and control['joined_requests'] == publication['request_count'] == 505
+assert prep['groups']['ttft_fail']['n'] == control['groups']['ttft_fail']['n'] == 139
+for report in (prep,control):
+    for row in report['outputs']:
+        assert p.digest(Path(row['path'])) == row['sha256']
+assert p.digest(Path(publication['output']['path'])) == publication['output']['sha256']
+assert '16 passed, 151 deselected, 19 warnings' in (OUT/'tests.txt').read_text()
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path,sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT/'execution'
+execution.mkdir()
+old = subprocess.check_output(['git','show','720e9419:scripts/ieee_tc/audit_d703_3b_full.py'],cwd=ROOT)
+before = execution/'analyzer_before_gzip_identity.py.snapshot'
+with before.open('xb') as stream:
+    stream.write(old)
+assert p.digest(before) == next(r['sha256'] for r in prep['source_refs']
+    if r['path'] == str(ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'))
+for path in [RAW/name for name in ('analyze.py','control.py','publication.py','close.py','backup.py')]:
+    compile(path.read_text(),str(path),'exec')
+    with (execution/(path.name+'.snapshot')).open('xb') as stream:
+        stream.write(path.read_bytes())
+for path in (ROOT/'scripts/ieee_tc/audit_d703_3b_full.py',ROOT/'tests/test_ieee_tc_diagnostic_plot.py'):
+    compile(path.read_text(),str(path),'exec')
+doc = ROOT/'docs/ieee_tc/D849_CURRENT_REMOTE_PREPARATION_20261025.md'
+save(OUT/'closure.json',dict(passed=True,scope=scope,closed_tasks=closed,protected=protected,
+    user_protected=user,doc=ref(doc),production_changes=False,new_gpu_replays=0,
+    n_correct=None,ranking_eligible=False,confidence_interval=None,
+    tests=dict(passed=16,new=7,reused=9,source=ref(OUT/'tests.txt')),
+    modified_analysis_sources=[ref(ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'),
+        ref(ROOT/'tests/test_ieee_tc_diagnostic_plot.py')],
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json',dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True,protected=147,joined=505,ttft_failed=139,new_gpu_replays=0)))

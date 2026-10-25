@@ -1,0 +1,421 @@
+{
+  "passed": true,
+  "kind": "d833_prefetch_control_partition_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/3b_max3_full_w2",
+  "full_request_population": 4000,
+  "joined_requests": 505,
+  "unjoined_remote_requests": [
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_00613"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_00623"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_00722"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_00973"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_01647"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02967"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_03011"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03022"
+    }
+  ],
+  "groups": {
+    "all": {
+      "n": 505,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 505,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 505,
+          "mean": 3.462490943804531,
+          "p50_type1": 1.0076221078634262,
+          "p95_type1": 2.5459211319684982
+        },
+        "movement_queue_ms": {
+          "count": 505,
+          "mean": 79.01688763724253,
+          "p50_type1": 0.14152098447084427,
+          "p95_type1": 433.6881130002439
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 505,
+          "mean": 75.29421067141955,
+          "p50_type1": 0.3605256788432598,
+          "p95_type1": 356.95622488856316
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 505,
+          "mean": 53.960394978265064,
+          "p50_type1": 15.445070806890726,
+          "p95_type1": 227.12750686332583
+        },
+        "first_to_last_native_start_ms": {
+          "count": 505,
+          "mean": 106.19873549457233,
+          "p50_type1": 40.84757110103965,
+          "p95_type1": 363.84153878316283
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 505,
+          "mean": 18.55117336727015,
+          "p50_type1": 2.0562931895256042,
+          "p95_type1": 80.85570577532053
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 505,
+          "mean": 14.290635593899406,
+          "p50_type1": 1.8291566520929337,
+          "p95_type1": 56.11378280445933
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 505,
+          "mean": 4.343131590302628,
+          "p50_type1": 1.16429990157485,
+          "p95_type1": 10.42527798563242
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 505,
+          "mean": 0.18256462760048336,
+          "p50_type1": 0.14813197776675224,
+          "p95_type1": 0.38025621324777603
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 505,
+          "mean": 146.77258886415328,
+          "p50_type1": 98.72514801099896,
+          "p95_type1": 423.4820147976279
+        },
+        "initial_participants": {
+          "count": 505,
+          "mean": 2.9663366336633663,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 505,
+          "mean": 0.0019801980198019802,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 505,
+          "mean": 350.77452868647356,
+          "p50_type1": 217.77982311323285,
+          "p95_type1": 1205.419230274856
+        },
+        "pressure_start_envelope_ms": {
+          "count": 505,
+          "mean": 178.71030384010754,
+          "p50_type1": 122.88909172639251,
+          "p95_type1": 512.3701146803796
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 505,
+          "mean": 27.412018758051172,
+          "p50_type1": 2.0889798179268837,
+          "p95_type1": 166.83037299662828
+        }
+      }
+    },
+    "ttft_fail": {
+      "n": 139,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 139,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 139,
+          "mean": 2.4232453324919123,
+          "p50_type1": 1.0557766072452068,
+          "p95_type1": 4.945694003254175
+        },
+        "movement_queue_ms": {
+          "count": 139,
+          "mean": 164.15298320085026,
+          "p50_type1": 0.40152063593268394,
+          "p95_type1": 795.9895771928132
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 139,
+          "mean": 155.3162165160338,
+          "p50_type1": 42.44989808648825,
+          "p95_type1": 582.052637822926
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 139,
+          "mean": 84.25465510595295,
+          "p50_type1": 22.931743878871202,
+          "p95_type1": 416.4279359392822
+        },
+        "first_to_last_native_start_ms": {
+          "count": 139,
+          "mean": 153.64192029555068,
+          "p50_type1": 92.79271820560098,
+          "p95_type1": 474.20848067849874
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 139,
+          "mean": 30.451726215295224,
+          "p50_type1": 2.354090102016926,
+          "p95_type1": 163.80632296204567
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 139,
+          "mean": 28.99489039555192,
+          "p50_type1": 2.008953131735325,
+          "p95_type1": 148.8794987089932
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 139,
+          "mean": 8.056336849686696,
+          "p50_type1": 1.5687867999076843,
+          "p95_type1": 17.233808990567923
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 139,
+          "mean": 0.20641164532561096,
+          "p50_type1": 0.1554586924612522,
+          "p95_type1": 0.5369153805077076
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 139,
+          "mean": 209.5999577109494,
+          "p50_type1": 138.29530449584126,
+          "p95_type1": 621.1085985414684
+        },
+        "initial_participants": {
+          "count": 139,
+          "mean": 2.985611510791367,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 139,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 139,
+          "mean": 619.2356370617267,
+          "p50_type1": 426.1379111558199,
+          "p95_type1": 2138.2512049749494
+        },
+        "pressure_start_envelope_ms": {
+          "count": 139,
+          "mean": 268.34830161679884,
+          "p50_type1": 193.0847791954875,
+          "p95_type1": 796.9034109264612
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 139,
+          "mean": 50.485595410837114,
+          "p50_type1": 4.767667502164841,
+          "p95_type1": 273.81113870069385
+        }
+      }
+    },
+    "ttft_pass": {
+      "n": 366,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 366,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 366,
+          "mean": 3.857177118592656,
+          "p50_type1": 0.9955521672964096,
+          "p95_type1": 2.16115266084671
+        },
+        "movement_queue_ms": {
+          "count": 366,
+          "mean": 46.683780305708446,
+          "p50_type1": 0.12941379100084305,
+          "p95_type1": 294.4018072448671
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 366,
+          "mean": 44.90333959928464,
+          "p50_type1": 0.26295334100723267,
+          "p95_type1": 284.54106859862804
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 366,
+          "mean": 42.45519782594644,
+          "p50_type1": 11.680549941956997,
+          "p95_type1": 192.68695637583733
+        },
+        "first_to_last_native_start_ms": {
+          "count": 366,
+          "mean": 88.18069536523903,
+          "p50_type1": 30.214032158255577,
+          "p95_type1": 315.03256782889366
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 366,
+          "mean": 14.031564498757893,
+          "p50_type1": 1.9831652753055096,
+          "p95_type1": 60.631588101387024
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 366,
+          "mean": 8.70623281403684,
+          "p50_type1": 1.7800969071686268,
+          "p95_type1": 18.780434038490057
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 366,
+          "mean": 2.9329252213015744,
+          "p50_type1": 1.0720179416239262,
+          "p95_type1": 8.582444861531258
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 366,
+          "mean": 0.17350797332782564,
+          "p50_type1": 0.14507072046399117,
+          "p95_type1": 0.2961857244372368
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 366,
+          "mean": 122.91192146058862,
+          "p50_type1": 63.233047258108854,
+          "p95_type1": 351.9008834846318
+        },
+        "initial_participants": {
+          "count": 366,
+          "mean": 2.959016393442623,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 366,
+          "mean": 0.00273224043715847,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 366,
+          "mean": 248.81798752756595,
+          "p50_type1": 167.62765496969223,
+          "p95_type1": 870.4268769361079
+        },
+        "pressure_start_envelope_ms": {
+          "count": 366,
+          "mean": 144.66745768994338,
+          "p50_type1": 93.04230380803347,
+          "p95_type1": 413.62629691138864
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 366,
+          "mean": 18.64910303472536,
+          "p50_type1": 1.5480797737836838,
+          "p95_type1": 120.20164495334029
+        }
+      }
+    }
+  },
+  "additive_stage_fields": [
+    "admission_to_movement_created_ms",
+    "movement_queue_ms",
+    "attempt_to_pressure_created_ms",
+    "pressure_created_to_first_native_start_ms",
+    "first_to_last_native_start_ms",
+    "last_native_start_to_io_started_ms",
+    "io_started_to_fetch_thread_ms"
+  ],
+  "decoded_outcome_sha256": "ce98a1b33e6765dd84ed791822a215e84b744124de47a36dffc4fd76777f6d4d",
+  "limitations": [
+    "Conditional existing transfer cohort, not a new performance experiment.",
+    "RPC sums are nested in start envelope; never add them to sequential stages.",
+    "No lock-acquisition timestamp: residual includes scheduling and instrumentation gaps, not pure lock wait.",
+    "Native observed_at is method execution, not RPC return or thread CPU time.",
+    "Late-attached native participants are not part of the initial IO barrier.",
+    "No counterfactual SLO, causal gain, CI or independent numerical correctness proof."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/partition/remote_requests.csv",
+      "sha256": "aed4ec4dd3d11c6386d8c59089fb9752d90190c198daa35c551f94fc15b1492c",
+      "bytes": 177905
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/settlement_analysis/requests.csv",
+      "sha256": "2b280ef9f18544f94a99197ddf24bfcd5733da1e3d700e44a15f6daeed524e99",
+      "bytes": 188125
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/stages/requests.csv",
+      "sha256": "f0e13f35e7a8c2897e308145bc84d55e2929c0f90379c4500d8099ec48924656",
+      "bytes": 2439265
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "sha256": "65bff4671ff5075161b22a698ac75c83cecf1e0ec49ff479dbdd220d09831259",
+      "bytes": 136982764
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/partition/diagnosis.json",
+      "sha256": "8efe281769c541e6a79d912f699052f9e122a5b8361ad615e0833fbb73a82c87",
+      "bytes": 12274
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/settlement_analysis/summary.json",
+      "sha256": "4a010528ef4236ced1bfa94a0aa1c1c835e10427ad3fc92ff0b6a7dc61496331",
+      "bytes": 4733
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/stages/diagnosis.json",
+      "sha256": "05dcf4bdbac7cb783b44c29d27843628a686514801e1b16503f7e2cc9781198d",
+      "bytes": 231091
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "af283bda695a0d50ba04b20cd23de5d21b3adc5756606d49cb50f71cc3d03a52",
+      "bytes": 105664
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d849_current_remote_preparation/control/requests.csv",
+      "sha256": "27d3ea210a1ee953b394eb7aa56920e28f05e44421e449f7f84a2cde041f403b",
+      "bytes": 197125
+    }
+  ]
+}

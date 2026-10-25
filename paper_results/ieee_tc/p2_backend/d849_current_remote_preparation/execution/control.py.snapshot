@@ -1,0 +1,36 @@
+"""Reuse D833's exact request/job/pressure joins on the sealed D846 sources."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation'
+BASE = ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_prefetch_control
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+with (RAW/'control_identity.json').open('x') as stream:
+    json.dump(identity,stream,indent=2)
+try:
+    with (OUT/'tests.txt').open('x') as stream:
+        check = subprocess.run([sys.executable,'-B','-m','pytest','-q','-p','no:cacheprovider',
+            'tests/test_ieee_tc_diagnostic_plot.py','-k','d849 or d833'],cwd=ROOT,
+            stdout=stream,stderr=subprocess.STDOUT)
+    assert check.returncode == 0
+    diagnose_prefetch_control(RAW.parent/'d846_20261025/3b_max3_full_w2',
+        OUT/'control',OUT/'partition',BASE/'settlement_analysis',BASE/'completion/stages')
+finally:
+    with (OUT/'control_resources.json').open('x') as stream:
+        json.dump(dict(identity=identity,resources=p.cgroup_snapshot(group),
+            program_sha256=p.digest(Path(__file__)),new_gpu_replays=0,
+            analyzer_sha256=p.digest(ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'),
+            production_changes=False,n_correct=None),stream,indent=2)

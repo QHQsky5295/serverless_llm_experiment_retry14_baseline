@@ -1,4 +1,29 @@
-# IEEE TC execution status — D848 storage closed; current 3B preparation diagnosis
+# IEEE TC execution status — D849 current preparation diagnosed; no new GPU replay
+
+## 2026-10-25 D849当前准备分解完成，下一核查确认发布后的真实依赖
+
+D848提交720e9419d1bda55b7fc5ccdc84b886279df60634，远端
+backup/d848-storage-transfer-20261025核实同SHA，25明确文件；最终V2未同步。
+已回收22.174GB，存储与主线同步，不再等待全盘权限缺口消失。
+
+D849复用D818/D833，505条拥有Remote IO的请求全部精确关联，139条TTFT
+违约，分解误差0。其余8条selected-Remote保留；全部4000分母不变。
+全505/违约139的获取前均值350.775/619.236ms，确认发布包络352.502/
+528.193ms，原生加载39.965/40.681ms。发布→消费者就绪通知161.176/
+274.718ms，现有D831通知仍晚于IO及清理join，不是确认发布立即通知。
+详情D849_CURRENT_REMOTE_PREPARATION_20261025.md。16项针对性来源/分解
+测试通过；仅离线analyzer适配gzip/raw SHA关联，生产未改。01–03均结束，
+无GPU/远端服务操作/新性能点/图表。3B仍92.875%、U11929.629332，D711
+独立数值未知，未达标；不能从上述阶段直接预测优化后SLO。
+
+下一唯一依赖问题：能否在完整文件确认及实际读租约交接后，消费者与私有
+workspace退役重叠，同时保留真实容量/压力/取消/失败及成功终态结算？
+先检查共享owner锁和租约交接，不只提前callback把等待移到消费者；不重做
+D827清理、D628移锁、D595并行ACK、D822共享pressure、D844 stat或解码搜索。
+一次有界确定性验证后才决定是否候选；不追加GPU profiling/短前缀。
+全部剩余同版本主比较、消融、敏感性、论文文档/图表和最终V2继续开放，goal active。
+
+以下为历史，不重跑已完成任务。
 
 ## 2026-10-25 D848已回收22.174GB，存储与主线同步
 

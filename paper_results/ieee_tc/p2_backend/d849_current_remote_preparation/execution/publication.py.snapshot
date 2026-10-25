@@ -1,0 +1,79 @@
+"""Join sealed per-request publication/readiness spans without GPU work.
+
+The readiness timestamp is reconstructed from its recorded same-request span
+and native-load endpoint; it is not measured anew or inferred from group means.
+"""
+import csv
+import json
+import math
+import os
+from pathlib import Path
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d849_current_remote_preparation'
+BASE = ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def read(path):
+    return json.loads(path.read_text())
+def ref(path):
+    return dict(path=str(path),sha256=p.digest(path))
+def table(path, refs):
+    expected = next(r for r in refs if r['path'] == str(path))
+    assert p.digest(path) == expected['sha256']
+    with path.open() as stream:
+        rows = list(csv.DictReader(stream))
+    by_id = {r['request_id']:r for r in rows}
+    assert len(by_id) == len(rows)
+    return by_id
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+prep = OUT/'partition/diagnosis.json'
+settled = BASE/'settlement_analysis/summary.json'
+staged = BASE/'completion/stages/diagnosis.json'
+cohort = table(OUT/'partition/remote_requests.csv',read(prep)['outputs'])
+links = table(BASE/'settlement_analysis/requests.csv',read(settled)['outputs'])
+stages = table(BASE/'completion/stages/requests.csv',[read(staged)['request_table']])
+client = RAW.parent/'d846_20261025/remote_client_projection.json'
+assert p.digest(client) == 'cf6b9b3fb9b8f32e3b375891a8f703e57fe255d2eda51081550f7d1334f44b9a'
+transfers = {r['transfer_id']:r for r in read(client)['transfers']}
+assert len(cohort) == len(links) == len(transfers) == 505
+rows = []
+for rid, request in cohort.items():
+    link, stage = links[rid], stages[rid]
+    transfer = transfers[request['transfer_id']]
+    assert request['adapter_id'] == link['adapter_id'] == transfer['artifact_id']
+    assert link['owns_io'] == 'True'
+    start = float(stage['load_start'])
+    ready = start-float(link['source_ready_to_load_ms'])/1000
+    published, completed = (transfer[k] for k in ('published_monotonic_s','client_completed_monotonic_s'))
+    assert published <= completed <= ready+1e-9 <= start+1e-9
+    parts = dict(publication_to_client_complete_ms=1000*(completed-published),
+        client_complete_to_source_ready_ms=1000*(ready-completed),
+        source_ready_to_native_load_ms=1000*(start-ready))
+    error = abs(math.fsum(parts.values())-float(request['published_to_native_start_ms']))
+    assert error < 1e-6
+    rows.append(dict(request_id=rid,transfer_id=request['transfer_id'],
+        ttft_pass=request['ttft_pass']=='True',published_to_native_start_ms=float(request['published_to_native_start_ms']),
+        partition_error_ms=error,**parts))
+target = OUT/'publication.csv'
+with target.open('x') as stream:
+    writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+    writer.writeheader(); writer.writerows(rows)
+report = dict(passed=True,request_count=505,
+    groups={label:dict(n=len(selected),metrics={k:timing_stats([r[k] for r in selected])
+        for k in rows[0] if k.endswith('_ms')})
+        for label,selected in [('all',rows),('ttft_fail',[r for r in rows if not r['ttft_pass']])]},
+    sources=[ref(x) for x in (prep,settled,staged,client,Path(__file__))],
+    output=ref(target),new_gpu_replays=0,n_correct=None,
+    scope=p.scope_identity(p.cg_path().name),
+    limits=['Readiness boundary reconstructed from recorded same-request span and endpoint, not directly remeasured.',
+        'Client completion includes workspace cleanup; later callback includes scheduling and revalidation.',
+        'Conditional diagnosis only; no hypothetical gain or modified SLO.'])
+with (OUT/'publication.json').open('x') as stream:
+    json.dump(report,stream,indent=2,allow_nan=False); stream.write('\n')
+print(json.dumps(report['groups'],indent=2))

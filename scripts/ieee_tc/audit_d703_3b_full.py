@@ -308,6 +308,33 @@ def prefetch_control_partition(admitted, job, pressure, transfer):
         uninstrumented_start_residual_ms=residual)
 
 
+def closed_outcome_source(preparation_refs, settlement_refs):
+    """Join raw/archived identities without conflating gzip and decoded SHAs.
+
+    The caller still streams and checks the decoded SHA against the sealed
+    settlement source. No restoration, timing change or implicit new source.
+    """
+    matches = [r for r in preparation_refs if Path(r['path']).name in
+               ('main_outcome.json', 'main_outcome.json.gz')]
+    if len(matches) != 1:
+        raise ValueError('exactly one outcome source required')
+    source = matches[0]
+    path = Path(source['path'])
+    original = path.with_suffix('') if path.suffix == '.gz' else path
+    witnesses = [r for r in settlement_refs if r['path'] == str(original)]
+    if len(witnesses) != 1:
+        raise ValueError('exact uncompressed settlement source required')
+    expected = witnesses[0]['sha256']
+    if path.suffix == '.gz':
+        if digest(path) != source['sha256']:
+            raise ValueError('compressed outcome source changed')
+    elif source['sha256'] != expected:
+        raise ValueError('different outcome identities in joined audits')
+    elif not path.exists():
+        path = path.with_suffix('.json.gz')
+    return path, expected
+
+
 def diagnose_prefetch_control(raw, output, preparation_audit, settlement_audit, stage_audit):
     """Reuse D818 transfer cohort and D832 exact job/pressure links, CPU-only."""
     import ijson
@@ -335,20 +362,14 @@ def diagnose_prefetch_control(raw, output, preparation_audit, settlement_audit, 
     cohort = table(preparation_audit/'remote_requests.csv', prep['outputs'])
     settlements = table(settlement_audit/'requests.csv', settled['outputs'])
     stages = table(stage_audit/'requests.csv', [stage['request_table']])
-    outcome_ref = next(r for r in prep['source_refs'] if Path(r['path']).name == 'main_outcome.json')
-    if outcome_ref['sha256'] != next(r['sha256'] for r in settled['source_refs']
-                                    if r['path'] == outcome_ref['path']):
-        raise ValueError('different outcome identities in joined audits')
-    outcome = Path(outcome_ref['path'])
-    if not outcome.exists():
-        outcome = outcome.with_suffix('.json.gz')
+    outcome, expected_outcome_sha = closed_outcome_source(prep['source_refs'], settled['source_refs'])
     def open_source():
         return gzip.open(outcome, 'rb') if outcome.suffix == '.gz' else outcome.open('rb')
     decoded = hashlib.sha256()
     with open_source() as stream:
         for block in iter(lambda:stream.read(1024*1024), b''):
             decoded.update(block)
-    if decoded.hexdigest() != outcome_ref['sha256']:
+    if decoded.hexdigest() != expected_outcome_sha:
         raise ValueError('decoded immutable outcome SHA differs')
     sources = {}
     for key, prefix, identity in (

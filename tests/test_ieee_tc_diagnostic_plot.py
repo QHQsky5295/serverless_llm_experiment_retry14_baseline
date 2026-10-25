@@ -6,6 +6,49 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.parametrize('form', ['raw', 'raw_ref_archived', 'archive_ref'])
+def test_d849_closed_outcome_identity_preserves_decoded_sha(tmp_path, form):
+    import gzip
+    import hashlib
+    from scripts.ieee_tc.audit_d703_3b_full import closed_outcome_source
+    original = tmp_path/'main_outcome.json'
+    archive = tmp_path/'main_outcome.json.gz'
+    data = b'{"complete": true}'
+    sha = hashlib.sha256(data).hexdigest()
+    original.write_bytes(data)
+    archive.write_bytes(gzip.compress(data, mtime=0))
+    settled = [dict(path=str(original),sha256=sha)]
+    source = dict(settled[0])
+    if form != 'raw':
+        original.unlink()
+    if form == 'archive_ref':
+        source = dict(path=str(archive),sha256=hashlib.sha256(archive.read_bytes()).hexdigest())
+    path, decoded = closed_outcome_source([source],settled)
+    assert path == (original if form == 'raw' else archive)
+    assert decoded == sha
+
+
+@pytest.mark.parametrize('fault', ['duplicate', 'different_path', 'changed_archive', 'different_raw_sha'])
+def test_d849_closed_outcome_rejects_wrong_identity(tmp_path, fault):
+    import gzip
+    import hashlib
+    from scripts.ieee_tc.audit_d703_3b_full import closed_outcome_source
+    original = tmp_path/'main_outcome.json'
+    archive = tmp_path/'main_outcome.json.gz'
+    data = b'{}'
+    original.write_bytes(data)
+    archive.write_bytes(gzip.compress(data, mtime=0))
+    settled = [dict(path=str(original),sha256=hashlib.sha256(data).hexdigest())]
+    source = dict(path=str(archive),sha256=hashlib.sha256(archive.read_bytes()).hexdigest())
+    sources = [source]
+    if fault == 'duplicate': sources.append(dict(source))
+    elif fault == 'different_path': settled[0]['path'] = str(tmp_path/'other/main_outcome.json')
+    elif fault == 'changed_archive': archive.write_bytes(b'changed')
+    else: sources = [dict(path=str(original),sha256='0'*64)]
+    with pytest.raises(ValueError):
+        closed_outcome_source(sources,settled)
+
+
 def d823_pair():
     from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
     rows = [dict(request_id=f'r{i}', ordinal=i, phase=0, adapter_id=f'a{i}',
