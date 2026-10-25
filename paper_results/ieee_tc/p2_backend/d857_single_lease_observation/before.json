@@ -1,0 +1,26 @@
+{
+  "passed": false,
+  "tests": 2,
+  "errors": 0,
+  "failures": 1,
+  "elapsed_seconds": 9.307037313003093,
+  "names": [
+    "tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_identity_and_footprint_use_one_fresh_inventory",
+    "tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_second_pass_mutation_withdraws_before_install"
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-85700000000000000000000000000001.scope",
+    "invocation_id": "56c0e6b3ba3e45b78f2a6d0423811871",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85700000000000000000000000000001.scope",
+    "inode": 32621047
+  },
+  "source_sha256": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+  "test_sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564",
+  "resources": {
+    "memory.peak": "619479040",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "protected_147_unchanged": true,
+  "native_cuda_initialized": false
+}

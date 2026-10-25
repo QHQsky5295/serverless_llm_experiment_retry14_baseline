@@ -871,19 +871,23 @@ class LocalSourceReferences:
             return self.host_budget_snapshot()
 
     def _source_observation(self, path):
-        from ..storage.http_artifact_store import _verified_file_signature
         footprint = _local_file_inventory({'source': path}, allocation_bounds=self._file_allocations)
+        observations = ((name, Path(name).lstat()) for allocation in footprint['allocations']
+                        for name in allocation['paths'])
+        return self._source_observation_from_stats(path, footprint, observations)
+
+    @staticmethod
+    def _source_observation_from_stats(path, footprint, observations):
+        """Project one live inventory; never retain observations for a later call."""
+        from ..storage.http_artifact_store import _verified_file_signature
         signatures = {}
-        for allocation in footprint['allocations']:
-            for name in allocation['paths']:
-                item = Path(name)
-                info = item.lstat()
-                signature = _verified_file_signature(info)
-                # Renaming a completed directory changes its ctime, not its
-                # verified contents. The full path set and child signatures
-                # already detect membership/content changes.
-                signatures[str(item.relative_to(path))] = (
-                    signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
+        for name, info in observations:
+            signature = _verified_file_signature(info)
+            # Renaming a completed directory changes its ctime, not its
+            # verified contents. The full path set and child signatures
+            # already detect membership/content changes.
+            signatures[str(Path(name).relative_to(path))] = (
+                signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
         return signatures, {key: footprint[key] for key in
             ('file_path_bytes', 'allocated_file_bytes', 'allocated_bytes', 'unique_file_count')}
 
@@ -969,8 +973,7 @@ class LocalSourceReferences:
             if (expected_owner_id != self.owner_id or type(expected_epoch) is not int
                     or expected_epoch != self.source_epoch):
                 raise ConfirmedSourceConflict('confirmed file source owner/epoch changed')
-            source = Path(path).resolve(strict=True)
-            record = self._validated_source(source)
+            source, tier, info, footprint, record = self._read_lease_observation(path)
             # A successful validation has checked signatures and allocation
             # bounds. No competing owner mutation can enter this lock; an epoch
             # advance here is this transaction's footprint observation, not a
@@ -978,34 +981,61 @@ class LocalSourceReferences:
             if (record is None or record['public']['adapter_id'] != adapter_id
                     or record['public']['content_sha256'] != expected_content_sha256):
                 raise RuntimeError('confirmed file source identity changed')
-            return self.acquire(path=str(source), adapter_id=adapter_id, lease_id=lease_id)
+            return self._install_source_lease(source, tier, info, footprint, record,
+                                             adapter_id=adapter_id, lease_id=lease_id)
 
     def acquire(self, *, path: str, adapter_id: str, lease_id: str) -> Dict[str, Any]:
         with self.lock:
-            source = Path(path).resolve(strict=True)
-            matches = [tier for tier, root in self.roots.items() if source.parent == root]
-            if len(matches) != 1 or not source.is_dir():
-                raise ValueError('source must be an existing adapter directory in one managed tier')
-            if not adapter_id or not lease_id or lease_id in self.released:
-                raise ValueError('source reference requires an unused lease and adapter identity')
-            stat = source.stat()
-            identity = (adapter_id, str(source), matches[0], stat.st_dev, stat.st_ino)
-            previous = self.leases.get(lease_id)
-            if previous is not None and previous != identity:
-                raise ValueError('source lease cannot be rebound to another copy')
-            footprint = _local_file_inventory({matches[0]: source}, allocation_bounds=self._file_allocations)
-            record = self._validated_source(source)
-            if record is not None and record['public']['adapter_id'] != adapter_id:
-                raise ValueError('source reference changed the verified adapter identity')
-            self.leases[lease_id] = identity
-            if previous is None and record is not None:
-                self._touch_file_source(record)
-            return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
-                        path=str(source), tier=matches[0], device=stat.st_dev, inode=stat.st_ino,
-                        state='held', content_verified=record is not None, capacity_reserved=False,
-                        confirmed_source=(copy.deepcopy(record['public']) if record else None),
-                        file_footprint={key: value for key, value in footprint.items()
-                                        if key not in ('allocations', 'tiers')})
+            source, tier, info, footprint, record = self._read_lease_observation(path)
+            return self._install_source_lease(source, tier, info, footprint, record,
+                                             adapter_id=adapter_id, lease_id=lease_id)
+
+    def _read_lease_observation(self, path):
+        """Observe identity and footprint together under the acquiring owner's lock.
+
+        The inventory checks every path twice with fresh stat calls. Its private
+        captured metadata is usable only after the second check succeeds. No
+        owner mutation or async gap separates this observation from lease install;
+        a later acquisition must observe again, including an idempotent one.
+        """
+        source = Path(path).resolve(strict=True)
+        matches = [tier for tier, root in self.roots.items() if source.parent == root]
+        if len(matches) != 1 or not source.is_dir():
+            raise ValueError('source must be an existing adapter directory in one managed tier')
+        observed = {}
+        try:
+            footprint = _local_file_inventory({matches[0]: source},
+                allocation_bounds=self._file_allocations, _observed_stats=observed)
+            observation = (self._source_observation_from_stats(source, footprint, observed.items())
+                           if source in self._confirmed_sources else None)
+            record = self._validated_source(source, _observation=observation)
+        except (OSError, ValueError, RuntimeError):
+            # Inventory failure precedes validation; withdraw exactly once.
+            if source in self._confirmed_sources:
+                del self._confirmed_sources[source]
+                self.source_epoch += 1
+            raise
+        return source, matches[0], observed[str(source)], footprint, record
+
+    def _install_source_lease(self, source, tier, info, footprint, record, *, adapter_id, lease_id):
+        """Install from the same locked observation, without another tree scan."""
+        if not adapter_id or not lease_id or lease_id in self.released:
+            raise ValueError('source reference requires an unused lease and adapter identity')
+        identity = (adapter_id, str(source), tier, info.st_dev, info.st_ino)
+        previous = self.leases.get(lease_id)
+        if previous is not None and previous != identity:
+            raise ValueError('source lease cannot be rebound to another copy')
+        if record is not None and record['public']['adapter_id'] != adapter_id:
+            raise ValueError('source reference changed the verified adapter identity')
+        self.leases[lease_id] = identity
+        if previous is None and record is not None:
+            self._touch_file_source(record)
+        return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
+                    path=str(source), tier=tier, device=info.st_dev, inode=info.st_ino,
+                    state='held', content_verified=record is not None, capacity_reserved=False,
+                    confirmed_source=(copy.deepcopy(record['public']) if record else None),
+                    file_footprint={key: value for key, value in footprint.items()
+                                    if key not in ('allocations', 'tiers')})
 
     def demand_witness(self, reference, *, content_sha256):
         """Attest a live read lease without carrying a global native epoch.

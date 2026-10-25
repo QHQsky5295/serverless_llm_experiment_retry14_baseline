@@ -1,0 +1,10 @@
+"""Reuse D857 checks, correcting only the not-yet-executed HOST test class name."""
+from pathlib import Path
+
+path = Path(__file__).with_name('check.py')
+source = path.read_text()
+assert source.count('NativeHostPreparation.') == 1
+source = source.replace('NativeHostPreparation.', 'OwnedNativeHostMovement.')
+with path.with_name('after_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(path), 'exec'), globals())

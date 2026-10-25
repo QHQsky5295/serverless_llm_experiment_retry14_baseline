@@ -1,0 +1,105 @@
+{
+  "passed": true,
+  "cpu_semantics_passed": true,
+  "performance_candidate_accepted": false,
+  "tests": 86,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "before_expected_failure": {
+    "passed": false,
+    "tests": 2,
+    "errors": 0,
+    "failures": 1,
+    "elapsed_seconds": 9.307037313003093,
+    "names": [
+      "tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_identity_and_footprint_use_one_fresh_inventory",
+      "tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_second_pass_mutation_withdraws_before_install"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-85700000000000000000000000000001.scope",
+      "invocation_id": "56c0e6b3ba3e45b78f2a6d0423811871",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85700000000000000000000000000001.scope",
+      "inode": 32621047
+    },
+    "source_sha256": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "test_sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564",
+    "resources": {
+      "memory.peak": "619479040",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "protected_147_unchanged": true,
+    "native_cuda_initialized": false
+  },
+  "after": {
+    "passed": true,
+    "tests": 86,
+    "errors": 0,
+    "failures": 0,
+    "elapsed_seconds": 12.681095957290381,
+    "names": [
+      "tests.test_ieee_tc_file_observation",
+      "tests.test_ieee_tc_request_lifecycle.LocalSourceOwnership",
+      "tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication",
+      "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_first_load_observes_and_pins_file_atomically",
+      "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_reuse_observes_and_pins_file_atomically"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-85700000000000000000000000000002.scope",
+      "invocation_id": "0f00bcc8af284f78b54ab5a3c8cae6a3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85700000000000000000000000000002.scope",
+      "inode": 32623459
+    },
+    "source_sha256": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "test_sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564",
+    "resources": {
+      "memory.peak": "676397056",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "protected_147_unchanged": true,
+    "native_cuda_initialized": false
+  },
+  "protected_147": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D857_SINGLE_LEASE_OBSERVATION_20261026.md",
+    "sha256": "db127c3111ae0902864d84156c0d941a1dd1a76b54d81b3c8d08835c6f9414e1"
+  },
+  "source_files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+      "sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-85700000000000000000000000000003.scope",
+    "invocation_id": "0a3ef76d4a1a437a8bb6708b59e22bc7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85700000000000000000000000000003.scope",
+    "inode": 32624765
+  },
+  "next_action": "Register one unchanged-contract complete 3B W2 replay; no short prefix",
+  "raw": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d857_20261026",
+  "current_parent_performance": {
+    "run": "D846",
+    "joint_pass": 3715,
+    "n": 4000,
+    "u_gpu_seconds": 11929.62933205394,
+    "budget_gpu_seconds": 12083.063870235463
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

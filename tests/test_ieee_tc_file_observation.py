@@ -54,6 +54,81 @@ def without_capture_times(value):
 
 
 class FreshFileObservation(unittest.TestCase):
+    def test_read_lease_identity_and_footprint_use_one_fresh_inventory(self):
+        from collections import Counter
+        from faaslora.memory import residency_manager as module
+        fixture, owner, manifests, limits = self.make()
+        source = fixture.nvme / 'a'
+        expected_footprint = module._local_file_inventory({'nvme': source},
+            allocation_bounds=owner._file_allocations)
+        expected_footprint = {k: v for k, v in expected_footprint.items()
+                              if k not in ('allocations', 'tiers')}
+        file = next(p for p in source.rglob('*') if p.is_file())
+        original = os.stat
+        for confirmed in (True, False):
+            state = owner.source_snapshot('a')
+            publication = next(row for row in state['sources'] if row['tier'] == 'nvme')
+            counts = Counter()
+            def counted(path, *args, **kwargs):
+                if kwargs.get('follow_symlinks') is False and str(path) == str(file):
+                    self.assertTrue(owner.lock._is_owned())
+                    counts[str(path)] += 1
+                return original(path, *args, **kwargs)
+            lease = 'single-observation-' + str(confirmed)
+            previous_access = owner._file_access_sequence
+            held = None
+            try:
+                with (patch.object(os, 'stat', counted),
+                      patch.object(module, '_local_file_inventory',
+                                   wraps=module._local_file_inventory) as inventory):
+                    if confirmed:
+                        held = owner.acquire_confirmed(path=str(source), adapter_id='a', lease_id=lease,
+                            expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+                            expected_content_sha256=publication['content_sha256'])
+                    else:
+                        held = owner.acquire(path=str(source), adapter_id='a', lease_id=lease)
+                self.assertEqual(inventory.call_count, 1, f'confirmed={confirmed}')
+                self.assertEqual(counts[str(file)], 2)
+                self.assertEqual(held['file_footprint'], expected_footprint)
+                self.assertEqual(held['confirmed_source'], publication)
+                self.assertEqual(owner._file_access_sequence, previous_access + 1)
+                self.assertTrue(held['content_verified'])
+                with owner.mutation(source) as allowed:
+                    self.assertFalse(allowed)
+                again = owner.acquire(path=str(source), adapter_id='a', lease_id=lease)
+                self.assertEqual(again, held)
+                self.assertEqual(owner._file_access_sequence, previous_access + 1)
+            finally:
+                if held is not None:
+                    owner.release(lease_id=lease, expected_owner_id=owner.owner_id)
+        self.assertFalse(owner.leases)
+
+    def test_read_lease_second_pass_mutation_withdraws_before_install(self):
+        fixture, owner, manifests, limits = self.make()
+        source = fixture.nvme / 'a'
+        state = owner.source_snapshot('a')
+        publication = next(row for row in state['sources'] if row['tier'] == 'nvme')
+        file = next(p for p in source.rglob('*') if p.is_file())
+        original, count = os.stat, 0
+        def changing(path, *args, **kwargs):
+            nonlocal count
+            if kwargs.get('follow_symlinks') is False and str(path) == str(file):
+                count += 1
+                if count == 2:
+                    value = original(path)
+                    os.utime(path, ns=(value.st_atime_ns, value.st_mtime_ns + 1_000_000_000))
+            return original(path, *args, **kwargs)
+        access = owner._file_access_sequence
+        with patch.object(os, 'stat', changing):
+            with self.assertRaisesRegex(RuntimeError, 'changed while collecting footprint'):
+                owner.acquire_confirmed(path=str(source), adapter_id='a', lease_id='must-not-exist',
+                    expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+                    expected_content_sha256=publication['content_sha256'])
+        self.assertFalse(owner.leases)
+        self.assertNotIn(source, owner._confirmed_sources)
+        self.assertEqual(owner.source_epoch, state['epoch'] + 1)
+        self.assertEqual(owner._file_access_sequence, access)
+
     def make(self):
         from tests.test_ieee_tc_transfer_pressure import OwnedPreparationPlanning
         from faaslora.registry.schema import StorageTier

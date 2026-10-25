@@ -1,4 +1,25 @@
-# IEEE TC execution status — D856 native observation boundary closed
+# IEEE TC execution status — D857 single lease observation CPU checks passed
+
+## 2026-10-26 D857：删去同一读引用的重复观察，待完整W2验证
+
+父版两项新增测试保留1项预期失败（confirmed acquire三次inventory）；候选
+86项针对性检查全通过。一次读引用共用一次两遍fresh stat观察，身份/容量/
+根inode同源，锁内安装；保留入口epoch、内容、分配包络、并发引用和LRU。
+没有TTL、线程、旧观察缓存、公式/策略变更；D851–D853仍撤回，D856不接入。
+辅助峰值676397056B，high/max/OOM/swap0，未初始化CUDA，147保护项未变。
+原driver尚未执行的HOST测试类名仅通过after_resume纠正，原件保留。
+
+此为CPU语义和重复工作证据，不是完整性能提升。下一先显式文件检查点
+备份，再登记唯一完整3B W2；不增加短前缀/重复资格。D846仍3715/4000，
+差85请求，U11929.629332预算内；D711数值正确性未知，n_correct=null、
+ranking=false。完整同版两模型、baseline/dLoRA、A1–A5、S1–S13、文档/
+图表/最终V2均未完成。原共享k3s不动，goal active。以下为历史记录。
+
+备份回执：16个明确文件提交8970c84b7ab58b76545482bd34e4536c06f59676，
+已推送backup/d856-file-observation-component-20261026并核实远端同SHA。
+无force；最终V2尚未同步。用户manifest未stage，staging为空，生产未改。
+本轮01–03辅助域均inactive/not-found，GPU空闲，磁盘182825922560B
+约170.27GiB可用。后置回执随下一正常检查点保存，不递归备份。
 
 ## 2026-10-26 D856：CPU事务边界无净收益，未接入生产
 

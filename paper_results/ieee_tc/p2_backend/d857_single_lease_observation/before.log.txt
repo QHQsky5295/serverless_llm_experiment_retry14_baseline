@@ -1,0 +1,15 @@
+test_read_lease_identity_and_footprint_use_one_fresh_inventory (tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_identity_and_footprint_use_one_fresh_inventory) ... FAIL
+test_read_lease_second_pass_mutation_withdraws_before_install (tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_second_pass_mutation_withdraws_before_install) ... ok
+
+======================================================================
+FAIL: test_read_lease_identity_and_footprint_use_one_fresh_inventory (tests.test_ieee_tc_file_observation.FreshFileObservation.test_read_lease_identity_and_footprint_use_one_fresh_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py", line 90, in test_read_lease_identity_and_footprint_use_one_fresh_inventory
+    self.assertEqual(inventory.call_count, 1, f'confirmed={confirmed}')
+AssertionError: 3 != 1 : confirmed=True
+
+----------------------------------------------------------------------
+Ran 2 tests in 9.226s
+
+FAILED (failures=1)
