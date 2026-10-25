@@ -1,0 +1,57 @@
+"""Reuse the explicit-path backup procedure for D840, including analysis repair."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d826_20261025/backup_results.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'e0a920555b39e4fe64c67355a8177ed14db98dd35bf22144dd7952c0479e16b9'
+_source = _template.read_text()
+_replacements = (
+    ('d826_3b_single_verification_full_w2', 'd840_3b_single_thread_decoder_full_w2'),
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md', 'D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md'),
+    ('d825_single_destination_verification/closure.json', 'd839_single_thread_decoder/closure.json'),
+    ("'start_identity.json', 'completion_identity.json', 'context_identity.json'):",
+     "'start_identity.json', 'completion_identity.json', 'context_identity.json', 'settlement_identity.json', 'settlement_resume_identity.json'):"),
+    ("'analysis_metrics.log', 'analysis_stages.log', 'completion.log', 'context.log')",
+     "'analysis_metrics.log', 'analysis_stages.log', 'audit_settlement.py', 'resume_settlement.py', 'inspect_settlement_null_load.py', 'settlement_identity.json', 'settlement_resume_identity.json', 'settlement_null_load_diagnostic.json', 'settlement_attempt1.json', 'settlement_program.py.snapshot', 'settlement_resume_program.py.snapshot', 'settlement_template.json', 'backup_program.py.snapshot')"),
+    ('3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417',
+     '723354f76cfc0e0e7a4ee6f60f6745b322c92d3b7fe35d005b08ebd3eb969b0e'),
+    ('Reuse D825 446 distinct checks and D826 7 entry checks; no production change during closure.',
+     'Reuse D839 144 CPU test executions and D840 16 entry checks; no production change during closure. Full metrics, actual decoder, delivery/owner/lifecycle and settlement audits passed. Analysis-only GPU-reuse classification has 10 focused validation cases; original failed analyzer retained.'),
+    ('tc: seal D826 full W2 mixed outcome and actual content verification',
+     'tc: preserve D840 full W2 decoder outcome and GPU reuse analysis'),
+    ('backup/d826-complete-20261025', 'backup/d840-complete-20261025'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_marker = "files.append(OUT / 'closure_manifest.json')"
+_extra = '''
+settlement = read(OUT/'settlement_analysis/summary.json')
+assert settlement['passed'] is True
+assert settlement['full_request_population'] == 4000
+assert read(OUT/'completion/decoder_actual.json')['passed'] is True
+files.extend(path for path in sorted((OUT/'settlement_analysis').rglob('*')) if path.is_file())
+diagnostic = read(RAW/'settlement_null_load_diagnostic.json')
+assert not Path(diagnostic['identity']['path']).exists()
+metric = read(OUT/'completion/full4000.json')
+delta = read(OUT/'completion/versus_d832.json')
+save(OUT/'development_decision.json', dict(
+    kind='d840_complete_w2_decoder_observation_v1',
+    mechanism_observed=True, settlement_checked=True,
+    request_count=4000, observed_joint_pass=metric['counts']['joint_pass'],
+    observed_within_frozen_budget=read(OUT/'completion/comparison.json')['observed_within_budget'],
+    joint_change_vs_retained_base=delta['joint_delta_requests'],
+    numerical_adapter_correctness_qualified=False, n_correct=None, ranking_eligible=False,
+    final_configuration_frozen=False, primary_targets_achieved=False,
+    decision='Preserve complete mixed outcome: only one additional joint pass versus retained D832, nearly unchanged P95 TTFT, higher mean TTFT and slightly lower GPU time. No end-to-end target achievement or causal speedup claimed. One complete decoder evaluation is finished; do not repeat its key or expand a decoder tuning branch.',
+    next='Safely reclaim closed evidence, then inspect the remaining stage bottleneck against rejected history and primary sources before one next candidate. Full main comparison, ablation and sensitivity scope remains.',
+    source_refs=[dict(path=str(path), sha256=p.digest(path)) for path in files]))
+files.append(OUT/'development_decision.json')
+'''
+assert _source.count(_marker) == 1
+_source = _source.replace(_marker, _marker+'\n'+_extra)
+compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec')
+with (_raw/'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec'), globals())

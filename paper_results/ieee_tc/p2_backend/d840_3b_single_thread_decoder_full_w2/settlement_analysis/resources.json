@@ -1,0 +1,13 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-84000000000000000000000000000006.scope",
+    "invocation_id": "9c156a7a1f124fda9e6739a5aaf54a8d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84000000000000000000000000000006.scope",
+    "inode": 32353407
+  },
+  "resources": {
+    "memory.peak": "692146176",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

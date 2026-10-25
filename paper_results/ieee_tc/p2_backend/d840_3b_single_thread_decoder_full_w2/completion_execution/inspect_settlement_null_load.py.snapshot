@@ -1,0 +1,50 @@
+"""Read-only investigation of D840 settlement-audit missing load timestamps."""
+import json
+import os
+import sys
+from pathlib import Path
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+metric = json.loads((OUT/'completion/full4000.json').read_text())
+source = next(row for row in metric['source_refs']
+    if Path(row['path']).name.startswith('experiment_results_full'))
+assert p.digest(Path(source['path'])) == source['sha256']
+observed = []
+n = 0
+with Path(source['path']).open('rb') as stream:
+    for request in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        n += 1
+        evidence = request['gpu_reference_evidence']
+        settlement = evidence.get('file_preparation_settlement')
+        if settlement is None:
+            continue
+        receipt = evidence['receipt']
+        start = receipt['native_load_started_monotonic_s']
+        end = receipt['native_load_completed_monotonic_s']
+        if start is not None and end is not None:
+            continue
+        observed.append(dict(request_id=request['request_id'], adapter_id=request['adapter_id'],
+            success=request['success'], selected_tier=request['readiness_tier_before_dispatch'],
+            source=evidence['source_admission']['source'],
+            native_load_invoked=receipt['native_load_invoked'], load_start=start, load_end=end,
+            receipt=receipt, settlement=settlement, native_token_timing=request['native_token_timing']))
+assert n == 4000
+group = Path(own['path'])
+report = dict(full_request_population=n, affected_count=len(observed), affected=observed,
+    source=source, identity=own,
+    resources={key:(group/key).read_text().strip() for key in ('memory.peak', 'memory.events', 'memory.swap.current')},
+    scope='Diagnostic only: no serving change, missing-time substitution, dropped request or performance rerun.')
+with (RAW/'settlement_null_load_diagnostic.json').open('x') as stream:
+    json.dump(report, stream, indent=2, allow_nan=False)
+    stream.write('\n')
+print(json.dumps(dict(full_request_population=n, affected_count=len(observed),
+    cases=[{key:row[key] for key in ('request_id', 'adapter_id', 'selected_tier', 'native_load_invoked', 'load_start', 'load_end')} for row in observed]), indent=2))

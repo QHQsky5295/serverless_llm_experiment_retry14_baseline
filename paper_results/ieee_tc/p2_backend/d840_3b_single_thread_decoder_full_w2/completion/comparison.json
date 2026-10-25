@@ -1,0 +1,28 @@
+{
+  "kind": "d840_single_w2_frozen_resource_reference_observation_v1",
+  "current": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d840_3b_single_thread_decoder_full_w2/completion/full4000.json",
+    "sha256": "3dc940fb2d91e875f10e6004cfe291f66a2c20d8be6b6f3f74aba742ef75047d"
+  },
+  "reference": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+    "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+  },
+  "reference_workload": "W2",
+  "reference_id": "3b_W2_vllm0300_D656",
+  "reference_gpu_seconds": 16110.751826980617,
+  "budget_gpu_seconds": 12083.063870235463,
+  "observed_within_budget": true,
+  "budget_utilization": 0.9298411210585092,
+  "gpu_seconds_reduction_fraction": 0.30261915920611804,
+  "gpu_seconds_per_binding_valid_request": 2.808832413730328,
+  "joint_slo_delta_percentage_points": -7.899999999999996,
+  "normalized_p95_ttft": 5.2691625303792105,
+  "joint_slo_margin_requests": -116,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "complete_g1_g2": false,
+  "independent_holdout": false,
+  "scope": "Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking."
+}

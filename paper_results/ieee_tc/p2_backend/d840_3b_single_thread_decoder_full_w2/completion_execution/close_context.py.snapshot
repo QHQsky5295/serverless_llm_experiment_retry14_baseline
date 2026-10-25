@@ -1,0 +1,47 @@
+"""Reuse D832 actual delivery/owner audit and verify D840 decoder receipts."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd832_20261025/context_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '3c23d609047d1772cedf83d19b67819c5f8a5bc71959119f7dffc4609923d598'
+_source = _template.read_text()
+_replacements = (
+    ('d832_3b_owned_file_readiness_full_w2', 'd840_3b_single_thread_decoder_full_w2'),
+    ('d832_observed_delivery_and_required_reclamation_v1', 'd840_observed_delivery_and_required_reclamation_v1'),
+    ('d832_full_w2_closure_v1', 'd840_full_w2_closure_v1'),
+    ('d832_vs_d829_single_observation_v1', 'd840_vs_d832_single_observation_v1'),
+    ('d829_3b_admitted_owner_anchor_full_w2/completion', 'd832_3b_owned_file_readiness_full_w2/completion'),
+    ('versus_d829.json', 'versus_d832.json'),
+    ('Owned file readiness improves observed joint SLO and P95 TTFT while GPU seconds increase; the run remains below 95%. This is not statistical evidence or a G1/G2 win. Actual settlement coverage is a separate pending audit.',
+     'The single-thread decoder candidate yields 3684/4000 joint SLO passes (92.10%), still 116 below the fixed target. Physical GPU time is within the frozen budget, but neither this fact nor component speed establishes a G1/G2 win. Keep all measurements and independent numerical correctness unknown. Actual settlement coverage remains a separate audit.'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_anchor = "current=read(OUT/'completion/full4000.json')"
+assert _source.count(_anchor) == 1
+_source = _source.replace(_anchor, '''assert transfers
+decoder_counts = collections.Counter()
+for transfer in transfers:
+    decoder = transfer['gzip_decoder']
+    assert decoder == dict(name='isal', version='1.8.0')
+    decoder_counts[(decoder['name'], decoder['version'])] += 1
+save(OUT/'completion/decoder_actual.json', dict(
+    passed=True, attempts=len(transfers), all_attempts_included=True,
+    decoders=[dict(name=key[0], version=key[1], count=count)
+        for key, count in sorted(decoder_counts.items())],
+    source_refs=[ref(outcome), ref(RAW/'remote_client_projection.json'), ref(Path(__file__))],
+    limitation='Actual decoder identity is not a causal estimate of latency saved or independent numerical adapter correctness; complete measurements and owner verification remain separate.'))
+''' + _anchor)
+compile(_source, str(_raw / 'context_program.py.snapshot'), 'exec')
+with (_raw / 'context_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template), sha256=_sha, replacements=_replacements,
+        changes='Run/retained-base comparison identities and observed interpretation; add actual decoder name/version. Reuse unchanged full delivery, lifecycle and owner-anchor checks. D834 membership-reuse counters are not imported after rollback.'),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw / 'context_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw / 'context_program.py.snapshot'), 'exec'), globals())

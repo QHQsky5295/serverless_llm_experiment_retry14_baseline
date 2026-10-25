@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d840-single-thread-decoder-fullw2-20261025",
+  "head": "985eadd6344913f021986795bd9a1e1d158d49df",
+  "identity": {
+    "inode": 32316062,
+    "invocation_id": "3240c8a62cec4045a10d5a54a58705dd",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84000000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-84000000000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "969800a696474ed8fac8cfe3eb3c73dda0d56fcfb39f5f85aa1c593a7be5dd3c",
+  "tmux": "tc-d840-3b-single-thread-decoder-full-w2"
+}

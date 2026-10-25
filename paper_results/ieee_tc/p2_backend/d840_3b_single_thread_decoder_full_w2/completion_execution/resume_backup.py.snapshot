@@ -1,0 +1,63 @@
+"""Reuse D826 resume procedure after four small *.log receipts were ignored."""
+from pathlib import Path
+
+source_path = Path(__file__).with_name('backup_program.py.snapshot')
+source = source_path.read_text()
+prefix, tail = source.split("call(['git', 'add', '--', *paths])", 1)
+prefix = prefix[:prefix.index('assert os.sched_getaffinity')]
+exec(compile(prefix, str(source_path), 'exec'), globals())
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_resume_identity.json', own)
+assert not Path(read(RAW/'backup_completion_identity.json')['path']).exists()
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+evidence = OUT/'completion_execution'
+files = [Path(row['path']) for row in read(OUT/'closure_manifest.json')['files']]
+files += [OUT/'closure_manifest.json', OUT/'development_decision.json']
+files += [path for path in sorted((OUT/'settlement_analysis').rglob('*')) if path.is_file()]
+files += [ROOT/row['path'] for row in read(evidence/'manifest.json')['files']]
+files += [evidence/'manifest.json', ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+          ROOT/'docs/ieee_tc/D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md']
+for manifest in (OUT/'closure_manifest.json', evidence/'manifest.json', OUT/'settlement_analysis/manifest.json'):
+    for row in read(manifest)['files']:
+        assert p.digest(ROOT/row['path']) == row['sha256']
+save(RAW/'backup_attempt1.json', dict(returncode=1, reason='Git ignore rule *.log excluded four small explicitly curated receipts; ordinary result paths were staged. No commit or push occurred.',
+    source=dict(path=str(source_path), sha256=p.digest(source_path)),
+    recovery='Resume the same explicit-file checkpoint; only allow ignored files inside this completion_execution directory and below 1 MiB. No force push.'))
+for name in ('resume_backup.py', 'backup_attempt1.json'):
+    path = evidence/(name+'.snapshot')
+    with path.open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+    assert p.digest(path) == p.digest(RAW/name)
+    files.append(path)
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) <= set(paths)
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name:row['sha256'] for name,row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json')['user_protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha
+remote_sha = '723354f76cfc0e0e7a4ee6f60f6745b322c92d3b7fe35d005b08ebd3eb969b0e'
+assert p.digest(RAW/'remote_monitor.log') == remote_sha
+ordinary, ignored = [], []
+for path in paths:
+    code = subprocess.run(['git','check-ignore','-q','--',path], cwd=ROOT).returncode
+    assert code in (0,1)
+    if code == 0:
+        assert path.startswith(str(OUT.relative_to(ROOT))+'/completion_execution/')
+        assert (ROOT/path).stat().st_size < 1048576
+        ignored.append(path)
+    else:
+        ordinary.append(path)
+if ordinary:
+    call(['git','add','--',*ordinary])
+if ignored:
+    call(['git','add','-f','--',*ignored])
+exec(compile(tail, str(source_path), 'exec'), globals())

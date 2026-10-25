@@ -1,0 +1,55 @@
+{
+  "returncode": 1,
+  "failure": "Legacy analysis requires a native-load interval for every file-preparation request; one observed request reused an already confirmed GPU copy.",
+  "original_program": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/settlement_program.py.snapshot",
+    "sha256": "710552ec6a6346f152d5c66a8c0fa6f01309d996d9bfc01a0a76e05890405819"
+  },
+  "diagnostic": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/settlement_null_load_diagnostic.json",
+    "sha256": "1f6de9d789c2814d7c13d5de19fa248c7ca7c62419dce5f065a5cee748a5f8f5"
+  },
+  "analysis_only": true,
+  "performance_rerun": false,
+  "production_changed": false,
+  "pure_validation_cases": 10,
+  "replacements": [
+    [
+      "save(RAW/'settlement_identity.json', own)",
+      "save(RAW/'settlement_resume_identity.json', own)"
+    ],
+    [
+      "        load_start, load_end = load['native_load_started_monotonic_s'], load['native_load_completed_monotonic_s']\n        assert ready <= load_start <= load_end",
+      "        load_start, load_end = observed_load_span(load, ready)\n        acquired = load['acquired_monotonic_s']"
+    ],
+    [
+      "load_overlap = clipped_interval_union(load_start, load_end, [(joined, finish)])[0]",
+      "load_overlap = (clipped_interval_union(load_start, load_end, [(joined, finish)])[0]\n            if load_start is not None else None)"
+    ],
+    [
+      "load_starts_before_pressure_finish=load_start < finish,",
+      "load_starts_before_pressure_finish=(load_start < finish if load_start is not None else None),"
+    ],
+    [
+      "source_ready_to_load_ms=1000*(load_start-ready),",
+      "source_ready_to_load_ms=(1000*(load_start-ready) if load_start is not None else None),\n            source_ready_to_acquisition_ms=1000*(acquired-ready),"
+    ],
+    [
+      "load_overlap_pressure_ms=1000*load_overlap,",
+      "load_overlap_pressure_ms=(1000*load_overlap if load_overlap is not None else None),"
+    ],
+    [
+      "observed_overlap_counts={key: sum(row[key] for row in rows)",
+      "observed_overlap_counts={key: sum(row[key] is True for row in rows)"
+    ],
+    [
+      "metrics={key: timing_stats([r[key] for r in rows]) for key in metric_fields},",
+      "metrics={key: timing_stats([r[key] for r in rows if r[key] is not None]) for key in metric_fields},\n    metric_sample_counts={key:sum(r[key] is not None for r in rows) for key in metric_fields},\n    native_load_population=sum(r['native_load_invoked'] for r in rows),\n    gpu_reuse_population=sum(not r['native_load_invoked'] for r in rows),"
+    ],
+    [
+      "'Requests with no new file preparation are retained, not counted as missing settlement.'",
+      "'Requests with no new file preparation are retained, not counted as missing settlement.',\n        'Confirmed GPU reuse has no native load interval: null load-only metrics, explicit sample counts; settlement, acquisition and native token timing remain checked.'"
+    ]
+  ],
+  "rule": "No fallback time or dropped request: keep GPU-reuse load-only metrics null and report denominators. Exact settlement/owner/pressure checks remain."
+}

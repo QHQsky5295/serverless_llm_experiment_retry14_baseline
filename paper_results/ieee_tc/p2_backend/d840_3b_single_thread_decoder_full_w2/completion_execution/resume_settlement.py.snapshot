@@ -1,0 +1,99 @@
+"""Handle an observed GPU reuse without fabricating a native load interval."""
+import copy
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw/'settlement_program.py.snapshot'
+_source = _template.read_text()
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+_diagnostic = json.loads((_raw/'settlement_null_load_diagnostic.json').read_text())
+assert _diagnostic['full_request_population'] == 4000
+assert _diagnostic['affected_count'] == 1
+
+_helper = '''
+def observed_load_span(receipt, ready):
+    invoked = receipt['native_load_invoked']
+    assert type(invoked) is bool
+    start = receipt['native_load_started_monotonic_s']
+    end = receipt['native_load_completed_monotonic_s']
+    if invoked:
+        assert type(start) in (int, float) and type(end) in (int, float)
+        assert ready <= start <= end == receipt['acquired_monotonic_s']
+        assert receipt['gpu_resident_before_load'] is False
+        return start, end
+    assert start is None and end is None
+    assert receipt['gpu_resident_before_load'] is True
+    assert receipt['gpu_confirmed_before_acquisition'] is True
+    assert receipt['source_tier_before_acquisition'] == 'gpu'
+    assert receipt['acquired'] is True
+    assert ready <= receipt['acquired_monotonic_s']
+    return None, None
+
+'''
+_namespace = {}
+exec(_helper, _namespace)
+_span = _namespace['observed_load_span']
+_case = _diagnostic['affected'][0]
+_ready = _case['settlement']['source_ready_monotonic_s']
+assert _span(_case['receipt'], _ready) == (None, None)
+_loaded = copy.deepcopy(_case['receipt'])
+_loaded.update(native_load_invoked=True, gpu_resident_before_load=False,
+    native_load_started_monotonic_s=_ready,
+    native_load_completed_monotonic_s=_loaded['acquired_monotonic_s'])
+assert _span(_loaded, _ready)[0] == _ready
+_bad = (
+    ('native_load_invoked', True), ('native_load_invoked', 0),
+    ('gpu_resident_before_load', False), ('gpu_confirmed_before_acquisition', False),
+    ('source_tier_before_acquisition', 'file'), ('acquired', False),
+    ('native_load_started_monotonic_s', _ready),
+    ('native_load_completed_monotonic_s', _ready),
+)
+for _key, _value in _bad:
+    _receipt = copy.deepcopy(_case['receipt'])
+    _receipt[_key] = _value
+    try:
+        _span(_receipt, _ready)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(('invalid receipt accepted', _key))
+
+_changes = (
+    ("save(RAW/'settlement_identity.json', own)", "save(RAW/'settlement_resume_identity.json', own)"),
+    ("        load_start, load_end = load['native_load_started_monotonic_s'], load['native_load_completed_monotonic_s']\n        assert ready <= load_start <= load_end",
+     "        load_start, load_end = observed_load_span(load, ready)\n        acquired = load['acquired_monotonic_s']"),
+    ("load_overlap = clipped_interval_union(load_start, load_end, [(joined, finish)])[0]",
+     "load_overlap = (clipped_interval_union(load_start, load_end, [(joined, finish)])[0]\n            if load_start is not None else None)"),
+    ('load_starts_before_pressure_finish=load_start < finish,',
+     'load_starts_before_pressure_finish=(load_start < finish if load_start is not None else None),'),
+    ('source_ready_to_load_ms=1000*(load_start-ready),',
+     'source_ready_to_load_ms=(1000*(load_start-ready) if load_start is not None else None),\n            source_ready_to_acquisition_ms=1000*(acquired-ready),'),
+    ('load_overlap_pressure_ms=1000*load_overlap,',
+     'load_overlap_pressure_ms=(1000*load_overlap if load_overlap is not None else None),'),
+    ("observed_overlap_counts={key: sum(row[key] for row in rows)",
+     "observed_overlap_counts={key: sum(row[key] is True for row in rows)"),
+    ("metrics={key: timing_stats([r[key] for r in rows]) for key in metric_fields},",
+     "metrics={key: timing_stats([r[key] for r in rows if r[key] is not None]) for key in metric_fields},\n    metric_sample_counts={key:sum(r[key] is not None for r in rows) for key in metric_fields},\n    native_load_population=sum(r['native_load_invoked'] for r in rows),\n    gpu_reuse_population=sum(not r['native_load_invoked'] for r in rows),"),
+    ("'Requests with no new file preparation are retained, not counted as missing settlement.'",
+     "'Requests with no new file preparation are retained, not counted as missing settlement.',\n        'Confirmed GPU reuse has no native load interval: null load-only metrics, explicit sample counts; settlement, acquisition and native token timing remain checked.'"),
+)
+for _old, _new in _changes:
+    assert _source.count(_old) == 1, _old
+    _source = _source.replace(_old, _new)
+_source = _source.replace("assert os.sched_getaffinity(0)", _helper + "assert os.sched_getaffinity(0)", 1)
+compile(_source, str(_raw/'settlement_resume_program.py.snapshot'), 'exec')
+with (_raw/'settlement_attempt1.json').open('x') as _stream:
+    json.dump(dict(returncode=1, failure='Legacy analysis requires a native-load interval for every file-preparation request; one observed request reused an already confirmed GPU copy.',
+        original_program=dict(path=str(_template), sha256=_sha),
+        diagnostic=dict(path=str(_raw/'settlement_null_load_diagnostic.json'),
+            sha256=hashlib.sha256((_raw/'settlement_null_load_diagnostic.json').read_bytes()).hexdigest()),
+        analysis_only=True, performance_rerun=False, production_changed=False,
+        pure_validation_cases=10, replacements=_changes,
+        rule='No fallback time or dropped request: keep GPU-reuse load-only metrics null and report denominators. Exact settlement/owner/pressure checks remain.'),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw/'settlement_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'settlement_resume_program.py.snapshot'), 'exec'), globals())

@@ -1,0 +1,19 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/audit_settlement.py",
+  "sha256": "06d04f8be10e5d6e8b3d59a931bd6e98a956d8bc4e1a155702cb3d5592be8ea0",
+  "replacements": [
+    [
+      "d832_3b_owned_file_readiness_full_w2",
+      "d840_3b_single_thread_decoder_full_w2"
+    ],
+    [
+      "d832_actual_owned_file_settlement_v1",
+      "d840_actual_owned_file_settlement_v1"
+    ],
+    [
+      "no failures/cancellations claimed in D832",
+      "no failures/cancellations claimed in D840"
+    ]
+  ],
+  "changes": "Run/output identities only; exact job/intent joins, actual settlement, native token timing and overlap accounting unchanged."
+}

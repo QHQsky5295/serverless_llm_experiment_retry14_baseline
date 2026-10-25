@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "kind": "d840_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3758,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3917,
+    "joint_pass": 3684
+  },
+  "violation_partition": {
+    "ttft_only_fail": 233,
+    "tpot_only_fail": 74,
+    "both_fail": 9
+  },
+  "shortfall_to_3800": 116,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-84000000000000000000000000000002.scope",
+      "invocation_id": "44959ec83393402580145f9bca3e3fc0",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84000000000000000000000000000002.scope",
+      "inode": 32349921
+    }
+  ],
+  "resources": {
+    "memory.peak": "605720576",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete W2 observation and all earlier candidates. The single-thread decoder candidate yields 3684/4000 joint SLO passes (92.10%), still 116 below the fixed target. Physical GPU time is within the frozen budget, but neither this fact nor component speed establishes a G1/G2 win. Keep all measurements and independent numerical correctness unknown. Actual settlement coverage remains a separate audit. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate."
+}

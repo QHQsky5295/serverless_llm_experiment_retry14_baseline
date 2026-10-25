@@ -1,4 +1,97 @@
-# IEEE TC execution status — D839 backed up; D840 full W2 registered
+# IEEE TC execution status — D840 complete 3B W2: 92.10%, not qualified
+
+## 2026-10-25 D840分析闭合，开始结果备份
+
+completion/context通过；settlement首次分析因1条合法GPU复用没有load时间而
+失败，原程序/失败/原回执均保留。仅修正本次离线分类，null不填0、不删请求，
+2合法+8非法回执检查通过；504条准备结算全部验证，其中503条实际加载、
+1条GPU复用。全部4000主指标不变：联合3684/4000、差116，U11235.329655。
+分析辅助scope02/03/04/05/06均已结束，未改生产代码或再跑性能实验。
+正在按github-sync做明确路径、源SHA/147保护/用户修改/秘密检查后备份，
+不force、不stage用户manifest。下一安全压缩关闭证据，检查完整阶段和历史
+失败方向决定下一候选；不以局部解码提速结束3B优化，全范围继续有效。
+
+## 2026-10-25 16:13 D840完整回放已结束，冻结指标仍未达标
+
+本轮先verified wait：同一scope/InvocationID持续完成4000/4000，零运行失败；
+16:08核查scope/tmux退出、native GPU contexts清空、三项远端服务inactive。
+launch pass=true且service/replay/watchdog rc均0，cleanup真实释放。没有重启、
+中途改参、其他GPU实验或运行期压缩。随后完整读取V1/单轮V2，用既有D832
+统计和owner/delivery入口改运行身份分析，受限CPU2/3/26/27、3/4GiB、swap0。
+
+D648共同阈值结果：TTFT3758/4000、TPOT3917/4000、联合3684/4000=92.10%，
+距3800差116；U=11235.329654921312 GPU-s < D657预算12083.063870235463。
+平均/P95 TTFT=796.020606/2327.046056ms，平均TPOT16.013350ms。
+与保留基点D832相比仅多1条联合达标，P95近乎不变、平均TTFT增加，GPU时间
+略降；不能由D838组件速度宣称整体验证成功。D711数值身份未知仍保留。
+505次远端交付均published、原owner最终SHA通过、实际isal1.8.0，线上
+1172100920bytes，无请求期打包；147保护不变。资源无high/max/OOM/swap。
+
+completion和context已通过；settlement正在复用既有检查，不新开性能实验。
+下一完整封存/关键节点备份，关闭分析后安全压缩关闭证据恢复150GiB启动线，
+再结合完整日志、历史失败和原始资料判断下一候选，不围绕解压无限局部优化。
+全模型/场景比较、A1–A5、S1–S13及最终交付均未删减，目标保持active。
+
+## 2026-10-25 15:30:16 D840连续监控：1915请求，运行身份及合同不变
+
+本轮为verified wait：重读完整PLAN、AGENTS和monitor-experiment，核对既有
+baseline适配停止规则与存储规则；首次观察1054完成，随后12次55秒间隔轻量
+只读观察推进到1915/4000完成、1915成功/0失败，1918已到达、3条处理中。
+tmux及service scope始终活跃，InvocationID仍86df03f5760c45a987f9afceedb8ace4；
+业务elapsed30:30，自然scale-up为2、3副本，无重启、无新实验、无代码修改。
+全部观察warning=false，high/max/OOM为0，foreign compute为空；最近主机可用
+91.46GiB、服务23.86GiB，磁盘151207456768B（约140.82GiB）。磁盘仍高于当前
+100GiB停止线，但低于新重型150GiB启动线，结束及释放后再进行安全回收。
+当前仅是运行进展，不是最终联合SLO/资源结论；没有用请求成功替代D711
+独立数值正确性未知，也没有用开发期5000ms/CE替代冻结D648/D657评价。
+下一继续同一D840至完整终态与真实释放，再复用既有分析、审计decoder证据、
+保存全部结果及必要备份。未重新适配HydraServe或触及共享k3s；两模型全部
+场景主比较、A1–A5、S1–S13与最终交付范围均保留，goal保持active。
+
+## 2026-10-25 15:14:56 D840连续监控：830请求，仍在完整回放
+
+上一goal turn为verified wait。本轮重读完整PLAN，按monitor-experiment
+每55秒小量只读核查，共10次；tmux及实际service scope始终活跃，InvocationID
+仍86df03f5760c45a987f9afceedb8ace4，没有新启动、参数变化或其他重型任务。
+最近业务elapsed15:07，830/4000完成、830成功/0失败，已自然扩容2次至3副本。
+10次观察均无告警、high/max/OOM或foreign compute；末次主机可用91.86GiB、
+服务18.48GiB。磁盘156406898688B，低于下一任务150GiB启动线，但高于本轮
+100GiB停止线；清理只在结束后执行，原工件/负载/记录均未删除。
+这是持续进行中的实验，不是阻塞或完整性能结论；尚不能判断新解码是否使
+联合SLO达到95%。继续同一D840至4000终态及实际释放，再复用既有分析入口。
+D711独立数值身份未知、全模型/场景比较及A1–A5/S1–S13等未完成范围保持。
+
+## 2026-10-25 D840继续等待：154请求，服务身份未变化
+
+上一goal turn为progress（D839验证/备份与D840实际启动）；本轮完整PLAN后
+核查相同tmux、实际service scope active且InvocationID仍86df03f5760c45a987f9afceedb8ace4。
+本轮是verified wait，不是无进展阻塞，不重启。最近业务elapsed04:17，
+154/4000完成、154成功/0失败；非完整性能结论。监控无告警、high/max/OOM
+均0、foreign compute为空；主机可用约98.28GiB、服务约9.36GiB。
+远端本次remote_start.log首两行为1000/full，实际协商1Gbps，不沿用旧100Mbps说法。
+磁盘159452467200B（约148.5GiB），已低于下一重型启动线但高于当前100GiB
+停止线；当前不扫描/压缩/清理，完成后按已有关闭日志压缩规则恢复启动余量。
+仅只读查看D835分析入口以便后续复用，没有新脚本、配置或额外实验。
+下一继续同一D840至终态与释放；完整联合/资源结论、D711限制及全范围均不变。
+
+## 2026-10-25 D840已启动，初始真实请求进展
+
+D840入口16项（新增3、既有13）通过；提交985eadd6344913f021986795bd9a1e1d158d49df，
+远端backup/d840-single-thread-decoder-fullw2-20261025已核实，无force，最终V2未同步。
+tmux=tc-d840-3b-single-thread-decoder-full-w2；raw为
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025。
+service=primelora-tc-svc-89c200216b384a2f97f21a36498b38b7.scope；独立watchdog已ACK。
+实际主进程4128460环境确认isal及D838 overlay，实际GPU worker4130248处于服务树。
+初始观察已有12条终态；最近显示9成功/0失败（两者采样时刻不同），非完整结果。
+最近主机可用98.65GiB、服务7.57GiB，high/max/OOM为0，无告警或foreign compute。
+prelaunch磁盘准入已过150GiB/32GiB新增峰值规则。原trace4000和W2 map均被实际
+回放器确认，60秒通知不变。运行期间不改代码/远端、不扫描压缩或开启其他重型。
+
+下一监控至完整终态/实际释放，沿用既有分析器核对原生token/时间线、实际decoder
+证据和D648联合SLO、D657预算。不能以live 5000ms代替冻结判据。若进程仍在，不
+重复启动；若异常，保留原attempt先查具体原因。D711数值身份未知继续保留。
+目前最新完整仍D835的92.075%，尚无D840结论；全矩阵/消融/敏感性/交付不减。
+本段为后置本地进展，不改已封存prelaunch文档或配置。目标保持active。
 
 ## 2026-10-25 D839备份与D840完整W2预登记
 
