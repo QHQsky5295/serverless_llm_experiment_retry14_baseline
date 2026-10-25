@@ -191,6 +191,48 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D863DiagnosticContract(unittest.TestCase):
+    def test_d858_policy_only_three_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d858_3b_max3_full_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d863_3b_native_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d863', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_original_w2_prefix1000_uses_shared_remote_and_decoder(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d863\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        blocks = re.findall(r'^if \[\[ ([^\n]+)\]\]; then\n(.*?)^fi', shell, re.M | re.S)
+        selected = [body for condition, body in blocks if '== d863' in condition]
+        self.assertEqual(len(selected), 3)
+        self.assertIn('profile_d328_controller_python.sh', selected[0])
+        self.assertIn('FAASLORA_TC_REPLAY_PROFILE=W2', selected[1])
+        self.assertIn('20261018_3b_w2_adapter_map_v1.json', selected[1])
+        self.assertIn('http://192.168.4.174:18080', selected[1])
+        self.assertIn('FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal', selected[2])
+        self.assertIn('d838_20261025/dependency:$ROOT', selected[2])
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+    def test_native_spans_only_no_components_inventory_or_frames(self):
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertEqual(wrapper.count('d863_3b_native_prefix1000'), 1)
+        self.assertIn('d863_3b_native_prefix1000)', wrapper)
+        self.assertIn('export FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
+        self.assertIn('unset FAASLORA_TC_STACK_SAMPLING', wrapper)
+        self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', wrapper)
+        self.assertIn('unset FAASLORA_TC_HOST_INVENTORY_TIMING', wrapper)
+        source = (ROOT/'faaslora/utils/core_timing.py').read_text()
+        self.assertIn('MAX_BYTES = 64 * 1024 * 1024', source)
+        self.assertIn('MAX_SPANS = 200000', source)
+
+
 class D861FullContract(unittest.TestCase):
     def test_only_three_exclusive_paths_change_from_d846(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml').read_text())

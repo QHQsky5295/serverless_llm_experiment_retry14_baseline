@@ -1,0 +1,6 @@
+{
+  "cpu_tests": 86,
+  "new_cpu_functional_tests": 0,
+  "closure_sha256": "fe2f82e934207e7445f48bf5d0223b1a1e5babff8731daef2ff34bd98f99bfb4",
+  "numerical_correctness_qualified": false
+}

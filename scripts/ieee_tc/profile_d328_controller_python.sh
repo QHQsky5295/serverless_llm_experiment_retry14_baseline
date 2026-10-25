@@ -32,6 +32,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d843_3b_max3_full_w2)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025
     ;;
+  d863_3b_native_prefix1000)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026
+    ;;
   d723_3b_step_components100)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022
     ;;

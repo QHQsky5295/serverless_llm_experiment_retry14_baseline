@@ -1,4 +1,24 @@
-# IEEE TC execution status — D862 residual closed; D860 withdrawn, D857 restored
+# IEEE TC execution status — D863 current native prefix diagnostic registered
+
+## 2026-10-26 D863：当前原生decode分解，启动前登记
+
+已完整重读计划、AGENTS、V1/V2和存储规则。复用D862结论及D722/D723/D843
+边界，当前版本缺少native逐step/client分解；仅登记一次3B W2前1000请求
+host_spans_v1诊断，不是Full性能候选。D858三个独占路径之外配置不变；
+生产仍为D857，九公式/负载/工件/SLO/decoder不改。不加组件/栈/HOST子计时，
+每core原64MiB/200000span上限不变。截断则报告覆盖，不扩上限或重复同键。
+见D863_CURRENT_NATIVE_PREFIX_20261026.md。使用system-profile/analyze-results
+确定证据缺口，run-experiment/monitor-experiment沿用现有受限启动流程，
+github-sync要求最小检查与备份；不新增框架、不操作共享k3s。
+
+下一：只做登记路径/观察器的定向CPU检查，复用D857源SHA对应86项检查，
+保护147历史项及用户manifest，提交推送专用备份后启动同一诊断。完成后先
+释放/校验再分析；未启动前不声称有GPU结果。当前约167.45GiB可用、GPU空闲。
+当前开发参照93.65%仍不达95%，数值证明未知、ranking=false；同版本两模型
+W0/W1/W2、完整baseline/dLoRA、A1–A5、S1–S13、审稿图文和最终V2均保留。
+goal active，不因有界诊断宣告优化目标完成。
+
+以下保留D862及之前历史。
 
 ## 2026-10-26 D862：闭环扩容差异与短输出残余
 
@@ -20,7 +40,12 @@ D861完整取舍结果永久保留，不重跑同键择优。首次补丁文本�
 详细证据见D862_SOURCE_PROJECTION_RESIDUAL_20261026.md。两分析峰值
 635801600/628011008B，high/max/OOM/swap0、资源域已退出。无远端操作、
 共享k3s操作或重型维护；用户确认k3s不属本项目，HydraServe既有隔离适配
-及D510完整回放不重做。当前按明确文件完成closure和备份后回写回执。
+及D510完整回放不重做。closure已核对两分析退出、原始来源、147项保护和
+源码/测试精确恢复，复用86项检查。26个明确文件已提交
+4a97efee4dbd18c8bb5609514b732ed266569a85，推送并核验远端
+backup/d862-residual-and-rollback-20261026同SHA；无force，最终V2仍未同步。
+备份资源域已inactive/dead，暂存区空、用户manifest未stage；本后置回执随
+下一正常检查点保存，不递归备份。无GPU任务，剩余约167.45GiB。
 
 下一唯一问题：当前短输出decode慢迭代来自原生模型执行、控制调用还是
 输出交付？先检查现有native observer及调用边界，现存证据不够才登记一次

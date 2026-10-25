@@ -1,0 +1,21 @@
+test_d858_policy_only_three_exclusive_paths_change (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_d858_policy_only_three_exclusive_paths_change) ... ok
+test_native_spans_only_no_components_inventory_or_frames (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_native_spans_only_no_components_inventory_or_frames) ... ok
+test_original_w2_prefix1000_uses_shared_remote_and_decoder (tests.test_ieee_tc_d456_diagnostic_contract.D863DiagnosticContract.test_original_w2_prefix1000_uses_shared_remote_and_decoder) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D861FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D861FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_byte_cap_and_close_footer_are_bounded (tests.test_ieee_tc_core_timing.CoreTiming.test_byte_cap_and_close_footer_are_bounded) ... ok
+test_cap_stops_recording_not_native_work (tests.test_ieee_tc_core_timing.CoreTiming.test_cap_stops_recording_not_native_work) ... ok
+test_default_does_not_patch_native_methods_or_scheduler (tests.test_ieee_tc_core_timing.CoreTiming.test_default_does_not_patch_native_methods_or_scheduler) ... ok
+test_foreign_pid_thread_core_and_collision_reject (tests.test_ieee_tc_core_timing.CoreTiming.test_foreign_pid_thread_core_and_collision_reject) ... ok
+test_install_gate_actual_output_and_shutdown_close (tests.test_ieee_tc_core_timing.CoreTiming.test_install_gate_actual_output_and_shutdown_close) ... ok
+test_nested_spans_preserve_methods_results_order_and_private_payload (tests.test_ieee_tc_core_timing.CoreTiming.test_nested_spans_preserve_methods_results_order_and_private_payload) ... ok
+test_original_exception_identity_is_preserved (tests.test_ieee_tc_core_timing.CoreTiming.test_original_exception_identity_is_preserved) ... ok
+test_short_write_is_not_silently_accepted (tests.test_ieee_tc_core_timing.CoreTiming.test_short_write_is_not_silently_accepted) ... ok
+test_unknown_labels_never_echo_payload (tests.test_ieee_tc_core_timing.CoreTiming.test_unknown_labels_never_echo_payload) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.133s
+
+OK
