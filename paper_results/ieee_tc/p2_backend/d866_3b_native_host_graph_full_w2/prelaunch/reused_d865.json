@@ -1,0 +1,32 @@
+{
+  "cpu_tests": 26,
+  "new_cpu_functional_tests": 0,
+  "qualification_sha256": "55d588c1226f9334268fd37038b2158d6559c24b8d73ff1593d4c057f523329a",
+  "manifest_sha256": "52fe23f101d862e37b0c9a4e6a2bb63fd8eaceaae35fb10a8ac89eccd57866bf",
+  "graph_library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+  "graph_library_sha256": "30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80",
+  "candidate_changes": [
+    "faaslora/datasets/workload_generator.py",
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/memory/native_host_descriptor.py",
+    "faaslora/memory/residency_manager.py",
+    "scripts/ieee_tc/audit_d703_3b_full.py",
+    "scripts/ieee_tc/file_stat_batch_witness.py",
+    "scripts/ieee_tc/host_descriptor_witness.py",
+    "scripts/ieee_tc/native_file_stat_batch.c",
+    "scripts/ieee_tc/native_host_descriptor.cpp",
+    "scripts/ieee_tc/native_host_graph.h",
+    "scripts/ieee_tc/profile_d328_controller_python.sh",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "scripts/ieee_tc_preflight.py",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "tests/test_ieee_tc_diagnostic_plot.py",
+    "tests/test_ieee_tc_external_replay.py",
+    "tests/test_ieee_tc_file_observation.py",
+    "tests/test_ieee_tc_native_host_descriptor.py",
+    "tests/test_ieee_tc_native_host_graph.py",
+    "tests/test_ieee_tc_preflight.py",
+    "tests/test_ieee_tc_request_lifecycle.py"
+  ],
+  "numerical_correctness_qualified": false
+}

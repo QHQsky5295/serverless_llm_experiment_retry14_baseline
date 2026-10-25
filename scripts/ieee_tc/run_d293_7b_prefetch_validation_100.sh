@@ -801,6 +801,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d866)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2
+    CONFIG=configs/ieee_tc/20261026_d866_3b_max3_full_w2.yaml
+    TAG=d866_3b_max3_full_w2
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d846)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/3b_max3_full_w2
     CONFIG=configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml
@@ -1030,6 +1037,7 @@ export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
 export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18081
 export FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE=prepublished_gzip_v1
 export FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1
+unset FAASLORA_IEEE_HOST_INVENTORY_MODE
 export PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True
 export VLLM_CACHE_ROOT=/home/qhq/.cache/vllm
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
@@ -1102,7 +1110,7 @@ if [[ "${1:-d293}" == d812 ]]; then
   export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
   export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
 fi
-if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 || "${1:-d293}" == d835 || "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
+if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 || "${1:-d293}" == d835 || "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d866 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W2
   export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
   export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
@@ -1132,9 +1140,14 @@ if [[ "${1:-d293}" == d451 ]]; then
   export FAASLORA_TC_COVERAGE_POOL_INDEX="$ROOT/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json"
   export FAASLORA_TC_COVERAGE_POOL_INDEX_SHA256=e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c
 fi
-if [[ "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
+if [[ "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d866 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
   export FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal
   export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
+fi
+if [[ "${1:-d293}" == d866 ]]; then
+  export FAASLORA_IEEE_HOST_INVENTORY_MODE=graph
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80
 fi
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0

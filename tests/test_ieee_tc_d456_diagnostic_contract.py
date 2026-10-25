@@ -283,6 +283,35 @@ class D861FullContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class D866FullContract(unittest.TestCase):
+    def test_only_three_exclusive_paths_change_from_d858(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d858_3b_max3_full_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d866_3b_max3_full_w2.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertEqual(old[section].pop(field).replace('d858', 'd866'), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_full_w2_uses_qualified_graph_without_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        old = re.search(r'^  d858\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        new = re.search(r'^  d866\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertEqual(old.replace('d858', 'd866'), new)
+        self.assertIn('PREFIX_COUNT=\n', new)
+        blocks = re.findall(r'^if \[\[ ([^\n]+)\]\]; then\n(.*?)^fi', shell, re.M | re.S)
+        selected = [body for condition, body in blocks if '== d866' in condition]
+        self.assertEqual(len(selected), 3)
+        self.assertIn('FAASLORA_TC_REPLAY_PROFILE=W2', selected[0])
+        self.assertIn('20261018_3b_w2_adapter_map_v1.json', selected[0])
+        self.assertIn('FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal', selected[1])
+        self.assertIn('FAASLORA_IEEE_HOST_INVENTORY_MODE=graph', selected[2])
+        self.assertIn('d864_20261026/attempt3/', selected[2])
+        self.assertIn('30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80', selected[2])
+        self.assertNotIn('d866', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+
 class D858FullContract(unittest.TestCase):
     def test_only_three_exclusive_paths_change_from_d846(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml').read_text())

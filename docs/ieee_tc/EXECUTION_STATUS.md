@@ -1,5 +1,15 @@
 # IEEE TC execution status — D865 native graph production integration checked
 
+### D866完整回放已准备（尚未启动）
+
+D865接入检查点3b5180aba577cc6f7f51b9192aac4b6ea0182c30已备份并核验
+refs/heads/backup/d865-native-host-graph-integration-20261026。首次发布脚本
+旧1MiB文件限制遇到1.42MB历史状态文档，使用既有2MiB文本限制继续，未改
+数据/测试；用户manifest未stage，无force。最终V2仍不同步。
+D866沿用D858完整3B W2、三个新路径及同一冻结配置，显式graph模式/已验
+D864库为唯一运行机制变化。当前只准备，下一按原合同检查/备份后启动；
+不追加微测、前缀或性能重复。目标和全部未完成范围不缩减。
+
 ## D865接入检查完成（2026-10-26，尚无完整性能结果）
 
 上一轮为progress。完整计划/AGENTS/V1/V2、历史负向方向和官方实现已复核。

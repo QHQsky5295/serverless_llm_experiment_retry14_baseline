@@ -1,0 +1,6 @@
+{
+  "reason": "Parent D858 report gained its completed results after prelaunch; exclude that mutable report from old immutable execution refs.",
+  "production_changed": false,
+  "gpu_started_before_resume": false,
+  "initial_start_sha256": "edc984c4725ba2ca3674c5e39c96f02d90a1a9aae71d07067149afd7fb3a76b1"
+}
