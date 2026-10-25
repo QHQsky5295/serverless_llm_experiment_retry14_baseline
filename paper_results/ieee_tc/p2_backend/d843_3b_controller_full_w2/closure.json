@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "kind": "d843_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3799,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3906,
+    "joint_pass": 3714
+  },
+  "violation_partition": {
+    "ttft_only_fail": 192,
+    "tpot_only_fail": 85,
+    "both_fail": 9
+  },
+  "shortfall_to_3800": 86,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-84300000000000000000000000000003.scope",
+      "invocation_id": "beba6d6ab7214b059014dd5e07cd1512",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84300000000000000000000000000003.scope",
+      "inode": 32405582
+    }
+  ],
+  "resources": {
+    "memory.peak": "618754048",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete observer diagnostic without replacing the D840 performance point. Diagnostic overhead is included; independent numerical correctness remains unknown. Delivery and owner checks do not establish a G1/G2 win. Settlement coverage is recorded separately by the reused corrected analyzer; no new performance replay, threshold change or causal speed comparison."
+}

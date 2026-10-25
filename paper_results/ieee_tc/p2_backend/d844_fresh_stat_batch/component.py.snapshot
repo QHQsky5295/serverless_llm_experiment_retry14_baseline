@@ -1,0 +1,127 @@
+"""Reuse D605's CPU comparison driver for the D844 second-stat-only witness."""
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+template = RAW.parent/'d605_20261017/compare_inventory.py'
+assert p.digest(template) == 'eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b'
+source = template.read_text()
+
+
+def replace(old, new, count=1):
+    global source
+    assert source.count(old) == count, old
+    source = source.replace(old, new)
+
+
+replace('import ast', 'import ast\nimport inspect\nfrom scripts.ieee_tc.file_stat_batch_witness import load_query, inventory_witness')
+replace("closed = json.loads((RAW.parent.parent/'storage_maintenance/d604_20261017/storage_closure.json').read_text())\n"
+        "assert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']\n"
+        "assert not Path(closed['identity']['path']).exists()",
+        "assert not Path('/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/'\n"
+        "    'primelora-tc-aux-84300000000000000000000000000006.scope').exists()")
+replace("old_commit = '161fa069e004ed54622dbc5922f72ee56f624f02'",
+        "old_commit = '8ecf46a9dd4030b689e8e55c44f206c42c1d4d3b'")
+start = source.index('candidate_text = parent_text')
+end = source.index('\nrows, profiles, tests =', start)
+source = source[:start] + '''
+library = RAW/'native_file_stat_batch.so'
+assert not library.exists()
+command = ['cc', '-std=c11', '-O2', '-fPIC', '-shared', '-Wall', '-Wextra', '-Werror',
+    str(ROOT/'scripts/ieee_tc/native_file_stat_batch.c'), '-o', str(library)]
+with (RAW/'build.log').open('x') as stream:
+    build = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=60)
+save('build.json', dict(command=command, returncode=build.returncode,
+    compiler=subprocess.check_output(['cc', '--version'], text=True),
+    source_sha256=p.digest(ROOT/'scripts/ieee_tc/native_file_stat_batch.c')))
+assert build.returncode == 0
+query = load_query(library)
+candidate, candidate_text = inventory_witness(module._local_file_inventory, query)
+functions = {'parent': module._local_file_inventory, 'prototype': candidate}
+assert list(query([])) == []
+''' + source[end:]
+replace('with patch.object(os,\'stat\',mutate_second):', '''def mutation_query(paths):
+            paths = list(paths)
+            assert str(file) in paths
+            # Fault injection before the actual native second observation.
+            # This extra read belongs to the test, not the measured candidate.
+            mutate_second(file, follow_symlinks=False)
+            yield from query(paths)
+        with (patch.object(os, 'stat', mutate_second),
+              patch.dict(function.__globals__, {'_batch_fresh_stats': mutation_query})
+              if variant == 'prototype' else contextlib.nullcontext()):''')
+replace('captured[file].st_mtime_ns', 'captured[str(file)].st_mtime_ns')
+replace("pool = Path('/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix')",
+        "pool = Path('/tmp/tc-d557-7bv/remote_artifacts')")
+replace('assert pool.resolve()==pool and pool.is_dir()', '''assert pool.resolve()==pool and pool.is_dir()
+closed = json.loads((RAW.parent.parent/'vllm_qualification/d557_20261016/publication_closure.json').read_text())
+assert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']
+assert not Path(closed['identity']['path']).exists()''')
+replace('start=time.perf_counter()', 'start_cpu=time.process_time()\n            start=time.perf_counter()')
+replace('elapsed=time.perf_counter()-start', 'elapsed=time.perf_counter()-start\n            cpu_elapsed=time.process_time()-start_cpu')
+replace('elapsed_seconds=elapsed,', 'elapsed_seconds=elapsed,cpu_seconds=cpu_elapsed,')
+replace("with patch.object(os,'stat',counted_stat):", '''def counted_batch(paths):
+            paths = list(paths)
+            for path in paths:
+                calls[path] += 1
+            values = list(query(paths))
+            assert len(values) == len(paths)
+            yield from values
+        with (patch.object(os, 'stat', counted_stat),
+              patch.dict(functions[variant].__globals__, {'_batch_fresh_stats': counted_batch})
+              if variant == 'prototype' else contextlib.nullcontext()):''')
+replace("kind='d605_fresh_inventory_component_prototype_v1'", "kind='d844_second_pass_fresh_stat_batch_component_v1'")
+replace('prototype_function=candidate_text,tests=tests,rows=rows,groups=groups,profiles=profiles,',
+        "prototype_function=candidate_text,tests=tests,rows=rows,groups=groups,profiles=profiles,\n"
+        "    reused_driver_sha256='eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b',\n"
+        "    native_library_sha256=p.digest(library),\n"
+        "    tree_semantics='closed_vllm_transfer_metadata_not_adapter_payload',\n"
+        "    online_gil_wait_fraction_measured=False,")
+replace('before = functions[\'prototype\']({\'nvme\':fixture.nvme})', '''# Check native fields against each original os.stat field and missing-file
+    # errors. No payload contents are read.
+    paths = [str(path) for path in fixture.nvme.rglob('*')]
+    for path, observed in zip(paths, query(paths), strict=True):
+        expected_stat = os.stat(path, follow_symlinks=False)
+        assert all(getattr(expected_stat, field) == getattr(observed, field)
+            for field in observed._fields)
+    missing = str(fixture.nvme/'not-present-d844')
+    try:
+        list(query([str(file), missing]))
+    except FileNotFoundError as error:
+        assert error.filename == missing
+    else:
+        raise AssertionError('missing path accepted')
+    tests.append('native_fields_and_missing_path_exact')
+    # Existing settlement tests run against the cloned inventory. Counts that
+    # intentionally observe Python os.stat are tested separately below.
+    with patch.object(module, '_local_file_inventory', functions['prototype']):
+        for name in ('test_uninitialized_extent_keeps_envelope_in_single_fresh_inventory',
+                     'test_mutation_during_extent_probe_cannot_escape_as_successful_observation',
+                     'test_missing_tree_withdraws_and_unknown_copy_is_not_remote'):
+            extra = FreshFileObservation()
+            try:
+                getattr(extra, name)()
+            finally:
+                extra.doCleanups()
+            tests.append(name)
+    before = functions['prototype']({'nvme':fixture.nvme})''')
+
+compile(source, str(RAW/'component_program.py.snapshot'), 'exec')
+with (RAW/'component_program.py.snapshot').open('x') as stream:
+    stream.write(source)
+with (RAW/'template_reuse.json').open('x') as stream:
+    json.dump(dict(path=str(template), sha256=p.digest(template),
+        generated_sha256=hashlib.sha256(source.encode()).hexdigest(),
+        changes='Current parent; native batch witness only at second stat; preserve D605 '
+        'whole-inventory/fixture assertions and timing/cProfile loop; use closed D557 '
+        'metadata tree; adapt fault injection/counting to the actual native boundary; '
+        'add native field/error and existing extent/missing-source checks.'), stream, indent=2)
+exec(compile(source, str(RAW/'component_program.py.snapshot'), 'exec'),
+    dict(__file__=str(RAW/'component_program.py.snapshot'), __name__='__main__'))

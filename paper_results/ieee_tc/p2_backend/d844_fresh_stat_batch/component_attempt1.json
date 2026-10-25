@@ -1,0 +1,12 @@
+{
+  "returncode": 1,
+  "failure": "AST for-loop target was parsed as a Load expression; compile rejected it before fixture tests, component timing or any GPU execution.",
+  "fix": "Parse the for target with Store context; no change to measured inventory semantics.",
+  "failed_source_sha256": "d46456c0b975debf421996b80d2ce342fd7ee347890e2fbe51e3df45ddb812ec",
+  "native_build_reused": true,
+  "performance_measurements": 0,
+  "resource_peak_bytes": null,
+  "resource_limitation": "Failure exited before end-of-scope resource summary; peak/events not invented.",
+  "scope_inactive": true,
+  "scope_path_removed": true
+}

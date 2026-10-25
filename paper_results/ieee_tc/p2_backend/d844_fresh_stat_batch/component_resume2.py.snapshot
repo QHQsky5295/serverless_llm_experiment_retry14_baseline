@@ -1,0 +1,10 @@
+"""Restore the original driver's explicit project import path; no new candidate."""
+from pathlib import Path
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+path = RAW/'component_resume_program.py.snapshot'
+exec(compile(path.read_text(), str(path), 'exec'),
+    dict(__file__=str(path), __name__='__main__'))

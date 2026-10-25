@@ -1,0 +1,29 @@
+"""Resume D844 after AST Store-context error before any tests/timing."""
+import hashlib
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+source = (RAW/'component_program.py.snapshot').read_text()
+start = source.index("assert not library.exists()")
+end = source.index('\nquery = load_query(library)', start)
+source = source[:start] + '''build = json.loads((RAW/'build.json').read_text())
+assert build['returncode'] == 0 and library.is_file()
+assert build['source_sha256'] == p.digest(ROOT/'scripts/ieee_tc/native_file_stat_batch.c')
+''' + source[end:]
+source = source.replace("'component_identity.json'", "'component2_identity.json'")
+source = source.replace("'component_result.json'", "'component_result2.json'")
+compile(source, str(RAW/'component_resume_program.py.snapshot'), 'exec')
+with (RAW/'component_attempt1.json').open('x') as stream:
+    json.dump(dict(returncode=1, failure='AST for-loop target was parsed as a Load expression; '
+        'compile rejected it before fixture tests, component timing or any GPU execution.',
+        fix='Parse the for target with Store context; no change to measured inventory semantics.',
+        failed_source_sha256=hashlib.sha256((RAW/'file_stat_batch_witness_attempt1.py.snapshot').read_bytes()).hexdigest(),
+        native_build_reused=True, performance_measurements=0, resource_peak_bytes=None,
+        resource_limitation='Failure exited before end-of-scope resource summary; peak/events not invented.',
+        scope_inactive=True, scope_path_removed=True), stream, indent=2)
+with (RAW/'component_resume_program.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'component_resume_program.py.snapshot'), 'exec'),
+    dict(__file__=str(RAW/'component_resume_program.py.snapshot'), __name__='__main__'))

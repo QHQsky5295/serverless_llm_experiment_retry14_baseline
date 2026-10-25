@@ -1,0 +1,130 @@
+"""Curate the rejected CPU candidate and completed D843 audits; reuse D824 backup."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch'
+D843 = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+resolved = read(D843/'delivery_closure/resolved.json')
+assert resolved['passed'] and not Path(resolved['identity']['path']).exists()
+for entry in resolved['evidence']:
+    assert p.digest(Path(entry['path'])) == entry['sha256']
+component = read(RAW/'component_result2.json')
+assert component['passed'] and component['production_source_unchanged']
+assert not component['native_cuda_initialized']
+completed = read(RAW/'component2_identity.json')
+assert completed['unit'] == 'primelora-tc-aux-84400000000000000000000000000003.scope'
+assert not Path(completed['path']).exists()
+closed_scopes = []
+for suffix in ('01', '02', '03'):
+    unit = 'primelora-tc-aux-844000000000000000000000000000'+suffix+'.scope'
+    state = subprocess.check_output(['systemctl', '--user', 'show', unit,
+        '-p', 'ActiveState', '-p', 'SubState'], text=True)
+    path = group.parent/unit
+    assert 'ActiveState=inactive' in state and not path.exists()
+    closed_scopes.append(dict(unit=unit, state=state, path_removed=True))
+assert p.digest(ROOT/'faaslora/memory/residency_manager.py') == component['old_source_sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+protected = read(D843/'prelaunch/qualification.json')['protected']
+for path, digest in protected.items():
+    assert p.digest(Path(path)) == digest
+OUT.mkdir(exist_ok=False)
+for name in ('component.py', 'component_resume.py', 'component_resume2.py',
+             'component_program.py.snapshot', 'component_resume_program.py.snapshot',
+             'component_identity.json', 'component2_identity.json', 'component_result2.json',
+             'component_attempt1.json', 'component_attempt2.json',
+             'file_stat_batch_witness_attempt1.py.snapshot', 'build.json', 'build.log',
+             'template_reuse.json', 'close_and_backup.py'):
+    src = RAW/name
+    target_name = name+'.snapshot' if name.endswith('.py') else name.replace('.log', '.txt')
+    with (OUT/target_name).open('xb') as stream:
+        stream.write(src.read_bytes())
+for path in (ROOT/'scripts/ieee_tc/file_stat_batch_witness.py',
+             RAW/'component.py', RAW/'component_resume.py', RAW/'component_resume2.py',
+             RAW/'close_and_backup.py'):
+    ast.parse(path.read_text(), filename=str(path))
+doc = ROOT/'docs/ieee_tc/D844_TRANSACTION_LOCAL_FRESH_STAT_BATCH_20261025.md'
+save(OUT/'closure.json', dict(passed=True, decision='rejected_component_no_gpu_replay',
+    performance_adopted=False, production_changed=False, new_gpu_replays=0,
+    n_correct=None, ranking_eligible=False, user_protected=protected, doc=ref(doc),
+    scopes=closed_scopes, d843_delivery_scope_removed=True,
+    component_checks=len(component['tests']), protected_147_unchanged=True,
+    source_refs=[ref(D843/'delivery_closure/resolved.json'), ref(RAW/'component_result2.json')],
+    retained_performance_point='D840 3B W2; D843 remains an observer diagnostic',
+    next='Reuse D843 saved frames to classify actual RPC consumers before selecting one '
+        'new hypothesis; no new profiling or resurrection of D737.',
+    disk_free_bytes=os.statvfs('/home/qhq').f_bavail*os.statvfs('/home/qhq').f_frsize))
+
+template = RAW.parent/'d824_20261025/backup.py'
+program = template.read_text()
+for old, new in (
+    ('d824_current_ingress_pending', 'd844_fresh_stat_batch'),
+    ('107185c45f49a891c0b391b1140b7d765e83daea', '8ecf46a9dd4030b689e8e55c44f206c42c1d4d3b'),
+    ('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md', 'D844_TRANSACTION_LOCAL_FRESH_STAT_BATCH_20261025.md'),
+    ('assert len(paths) == len(set(paths)) == 20', 'assert len(paths) == len(set(paths))'),
+    ('backup/d824-current-ingress-control-20261025', 'backup/d844-closed-component-20261025'),
+    ('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)',
+     'tc: close D843 delivery evidence and reject batch-stat component (D844)'),
+    ("return subprocess.check_output(['git', *args], cwd=ROOT, text=True)",
+     "return subprocess.check_output(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol', *args], cwd=ROOT, text=True)"),
+):
+    assert old in program, old
+    program = program.replace(old, new)
+old = "paths = [str(path.relative_to(ROOT)) for path in files]"
+new = '''d843 = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2'
+files += [ROOT/'docs/ieee_tc/D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md',
+          ROOT/'scripts/ieee_tc/file_stat_batch_witness.py',
+          ROOT/'scripts/ieee_tc/native_file_stat_batch.c',
+          d843/'closure.json', d843/'closure_manifest.json']
+files += [d843/'completion'/name for name in ('closed_outcome.json',
+    'delivery_applicability_and_reclamation.json', 'owner_publication_actual.json',
+    'decoder_actual.json', 'owner_anchor_actual.json')]
+files += [path for directory in ('delivery_closure', 'settlement_analysis')
+    for path in sorted((d843/directory).rglob('*')) if path.is_file()]
+paths = [str(path.relative_to(ROOT)) for path in files]'''
+assert program.count(old) == 1
+program = program.replace(old, new)
+compile(program, str(RAW/'backup_program.py.snapshot'), 'exec')
+with (RAW/'backup_program.py.snapshot').open('x') as stream:
+    stream.write(program)
+with (OUT/'backup_program.py.snapshot').open('x') as stream:
+    stream.write(program)
+save(OUT/'backup_template.json', dict(source=ref(template),
+    reuse='D824 explicit paths, protected SHA, secret-pattern checks and remote ref verification; '
+        'command-local CRLF CSV handling, no global git config changes; no force.'))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*'))
+    if path.is_file()]))
+exec(compile(program, str(RAW/'backup_program.py.snapshot'), 'exec'),
+    dict(__file__=str(RAW/'backup_program.py.snapshot'), __name__='__main__'))

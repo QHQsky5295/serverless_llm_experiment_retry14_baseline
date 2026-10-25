@@ -1,0 +1,7 @@
+{
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d824_20261025/backup.py",
+    "sha256": "ee84b28423f93cea5a6764c529174b4531ad1bcf7c38ee4e1d37c95bc0b951c8"
+  },
+  "reuse": "D824 explicit paths, protected SHA, secret-pattern checks and remote ref verification; command-local CRLF CSV handling, no global git config changes; no force."
+}

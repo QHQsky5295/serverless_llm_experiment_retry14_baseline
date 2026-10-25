@@ -1,4 +1,28 @@
-# IEEE TC execution status — D843 complete; bounded fresh-inventory candidate next
+# IEEE TC execution status — D843 delivery closed; D844 batch-stat rejected
+
+## 2026-10-25 D843交付证据补齐；D844组件负结果，不接入生产
+
+本轮为实质进展：复用D840工具完成D843逐transfer/owner/settlement审计，505次
+published传输、1,172,100,920线上字节全部双端对应且无请求打包，505条新准备
+全部settled且先于成功返回；全4000请求来源保留，独立数值正确性仍未知。
+新增delivery_closure/resolved.json解决原pending，不覆盖旧状态/manifest。
+辅助06域已退出，峰值715591680B、内存事件/swap0。无新的GPU实验或远端操作。
+
+按登记单一假设做D844第二遍fresh stat批量组件研究：17项断言通过，但规划
+导出路径9.311495→10.257258ms，约慢10.16%；不导出路径首个319.295ms异常
+保留、原因未知。候选不接入生产，不运行GPU、不重测寻优。两个入口错误在
+测试/计时前退出，失败源码/记录保留；修正后只完成一次研究。完成域峰值
+621838336B、high/max/OOM/swap0，未初始化GPU。147保护与用户manifest不变。
+
+生产仍保持D840版本（92.10%、U11235.329655，预算内但联合未95%）；D843
+92.85%只作带观察开销的诊断，不取代性能点。D844仅新增诊断工具，无公式、
+策略、底层服务、配置或指标变动。正在将结果/文档按明确路径备份。
+
+下一停止局部stat方向，复用D843已保存栈，将125个_send_rpc_on_channel内的
+解码样本按请求acquire/规划/压力等实际调用者归类，并核对对应消息消费者，
+据此才登记一项具体改动；不新profiling，不复做D172/msgspec、D192编码或
+D737/D739规划延迟解析。全部3B/最终7B比较、A1–A5、S1–S13、审稿文档/
+图表/V2仍开放；不重开HydraServe适配/共享k3s。goal保持active。
 
 ## 2026-10-25 D843结果检查点已推送
 

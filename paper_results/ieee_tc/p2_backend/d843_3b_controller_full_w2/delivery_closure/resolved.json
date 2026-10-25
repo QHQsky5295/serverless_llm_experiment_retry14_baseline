@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "diagnostic_only": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "new_gpu_replays": 0,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-84300000000000000000000000000006.scope",
+    "invocation_id": "8519be8ec44d47198d50b827d3344a8c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84300000000000000000000000000006.scope",
+    "inode": 32414319
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84300000000000000000000000000006.scope",
+    "memory.current": 15695872,
+    "memory.peak": 715591680,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 123253665\nuser_usec 117862691\nsystem_usec 5390973\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "resolves": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/closed_outcome.json",
+      "sha256": "bb9e4b2a9507633373e87057885de6c3dca3e554cac29fda184bcdb8323736ef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "9e89da6c56e536ace44e2a51d190448d3f46deafe773bb8881281be594ef04ba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/owner_publication_actual.json",
+      "sha256": "024bae809e3f2490ecef8f35293a190da274301101627f402d5e5b0940ab1951"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/decoder_actual.json",
+      "sha256": "9b7b0fe737c95cf6e6c0d022542640f628d86d6ec01cdc230bbf211266be0890"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/owner_anchor_actual.json",
+      "sha256": "d82b07fbbd5ee4905b6896b82a7984143abab46efb1c3f68eb74abbb416c18cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/settlement_analysis/summary.json",
+      "sha256": "0087f77f7851b50d4e8c15202514392e280b9f7352588aea5e540304a9dd57fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/closure.json",
+      "sha256": "8100d1d03fff38ad49ba72272d3bb56e64b8f5e779b7502c943154d3f982bf4b"
+    }
+  ],
+  "limitation": "Append-only completion of previously pending evidence. Independent numerical adapter correctness remains unknown; frame diagnostic is not a ranking point."
+}

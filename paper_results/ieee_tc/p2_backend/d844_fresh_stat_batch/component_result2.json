@@ -1,0 +1,2186 @@
+{
+  "passed": true,
+  "kind": "d844_second_pass_fresh_stat_batch_component_v1",
+  "old_commit": "8ecf46a9dd4030b689e8e55c44f206c42c1d4d3b",
+  "old_source_sha256": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+  "parent_function": "def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,\n                          _observed_stats=None, _settle_allocation=None):\n    \"\"\"Inventory linked storage, not RSS, content hashes, or reclaimable bytes.\n\n    Call under the cooperative file owner. Active writers must be listed and\n    restricted to overwriting their fixed-size, preallocated private files.\n    Linux st_blocks measures allocated 512-byte blocks; st_size measures logical\n    data. Keep both. Hard links share one inode allocation; equal content alone\n    does not. Directory blocks are included, but inode/journal overhead, reflink\n    extent sharing, page cache and unlinked-open files are outside this scope.\n\n    The optional private observation map uses the same normalized string keys\n    as allocation paths. It exists only for this locked call and its projection;\n    neither it nor directory-entry metadata is reused by a later observation.\n    \"\"\"\n    allocations, observations = {}, []\n    captured = {} if _observed_stats is not None else None\n    writing_inodes = set(writing_inodes)\n    allocation_bounds = allocation_bounds or {}\n    def signature_for(info, key):\n        bound = allocation_bounds.get(key)\n        if bound is not None and not bound['data_bytes'] <= 512*info.st_blocks <= bound['ceiling_bytes']:\n            raise RuntimeError('managed inode allocation exceeds its reserved envelope')\n        # Allocation is capacity state, not content identity. Only explicitly\n        # reserved inodes may change it, always within their charged envelope.\n        return (info.st_mode, info.st_size, 0 if bound is not None else info.st_blocks, info.st_nlink,\n                *((0, 0) if key in writing_inodes else (info.st_mtime_ns, info.st_ctime_ns)))\n    for tier, root in roots.items():\n        root = str(Path(root))\n        pending = [root]\n        while pending:\n            path = pending.pop()\n            info = os.stat(path, follow_symlinks=False)\n            if stat_types.S_ISREG(info.st_mode):\n                kind = 'file'\n            elif stat_types.S_ISDIR(info.st_mode):\n                kind = 'directory'\n            else:\n                raise ValueError(f'managed file inventory rejects links/special files: {path}')\n            if not hasattr(info, 'st_blocks'):\n                raise RuntimeError('managed file inventory requires allocated block observations')\n            key = (info.st_dev, info.st_ino)\n            signature = signature_for(info, key)\n            if (_settle_allocation is not None and key not in allocations and\n                    _settle_allocation(path, info)):\n                # Settlement changes the charged envelope, not content identity.\n                # Bind its new allocation observation to this same path before\n                # collecting it; the full second pass still follows all probes.\n                info = os.stat(path, follow_symlinks=False)\n                if ((info.st_dev, info.st_ino) != key or\n                        signature_for(info, key) != signature):\n                    raise RuntimeError('managed inode changed during extent settlement')\n            observations.append((path, key, signature))\n            if captured is not None:\n                captured[path] = info\n            item = allocations.setdefault(key, dict(\n                device=info.st_dev, inode=info.st_ino, kind=kind,\n                logical_bytes=info.st_size if kind == 'file' else 0,\n                allocated_bytes=512 * info.st_blocks, link_count=info.st_nlink,\n                signature=signature, paths=[], path_tiers=[], tiers=[]))\n            if item['signature'] != signature:\n                raise RuntimeError('managed inode changed while collecting footprint')\n            item['paths'].append(path)\n            item['path_tiers'].append(tier)\n            if tier not in item['tiers']:\n                item['tiers'].append(tier)\n            if kind == 'directory':\n                # Names of siblings have the same ordering as their Path parts.\n                # Do not use DirEntry.stat: the second pass must query fresh state.\n                with os.scandir(path) as entries:\n                    names = sorted((entry.name for entry in entries), reverse=True)\n                pending.extend(os.path.join(path, name) if path != '.' else name\n                               for name in names)\n    # Detect noncooperative mutation during the scan. This is not a lock against\n    # external writers; only the managed owner supplies that synchronization.\n    for path, key, signature in observations:\n        info = os.stat(path, follow_symlinks=False)\n        if ((info.st_dev, info.st_ino) != key or\n                signature_for(info, key) != signature):\n            raise RuntimeError('managed inode changed while collecting footprint')\n    if captured is not None:\n        # Ephemeral evidence for this locked observation only. Expose nothing\n        # until the fresh second-stat check succeeds; never reuse across calls.\n        _observed_stats.update(captured)\n    items = list(allocations.values())\n    for item in items:\n        del item['signature']\n        item['external_link_count'] = (item['link_count'] - len(item['paths'])\n                                       if item['kind'] == 'file' else None)\n        if item['external_link_count'] is not None and item['external_link_count'] < 0:\n            raise RuntimeError('managed inventory contains overlapping roots or duplicate paths')\n    def totals(selected, tier=None):\n        files = [item for item in selected if item['kind'] == 'file']\n        return dict(logical_file_bytes=sum(item['logical_bytes'] for item in files),\n                    file_path_bytes=sum(item['logical_bytes'] * (\n                        len(item['paths']) if tier is None else item['path_tiers'].count(tier))\n                                        for item in files),\n                    allocated_bytes=sum(item['allocated_bytes'] for item in selected),\n                    allocated_file_bytes=sum(item['allocated_bytes'] for item in files),\n                    unique_file_count=len(files))\n    return dict(scope='linked_inode_storage_v1', **totals(items), allocations=items,\n                tiers={tier: totals([item for item in items if tier in item['tiers']], tier)\n                       for tier in roots},\n                tier_totals_additive=all(len(item['tiers']) == 1 for item in items),\n                content_verified=False, capacity_reserved=False, physical_release_proven=False)",
+  "prototype_function": "def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None, _observed_stats=None, _settle_allocation=None):\n    \"\"\"Inventory linked storage, not RSS, content hashes, or reclaimable bytes.\n\n    Call under the cooperative file owner. Active writers must be listed and\n    restricted to overwriting their fixed-size, preallocated private files.\n    Linux st_blocks measures allocated 512-byte blocks; st_size measures logical\n    data. Keep both. Hard links share one inode allocation; equal content alone\n    does not. Directory blocks are included, but inode/journal overhead, reflink\n    extent sharing, page cache and unlinked-open files are outside this scope.\n\n    The optional private observation map uses the same normalized string keys\n    as allocation paths. It exists only for this locked call and its projection;\n    neither it nor directory-entry metadata is reused by a later observation.\n    \"\"\"\n    allocations, observations = ({}, [])\n    captured = {} if _observed_stats is not None else None\n    writing_inodes = set(writing_inodes)\n    allocation_bounds = allocation_bounds or {}\n\n    def signature_for(info, key):\n        bound = allocation_bounds.get(key)\n        if bound is not None and (not bound['data_bytes'] <= 512 * info.st_blocks <= bound['ceiling_bytes']):\n            raise RuntimeError('managed inode allocation exceeds its reserved envelope')\n        return (info.st_mode, info.st_size, 0 if bound is not None else info.st_blocks, info.st_nlink, *((0, 0) if key in writing_inodes else (info.st_mtime_ns, info.st_ctime_ns)))\n    for tier, root in roots.items():\n        root = str(Path(root))\n        pending = [root]\n        while pending:\n            path = pending.pop()\n            info = os.stat(path, follow_symlinks=False)\n            if stat_types.S_ISREG(info.st_mode):\n                kind = 'file'\n            elif stat_types.S_ISDIR(info.st_mode):\n                kind = 'directory'\n            else:\n                raise ValueError(f'managed file inventory rejects links/special files: {path}')\n            if not hasattr(info, 'st_blocks'):\n                raise RuntimeError('managed file inventory requires allocated block observations')\n            key = (info.st_dev, info.st_ino)\n            signature = signature_for(info, key)\n            if _settle_allocation is not None and key not in allocations and _settle_allocation(path, info):\n                info = os.stat(path, follow_symlinks=False)\n                if (info.st_dev, info.st_ino) != key or signature_for(info, key) != signature:\n                    raise RuntimeError('managed inode changed during extent settlement')\n            observations.append((path, key, signature))\n            if captured is not None:\n                captured[path] = info\n            item = allocations.setdefault(key, dict(device=info.st_dev, inode=info.st_ino, kind=kind, logical_bytes=info.st_size if kind == 'file' else 0, allocated_bytes=512 * info.st_blocks, link_count=info.st_nlink, signature=signature, paths=[], path_tiers=[], tiers=[]))\n            if item['signature'] != signature:\n                raise RuntimeError('managed inode changed while collecting footprint')\n            item['paths'].append(path)\n            item['path_tiers'].append(tier)\n            if tier not in item['tiers']:\n                item['tiers'].append(tier)\n            if kind == 'directory':\n                with os.scandir(path) as entries:\n                    names = sorted((entry.name for entry in entries), reverse=True)\n                pending.extend((os.path.join(path, name) if path != '.' else name for name in names))\n    for (path, key, signature), info in zip(observations, _batch_fresh_stats((row[0] for row in observations)), strict=True):\n        if (info.st_dev, info.st_ino) != key or signature_for(info, key) != signature:\n            raise RuntimeError('managed inode changed while collecting footprint')\n    if captured is not None:\n        _observed_stats.update(captured)\n    items = list(allocations.values())\n    for item in items:\n        del item['signature']\n        item['external_link_count'] = item['link_count'] - len(item['paths']) if item['kind'] == 'file' else None\n        if item['external_link_count'] is not None and item['external_link_count'] < 0:\n            raise RuntimeError('managed inventory contains overlapping roots or duplicate paths')\n\n    def totals(selected, tier=None):\n        files = [item for item in selected if item['kind'] == 'file']\n        return dict(logical_file_bytes=sum((item['logical_bytes'] for item in files)), file_path_bytes=sum((item['logical_bytes'] * (len(item['paths']) if tier is None else item['path_tiers'].count(tier)) for item in files)), allocated_bytes=sum((item['allocated_bytes'] for item in selected)), allocated_file_bytes=sum((item['allocated_bytes'] for item in files)), unique_file_count=len(files))\n    return dict(scope='linked_inode_storage_v1', **totals(items), allocations=items, tiers={tier: totals([item for item in items if tier in item['tiers']], tier) for tier in roots}, tier_totals_additive=all((len(item['tiers']) == 1 for item in items)), content_verified=False, capacity_reserved=False, physical_release_proven=False)",
+  "tests": [
+    "existing_fixture_preparation_snapshot_exact",
+    "parent_second_stat_mutation_rejected_without_export",
+    "prototype_second_stat_mutation_rejected_without_export",
+    "native_fields_and_missing_path_exact",
+    "test_uninitialized_extent_keeps_envelope_in_single_fresh_inventory",
+    "test_mutation_during_extent_probe_cannot_escape_as_successful_observation",
+    "test_missing_tree_withdraws_and_unknown_copy_is_not_remote",
+    "prototype_new_call_observes_current_stat",
+    "parent_allocation_bound_rejected",
+    "prototype_allocation_bound_rejected",
+    "parent_symlink_rejected",
+    "prototype_symlink_rejected",
+    "parent_fifo_rejected",
+    "prototype_fifo_rejected",
+    "tiny_alias_and_nested_order_exact",
+    "real_pool_two_fresh_stats_exact_capture_False",
+    "real_pool_two_fresh_stats_exact_capture_True"
+  ],
+  "rows": [
+    {
+      "variant": "parent",
+      "capture": false,
+      "repeat": 0,
+      "elapsed_seconds": 0.00870556989684701,
+      "cpu_seconds": 0.00871211900000013,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": false,
+      "repeat": 0,
+      "elapsed_seconds": 0.3192947618663311,
+      "cpu_seconds": 0.3192503010000003,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": false,
+      "repeat": 1,
+      "elapsed_seconds": 0.01147189736366272,
+      "cpu_seconds": 0.011456144000000279,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "parent",
+      "capture": false,
+      "repeat": 1,
+      "elapsed_seconds": 0.00963551364839077,
+      "cpu_seconds": 0.009637269000000614,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "parent",
+      "capture": false,
+      "repeat": 2,
+      "elapsed_seconds": 0.009262294974178076,
+      "cpu_seconds": 0.009264216000000047,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": false,
+      "repeat": 2,
+      "elapsed_seconds": 0.010443306993693113,
+      "cpu_seconds": 0.010445145000000267,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "parent",
+      "capture": true,
+      "repeat": 0,
+      "elapsed_seconds": 0.009328938089311123,
+      "cpu_seconds": 0.00933123700000138,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": true,
+      "repeat": 0,
+      "elapsed_seconds": 0.010451036971062422,
+      "cpu_seconds": 0.010446594999999448,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": true,
+      "repeat": 1,
+      "elapsed_seconds": 0.010014583356678486,
+      "cpu_seconds": 0.010017155999999972,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "parent",
+      "capture": true,
+      "repeat": 1,
+      "elapsed_seconds": 0.009608819149434566,
+      "cpu_seconds": 0.009610680999999843,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "parent",
+      "capture": true,
+      "repeat": 2,
+      "elapsed_seconds": 0.008996729273349047,
+      "cpu_seconds": 0.008998504999999213,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    },
+    {
+      "variant": "prototype",
+      "capture": true,
+      "repeat": 2,
+      "elapsed_seconds": 0.01030615484341979,
+      "cpu_seconds": 0.010308029000000829,
+      "file_count": 999,
+      "path_count": 1003,
+      "exact_output": true
+    }
+  ],
+  "groups": [
+    {
+      "variant": "parent",
+      "capture": false,
+      "mean_seconds": 0.009201126173138618,
+      "min_seconds": 0.00870556989684701,
+      "max_seconds": 0.00963551364839077,
+      "component_calls": 3
+    },
+    {
+      "variant": "prototype",
+      "capture": false,
+      "mean_seconds": 0.11373665540789564,
+      "min_seconds": 0.010443306993693113,
+      "max_seconds": 0.3192947618663311,
+      "component_calls": 3
+    },
+    {
+      "variant": "parent",
+      "capture": true,
+      "mean_seconds": 0.009311495504031578,
+      "min_seconds": 0.008996729273349047,
+      "max_seconds": 0.009608819149434566,
+      "component_calls": 3
+    },
+    {
+      "variant": "prototype",
+      "capture": true,
+      "mean_seconds": 0.0102572583903869,
+      "min_seconds": 0.010014583356678486,
+      "max_seconds": 0.010451036971062422,
+      "component_calls": 3
+    }
+  ],
+  "profiles": [
+    {
+      "variant": "parent",
+      "capture": false,
+      "entries": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 129,
+          "function": "_local_file_inventory",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 0.004807404,
+          "cumulative_seconds": 0.018512920000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.stat>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.004292421,
+          "cumulative_seconds": 0.004292421
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 71,
+          "function": "join",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.001222243,
+          "cumulative_seconds": 0.0021834610000000003
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 148,
+          "function": "signature_for",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.001211327,
+          "cumulative_seconds": 0.0015676540000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sum>",
+          "primitive_calls": 8,
+          "calls": 8,
+          "self_seconds": 0.0008313610000000001,
+          "cumulative_seconds": 0.0021165280000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "primitive_calls": 4012,
+          "calls": 4012,
+          "self_seconds": 0.0006826600000000001,
+          "cumulative_seconds": 0.0006826600000000001
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 199,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.000620051,
+          "cumulative_seconds": 0.000620051
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 223,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000484325,
+          "cumulative_seconds": 0.000697042
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 200,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.00040637700000000003,
+          "cumulative_seconds": 0.002589838
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.00035632700000000003,
+          "cumulative_seconds": 0.00035632700000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "primitive_calls": 3005,
+          "calls": 3005,
+          "self_seconds": 0.00027912200000000003,
+          "cumulative_seconds": 0.00027912200000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 0.000254477,
+          "cumulative_seconds": 0.0008745280000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00025385500000000004,
+          "cumulative_seconds": 0.00025385500000000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'startswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00023383800000000002,
+          "cumulative_seconds": 0.00023383800000000002
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 41,
+          "function": "_get_sep",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00023293800000000003,
+          "cumulative_seconds": 0.000376628
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'endswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00022516700000000002,
+          "cumulative_seconds": 0.00022516700000000002
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 232,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00022310100000000002,
+          "cumulative_seconds": 0.000314607
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 227,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000206578,
+          "cumulative_seconds": 0.000206578
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 226,
+          "function": "<genexpr>",
+          "primitive_calls": 2008,
+          "calls": 2008,
+          "self_seconds": 0.000191141,
+          "cumulative_seconds": 0.000191141
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 222,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000190406,
+          "cumulative_seconds": 0.000190406
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'pop' of 'list' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00018028300000000002,
+          "cumulative_seconds": 0.00018028300000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hasattr>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000168471,
+          "cumulative_seconds": 0.000168471
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISREG>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00016314700000000002,
+          "cumulative_seconds": 0.00016314700000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00014435900000000002,
+          "cumulative_seconds": 0.00014435900000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'extend' of 'list' objects>",
+          "primitive_calls": 5,
+          "calls": 5,
+          "self_seconds": 0.00013816000000000002,
+          "cumulative_seconds": 0.002727998
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.fspath>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00012578600000000002,
+          "cumulative_seconds": 0.00012578600000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'count' of 'list' objects>",
+          "primitive_calls": 999,
+          "calls": 999,
+          "self_seconds": 0.00012559300000000002,
+          "cumulative_seconds": 0.00012559300000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 0.00010381600000000001,
+          "cumulative_seconds": 0.000418423
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 220,
+          "function": "totals",
+          "primitive_calls": 2,
+          "calls": 2,
+          "self_seconds": 8.768400000000001e-05,
+          "cumulative_seconds": 0.002204662
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.0823000000000005e-05,
+          "cumulative_seconds": 4.0823000000000005e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.scandir>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 2.2651e-05,
+          "cumulative_seconds": 2.2651e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 387,
+          "function": "_parse_path",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 7.998e-06,
+          "cumulative_seconds": 1.3628e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 437,
+          "function": "__str__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 7.866e-06,
+          "cumulative_seconds": 3.2576e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 407,
+          "function": "_load_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.142e-06,
+          "cumulative_seconds": 1.9242e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1164,
+          "function": "__new__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.980000000000001e-06,
+          "cumulative_seconds": 5.45e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1157,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.936e-06,
+          "cumulative_seconds": 8.464e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 358,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.79e-06,
+          "cumulative_seconds": 4.5280000000000005e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 551,
+          "function": "drive",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.8570000000000003e-06,
+          "cumulative_seconds": 2.2099000000000003e-05
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 138,
+          "function": "splitroot",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.391e-06,
+          "cumulative_seconds": 2.943e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method sys.intern>",
+          "primitive_calls": 3,
+          "calls": 3,
+          "self_seconds": 1.6930000000000001e-06,
+          "cumulative_seconds": 1.6930000000000001e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 429,
+          "function": "_format_parsed_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.653e-06,
+          "cumulative_seconds": 2.273e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method '__exit__' of 'posix.ScandirIterator' objects>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 1.345e-06,
+          "cumulative_seconds": 1.345e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'split' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.940000000000001e-07,
+          "cumulative_seconds": 9.940000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISDIR>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 8.67e-07,
+          "cumulative_seconds": 8.67e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'join' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.2e-07,
+          "cumulative_seconds": 6.2e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method __new__ of type object at 0x935960>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.7000000000000005e-07,
+          "cumulative_seconds": 4.7000000000000005e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.61e-07,
+          "cumulative_seconds": 4.61e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'items' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.5000000000000003e-07,
+          "cumulative_seconds": 4.5000000000000003e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 560,
+          "function": "root",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.9e-07,
+          "cumulative_seconds": 1.9e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 569,
+          "function": "_tail",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.48e-07,
+          "cumulative_seconds": 1.48e-07
+        }
+      ]
+    },
+    {
+      "variant": "prototype",
+      "capture": false,
+      "entries": [
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 1,
+          "function": "_local_file_inventory",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 0.00526232,
+          "cumulative_seconds": 0.021531861000000003
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/file_stat_batch_witness.py",
+          "line": 37,
+          "function": "query",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.002963259,
+          "cumulative_seconds": 0.004749570000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.stat>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.0022674830000000003,
+          "cumulative_seconds": 0.0022674830000000003
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 20,
+          "function": "signature_for",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.0012148130000000001,
+          "cumulative_seconds": 0.0015805910000000001
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 71,
+          "function": "join",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.001189292,
+          "cumulative_seconds": 0.002125964
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sum>",
+          "primitive_calls": 8,
+          "calls": 8,
+          "self_seconds": 0.000816093,
+          "cumulative_seconds": 0.002069558
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "primitive_calls": 4012,
+          "calls": 4012,
+          "self_seconds": 0.000659596,
+          "cumulative_seconds": 0.000659596
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 71,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.0006484990000000001,
+          "cumulative_seconds": 0.0006484990000000001
+        },
+        {
+          "file": "<frozen os>",
+          "line": 841,
+          "function": "fsencode",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000532536,
+          "cumulative_seconds": 0.0009375570000000001
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 95,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.00048335800000000003,
+          "cumulative_seconds": 0.0006964790000000001
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 72,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.000379524,
+          "cumulative_seconds": 0.002505488
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.00036577800000000003,
+          "cumulative_seconds": 0.00036577800000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "primitive_calls": 3006,
+          "calls": 3006,
+          "self_seconds": 0.000278043,
+          "cumulative_seconds": 0.000278043
+        },
+        {
+          "file": "<string>",
+          "line": 1,
+          "function": "<lambda>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00027321,
+          "cumulative_seconds": 0.000468197
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 0.00026652,
+          "cumulative_seconds": 0.0009150190000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "primitive_calls": 2007,
+          "calls": 2007,
+          "self_seconds": 0.000252528,
+          "cumulative_seconds": 0.000252528
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000243546,
+          "cumulative_seconds": 0.000243546
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.fspath>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.000240475,
+          "cumulative_seconds": 0.000240475
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 41,
+          "function": "_get_sep",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.000229,
+          "cumulative_seconds": 0.000371443
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'endswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.000224545,
+          "cumulative_seconds": 0.000224545
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'startswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00021250400000000002,
+          "cumulative_seconds": 0.00021250400000000002
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 104,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00020899700000000002,
+          "cumulative_seconds": 0.000297803
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method __new__ of type object at 0x935960>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00019548700000000002,
+          "cumulative_seconds": 0.00019548700000000002
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/file_stat_batch_witness.py",
+          "line": 39,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.000193498,
+          "cumulative_seconds": 0.000193498
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 94,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000189509,
+          "cumulative_seconds": 0.000189509
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 98,
+          "function": "<genexpr>",
+          "primitive_calls": 2008,
+          "calls": 2008,
+          "self_seconds": 0.00018807400000000002,
+          "cumulative_seconds": 0.00018807400000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'encode' of 'str' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00018338500000000002,
+          "cumulative_seconds": 0.00018338500000000002
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 99,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.00017940300000000002,
+          "cumulative_seconds": 0.00017940300000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'pop' of 'list' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000173429,
+          "cumulative_seconds": 0.000173429
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISREG>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00016237400000000001,
+          "cumulative_seconds": 0.00016237400000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hasattr>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000161979,
+          "cumulative_seconds": 0.000161979
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'extend' of 'list' objects>",
+          "primitive_calls": 5,
+          "calls": 5,
+          "self_seconds": 0.00013903,
+          "cumulative_seconds": 0.002644518
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'count' of 'list' objects>",
+          "primitive_calls": 999,
+          "calls": 999,
+          "self_seconds": 0.00012492200000000002,
+          "cumulative_seconds": 0.00012492200000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.7015e-05,
+          "cumulative_seconds": 0.000394818
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.6266e-05,
+          "cumulative_seconds": 0.000289764
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 1,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 8.9911e-05,
+          "cumulative_seconds": 8.9911e-05
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 92,
+          "function": "totals",
+          "primitive_calls": 2,
+          "calls": 2,
+          "self_seconds": 8.645500000000001e-05,
+          "cumulative_seconds": 0.0021564590000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.7566e-05,
+          "cumulative_seconds": 3.7566e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.scandir>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 2.1673e-05,
+          "cumulative_seconds": 2.1673e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 437,
+          "function": "__str__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.799000000000001e-06,
+          "cumulative_seconds": 2.4394e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 387,
+          "function": "_parse_path",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.4230000000000004e-06,
+          "cumulative_seconds": 1.0461e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1164,
+          "function": "__new__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.599e-06,
+          "cumulative_seconds": 5.099000000000001e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 358,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.197e-06,
+          "cumulative_seconds": 3.8280000000000004e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 407,
+          "function": "_load_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.142e-06,
+          "cumulative_seconds": 1.3987e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1157,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.556e-06,
+          "cumulative_seconds": 6.384e-06
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 138,
+          "function": "splitroot",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.212e-06,
+          "cumulative_seconds": 2.7040000000000003e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 551,
+          "function": "drive",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.026e-06,
+          "cumulative_seconds": 1.6013e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 429,
+          "function": "_format_parsed_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.5720000000000002e-06,
+          "cumulative_seconds": 2.2590000000000003e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method sys.intern>",
+          "primitive_calls": 3,
+          "calls": 3,
+          "self_seconds": 1.522e-06,
+          "cumulative_seconds": 1.522e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method '__exit__' of 'posix.ScandirIterator' objects>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 1.337e-06,
+          "cumulative_seconds": 1.337e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISDIR>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 8.170000000000001e-07,
+          "cumulative_seconds": 8.170000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'split' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 8.12e-07,
+          "cumulative_seconds": 8.12e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'join' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.87e-07,
+          "cumulative_seconds": 6.87e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _ctypes.byref>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.05e-07,
+          "cumulative_seconds": 6.05e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.070000000000001e-07,
+          "cumulative_seconds": 5.070000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'items' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.96e-07,
+          "cumulative_seconds": 3.96e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 560,
+          "function": "root",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.72e-07,
+          "cumulative_seconds": 1.72e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 569,
+          "function": "_tail",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.5100000000000002e-07,
+          "cumulative_seconds": 1.5100000000000002e-07
+        }
+      ]
+    },
+    {
+      "variant": "parent",
+      "capture": true,
+      "entries": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 129,
+          "function": "_local_file_inventory",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 0.004824339,
+          "cumulative_seconds": 0.018881732000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.stat>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.0040664,
+          "cumulative_seconds": 0.0040664
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 148,
+          "function": "signature_for",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.001701976,
+          "cumulative_seconds": 0.002043614
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 71,
+          "function": "join",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.0012465660000000002,
+          "cumulative_seconds": 0.00218583
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sum>",
+          "primitive_calls": 8,
+          "calls": 8,
+          "self_seconds": 0.0008672380000000001,
+          "cumulative_seconds": 0.002192004
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 199,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.000672423,
+          "cumulative_seconds": 0.000672423
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "primitive_calls": 4012,
+          "calls": 4012,
+          "self_seconds": 0.0006667190000000001,
+          "cumulative_seconds": 0.0006667190000000001
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 223,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000496311,
+          "cumulative_seconds": 0.000715936
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 200,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.00040230800000000004,
+          "cumulative_seconds": 0.0025881380000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.000341638,
+          "cumulative_seconds": 0.000341638
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "primitive_calls": 3005,
+          "calls": 3005,
+          "self_seconds": 0.00028516800000000003,
+          "cumulative_seconds": 0.00028516800000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 0.000275189,
+          "cumulative_seconds": 0.000947612
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000243658,
+          "cumulative_seconds": 0.000243658
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 41,
+          "function": "_get_sep",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00023127500000000002,
+          "cumulative_seconds": 0.00037593100000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'endswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.000220971,
+          "cumulative_seconds": 0.000220971
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 222,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000217533,
+          "cumulative_seconds": 0.000217533
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'startswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.000211468,
+          "cumulative_seconds": 0.000211468
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 232,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.000209339,
+          "cumulative_seconds": 0.000296914
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 226,
+          "function": "<genexpr>",
+          "primitive_calls": 2008,
+          "calls": 2008,
+          "self_seconds": 0.000198361,
+          "cumulative_seconds": 0.000198361
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 227,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.00019293600000000002,
+          "cumulative_seconds": 0.00019293600000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'pop' of 'list' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00018290100000000002,
+          "cumulative_seconds": 0.00018290100000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hasattr>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000163434,
+          "cumulative_seconds": 0.000163434
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISREG>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000162465,
+          "cumulative_seconds": 0.000162465
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.000145419,
+          "cumulative_seconds": 0.000145419
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'extend' of 'list' objects>",
+          "primitive_calls": 5,
+          "calls": 5,
+          "self_seconds": 0.000135091,
+          "cumulative_seconds": 0.002723229
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.fspath>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00013112,
+          "cumulative_seconds": 0.00013112
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'count' of 'list' objects>",
+          "primitive_calls": 999,
+          "calls": 999,
+          "self_seconds": 0.000125827,
+          "cumulative_seconds": 0.000125827
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.7958e-05,
+          "cumulative_seconds": 0.00039487200000000005
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "line": 220,
+          "function": "totals",
+          "primitive_calls": 2,
+          "calls": 2,
+          "self_seconds": 8.8449e-05,
+          "cumulative_seconds": 0.002280757
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.7741e-05,
+          "cumulative_seconds": 3.7741e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.scandir>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 2.2478e-05,
+          "cumulative_seconds": 2.2478e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'update' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.0916e-05,
+          "cumulative_seconds": 1.0916e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 437,
+          "function": "__str__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 7.252e-06,
+          "cumulative_seconds": 2.9819e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 387,
+          "function": "_parse_path",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.4560000000000005e-06,
+          "cumulative_seconds": 1.1887000000000002e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 407,
+          "function": "_load_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.671000000000001e-06,
+          "cumulative_seconds": 1.7013e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1164,
+          "function": "__new__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.2630000000000005e-06,
+          "cumulative_seconds": 4.838e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1157,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.853e-06,
+          "cumulative_seconds": 7.933e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 358,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.1950000000000003e-06,
+          "cumulative_seconds": 4.08e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 551,
+          "function": "drive",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.7390000000000004e-06,
+          "cumulative_seconds": 1.9752e-05
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 138,
+          "function": "splitroot",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.369e-06,
+          "cumulative_seconds": 3.017e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 429,
+          "function": "_format_parsed_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.6420000000000001e-06,
+          "cumulative_seconds": 2.4730000000000003e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method '__exit__' of 'posix.ScandirIterator' objects>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 1.593e-06,
+          "cumulative_seconds": 1.593e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method sys.intern>",
+          "primitive_calls": 3,
+          "calls": 3,
+          "self_seconds": 1.46e-06,
+          "cumulative_seconds": 1.46e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'split' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.54e-07,
+          "cumulative_seconds": 9.54e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'join' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 8.310000000000001e-07,
+          "cumulative_seconds": 8.310000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISDIR>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 7.94e-07,
+          "cumulative_seconds": 7.94e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method __new__ of type object at 0x935960>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.75e-07,
+          "cumulative_seconds": 5.75e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'items' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.6200000000000003e-07,
+          "cumulative_seconds": 4.6200000000000003e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.0700000000000003e-07,
+          "cumulative_seconds": 4.0700000000000003e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 560,
+          "function": "root",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.9300000000000002e-07,
+          "cumulative_seconds": 1.9300000000000002e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 569,
+          "function": "_tail",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.49e-07,
+          "cumulative_seconds": 1.49e-07
+        }
+      ]
+    },
+    {
+      "variant": "prototype",
+      "capture": true,
+      "entries": [
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 1,
+          "function": "_local_file_inventory",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 0.004759421000000001,
+          "cumulative_seconds": 0.020895466
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/file_stat_batch_witness.py",
+          "line": 37,
+          "function": "query",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.0028831720000000003,
+          "cumulative_seconds": 0.004602834
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.stat>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.002216982,
+          "cumulative_seconds": 0.002216982
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 71,
+          "function": "join",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.001227997,
+          "cumulative_seconds": 0.002178867
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 20,
+          "function": "signature_for",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.0012038840000000001,
+          "cumulative_seconds": 0.0015533900000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sum>",
+          "primitive_calls": 8,
+          "calls": 8,
+          "self_seconds": 0.0008426740000000001,
+          "cumulative_seconds": 0.002142915
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'append' of 'list' objects>",
+          "primitive_calls": 4012,
+          "calls": 4012,
+          "self_seconds": 0.000657785,
+          "cumulative_seconds": 0.000657785
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 71,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.000624572,
+          "cumulative_seconds": 0.000624572
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 95,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000502887,
+          "cumulative_seconds": 0.000726858
+        },
+        {
+          "file": "<frozen os>",
+          "line": 841,
+          "function": "fsencode",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.0005000390000000001,
+          "cumulative_seconds": 0.000900776
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 72,
+          "function": "<genexpr>",
+          "primitive_calls": 1006,
+          "calls": 1006,
+          "self_seconds": 0.000397982,
+          "cumulative_seconds": 0.002576849
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'get' of 'dict' objects>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.000349506,
+          "cumulative_seconds": 0.000349506
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "primitive_calls": 3006,
+          "calls": 3006,
+          "self_seconds": 0.000273026,
+          "cumulative_seconds": 0.000273026
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.sorted>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 0.000253405,
+          "cumulative_seconds": 0.0008779770000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.isinstance>",
+          "primitive_calls": 2007,
+          "calls": 2007,
+          "self_seconds": 0.000250207,
+          "cumulative_seconds": 0.000250207
+        },
+        {
+          "file": "<string>",
+          "line": 1,
+          "function": "<lambda>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000245924,
+          "cumulative_seconds": 0.000439772
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'setdefault' of 'dict' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00023848800000000002,
+          "cumulative_seconds": 0.00023848800000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'startswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00023134200000000002,
+          "cumulative_seconds": 0.00023134200000000002
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 41,
+          "function": "_get_sep",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.00023092700000000002,
+          "cumulative_seconds": 0.00037741
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.fspath>",
+          "primitive_calls": 2006,
+          "calls": 2006,
+          "self_seconds": 0.00022933600000000001,
+          "cumulative_seconds": 0.00022933600000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'endswith' of 'str' objects>",
+          "primitive_calls": 1002,
+          "calls": 1002,
+          "self_seconds": 0.000218764,
+          "cumulative_seconds": 0.000218764
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 104,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00020710900000000003,
+          "cumulative_seconds": 0.000291994
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 98,
+          "function": "<genexpr>",
+          "primitive_calls": 2008,
+          "calls": 2008,
+          "self_seconds": 0.000194916,
+          "cumulative_seconds": 0.000194916
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 94,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.000194897,
+          "cumulative_seconds": 0.000194897
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method __new__ of type object at 0x935960>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.000194307,
+          "cumulative_seconds": 0.000194307
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'encode' of 'str' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000191752,
+          "cumulative_seconds": 0.000191752
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/file_stat_batch_witness.py",
+          "line": 39,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 0.00018822400000000002,
+          "cumulative_seconds": 0.00018822400000000002
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 99,
+          "function": "<genexpr>",
+          "primitive_calls": 2000,
+          "calls": 2000,
+          "self_seconds": 0.00018357,
+          "cumulative_seconds": 0.00018357
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'pop' of 'list' objects>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00017027100000000002,
+          "cumulative_seconds": 0.00017027100000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.hasattr>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.000158913,
+          "cumulative_seconds": 0.000158913
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISREG>",
+          "primitive_calls": 1003,
+          "calls": 1003,
+          "self_seconds": 0.00015795700000000002,
+          "cumulative_seconds": 0.00015795700000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'count' of 'list' objects>",
+          "primitive_calls": 999,
+          "calls": 999,
+          "self_seconds": 0.00013696000000000002,
+          "cumulative_seconds": 0.00013696000000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'extend' of 'list' objects>",
+          "primitive_calls": 5,
+          "calls": 5,
+          "self_seconds": 0.000135183,
+          "cumulative_seconds": 0.002712032
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.any>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.7306e-05,
+          "cumulative_seconds": 0.00028553000000000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.6261e-05,
+          "cumulative_seconds": 0.000388255
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 1,
+          "function": "<genexpr>",
+          "primitive_calls": 1004,
+          "calls": 1004,
+          "self_seconds": 9.2644e-05,
+          "cumulative_seconds": 9.2644e-05
+        },
+        {
+          "file": "<diagnostic-fresh-stat-batch>",
+          "line": 92,
+          "function": "totals",
+          "primitive_calls": 2,
+          "calls": 2,
+          "self_seconds": 8.9367e-05,
+          "cumulative_seconds": 0.0022326710000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.2485000000000004e-05,
+          "cumulative_seconds": 4.2485000000000004e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method posix.scandir>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 2.1490000000000003e-05,
+          "cumulative_seconds": 2.1490000000000003e-05
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'update' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 8.105000000000001e-06,
+          "cumulative_seconds": 8.105000000000001e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 437,
+          "function": "__str__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.059000000000001e-06,
+          "cumulative_seconds": 2.5034e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 387,
+          "function": "_parse_path",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.801e-06,
+          "cumulative_seconds": 1.0834e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1164,
+          "function": "__new__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.271e-06,
+          "cumulative_seconds": 4.7300000000000005e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 358,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.344e-06,
+          "cumulative_seconds": 4.052e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 407,
+          "function": "_load_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 3.0210000000000004e-06,
+          "cumulative_seconds": 1.4267e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 1157,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.6640000000000002e-06,
+          "cumulative_seconds": 6.716000000000001e-06
+        },
+        {
+          "file": "<frozen posixpath>",
+          "line": 138,
+          "function": "splitroot",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.178e-06,
+          "cumulative_seconds": 2.667e-06
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 551,
+          "function": "drive",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 2.172e-06,
+          "cumulative_seconds": 1.6439e-05
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 429,
+          "function": "_format_parsed_parts",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.6620000000000001e-06,
+          "cumulative_seconds": 2.2310000000000003e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method sys.intern>",
+          "primitive_calls": 3,
+          "calls": 3,
+          "self_seconds": 1.449e-06,
+          "cumulative_seconds": 1.449e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method '__exit__' of 'posix.ScandirIterator' objects>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 1.2480000000000002e-06,
+          "cumulative_seconds": 1.2480000000000002e-06
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'split' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 9.170000000000001e-07,
+          "cumulative_seconds": 9.170000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _stat.S_ISDIR>",
+          "primitive_calls": 4,
+          "calls": 4,
+          "self_seconds": 7.73e-07,
+          "cumulative_seconds": 7.73e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _ctypes.byref>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 6.210000000000001e-07,
+          "cumulative_seconds": 6.210000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'join' of 'str' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 5.690000000000001e-07,
+          "cumulative_seconds": 5.690000000000001e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'values' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.49e-07,
+          "cumulative_seconds": 4.49e-07
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'items' of 'dict' objects>",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 4.11e-07,
+          "cumulative_seconds": 4.11e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 560,
+          "function": "root",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.65e-07,
+          "cumulative_seconds": 1.65e-07
+        },
+        {
+          "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "line": 569,
+          "function": "_tail",
+          "primitive_calls": 1,
+          "calls": 1,
+          "self_seconds": 1.4e-07,
+          "cumulative_seconds": 1.4e-07
+        }
+      ]
+    }
+  ],
+  "reused_driver_sha256": "eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b",
+  "native_library_sha256": "0e6aa11f2ac19f0be88cd7ffa8bf248895143897eda46a8b21e38f4d209a87dc",
+  "tree_semantics": "closed_vllm_transfer_metadata_not_adapter_payload",
+  "online_gil_wait_fraction_measured": false,
+  "real_pool": "/tmp/tc-d557-7bv/remote_artifacts",
+  "pool_inventory_output_sha256": "7b90e93dbbd6a81c56d0c4f97431eb820c9095ebbc39b105fcedb81cc08e3a9f",
+  "native_cuda_initialized": false,
+  "production_source_unchanged": true,
+  "formal_performance": false,
+  "independent_performance_repetitions": false,
+  "resources": {
+    "memory.peak": "621838336",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

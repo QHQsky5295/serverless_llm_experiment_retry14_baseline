@@ -1,0 +1,44 @@
+"""Keep an archived failed-source snapshot byte-identical; check its EOF explicitly."""
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+program = (RAW/'backup_program.py.snapshot').read_text()
+program = program.replace("RAW/'backup_identity.json'", "RAW/'backup_resume_identity.json'")
+old = "assert not git('diff','--cached','--name-only').strip()"
+assert program.count(old) == 2
+program = program.replace(old, "assert git('diff','--cached','--name-only').strip()", 1)
+old = "git('diff','--cached','--check')"
+assert program.count(old) == 1
+program = program.replace(old, '''snapshot = 'paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch/file_stat_batch_witness_attempt1.py.snapshot'
+check = subprocess.run(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+    'diff', '--cached', '--check'], cwd=ROOT, text=True, capture_output=True)
+assert check.returncode == 2 and not check.stderr
+assert check.stdout == snapshot + ':81: new blank line at EOF.\\n'
+assert p.digest(ROOT/snapshot) == p.digest(RAW/'file_stat_batch_witness_attempt1.py.snapshot')
+git('diff','--cached','--check','--','.', ':(exclude)'+snapshot)
+# This one archived source has an explicitly checked extra EOF line. All other
+# content passes the unchanged whitespace check. No data normalization/config edit.
+''')
+with (OUT/'backup_attempt1.json').open('x') as stream:
+    json.dump(dict(returncode=1, committed=False,
+        failure='Only the preserved failed-source snapshot has one additional blank line at EOF.',
+        resolution='Retain original archived bytes and SHA; verify that sole diagnostic '
+            'exactly, then require unchanged whitespace rules on every other path.',
+        no_production_change=True, no_performance_replay=True), stream, indent=2)
+with (RAW/'resume_backup_program.py.snapshot').open('x') as stream:
+    stream.write(program)
+for path in (Path(__file__), RAW/'resume_backup_program.py.snapshot'):
+    with (OUT/(path.name+'.snapshot' if path.suffix == '.py' else path.name)).open('xb') as stream:
+        stream.write(path.read_bytes())
+with (OUT/'final_manifest_v2.json').open('x') as stream:
+    json.dump(dict(files=[dict(path=str(path), sha256=p.digest(path))
+        for path in sorted(OUT.rglob('*')) if path.is_file()]), stream, indent=2)
+exec(compile(program, str(RAW/'resume_backup_program.py.snapshot'), 'exec'),
+    dict(__file__=str(RAW/'resume_backup_program.py.snapshot'), __name__='__main__'))

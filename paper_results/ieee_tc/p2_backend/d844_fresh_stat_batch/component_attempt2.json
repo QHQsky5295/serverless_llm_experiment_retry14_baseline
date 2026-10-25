@@ -1,0 +1,10 @@
+{
+  "returncode": 1,
+  "failure": "Resume entry omitted project sys.path before importing the retained generated program.",
+  "fix": "Restore explicit project import path in a new entry; no candidate, native library, or generated program changes.",
+  "performance_measurements": 0,
+  "tests_started": false,
+  "resource_peak_bytes": null,
+  "scope": "primelora-tc-aux-84400000000000000000000000000002.scope",
+  "resource_limitation": "Exited before end-of-scope resource summary; no peak/events inferred."
+}

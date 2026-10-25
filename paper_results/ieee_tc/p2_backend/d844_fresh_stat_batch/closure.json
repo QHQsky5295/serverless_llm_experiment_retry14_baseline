@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "decision": "rejected_component_no_gpu_replay",
+  "performance_adopted": false,
+  "production_changed": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D844_TRANSACTION_LOCAL_FRESH_STAT_BATCH_20261025.md",
+    "sha256": "a68fd34a734d8acd63661192a42f94ce075172bc5ed42c7fc58539899adc6b89"
+  },
+  "scopes": [
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000001.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000002.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000003.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    }
+  ],
+  "d843_delivery_scope_removed": true,
+  "component_checks": 17,
+  "protected_147_unchanged": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/delivery_closure/resolved.json",
+      "sha256": "edee96eddb8c858f39f2a878f10e3ea0bd04f4a5b0176a6f33e57c9fdccfbcfa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d844_20261025/component_result2.json",
+      "sha256": "a572a713c81ca54601a139a133a576b4a604b7808eda96888cf08af5bc2acfe0"
+    }
+  ],
+  "retained_performance_point": "D840 3B W2; D843 remains an observer diagnostic",
+  "next": "Reuse D843 saved frames to classify actual RPC consumers before selecting one new hypothesis; no new profiling or resurrection of D737.",
+  "disk_free_bytes": 162542133248
+}

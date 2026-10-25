@@ -1,0 +1,27 @@
+{
+  "templates": [
+    {
+      "template": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/context_program.py.snapshot",
+        "sha256": "e10d4ed4e41e3c43b186367823b2e93ce1e7b57cb2df410fa012b6c02a8ef973"
+      },
+      "generated": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/context_program.py.snapshot",
+        "sha256": "8df29960c0335033b6faac13617bc420b05613b89d967fab4b7112386387e7bd"
+      },
+      "changes": "Run/output identities only; context removes performance comparison and replaces candidate interpretation with diagnostic scope. All population, delivery, owner, settlement, native-load/null-GPU-reuse and resource checks retained."
+    },
+    {
+      "template": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/settlement_resume_program.py.snapshot",
+        "sha256": "623b4c441e65591ebaa78f146ee06983ec3e833fd13fdaa49417a6f80bbfc6a5"
+      },
+      "generated": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/settlement_resume_program.py.snapshot",
+        "sha256": "a5353f2767ed62e3894f5b9f6a1c5e7090857694f0b22263854a04529e118181"
+      },
+      "changes": "Run/output identities only; context removes performance comparison and replaces candidate interpretation with diagnostic scope. All population, delivery, owner, settlement, native-load/null-GPU-reuse and resource checks retained."
+    }
+  ],
+  "reused_null_load_rule": "D840 corrected analyzer, including explicit nulls and denominators; no new inference from missing times."
+}

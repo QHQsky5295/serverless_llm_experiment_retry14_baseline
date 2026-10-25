@@ -1,0 +1,8 @@
+{
+  "returncode": 1,
+  "committed": false,
+  "failure": "Only the preserved failed-source snapshot has one additional blank line at EOF.",
+  "resolution": "Retain original archived bytes and SHA; verify that sole diagnostic exactly, then require unchanged whitespace rules on every other path.",
+  "no_production_change": true,
+  "no_performance_replay": true
+}

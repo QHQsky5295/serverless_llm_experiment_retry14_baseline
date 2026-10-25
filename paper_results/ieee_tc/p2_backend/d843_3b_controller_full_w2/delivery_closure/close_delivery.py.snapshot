@@ -1,0 +1,116 @@
+"""Close D843 delivery/owner/settlement evidence with the retained D840 audits.
+
+CPU-only, append-only analysis. No performance replay or ranking comparison.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+
+templates = (
+    ('context_program.py.snapshot',
+     'e10d4ed4e41e3c43b186367823b2e93ce1e7b57cb2df410fa012b6c02a8ef973'),
+    ('settlement_resume_program.py.snapshot',
+     '623b4c441e65591ebaa78f146ee06983ec3e833fd13fdaa49417a6f80bbfc6a5'),
+)
+changes = []
+for name, digest in templates:
+    template = RAW.parent/'d840_20261025'/name
+    assert p.digest(template) == digest
+    source = template.read_text()
+    assert 'd840_3b_single_thread_decoder_full_w2' in source
+    source = source.replace('d840_3b_single_thread_decoder_full_w2',
+                            'd843_3b_controller_full_w2')
+    source = source.replace('d840_', 'd843_').replace('in D840', 'in D843')
+    if name == 'context_program.py.snapshot':
+        start = source.index("current=read(OUT/'completion/full4000.json')")
+        end = source.index('# Retain all 4000 requests', start)
+        source = source[:start] + (
+            '# D843 is an observer diagnostic, not a performance candidate.\n'
+            '# Do not reuse the prior candidate-versus-candidate comparison.\n'
+        ) + source[end:]
+        old = ('Retain this complete W2 observation and all earlier candidates. '
+            'The single-thread decoder candidate yields 3684/4000 joint SLO passes (92.10%), '
+            'still 116 below the fixed target. Physical GPU time is within the frozen budget, '
+            'but neither this fact nor component speed establishes a G1/G2 win. Keep all '
+            'measurements and independent numerical correctness unknown. Actual settlement '
+            'coverage remains a separate audit. No same-key retry, threshold change or '
+            'automatic expansion to W1/W0; inspect the complete stage and transfer evidence '
+            'before deciding the next candidate.')
+        assert source.count(old) == 1
+        source = source.replace(old,
+            'Retain this complete observer diagnostic without replacing the D840 performance '
+            'point. Diagnostic overhead is included; independent numerical correctness '
+            'remains unknown. Delivery and owner checks do not establish a G1/G2 win. '
+            'Settlement coverage is recorded separately by the reused corrected analyzer; '
+            'no new performance replay, threshold change or causal speed comparison.')
+    target = RAW/name
+    compile(source, str(target), 'exec')
+    with target.open('x') as stream:
+        stream.write(source)
+    changes.append(dict(template=ref(template), generated=ref(target),
+        changes='Run/output identities only; context removes performance comparison and '
+        'replaces candidate interpretation with diagnostic scope. All population, delivery, '
+        'owner, settlement, native-load/null-GPU-reuse and resource checks retained.'))
+save(RAW/'delivery_template_reuse.json', dict(templates=changes,
+    reused_null_load_rule='D840 corrected analyzer, including explicit nulls and denominators; '
+        'no new inference from missing times.'))
+
+for name, _ in templates:
+    with (RAW/(name+'.log')).open('x') as stream:
+        subprocess.run([sys.executable, '-B', str(RAW/name)], cwd=ROOT,
+            stdout=stream, stderr=subprocess.STDOUT, check=True)
+    print(json.dumps(dict(completed=name)), flush=True)
+
+target = OUT/'delivery_closure'
+target.mkdir(exist_ok=False)
+for name in ('close_delivery.py', 'context_program.py.snapshot',
+             'settlement_resume_program.py.snapshot', 'delivery_template_reuse.json'):
+    with (target/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+resources = p.cgroup_snapshot(group)
+assert all(value == 0 for value in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+save(target/'resolved.json', dict(passed=True, diagnostic_only=True,
+    formal_performance_result=False, ranking_eligible=False, n_correct=None,
+    new_gpu_replays=0, production_changed=False, identity=identity, resources=resources,
+    resolves=[ref(OUT/'completion/delivery_audit_status.json'),
+              ref(OUT/'completion/owner_publication_audit_status.json')],
+    evidence=[ref(OUT/'completion'/name) for name in (
+        'closed_outcome.json', 'delivery_applicability_and_reclamation.json',
+        'owner_publication_actual.json', 'decoder_actual.json', 'owner_anchor_actual.json')]
+        + [ref(OUT/'settlement_analysis/summary.json'), ref(OUT/'closure.json')],
+    limitation='Append-only completion of previously pending evidence. Independent numerical '
+        'adapter correctness remains unknown; frame diagnostic is not a ranking point.'))
+save(target/'manifest.json', dict(files=[ref(path) for path in sorted(target.iterdir())
+    if path.is_file()]))
+print(json.dumps(dict(passed=True, output=str(target), resources=resources)), flush=True)

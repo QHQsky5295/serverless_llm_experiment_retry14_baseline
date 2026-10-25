@@ -1,0 +1,81 @@
+"""D844 CPU component witness, not imported by serving code.
+
+Reuse D685's one-call native witness/AST-clone method. Only the inventory's
+second fresh-stat loop changes. Its original signature/envelope validation,
+first scan, settlement restat, lock, publication and outputs stay in Python.
+"""
+import ast
+from collections import namedtuple
+import ctypes
+import inspect
+import os
+import textwrap
+
+
+class _Record(ctypes.Structure):
+    _fields_ = [(name, ctypes.c_uint64) for name in ('device', 'inode', 'mode', 'nlink')] + [
+        (name, ctypes.c_int64) for name in (
+            'size', 'blocks', 'mtime_sec', 'mtime_nsec', 'ctime_sec', 'ctime_nsec')]
+
+
+_Stat = namedtuple('_Stat', 'st_dev st_ino st_mode st_nlink st_size st_blocks st_mtime_ns st_ctime_ns')
+
+
+def load_query(library):
+    # CDLL releases the GIL once for the whole fresh syscall batch. The caller's
+    # cooperative owner RLock remains held, as during the existing os.stat calls.
+    native = ctypes.CDLL(str(library.resolve(strict=True)))
+    size = native.ieee_file_stat_record_bytes
+    size.argtypes, size.restype = [], ctypes.c_size_t
+    if size() != ctypes.sizeof(_Record):
+        raise RuntimeError('native file-stat record ABI mismatch')
+    function = native.ieee_file_stat_batch
+    function.argtypes = [ctypes.POINTER(ctypes.c_char_p), ctypes.c_size_t,
+                         ctypes.POINTER(_Record), ctypes.POINTER(ctypes.c_size_t)]
+    function.restype = ctypes.c_int
+
+    def query(paths):
+        paths = list(paths)
+        if any(type(path) is not str or '\0' in path for path in paths):
+            raise ValueError('fresh file-stat batch requires normalized string paths without NUL')
+        encoded = [os.fsencode(path) for path in paths]
+        count = len(paths)
+        addresses = (ctypes.c_char_p * count)(*encoded)
+        output = (_Record * count)()
+        completed = ctypes.c_size_t()
+        status = function(addresses, count, output, ctypes.byref(completed))
+        if (completed.value > count or (status == 0 and completed.value != count)
+                or (status != 0 and completed.value >= count)):
+            raise RuntimeError('native file-stat batch returned inconsistent completion')
+        for i in range(completed.value):
+            value = output[i]
+            yield _Stat(value.device, value.inode, value.mode, value.nlink,
+                value.size, value.blocks, value.mtime_sec*1_000_000_000 + value.mtime_nsec,
+                value.ctime_sec*1_000_000_000 + value.ctime_nsec)
+        if status:
+            # Earlier signatures are validated before this error is delivered,
+            # retaining ordered failure semantics and never exporting a partial view.
+            raise OSError(status, os.strerror(status), paths[completed.value])
+    return query
+
+
+def inventory_witness(original, query):
+    source = textwrap.dedent(inspect.getsource(original))
+    tree = ast.parse(source)
+    expected = ast.parse('for path, key, signature in observations:\n'
+                         '    info = os.stat(path, follow_symlinks=False)\n').body[0]
+    loops = [node for node in tree.body[0].body if isinstance(node, ast.For)
+             and ast.dump(node.target) == ast.dump(expected.target)
+             and ast.dump(node.iter) == ast.dump(expected.iter)]
+    if len(loops) != 1 or ast.dump(loops[0].body[0]) != ast.dump(expected.body[0]):
+        raise RuntimeError('fresh-stat witness requires the exact existing second-pass boundary')
+    loop = loops[0]
+    loop.target = ast.parse('(path, key, signature), info', mode='eval').body
+    loop.iter = ast.parse('zip(observations, _batch_fresh_stats('
+                         'row[0] for row in observations), strict=True)', mode='eval').body
+    loop.body.pop(0)
+    ast.fix_missing_locations(tree)
+    namespace = {**original.__globals__, '_batch_fresh_stats': query}
+    exec(compile(tree, '<diagnostic-fresh-stat-batch>', 'exec'), namespace)
+    return namespace[original.__name__], ast.unparse(tree)
+

@@ -1,0 +1,6 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d605_20261017/compare_inventory.py",
+  "sha256": "eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b",
+  "generated_sha256": "1f7cdec3e1ac421f3091f78c3c9b434d08560cb181d9859327fb37a6fdd24f08",
+  "changes": "Current parent; native batch witness only at second stat; preserve D605 whole-inventory/fixture assertions and timing/cProfile loop; use closed D557 metadata tree; adapt fault injection/counting to the actual native boundary; add native field/error and existing extent/missing-source checks."
+}

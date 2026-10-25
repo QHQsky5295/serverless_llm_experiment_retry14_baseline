@@ -1,0 +1,941 @@
+{
+  "passed": true,
+  "kind": "d843_observed_delivery_and_required_reclamation_v1",
+  "client_attempt_states": {
+    "published": 505
+  },
+  "all_attempts_included": true,
+  "client_received_bytes": 1172100920,
+  "server_read_bytes": 1172100920,
+  "server_written_bytes": 1172100920,
+  "unchanged_legacy_audit_applicable": true,
+  "applicability": "Actual complete population contains only published attempts; no deferred-attempt acceptance was added.",
+  "file_cache_policy": "planned_only",
+  "replacement_policies": {
+    "request_lru_v1": 21
+  },
+  "required_reclamations": 21,
+  "required_released_bytes": 2965020672,
+  "cache_snapshot": {
+    "owner_id": "88b3d5cd97004737b150039edfcd7d94",
+    "plans": [],
+    "physical_resources_reserved": false,
+    "replacements": [
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "961a11b48cd14301a1464f02a1958818",
+          "b9dd18e7fe9c4bcea574adfaf707fff7"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "5cf92dbf66a643e0b3104c7ed29951e3",
+        "shortfall_bytes": 236855296,
+        "expected_usable_bytes": 250036224,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora",
+            "adapter_id": "code_lora",
+            "tier": "nvme",
+            "last_access_sequence": 318,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0012",
+            "adapter_id": "security_lora_0012",
+            "tier": "nvme",
+            "last_access_sequence": 915,
+            "usable_bytes": 44818432,
+            "content_sha256": "3bbf384ece1e391f7e0195118f2042b174ad95180aa1f19a15e8bfcb5b6f08c4"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0009",
+            "adapter_id": "ecommerce_lora_0009",
+            "tier": "nvme",
+            "last_access_sequence": 1153,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0007",
+            "adapter_id": "education_lora_0007",
+            "tier": "nvme",
+            "last_access_sequence": 1424,
+            "usable_bytes": 36429824,
+            "content_sha256": "25276e77c862165e693ad8e69315316c7694c53fc2108e9000dce34700c065f0"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora",
+            "adapter_id": "legal_lora",
+            "tier": "nvme",
+            "last_access_sequence": 1942,
+            "usable_bytes": 45867008,
+            "content_sha256": "67e1f8580b93dd9bfac69875ea394e474d48c7f746a254aebcff3aa68a2e9589"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora",
+            "adapter_id": "translate_lora",
+            "tier": "nvme",
+            "last_access_sequence": 2072,
+            "usable_bytes": 34332672,
+            "content_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f"
+          }
+        ],
+        "observed_released_bytes": 250036224
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "8461d97815b94c5099a1031427ad41b8",
+          "8978c54b64b0433eb5b9b91cbf4a4b34"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "84028c98610f49b58c09886bd210ceee",
+        "shortfall_bytes": 100241408,
+        "expected_usable_bytes": 105095168,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/gaming_lora_0010",
+            "adapter_id": "gaming_lora_0010",
+            "tier": "nvme",
+            "last_access_sequence": 2090,
+            "usable_bytes": 28041216,
+            "content_sha256": "b25837cdfe74cb94c002ebd72cf16a4ebfbcfa48e9dbeb3a659112970df4da7d"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/research_lora_0008",
+            "adapter_id": "research_lora_0008",
+            "tier": "nvme",
+            "last_access_sequence": 2319,
+            "usable_bytes": 40624128,
+            "content_sha256": "4700611f161ff956520066ea867cb7935865f69505275fd53d5a99c533787e6d"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0019",
+            "adapter_id": "education_lora_0019",
+            "tier": "nvme",
+            "last_access_sequence": 2365,
+            "usable_bytes": 36429824,
+            "content_sha256": "b83b36576fcf0279b5e83fe94da03ee4d40997fd2fd9145ae4c516d9555aa203"
+          }
+        ],
+        "observed_released_bytes": 105095168
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "ae4fd9c2b77d46bd936d7f69f91b1828",
+          "f3a14a500a21481ea529e3715ff9c365"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "82857cf9c7b6489da1350eac87fc03ba",
+        "shortfall_bytes": 26247168,
+        "expected_usable_bytes": 42721280,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora",
+            "adapter_id": "finance_lora",
+            "tier": "nvme",
+            "last_access_sequence": 2369,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          }
+        ],
+        "observed_released_bytes": 42721280
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "886b3e349bb84fbcb2628fa252e7cf85",
+          "c2fc097438024c23bb8f67585fc5b60b"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "78542b5fd8a741f5a875dd7252f7e15c",
+        "shortfall_bytes": 164249600,
+        "expected_usable_bytes": 188710912,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0015",
+            "adapter_id": "code_lora_0015",
+            "tier": "nvme",
+            "last_access_sequence": 2949,
+            "usable_bytes": 56352768,
+            "content_sha256": "806b2370edcdece469b3c7c25649ffb85062c87809f0b6fef0ba1fe29a3cc4c1"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0011",
+            "adapter_id": "writing_lora_0011",
+            "tier": "nvme",
+            "last_access_sequence": 3222,
+            "usable_bytes": 37478400,
+            "content_sha256": "fbe17e4b9db1e9d39722f7fabee0760661a3490550d0887dc996a7e9337be913"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0027",
+            "adapter_id": "code_lora_0027",
+            "tier": "nvme",
+            "last_access_sequence": 3430,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora",
+            "adapter_id": "medical_lora",
+            "tier": "nvme",
+            "last_access_sequence": 3581,
+            "usable_bytes": 38526976,
+            "content_sha256": "bad03b7f780a565109d091de7db10272baf7c7723988169556a6bf5a933bb7a2"
+          }
+        ],
+        "observed_released_bytes": 188710912
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "8dbb605777ac49ae85de78be292736c6",
+          "a215ab23b37e4bfbad8dd55031e5e0fc"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "fcdf45c82368435abaf71e75d196d000",
+        "shortfall_bytes": 194060288,
+        "expected_usable_bytes": 214384640,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/support_lora",
+            "adapter_id": "support_lora",
+            "tier": "nvme",
+            "last_access_sequence": 3597,
+            "usable_bytes": 30138368,
+            "content_sha256": "4ae2ba789ab6a60cbbd28821ea599347007df2dbb5530e83fa7c7394a6858011"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0021",
+            "adapter_id": "ecommerce_lora_0021",
+            "tier": "nvme",
+            "last_access_sequence": 3644,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0033",
+            "adapter_id": "ecommerce_lora_0033",
+            "tier": "nvme",
+            "last_access_sequence": 3726,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0031",
+            "adapter_id": "education_lora_0031",
+            "tier": "nvme",
+            "last_access_sequence": 3831,
+            "usable_bytes": 36429824,
+            "content_sha256": "b83b36576fcf0279b5e83fe94da03ee4d40997fd2fd9145ae4c516d9555aa203"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora_0013",
+            "adapter_id": "finance_lora_0013",
+            "tier": "nvme",
+            "last_access_sequence": 4060,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/research_lora_0020",
+            "adapter_id": "research_lora_0020",
+            "tier": "nvme",
+            "last_access_sequence": 4513,
+            "usable_bytes": 40624128,
+            "content_sha256": "4700611f161ff956520066ea867cb7935865f69505275fd53d5a99c533787e6d"
+          }
+        ],
+        "observed_released_bytes": 214384640
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "171d51f97c414b539add5b55ceb0cbfc",
+          "fe7aaecee8b3478e8204de2608ba0c39"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "ed201d90bc394abda46521190cc79c3b",
+        "shortfall_bytes": 177045504,
+        "expected_usable_bytes": 185294848,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora_0017",
+            "adapter_id": "legal_lora_0017",
+            "tier": "nvme",
+            "last_access_sequence": 4688,
+            "usable_bytes": 45867008,
+            "content_sha256": "1ba88f0dc390297dba095a72acae1baa82ed139654852650b900277af85180d8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora_0025",
+            "adapter_id": "finance_lora_0025",
+            "tier": "nvme",
+            "last_access_sequence": 4810,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/gaming_lora_0034",
+            "adapter_id": "gaming_lora_0034",
+            "tier": "nvme",
+            "last_access_sequence": 4875,
+            "usable_bytes": 28041216,
+            "content_sha256": "cdb45fbda4d784d838296073d1053a813d77d98538e9d0ba3898feb2ef99fc25"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0043",
+            "adapter_id": "education_lora_0043",
+            "tier": "nvme",
+            "last_access_sequence": 4977,
+            "usable_bytes": 36429824,
+            "content_sha256": "b83b36576fcf0279b5e83fe94da03ee4d40997fd2fd9145ae4c516d9555aa203"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0045",
+            "adapter_id": "ecommerce_lora_0045",
+            "tier": "nvme",
+            "last_access_sequence": 5113,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          }
+        ],
+        "observed_released_bytes": 185294848
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "565e44d986f5496b8c0fd5d2ac5703a2",
+          "fbd5972a5346407aa6297dd4b907a3be"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "1cfc8407d3f0430ab082f6d63401f334",
+        "shortfall_bytes": 21991424,
+        "expected_usable_bytes": 37478400,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0023",
+            "adapter_id": "writing_lora_0023",
+            "tier": "nvme",
+            "last_access_sequence": 5176,
+            "usable_bytes": 37478400,
+            "content_sha256": "b5484c997549a3d789dfd106f9f083bafd8603fa10907e212d29a0b0eeec2b70"
+          }
+        ],
+        "observed_released_bytes": 37478400
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "1e454328083e4d3b984618555b8c8baf",
+          "fb604dd1ef644abea67812ee7b779a5f"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "49f5c9dd7d104b18b72ba8c24bd2f261",
+        "shortfall_bytes": 132898816,
+        "expected_usable_bytes": 159350784,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0039",
+            "adapter_id": "code_lora_0039",
+            "tier": "nvme",
+            "last_access_sequence": 5196,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/support_lora_0016",
+            "adapter_id": "support_lora_0016",
+            "tier": "nvme",
+            "last_access_sequence": 5313,
+            "usable_bytes": 30138368,
+            "content_sha256": "4ae2ba789ab6a60cbbd28821ea599347007df2dbb5530e83fa7c7394a6858011"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora_0014",
+            "adapter_id": "medical_lora_0014",
+            "tier": "nvme",
+            "last_access_sequence": 5316,
+            "usable_bytes": 38526976,
+            "content_sha256": "bad03b7f780a565109d091de7db10272baf7c7723988169556a6bf5a933bb7a2"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora_0018",
+            "adapter_id": "translate_lora_0018",
+            "tier": "nvme",
+            "last_access_sequence": 5527,
+            "usable_bytes": 34332672,
+            "content_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f"
+          }
+        ],
+        "observed_released_bytes": 159350784
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "3e2f277839dd428da1994fa505b8727e",
+          "9ba10c546db64824969698dd32fb07d3"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "dc5ed47d8cef40789cc35c9e51905ba7",
+        "shortfall_bytes": 66428928,
+        "expected_usable_bytes": 82296832,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0035",
+            "adapter_id": "writing_lora_0035",
+            "tier": "nvme",
+            "last_access_sequence": 5830,
+            "usable_bytes": 37478400,
+            "content_sha256": "b5484c997549a3d789dfd106f9f083bafd8603fa10907e212d29a0b0eeec2b70"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0024",
+            "adapter_id": "security_lora_0024",
+            "tier": "nvme",
+            "last_access_sequence": 6011,
+            "usable_bytes": 44818432,
+            "content_sha256": "3bbf384ece1e391f7e0195118f2042b174ad95180aa1f19a15e8bfcb5b6f08c4"
+          }
+        ],
+        "observed_released_bytes": 82296832
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "a38062831c6d428dad6d4ed7afff2a96",
+          "a6541f9329b4434c9d2b1eda848701a4"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "57cc96f2929f47f9b4d16a75883af3e3",
+        "shortfall_bytes": 176504832,
+        "expected_usable_bytes": 193683456,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora_0037",
+            "adapter_id": "finance_lora_0037",
+            "tier": "nvme",
+            "last_access_sequence": 6065,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora_0030",
+            "adapter_id": "translate_lora_0030",
+            "tier": "nvme",
+            "last_access_sequence": 6281,
+            "usable_bytes": 34332672,
+            "content_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora_0029",
+            "adapter_id": "legal_lora_0029",
+            "tier": "nvme",
+            "last_access_sequence": 6375,
+            "usable_bytes": 45867008,
+            "content_sha256": "67e1f8580b93dd9bfac69875ea394e474d48c7f746a254aebcff3aa68a2e9589"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/support_lora_0028",
+            "adapter_id": "support_lora_0028",
+            "tier": "nvme",
+            "last_access_sequence": 6529,
+            "usable_bytes": 30138368,
+            "content_sha256": "4ae2ba789ab6a60cbbd28821ea599347007df2dbb5530e83fa7c7394a6858011"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/research_lora_0032",
+            "adapter_id": "research_lora_0032",
+            "tier": "nvme",
+            "last_access_sequence": 6661,
+            "usable_bytes": 40624128,
+            "content_sha256": "4700611f161ff956520066ea867cb7935865f69505275fd53d5a99c533787e6d"
+          }
+        ],
+        "observed_released_bytes": 193683456
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "372724fe4b9845509fa96cc34ae6148d",
+          "7b7c111225ec4bd9ae9f064acad805d6"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "585790d159b64d96a2be0bf2233cea0c",
+        "shortfall_bytes": 257966080,
+        "expected_usable_bytes": 277028864,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0036",
+            "adapter_id": "security_lora_0036",
+            "tier": "nvme",
+            "last_access_sequence": 6922,
+            "usable_bytes": 44818432,
+            "content_sha256": "3bbf384ece1e391f7e0195118f2042b174ad95180aa1f19a15e8bfcb5b6f08c4"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0057",
+            "adapter_id": "ecommerce_lora_0057",
+            "tier": "nvme",
+            "last_access_sequence": 7026,
+            "usable_bytes": 32235520,
+            "content_sha256": "b8ead7951a26ac0c1c5fbfc56a86e64b541fcfe198cbaecee5561c6f61fe4376"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora_0026",
+            "adapter_id": "medical_lora_0026",
+            "tier": "nvme",
+            "last_access_sequence": 7186,
+            "usable_bytes": 38526976,
+            "content_sha256": "699bf001f3f1dd4e3512a0647254b1a2fc4485ee8d7427b01c15d543bac51aff"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0055",
+            "adapter_id": "education_lora_0055",
+            "tier": "nvme",
+            "last_access_sequence": 7230,
+            "usable_bytes": 36429824,
+            "content_sha256": "b83b36576fcf0279b5e83fe94da03ee4d40997fd2fd9145ae4c516d9555aa203"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/gaming_lora_0046",
+            "adapter_id": "gaming_lora_0046",
+            "tier": "nvme",
+            "last_access_sequence": 7243,
+            "usable_bytes": 28041216,
+            "content_sha256": "cdb45fbda4d784d838296073d1053a813d77d98538e9d0ba3898feb2ef99fc25"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/research_lora_0044",
+            "adapter_id": "research_lora_0044",
+            "tier": "nvme",
+            "last_access_sequence": 7402,
+            "usable_bytes": 40624128,
+            "content_sha256": "4700611f161ff956520066ea867cb7935865f69505275fd53d5a99c533787e6d"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0051",
+            "adapter_id": "code_lora_0051",
+            "tier": "nvme",
+            "last_access_sequence": 7662,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          }
+        ],
+        "observed_released_bytes": 277028864
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "4f2afadd906340bdbea8790a99399ec1",
+          "b43b03f3a3894882aa5717e524c34279"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "9478472de1694b2ab13cb409281709c5",
+        "shortfall_bytes": 95461376,
+        "expected_usable_bytes": 101949440,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/support_lora_0040",
+            "adapter_id": "support_lora_0040",
+            "tier": "nvme",
+            "last_access_sequence": 7675,
+            "usable_bytes": 30138368,
+            "content_sha256": "4ae2ba789ab6a60cbbd28821ea599347007df2dbb5530e83fa7c7394a6858011"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora_0042",
+            "adapter_id": "translate_lora_0042",
+            "tier": "nvme",
+            "last_access_sequence": 8304,
+            "usable_bytes": 34332672,
+            "content_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0047",
+            "adapter_id": "writing_lora_0047",
+            "tier": "nvme",
+            "last_access_sequence": 8497,
+            "usable_bytes": 37478400,
+            "content_sha256": "fbe17e4b9db1e9d39722f7fabee0760661a3490550d0887dc996a7e9337be913"
+          }
+        ],
+        "observed_released_bytes": 101949440
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "3f6ebaaae55948d9a0dbdfff656c4b91",
+          "7529bf5df83a48f3bf8da1a29cac52c8"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "db04f9c0aa3a496bafb7178c0b905614",
+        "shortfall_bytes": 56270848,
+        "expected_usable_bytes": 87539712,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0048",
+            "adapter_id": "security_lora_0048",
+            "tier": "nvme",
+            "last_access_sequence": 8632,
+            "usable_bytes": 44818432,
+            "content_sha256": "164d16fe7d59549c31ee78095b1dea6d73cc7d1d2275567f202b0b0fcd4d05db"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora_0049",
+            "adapter_id": "finance_lora_0049",
+            "tier": "nvme",
+            "last_access_sequence": 8983,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          }
+        ],
+        "observed_released_bytes": 87539712
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "04a99630f9df452e8d25b5525ca29ccb",
+          "94a594492dd24c67995907ad59c6a440"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "8a3de722a24e4f91bce2426c60e9787d",
+        "shortfall_bytes": 157065216,
+        "expected_usable_bytes": 157253632,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora_0038",
+            "adapter_id": "medical_lora_0038",
+            "tier": "nvme",
+            "last_access_sequence": 9214,
+            "usable_bytes": 38526976,
+            "content_sha256": "bad03b7f780a565109d091de7db10272baf7c7723988169556a6bf5a933bb7a2"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora_0041",
+            "adapter_id": "legal_lora_0041",
+            "tier": "nvme",
+            "last_access_sequence": 9369,
+            "usable_bytes": 45867008,
+            "content_sha256": "1ba88f0dc390297dba095a72acae1baa82ed139654852650b900277af85180d8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/gaming_lora_0058",
+            "adapter_id": "gaming_lora_0058",
+            "tier": "nvme",
+            "last_access_sequence": 9381,
+            "usable_bytes": 28041216,
+            "content_sha256": "cdb45fbda4d784d838296073d1053a813d77d98538e9d0ba3898feb2ef99fc25"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0060",
+            "adapter_id": "security_lora_0060",
+            "tier": "nvme",
+            "last_access_sequence": 9489,
+            "usable_bytes": 44818432,
+            "content_sha256": "164d16fe7d59549c31ee78095b1dea6d73cc7d1d2275567f202b0b0fcd4d05db"
+          }
+        ],
+        "observed_released_bytes": 157253632
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "6c344f102ec94395b28d4919a72164d6",
+          "df9db66c2c874fcbb7ea20e01b0bf9bd"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "50f3f9d66a9f439fa8e00a2eefe5628d",
+        "shortfall_bytes": 232218624,
+        "expected_usable_bytes": 271785984,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0063",
+            "adapter_id": "code_lora_0063",
+            "tier": "nvme",
+            "last_access_sequence": 9555,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora_0050",
+            "adapter_id": "medical_lora_0050",
+            "tier": "nvme",
+            "last_access_sequence": 9663,
+            "usable_bytes": 38526976,
+            "content_sha256": "bad03b7f780a565109d091de7db10272baf7c7723988169556a6bf5a933bb7a2"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0069",
+            "adapter_id": "ecommerce_lora_0069",
+            "tier": "nvme",
+            "last_access_sequence": 10009,
+            "usable_bytes": 32235520,
+            "content_sha256": "b8ead7951a26ac0c1c5fbfc56a86e64b541fcfe198cbaecee5561c6f61fe4376"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora_0054",
+            "adapter_id": "translate_lora_0054",
+            "tier": "nvme",
+            "last_access_sequence": 10106,
+            "usable_bytes": 34332672,
+            "content_sha256": "be5abe6b96990559f9e16f430fa89a68cb8caad6ffe2089e1cb007bfc78b3c8b"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0081",
+            "adapter_id": "ecommerce_lora_0081",
+            "tier": "nvme",
+            "last_access_sequence": 10122,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0059",
+            "adapter_id": "writing_lora_0059",
+            "tier": "nvme",
+            "last_access_sequence": 10158,
+            "usable_bytes": 37478400,
+            "content_sha256": "fbe17e4b9db1e9d39722f7fabee0760661a3490550d0887dc996a7e9337be913"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/research_lora_0056",
+            "adapter_id": "research_lora_0056",
+            "tier": "nvme",
+            "last_access_sequence": 10219,
+            "usable_bytes": 40624128,
+            "content_sha256": "4700611f161ff956520066ea867cb7935865f69505275fd53d5a99c533787e6d"
+          }
+        ],
+        "observed_released_bytes": 271785984
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "5ef501dd28614168b612b0083d0bd9d0",
+          "a82449ce0d3447e985e30046fbea4044"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "57d6d7714edc44c8903054fe94c990d9",
+        "shortfall_bytes": 284704768,
+        "expected_usable_bytes": 334430208,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/support_lora_0052",
+            "adapter_id": "support_lora_0052",
+            "tier": "nvme",
+            "last_access_sequence": 10366,
+            "usable_bytes": 30138368,
+            "content_sha256": "4ae2ba789ab6a60cbbd28821ea599347007df2dbb5530e83fa7c7394a6858011"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora_0053",
+            "adapter_id": "legal_lora_0053",
+            "tier": "nvme",
+            "last_access_sequence": 10513,
+            "usable_bytes": 45867008,
+            "content_sha256": "67e1f8580b93dd9bfac69875ea394e474d48c7f746a254aebcff3aa68a2e9589"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0075",
+            "adapter_id": "code_lora_0075",
+            "tier": "nvme",
+            "last_access_sequence": 10599,
+            "usable_bytes": 56352768,
+            "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0067",
+            "adapter_id": "education_lora_0067",
+            "tier": "nvme",
+            "last_access_sequence": 10612,
+            "usable_bytes": 36429824,
+            "content_sha256": "25276e77c862165e693ad8e69315316c7694c53fc2108e9000dce34700c065f0"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/education_lora_0079",
+            "adapter_id": "education_lora_0079",
+            "tier": "nvme",
+            "last_access_sequence": 10785,
+            "usable_bytes": 36429824,
+            "content_sha256": "b83b36576fcf0279b5e83fe94da03ee4d40997fd2fd9145ae4c516d9555aa203"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0072",
+            "adapter_id": "security_lora_0072",
+            "tier": "nvme",
+            "last_access_sequence": 10863,
+            "usable_bytes": 44818432,
+            "content_sha256": "164d16fe7d59549c31ee78095b1dea6d73cc7d1d2275567f202b0b0fcd4d05db"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/gaming_lora_0070",
+            "adapter_id": "gaming_lora_0070",
+            "tier": "nvme",
+            "last_access_sequence": 10979,
+            "usable_bytes": 28041216,
+            "content_sha256": "b25837cdfe74cb94c002ebd72cf16a4ebfbcfa48e9dbeb3a659112970df4da7d"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/code_lora_0087",
+            "adapter_id": "code_lora_0087",
+            "tier": "nvme",
+            "last_access_sequence": 11225,
+            "usable_bytes": 56352768,
+            "content_sha256": "806b2370edcdece469b3c7c25649ffb85062c87809f0b6fef0ba1fe29a3cc4c1"
+          }
+        ],
+        "observed_released_bytes": 334430208
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "279d95030c5a40a7b18563fbcbd38c9b",
+          "a9adf1f7c0d64e6b8f0cf218fe8d99f5"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "29febea53a864553b300e0a54f5303af",
+        "shortfall_bytes": 26451968,
+        "expected_usable_bytes": 34332672,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/translate_lora_0066",
+            "adapter_id": "translate_lora_0066",
+            "tier": "nvme",
+            "last_access_sequence": 11321,
+            "usable_bytes": 34332672,
+            "content_sha256": "7547603281d5f9ed862b2d26aedaa5e69da99f9f33417d5e8be2e0e97bbc820f"
+          }
+        ],
+        "observed_released_bytes": 34332672
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "3bf8018f72ab429d822c1abc694c3580",
+          "fdf86f2a01864c068ebafe5a1ee971f8"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "1aa7796346024c6f9c362658313ad514",
+        "shortfall_bytes": 15007744,
+        "expected_usable_bytes": 37478400,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/writing_lora_0071",
+            "adapter_id": "writing_lora_0071",
+            "tier": "nvme",
+            "last_access_sequence": 11448,
+            "usable_bytes": 37478400,
+            "content_sha256": "fbe17e4b9db1e9d39722f7fabee0760661a3490550d0887dc996a7e9337be913"
+          }
+        ],
+        "observed_released_bytes": 37478400
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "64d9b8519bc349a09d9241f72eb540b4",
+          "935af963decb4592908124bfa399a0eb"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "cc7ce2e9787340a1b7273aad8fb5cda2",
+        "shortfall_bytes": 17637376,
+        "expected_usable_bytes": 44818432,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/security_lora_0084",
+            "adapter_id": "security_lora_0084",
+            "tier": "nvme",
+            "last_access_sequence": 11489,
+            "usable_bytes": 44818432,
+            "content_sha256": "3bbf384ece1e391f7e0195118f2042b174ad95180aa1f19a15e8bfcb5b6f08c4"
+          }
+        ],
+        "observed_released_bytes": 44818432
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "693d3d026a1748feabaf9d3811f76f90",
+          "e458b624c74747da97151ae2f64ace53"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "2cfc5821c8a448d5a1b600af73421c1a",
+        "shortfall_bytes": 93782016,
+        "expected_usable_bytes": 120823808,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/legal_lora_0065",
+            "adapter_id": "legal_lora_0065",
+            "tier": "nvme",
+            "last_access_sequence": 11524,
+            "usable_bytes": 45867008,
+            "content_sha256": "67e1f8580b93dd9bfac69875ea394e474d48c7f746a254aebcff3aa68a2e9589"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/finance_lora_0061",
+            "adapter_id": "finance_lora_0061",
+            "tier": "nvme",
+            "last_access_sequence": 11729,
+            "usable_bytes": 42721280,
+            "content_sha256": "07f5e8575cf08fc5b0e78fde16b9c239b6c6406f3a1ca89c013d8aa5e481bba7"
+          },
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/ecommerce_lora_0093",
+            "adapter_id": "ecommerce_lora_0093",
+            "tier": "nvme",
+            "last_access_sequence": 11976,
+            "usable_bytes": 32235520,
+            "content_sha256": "c351d68097818755fbc6bd026708c565a6025877d5b52174a19210d07fa03670"
+          }
+        ],
+        "observed_released_bytes": 120823808
+      },
+      {
+        "policy": "request_lru_v1",
+        "required_intent_ids": [
+          "07da49d92318472e8fb917825c79b967",
+          "aaba906edad44412bfd6b701c4a11140"
+        ],
+        "state": "incoming_allocated",
+        "transfer_id": "e5b4213af8e547e693c583ebaad0d165",
+        "shortfall_bytes": 29413376,
+        "expected_usable_bytes": 38526976,
+        "victims": [
+          {
+            "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_nvme_w2/tc_ieee_full/medical_lora_0062",
+            "adapter_id": "medical_lora_0062",
+            "tier": "nvme",
+            "last_access_sequence": 12044,
+            "usable_bytes": 38526976,
+            "content_sha256": "699bf001f3f1dd4e3512a0647254b1a2fc4485ee8d7427b01c15d543bac51aff"
+          }
+        ],
+        "observed_released_bytes": 38526976
+      }
+    ],
+    "file_cache_policy": "planned_only",
+    "movement_interests": []
+  },
+  "limitation": "Receipts prove observed reclaim bytes and live required intent; independent victim-safety interleavings are covered by D816 tests, not reconstructed from these receipts.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "6d800a5fdb5952b3a48c822c6c26d16e3f12e1a9250f9567dbd4360c59d3690b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/remote_client_projection.json",
+      "sha256": "a98d2fecacdce0a4245f164d8c6fe5118ec9cc8a653cba55f8de7d9b21d6de73"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/remote_transfers.jsonl",
+      "sha256": "fbe64af9552f88be7cbeef1759bda07b7abdd9eb5630de48d7e627cfc53eb5dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d843_20261025/context_program.py.snapshot",
+      "sha256": "8df29960c0335033b6faac13617bc420b05613b89d967fab4b7112386387e7bd"
+    }
+  ]
+}
