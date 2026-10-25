@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "72b08a82ce9f8898dd97a1535d5a9466e50b4be4",
+  "backup_ref": "refs/heads/backup/d858-single-lease-fullw2-20261026",
+  "tmux": "tc-d858-3b-single-lease-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-85800000000000000000000000000002.scope",
+    "invocation_id": "eeaa09ca90064ac7859280d0ccf81ee9",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85800000000000000000000000000002.scope",
+    "inode": 32626708
+  },
+  "qualification_sha256": "cd5b6f2758b610323981292e5a16dd22596c7c7641cbd14bc0c517780016f4f5"
+}

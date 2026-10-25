@@ -1,0 +1,126 @@
+W1026 02:58:53.987000 1615793 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+{
+  "kind": "native_common_slo_reanalysis_d714_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d858_20261026/3b_max3_full_w2",
+  "reuse_level": "R1",
+  "passed": true,
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3815,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3921,
+    "joint_pass": 3746
+  },
+  "joint_slo_fraction": 0.9365,
+  "ttft_marginal_fraction": 0.95375,
+  "tpot_conditional_fraction": 0.98025,
+  "observed_latency_feasible": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_w0": false,
+  "full_replay": true,
+  "workload": "W2",
+  "replay_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+  },
+  "development_only": true,
+  "confidence_interval": null,
+  "physical_gpu_seconds": 11311.401340661105,
+  "gpu_seconds_per_offered_request": 2.827850335165276,
+  "metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 733.2491088910028,
+      "p50_type1": 484.47244707494974,
+      "p95_type1": 2142.8404632024467
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 15.804873019849058,
+      "p50_type1": 13.881097754670513,
+      "p95_type1": 27.44982013892796
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 2519.780104058329,
+      "p50_type1": 2171.7286515049636,
+      "p95_type1": 5297.064442653209
+    }
+  },
+  "max_recompute_error_ms": {
+    "ttft_ms": 0.0,
+    "tpot_ms": 0.0,
+    "e2e_ms": 0.0
+  },
+  "phases_500": [
+    {
+      "n": 500,
+      "ttft_pass": 496,
+      "tpot_eligible": 500,
+      "tpot_pass": 482,
+      "joint_pass": 479
+    },
+    {
+      "n": 500,
+      "ttft_pass": 487,
+      "tpot_eligible": 500,
+      "tpot_pass": 487,
+      "joint_pass": 475
+    },
+    {
+      "n": 500,
+      "ttft_pass": 489,
+      "tpot_eligible": 500,
+      "tpot_pass": 488,
+      "joint_pass": 479
+    },
+    {
+      "n": 500,
+      "ttft_pass": 481,
+      "tpot_eligible": 500,
+      "tpot_pass": 487,
+      "joint_pass": 471
+    },
+    {
+      "n": 500,
+      "ttft_pass": 474,
+      "tpot_eligible": 500,
+      "tpot_pass": 495,
+      "joint_pass": 470
+    },
+    {
+      "n": 500,
+      "ttft_pass": 464,
+      "tpot_eligible": 500,
+      "tpot_pass": 492,
+      "joint_pass": 457
+    },
+    {
+      "n": 500,
+      "ttft_pass": 474,
+      "tpot_eligible": 500,
+      "tpot_pass": 497,
+      "joint_pass": 471
+    },
+    {
+      "n": 500,
+      "ttft_pass": 450,
+      "tpot_eligible": 500,
+      "tpot_pass": 493,
+      "joint_pass": 444
+    }
+  ],
+  "legacy_runtime_ttft_only_fraction": 0.99925,
+  "legacy_is_common_joint_slo": false,
+  "common_slo_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+  "note": "No simulation, rerun, threshold change or inference of independent numerical correctness."
+}

@@ -1,0 +1,17 @@
+Offline analysis launch attempt 1; no GPU replay was launched.
+Unit: primelora-tc-aux-d858-completion-20261026-01.scope
+Exit code: 1
+The scope name did not conform to the existing UUID-only ownership protocol.
+Failure occurred at complete.py line 37, before completion_identity.json or any
+analysis output was written. The scope was subsequently observed inactive.
+
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d858_20261026/complete.py", line 37, in <module>
+    own = p.scope_identity(p.cg_path().name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 786, in scope_identity
+    raise ValueError('not an owned TC service/test UUID scope')
+ValueError: not an owned TC service/test UUID scope
+
+Resolution: use the established UUID auxiliary-scope naming convention; keep the
+analysis program, metric definitions, workload and GPU result unchanged.

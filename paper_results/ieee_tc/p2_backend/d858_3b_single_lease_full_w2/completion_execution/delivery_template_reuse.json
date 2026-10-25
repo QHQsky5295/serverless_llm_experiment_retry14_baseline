@@ -1,0 +1,26 @@
+{
+  "templates": [
+    {
+      "template": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/context_program.py.snapshot",
+        "sha256": "bf25d6ae61ddf7acb9bf11249ad2a5b0708d9397019c31813f22b0c45c9afab5"
+      },
+      "generated": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d858_20261026/context_program.py.snapshot",
+        "sha256": "2dd0da9bc44712ce8bb4c2894154933c8c51dea9bd5f02cf0ed7bbdecdfbd0ff"
+      },
+      "changes": "Campaign/output identity, D846 parent and data-derived result wording only; existing population, delivery, owner, settlement and resource assertions retained."
+    },
+    {
+      "template": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/settlement_resume_program.py.snapshot",
+        "sha256": "4a2e34b761df813c55f6c04f2429b38a014af10c297af4742153ee0a33e4f389"
+      },
+      "generated": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d858_20261026/settlement_resume_program.py.snapshot",
+        "sha256": "cda80446288704417f1be9dc0d6b4a89b8af414ab60d323ca0d011e8508aacc2"
+      },
+      "changes": "Campaign/output identity, D846 parent and data-derived result wording only; existing population, delivery, owner, settlement and resource assertions retained."
+    }
+  ]
+}
