@@ -87,52 +87,6 @@ class SharedPressureIntegration(unittest.IsolatedAsyncioTestCase):
         await copy
         self.assertEqual(ledger.snapshot()['active_transfers'], 0)
 
-    async def test_duplicate_attach_waits_for_initial_shared_publication(self):
-        engine, _ = self.engine()
-        entered, release = asyncio.Event(), asyncio.Event()
-        original = self.domain._publish_state
-
-        async def held_publication(*args, **kwargs):
-            entered.set()
-            await release.wait()
-            return await original(*args, **kwargs)
-
-        self.domain._publish_state = held_publication
-        first = asyncio.create_task(self.domain.attach(engine))
-        await self.wait(entered)
-        duplicate = asyncio.create_task(self.domain.attach(engine))
-        try:
-            await asyncio.sleep(0)
-            member = self.domain.members[id(engine)]
-            self.assertEqual(member['state'], 'attached')
-            self.assertNotIn('attach_publication', member)
-            self.assertFalse(duplicate.done())
-        finally:
-            release.set()
-            await asyncio.gather(first, duplicate)
-            self.domain._publish_state = original
-        self.assertEqual(first.result(), duplicate.result())
-        self.assertIn('attach_publication', self.domain.members[id(engine)])
-        self.assertEqual([c['operation'] for c in self.commands], ['attach_shared_domain'])
-
-    async def test_completed_shared_binding_reuses_without_waiting_for_transition(self):
-        engine, _ = self.engine()
-        owner = await self.domain.attach(engine)
-        await self.domain.lock.acquire()
-        reuse = asyncio.create_task(self.domain.attach(engine))
-        try:
-            await asyncio.sleep(0)
-            self.assertTrue(reuse.done())
-            self.assertEqual(reuse.result(), owner)
-        finally:
-            self.domain.lock.release()
-            await reuse
-        self.assertEqual([c['operation'] for c in self.commands], ['attach_shared_domain'])
-        await self.domain.retire(engine)
-        await self.domain.close()
-        with self.assertRaisesRegex(RuntimeError, 'closed'):
-            await self.domain.attach(engine)
-
     async def test_retirement_joins_old_copy_and_excludes_new_copy(self):
         first, left = self.engine()
         second, right = self.engine()

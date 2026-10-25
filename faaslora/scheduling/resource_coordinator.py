@@ -220,8 +220,6 @@ class SharedFileTransferDomain:
         self.transport = transport
         self._publisher = None
         self._closed = False
-        self.reused_attachments = 0
-        self.reused_attachments_during_transition = 0
         if transport == 'same_host_memfd_flock_v1':
             from .shared_transfer_state import SharedTransferStateOwner
             self._publisher = SharedTransferStateOwner(file_owner_id)
@@ -283,16 +281,6 @@ class SharedFileTransferDomain:
     async def attach(self, engine):
         if not callable(getattr(engine, 'ieee_transfer_event', None)):
             raise ValueError('shared pressure subscription requires an initialized native engine')
-        member = self.members.get(id(engine))
-        if (not self._closed and member is not None and member['state'] == 'attached'
-                and (self._publisher is None or 'attach_publication' in member)):
-            # Same event loop, no suspension: reuse only a completed binding.
-            # This is not an admission lease. run() checks the target again
-            # under the start/retirement lock; real transitions still serialize.
-            # The shared transport is not fully attached until publication joins.
-            self.reused_attachments += 1
-            self.reused_attachments_during_transition += int(self.lock.locked())
-            return member['owner_id']
         async with self.lock:
             if self._closed:
                 raise RuntimeError('shared pressure domain is closed')
@@ -335,8 +323,6 @@ class SharedFileTransferDomain:
     def snapshot(self):
         return dict(file_owner_id=self.owner_id, clock_id=self.clock_id,
             observation_transport=self.transport, closed=self._closed,
-            reused_attachments=self.reused_attachments,
-            reused_attachments_during_transition=self.reused_attachments_during_transition,
             active_transfer_ids=sorted(self.active),
             members=[dict(owner_id=m['owner_id'], state=m['state'],
                           caller_cancelled=m['caller_cancelled']) for m in self.members.values()],

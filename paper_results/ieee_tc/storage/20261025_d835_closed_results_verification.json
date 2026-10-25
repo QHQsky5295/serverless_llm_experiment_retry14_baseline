@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-83500000000000000000000000000008.scope",
+    "invocation_id": "14e4e58de5b04ac79d988cd7e583b895",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83500000000000000000000000000008.scope",
+    "inode": 32299000
+  },
+  "protected_files": 147,
+  "receipt_sha256": "0a027469e59ce8c6a8bcc93e011e5e128d1208600a736322c603503292fa270f",
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "1bb910ce6029afbb5ea8c13fbab449fe82ba1b8dea5c87fdfdd5bf3f60b33061",
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83500000000000000000000000000008.scope",
+    "memory.current": 200679424,
+    "memory.peak": 208445440,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 53691282\nuser_usec 49724139\nsystem_usec 3967143\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "backup_head": "b7de1c04ca75d53971658118150407e0a7ca036b",
+  "note": "All original bytes preserved and twice read-back verified. Use streaming gzip for diagnostics; restore exact source SHA only if required by a legacy analyzer. No performance result identity changed."
+}

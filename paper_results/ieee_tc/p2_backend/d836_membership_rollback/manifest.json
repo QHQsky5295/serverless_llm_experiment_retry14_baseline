@@ -1,0 +1,94 @@
+{
+  "archive_members": [
+    {
+      "member": "raw/backup.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/backup.py",
+      "sha256": "0738e932d7266fb8fc10e6cb4f175ef69816c56a634f5c3600a628d43d97484c",
+      "bytes": 1593
+    },
+    {
+      "member": "raw/focused.log",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/focused.log",
+      "sha256": "5d646c9848ee25ac60c76b6033eef48b8ed74fc7d40a12b97113892fb82a2477",
+      "bytes": 102048
+    },
+    {
+      "member": "raw/focused_gate.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/focused_gate.json",
+      "sha256": "ac675add73a0b556f517d166b4142e2d7a587cfddfe7d103f1552674d6a8d808",
+      "bytes": 6470
+    },
+    {
+      "member": "raw/focused_identity.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/focused_identity.json",
+      "sha256": "dc557d9aa1905083fff7abb6c86b18a0fb2cf2121bb18cb4c020defc2546a3f8",
+      "bytes": 286
+    },
+    {
+      "member": "raw/focused_receipt.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/focused_receipt.json",
+      "sha256": "02453094a7080cda4709edd095d815d731c49e7369b087b826bb03d3aab77284",
+      "bytes": 2064
+    },
+    {
+      "member": "raw/focused_source.tar.gz",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/focused_source.tar.gz",
+      "sha256": "b0301eff77f1d3432e98c610ca6de953b8e9e05a73c911f4a54478e87d5469e0",
+      "bytes": 77358
+    },
+    {
+      "member": "raw/publication_identity.json",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/publication_identity.json",
+      "sha256": "61909e7a9e1b2ba119033199455eaec9478ad6659b2876b7f57c07060414b9be",
+      "bytes": 286
+    },
+    {
+      "member": "raw/publish.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/publish.py",
+      "sha256": "79f86ba78cba9f76b943e925dfe972b56e3e5167f821e325c935a4e078f599d6",
+      "bytes": 3101
+    },
+    {
+      "member": "raw/run_tests.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d836_20261025/run_tests.py",
+      "sha256": "fd4406f25e0d4c9e4326b5e0c3ac61184d147550bddafc9fbf16e4e7b9cc2c77",
+      "bytes": 1169
+    },
+    {
+      "member": "reused/d610_20261017/run_tests.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d610_20261017/run_tests.py",
+      "sha256": "5b24776d3c359cc2f138ddef663ce04afcbb0edfa3ac166bcf06bc5c3e573efc",
+      "bytes": 1572
+    },
+    {
+      "member": "reused/d595_20261017/run_tests.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d595_20261017/run_tests.py",
+      "sha256": "6122f9c1de2901777c99a3037f17719ccb5b53f9d85ec46539bd908244ea8022",
+      "bytes": 2884
+    },
+    {
+      "member": "reused/d828_20261025/publish.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d828_20261025/publish.py",
+      "sha256": "4690fe8a595eb36dd993059f162477ba21b7cb8ca6e5bfebb664d53a32683624",
+      "bytes": 5384
+    },
+    {
+      "member": "reused/d824_20261025/backup.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d824_20261025/backup.py",
+      "sha256": "ee84b28423f93cea5a6764c529174b4531ad1bcf7c38ee4e1d37c95bc0b951c8",
+      "bytes": 3709
+    }
+  ],
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d836_membership_rollback/closure.json",
+      "sha256": "b6abdb0461b25a30207cde1ae779bd9a612205bf75ceaf48247be07a6ed3f280",
+      "bytes": 10714
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d836_membership_rollback/evidence.tar.gz",
+      "sha256": "b9ad0e5c1866cad2d28bfeb5d8cdfcdc15469e137910e83a9003287f8c582fb7",
+      "bytes": 99463
+    }
+  ]
+}

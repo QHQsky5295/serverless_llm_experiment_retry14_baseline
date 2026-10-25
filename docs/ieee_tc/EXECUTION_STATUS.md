@@ -1,4 +1,26 @@
-# IEEE TC execution status — D835 complete, joint SLO unchanged; backing up
+# IEEE TC execution status — D835 backed up; D836 exact rollback checked
+
+## 2026-10-25 D836：未改善联合 SLO 的单项候选已精确撤回
+
+本轮progress：完整核对PLAN/V1/单轮V2，按analyze-results与github-sync
+完成D835收尾。53个明确路径提交b7de1c04ca75d53971658118150407e0a7ca036b，
+远端backup/d835-complete-20261025已核实相同。不是最终V2同步。
+完整观测仍3683/4000=92.075%，U11312.991220，预算内但差117条；
+D711独立数值身份未知，N_correct=null，不是最终G1/G2。没有同键重跑。
+
+随后只撤回D834的14行生产逻辑及146行专属测试；三个文件与0c93a6d9
+逐字节一致，D831已有文件ready/最终settlement机制保留。复用既有CPU
+入口207项通过（194+13），峰值636268544B，high/max/OOM/swap0，辅助域
+已退出。没有新性能假设、GPU实验、基线或远端调整。此恢复版本待本轮备份。
+
+D835三份已关闭大日志无损压缩，双解压SHA一致后移除未压缩副本，释放
+1186369536B；147保护及用户修改保持一致。磁盘约150.19GiB，下一重型
+前仍需重新检查峰值/余量，不降低安全线。远端服务维持停止，四GPU空闲。
+
+下一按D836_MEMBERSHIP_ROLLBACK_20261025.md回到准备瓶颈主线：复用
+D833阶段证据、既往负例及官方资料，再确定单一新假设；不继续无明确收益
+的绑定方向。HydraServe隔离适配已完成，不动共享k3s。完整两模型M1/M2、
+A1–A5、S1–S13、CE/Pareto、文档图表及最终V2同步范围不变，目标active。
 
 ## 2026-10-25 D835：完整回放及计量完成，候选未改善主要缺口
 

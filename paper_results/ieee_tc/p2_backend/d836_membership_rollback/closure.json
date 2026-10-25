@@ -1,0 +1,140 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "closed_scopes": [
+    {
+      "phase": "focused",
+      "identity": {
+        "unit": "primelora-tc-aux-83600000000000000000000000000001.scope",
+        "invocation_id": "19108e31672c4739ace03585af6f237e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83600000000000000000000000000001.scope",
+        "inode": 32299674
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": false,
+  "exact_rollback": true,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "distinct_tests": 207,
+  "decision": "D834 removed exactly after unchanged D835 joint SLO. D831 development base retained; all performance evidence preserved. No same-key retry and no new candidate.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D836_MEMBERSHIP_ROLLBACK_20261025.md",
+    "sha256": "46964f2b22dbdb93a7289be6473c1fee0572ef0a36e367da937df97c234df039",
+    "bytes": 4571
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py": "d3b2d5d87247a9666e98104e03762ef559f1f730bfd00ed9d1f5fa72a4d959ba",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "da55ef4df2c347eafd143bc37f5d9396ac0d9bc378531f25b306bc5c54e7bdae",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_shared_pressure_integration.py": "5e5adea2baf73554f7bc1e92eb5fa017382644ba274ab68e5e3524a3512e93cb"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-83600000000000000000000000000002.scope",
+    "invocation_id": "6cfa8baed9894302a64da15b0c15976e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83600000000000000000000000000002.scope",
+    "inode": 32300822
+  },
+  "resources": {
+    "memory.peak": "28917760",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161258590208,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06",
+  "restored_reference_commit": "0c93a6d92e2e7708c313f0c543e837cbe7118c9b",
+  "production_rollback_pending": false,
+  "complete_result_backup": {
+    "passed": true,
+    "head": "b7de1c04ca75d53971658118150407e0a7ca036b",
+    "ref": "refs/heads/backup/d835-complete-20261025",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/actual_profile_binding.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/analysis_resources.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/closed_outcome.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/comparison.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/delivery_audit_status.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/full4000.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/membership_reuse_actual.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/owner_anchor_actual.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/owner_publication_actual.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/owner_publication_audit_status.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/protected_147_after.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/stages/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/stages/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion/versus_d832.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/closure.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/closure_manifest.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/settlement_analysis/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/settlement_analysis/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/settlement_analysis/resources.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/settlement_analysis/summary.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/development_decision.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/close_context.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup_results.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_identity.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_identity.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_template.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_template.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/start_receipt.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/commit.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_start.log",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_stop.log",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_health.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/analysis_metrics.log",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/analysis_stages.log",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/resume_context.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_resume_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_resume_identity.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_attempt1.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/audit_settlement.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_template.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_identity.json",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/manifest.json",
+      "docs/ieee_tc/D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md",
+      "docs/ieee_tc/EXECUTION_STATUS.md"
+    ],
+    "v2_synchronized": false,
+    "protected_files": 147,
+    "remote_monitor_sha256": "e7cef9992ce4519278b50e1fb8341900d30cf0d5d139d86ce2e9b9b5da048406"
+  },
+  "storage_receipt": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d835_closed_results.json",
+    "sha256": "0a027469e59ce8c6a8bcc93e011e5e128d1208600a736322c603503292fa270f",
+    "bytes": 5120
+  },
+  "storage_verification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d835_closed_results_verification.json",
+    "sha256": "6ebaffc3b02389c4c149ddbd0e19389834a8f25ab33257095b37c6b68070d44f",
+    "bytes": 1717
+  }
+}
