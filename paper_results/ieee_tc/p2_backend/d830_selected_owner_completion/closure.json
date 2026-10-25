@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "closed_scopes": [
+    {
+      "phase": "analysis_attempt2",
+      "identity": {
+        "unit": "primelora-tc-aux-83000000000000000000000000000005.scope",
+        "invocation_id": "d703c717f26543058062617734dc62fe",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83000000000000000000000000000005.scope",
+        "inode": 32194800
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": false,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "distinct_regression_tests": 0,
+  "focused_tests_included": 0,
+  "decision": "503 request joins validated; inspect owned readiness/settlement split next, no runtime candidate selected.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D830_SELECTED_OWNER_COMPLETION_20261025.md",
+    "sha256": "13209985be694173ed07ce841ad73576c3518be17448c9825b440e569991a42b",
+    "bytes": 7226
+  },
+  "production_sources": {},
+  "failed_attempt": {
+    "status": "failed_offline_analysis",
+    "exit_code": 1,
+    "program": "analyze.py",
+    "generated_line": 75,
+    "failed_assertion": "receipt['owner_id'] in record['participants']",
+    "cause": "The native adapter cache owner and the scheduler pressure owner are distinct identities; equality was an invalid analyzer assumption.",
+    "preserved": [
+      "analyze.py",
+      "analysis_identity.json",
+      "resource_gate.json"
+    ],
+    "result_written": false,
+    "gpu_replays": 0,
+    "production_changes": false,
+    "scope_observed_inactive": true,
+    "diagnostic_note": "A separate read-only inspection first used an environment without ijson and exited before reading data; the existing vLLM 0.30 environment then supplied the exact receipt schema. No package installation or data change."
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-83000000000000000000000000000006.scope",
+    "invocation_id": "1366119787cc4bdd86f03cb0e0906045",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83000000000000000000000000000006.scope",
+    "inode": 32196264
+  },
+  "resources": {
+    "memory.peak": "28303360",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161542635520,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}

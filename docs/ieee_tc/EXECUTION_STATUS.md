@@ -1,4 +1,46 @@
-# IEEE TC execution status — D829 full W2 completed, audited, not at target
+# IEEE TC execution status — D830 completion-dependency analysis closed; target unmet
+
+## 2026-10-25 D830：所选副本与全域结算依赖，离线核对完成
+
+本轮progress，无新增GPU回放、生产代码/配置变更或图表。完整重读PLAN并
+对照现有主线，HydraServe隔离适配已完成，不改变非项目共享k3s。
+复用D829全部503条唯一关联Remote请求，4000完整分母及其他8条Remote不变。
+
+首个分析错误地将native cache owner和scheduler pressure owner视为相同UUID，
+断言退出1，原脚本/身份/资源回执保留。更正为同请求pending receipt中的
+scheduler owner，核对native worker PID、同钟和准入副本；503条全部通过。
+一次只读查看使用了缺少ijson的环境，导入时停止；后续复用既有vLLM0300环境，
+未安装包、未因此重跑实验或删除样本。正确分析与失败分别归档。
+
+所选core finish→controller finish均值100.225ms，TTFT违约225条子集为
+148.953ms；前者分为等其他core80.936及最后回执返回19.290ms。325/503条
+所选core不是最后确认者。IO join→第一个finish84.147、第一→所选54.635、
+controller finish→load117.124ms；逐请求重构与D829一致。嵌套RPC等待不另加，
+不从历史延迟扣除，不宣称反事实SLO或异步优化已有效。
+
+下一动作只核查真实文件发布/读租约和movement结算的依赖能否拆分；保留
+压力事件、物理预算、取消/退休join、迟到失败传播与重叠计量，复用现有通知/
+队列。当前没有生产候选；不重开D595并行ACK、D822共享压力、D628移锁、
+D827清理等已闭方向。详见D830_SELECTED_OWNER_COMPLETION_20261025.md。
+
+分析峰值32,591,872B、high/max/OOM/swap全0；147保护项一致，磁盘
+161,543,528,448B。待归档及明确路径备份；原生产HEAD e48f93ad。
+最近完整3B W2仍为3638/4000=90.95%、U11246.510437GPU-s，尚差162条；
+D711独立数值未知和ranking=false不变。最终同版两模型M1/M2与Full、
+A1–A5、S1–S13、成本/CE、两轮审稿文档、图表及最终V2同步全部保留。
+整体目标active，不将这一离线问题闭合写成研究目标完成。
+
+以下为D829已完成记录：
+
+后置检查点回执：补充分解及两组压缩回执28条明确路径已提交
+e48f93ad73ef1deb207e8975cb048c96abd1dbb4，推送并核实
+backup/d829-analysis-20261025。aux1–10均已结束、scope路径消失；最后
+备份scope inactive且Invocation/ControlGroup空，所有工具session终态。
+GPU空、stage空；用户manifest未stage，baseline HEAD未变。可用磁盘
+161555484672B，下一重型重新准入。非最终V2同步，不为此后置回执递归提交。
+本轮是完整收尾与日志诊断的progress；没有新候选/重跑。下一仍按下文准备与
+控制等待的证据核查推进，不重做HydraServe基础适配，不改变共享k3s。
+整体目标active，3B未达95%及全部未完成范围继续保留。
 
 ## 2026-10-25 D829：已备份完整结果，复用分解与无损压缩完成
 
