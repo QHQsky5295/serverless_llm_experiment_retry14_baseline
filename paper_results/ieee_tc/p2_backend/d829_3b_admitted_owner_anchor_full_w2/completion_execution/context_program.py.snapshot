@@ -1,0 +1,216 @@
+"""Audit actual D817 transfers and file-reclamation events after real release."""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2'
+sys.path.insert(0,str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import audit_closed_outcome
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path))
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_identity.json',own)
+group=Path(own['path'])
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+for row in read(OUT/'completion/manifest.json')['files']:
+    assert p.digest(ROOT/row['path'])==row['sha256']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as stream:
+    transfers=list(ijson.items(stream,'remote_transfers.item',use_float=True))
+projection=dict(transfers=transfers)
+save(RAW/'remote_client_projection.json',projection)
+
+states=collections.Counter(row['state'] for row in projection['transfers'])
+# Inspect all actual attempts first. Never discard a failed/deferred attempt
+# just to reuse the historical all-published audit.
+assert states and set(states)=={'published'}
+audit_closed_outcome(RUN,OUT/'completion/closed_outcome.json',OUT/'completion/full4000.json')
+server=[json.loads(line) for line in (RAW/'remote_transfers.jsonl').read_text().splitlines() if line.strip()]
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as stream:
+    caches=list(ijson.items(stream,'coordination_after_shutdown.ieee_file_cache',use_float=True))
+assert len(caches)==1
+cache=caches[0]
+assert cache['file_cache_policy']=='planned_only'
+replacements=cache['replacements']
+required=[row for row in replacements if row['policy']=='request_lru_v1']
+assert all(row['state']=='incoming_allocated' for row in replacements)
+for row in required:
+    assert row['required_intent_ids']
+    assert row['observed_released_bytes']==row['expected_usable_bytes']
+    assert row['observed_released_bytes']>=row['shortfall_bytes']>0
+    assert sum(v['usable_bytes'] for v in row['victims'])==row['observed_released_bytes']
+assert not cache['movement_interests'] and not cache['plans']
+summary=dict(passed=True,kind='d829_observed_delivery_and_required_reclamation_v1',
+    client_attempt_states=dict(states),all_attempts_included=True,
+    client_received_bytes=sum(r['transferred_bytes'] for r in projection['transfers']),
+    server_read_bytes=sum(r['bytes_read'] for r in server),
+    server_written_bytes=sum(r['bytes_written'] for r in server),
+    unchanged_legacy_audit_applicable=True,
+    applicability='Actual complete population contains only published attempts; no deferred-attempt acceptance was added.',
+    file_cache_policy=cache['file_cache_policy'],
+    replacement_policies=dict(collections.Counter(r['policy'] for r in replacements)),
+    required_reclamations=len(required),
+    required_released_bytes=sum(r['observed_released_bytes'] for r in required),
+    cache_snapshot=cache,
+    limitation='Receipts prove observed reclaim bytes and live required intent; independent victim-safety interleavings are covered by D816 tests, not reconstructed from these receipts.',
+    source_refs=[ref(x) for x in (outcome,RAW/'remote_client_projection.json',RAW/'remote_transfers.jsonl',Path(__file__))])
+save(OUT/'completion/delivery_applicability_and_reclamation.json',summary)
+# The changed path must actually execute and finish with the original owner's
+# confirmed final-content receipt. Stream verification is intentionally absent.
+for row in transfers:
+    assert row['content_verification']=='owner_publication'
+    assert row['stream_content_verified'] is False
+    assert row['content_verified'] is True
+    publication=row['confirmed_file_publication']
+    assert publication['content_verified'] is True
+    assert publication['adapter_id']==row['artifact_id']
+    assert publication['file_path_bytes']==row['payload_bytes_verified']>0
+    digest=publication['content_sha256']
+    assert len(digest)==64 and all(x in '0123456789abcdef' for x in digest)
+save(OUT/'completion/owner_publication_actual.json',dict(
+    passed=True,attempts=len(transfers),all_attempts_included=True,
+    verification_modes=dict(collections.Counter(row['content_verification'] for row in transfers)),
+    stream_content_verified=sum(row['stream_content_verified'] is True for row in transfers),
+    final_content_verified=sum(row['content_verified'] is True for row in transfers),
+    source_refs=[ref(outcome),ref(RAW/'remote_client_projection.json')],
+    scope='Runtime confirmation of final destination content, not independent numerical adapter correctness. Frozen implementation/source verification is retained in prelaunch and completion manifests.'))
+current=read(OUT/'completion/full4000.json')
+old_dir=ROOT/'paper_results/ieee_tc/p2_backend/d826_3b_single_verification_full_w2/completion'
+old=read(old_dir/'full4000.json')
+assert current['counts']['n']==old['counts']['n']==4000
+assert current['common_slo_sha256']==old['common_slo_sha256']
+assert current['workload']==old['workload']=='W2'
+metrics={}
+for name in ('ttft_ms','tpot_ms','e2e_ms'):
+    metrics[name]={}
+    for stat in ('mean','p50_type1','p95_type1'):
+        a,b=old['metrics'][name][stat],current['metrics'][name][stat]
+        metrics[name][stat]=dict(previous=a,current=b,current_minus_previous=b-a,
+            lower_better_improvement_fraction=(a-b)/a)
+old_stages=read(old_dir/'stages/diagnosis.json')
+new_stages=read(OUT/'completion/stages/diagnosis.json')
+def all_group(value):
+    groups=[g for g in value['groups'] if g['dimension']=='all' and g['label']=='all']
+    assert len(groups)==1 and groups[0]['n']==4000
+    return groups[0]['metrics']
+a,b=all_group(old_stages),all_group(new_stages)
+stage_means={key:dict(previous=a[key]['mean'],current=b[key]['mean'],
+    current_minus_previous=b[key]['mean']-a[key]['mean']) for key in a if key in b}
+save(OUT/'completion/versus_d826.json',dict(
+    kind='d829_vs_d826_single_observation_v1',previous_counts=old['counts'],current_counts=current['counts'],
+    joint_delta_requests=current['counts']['joint_pass']-old['counts']['joint_pass'],
+    joint_delta_percentage_points=100*(current['joint_slo_fraction']-old['joint_slo_fraction']),
+    previous_gpu_seconds=old['physical_gpu_seconds'],current_gpu_seconds=current['physical_gpu_seconds'],
+    gpu_seconds_delta=current['physical_gpu_seconds']-old['physical_gpu_seconds'],
+    gpu_seconds_improvement_fraction=1-current['physical_gpu_seconds']/old['physical_gpu_seconds'],
+    metrics=metrics,all_request_stage_means=stage_means,confidence_interval=None,
+    numerical_correctness_qualified=False,ranking_eligible=False,
+    source_refs=[ref(old_dir/'full4000.json'),ref(OUT/'completion/full4000.json'),
+        ref(old_dir/'stages/diagnosis.json'),ref(OUT/'completion/stages/diagnosis.json')]))
+
+
+# Retain all 4000 requests and the existing source/timing contract. Only the
+# accepted non-native path may use a historical owner anchor; it grants no
+# current tier/capacity. Live owner transactions and post-load state still bind.
+metric_for_anchor=read(OUT/'completion/full4000.json')
+request_ref=next(row for row in metric_for_anchor['source_refs']
+    if Path(row['path']).name.startswith('experiment_results_full'))
+request_path=Path(request_ref['path'])
+assert p.digest(request_path)==request_ref['sha256']
+source_counts=collections.Counter()
+acquisition_scopes=collections.Counter()
+checked=[]
+request_ids=set()
+with request_path.open('rb') as stream:
+    for row in ijson.items(stream,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        rid=row['request_id']
+        assert rid not in request_ids
+        request_ids.add(rid)
+        evidence=row['gpu_reference_evidence']
+        admission=evidence['source_admission']
+        source=admission['source']
+        source_counts[(source['tier'],source['native'])]+=1
+        snapshot=evidence['snapshot_before_acquisition']
+        acquisition_scopes[snapshot.get('acquisition_observation_scope',snapshot.get('kind','guarded_source'))]+=1
+        anchor=admission.get('native_owner_anchor')
+        expected=source['native'] is False and source['tier'] in ('remote','nvme','host')
+        assert (anchor is not None)==expected
+        if not expected:
+            assert snapshot.get('acquisition_observation_scope')!='admission_owner_identity_only_v1'
+            continue
+        assert evidence['cached_source_only'] is False
+        assert anchor['kind']=='admission_native_owner_anchor_v1'
+        assert anchor['request_id']==rid and anchor['adapter_id']==row['adapter_id']
+        assert snapshot['acquisition_observation_scope']=='admission_owner_identity_only_v1'
+        assert snapshot['fresh_acquisition_observation'] is False
+        assert all(snapshot[key]==value for key,value in anchor.items())
+        assert anchor['captured_monotonic_s']<=admission['admitted_monotonic_s']
+        receipt=evidence['receipt']
+        intent=evidence['intent']
+        proof=receipt['file_demand_transaction']
+        assert receipt['owner_id']==intent['expected_owner_id']==anchor['owner_id']
+        assert receipt['clock_id']==anchor['clock_id']==admission['clock_id']
+        assert receipt['acquired'] is True
+        assert proof['kind']=='protected_file_owner_turn_v1'
+        assert proof['observed_epoch']==intent['expected_epoch']>=anchor['epoch']
+        assert proof['observed_epoch']<=proof['validated_epoch']<=receipt['epoch']
+        assert proof['live_native_constraints_checked'] is True
+        assert proof['controller_capacity_snapshot_reused'] is False
+        assert receipt['file_source_witness']==intent['file_source_witness']
+        assert receipt['file_source_witness']['lease_id']==evidence['local_source_reference']['lease_id']
+        post=receipt['post_load_source_snapshot']
+        assert isinstance(post,dict) and post['owner_id']==anchor['owner_id']
+        assert post['clock_id']==anchor['clock_id'] and post['epoch']>=proof['validated_epoch']
+        checked.append(dict(request_id=rid,adapter_id=row['adapter_id'],source_tier=source['tier'],
+            owner_id=anchor['owner_id'],anchor_epoch=anchor['epoch'],
+            observed_epoch=proof['observed_epoch'],validated_epoch=proof['validated_epoch'],
+            post_epoch=post['epoch'],native_load_invoked=receipt['native_load_invoked'],
+            fresh_capacity_recheck='snapshot_after_capacity_wait' in evidence))
+assert len(request_ids)==4000 and checked
+save(OUT/'completion/owner_anchor_actual.json',dict(
+    passed=True,full_request_count=len(request_ids),anchored_requests=len(checked),
+    source_counts=[dict(tier=key[0],native=key[1],n=value) for key,value in sorted(source_counts.items())],
+    acquisition_scopes=dict(acquisition_scopes),
+    live_transaction_checks=len(checked),post_load_snapshots=len(checked),
+    epoch_advanced=sum(row['validated_epoch']>row['anchor_epoch'] for row in checked),
+    fresh_capacity_rechecks=sum(row['fresh_capacity_recheck'] for row in checked),
+    requests=checked,source_refs=[request_ref,ref(Path(__file__))],
+    limitation='Observed receipts and frozen-source checks, not independent numerical adapter proof or exhaustive concurrent-interleaving verification. No history anchor is relabeled as fresh readiness or capacity.'))
+
+metric=read(OUT/'completion/full4000.json')
+counts=metric['counts']
+partition=dict(ttft_only_fail=counts['tpot_pass']-counts['joint_pass'],
+    tpot_only_fail=counts['ttft_pass']-counts['joint_pass'],
+    both_fail=counts['n']-counts['ttft_pass']-counts['tpot_pass']+counts['joint_pass'])
+assert sum(partition.values())==counts['n']-counts['joint_pass']
+identities=[read(RAW/name) for name in ('completion_identity.json',)]
+for identity in identities:
+    assert not Path(identity['path']).exists()
+assert all(int(line.split()[1])==0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'closure.json',dict(passed=True,kind='d829_full_w2_closure_v1',
+    counts=counts,violation_partition=partition,shortfall_to_3800=3800-counts['joint_pass'],
+    numerical_correctness_qualified=False,n_correct=metric['n_correct'],ranking_eligible=False,
+    primary_targets_achieved=False,new_replays=0,confidence_interval=None,
+    previous_auxiliary_scopes_removed=identities,
+    resources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')},
+    decision='Retain this complete W2 observation and all earlier candidates. The owner-anchor candidate has better observed joint SLO, P95 TTFT and GPU seconds, but remains below 95%; this is not statistical evidence or a G1/G2 win. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate.'))
+save(OUT/'closure_manifest.json',dict(files=[ref(x) for x in sorted((OUT/'completion').rglob('*')) if x.is_file()]+[ref(OUT/'closure.json')]))
+print(json.dumps(dict(passed=True,states=dict(states),replacement_policies=summary['replacement_policies'],
+    required_reclamations=len(required),violation_partition=partition),indent=2))

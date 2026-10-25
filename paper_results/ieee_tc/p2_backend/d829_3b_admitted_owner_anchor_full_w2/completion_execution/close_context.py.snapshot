@@ -1,0 +1,103 @@
+"""Reuse D826 closure and compare D829 with D826; audit actual owner anchors."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d826_20261025/context_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '09d1bee79a6553995ffe876413f93d8b78d17510ffcdb89f87993357a87d58b0'
+_source = _template.read_text()
+for _old, _new in (
+    ('d826_3b_single_verification_full_w2', 'd829_3b_admitted_owner_anchor_full_w2'),
+    ('d826_observed_delivery_and_required_reclamation_v1', 'd829_observed_delivery_and_required_reclamation_v1'),
+    ('d826_full_w2_closure_v1', 'd829_full_w2_closure_v1'),
+    ('d826_vs_d817_single_observation_v1', 'd829_vs_d826_single_observation_v1'),
+    ('d817_3b_required_capacity_full_w2/completion', 'd826_3b_single_verification_full_w2/completion'),
+    ('versus_d817.json', 'versus_d826.json'),
+    ('Single final verification has mixed small observed effects, not joint-SLO feasibility or a G1/G2 win.',
+     'The owner-anchor candidate has better observed joint SLO, P95 TTFT and GPU seconds, but remains below 95%; this is not statistical evidence or a G1/G2 win.'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+
+_marker = "metric=read(OUT/'completion/full4000.json')"
+_extra = r'''
+# Retain all 4000 requests and the existing source/timing contract. Only the
+# accepted non-native path may use a historical owner anchor; it grants no
+# current tier/capacity. Live owner transactions and post-load state still bind.
+metric_for_anchor=read(OUT/'completion/full4000.json')
+request_ref=next(row for row in metric_for_anchor['source_refs']
+    if Path(row['path']).name.startswith('experiment_results_full'))
+request_path=Path(request_ref['path'])
+assert p.digest(request_path)==request_ref['sha256']
+source_counts=collections.Counter()
+acquisition_scopes=collections.Counter()
+checked=[]
+request_ids=set()
+with request_path.open('rb') as stream:
+    for row in ijson.items(stream,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        rid=row['request_id']
+        assert rid not in request_ids
+        request_ids.add(rid)
+        evidence=row['gpu_reference_evidence']
+        admission=evidence['source_admission']
+        source=admission['source']
+        source_counts[(source['tier'],source['native'])]+=1
+        snapshot=evidence['snapshot_before_acquisition']
+        acquisition_scopes[snapshot.get('acquisition_observation_scope',snapshot.get('kind','guarded_source'))]+=1
+        anchor=admission.get('native_owner_anchor')
+        expected=source['native'] is False and source['tier'] in ('remote','nvme','host')
+        assert (anchor is not None)==expected
+        if not expected:
+            assert snapshot.get('acquisition_observation_scope')!='admission_owner_identity_only_v1'
+            continue
+        assert evidence['cached_source_only'] is False
+        assert anchor['kind']=='admission_native_owner_anchor_v1'
+        assert anchor['request_id']==rid and anchor['adapter_id']==row['adapter_id']
+        assert snapshot['acquisition_observation_scope']=='admission_owner_identity_only_v1'
+        assert snapshot['fresh_acquisition_observation'] is False
+        assert all(snapshot[key]==value for key,value in anchor.items())
+        assert anchor['captured_monotonic_s']<=admission['admitted_monotonic_s']
+        receipt=evidence['receipt']
+        intent=evidence['intent']
+        proof=receipt['file_demand_transaction']
+        assert receipt['owner_id']==intent['expected_owner_id']==anchor['owner_id']
+        assert receipt['clock_id']==anchor['clock_id']==admission['clock_id']
+        assert receipt['acquired'] is True
+        assert proof['kind']=='protected_file_owner_turn_v1'
+        assert proof['observed_epoch']==intent['expected_epoch']>=anchor['epoch']
+        assert proof['observed_epoch']<=proof['validated_epoch']<=receipt['epoch']
+        assert proof['live_native_constraints_checked'] is True
+        assert proof['controller_capacity_snapshot_reused'] is False
+        assert receipt['file_source_witness']==intent['file_source_witness']
+        assert receipt['file_source_witness']['lease_id']==evidence['local_source_reference']['lease_id']
+        post=receipt['post_load_source_snapshot']
+        assert isinstance(post,dict) and post['owner_id']==anchor['owner_id']
+        assert post['clock_id']==anchor['clock_id'] and post['epoch']>=proof['validated_epoch']
+        checked.append(dict(request_id=rid,adapter_id=row['adapter_id'],source_tier=source['tier'],
+            owner_id=anchor['owner_id'],anchor_epoch=anchor['epoch'],
+            observed_epoch=proof['observed_epoch'],validated_epoch=proof['validated_epoch'],
+            post_epoch=post['epoch'],native_load_invoked=receipt['native_load_invoked'],
+            fresh_capacity_recheck='snapshot_after_capacity_wait' in evidence))
+assert len(request_ids)==4000 and checked
+save(OUT/'completion/owner_anchor_actual.json',dict(
+    passed=True,full_request_count=len(request_ids),anchored_requests=len(checked),
+    source_counts=[dict(tier=key[0],native=key[1],n=value) for key,value in sorted(source_counts.items())],
+    acquisition_scopes=dict(acquisition_scopes),
+    live_transaction_checks=len(checked),post_load_snapshots=len(checked),
+    epoch_advanced=sum(row['validated_epoch']>row['anchor_epoch'] for row in checked),
+    fresh_capacity_rechecks=sum(row['fresh_capacity_recheck'] for row in checked),
+    requests=checked,source_refs=[request_ref,ref(Path(__file__))],
+    limitation='Observed receipts and frozen-source checks, not independent numerical adapter proof or exhaustive concurrent-interleaving verification. No history anchor is relabeled as fresh readiness or capacity.'))
+'''
+assert _source.count(_marker) == 1
+_source = _source.replace(_marker, _extra+'\n'+_marker)
+compile(_source, str(_raw/'context_program.py.snapshot'), 'exec')
+with (_raw/'context_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template),sha256=_sha,
+        changes='Reuse complete delivery, lifecycle and reclamation audit. Compare against D826 and check actual accepted owner anchors, live transactions and post-load snapshots.'),_stream,indent=2)
+    _stream.write('\n')
+with (_raw/'context_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source,str(_raw/'context_program.py.snapshot'),'exec'),globals())

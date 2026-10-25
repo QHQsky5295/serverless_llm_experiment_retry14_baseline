@@ -1,0 +1,125 @@
+{
+  "kind": "native_common_slo_reanalysis_d714_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d829_20261025/3b_max3_full_w2",
+  "reuse_level": "R1",
+  "passed": true,
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3723,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3908,
+    "joint_pass": 3638
+  },
+  "joint_slo_fraction": 0.9095,
+  "ttft_marginal_fraction": 0.93075,
+  "tpot_conditional_fraction": 0.977,
+  "observed_latency_feasible": false,
+  "numerical_adapter_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "full_w0": false,
+  "full_replay": true,
+  "workload": "W2",
+  "replay_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W2",
+    "rate_scale": 1.0,
+    "adapter_map": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json",
+    "adapter_map_sha256": "28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23"
+  },
+  "development_only": true,
+  "confidence_interval": null,
+  "physical_gpu_seconds": 11246.510437436868,
+  "gpu_seconds_per_offered_request": 2.811627609359217,
+  "metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 804.3518413538113,
+      "p50_type1": 512.0746502652764,
+      "p95_type1": 2514.8991933092475
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 16.000813210803727,
+      "p50_type1": 14.030936864825586,
+      "p95_type1": 27.09150587907061
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 2617.2396330895135,
+      "p50_type1": 2170.249416027218,
+      "p95_type1": 5550.17813667655
+    }
+  },
+  "max_recompute_error_ms": {
+    "ttft_ms": 0.0,
+    "tpot_ms": 0.0,
+    "e2e_ms": 0.0
+  },
+  "phases_500": [
+    {
+      "n": 500,
+      "ttft_pass": 482,
+      "tpot_eligible": 500,
+      "tpot_pass": 483,
+      "joint_pass": 466
+    },
+    {
+      "n": 500,
+      "ttft_pass": 479,
+      "tpot_eligible": 500,
+      "tpot_pass": 481,
+      "joint_pass": 462
+    },
+    {
+      "n": 500,
+      "ttft_pass": 467,
+      "tpot_eligible": 500,
+      "tpot_pass": 486,
+      "joint_pass": 453
+    },
+    {
+      "n": 500,
+      "ttft_pass": 469,
+      "tpot_eligible": 500,
+      "tpot_pass": 484,
+      "joint_pass": 453
+    },
+    {
+      "n": 500,
+      "ttft_pass": 462,
+      "tpot_eligible": 500,
+      "tpot_pass": 491,
+      "joint_pass": 453
+    },
+    {
+      "n": 500,
+      "ttft_pass": 461,
+      "tpot_eligible": 500,
+      "tpot_pass": 496,
+      "joint_pass": 457
+    },
+    {
+      "n": 500,
+      "ttft_pass": 457,
+      "tpot_eligible": 500,
+      "tpot_pass": 493,
+      "joint_pass": 453
+    },
+    {
+      "n": 500,
+      "ttft_pass": 446,
+      "tpot_eligible": 500,
+      "tpot_pass": 494,
+      "joint_pass": 441
+    }
+  ],
+  "legacy_runtime_ttft_only_fraction": 0.9985,
+  "legacy_is_common_joint_slo": false,
+  "common_slo_sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+  "note": "No simulation, rerun, threshold change or inference of independent numerical correctness."
+}

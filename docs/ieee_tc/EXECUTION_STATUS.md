@@ -1,4 +1,88 @@
-# IEEE TC execution status — D829 complete W2 launch preparation
+# IEEE TC execution status — D829 full W2 completed, audited, not at target
+
+## 2026-10-25 D829：完整结果与实际交付核查完成
+
+同一次3B W2完整4000/4000终态成功、原生生成合同匹配，没有重跑或运行中
+配置变化。联合3638/4000=90.95%，较D826增加28条/0.70个百分点；物理
+GPU时间11246.510437，减少60.555327；P95TTFT2514.899193ms，下降
+139.613934ms。平均TPOT及P95E2E略升，全部保留。仍距3800差162条，
+未达95%或G1/G2；D711独立数值正确性未知，N_correct=null、ranking=false。
+
+505次真实远端获取/1172100920字节的两端ID、字节、归档SHA一致，无请求内
+打包；505次owner最终内容检查及19次按需LRU回收可追溯。1154条非native
+来源的owner锚点、真实文件见证、实时事务与post-load状态全部核对通过，
+512条epoch推进；无fresh capacity recheck触发，不扩展未覆盖结论。
+三次物理GPU分配均已释放，服务/远端/分析均结束；峰值32957833216B，
+high/max/OOM/swap均0。完整阶段重构误差0ms，147旧投稿及用户SHA不变。
+
+本轮为progress：完整运行和两项收尾分析均实际完成，不是等待或受阻。
+HydraServe隔离适配已完成，复用现有记录、不修改非项目k3s。当前版本作为
+后续诊断起点，但不关闭3B；不重复本键、不以小幅改善声称显著或目标完成。
+下一动作：明确路径备份本次完整结果→无损压缩已关闭日志→复用准备/控制
+分解，不新增GPU测试或第二候选。当前磁盘约148.8GiB，下一重型前恢复
+150GiB启动余量。最终同版两模型M1/M2与Full、A1–A5、S1–S13、成本/CE、
+两轮审稿文档、图表及最终V2同步全部保留；整体目标active。
+
+备份首步在git add遇到通用*.log忽略规则而退出1，尚未提交/推送；4份
+已检查的小回执合计4951B，不是大型原始数据。复用D826恢复入口，仅明确
+加入这些既有回执、校验stage集合并继续提交；不重做分析或改动测量字节。
+首步scope已inactive/path gone，保留失败身份；与实验运行成败无关。
+
+以下为此前运行中记录，不代表当前仍在运行。
+
+## 2026-10-25 09:30 CST：verified wait，同一D829仍在推进
+
+前轮分类为verified wait；本轮已完整重读PLAN并读取当前状态，采用
+monitor-experiment/gpu-status的实际进程与既有watchdog核查，不开新实验。
+同一服务Invocation=0dbb98676144420a9adc32180324523c仍active，
+pane3315193/launcher3315194存活12分32秒。已终态548/4000，失败0、
+native_contract_matched不匹配0。sample740：warning=false、abort空，
+high/max/OOM全0、服务swap0，主机可用92.135GiB、服务峰值17.091GiB、
+磁盘146.859GiB。未到下一重型启动门槛但未触发本轮停止线，不在运行中清理。
+
+只读复核D826 complete.py和其D817模板：完整指标/分解可继续复用原入口、
+冻结W2参考及Type-1口径。D829资格文件的reused字段引用D828 closure
+（ff6209a52f510bfc5387454228ac58dc454e6e47b2381c04defc3db03b187348），
+该closure含user_protected；收尾需调整身份与这一来源，不重复测试或重跑。
+尚未生成/运行收尾脚本、未计算partial性能、未执行哈希扫描/压缩/推送。
+原run_and_release仍负责自然终态后的本次远端释放；观察期限不视作实验超时。
+下一动作：继续等待同一4000回放，终态后验证实际释放，再执行完整分析和
+owner anchor覆盖/实时事务证据核查。整体目标active，所有未完成范围保留。
+
+## 2026-10-25 09:21 CST：D829实际启动回执与同一运行监测
+
+D829已实际启动，不再是下文的准备状态。代码/配置检查点为
+2535c8d7a7acc32684e3857503819d22408fe93a，已备份并核实远端
+backup/d829-admitted-owner-anchor-fullw2-20261025；不是最终V2同步。
+原start_receipt.json中identity指已结束的启动准备scope，不是推理服务身份。
+
+- tmux：tc-d829-3b-admitted-owner-anchor-full-w2；pane PID3315193、
+  launcher PID3315194仍存活，未重启或启动第二次回放。
+- 实际服务：primelora-tc-svc-11d070005ac643ddbe7a7fbdbdcdb3cb.scope，
+  Invocation=0dbb98676144420a9adc32180324523c，cgroup inode32152105。
+- 外置回放/监控：primelora-tc-aux-3d7d2842b9b04a2c9f1100f96f3ddffe.scope。
+- raw：results/ieee_tc/p2_backend_qualification/d829_20261025/；
+  请求与监控在3b_max3_full_w2/launch.launch/，启动回执在raw根目录。
+
+09:21:54读取112条终态，112条success且native_contract_matched=true，
+不是4000条完整结果或独立数值正确性证明。watchdog sample260：warning=false、
+abort_reasons为空，服务peak13298991104B，high/max/OOM均0，服务swap0；
+主机可用105614938112B，磁盘160010280960B。磁盘低于下一重型任务150GiB
+启动线、仍高于本次运行100GiB停止线；运行期间不扫描/压缩/清理。
+只核对既有实时采样，不用开发5000ms日志替代冻结SLO；等待同一4000条回放。
+
+本轮已重新完整阅读PLAN、冻结V1/单轮V2、执行约束与当前状态。用户确认共享
+k3s不是本项目集群的答复已收到；复用已完成的HydraServe隔离适配和真实回放，
+不修改共享集群、不重做基础部署，不干扰当前性能实验。没有新代码或配置变更。
+下一步仍是同一D829自然完成→身份核验释放→复用完整分析与anchor覆盖核查→
+保存/备份→判断接受或撤销。整体目标active，D711数值未知和完整后续范围不变。
+
+09:23:08后续只读核查：同一Invocation、两PID仍live，已终态168/4000，
+168条均success及native_contract_matched。sample334仍无warning/abort及
+high/max/OOM，服务swap0。观察等待结束不是运行超时，不能因此重启；没有
+launch.json完整终态或新的性能结论。继续等待这一运行，禁止第二次启动。
+
+以下为D829执行前登记，尚未启动的措辞仅描述当时状态：
 
 ## 2026-10-25 D829：进入D828候选的完整3B W2
 

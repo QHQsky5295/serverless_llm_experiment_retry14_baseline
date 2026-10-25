@@ -1,0 +1,27 @@
+"""Resume only the interrupted D829 Git step; keep created evidence unchanged."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+# Materialize the already-pinned D826 procedure without executing it again.
+_wrapper = (_raw / 'backup_results.py').read_text()
+_prefix = _wrapper.split('exec(compile(_source,', 1)[0]
+exec(compile(_prefix, str(_raw / 'backup_results.py'), 'exec'), globals())
+_template = _raw.parent / 'd826_20261025/resume_backup.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '47252b0a1dd369b4de09d0092979a83659668c36b6b240c684d36f9b9ba0a71e'
+_resume = _template.read_text()
+_resume = _resume.replace(
+    "source = Path(__file__).with_name('backup_results.py').read_text()",
+    'source = _source')
+for _old, _new in (
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md',
+     'D829_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md'),
+    ('d825_single_destination_verification/closure.json',
+     'd828_post_file_owner_turn/closure.json'),
+    ("('backup_results.log', 'resume_backup.py')", "('resume_backup.py',)"),
+    ('3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417',
+     '60cb52cebac0f128108fa2ce0b751d62e3e661e09eb45e2a27116de0cc785d70'),
+):
+    assert _old in _resume, _old
+    _resume = _resume.replace(_old, _new)
+exec(compile(_resume, str(_raw / 'resume_backup.py.reused'), 'exec'), globals())

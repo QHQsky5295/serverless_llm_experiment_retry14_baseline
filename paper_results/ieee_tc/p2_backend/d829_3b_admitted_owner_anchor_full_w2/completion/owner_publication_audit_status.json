@@ -1,0 +1,6 @@
+{
+  "status": "pending_actual_full_transfer_and_owner_anchor_evidence_audit",
+  "final_content_verification_required": true,
+  "stream_content_verification_not_required_for_owner_publication": true,
+  "historical_owner_anchor_is_not_fresh_tier_or_capacity": true
+}

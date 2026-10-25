@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d829-admitted-owner-anchor-fullw2-20261025",
+  "head": "2535c8d7a7acc32684e3857503819d22408fe93a",
+  "identity": {
+    "inode": 32151942,
+    "invocation_id": "1bf943ece20a40d5b66b70d3dc39ed09",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-82900000000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "c08802449cfe528c7dd332d633ebba0e755684cd5b47108fc03d0cf3c608c1b6",
+  "tmux": "tc-d829-3b-admitted-owner-anchor-full-w2"
+}

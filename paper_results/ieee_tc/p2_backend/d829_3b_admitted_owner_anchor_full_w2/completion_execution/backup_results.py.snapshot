@@ -1,0 +1,25 @@
+"""Reuse the explicit-path D826 backup procedure for the complete D829 result."""
+import hashlib
+from pathlib import Path
+
+_raw=Path(__file__).resolve().parent
+_template=_raw.parent/'d826_20261025/backup_results.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest()=='e0a920555b39e4fe64c67355a8177ed14db98dd35bf22144dd7952c0479e16b9'
+_source=_template.read_text()
+for _old,_new in (
+    ('d826_3b_single_verification_full_w2','d829_3b_admitted_owner_anchor_full_w2'),
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md','D829_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md'),
+    ('d825_single_destination_verification/closure.json','d828_post_file_owner_turn/closure.json'),
+    ("'analysis_metrics.log', 'analysis_stages.log', 'completion.log', 'context.log'",
+     "'analysis_metrics.log', 'analysis_stages.log'"),
+    ('3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417',
+     '60cb52cebac0f128108fa2ce0b751d62e3e661e09eb45e2a27116de0cc785d70'),
+    ('Reuse D825 446 distinct checks and D826 7 entry checks; no production change during closure.',
+     'Reuse D828 370 distinct CPU checks and D829 9 entry checks; no production change during closure. Full metric and owner-anchor audits are saved separately.'),
+    ('tc: seal D826 full W2 mixed outcome and actual content verification',
+     'tc: seal D829 full W2 observation and actual owner-anchor checks'),
+    ('backup/d826-complete-20261025','backup/d829-complete-20261025'),
+):
+    assert _old in _source,_old
+    _source=_source.replace(_old,_new)
+exec(compile(_source,str(_raw/'backup_results.py.reused'),'exec'),globals())
