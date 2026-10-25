@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "attempts": 505,
+  "all_attempts_included": true,
+  "decoders": [
+    {
+      "name": "isal",
+      "version": "1.8.0",
+      "count": 505
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d861_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "f96155aa73e7a7e034de1c2b9bfa1cbbae9c76d0b31ad69fcb9140743911a085"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d861_20261026/remote_client_projection.json",
+      "sha256": "b2584ad1df2704446833cc15c5686aa467e8d266b00bb6c7e6afea4e41bddd69"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d861_20261026/context_program.py.snapshot",
+      "sha256": "d23414c9a3225db6f45ef82cc11fb2d4ea74d3322c3e832c73ca143322fef04f"
+    }
+  ],
+  "limitation": "Actual decoder identity is not a causal estimate of latency saved or independent numerical adapter correctness; complete measurements and owner verification remain separate."
+}

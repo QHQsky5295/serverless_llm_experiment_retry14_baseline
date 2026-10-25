@@ -1,4 +1,69 @@
-# IEEE TC execution status — D861 full 3B W2 registered; not yet a performance result
+# IEEE TC execution status — D861 complete; 93.375% joint SLO, 65 requests short
+
+## 2026-10-26 D861完整测量与离线收尾
+
+同一次回放已4000/4000成功、原生数量/绑定/计时检查通过，GPU实际释放，
+本次远端两服务及监控已停止。共同SLO：TTFT3816、TPOT3907、联合3735
+=93.375%，仍少65条；物理GPU时间11936.055346549023s，预算12083.063870s
+通过。TTFT均值735.930808ms、P95 2082.715303ms。相对D858：联合−11条，
+P95 TTFT−2.805863%，GPU时间+5.522340%，不能称整体改进或完成G1/G2。
+265条违约为172仅TTFT、81仅TPOT、12两者。D711数值证明仍未知，不改填通过。
+
+原始/指标/阶段、505次双端交付（1172100920B）、owner及505条准备任务结算
+核查已完成；147项历史保护零变化。服务峰值33099526144B，high/max/OOM/
+swap0；最低available96356618240B、disk164538232832B。两次自然扩容均在
+request_index=1，D858为208/217；总GPU差含闭环时序变化，不作纯CPU因果归因。
+
+完整重读计划、AGENTS、V1/V2和monitor/analyze/github技能；本轮未改生产
+或配置、未额外GPU回放、未画图。离线分析一次33位资源域后缀误写在开始前
+被拒绝，错误已保留；复用同一已生成分析程序在合法域继续，无推理重跑。
+详细表和范围见D861_SOURCE_PROJECTION_FULL_W2_20261026.md。结果备份正在收尾，
+此前启动检查点1bb184d9已在backup/d861-source-projection-fullw2-20261026。
+
+下一：保存本次完整取舍证据后，复用D858/D861既有日志解释剩余违约及扩容
+时序，再决定候选保留/撤回和唯一新方向。没有新证据不重复文件读取方向，
+不筛同键重跑、不换阈值。目前生产仍为已测D860候选，没有新GPU任务。
+同版本两模型W0/W1/W2、baseline/dLoRA、A1–A5、S1–S13、独立数值证明、
+审稿图文和最终V2同步仍开放，goal active；本轮完成同一测量并取得完整证据。
+
+以下保留运行中的监测历史。
+
+最新监测：继续核验同一PID1687621及InvocationID
+0f08869f248345128d6c8751763f49b2为active；终态由496推进至1114，均success/
+native_contract_matched，失败0。watchdog sample1206、monotonic2465159.101661994：
+服务峰值21711511552B，high/max/OOM/swap0，持有3卡，无外来compute；主机
+available98237157376B，磁盘174886572032B。12次轻量轮询没有重启测量。
+本轮完整重读计划、AGENTS、执行状态和monitor-experiment；没有修改生产/
+配置、扫描/压缩/备份或并行GPU任务。仍待完整4000请求、实际释放、远端停止
+和既定离线分析，不以部分成功推出SLO或数值正确。全部剩余范围不变，goal
+active，本轮为同一存活句柄的verified wait；下一继续该回放。
+
+监测续记：本轮完整重读计划、AGENTS和状态；同一tmux PID1687621及服务
+InvocationID 0f08869f248345128d6c8751763f49b2核实存活，没有重启。
+终态计数55→118→183→310→378→424；最新424项均success/native_contract_matched，
+失败0，按终态记录计数，不用最后request ID冒充完成数。watchdog sample567/
+monotonic2464511.256740809：持有3卡，服务峰值17976311808B，high/max/OOM/
+swap0，主机available98735370240B，磁盘178398375936B，无外来compute。
+只有轻量监测和只读核查后续分析入口，无代码/参数更改、重型分析或维护。
+后续复用D858 complete.py时应引用D861实际prelaunch/qualification.json，
+不能沿用D858历史prelaunch_resume；比较父点为D858，保留D846旧结果。
+尚无完整性能结论，D711数值正确性仍未知、不阻断当前主线且不改填通过。
+下一继续同一活跃回放，实际释放/停止本次远端后才分析。完整两模型/基线/
+dLoRA、A1–A5、S1–S13、数值证明和交付不变，goal active。本轮为verified wait。
+
+启动回执：D861四项运行合同检查通过，D860的88项直接复用；配置/入口/文档
+及prelaunch已提交1bb184d9bf6e4a8d539a741b16a809d78c998c33，推送并核实
+backup/d861-source-projection-fullw2-20261026，无force，最终V2尚未同步。
+tmux tc-d861-3b-source-projection-full-w2实际存活（pane PID1687621）；服务域
+primelora-tc-svc-427a2fff4c6c48c3807a50a392c0d31f.scope、InvocationID
+0f08869f248345128d6c8751763f49b2。远端已启，当前1000Mb/s full。
+watchdog sample91/monotonic2464028.651922913：持有3卡、无外来compute，
+服务峰值16031977472B、high/max/OOM/swap0、主机available97540771840B。
+请求已开始按原时间线提交；这里只是运行中证据，尚无完整性能或数值结论。
+不重启、不改参数、不并发扫描/压缩/新实验。下一监测同一运行，实际释放及
+本次远端停止后按D858现成入口完成指标、交付和owner结算。全部未完成范围
+不变，goal active；本轮为新候选验证并启动完整测量的progress，随后verified wait。
+此后置回执随下一正常检查点保存，不在测量中为回执另做备份。
 
 ## 2026-10-26 D861：来源投影进入唯一完整回放
 

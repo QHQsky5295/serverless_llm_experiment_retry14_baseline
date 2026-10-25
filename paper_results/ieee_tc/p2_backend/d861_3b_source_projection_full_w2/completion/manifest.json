@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/actual_profile_binding.json",
+      "sha256": "95fccec16f555012954a2e445d5225fabe17b49f7ba890138dd1a4bc141905ad"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/analysis_resources.json",
+      "sha256": "b12478ea3058d5b352cbb86dd86104a69ece7adc9323311873777056f505ca5d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/comparison.json",
+      "sha256": "848722850d469d601b992b86ba1c333d1f32ee60eb1c6f2cb81abe8c8a6240b1"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/complete.py.snapshot",
+      "sha256": "3835d0a2f260bf1ef7fa46dfa4abc6adbe2e610d8c8b842fb8e3dadf6c579f6e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/full4000.json",
+      "sha256": "c561f23b1f3a95dfa8229660087443f5beb0b0c8ea3ab3a2ca5de3a50b50763e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/protected_147_after.json",
+      "sha256": "5a88ff8a6eb65454973364d55797e9d5445c66b2d6b589fe532224faffe7b2f7"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/stages/diagnosis.json",
+      "sha256": "faad0ecf43efd4b74fa8c02ca8f348eb38c46b28f58323be8906c2e32b3716f1"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/stages/requests.csv",
+      "sha256": "e4a82512b6181363efb6fccbd82a87dbe7b94b81e7cd4d92767a13def437bc86"
+    }
+  ]
+}

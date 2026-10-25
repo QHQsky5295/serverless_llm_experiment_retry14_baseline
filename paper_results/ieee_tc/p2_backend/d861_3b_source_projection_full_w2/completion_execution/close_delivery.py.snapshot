@@ -1,0 +1,26 @@
+"""D861: reuse D858 delivery/owner audits with D858 as comparison parent."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd858_20261026/close_delivery.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'abec3857b6809f7f05bad0cb2816e640a8645bf3ee448520496a8c8d548cc1ba'
+_source = _template.read_text()
+_changes = (
+    ('d858_3b_single_lease_full_w2', 'd861_3b_source_projection_full_w2'),
+    ('d858_', 'd861_'),
+    ('D858', 'D861'),
+    ("'d846_3b_staging_identity_full_w2/completion'", "'d858_3b_single_lease_full_w2/completion'"),
+    ("'versus_d846'", "'versus_d858'"),
+    ("'vs_d846'", "'vs_d858'"),
+    ('against D846', 'against D858'),
+    ('D846 parent', 'D858 parent'),
+    ('versus_d846.json', 'versus_d858.json'),
+)
+for _old, _new in _changes:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw / 'delivery_program.py.snapshot'), 'exec')
+with (_raw / 'delivery_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw / 'delivery_program.py.snapshot'), 'exec'), globals())

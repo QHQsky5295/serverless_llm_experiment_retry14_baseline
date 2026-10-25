@@ -1,0 +1,10 @@
+{
+  "phase": "offline_delivery_audit_before_context_analysis",
+  "attempted_scope": "primelora-tc-aux-715e5e00a560439fb6f36621c29e99112.scope",
+  "exit_code": 1,
+  "error": "ValueError: not an owned TC service/test UUID scope",
+  "cause": "Manually typed suffix has 33 hexadecimal characters, not 32.",
+  "production_changed": false,
+  "new_gpu_replays": 0,
+  "resume": "Use the already generated immutable delivery_program.py.snapshot in a correctly named resource-limited scope; do not rewrite results or rerun inference."
+}

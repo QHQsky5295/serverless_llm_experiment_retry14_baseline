@@ -1,0 +1,28 @@
+"""D861: mechanically reuse D858's complete-run audit; no metric changes."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd858_20261026/complete.py'
+_sha = 'e177dfe026881bfcbe58210cdea4aa8fb92db116a9fb4a0bd7b69464d13935eb'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == _sha
+_source = _template.read_text()
+_changes = (
+    ('d858_3b_single_lease_full_w2', 'd861_3b_source_projection_full_w2'),
+    ('D858_SINGLE_LEASE_FULL_W2_20261026.md', 'D861_SOURCE_PROJECTION_FULL_W2_20261026.md'),
+    ('prelaunch_resume/qualification.json', 'prelaunch/qualification.json'),
+    ('d858_', 'd861_'),
+    ('D858', 'D861'),
+)
+for _old, _new in _changes:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw / 'completion_program.py.snapshot'), 'exec')
+with (_raw / 'completion_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+with (_raw / 'completion_template.json').open('x') as _stream:
+    json.dump(dict(template=str(_template), sha256=_sha, changes=_changes,
+                   metric_rules_changed=False), _stream, indent=2)
+    _stream.write('\n')
+exec(compile(_source, str(_raw / 'completion_program.py.snapshot'), 'exec'), globals())

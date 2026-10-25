@@ -1,0 +1,27 @@
+{
+  "template": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d858_20261026/complete.py",
+  "sha256": "e177dfe026881bfcbe58210cdea4aa8fb92db116a9fb4a0bd7b69464d13935eb",
+  "changes": [
+    [
+      "d858_3b_single_lease_full_w2",
+      "d861_3b_source_projection_full_w2"
+    ],
+    [
+      "D858_SINGLE_LEASE_FULL_W2_20261026.md",
+      "D861_SOURCE_PROJECTION_FULL_W2_20261026.md"
+    ],
+    [
+      "prelaunch_resume/qualification.json",
+      "prelaunch/qualification.json"
+    ],
+    [
+      "d858_",
+      "d861_"
+    ],
+    [
+      "D858",
+      "D861"
+    ]
+  ],
+  "metric_rules_changed": false
+}

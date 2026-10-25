@@ -1,0 +1,30 @@
+"""Reuse D846 explicit-file backup for the complete D861 observation."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd846_20261025/backup_program.py.snapshot'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '1d4bd97aa0833c68824b6d1e4aaa18091d0d4bd11706369d686101964aedaee3'
+_source = _template.read_text()
+_changes = (
+    ('d846_3b_staging_identity_full_w2', 'd861_3b_source_projection_full_w2'),
+    ('D846_STAGING_IDENTITY_FULL_W2_20261025.md', 'D861_SOURCE_PROJECTION_FULL_W2_20261026.md'),
+    ("         'completion_template.json', 'delivery_template_reuse.json',",
+     "         'completion_template.json', 'delivery_template_reuse.json',\n         'delivery_program.py.snapshot', 'delivery_launcher_error.json',"),
+    ("target = evidence / (name + '.snapshot' if name.endswith('.py') else name)",
+     "target = evidence / (name + '.snapshot' if name.endswith('.py') else name + '.txt' if name.endswith('.log') else name)"),
+    ('1cd8fee097c86d8bc84081209ae082a2cc7e57190e018c6a83051a9114874e22',
+     '22e1482b1b6dc93479f0ecdb4fb394850c8daa7ef5e986861dd7f761f6f73dd0'),
+    ('Reuse D845 67 targeted CPU checks and D846 23 run-contract checks. Complete 4000-request metrics/stages, delivery, native-owner and settlement audits passed; no new production change or replay during closure.',
+     'Reuse D860 88 targeted CPU checks and D861 4 run-contract checks. Complete 4000-request metrics/stages, delivery, native-owner and settlement audits passed. Preserve the offline scope-name typo and reuse its generated analyzer without another GPU replay.'),
+    ('tc: preserve D846 full W2 staging identity trade-off and delivery evidence',
+     'tc: preserve D861 source-projection trade-off and remaining 3B SLO gap'),
+    ('backup/d846-complete-20261025', 'backup/d861-complete-20261026'),
+)
+for _old, _new in _changes:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw / 'backup_program.py.snapshot'), 'exec')
+with (_raw / 'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw / 'backup_program.py.snapshot'), 'exec'), globals())

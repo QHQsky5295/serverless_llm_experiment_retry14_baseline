@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "new_gpu_replays": 0,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-de26e6d3ac89f6f7a754b4e1bb4a234b.scope",
+    "invocation_id": "28ef2892c40e4521a7319b67c518505e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-de26e6d3ac89f6f7a754b4e1bb4a234b.scope",
+    "inode": 32710187
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-de26e6d3ac89f6f7a754b4e1bb4a234b.scope",
+    "memory.current": 15859712,
+    "memory.peak": 719560704,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 131483981\nuser_usec 124225853\nsystem_usec 7258128\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "resolves": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/closed_outcome.json",
+      "sha256": "b822aec63d602090d0dc7a530b86121cee42a49945bfc9dac4a20217b1f805d4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "2155008ab6b056f9e8d5a97445d7f37ca06c3991619cbe1ba572917d082434ad"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/owner_publication_actual.json",
+      "sha256": "1667ba43917cb83518cdafef89426282af522278318b74ff59a0a89f1c5aa28c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/decoder_actual.json",
+      "sha256": "34f6d626eeb4d7b1a976cf8b47ed249369f794b83a17c07f118f339adec98708"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/owner_anchor_actual.json",
+      "sha256": "e1b909b73c21b813fbaaa53db6688538c954b06d03ed9bdc717bf48c67e623a2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/completion/versus_d858.json",
+      "sha256": "8de0581267d58ce2288536466d7b81021d5c7e7bda0025554d460ab5a6c84ba1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/settlement_analysis/summary.json",
+      "sha256": "ece783acb8a89b5595a94c5e06542e14db3e1db2d6d789b3742802cbf8db9dc1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d861_3b_source_projection_full_w2/closure.json",
+      "sha256": "f42a4f0b918de70df0da1e2b2457cde20012d3b570de3f0c3a605911bd7ec513"
+    }
+  ],
+  "limitation": "Append-only completion of previously pending evidence; independent numerical adapter correctness remains unknown. Single known-workload observation, not a confidence interval or dominance claim."
+}
