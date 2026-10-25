@@ -1,4 +1,25 @@
-# IEEE TC execution status — D837 extraction component closed; D831 base retained
+# IEEE TC execution status — D838 decoder component passed; integration pending
+
+## 2026-10-25 D838：单线程兼容解码组件有收益，尚非完整服务结果
+
+独立isal1.8.0 wheel资格及一次固定ABBAAB组件完成；stdlib解包148.048–148.689ms，
+isal56.099–61.508ms，原归档/8文件及owner最终SHA一致。两解码器CRC/长度/
+截断错误完整读取共6项拒绝。全部原始值保留，不做CI或外推SLO。
+安装仅raw/dependency26文件，不改原vLLM环境；峰值约353/366MB，high/max/
+OOM/swap0、作用域退出、147保护不变、无生产修改/远端启动/GPU回放。
+
+下一D839只接入该解码选择及必要元数据，复用HTTP/取消/原子发布测试，
+随后单次完整W2；不追加组件寻优或短性能回放。当前完整观测仍92.075%，
+差117条；数值身份未知不变。正在封存本组件，尚未宣称该改动达到系统目标。
+共享k3s不改；完整后续矩阵、消融、敏感性、论文证据与最终V2范围不变。
+
+## 2026-10-25 D837备份回执；D838独立解码组件登记
+
+D837六个明确路径已提交6b0c771557be0675f1b60b4ee13b8d26a78e8f63，
+远端backup/d837-gzip-extraction-20261025已核实同SHA，无force；最终V2未同步。
+D838仅在独立目录安装固定isal 1.8.0 wheel并核查单线程解码，同一既有归档、
+同owner完整校验、同受限组件；不改冻结推理环境、生产代码和远端服务。
+这是一个有界准备成本候选，不是重开已拒绝的直接流模式或无新假设性能重跑。
 
 ## 2026-10-25 D837：直接流式解包未改善，保留测量并关闭该候选
 
