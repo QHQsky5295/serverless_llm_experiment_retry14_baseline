@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/startup.py.snapshot",
+      "sha256": "e2f81985df92742002d6408acbc4aee914e206f200be727cd66e5b1db7aca4f9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/startup_executed.py.snapshot",
+      "sha256": "ab6c6601395d0604cacfbc64c1c29540e04f572e84d047b3ec06c7ccb4ef5bb8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/reuse.json",
+      "sha256": "7366d300eb82416972449e74d9770c8e2418d76e53560798a2de0c1450987b26"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/resources.json",
+      "sha256": "69c4804b648b3a68ca7b5b78cce1ef88e1f83c3254696167f933e2fb197bbe7c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/backup_results.py.snapshot",
+      "sha256": "521f9792af3181f893da22191d4f72d15f50c6d5ca73363213289c0059a28aac"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d867_native_graph_residual/completion_execution/backup_program.py.snapshot",
+      "sha256": "b0bff9ce5d0fa8e7970ba78b43e41daccdc56809002224a3ef359ceece856079"
+    }
+  ],
+  "remote_monitor_sha256": null,
+  "protected_files": 147,
+  "procedure_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/backup_program.py.snapshot"
+}

@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d867_native_graph_residual/startup/diagnosis.json",
+      "sha256": "512cc51ec1073dfb633769bebd1be669e75d9d2659480cd8367a1eaf22d2b13c",
+      "bytes": 129904
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d867_native_graph_residual/startup/analyze.py.snapshot",
+      "sha256": "e2f81985df92742002d6408acbc4aee914e206f200be727cd66e5b1db7aca4f9",
+      "bytes": 3189
+    }
+  ]
+}

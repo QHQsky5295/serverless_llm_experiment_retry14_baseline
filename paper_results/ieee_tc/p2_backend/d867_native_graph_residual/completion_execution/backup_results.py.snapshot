@@ -1,0 +1,90 @@
+"""Reuse D866's explicit-path backup for a closed, CPU-only analysis package."""
+import hashlib
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+template = RAW.parent/'d866_20261026/backup_program.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '725ff4d6d59b4c88e28a9be96e0a0809c30370ebe748591a4e7ef51a982d575e'
+source = template.read_text()
+
+
+def replace(old, new):
+    global source
+    assert source.count(old) == 1, old[:120]
+    source = source.replace(old, new)
+
+
+replace('d866_3b_native_host_graph_full_w2', 'd867_native_graph_residual')
+start = source.index("for name in ('start_identity.json'")
+end = source.index('seal = RAW.parent.parent', start)
+source = source[:start] + '''resources = read(RAW/'resources.json')
+assert not Path(resources['identity']['path']).exists()
+assert all(v == 0 for v in resources['resources']['memory.events'].values())
+assert resources['resources']['memory.swap.current'] == 0
+diagnosis = read(OUT/'startup/diagnosis.json')
+assert diagnosis['passed'] and diagnosis['new_gpu_replays'] == 0
+assert not diagnosis['production_changes'] and diagnosis['n_correct'] is None
+assert not diagnosis['ranking_eligible']
+for row in diagnosis['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+for run in diagnosis['runs']:
+    for row in run['source_refs']:
+        assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+    assert run['counts']['n'] == 4000
+    assert len(run['actions']) == 2
+    assert run['business_control_counts']['all_low'] == 0
+    assert abs(sum(run['physical_holding']['window_gpu_seconds'].values())
+        - run['physical_holding']['gpu_seconds']) < 1e-6
+    for event in run['actions']:
+        assert event['score'] == max(event['ratios'].values())
+        assert event['current_instances'] == event['ready_instances'] + event['pending_instances']
+    groups = [r for r in run['stage_groups'] if r['dimension'] == 'slo_group']
+    assert sum(r['n'] for r in groups) == 4000
+    assert sum(r['joint_pass'] for r in groups) == run['counts']['joint_pass']
+    assert sum(r['joint_pass'] for r in run['phases']) == run['counts']['joint_pass']
+parent, candidate = diagnosis['runs']
+assert parent['label'] == 'D858' and candidate['label'] == 'D866'
+assert parent['control_limits'] == candidate['control_limits']
+assert parent['counts']['joint_pass'] == 3746
+assert candidate['counts']['joint_pass'] == 3748
+for event in candidate['actions']:
+    assert event['queue_depth'] == event['active_requests'] == 0
+    assert event['ttft_sample_count'] == 1
+    assert event['p95_ttft_ms'] == float(candidate['first_request']['ttft_ms'])
+    assert event['above_one_components'] == ['ttft']
+q = {'protected': {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}}
+evolving = {ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D867_NATIVE_GRAPH_RESIDUAL_20261026.md'}
+''' + source[end:]
+start = source.index('files = []')
+end = source.index("evidence = OUT / 'completion_execution'", start)
+source = source[:start] + '''manifest = read(OUT/'startup/manifest.json')
+assert manifest['passed']
+for row in manifest['outputs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+files = [path for path in sorted((OUT/'startup').iterdir()) if path.is_file()]
+''' + source[end:]
+start = source.index('small = (')
+end = source.index('for name in small:', start)
+source = source[:start] + '''small = ('startup.py', 'startup_executed.py.snapshot',
+         'reuse.json', 'resources.json', 'backup_results.py', 'backup_program.py.snapshot')
+''' + source[end:]
+start = source.index("remote_sha = '")
+end = source.index("save(evidence / 'manifest.json'", start)
+source = source[:start] + "remote_sha = None  # No remote service or GPU run in D867.\n" + source[end:]
+replace("procedure_source=str(RAW.parent / 'd752_20261023/backup_results.py')",
+        "procedure_source=str(RAW.parent / 'd866_20261026/backup_program.py.snapshot')")
+start = source.index("     qualification='Reuse D865")
+end = source.index("call(['git', 'commit'", start)
+source = source[:start] + """     qualification='D867 reused D862 closed-run projection passed; startup/scale score, phase/group counts, physical windows and source SHA checks passed. No production changes or new GPU run; no added backend qualification.'))
+""" + source[end:]
+replace('tc: preserve D866 full W2 native graph trade-off and exact lifecycle evidence',
+        'tc: close D867 startup feedback attribution and retain full residual evidence')
+replace('refs/heads/backup/d866-complete-20261026',
+        'refs/heads/backup/d867-residual-20261026')
+generated = RAW/'backup_program.py.snapshot'
+compile(source, str(generated), 'exec')
+with generated.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(generated), 'exec'), globals())

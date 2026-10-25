@@ -1,0 +1,17 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-00c3f825eaa244b78176db1bd120cf55.scope",
+    "invocation_id": "12eafd08b86d4ea18c662a3f4aaaa5b7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-00c3f825eaa244b78176db1bd120cf55.scope",
+    "inode": 32796439
+  },
+  "cause": "D866 backup template received an empty CSV list; git interpreted it as all staged paths and checked snapshot trailing blank under CSV whitespace rules.",
+  "correction": "Skip only an absent category; retain and check every snapshot with its original snapshot policy. No evidence bytes altered.",
+  "prior_exit_code": 1,
+  "prior_commit_created": false,
+  "prior_push_started": false,
+  "analysis_passed": true,
+  "protected_files": 147,
+  "resume_sha256": "cd3ab00badde70dc2f34f10f6d6fdbe01b85f7589c312d6a9106d6bde740a425",
+  "original_program_sha256": "b0bff9ce5d0fa8e7970ba78b43e41daccdc56809002224a3ef359ceece856079"
+}

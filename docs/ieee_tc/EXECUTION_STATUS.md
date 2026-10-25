@@ -1,4 +1,39 @@
-# IEEE TC execution status — D866 completed, SLO gap remains
+# IEEE TC execution status — D867 closed-run attribution complete, SLO gap remains
+
+## 2026-10-26 07:40 CST：D867复用完整日志，早扩容原因已恢复
+
+本节点为离线分析progress，无新GPU回放/生产改动/调参。D862分析器和D858
+已封存投影直接复用，只分析D866；CPU域已结束，峰值614281216B，high/max/
+OOM/swap0，当前无GPU任务，磁盘约165.45GiB。详细见
+`D867_NATIVE_GRAPH_RESIDUAL_20261026.md`及d867 curated目录。
+
+D866首请求TTFT6105.497036ms越过5000ms在线扩容线，8.870626/10.926255s
+两次scale-up均queue=active=0、样本数1，P95恰为首请求，第二次pending=1
+已计入。D858在322.321149/324.411760s由active分量触发。公式复算一致；
+不得把online5000ms混为共同离线SLO，或据此删首请求/改阈值/延迟扩容。
+两轮均无all-low/缩容，精确资源增加仍来自626.144961更早分配减0.868099
+释放差；不证明graph造成初始ready变化，未隔离其系统因果收益。
+
+完整D866仍3748/4000=93.70%，U11936.678203GPU-s在预算内，差52条且
+n_correct未知，不达G1/G2。187仅TTFT违约组：到达→准入854.953ms、来源
+取得1522.598ms、原生prefill97.206ms。194条TTFT违约132remote/62local；
+133条准入前最大子项为含owner确认的runtime-slot包络，不等于无空闲GPU。
+graph保留opt-in未晋升，默认基础仍D857/D858；不重复同键或GPU描述微优化。
+
+下一沿既有请求准备/来源确认与前台推进的串行依赖选择一个有证据候选，
+先现有日志/代码/官方实现，不追加无问题驱动的profiling。D197/D514–516、
+D737/D744、D712/D713及既有HOST/线程/stat否决不重开。全部同版本两模型、
+baseline/dLoRA、A1–A5/S1–S13、数值证明、图文与最终V2继续开放，goal active。
+当前保存证据并正常备份；HydraServe既有隔离适配复用，不动共享k3s。
+
+### D866结果备份回执（提交后追加）
+
+检查点`d1a5ee2f641fc84810d42751bf9af39adebd6b8a`已推送并ls-remote核验
+`refs/heads/backup/d866-complete-20261026`，59个明确路径；diff/CSV/原始
+snapshot分别按既有规则检查，来源SHA及147项保护验证通过，无凭据或用户
+manifest入库，无force。`raw/d866_20261026/backup_completion.json`保存回执。
+最终V2仍未同步，不把检查点备份称为最终交付。本段随下一正常检查点保存。
+当前无GPU任务；下一复用完整日志核查早扩容观测，目标保持active。
 
 ## 2026-10-26 07:30 CST：D866完整结果已核验，正在备份
 

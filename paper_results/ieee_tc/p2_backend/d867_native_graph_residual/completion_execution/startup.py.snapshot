@@ -1,0 +1,66 @@
+"""Reuse D862 startup/control analysis; only D866 needs a new projection."""
+import copy
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+template = RAW.parent/'d862_20261026/startup_executed.py.snapshot'
+assert p.digest(template) == '80d7666bd392a8b43f7a8ccafc6fe7d5a02fc3490ec7ce5f5a19e44edf446690'
+parent = ROOT/'paper_results/ieee_tc/p2_backend/d862_source_projection_residual/startup/diagnosis.json'
+assert p.digest(parent) == '771289b0fc4c036da075bcc53c020171b3dd4ea652fcac99db7d238ada87a079'
+parent_data = json.loads(parent.read_text())
+assert parent_data['passed']
+cached_parent = next(r for r in parent_data['runs'] if r['label'] == 'D858')
+for row in cached_parent['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+source = template.read_text()
+old_case = """    ('D858', 'd858_3b_single_lease_full_w2/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261026_d858_3b_max3_full_w2.yaml'),
+"""
+assert source.count(old_case) == 1
+source = source.replace(old_case, '')
+changes = {
+    'd862_source_projection_residual/startup': 'd867_native_graph_residual/startup',
+    'd862_closed_run_startup_feedback_v1': 'd867_closed_run_startup_feedback_v1',
+    "reports = []": "reports = [copy.deepcopy(cached_parent)]",
+    "'D861'": "'D866'",
+    'd861_3b_source_projection_full_w2': 'd866_3b_native_host_graph_full_w2',
+    '20261026_d861_3b_max3_full_w2.yaml': '20261026_d866_3b_max3_full_w2.yaml',
+    'source_refs=[ref(Path(__file__)),': 'source_refs=[ref(parent), ref(template), ref(Path(__file__)),',
+}
+for old,new in changes.items():
+    assert old in source, old
+    source = source.replace(old,new)
+generated = RAW/'startup_executed.py.snapshot'
+compile(source, str(generated), 'exec')
+with generated.open('x') as stream:
+    stream.write(source)
+with (RAW/'reuse.json').open('x') as stream:
+    json.dump(dict(template=str(template), sha256=p.digest(template),
+        parent=str(parent), parent_sha256=p.digest(parent),
+        changes=changes, reused_parent_label='D858',
+        scope=identity, new_gpu_replays=0, production_changes=False), stream, indent=2)
+    stream.write('\n')
+exec(compile(source, str(generated), 'exec'), globals())
+resources = p.cgroup_snapshot(group)
+assert all(v == 0 for v in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+with (RAW/'resources.json').open('x') as stream:
+    json.dump(dict(identity=identity, resources=resources), stream, indent=2)
+    stream.write('\n')

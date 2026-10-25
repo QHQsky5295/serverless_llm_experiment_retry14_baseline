@@ -1,0 +1,48 @@
+"""Resume the preserved D867 backup after an empty CSV pathspec issue."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+program = (RAW/'backup_program.py.snapshot').read_text()
+exec(compile(program[:program.index('assert os.sched_getaffinity')],
+             str(RAW/'backup_program.py.snapshot'), 'exec'), globals())
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not Path(read(RAW/'backup_completion_identity.json')['path']).exists()
+assert not Path(read(RAW/'resources.json')['identity']['path']).exists()
+evidence = OUT/'completion_execution'
+for row in read(evidence/'manifest.json')['files']:
+    assert p.digest(ROOT/row['path']) == row['sha256']
+for row in read(OUT/'startup/manifest.json')['outputs']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected[str(ROOT/'configs/generated/lora_manifest_1000.json')] = '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha
+resume = OUT/'backup_resume'
+resume.mkdir(exist_ok=False)
+with (resume/'resume.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(resume/'receipt.json', dict(identity=own,
+    cause='D866 backup template received an empty CSV list; git interpreted it as all staged paths and checked snapshot trailing blank under CSV whitespace rules.',
+    correction='Skip only an absent category; retain and check every snapshot with its original snapshot policy. No evidence bytes altered.',
+    prior_exit_code=1, prior_commit_created=False, prior_push_started=False,
+    analysis_passed=True, protected_files=len(protected),
+    resume_sha256=p.digest(resume/'resume.py.snapshot'),
+    original_program_sha256=p.digest(RAW/'backup_program.py.snapshot')))
+evolving = {ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D867_NATIVE_GRAPH_RESIDUAL_20261026.md'}
+files = [path for path in sorted(OUT.rglob('*')) if path.is_file()] + sorted(evolving)
+remote_sha = None
+existing = set(call(['git', 'diff', '--cached', '--name-only']).splitlines())
+assert existing == {str(path.relative_to(ROOT)) for path in files if path.parent != resume}
+tail = program[program.index('paths = [str(path.relative_to(ROOT))'):]
+tail = tail.replace("assert not call(['git', 'diff', '--cached', '--name-only'])", '')
+old = """call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])"""
+assert tail.count(old) == 1
+tail = tail.replace(old, 'if csvs:\n    ' + old.replace('\n', '\n    '))
+exec(compile(tail, str(RAW/'backup_program.py.snapshot')+'#resume', 'exec'), globals())

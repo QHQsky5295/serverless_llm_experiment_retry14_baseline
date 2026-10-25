@@ -1,0 +1,24 @@
+{
+  "template": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d862_20261026/startup_executed.py.snapshot",
+  "sha256": "80d7666bd392a8b43f7a8ccafc6fe7d5a02fc3490ec7ce5f5a19e44edf446690",
+  "parent": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d862_source_projection_residual/startup/diagnosis.json",
+  "parent_sha256": "771289b0fc4c036da075bcc53c020171b3dd4ea652fcac99db7d238ada87a079",
+  "changes": {
+    "d862_source_projection_residual/startup": "d867_native_graph_residual/startup",
+    "d862_closed_run_startup_feedback_v1": "d867_closed_run_startup_feedback_v1",
+    "reports = []": "reports = [copy.deepcopy(cached_parent)]",
+    "'D861'": "'D866'",
+    "d861_3b_source_projection_full_w2": "d866_3b_native_host_graph_full_w2",
+    "20261026_d861_3b_max3_full_w2.yaml": "20261026_d866_3b_max3_full_w2.yaml",
+    "source_refs=[ref(Path(__file__)),": "source_refs=[ref(parent), ref(template), ref(Path(__file__)),"
+  },
+  "reused_parent_label": "D858",
+  "scope": {
+    "unit": "primelora-tc-aux-13755ca4041347119d583b7a9b823bae.scope",
+    "invocation_id": "4223ee362369435c8d0568c17aec5dc7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-13755ca4041347119d583b7a9b823bae.scope",
+    "inode": 32792010
+  },
+  "new_gpu_replays": 0,
+  "production_changes": false
+}
