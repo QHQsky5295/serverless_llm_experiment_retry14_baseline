@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "f41045f7b560dd0c6df235163c6fbd094fbd36a4",
+  "backup_ref": "refs/heads/backup/d866-native-host-graph-fullw2-20261026",
+  "tmux": "tc-d866-3b-native-host-graph-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-459df1782e9b49d4ab4414b6b77a4f17.scope",
+    "invocation_id": "615f006a28f743bb85718000acce1afa",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-459df1782e9b49d4ab4414b6b77a4f17.scope",
+    "inode": 32753085
+  },
+  "qualification_sha256": "4af4b939f4ae066e222128053ff82e1190a4d3e34fee86dbaf5ff5455ed7653c"
+}

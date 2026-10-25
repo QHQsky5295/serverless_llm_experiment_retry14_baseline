@@ -1,0 +1,25 @@
+{
+  "head": "f41045f7b560dd0c6df235163c6fbd094fbd36a4",
+  "ref": "refs/heads/backup/d866-native-host-graph-fullw2-20261026",
+  "files": [
+    "configs/ieee_tc/20261026_d866_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D866_NATIVE_HOST_GRAPH_FULL_W2_20261026.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/resume_reason.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/reused_d865.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/start_resume.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/stop_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch_resume/tests.txt",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/prelaunch/reused_d865.json"
+  ]
+}

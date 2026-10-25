@@ -1,4 +1,76 @@
-# IEEE TC execution status — D865 native graph production integration checked
+# IEEE TC execution status — D866 completed, SLO gap remains
+
+## 2026-10-26 07:30 CST：D866完整结果已核验，正在备份
+
+本轮为实质progress：唯一4000请求3B W2完成，三项退出码0，所有实际GPU
+及远端本轮服务已释放；未重启、无同键重跑。完成沿用的指标/阶段、远端交付、
+owner/settlement和新增实际graph入口覆盖核查。完整原生/绑定4000；独立数值
+正确性仍未知，不声称全部数值正确或正式排名资格。
+
+D866联合3748/4000=93.70%，95%仍差52请求；U=11936.67820275575GPU-s，
+预算12083.063870内。相比D858，联合仅+2、P95 TTFT2142.840463→2076.922676ms，
+但U+625.276862（+5.528%）。187仅TTFT、58仅TPOT、7双超限。不得称已达标。
+两次扩容持卡从父版322.538/324.645秒提前至9.040/11.097秒；精确增加来自
+更早分配626.144961减较早释放0.868099，两轮无缩容间隙。实际scale-up提交
+序号由208/217变为1/1，为什么提前仍需对照采样/完成事件，不能直接因果归因。
+
+4000实际回执/3owner均为D864指定graph库；505真实远端交付1172100920B完整
+匹配、无请求打包；505结算完成。监测4076样本，服务峰值33054109696B，
+high/max/OOM/swap0，磁盘最低162481352704B；147保护项和用户manifest未变。
+三个离线分析辅助域都已结束，当前无GPU测量，磁盘约165.5GiB。详细结果见
+`D866_NATIVE_HOST_GRAPH_FULL_W2_20261026.md`及d866 curated目录。
+
+裁决：有效但未达标trade-off，graph保留显式opt-in，不改默认descriptor或
+宣布最终接受。下一复用D858/D866完整日志核对首次scale-up负载观测和历史
+控制边界；不硬编码扩容延时、变阈值、重跑同键或追加无问题驱动的profiling。
+随后按证据确定一个语义保持候选。当前准备正常备份检查点，最终V2仍未同步。
+HydraServe既有隔离适配/结果复用，不动共享k3s。全部同版本两模型全场景、
+baseline/dLoRA、A1–A5、S1–S13、数值证明、论文图文与最终V2继续开放，goal active。
+
+### 2026-10-26 06:47 CST：完整回放已过半，仍为verified wait
+
+同一服务持续active/running，未重启。最新Live为2183/4000成功、失败0，
+watchdog样本2071：峰值26780299264B，high/max/OOM/swap均0，磁盘
+168094875648B，无外部compute或告警。此前12次/50秒只读轮询已结束；
+不因观察器轮询结束而把实际实验当成结束。尚无完整launch.json/性能分析。
+继续监测同一tmux和InvocationID，实际结束后才收尾和分析。测量期间无重型
+维护、发布或代码修改；目标、完整范围与n_correct未知限制不变。
+
+### 2026-10-26 06:25 CST：同一回放继续，verified wait
+
+本轮完整重读计划并按monitor-experiment检查实际systemd/tmux与持续增长日志。
+服务InvocationID仍为02ffe7286ed9415899dabac459244640，active/running；
+573/4000成功终态、失败0。样本778：峰值18587881472B，high/max/OOM/
+swap均0，主机available98684858368B，磁盘175651704832B，无外部compute
+或保护告警。三份实际GPU进程maps均出现D864 attempt3指定库；只证明库
+载入，具体入口/调用与最终指标待完整outcome核验，不从局部完成率推断SLO。
+已只读核对D858 complete.py/close_delivery.py，收尾可复用其指标、阶段、
+远端与物理生命周期流程，不新增分析口径。测量中没有代码修改、重型维护、
+备份或新实验；本轮只更新这份轻量状态记录。下一继续同一运行，完成并释放
+后再分析，不重启。所有原范围和数值正确性限制仍开放，goal active。
+
+## D866已实际启动（2026-10-26 06:16 CST，仍在测量）
+
+本轮接续已运行的唯一完整4000请求3B W2，未重新启动。4项运行合同检查
+通过；提交f41045f7b560dd0c6df235163c6fbd094fbd36a4已备份并核验
+refs/heads/backup/d866-native-host-graph-fullw2-20261026，最终V2尚未同步。
+首次登记因D858报告后补完成结果的文档SHA变化停止，发生在测试/提交/远端/
+GPU之前；仅排除这份可变报告的旧引用后继续，前次脚本和记录保留。
+
+实际tmux为tc-d866-3b-native-host-graph-full-w2；服务
+primelora-tc-svc-3c5678820e4f453ea2df71c9dfdc1644.scope为active/running，
+InvocationID=02ffe7286ed9415899dabac459244640。start_receipt.json和
+3b_max3_full_w2/launch.launch/exec_receipt.json均已生成，回放/终态持续推进。
+06:16已观察103个终态成功（进度而非完整正确性或SLO结论）。watchdog样本
+266：服务峰值17192308736B、swap/high/max/OOM均0、外部compute/逃逸为空，
+磁盘178041974784B可用，三张实际GPU由本轮持有，无保护告警。
+
+只保持既有监测；测量期间不安装、编译、压缩、扫描、备份或修改被测代码。
+收尾按原入口实际释放GPU后核对身份停止远端服务，再复用完整分析流程；
+不要重跑同键或追加前缀。父结果仍为D858的93.65%和11311.40GPU-s；D866
+尚无完整指标，n_correct数值证据仍未知。完整同版本两模型、baseline/dLoRA、
+A1–A5、S1–S13、数值证明、审稿图文及最终V2交付均开放，goal active。
+本段是提交后的实时记录，随下一正常检查点备份，不在GPU测量中另发备份。
 
 ### D866完整回放已准备（尚未启动）
 

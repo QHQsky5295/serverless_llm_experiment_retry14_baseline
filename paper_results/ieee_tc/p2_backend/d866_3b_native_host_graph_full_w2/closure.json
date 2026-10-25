@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "kind": "d866_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3806,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3935,
+    "joint_pass": 3748
+  },
+  "violation_partition": {
+    "ttft_only_fail": 187,
+    "tpot_only_fail": 58,
+    "both_fail": 7
+  },
+  "shortfall_to_3800": 52,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-640000438ddb44cbb7d01ecfbf5a90da.scope",
+      "invocation_id": "089fda5e12ba4eac9d74501675ad39d9",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-640000438ddb44cbb7d01ecfbf5a90da.scope",
+      "inode": 32786154
+    }
+  ],
+  "resources": {
+    "memory.peak": "639688704",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete W2 observation and all earlier candidates. Observed joint passes: 3748/4000; physical GPU seconds: 11936.67820275575. The exact single-observation comparison against D858 and the frozen budget is stored separately. No independent numerical adapter proof, final ranking, confidence interval or cross-workload claim is inferred. Actual settlement coverage is completed by the retained analyzer. No same-key retry or threshold change; use the complete measurements and stage evidence for the next main-line decision."
+}

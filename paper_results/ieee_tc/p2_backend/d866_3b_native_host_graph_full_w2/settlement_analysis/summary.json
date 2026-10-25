@@ -1,0 +1,123 @@
+{
+  "passed": true,
+  "kind": "d866_actual_owned_file_settlement_v1",
+  "full_request_population": 4000,
+  "states": {
+    "settled": 505
+  },
+  "joined_requests": 505,
+  "distinct_joined_pressure_transfers": 505,
+  "own_io_requests": 505,
+  "coalesced_subscribers": 0,
+  "completed_before_ready_callback": [],
+  "without_settlement_by_selected_tier": {
+    "gpu": 1761,
+    "host": 1112,
+    "nvme": 620,
+    "remote": 2
+  },
+  "observed_overlap_counts": {
+    "load_starts_before_pressure_finish": 431,
+    "first_token_before_pressure_finish": 102,
+    "last_token_before_pressure_finish": 15,
+    "worker_done_before_pressure_finish": 13
+  },
+  "metrics": {
+    "source_ready_to_load_ms": {
+      "count": 505,
+      "mean": 101.57391049226027,
+      "p50_type1": 77.01900228857994,
+      "p95_type1": 237.83723497763276
+    },
+    "source_ready_to_acquisition_ms": {
+      "count": 505,
+      "mean": 140.0194758696869,
+      "p50_type1": 114.7806285880506,
+      "p95_type1": 274.65080423280597
+    },
+    "pressure_finish_envelope_ms": {
+      "count": 505,
+      "mean": 305.4544918958356,
+      "p50_type1": 228.68320811539888,
+      "p95_type1": 801.9606028683484
+    },
+    "load_overlap_pressure_ms": {
+      "count": 505,
+      "mean": 32.35546986913622,
+      "p50_type1": 35.945780109614134,
+      "p95_type1": 46.60003073513508
+    },
+    "decode_overlap_pressure_ms": {
+      "count": 505,
+      "mean": 31.553277232232364,
+      "p50_type1": 0.0,
+      "p95_type1": 170.3871600329876
+    },
+    "pressure_tail_after_worker_ms": {
+      "count": 505,
+      "mean": 8.979361659229392,
+      "p50_type1": 0.0,
+      "p95_type1": 0.0
+    },
+    "job_finish_to_join_observation_ms": {
+      "count": 505,
+      "mean": 1994.1550851919421,
+      "p50_type1": 1685.4583933018148,
+      "p95_type1": 4320.278946310282
+    },
+    "worker_to_controller_completion_ms": {
+      "count": 505,
+      "mean": 91.88621544122401,
+      "p50_type1": 1.661623828113079,
+      "p95_type1": 672.8452392853796
+    }
+  },
+  "metric_sample_counts": {
+    "source_ready_to_load_ms": 505,
+    "source_ready_to_acquisition_ms": 505,
+    "pressure_finish_envelope_ms": 505,
+    "load_overlap_pressure_ms": 505,
+    "decode_overlap_pressure_ms": 505,
+    "pressure_tail_after_worker_ms": 505,
+    "job_finish_to_join_observation_ms": 505,
+    "worker_to_controller_completion_ms": 505
+  },
+  "native_load_population": 505,
+  "gpu_reuse_population": 0,
+  "all_joined_jobs_and_pressure_finished_before_request_success": true,
+  "late_failure_or_cancel_observed_in_full_replay": false,
+  "failure_cancel_path_coverage": "D831 CPU tests only; no failures/cancellations claimed in D866",
+  "join_method": "Exact movement job+intent; unique same-owner/adapter/target/attempt pressure envelope",
+  "limitations": [
+    "Join observation is not background completion or pure wait time.",
+    "Pressure/load/decode overlaps are nested observations, not additive saved latency.",
+    "No counterfactual SLO, independent numerical adapter proof, or cross-workload claim.",
+    "Requests with no new file preparation are retained, not counted as missing settlement.",
+    "Confirmed GPU reuse has no native load interval: null load-only metrics, explicit sample counts; settlement, acquisition and native token timing remain checked."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d866_3b_max3_full_w2.json",
+      "sha256": "c8ce2c6a49d2aad61bfb49a9697b2ce0c2d78009d525251183d894d29326d664",
+      "bytes": 331539675
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "b375e504527165a537dc0ddc65e9c6894f536cd6cb7e348b8edb700bae15af76"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/completion/full4000.json",
+      "sha256": "28c0b0e34eb17fa480768af732fa3feb0c650f36e33ffcde02ea8f59630dee39"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/settlement_resume_program.py.snapshot",
+      "sha256": "4c31571d8962e5744afe4ff02f03927e123dee339e57576f5a58955d76e073a6"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d866_3b_native_host_graph_full_w2/settlement_analysis/requests.csv",
+      "sha256": "84648d3e7acb175af7c3c32d35fcd28e188e020e7596a0130b924d42fe0cb214"
+    }
+  ]
+}

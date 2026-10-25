@@ -1,0 +1,8 @@
+"""D866 campaign-identity adaptation of D858's tested explicit-path backup.
+
+Template SHA e421e7790f7e33e232c885811934faf6b29e2a92d8e9551e387c5a831fe5cbcd.
+Adds only the closed native-mode/paired-lifecycle evidence directory and identity.
+"""
+from pathlib import Path
+path = Path(__file__).resolve().with_name('backup_program.py.snapshot')
+exec(compile(path.read_text(), str(path), 'exec'), globals())

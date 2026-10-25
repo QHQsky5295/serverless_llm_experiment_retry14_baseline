@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "all_requests": 4000,
+  "owners": [
+    {
+      "owner_id": "27aed347bdf7481c94129e23a388decf",
+      "worker_pid": 2073598,
+      "worker_rank": 0,
+      "requests": 1110
+    },
+    {
+      "owner_id": "4d0ec8230fff4229b34a613090c5a00f",
+      "worker_pid": 2071498,
+      "worker_rank": 0,
+      "requests": 1559
+    },
+    {
+      "owner_id": "78b5fa6698c84833ae540f9b8bd74114",
+      "worker_pid": 2073662,
+      "worker_rank": 0,
+      "requests": 1331
+    }
+  ],
+  "native_host_descriptor": {
+    "kind": "fresh_native_host_graph_v1",
+    "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "sha256": "30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80",
+    "torch_version": "2.13.0+cu130",
+    "python_abi": "cpython-312",
+    "tensor_state_cached": false
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d866_3b_max3_full_w2.json",
+      "sha256": "c8ce2c6a49d2aad61bfb49a9697b2ce0c2d78009d525251183d894d29326d664",
+      "bytes": 331539675
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/native_host_descriptor.py",
+      "sha256": "badbca7add2a1653c7e761acc5a25b16b077a1be27fd27238a9838a5c2bc6d0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "a2848d7d8ec9089422b513b12a4df17f48b5a3199a1d6048256adbfd08961c13"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/native_and_lifecycle.py",
+      "sha256": "ab96d00c759ceca1029fdd8fff07331c5e4a16217864688a07379bc7d59240c6"
+    }
+  ],
+  "scope": "All request acquisition receipts report the explicitly selected graph entry and exact qualified library. This is executed-worker configuration coverage, not a per-call invocation count or independent numerical adapter proof.",
+  "n_correct": null,
+  "ranking_eligible": false
+}
