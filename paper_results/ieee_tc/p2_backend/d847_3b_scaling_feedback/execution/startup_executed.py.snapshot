@@ -1,0 +1,162 @@
+"""D727: reuse closed D719/D726 data; no GPU, service or policy mutation."""
+import collections
+import csv
+import json
+import math
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+import ijson
+import yaml
+from scripts.ieee_tc.audit_d703_3b_full import read, ref, digest, p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/startup'
+if OUT.exists():
+    raise FileExistsError(OUT)
+scope = p.scope_identity(p.cg_path().name)
+reports = []
+for label, stage_rel, config_rel in (
+    ('D840', 'd840_3b_single_thread_decoder_full_w2/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261025_d840_3b_max3_full_w2.yaml'),
+    ('D846', 'd846_3b_staging_identity_full_w2/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml'),
+):
+    stage_path = ROOT/'paper_results/ieee_tc/p2_backend'/stage_rel
+    stage = read(stage_path)
+    table = Path(stage['request_table']['path'])
+    assert stage['passed'] and stage['counts']['n'] == 4000
+    assert digest(table) == stage['request_table']['sha256']
+    with table.open(newline='') as handle:
+        rows = list(csv.DictReader(handle))
+    rows.sort(key=lambda r: int(r['ordinal']))
+    assert [int(r['ordinal']) for r in rows] == list(range(4000))
+    raw = Path(stage['source_run'])
+    launch_path = raw/'launch.json'
+    launch = read(launch_path)
+    assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+    t0 = launch['external_replay']['replay_t0_s']
+    outcome_path = raw/'launch.launch/physical_deployment/main_outcome.json'
+    retention_path = raw/'compression_receipt.json'
+    retention = read(retention_path)
+    assert retention['source'] == str(outcome_path)
+    assert retention['source_sha256'] == retention['audit_sha256']
+    outcome_path = Path(retention['archive'])
+    assert digest(outcome_path) == retention['archive_sha256']
+    config_path = ROOT/config_rel
+    cfg = yaml.safe_load(config_path.read_text())['resource_coordination']
+    limits = cfg['ieee_scaling']
+    def project(prefix):
+        with gzip.open(outcome_path, 'rb') as handle:
+            return list(ijson.items(handle, prefix, use_float=True))
+    events = project('mechanism_events._ieee_control_events.item')
+    initial, = project('mechanism_events._ieee_initial_deployment')
+    activations = project('mechanism_events._ieee_activations.item')
+    frontend, = project('cpu_frontend_preparation')
+    # Check arithmetic against the retained inputs, not a counterfactual policy.
+    for e in events:
+        ratios = dict(queue=e['queue_depth']/limits['queue_upper'],
+                      active=e['active_saturation']/limits['active_upper'],
+                      ttft=None if e['p95_ttft_ms'] is None else
+                      e['p95_ttft_ms']/limits['ttft_upper_ms'])
+        assert ratios == e['ratios']
+        assert e['score'] == max(v for v in ratios.values() if v is not None)
+        assert e['current_instances'] == e['ready_instances']+e['pending_instances']
+        expected_low = (e['queue_depth'] < limits['queue_lower'] and
+                        e['active_saturation'] < limits['active_lower'] and
+                        e['p95_ttft_ms'] is not None and
+                        e['p95_ttft_ms'] < limits['ttft_lower_ms'])
+        assert expected_low == e['all_low']
+    first = rows[0]
+    first_ttft = float(first['ttft_ms'])
+    actions = []
+    for e in events:
+        if e['action'] == 'no_action':
+            continue
+        actions.append(dict(e, relative_s=e['observed_at']-t0,
+            above_one_components=[k for k,v in e['ratios'].items() if v is not None and v > 1],
+            p95_matches_first_request=math.isclose(e['p95_ttft_ms'], first_ttft, abs_tol=1e-6)))
+    business = [e for e in events if e['observed_at'] >= t0]
+    low_load = [e for e in business if e['ready_instances'] > 1 and not e['pending_instances']
+                and e['queue_depth'] < limits['queue_lower']
+                and e['active_saturation'] < limits['active_lower']
+                and e['p95_ttft_ms'] is not None]
+    known_first = [e for e in business if e['p95_ttft_ms'] is not None
+                   and math.isclose(e['p95_ttft_ms'], first_ttft, abs_tol=1e-6)]
+    phases = []
+    for phase in range(8):
+        selected = rows[phase*500:(phase+1)*500]
+        phases.append(dict(phase=phase, n=len(selected),
+            joint_pass=sum(r['joint_pass']=='True' for r in selected),
+            ttft_pass=sum(r['ttft_pass']=='True' for r in selected),
+            tpot_pass=sum(r['tpot_pass']=='True' for r in selected)))
+    first_ready = initial['first_ready_at']-t0
+    stages = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
+              'executable_to_engine_ms', 'engine_entry_to_queue_ms',
+              'native_engine_queue_ms', 'native_prefill_ms',
+              'arrival_release_lateness_ms','dispatch_window_wait_ms','runtime_slot_wait_ms')
+    compact_groups = []
+    for g in stage['groups']:
+        if g['dimension'] not in ('all', 'tier', 'slo_group', 'output_bin'):
+            continue
+        compact_groups.append({k:g[k] for k in ('dimension','label','n','joint_pass','ttft_pass','tpot_pass')} |
+            dict(stage_means_ms={k:g['metrics'][k]['mean'] for k in stages}))
+    ttft_fail = [r for r in rows if r['ttft_pass']=='False']
+    max_ingress = collections.Counter(max(stages[-3:], key=lambda k:float(r[k])) for r in ttft_fail)
+    reports.append(dict(label=label, source_run=str(raw), counts=stage['counts'],
+        clock_id=stage['clock_id'], replay_t0_s=t0, control_limits=limits,
+        control_event_count=len(events), actions=actions,
+        initial_deployment=initial,
+        activation_boundaries=[{k:v for k,v in a.items() if not isinstance(v,(list,dict))}
+                               for a in activations],
+        cpu_frontend_preparation=frontend,
+        first_ready_relative_s=first_ready,
+        initial_trigger_relative_s=initial['trigger_at']-t0,
+        first_request={k:first[k] for k in ('request_id','tier','slo_group','ttft_ms',*stages)},
+        first_request_admitted_after_first_ready_ms=(float(first['admitted'])-initial['first_ready_at'])*1000,
+        first_request_p95_observed_from_s=None if not known_first else known_first[0]['observed_at']-t0,
+        first_request_p95_last_observed_s=None if not known_first else known_first[-1]['observed_at']-t0,
+        business_control_counts=dict(n=len(business), all_low=sum(e['all_low'] for e in business),
+            low_queue_active_and_no_pending=len(low_load),
+            low_load_ttft_p95_ms=timing_stats([e['p95_ttft_ms'] for e in low_load])),
+        phases=phases, stage_groups=compact_groups,
+        ttft_violation_dominant_ingress=dict(max_ingress),
+        local_tier_ttft_violations=sum(r['tier']!='remote' for r in ttft_fail),
+        source_refs=[ref(x) for x in (stage_path, table, launch_path, outcome_path, config_path)]))
+
+for report in reports:
+    physical_path = Path(report['source_run'])/'launch.launch/physical_deployment/summary.json'
+    physical = read(physical_path)
+    assert physical['measurement_complete'] and not physical['open_lease_ids']
+    assert abs(sum(b-a for spans in physical['device_intervals'].values() for a,b in spans)-physical['gpu_seconds']) < 1e-6
+    assert abs(sum(physical['window_gpu_seconds'].values())-physical['gpu_seconds']) < 1e-6
+    report['physical_holding'] = physical
+    report['source_refs'].extend([ref(physical_path), ref(Path(report['source_run'])/'compression_receipt.json'), ref(template)])
+
+OUT.mkdir(parents=True)
+report = dict(kind='d847_closed_run_startup_feedback_v1', passed=True,
+    new_gpu_replays=0, production_changes=False, metric_changes=False,
+    ranking_eligible=False, n_correct=None, confidence_interval=None,
+    scope=scope, runs=reports,
+    source_refs=[ref(Path(__file__)), ref(ROOT/'faaslora/coordination/autoscaler.py'),
+        ref(ROOT/'scripts/run_all_experiments.py'),
+        ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+        ref(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'))],
+    limitations=['Single known-workload development observations, not causal graph-only effects.',
+        'Matching rolling P95 to a recorded request does not reconstruct unrecorded sample arrival order.',
+        'Startup wait remains user-visible TTFT and cannot be subtracted or excluded from control.',
+        'Stage grouping is descriptive; runtime-slot envelope includes owner confirmation, not only empty-slot waiting.',
+        'No hypothetical saved GPU time, counterfactual latency, or numeric correctness qualification.'])
+with (OUT/'diagnosis.json').open('x') as handle:
+    json.dump(report,handle,indent=2,allow_nan=False); handle.write('\n')
+with (OUT/'analyze.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+with (OUT/'manifest.json').open('x') as handle:
+    json.dump(dict(passed=True, outputs=[ref(OUT/'diagnosis.json'),ref(OUT/'analyze.py.snapshot')]),handle,indent=2)
+print(json.dumps(dict(passed=True, output=str(OUT),
+    runs=[{k:r[k] for k in ('label','first_ready_relative_s','first_request_admitted_after_first_ready_ms',
+        'business_control_counts','phases','ttft_violation_dominant_ingress','local_tier_ttft_violations')}
+        for r in reports]),indent=2))

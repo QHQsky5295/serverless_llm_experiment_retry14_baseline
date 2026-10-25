@@ -1,0 +1,72 @@
+"""Reuse D727's closed-run startup/control audit for the two D847 sources.
+
+No replay, configuration choice, stage subtraction, or production mutation.
+Read compressed originals through their verified retention receipts.
+"""
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as preflight
+
+identity = preflight.scope_identity(preflight.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*preflight.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*preflight.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+
+template = ROOT/'paper_results/ieee_tc/p2_backend/d727_control_feedback/analyze.py.snapshot'
+source = template.read_text()
+old = """    ('D719', 'd719_stage_diagnosis/diagnosis.json',
+     'configs/ieee_tc/20261022_d719_3b_identity_full_w0.yaml'),
+    ('D726', 'd726_3b_graph_full_w0/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261022_d726_3b_graph_full_w0.yaml'),"""
+new = """    ('D840', 'd840_3b_single_thread_decoder_full_w2/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261025_d840_3b_max3_full_w2.yaml'),
+    ('D846', 'd846_3b_staging_identity_full_w2/completion/stages/diagnosis.json',
+     'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml'),"""
+assert source.count(old) == 1
+source = source.replace(old, new)
+source = source.replace('d727_control_feedback', 'd847_3b_scaling_feedback/startup')
+source = source.replace('d727_closed_run_control_feedback_diagnosis_v1', 'd847_closed_run_startup_feedback_v1')
+source = source.replace('with outcome_path.open(\'rb\') as handle:', 'with gzip.open(outcome_path, \'rb\') as handle:')
+anchor = '    config_path = ROOT/config_rel'
+assert source.count(anchor) == 1
+source = source.replace(anchor, """    retention_path = raw/'compression_receipt.json'
+    retention = read(retention_path)
+    assert retention['source'] == str(outcome_path)
+    assert retention['source_sha256'] == retention['audit_sha256']
+    outcome_path = Path(retention['archive'])
+    assert digest(outcome_path) == retention['archive_sha256']
+"""+anchor)
+anchor = '\nOUT.mkdir(parents=True)'
+assert source.count(anchor) == 1
+source = source.replace(anchor, """
+for report in reports:
+    physical_path = Path(report['source_run'])/'launch.launch/physical_deployment/summary.json'
+    physical = read(physical_path)
+    assert physical['measurement_complete'] and not physical['open_lease_ids']
+    assert abs(sum(b-a for spans in physical['device_intervals'].values() for a,b in spans)-physical['gpu_seconds']) < 1e-6
+    assert abs(sum(physical['window_gpu_seconds'].values())-physical['gpu_seconds']) < 1e-6
+    report['physical_holding'] = physical
+    report['source_refs'].extend([ref(physical_path), ref(Path(report['source_run'])/'compression_receipt.json'), ref(template)])
+"""+anchor)
+with (RAW/'startup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+with (RAW/'startup_template.json').open('x') as stream:
+    json.dump(dict(path=str(template), sha256=hashlib.sha256(template.read_bytes()).hexdigest(),
+        changed='source/output identities, receipt-checked gzip access, physical interval cross-check'), stream, indent=2)
+exec(compile(source, str(RAW/'startup_executed.py.snapshot'), 'exec'), globals())
+with (RAW/'startup_resources.json').open('x') as stream:
+    json.dump(dict(scope=identity, resources={key:(group/key).read_text().strip()
+        for key in ('memory.peak','memory.events','memory.swap.current')}), stream, indent=2)

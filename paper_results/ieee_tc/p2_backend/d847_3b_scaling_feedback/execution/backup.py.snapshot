@@ -1,0 +1,29 @@
+"""Reuse D824 explicit-file backup; retain CSV/snapshot whitespace identities."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+template = RAW.parent/'d824_20261025/backup.py'
+source = template.read_text()
+for old, new in (
+    ('d824_current_ingress_pending','d847_3b_scaling_feedback'),
+    ('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md','D847_STARTUP_FEEDBACK_AND_CURRENT_VIOLATIONS_20261025.md'),
+    ('107185c45f49a891c0b391b1140b7d765e83daea','435f9a1b2c5cda16e1a432728f0779727ffa4980'),
+    ('len(paths) == len(set(paths)) == 20','len(paths) == len(set(paths))'),
+    ('backup/d824-current-ingress-control-20261025','backup/d847-startup-feedback-20261025'),
+    ('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)',
+     'tc: preserve D847 startup feedback and physical holding diagnosis'),
+):
+    assert old in source, old
+    source = source.replace(old,new)
+old = "git('diff','--cached','--check')"
+new = """ordinary = [path for path in paths if not path.endswith(('.csv','.snapshot'))]
+csvs = [path for path in paths if path.endswith('.csv')]
+snapshots = [path for path in paths if path.endswith('.snapshot')]
+git('diff','--cached','--check','--',*ordinary)
+git('-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol','diff','--cached','--check','--',*csvs)
+git('-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof','diff','--cached','--check','--',*snapshots)"""
+assert source.count(old)==1
+source = source.replace(old,new)
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source,str(RAW/'backup_executed.py.snapshot'),'exec'),globals())

@@ -1,0 +1,2 @@
+W1025 20:31:58.983000 730842 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+{"passed": true, "output": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/d840", "n": 4000, "groups": 9, "control_actions": 2, "max_partition_error_ms": 0.0}

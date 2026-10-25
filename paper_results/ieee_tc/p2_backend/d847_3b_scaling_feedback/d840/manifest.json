@@ -1,0 +1,25 @@
+{
+  "kind": "d847_d840_derived_evidence_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/d840/analyze.py.snapshot",
+      "sha256": "424a520704f7b1dbd6cf4a7c71c9416cd101dce44ac833b9b4ef980a16a848bb",
+      "bytes": 4406
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/d840/diagnosis.json",
+      "sha256": "f6ffefcb02d3f7aca9b7d71feec5f2c68fa723d3bfd2b18dab363d56315ee3bb",
+      "bytes": 44416
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/d840/requests.csv",
+      "sha256": "9fecc58b3f5ff0acf390f76b6fd1503c0125a3878bb33830250840d25906a520",
+      "bytes": 1476219
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/d840/resources.json",
+      "sha256": "0cf80e1e66d69d70004df55bdd4a034f2e2cf935be2d1f4d62a99870a91506ce",
+      "bytes": 432
+    }
+  ]
+}

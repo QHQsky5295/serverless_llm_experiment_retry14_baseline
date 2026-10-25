@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/startup/diagnosis.json",
+      "sha256": "c9efacecb1f8665553e1446c9435cc6852d0219b0403ecd59f9e321bd6b9e9ff",
+      "bytes": 129389
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback/startup/analyze.py.snapshot",
+      "sha256": "a07bf0fbf471f974414b13ca2296b98a25636bbb08df4cd845438924bf83961d",
+      "bytes": 3961
+    }
+  ]
+}

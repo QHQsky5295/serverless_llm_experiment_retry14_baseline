@@ -1,0 +1,47 @@
+"""Reuse D824/D730 ingress and exact controller audits for D840 and D846.
+
+Only closed-source/config/output identities change. No replay or production
+changes, stage subtraction, new qualification, or modified SLO.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+TEMPLATE = RAW.parent/'d824_20261025/attempt3/analyze.py'
+assert hashlib.sha256(TEMPLATE.read_bytes()).hexdigest() == '2c54e041f5d80dd81f3886ad44ebf6f71d42bb7abc443024c8e671c566c13e20'
+inner = ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/analyze.py.snapshot'
+assert hashlib.sha256(inner.read_bytes()).hexdigest() == 'f9d36f8d506ad7a224b75eb85e9f7e41af794c009738b09d36d1e2c5ae1bbd21'
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+
+for name, curated in (
+    ('d840', 'd840_3b_single_thread_decoder_full_w2'),
+    ('d846', 'd846_3b_staging_identity_full_w2'),
+):
+    work = RAW/name
+    work.mkdir(exist_ok=False)
+    source = TEMPLATE.read_text()
+    for old, new in (
+        ('d824_current_ingress_pending', 'd847_3b_scaling_feedback/'+name),
+        ('20261025_d817_3b_max3_full_w2.yaml', '20261025_'+name+'_3b_max3_full_w2.yaml'),
+        ('d817_3b_required_capacity_full_w2', curated),
+        ('d824_closed_ingress_pending_partition_v1', 'd847_'+name+'_closed_ingress_pending_partition_v1'),
+        ('d824_derived_evidence_v1', 'd847_'+name+'_derived_evidence_v1'),
+        ('D817 complete W2', name+' complete W2'),
+    ):
+        assert old in source, old
+        source = source.replace(old, new)
+    target = work/'analyze.py.snapshot'
+    compile(source, str(target), 'exec')
+    with target.open('x') as stream:
+        stream.write(source)
+    with (work/'analysis.log').open('x') as stream:
+        subprocess.run([sys.executable, '-B', str(target)], cwd=ROOT,
+            stdout=stream, stderr=subprocess.STDOUT, check=True)
+    print(json.dumps(dict(completed=name)), flush=True)

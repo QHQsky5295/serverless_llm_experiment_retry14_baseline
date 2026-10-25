@@ -1,0 +1,86 @@
+"""Seal D847 using the existing protection, source hash and closure utilities."""
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+counts = {}
+for name, joint, ttft, tpot in [('d840',3684,3758,3917),('d846',3715,3798,3905)]:
+    directory = OUT/name
+    report = read(directory/'diagnosis.json')
+    assert report['passed'] and report['max_partition_error_ms'] == 0
+    assert not report['production_changes'] and not report['metric_changes']
+    assert report['new_gpu_replays'] == 0 and report['n_correct'] is None
+    for row in read(directory/'manifest.json')['files']:
+        assert p.digest(Path(row['path'])) == row['sha256']
+    with (directory/'requests.csv').open(newline='') as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == len({row['request_id'] for row in rows}) == 4000
+    observed = [sum(row[key]=='True' for row in rows) for key in ('joint_pass','ttft_pass','tpot_pass')]
+    assert observed == [joint,ttft,tpot]
+    counts[name] = dict(n=4000,joint_pass=joint,ttft_pass=ttft,tpot_pass=tpot)
+startup = read(OUT/'startup/diagnosis.json')
+assert startup['passed'] and startup['new_gpu_replays'] == 0
+for row in read(OUT/'startup/manifest.json')['outputs']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+closures = []
+for resource in (read(OUT/'d846/resources.json'),read(RAW/'startup_resources.json')):
+    identity = resource['scope']
+    if 'resources' in resource:
+        sample = resource['resources']
+        assert int(sample['memory.swap.current']) == 0
+        assert all(int(line.split()[1])==0 for line in sample['memory.events'].splitlines())
+    else:
+        assert resource['swap_bytes'] == 0
+        assert all(int(line.split()[1])==0 for line in resource['events'].splitlines())
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    closures.append(dict(identity=identity,path_removed=True,resource_receipt=resource))
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = read(ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/prelaunch/qualification.json')['protected']
+for name, sha in user.items():
+    assert p.digest(Path(name)) == sha
+execution = OUT/'execution'
+execution.mkdir()
+sources = [RAW/name for name in ('analyze.py','startup.py','startup_executed.py.snapshot','startup_template.json','startup_resources.json','close.py','backup.py')]
+sources += [path for name in ('d840','d846') for path in sorted((RAW/name).iterdir()) if path.is_file()]
+for path in sources:
+    assert path.stat().st_size < 1048576
+    name = path.name if path.parent==RAW else path.parent.name+'_'+path.name
+    target = execution/(name if name.endswith('.snapshot') else name+'.snapshot')
+    with target.open('xb') as stream:
+        stream.write(path.read_bytes())
+    assert p.digest(target) == p.digest(path)
+    if name.endswith(('.py','.py.snapshot')):
+        compile(path.read_text(),str(path),'exec')
+doc = ROOT/'docs/ieee_tc/D847_STARTUP_FEEDBACK_AND_CURRENT_VIOLATIONS_20261025.md'
+save(OUT/'closure.json',dict(passed=True,protected=protected,user_protected=user,
+    source_counts=counts,analysis_closure=closures,scope=scope,doc=ref(doc),
+    new_gpu_replays=0,production_changes=False,metric_changes=False,
+    n_correct=None,ranking_eligible=False,confidence_interval=None,
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json',dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True,counts=counts,protected=147)))

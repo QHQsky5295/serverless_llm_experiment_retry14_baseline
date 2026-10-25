@@ -1,4 +1,33 @@
-# IEEE TC execution status — D846 complete, trade-off not target achievement
+# IEEE TC execution status — D847 diagnosis complete; whole-disk audit first
+
+## 2026-10-25 D847启动反馈已定位，按最新用户要求转存储优先
+
+本轮实质进展：复用D840/D846关闭数据，无新GPU、配置或生产改动。
+D846首副本ready比D840晚5.639453秒，首请求TTFT9006.716517ms触发
+两次早期扩容（12.679/14.727秒），D840于357.779/363.879秒由active/queue
+触发。全部控制算术正确；扩容卡提前持有合计约694.380秒，完整实际区间
+解释U增加694.299677GPU-s，不是清理拖延。不能把延迟改善全归于D845。
+D846仍3715/4000=92.875%、U11929.629332；未达95%，D711数值未知保留。
+285联合违约中Remote150、本地135；202条TTFT违约中本地61，与D840相同。
+入口/启动两个CPU分析已成功结束，峰值633237504/630067200B，资源事件0。
+详情D847_STARTUP_FEEDBACK_AND_CURRENT_VIOLATIONS_20261025.md。
+
+用户新增要求：解释几TB磁盘为何仅余约150GiB，并在所有项目范围核查可证明
+过时无用数据后删除/压缩。现在优先D848整盘只读metadata扫描，复用D483，
+排除所有子挂载避免overlay/bind重复计数；不只扫描FaaSLoRA、不再把D841
+300秒partial当完整。qhq无免密本机sudo，权限缺口保留，不能填0或动共享k3s。
+活动scope primelora-tc-aux-84800000000000000000000000000001；raw
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025。
+当前无GPU实验。仅有明确关闭/无引用/可恢复证据才回收；唯一资料、用户修改、
+其他项目有效环境及成功失败研究证据保留。存储后返回3B有证据优化主线，
+不重开旧否决方向；全部剩余主比较、消融、敏感性和最终交付不变，goal active。
+
+以下为历史状态，D846已收尾，不重新启动。
+
+D846收尾检查点435f9a1b2c5cda16e1a432728f0779727ffa4980已推送，远端
+backup/d846-closed-storage-20261025核实同SHA。包含状态/结果说明和三份
+存储回执；用户manifest未stage，最终V2仍未同步。本回执随下一正常任务
+检查点保存，不递归创建备份回执提交。没有活动GPU实验或辅助分析任务。
 
 ## 2026-10-25 D846已保存、远端备份并完成无损压缩
 
