@@ -1,0 +1,19 @@
+"""Reuse the complete remote preparation partition; no new replay or policy."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd826_20261025/diagnose_preparation.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'a5f1354646364c4f1d8453592284727736a28aeaa6277457677c66ccb7d017df'
+_source = _template.read_text()
+for _old, _new in (
+    ('d826_3b_single_verification_full_w2', 'd829_3b_admitted_owner_anchor_full_w2'),
+    ('20261025_d826_closed_results', '20261025_d829_closed_results'),
+    ('d818_3b_remote_preparation/partition/diagnosis.json',
+     'd826_3b_single_verification_full_w2/preparation_analysis/partition/diagnosis.json'),
+    ('versus_d818.json', 'versus_d826.json'),
+    ('but D826 stream payload SHA is disabled', 'but both D826 and D829 stream payload SHA are disabled'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+exec(compile(_source, str(_raw / 'diagnose_preparation.py.reused'), 'exec'), globals())

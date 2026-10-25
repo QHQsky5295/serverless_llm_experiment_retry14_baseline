@@ -1,0 +1,116 @@
+"""Reuse D594 pressure decomposition on D817's exact D818 transfer cohort.
+
+No new performance replay. D594's containment join is retained and must be
+unique; this is not a direct pressure-to-HTTP ID correlation.
+"""
+import collections
+import csv
+import gzip
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tarfile
+import time
+import ijson
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/preparation_analysis'
+RUN=RAW.parent/'d829_20261025/3b_max3_full_w2'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def save(path,value):
+    with path.open('x') as h: json.dump(value,h,indent=2,sort_keys=True,allow_nan=False);h.write('\n')
+
+identity=p.scope_identity(p.cg_path().name); group=Path(identity['path'])
+save(RAW/'pressure_identity.json',identity)
+prior=json.loads((RAW/'preparation_identity.json').read_text())
+state=subprocess.check_output(['systemctl','--user','show',prior['unit'],
+    '-p','ActiveState','-p','InvocationID','-p','ControlGroup'],text=True)
+assert 'ActiveState=inactive' in state and not Path(prior['path']).exists()
+archive=ROOT/'paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/execution_evidence.tar.gz'
+with tarfile.open(archive) as tar:
+    original=tar.extractfile('pressure_diagnosis.py').read()
+with (OUT/'d594_pressure_diagnosis.py.snapshot').open('xb') as h: h.write(original)
+diagnosis=json.loads((OUT/'partition/diagnosis.json').read_text())
+refs={Path(x['path']):x['sha256'] for x in diagnosis['source_refs']}
+outcome=next(x for x in refs if x.name=='main_outcome.json.gz')
+request_file=next(x for x in refs if x.name.startswith('experiment_results_full'))
+assert p.digest(outcome)==refs[outcome] and p.digest(request_file)==refs[request_file]
+with (OUT/'partition/remote_requests.csv').open() as h: cohort=list(csv.DictReader(h))
+stage=next(x for x in refs if x.name=='requests.csv')
+with stage.open() as h: stages={r['request_id']:r for r in csv.DictReader(h)}
+with gzip.open(outcome,'rb') as h:
+    remotes={r['transfer_id']:r for r in ijson.items(h,'remote_transfers.item',use_float=True)}
+with gzip.open(outcome,'rb') as h:
+    pressure=[r for r in ijson.items(h,'transfer_pressure.item',use_float=True) if r['source_tier']=='remote']
+native={}
+with gzip.open(request_file,'rb') as h:
+    for r in ijson.items(h,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        if stages[r['request_id']]['tier']!='remote':continue
+        e=r['gpu_reference_evidence']; rec=e['receipt']
+        native[r['request_id']]=dict(start=rec.get('native_load_started_monotonic_s'),
+            snapshot_timing=e.get('snapshot_before_acquisition',{}).get('timing',{}),
+            load_timing=rec.get('timing',{}))
+values=[]
+for old in cohort:
+    t=remotes[old['transfer_id']]
+    matches=[s for s in pressure if s['adapter_id']==t['artifact_id'] and s['operation_outcome']=='completed'
+        and s['io_started_at']<=t['loading_started_monotonic_s']<=t['client_completed_monotonic_s']<=s['io_joined_at']]
+    assert len(matches)==1,(old['request_id'],len(matches))
+    s=matches[0]
+    assert s['state']=='finished' and s['clock_id']==t['loading_clock_id']
+    start,io,joined,end=(s[k] for k in ('created_at','io_started_at','io_joined_at','finished_at'))
+    assert start<=io<=joined<=end
+    row=dict(request_id=old['request_id'],transfer_id=t['transfer_id'],pressure_id=s['transfer_id'],
+        adapter_id=t['artifact_id'],ordinal=int(old['ordinal']),ttft_pass=old['ttft_pass']=='True',
+        participants=len(s['participants']),
+        before_pressure_create_ms=1000*(start-float(stages[old['request_id']]['admitted'])),
+        pressure_start_ms=1000*(io-start),
+        operation_thread_start_ms=1000*(t['loading_started_monotonic_s']-io),
+        publication_to_client_complete_ms=1000*(t['client_completed_monotonic_s']-t['published_monotonic_s']),
+        thread_return_ms=1000*(joined-t['client_completed_monotonic_s']),
+        pressure_finish_ms=1000*(end-joined),
+        after_pressure_finish_to_load_ms=1000*(native[old['request_id']]['start']-end))
+    assert min(row[k] for k in row if k.endswith('_ms'))>=-.001
+    for label in ('start','finish'):
+        receipts=[v[label+'_receipt'] for v in s['participants'].values()]
+        assert all(x['clock_id']==s['clock_id'] for x in receipts)
+        for metric in ('parent_rpc_channel_acquire_ms','parent_rpc_send_flush_ms','parent_rpc_wait_response_ms'):
+            row[label+'_rpc_sum_'+metric]=sum(x['timing'][metric] for x in receipts)
+    values.append(row)
+def summarize(rows):
+    return dict(n=len(rows),metrics={k:timing_stats([r[k] for r in rows])
+        for k in values[0] if k.endswith('_ms') or k=='participants'})
+server=[json.loads(line) for line in (RAW.parent/'d829_20261025/remote_transfers.jsonl').read_text().splitlines()]
+server_by={r['transfer_id']:r for r in server}
+server_stats={}
+for field in ('object_read_wall_ns','socket_write_wall_ns'):
+    xs=[]
+    for t in remotes.values():
+        s=server_by[t['http_transfer_id']]
+        assert s['bytes_written']==t['transferred_bytes']
+        xs.append(s[field]/1e6)
+    server_stats[field.removesuffix('_ns')+'_ms']=timing_stats(xs)
+report=dict(passed=True,cohort_count=len(values),all_remote_pressure_records=len(pressure),
+    groups={label:summarize([r for r in values if label=='all' or (label=='ttft_fail' and not r['ttft_pass'])])
+            for label in ('all','ttft_fail')},
+    server_nested_not_additive=server_stats,
+    request_timing_keys={section:sorted({k for v in native.values() for k in v[section]})
+                        for section in ('snapshot_timing','load_timing')},
+    caveats=['Same-adapter, same-clock unique containing IO interval join, not shared transfer ID.',
+        'RPC sums are nested and not additive with containing stages.',
+        'Domain envelopes include unmeasured lock and scheduling waits, not pure RPC or GPU time.',
+        'Remote socket blocking is not proof of physical network bottleneck.'],
+    source_refs={str(path):p.digest(path) for path in (archive,outcome,request_file,stage,
+        RAW.parent/'d829_20261025/remote_transfers.jsonl',Path(__file__))})
+with (OUT/'pressure_requests.csv').open('x') as h:
+    w=csv.DictWriter(h,fieldnames=list(values[0]));w.writeheader();w.writerows(values)
+save(OUT/'pressure_diagnosis.json',report)
+save(OUT/'pressure_receipt.json',dict(identity=identity,finished_unix=time.time(),previous_scope=state,
+    resources={name:(group/name).read_text().strip() for name in
+               ('memory.peak','memory.events','memory.swap.current','cpu.stat')}))
+print(json.dumps(dict(passed=True,n=len(values),means={k:v['mean'] for k,v in report['groups']['all']['metrics'].items()})))

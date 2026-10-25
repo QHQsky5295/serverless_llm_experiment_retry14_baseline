@@ -1,0 +1,69 @@
+"""Reuse the existing lossless compressor on two closed, source-bound outcomes."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/storage/20261025_d829_closed_monitors.json'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc import compress_closed_main_outcomes as c
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'monitor_storage_identity.json', own)
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert read(RAW/'post_backup_release.json')['passed']
+
+seal=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected={name:item['sha256'] for name,item in read(seal)['entries'].items()}
+assert len(protected)==147
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d816_required_file_capacity/qualification_additional/qualification.json')['user_protected'])
+for name,sha in protected.items():
+    assert p.digest(Path(name))==sha,name
+targets=[]
+for run in (
+    'd719_20261022/3b_identity_full_w0',
+    'd726_20261022/3b_graph_full_w0',
+    'd729_20261022/3b_bulk_loader_full_w0',
+    'd732_20261022/3b_round_file_full_w0',
+    'd736_20261022/3b_validated_publication_full_w0',
+    'd738_20261023/3b_planning_wire_full_w0',
+    'd742_20261023/3b_execution_view_full_w0',
+    'd745_20261023/3b_observe_after_turn_full_w0',
+    'd749_20261023/3b_fresh_host_descriptor_full_w0',
+    'd752_20261023/3b_dense_alias_validation_full_w0',
+):
+    raw=c.RAW_ROOT/run
+    launch=read(raw/'launch.json')
+    c.require_closed_launch(launch)
+    source=raw.parent/'remote_monitor.log'
+    assert str(source) not in protected
+    targets.append(dict(run=run,audit_sha=None,remote_monitor_log='remote_monitor.log'))
+c.TARGETS, c.OUT = targets, OUT
+assert c.main() == 0
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+group = Path(own['path'])
+assert all(int(row.split()[1]) == 0 for row in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(OUT.with_name(OUT.stem+'_verification.json'), dict(
+    passed=True, identity=own, protected_files=len(protected),
+    receipt_sha256=p.digest(OUT), compressor_sha256=p.digest(Path(c.__file__)),
+    source_script_sha256=p.digest(Path(__file__)), resources=p.cgroup_snapshot(group),
+    note='Restore the original path from its archive and verify source_sha256 before reusing an analyzer requiring an uncompressed outcome. Only ten explicit closed remote-monitor logs were archived; performance identities and unique evidence are unchanged. Existing gzip-aware readers should stream the archives.'))
+with OUT.with_name(OUT.stem+'.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())

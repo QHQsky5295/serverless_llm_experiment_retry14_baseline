@@ -1,0 +1,16 @@
+{
+  "finished_unix": 1792895832.116647,
+  "identity": {
+    "inode": 32189766,
+    "invocation_id": "ddaaab848a3244fe82ae2d1319e56072",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000008.scope",
+    "unit": "primelora-tc-aux-82900000000000000000000000000008.scope"
+  },
+  "previous_scope": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+  "resources": {
+    "cpu.stat": "usage_usec 22355879\nuser_usec 22157933\nsystem_usec 197945\ncore_sched.force_idle_usec 0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.peak": "56811520",
+    "memory.swap.current": "0"
+  }
+}

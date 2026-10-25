@@ -1,0 +1,18 @@
+"""Apply the existing verified closed-evidence compressor to D829 only."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd826_20261025/storage_maintenance.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '1b04839be697575e91c2930d6ebcfd5ed983e56e124e1d390a95efe0f4d39e83'
+_source = _template.read_text()
+for _old, _new in (
+    ('d826_3b_single_verification_full_w2', 'd829_3b_admitted_owner_anchor_full_w2'),
+    ('20261025_d826_closed_results', '20261025_d829_closed_results'),
+    ('d826_20261025/3b_max3_full_w2', 'd829_20261025/3b_max3_full_w2'),
+    ('d825_single_destination_verification/closure.json',
+     'd828_post_file_owner_turn/closure.json'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+exec(compile(_source, str(_raw / 'storage_maintenance.py.reused'), 'exec'), globals())

@@ -1,0 +1,163 @@
+{
+  "passed": true,
+  "scopes": [
+    {
+      "identity": {
+        "inode": 32151942,
+        "invocation_id": "1bf943ece20a40d5b66b70d3dc39ed09",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000001.scope",
+        "unit": "primelora-tc-aux-82900000000000000000000000000001.scope"
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000002.scope",
+        "invocation_id": "bbc6542ec82044a0886122dab5c6e532",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000002.scope",
+        "inode": 32184853
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000003.scope",
+        "invocation_id": "117c986730ba4ec3853b211c61673949",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000003.scope",
+        "inode": 32185922
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000004.scope",
+        "invocation_id": "4dfff2006790436cb9751d63265d5785",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000004.scope",
+        "inode": 32188334
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000005.scope",
+        "invocation_id": "900fef052c0b473dbd2649aada07c59f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000005.scope",
+        "inode": 32188692
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000006.scope",
+        "invocation_id": "9536a22513034e9ca22dcb8eb9196bc0",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000006.scope",
+        "inode": 32188892
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000007.scope",
+        "invocation_id": "d2172bf46bb548159b0c9d6c559277f1",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000007.scope",
+        "inode": 32189408
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "inode": 32189766,
+        "invocation_id": "ddaaab848a3244fe82ae2d1319e56072",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000008.scope",
+        "unit": "primelora-tc-aux-82900000000000000000000000000008.scope"
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-82900000000000000000000000000009.scope",
+        "invocation_id": "cbc9929687eb478d92617f5dc311305c",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000009.scope",
+        "inode": 32190124
+      },
+      "state": "ControlGroup=\nActiveState=inactive\nInvocationID="
+    }
+  ],
+  "protected_files": 147,
+  "gpu_idle": true,
+  "new_replays": 0,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "data_backup": {
+    "passed": true,
+    "head": "82a1f2a14851eb4985e6fd6a122b028bd828b0e4",
+    "ref": "refs/heads/backup/d829-complete-20261025",
+    "files": [
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/actual_profile_binding.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/analysis_resources.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/closed_outcome.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/comparison.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/delivery_audit_status.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/full4000.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/manifest.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/owner_anchor_actual.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/owner_publication_actual.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/owner_publication_audit_status.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/protected_147_after.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/stages/diagnosis.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/stages/requests.csv",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion/versus_d826.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/closure.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/closure_manifest.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/complete.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/close_context.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/backup_results.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/completion_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/context_program.py.snapshot",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/completion_identity.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/context_identity.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/completion_template.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/context_template.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/start_receipt.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/backup.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/commit.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/remote_start.log",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/remote_stop.log",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/remote_health.json",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/analysis_metrics.log",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/analysis_stages.log",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/manifest.json",
+      "docs/ieee_tc/EXECUTION_STATUS.md",
+      "docs/ieee_tc/D829_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md",
+      "paper_results/ieee_tc/p2_backend/d829_3b_admitted_owner_anchor_full_w2/completion_execution/resume_backup.py.snapshot"
+    ],
+    "v2_synchronized": false,
+    "protected_files": 3,
+    "remote_monitor_sha256": "60cb52cebac0f128108fa2ce0b751d62e3e661e09eb45e2a27116de0cc785d70"
+  },
+  "disk_free_bytes": 161556537344,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82900000000000000000000000000010.scope",
+    "memory.current": 11587584,
+    "memory.peak": 28028928,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 1073803\nuser_usec 852256\nsystem_usec 221546\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

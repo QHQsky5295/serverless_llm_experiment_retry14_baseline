@@ -1,0 +1,25 @@
+"""Reuse D822's lossless archive procedure for ten explicitly closed old monitors."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd822_20261025/compress_closed_monitors.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '5403632321ca62bb55e93fa8ea672460d31688216617b40dc92a62366e2b1036'
+assert hashlib.sha256((_raw.parent / 'd752_20261023/storage_maintenance.py').read_bytes()).hexdigest() == '8379e06873b367de839a644e1aa7249be66a6ae7413ef0e5404a36b5b5ab4251'
+_program = _template.read_text()
+for _old, _new in (
+    ('20261025_d822_closed_monitors.json', '20261025_d829_closed_monitors.json'),
+    ('d629_20261017/7b_private_verify_full_w2', 'd719_20261022/3b_identity_full_w0'),
+    ('d632_20261017/7b_min2_full_w2', 'd726_20261022/3b_graph_full_w0'),
+    ('d636_20261017/7b_min2_full_w0', 'd729_20261022/3b_bulk_loader_full_w0'),
+    ('d665_20261018/3b_full_w0', 'd732_20261022/3b_round_file_full_w0'),
+    ('d672_20261018/3b_full_w0', 'd736_20261022/3b_validated_publication_full_w0'),
+    ('d677_20261018/3b_full_w0', 'd738_20261023/3b_planning_wire_full_w0'),
+    ('d682_20261018/3b_full_w0', 'd742_20261023/3b_execution_view_full_w0'),
+    ('d688_20261018/3b_full_w0', 'd745_20261023/3b_observe_after_turn_full_w0'),
+    ('d695_20261018/3b_full_w0', 'd749_20261023/3b_fresh_host_descriptor_full_w0'),
+    ('d697_20261019/3b_full_w0', 'd752_20261023/3b_dense_alias_validation_full_w0'),
+):
+    assert _old in _program, _old
+    _program = _program.replace(_old, _new)
+exec(compile(_program, str(_raw / 'compress_closed_monitors.py.reused'), 'exec'), globals())

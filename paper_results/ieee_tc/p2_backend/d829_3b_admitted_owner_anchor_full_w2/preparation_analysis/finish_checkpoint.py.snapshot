@@ -1,0 +1,35 @@
+"""Reuse the explicit-path D826 analysis checkpoint for D829 and storage receipts."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd826_20261025/finish_checkpoint.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'd86877159da6738ffa470b582575ea6ee99083be2a2a0bb1c8752b88d40eb060'
+_source = _template.read_text()
+for _old, _new in (
+    ('d826_3b_single_verification_full_w2', 'd829_3b_admitted_owner_anchor_full_w2'),
+    ('d825_single_destination_verification/closure.json', 'd828_post_file_owner_turn/closure.json'),
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md', 'D829_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md'),
+    ('20261025_d826_closed_results', '20261025_d829_closed_results'),
+    ('versus_d818.json', 'versus_d826.json'),
+    ("'storage_identity.json', 'preparation_identity.json', 'pressure_identity.json'):",
+     "'storage_identity.json', 'preparation_identity.json', 'pressure_identity.json', 'monitor_storage_identity.json'):"),
+    ("'finish_checkpoint.py', 'backup_completion.json', 'post_backup_release.json'):",
+     "'finish_checkpoint.py', 'backup_completion.json', 'post_backup_release.json', 'compress_closed_monitors.py', 'monitor_storage_program.py.snapshot'):"),
+    ('tc: archive D826 preparation diagnosis and lossless storage receipts',
+     'tc: archive D829 preparation diagnosis and lossless storage receipts'),
+    ('backup/d826-analysis-20261025', 'backup/d829-analysis-20261025'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_marker = "save(prep / 'checkpoint_verification.json',"
+assert _marker in _source
+_source = _source.replace(_marker, """for name in ('20261025_d829_closed_monitors.json',
+             '20261025_d829_closed_monitors_verification.json',
+             '20261025_d829_closed_monitors.py.snapshot'):
+    files.append(storage / name)
+for row in read(storage / '20261025_d829_closed_monitors.json')['entries']:
+    assert row['source_sha256'] == row['first_roundtrip_sha256'] == row['second_roundtrip_sha256']
+    assert p.digest(Path(row['archive'])) == row['archive_sha256']
+""" + _marker)
+exec(compile(_source, str(_raw / 'finish_checkpoint.py.reused'), 'exec'), globals())
