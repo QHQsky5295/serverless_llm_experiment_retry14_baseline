@@ -1,0 +1,24 @@
+"""Reuse the bounded D840 recovery for explicitly curated ignored log receipts."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d840_20261025/resume_backup.py'
+_source = _template.read_text()
+_replacements = (
+    ("files += [OUT/'closure_manifest.json', OUT/'development_decision.json']",
+     "files += [OUT/'closure_manifest.json']\nfiles += [path for path in sorted((OUT/'delivery_closure').rglob('*')) if path.is_file()]"),
+    ('D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md', 'D846_STAGING_IDENTITY_FULL_W2_20261025.md'),
+    ('excluded four small explicitly curated receipts', 'excluded six small explicitly curated receipts'),
+    ("protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json')['user_protected'])",
+     "protected.update(read(OUT/'prelaunch/qualification.json')['protected'])"),
+    ('723354f76cfc0e0e7a4ee6f60f6745b322c92d3b7fe35d005b08ebd3eb969b0e',
+     '1cd8fee097c86d8bc84081209ae082a2cc7e57190e018c6a83051a9114874e22'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw/'backup_resume_program.py.snapshot'), 'exec')
+with (_raw/'backup_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_resume_program.py.snapshot'), 'exec'), globals())

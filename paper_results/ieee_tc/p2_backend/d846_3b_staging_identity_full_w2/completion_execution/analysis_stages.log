@@ -1,0 +1,1 @@
+{"passed": true, "counts": {"n": 4000, "ttft_pass": 3798, "tpot_eligible": 4000, "tpot_pass": 3905, "joint_pass": 3715}, "output": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/completion/stages", "max_stage_identity_error_ms": 0.0}

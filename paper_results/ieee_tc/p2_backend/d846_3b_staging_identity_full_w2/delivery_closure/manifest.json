@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/delivery_closure/close_delivery.py.snapshot",
+      "sha256": "c4fe487bbb3e3d38ea91883a77ba839df77666eb4fa23dcbbef7ba1d10917ca6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/delivery_closure/context_program.py.snapshot",
+      "sha256": "bf25d6ae61ddf7acb9bf11249ad2a5b0708d9397019c31813f22b0c45c9afab5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/delivery_closure/delivery_template_reuse.json",
+      "sha256": "96a91f8b1987c3895c5cab2e182cab79751bff5375f2c78d0db107a97916bdc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/delivery_closure/resolved.json",
+      "sha256": "8e049df739a2431aba5c0ed8c67d751548453e5e8fed09d5bba71a26fadc2278"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2/delivery_closure/settlement_resume_program.py.snapshot",
+      "sha256": "4a2e34b761df813c55f6c04f2429b38a014af10c297af4742153ee0a33e4f389"
+    }
+  ]
+}

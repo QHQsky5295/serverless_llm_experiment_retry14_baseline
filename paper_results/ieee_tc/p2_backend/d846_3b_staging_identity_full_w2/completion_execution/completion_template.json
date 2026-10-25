@@ -1,0 +1,27 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d840_20261025/completion_program.py.snapshot",
+  "sha256": "078dbc38e7dc5d6843173a8f96fe03b02ef5a646014adfa50bdd284a8c825c8c",
+  "replacements": [
+    [
+      "d840_3b_single_thread_decoder_full_w2",
+      "d846_3b_staging_identity_full_w2"
+    ],
+    [
+      "d840_20261025",
+      "d846_20261025"
+    ],
+    [
+      "D840_SINGLE_THREAD_DECODER_FULL_W2_20261025.md",
+      "D846_STAGING_IDENTITY_FULL_W2_20261025.md"
+    ],
+    [
+      "d840_single_w2_frozen_resource_reference_observation_v1",
+      "d846_single_w2_frozen_resource_reference_observation_v1"
+    ],
+    [
+      "protected = ROOT/'paper_results/ieee_tc/p2_backend/d839_single_thread_decoder/closure.json'\nassert p.digest(protected) == qualification['reused'][str(protected)]\nfor path, sha in read(protected)['user_protected'].items():",
+      "for path, sha in qualification['protected'].items():"
+    ]
+  ],
+  "changes": "Run/output identities and prelaunch protected-reference shape only; reuse unchanged complete metrics, stages, fixed SLO and budget accounting. No profiling, numerical-correctness inference or ranking claim."
+}

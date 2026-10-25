@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "523bef06ccf940da26e156a1d51f432ae73f3604",
+  "backup_ref": "refs/heads/backup/d846-staging-identity-fullw2-20261025",
+  "tmux": "tc-d846-3b-staging-identity-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-84600000000000000000000000000001.scope",
+    "invocation_id": "65ab3de143ed440baabdf21b372e169a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84600000000000000000000000000001.scope",
+    "inode": 32436116
+  },
+  "qualification_sha256": "f964fd193e0a234769e359da9cde20a0d49b058fe06e7745a07bee90aecbeea3"
+}

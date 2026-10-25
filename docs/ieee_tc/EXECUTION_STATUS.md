@@ -1,4 +1,102 @@
-# IEEE TC execution status — D846 ordinary full W2 registration
+# IEEE TC execution status — D846 complete, trade-off not target achievement
+
+## 2026-10-25 D846完整回放结束：联合改善、资源增加，尚未达标
+
+本轮实质进展：同一次4000请求全部返回、实际GPU释放、服务域移除，远端
+3B/7B/monitor三个本次服务均inactive。没有重跑、运行中维护或改变配置。
+完整PLAN、冻结V1/单轮V2及最新用户第一性原则要求已核对。
+复用D840指标/阶段分析，联合3715/4000=92.875%，比D840多31条，但距
+3800仍差85。P95 TTFT2262.234686ms、平均751.376254ms，U11929.629332
+GPU-s，比父点增加694.299677；预算12083.063870内仅余153.434538。
+4000原生身份/数量/计时完整不代替独立数值证明，D711未知继续保留，
+N_correct=null，不能宣布G1/G2或最终配置已完成。未画图、不计算CI。
+
+505次真实远端传输、1172100920线上字节已双端ID/字节/SHA核验，无请求
+打包；完整历史147保护通过。两个自然扩容在request index2/3触发，父点
+为274/298；两轮均3次物理分配、无scale-down。因此资源增加有更早扩容
+的运行依据，不能把延迟变化全部归因于前置identity查询的局部成本。
+均值arrival→admission319.124ms、admission→acquired226.283ms；嵌套
+等待和阶段分位数不能相加当可消除收益。当前正在完成复用的owner/settlement
+审计和结果备份；本段不提前宣称这些末项完成。
+
+下一先完成这一结果保存/备份与已关闭数据的无损压缩，再复用两轮保存的
+启动/扩容decision和时间线解释早期触发差异，明确状态与执行开销的因果路径。
+不新profiling、不重复同键、不改95%/75%或九式；不重开已否决优化方向。
+本候选保留为有取舍的开发观测，未冻结最终配置，不以单轮微小改善宣布优胜。
+全部3B/最终同版本7B比较、A1–A5、S1–S13、审稿文档/图表及最终V2仍开放。
+goal active；HydraServe既有适配复用，不操作共享k3s。
+
+D846后续交付/owner/settlement审计已完成：505条准备全部settled，均先于
+controller成功返回；其余3495条按selected tier保留（GPU1771/HOST1062/
+NVMe654/remote8）。辅助02/03已结束，03峰值721072128B、事件/swap0。
+原pending文件未覆盖，delivery_closure/resolved.json显式关联完成证据。
+正在按明确路径进行结果检查点备份，之后无损压缩关闭日志；没有新GPU运行。
+
+## 2026-10-25 D846已观察2364条终态，后半程继续
+
+本轮为verified wait：完整PLAN/状态和监控技能已核对，16次45秒间隔只读
+轮询确认同一tmux和服务InvocationID始终active，未重启。最近monotonic
+2436065.592，终态2364、replay index2365，三卡，无foreign compute/逃逸；
+服务内存当前27593302016B、峰值27596972032B，high/max/OOM/swap0，
+watchdog无警报。磁盘150660403200B约140.32GiB，高于100GiB运行停止线，
+不满足新重型任务150GiB启动线；继续当前回放，收尾后再处理可重建缓存。
+未修改生产、配置、负载或远端，未新增测试/候选/图表/推送。只读轮询工具
+正常结束不代表实验结束。下一仍跟踪同一活动身份至4000及实际释放，再做
+完整指标和交付审计；无最终性能结论，数值正确性未知及全部剩余范围不变。
+goal active；不要将正常长回放等待标blocked或同键重跑。
+
+## 2026-10-25 D846已观察1325条终态，原回放继续
+
+本轮为verified wait：重读完整PLAN/状态及监控技能，16次45秒间隔只读核查，
+同一tmux与b6678b92c752401284f0beb738663db5始终active。最近monotonic
+2435303.233，1325条终态、replay index1327，三卡属于本次服务，无外部compute/
+逃逸；内存当前22449057792B、峰值22457802752B，high/max/OOM/swap0，
+无watchdog警报。磁盘155573481472B约144.89GiB：低于新重型任务150GiB
+启动线，高于当前100GiB停止线；不在活动测量中扫描/压缩/清理。收尾后复用
+既有已关闭工作缓存清理/无损日志压缩规则，未经核实不删唯一证据。
+只读轮询工具自然结束，不是实际实验结束。无新候选、测试、配置修改或推送；
+实际完整W2仍在运行，下一只跟踪下节同一活跃身份，不重跑、不判定失败。
+尚无完整性能成绩；D711数值正确性未知、G1/G2及全部剩余实验范围保持，goal active。
+
+## 2026-10-25 D846持续运行，已观察超过500条终态
+
+本轮为verified wait：完整重读PLAN，按monitor-experiment对同一tmux和
+服务InvocationID做10次间隔45秒只读核查；身份始终active，未重新启动。
+monotonic2434534.729记录504条终态（与上一条replay采样有读取时差），
+三卡在本次服务域，无外部compute/逃逸；内存峰值18302152704B，high/max/
+OOM/swap均0，无watchdog警报，磁盘159126310912B。完整结果尚未生成。
+没有新优化、资格、数据生成、清理/压缩/构建/推送或远端修改。只结束了本轮
+对话侧只读轮询工具，实际tmux、服务和独立watchdog继续运行；下一仍核对
+下节身份并等待这次完整4000与释放，不能因轮询结束重跑或判失败。
+G1/G2、D711独立数值正确性及完整剩余矩阵状态不变，goal active。
+
+## 2026-10-25 D846已备份并实际进入业务窗口
+
+本轮为实质进展：新运行合同23项检查通过（2.333秒；不是重复D845的67项），
+提交523bef06ccf940da26e156a1d51f432ae73f3604，远端
+backup/d846-staging-identity-fullw2-20261025核实同SHA。无force、用户manifest
+未stage；最终V2未同步。147保护通过。完整回放已启动，不再新增候选或重复。
+
+活动tmux：tc-d846-3b-staging-identity-full-w2。
+raw：/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025。
+服务域primelora-tc-svc-3fb35a57a77c4431a3e916dfc0a7a75a.scope，InvocationID
+b6678b92c752401284f0beb738663db5；业务t0=2433912.517140056（原monotonic）。
+启动/外部回放回执确认完整4000、W2、原trace/view/map SHA，未开采样。
+远端启动前实测1000Mb/s/full；3B/7B/monitor为本次独立InvocationID，保留
+raw/remote_start.log、remote_health.json。只复用D80预发布交付，不在线打包。
+
+最近观察monotonic2433964：已提交到index15，14条终态，三原生GPU进程均在
+本次受限服务域、CPU4–23/28–47；无外部compute或逃逸。内存当前13677076480B、
+峰值17202028544B，high/max/OOM/swap0；磁盘162439290880B，watchdog无警报。
+启动辅助01域已inactive；回放/监控辅助域继续独立工作。以上为启动进度，不是
+完整成绩，不能据此前段判定收益、数值正确性或G1/G2达标。
+
+下一只持续监控这个实际活跃身份，等待完整4000和真实释放，再按D840现成
+分析入口统计固定SLO/U、阶段和远端结算。不要重启同键，不运行GPU短前缀、
+profiling、压缩/清理/扫描/构建/推送或远端配置。run_and_release.sh在实际
+GPU释放后核对本次远端身份并停止服务。保留D711数值正确性未知。
+所有剩余主比较、消融和敏感性不删减，goal仍active。本启动后状态随下一次
+正常结果检查点备份，不在活跃实验中另作Git网络维护。
 
 ## 2026-10-25 D846直接完整回放预登记
 

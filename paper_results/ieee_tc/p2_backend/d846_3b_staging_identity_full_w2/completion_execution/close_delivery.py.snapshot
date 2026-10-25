@@ -1,0 +1,90 @@
+"""Reuse D840's full delivery, parent comparison and settlement audits."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d846_3b_staging_identity_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+templates = (
+    ('context_program.py.snapshot', 'e10d4ed4e41e3c43b186367823b2e93ce1e7b57cb2df410fa012b6c02a8ef973'),
+    ('settlement_resume_program.py.snapshot', '623b4c441e65591ebaa78f146ee06983ec3e833fd13fdaa49417a6f80bbfc6a5'),
+)
+changes = []
+for name, digest in templates:
+    template = RAW.parent/'d840_20261025'/name
+    assert p.digest(template) == digest
+    source = template.read_text()
+    source = source.replace('d840_3b_single_thread_decoder_full_w2',
+                            'd846_3b_staging_identity_full_w2')
+    source = source.replace('d840_', 'd846_').replace('in D840', 'in D846')
+    if name == 'context_program.py.snapshot':
+        source = source.replace('d832_3b_owned_file_readiness_full_w2/completion',
+                                'd840_3b_single_thread_decoder_full_w2/completion')
+        source = source.replace('versus_d832', 'versus_d840').replace('vs_d832', 'vs_d840')
+        old = ('The single-thread decoder candidate yields 3684/4000 joint SLO passes (92.10%), '
+            'still 116 below the fixed target. Physical GPU time is within the frozen budget, '
+            'but neither this fact nor component speed establishes a G1/G2 win. Keep all '
+            'measurements and independent numerical correctness unknown. Actual settlement '
+            'coverage remains a separate audit.')
+        assert source.count(old) == 1
+        source = source.replace(old,
+            'The fresh staging-identity candidate yields 3715/4000 joint passes (92.875%), '
+            'still 85 below the fixed target. Relative to D840, joint passes increase by 31 '
+            'and P95 TTFT decreases, while physical GPU seconds increase; no dominance or '
+            'G1/G2 win is established. Keep the measured trade-off, all failed paths and '
+            'independent numerical correctness unknown. Actual settlement coverage is '
+            'completed separately by the retained analyzer.')
+    target = RAW/name
+    compile(source, str(target), 'exec')
+    with target.open('x') as stream:
+        stream.write(source)
+    changes.append(dict(template=ref(template), generated=ref(target),
+        changes='Run/output identity and exact D840 parent comparison plus observed interpretation; all original population, delivery, owner, settlement and resource checks retained.'))
+save(RAW/'delivery_template_reuse.json', dict(templates=changes))
+for name, _ in templates:
+    with (RAW/(name+'.log')).open('x') as stream:
+        subprocess.run([sys.executable, '-B', str(RAW/name)], cwd=ROOT,
+            stdout=stream, stderr=subprocess.STDOUT, check=True)
+    print(json.dumps(dict(completed=name)), flush=True)
+target = OUT/'delivery_closure'
+target.mkdir(exist_ok=False)
+for name in ('close_delivery.py', 'context_program.py.snapshot',
+             'settlement_resume_program.py.snapshot', 'delivery_template_reuse.json'):
+    with (target/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+resources = p.cgroup_snapshot(group)
+assert all(value == 0 for value in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+save(target/'resolved.json', dict(passed=True, formal_performance_result=False,
+    ranking_eligible=False, n_correct=None, new_gpu_replays=0, production_changed=False,
+    identity=identity, resources=resources,
+    resolves=[ref(OUT/'completion/delivery_audit_status.json'),
+              ref(OUT/'completion/owner_publication_audit_status.json')],
+    evidence=[ref(OUT/'completion'/name) for name in (
+        'closed_outcome.json', 'delivery_applicability_and_reclamation.json',
+        'owner_publication_actual.json', 'decoder_actual.json', 'owner_anchor_actual.json',
+        'versus_d840.json')] + [ref(OUT/'settlement_analysis/summary.json'), ref(OUT/'closure.json')],
+    limitation='Append-only completion of previously pending evidence; independent numerical adapter correctness remains unknown. Single known-workload observation, not a confidence interval or dominance claim.'))
+save(target/'manifest.json', dict(files=[ref(path) for path in sorted(target.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True, output=str(target), resources=resources)), flush=True)

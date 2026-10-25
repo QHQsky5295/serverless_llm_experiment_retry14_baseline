@@ -1,0 +1,9 @@
+{
+  "returncode": 1,
+  "reason": "Git ignore rule *.log excluded six small explicitly curated receipts; ordinary result paths were staged. No commit or push occurred.",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/backup_program.py.snapshot",
+    "sha256": "1d4bd97aa0833c68824b6d1e4aaa18091d0d4bd11706369d686101964aedaee3"
+  },
+  "recovery": "Resume the same explicit-file checkpoint; only allow ignored files inside this completion_execution directory and below 1 MiB. No force push."
+}
