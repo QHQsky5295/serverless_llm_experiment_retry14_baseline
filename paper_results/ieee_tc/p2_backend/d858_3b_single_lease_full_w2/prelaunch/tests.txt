@@ -1,0 +1,18 @@
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... FAIL
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D846FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d840 (tests.test_ieee_tc_d456_diagnostic_contract.D846FullContract.test_only_three_exclusive_paths_change_from_d840) ... ok
+
+======================================================================
+FAIL: test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_d456_diagnostic_contract.py", line 208, in test_full_w2_reuses_decoder_and_does_not_enable_observer
+    self.assertEqual(old.replace('d846', 'd858'), new)
+AssertionError: '\n  [90 chars]261025/3b_max3_full_w2\n    CONFIG=configs/iee[113 chars]T=\n' != '\n  [90 chars]261026/3b_max3_full_w2\n    CONFIG=configs/iee[113 chars]T=\n'
+Diff is 723 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.041s
+
+FAILED (failures=1)

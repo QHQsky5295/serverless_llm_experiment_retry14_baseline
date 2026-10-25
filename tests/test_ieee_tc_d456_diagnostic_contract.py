@@ -191,6 +191,33 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D858FullContract(unittest.TestCase):
+    def test_only_three_exclusive_paths_change_from_d846(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d858_3b_max3_full_w2.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertEqual(old[section].pop(field).replace('d846', 'd858').replace('20261025', '20261026'), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_full_w2_reuses_decoder_and_does_not_enable_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        old = re.search(r'^  d846\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        new = re.search(r'^  d858\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertEqual(old.replace('d846', 'd858').replace('20261025', '20261026'), new)
+        self.assertIn('PREFIX_COUNT=\n', new)
+        blocks = re.findall(r'^if \[\[ ([^\n]+)\]\]; then\n(.*?)^fi', shell, re.M | re.S)
+        selected = [body for condition, body in blocks if '== d858' in condition]
+        self.assertEqual(len(selected), 2)
+        self.assertIn('FAASLORA_TC_REPLAY_PROFILE=W2', selected[0])
+        self.assertIn('20261018_3b_w2_adapter_map_v1.json', selected[0])
+        self.assertIn('FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal', selected[1])
+        self.assertIn('d838_20261025/dependency:$ROOT', selected[1])
+        self.assertNotIn('d858', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+
 class D854FullContract(unittest.TestCase):
     def test_only_three_exclusive_paths_change_from_d846(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml').read_text())

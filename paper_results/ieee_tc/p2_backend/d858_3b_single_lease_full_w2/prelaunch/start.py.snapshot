@@ -1,0 +1,30 @@
+"""Reuse D854's bounded registration/start; single-lease source already qualified."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d854_20261025/start.py').read_text()
+for old, new in (
+    ('D854: reuse', 'D858: reuse'),
+    ('d854_3b_async_file_full_w2', 'd858_3b_single_lease_full_w2'),
+    ('20261025_d854', '20261026_d858'),
+    ('D854_ASYNC_FILE_FULL_W2_20261025.md', 'D858_SINGLE_LEASE_FULL_W2_20261026.md'),
+    ('D854FullContract', 'D858FullContract'),
+    ('5ac133e7e74d168d48c500e0fb774c28dcbf04f6', '80fd863e4d56cfa9318d6b20bf61b5d56b7dd51a'),
+    ('d853_async_file_remaining_integration', 'd857_single_lease_observation'),
+    ("closure['production_integration_complete']", "closure['cpu_semantics_passed']"),
+    ("closure['tests']['distinct_passed'] == 187", "closure['tests'] == 86"),
+    ('reused_d853.json', 'reused_d857.json'),
+    ('cpu_tests=187', 'cpu_tests=86'),
+    ('source_cpu_tests_reused=187', 'source_cpu_tests_reused=86'),
+    ('tc: register full 3B W2 for complete async file ownership (D854)',
+     'tc: register full 3B W2 for single-observation file read leases (D858)'),
+    ('backup/d854-async-file-fullw2-20261025', 'backup/d858-single-lease-fullw2-20261026'),
+    ('tc-d854-3b-async-file-full-w2', 'tc-d858-3b-single-lease-full-w2'),
+    ('tc-d854-3b-w2', 'tc-d858-3b-w2'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+assert 'd854' not in source.lower(), 'Unchanged execution identity remains'
+with (RAW/'start_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'start_executed.py.snapshot'), 'exec'), globals())

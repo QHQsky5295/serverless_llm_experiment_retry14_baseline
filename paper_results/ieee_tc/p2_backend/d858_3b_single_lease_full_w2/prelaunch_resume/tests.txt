@@ -1,0 +1,9 @@
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d846 (tests.test_ieee_tc_d456_diagnostic_contract.D858FullContract.test_only_three_exclusive_paths_change_from_d846) ... ok
+test_full_w2_reuses_decoder_and_does_not_enable_observer (tests.test_ieee_tc_d456_diagnostic_contract.D846FullContract.test_full_w2_reuses_decoder_and_does_not_enable_observer) ... ok
+test_only_three_exclusive_paths_change_from_d840 (tests.test_ieee_tc_d456_diagnostic_contract.D846FullContract.test_only_three_exclusive_paths_change_from_d840) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.042s
+
+OK

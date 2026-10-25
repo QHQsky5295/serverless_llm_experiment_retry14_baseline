@@ -1,0 +1,7 @@
+{
+  "kind": "prelaunch_test_path_date_mapping",
+  "before_tests": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch/tests.txt",
+  "before_tests_sha256": "7b63a769361ea391c82447cd273d1e73bfd62fbeb51de067c9be147d0523bcc2",
+  "production_or_runtime_change": false,
+  "gpu_attempts_before_resume": 0
+}

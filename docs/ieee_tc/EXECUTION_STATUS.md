@@ -1,4 +1,17 @@
-# IEEE TC execution status — D857 single lease observation CPU checks passed
+# IEEE TC execution status — D858 full 3B W2 registered, not yet launched
+
+## 2026-10-26 D858：进入完整负载验证，不再追加局部资格
+
+D857十五个明确文件已提交80fd863e4d56cfa9318d6b20bf61b5d56b7dd51a，推送
+backup/d857-single-lease-observation-20261026并核实同SHA；无force，最终V2
+未同步，用户manifest未stage。86项CPU证据已封存，不重复。
+
+D858只改变D846三条独占目录及运行身份，沿用3B W2完整4000、D725 profiles、
+D648/D657评价和真实远端交付，检测单次引用观察的端到端效果。当前尚未
+启动；将先核查启动合同并备份后只运行一次，无短前缀/观察器。磁盘当前约
+170.27GiB，继续150/100GiB保护；测量中不做维护。D846参照仍92.875%，
+差85请求；D711数值正确性未知，n_correct=null/ranking=false。完整后续范围
+不删减，原共享k3s不动，goal active。以下D857/旧记录保留。
 
 ## 2026-10-26 D857：删去同一读引用的重复观察，待完整W2验证
 

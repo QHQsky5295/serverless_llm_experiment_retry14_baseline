@@ -1,0 +1,25 @@
+"""Resume prelaunch after correcting only its expected directory date mapping."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW/'start_executed.py.snapshot').read_text()
+for old,new in (
+    ('d858_3b_single_lease_full_w2/prelaunch', 'd858_3b_single_lease_full_w2/prelaunch_resume'),
+    ("RAW/'start_identity.json'", "RAW/'start_resume_identity.json'"),
+):
+    assert old in source
+    source = source.replace(old,new)
+marker = "members = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))"
+assert marker in source
+source = source.replace(marker, """save(OUT/'resume_reason.json', dict(
+    kind='prelaunch_test_path_date_mapping',
+    before_tests=str(OUT.parent/'prelaunch/tests.txt'),
+    before_tests_sha256=p.digest(OUT.parent/'prelaunch/tests.txt'),
+    production_or_runtime_change=False, gpu_attempts_before_resume=0))
+"""+marker)
+marker = "files += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]"
+assert marker in source
+source = source.replace(marker, marker+"\nfiles += [str(path.relative_to(ROOT)) for path in sorted((OUT.parent/'prelaunch').iterdir()) if path.is_file()]")
+with (RAW/'start_resume_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'start_resume_executed.py.snapshot'), 'exec'), globals())

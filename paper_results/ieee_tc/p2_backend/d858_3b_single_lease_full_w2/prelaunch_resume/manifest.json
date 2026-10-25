@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/check_remote_health_stdlib.py.snapshot",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/protected_147.json",
+      "sha256": "5a88ff8a6eb65454973364d55797e9d5445c66b2d6b589fe532224faffe7b2f7"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/qualification.json",
+      "sha256": "cd5b6f2758b610323981292e5a16dd22596c7c7641cbd14bc0c517780016f4f5"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/resume_reason.json",
+      "sha256": "8e21b87abf03b0dc6b28b556550a9f6a65d9f2be92631c2e7ee01955e383ceac"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/reused_d857.json",
+      "sha256": "dfdb1e59be8ddfb3add9997f54a4b4570e716d0489d21c8030f1a44e923eba54"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/run_and_release.sh.snapshot",
+      "sha256": "28f9edb7780509860f26a36d82ef1825a1dc228a5046d0ae65a0fa44f6f0030f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/start.py.snapshot",
+      "sha256": "0e8d27927d32074d3efb5aac8cfc93e2b6594b84bc8f81151c06497cd2cdb38c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/start_remote.sh.snapshot",
+      "sha256": "e2da0bfd6262785b4d61851407fb97cd3f898b48e7760a542adcd8f4661fab2d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/start_resume.py.snapshot",
+      "sha256": "e6bb61f837fdaffcddbba1e65b2466620221913b9649591348e63655883e0028"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/stop_remote.sh.snapshot",
+      "sha256": "ff99a5b9d8a6bfd59d3bf8d8d057d181efd2d44361cd96bb79213e097914c042"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d858_3b_single_lease_full_w2/prelaunch_resume/tests.txt",
+      "sha256": "2ffb28a5d1b58960af7ee3aef2848d446cd5a37fcfbd88a63709eae7aca0054d"
+    }
+  ]
+}
