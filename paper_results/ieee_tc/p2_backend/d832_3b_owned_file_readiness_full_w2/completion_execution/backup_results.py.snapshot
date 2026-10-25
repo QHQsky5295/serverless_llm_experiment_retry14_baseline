@@ -1,0 +1,63 @@
+"""Reuse the explicit-path checkpoint; include actual owned-settlement evidence."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d826_20261025/backup_results.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'e0a920555b39e4fe64c67355a8177ed14db98dd35bf22144dd7952c0479e16b9'
+_source = _template.read_text()
+for _old, _new in (
+    ('d826_3b_single_verification_full_w2', 'd832_3b_owned_file_readiness_full_w2'),
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md', 'D832_OWNED_FILE_READINESS_FULL_W2_20261025.md'),
+    ('d825_single_destination_verification/closure.json', 'd831_owned_file_readiness/closure.json'),
+    ("'start_identity.json', 'completion_identity.json', 'context_identity.json'):",
+     "'start_identity.json', 'completion_identity.json', 'context_identity.json', 'settlement_identity.json'):"),
+    ("'analysis_metrics.log', 'analysis_stages.log', 'completion.log', 'context.log')",
+     "'analysis_metrics.log', 'analysis_stages.log', 'audit_settlement.py', 'settlement_identity.json', 'preparation_attempt1.json', 'backup_program.py.snapshot')"),
+    ('3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417',
+     '7e1c04fba96b197c14bbbd0991c064f1e6df29d5dc6ae4ebc2b67ac33e6c7934'),
+    ('Reuse D825 446 distinct checks and D826 7 entry checks; no production change during closure.',
+     'Reuse D831 435 distinct CPU checks and D832 11 entry checks; no production change during closure. Full metrics, delivery, owner anchors, actual settlement, paired lifecycle and preparation audits passed.'),
+    ('tc: seal D826 full W2 mixed outcome and actual content verification',
+     'tc: seal D832 full W2 trade-off and owned settlement evidence'),
+    ('backup/d826-complete-20261025', 'backup/d832-complete-20261025'),
+):
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_marker = "files.append(OUT / 'closure_manifest.json')"
+_extra = '''
+extra_dirs = ('settlement_analysis', 'paired_diagnosis', 'preparation_analysis')
+for name, summary in (('settlement_analysis', 'summary.json'),
+                      ('paired_diagnosis', 'diagnosis.json'),
+                      ('preparation_analysis', 'diagnosis.json')):
+    assert read(OUT/name/summary)['passed'] is True
+for name in extra_dirs:
+    files.extend(path for path in sorted((OUT/name).rglob('*')) if path.is_file())
+closed_scopes = []
+for number in range(1, 9):
+    unit = 'primelora-tc-aux-832'+'0'*27+str(number).zfill(2)+'.scope'
+    props = call(['systemctl','--user','show',unit,'-p','ActiveState','-p','InvocationID','-p','ControlGroup'])
+    assert 'ActiveState=inactive' in props and 'InvocationID=\\n' in props+'\\n'
+    assert 'ControlGroup=\\n' in props+'\\n'
+    closed_scopes.append(dict(unit=unit, properties=props))
+settlement = read(OUT/'settlement_analysis/summary.json')
+metric = read(OUT/'completion/full4000.json')
+decision = dict(kind='d832_full_w2_development_decision_v1',
+    mechanism_observed=True, settlement_checked=True,
+    request_count=4000, observed_joint_pass=metric['counts']['joint_pass'],
+    observed_within_frozen_budget=read(OUT/'completion/comparison.json')['observed_within_budget'],
+    numerical_adapter_correctness_qualified=False, n_correct=None, ranking_eligible=False,
+    final_configuration_frozen=False, primary_targets_achieved=False,
+    decision='Retain D831 as development base: observed SLO/tail improve with small GPU-time increase within budget; not a G1/G2 pass or universal improvement.',
+    next='Use remaining preparation and admission evidence plus rejected-history/primary-source review for one candidate; no same-key replay or change of evaluator.',
+    closed_analysis_scopes=closed_scopes,
+    source_refs=[dict(path=str(path), sha256=p.digest(path)) for path in files])
+save(OUT/'development_decision.json', decision)
+files.append(OUT/'development_decision.json')
+'''
+assert _source.count(_marker) == 1
+_source = _source.replace(_marker, _marker+'\n'+_extra)
+compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec')
+with (_raw/'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec'), globals())

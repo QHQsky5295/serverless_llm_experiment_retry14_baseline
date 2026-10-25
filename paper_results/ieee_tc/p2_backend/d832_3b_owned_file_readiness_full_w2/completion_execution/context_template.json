@@ -1,0 +1,35 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d829_20261025/context_program.py.snapshot",
+  "sha256": "1470477f6927769cc4fbd62072e1730fd067130b3f04cc481c3257afb2128f14",
+  "replacements": [
+    [
+      "d829_3b_admitted_owner_anchor_full_w2",
+      "d832_3b_owned_file_readiness_full_w2"
+    ],
+    [
+      "d829_observed_delivery_and_required_reclamation_v1",
+      "d832_observed_delivery_and_required_reclamation_v1"
+    ],
+    [
+      "d829_full_w2_closure_v1",
+      "d832_full_w2_closure_v1"
+    ],
+    [
+      "d829_vs_d826_single_observation_v1",
+      "d832_vs_d829_single_observation_v1"
+    ],
+    [
+      "d826_3b_single_verification_full_w2/completion",
+      "d829_3b_admitted_owner_anchor_full_w2/completion"
+    ],
+    [
+      "versus_d826.json",
+      "versus_d829.json"
+    ],
+    [
+      "The owner-anchor candidate has better observed joint SLO, P95 TTFT and GPU seconds, but remains below 95%; this is not statistical evidence or a G1/G2 win.",
+      "Owned file readiness improves observed joint SLO and P95 TTFT while GPU seconds increase; the run remains below 95%. This is not statistical evidence or a G1/G2 win. Actual settlement coverage is a separate pending audit."
+    ]
+  ],
+  "changes": "Run/output/previous observation identities only; preserve full delivery, lifecycle and actual owner-anchor checks. New settlement audit remains separate."
+}

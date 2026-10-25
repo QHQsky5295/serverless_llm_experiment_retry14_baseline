@@ -1,0 +1,32 @@
+"""Reuse D829 delivery, lifecycle and owner-anchor checks without replay."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent/'d829_20261025/context_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '1470477f6927769cc4fbd62072e1730fd067130b3f04cc481c3257afb2128f14'
+_source = _template.read_text()
+_replacements = (
+    ('d829_3b_admitted_owner_anchor_full_w2', 'd832_3b_owned_file_readiness_full_w2'),
+    ('d829_observed_delivery_and_required_reclamation_v1', 'd832_observed_delivery_and_required_reclamation_v1'),
+    ('d829_full_w2_closure_v1', 'd832_full_w2_closure_v1'),
+    ('d829_vs_d826_single_observation_v1', 'd832_vs_d829_single_observation_v1'),
+    ('d826_3b_single_verification_full_w2/completion', 'd829_3b_admitted_owner_anchor_full_w2/completion'),
+    ('versus_d826.json', 'versus_d829.json'),
+    ('The owner-anchor candidate has better observed joint SLO, P95 TTFT and GPU seconds, but remains below 95%; this is not statistical evidence or a G1/G2 win.',
+     'Owned file readiness improves observed joint SLO and P95 TTFT while GPU seconds increase; the run remains below 95%. This is not statistical evidence or a G1/G2 win. Actual settlement coverage is a separate pending audit.'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+compile(_source, str(_raw/'context_program.py.snapshot'), 'exec')
+with (_raw/'context_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template), sha256=_sha, replacements=_replacements,
+        changes='Run/output/previous observation identities only; preserve full delivery, lifecycle and actual owner-anchor checks. New settlement audit remains separate.'),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw/'context_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'context_program.py.snapshot'), 'exec'), globals())

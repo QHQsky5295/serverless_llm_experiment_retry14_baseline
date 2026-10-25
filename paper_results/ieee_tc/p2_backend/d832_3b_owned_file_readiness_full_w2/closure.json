@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "kind": "d832_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3753,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3915,
+    "joint_pass": 3683
+  },
+  "violation_partition": {
+    "ttft_only_fail": 232,
+    "tpot_only_fail": 70,
+    "both_fail": 15
+  },
+  "shortfall_to_3800": 117,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-83200000000000000000000000000002.scope",
+      "invocation_id": "87247f405e3a4f98a81b180102d61756",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000002.scope",
+      "inode": 32239823
+    }
+  ],
+  "resources": {
+    "memory.peak": "605429760",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete W2 observation and all earlier candidates. Owned file readiness improves observed joint SLO and P95 TTFT while GPU seconds increase; the run remains below 95%. This is not statistical evidence or a G1/G2 win. Actual settlement coverage is a separate pending audit. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate."
+}

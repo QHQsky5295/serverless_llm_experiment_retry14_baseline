@@ -1,0 +1,8 @@
+{
+  "exit_code": 1,
+  "scope": "primelora-tc-aux-83200000000000000000000000000010.scope",
+  "operation": "git add explicit curated path list",
+  "cause": "Existing *.log ignore rule rejected four small audit/remote lifecycle receipts; other scoped paths were staged.",
+  "correction": "Reuse existing explicit-file resume procedure; force-add only these curated receipts, not raw large logs or user files.",
+  "performance_data_or_execution_changed": false
+}

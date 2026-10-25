@@ -1,0 +1,20 @@
+{
+  "files": [
+    "configs/ieee_tc/20261025_d832_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/execution_contract_tests.json",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/prelaunch/stop_remote.sh.snapshot"
+  ],
+  "head": "58c2c0d3e4f16b852c13073133e0dfa95d39da66",
+  "ref": "refs/heads/backup/d832-owned-file-readiness-fullw2-20261025"
+}

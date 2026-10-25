@@ -1,0 +1,59 @@
+"""Finish only the Git step after four small curated *.log receipts were ignored."""
+from pathlib import Path
+import hashlib
+
+_raw = Path(__file__).resolve().parent
+_template = _raw/'backup_resume_program.py.snapshot'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '9765d0abbe6d75396415c8bae87f67c5b64a0a8ba60d51d74b06a5a5e7096c92'
+_source = _template.read_text()
+_prefix, _tail = _source.split("call(['git', 'add', '--', *paths])", 1)
+_prefix = _prefix[:_prefix.index('assert os.sched_getaffinity')]
+exec(compile(_prefix, str(_template), 'exec'), globals())
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_finish_identity.json', own)
+for name in ('backup_completion_identity.json', 'backup_resume_identity.json'):
+    assert not Path(read(RAW/name)['path']).exists()
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+evidence = OUT/'completion_execution'
+decision = OUT/'development_decision.json'
+files = []
+for row in read(decision)['source_refs']:
+    path = Path(row['path'])
+    assert p.digest(path) == row['sha256']
+    files.append(path)
+files.append(decision)
+for row in read(evidence/'manifest.json')['files']:
+    path = ROOT/row['path']
+    assert p.digest(path) == row['sha256']
+    files.append(path)
+files += [evidence/'manifest.json',ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md']
+for name in ('finalize_backup.py', 'backup_resume_identity.json'):
+    path = evidence/(name+'.snapshot' if name.endswith('.py') else name)
+    with path.open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+    files.append(path)
+failure = evidence/'retained_backup_git_ignore_failure.json'
+save(failure, dict(exit_code=1, scope='primelora-tc-aux-83200000000000000000000000000010.scope',
+    operation='git add explicit curated path list',
+    cause='Existing *.log ignore rule rejected four small audit/remote lifecycle receipts; other scoped paths were staged.',
+    correction='Reuse existing explicit-file resume procedure; force-add only these curated receipts, not raw large logs or user files.',
+    performance_data_or_execution_changed=False))
+files.append(failure)
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) <= set(paths)
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+protected = {name:row['sha256'] for name,row in read(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')['entries'].items()}
+protected.update(read(ROOT/'paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json')['user_protected'])
+for name,sha in protected.items():
+    assert p.digest(Path(name)) == sha
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+remote_sha = '7e1c04fba96b197c14bbbd0991c064f1e6df29d5dc6ae4ebc2b67ac33e6c7934'
+assert p.digest(RAW/'remote_monitor.log') == remote_sha
+# -f overrides ignore for this explicit small evidence set; it is NOT force-push.
+call(['git','add','-f','--',*paths])
+exec(compile(_tail, str(_template), 'exec'), globals())

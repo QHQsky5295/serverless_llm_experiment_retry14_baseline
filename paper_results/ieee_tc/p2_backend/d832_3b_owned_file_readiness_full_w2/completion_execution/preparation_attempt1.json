@@ -1,0 +1,12 @@
+{
+  "kind": "retained_offline_analysis_invocation_failure",
+  "scope_unit": "primelora-tc-aux-83200000000000000000000000000007.scope",
+  "exit_code": 1,
+  "exception": "ValueError: stage CSV changed",
+  "site": "scripts/ieee_tc/audit_d703_3b_full.py:266",
+  "cause": "Caller supplied a relative --stage-audit path; analyzer compares its string with the sealed absolute path before reading the CSV. SHA readback is unchanged.",
+  "output_created": false,
+  "source_data_changed": false,
+  "performance_run_repeated": false,
+  "correction": "Pass the existing absolute stage path; no analyzer semantics or data changes."
+}

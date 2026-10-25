@@ -1,4 +1,164 @@
-# IEEE TC execution status — D832 complete W2 registered; target unmet
+# IEEE TC execution status — D832 full 3B W2 audited; 92.075%, target unmet
+
+## 2026-10-25 D832：完整机制核对完成，准备备份
+
+真实交付、完整计量、owner-anchor与新增settlement均通过。505条owned
+settlement（503 IO-owner、2 coalesced）全部实际结束早于请求成功；402条
+load开始早于pressure finish，128条首token早于finish；14条worker完成后
+仍需等待，该尾部保留在E2E。join观察不是后台finish；重叠不重复相加。
+1138条文件owner锚点全部live transaction/post-load一致；505次远程交付
+1172100920B，两端ID/字节/SHA一致，请求打包0。三卡实际释放，服务峰值
+33174716416B，high/max/OOM/swap0。147旧投稿及用户修改保持不变。
+
+完整配对阶段/生命周期分析复用既有工具：198 fail→pass、153 pass→fail，
+净+45条；新增62.155745GPU-s来自更早allocation +62.976075及更早release
+−0.820330，不是清理变慢。仅描述性边界解释，不冒称全部因果。
+保留D831作为后续开发基点：SLO与尾TTFT改善、预算满足，但仍差117条达标；
+P50E2E退化及GPU-s增加完整保留。不是最终配置冻结或G1/G2合格。
+
+离线preparation首调用误传相对stage路径，在原始SHA未变时被字符串身份
+检查拒绝（退出1，未生成输出）；记录preparation_attempt1.json后改为既有
+绝对路径重分析，未改数据/工具语义或重跑GPU。完整4000保留；514条Remote
+中503条唯一关联真实IO，其余11条不删。下一按已核实准备分解选择单一问题，
+先封存本轮脚本/数据/解释与必要无损压缩，不继续沿已否决方向堆叠补丁。
+
+当前仍无生产代码变更、baseline/远端/k3s修改或图表。aux01–08分析进程均已
+退出；备份检查发现aux04虽Tasks=0/populated=0，空scope仍active，故在stage
+前停止。按原Invocation核对并只清理这个空scope后恢复备份，保留失败与
+清理回执；不终止生产实验、不放宽释放检查、不重跑性能点。
+使用github-sync进行明确路径备份，不stage用户manifest，不force；远端V2
+历史分叉尚未处理，backup分支不冒称最终V2同步。全部后续实验范围不变，
+独立数值正确性D711未知，目标active。
+
+## 2026-10-25 D832：完整回放自然结束，冻结指标已重算
+
+本轮progress：完整重读PLAN、冻结V1/单轮V2和最新执行规范；不操作共享k3s，
+不重做已完成的HydraServe隔离适配。D832实际4000/4000终态、失败0、
+native_contract_matched不符0；launch.json确认service/replay/watchdog退出0，
+真实GPU context释放及service路径消失，远端3B/7B/本轮monitor均inactive/PID0。
+四卡15MiB、0util、compute-apps空；tmux本轮已自然退出，没有重启或人工终止。
+
+复用D817/D829计量，完整4000条共同SLO：TTFT3753、TPOT3915、联合3683
+（92.075%），距3800差117条。相对D829联合+45条/+1.125百分点；P95TTFT
+2514.899193→2327.791817ms；物理U11246.510437→11308.666183GPU-s
+（增加62.155745，约0.553%）。U仍低于12083.063870预算；并非G1/G2达标。
+平均TTFT780.286578ms、TPOT15.959050ms、E2E2594.728094ms。原生时间
+重算误差0。D711独立数值身份仍未知，N_correct=null、ranking_eligible=false。
+没有把旧console的SLO/模拟成本或原生数量正确当作正式资格。
+
+完整计量scope aux02已结束。正在复用真实交付、生命周期、owner-anchor检查，
+随后核对新增file-preparation settlement的实际结束/成功终态和重叠边界；
+候选尚未最终接受，不将join观察时间当后台结束，不重复累计重叠span。
+目前仅离线分析，未改生产逻辑、配置、远端或baseline，未新增GPU回放/图表。
+保存全部原始结果；接下来完成实际证据核对、闭合日志必要无损压缩和明确路径
+备份，再依据证据选择下一主线动作。磁盘约160.4GB，下一重型仍需150GiB准入。
+完整同版7B/3B W0/W1/W2、M1/M2、A1–A5、S1–S13、CE/Pareto、审稿文档、
+图表和最终V2同步全部保留；整体目标active，不能把单轮改善写成目标完成。
+
+## 2026-10-25 11:54 CST：D832完成3025条，继续原回放
+
+本轮完整重读PLAN和状态，monitor-experiment持续30次低频只读核查，
+每次实际launcher及服务均存活；监测cell7731已正常结束，实验没有停止。
+11:54:42 pane3581163、launcher3581167运行2760秒，服务Invocation仍为
+afdb17c6e6b14634a0101bf90cb30e98，active/Tasks435。终态3025/4000，
+失败0、native合同不符0；watchdog sample2722无warning/abort，high/max/
+OOM/swap均0，peak31353880576B，主机可用97917321216B，磁盘
+146816040960B，高于当前100GiB停止线。没有代码/配置/远端修改、压缩、
+安装、新实验或推送；监测窗口结束不作为运行终态或重启依据。
+下一继续同一D832直到自然终态/释放，再做完整计量与settlement覆盖。
+无新的性能结论，目标active，D711及完整未完成范围不变。
+
+## 2026-10-25 11:28 CST：D832超过四分之一，继续同一运行
+
+本轮verified wait，完整重读PLAN，按monitor-experiment持续核实实际进程。
+11:28:03 pane3581163、launcher3581167仍存活（1161秒），先前服务Invocation
+未变；1026/4000终态，失败0、native合同不符0。watchdog sample1145无
+warning/abort，high/max/OOM/swap全0，peak21234610176B，主机可用
+98488287232B，磁盘155629944832B；本轮停止线未触发，下一重型仍需恢复
+启动余量，不在性能运行中扫描/清理/压缩或推送。
+
+同时只读核对D831新增字段与既有计量，不运行分析、不改源码：
+`file_preparation_settlement.settled_monotonic_s`是请求join观察时刻，
+不能当作后台任务真正结束时刻或纯pressure等待。后续实际结束应关联
+`ieee_movements`的job/attempt `finished_at`及`adapter_transfer_pressure`
+的`finished_at`；再检查其不晚于请求join与`controller_completed_monotonic_s`。
+实际原生首末token及worker完成时间保持独立，残余join进入completion/E2E；
+允许pressure finish与加载/生成重叠，不沿用旧分析的finish-before-load假设。
+以上为源码字段语义核对，不是本轮实际覆盖结果；完整回放后才验证全部记录。
+
+下一仍等待同一D832自然终态和真实释放，复用完整计量/交付并补settlement
+覆盖。无新候选、无重复运行；最新完整90.95%未达标、D711独立数值未知及
+全部后续同版比较/消融/敏感性/文档/图表/最终同步范围不变，目标active。
+
+## 2026-10-25 11:24 CST：D832持续运行，803条终态
+
+上一goal turn及本轮均为verified wait；本轮完整重读PLAN和当前状态，
+使用monitor-experiment，持续多次核实同一launcher/服务实际存活，未重启。
+11:24:16实际服务active，Invocation仍afdb17c6e6b14634a0101bf90cb30e98，
+TasksCurrent435；803/4000终态，失败0、native合同不符0。
+watchdog sample921无warning/abort；服务high/max/OOM/swap均0，
+peak19658162176B，主机可用98754068480B，磁盘156995780608B。
+未触发当前停止线；不在运行中清理，也不启动下一重型。
+没有新性能结论、代码/配置/远端改动或推送。下一仍等待同一完整回放自然
+终态及实际释放，再做完整计量、真实交付与settlement覆盖分析；D711未知、
+最新完整90.95%未达标及后续完整研究范围均不变，整体目标active。
+
+## 2026-10-25 11:17 CST：D832同一完整回放，已核实等待
+
+本轮verified wait：重新完整读取PLAN、当前状态和执行约束，按
+monitor-experiment只读监测既有tmux/实际服务，不重复启动、不新增候选。
+11:17:51时pane3581163与launcher3581167均存活（550秒）；实际服务仍active，
+Invocation afdb17c6e6b14634a0101bf90cb30e98未变，TasksCurrent435。
+请求终态403/4000，失败0、native_contract_matched不符0；不是完整性能结论，
+更不替代D711独立数值正确性未知。
+
+watchdog sample541无warning/abort，high/max/OOM全0、服务swap0；
+服务峰值19583410176B，主机可用98919505920B，磁盘158577201152B。
+磁盘低于下一重型启动150GiB但仍高于本轮停止100GiB；运行中不扫描、
+清理或压缩，也不修改源码/配置/远端、安装或推送。共享k3s不改，
+HydraServe已完成的隔离适配不重做。本轮无新GPU实验或性能比较。
+
+下一动作：继续监测同一D832，等待自然终态与实际释放后复用完整计量/
+交付分析并补file-preparation settlement覆盖，保存全部结果再判断候选。
+当前最新完整3B W2仍D829的90.95%，目标未达；同版本两模型M1/M2、
+A1–A5、S1–S13、CE/Pareto、审稿文档、图表和最终V2同步范围不变。
+整体目标active；本状态记录不在性能运行中提交，不追改启动身份。
+
+## 2026-10-25 11:10 CST：D832已实际启动，继续同一回放
+
+本轮progress：D831的435项不同CPU验证、失败保留及代码备份完成后，新增
+D832完整回放身份。11项入口检查通过（新增2项、受影响旧项9项），配置/入口/
+前置证据已提交58c2c0d3e4f16b852c13073133e0dfa95d39da66，推送核实
+backup/d832-owned-file-readiness-fullw2-20261025。不是最终V2同步。
+
+实际运行身份：
+
+- tmux `tc-d832-3b-owned-file-readiness-full-w2`，pane3581163、launcher3581167
+  均存活；没有第二次启动。
+- 服务`primelora-tc-svc-2471f9121dde403e9f99f1bfbdb78ddc.scope`，
+  Invocation `afdb17c6e6b14634a0101bf90cb30e98`，inode32205732，状态active。
+- 外置回放/监控`primelora-tc-aux-c229ca25b4eb4ec39b6a62fcf0db2735.scope`。
+- raw `results/ieee_tc/p2_backend_qualification/d832_20261025/`；
+  实际请求/监控位于`3b_max3_full_w2/launch.launch/`。
+
+18条请求终态均success及native_contract_matched，失败0；这不是4000条完整
+结果，也不是独立数值证明。watchdog sample116无warning/abort，服务high/
+max/OOM全0、swap0，peak13265797120B；主机可用105760833536B，磁盘
+161446649856B。启动准备scope已inactive且Invocation/ControlGroup空；
+启动回执中的identity是该已结束准备scope，不是仍运行的推理服务。
+
+本次远端启动记录实际1000Mb/s/full，3B服务Invocation
+798a88669d0d444c85a53df3f7e24875，7B服务922c74a59a134887a0ee68d08a568d8d，
+本轮监控c8513b066479483a86d385f010ff982c。复用D80只读发布，未改工件、
+链路、服务配置或共享k3s。由既有run_and_release在自然终态后按身份停止。
+
+下一动作：只监测/等待同一完整4000回放；不启动新候选，不在运行中扫盘、
+压缩、安装、修改配置、维护远端或推送。自然终态→实际释放→复用完整计量/
+交付分析并补file-preparation settlement覆盖→保存备份→接受或撤销。
+当前最新完整结果仍D829的90.95%，目标未达；D711未知和所有后续范围保留，
+整体目标active。该状态记录不递归提交；启动前封存身份不追改。
+
+以下为D832执行前登记：
 
 ## 2026-10-25 D832：准备完整3B W2，尚未启动
 

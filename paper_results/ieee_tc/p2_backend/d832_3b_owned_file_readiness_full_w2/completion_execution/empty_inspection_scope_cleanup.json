@@ -1,0 +1,41 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-83200000000000000000000000000004.scope",
+    "invocation_id": "062a3b22e0fa48d2865e6cb3fce43822",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000004.scope",
+    "inode": 32240618
+  },
+  "before": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000004.scope",
+    "memory.current": 4096,
+    "memory.peak": 7766016,
+    "memory.high": 268435456,
+    "memory.max": 536870912,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 3765441\nuser_usec 3621462\nsystem_usec 143978\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "cleanup": {
+    "targets": [],
+    "departed_during_census": [],
+    "hard_kill": false,
+    "released": true
+  },
+  "path_removed": true,
+  "failed_backup_attempt_scope": "primelora-tc-aux-83200000000000000000000000000009.scope",
+  "failure": "Analysis process exited, but its empty transient scope remained active; backup assertion stopped before staging or committing.",
+  "production_run_affected": false,
+  "performance_repeated": false
+}

@@ -1,0 +1,39 @@
+"""Close the verified empty inspection scope; resume the untouched checkpoint."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+_raw = Path(__file__).resolve().parent
+_root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(_root))
+from scripts import ieee_tc_preflight as _p
+
+_template = _raw/'backup_program.py.snapshot'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == '843ea7467d25798106067c802680c3ea29a4488ff3151543c3e3c0594ba1e162'
+_identity = _p.scope_identity('primelora-tc-aux-83200000000000000000000000000004.scope')
+assert _identity['invocation_id'] == '062a3b22e0fa48d2865e6cb3fce43822'
+_group = Path(_identity['path'])
+assert not _p.owned_pids(_group)
+assert _p.counters(_group/'cgroup.events')['populated'] == 0
+_before = _p.cgroup_snapshot(_group)
+_cleanup = _p.stop_scope_identity(_identity, grace_seconds=0)
+assert _cleanup['released'] and not _cleanup['targets'] and not _cleanup['hard_kill']
+assert not _group.exists()
+with (_raw/'empty_inspection_scope_cleanup.json').open('x') as _stream:
+    json.dump(dict(identity=_identity, before=_before, cleanup=_cleanup,
+        path_removed=True, failed_backup_attempt_scope='primelora-tc-aux-83200000000000000000000000000009.scope',
+        failure='Analysis process exited, but its empty transient scope remained active; backup assertion stopped before staging or committing.',
+        production_run_affected=False, performance_repeated=False), _stream, indent=2)
+    _stream.write('\n')
+_source = _template.read_text()
+_source = _source.replace("save(RAW / 'backup_completion_identity.json', own)",
+                          "save(RAW / 'backup_resume_identity.json', own)")
+_source = _source.replace('for number in range(1, 9):', 'for number in range(1, 10):')
+_old = "'preparation_attempt1.json', 'backup_program.py.snapshot')"
+assert _old in _source
+_source = _source.replace(_old, "'preparation_attempt1.json', 'backup_program.py.snapshot', 'resume_backup.py', 'backup_resume_program.py.snapshot', 'empty_inspection_scope_cleanup.json', 'backup_completion_identity.json')")
+compile(_source, str(_raw/'backup_resume_program.py.snapshot'), 'exec')
+with (_raw/'backup_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_resume_program.py.snapshot'), 'exec'), globals())

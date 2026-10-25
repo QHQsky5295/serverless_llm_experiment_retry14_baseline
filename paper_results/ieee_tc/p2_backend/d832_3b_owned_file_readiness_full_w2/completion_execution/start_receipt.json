@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d832-owned-file-readiness-fullw2-20261025",
+  "head": "58c2c0d3e4f16b852c13073133e0dfa95d39da66",
+  "identity": {
+    "inode": 32205569,
+    "invocation_id": "ee818c7542dd4434bac235c0e50e60fe",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83200000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-83200000000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "9eca4ce04f2e10ece5191bbaec74c8a29c87e0dd34649488a7f528f41f355755",
+  "tmux": "tc-d832-3b-owned-file-readiness-full-w2"
+}

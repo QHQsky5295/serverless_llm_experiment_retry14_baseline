@@ -1,0 +1,151 @@
+"""D826 adaptation of the D752 explicit-path, protected-result backup procedure."""
+import ast
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+                                   stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_resume_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+for name in ('start_identity.json', 'completion_identity.json', 'context_identity.json', 'settlement_identity.json'):
+    assert not Path(read(RAW / name)['path']).exists(), name
+assert read(OUT / 'closure.json')['passed']
+assert read(OUT / 'completion/closed_outcome.json')['all_allocations_released']
+q = read(OUT / 'prelaunch/qualification.json')
+head = read(RAW / 'start_receipt.json')['head']
+evolving = {ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+            ROOT / 'docs/ieee_tc/D832_OWNED_FILE_READINESS_FULL_W2_20261025.md'}
+for name, sha in (q['refs'] | q['reused']).items():
+    path = Path(name)
+    if path in evolving:
+        content = subprocess.check_output(
+            ['git', 'show', head + ':' + str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(read(ROOT / 'paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json')['user_protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+files = []
+for row in read(OUT / 'closure_manifest.json')['files']:
+    path = Path(row['path'])
+    assert p.digest(path) == row['sha256'], str(path)
+    files.append(path)
+files.append(OUT / 'closure_manifest.json')
+
+extra_dirs = ('settlement_analysis', 'paired_diagnosis', 'preparation_analysis')
+for name, summary in (('settlement_analysis', 'summary.json'),
+                      ('paired_diagnosis', 'diagnosis.json'),
+                      ('preparation_analysis', 'diagnosis.json')):
+    assert read(OUT/name/summary)['passed'] is True
+for name in extra_dirs:
+    files.extend(path for path in sorted((OUT/name).rglob('*')) if path.is_file())
+closed_scopes = []
+for number in range(1, 10):
+    unit = 'primelora-tc-aux-832'+'0'*27+str(number).zfill(2)+'.scope'
+    props = call(['systemctl','--user','show',unit,'-p','ActiveState','-p','InvocationID','-p','ControlGroup'])
+    assert 'ActiveState=inactive' in props and 'InvocationID=\n' in props+'\n'
+    assert 'ControlGroup=\n' in props+'\n'
+    closed_scopes.append(dict(unit=unit, properties=props))
+settlement = read(OUT/'settlement_analysis/summary.json')
+metric = read(OUT/'completion/full4000.json')
+decision = dict(kind='d832_full_w2_development_decision_v1',
+    mechanism_observed=True, settlement_checked=True,
+    request_count=4000, observed_joint_pass=metric['counts']['joint_pass'],
+    observed_within_frozen_budget=read(OUT/'completion/comparison.json')['observed_within_budget'],
+    numerical_adapter_correctness_qualified=False, n_correct=None, ranking_eligible=False,
+    final_configuration_frozen=False, primary_targets_achieved=False,
+    decision='Retain D831 as development base: observed SLO/tail improve with small GPU-time increase within budget; not a G1/G2 pass or universal improvement.',
+    next='Use remaining preparation and admission evidence plus rejected-history/primary-source review for one candidate; no same-key replay or change of evaluator.',
+    closed_analysis_scopes=closed_scopes,
+    source_refs=[dict(path=str(path), sha256=p.digest(path)) for path in files])
+save(OUT/'development_decision.json', decision)
+files.append(OUT/'development_decision.json')
+
+evidence = OUT / 'completion_execution'
+evidence.mkdir(exist_ok=False)
+small = ('complete.py', 'close_context.py', 'backup_results.py',
+         'completion_program.py.snapshot', 'context_program.py.snapshot',
+         'completion_identity.json', 'context_identity.json',
+         'completion_template.json', 'context_template.json',
+         'start_receipt.json', 'backup.json', 'commit.json',
+         'remote_start.log', 'remote_stop.log', 'remote_health.json',
+         'analysis_metrics.log', 'analysis_stages.log', 'audit_settlement.py', 'settlement_identity.json', 'preparation_attempt1.json', 'backup_program.py.snapshot', 'resume_backup.py', 'backup_resume_program.py.snapshot', 'empty_inspection_scope_cleanup.json', 'backup_completion_identity.json')
+for name in small:
+    source = RAW / name
+    if name.endswith('.py'):
+        ast.parse(source.read_text())
+    target = evidence / (name + '.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(target) == p.digest(source)
+    files.append(target)
+remote_sha = '7e1c04fba96b197c14bbbd0991c064f1e6df29d5dc6ae4ebc2b67ac33e6c7934'
+assert p.digest(RAW / 'remote_monitor.log') == remote_sha
+save(evidence / 'manifest.json', dict(
+    files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in files if path.parent == evidence],
+    remote_monitor_sha256=remote_sha, protected_files=len(protected),
+    procedure_source=str(RAW.parent / 'd752_20261023/backup_results.py')))
+files += [evidence / 'manifest.json', *sorted(evolving)]
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *[str(x.relative_to(ROOT)) for x in evolving]])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.csv', '.snapshot'))]
+csvs = [x for x in paths if x.endswith('.csv')]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW / 'backup_precommit_check.json', dict(passed=True, files=paths,
+     protected_files=len(protected), syntax_checked=True,
+     qualification='Reuse D831 435 distinct CPU checks and D832 11 entry checks; no production change during closure. Full metrics, delivery, owner anchors, actual settlement, paired lifecycle and preparation audits passed.'))
+call(['git', 'commit', '-m', 'tc: seal D832 full W2 trade-off and owned settlement evidence'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d832-complete-20261025'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup_completion.json', dict(passed=True, head=head, ref=ref,
+     files=paths, v2_synchronized=False, protected_files=len(protected),
+     remote_monitor_sha256=remote_sha))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))
