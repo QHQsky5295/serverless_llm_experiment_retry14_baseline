@@ -1,0 +1,69 @@
+"""Curate the completed CPU evidence, without changing historical files."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d860_source_observation_projection'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+scope = p.scope_identity(p.cg_path().name)
+group = Path(scope['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+before, after = read(RAW/'before.json'), read(RAW/'after.json')
+assert before['tests'] == 2 and before['failures'] == 2 and before['errors'] == 0
+assert 'AssertionError: 3 != 2' in (RAW/'before.log').read_text()
+assert after['passed'] and after['tests'] == 88
+source = ROOT/'faaslora/memory/residency_manager.py'
+test = ROOT/'tests/test_ieee_tc_file_observation.py'
+assert p.digest(source) == after['source_sha256']
+assert p.digest(test) == after['test_sha256'] == before['test_sha256']
+assert p.digest(RAW/'before_source.py.snapshot') == before['source_sha256']
+assert p.digest(RAW/'after_source.py.snapshot') == after['source_sha256']
+seal = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+user = ROOT/'configs/generated/lora_manifest_1000.json'
+assert p.digest(user) == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+OUT.mkdir(parents=True, exist_ok=False)
+names = ['before.json','after.json','before.log','after.log','check.py','before_driver.py.snapshot',
+         'after_driver.py.snapshot','close.py','close_executed.py.snapshot']
+for name in names:
+    path = RAW/name
+    if name.endswith('.py') or name.endswith('.py.snapshot'):
+        ast.parse(path.read_text())
+    destination = OUT/(name+'.txt' if name.endswith('.log') else
+                       name+'.snapshot' if name.endswith('.py') else name)
+    with destination.open('xb') as stream:
+        stream.write(path.read_bytes())
+diff = subprocess.check_output(['git','diff','--unified=0','HEAD','--',
+    'faaslora/memory/residency_manager.py','tests/test_ieee_tc_file_observation.py'],cwd=ROOT)
+with (OUT/'change.diff').open('xb') as stream: stream.write(diff)
+doc = ROOT/'docs/ieee_tc/D860_SOURCE_OBSERVATION_PROJECTION_20261026.md'
+closure = dict(passed=True, cpu_semantics_passed=True, performance_candidate_accepted=False,
+    tests=after['tests'], new_gpu_replays=0, n_correct=None, ranking_eligible=False,
+    before_expected_failure=before, after=after, protected_147=seal,
+    user_protected={str(user):p.digest(user)}, doc=dict(path=str(doc),sha256=p.digest(doc)),
+    source_files=[dict(path=str(path),sha256=p.digest(path)) for path in (source,test)],
+    scope=scope, next_action='Register one unchanged-contract complete 3B W2 replay; no short prefix',
+    raw=str(RAW), current_parent_performance=dict(run='D858',joint_pass=3746,n=4000,
+        u_gpu_seconds=11311.401340661105,budget_gpu_seconds=12083.063870235463),
+    source_plan_sha256=p.check_plan())
+save(OUT/'closure.json', closure)
+save(OUT/'final_manifest.json', dict(files=[dict(path=str(path),sha256=p.digest(path))
+    for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True,tests=after['tests'],out=str(OUT),new_gpu_replays=0)))

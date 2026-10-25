@@ -1,0 +1,19 @@
+"""Reuse D857's bounded owner tests for the source-observation projection."""
+from pathlib import Path
+
+previous = Path(__file__).resolve().parent.parent / 'd857_20261026/check.py'
+source = previous.read_text()
+replacements = {
+    'test_read_lease_identity_and_footprint_use_one_fresh_inventory':
+        'test_source_views_project_checked_stats_without_a_third_pass',
+    'test_read_lease_second_pass_mutation_withdraws_before_install':
+        'test_source_view_second_pass_change_is_rejected_and_withdrawn',
+    'NativeHostPreparation.': 'OwnedNativeHostMovement.',
+}
+for old, new in replacements.items():
+    assert source.count(old) == 1
+    source = source.replace(old, new)
+import sys
+with Path(__file__).with_name(sys.argv[1] + '_driver.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(previous), 'exec'), globals())

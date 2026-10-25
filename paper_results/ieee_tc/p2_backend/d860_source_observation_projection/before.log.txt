@@ -1,0 +1,25 @@
+test_source_views_project_checked_stats_without_a_third_pass (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass) ... 
+  test_source_views_project_checked_stats_without_a_third_pass (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass) (operation='snapshot') ... FAIL
+  test_source_views_project_checked_stats_without_a_third_pass (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass) (operation='witness') ... FAIL
+test_source_view_second_pass_change_is_rejected_and_withdrawn (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_view_second_pass_change_is_rejected_and_withdrawn) ... ok
+
+======================================================================
+FAIL: test_source_views_project_checked_stats_without_a_third_pass (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass) (operation='snapshot')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py", line 88, in test_source_views_project_checked_stats_without_a_third_pass
+    self.assertEqual(counts[str(file)], 2)
+AssertionError: 3 != 2
+
+======================================================================
+FAIL: test_source_views_project_checked_stats_without_a_third_pass (tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass) (operation='witness')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py", line 88, in test_source_views_project_checked_stats_without_a_third_pass
+    self.assertEqual(counts[str(file)], 2)
+AssertionError: 3 != 2
+
+----------------------------------------------------------------------
+Ran 2 tests in 9.574s
+
+FAILED (failures=2)

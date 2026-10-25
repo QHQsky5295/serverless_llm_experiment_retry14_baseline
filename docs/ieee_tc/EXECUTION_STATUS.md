@@ -1,4 +1,31 @@
-# IEEE TC execution status — D859 residual audit complete; 3B joint SLO still open
+# IEEE TC execution status — D860 source projection qualified; full 3B W2 next
+
+## 2026-10-26 D860：删去来源记录的第三遍读取
+
+接续D859真实残余，不重复线程/ctypes/通知改动。当前_source_observation在
+两遍fresh-stat核验后又逐文件lstat；D857只改读引用内部，未改此公共来源路径。
+现用本次已通过第二遍核验的临时stat记录投影身份与容量，不跨调用缓存；
+保留发布SHA、独立事务观察、extent包络、owner锁、epoch、引用和native检查。
+IEEE公式、负载、阈值、预算与配置不变。官方vLLM/Python源码与失败历史已核对。
+
+父版两项新测试中计数的两个子项均3!=2，变更拒绝已通过；修改后88/88通过，
+snapshot/witness逐文件读取3→2。辅助域峰值676601856B，事件/swap0，无GPU，
+147旧保护项及用户manifest未变。此为CPU工作量/语义验证，非新性能结果。
+下一先备份D860，再用既有入口唯一完整3B W2；不增加短回放或整套资格。
+D858仍3746/4000、U11311.401341，距95%差54；数值正确性仍未知，不作最终
+排名。完整同版两模型/基线/dLoRA、A1–A5、S1–S13、数值证明、图表/文档/
+最终V2全部保留，goal active。当前GPU空闲，约168.9GiB，不触碰共享k3s。
+
+以下D859为已完成历史记录。
+
+D859备份完成：17个明确文件提交2a492047a7d981f1f875c61096b330d3358daca6，
+已推送backup/d859-residual-diagnosis-20261026并核实远端同SHA；无force，
+最终V2尚未同步。用户manifest未stage。首次默认diff检查将CSV的CRLF和精确
+源码快照末尾空行报为空白；第二次未显式关闭Git默认EOF规则仍被拒绝。两个
+备份尝试及源码保留，无提交/推理重跑。最终按制品类型检查：文档/JSON严格
+默认，CSV只识别CRLF行尾，Python快照编译并允许末尾空行；不修改封存字节，
+其他空白/秘密/SHA检查保留。全部辅助任务已结束、GPU空闲，约168.9GiB可用。
+本后置回执随下一正常检查点保存，不递归备份；下述下一主线和完整范围不变。
 
 ## 2026-10-26 D859：复用完整结果，区分平均改善与尾部违约
 

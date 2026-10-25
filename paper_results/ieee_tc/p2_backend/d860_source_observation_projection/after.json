@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "tests": 88,
+  "errors": 0,
+  "failures": 0,
+  "elapsed_seconds": 12.897498069796711,
+  "names": [
+    "tests.test_ieee_tc_file_observation",
+    "tests.test_ieee_tc_request_lifecycle.LocalSourceOwnership",
+    "tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication",
+    "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_first_load_observes_and_pins_file_atomically",
+    "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_reuse_observes_and_pins_file_atomically"
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-0cac54eebc6445e69b6f9ca9988cde20.scope",
+    "invocation_id": "0213476cb93943d0bf41f9ed3d262fc3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0cac54eebc6445e69b6f9ca9988cde20.scope",
+    "inode": 32674180
+  },
+  "source_sha256": "a7036d375f7272f4efb2c71abc8812d301edc51242c0c2fc683c9b052ed56991",
+  "test_sha256": "6edcd4323c3918c33386257048b8eee37acffdf4c14b747cf7002c505ff937bd",
+  "resources": {
+    "memory.peak": "676601856",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "protected_147_unchanged": true,
+  "native_cuda_initialized": false
+}

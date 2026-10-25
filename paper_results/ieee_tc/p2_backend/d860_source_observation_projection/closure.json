@@ -1,0 +1,105 @@
+{
+  "passed": true,
+  "cpu_semantics_passed": true,
+  "performance_candidate_accepted": false,
+  "tests": 88,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "before_expected_failure": {
+    "passed": false,
+    "tests": 2,
+    "errors": 0,
+    "failures": 2,
+    "elapsed_seconds": 9.66138388030231,
+    "names": [
+      "tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_views_project_checked_stats_without_a_third_pass",
+      "tests.test_ieee_tc_file_observation.FreshFileObservation.test_source_view_second_pass_change_is_rejected_and_withdrawn"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-681acaa6296142e69496f86f4f587ace.scope",
+      "invocation_id": "d7913cea28f94dd085cd00fa5f5a74be",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-681acaa6296142e69496f86f4f587ace.scope",
+      "inode": 32673901
+    },
+    "source_sha256": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "test_sha256": "6edcd4323c3918c33386257048b8eee37acffdf4c14b747cf7002c505ff937bd",
+    "resources": {
+      "memory.peak": "619311104",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "protected_147_unchanged": true,
+    "native_cuda_initialized": false
+  },
+  "after": {
+    "passed": true,
+    "tests": 88,
+    "errors": 0,
+    "failures": 0,
+    "elapsed_seconds": 12.897498069796711,
+    "names": [
+      "tests.test_ieee_tc_file_observation",
+      "tests.test_ieee_tc_request_lifecycle.LocalSourceOwnership",
+      "tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication",
+      "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_first_load_observes_and_pins_file_atomically",
+      "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.test_native_host_reuse_observes_and_pins_file_atomically"
+    ],
+    "scope": {
+      "unit": "primelora-tc-aux-0cac54eebc6445e69b6f9ca9988cde20.scope",
+      "invocation_id": "0213476cb93943d0bf41f9ed3d262fc3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0cac54eebc6445e69b6f9ca9988cde20.scope",
+      "inode": 32674180
+    },
+    "source_sha256": "a7036d375f7272f4efb2c71abc8812d301edc51242c0c2fc683c9b052ed56991",
+    "test_sha256": "6edcd4323c3918c33386257048b8eee37acffdf4c14b747cf7002c505ff937bd",
+    "resources": {
+      "memory.peak": "676601856",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "protected_147_unchanged": true,
+    "native_cuda_initialized": false
+  },
+  "protected_147": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D860_SOURCE_OBSERVATION_PROJECTION_20261026.md",
+    "sha256": "7e44b0cfb52a7d5ffd5546c5026351ffeee8bde9b2155d2a86570a5434766664"
+  },
+  "source_files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "a7036d375f7272f4efb2c71abc8812d301edc51242c0c2fc683c9b052ed56991"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+      "sha256": "6edcd4323c3918c33386257048b8eee37acffdf4c14b747cf7002c505ff937bd"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-c6253e46d09b4d968dc1434ba73af7b2.scope",
+    "invocation_id": "ca62902f6d524a1d9795d7465a8a0ba5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c6253e46d09b4d968dc1434ba73af7b2.scope",
+    "inode": 32674854
+  },
+  "next_action": "Register one unchanged-contract complete 3B W2 replay; no short prefix",
+  "raw": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d860_20261026",
+  "current_parent_performance": {
+    "run": "D858",
+    "joint_pass": 3746,
+    "n": 4000,
+    "u_gpu_seconds": 11311.401340661105,
+    "budget_gpu_seconds": 12083.063870235463
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

@@ -1,0 +1,10 @@
+{
+  "reason": "unittest emits a trailing space before a failing subtest's newline",
+  "artifact": "before.log.txt",
+  "preserve_exact_raw_bytes": true,
+  "exception": "disable blank-at-eol for this one raw log only",
+  "all_other_staged_files": "default git diff --check",
+  "functional_retests": 0,
+  "gpu_replays": 0,
+  "first_backup_attempt_committed": false
+}

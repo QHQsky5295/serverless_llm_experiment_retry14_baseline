@@ -1,0 +1,21 @@
+"""Reuse completed D857 evidence closure with this candidate's exact outcomes."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d857_20261026/close.py').read_text()
+for old, new in (
+    ('d857_single_lease_observation', 'd860_source_observation_projection'),
+    ("before['failures'] == 1", "before['failures'] == 2"),
+    ('AssertionError: 3 != 1 : confirmed=True', 'AssertionError: 3 != 2'),
+    ("after['tests'] == 86", "after['tests'] == 88"),
+    ("'check.py','after_resume.py',\n         'after_executed.py.snapshot','close.py'",
+     "'check.py','before_driver.py.snapshot',\n         'after_driver.py.snapshot','close.py','close_executed.py.snapshot'"),
+    ('D857_SINGLE_LEASE_OBSERVATION_20261026.md', 'D860_SOURCE_OBSERVATION_PROJECTION_20261026.md'),
+    ("run='D846',joint_pass=3715", "run='D858',joint_pass=3746"),
+    ('u_gpu_seconds=11929.62933205394', 'u_gpu_seconds=11311.401340661105'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+with (RAW/'close_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'close_executed.py.snapshot'), 'exec'), globals())

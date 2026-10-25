@@ -871,10 +871,13 @@ class LocalSourceReferences:
             return self.host_budget_snapshot()
 
     def _source_observation(self, path):
-        footprint = _local_file_inventory({'source': path}, allocation_bounds=self._file_allocations)
-        observations = ((name, Path(name).lstat()) for allocation in footprint['allocations']
-                        for name in allocation['paths'])
-        return self._source_observation_from_stats(path, footprint, observations)
+        # Identity and capacity describe the same checked observation. Inventory
+        # exposes these stats only after its second fresh pass succeeds; a third
+        # per-path read here would instead mix a later identity with that footprint.
+        observed = {}
+        footprint = _local_file_inventory({'source': path}, allocation_bounds=self._file_allocations,
+                                          _observed_stats=observed)
+        return self._source_observation_from_stats(path, footprint, observed.items())
 
     @staticmethod
     def _source_observation_from_stats(path, footprint, observations):
