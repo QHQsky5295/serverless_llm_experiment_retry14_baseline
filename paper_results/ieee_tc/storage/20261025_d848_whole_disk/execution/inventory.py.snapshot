@@ -1,0 +1,43 @@
+"""Reuse D483 metadata inventory for the user's explicit whole-disk audit.
+
+No deletions, hashes of model contents, remote changes, or GPU work. Exclude
+submounts to avoid counting live container bind/overlay views more than once.
+Permission gaps are retained, not reported as zero usage or a complete audit.
+"""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')
+from scripts import ieee_tc_preflight as p
+
+template = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/inventory_storage.py')
+mounts = json.loads(subprocess.check_output(['findmnt','-J','-o','TARGET,SOURCE,FSTYPE'], text=True))
+targets = set()
+def walk(rows):
+    for row in rows:
+        if row['target'] != '/':
+            targets.add(row['target'])
+        walk(row.get('children', []))
+walk(mounts['filesystems'])
+with (RAW/'metadata_before.json').open('x') as stream:
+    json.dump(dict(mounts=mounts, excluded_mounts=sorted(targets),
+        df=subprocess.check_output(['df','-B1','-T'],text=True),
+        inode=subprocess.check_output(['df','-i'],text=True),
+        template=str(template), template_sha256=p.digest(template),
+        previous_partial_inventory='d841_20261025; timed out after 300s; not a complete disk inventory',
+        permission='qhq; sudo -n unavailable; no credential guessing or shared-service changes'),stream,indent=2)
+source = template.read_text()
+source = source.replace("assert json.loads((ROOT/'storage_closure.json').read_text())['passed']", "assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']")
+start = source.index('roots = [')
+end = source.index('\nstart = time.monotonic()', start)
+source = source[:start]+"roots = ['/']\nexcluded_mounts = "+repr(sorted(targets))+"\n"+source[end:]
+source = source.replace("'--max-depth=2','--',*roots]", "'--max-depth=4', *['--exclude='+path for path in excluded_mounts], '--', *roots]")
+source = source.replace('timeout=300', 'timeout=1800')
+source = source.replace('dict(passed=result.returncode==0,', 'dict(completed=result.returncode in (0,1), fully_readable=result.returncode==0, passed=result.returncode==0,')
+source = source.replace('Read-only metadata, known experiment/cache roots only;', 'Whole root filesystem metadata with all submounts excluded; unreadable directories are explicit gaps, not zero;')
+with (RAW/'inventory_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'inventory_executed.py.snapshot'), 'exec'), globals())

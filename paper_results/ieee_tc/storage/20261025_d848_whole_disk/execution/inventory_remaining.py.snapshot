@@ -1,0 +1,74 @@
+"""Continue only unfinished directory branches after the bounded D848 walk.
+
+Reuse D483's metadata scanner, retaining the first pass and its timeout. The
+large RelayServe paper_results branch is explicitly unresolved, not zero. No
+deletion, content hashing of assets, GPU use, or shared-service changes.
+"""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')
+from scripts import ieee_tc_preflight as p
+
+assert not Path('/proc/754654').exists(), 'Original D848 scan still exists'
+assert (RAW / 'whole_walk_terminal.json').exists(), 'Preserve terminal evidence first'
+completed = {}
+for line in (RAW / 'inventory_allocated.tsv').read_text().splitlines():
+    size, path = line.split('\t', 1)
+    completed[path] = int(size)
+metadata = json.loads((RAW / 'metadata_before.json').read_text())
+mounts = set(metadata['excluded_mounts'])
+deferred = {'/home/qhq/relayserve_serverless_llm/paper_results'}
+roots = []
+errors = []
+
+def select(directory):
+    try:
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                path = entry.path
+                if path in mounts or path in completed or path in deferred:
+                    continue
+                try:
+                    if not entry.is_dir(follow_symlinks=False):
+                        continue
+                    prefix = path + '/'
+                    if any(item.startswith(prefix) for item in completed) or any(
+                        item.startswith(prefix) for item in deferred
+                    ):
+                        select(path)
+                    else:
+                        roots.append(path)
+                except OSError as exc:
+                    errors.append({'path': path, 'error': type(exc).__name__})
+    except OSError as exc:
+        errors.append({'path': directory, 'error': type(exc).__name__})
+
+select('/')
+assert roots and '/' not in roots and not (set(roots) & deferred)
+out = RAW / 'remaining'
+out.mkdir(exist_ok=False)
+with (out / 'selection.json').open('x') as stream:
+    json.dump(dict(roots=roots, deferred_roots=sorted(deferred), errors=errors,
+        original_inventory_sha256=p.digest(RAW / 'inventory_allocated.tsv'),
+        rule='Only directory branches not completed by first pass; no whole-root restart',
+        limitations='Separate du passes do not share the hardlink inode set. Do not sum them as an exact filesystem total. RelayServe paper_results remains unresolved; root-level files and permission gaps are not zero.'), stream, indent=2)
+
+template = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/inventory_storage.py')
+source = template.read_text()
+source = source.replace("assert json.loads((ROOT/'storage_closure.json').read_text())['passed']", "assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']")
+start = source.index('roots = [')
+end = source.index('\nstart = time.monotonic()', start)
+source = source[:start] + 'roots = ' + repr(roots) + '\n' + source[end:]
+source = source.replace("'--max-depth=2','--',*roots]", "'--max-depth=3', *" + repr(['--exclude=' + item for item in sorted(mounts)]) + ", '--', *roots]")
+source = source.replace('timeout=300', 'timeout=1800')
+source = source.replace('dict(passed=result.returncode==0,', 'dict(completed=result.returncode in (0,1), fully_readable=result.returncode==0, passed=result.returncode==0,')
+source = source.replace('Read-only metadata, known experiment/cache roots only;', 'Previously uncompleted branches only; deferred RelayServe paper_results, permission gaps and cross-pass hardlink accounting prevent a complete global total;')
+snapshot = out / 'inventory_executed.py.snapshot'
+with snapshot.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(snapshot), 'exec'), dict(__file__=str(snapshot), __name__='__main__'))

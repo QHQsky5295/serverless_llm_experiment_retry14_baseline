@@ -1,5 +1,22 @@
 # PrimeLoRA IEEE TC execution contract
 
+Latest user clarification (2026-10-25, concurrent main-line progress): storage
+auditing/reclamation must progress alongside the experiment main line, not become
+an indefinite replacement for it. Perform proven-safe compression/cleanup between
+GPU measurements; use existing logs/code for the current 3B optimization question
+while CPU/I/O maintenance runs. Never overlap heavy maintenance with a measured
+GPU replay. Unreadable/shared or unresolved other-project data remain protected;
+do not wait for a perfect whole-disk inventory before making in-scope progress.
+
+Latest user update (2026-10-25): explain whole-disk storage attribution, not only
+this project's usage. Audit other projects and shared/system permission gaps;
+delete only proven obsolete/rebuildable contents, or losslessly compress closed
+evidence with restoration/source records. Size, age, failed-run labels and cache
+names alone are insufficient. Do not present a timed-out/partial scan as a full
+inventory, modify shared services, or change filesystem reserves to mask growth.
+See `docs/ieee_tc/STORAGE_PRIORITY_20261025.md`. Storage first, then resume the
+same experiment main line without removing outstanding scope.
+
 Latest user clarification (2026-10-22): explicitly check prior rejected and
 ineffective optimizations before every new candidate. Do not repeat a closed
 direction unless a concrete new observation changes its premise; document that

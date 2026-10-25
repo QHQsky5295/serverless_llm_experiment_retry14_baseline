@@ -1,0 +1,36 @@
+"""Bounded read-only metadata inventory; no source/content deletion decisions."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')
+from scripts import ieee_tc_preflight as p
+
+def save(name, value):
+    with (ROOT/name).open('x') as out:
+        json.dump(value, out, indent=2)
+
+save('inventory_identity.json', p.scope_identity(p.cg_path().name))
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+                                  '--format=csv,noheader'], text=True).strip()
+assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']
+roots = ['/']
+excluded_mounts = ['/boot/efi', '/dev', '/dev/hugepages', '/dev/mqueue', '/dev/pts', '/dev/shm', '/proc', '/proc/sys/fs/binfmt_misc', '/run', '/run/credentials/systemd-sysusers.service', '/run/docker/netns/15f594aef857', '/run/docker/netns/1e4b65a46cea', '/run/docker/netns/68e1bf072224', '/run/docker/netns/7617d99c9c4d', '/run/docker/netns/a3230ce8b525', '/run/docker/netns/default', '/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/009dcdd503d0073d89f58317c4816bc5d1cc3d8f5ecf66005a71ca9df5b5ab04/shm', '/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/a82b4ec275d3f1dc45017e7034f45ffb482ca5a7359226e8328eb22f919ccced/shm', '/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/cca056174d5efa2bbeaee2097f5f1cb44fb31d629d02ac5f10f09a70276fb5ee/shm', '/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/d59b988a41a2bb69466b46232bf1890a247b8680b0ed4cfe1c99ced250e8f75b/shm', '/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/f43d35b39d856dada5020a7e2d81b41989ddcb83ba5eb144f98d64e4ffd3b24d/shm', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/009dcdd503d0073d89f58317c4816bc5d1cc3d8f5ecf66005a71ca9df5b5ab04/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/05cbc01e0b1a261bd66794c3132990d457821d1ef66dacb3cbf417d1f6472c92/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/909f19f86b13d96d502de1e5a5e57b4896eb657938a2466ddda2188717d7adcf/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/a82b4ec275d3f1dc45017e7034f45ffb482ca5a7359226e8328eb22f919ccced/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/a8acfd6afdba3f3a38c5e813d659b98098d82f18d87542122a6584810be7d8dd/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/bf9188cf4d83d5e6746479ff0c2becdd7a7a2ed79baee15cc409f714936a59d5/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/cca056174d5efa2bbeaee2097f5f1cb44fb31d629d02ac5f10f09a70276fb5ee/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/d47cb1ec6e0576b64e97b44dd9a48b5af3ed9045dd6c6aff529d9da029093d30/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/d59b988a41a2bb69466b46232bf1890a247b8680b0ed4cfe1c99ced250e8f75b/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/f43d35b39d856dada5020a7e2d81b41989ddcb83ba5eb144f98d64e4ffd3b24d/rootfs', '/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/ffbce39a02bf652a8f74ceb3c7492d5b97e24a85b237e5cece3745f3d815c2b7/rootfs', '/run/lock', '/run/netns/cni-0d44e5fd-a829-25ea-b5e9-0b2af20d2f73', '/run/netns/cni-294958a8-7a70-61c9-3284-26fc7e04d86c', '/run/netns/cni-6d4e86c5-4d6a-b4f0-fbf9-eefa7e12e8f5', '/run/netns/cni-83dee52e-26c0-a9f7-3ba5-32e423ceb063', '/run/netns/cni-942606f0-2de9-a2d3-f286-bec651f158eb', '/run/qemu', '/run/snapd/ns', '/run/snapd/ns/firefox.mnt', '/run/snapd/ns/lxd.mnt', '/run/snapd/ns/multipass.mnt', '/run/snapd/ns/snap-store.mnt', '/run/snapd/ns/snapd-desktop-integration.mnt', '/run/user/1001', '/run/user/1001/doc', '/run/user/1003', '/run/user/1003/doc', '/run/user/127', '/run/user/127/doc', '/snap/astral-uv/1773', '/snap/astral-uv/1781', '/snap/bare/5', '/snap/core20/2866', '/snap/core20/2922', '/snap/core22/2955', '/snap/core22/2987', '/snap/core24/1643', '/snap/core24/2124', '/snap/firefox/9036', '/snap/firefox/9057', '/snap/gnome-3-38-2004/112', '/snap/gnome-3-38-2004/143', '/snap/gnome-42-2204/247', '/snap/gnome-42-2204/263', '/snap/gnome-46-2404/153', '/snap/gnome-46-2404/168', '/snap/gtk-common-themes/1535', '/snap/lxd/40585', '/snap/lxd/40958', '/snap/mesa-2404/1165', '/snap/mesa-2404/1839', '/snap/multipass/19230', '/snap/multipass/19760', '/snap/snap-store/1447', '/snap/snap-store/1468', '/snap/snapd-desktop-integration/361', '/snap/snapd-desktop-integration/391', '/snap/snapd/27738', '/snap/snapd/28254', '/sys', '/sys/firmware/efi/efivars', '/sys/fs/bpf', '/sys/fs/cgroup', '/sys/fs/fuse/connections', '/sys/fs/pstore', '/sys/kernel/config', '/sys/kernel/debug', '/sys/kernel/debug/tracing', '/sys/kernel/security', '/sys/kernel/tracing', '/var/lib/docker/rootfs/overlayfs/1caa85582bcecdf19f4fc995310a762555c077a7a169d6d99556742d79cf1c4a', '/var/lib/docker/rootfs/overlayfs/4f1ecb7cfa9e831076fdd35f6664c03beeb3a4b90edeffb86155b8a78ca1cad1', '/var/lib/docker/rootfs/overlayfs/7eb62c37798b0cbcb60103ffeae81a1830a9164a61698f5da73bdd4266220ca4', '/var/lib/docker/rootfs/overlayfs/8ac4a85afb37c257ac6880c2616bb9e627966227a9ba59dd5f1c519a26948923', '/var/lib/docker/rootfs/overlayfs/d20ddc95e1c26f6aa5348d8e464575a18341747f2671ea0dac559d4096506f48', '/var/lib/docker/rootfs/overlayfs/e832a1ec936c285cdf98af88f8a041d48b32f05f847ac05ad9598eeee3641fb4', '/var/lib/kubelet/pods/603696d6-0f53-4ede-a5dd-0cd1f34657e3/volumes/kubernetes.io~projected/kube-api-access-5nrlz', '/var/lib/kubelet/pods/89c3494c-851d-4521-a945-20b76c0c7460/volumes/kubernetes.io~projected/kube-api-access-hh6mq', '/var/lib/kubelet/pods/cf60089e-271d-417d-8fb6-038af66bed68/volumes/kubernetes.io~projected/kube-api-access-hcsd6', '/var/lib/kubelet/pods/ebf1b031-5aba-4337-8471-8a26ffc8f237/volumes/kubernetes.io~projected/kube-api-access-xpd4n']
+
+start = time.monotonic()
+with (ROOT/'inventory_allocated.tsv').open('x') as out, (ROOT/'inventory_errors.log').open('x') as err:
+    result = subprocess.run(['nice','-n','19','ionice','-c','3','du','-x','-B1',
+                             '--max-depth=4', *['--exclude='+path for path in excluded_mounts], '--', *roots], stdout=out, stderr=err,
+                            timeout=1800)
+save('inventory_result.json', dict(completed=result.returncode in (0,1), fully_readable=result.returncode==0, passed=result.returncode==0,
+    returncode=result.returncode, roots=roots, elapsed_s=time.monotonic()-start,
+    allocated_sha256=p.digest(ROOT/'inventory_allocated.tsv'),
+    errors_sha256=p.digest(ROOT/'inventory_errors.log'),
+    limitations='Whole root filesystem metadata with all submounts excluded; unreadable directories are explicit gaps, not zero; no evidence of uselessness from size/age alone.'))
+print(json.dumps(dict(returncode=result.returncode, elapsed_s=time.monotonic()-start)))
+sys.exit(result.returncode)

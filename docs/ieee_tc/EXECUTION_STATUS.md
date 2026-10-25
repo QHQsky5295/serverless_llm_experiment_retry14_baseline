@@ -1,4 +1,43 @@
-# IEEE TC execution status — D847 diagnosis complete; whole-disk audit first
+# IEEE TC execution status — D848 storage closed; current 3B preparation diagnosis
+
+## 2026-10-25 D848已回收22.174GB，存储与主线同步
+
+完整PLAN/冻结V1/单轮V2已核对。D125/D129两份旧请求原始JSON无损压缩
+完成，双次解压SHA一致，合计回收22174175232B，完成时可用184413306880B
+约171.748GiB。147保护项与用户manifest未变；05scope inactive/dead、路径
+移除，峰值3222007808B、high76261、max/OOM/swap0。未删唯一数据或失败证据。
+第一遍1800秒超时、76分支补查和两类别扫描均已退出，保留权限/RelayServe
+paper_results未读范围，不称完整全盘。细目见D848_STORAGE_AND_CURRENT_TRANSFER_PATH_20261025.md。
+
+同时复用D846/D847已有证据，505次获取平均810.828ms，其中本地确认发布
+包络352.502ms；接收包络254.724ms含空间预留，不等于纯网络。Remote组
+513请求不能与505传输均值直接相减。下一复用D818的同请求/transfer顺序分解，
+明确获取前控制与本地物化在当前TTFT违约中的位置；不新GPU profiling，
+不重开既有否决方向，不重复重跑。D846联合92.875%、U11929.629332，未达
+95%；D711数值正确性未知仍保留。无新生产修改/性能运行/图表。备份检查点
+准备中，最终V2尚未同步。所有剩余同版本主比较、A1–A5、S1–S13和交付不变。
+
+以下D848扫描中状态为历史记录，不重新启动其session。
+
+D847已明确路径提交6cb50ced20b36be2954c946c731380c1bf0f0533，远端
+backup/d847-startup-feedback-20261025核实同SHA；34个文件、147保护核验通过，
+无force/用户manifest，最终V2未同步。01–04分析/核验/备份均结束。
+
+D848第一遍已在1800秒上限退出，session97846返回1、du754654不存在、01
+scope inactive/dead。保留5162行partial/98行错误和whole_walk_terminal.json，
+不称完整全盘；scope的success只指退出，不是扫描PASS。最后实际memory.high
+6186（elapsed1690秒），max/OOM/OOM-kill为0；不是最终资源计数，不能写全0。
+仍有RelayServe paper_results，尤其9-24状态树未完成；不删除其失败原始证据。
+
+现在只补查第一遍未完成的目录分支，不重跑全根：session68658，scope
+primelora-tc-aux-84800000000000000000000000000003，入口D848的
+inventory_remaining.py，输出remaining/。selection.json保存76个分支和
+RelayServe paper_results这一明确缺口。独立du遍次不共享硬链接账本，不将
+两份清单相加伪称精确全盘总量；权限缺口保留。当前无GPU实验或新删除/压缩。
+下一跟踪同一68658至实际结束，读remaining/inventory_result.json及清单，
+先定位大项并核对所在项目用途后安全回收；不重启正在运行的扫描。
+已确认9-16至本次全盘净增长约346.35GB，而预留差额不变。细目/保留理由见
+STORAGE_PRIORITY_20261025.md；完整实验范围和3B优化主线不变，goal active。
 
 ## 2026-10-25 D847启动反馈已定位，按最新用户要求转存储优先
 

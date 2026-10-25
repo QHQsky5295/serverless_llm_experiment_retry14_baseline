@@ -1,0 +1,125 @@
+"""Seal D848 maintenance and reproduce the existing D846 transfer summary.
+
+Reuse source-bound statistics and protection helpers. No asset rewrite, new
+performance measurement, counterfactual latency or complete-disk claim.
+"""
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/storage/20261025_d848_whole_disk'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+closed = []
+for path in (RAW/'inventory_identity.json', RAW/'remaining/inventory_identity.json',
+             RAW/'campaigns/inventory_identity.json', RAW/'compression_identity.json'):
+    identity = read(path)
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    closed.append(dict(identity=identity, path_removed=True))
+receipt = ROOT/'paper_results/ieee_tc/storage/20261025_d848_legacy_results.json'
+verification = receipt.with_name(receipt.stem+'_verification.json')
+verified, compressed = read(verification), read(receipt)
+assert verified['passed'] and p.digest(receipt) == verified['receipt_sha256']
+assert sum(x['allocated_bytes_reclaimed'] for x in compressed['entries']) == 22174175232
+for entry in compressed['entries']:
+    assert not Path(entry['source']).exists() and Path(entry['archive']).is_file()
+    assert entry['source_sha256'] == entry['first_roundtrip_sha256'] == entry['second_roundtrip_sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+client_path = RAW.parent/'d846_20261025/remote_client_projection.json'
+server_path = RAW.parent/'d846_20261025/remote_transfers.jsonl'
+assert p.digest(client_path) == 'cf6b9b3fb9b8f32e3b375891a8f703e57fe255d2eda51081550f7d1334f44b9a'
+assert p.digest(server_path) == '5611dab511409f14757a0f9df7eb9b1bc38582f0d0b0749104f4963bfd040e8b'
+client = read(client_path)['transfers']
+server = [json.loads(line) for line in server_path.read_text().splitlines()]
+assert len(client) == len(server) == 505
+assert len({x['http_transfer_id'] for x in client}) == 505
+assert {x['http_transfer_id'] for x in client} == {x['transfer_id'] for x in server}
+boundaries = ('loading_started_monotonic_s','headers_received_monotonic_s',
+              'body_received_monotonic_s','extraction_started_monotonic_s',
+              'extraction_completed_monotonic_s','published_monotonic_s',
+              'client_completed_monotonic_s')
+names = ('headers_ms','reserve_receive_write_ms','before_extract_ms',
+         'extract_verify_ms','file_publication_envelope_ms','after_publication_ms')
+rows = []
+for t in client:
+    times = [t[key] for key in boundaries]
+    assert times == sorted(times) and t['state'] == 'published'
+    row = {key:1000*(b-a) for key,a,b in zip(names,times,times[1:])}
+    row['total_ms'] = 1000*(times[-1]-times[0])
+    assert abs(math.fsum(row[key] for key in names)-row['total_ms']) < 1e-6
+    rows.append(row)
+server_rows = []
+for t in server:
+    assert t['event'] == 'artifact_transfer' and t['outcome'] == 'sent'
+    assert t['pack_performed'] is False
+    server_rows.append(dict(object_open_ms=(t['object_open_completed_ns']-t['object_open_started_ns'])/1e6,
+        object_read_ms=t['object_read_wall_ns']/1e6, socket_write_ms=t['socket_write_wall_ns']/1e6,
+        send_envelope_ms=(t['send_completed_ns']-t['send_started_ns'])/1e6,
+        handler_ms=(t['handler_completed_ns']-t['handler_started_ns'])/1e6))
+OUT.mkdir(parents=True, exist_ok=False)
+save(OUT/'transfer_summary.json', dict(passed=True,n=505,
+    client={key:timing_stats([r[key] for r in rows]) for key in rows[0]},
+    server={key:timing_stats([r[key] for r in server_rows]) for key in server_rows[0]},
+    sources=[ref(client_path),ref(server_path)], new_gpu_replays=0, n_correct=None,
+    limitations=['Transfer, not request cohort; no iid replication or counterfactual SLO.',
+        'Client receive includes reservation/write; server socket writes include possible backpressure.',
+        'Client/server spans overlap; quantiles cannot be added; no cross-host timestamp subtraction.']))
+sources = [RAW/name for name in ('inventory.py','inventory_executed.py.snapshot',
+    'inventory_identity.json','whole_walk_terminal.json','inventory_remaining.py',
+    'remaining/inventory_result.json','remaining/selection.json',
+    'remaining/inventory_executed.py.snapshot','inventory_campaigns.py',
+    'campaigns/inventory_result.json','campaigns/inventory_executed.py.snapshot',
+    'compress_legacy_results.py','compression_contract.json','compression_identity.json',
+    'close.py','backup.py')]
+execution = OUT/'execution'
+execution.mkdir()
+for path in sources:
+    assert path.stat().st_size < 1048576
+    target = execution/str(path.relative_to(RAW)).replace('/','_')
+    if path.suffix == '.py':
+        compile(path.read_text(),str(path),'exec')
+        target = target.with_suffix('.py.snapshot')
+    with target.open('xb') as stream:
+        stream.write(path.read_bytes())
+    assert p.digest(target) == p.digest(path)
+raw_refs = [ref(RAW/name) for name in ('inventory_allocated.tsv','inventory_errors.log',
+    'remaining/inventory_allocated.tsv','remaining/inventory_errors.log',
+    'campaigns/inventory_allocated.tsv','campaigns/inventory_errors.log')]
+doc = ROOT/'docs/ieee_tc/D848_STORAGE_AND_CURRENT_TRANSFER_PATH_20261025.md'
+save(OUT/'closure.json', dict(passed=True, protected=protected, user_protected=user,
+    scope=scope, closed_tasks=closed, doc=ref(doc), inventory_sources=raw_refs,
+    inventory_complete=False, fully_readable=False,
+    remaining_inventory=read(RAW/'remaining/inventory_result.json'),
+    unresolved=['RelayServe paper_results state tree','shared/system permission gaps'],
+    compression_receipt=ref(receipt),compression_verification=ref(verification),
+    reclaimed_bytes=verified['reclaimed_bytes'],production_changes=False,new_gpu_replays=0,
+    n_correct=None,ranking_eligible=False,confidence_interval=None,
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json',dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True,protected=147,reclaimed_bytes=22174175232,transfers=505)))

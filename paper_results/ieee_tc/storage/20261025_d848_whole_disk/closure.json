@@ -1,0 +1,206 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-84800000000000000000000000000006.scope",
+    "invocation_id": "0c4df5de361940d29fd572c59f49a039",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000006.scope",
+    "inode": 32508088
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84800000000000000000000000000001.scope",
+        "invocation_id": "c08c60e00cc24779bf3d1a5defbfd2b9",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000001.scope",
+        "inode": 32480460
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84800000000000000000000000000003.scope",
+        "invocation_id": "a5c3ffa00c8a45e5aedebe9c027698d8",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000003.scope",
+        "inode": 32495638
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84800000000000000000000000000004.scope",
+        "invocation_id": "91a49c0f343140c48423081dc6e417ac",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000004.scope",
+        "inode": 32497181
+      },
+      "path_removed": true
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-84800000000000000000000000000005.scope",
+        "invocation_id": "7929e91edbb840ddb3236bb4e11f7a7e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000005.scope",
+        "inode": 32498961
+      },
+      "path_removed": true
+    }
+  ],
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D848_STORAGE_AND_CURRENT_TRANSFER_PATH_20261025.md",
+    "sha256": "123e4ec0df21b4b9f642bdf553d5afc03917527c4eeffaa53b723d3c2acac41a",
+    "bytes": 9205
+  },
+  "inventory_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/inventory_allocated.tsv",
+      "sha256": "3c71519dcf6a53d8d100b24258a41c1db4adc58f3c1ef977eb402cc6f5fdf091",
+      "bytes": 174791
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/inventory_errors.log",
+      "sha256": "fd8f1f87a38a32e40b9e4de6d9bd8809b48036b192e919bc57ab5658b8da7017",
+      "bytes": 6918
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/remaining/inventory_allocated.tsv",
+      "sha256": "c4cab162d2c11b09ed21a0157568d7e33b06b535123c38797e2bad36eb063a2b",
+      "bytes": 664812
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/remaining/inventory_errors.log",
+      "sha256": "835780f2a130f2e60914b384d902ecab52facc1e6cb4238562a7766567ec52bb",
+      "bytes": 2185
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/campaigns/inventory_allocated.tsv",
+      "sha256": "8215bd65a841600443b1337a9001160a045c11754249ce08d04f48487682196d",
+      "bytes": 168447
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d848_20261025/campaigns/inventory_errors.log",
+      "sha256": "6e5ed23ed4a09f0ea31af146cd9f99d8ca0be87de99ebde08586a6866cfc6c6d",
+      "bytes": 533
+    }
+  ],
+  "inventory_complete": false,
+  "fully_readable": false,
+  "remaining_inventory": {
+    "completed": true,
+    "fully_readable": false,
+    "passed": false,
+    "returncode": 1,
+    "roots": [
+      "/home/qhq/relayserve_serverless_llm/refine-logs",
+      "/home/qhq/relayserve_serverless_llm/paper",
+      "/home/qhq/relayserve_serverless_llm/profile_output",
+      "/home/qhq/relayserve_serverless_llm/scripts",
+      "/home/qhq/relayserve_serverless_llm/figs_relayserve_v3_current_trace",
+      "/home/qhq/relayserve_serverless_llm/.pytest_cache",
+      "/home/qhq/relayserve_serverless_llm/figs_relayserve_v3_6_final_paper",
+      "/home/qhq/relayserve_serverless_llm/figs_relayserve_v2",
+      "/home/qhq/relayserve_serverless_llm/docs",
+      "/home/qhq/relayserve_serverless_llm/tables",
+      "/home/qhq/relayserve_serverless_llm/relayserve",
+      "/home/qhq/relayserve_serverless_llm/.aris",
+      "/home/qhq/relayserve_serverless_llm/figs_relayserve_state_ready_serving",
+      "/home/qhq/relayserve_serverless_llm/logs",
+      "/home/qhq/relayserve_serverless_llm/tests",
+      "/home/qhq/relayserve_serverless_llm/figs_relayserve_final_paper",
+      "/home/qhq/.local",
+      "/home/qhq/vllm",
+      "/home/qhq/DB4AI-EdgeServe",
+      "/home/qhq/.humming",
+      "/home/qhq/.venvs",
+      "/home/qhq/serverless_llm_baselines",
+      "/home/qhq/.github",
+      "/home/qhq/.codex",
+      "/home/qhq/.dbus",
+      "/home/qhq/go",
+      "/home/qhq/.claude",
+      "/home/qhq/.config",
+      "/home/qhq/\u6587\u6863",
+      "/home/qhq/figs",
+      "/home/qhq/.git",
+      "/home/qhq/.modelscope",
+      "/home/qhq/paper_fig_review_2026-04-27_185459",
+      "/home/qhq/.cursor",
+      "/home/qhq/\u97f3\u4e50",
+      "/home/qhq/.presage",
+      "/home/qhq/.ssh",
+      "/home/qhq/codex_workspaces",
+      "/home/qhq/\u89c6\u9891",
+      "/home/qhq/storage_cleanup_20260916",
+      "/home/qhq/.copilot",
+      "/home/qhq/migration_github_supplement_20260918",
+      "/home/qhq/\u516c\u5171\u7684",
+      "/home/qhq/.agents",
+      "/home/qhq/scripts",
+      "/home/qhq/storage_audit_20260915",
+      "/home/qhq/\u684c\u9762",
+      "/home/qhq/.nv",
+      "/home/qhq/experimental_cleanup_20260916_round2",
+      "/home/qhq/serverless_llm_experiment",
+      "/home/qhq/.pki",
+      "/home/qhq/.docker",
+      "/home/qhq/.ray",
+      "/home/qhq/.triton",
+      "/home/qhq/.pytest_cache",
+      "/home/qhq/.conda",
+      "/home/qhq/storage_compression_audit_20260916",
+      "/home/qhq/.tilelang",
+      "/home/qhq/snap",
+      "/home/qhq/\u56fe\u7247",
+      "/home/qhq/project_xtjs_blocker",
+      "/home/qhq/primelora_remote_artifact_release",
+      "/home/qhq/.cursor-server",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "/home/qhq/\u6a21\u677f",
+      "/lost+found",
+      "/boot",
+      "/data",
+      "/root",
+      "/srv",
+      "/mnt",
+      "/opt",
+      "/snap",
+      "/media",
+      "/tmp",
+      "/cdrom"
+    ],
+    "elapsed_s": 118.45270905410871,
+    "allocated_sha256": "c4cab162d2c11b09ed21a0157568d7e33b06b535123c38797e2bad36eb063a2b",
+    "errors_sha256": "835780f2a130f2e60914b384d902ecab52facc1e6cb4238562a7766567ec52bb",
+    "limitations": "Previously uncompleted branches only; deferred RelayServe paper_results, permission gaps and cross-pass hardlink accounting prevent a complete global total; no evidence of uselessness from size/age alone."
+  },
+  "unresolved": [
+    "RelayServe paper_results state tree",
+    "shared/system permission gaps"
+  ],
+  "compression_receipt": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d848_legacy_results.json",
+    "sha256": "851df30a897699eb27dfa966f50bc606f6348ade5f56b535e01640abd96de377",
+    "bytes": 3724
+  },
+  "compression_verification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261025_d848_legacy_results_verification.json",
+    "sha256": "9696cb6b9edbd450804c71ffdbfb2014cb9404ddf1793a4087ee9edb8ff3ed4f",
+    "bytes": 1688
+  },
+  "reclaimed_bytes": 22174175232,
+  "production_changes": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "disk_free_bytes": 184408821760
+}

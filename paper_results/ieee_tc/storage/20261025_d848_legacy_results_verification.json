@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-84800000000000000000000000000005.scope",
+    "invocation_id": "7929e91edbb840ddb3236bb4e11f7a7e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000005.scope",
+    "inode": 32498961
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84800000000000000000000000000005.scope",
+    "memory.current": 278917120,
+    "memory.peak": 3222007808,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=1.78 avg60=1.08 avg300=0.64 total=6201621\nfull avg10=1.78 avg60=1.08 avg300=0.64 total=6201621",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 645908994\nuser_usec 572543193\nsystem_usec 73365800\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 76261,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "memory_events": {
+    "low": 0,
+    "high": 76261,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "high_events_interpretation": "Maintenance page-cache reclaim is recorded, not a GPU performance result.",
+  "protected_147_unchanged": true,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "receipt_sha256": "851df30a897699eb27dfa966f50bc606f6348ade5f56b535e01640abd96de377",
+  "reclaimed_bytes": 22174175232,
+  "no_new_performance_run": true
+}

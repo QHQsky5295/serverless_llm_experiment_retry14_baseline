@@ -1,0 +1,22 @@
+"""Reuse D483 to resolve the two measured growth categories; metadata only."""
+import json
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+prior = json.loads((RAW/'remaining/inventory_result.json').read_text())
+assert prior['completed']
+out = RAW/'campaigns'
+out.mkdir(exist_ok=False)
+template = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/inventory_storage.py')
+source = template.read_text()
+source = source.replace("assert json.loads((ROOT/'storage_closure.json').read_text())['passed']", "assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']")
+start = source.index('roots = [')
+end = source.index('\nstart = time.monotonic()', start)
+roots = ['/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification', '/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification']
+source = source[:start]+'roots = '+repr(roots)+'\n'+source[end:]
+source = source.replace('timeout=300', 'timeout=1800')
+source = source.replace('dict(passed=result.returncode==0,', 'dict(completed=result.returncode in (0,1), fully_readable=result.returncode==0, passed=result.returncode==0,')
+snapshot = out/'inventory_executed.py.snapshot'
+with snapshot.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(snapshot), 'exec'), dict(__file__=str(snapshot), __name__='__main__'))

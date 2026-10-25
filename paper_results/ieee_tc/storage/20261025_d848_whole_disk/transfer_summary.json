@@ -1,0 +1,99 @@
+{
+  "passed": true,
+  "n": 505,
+  "client": {
+    "headers_ms": {
+      "count": 505,
+      "mean": 3.372914352371256,
+      "p50_type1": 2.8264103457331657,
+      "p95_type1": 6.496638059616089
+    },
+    "reserve_receive_write_ms": {
+      "count": 505,
+      "mean": 254.72391038616695,
+      "p50_type1": 154.9375457689166,
+      "p95_type1": 1031.1452592723072
+    },
+    "before_extract_ms": {
+      "count": 505,
+      "mean": 0.14273770393268898,
+      "p50_type1": 0.0614621676504612,
+      "p95_type1": 0.21397601813077927
+    },
+    "extract_verify_ms": {
+      "count": 505,
+      "mean": 85.17810139841963,
+      "p50_type1": 62.580601777881384,
+      "p95_type1": 153.5340929403901
+    },
+    "file_publication_envelope_ms": {
+      "count": 505,
+      "mean": 352.5022680539232,
+      "p50_type1": 272.82203966751695,
+      "p95_type1": 1096.7582166194916
+    },
+    "after_publication_ms": {
+      "count": 505,
+      "mean": 114.90769392561795,
+      "p50_type1": 67.99650471657515,
+      "p95_type1": 347.8055400773883
+    },
+    "total_ms": {
+      "count": 505,
+      "mean": 810.8276258204316,
+      "p50_type1": 633.6026494391263,
+      "p95_type1": 1881.1289961449802
+    }
+  },
+  "server": {
+    "object_open_ms": {
+      "count": 505,
+      "mean": 0.05216002178217822,
+      "p50_type1": 0.05071,
+      "p95_type1": 0.072646
+    },
+    "object_read_ms": {
+      "count": 505,
+      "mean": 2.1241204772277227,
+      "p50_type1": 1.265087,
+      "p95_type1": 3.535823
+    },
+    "socket_write_ms": {
+      "count": 505,
+      "mean": 230.80050857227724,
+      "p50_type1": 131.063049,
+      "p95_type1": 1013.757025
+    },
+    "send_envelope_ms": {
+      "count": 505,
+      "mean": 232.95542224554455,
+      "p50_type1": 134.381261,
+      "p95_type1": 1017.00231
+    },
+    "handler_ms": {
+      "count": 505,
+      "mean": 233.4740792910891,
+      "p50_type1": 134.877178,
+      "p95_type1": 1017.521725
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/remote_client_projection.json",
+      "sha256": "cf6b9b3fb9b8f32e3b375891a8f703e57fe255d2eda51081550f7d1334f44b9a",
+      "bytes": 1879862
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d846_20261025/remote_transfers.jsonl",
+      "sha256": "5611dab511409f14757a0f9df7eb9b1bc38582f0d0b0749104f4963bfd040e8b",
+      "bytes": 422984
+    }
+  ],
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "limitations": [
+    "Transfer, not request cohort; no iid replication or counterfactual SLO.",
+    "Client receive includes reservation/write; server socket writes include possible backpressure.",
+    "Client/server spans overlap; quantiles cannot be added; no cross-host timestamp subtraction."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "targets": [
+    {
+      "run": "d125_20260930/7b_full_w0_full1",
+      "legacy_result": "7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d125_7b_full_w0_full1.json",
+      "audit_sha": "93c17465221aed19dc993bf04cbfbefa720b692e6cf4465e88aef76b33f648a2"
+    },
+    {
+      "run": "d129_20260930/7b_full_w0_full1",
+      "legacy_result": "7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d129_7b_full_w0_full1.json",
+      "audit_sha": null
+    }
+  ],
+  "compressor_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "source_script_sha256": "0b96be942c17d940658053958f4384e542fb42e6824bf2c78bcfa093870c6aa3",
+  "available_bytes": 162236841984,
+  "largest_input_bytes": 11510552337,
+  "protected_seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "purpose": "Preserve old raw measurements byte-for-byte, not qualify or improve historical performance.",
+  "restoration": "Read gzip streams directly. If an old analyzer requires JSON, restore only that explicit file using gzip -dk after checking space and no existing destination; verify the source SHA in its receipt. Never restore during a performance measurement."
+}

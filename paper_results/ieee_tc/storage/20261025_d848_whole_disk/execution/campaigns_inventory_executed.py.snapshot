@@ -1,0 +1,35 @@
+"""Bounded read-only metadata inventory; no source/content deletion decisions."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')
+from scripts import ieee_tc_preflight as p
+
+def save(name, value):
+    with (ROOT/name).open('x') as out:
+        json.dump(value, out, indent=2)
+
+save('inventory_identity.json', p.scope_identity(p.cg_path().name))
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+                                  '--format=csv,noheader'], text=True).strip()
+assert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']
+roots = ['/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification', '/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification']
+
+start = time.monotonic()
+with (ROOT/'inventory_allocated.tsv').open('x') as out, (ROOT/'inventory_errors.log').open('x') as err:
+    result = subprocess.run(['nice','-n','19','ionice','-c','3','du','-x','-B1',
+                             '--max-depth=2','--',*roots], stdout=out, stderr=err,
+                            timeout=1800)
+save('inventory_result.json', dict(completed=result.returncode in (0,1), fully_readable=result.returncode==0, passed=result.returncode==0,
+    returncode=result.returncode, roots=roots, elapsed_s=time.monotonic()-start,
+    allocated_sha256=p.digest(ROOT/'inventory_allocated.tsv'),
+    errors_sha256=p.digest(ROOT/'inventory_errors.log'),
+    limitations='Read-only metadata, known experiment/cache roots only; no evidence of uselessness from size/age alone.'))
+print(json.dumps(dict(returncode=result.returncode, elapsed_s=time.monotonic()-start)))
+sys.exit(result.returncode)

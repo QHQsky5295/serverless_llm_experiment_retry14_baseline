@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "fully_readable": false,
+  "passed": false,
+  "returncode": 1,
+  "roots": [
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification"
+  ],
+  "elapsed_s": 0.3144989339634776,
+  "allocated_sha256": "8215bd65a841600443b1337a9001160a045c11754249ce08d04f48487682196d",
+  "errors_sha256": "6e5ed23ed4a09f0ea31af146cd9f99d8ca0be87de99ebde08586a6866cfc6c6d",
+  "limitations": "Read-only metadata, known experiment/cache roots only; no evidence of uselessness from size/age alone."
+}

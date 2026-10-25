@@ -1,0 +1,18 @@
+"""Reuse the D847 explicit-path backup and preserve final-V2 divergence."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d847_20261025/backup_executed.py.snapshot').read_text()
+for old, new in (
+    ('paper_results/ieee_tc/p2_backend/d847_3b_scaling_feedback', 'paper_results/ieee_tc/storage/20261025_d848_whole_disk'),
+    ('D847_STARTUP_FEEDBACK_AND_CURRENT_VIOLATIONS_20261025.md','D848_STORAGE_AND_CURRENT_TRANSFER_PATH_20261025.md'),
+    ('435f9a1b2c5cda16e1a432728f0779727ffa4980','6cb50ced20b36be2954c946c731380c1bf0f0533'),
+    ('backup/d847-startup-feedback-20261025','backup/d848-storage-transfer-20261025'),
+    ('tc: preserve D847 startup feedback and physical holding diagnosis','tc: preserve D848 storage recovery and current transfer evidence'),
+    ("ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',", "ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',\n         ROOT/'AGENTS.md', ROOT/'docs/ieee_tc/STORAGE_PRIORITY_20261025.md',\n         ROOT/'paper_results/ieee_tc/storage/20261025_d848_legacy_results.json',\n         ROOT/'paper_results/ieee_tc/storage/20261025_d848_legacy_results_verification.json',"),
+):
+    assert old in source, old
+    source = source.replace(old,new)
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source,str(RAW/'backup_executed.py.snapshot'),'exec'),globals())
