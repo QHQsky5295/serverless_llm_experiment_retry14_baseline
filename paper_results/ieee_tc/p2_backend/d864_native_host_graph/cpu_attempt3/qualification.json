@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-3bfb4fd91116c913709efe03a47f91fe.scope",
+    "invocation_id": "27fad2f3decf41aab29e9aa2085aaa01",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-3bfb4fd91116c913709efe03a47f91fe.scope",
+    "inode": 32742659
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-3bfb4fd91116c913709efe03a47f91fe.scope",
+    "memory.current": 298799104,
+    "memory.peak": 1201975296,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 26942558\nuser_usec 24296289\nsystem_usec 2646269\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "tests": [
+    "tests.test_ieee_tc_native_host_graph.NativeGraph",
+    "tests.test_ieee_tc_native_host_graph.GraphWitnessGuard"
+  ],
+  "production": {
+    "faaslora/memory/gpu_monitor.py": "17beb61bc3c595680b24c6da695911d50f7f572e776e44b5b8ff76dac14df198",
+    "faaslora/memory/residency_manager.py": "95609db29742788d390a230df4d6a6f6ddb4414b823f8701ddeccb358bff7802",
+    "scripts/ieee_tc_preflight.py": "5ef2a1f694afa043ce7a06776eaa5724a80ec84f5ad76410a43d760ef4e19ef8"
+  },
+  "protected_files_unchanged": 147,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "cuda_initialized": false,
+  "source_shas": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_descriptor.cpp": "794fc44a47809bf3faa33e8a028458b96a55be7da572c4f2ecc4a537dc361a7a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_host_graph.h": "9229092da9d4d6af5c2d77a02a55e914a1244152b5a6d22263e6b7760eb22489",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/host_descriptor_witness.py": "40ee60390815c39a31859f573637583eeeca960fa95f5922641b7ab7e3fd5e1e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_native_host_graph.py": "74f10b48eb9a5304dda46902c51e62362f778fa1dc52c3aad47b6e9c4a5bd7e4",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_descriptor_witness.py": "36fad0a14a0066a1ef869c94de845a9a6f1e0619a5a6a4e8137eaa7522521db7",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so": "30455d8f678483eb1adf3f7e594ffb6bef90a7aad462fbc03efbd98b969edf80",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/include/torch/csrc/autograd/python_variable.h": "55629fc3e0d756b0c529b49967236b04bad7daca9b71b603dbce019be0ca26d4",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_model.py": "2a5987431597e10dc18a9b87eceee1f3f7d01a91dccd5c1a993978e38a549a5f",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_weights.py": "300249f2f58a7bae51c840bf9cec9866653e085b0a6efa0c09a927fd44d9f6cc"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/attempt3/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+  "library_bytes": 252008,
+  "cpu_only": true,
+  "native_cuda_qualification_complete": false,
+  "production_integrated": false,
+  "full_performance_run": false,
+  "template": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d864_20261026/qualify.py"
+}

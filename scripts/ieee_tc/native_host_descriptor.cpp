@@ -4,6 +4,7 @@
 // PyTorch's is_pinned dispatcher and the GIL; no direct CUDA API substitution.
 #include <torch/csrc/autograd/python_variable.h>
 #include <cstdint>
+#include "native_host_graph.h"
 
 static PyObject* read_descriptor(PyObject*, PyObject* args) {
     PyObject* object = nullptr;
@@ -42,6 +43,7 @@ static PyObject* read_descriptor(PyObject*, PyObject* args) {
 
 static PyMethodDef methods[] = {
     {"read", read_descriptor, METH_VARARGS, "Fresh exact CPU tensor descriptor."},
+    {"graph", read_graph, METH_VARARGS, "Diagnostic same-call fresh HOST graph."},
     {nullptr, nullptr, 0, nullptr}
 };
 static PyModuleDef module = {

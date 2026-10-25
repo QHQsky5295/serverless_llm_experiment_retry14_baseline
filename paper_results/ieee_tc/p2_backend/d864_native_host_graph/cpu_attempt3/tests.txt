@@ -1,0 +1,17 @@
+W1026 05:51:22.707000 2023670 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_changes_are_observed_not_cached (tests.test_ieee_tc_native_host_graph.NativeGraph.test_changes_are_observed_not_cached) ... ok
+test_each_call_is_independent (tests.test_ieee_tc_native_host_graph.NativeGraph.test_each_call_is_independent) ... ok
+test_four_graph_scopes (tests.test_ieee_tc_native_host_graph.NativeGraph.test_four_graph_scopes) ... ok
+test_hidden_tensor_and_cyclic_metadata (tests.test_ieee_tc_native_host_graph.NativeGraph.test_hidden_tensor_and_cyclic_metadata) ... ok
+test_identity_rank_modules_and_3d (tests.test_ieee_tc_native_host_graph.NativeGraph.test_identity_rank_modules_and_3d) ... ok
+test_module_shape_errors (tests.test_ieee_tc_native_host_graph.NativeGraph.test_module_shape_errors) ... ok
+test_no_tensor_or_model_retention (tests.test_ieee_tc_native_host_graph.NativeGraph.test_no_tensor_or_model_retention) ... ok
+test_packed_partial_transpose_offset_and_mixed_dtype (tests.test_ieee_tc_native_host_graph.NativeGraph.test_packed_partial_transpose_offset_and_mixed_dtype) ... ok
+test_scope_validation_remains_original (tests.test_ieee_tc_native_host_graph.NativeGraph.test_scope_validation_remains_original) ... ok
+test_unsupported_tensor_representations (tests.test_ieee_tc_native_host_graph.NativeGraph.test_unsupported_tensor_representations) ... ok
+test_unknown_source_rejected (tests.test_ieee_tc_native_host_graph.GraphWitnessGuard.test_unknown_source_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.333s
+
+OK

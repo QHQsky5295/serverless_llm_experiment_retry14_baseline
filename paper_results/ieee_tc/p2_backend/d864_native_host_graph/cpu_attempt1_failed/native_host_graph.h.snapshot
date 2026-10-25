@@ -1,0 +1,217 @@
+// D864 isolated whole-graph witness. No cache or retained model/tensor state.
+// Called with the GIL held; pinning stays per view, via PyTorch's dispatcher.
+#include <pybind11/pybind11.h>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+namespace py = pybind11;
+
+static bool host_sequence(py::handle value) {
+    return PyList_Check(value.ptr()) || PyTuple_Check(value.ptr());
+}
+
+static bool host_contains_tensor(py::handle value) {
+    struct RecursionGuard {
+        RecursionGuard() {
+            if (Py_EnterRecursiveCall(" while checking native HOST fields"))
+                throw py::error_already_set();
+        }
+        ~RecursionGuard() { Py_LeaveRecursiveCall(); }
+    } guard;
+    if (THPVariable_Check(value.ptr())) return true;
+    if (host_sequence(value)) {
+        for (py::handle item : py::reinterpret_borrow<py::sequence>(value))
+            if (host_contains_tensor(item)) return true;
+    } else if (PyDict_Check(value.ptr())) {
+        for (auto item : py::reinterpret_borrow<py::dict>(value))
+            if (host_contains_tensor(item.second)) return true;
+    }
+    return false;
+}
+
+static py::list host_ints(c10::IntArrayRef values) {
+    py::list out;
+    for (auto value : values) out.append(value);
+    return out;
+}
+
+struct HostAllocation {
+    uint64_t bytes;
+    bool pinned;
+    py::list adapters;
+    size_t last_adapter;
+};
+
+struct HostAdapter {
+    py::object aid;
+    py::object rank;
+    std::set<size_t> allocations;
+    std::set<std::string> dtypes;
+    bool packed = false;
+};
+
+static py::dict host_graph(py::dict models, bool include_views) {
+    const auto sorted = py::module_::import("builtins").attr("sorted");
+    std::map<uintptr_t, size_t> indexes;
+    std::vector<HostAllocation> allocations;
+    std::vector<HostAdapter> adapters;
+    py::list views;
+
+    for (py::handle aid_handle : sorted(models)) {
+        py::object aid = py::reinterpret_borrow<py::object>(aid_handle);
+        py::object model = models[aid];
+        auto id = model.attr("id");
+        auto rank = model.attr("rank");
+        auto loras = model.attr("loras");
+        if (!PyLong_CheckExact(aid.ptr()) || !PyLong_CheckExact(id.ptr()) ||
+            !PyLong_CheckExact(rank.ptr()) || !PyDict_Check(loras.ptr()) ||
+            !py::cast<bool>(aid.attr("__gt__")(0)) || !aid.equal(id) ||
+            !py::cast<bool>(rank.attr("__gt__")(0)) || py::len(loras) == 0)
+            throw py::value_error("native HOST model identity/rank/modules are invalid");
+        if (py::cast<bool>(py::getattr(model, "is_3d_lora_weight", py::bool_(false))))
+            throw py::value_error("3D native HOST representation is not qualified");
+        const size_t adapter_index = adapters.size();
+        HostAdapter adapter{aid, py::reinterpret_borrow<py::object>(rank), {}, {}, false};
+        auto modules = py::reinterpret_borrow<py::dict>(loras);
+        for (py::handle module_handle : sorted(modules)) {
+            if (!PyUnicode_Check(module_handle.ptr()) || py::len(module_handle) == 0)
+                throw py::value_error("native HOST module name is invalid");
+            const auto module_name = py::cast<std::string>(module_handle);
+            py::object layer = modules[module_handle];
+            if (!py::hasattr(layer, "lora_a") || !py::hasattr(layer, "lora_b"))
+                throw py::value_error("native HOST representation lacks A/B tensors");
+            auto fields = py::cast<py::dict>(layer.attr("__dict__"));
+            for (auto field : fields) {
+                if (field.first.equal(py::str("lora_a")) ||
+                    field.first.equal(py::str("lora_b"))) continue;
+                if (host_contains_tensor(field.second))
+                    throw py::value_error("unsupported native HOST tensor field: " +
+                                          py::cast<std::string>(py::str(field.first)));
+            }
+            py::object a = layer.attr("lora_a"), b = layer.attr("lora_b");
+            const bool packed = host_sequence(a);
+            if (packed != host_sequence(b))
+                throw py::value_error("native packed HOST A/B representations disagree");
+            const size_t count = packed ? py::len(a) : 1;
+            if (!count || (packed && count != py::len(b)))
+                throw py::value_error("native packed HOST A/B lengths disagree");
+            bool present = false;
+            for (size_t index = 0; index < count; ++index) {
+                py::object left = packed ? a[py::int_(index)] : a;
+                py::object right = packed ? b[py::int_(index)] : b;
+                if (packed && left.is_none() && right.is_none()) continue;
+                if (left.is_none() || right.is_none())
+                    throw py::value_error("native HOST adapter has an incomplete A/B pair");
+                present = true;
+                for (int side = 0; side < 2; ++side) {
+                    py::handle object = side ? right : left;
+                    const std::string name = module_name + (side ? ".lora_b[" : ".lora_a[")
+                                           + std::to_string(index) + "]";
+                    if (Py_TYPE(object.ptr()) != reinterpret_cast<PyTypeObject*>(THPVariableClass))
+                        throw py::value_error("expected exact native Tensor: " + name);
+                    const auto& tensor = THPVariable_Unpack(object.ptr());
+                    if (!tensor.is_cpu() || tensor.layout() != c10::kStrided ||
+                        tensor.dim() != 2 || tensor.numel() <= 0)
+                        throw py::value_error("expected nonempty dense native CPU LoRA tensor: " + name);
+                    const auto& storage = tensor.storage();
+                    const auto pointer = reinterpret_cast<uintptr_t>(storage.data());
+                    const auto capacity = storage.nbytes();
+                    if (!pointer || !capacity)
+                        throw py::value_error("empty native CPU LoRA storage: " + name);
+                    const bool pinned = tensor.is_pinned();
+                    auto insertion = indexes.emplace(pointer, allocations.size());
+                    const auto allocation_id = insertion.first->second;
+                    if (insertion.second)
+                        allocations.push_back({capacity, pinned, py::list(), adapter_index});
+                    auto& allocation = allocations[allocation_id];
+                    if (allocation.bytes != capacity || allocation.pinned != pinned)
+                        throw py::value_error("aliased native CPU storage has inconsistent capacity/pinning");
+                    // Adapters are visited contiguously in sorted order; no Tensor
+                    // list or pointer-based deduplication of physical checks.
+                    if (py::len(allocation.adapters) == 0 || allocation.last_adapter != adapter_index) {
+                        allocation.adapters.append(aid);
+                        allocation.last_adapter = adapter_index;
+                    }
+                    const auto dtype = py::cast<std::string>(py::str(object.attr("dtype")));
+                    adapter.dtypes.insert(dtype);
+                    adapter.allocations.insert(allocation_id);
+                    if (include_views) {
+                        py::dict view;
+                        view["adapter_int_id"] = aid;
+                        view["name"] = name;
+                        view["allocation_id"] = allocation_id;
+                        view["shape"] = host_ints(tensor.sizes());
+                        view["stride"] = host_ints(tensor.strides());
+                        view["dtype"] = dtype;
+                        view["view_bytes"] = tensor.numel() * tensor.element_size();
+                        view["storage_offset_elements"] = tensor.storage_offset();
+                        views.append(view);
+                    }
+                }
+            }
+            if (!present)
+                throw py::value_error("native HOST module contains no usable A/B pair");
+            adapter.packed |= packed;
+        }
+        adapters.push_back(std::move(adapter));
+    }
+    py::list physical, footprints;
+    for (size_t index = 0; index < allocations.size(); ++index) {
+        const auto& allocation = allocations[index];
+        py::dict row;
+        row["allocation_id"] = index;
+        row["device"] = "cpu";
+        row["allocated_bytes"] = allocation.bytes;
+        row["pinned"] = allocation.pinned;
+        row["adapter_ids"] = allocation.adapters;
+        physical.append(row);
+    }
+    for (const auto& adapter : adapters) {
+        py::list used, dtypes;
+        // Python ints preserve the original accounting arithmetic, even if a
+        // future caller presents a union larger than a uint64_t accumulator.
+        py::object bytes = py::int_(0), exclusive = py::int_(0);
+        for (auto index : adapter.allocations) {
+            used.append(index);
+            bytes = bytes + py::int_(allocations[index].bytes);
+            if (py::len(allocations[index].adapters) == 1)
+                exclusive = exclusive + py::int_(allocations[index].bytes);
+        }
+        for (const auto& dtype : adapter.dtypes) dtypes.append(dtype);
+        py::dict row;
+        row["adapter_int_id"] = adapter.aid;
+        row["rank"] = adapter.rank;
+        row["allocation_ids"] = used;
+        row["representation"] = "native_cpu_dense_ab_v1";
+        row["has_packed_modules"] = adapter.packed;
+        row["storage_bytes"] = bytes;
+        row["exclusive_storage_bytes"] = exclusive;
+        row["dtypes"] = dtypes;
+        footprints.append(row);
+    }
+    py::dict result;
+    result["host_allocations"] = physical;
+    result["host_adapter_footprints"] = footprints;
+    if (include_views) result["host_tensor_views"] = views;
+    return result;
+}
+
+static PyObject* read_graph(PyObject*, PyObject* args) {
+    PyObject *models = nullptr, *views = nullptr;
+    if (!PyArg_ParseTuple(args, "OO", &models, &views)) return nullptr;
+    try {
+        if (!PyDict_Check(models) || !PyBool_Check(views))
+            throw py::value_error("native HOST graph requires a model dict and boolean projection");
+        return host_graph(py::reinterpret_borrow<py::dict>(models), views == Py_True).release().ptr();
+    } catch (py::error_already_set& error) {
+        error.restore();
+    } catch (const py::builtin_exception& error) {
+        error.set_error();
+    } catch (const std::exception& error) {
+        PyErr_SetString(PyExc_RuntimeError, error.what());
+    }
+    return nullptr;
+}

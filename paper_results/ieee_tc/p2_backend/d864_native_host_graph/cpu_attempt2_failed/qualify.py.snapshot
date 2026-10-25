@@ -1,0 +1,100 @@
+"""D864 CPU qualification: reuse D747 compiler/containment, no serving edits."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import sysconfig
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph/cpu_attempt2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+old = json.loads((RAW.parent/'qualification_identity.json').read_text())
+assert not p.owned_pids(Path(old['path']))
+old_resources = p.cgroup_snapshot(Path(old['path']))
+closed = p.stop_scope_identity(old, grace_seconds=0)
+assert closed['released'] and not closed['targets']
+save(RAW/'attempt1_closure.json', dict(identity=old, resources=old_resources, closure=closed,
+    failed_test='cyclic_metadata_exception_category', rerun_kind='CPU_fix_not_performance_repeat'))
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+                                    '--format=csv,noheader'], text=True).strip()
+gate = p.preflight([ROOT, RAW], 128*p.MIB)
+save(RAW/'resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+OUT.mkdir(parents=True, exist_ok=False)
+seal_path = RAW.parent.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+seal = p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count'] == 147
+user_sha = p.digest(ROOT/'configs/generated/lora_manifest_1000.json')
+assert user_sha == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+production = {str(path.relative_to(ROOT)): p.digest(path)
+              for path in (ROOT/'faaslora/memory/gpu_monitor.py',
+                           ROOT/'faaslora/memory/residency_manager.py',
+                           ROOT/'scripts/ieee_tc_preflight.py')}
+
+import torch
+assert torch.__version__ == '2.13.0+cu130' and not torch.cuda.is_initialized()
+torch_root = Path(torch.__file__).parent
+source = ROOT/'scripts/ieee_tc/native_host_descriptor.cpp'
+library = RAW/('_ieee_native_host_descriptor'+sysconfig.get_config_var('EXT_SUFFIX'))
+assert not library.exists()
+command = ['/usr/bin/c++','-shared','-fPIC','-O2','-std=c++17',
+    '-D_GLIBCXX_USE_CXX11_ABI='+str(int(torch._C._GLIBCXX_USE_CXX11_ABI)),
+    '-I'+sysconfig.get_path('include'),'-I'+str(torch_root/'include'),
+    '-I'+str(torch_root/'include/torch/csrc/api/include'),str(source),
+    '-L'+str(torch_root/'lib'),'-ltorch_python','-ltorch_cpu','-lc10',
+    '-Wl,-rpath,'+str(torch_root/'lib'),'-o',str(library)]
+with (RAW/'build.txt').open('x') as log:
+    done = subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,timeout=120)
+save(RAW/'build_receipt.json',dict(command=command,returncode=done.returncode,
+    log_sha256=p.digest(RAW/'build.txt'),torch_version=torch.__version__))
+assert done.returncode == 0
+
+tests = ['tests.test_ieee_tc_native_host_graph', 'tests.test_ieee_tc_host_descriptor_witness']
+env = {**os.environ, 'TC_NATIVE_GRAPH_TEST_LIBRARY': str(library)}
+with (RAW/'tests.txt').open('x') as log:
+    done = subprocess.run([sys.executable, '-B','-m','unittest',*tests,'-v'],
+                           cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
+save(RAW/'test_receipt.json',dict(returncode=done.returncode,sha256=p.digest(RAW/'tests.txt')))
+assert done.returncode == 0
+assert not torch.cuda.is_initialized()
+for name,sha in production.items(): assert p.digest(ROOT/name) == sha
+assert p.verify_seal(seal_path)['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == user_sha
+resources = p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+sources = [source,ROOT/'scripts/ieee_tc/native_host_graph.h',
+    ROOT/'scripts/ieee_tc/host_descriptor_witness.py',
+    ROOT/'tests/test_ieee_tc_native_host_graph.py',
+    ROOT/'tests/test_ieee_tc_host_descriptor_witness.py', library,
+    torch_root/'include/torch/csrc/autograd/python_variable.h']
+sources += [torch_root.parent/'vllm/lora'/name for name in
+            ('worker_manager.py','model_manager.py','lora_model.py','lora_weights.py')]
+save(OUT/'qualification.json',dict(passed=True,identity=identity,resources=resources,
+    tests=tests,production=production,protected_files_unchanged=147,
+    user_manifest_sha256=user_sha,cuda_initialized=False,
+    source_shas={str(path):p.digest(path) for path in sources},
+    plan_sha256=p.check_plan(),library=str(library),library_bytes=library.stat().st_size,
+    cpu_only=True,native_cuda_qualification_complete=False,production_integrated=False,
+    full_performance_run=False,template=str(RAW.parent/'qualify.py')))
+for name in ('tests.txt','build.txt','test_receipt.json','build_receipt.json','resource_gate.json'):
+    with (OUT/name).open('xb') as f: f.write((RAW/name).read_bytes())
+with (OUT/'qualify.py.snapshot').open('xb') as f: f.write(Path(__file__).read_bytes())
+print(json.dumps(dict(passed=True,library_bytes=library.stat().st_size,resources=resources)))

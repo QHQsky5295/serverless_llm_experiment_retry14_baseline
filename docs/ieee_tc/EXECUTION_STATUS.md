@@ -1,4 +1,40 @@
-# IEEE TC execution status — D863 native diagnostic completed and analyzed
+# IEEE TC execution status — D864 fresh native HOST graph CPU checks passed
+
+## 2026-10-26 D864：单一原生图候选，CPU核查完成，未接入生产
+
+已完整重读计划/AGENTS/冻结V1与单轮V2，核查D329、D685/686、D687、D747
+及官方vLLM/PyTorch资料。D863无需重跑。四类控制入口共同观测HOST物理图，
+本轮扩展既有descriptor诊断：整图一次原生遍历，每view仍实时检查storage/
+pinning/alias/隐藏字段，无缓存、批量Tensor列表、GC修改或九公式变化。
+生产gpu_monitor/residency_manager/preflight不变，D747生产库未覆盖。
+
+最终11项实际扩展CPU检查通过；完整/精简/requested/staged及变化/错误/引用
+生命周期一致。此前两次各70项中唯一循环元数据异常类型不一致，全部失败
+保留；最终定位PyTorch python_error的restore语义并修正，不放宽测试。
+252008B库只在独立raw目录；CUDA未初始化，无GPU/远端/正式性能运行。
+最终峰值1201975296B，high/max/OOM/swap0，147保护项和用户manifest未变。
+详情D864_NATIVE_HOST_GRAPH_20261026.md及paper_results/ieee_tc/p2_backend/
+d864_native_host_graph/cpu_attempt3。CPU通过不表示已改善93.65%的完整W2，
+也不表示n_correct数值证明通过。GIL整图覆盖的潜在等待影响留给实际验证。
+
+用户异步确认现有k3s不属本项目的要求已落实在20261012隔离决定；HydraServe
+实际采用独立rootless Podman，两模型W0/W1/W2结果已保存，不重复基础适配。
+当前下一步：备份这个仅诊断的CPU检查点，然后复用一次既有实际pin/整图微测；
+结果支持才接入并完整W2，不新增前缀诊断、不筛性能运行。
+所有同版本两模型主比较、baseline/dLoRA、A1–A5、S1–S13、数值证明、审稿
+图文和最终V2同步保持开放。goal active，本轮为progress而非完成。
+
+以下保留此前D863完成及备份记录。
+
+### D863结果备份回执（提交后的状态）
+
+提交005043a8e467173e2a97d1d9f4cc93234ed66c55已推送并用ls-remote核验
+refs/heads/backup/d863-native-complete-20261026；24个明确文件，未stage用户
+manifest、未上传原始大日志、未force。最终V2分支仍未同步，不冒称完成交付。
+回执为raw d863_20261026_attempt2/publication.json。四个分析/发布辅助域
+均已退出，GPU无compute；当前没有应恢复/重启的诊断。下一直接核查四类控制
+入口的共同工作与历史/官方实现，不再启动D863、不重复备份已封存包。
+这段是提交后的状态更新，不在上述commit内；其余证据已完整备份。
 
 ## 2026-10-26 D863完成：短输出违约的控制交叠已定位
 

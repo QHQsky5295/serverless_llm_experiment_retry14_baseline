@@ -10,12 +10,43 @@ import inspect
 import textwrap
 
 
-def load_descriptor(library):
+def load_descriptor_module(library):
     spec = importlib.util.spec_from_file_location(
         '_ieee_native_host_descriptor', library.resolve(strict=True))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.read
+    return module
+
+
+def load_descriptor(library):
+    return load_descriptor_module(library).read
+
+
+def graph_inventory_witness(original, graph):
+    """Replace only same-call graph construction; preserve original scope gates."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
+    if len(tree.body) != 1 or not isinstance(tree.body[0], ast.FunctionDef):
+        raise RuntimeError('native graph witness requires one inventory function')
+    body = tree.body[0].body
+    def assignment(name):
+        return [i for i, node in enumerate(body) if isinstance(node, ast.Assign)
+                and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == name]
+    start, end = assignment('allocations'), assignment('result')
+    if len(start) != 1 or len(end) != 1 or start[0] >= end[0]:
+        raise RuntimeError('native graph witness requires the known graph boundary')
+    if not isinstance(body[start[0]].value, ast.Dict) or body[start[0]].value.keys:
+        raise RuntimeError('native graph witness requires a fresh allocation map')
+    body[start[0]:end[0]] = ast.parse('''
+_graph = _fresh_graph(models, include_tensor_views)
+physical = _graph['host_allocations']
+adapters = _graph['host_adapter_footprints']
+views = _graph.get('host_tensor_views')
+''').body
+    ast.fix_missing_locations(tree)
+    namespace = {**original.__globals__, '_fresh_graph': graph}
+    exec(compile(tree, '<diagnostic-native-host-graph>', 'exec'), namespace)
+    return namespace[original.__name__], ast.unparse(tree)
 
 
 def inventory_witness(original, descriptor, guard):

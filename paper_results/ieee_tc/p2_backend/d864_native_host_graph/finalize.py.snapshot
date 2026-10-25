@@ -1,0 +1,70 @@
+"""D864 small CPU checkpoint; reuse D747/D863 close, seal, and curation."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def ref(path): return dict(path=str(path),sha256=p.digest(path))
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'finalize_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(OUT/'cpu_attempt3/qualification.json')
+assert q['passed'] and not q['production_integrated'] and not q['native_cuda_qualification_complete']
+for path,sha in q['source_shas'].items(): assert p.digest(Path(path))==sha,path
+for path,sha in q['production'].items(): assert p.digest(ROOT/path)==sha,path
+original_library=RAW.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'
+assert p.digest(original_library)=='b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+closures=[]
+for sub in (RAW, RAW/'attempt2', RAW/'attempt3'):
+    identity=read(sub/'qualification_identity.json')
+    if Path(identity['path']).exists():
+        assert not p.owned_pids(Path(identity['path']))
+        resources=p.cgroup_snapshot(Path(identity['path']))
+        closed=p.stop_scope_identity(identity,grace_seconds=0)
+        assert closed['released'] and not closed['targets']
+        closures.append(dict(identity=identity,resources=resources,closure=closed))
+    assert not Path(identity['path']).exists()
+    assert subprocess.check_output(['systemctl','--user','show',identity['unit'],
+        '-p','ActiveState','--value'],text=True).strip()=='inactive'
+    if sub.name != 'attempt3':
+        target=OUT/('cpu_attempt1_failed' if sub==RAW else 'cpu_attempt2_failed')
+        target.mkdir(exist_ok=False)
+        for name in ('qualify.py','build.txt','build_receipt.json','tests.txt',
+                     'test_receipt.json','qualification_identity.json','resource_gate.json'):
+            source=sub/name
+            with (target/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as f:
+                f.write(source.read_bytes())
+        header=sub/('native_host_graph_attempt1.h.snapshot' if sub==RAW else 'native_host_graph.h.snapshot')
+        with (target/'native_host_graph.h.snapshot').open('xb') as f: f.write(header.read_bytes())
+for source in (RAW/'attempt2/attempt1_closure.json',RAW/'attempt3/attempt2_closure.json'):
+    with (OUT/source.name).open('xb') as f:f.write(source.read_bytes())
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')==q['user_manifest_sha256']
+resources=p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'closure.json',dict(passed=True,closures=closures,seal=seal,
+    production_unchanged=True,original_library=ref(original_library),
+    source_parent_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    cpu_qualification_only=True,full_performance_run=False,n_correct=None,
+    finalizer_identity=own,resources=resources,disk_available_bytes=shutil.disk_usage(ROOT).free))
+with (OUT/'finalize.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json',dict(files=[ref(f) for f in sorted(OUT.rglob('*')) if f.is_file()],
+    raw_libraries=[ref(sub/('_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'))
+                   for sub in (RAW,RAW/'attempt2',RAW/'attempt3')]))
+print(json.dumps(dict(passed=True,closures=len(closures),files=len(list(OUT.rglob('*'))),resources=resources)))

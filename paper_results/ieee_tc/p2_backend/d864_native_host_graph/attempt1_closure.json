@@ -1,0 +1,30 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-b536dbcab13af224e6b8dc3539469a20.scope",
+    "invocation_id": "f7db2f26501e47908e9117bbb5e0940c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b536dbcab13af224e6b8dc3539469a20.scope",
+    "inode": 32741390
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b536dbcab13af224e6b8dc3539469a20.scope",
+    "memory.current": null,
+    "memory.peak": null,
+    "memory.high": null,
+    "memory.max": null,
+    "memory.swap.current": null,
+    "memory.swap.max": null,
+    "memory.pressure": null,
+    "cpu.max": null,
+    "cpu.stat": null,
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": null,
+    "memory.events": null
+  },
+  "closure": {
+    "already_gone": true,
+    "released": true,
+    "targets": []
+  },
+  "failed_test": "cyclic_metadata_exception_category",
+  "rerun_kind": "CPU_fix_not_performance_repeat"
+}
