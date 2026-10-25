@@ -1,0 +1,36 @@
+{
+  "reason": "The light driver lacks ijson; native analyzer commands had already completed.",
+  "original_driver": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/complete.py",
+    "sha256": "88ba897966698545eb3cd7c9ba83c5750a2b0817c80419654381f8c24efe85c9"
+  },
+  "original_log": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/completion.log",
+    "sha256": "87924ca6c303ee6f4a10a00ca09a8b3de40be9c7c67ea9445bf82d27a6279a49"
+  },
+  "previous_identity": {
+    "unit": "primelora-tc-aux-d8542026102600000000000000000002.scope",
+    "invocation_id": "2fef2957690e4eacb90c0b7fb47cfc74",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000002.scope",
+    "inode": 32594510
+  },
+  "resume_identity": {
+    "unit": "primelora-tc-aux-d8542026102600000000000000000003.scope",
+    "invocation_id": "e0fa218c72b2431abee06d8a6840379a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000003.scope",
+    "inode": 32595658
+  },
+  "reused_outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d854_3b_async_file_full_w2/completion/full4000.json",
+      "sha256": "7bd28d25962a47e59f5776dd0d2979cf2fd28a8c67c7c61deed4715032b95138"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d854_3b_async_file_full_w2/completion/stages/diagnosis.json",
+      "sha256": "83810bb63e0a815dcbc0a804877e583388d3a923d7107c228611d1ac96490fe2"
+    }
+  ],
+  "gpu_replays": 0,
+  "metric_definition_changed": false,
+  "overwritten_outputs": false
+}

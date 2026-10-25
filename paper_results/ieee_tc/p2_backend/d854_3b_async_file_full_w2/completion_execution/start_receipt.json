@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "0f91740f7b6f3f6e6f60b34dd4b41e25323b09af",
+  "backup_ref": "refs/heads/backup/d854-async-file-fullw2-20261025",
+  "tmux": "tc-d854-3b-async-file-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-d8542026102500000000000000000001.scope",
+    "invocation_id": "0519a41f353f47c0bdeecd89078a45c2",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102500000000000000000001.scope",
+    "inode": 32560809
+  },
+  "qualification_sha256": "67494a42ed505d3311e3979e63158d02ed6eb50f3a225dc44abb97beb63dabd6"
+}

@@ -1,0 +1,47 @@
+"""Resume D854 offline closure after the two completed analyzer commands.
+
+The first driver used a Python environment without ijson. Preserve that failure
+and both existing outputs; use the existing native environment, not a new run.
+"""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_original = _raw/'complete.py'
+_source = _original.read_text()
+assert hashlib.sha256(_original.read_bytes()).hexdigest() == '88ba897966698545eb3cd7c9ba83c5750a2b0817c80419654381f8c24efe85c9'
+_prefix = _source.split('own = p.scope_identity', 1)[0]
+_tail = _source[_source.index('# Reuse D725 profile binding;'):]
+exec(compile(_prefix, str(_original), 'exec'), globals())
+assert "ModuleNotFoundError: No module named 'ijson'" in (RAW/'completion.log').read_text()
+previous = read(RAW/'completion_identity.json')
+assert not Path(previous['path']).exists()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'completion_resume_identity.json', own)
+group = Path(own['path'])
+events_before = (group/'memory.events').read_text()
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+launch = read(RUN/'launch.json')
+assert all(launch[k] is True for k in ('pass', 'service_path_removed',
+    'native_gpu_context_release_confirmed'))
+metric = OUT/'full4000.json'
+for artifact in (metric, OUT/'stages/diagnosis.json'):
+    assert read(artifact)['counts']['n'] == 4000
+for row in read(metric)['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+stop = (RAW/'remote_stop.log').read_text()
+monitor_sha = next(line.split()[0] for line in stop.splitlines()
+    if line.endswith('/d854_20261025/remote_monitor.log'))
+assert p.digest(RAW/'remote_monitor.log') == monitor_sha
+with (OUT/'complete_original.py.snapshot').open('xb') as stream:
+    stream.write(_original.read_bytes())
+save(OUT/'analysis_resume.json', dict(
+    reason='The light driver lacks ijson; native analyzer commands had already completed.',
+    original_driver=ref(_original), original_log=ref(RAW/'completion.log'),
+    previous_identity=previous, resume_identity=own,
+    reused_outputs=[ref(metric), ref(OUT/'stages/diagnosis.json')],
+    gpu_replays=0, metric_definition_changed=False, overwritten_outputs=False))
+exec(compile(_tail, str(_original)+':resume-tail', 'exec'), globals())

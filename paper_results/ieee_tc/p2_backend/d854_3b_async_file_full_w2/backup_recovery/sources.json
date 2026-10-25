@@ -1,0 +1,18 @@
+{
+  "reason": "Explicit curated log paths matched *.log ignore rule.",
+  "program_sha256": "6098259c794a31da7b83cf8d088ef53857a393c712bea8e76ab6a9cac8200b83",
+  "prior_identity": {
+    "unit": "primelora-tc-aux-d8542026102600000000000000000005.scope",
+    "invocation_id": "a7346416ba7641a1ace287379cfb8637",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000005.scope",
+    "inode": 32598112
+  },
+  "resume_identity": {
+    "unit": "primelora-tc-aux-d8542026102600000000000000000006.scope",
+    "invocation_id": "09cf7e76aba34878822e8b89e93ab261",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000006.scope",
+    "inode": 32598865
+  },
+  "force_push": false,
+  "modified_existing_evidence": false
+}

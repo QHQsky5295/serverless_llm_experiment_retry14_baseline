@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "kind": "d854_full_w2_closure_v1",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3736,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3881,
+    "joint_pass": 3633
+  },
+  "violation_partition": {
+    "ttft_only_fail": 248,
+    "tpot_only_fail": 103,
+    "both_fail": 16
+  },
+  "shortfall_to_3800": 167,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "primary_targets_achieved": false,
+  "new_replays": 0,
+  "confidence_interval": null,
+  "previous_auxiliary_scopes_removed": [
+    {
+      "unit": "primelora-tc-aux-d8542026102600000000000000000002.scope",
+      "invocation_id": "2fef2957690e4eacb90c0b7fb47cfc74",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000002.scope",
+      "inode": 32594510
+    },
+    {
+      "unit": "primelora-tc-aux-d8542026102600000000000000000003.scope",
+      "invocation_id": "e0fa218c72b2431abee06d8a6840379a",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8542026102600000000000000000003.scope",
+      "inode": 32595658
+    }
+  ],
+  "resources": {
+    "memory.peak": "618971136",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "decision": "Retain this complete W2 observation and all earlier candidates. Observed joint passes: 3633/4000; physical GPU seconds: 11930.306571625173. The exact single-observation comparison against D846 and the frozen budget is stored separately. No independent numerical adapter proof, final ranking, confidence interval or cross-workload claim is inferred. Actual settlement coverage is completed by the retained analyzer. No same-key retry or threshold change; use the complete measurements and stage evidence for the next main-line decision."
+}

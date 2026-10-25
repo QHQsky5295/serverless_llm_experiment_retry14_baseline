@@ -1,0 +1,67 @@
+W1026 00:45:17.717000 1302627 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+{
+  "passed": true,
+  "full_request_population": 4000,
+  "states": {
+    "settled": 505
+  },
+  "joined_requests": 505,
+  "own_io_requests": 504,
+  "coalesced_subscribers": 1,
+  "observed_overlap_counts": {
+    "load_starts_before_pressure_finish": 358,
+    "first_token_before_pressure_finish": 43,
+    "last_token_before_pressure_finish": 4,
+    "worker_done_before_pressure_finish": 3
+  },
+  "metrics": {
+    "source_ready_to_load_ms": {
+      "count": 502,
+      "mean": 132.9798252614905,
+      "p50_type1": 109.2609390616417,
+      "p95_type1": 279.043223708868
+    },
+    "source_ready_to_acquisition_ms": {
+      "count": 505,
+      "mean": 174.69240101884202,
+      "p50_type1": 148.680976126343,
+      "p95_type1": 326.5601950697601
+    },
+    "pressure_finish_envelope_ms": {
+      "count": 505,
+      "mean": 256.3881968166495,
+      "p50_type1": 232.09930211305618,
+      "p95_type1": 581.9959468208253
+    },
+    "load_overlap_pressure_ms": {
+      "count": 502,
+      "mean": 27.598444614522307,
+      "p50_type1": 36.37845767661929,
+      "p95_type1": 48.49259415641427
+    },
+    "decode_overlap_pressure_ms": {
+      "count": 505,
+      "mean": 7.965485640054587,
+      "p50_type1": 0.0,
+      "p95_type1": 43.75908896327019
+    },
+    "pressure_tail_after_worker_ms": {
+      "count": 505,
+      "mean": 2.604314505058055,
+      "p50_type1": 0.0,
+      "p95_type1": 0.0
+    },
+    "job_finish_to_join_observation_ms": {
+      "count": 505,
+      "mean": 2052.082957656556,
+      "p50_type1": 1711.8572620674968,
+      "p95_type1": 4329.617267940193
+    },
+    "worker_to_controller_completion_ms": {
+      "count": 505,
+      "mean": 54.620390508028834,
+      "p50_type1": 1.613070722669363,
+      "p95_type1": 447.2389300353825
+    }
+  }
+}

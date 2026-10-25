@@ -1,0 +1,128 @@
+"""D826 adaptation of the D752 explicit-path, protected-result backup procedure."""
+import ast
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d854_3b_async_file_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+                                   stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_completion_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+for name in ('start_identity.json', 'completion_identity.json', 'completion_resume_identity.json', 'context_identity.json', 'settlement_resume_identity.json'):
+    assert not Path(read(RAW / name)['path']).exists(), name
+assert read(OUT / 'closure.json')['passed']
+assert read(OUT / 'completion/closed_outcome.json')['all_allocations_released']
+q = read(OUT / 'prelaunch/qualification.json')
+head = read(RAW / 'start_receipt.json')['head']
+evolving = {ROOT / 'docs/ieee_tc/EXECUTION_STATUS.md',
+            ROOT / 'docs/ieee_tc/D854_ASYNC_FILE_FULL_W2_20261025.md'}
+for name, sha in q['refs'].items():
+    path = Path(name)
+    if path in evolving:
+        content = subprocess.check_output(
+            ['git', 'show', head + ':' + str(path.relative_to(ROOT))], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == sha, name
+    else:
+        assert p.digest(path) == sha, name
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(q['protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+files = []
+for row in read(OUT / 'closure_manifest.json')['files']:
+    path = Path(row['path'])
+    assert p.digest(path) == row['sha256'], str(path)
+    files.append(path)
+files.append(OUT / 'closure_manifest.json')
+assert read(OUT/'settlement_analysis/summary.json')['passed'] is True
+assert read(OUT/'delivery_closure/resolved.json')['passed'] is True
+for directory in ('settlement_analysis', 'delivery_closure'):
+    files.extend(path for path in sorted((OUT/directory).rglob('*')) if path.is_file())
+
+evidence = OUT / 'completion_execution'
+evidence.mkdir(exist_ok=False)
+small = ('complete.py', 'complete_resume.py', 'close_delivery.py', 'backup_results.py',
+         'context_program.py.snapshot',
+         'completion_identity.json', 'completion_resume_identity.json', 'context_identity.json',
+         'completion.log', 'completion_resume.log', 'delivery_closure.log', 'delivery_template_reuse.json',
+         'start_receipt.json', 'backup.json', 'commit.json',
+         'remote_start.log', 'remote_stop.log', 'remote_health.json',
+         'analysis_metrics.log', 'analysis_stages.log',
+         'context_program.py.snapshot.log', 'settlement_resume_program.py.snapshot.log',
+         'settlement_resume_identity.json', 'backup_program.py.snapshot')
+for name in small:
+    source = RAW / name
+    if name.endswith('.py'):
+        ast.parse(source.read_text())
+    target = evidence / (name + '.snapshot' if name.endswith('.py') else name)
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(target) == p.digest(source)
+    files.append(target)
+remote_sha = 'b8bd2cf49635532a20f3f80c38c34cb3c44949dab02b1a5b13b4e04b75471a35'
+assert p.digest(RAW / 'remote_monitor.log') == remote_sha
+save(evidence / 'manifest.json', dict(
+    files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in files if path.parent == evidence],
+    remote_monitor_sha256=remote_sha, protected_files=len(protected),
+    procedure_source=str(RAW.parent / 'd752_20261023/backup_results.py')))
+files += [evidence / 'manifest.json', *sorted(evolving)]
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *[str(x.relative_to(ROOT)) for x in evolving]])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.csv', '.snapshot'))]
+csvs = [x for x in paths if x.endswith('.csv')]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW / 'backup_precommit_check.json', dict(passed=True, files=paths,
+     protected_files=len(protected), syntax_checked=True,
+     qualification='Reuse D853 187 distinct targeted checks and D854 4 run-contract checks. Complete 4000-request metrics/stages, delivery, native-owner and settlement audits passed; preserve the initial offline-environment failure and successful continuation. No production change or GPU replay during closure.'))
+call(['git', 'commit', '-m', 'tc: preserve D854 full W2 async file regression and delivery evidence'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d854-complete-20261026'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup_completion.json', dict(passed=True, head=head, ref=ref,
+     files=paths, v2_synchronized=False, protected_files=len(protected),
+     remote_monitor_sha256=remote_sha))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))

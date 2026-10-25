@@ -1,0 +1,61 @@
+Running scope as unit: primelora-tc-aux-d8542026102600000000000000000003.scope
+{
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3736,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3881,
+    "joint_pass": 3633
+  },
+  "joint_slo_fraction": 0.90825,
+  "physical_gpu_seconds": 11930.306571625173,
+  "metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 800.8661918491125,
+      "p50_type1": 519.1131001338363,
+      "p95_type1": 2425.543781835586
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 16.216052373056108,
+      "p50_type1": 13.934723490520435,
+      "p95_type1": 28.944397910631128
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 2578.2117104328936,
+      "p50_type1": 2207.949051167816,
+      "p95_type1": 5433.927610516548
+    }
+  },
+  "n_correct": null,
+  "comparison": {
+    "kind": "d854_single_w2_frozen_resource_reference_observation_v1",
+    "current": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d854_3b_async_file_full_w2/completion/full4000.json",
+      "sha256": "7bd28d25962a47e59f5776dd0d2979cf2fd28a8c67c7c61deed4715032b95138"
+    },
+    "reference": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json",
+      "sha256": "f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a"
+    },
+    "reference_workload": "W2",
+    "reference_id": "3b_W2_vllm0300_D656",
+    "reference_gpu_seconds": 16110.751826980617,
+    "budget_gpu_seconds": 12083.063870235463,
+    "observed_within_budget": true,
+    "budget_utilization": 0.9873577347392344,
+    "gpu_seconds_reduction_fraction": 0.25948169894557416,
+    "gpu_seconds_per_binding_valid_request": 2.9825766429062934,
+    "joint_slo_delta_percentage_points": -9.175,
+    "normalized_p95_ttft": 5.492192292077589,
+    "joint_slo_margin_requests": -167,
+    "n_correct": null,
+    "ranking_eligible": false,
+    "confidence_interval": null,
+    "complete_g1_g2": false,
+    "independent_holdout": false,
+    "scope": "Known W2 development observation versus the frozen W2 resident reference; no cross-workload improvement claim, independent numerical proof, or final ranking."
+  }
+}

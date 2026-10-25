@@ -1,0 +1,66 @@
+"""Resume explicit D854 backup after Git rejected curated *.log files.
+
+No force push. Only the exact small evidence logs already listed and checked
+by backup_results.py are added with -f; user work stays excluded.
+"""
+from pathlib import Path
+import hashlib
+
+_raw = Path(__file__).resolve().parent
+_program = _raw/'backup_program.py.snapshot'
+_source = _program.read_text()
+exec(compile(_source.split('assert os.sched_getaffinity', 1)[0], str(_program), 'exec'), globals())
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+assert not Path(read(RAW/'backup_completion_identity.json')['path']).exists()
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_resume_identity.json', own)
+q = read(OUT/'prelaunch/qualification.json')
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = {name: row['sha256'] for name,row in read(seal)['entries'].items()}
+protected.update(q['protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha
+files = []
+for row in read(OUT/'closure_manifest.json')['files']:
+    path = Path(row['path'])
+    assert p.digest(path) == row['sha256']
+    files.append(path)
+files.append(OUT/'closure_manifest.json')
+for directory in ('settlement_analysis', 'delivery_closure', 'completion_execution'):
+    target = OUT/directory
+    for row in read(target/'manifest.json')['files']:
+        path = Path(row['path'])
+        if not path.is_absolute():
+            path = ROOT/path
+        assert p.digest(path) == row['sha256']
+    files.extend(path for path in sorted(target.rglob('*')) if path.is_file())
+evolving = {ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+            ROOT/'docs/ieee_tc/D854_ASYNC_FILE_FULL_W2_20261025.md'}
+files.extend(sorted(evolving))
+recovery = OUT/'backup_recovery'
+recovery.mkdir(exist_ok=False)
+for source in (Path(__file__), RAW/'backup_completion.log'):
+    target = recovery/(source.name+'.snapshot')
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    files.append(target)
+save(recovery/'sources.json', dict(reason='Explicit curated log paths matched *.log ignore rule.',
+    program_sha256=p.digest(_program), prior_identity=read(RAW/'backup_completion_identity.json'),
+    resume_identity=own, force_push=False, modified_existing_evidence=False))
+files.append(recovery/'sources.json')
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) <= set(paths)
+remote_sha = 'b8bd2cf49635532a20f3f80c38c34cb3c44949dab02b1a5b13b4e04b75471a35'
+assert p.digest(RAW/'remote_monitor.log') == remote_sha
+_tail = _source[_source.index('secret = re.compile'):]
+_old = "call(['git', 'add', '--', *paths])"
+assert _tail.count(_old) == 1
+_tail = _tail.replace(_old,
+    "logs = [name for name in paths if name.endswith('.log')]\n"
+    "assert all(name.startswith(str((OUT/'completion_execution').relative_to(ROOT))+'/') for name in logs)\n"
+    "assert all((ROOT/name).stat().st_size < 1024*1024 for name in logs)\n"
+    "call(['git', 'add', '-f', '--', *logs])\n" + _old)
+exec(compile(_tail, str(_program)+':resume-tail', 'exec'), globals())

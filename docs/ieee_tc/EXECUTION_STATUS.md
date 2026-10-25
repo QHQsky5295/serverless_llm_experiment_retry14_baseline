@@ -1,4 +1,61 @@
-# IEEE TC execution status — D854 complete 3B W2 registered; launch pending
+# IEEE TC execution status — D854 full W2 closed, candidate not accepted
+
+## 2026-10-26 D854完整负向结果：90.825%，预算内，未达标
+
+4000请求原生计量/身份核验完成，GPU与本轮远端服务均已释放；不是数值正确性
+证明，D711仍未知、n_correct=null、ranking=false。共同SLO3633/4000=90.825%，
+TTFT3736、TPOT3881；相对D846联合少82、-2.05百分点。平均TTFT800.866192ms，
+P95 2425.543782ms（+7.2189%）；U11930.306572、冻结预算12083.063870。
+距3800还差167，不以预算内或功能检查通过宣告目标实现。
+
+505次远端交付全部published，1172100920B两端一致，最终内容验证全部通过；
+全4000owner/引用与505实际准备结算核验完成，未删除无新准备的请求。服务
+high/max/OOM/swap均0，peak33359941632B，4078采样；147保护项/user manifest
+一致。首次分析driver缺ijson在两条统计命令完成后中断，保留失败，用已有
+native环境仅续剩余校验；没有GPU重跑/统计覆盖。02–04辅助域均结束。
+
+观察到TTFT增加49.49ms主要在admission→acquired（+29.20）及executable→engine
+（+13.42），native prefill仅+0.25；嵌套routing/slot等待增加但不能重复加和
+或直接当线程因果。D851–D853异步候选不作为性能改进接受，D846仍是既有
+参照而非达标版本。下一先复用两轮日志和源码解释残余串行/交接开销，对照
+历史失败与原始资料后再定单一候选；不直接堆叠异步包装、追加短跑或同键重试。
+
+已更新D854文档和curated结果；下一按明确文件集备份，保留失败分析记录，
+不stage用户manifest。备份ref≠最终V2同步。所有同最终版本主矩阵、A1–A5、
+S1–S13、独立数值正确性、文档/图表/最终V2仍待完成，goal保持active。
+
+以下为本轮运行过程记录，不代表仍在运行。
+
+监测续报（2026-10-26 00:23:38 CST）：同一D854仍在运行，已完成3390/4000、
+ok3390、fail0；supervisor/runner/watchdog身份未变，sample3117的
+memory.high/max/OOM均0、swap0，磁盘可用156.7168GiB，无保护告警。
+未重跑、未修改生产代码、未并行维护或推送。已完整阅读D846展开的context、
+settlement和backup脚本，实际分析仍须等GPU真实释放后；不要复制旧结果解释。
+当前没有新的完整SLO/GPU-s判定，原计划和所有未完成项不变。
+
+监测回执（2026-10-25 23:38:58 CST）：同tmux、服务InvocationID、supervisor
+1118162、runner1118280及watchdog1118301均实际存活；已提交346/4000（不是
+完成数）。sample473累计high/max/OOM/swap均0，服务峰值17375952896B，
+磁盘可用181879623680B，无保护告警。原到达窗口约3963.9秒，当前正常等待
+完整测量，不重启、不并行重型任务。已用D846展开的completion脚本仅替换
+本轮路径预备raw/d854_20261025/complete.py，尚未运行；其真实释放/4000条/
+冻结SLO与预算核验不变。没有新性能判定，独立数值正确性仍未知。
+下一继续监测同一运行；结束后先核验launch与remote_stop，再在3/4GiB辅助
+域执行complete.py；交付/owner/settlement分析继续复用D846，父比较改为D846，
+不得复制旧脚本的硬编码结果解释。收尾后再维护、备份，不在测量中推送。
+
+D854启动回执（23:32 CST）：检查点0f91740f7b6f3f6e6f60b34dd4b41e25323b09af
+已推送且核实backup/d854-async-file-fullw2-20261025同SHA；最终V2未同步。
+4项执行合同检查通过，D853的187项复用未重跑，147保护项/用户manifest一致。
+启动门槛通过；远端本次1000Mb/s/full、prepublished_gzip_v1。tmux
+tc-d854-3b-async-file-full-w2存活，既有4000请求W2已开始，首请求已提交。
+服务unit primelora-tc-svc-9bce4f6801af4d5f8e7024d7f986dbd4.scope；InvocationID
+817401e0a63b4c0eb6dd701f8fc8dd75。sample63 high/max/OOM/swap均0，峰值
+13101154304B；不据此预测全程。aux预登记scope01已inactive/dead。
+raw为results/ieee_tc/p2_backend_qualification/d854_20261025；实际日志和
+watchdog在3b_max3_full_w2/launch.launch。当前无完整性能结果，不做并行
+维护/代码调整/推送。下一监测至真实释放，再复用D846分析与交付闭合入口；
+不得重跑同键择优或以运行中少量请求宣告达标。此后置回执随正常收尾备份。
 
 ## 2026-10-25 D854接续完整候选，直接全长W2
 
