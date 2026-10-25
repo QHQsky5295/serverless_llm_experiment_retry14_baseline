@@ -1,0 +1,88 @@
+{
+  "passed": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "protected_union_files": 147,
+  "protected_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+    "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "bytes": 35122
+  },
+  "closed_scopes": [
+    {
+      "phase": "analysis",
+      "identity": {
+        "unit": "primelora-tc-aux-82800000000000000000000000000004.scope",
+        "invocation_id": "47cee852b3fe439999764899de75af5e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82800000000000000000000000000004.scope",
+        "inode": 32147108
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    },
+    {
+      "phase": "focused",
+      "identity": {
+        "unit": "primelora-tc-aux-82800000000000000000000000000005.scope",
+        "invocation_id": "1cf72cae8fd34d28ad9b6305b017d3a7",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82800000000000000000000000000005.scope",
+        "inode": 32148414
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    },
+    {
+      "phase": "regression",
+      "identity": {
+        "unit": "primelora-tc-aux-82800000000000000000000000000006.scope",
+        "invocation_id": "1af15b5c63314022829ccdb25b6d8ff3",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82800000000000000000000000000006.scope",
+        "inode": 32148693
+      },
+      "properties": "ControlGroup=\nActiveState=inactive\nInvocationID=\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_idle": true,
+  "new_gpu_replays": 0,
+  "production_candidate": true,
+  "formal_performance": false,
+  "end_to_end_performance_accepted": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "distinct_regression_tests": 370,
+  "focused_tests_included": 57,
+  "decision": "One admitted owner anchor candidate CPU-qualified; complete unchanged 3B W2 next.",
+  "plan": {
+    "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+    "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "bytes": 82192
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D828_POST_FILE_OWNER_TURN_20261025.md",
+    "sha256": "da482605b65321dbfddb9ebedc2a8febfdc5b1ea333b8bee19b5bb65ce74655a",
+    "bytes": 6655
+  },
+  "production_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "41dac3091dd52f610fc3ea2a3940c56dd11418081c12cf5c98590e9ae4cb420f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "049c9fba6677ed14bf9e328d9bde723d3d076f3db4f00f23956d8ef2a69f19f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py": "44994e3ca7a8ff3daefabb10063303a1bfab10df332a1388702736802b2b62a5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py": "278466c001d70e5288e9c20fd861ee011f4c46ac77365891dc4ac13ed7a815ab"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-82800000000000000000000000000007.scope",
+    "invocation_id": "b7429f33edb843188e956fb79f58b08a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-82800000000000000000000000000007.scope",
+    "inode": 32149446
+  },
+  "resources": {
+    "memory.peak": "29106176",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "disk_free_bytes": 161187520512,
+  "baseline_head": "e1c433bab982366a82ad188ef703270d89d6ea06"
+}

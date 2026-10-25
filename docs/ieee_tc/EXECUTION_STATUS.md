@@ -1,4 +1,48 @@
-# IEEE TC execution status — D827 closed component; no cleanup candidate
+# IEEE TC execution status — D828 admitted owner anchor qualified; full W2 next
+
+## 2026-10-25 D828：已完成离线分解与单一候选CPU验证
+
+已完整核查PLAN、冻结V1/单轮V2、历史否定候选和官方vLLM/Python实现。
+复用D826全部498条唯一关联Remote请求，原4000分母及其他15条不变。
+压力finish之后到identity捕获均值64.637ms、捕获到load130.799ms；嵌套
+identity RPC回复等待76.617ms（TTFT违约245条114.505ms），不能相加或
+从历史延迟扣除。498次查询目标native均为空，113次事务时epoch又推进。
+
+已实现唯一候选：非native来源准入保存实际owner/epoch锚点，文件加载
+用该历史身份加真实持有文件见证进入既有原生事务。当前容量/内容/pin与
+HOST检查仍在同owner内执行；GPU/HOST cached-only、容量冲突后的新鲜
+查询、取消/丢失回复所有权及post-load身份发布不变。无backend配置新字段，
+不修改profile值/匹配、九公式或指标。不是D514主动GPU图精简或D822压力通道。
+
+定向57项、完整相关模块370项不同测试全部通过；没有失败/重试，测试峰值
+570028032B，high/max/OOM/swap均0。分析/两测试scope均已inactive/path gone，
+GPU空、147保护一致。数据/说明在D828_POST_FILE_OWNER_TURN_20261025.md及
+paper_results/ieee_tc/p2_backend/d828_post_file_owner_turn/；待本轮明确路径备份。
+首次备份在提交前停于CSV标准CRLF被默认diff识别为行尾空白，9条预期路径
+已stage；未提交/推送，不是实验失败。恢复仅对该次diff检查声明cr-at-eol，
+保留blank-at-eol/blank-at-eof/space-before-tab及全部SHA、秘密和明确路径检查。
+不重写CSV/manifest或重做分析，原数据字节与失败scope证据保留。
+本轮没有GPU性能运行；当前完整3B W2仍为D826联合3610/4000（90.25%）、
+U11307.066GPU-s，未达95%。D711数值未知和ranking=false继续保留。
+
+下一步复用D826入口做该候选的一次完整3B W2，不追加短Full/同组件，不改
+请求/工件/阈值/三卡策略；运行前新资源准入和检查点，结果后判断接受/撤销。
+不重做HydraServe基础适配，不改共享k3s。最终同版两模型M1/M2与Full、
+A1–A5、S1–S13、成本/CE、两轮审稿文档、图表及最终V2同步全部保留。
+整体目标active，不将CPU通过写成性能达标或正确性证明。
+
+以下D827为已经完成的历史记录：
+
+后置备份回执：D827六条明确路径已提交50bcf270522a75845eb0187139037ed36157827f，
+推送backup/d827-workspace-retirement-20261025并核实远端ref。归档13份
+当前/复用脚本及原始记录，逐成员SHA读回通过；147项保护及3处用户SHA
+一致。组件、发布、备份三个scope均inactive、ControlGroup/Invocation空，
+所有工具session已结束，GPU空、stage空；只保留用户manifest原dirty。
+可用磁盘161194369024B，下一重型任务须重新准入。未修改生产逻辑，未做
+GPU回放，非最终V2同步。下面“待备份”已由本回执完成，后置文字随下次
+正常检查点保存，不为此递归提交。下一步先核对现有完整记录能否区分发布后
+交接的任务排队与实际owner工作，不重复D827组件、旧否定候选或HydraServe
+基础适配；整体目标仍active。
 
 ## 2026-10-25 D827：组件完成，不选择独立清理候选
 

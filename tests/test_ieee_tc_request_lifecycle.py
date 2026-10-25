@@ -1926,12 +1926,121 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(len(attempts),1)
                 self.assertEqual(e['stale_rechecks'],0)
                 self.assertEqual(result.readiness_tier_before_dispatch,tier)
+                self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
+                anchor = e['source_admission']['native_owner_anchor']
+                self.assertEqual(e['intent']['expected_epoch'], anchor['epoch'])
+                self.assertEqual(e['snapshot_before_acquisition']['captured_monotonic_s'],
+                                 anchor['captured_monotonic_s'])
+                self.assertLessEqual(anchor['captured_monotonic_s'],
+                                     e['source_admission']['admitted_monotonic_s'])
+                self.assertFalse(e['snapshot_before_acquisition']['fresh_acquisition_observation'])
+                self.assertEqual(e['snapshot_before_acquisition']['acquisition_observation_scope'],
+                                 'admission_owner_identity_only_v1')
+                self.assertEqual(runner._ieee_route_identity_frontier[slot.instance_id].epoch,
+                                 e['receipt']['post_load_source_snapshot']['epoch'])
                 self.assertGreater(e['receipt']['file_demand_transaction']['owner_epoch_advance'],0)
                 self.assertEqual(e['receipt']['file_source_witness']['lease_id'],e['local_source_reference']['lease_id'])
                 self.assertEqual(e['local_source_reference']['state'],'released')
                 self.assertFalse(runner._stack.residency_manager.local_source_references.leases)
                 self.assertEqual(owner.snapshot()['live_leases'],0)
                 self.assertEqual(slot.active_requests,0)
+
+    def test_file_demand_anchor_is_bound_to_the_admitted_request(self):
+        for field, value in ((None, None), ('kind', 'unconfirmed'),
+                ('request_id', 'other-request'), ('adapter_id', 'other-adapter'),
+                ('instance_id', 'other-replica'), ('clock_id', 'other-clock')):
+            with self.subTest(field=field):
+                runner, slot, trace, plan, owner, _ = self.build('remote')
+                runner.model_cfg['ieee_file_demand_transaction'] = 'protected_file_owner_turn_v1'
+                self.file_source(runner, trace, publish=True)
+                acquire = runner._acquire_runtime_gpu_reference
+                async def changed(reservation, *args, **kwargs):
+                    admission = reservation.gpu_reference_evidence['source_admission']
+                    if field is None:
+                        del admission['native_owner_anchor']
+                    else:
+                        admission['native_owner_anchor'][field] = value
+                    return await acquire(reservation, *args, **kwargs)
+                runner._acquire_runtime_gpu_reference = changed
+                with self.assertRaises(ValueError):
+                    asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
+                self.assertFalse(any(c.kwargs['operation'] == 'demand_load_and_acquire'
+                    for c in slot.engine.ieee_gpu_reference.await_args_list))
+                slot.engine.generate_prepared.assert_not_awaited()
+                self.assertFalse(runner._stack.residency_manager.local_source_references.leases)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_file_demand_anchor_still_checks_native_owner_and_future_epoch(self):
+        for field, value, reason in (('owner_id', 'replaced-owner', 'owner_changed'),
+                ('epoch', 10**9, 'stale_snapshot')):
+            with self.subTest(field=field):
+                runner, slot, trace, plan, owner, _ = self.build('remote')
+                runner.model_cfg['ieee_file_demand_transaction'] = 'protected_file_owner_turn_v1'
+                self.file_source(runner, trace, publish=True)
+                acquire = runner._acquire_runtime_gpu_reference
+                async def changed(reservation, *args, **kwargs):
+                    reservation.gpu_reference_evidence['source_admission']['native_owner_anchor'][field] = value
+                    return await acquire(reservation, *args, **kwargs)
+                runner._acquire_runtime_gpu_reference = changed
+                with self.assertRaisesRegex(RuntimeError, reason):
+                    asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
+                self.assertFalse(owner._sources)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                slot.engine.generate_prepared.assert_not_awaited()
+
+    def test_file_demand_capacity_conflict_reobserves_after_real_pin_release(self):
+        runner, slot, trace, plan, owner, rpc = self.build('remote')
+        runner.model_cfg['ieee_file_demand_transaction'] = 'protected_file_owner_turn_v1'
+        self.file_source(runner, trace, publish=True)
+        attempts = []
+        async def fill(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(dict(kwargs))
+                if len(attempts) == 1:
+                    for aid in (1, 2):
+                        receipt = owner.demand_load_and_acquire(lease_id=f'busy-{aid}',
+                            adapter_int_id=aid, lora_name=f'other-{aid}', lora_path=f'/existing/other-{aid}',
+                            expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+                        self.assertTrue(receipt['acquired'])
+            return await rpc(operation=operation, **kwargs)
+        async def release(reservation, conflict):
+            self.assertEqual(conflict['reason'], 'all_gpu_slots_pinned')
+            self.assertEqual(owner.snapshot()['live_leases'], 2)
+            for aid in (1, 2):
+                owner.release(lease_id=f'busy-{aid}', expected_owner_id=owner.owner_id)
+        slot.engine.ieee_gpu_reference.side_effect = fill
+        runner._wait_native_reference_capacity = AsyncMock(side_effect=release)
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(len(attempts), 2)
+        runner._wait_native_reference_capacity.assert_awaited_once()
+        self.assertEqual(slot.engine.ieee_source_identities.await_count, 2)
+        evidence = result.gpu_reference_evidence
+        self.assertEqual(evidence['snapshot_after_capacity_wait']['acquisition_observation_scope'],
+                         'native_identity_only_v1')
+        self.assertGreater(attempts[1]['expected_epoch'], attempts[0]['expected_epoch'])
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertFalse(runner._stack.residency_manager.local_source_references.leases)
+
+    def test_file_demand_concurrent_native_copy_does_not_relabel_dispatch(self):
+        runner, slot, trace, plan, owner, rpc = self.build('remote')
+        runner.model_cfg['ieee_file_demand_transaction'] = 'protected_file_owner_turn_v1'
+        self.file_source(runner, trace)
+        async def concurrent(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                receipt = owner.demand_load_and_acquire(**(kwargs | {'lease_id': 'other-load'}))
+                self.assertTrue(receipt['acquired'])
+                owner.release(lease_id='other-load', expected_owner_id=owner.owner_id)
+            return await rpc(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = concurrent
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'remote')
+        self.assertFalse(result.gpu_reference_evidence['receipt']['native_load_invoked'])
+        self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
 
     def test_atomic_file_lost_reply_keeps_both_owners(self):
         runner, slot, trace, plan, owner, rpc=self.build('remote')

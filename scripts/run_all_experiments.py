@@ -17654,6 +17654,31 @@ class ScenarioRunner:
             selected_source = SimpleNamespace(tier='host', lora_path=held_host_source['lora_path'])
             snapshot_evidence = dict(snapshot, kind='held_native_host_source_v1',
                 held_source_receipt=dict(held_host_source))
+        elif (not cached_only and file_demand_policy is not None
+                and reservation.ieee_observation is not None):
+            # Source admission already confirmed this native owner before it
+            # accepted the protected lower-tier input. Its epoch is only a
+            # causal lower bound, NOT current residency or capacity. The file
+            # witness below authorizes the existing serialized owner turn to
+            # check live bindings, pins and budgets and then load/acquire.
+            # Ordinary callers without source admission still observe below.
+            admission = evidence.get('source_admission', {})
+            anchor = admission.get('native_owner_anchor')
+            validate_snapshot(anchor)
+            if (anchor.get('kind') != 'admission_native_owner_anchor_v1'
+                    or anchor.get('request_id') != reservation.request_id
+                    or anchor.get('adapter_id') != adapter_id
+                    or reservation.slot is None or reservation.slot.engine is not engine
+                    or reservation.gpu_reference_engine is not engine
+                    or anchor.get('instance_id') != reservation.slot.instance_id
+                    or admission.get('source', {}).get('native') is not False
+                    or admission.get('source', {}).get('tier') not in ('remote', 'nvme', 'host')):
+                raise ValueError('file demand lacks its admitted native owner anchor')
+            snapshot = {key: anchor[key] for key in ('owner_id', 'epoch', 'clock_id')}
+            selected_source = None  # No assertion about current native presence.
+            snapshot_evidence = dict(anchor,
+                acquisition_observation_scope='admission_owner_identity_only_v1',
+                fresh_acquisition_observation=False)
         else:
             snapshot, selected_source, snapshot_evidence = await observe_source()
         if cached_only and selected_source is None:
@@ -18001,6 +18026,7 @@ class ScenarioRunner:
         reservation.gpu_reference_engine = engine
         preparation_profile = getattr(self, '_preparation_profiles', None)
         preparation_key = None
+        native_owner_anchor = None
         if preparation_profile is not None and source['tier'] not in ('gpu', 'backbone'):
             # Freeze the preparation class before any source-hold/load RPC.
             # It uses observed source bytes/representation and verified content,
@@ -18038,6 +18064,16 @@ class ScenarioRunner:
                 evidence['native_source_conflict'] = 'faster native source appeared before admission'
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
+            if source['tier'] in ('remote', 'nvme', 'host'):
+                # Retain the actual accepted observation, not a new snapshot
+                # timestamp after remote/file preparation. This identity alone
+                # cannot authorize a load; the live file lease and native
+                # demand transaction remain required at acquisition.
+                native_owner_anchor = dict(kind='admission_native_owner_anchor_v1',
+                    owner_id=native.owner_id, epoch=native.epoch, clock_id=native.clock_id,
+                    captured_monotonic_s=native.captured_monotonic_s,
+                    request_id=reservation.request_id, adapter_id=reservation.adapter_id,
+                    instance_id=slot.instance_id)
         if source['tier'] == 'gpu':
             if await self._acquire_runtime_gpu_reference(reservation, engine,
                     reservation.adapter_id, cached_only=True, selected_source=source,
@@ -18117,6 +18153,8 @@ class ScenarioRunner:
             source=dict(source), service_class=asdict(key), admitted_monotonic_s=admitted_at,
             admitted_after_accept=slot.active_requests, physical_capacity_qualified=False,
             profile_collection_only=collect_profile_only, clock_id=local_monotonic_clock_id())
+        if native_owner_anchor is not None:
+            evidence['source_admission']['native_owner_anchor'] = native_owner_anchor
         if preparation_key is not None:
             evidence['source_admission'].update(preparation_class=asdict(preparation_key),
                 preparation_profile_id=preparation_profile.profile_id)
