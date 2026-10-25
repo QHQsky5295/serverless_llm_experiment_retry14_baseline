@@ -1,0 +1,39 @@
+{
+  "kind": "d864_native_graph_entry_checkpoint_v1",
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/backup.py.snapshot",
+      "sha256": "6370dd77b8a2acf9f14c0348d401d2b16a21ecd857dec895f165225e043f431a",
+      "bytes": 4436
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/launch.py.snapshot",
+      "sha256": "4c2a29f68d68db9b434210940f348d0ef6cc64313264f9b755e513f0c547a51e",
+      "bytes": 2042
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/preparation.json",
+      "sha256": "3b32ff6c283ceb3610ca0aa15fbffa77a0cc37c8d589b3a9f16981b263ad6295",
+      "bytes": 10919
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/preparation_closure.json",
+      "sha256": "23b2b693e51937fd2cc2c7b8a78d44bcb490c87eabd5abe6e309c411ae1ce3fe",
+      "bytes": 443
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/prepare.py.snapshot",
+      "sha256": "eca7a304bf74d80d10abadefc7940bebdabc44e68fd3485bd4dc3fa94c6d3a00",
+      "bytes": 3498
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d864_native_host_graph/native_prelaunch/tests.txt",
+      "sha256": "a8ef3743d1a9b1a7aff58d75100ae05112bbf41e02e402a6a91f957f1316612c",
+      "bytes": 2147
+    }
+  ],
+  "production_integrated": false,
+  "native_gpu_microtest_executed": false,
+  "full_workload_executed": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

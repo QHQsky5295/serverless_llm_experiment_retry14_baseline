@@ -176,6 +176,29 @@ class LivePinQueryQualification(unittest.TestCase):
             p._pin_inventory_witness(without_native_query, None, None)
 
 
+class NativeGraphDiagnosticSelection(unittest.TestCase):
+    def test_graph_requires_explicit_current_reference_before_service(self):
+        with patch.object(p, 'verify_current_service') as service:
+            with self.assertRaisesRegex(ValueError, 'explicit fused-descriptor'):
+                p.backend_pin_query_check(Path('unused.json'), graph_library=Path('graph.so'))
+            service.assert_not_called()
+
+    def test_graph_rejects_other_candidates_before_service(self):
+        with patch.object(p, 'verify_current_service') as service:
+            for conflict in ({'bulk_library': Path('bulk.so')}, {'gc_observer': object()}):
+                with self.assertRaisesRegex(ValueError, 'distinct candidate'):
+                    p.backend_pin_query_check(Path('unused.json'),
+                        descriptor_library=Path('reference.so'),graph_library=Path('graph.so'),
+                        **conflict)
+            service.assert_not_called()
+
+    def test_valid_selection_still_checks_actual_service_before_loading_libraries(self):
+        with patch.object(p, 'verify_current_service', side_effect=RuntimeError('owned service needed')):
+            with self.assertRaisesRegex(RuntimeError, 'owned service needed'):
+                p.backend_pin_query_check(Path('unused.json'),
+                    descriptor_library=Path('reference.so'),graph_library=Path('graph.so'))
+
+
 class ApprovedPlanIdentity(unittest.TestCase):
     def test_current_binding_matches_published_baselines_and_single_run_plan(self):
         self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261014_PUBLISHED_BASELINES.md')

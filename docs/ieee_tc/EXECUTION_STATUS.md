@@ -1,5 +1,23 @@
 # IEEE TC execution status — D864 fresh native HOST graph CPU checks passed
 
+### D864原生验证准备（本轮继续，未启动时状态）
+
+完整重读计划及V1/V2，上一轮归类progress；当前CPU图资格按SHA复用，无
+重建/重复CPU图测试。已扩展现有backend-pin-check：显式整图库加D747参考
+库，9种pin状态直接经过整图入口，4图/20对原流程不变。新增3项选择检查
+和8项既有接口回归通过；仍无生产集成。正在保存入口检查点，然后唯一一次
+原生tiny微测；不启动新的1000前缀。主线和未完成全矩阵保持，目标active。
+
+### D864备份完成回执（提交后状态）
+
+f0b0cf22bfcda75803f28114408be346babfd0bc已推送并ls-remote核验
+refs/heads/backup/d864-native-host-graph-cpu-20261026，34个明确路径；用户
+manifest未stage，无force。最终V2仍不同步，不能称交付完成。raw
+d864_20261026/publication.json保存回执。D864三个CPU检查域、finalize和
+publish均已inactive，本轮GPU始终无compute；原生产和旧库未变。
+下一是一次已有原生pin/完整图微测的必要入口适配，不重复CPU资格或备份。
+这段为提交后的状态，不在上述commit内，留给下一正常检查点纳入。
+
 ## 2026-10-26 D864：单一原生图候选，CPU核查完成，未接入生产
 
 已完整重读计划/AGENTS/冻结V1与单轮V2，核查D329、D685/686、D687、D747

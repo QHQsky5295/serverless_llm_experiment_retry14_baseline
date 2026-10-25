@@ -1,0 +1,17 @@
+W1026 05:56:55.757000 2035718 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_graph_rejects_other_candidates_before_service (tests.test_ieee_tc_preflight.NativeGraphDiagnosticSelection.test_graph_rejects_other_candidates_before_service) ... ok
+test_graph_requires_explicit_current_reference_before_service (tests.test_ieee_tc_preflight.NativeGraphDiagnosticSelection.test_graph_requires_explicit_current_reference_before_service) ... ok
+test_valid_selection_still_checks_actual_service_before_loading_libraries (tests.test_ieee_tc_preflight.NativeGraphDiagnosticSelection.test_valid_selection_still_checks_actual_service_before_loading_libraries) ... ok
+test_bad_pointer_rejected_before_cuda (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_bad_pointer_rejected_before_cuda) ... ok
+test_diagnostic_clone_preserves_original_and_checks_entry (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_diagnostic_clone_preserves_original_and_checks_entry) ... ok
+test_fresh_query_each_time_observes_registration_change (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_fresh_query_each_time_observes_registration_change) ... ok
+test_host_is_true_and_other_memory_types_are_false (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_host_is_true_and_other_memory_types_are_false) ... ok
+test_invalid_value_clears_error_exactly_like_native_hook (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_invalid_value_clears_error_exactly_like_native_hook) ... ok
+test_other_errors_propagate_not_unpinned_fallback (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_other_errors_propagate_not_unpinned_fallback) ... ok
+test_unknown_inventory_source_rejected (tests.test_ieee_tc_preflight.LivePinQueryQualification.test_unknown_inventory_source_rejected) ... ok
+test_distinct_candidate_before_any_service_or_cuda_action (tests.test_ieee_tc_host_descriptor_witness.DescriptorPreflightSelection.test_distinct_candidate_before_any_service_or_cuda_action) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.015s
+
+OK

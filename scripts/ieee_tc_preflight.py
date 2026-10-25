@@ -2418,7 +2418,8 @@ def backend_frontend_check(runtime_receipt: Path, config: Path) -> dict:
 
 
 def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None = None,
-                            gc_observer=None, descriptor_library: Path | None = None) -> dict:
+                            gc_observer=None, descriptor_library: Path | None = None,
+                            graph_library: Path | None = None) -> dict:
     """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
 
     Small tensor fixtures are not a new adapter pool. No model, input trace,
@@ -2426,6 +2427,9 @@ def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None 
     """
     if descriptor_library is not None and (bulk_library is not None or gc_observer is not None):
         raise ValueError('fused descriptor is a distinct candidate, not a pin-batch/GC combination')
+    if graph_library is not None and (descriptor_library is None
+            or bulk_library is not None or gc_observer is not None):
+        raise ValueError('native graph requires its explicit fused-descriptor reference only')
     service = verify_current_service()  # Limits established BEFORE torch/CUDA.
     prior = json.loads(runtime_receipt.read_text())
     if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
@@ -2487,6 +2491,33 @@ def backend_pin_query_check(runtime_receipt: Path, *, bulk_library: Path | None 
                 candidate_label='fused_current_tensor_descriptor_not_pin_batch',
                 per_view_query_retained=True, cross_call_state_cache=False,
                 original_pytorch_pin_dispatcher=True)
+            if graph_library is not None:
+                from scripts.ieee_tc.host_descriptor_witness import (
+                    graph_inventory_witness, load_descriptor_module)
+                graph = load_descriptor_module(graph_library).graph
+                def checked_graph(models, include_views):
+                    guard()
+                    return graph(models, include_views)
+                reference, reference_source = candidate, candidate_source
+                candidate, candidate_source = graph_inventory_witness(inventory, checked_graph)
+                inventory = reference  # Current fused descriptor, not the old Python path.
+                def query(tensor, pointer):
+                    # Exercise the actual graph visitor in all nine pin states,
+                    # not merely the unchanged per-tensor descriptor function.
+                    observed = checked_graph({1: NS(id=1, rank=1, loras={
+                        'probe': NS(lora_a=tensor, lora_b=tensor)})}, False)
+                    rows = observed['host_allocations']
+                    if (pointer != tensor.untyped_storage().data_ptr() or len(rows) != 1
+                            or rows[0]['allocated_bytes'] != tensor.untyped_storage().nbytes()
+                            or rows[0]['adapter_ids'] != [1] or type(rows[0]['pinned']) is not bool):
+                        raise RuntimeError('native graph changed current probe storage metadata')
+                    return rows[0]['pinned']
+                result.update(kind='native_fresh_host_graph_d864_v1',
+                    graph_library=str(graph_library),graph_library_sha256=digest(graph_library),
+                    reference_source=reference_source,
+                    variant_labels=dict(native='current_fused_per_view_descriptor',
+                                        direct='same_call_native_graph'),
+                    candidate_label='whole_current_host_graph_not_pin_batch')
         elif bulk_library is None:
             candidate, candidate_source = _pin_inventory_witness(inventory, query, guard)
         else:
@@ -6515,6 +6546,8 @@ def main():
                         help='Diagnostic-only prebuilt per-view native pin batch; no serving integration')
     parser.add_argument('--host-descriptor-library', type=Path,
                         help='Distinct diagnostic-only fused current Tensor descriptor; no serving integration')
+    parser.add_argument('--host-graph-library', type=Path,
+                        help='Diagnostic fresh graph; requires explicit current descriptor reference')
     parser.add_argument('--pin-gc-observation', action='store_true',
                         help='One diagnostic attribution pass; does not change GC policy or serving code')
     parser.add_argument('--native-observation', type=Path,
@@ -6564,6 +6597,9 @@ def main():
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.host_graph_library and (args.action != 'backend-pin-check'
+            or not args.host_descriptor_library or args.pin_bulk_library or args.pin_gc_observation):
+        parser.error('host graph requires backend-pin-check and only its descriptor reference')
     if (args.adapter_map is not None or args.adapter_map_sha256 is not None) and (
             args.action not in {'gated-launch', '_replay-publisher'} or args.replay_profile != 'W2'):
         parser.error('adapter map arguments apply only to explicit W2 frozen replay')
@@ -6685,7 +6721,8 @@ def main():
             result['kind'] = 'native_live_pin_gc_attribution_d686_v1'
         else:
             result = backend_pin_query_check(args.runtime_receipt, bulk_library=args.pin_bulk_library,
-                                            descriptor_library=args.host_descriptor_library)
+                                            descriptor_library=args.host_descriptor_library,
+                                            graph_library=args.host_graph_library)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')

@@ -1,0 +1,55 @@
+"""D864 native entry qualification, reusing D747 preparation and CPU evidence."""
+import json,os,subprocess,sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+BASE=ROOT/'paper_results/ieee_tc/p2_backend/d864_native_host_graph'
+OUT=BASE/'native_prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'preparation_identity.json',identity)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(BASE/'cpu_attempt3/qualification.json')
+assert q['passed'] and not q['native_cuda_qualification_complete']
+for path,sha in q['source_shas'].items():assert p.digest(Path(path))==sha,path
+for path,sha in q['production'].items():
+    if path!='scripts/ieee_tc_preflight.py':assert p.digest(ROOT/path)==sha,path
+assert not (RAW/'native_launch.json').exists()
+OUT.mkdir(exist_ok=False)
+tests=['tests.test_ieee_tc_preflight.NativeGraphDiagnosticSelection',
+       'tests.test_ieee_tc_preflight.LivePinQueryQualification',
+       'tests.test_ieee_tc_host_descriptor_witness.DescriptorPreflightSelection']
+with (OUT/'tests.txt').open('x') as log:
+    done=subprocess.run([sys.executable,'-B','-m','unittest',*tests,'-v'],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+assert done.returncode==0
+gate=p.preflight([ROOT,RAW],64*p.MIB)
+assert gate['preflight_pass'],gate['issues']
+seal=p.verify_seal(RAW.parent.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')==q['user_manifest_sha256']
+old_library=RAW.parent.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'
+assert p.digest(old_library)=='b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+resources=p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current']==0
+sources=[ROOT/'scripts/ieee_tc_preflight.py',ROOT/'tests/test_ieee_tc_preflight.py',
+    ROOT/'scripts/ieee_tc/host_descriptor_witness.py',ROOT/'scripts/ieee_tc/native_host_graph.h',
+    Path(q['library']),old_library,RAW/'launch.py']
+save(OUT/'preparation.json',dict(passed=True,identity=identity,resources=resources,
+    tests=tests,source_shas={str(path):p.digest(path) for path in sources},
+    reused_cpu_qualification_sha256=p.digest(BASE/'cpu_attempt3/qualification.json'),
+    reused_cpu_tests=11,new_interface_tests=3,existing_interface_tests=8,
+    graph_library=q['library'],reference_library=str(old_library),
+    gate=gate,seal=seal,user_manifest_sha256=q['user_manifest_sha256'],
+    production_integrated=False,full_performance_run=False))
+for name in ('prepare.py','launch.py'):
+    with (OUT/(name+'.snapshot')).open('xb') as f:f.write((RAW/name).read_bytes())
+print(json.dumps(dict(passed=True,new_interface_tests=3,existing_interface_tests=8,resources=resources)))
