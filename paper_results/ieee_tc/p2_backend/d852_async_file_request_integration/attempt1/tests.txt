@@ -1,0 +1,167 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 134 items
+
+tests/test_ieee_tc_file_observation.py ..                                [  1%]
+tests/test_ieee_tc_transfer_pressure.py ................................ [ 25%]
+                                                                         [ 25%]
+tests/test_ieee_tc_request_lifecycle.py ............................FF.. [ 49%]
+..................................FF................................     [100%]
+
+=================================== FAILURES ===================================
+_ SelectedSourceAdmissionIntegration.test_changed_file_copy_cancel_before_native_acquisition_releases_held_input _
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_request_lifecycle.py:2311: in run
+    await asyncio.wait_for(entered.wait(), 2)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_ieee_tc_request_lifecycle.py:2316: in test_changed_file_copy_cancel_before_native_acquisition_releases_held_input
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_request_lifecycle.py:2315: in run
+    await task
+scripts/run_all_experiments.py:17311: in _exec_request
+    return await self._exec_request_in_reservation(
+scripts/run_all_experiments.py:18774: in _exec_request_in_reservation
+    gpu_reference = await self._ieee_prepare_selected_adapter(_reservation)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:18211: in _ieee_prepare_selected_adapter
+    receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
+tests/test_ieee_tc_request_lifecycle.py:2302: in cancel_at_file_boundary
+    self.assertEqual(reservation.gpu_reference_evidence['local_source_reference']['tier'], 'host')
+E   AssertionError: 'nvme' != 'host'
+E   - nvme
+E   + host
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:42:08 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 22:42:08 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch adapter-a: 0.0 MB, 3.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ SelectedSourceAdmissionIntegration.test_changed_file_copy_invalid_evidence_still_fails_and_releases _
+tests/test_ieee_tc_request_lifecycle.py:2288: in test_changed_file_copy_invalid_evidence_still_fails_and_releases
+    with self.assertRaisesRegex(ValueError, 'remote_copy.*false'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: ValueError not raised
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:42:11 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 22:42:11 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch adapter-a: 0.0 MB, 4.1 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ SelectedSourceAdmissionIntegration.test_remote_publication_then_host_copy_keeps_request_but_not_remote_cost_sample _
+tests/test_ieee_tc_request_lifecycle.py:2257: in test_remote_publication_then_host_copy_keeps_request_but_not_remote_cost_sample
+    self.assertEqual(selected_paths, [expected_host])
+E   AssertionError: Lists differ: ['/tmp/tmpe1f52w46/nvme/adapter-a'] != ['/tmp/tmpe1f52w46/host/adapter-a']
+E   
+E   First differing element 0:
+E   '/tmp/tmpe1f52w46/nvme/adapter-a'
+E   '/tmp/tmpe1f52w46/host/adapter-a'
+E   
+E   - ['/tmp/tmpe1f52w46/nvme/adapter-a']
+E   ?                    ^^^^
+E   
+E   + ['/tmp/tmpe1f52w46/host/adapter-a']
+E   ?                    ^^^^
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:42:13 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 22:42:13 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch adapter-a: 0.0 MB, 3.5 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ SelectedSourceAdmissionIntegration.test_remote_subscriber_does_not_claim_creators_preparation_interval _
+tests/test_ieee_tc_request_lifecycle.py:2204: in subscribed
+    await asyncio.sleep(0)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:656: in sleep
+    await __sleep0()
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:650: in __sleep0
+    yield
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_request_lifecycle.py:2219: in test_remote_subscriber_does_not_claim_creators_preparation_interval
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_request_lifecycle.py:2205: in run
+    await asyncio.wait_for(subscribed(),2)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:42:13 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 22:42:13 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch adapter-a: 0.0 MB, 2008.9 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration::test_changed_file_copy_cancel_before_native_acquisition_releases_held_input
+FAILED tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration::test_changed_file_copy_invalid_evidence_still_fails_and_releases
+FAILED tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration::test_remote_publication_then_host_copy_keeps_request_but_not_remote_cost_sample
+FAILED tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration::test_remote_subscriber_does_not_claim_creators_preparation_interval
+================= 4 failed, 130 passed, 19 warnings in 20.51s ==================

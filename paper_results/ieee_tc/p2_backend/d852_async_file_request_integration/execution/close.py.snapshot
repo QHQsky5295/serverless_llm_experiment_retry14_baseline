@@ -1,0 +1,96 @@
+"""D851-style source/protection/closure receipts, retaining every attempt."""
+import ast
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d852_async_file_request_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def methods(source):
+    result = {}
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.ClassDef):
+            for item in node.body:
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    result[node.name, item.name] = ast.dump(item, include_attributes=False)
+    return result
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+expected = [('attempt1', 1, '4 failed, 130 passed'),
+    ('attempt2', 1, '1 failed, 133 passed'), ('attempt3', 0, '136 passed'),
+    ('attempt4', 0, '2 passed')]
+attempts = []
+for name, rc, summary in expected:
+    row = read(OUT/name/'resources.json')
+    identity = row['identity']
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    assert row['test_returncode'] == rc
+    assert row['resources']['memory.swap.current'] == 0
+    assert all(value == 0 for value in row['resources']['memory.events'].values())
+    assert summary in (OUT/name/'tests.txt').read_text()
+    program = RAW/('check.py' if name == 'attempt4' else 'check_attempt1_3.py.snapshot')
+    assert p.digest(program) == row['program_sha256']
+    for source in row['sources']:
+        path = Path(source['path'])
+        frozen = RAW/name/'sources'/path.relative_to(ROOT)
+        assert p.digest(frozen) == source['sha256']
+        if not str(path.relative_to(ROOT)).startswith('tests/'):
+            assert p.digest(path) == source['sha256']
+        if name in ('attempt3', 'attempt4'):
+            # attempt4 only adds two deterministic closure interleavings.
+            before, now = methods(frozen.read_text()), methods(path.read_text())
+            assert all(now[key] == value for key, value in before.items())
+    attempts.append(dict(attempt=name, returncode=rc, summary=summary,
+        identity=identity, path_removed=True, resource=ref(OUT/name/'resources.json')))
+owner = ROOT/'faaslora/memory/residency_manager.py'
+parent = subprocess.check_output(['git', 'show', 'HEAD:faaslora/memory/residency_manager.py'],
+    cwd=ROOT, text=True)
+before, after = methods(parent), methods(owner.read_text())
+assert all(after[key] == value for key, value in before.items())
+assert set(after)-set(before) == {('LocalSourceReferences', 'async_file_movement_interest')}
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT/'execution'
+execution.mkdir()
+for name in ('check.py', 'check_attempt1_3.py.snapshot', 'close.py', 'backup.py'):
+    path = RAW/name
+    compile(path.read_text(), str(path), 'exec')
+    shutil.copyfile(path, execution/(name+'.snapshot'))
+base = RAW.parent/'d850_20261025/backup_executed.py.snapshot'
+shutil.copyfile(base, execution/'backup_base.py.snapshot')
+doc = ROOT/'docs/ieee_tc/D852_ASYNC_FILE_REQUEST_INTEGRATION_20261025.md'
+save(OUT/'closure.json', dict(passed=True, scope=scope, attempts=attempts,
+    protected=protected, user_protected=user, doc=ref(doc),
+    source_files=[ref(Path(row['path'])) for row in read(OUT/'attempt4/resources.json')['sources']],
+    previous_owner_methods_unchanged=True, production_integration_complete=False,
+    new_gpu_replays=0, n_correct=None, ranking_eligible=False,
+    tests=dict(distinct_passed=138, new=10, earlier_failed_attempts_retained=2),
+    next_step='Complete remaining planning, activation/HOST allowance and proactive file-owner transactions before one full W2.',
+    disk_free_bytes=shutil.disk_usage(ROOT).free))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, distinct_tests_passed=138,
+    new_gpu_replays=0, integration_complete=False)))

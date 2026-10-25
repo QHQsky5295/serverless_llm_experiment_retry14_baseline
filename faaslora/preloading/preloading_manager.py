@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass
 from enum import Enum
 from collections import deque
+from contextlib import contextmanager
 
 from .preloading_planner import PreloadingPlanner, PreloadingPlanResult, PreparationPlanSuperseded
 from ..registry.schema import StorageTier, PreloadingPlan, ArtifactStatus
@@ -52,6 +53,7 @@ class OwnedMovementQueue:
         self._loop = None
         self._jobs, self._keys, self._intents = {}, {}, {}
         self._revision = {}
+        self._target_start_holds = {}
         self._closed = False
 
     def _bind(self):
@@ -120,7 +122,8 @@ class OwnedMovementQueue:
             return
         running = sum(j['state'] == 'executing' for j in self._keys.values())
         candidates = [j for j in self._keys.values() if j['state'] == 'pending'
-                      and j['ready'] and j['intents']]
+                      and j['ready'] and j['intents']
+                      and j['key'] not in self._target_start_holds]
         def order(j):
             intents = tuple(j['intents'].values())
             return (not any(i['demand'] for i in intents), -max(i['density'] for i in intents),
@@ -296,6 +299,41 @@ class OwnedMovementQueue:
         self._bind()
         return await asyncio.shield(self._intents[intent_id]['future'])
 
+    @staticmethod
+    def _target_keys(keys):
+        keys = tuple(keys)
+        if any(not isinstance(key, tuple) or len(key) != 4
+               or any(not isinstance(value, str) or not value for value in key)
+               or key[1] not in ('gpu', 'host', 'nvme') for key in keys):
+            raise ValueError('target join requires exact physical owner/tier/content keys')
+        return tuple(dict.fromkeys(keys))
+
+    @contextmanager
+    def hold_target_starts(self, keys):
+        """Keep join -> async owner close atomic against new target writers.
+
+        This loop-owned hold admits submissions and subscriptions and never
+        cancels an executing operation. Only new starts for these exact keys
+        wait; unrelated work retains the usual concurrency/demand/density order.
+        The caller must join existing operations and settle the real owner close
+        before leaving, including on cancellation. Nested/overlapping closures
+        release only their own holds. No owner lock spans an await here.
+        """
+        self._bind()
+        keys = self._target_keys(keys)
+        for key in keys:
+            self._target_start_holds[key] = self._target_start_holds.get(key, 0) + 1
+        try:
+            yield
+        finally:
+            for key in keys:
+                remaining = self._target_start_holds[key] - 1
+                if remaining:
+                    self._target_start_holds[key] = remaining
+                else:
+                    del self._target_start_holds[key]
+            self._pump()
+
     async def join_target_operations(self, keys):
         """Join already executing physical targets, without subscribing to them.
 
@@ -303,14 +341,11 @@ class OwnedMovementQueue:
         request writes one of its protected targets. Its pending protection must
         survive that writer too. Pending/deferred jobs own no active IO and are
         not awakened here. Re-observe after each actual task completion; the
-        caller must close the physical owner's plan without another await.
+        caller must close the physical owner's plan without another await, or
+        hold_target_starts across both this join and the settled async close.
         """
         self._bind()
-        keys = tuple(keys)
-        if any(not isinstance(key, tuple) or len(key) != 4
-               or any(not isinstance(value, str) or not value for value in key)
-               or key[1] not in ('gpu', 'host', 'nvme') for key in keys):
-            raise ValueError('target join requires exact physical owner/tier/content keys')
+        keys = self._target_keys(keys)
         joined = {}
         while True:
             jobs = [self._keys[key] for key in keys if key in self._keys

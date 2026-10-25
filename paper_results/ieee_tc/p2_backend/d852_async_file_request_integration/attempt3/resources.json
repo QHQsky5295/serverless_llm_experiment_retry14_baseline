@@ -1,0 +1,76 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-85200000000000000000000000000003.scope",
+    "invocation_id": "2ffcabf63fc24bcbb6d384b13dbb18f5",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000003.scope",
+    "inode": 32539454
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000003.scope",
+    "memory.current": 87179264,
+    "memory.peak": 724279296,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 16801564\nuser_usec 14756982\nsystem_usec 2044581\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "test_returncode": 0,
+  "program_sha256": "4859f67ee6dc750fb9059c03acef58a26907bbc6487f5133403d32ed51e33cbf",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "456914fee4cf2f09023a79a1673e1c7955bb51925f6be2a7c836fdc8ac1c3152"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+      "sha256": "6c8a81375962720d874b906ebf732f3f8cfc0fd61733dcdc9bbee5665391d531"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py",
+      "sha256": "054d73a297a4d561a7b765abccc27b4deb2215d1d42caef24f0051e5ca62c1e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "81f3785eb1918124c75edf3c8096117772bc289b8c20250c3b2f8dedc214110f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+      "sha256": "ed414b751a14256dba30640a588d9ef4760a9c8fd1c871d485f4e5c79ba6918d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "711fd11e5852454e3002a2068d6b1b5dde242a8b8e2bf230e6debbc240f3be9a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "f32ae5b6b461bbce638478f0eca9e3ce04ce0a26f5c4ab67cf8417450fc60459"
+    }
+  ],
+  "tests": [
+    "tests/test_ieee_tc_file_observation.py::AsyncFileOwnerTurn::test_cancelled_async_interest_enter_still_exits_real_owner",
+    "tests/test_ieee_tc_file_observation.py::AsyncFileOwnerTurn::test_async_interest_body_failure_releases_interest_without_holding_owner_lock",
+    "tests/test_ieee_tc_transfer_pressure.py::OwnedMovements",
+    "tests/test_ieee_tc_transfer_pressure.py::MixedOwnedPreparation",
+    "tests/test_ieee_tc_transfer_pressure.py::OwnedFileReadiness",
+    "tests/test_ieee_tc_request_lifecycle.py::PredecisionRoutingIntegration",
+    "tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration",
+    "tests/test_ieee_tc_request_lifecycle.py::ControllerNativeReferenceLifecycle"
+  ],
+  "production_integration_complete": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false
+}

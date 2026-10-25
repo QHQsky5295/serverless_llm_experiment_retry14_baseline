@@ -1,0 +1,144 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-85200000000000000000000000000005.scope",
+    "invocation_id": "6f37753656b24c549dfe4b6e8abfb94c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000005.scope",
+    "inode": 32542461
+  },
+  "attempts": [
+    {
+      "attempt": "attempt1",
+      "returncode": 1,
+      "summary": "4 failed, 130 passed",
+      "identity": {
+        "unit": "primelora-tc-aux-85200000000000000000000000000001.scope",
+        "invocation_id": "427c7989e8344642a57f1e131fe89602",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000001.scope",
+        "inode": 32537553
+      },
+      "path_removed": true,
+      "resource": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d852_async_file_request_integration/attempt1/resources.json",
+        "sha256": "2d50c286f70e43c6d07e4fa86268595089dff5a4bccdb214a0ac4db5471fb64c",
+        "bytes": 3542
+      }
+    },
+    {
+      "attempt": "attempt2",
+      "returncode": 1,
+      "summary": "1 failed, 133 passed",
+      "identity": {
+        "unit": "primelora-tc-aux-85200000000000000000000000000002.scope",
+        "invocation_id": "d6bf7e493c7c4ce79ef6c7b0c8db309a",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000002.scope",
+        "inode": 32538780
+      },
+      "path_removed": true,
+      "resource": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d852_async_file_request_integration/attempt2/resources.json",
+        "sha256": "dd2de2752b553856ebfae6cae9b8a448467c72ff5c331ba3964f9684bb353d40",
+        "bytes": 3542
+      }
+    },
+    {
+      "attempt": "attempt3",
+      "returncode": 0,
+      "summary": "136 passed",
+      "identity": {
+        "unit": "primelora-tc-aux-85200000000000000000000000000003.scope",
+        "invocation_id": "2ffcabf63fc24bcbb6d384b13dbb18f5",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000003.scope",
+        "inode": 32539454
+      },
+      "path_removed": true,
+      "resource": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d852_async_file_request_integration/attempt3/resources.json",
+        "sha256": "44e697443f851bbeca1dad6d505902942293a94062e5af3400e0179fd3cc9c95",
+        "bytes": 3542
+      }
+    },
+    {
+      "attempt": "attempt4",
+      "returncode": 0,
+      "summary": "2 passed",
+      "identity": {
+        "unit": "primelora-tc-aux-85200000000000000000000000000004.scope",
+        "invocation_id": "92e8e888c8674c99b7bdc2909408418e",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85200000000000000000000000000004.scope",
+        "inode": 32540286
+      },
+      "path_removed": true,
+      "resource": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d852_async_file_request_integration/attempt4/resources.json",
+        "sha256": "0b444920fa4f34296570071963c09096eb08d368dcd6a317120ce3d0d407c58c",
+        "bytes": 3122
+      }
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D852_ASYNC_FILE_REQUEST_INTEGRATION_20261025.md",
+    "sha256": "6e369b3ee8a5c0e8aa97859ad395398b0334fc3f2e298b82892ff1dbe2c29b4e",
+    "bytes": 7384
+  },
+  "source_files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "456914fee4cf2f09023a79a1673e1c7955bb51925f6be2a7c836fdc8ac1c3152",
+      "bytes": 266792
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+      "sha256": "6c8a81375962720d874b906ebf732f3f8cfc0fd61733dcdc9bbee5665391d531",
+      "bytes": 38710
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py",
+      "sha256": "054d73a297a4d561a7b765abccc27b4deb2215d1d42caef24f0051e5ca62c1e5",
+      "bytes": 94088
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "81f3785eb1918124c75edf3c8096117772bc289b8c20250c3b2f8dedc214110f",
+      "bytes": 1360743
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+      "sha256": "ed414b751a14256dba30640a588d9ef4760a9c8fd1c871d485f4e5c79ba6918d",
+      "bytes": 28910
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "6afe0a6c54201e36f0b2fef214b52ccec18ae2640603f6c9d9325df08d94a0f4",
+      "bytes": 327965
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "f32ae5b6b461bbce638478f0eca9e3ce04ce0a26f5c4ab67cf8417450fc60459",
+      "bytes": 327667
+    }
+  ],
+  "previous_owner_methods_unchanged": true,
+  "production_integration_complete": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "tests": {
+    "distinct_passed": 138,
+    "new": 10,
+    "earlier_failed_attempts_retained": 2
+  },
+  "next_step": "Complete remaining planning, activation/HOST allowance and proactive file-owner transactions before one full W2.",
+  "disk_free_bytes": 184361406464
+}

@@ -1,0 +1,26 @@
+"""Reuse the verified D850 explicit-file/unchanged-log backup entry."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d850_20261025/backup_executed.py.snapshot').read_text()
+for old, new in (
+    ('d850_publication_dependency', 'd852_async_file_request_integration'),
+    ('D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md', 'D852_ASYNC_FILE_REQUEST_INTEGRATION_20261025.md'),
+    ('b21a1b8719200ed43a88eb586386c7f0c2b9cfb5', 'fe2aa96712f5e5d226b831c90afa05136c34676f'),
+    ('backup/d850-publication-dependency-20261025', 'backup/d852-async-file-request-20261025'),
+    ('tc: preserve bounded early-publication lease dependency evidence (D850)',
+     'tc: integrate cancellation-owned file requests and target close boundary (D852)'),
+    ("ROOT/'tests/test_ieee_tc_request_lifecycle.py',",
+     "ROOT/'tests/test_ieee_tc_request_lifecycle.py',\n"
+     "         ROOT/'tests/test_ieee_tc_file_observation.py',\n"
+     "         ROOT/'tests/test_ieee_tc_transfer_pressure.py',\n"
+     "         ROOT/'faaslora/memory/residency_manager.py',\n"
+     "         ROOT/'faaslora/preloading/preloading_manager.py',\n"
+     "         ROOT/'faaslora/scheduling/resource_coordinator.py',\n"
+     "         ROOT/'scripts/run_all_experiments.py',"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'backup_executed.py.snapshot'), 'exec'), globals())

@@ -1,0 +1,66 @@
+"""Reuse the D851 bounded pytest/owner evidence entry for actual integration."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d852_async_file_request_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+attempt = sys.argv[1]
+assert attempt in ('attempt1', 'attempt2', 'attempt3')
+out = OUT/attempt
+out.mkdir(parents=True, exist_ok=False)
+snapshot = RAW/attempt/'sources'
+snapshot.mkdir(parents=True, exist_ok=False)
+sources = ['faaslora/memory/residency_manager.py', 'faaslora/preloading/preloading_manager.py',
+    'faaslora/scheduling/resource_coordinator.py', 'scripts/run_all_experiments.py',
+    'tests/test_ieee_tc_file_observation.py', 'tests/test_ieee_tc_transfer_pressure.py',
+    'tests/test_ieee_tc_request_lifecycle.py']
+for name in sources:
+    path = ROOT/name
+    compile(path.read_text(), str(path), 'exec')
+    target = snapshot/name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(path, target)
+identity = p.scope_identity(p.cg_path().name)
+save(out/'identity.json', identity)
+tests = [
+    'tests/test_ieee_tc_file_observation.py::AsyncFileOwnerTurn::test_cancelled_async_interest_enter_still_exits_real_owner',
+    'tests/test_ieee_tc_file_observation.py::AsyncFileOwnerTurn::test_async_interest_body_failure_releases_interest_without_holding_owner_lock',
+    'tests/test_ieee_tc_transfer_pressure.py::OwnedMovements',
+    'tests/test_ieee_tc_transfer_pressure.py::MixedOwnedPreparation',
+    'tests/test_ieee_tc_transfer_pressure.py::OwnedFileReadiness',
+    'tests/test_ieee_tc_request_lifecycle.py::PredecisionRoutingIntegration',
+    'tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration',
+    'tests/test_ieee_tc_request_lifecycle.py::ControllerNativeReferenceLifecycle',
+]
+rc = None
+try:
+    with (out/'tests.txt').open('x') as stream:
+        rc = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q',
+            '-p', 'no:cacheprovider', *tests], cwd=ROOT, stdout=stream,
+            stderr=subprocess.STDOUT, timeout=300).returncode
+finally:
+    save(out/'resources.json', dict(identity=identity,
+        resources=p.cgroup_snapshot(Path(identity['path'])), test_returncode=rc,
+        program_sha256=p.digest(Path(__file__)),
+        sources=[dict(path=str(ROOT/name), sha256=p.digest(snapshot/name)) for name in sources],
+        tests=tests, production_integration_complete=False,
+        new_gpu_replays=0, n_correct=None, ranking_eligible=False))
+print(json.dumps(dict(passed=rc == 0, attempt=attempt, new_gpu_replays=0)))
+raise SystemExit(rc)

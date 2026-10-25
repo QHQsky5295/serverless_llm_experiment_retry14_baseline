@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 from types import MappingProxyType
 
 from .gpu_monitor import GPUMemoryMonitor
@@ -389,6 +389,28 @@ class LocalSourceReferences:
                 del self._file_movement_interests[intent_id]
                 if required:
                     self._file_changed((tier,))
+
+    @asynccontextmanager
+    async def async_file_movement_interest(self, *, intent_id, target, content_sha256, required):
+        """The same interest, with both owner transactions outside the loop.
+
+        file_movement_interest releases its lock before yielding. Do not use
+        this pattern for a context that holds a thread lock across its body.
+        A cancelled successful enter is adopted before cancellation propagates,
+        so the finally still performs the real exit; neither edge is abandoned.
+        """
+        interest = self.file_movement_interest(intent_id=intent_id, target=target,
+            content_sha256=content_sha256, required=required)
+        entered = False
+        def adopt(_):
+            nonlocal entered
+            entered = True
+        try:
+            await self.call_async(interest.__enter__, on_result=adopt)
+            yield
+        finally:
+            if entered:
+                await self.call_async(interest.__exit__, None, None, None)
 
     def replacement_source_snapshot(self):
         """Complete confirmed file view; not a snapshot of native tensor caches."""

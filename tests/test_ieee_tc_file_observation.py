@@ -353,6 +353,57 @@ class AsyncFileOwnerTurn(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(case.fetch()[0])
         return case, case.owner
 
+    async def test_cancelled_async_interest_enter_still_exits_real_owner(self):
+        import threading
+        from contextlib import contextmanager
+        case, owner = self.make()
+        original = owner.file_movement_interest
+        content = owner.source_snapshot('a')['sources'][0]['content_sha256']
+        loop = asyncio.get_running_loop()
+        entered, release = asyncio.Event(), threading.Event()
+        exits = []
+        @contextmanager
+        def held(**kwargs):
+            with original(**kwargs):
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise RuntimeError('interest enter barrier expired')
+                try:
+                    yield
+                finally:
+                    exits.append(threading.get_ident())
+        owner.file_movement_interest = held
+        async def use():
+            async with owner.async_file_movement_interest(intent_id='cancel-enter',
+                    target=case.nvme/'a', content_sha256=content, required=True):
+                self.fail('cancelled enter reached the consumer')
+        task = asyncio.create_task(use())
+        try:
+            await asyncio.wait_for(entered.wait(), 2)
+            task.cancel()
+            await asyncio.sleep(0)
+            task.cancel()
+            self.assertFalse(task.done())
+        finally:
+            release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(len(exits), 1)
+        self.assertNotEqual(exits[0], threading.get_ident())
+        self.assertFalse(owner._file_movement_interests)
+
+    async def test_async_interest_body_failure_releases_interest_without_holding_owner_lock(self):
+        case, owner = self.make()
+        content = owner.source_snapshot('a')['sources'][0]['content_sha256']
+        with self.assertRaisesRegex(RuntimeError, 'actual consumer failure'):
+            async with owner.async_file_movement_interest(intent_id='body-failure',
+                    target=case.nvme/'a', content_sha256=content, required=True):
+                self.assertIn('body-failure', owner._file_movement_interests)
+                view = await owner.call_async(owner.source_snapshot, 'a')
+                self.assertTrue(view['sources'])
+                raise RuntimeError('actual consumer failure')
+        self.assertFalse(owner._file_movement_interests)
+
     async def controlled(self, owner, operation, *, on_result=None):
         import threading
         loop = asyncio.get_running_loop()

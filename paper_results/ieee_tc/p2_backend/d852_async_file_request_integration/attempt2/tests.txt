@@ -1,0 +1,56 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 134 items
+
+tests/test_ieee_tc_file_observation.py ..                                [  1%]
+tests/test_ieee_tc_transfer_pressure.py ................................ [ 25%]
+                                                                         [ 25%]
+tests/test_ieee_tc_request_lifecycle.py .............................F.. [ 49%]
+....................................................................     [100%]
+
+=================================== FAILURES ===================================
+_ SelectedSourceAdmissionIntegration.test_changed_file_copy_invalid_evidence_still_fails_and_releases _
+tests/test_ieee_tc_request_lifecycle.py:2304: in test_changed_file_copy_invalid_evidence_still_fails_and_releases
+    with self.assertRaisesRegex(ValueError, 'remote_copy.*false'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: ValueError not raised
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 22:44:34 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 22:44:34 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch adapter-a: 0.0 MB, 4.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_request_lifecycle.py::SelectedSourceAdmissionIntegration::test_changed_file_copy_invalid_evidence_still_fails_and_releases
+================= 1 failed, 133 passed, 19 warnings in 14.12s ==================

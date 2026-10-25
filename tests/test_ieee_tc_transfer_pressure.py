@@ -979,6 +979,86 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
                           activation_id='activation' if reason == 'handoff' else None),
             density=density, action=action, demand=reason == 'demand', ready=ready)
 
+    async def test_target_close_hold_joins_existing_writer_and_only_delays_new_matching_starts(self):
+        queue = OwnedMovementQueue(2)
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def old(_):
+            entered.set()
+            await release.wait()
+            return MovementOutcome('completed', 'old')
+        self.submit(queue, 'old', old, adapter='a', reason='demand')
+        await entered.wait()
+        key = ('files', 'nvme', 'a', 'sha')
+        new = AsyncMock(return_value=MovementOutcome('completed', 'new'))
+        other = AsyncMock(return_value=MovementOutcome('completed', 'other'))
+        with queue.hold_target_starts((key,)):
+            join = asyncio.create_task(queue.join_target_operations((key,)))
+            await asyncio.sleep(0)
+            self.assertFalse(join.done())
+            self.assertFalse(queue._intents['old']['stop_requested'])
+            release.set()
+            joined = await join
+            self.assertEqual(joined[0]['key'], list(key))
+            self.assertEqual(await queue.wait('old'), 'old')
+            self.submit(queue, 'new', new, adapter='a', reason='demand')
+            self.submit(queue, 'other', other, adapter='b')
+            self.assertEqual(await queue.wait('other'), 'other')
+            new.assert_not_awaited()
+            self.assertEqual(queue._intents['new']['state'], 'pending')
+        self.assertEqual(await queue.wait('new'), 'new')
+        self.assertFalse(queue._target_start_holds)
+        await queue.close()
+
+    async def test_nested_target_holds_keep_original_priority_and_independent_ownership(self):
+        queue, order = OwnedMovementQueue(1), []
+        a, b = ('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha')
+        async def run(_, name):
+            order.append(name)
+            return MovementOutcome('completed')
+        with queue.hold_target_starts((a, b, a)):
+            with queue.hold_target_starts((a,)):
+                self.submit(queue, 'a', lambda token: run(token, 'a'), density=50.)
+                self.submit(queue, 'b', lambda token: run(token, 'b'), reason='demand')
+            await asyncio.sleep(0)
+            self.assertEqual(order, [])
+            self.assertEqual(queue._target_start_holds, {a: 1, b: 1})
+        await asyncio.gather(queue.wait('a'), queue.wait('b'))
+        self.assertEqual(order, ['b', 'a'])
+        await queue.close()
+
+    async def test_hold_does_not_wake_deferred_work_or_leave_orphan_after_withdrawal(self):
+        queue = OwnedMovementQueue(1)
+        deferred = AsyncMock(return_value=MovementOutcome('deferred', reason='capacity'))
+        self.submit(queue, 'deferred', deferred, adapter='a')
+        await queue.join_target_operations((('files', 'nvme', 'a', 'sha'),))
+        action = AsyncMock(return_value=MovementOutcome('completed'))
+        with queue.hold_target_starts((('files', 'nvme', 'a', 'sha'), ('files', 'nvme', 'b', 'sha'))):
+            self.submit(queue, 'cancelled', action, adapter='b')
+            await queue.withdraw('cancelled')
+        await asyncio.sleep(0)
+        deferred.assert_awaited_once()
+        action.assert_not_awaited()
+        self.assertEqual(queue._intents['deferred']['state'], 'deferred')
+        self.assertFalse(queue._target_start_holds)
+        await queue.close()
+
+    async def test_hold_exception_and_invalid_keys_do_not_leak_target_exclusion(self):
+        queue = OwnedMovementQueue(1)
+        key = ('files', 'nvme', 'a', 'sha')
+        with self.assertRaises(ValueError):
+            with queue.hold_target_starts((key, ('bad',))):
+                self.fail('invalid key accepted')
+        self.assertFalse(queue._target_start_holds)
+        action = AsyncMock(return_value=MovementOutcome('completed'))
+        with self.assertRaisesRegex(RuntimeError, 'actual close failure'):
+            with queue.hold_target_starts((key,)):
+                self.submit(queue, 'later', action, adapter='a')
+                raise RuntimeError('actual close failure')
+        await queue.wait('later')
+        action.assert_awaited_once()
+        self.assertFalse(queue._target_start_holds)
+        await queue.close()
+
     async def test_shared_interests_one_operation_and_cancelling_one_does_not_cancel_writer(self):
         queue, entered, proceed = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
         calls = []
@@ -2489,6 +2569,61 @@ class MixedOwnedPreparation(unittest.TestCase):
 
     def test_cancel_during_superseded_target_join_does_not_cancel_demand(self):
         self._check_superseded_shared_target(cancel=True)
+
+    def test_async_plan_close_keeps_later_target_writer_pending_until_real_close(self):
+        self._check_async_target_close(cancel=False)
+
+    def test_repeated_cancel_during_async_plan_close_keeps_target_hold_until_real_close(self):
+        self._check_async_target_close(cancel=True)
+
+    def _check_async_target_close(self, *, cancel):
+        fixture, runner, queue, slot, native, _, _ = self.make(remote_gpu=True)
+        files = fixture.owner
+        original = files.close_file_preparation_plan
+        async def run():
+            loop = asyncio.get_running_loop()
+            entered, release = asyncio.Event(), threading.Event()
+            close_ids, starts = [], []
+            def close(**kwargs):
+                close_ids.append(kwargs['plan_id'])
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise RuntimeError('actual file plan close barrier expired')
+                return original(**kwargs)
+            files.close_file_preparation_plan = close
+            task = asyncio.create_task(self.execute(runner, slot))
+            async def later(_):
+                self.assertIn(close_ids[0], files._closed_file_preparation_plans)
+                starts.append('after-real-close')
+                return MovementOutcome('completed')
+            try:
+                await asyncio.wait_for(entered.wait(), 3)
+                key = next(iter(queue._target_start_holds))
+                queue.submit(key=key, intent_id='later-target-writer',
+                    metadata=dict(trigger_reason='demand', plan_id='later-request', target_replica=slot.instance_id),
+                    density=0., demand=True, action=later)
+                if cancel:
+                    task.cancel()
+                    await asyncio.sleep(0)
+                    task.cancel()
+                await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                self.assertEqual(starts, [])
+                self.assertEqual(queue._intents['later-target-writer']['state'], 'pending')
+            finally:
+                release.set()
+            if cancel:
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+            else:
+                await task
+            await queue.wait('later-target-writer')
+            self.assertEqual(starts, ['after-real-close'])
+            self.assertFalse(queue._target_start_holds)
+            self.assertTrue(runner._ieee_file_preparation_plans[-1]['close_receipt']['closed'])
+            self.check_clean(fixture, runner, native)
+            await queue.close()
+        asyncio.run(run())
 
     def _check_superseded_shared_target(self, *, cancel):
         from tests.test_http_artifact_store import archive_bytes, SizedResponse
@@ -5241,7 +5376,7 @@ class OwnedFileReadiness(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['state'], 'finished')
         self.assertIsNone(reservation.file_preparation_task)
         self.assertFalse(fixture.owner._file_movement_interests)
-        runner._release_runtime_local_source(reservation)
+        await runner._release_runtime_local_source(reservation)
         self.assertFalse(fixture.owner.leases)
 
     async def test_real_verified_file_is_consumable_before_all_finish_acknowledgements(self):

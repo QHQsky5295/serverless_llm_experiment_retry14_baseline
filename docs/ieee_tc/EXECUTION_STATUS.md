@@ -1,4 +1,42 @@
-# IEEE TC execution status — D851 async owner primitive verified; full integration pending
+# IEEE TC execution status — D852 request/file integration verified; remaining owner paths pending
+
+## 2026-10-25 D852请求与文件路径实际接入，138项针对性检查通过
+
+完整PLAN已核查。用户确认共享k3s非本项目，复用此前HydraServe隔离适配，
+未动共享集群/远端。接续D851，将routing文件观察、请求读引用获取/witness/
+释放、Remote物化interest、文件准备就绪/终态观察及订阅接入call_async。
+获取/释放结果在传播取消前交给request；最终routing选择/预留不yield。
+queue新增精确target-start hold，保持原join→真实async plan close原子边界，
+已有writer不取消、其他key正常执行，重复取消不提前放开。
+
+attempt1为130通过4失败、attempt2为133通过1失败；测试原假设依赖整个
+materializer返回顺序，改为actual source-ready/真实IO receipt处确定性
+注入，订阅改实际提交事件；失败源码/日志/SHA保留，生产在四轮间未再改。
+attempt3为136通过，attempt4仅两个新增真实close交错测试通过，共138项
+不同检查、10项新增；四轮峰值839577600/736075776/724279296/723955712B，
+high/max/OOM/swap0，均19条既有警告。详见D852_ASYNC_FILE_REQUEST_INTEGRATION_20261025.md。
+
+这不是完整候选或新性能点：共享planning观察、activation/HOST预留/retire、
+主动GPU/HOST source pin/release和file plan register/bind/finish仍待接入，
+汇总入口也待逐生命周期确认。下一直接完成这些边界，不重做已通过原语、
+请求/关闭测试或新增profiling；全部接入后才一次完整W2。仍D846联合92.875%、
+U11929.629332、预算12083.063870，未达95%；D711独立数值未知n_correct=null。
+
+147保护项/用户manifest复核通过；01–04测试scope均inactive/dead且目录消失，
+05闭合检查已结束。正在按明确文件保存备份检查点。约171.7GiB可用；D848回收22.174GB
+不重做。六个历史scope虽active但procs空/populated0，无对应进程；不再称
+这些历史unit均inactive/目录消失。无GPU运行。所有同版本两模型主比较、
+A1–A5、S1–S13、文档/图表和最终V2仍开放，goal active。
+
+以下为历史记录，不重跑已完成任务。
+
+D851检查点fe2aa96712f5e5d226b831c90afa05136c34676f已推送，远端
+backup/d851-async-owner-boundary-20261025核实同SHA，12明确文件；最终V2
+仍未同步。147保护项/用户manifest保持一致。01–03 scope inactive/dead且
+路径均消失，无活动GPU或辅助任务；本条后置回执随下一正常检查点保存。
+下一直接继续本候选接入，优先queue target-join/异步close的原子性；既有
+测试test_ieee_tc_transfer_pressure.py:2490及:4893可复用，不重跑本轮22项
+作无变化资格，不把当前未接入接口当成可测性能版本。
 
 ## 2026-10-25 D851完整候选的事务入口完成，尚未接入性能路径
 

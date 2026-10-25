@@ -9601,8 +9601,9 @@ class ScenarioRunner:
         """Commit received source and live controller state before target selection.
 
         RPCs collect native observations without pinning candidates. After the
-        last await, file-source, counts, profile estimates and membership form one
-        received controller view. Selection/reservation follows without yielding;
+        last await, received native/file observations, live counts, profile
+        estimates and membership form one controller view. Selection/reservation
+        follows without yielding;
         selected-copy revalidation remains a separate required transaction.
         """
         from faaslora.experiment.instance_pool import (
@@ -9620,7 +9621,11 @@ class ScenarioRunner:
         else:
             collector = self._ieee_collect_native_sources
         observations, collection = await collector(slots, requested_adapter_ids=requested_ids)
-        # Scale-up/removal during RPC collection is not a complete current view.
+        adapter_id = trace.adapter_id
+        files = (await owner.call_async(owner.source_snapshot, adapter_id)
+                 if observations is not None and adapter_id else None)
+        # Recheck after BOTH native and file observation. A file read must not
+        # open a yield between the whole-view validation and target reservation.
         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
             stats = self._ieee_source_observation_stats
@@ -9649,8 +9654,6 @@ class ScenarioRunner:
                 slot.native_device_uuid = device_uuid
             if index not in reused_indexes:
                 self._ieee_publish_identity_frontier(slot, state)
-        adapter_id = trace.adapter_id
-        files = owner.source_snapshot(adapter_id) if adapter_id else None
         if files is not None:
             captured = files.get('captured_monotonic_s')
             if (type(captured) not in (int, float) or not math.isfinite(captured)
@@ -14724,7 +14727,7 @@ class ScenarioRunner:
                 if allocation is None or allocation.released is not True:
                     raise RuntimeError('runtime cleanup requires confirmed physical release')
             self._retire_ieee_host_budget(slot.engine)
-            self._settle_exited_runtime_reservations(slot)
+            await self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
         if residency_failure is not None:
@@ -14850,8 +14853,9 @@ class ScenarioRunner:
             await preloading.ieee_movements.close()
         binding = getattr(self, '_ieee_file_change_binding', None)
         if binding is not None:
-            self._stack.residency_manager.local_source_references.unsubscribe_file_changes(binding[0])
-            self._ieee_file_change_binding = None
+            files = self._stack.residency_manager.local_source_references
+            await files.call_async(files.unsubscribe_file_changes, binding[0],
+                on_result=lambda _: setattr(self, '_ieee_file_change_binding', None))
         tasks = list(getattr(self, "_pending_scale_up_tasks", set()) or [])
         for task in tasks:
             if task is not None and not task.done():
@@ -17580,10 +17584,10 @@ class ScenarioRunner:
             # Protect physical input before the first cancellable native RPC.
             # This is a read reference, not a claim of confirmed dispatch tier.
             local_owner = self._stack.residency_manager
-            source_reference = local_owner.acquire_local_source(
-                path=local_path, adapter_id=adapter_id, lease_id=uuid.uuid4().hex)
-            reservation.local_source_owner = local_owner
-            reservation.gpu_reference_evidence['local_source_reference'] = source_reference
+            await local_owner.local_source_references.call_async(
+                local_owner.acquire_local_source, path=local_path,
+                adapter_id=adapter_id, lease_id=uuid.uuid4().hex,
+                on_result=lambda value: self._adopt_runtime_local_source(reservation, local_owner, value))
         clock_id = local_monotonic_clock_id()
         def validate_snapshot(value):
             if (not isinstance(value, dict) or value.get('clock_id') != clock_id
@@ -17709,8 +17713,9 @@ class ScenarioRunner:
                     or reference.get('adapter_id') != adapter_id
                     or reference.get('path') != local_path):
                 raise ValueError('atomic file demand requires the selected owned file source')
-            intent['file_source_witness'] = local_owner.local_source_references.demand_witness(
-                reference, content_sha256=intent.get('expected_content_sha256'))
+            files = local_owner.local_source_references
+            intent['file_source_witness'] = await files.call_async(files.demand_witness,
+                copy.deepcopy(reference), content_sha256=intent.get('expected_content_sha256'))
         if cached_only:
             intent['required_source_tier'] = selected_source.tier
         if guarded_source is not None:
@@ -17875,7 +17880,7 @@ class ScenarioRunner:
                     reference['protected_until_native_acquisition'] = {
                         key: receipt[key] for key in ('owner_id', 'lease_id', 'lora_path',
                             'clock_id', 'acquired_monotonic_s')}
-                self._release_runtime_local_source(reservation)
+                await self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
             if receipt.get('reason') == 'native_host_tensor_budget':
@@ -18119,20 +18124,21 @@ class ScenarioRunner:
         elif source['tier'] in ('host', 'nvme'):
             manager = self._stack.residency_manager
             try:
-                reference = manager.local_source_references.acquire_confirmed(
+                files = manager.local_source_references
+                await files.call_async(files.acquire_confirmed,
                     path=source['path'], adapter_id=reservation.adapter_id,
                     lease_id=uuid.uuid4().hex, expected_owner_id=source['owner_id'],
-                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'])
+                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'],
+                    on_result=lambda value: self._adopt_runtime_local_source(reservation, manager, value))
             except ConfirmedSourceConflict as exc:
                 evidence['file_source_conflict'] = str(exc)
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
-            reservation.local_source_owner = manager
-            evidence['local_source_reference'] = reference
         elif source['tier'] == 'remote':
             # No local copy is borrowed. Do not turn an intervening completed
             # file publication into a request classified as a Remote miss.
-            current = self._stack.residency_manager.local_source_references.source_snapshot(reservation.adapter_id)
+            files = self._stack.residency_manager.local_source_references
+            current = await files.call_async(files.source_snapshot, reservation.adapter_id)
             if current['owner_id'] != source['owner_id'] or current['epoch'] != source['epoch']:
                 evidence['file_source_conflict'] = 'Remote source view changed before admission'
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
@@ -18239,12 +18245,19 @@ class ScenarioRunner:
             reservation.ieee_load_pending = False
 
     @staticmethod
-    def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
+    def _adopt_runtime_local_source(reservation, manager, reference):
+        # Resource adoption precedes cancellation propagation from call_async.
+        reservation.local_source_owner = manager
+        reservation.gpu_reference_evidence['local_source_reference'] = reference
+
+    @staticmethod
+    async def _release_runtime_local_source(reservation: RuntimeRequestReservation) -> None:
         reference = reservation.gpu_reference_evidence.get('local_source_reference')
         if reference is not None and reference['state'] == 'held':
-            reservation.local_source_owner.release_local_source(
-                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
-            reference['state'] = 'released'
+            manager = reservation.local_source_owner
+            await manager.local_source_references.call_async(manager.release_local_source,
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'],
+                on_result=lambda _: reference.update(state='released'))
 
     @staticmethod
     async def _settle_runtime_file_preparation(reservation, *, cancel=False):
@@ -18432,7 +18445,7 @@ class ScenarioRunner:
                 entry['control_event']['outcome'] = 'retirement_'+record['state']
             raise
 
-    def _settle_exited_runtime_reservations(self, slot) -> None:
+    async def _settle_exited_runtime_reservations(self, slot) -> None:
         reservations = [r for r in getattr(self, '_unsettled_runtime_reservations', {}).values()
                         if r.slot is slot and not r.released]
         if not reservations:
@@ -18456,6 +18469,7 @@ class ScenarioRunner:
             pending = reservation.ieee_pending_admission
             if pending is not None and pending['state'] != 'closed':
                 pending['state'] = 'retired_with_runtime'
+            await self._release_runtime_local_source(reservation)
             self._release_runtime_controller_accounting(reservation, native_outcome='runtime_exited')
 
     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
@@ -18530,6 +18544,7 @@ class ScenarioRunner:
                 raise
         try:
             await self._release_ieee_host_source(reservation)
+            await self._release_runtime_local_source(reservation)
         except BaseException:
             self._retain_runtime_request_reservation(reservation)
             raise
@@ -18544,7 +18559,8 @@ class ScenarioRunner:
         if reservation.released:
             return
         slot = reservation.slot
-        self._release_runtime_local_source(reservation)
+        if reservation.gpu_reference_evidence.get('local_source_reference', {}).get('state') == 'held':
+            raise RuntimeError('controller release requires the actual file lease release first')
         self._settle_native_reference_intent(reservation, 'gpu', native_outcome)
         self._settle_native_reference_intent(reservation, 'host', native_outcome)
         self._complete_ieee_pending_load(reservation)
@@ -20795,12 +20811,17 @@ class ScenarioRunner:
                 _, interrupted = await settle(release_native_fallbacks())
                 cancelled |= interrupted
                 async def close_files_after_join():
-                    joined = await queue.join_target_operations(tuple(
+                    keys = tuple(
                         (references.owner_id, tier, aid, target['content_sha256'])
-                        for (tier, aid), target in targets.items()))
-                    # No task handoff between the final target observation and
-                    # the owner's existing atomic close invariant.
-                    return joined, references.close_file_preparation_plan(plan_id=plan_id)
+                        for (tier, aid), target in targets.items())
+                    # The close now yields to the event loop. Keep new writers
+                    # pending until the real owner transaction has settled;
+                    # existing demand writers still finish without cancellation.
+                    with queue.hold_target_starts(keys):
+                        joined = await queue.join_target_operations(keys)
+                        closed = await references.call_async(
+                            references.close_file_preparation_plan, plan_id=plan_id)
+                        return joined, closed
                 (joined, closed), interrupted = await settle(close_files_after_join())
                 cancelled |= interrupted
                 record['shared_target_joins'] = joined
@@ -20851,17 +20872,20 @@ class ScenarioRunner:
             if frozen['owner_id'] != references.owner_id or trigger_reason == 'demand':
                 raise ValueError('file replacement requires its proactive physical owner')
         loop = asyncio.get_running_loop()
-        binding = getattr(self, '_ieee_file_change_binding', None)
-        if binding is None:
-            subscriber = uuid.uuid4().hex
-            def changed(tiers):
-                if tiers and not loop.is_closed():
-                    loop.call_soon_threadsafe(lambda: queue.wake(
-                        owner_id=references.owner_id, target_tiers=tiers))
-            references.subscribe_file_changes(subscriber, changed)
-            self._ieee_file_change_binding = (subscriber, loop)
-        elif binding[1] is not loop:
-            raise ValueError('file state notifications belong to another event loop')
+        if not hasattr(self, '_ieee_file_change_lock'):
+            self._ieee_file_change_lock = asyncio.Lock()
+        async with self._ieee_file_change_lock:
+            binding = getattr(self, '_ieee_file_change_binding', None)
+            if binding is None:
+                subscriber = uuid.uuid4().hex
+                def changed(tiers):
+                    if tiers and not loop.is_closed():
+                        loop.call_soon_threadsafe(lambda: queue.wake(
+                            owner_id=references.owner_id, target_tiers=tiers))
+                await references.call_async(references.subscribe_file_changes, subscriber, changed,
+                    on_result=lambda _: setattr(self, '_ieee_file_change_binding', (subscriber, loop)))
+            elif binding[1] is not loop:
+                raise ValueError('file state notifications belong to another event loop')
         identity = self._ieee_artifact_identities[adapter_id]
         content = identity['content_sha256']
         target = references.roots[target_tier.value] / adapter_id
@@ -20871,7 +20895,7 @@ class ScenarioRunner:
         async def execute(attempt_id):
             # A completed old Future is never a residency claim. Re-observe
             # the physical owner each time before deciding a copy is reusable.
-            state = references.source_snapshot(adapter_id)
+            state = await references.call_async(references.source_snapshot, adapter_id)
             for source in state['sources']:
                 if source['tier'] == target_tier.value:
                     if source['content_sha256'] != content or source['path'] != str(target):
@@ -20882,11 +20906,11 @@ class ScenarioRunner:
                 if target_tier != StorageTier.NVME or self._remote_artifact_client is None:
                     raise ValueError('remote preparation must enter the owned NVMe stage')
                 transfer = {}
-                def io_ready(value):
+                async def io_ready(value):
                     ok, elapsed = value
                     if not ok:
                         raise RuntimeError('remote movement did not publish its target')
-                    observed = references.source_snapshot(adapter_id)
+                    observed = await references.call_async(references.source_snapshot, adapter_id)
                     if not any(s['tier'] == target_tier.value and s['path'] == str(target)
                                and s['content_sha256'] == content for s in observed['sources']):
                         raise RuntimeError('file readiness lacks matching confirmed publication')
@@ -20904,7 +20928,7 @@ class ScenarioRunner:
                 result = await self._materialize_confirmed_source_async(adapter_id, source_path,
                     target_tier, target_engine=target_engine, _movement_owned=True,
                     expected_content_sha256=content, replacement_epoch=replacement_epoch)
-            observed = references.source_snapshot(adapter_id)
+            observed = await references.call_async(references.source_snapshot, adapter_id)
             if not any(s['tier'] == target_tier.value and s['path'] == str(target)
                        and s['content_sha256'] == content for s in observed['sources']):
                 raise RuntimeError('file movement lacks matching confirmed publication')
@@ -20917,7 +20941,7 @@ class ScenarioRunner:
                 # Actual file IO/source cleanup and native pressure settlement
                 # have already joined. Only a real owner event enables recheck.
                 return MovementOutcome('deferred', reason=str(exc))
-        with references.file_movement_interest(intent_id=intent_id, target=target,
+        async with references.async_file_movement_interest(intent_id=intent_id, target=target,
                 content_sha256=content, required=trigger_reason == 'demand'):
             job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
                 intent_id=intent_id, metadata=metadata, density=density, action=attempt,
@@ -21069,13 +21093,16 @@ class ScenarioRunner:
         """
         total = self.model_cfg.get('ieee_host_budget_bytes')
         if total is not None:
-            self._stack.residency_manager.local_source_references.configure_host_budget(total)
+            files = self._stack.residency_manager.local_source_references
+            await files.call_async(files.configure_host_budget, total)
         if self.model_cfg.get('ieee_admission_profile') is None:
             if engine is not None:
                 await self._attach_ieee_host_budget(engine)
             result = await operation()
             if on_io_joined is not None:
-                on_io_joined(result)
+                notification = on_io_joined(result)
+                if inspect.isawaitable(notification):
+                    await notification
             return result
         domain = self._ieee_file_pressure_domain()
         # Runtime activation joins the domain before pool publication. Its
@@ -21218,16 +21245,17 @@ class ScenarioRunner:
                     raise ValueError('IEEE materialization requires its request owner and real remote client')
                 manager = self._stack.residency_manager
                 owner = manager.local_source_references
-                view = owner.source_snapshot(adapter_id)
+                content = self._ieee_artifact_identities[adapter_id]['content_sha256']
+                view = await owner.call_async(owner.source_snapshot, adapter_id)
                 transfer_ms = 0.
                 from contextlib import nullcontext
                 # Retain request ownership across source readiness -> read acquisition.
                 # A completed transfer is not yet a protected reader reference.
-                demand = (owner.file_movement_interest(intent_id=uuid.uuid4().hex,
+                demand = (owner.async_file_movement_interest(intent_id=uuid.uuid4().hex,
                     target=self.nvme_dir / adapter_id,
-                    content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
+                    content_sha256=content,
                     required=True) if not view['sources'] else nullcontext())
-                with demand:
+                async with demand:
                     if not view['sources']:
                         transfer_evidence = {}
                         if reservation.file_preparation_task is not None:
@@ -21270,7 +21298,7 @@ class ScenarioRunner:
                             reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     # Re-observe and pin atomically against publishers/reclaimers;
                     # no network, native RPC or await is allowed inside this lock.
-                    with owner.lock:
+                    def acquire_source():
                         view = owner.source_snapshot(adapter_id)
                         candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
                         if not candidates:
@@ -21278,9 +21306,10 @@ class ScenarioRunner:
                         source = candidates[0]
                         reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
                             lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
-                            expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
-                reservation.local_source_owner = manager
-                reservation.gpu_reference_evidence['local_source_reference'] = reference
+                            expected_content_sha256=content)
+                        return source, reference
+                    source, reference = await owner.call_async(acquire_source,
+                        on_result=lambda value: self._adopt_runtime_local_source(reservation, manager, value[1]))
                 self._nvme_cache[adapter_id] = source['path']
                 return source['path'], float(transfer_ms)
             if adapter_id in self._nvme_cache:
