@@ -1,4 +1,31 @@
-# IEEE TC execution status — D828 admitted owner anchor qualified; full W2 next
+# IEEE TC execution status — D829 complete W2 launch preparation
+
+## 2026-10-25 D829：进入D828候选的完整3B W2
+
+前轮progress：D828完成实际日志分解、唯一controller改动、370项不同CPU
+测试及远端备份。本轮重新完整读取PLAN、冻结V1/单轮V2与当前状态；四GPU
+空闲、无计算PID，内存约106GiB可用、磁盘约150.1GiB，启动仍由实际准入判断。
+遗留D788/D793三个aux单位TasksCurrent=0，不是仍运行的推理/CPU任务；不
+误停无关服务。HydraServe已完成隔离适配，当前不动共享k3s。
+
+只新增d829运行身份、三个输出/缓存路径和既有W2入口分支。所有模型/后端/
+profile、trace/map、三卡策略及共同协议保持D826；唯一候选为D828已准入
+native owner锚点。尚待新增入口检查、明确路径备份及实际完整回放启动。
+说明D829_ADMITTED_OWNER_ANCHOR_FULL_W2_20261025.md；raw为d829_20261025，
+tmux预定tc-d829-3b-admitted-owner-anchor-full-w2。此处不是已启动声明。
+当前仍未达95%（D826为90.25%），D711数值未知及全部后续范围不变。
+整体目标active，不重复短Full，不新增调参或第二候选。
+
+以下D828为已完成记录：
+
+后置检查点回执：D828九条明确路径已提交084e2068375d1090127484656064f9457d9a8560，
+推送backup/d828-admitted-owner-anchor-20261025并核实远端ref；非最终V2同步。
+首次备份只因CSV换行检查退出1，未提交；恢复检查保留全部数据字节并成功。
+analysis/focused/regression/publication/backup/resume均已结束、scope inactive，
+所有工具session终态，GPU空、stage空；用户manifest原dirty未stage。
+22份当前/复用执行材料归档及SHA读回通过；本轮无GPU重跑。下文“待备份”
+已完成，不为本后置回执递归提交。下一主线是该候选一次完整3B W2，不再
+追加短诊断或扩大配置搜索；启动前重新核对PLAN与实际资源。整体目标active。
 
 ## 2026-10-25 D828：已完成离线分解与单一候选CPU验证
 
