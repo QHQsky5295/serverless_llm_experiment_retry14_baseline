@@ -1,0 +1,71 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d8532026102500000000000000000003.scope",
+    "invocation_id": "04e831b78092461ab08d689679cf8ce4",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8532026102500000000000000000003.scope",
+    "inode": 32553136
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8532026102500000000000000000003.scope",
+    "memory.current": 85311488,
+    "memory.peak": 818356224,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 15725158\nuser_usec 13921402\nsystem_usec 1803756\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "test_returncode": 1,
+  "program_sha256": "f58a03ce4f6fa7fda327affeb67c59aa3f10749a5fd9b9b43fe5c2b17f5dd639",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "ef270f3c772af62a3b5a2ada7583889a3b56ceeb11e8808bd9d2fa4f928c910a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py",
+      "sha256": "1674d6552ef97bcb9ca5370b59f8556f1bd773926b47902f3c731b2fcd4ea64d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py",
+      "sha256": "7f66e9f788791ba4ea6632193a72502cc5e75712c4f2c73d5dfffa21bd2398b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_native_retirement.py",
+      "sha256": "22f2fc99470ff889bb689fb40b48e85b7015dfde3bca100193ea1068b43a61f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_snapshot.py",
+      "sha256": "a13a544e1a6f43bdce989503d29f04d968a72e37dd1201f35e2a6847c84d1f0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "f3a4dfd1eca276cdb0913342637b55a751028854a8820ab0ac68edaa855bbe56"
+    }
+  ],
+  "tests": [
+    "tests/test_ieee_tc_launch.py::IEEEActualControl",
+    "tests/test_ieee_tc_launch.py::IEEEInitialDeployment",
+    "tests/test_ieee_tc_launch.py::FullPreparationEntryIsolation::test_disabled_residency_has_no_planner_or_native_side_effect",
+    "tests/test_ieee_tc_native_retirement.py::RuntimeQuarantine",
+    "tests/test_ieee_tc_transfer_pressure.py::SharedPressure",
+    "tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement::test_cancelled_file_pin_is_adopted_and_released_before_any_native_load",
+    "tests/test_ieee_tc_transfer_pressure.py::IntegratedNativeHostReplacement::test_cancelled_fallback_pins_join_and_release_before_native_commit"
+  ],
+  "production_integration_complete": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false
+}

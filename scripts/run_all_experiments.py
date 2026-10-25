@@ -14043,7 +14043,7 @@ class ScenarioRunner:
         await self._refresh_ieee_deferred_host_capacity()
         # NoHandoff disables only the activating-replica path, not this ready
         # steady-state path. Existing in-flight plans keep their immutable epoch.
-        self._schedule_ieee_residency_epochs()
+        await self._schedule_ieee_residency_epochs()
         return changed
 
     async def _refresh_ieee_deferred_host_capacity(self):
@@ -14111,7 +14111,7 @@ class ScenarioRunner:
                 del tasks[key]
                 task.result()  # A failed epoch is evidence, not a swallowed warning/retry.
 
-    def _schedule_ieee_residency_epochs(self):
+    async def _schedule_ieee_residency_epochs(self):
         if not self._hierarchical_residency_enabled:
             return
         if not hasattr(self, '_ieee_residency_tasks'):
@@ -14130,6 +14130,7 @@ class ScenarioRunner:
             active_engines.add(key)
         if not eligible:
             return
+        observed_engines = {id(slot): slot.engine for slot in eligible}
         policy = getattr(self, 'coord_cfg', {}).get('ieee_residency_file_observation')
         if policy not in (None, 'control_round_v1'):
             raise ValueError('unknown residency file observation policy')
@@ -14143,12 +14144,26 @@ class ScenarioRunner:
             # carried into a later round. This is a planning observation, NOT
             # an atomic cross-owner snapshot, source lease or byte reservation.
             started = time.monotonic()
-            shared_files = self._ieee_preparation_file_snapshot()
+            shared_files = await self._ieee_preparation_file_snapshot()
             observation = dict(round_id=uuid.uuid4().hex,
                 owner_id=shared_files['owner_id'], epoch=shared_files['epoch'],
                 captured_at=shared_files['captured_at'], started_at=started,
                 elapsed_ms=1000*(time.monotonic()-started), replicas=len(eligible),
                 physical_resources_reserved=False)
+        # File-owner IO may yield. Retiring/replaced replicas or a concurrent
+        # control round must not acquire another epoch from this observation.
+        # Validate and register without yielding; new replicas join next round.
+        live_slots = {id(slot): slot for slot in self.instance_pool.get_slots()}
+        active_engines = {id(engine) for task, engine in (
+            getattr(self, '_ieee_file_plan_engines', {}) |
+            getattr(self, '_ieee_gpu_plan_engines', {})).items() if not task.done()}
+        eligible = [slot for slot in eligible
+            if live_slots.get(id(slot)) is slot
+            and slot.engine is observed_engines[id(slot)]
+            and id(slot.engine) not in self._ieee_residency_tasks
+            and id(slot.engine) not in active_engines]
+        if observation is not None:
+            observation['replicas'] = len(eligible)
         for slot in eligible:
             key = id(slot.engine)
             record = dict(target_replica=slot.instance_id, state='planning', trigger_reason='residency',
@@ -14726,7 +14741,7 @@ class ScenarioRunner:
                 allocation = getattr(slot.engine, '_physical_allocation', None)
                 if allocation is None or allocation.released is not True:
                     raise RuntimeError('runtime cleanup requires confirmed physical release')
-            self._retire_ieee_host_budget(slot.engine)
+            await self._retire_ieee_host_budget(slot.engine)
             await self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
@@ -15035,7 +15050,7 @@ class ScenarioRunner:
                     await domain.retire(new_engine)
             finally:
                 await new_engine.shutdown()
-                self._retire_ieee_host_budget(new_engine)
+                await self._retire_ieee_host_budget(new_engine)
             raise
         runtime_startup_latency_ms = max(
             0.0,
@@ -15196,9 +15211,8 @@ class ScenarioRunner:
         layout = profiles.activation_layout()
         activation_id = 'ieee-activation-' + uuid.uuid4().hex
         files = self._stack.residency_manager.local_source_references
-        files.configure_host_budget(self.model_cfg['ieee_host_budget_bytes'])
-        files.reserve_activation_host(activation_id=activation_id,
-            limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
+        host_limit = self.model_cfg['ieee_host_budget_bytes']
+        native_limit = self.model_cfg['ieee_native_host_tensor_budget_bytes']
         record = dict(activation_id=activation_id, target_replica=activation_id,
             category=activation_kind, policy=policy, trigger_at=time.monotonic(),
             clock_id=local_monotonic_clock_id(), state='planning', plan_sha256=None)
@@ -15233,13 +15247,14 @@ class ScenarioRunner:
             self._ieee_file_plan_engines.pop(task, None)
 
         try:
+            await files.call_async(files.configure_host_budget, host_limit,
+                on_result=lambda _: record.update(host_budget_configured=True))
+            await files.call_async(files.reserve_activation_host, activation_id=activation_id,
+                limit_bytes=native_limit,
+                on_result=lambda _: record.update(host_allowance_reserved=True))
             plan = None
             if policy != 'no_handoff':
-                manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
-                manager = self._stack.residency_manager
-                view = files.preparation_snapshot(manifests=manifests,
-                    limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
-                            for tier in files.roots})
+                view = await self._ieee_preparation_file_snapshot()
                 plan = await self._stack.plan_ieee_owned_preparation_async(mode='handoff', native_snapshot=None,
                     file_snapshot=view, identities=self._ieee_artifact_identities,
                     adapter_int_ids={a: InferenceEngine._lora_int_id(a) for a in self._ieee_artifact_identities},
@@ -15318,13 +15333,16 @@ class ScenarioRunner:
                 if member is not None and member['state'] == 'attached':
                     await settle(domain.retire(engine))
                 await settle(engine.shutdown())
-                self._retire_ieee_host_budget(engine)
+                await settle(self._retire_ieee_host_budget(engine))
                 if published:
                     self.instance_pool.remove_instance(activation_id)
             # Unadopted bytes never enabled native adapter allocation. Startup
             # and file readers above have joined; adopted bytes use pidfd only.
-            if activation_id in files.host_budget_snapshot()['activation_reservations']:
-                files.cancel_activation_host(activation_id=activation_id)
+            if record.get('host_budget_configured'):
+                def release_unadopted():
+                    if activation_id in files.host_budget_snapshot()['activation_reservations']:
+                        return files.cancel_activation_host(activation_id=activation_id)
+                await settle(files.call_async(release_unadopted))
             raise
 
     def _handle_pending_scale_up_task_done(self, task: asyncio.Task) -> None:
@@ -19628,15 +19646,16 @@ class ScenarioRunner:
                 raise ValueError('GPU preparation acknowledgement owner/clock differs')
             return value
         source_feedback = {}
-        def checked_binding_conflict(observed):
+        async def checked_binding_conflict(observed):
             conflict = native_preparation_source_conflict(frozen=frozen, observed=observed,
                                                         binding_targets=targets)
             references = self._stack.residency_manager.local_source_references
-            confirmations = []
-            with references.lock:
+            identities = copy.deepcopy(self._ieee_artifact_identities)
+            def confirm_copies():
+                confirmations = []
                 for change in conflict['changed_source_bindings']:
                     aid, name = change['adapter_int_id'], change['adapter_id']
-                    identity = self._ieee_artifact_identities[name]
+                    identity = identities[name]
                     content = (rows[aid]['content_sha256'] if mixed else
                         rows[aid]['host_class']['layout_id'].removeprefix('exact_content_sha256:'))
                     if (InferenceEngine._lora_int_id(name) != aid
@@ -19649,7 +19668,8 @@ class ScenarioRunner:
                         expected_path=change['expected_lora_path'], observed_path=change['observed_lora_path'])
                     confirmations.append(dict(adapter_id=name, content_sha256=content,
                         file_owner_id=references.owner_id, file_epoch=files['epoch'], confirmed_files=copies))
-            return conflict, confirmations
+                return confirmations
+            return conflict, await references.call_async(confirm_copies)
         async def execute(aid, attempt_id):
             row = rows[aid]
             evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
@@ -19676,7 +19696,7 @@ class ScenarioRunner:
                 evidence.update(state='source_identity_conflict', expected_source=dict(
                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
-                self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
+                await self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
                     adapter_id=row['adapter_id'], source_path=row['lora_path'],
                     plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
             cpu_ids = set(current['registered_cpu_adapter_ids'])
@@ -19686,7 +19706,7 @@ class ScenarioRunner:
                     and (r.get('adapter_id') != rows[r['adapter_int_id']]['adapter_id']
                          or r.get('content_sha256') != rows[r['adapter_int_id']].get('content_sha256'))
                     for r in current['sources'])):
-                conflict, copies = checked_binding_conflict(current)
+                conflict, copies = await checked_binding_conflict(current)
                 evidence.update(state='superseded', prepare_rpc_submitted=False, binding_confirmations=copies)
                 raise PreparationPlanSuperseded(dict(plan_id=plan_id,
                     plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective_binding')
@@ -19705,11 +19725,12 @@ class ScenarioRunner:
             file_holds, file_fallbacks = [], {}
             if staged is not None:
                 references = self._stack.residency_manager.local_source_references
-                try:
+                def acquire_fallbacks():
+                    acquired, fallbacks = [], {}
                     # Hold each actual fastest remaining file copy before the
                     # native transaction. No predicted path or stale snapshot
                     # is used as a fallback after CPU/GPU reclamation.
-                    with references.lock:
+                    try:
                         for registered_aid in current['registered_cpu_adapter_ids']:
                             victim = rows[registered_aid]
                             view = references.source_snapshot(victim['adapter_id'])
@@ -19720,7 +19741,7 @@ class ScenarioRunner:
                                     adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
                                     expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
                                     expected_content_sha256=victim['content_sha256'])
-                                file_holds.append(held)
+                                acquired.append(held)
                                 # The read pin revalidates this copy and may
                                 # refresh its bounded physical allocation. Bind
                                 # all fallback fields to that single confirmed
@@ -19730,10 +19751,25 @@ class ScenarioRunner:
                                                 footprint_bytes=confirmed['allocated_file_bytes'])
                             else:
                                 fallback, held = victim['remote_fallback'], None
-                            file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
-                except BaseException:
+                            fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
+                    except BaseException:
+                        for held in acquired:
+                            references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                        raise
+                    return acquired, fallbacks
+                def adopt_fallbacks(value):
+                    file_holds.extend(value[0])
+                    file_fallbacks.update(value[1])
+                def release_fallbacks():
                     for held in file_holds:
                         references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                try:
+                    await references.call_async(acquire_fallbacks, on_result=adopt_fallbacks)
+                except BaseException:
+                    # Cancellation can arrive after successful acquisition but
+                    # before any native call. Release the adopted real pins.
+                    if file_holds:
+                        await settle(references.call_async(release_fallbacks))
                     raise
             evidence['host_file_fallbacks'] = file_fallbacks
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
@@ -19758,7 +19794,9 @@ class ScenarioRunner:
                             or receipt['source_observation'].get('epoch') != receipt['epoch']):
                         raise ValueError('GPU objective rejection does not match its submitted command')
                     if receipt['reason'] == 'preparation_source_binding_changed':
-                        conflict, copies = checked_binding_conflict(receipt['source_observation'])
+                        (conflict, copies), interrupted = await settle(
+                            checked_binding_conflict(receipt['source_observation']))
+                        cancelled |= interrupted
                         if (receipt.get('native_operation_applied') is not False
                                 or receipt.get('changed_source_bindings') != conflict['changed_source_bindings']):
                             raise ValueError('GPU binding rejection lacks its matching no-operation witness')
@@ -19771,8 +19809,9 @@ class ScenarioRunner:
                 # The RPC may still be reclaiming against these exact copies.
                 # Retain unknown ownership; do not make them evictable.
                 raise
-            for held in file_holds:
-                references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+            if file_holds:
+                _, interrupted = await settle(references.call_async(release_fallbacks))
+                cancelled |= interrupted
             evidence['host_file_fallbacks_released'] = True
             evidence['receipt'] = receipt
             if receipt.get('acquired') is True:
@@ -19922,27 +19961,28 @@ class ScenarioRunner:
             if cleanup_cancelled or cancelled:
                 raise asyncio.CancelledError()
 
-    def _supersede_ieee_native_file_copy(self, *, observed, owner_id, adapter_id,
+    async def _supersede_ieee_native_file_copy(self, *, observed, owner_id, adapter_id,
             source_path, plan_id, stage, record):
         """A different verified origin expires a physical plan, never relabels it."""
         from faaslora.preloading.preloading_planner import (
             supersede_confirmed_native_file_copy, PreparationPlanSuperseded)
         references = self._stack.residency_manager.local_source_references
-        identity = self._ieee_artifact_identities[adapter_id]
+        identity = copy.deepcopy(self._ieee_artifact_identities[adapter_id])
         # Read both publications through their real owner, not directory names.
         # Nothing is acquired or mutated; no stale file evidence authorizes IO.
-        with references.lock:
+        def confirm_copy():
             files = references.source_snapshot(adapter_id)
-            try:
-                supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
-                    adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
-                    lora_path=str(source_path), expected_rank=identity['rank'],
-                    content_sha256=identity['content_sha256'], files=files,
-                    file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
-            except PreparationPlanSuperseded as exc:
-                record.update(state='superseded', preparation_supersession=dict(
-                    stage=exc.stage, receipt=exc.receipt))
-                raise
+            supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
+                adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
+                lora_path=str(source_path), expected_rank=identity['rank'],
+                content_sha256=identity['content_sha256'], files=files,
+                file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
+        try:
+            await references.call_async(confirm_copy)
+        except PreparationPlanSuperseded as exc:
+            record.update(state='superseded', preparation_supersession=dict(
+                stage=exc.stage, receipt=exc.receipt))
+            raise
 
     async def _queue_ieee_native_host_preparation(self, *, slot, adapter_id, source_path,
             trigger_reason, plan_id, activation_id=None, density=0.):
@@ -20014,7 +20054,7 @@ class ScenarioRunner:
                 record['source_identity_conflict'] = dict(attempt_id=attempt_id,
                     expected_source=dict(adapter_id=adapter_id, lora_path=str(source_path)),
                     observed_source=copy.deepcopy(native), observed_epoch=observed['epoch'])
-                self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
+                await self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
                     adapter_id=adapter_id, source_path=source_path, plan_id=plan_id,
                     stage='native_target_copy', record=record)
             if native is not None and native['gpu_slot'] is not None:
@@ -20024,16 +20064,32 @@ class ScenarioRunner:
             # the same owner lock, then release the lock before any native RPC.
             # Routing's independently selected stale-snapshot rejection remains
             # strict; this is the preparation path's current-source acquisition.
-            with references.lock:
+            def acquire_source():
                 state = references.source_snapshot(adapter_id)
                 source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
                 if source is None or source['content_sha256'] != content:
                     raise ValueError('native HOST preparation has no matching confirmed file source')
-                file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                return references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
                     lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
                     expected_epoch=state['epoch'], expected_content_sha256=content)
-            evidence = dict(attempt_id=attempt_id, file_reference=file_ref, state='file_held')
+            file_ref = None
+            evidence = dict(attempt_id=attempt_id, state='acquiring_file')
             record['attempts'].append(evidence)
+            def adopt_source(value):
+                nonlocal file_ref
+                file_ref = value
+                evidence.update(file_reference=value, state='file_held')
+            async def release_source():
+                await references.call_async(references.release,
+                    lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'],
+                    on_result=lambda _: evidence.update(file_reference_released=True))
+            try:
+                await references.call_async(acquire_source, on_result=adopt_source)
+            except BaseException:
+                if file_ref is not None:
+                    await settle(release_source())
+                raise
+            source = file_ref['confirmed_source']
             known = True
             async def materialize():
                 nonlocal known
@@ -20079,8 +20135,7 @@ class ScenarioRunner:
                 return await self._run_ieee_file_transfer(adapter_id, source['tier'], 'native_host', engine, owned_materialize)
             finally:
                 if known:
-                    references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
-                    evidence['file_reference_released'] = True
+                    await release_source()
                 else:
                     # Lost replies can still have a reader/pin. The failed run
                     # retains ownership, rather than evicting an in-use file.
@@ -20114,11 +20169,15 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
 
-    def _ieee_preparation_file_snapshot(self):
+    async def _ieee_preparation_file_snapshot(self):
         """One fresh complete observation of the shared physical file owner."""
         manager = self._stack.residency_manager
         manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
-        return manager.local_source_references.preparation_snapshot(manifests=manifests,
+        files = manager.local_source_references
+        # The client returns detached FrozenPreparationDescriptions, including
+        # immutable nested file records. Share it as designed, not a mutable
+        # dict or a deepcopy of its non-pickleable mapping proxies.
+        return await files.call_async(files.preparation_snapshot, manifests=manifests,
             limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
                     for tier in manager.local_source_references.roots})
 
@@ -20146,7 +20205,7 @@ class ScenarioRunner:
         # Physical execution/deferred-capacity checks keep their full reports.
         observed_engine = slot.engine
         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
-        files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+        files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
         plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
@@ -20490,7 +20549,7 @@ class ScenarioRunner:
         if replacement_costs is not None:
             from faaslora.preloading.preloading_planner import freeze_file_replacement_epoch
             replacement_epoch = freeze_file_replacement_epoch(
-                file_snapshot=references.replacement_source_snapshot(), plan=plan,
+                file_snapshot=await references.call_async(references.replacement_source_snapshot), plan=plan,
                 identities=self._ieee_artifact_identities, profiles=self._preparation_profiles,
                 costs=replacement_costs)
         options = {(row['artifact_id'], row['target']['tier']): row for row in plan['options']}
@@ -20539,10 +20598,9 @@ class ScenarioRunner:
                                   and bool(recipes))
         if owned_file_replacement:
             replacement_epoch = objectives['file']
-        registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
-            state='registered', registration=registration, started_at=time.monotonic(), results=[])
+            state='registering', started_at=time.monotonic(), results=[])
         if not hasattr(self, '_ieee_file_preparation_plans'):
             self._ieee_file_preparation_plans = []
         self._ieee_file_preparation_plans.append(record)
@@ -20603,14 +20661,18 @@ class ScenarioRunner:
                         raise PreparationPlanSuperseded(conflict, stage='native_file_fallback')
                     if cancelled:
                         raise asyncio.CancelledError()
-                record['fallback_binding'] = references.bind_file_native_fallbacks(plan_id=plan_id,
-                    objective=replacement_epoch, receipts=[e['receipt'] for e in native_fallbacks])
+                await references.call_async(references.bind_file_native_fallbacks, plan_id=plan_id,
+                    objective=copy.deepcopy(replacement_epoch),
+                    receipts=copy.deepcopy([e['receipt'] for e in native_fallbacks]),
+                    on_result=lambda value: record.update(fallback_binding=value))
             fallback_ready.set()
         record['native_fallbacks'] = native_fallbacks
         async def release_native_fallbacks():
             async with fallback_cleanup_lock:
-                references.unbind_file_native_fallbacks(plan_id=plan_id)
-                interrupted_cleanup = False
+                if 'registration' not in record:
+                    return  # Failed registration created no owned file plan.
+                _, interrupted_cleanup = await settle(references.call_async(
+                    references.unbind_file_native_fallbacks, plan_id=plan_id))
                 unresolved = False
                 for evidence in native_fallbacks:
                     if evidence['state'] in ('rejected', 'released'):
@@ -20648,7 +20710,7 @@ class ScenarioRunner:
         async def execute(candidate, row, content):
             await fallback_ready.wait()
             aid, tier = candidate.artifact_id, candidate.target_tier.value
-            state = references.source_snapshot(aid)
+            state = await references.call_async(references.source_snapshot, aid)
             sources = {s['tier']: s for s in state['sources']}
             if any(s['content_sha256'] != content for s in sources.values()):
                 raise ValueError('file plan execution observed different content')
@@ -20667,7 +20729,7 @@ class ScenarioRunner:
             # copy; successful queue return joins publication and cleanup.
             for target_tier, target_aid in targets:
                 if target_aid == aid:
-                    references.finish_file_preparation_target(plan_id=plan_id,
+                    await references.call_async(references.finish_file_preparation_target, plan_id=plan_id,
                         tier=target_tier, adapter_id=aid)
             record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
             return result
@@ -20690,7 +20752,7 @@ class ScenarioRunner:
                     record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
                         expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
                         observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])
-                    self._supersede_ieee_native_file_copy(observed=observed,
+                    await self._supersede_ieee_native_file_copy(observed=observed,
                         owner_id=gpu_objective['owner_id'], adapter_id=aid,
                         source_path=row['lora_path'], plan_id=native_plan_id,
                         stage='native_staging_copy', record=record)
@@ -20733,7 +20795,8 @@ class ScenarioRunner:
                 for _, _, row in gpu_recipes.values():
                     for tier, aid in targets:
                         if aid == row['adapter_id']:
-                            references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
+                            await references.call_async(references.finish_file_preparation_target,
+                                plan_id=plan_id, tier=tier, adapter_id=aid)
                 record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
                     for (_, _, row), value in zip(gpu_recipes.values(), result))
                 return result
@@ -20771,6 +20834,9 @@ class ScenarioRunner:
             if cancelled: raise asyncio.CancelledError()
             return results
         try:
+            await references.call_async(references.register_file_preparation_plan,
+                plan_id=plan_id, targets=copy.deepcopy(list(targets.values())),
+                on_result=lambda value: record.update(state='registered', registration=value))
             if delayed:
                 # Only the start boundary changes. No new h/d, selection or
                 # planning budget is sampled for the controlled comparison.
@@ -20811,6 +20877,8 @@ class ScenarioRunner:
                 _, interrupted = await settle(release_native_fallbacks())
                 cancelled |= interrupted
                 async def close_files_after_join():
+                    if 'registration' not in record:
+                        return [], None
                     keys = tuple(
                         (references.owner_id, tier, aid, target['content_sha256'])
                         for (tier, aid), target in targets.items())
@@ -21006,7 +21074,7 @@ class ScenarioRunner:
             self._ieee_host_budget_members = {}
         async with self._ieee_host_budget_lock:
             files = self._stack.residency_manager.local_source_references
-            files.configure_host_budget(total)
+            await files.call_async(files.configure_host_budget, total)
             old = self._ieee_host_budget_members.get(id(engine))
             if old is not None:
                 if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
@@ -21032,17 +21100,24 @@ class ScenarioRunner:
                     self._ieee_host_budget_members[id(engine)] = member
                     return member['receipt']
             fd = _open_pidfd(pid)
+            member = dict(engines=[engine], owner_id=owner_id, pidfd=fd,
+                          process_identity=identity, state='installing')
+            def adopt_allowance(_):
+                self._ieee_host_budget_members[id(engine)] = member
             try:
                 if gpu_process_identity(pid) != identity:
                     raise RuntimeError('native HOST process changed during pidfd binding')
-                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd,
+                await files.call_async(files.reserve_native_host, owner_id=owner_id,
+                    limit_bytes=native, exit_pidfd=fd, on_result=adopt_allowance,
                     activation_id=getattr(self, '_ieee_host_activation_ids', {}).get(id(engine)))
             except BaseException:
-                os.close(fd)
+                if self._ieee_host_budget_members.get(id(engine)) is member:
+                    # A cancelled successful reservation still owns bytes and
+                    # its pidfd; the existing shutdown path must retire it.
+                    member['state'] = 'installation_unresolved'
+                else:
+                    os.close(fd)
                 raise
-            member = dict(engines=[engine], owner_id=owner_id, pidfd=fd,
-                          process_identity=identity, state='installing')
-            self._ieee_host_budget_members[id(engine)] = member
             # Cancellation cannot abandon an in-flight installation or return
             # its bytes. Join the exact command before propagating cancellation.
             task = asyncio.create_task(engine.ieee_gpu_reference(operation='configure_host_budget',
@@ -21071,17 +21146,23 @@ class ScenarioRunner:
                 raise asyncio.CancelledError()
             return receipt
 
-    def _retire_ieee_host_budget(self, engine):
+    async def _retire_ieee_host_budget(self, engine):
         members = getattr(self, '_ieee_host_budget_members', {})
         member = members.get(id(engine))
         if member is None or member['state'] == 'retired':
             return
-        # Only an actual native process exit returns its entire allowance,
-        # including allocator caches. Shared logical slots do not call this.
-        receipt = self._stack.residency_manager.local_source_references.retire_native_host(
-            owner_id=member['owner_id'], exit_pidfd=member['pidfd'])
-        os.close(member['pidfd'])
-        member.update(state='retired', retirement_receipt=receipt)
+        async with self._ieee_host_budget_lock:
+            if member['state'] == 'retired':
+                return
+            # Only actual process exit returns the allowance. Adopt the real
+            # release before cancellation; aliases share one fd/retirement.
+            def adopt_retirement(receipt):
+                os.close(member['pidfd'])
+                member.update(state='retired', retirement_receipt=receipt)
+            files = self._stack.residency_manager.local_source_references
+            await files.call_async(files.retire_native_host,
+                owner_id=member['owner_id'], exit_pidfd=member['pidfd'],
+                on_result=adopt_retirement)
 
     async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation,
                                       *, on_io_joined=None):

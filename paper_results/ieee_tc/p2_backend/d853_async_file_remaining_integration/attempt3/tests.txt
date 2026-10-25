@@ -1,0 +1,59 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 57 items
+
+tests/test_ieee_tc_launch.py ......................                      [ 38%]
+tests/test_ieee_tc_native_retirement.py ..F.............                 [ 66%]
+tests/test_ieee_tc_transfer_pressure.py ...................              [100%]
+
+=================================== FAILURES ===================================
+_ RuntimeQuarantine.test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack _
+tests/test_ieee_tc_native_retirement.py:663: in test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack
+    await r._runtime_retirements[id(slot.engine)]['task']
+scripts/run_all_experiments.py:18435: in _retire_owned_runtime
+    await self._cleanup_removed_slot(slot, removal_reason=cleanup_reason)
+scripts/run_all_experiments.py:14745: in _cleanup_removed_slot
+    await self._settle_exited_runtime_reservations(slot)
+scripts/run_all_experiments.py:18490: in _settle_exited_runtime_reservations
+    await self._release_runtime_local_source(reservation)
+scripts/run_all_experiments.py:18276: in _release_runtime_local_source
+    await manager.local_source_references.call_async(manager.release_local_source,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'types.SimpleNamespace' object has no attribute 'local_source_references'
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:14:23 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.experiment.instance_pool:logger.py:401 Instance inst_1 added (total=1)
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_native_retirement.py::RuntimeQuarantine::test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack
+================== 1 failed, 56 passed, 19 warnings in 12.28s ==================

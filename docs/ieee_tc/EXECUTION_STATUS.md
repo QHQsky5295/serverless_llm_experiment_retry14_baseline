@@ -1,4 +1,39 @@
-# IEEE TC execution status — D852 request/file integration verified; remaining owner paths pending
+# IEEE TC execution status — D853 full async-file candidate integrated; full W2 pending
+
+## 2026-10-25 D853剩余路径完成，187项针对性检查闭合，尚无新性能点
+
+完整PLAN/V1/V2已读，接续同一D851/D852候选，完成planning/control-round、
+activation/HOST reserve/retire、主动GPU/HOST文件pin/release及file-plan
+register/bind/unbind/finish；原RLock事务/实时检查保留，成功获取先接管再
+传播取消。控制观察await后核对slot/engine与在途计划；原生额度只在真实
+pidfd退出后归还。通知失败不重写实际IO join时间。公式/阈值/后端未变。
+
+attempt1为26失败30通过后主动中断：deepcopy不可变mappingproxy错误已修；
+两条旧空转测试改实际结束事件。attempt2为133通过后主动中断：launch夹具
+意外启动真实planner及依赖编译，peak3434598400B/high32575、max/OOM0，
+只终止本轮已核验子进程。改用既有相同序列化selector夹具。attempt3仅剩余
+路径及新增取消/通知检查，56通过1旧mock失败；改真实文件引用fixture后
+attempt4仅该项通过。最终187不同检查，9新增；失败、源码和资源证据保留。
+细节见D853_ASYNC_FILE_REMAINING_INTEGRATION_20261025.md。
+
+性能仍D846联合3715/4000=92.875%，U11929.629332、预算12083.063870，
+未到95%；D711独立数值未知n_correct=null、ranking=false。候选已完整接入，
+下一备份后直接一次完整3B W2，不新增profiling/部分版本短回放/重复资格。
+同步metrics只在非IEEE同步路径或IEEE退出后汇总，最终workspace cleanup
+不在业务期；HTTP事务本已worker执行，不把网络放入owner锁。
+
+147保护项/用户manifest复核通过，01–04 scope inactive/dead且路径消失，
+05闭合检查已成功结束；正在备份明确文件。无GPU运行，未改共享
+k3s/远端；约171.7GiB可用，D848回收不重做。所有同版本两模型主比较、
+A1–A5、S1–S13、文档/图表和最终V2仍开放，goal active。
+
+以下为历史记录，不重跑已完成任务。
+
+D852检查点f1b6dd7304835f8b7434ef9fa46ef6915c6cf0d7已推送；远端
+backup/d852-async-file-request-20261025核实同SHA，28明确文件。最终V2
+仍未同步，未force/未stage用户manifest。01–06本轮scope已结束；下一
+直接完成同候选planning、activation/HOST及主动准备剩余事务，不重跑已
+通过138项或为此部分版本做GPU实验。本后置回执随下一正常检查点保存。
 
 ## 2026-10-25 D852请求与文件路径实际接入，138项针对性检查通过
 

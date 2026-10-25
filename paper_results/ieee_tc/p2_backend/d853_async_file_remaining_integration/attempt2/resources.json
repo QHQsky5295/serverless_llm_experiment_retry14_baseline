@@ -1,0 +1,75 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d8532026102500000000000000000002.scope",
+    "invocation_id": "79896b81b5d5442b881825d21a59d4b7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8532026102500000000000000000002.scope",
+    "inode": 32550961
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8532026102500000000000000000002.scope",
+    "memory.current": 667246592,
+    "memory.peak": 3434598400,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=50.40 avg60=50.62 avg300=15.75 total=51799730\nfull avg10=49.23 avg60=49.13 avg300=15.22 total=50005838",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 113608938\nuser_usec 95487286\nsystem_usec 18121652\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 32575,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "test_returncode": 2,
+  "program_sha256": "becebf4df9567eb74fe5fa36acd33ad89d116205fcd86bf71ef9c3dbe2215ff3",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "ef270f3c772af62a3b5a2ada7583889a3b56ceeb11e8808bd9d2fa4f928c910a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py",
+      "sha256": "d00eeec46369b959d33facf13eb8c465d8f471199eb4cc8216a6521648df4fe9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_native_retirement.py",
+      "sha256": "22f2fc99470ff889bb689fb40b48e85b7015dfde3bca100193ea1068b43a61f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_snapshot.py",
+      "sha256": "a13a544e1a6f43bdce989503d29f04d968a72e37dd1201f35e2a6847c84d1f0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "308a81102a5beaa9c956ac7f595460f612d61549f1b1b727bd7827a33fea3bf3"
+    }
+  ],
+  "tests": [
+    "tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot",
+    "tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation",
+    "tests/test_ieee_tc_transfer_pressure.py::ManagedHostOwnership",
+    "tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement",
+    "tests/test_ieee_tc_transfer_pressure.py::ActivationPreparation",
+    "tests/test_ieee_tc_transfer_pressure.py::MixedOwnedPreparation",
+    "tests/test_ieee_tc_transfer_pressure.py::IntegratedNativeHostReplacement",
+    "tests/test_ieee_tc_transfer_pressure.py::AutomaticGPUReplacement",
+    "tests/test_ieee_tc_transfer_pressure.py::NonTargetBindingExpiry",
+    "tests/test_ieee_tc_transfer_pressure.py::AutomaticFileReplacement",
+    "tests/test_ieee_tc_transfer_pressure.py::SelectedFilePlans",
+    "tests/test_ieee_tc_launch.py::IEEEActualControl",
+    "tests/test_ieee_tc_launch.py::IEEEInitialDeployment",
+    "tests/test_ieee_tc_launch.py::FullPreparationEntryIsolation::test_disabled_residency_has_no_planner_or_native_side_effect",
+    "tests/test_ieee_tc_native_retirement.py::RuntimeQuarantine"
+  ],
+  "production_integration_complete": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false
+}

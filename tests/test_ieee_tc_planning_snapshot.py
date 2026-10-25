@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import threading
 import time
 from types import SimpleNamespace as NS
 import unittest
@@ -251,6 +252,75 @@ class CapacityConsumer(unittest.IsolatedAsyncioTestCase):
 
 
 class ControlRoundFileObservation(unittest.TestCase):
+    def test_file_observation_yield_rechecks_removed_and_replaced_replicas(self):
+        for change in ('remove', 'replace'):
+            with self.subTest(change=change):
+                files, runner, slots, _ = self.make(count=1)
+                async def run():
+                    entered, release = asyncio.Event(), threading.Event()
+                    loop = asyncio.get_running_loop()
+                    original = files.owner.preparation_snapshot
+                    def read(**kwargs):
+                        value = original(**kwargs)
+                        loop.call_soon_threadsafe(entered.set)
+                        if not release.wait(5):
+                            raise TimeoutError('test file observation was not released')
+                        return value
+                    with patch.object(files.owner, 'preparation_snapshot', side_effect=read), \
+                         patch.object(runner, '_run_ieee_owned_preparation_plan', new=AsyncMock()) as execute:
+                        job = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+                        try:
+                            await asyncio.wait_for(entered.wait(), 2)
+                            if change == 'remove':
+                                slots.clear()
+                            else:
+                                slots[0].engine = object()
+                        finally:
+                            release.set()
+                            await job
+                        self.assertFalse(runner._ieee_residency_tasks)
+                        self.assertFalse(runner._ieee_residency_epochs)
+                        execute.assert_not_awaited()
+                asyncio.run(run())
+
+    def test_overlapping_file_observations_register_only_one_epoch(self):
+        files, runner, slots, _ = self.make(count=1)
+        async def run():
+            entered, second_requested = asyncio.Event(), asyncio.Event()
+            release = threading.Event()
+            loop = asyncio.get_running_loop()
+            original, call = files.owner.preparation_snapshot, files.owner.call_async
+            calls = 0
+            def read(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test shared observation was not released')
+                return value
+            async def observe(*args, **kwargs):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    second_requested.set()
+                return await call(*args, **kwargs)
+            with patch.object(files.owner, 'preparation_snapshot', side_effect=read), \
+                 patch.object(files.owner, 'call_async', side_effect=observe), \
+                 patch.object(runner, '_run_ieee_owned_preparation_plan',
+                              new=AsyncMock(return_value=dict(plan={'plan_sha256': 'test'}))) as execute:
+                first = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+                second = None
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    second = asyncio.create_task(runner._schedule_ieee_residency_epochs())
+                    await asyncio.wait_for(second_requested.wait(), 2)
+                finally:
+                    release.set()
+                    await asyncio.gather(first, *([second] if second is not None else []))
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                self.assertEqual(len(runner._ieee_residency_epochs), 1)
+                execute.assert_awaited_once()
+        asyncio.run(run())
+
     """Real file owner and selector; controlled independent native reports."""
 
     @classmethod
@@ -318,9 +388,9 @@ class ControlRoundFileObservation(unittest.TestCase):
             with patch.object(files.owner, 'preparation_snapshot',
                               wraps=files.owner.preparation_snapshot) as read, \
                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 first_tasks = dict(runner._ieee_residency_tasks)
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 self.assertEqual(runner._ieee_residency_tasks, first_tasks)
                 self.assertEqual(read.call_count, 1)
                 await asyncio.gather(*first_tasks.values())
@@ -344,7 +414,7 @@ class ControlRoundFileObservation(unittest.TestCase):
                 self.assertEqual(read.call_count, 2)
                 # A new control round must re-read; no epoch/TTL reuse.
                 old_capture = views[0]['files']['captured_at']
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual(read.call_count, 3)
@@ -368,7 +438,7 @@ class ControlRoundFileObservation(unittest.TestCase):
                 kw.pop('capacity_only')
                 return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
             with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await entered.wait()
                 pending = runner._ieee_residency_tasks[id(slots[0].engine)]
                 sibling = runner._ieee_residency_tasks[id(slots[1].engine)]
@@ -391,13 +461,13 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             with patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read, \
                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual(read.call_count, 2)
                 self.assertTrue(all('shared_file_observation' not in r for r in runner._ieee_residency_epochs))
                 slots.clear()
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 self.assertEqual(read.call_count, 2)
         asyncio.run(run())
 
@@ -406,13 +476,13 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             with self.assertRaisesRegex(ValueError, 'only for steady-state'):
                 await runner._plan_ieee_preparation_for_slot(slot=slots[0], mode='handoff',
-                    file_snapshot=runner._ieee_preparation_file_snapshot())
+                    file_snapshot=await runner._ieee_preparation_file_snapshot())
             slots[0].engine.ieee_gpu_reference.assert_not_awaited()
         asyncio.run(run())
 
     def test_received_shared_view_is_detached_and_still_uses_normal_executor(self):
         files, runner, slots, _ = self.make(count=1)
-        snapshot = runner._ieee_preparation_file_snapshot()
+        snapshot = asyncio.run(runner._ieee_preparation_file_snapshot())
         original = copy.deepcopy(snapshot)
         async def execute(**kw):
             self.assertEqual(kw['plan']['source_view']['files'], original)
@@ -444,7 +514,7 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             try:
                 self.assertFalse((files.nvme/'a').exists())
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual((files.nvme/'a'/'weights').read_bytes(), b'a'*12288)

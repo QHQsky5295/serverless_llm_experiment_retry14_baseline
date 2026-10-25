@@ -457,7 +457,13 @@ class SharedFileTransferDomain:
                               operation_error_type=type(exc).__name__)
             else:
                 record.update(operation_outcome='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
-                              operation_error_type=type(exc).__name__, io_joined_at=time.monotonic())
+                              operation_error_type=type(exc).__name__)
+                if 'io_joined_at' in record:
+                    # A post-IO observer failure is still a failed operation,
+                    # but must not move the actual IO settlement boundary.
+                    record['notification_failed_at'] = time.monotonic()
+                else:
+                    record['io_joined_at'] = time.monotonic()
             if isinstance(exc, asyncio.CancelledError):
                 record['caller_cancelled'] = True
             raise

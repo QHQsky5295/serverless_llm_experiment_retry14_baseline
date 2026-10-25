@@ -312,7 +312,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         r._mark_instance_lifecycle_removed = Mock()
         r._cancel_runtime_gpu_forward_tasks = AsyncMock()
         r._runtime_forward_task_key = Mock(return_value='owned')
-        r._retire_ieee_host_budget = Mock()
+        r._retire_ieee_host_budget = AsyncMock()
         r._sync_stack_gpu_accounting = Mock()
         r._notify_dispatch_capacity_changed = AsyncMock()
         r._refresh_slot_runtime_hints = Mock()
@@ -654,15 +654,21 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(reservation.released or allocation.released)
 
     async def test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack(self):
+        from tests.test_ieee_tc_request_lifecycle import LocalSourceOwnership
+        fixture = LocalSourceOwnership()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
         r, slot, _ = self.build()
         reservation = self.pending(r, slot)
-        local = dict(state='held', lease_id='local', owner_id='file-owner')
+        local = dict(fixture.acquire('local'), state='held')
         reservation.gpu_reference_evidence['local_source_reference'] = local
-        reservation.local_source_owner = NS(release_local_source=Mock())
+        reservation.local_source_owner = fixture.manager
         reservation.ieee_pending_admission = dict(state='registering', intent_id='pending')
-        await r._runtime_retirements[id(slot.engine)]['task']
-        reservation.local_source_owner.release_local_source.assert_called_once_with(
-            lease_id='local', expected_owner_id='file-owner')
+        with patch.object(fixture.manager, 'release_local_source',
+                          wraps=fixture.manager.release_local_source) as release:
+            await r._runtime_retirements[id(slot.engine)]['task']
+        release.assert_called_once_with(lease_id='local', expected_owner_id=local['owner_id'])
+        self.assertFalse(fixture.manager.local_source_references.leases)
         self.assertEqual(local['state'], 'released')
         self.assertEqual(reservation.ieee_pending_admission['state'], 'retired_with_runtime')
         self.assertNotIn('release_receipt', reservation.gpu_reference_evidence)

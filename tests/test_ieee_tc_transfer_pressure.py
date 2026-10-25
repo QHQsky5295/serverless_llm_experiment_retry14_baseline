@@ -310,12 +310,92 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(calls.count('configure_host_budget'), 1)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             with self.assertRaisesRegex(RuntimeError, 'has not exited'):
-                runner._retire_ieee_host_budget(engine)
+                await runner._retire_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
-            runner._retire_ieee_host_budget(alias)
+            await runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(alias)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+        asyncio.run(run())
+
+    def test_cancelled_file_reservation_adopts_pidfd_and_keeps_allowance_until_exit(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, calls = self.runner(files, child.pid)
+            loop = asyncio.get_running_loop()
+            entered, release = asyncio.Event(), threading.Event()
+            original = files.reserve_native_host
+            def reserve(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test reservation was not released')
+                return value
+            with patch.object(files, 'reserve_native_host', side_effect=reserve):
+                job = asyncio.create_task(runner._attach_ieee_host_budget(engine))
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    await asyncio.sleep(0)
+                    job.cancel()
+                    self.assertFalse(job.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+            member = runner._ieee_host_budget_members[id(engine)]
+            self.assertEqual(member['state'], 'installation_unresolved')
+            self.assertEqual(os.readlink(f"/proc/self/fd/{member['pidfd']}"), 'anon_inode:[pidfd]')
+            self.assertNotIn('configure_host_budget', calls)
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
+            child.stdin.close()
+            child.wait(timeout=5)
+            await runner._retire_ieee_host_budget(engine)
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+        asyncio.run(run())
+
+    def test_cancelled_real_retirement_closes_one_shared_pidfd_after_transaction(self):
+        async def run():
+            _, files, _ = self.make()
+            child = self.child()
+            runner, engine, _ = self.runner(files, child.pid)
+            await runner._attach_ieee_host_budget(engine)
+            alias = NS(ieee_gpu_reference=engine.ieee_gpu_reference)
+            await runner._attach_ieee_host_budget(alias)
+            member = runner._ieee_host_budget_members[id(engine)]
+            child.stdin.close()
+            child.wait(timeout=5)
+            entered, release = asyncio.Event(), threading.Event()
+            loop = asyncio.get_running_loop()
+            original = files.retire_native_host
+            def retire(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test retirement was not released')
+                return value
+            with patch.object(files, 'retire_native_host', side_effect=retire) as retire_call:
+                job = asyncio.create_task(runner._retire_ieee_host_budget(engine))
+                other = None
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    other = asyncio.create_task(runner._retire_ieee_host_budget(alias))
+                    await asyncio.sleep(0)
+                    self.assertFalse(job.done())
+                    self.assertFalse(other.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+                    if other is not None:
+                        await other
+                retire_call.assert_called_once()
+            self.assertEqual(member['state'], 'retired')
+            self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
+            with self.assertRaises(OSError):
+                os.fstat(member['pidfd'])
         asyncio.run(run())
 
     def test_lost_installation_ack_retains_budget_until_process_exit(self):
@@ -337,7 +417,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_workspace_contract_is_forwarded_acknowledged_and_frozen_for_aliases(self):
@@ -365,7 +445,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
@@ -393,7 +473,7 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
 
@@ -614,6 +694,26 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
     def make(self):
         runner, engine, ledger = TransferPressure().runner()
         return runner, engine, ledger
+
+    async def test_async_notification_failure_preserves_actual_io_join_boundary(self):
+        runner, engine, ledger = self.make()
+        joined = []
+        async def operation():
+            return 'verified-output'
+        async def notification(value):
+            self.assertEqual(value, 'verified-output')
+            row = runner._adapter_transfer_pressure_evidence[-1]
+            joined.append(row['io_joined_at'])
+            await asyncio.sleep(0)
+            raise ValueError('observer failed after IO')
+        with self.assertRaisesRegex(ValueError, 'observer failed after IO'):
+            await runner._run_ieee_file_transfer('a', 'remote', 'nvme', engine,
+                                                operation, on_io_joined=notification)
+        row = runner._adapter_transfer_pressure_evidence[-1]
+        self.assertEqual(row['io_joined_at'], joined[0])
+        self.assertGreaterEqual(row['notification_failed_at'], joined[0])
+        self.assertEqual(row['operation_outcome'], 'failed')
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
 
     async def test_physical_domain_binding_and_wrong_domain_rejection(self):
         runner, engine, ledger = self.make()
@@ -1220,6 +1320,39 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
 
 
 class OwnedNativeHostMovement(unittest.TestCase):
+    def test_cancelled_file_pin_is_adopted_and_released_before_any_native_load(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            entered, release = asyncio.Event(), threading.Event()
+            loop = asyncio.get_running_loop()
+            original = fixture.owner.acquire_confirmed
+            def acquire(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test file pin was not released')
+                return value
+            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire), \
+                 patch.object(native.owner, 'file_host_loader', wraps=native.owner.file_host_loader) as load:
+                job = asyncio.create_task(self.call(fixture, runner, slot))
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(job.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+                load.assert_not_called()
+            self.assertFalse(fixture.owner.leases)
+            self.assertFalse(native.owner._host_leases)
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            evidence = runner._ieee_native_host_preparations[-1]['attempts'][-1]
+            self.assertTrue(evidence['file_reference_released'])
+            await queue.close()
+        asyncio.run(run())
+
     def test_modified_file_publication_cannot_expire_native_objective_as_same_content(self):
         factory = MixedOwnedPreparation()
         self.addCleanup(factory.doCleanups)
@@ -1227,9 +1360,9 @@ class OwnedNativeHostMovement(unittest.TestCase):
         before = owner.snapshot()
         (fixture.host/'c'/'weights').write_bytes(b'not-the-published-content')
         with self.assertRaisesRegex(RuntimeError, 'confirmed source changed outside its managed publication'):
-            runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
+            asyncio.run(runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
                 adapter_id='c', source_path=fixture.host/'c', plan_id='old-copy',
-                stage='native_target_copy', record={})
+                stage='native_target_copy', record={}))
         self.assertEqual(owner.snapshot(), before)
         self.assertFalse(loads)
         self.assertFalse(fixture.owner.leases)
@@ -1302,11 +1435,16 @@ class OwnedNativeHostMovement(unittest.TestCase):
                     value['native_host_allocator'] = dict(state)
                 return value
             engine.ieee_gpu_reference = observed
+            finished = asyncio.Event()
+            original_execute = queue._execute
+            async def observed_execute(job):
+                try:
+                    return await original_execute(job)
+                finally:
+                    finished.set()
+            queue._execute = observed_execute
             task = asyncio.create_task(self.call(fixture, runner, slot))
-            for _ in range(50):
-                await asyncio.sleep(0)
-                if queue.deferred_observations(target_tier='host', reasons=('native_host_tensor_budget',)):
-                    break
+            await asyncio.wait_for(finished.wait(), 2)
             self.assertEqual(len(calls), 1)
             self.assertFalse(task.done())
             for _ in range(3):
@@ -1649,10 +1787,18 @@ class OwnedNativeHostMovement(unittest.TestCase):
                 return dict(admitted=False, reason='native_host_tensor_budget')
             native.owner.file_host_loader = defer
             runner._ieee_gpu_movement_owners = {native.owner.owner_id: engine}
+            finished = asyncio.Event()
+            original_execute = queue._execute
+            async def observed_execute(job):
+                try:
+                    return await original_execute(job)
+                finally:
+                    finished.set()
+            queue._execute = observed_execute
             task = asyncio.create_task(self.call(fixture, runner, slot))
-            # Drain ready callbacks, without a timer-triggered capacity retry.
-            for _ in range(40):
-                await asyncio.sleep(0)
+            # Observe actual deferred completion, not a fixed number of loop
+            # turns that can finish before the file executor is scheduled.
+            await asyncio.wait_for(finished.wait(), 2)
             self.assertEqual(len(calls), 1)
             self.assertFalse(task.done())
             self.assertFalse(fixture.owner.leases)
@@ -1930,6 +2076,37 @@ class ActivationPreparation(unittest.TestCase):
 
     The fixture's timing/layout constants are not measured model profiles.
     """
+    def test_cancelled_activation_reservation_returns_bytes_before_startup(self):
+        fixture, runner, queue, engine, _ = self.make()
+        async def run():
+            runner.engine_factory = AsyncMock(return_value=(engine, None))
+            entered, release = asyncio.Event(), threading.Event()
+            loop = asyncio.get_running_loop()
+            original = fixture.owner.reserve_activation_host
+            def reserve(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test activation reservation was not released')
+                return value
+            with patch.object(fixture.owner, 'reserve_activation_host', side_effect=reserve):
+                job = asyncio.create_task(runner._add_ieee_dedicated_instance(
+                    device_id=0, activation_kind='natural_scaleout'))
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(job.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+            runner.engine_factory.assert_not_awaited()
+            self.assertFalse(fixture.owner.host_budget_snapshot()['activation_reservations'])
+            self.assertEqual(runner._ieee_activations[0]['state'], 'cancelled')
+            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
+            await queue.close()
+        asyncio.run(run())
     def make(self, policy='full'):
         import copy
         import json
@@ -2792,6 +2969,37 @@ class ProactiveCostFeedback(unittest.TestCase):
 
 
 class IntegratedNativeHostReplacement(unittest.TestCase):
+    def test_cancelled_fallback_pins_join_and_release_before_native_commit(self):
+        factory, (fixture, runner, queue, slot, owner, _, _) = self.make()
+        async def run():
+            entered, release = asyncio.Event(), threading.Event()
+            loop = asyncio.get_running_loop()
+            original = fixture.owner.acquire_confirmed
+            blocked = []
+            def acquire(**kwargs):
+                value = original(**kwargs)
+                if owner.staged_models() and kwargs['adapter_id'] in ('b', 'c') and not blocked:
+                    blocked.append(value['lease_id'])
+                    loop.call_soon_threadsafe(entered.set)
+                    if not release.wait(5):
+                        raise TimeoutError('test fallback pin was not released')
+                return value
+            with patch.object(fixture.owner, 'acquire_confirmed', side_effect=acquire):
+                job = asyncio.create_task(factory.execute(runner, slot, mode='residency'))
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(job.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+            self.assertEqual(len(blocked), 1)
+            factory.check_clean(fixture, runner, owner)
+            await queue.close()
+        asyncio.run(run())
+
     def test_fallback_uses_pinned_observation_not_earlier_snapshot(self):
         """D634 receipt composition, not a reconstruction of a kernel event.
 
@@ -4913,6 +5121,40 @@ class FileObjectiveReplacement(unittest.TestCase):
 
 class SelectedFilePlans(unittest.TestCase):
     """Actual selector -> shared queue -> verified file owner, no GPU/model."""
+    def test_cancelled_registration_closes_actual_pending_targets_without_starting_io(self):
+        fixture, runner, queue, engine, _, plan = self.make()
+        async def run():
+            entered, release = asyncio.Event(), threading.Event()
+            loop = asyncio.get_running_loop()
+            original = fixture.owner.register_file_preparation_plan
+            def register(**kwargs):
+                value = original(**kwargs)
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(5):
+                    raise TimeoutError('test file registration was not released')
+                return value
+            with patch.object(fixture.owner, 'register_file_preparation_plan', side_effect=register):
+                job = asyncio.create_task(self.call(runner, engine, plan))
+                try:
+                    await asyncio.wait_for(entered.wait(), 2)
+                    job.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(job.done())
+                finally:
+                    release.set()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await job
+            record = runner._ieee_file_preparation_plans[0]
+            self.assertTrue(record['registration']['registered'])
+            self.assertTrue(record['close_receipt']['closed'])
+            self.assertEqual(record['state'], 'cancelled')
+            self.assertFalse(fixture.owner.file_preparation_snapshot()['plans'])
+            self.assertFalse(fixture.owner.materializations)
+            self.assertFalse(queue.snapshot())
+            fixture.client._opener.open.assert_not_called()
+            await queue.close()
+        asyncio.run(run())
+
     def make(self, *, source='remote', target='host', mode='handoff'):
         from faaslora.preloading.preloading_planner import (
             PreparationClass, PreparationOption, PreparationCostModel, PreloadingPlanner)

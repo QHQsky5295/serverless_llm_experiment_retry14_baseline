@@ -1,0 +1,1194 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collected 168 items
+
+tests/test_ieee_tc_planning_snapshot.py .F...FFF.FF.FFFFF   [ 10%]
+tests/test_ieee_tc_transfer_pressure.py ............F..F..........
+
+=================================== FAILURES ===================================
+_ PlanningSnapshot.test_every_epoch_reads_fresh_protection_and_never_reuses_selection _
+tests/test_ieee_tc_planning_snapshot.py:189: in test_every_epoch_reads_fresh_protection_and_never_reuses_selection
+    first = factory.plan(runner, slot)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:05 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:05 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 6.9 ms
+    remote artifact fetch a: 0.0 MB, 4.8 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ PlanningSnapshot.test_failed_or_cancelled_planning_never_publishes (error='ValueError') _
+tests/test_ieee_tc_planning_snapshot.py:101: in test_failed_or_cancelled_planning_never_publishes
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_failed_or_cancelled_planning_never_publishes (error='CancelledError') _
+tests/test_ieee_tc_planning_snapshot.py:101: in test_failed_or_cancelled_planning_never_publishes
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_full_and_projected_runner_plans_objectives_match_in_both_modes (mode='handoff') _
+tests/test_ieee_tc_planning_snapshot.py:182: in test_full_and_projected_runner_plans_objectives_match_in_both_modes
+    outputs.append(asyncio.run(run()))
+                   ^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:179: in run
+    plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_full_and_projected_runner_plans_objectives_match_in_both_modes (mode='residency') _
+tests/test_ieee_tc_planning_snapshot.py:182: in test_full_and_projected_runner_plans_objectives_match_in_both_modes
+    outputs.append(asyncio.run(run()))
+                   ^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:179: in run
+    plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected (name='union') _
+tests/test_ieee_tc_planning_snapshot.py:215: in test_global_union_alias_credit_and_protection_corruption_are_rejected
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected (name='alias') _
+tests/test_ieee_tc_planning_snapshot.py:215: in test_global_union_alias_credit_and_protection_corruption_are_rejected
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected (name='credit') _
+tests/test_ieee_tc_planning_snapshot.py:215: in test_global_union_alias_credit_and_protection_corruption_are_rejected
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected (name='gpu') _
+tests/test_ieee_tc_planning_snapshot.py:215: in test_global_union_alias_credit_and_protection_corruption_are_rejected
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_global_union_alias_credit_and_protection_corruption_are_rejected (name='missing_protection') _
+tests/test_ieee_tc_planning_snapshot.py:215: in test_global_union_alias_credit_and_protection_corruption_are_rejected
+    factory.plan(runner, slot)
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_initialized_planner_publishes_the_same_received_measurement _
+tests/test_ieee_tc_planning_snapshot.py:87: in test_initialized_planner_publishes_the_same_received_measurement
+    plan = factory.plan(runner, slot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:16 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:16 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ PlanningSnapshot.test_initialized_planner_uses_complete_native_graph_not_compact_wire _
+tests/test_ieee_tc_planning_snapshot.py:156: in test_initialized_planner_uses_complete_native_graph_not_compact_wire
+    plan = factory.plan(runner, slot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:17 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:17 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 4.2 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 6.1 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ PlanningSnapshot.test_real_planner_and_route_collector_share_one_measurement _
+tests/test_ieee_tc_planning_snapshot.py:64: in test_real_planner_and_route_collector_share_one_measurement
+    plan = factory.plan(runner, slot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:18 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:18 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 5.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ PlanningSnapshot.test_state_updated_during_planning_is_not_overwritten (advance_epoch=False) _
+tests/test_ieee_tc_planning_snapshot.py:128: in test_state_updated_during_planning_is_not_overwritten
+    plan = factory.plan(runner, slot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ PlanningSnapshot.test_state_updated_during_planning_is_not_overwritten (advance_epoch=True) _
+tests/test_ieee_tc_planning_snapshot.py:128: in test_state_updated_during_planning_is_not_overwritten
+    plan = factory.plan(runner, slot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1823: in plan
+    return asyncio.run(runner._plan_ieee_preparation_for_slot(slot=slot, mode=mode))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ ControlRoundFileObservation.test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling _
+tests/test_ieee_tc_planning_snapshot.py:453: in test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:441: in run
+    await runner._schedule_ieee_residency_epochs()
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:21 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 6.1 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_disabled_path_still_reads_each_replica_and_empty_round_reads_nothing _
+tests/test_ieee_tc_planning_snapshot.py:472: in test_disabled_path_still_reads_each_replica_and_empty_round_reads_nothing
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:465: in run
+    await asyncio.gather(*runner._ieee_residency_tasks.values())
+scripts/run_all_experiments.py:14181: in _execute_ieee_residency_epoch
+    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/unittest/mock.py:2302: in _execute_mock_call
+    result = await effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:460: in plan_only
+    return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20205: in _plan_ieee_preparation_for_slot
+    files = await self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:22 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:22 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 4.0 ms
+    remote artifact fetch d: 0.0 MB, 6.8 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_file_observation_yield_rechecks_removed_and_replaced_replicas (change='remove') _
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_planning_snapshot.py:273: in run
+    await asyncio.wait_for(entered.wait(), 2)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_ieee_tc_planning_snapshot.py:284: in test_file_observation_yield_rechecks_removed_and_replaced_replicas
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:280: in run
+    await job
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ ControlRoundFileObservation.test_file_observation_yield_rechecks_removed_and_replaced_replicas (change='replace') _
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_planning_snapshot.py:273: in run
+    await asyncio.wait_for(entered.wait(), 2)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_ieee_tc_planning_snapshot.py:284: in test_file_observation_yield_rechecks_removed_and_replaced_replicas
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:280: in run
+    await job
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+_ ControlRoundFileObservation.test_one_fresh_file_read_four_independent_native_plans _
+tests/test_ieee_tc_planning_snapshot.py:425: in test_one_fresh_file_read_four_independent_native_plans
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:391: in run
+    await runner._schedule_ieee_residency_epochs()
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:30 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:30 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.8 ms
+    remote artifact fetch c: 0.0 MB, 3.9 ms
+    remote artifact fetch d: 0.0 MB, 5.8 ms
+    remote artifact fetch a: 0.0 MB, 4.4 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_overlapping_file_observations_register_only_one_epoch _
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:520: in wait_for
+    return await fut
+           ^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/locks.py:212: in wait
+    await fut
+E   asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+tests/test_ieee_tc_planning_snapshot.py:313: in run
+    await asyncio.wait_for(entered.wait(), 2)
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/timeouts.py:115: in __aexit__
+    raise TimeoutError from exc_val
+E   TimeoutError
+
+During handling of the above exception, another exception occurred:
+tests/test_ieee_tc_planning_snapshot.py:322: in test_overlapping_file_observations_register_only_one_epoch
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:318: in run
+    await asyncio.gather(first, *([second] if second is not None else []))
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:31 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:31 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.5 ms
+    remote artifact fetch c: 0.0 MB, 3.6 ms
+    remote artifact fetch d: 0.0 MB, 5.9 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_received_shared_view_is_detached_and_still_uses_normal_executor _
+tests/test_ieee_tc_planning_snapshot.py:485: in test_received_shared_view_is_detached_and_still_uses_normal_executor
+    snapshot = asyncio.run(runner._ieee_preparation_file_snapshot())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:34 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:34 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 3.7 ms
+    remote artifact fetch d: 0.0 MB, 6.1 ms
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_shared_observation_cannot_be_used_for_handoff _
+tests/test_ieee_tc_planning_snapshot.py:481: in test_shared_observation_cannot_be_used_for_handoff
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:479: in run
+    file_snapshot=await runner._ieee_preparation_file_snapshot())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:34 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:34 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.6 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 5.8 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ ControlRoundFileObservation.test_shared_round_executes_remote_host_gpu_and_closes_real_ownership _
+tests/test_ieee_tc_planning_snapshot.py:526: in test_shared_round_executes_remote_host_gpu_and_closes_real_ownership
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_planning_snapshot.py:517: in run
+    await runner._schedule_ieee_residency_epochs()
+scripts/run_all_experiments.py:14147: in _schedule_ieee_residency_epochs
+    shared_files = await self._ieee_preparation_file_snapshot()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/run_all_experiments.py:20177: in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:162: in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:259: in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:136: in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:196: in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py:151: in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+E   TypeError: cannot pickle 'mappingproxy' object
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:35 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:35 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 5.2 ms
+    remote artifact fetch c: 0.0 MB, 3.5 ms
+    remote artifact fetch d: 0.0 MB, 3.9 ms
+    remote artifact fetch a: 0.0 MB, 4.3 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ OwnedNativeHostMovement.test_delayed_physical_return_wakes_real_host_movement_without_a_new_request _
+tests/test_ieee_tc_transfer_pressure.py:1419: in test_delayed_physical_return_wakes_real_host_movement_without_a_new_request
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1390: in run
+    self.assertEqual(len(calls), 1)
+E   AssertionError: 0 != 1
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:37 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:37 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 4.5 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+_ OwnedNativeHostMovement.test_native_host_deferral_is_not_retried_by_its_own_pressure_finish _
+tests/test_ieee_tc_transfer_pressure.py:1745: in test_native_host_deferral_is_not_retried_by_its_own_pressure_finish
+    asyncio.run(run())
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_ieee_tc_transfer_pressure.py:1736: in run
+    self.assertEqual(len(calls), 1)
+E   AssertionError: 0 != 1
+----------------------------- Captured stdout call -----------------------------
+2026-10-25 23:07:37 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-10-25 23:07:37 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 4.0 ms
+------------------------------ Captured log call -------------------------------
+INFO     faaslora.memory.residency_manager:logger.py:401 Residency manager initialized
+INFO     faaslora.preloading.preloading_manager:logger.py:401 Preloading manager initialized
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_every_epoch_reads_fresh_protection_and_never_reuses_selection
+SUBFAILED(error='ValueError') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_failed_or_cancelled_planning_never_publishes
+SUBFAILED(error='CancelledError') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_failed_or_cancelled_planning_never_publishes
+SUBFAILED(mode='handoff') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_full_and_projected_runner_plans_objectives_match_in_both_modes
+SUBFAILED(mode='residency') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_full_and_projected_runner_plans_objectives_match_in_both_modes
+SUBFAILED(name='union') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_global_union_alias_credit_and_protection_corruption_are_rejected
+SUBFAILED(name='alias') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_global_union_alias_credit_and_protection_corruption_are_rejected
+SUBFAILED(name='credit') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_global_union_alias_credit_and_protection_corruption_are_rejected
+SUBFAILED(name='gpu') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_global_union_alias_credit_and_protection_corruption_are_rejected
+SUBFAILED(name='missing_protection') tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_global_union_alias_credit_and_protection_corruption_are_rejected
+FAILED tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_initialized_planner_publishes_the_same_received_measurement
+FAILED tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_initialized_planner_uses_complete_native_graph_not_compact_wire
+FAILED tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_real_planner_and_route_collector_share_one_measurement
+SUBFAILED(advance_epoch=False) tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_state_updated_during_planning_is_not_overwritten
+SUBFAILED(advance_epoch=True) tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot::test_state_updated_during_planning_is_not_overwritten
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_cancel_one_native_observation_does_not_cancel_or_wait_for_sibling
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_disabled_path_still_reads_each_replica_and_empty_round_reads_nothing
+SUBFAILED(change='remove') tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_file_observation_yield_rechecks_removed_and_replaced_replicas
+SUBFAILED(change='replace') tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_file_observation_yield_rechecks_removed_and_replaced_replicas
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_one_fresh_file_read_four_independent_native_plans
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_overlapping_file_observations_register_only_one_epoch
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_received_shared_view_is_detached_and_still_uses_normal_executor
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_shared_observation_cannot_be_used_for_handoff
+FAILED tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation::test_shared_round_executes_remote_host_gpu_and_closes_real_ownership
+FAILED tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement::test_delayed_physical_return_wakes_real_host_movement_without_a_new_request
+FAILED tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement::test_native_host_deferral_is_not_retried_by_its_own_pressure_finish
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py:123: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+============ 26 failed, 30 passed, 19 warnings in 92.10s (0:01:32) =============
+Task exception was never retrieved
+future: <Task finished name='Task-480' coro=<ScenarioRunner._add_dedicated_instance_slot() done, defined at /home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py:15001> exception=TypeError("cannot pickle 'mappingproxy' object")>
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py", line 15021, in _add_dedicated_instance_slot
+    return await self._add_ieee_dedicated_instance(device_id=device_id,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py", line 15257, in _add_ieee_dedicated_instance
+    view = await self._ieee_preparation_file_snapshot()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py", line 20177, in _ieee_preparation_file_snapshot
+    return await files.call_async(files.preparation_snapshot, manifests=copy.deepcopy(manifests),
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py", line 162, in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py", line 259, in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py", line 136, in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py", line 196, in _deepcopy_list
+    append(deepcopy(a, memo))
+           ^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py", line 151, in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+TypeError: cannot pickle 'mappingproxy' object

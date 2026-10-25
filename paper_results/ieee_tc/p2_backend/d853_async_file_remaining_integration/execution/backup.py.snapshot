@@ -1,0 +1,25 @@
+"""Reuse D850 explicit-file backup without touching the diverged V2 ref."""
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+source = (RAW.parent/'d850_20261025/backup_executed.py.snapshot').read_text()
+for old, new in (
+    ('d850_publication_dependency', 'd853_async_file_remaining_integration'),
+    ('D850_PUBLICATION_LEASE_DEPENDENCY_20261025.md', 'D853_ASYNC_FILE_REMAINING_INTEGRATION_20261025.md'),
+    ('b21a1b8719200ed43a88eb586386c7f0c2b9cfb5', 'f1b6dd7304835f8b7434ef9fa46ef6915c6cf0d7'),
+    ('backup/d850-publication-dependency-20261025', 'backup/d853-async-file-complete-20261025'),
+    ('tc: preserve bounded early-publication lease dependency evidence (D850)',
+     'tc: complete async file planning and owned HOST preparation integration (D853)'),
+    ("ROOT/'tests/test_ieee_tc_request_lifecycle.py',",
+     "ROOT/'tests/test_ieee_tc_launch.py',\n"
+     "         ROOT/'tests/test_ieee_tc_native_retirement.py',\n"
+     "         ROOT/'tests/test_ieee_tc_planning_snapshot.py',\n"
+     "         ROOT/'tests/test_ieee_tc_transfer_pressure.py',\n"
+     "         ROOT/'faaslora/scheduling/resource_coordinator.py',\n"
+     "         ROOT/'scripts/run_all_experiments.py',"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+with (RAW/'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW/'backup_executed.py.snapshot'), 'exec'), globals())

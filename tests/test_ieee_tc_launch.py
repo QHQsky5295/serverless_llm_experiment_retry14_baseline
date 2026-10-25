@@ -1652,6 +1652,18 @@ class IEEEControlContract(unittest.TestCase):
 
 
 class IEEEActualControl(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # This suite exercises control/ownership, not process transport. Reuse
+        # the same serialized selector fixture as the file integration tests.
+        from tests import test_ieee_tc_transfer_pressure as fixtures
+        fixtures.setUpModule()
+
+    @classmethod
+    def tearDownClass(cls):
+        from tests import test_ieee_tc_transfer_pressure as fixtures
+        fixtures.tearDownModule()
+
     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):
         fixture, files, service, queue, engine = self.make('no_handoff')
         coord, preload = elastic_locality_configuration_fixture()
@@ -1675,7 +1687,7 @@ class IEEEActualControl(unittest.TestCase):
                               AsyncMock(side_effect=AssertionError('proactive preparation'))):
                 self.assertTrue(await self.evaluate(service,result,coord_enabled=False))
                 await service._wait_for_pending_scale_up_tasks()
-                service._schedule_ieee_residency_epochs()
+                await service._schedule_ieee_residency_epochs()
             self.assertEqual(service.instance_pool.count(),1)
             self.assertEqual(len(result.scale_up_events),1)
             event = result.scale_up_events[0]
@@ -1771,9 +1783,9 @@ class IEEEActualControl(unittest.TestCase):
         async def run():
             self.assertFalse((files.nvme/'a').exists())
             service._hierarchical_residency_enabled=True
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             task=service._ieee_residency_tasks[id(engine)]
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             self.assertIs(service._ieee_residency_tasks[id(engine)],task)
             await task
             service._reap_ieee_residency_tasks()
@@ -1806,7 +1818,7 @@ class IEEEActualControl(unittest.TestCase):
             service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
             service._hierarchical_residency_enabled=True
             service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=ValueError('missing class'))
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             await asyncio.gather(*service._ieee_residency_tasks.values(),return_exceptions=True)
             with self.assertRaisesRegex(ValueError,'missing class'): service._reap_ieee_residency_tasks()
             self.assertEqual(service._ieee_residency_epochs[0]['state'],'failed')
@@ -1940,9 +1952,9 @@ class IEEEActualControl(unittest.TestCase):
             service._scaleup_runtime_handoff_plans={}
             service._scaleup_runtime_lora_request_ordinals={}
             service._cancel_runtime_gpu_forward_tasks=AsyncMock()
-            service._retire_ieee_host_budget=Mock()
+            service._retire_ieee_host_budget = AsyncMock()
             service._sync_stack_gpu_accounting=Mock()
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             await entered.wait()
             removed=service.instance_pool.remove_instance(sid)
             retiring=asyncio.create_task(service._cleanup_removed_slot(removed))
@@ -1959,6 +1971,16 @@ class IEEEActualControl(unittest.TestCase):
 
 
 class IEEEInitialDeployment(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from tests import test_ieee_tc_transfer_pressure as fixtures
+        fixtures.setUpModule()
+
+    @classmethod
+    def tearDownClass(cls):
+        from tests import test_ieee_tc_transfer_pressure as fixtures
+        fixtures.tearDownModule()
+
     def test_main_deployment_contract_rejects_reuse_and_nonowned_runtime(self):
         model = dict(backend='vllm', ieee_gpu_references=True)
         coord = dict(routing_policy='ieee_confirmed', instance_mode='dedicated')
@@ -2024,7 +2046,7 @@ class IEEEInitialDeployment(unittest.TestCase):
         service._cancel_runtime_gpu_forward_tasks = AsyncMock()
         service._sync_stack_gpu_accounting = Mock()
         # CPU fixture uses this test process, not an exited native worker.
-        service._retire_ieee_host_budget = Mock()
+        service._retire_ieee_host_budget = AsyncMock()
         return fixture, files, service, queue, engine
 
     def test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin(self):
@@ -2502,7 +2524,7 @@ class FullPreparationEntryIsolation(unittest.TestCase):
         service=runner.ScenarioRunner.__new__(runner.ScenarioRunner)
         service._hierarchical_residency_enabled=False
         service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=AssertionError('proactive'))
-        service._schedule_ieee_residency_epochs()
+        asyncio.run(service._schedule_ieee_residency_epochs())
         service._run_ieee_owned_preparation_plan.assert_not_called()
         self.assertFalse(hasattr(service, '_ieee_residency_tasks'))
 

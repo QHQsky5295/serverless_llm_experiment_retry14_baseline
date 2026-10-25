@@ -1,0 +1,123 @@
+"""D852 closure/source checks, reusing completed affected tests across attempts."""
+import ast
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d853_async_file_remaining_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def methods(source):
+    result = {}
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.ClassDef):
+            for item in node.body:
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    result[node.name, item.name] = ast.dump(item, include_attributes=False)
+    return result
+def covered(selectors, snapshot):
+    result = {}
+    for selector in selectors:
+        path, cls, *name = selector.split('::')
+        for (c, method), body in methods((snapshot/path).read_text()).items():
+            if c == cls and method.startswith('test_') and (not name or method == name[0]):
+                result[path+'::'+c+'::'+method] = body
+    return result
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+expected = [('attempt1', 2, '26 failed, 30 passed'),
+    ('attempt2', 2, '133 passed'), ('attempt3', 1, '1 failed, 56 passed'),
+    ('attempt4', 0, '1 passed')]
+attempts = []
+for name, rc, summary in expected:
+    row = read(OUT/name/'resources.json')
+    identity = row['identity']
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+    assert row['test_returncode'] == rc
+    assert row['resources']['memory.swap.current'] == 0
+    events = row['resources']['memory.events']
+    assert events['max'] == events['oom'] == events['oom_kill'] == 0
+    assert events['high'] == (32575 if name == 'attempt2' else 0)
+    assert summary in (OUT/name/'tests.txt').read_text()
+    assert p.digest(RAW/name/'check.py.snapshot') == row['program_sha256']
+    for source in row['sources']:
+        path = Path(source['path'])
+        assert p.digest(RAW/name/'sources'/path.relative_to(ROOT)) == source['sha256']
+    attempts.append(dict(attempt=name, returncode=rc, summary=summary,
+        identity=identity, path_removed=True, resource=ref(OUT/name/'resources.json')))
+
+# Reuse only actually completed cases. The third attempt's one failed case
+# is supplied by attempt4, not quietly counted as passing.
+second = read(OUT/'attempt2/resources.json')
+passing = covered(second['tests'][:11], RAW/'attempt2/sources')
+assert len(passing) == 130
+third = covered(read(OUT/'attempt3/resources.json')['tests'], RAW/'attempt3/sources')
+assert len(third) == 57
+failed = 'tests/test_ieee_tc_native_retirement.py::RuntimeQuarantine::test_confirmed_exit_releases_local_pin_without_inventing_native_rpc_ack'
+del third[failed]
+passing.update(third)
+passing.update(covered(read(OUT/'attempt4/resources.json')['tests'], RAW/'attempt4/sources'))
+assert len(passing) == 187
+for selector, body in passing.items():
+    path, cls, name = selector.split('::')
+    assert methods((ROOT/path).read_text())[cls, name] == body
+assert p.digest(ROOT/'scripts/run_all_experiments.py') == next(
+    row['sha256'] for row in second['sources'] if row['path'].endswith('/scripts/run_all_experiments.py'))
+assert p.digest(ROOT/'faaslora/scheduling/resource_coordinator.py') == next(
+    row['sha256'] for row in read(OUT/'attempt3/resources.json')['sources']
+    if row['path'].endswith('/faaslora/scheduling/resource_coordinator.py'))
+new_tests = []
+for path in ('tests/test_ieee_tc_transfer_pressure.py', 'tests/test_ieee_tc_planning_snapshot.py'):
+    previous = methods(subprocess.check_output(['git', 'show', 'HEAD:'+path], cwd=ROOT, text=True))
+    for cls, name in methods((ROOT/path).read_text()):
+        if name.startswith('test_') and (cls, name) not in previous:
+            new_tests.append(path+'::'+cls+'::'+name)
+assert len(new_tests) == 9 and set(new_tests).issubset(passing)
+protected = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+for path in ('faaslora/memory/residency_manager.py', 'faaslora/preloading/preloading_manager.py',
+             'faaslora/preloading/preloading_planner.py'):
+    assert (ROOT/path).read_bytes() == subprocess.check_output(['git', 'show', 'HEAD:'+path], cwd=ROOT)
+execution = OUT/'execution'
+execution.mkdir()
+for name in ('check.py', 'close.py', 'backup.py'):
+    path = RAW/name
+    compile(path.read_text(), str(path), 'exec')
+    shutil.copyfile(path, execution/(name+'.snapshot'))
+for attempt, _, _ in expected:
+    shutil.copyfile(RAW/attempt/'check.py.snapshot', execution/(attempt+'_check.py.snapshot'))
+shutil.copyfile(RAW.parent/'d850_20261025/backup_executed.py.snapshot', execution/'backup_base.py.snapshot')
+doc = ROOT/'docs/ieee_tc/D853_ASYNC_FILE_REMAINING_INTEGRATION_20261025.md'
+save(OUT/'closure.json', dict(passed=True, scope=scope, attempts=attempts,
+    protected=protected, user_protected=user, doc=ref(doc),
+    source_files=[ref(Path(row['path'])) for row in read(OUT/'attempt4/resources.json')['sources']],
+    owner_primitives_and_planner_unchanged=True, production_integration_complete=True,
+    tests=dict(distinct_passed=len(passing), new=new_tests, covered=sorted(passing)),
+    new_gpu_replays=0, n_correct=None, ranking_eligible=False,
+    next_step='Back up then reuse D846 entry for one complete 3B W2, with unchanged frozen protocol.',
+    disk_available_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, distinct_tests_passed=len(passing),
+    new_tests=len(new_tests), new_gpu_replays=0, integration_complete=True)))

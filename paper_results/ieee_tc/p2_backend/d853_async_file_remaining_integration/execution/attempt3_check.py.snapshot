@@ -1,0 +1,91 @@
+"""D852 bounded check entry, selecting only remaining file-owner consumers."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d853_async_file_remaining_integration'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+assert os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize >= 150*1024**3
+assert p.digest(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')) == \
+    'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == \
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+attempt = sys.argv[1]
+assert attempt in ('attempt1', 'attempt2', 'attempt3')
+out = OUT/attempt
+out.mkdir(parents=True, exist_ok=False)
+snapshot = RAW/attempt/'sources'
+snapshot.mkdir(parents=True, exist_ok=False)
+sources = ['scripts/run_all_experiments.py', 'faaslora/scheduling/resource_coordinator.py',
+    'tests/test_ieee_tc_launch.py',
+    'tests/test_ieee_tc_native_retirement.py', 'tests/test_ieee_tc_planning_snapshot.py',
+    'tests/test_ieee_tc_transfer_pressure.py']
+for name in sources:
+    path = ROOT/name
+    compile(path.read_text(), str(path), 'exec')
+    target = snapshot/name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(path, target)
+shutil.copyfile(Path(__file__), RAW/attempt/'check.py.snapshot')
+identity = p.scope_identity(p.cg_path().name)
+save(out/'identity.json', identity)
+if attempt == 'attempt1':
+    protected = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+    assert protected['pass'] and protected['entry_count'] == 147
+    save(out/'protected_before.json', protected)
+tests = [
+    'tests/test_ieee_tc_planning_snapshot.py::PlanningSnapshot',
+    'tests/test_ieee_tc_planning_snapshot.py::ControlRoundFileObservation',
+    'tests/test_ieee_tc_transfer_pressure.py::ManagedHostOwnership',
+    'tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement',
+    'tests/test_ieee_tc_transfer_pressure.py::ActivationPreparation',
+    'tests/test_ieee_tc_transfer_pressure.py::MixedOwnedPreparation',
+    'tests/test_ieee_tc_transfer_pressure.py::IntegratedNativeHostReplacement',
+    'tests/test_ieee_tc_transfer_pressure.py::AutomaticGPUReplacement',
+    'tests/test_ieee_tc_transfer_pressure.py::NonTargetBindingExpiry',
+    'tests/test_ieee_tc_transfer_pressure.py::AutomaticFileReplacement',
+    'tests/test_ieee_tc_transfer_pressure.py::SelectedFilePlans',
+    'tests/test_ieee_tc_launch.py::IEEEActualControl',
+    'tests/test_ieee_tc_launch.py::IEEEInitialDeployment',
+    'tests/test_ieee_tc_launch.py::FullPreparationEntryIsolation::test_disabled_residency_has_no_planner_or_native_side_effect',
+    'tests/test_ieee_tc_native_retirement.py::RuntimeQuarantine',
+]
+if attempt == 'attempt3':
+    # The first 130 entries completed in attempt2. Recheck only remaining
+    # launcher/retirement paths and the new cancellation/timestamp cases.
+    tests = tests[-4:] + [
+        'tests/test_ieee_tc_transfer_pressure.py::SharedPressure',
+        'tests/test_ieee_tc_transfer_pressure.py::OwnedNativeHostMovement::test_cancelled_file_pin_is_adopted_and_released_before_any_native_load',
+        'tests/test_ieee_tc_transfer_pressure.py::IntegratedNativeHostReplacement::test_cancelled_fallback_pins_join_and_release_before_native_commit',
+    ]
+rc = None
+try:
+    with (out/'tests.txt').open('x') as stream:
+        rc = subprocess.run([sys.executable, '-B', '-m', 'pytest', '-q',
+            '-p', 'no:cacheprovider', *tests], cwd=ROOT, stdout=stream,
+            stderr=subprocess.STDOUT, timeout=300).returncode
+finally:
+    save(out/'resources.json', dict(identity=identity,
+        resources=p.cgroup_snapshot(Path(identity['path'])), test_returncode=rc,
+        program_sha256=p.digest(Path(__file__)),
+        sources=[dict(path=str(ROOT/name), sha256=p.digest(snapshot/name)) for name in sources],
+        tests=tests, production_integration_complete=False,
+        new_gpu_replays=0, n_correct=None, ranking_eligible=False))
+print(json.dumps(dict(passed=rc == 0, attempt=attempt, new_gpu_replays=0)))
+raise SystemExit(rc)
