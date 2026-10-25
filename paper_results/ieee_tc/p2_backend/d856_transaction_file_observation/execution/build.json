@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cc",
+    "-std=c11",
+    "-O2",
+    "-fPIC",
+    "-shared",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/native_file_stat_batch.c",
+    "-o",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d856_20261026/native_file_stat_batch.so"
+  ],
+  "returncode": 0,
+  "compiler": "cc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "source_sha256": "4edce93b7c55e296a678e63b6a7498798f37a547b62503c5560283c062c4a991"
+}

@@ -1,4 +1,32 @@
-# IEEE TC execution status — D855 paired diagnosis and exact async rollback
+# IEEE TC execution status — D856 native observation boundary closed
+
+## 2026-10-26 D856：CPU事务边界无净收益，未接入生产
+
+复用D844 driver、微型发布fixture和D557已关闭1003路径元数据目录；首次
+native记录保留在一次观察内，第二次实际lstat在native验证，不产生第二套
+Python元数据。19项相关检查通过，完整输出一致，无GPU/remote/新工件。
+capture均值11.042218→11.090363ms（+0.4360%），非capture
+9.385450→9.935520ms（+5.8609%）；各3次组件调用非性能独立重复/CI。
+没有净收益，关闭该ctypes边界候选，不追加GPU、不改在线生产代码。所有点
+和诊断源保留。资源峰值1426817024B，high/max/OOM/swap0，147保护项不变。
+
+D846仍3715/4000=92.875%，U11929.629332预算内，差85请求；D711数值正确性
+仍未知、n_correct=null/ranking=false。下一复用D843调用者与D846阶段记录，
+只核查一次业务事务是否重复发起同范围观察，先明确真实状态变化；不再微调
+stat实现，不重复D153/D606/D610/D834的已完成优化，不缓存旧容量/来源事实。
+必须有具体可删除工作才立下一候选。D851–D853仍撤回，不重跑D854。
+
+下一保存本次结果/源码并备份；完整同版两模型、baseline/dLoRA、A1–A5、
+S1–S13、数值正确性、文档/图表/最终V2未完成。HydraServe隔离结果复用，
+原k3s不动。goal active。以下为历史记录。
+
+备份回执：38个明确文件提交5d076412080bf5617ffaf7c2ea7a49d6447f5d36，
+已推送backup/d855-async-rollback-20261026并以ls-remote核实同SHA；无force，
+最终V2仍未同步。原始反向diff快照的空白context逐字节保留，仅该快照排除
+尾空白格式检查，生产/测试正常检查。user manifest未stage，staging已空。
+01–05本轮辅助域均结束，GPU空闲，磁盘182716289024B约170.17GiB可用。
+本后置回执随下一正常检查点保存，不为回执递归备份。下一按下述有界核查
+继续主线，不重跑D846/D854，也不重启已完成HydraServe适配。
 
 ## 2026-10-26 D855：负向候选已撤回，3B W2目标仍开放
 

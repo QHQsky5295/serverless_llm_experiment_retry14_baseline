@@ -1,0 +1,72 @@
+"""Close D856 CPU component evidence without any serving mutation or remeasurement."""
+import csv
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d856_transaction_file_observation'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+assert not OUT.exists()
+assert os.sched_getaffinity(0) == {2,3,26,27}
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'curate_identity.json', scope)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+source = json.loads((RAW/'component_result.json').read_text())
+assert source['passed'] and len(source['tests']) == 19
+assert source['production_source_unchanged'] and not source['formal_performance']
+unit = json.loads((RAW/'component_identity.json').read_text())
+assert not Path(unit['path']).exists()
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+protected = ROOT/'configs/generated/lora_manifest_1000.json'
+assert p.digest(protected) == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert p.digest(ROOT/'faaslora/memory/residency_manager.py') == source['old_source_sha256']
+OUT.mkdir()
+(OUT/'execution').mkdir()
+for name in ('component.py', 'component_program.py.snapshot', 'template_reuse.json',
+             'component_identity.json', 'component_result.json', 'build.json', 'curate.py'):
+    target = OUT/('component_result.json' if name == 'component_result.json' else
+        'execution/'+name+('.snapshot' if name.endswith('.py') else ''))
+    with target.open('xb') as stream:
+        stream.write((RAW/name).read_bytes())
+with (OUT/'execution/build.txt').open('xb') as stream:
+    stream.write((RAW/'build.log').read_bytes())
+with (OUT/'component_calls.csv').open('x', newline='') as stream:
+    writer = csv.DictWriter(stream, fieldnames=list(source['rows'][0]), lineterminator='\n')
+    writer.writeheader()
+    writer.writerows(source['rows'])
+groups = []
+for capture in (False, True):
+    values = {row['variant']: row['mean_seconds'] for row in source['groups'] if row['capture'] == capture}
+    groups.append(dict(capture=capture, **values,
+        lower_better_improvement=(values['parent']-values['prototype'])/values['parent']))
+save(OUT/'decision.json', dict(decision='not_integrated_no_net_component_gain',
+    comparison=groups, component_calls_per_variant_mode=3, gpu_runs=0,
+    correctness_scope='19 file observation checks, not model numerical correctness',
+    serving_source_changed=False, performance_target_achieved=False,
+    n_correct=None, ranking_eligible=False,
+    metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    plan_sha256=p.check_plan(), source_sha256=p.digest(RAW/'component_result.json')))
+doc = ROOT/'docs/ieee_tc/D856_TRANSACTION_FILE_OBSERVATION_20261026.md'
+files = [path for path in sorted(OUT.rglob('*')) if path.is_file()]
+save(OUT/'final_manifest.json', dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in files],
+    native_library=dict(path=str(RAW/'native_file_stat_batch.so'),sha256=p.digest(RAW/'native_file_stat_batch.so'))))
+save(OUT/'closure.json',dict(passed=True, component_domain_gone=True,
+    user_protected={str(protected):p.digest(protected)},
+    doc=dict(path=str(doc),sha256=p.digest(doc)),
+    protected_147_unchanged=True, native_cuda_initialized=False,
+    serving_source_unchanged=True, scope=scope,
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+print(json.dumps(dict(passed=True,groups=groups,output=str(OUT))))

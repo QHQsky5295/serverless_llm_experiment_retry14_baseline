@@ -1,0 +1,28 @@
+{
+  "decision": "not_integrated_no_net_component_gain",
+  "comparison": [
+    {
+      "capture": false,
+      "parent": 0.009385450277477503,
+      "prototype": 0.009935519813249508,
+      "lower_better_improvement": -0.058608752857816596
+    },
+    {
+      "capture": true,
+      "parent": 0.011042217879245678,
+      "prototype": 0.011090363065401712,
+      "lower_better_improvement": -0.004360101084993569
+    }
+  ],
+  "component_calls_per_variant_mode": 3,
+  "gpu_runs": 0,
+  "correctness_scope": "19 file observation checks, not model numerical correctness",
+  "serving_source_changed": false,
+  "performance_target_achieved": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_sha256": "06b251d14286975911417aa040416653e9688f16fdc8dbbd4b6021cf5fdb550c"
+}

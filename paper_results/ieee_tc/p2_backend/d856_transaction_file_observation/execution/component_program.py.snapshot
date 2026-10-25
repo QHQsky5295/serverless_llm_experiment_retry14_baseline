@@ -1,0 +1,299 @@
+"""D457 AST comparison method: one fresh traversal prototype, no serving edit."""
+import ast
+import inspect
+from scripts.ieee_tc.file_stat_batch_witness import load_query, load_tree_scan, tree_inventory_witness
+from collections import Counter
+import contextlib
+import cProfile
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import pstats
+import statistics
+import subprocess
+import sys
+import time
+from unittest.mock import patch
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from faaslora.memory import residency_manager as module
+from faaslora.storage.http_artifact_store import FrozenPreparationDescriptions
+from tests.test_ieee_tc_file_observation import FreshFileObservation, without_capture_times
+
+def save(name, value):
+    with (RAW/name).open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+
+identity = p.scope_identity(p.cg_path().name)
+save('component_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert not Path('/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/'
+    'primelora-tc-aux-84300000000000000000000000000006.scope').exists()
+assert os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize >= 150*p.GIB
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.verify_seal(seal)['pass']
+old_commit = '5d076412080bf5617ffaf7c2ea7a49d6447f5d36'
+relative = 'faaslora/memory/residency_manager.py'
+old_source = subprocess.check_output(['git','show',old_commit+':'+relative],cwd=ROOT)
+assert hashlib.sha256(old_source).hexdigest() == p.digest(ROOT/relative)
+node = next(n for n in ast.parse(old_source).body if isinstance(n,ast.FunctionDef) and n.name=='_local_file_inventory')
+parent_text = ast.get_source_segment(old_source.decode(),node)
+
+
+library = RAW/'native_file_stat_batch.so'
+assert not library.exists()
+command = ['cc', '-std=c11', '-O2', '-fPIC', '-shared', '-Wall', '-Wextra', '-Werror',
+    str(ROOT/'scripts/ieee_tc/native_file_stat_batch.c'), '-o', str(library)]
+with (RAW/'build.log').open('x') as stream:
+    build = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=60)
+save('build.json', dict(command=command, returncode=build.returncode,
+    compiler=subprocess.check_output(['cc','--version'],text=True),
+    source_sha256=p.digest(ROOT/'scripts/ieee_tc/native_file_stat_batch.c')))
+assert build.returncode == 0
+query, scan = load_query(library), load_tree_scan(library)
+candidate, candidate_text = tree_inventory_witness(module._local_file_inventory, scan)
+functions = {'parent': module._local_file_inventory, 'prototype': candidate}
+assert list(query([])) == []
+with scan({}) as empty:
+    assert list(empty.observations()) == []
+    empty.validate(set(), {})
+assert empty.closed and not empty.pointer
+
+rows, profiles, tests = [], [], []
+case = FreshFileObservation()
+try:
+    with contextlib.redirect_stdout(io.StringIO()):
+        fixture, owner, manifests, limits = case.make()
+    manifests.update({f'absent-{i}':dict(manifests['a']) for i in range(496)})
+    manifests = FrozenPreparationDescriptions(manifests)
+    owner.preparation_snapshot(manifests=manifests,limits=limits)
+    actual = {}
+    for variant,function in functions.items():
+        with patch.object(module,'_local_file_inventory',function):
+            actual[variant] = without_capture_times(owner.preparation_snapshot(manifests=manifests,limits=limits))
+    assert actual['parent'] == actual['prototype']
+    tests.append('existing_fixture_preparation_snapshot_exact')
+    file = next(pth for pth in (fixture.nvme/'a').rglob('*') if pth.is_file())
+    original_stat = os.stat
+
+    for variant,function in functions.items():
+        mutations, count = [], [0]
+        def mutate():
+            info = original_stat(file)
+            os.utime(file, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+            mutations.append(str(file))
+        def mutate_second(path,*args,**kwargs):
+            if str(path) == str(file) and kwargs.get('follow_symlinks') is False:
+                count[0] += 1
+                if count[0] == 2: mutate()
+            return original_stat(path,*args,**kwargs)
+        sessions = []
+        @contextlib.contextmanager
+        def mutation_scan(roots):
+            with scan(roots) as session:
+                sessions.append(session)
+                actual_validate = session.validate
+                def check(writers, bounds):
+                    mutate()
+                    return actual_validate(writers, bounds)
+                session.validate = check
+                yield session
+        captured = {}
+        with (patch.object(os, 'stat', mutate_second) if variant == 'parent' else
+              patch.dict(function.__globals__, {'_scan_file_tree': mutation_scan})):
+            try:
+                function({'nvme':fixture.nvme}, _observed_stats=captured)
+            except RuntimeError as error:
+                assert 'changed while collecting footprint' in str(error)
+            else: raise AssertionError('second-stat mutation was accepted')
+        assert captured == {} and len(mutations) == 1
+        assert all(s.closed and not s.pointer for s in sessions)
+        tests.append(variant+'_second_stat_mutation_rejected_without_export')
+    # Check native fields against each original os.stat field and missing-file
+    # errors. No payload contents are read.
+    paths = [str(path) for path in fixture.nvme.rglob('*')]
+    for path, observed in zip(paths, query(paths), strict=True):
+        expected_stat = os.stat(path, follow_symlinks=False)
+        assert all(getattr(expected_stat, field) == getattr(observed, field)
+            for field in observed._fields)
+    missing = str(fixture.nvme/'not-present-d844')
+    try:
+        list(query([str(file), missing]))
+    except FileNotFoundError as error:
+        assert error.filename == missing
+    else:
+        raise AssertionError('missing path accepted')
+    tests.append('native_fields_and_missing_path_exact')
+    failed = scan({'nvme': missing})
+    try:
+        with failed: pass
+    except FileNotFoundError as error: assert error.filename == missing
+    else: raise AssertionError('native scan accepted missing root')
+    assert failed.closed and not failed.pointer
+    with scan(owner.roots) as session:
+        for tier, path, observed in session.observations():
+            fresh = original_stat(path, follow_symlinks=False)
+            assert all(getattr(fresh, field) == getattr(observed, field) for field in observed._fields)
+        session.validate(set(), owner._file_allocations)
+        assert session.first_stat_count == session.second_stat_count == len(session.rows)
+    assert session.closed and not session.pointer
+    tests.append('native_first_fields_fresh_second_count_and_cleanup')
+    # Active writers may change timestamps, never size/inode/links or envelope.
+    info = original_stat(file); key = (info.st_dev, info.st_ino)
+    with scan({'nvme': file}) as session:
+        os.utime(file, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+        session.validate({key}, {})
+    with scan({'nvme': file}) as session:
+        try: session.validate({key}, {key: dict(data_bytes=0, ceiling_bytes=0)})
+        except RuntimeError as error: assert 'reserved envelope' in str(error)
+        else: raise AssertionError('active writer bypassed allocation limit')
+    tests.append('active_writer_timestamps_only_and_live_envelope')
+    # Existing settlement tests run against the cloned inventory. Counts that
+    # intentionally observe Python os.stat are tested separately below.
+    with patch.object(module, '_local_file_inventory', functions['prototype']):
+        for name in ('test_uninitialized_extent_keeps_envelope_in_single_fresh_inventory',
+                     'test_mutation_during_extent_probe_cannot_escape_as_successful_observation',
+                     'test_missing_tree_withdraws_and_unknown_copy_is_not_remote'):
+            extra = FreshFileObservation()
+            try:
+                getattr(extra, name)()
+            finally:
+                extra.doCleanups()
+            tests.append(name)
+    before = functions['prototype']({'nvme':fixture.nvme})
+    info=file.stat();os.utime(file,ns=(info.st_atime_ns,info.st_mtime_ns+1_000_000_000))
+    captured={};functions['prototype']({'nvme':fixture.nvme},_observed_stats=captured)
+    assert captured[str(file)].st_mtime_ns==file.stat().st_mtime_ns
+    tests.append('prototype_new_call_observes_current_stat')
+    for variant,function in functions.items():
+        info=file.stat();key=(info.st_dev,info.st_ino)
+        try:
+            function({'nvme':fixture.nvme},allocation_bounds={key:dict(data_bytes=0,ceiling_bytes=0)})
+        except RuntimeError as error:
+            assert 'reserved envelope' in str(error)
+        else:
+            raise AssertionError('over-envelope allocation accepted')
+        tests.append(variant+'_allocation_bound_rejected')
+    for kind in ('symlink','fifo'):
+        path=fixture.nvme/('d605-'+kind)
+        if kind=='symlink':path.symlink_to(file)
+        else:os.mkfifo(path)
+        try:
+            for variant,function in functions.items():
+                try:function({'nvme':fixture.nvme})
+                except ValueError as error:assert 'rejects links/special files' in str(error)
+                else:raise AssertionError('special path accepted')
+                tests.append(variant+'_'+kind+'_rejected')
+        finally:path.unlink()
+    # Alias accounting and order including Unicode/nested/prefix siblings.
+    for name in ('index-a','index-ab','index-中文',os.fsdecode(b'index-\xff')):
+        path=fixture.nvme/name/'nested';path.mkdir(parents=True)
+        os.link(file,path/'alias')
+    for capture in (False,True):
+        observed={}
+        for variant,function in functions.items():
+            stats={}
+            value=function(owner.roots,allocation_bounds=owner._file_allocations,
+                _observed_stats=stats if capture else None)
+            observed[variant]=(value,{str(k):(v.st_dev,v.st_ino,v.st_mode,v.st_size,v.st_blocks,
+                v.st_nlink,v.st_mtime_ns,v.st_ctime_ns) for k,v in stats.items()})
+        assert observed['parent']==observed['prototype']
+    tests.append('tiny_alias_and_nested_order_exact')
+finally:
+    case.doCleanups()
+
+pool = Path('/tmp/tc-d557-7bv/remote_artifacts')
+assert pool.resolve()==pool and pool.is_dir()
+closed = json.loads((RAW.parent.parent/'vllm_qualification/d557_20261016/publication_closure.json').read_text())
+assert closed['passed'] and closed['actual_recursive_procs_empty'] and closed['path_gone']
+assert not Path(closed['identity']['path']).exists()
+roots={'nvme':pool}
+# Warm metadata using both variants; do not drop caches or read weight contents.
+for function in functions.values():function(roots)
+expected=None
+for capture in (False,True):
+    for repeat in range(3):
+        order=('parent','prototype') if repeat%2==0 else ('prototype','parent')
+        for variant in order:
+            captured={}
+            start_cpu=time.process_time()
+            start=time.perf_counter()
+            value=functions[variant](roots,_observed_stats=captured if capture else None)
+            elapsed=time.perf_counter()-start
+            cpu_elapsed=time.process_time()-start_cpu
+            if expected is None:expected=value
+            assert value==expected
+            rows.append(dict(variant=variant,capture=capture,repeat=repeat,elapsed_seconds=elapsed,cpu_seconds=cpu_elapsed,
+                file_count=value['unique_file_count'],path_count=sum(len(a['paths']) for a in value['allocations']),
+                exact_output=True))
+    counts={}
+    for variant in functions:
+        calls=Counter()
+        def counted_stat(path,*args,**kwargs):
+            calls[str(path)]+=1
+            assert kwargs.get('follow_symlinks') is False
+            return original_stat(path,*args,**kwargs)
+        @contextlib.contextmanager
+        def counted_scan(roots):
+            with scan(roots) as session:
+                yield session
+                assert session.first_stat_count == session.second_stat_count == len(session.rows)
+                for _, path, _ in session.observations(): calls[path] += 2
+            assert session.closed and not session.pointer
+        with (patch.object(os, 'stat', counted_stat),
+              patch.dict(functions[variant].__globals__, {'_scan_file_tree': counted_scan})
+              if variant == 'prototype' else contextlib.nullcontext()):
+            value=functions[variant](roots,_observed_stats={} if capture else None)
+        assert value==expected and set(calls.values())=={2}
+        counts[variant]=calls
+    assert counts['parent']==counts['prototype']
+    tests.append('real_pool_two_fresh_stats_exact_capture_'+str(capture))
+    for variant in functions:
+        profiler=cProfile.Profile()
+        profiler.enable()
+        value=functions[variant](roots,_observed_stats={} if capture else None)
+        profiler.disable()
+        assert value==expected
+        stats=pstats.Stats(profiler)
+        entries=[dict(file=k[0],line=k[1],function=k[2],primitive_calls=v[0],calls=v[1],
+                      self_seconds=v[2],cumulative_seconds=v[3]) for k,v in stats.stats.items()]
+        profiles.append(dict(variant=variant,capture=capture,
+            entries=sorted(entries,key=lambda row:row['self_seconds'],reverse=True)))
+
+import torch
+assert not torch.cuda.is_initialized()
+assert p.verify_seal(seal)['pass']
+assert hashlib.sha256(old_source).hexdigest()==p.digest(ROOT/relative)
+groups=[]
+for capture in (False,True):
+    for variant in functions:
+        values=[r['elapsed_seconds'] for r in rows if r['variant']==variant and r['capture']==capture]
+        groups.append(dict(variant=variant,capture=capture,mean_seconds=statistics.mean(values),
+                           min_seconds=min(values),max_seconds=max(values),component_calls=len(values)))
+result=dict(passed=True,kind='d856_transaction_native_file_tree_component_v1',old_commit=old_commit,
+    old_source_sha256=hashlib.sha256(old_source).hexdigest(),parent_function=parent_text,
+    prototype_function=candidate_text,tests=tests,rows=rows,groups=groups,profiles=profiles,
+    reused_driver_sha256='ce98fcb2b5f141362ff4f36c313f8045a0850e21b0c975a51b6ffb4b753746ed',
+    native_library_sha256=p.digest(library),
+    tree_semantics='closed_vllm_transfer_metadata_not_adapter_payload',
+    online_gil_wait_fraction_measured=False,
+    ordering_scope='same stable DFS output; first read BFS; simultaneous failures may order differently',
+    first_and_second_stats='native successful completion counts, not strace',
+    native_snapshot_lifetime='one locked inventory only; no cache or thread',
+    real_pool=str(pool),pool_inventory_output_sha256=hashlib.sha256(json.dumps(expected,sort_keys=True).encode()).hexdigest(),
+    native_cuda_initialized=False,production_source_unchanged=True,formal_performance=False,
+    independent_performance_repetitions=False,resources={k:(group/k).read_text().strip()
+        for k in ('memory.peak','memory.events','memory.swap.current')})
+save('component_result.json',result)
+print(json.dumps(dict(passed=True,groups=groups,tests=len(tests)),indent=2))

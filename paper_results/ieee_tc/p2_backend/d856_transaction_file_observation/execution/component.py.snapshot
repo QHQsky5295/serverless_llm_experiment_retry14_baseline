@@ -1,0 +1,146 @@
+"""Reuse the D844 working CPU driver; change only the native observation witness."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+template = RAW.parent/'d844_20261025/component_resume_program.py.snapshot'
+source = template.read_text()
+template_sha = hashlib.sha256(source.encode()).hexdigest()
+
+
+def replace(old, new, count=1):
+    global source
+    assert source.count(old) == count, old
+    source = source.replace(old, new)
+
+
+replace('from scripts.ieee_tc.file_stat_batch_witness import load_query, inventory_witness',
+        'from scripts.ieee_tc.file_stat_batch_witness import load_query, load_tree_scan, tree_inventory_witness')
+replace("old_commit = '8ecf46a9dd4030b689e8e55c44f206c42c1d4d3b'",
+        "old_commit = '5d076412080bf5617ffaf7c2ea7a49d6447f5d36'")
+replace("save('component2_identity.json', identity)", "save('component_identity.json', identity)")
+start = source.index("library = RAW/'native_file_stat_batch.so'")
+end = source.index('\nrows, profiles, tests =', start)
+source = source[:start] + '''
+library = RAW/'native_file_stat_batch.so'
+assert not library.exists()
+command = ['cc', '-std=c11', '-O2', '-fPIC', '-shared', '-Wall', '-Wextra', '-Werror',
+    str(ROOT/'scripts/ieee_tc/native_file_stat_batch.c'), '-o', str(library)]
+with (RAW/'build.log').open('x') as stream:
+    build = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=60)
+save('build.json', dict(command=command, returncode=build.returncode,
+    compiler=subprocess.check_output(['cc','--version'],text=True),
+    source_sha256=p.digest(ROOT/'scripts/ieee_tc/native_file_stat_batch.c')))
+assert build.returncode == 0
+query, scan = load_query(library), load_tree_scan(library)
+candidate, candidate_text = tree_inventory_witness(module._local_file_inventory, scan)
+functions = {'parent': module._local_file_inventory, 'prototype': candidate}
+assert list(query([])) == []
+with scan({}) as empty:
+    assert list(empty.observations()) == []
+    empty.validate(set(), {})
+assert empty.closed and not empty.pointer
+''' + source[end:]
+start = source.index('    # Both Path.lstat')
+end = source.index('    # Check native fields', start)
+source = source[:start] + '''
+    for variant,function in functions.items():
+        mutations, count = [], [0]
+        def mutate():
+            info = original_stat(file)
+            os.utime(file, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+            mutations.append(str(file))
+        def mutate_second(path,*args,**kwargs):
+            if str(path) == str(file) and kwargs.get('follow_symlinks') is False:
+                count[0] += 1
+                if count[0] == 2: mutate()
+            return original_stat(path,*args,**kwargs)
+        sessions = []
+        @contextlib.contextmanager
+        def mutation_scan(roots):
+            with scan(roots) as session:
+                sessions.append(session)
+                actual_validate = session.validate
+                def check(writers, bounds):
+                    mutate()
+                    return actual_validate(writers, bounds)
+                session.validate = check
+                yield session
+        captured = {}
+        with (patch.object(os, 'stat', mutate_second) if variant == 'parent' else
+              patch.dict(function.__globals__, {'_scan_file_tree': mutation_scan})):
+            try:
+                function({'nvme':fixture.nvme}, _observed_stats=captured)
+            except RuntimeError as error:
+                assert 'changed while collecting footprint' in str(error)
+            else: raise AssertionError('second-stat mutation was accepted')
+        assert captured == {} and len(mutations) == 1
+        assert all(s.closed and not s.pointer for s in sessions)
+        tests.append(variant+'_second_stat_mutation_rejected_without_export')
+''' + source[end:]
+replace("    tests.append('native_fields_and_missing_path_exact')", '''    tests.append('native_fields_and_missing_path_exact')
+    failed = scan({'nvme': missing})
+    try:
+        with failed: pass
+    except FileNotFoundError as error: assert error.filename == missing
+    else: raise AssertionError('native scan accepted missing root')
+    assert failed.closed and not failed.pointer
+    with scan(owner.roots) as session:
+        for tier, path, observed in session.observations():
+            fresh = original_stat(path, follow_symlinks=False)
+            assert all(getattr(fresh, field) == getattr(observed, field) for field in observed._fields)
+        session.validate(set(), owner._file_allocations)
+        assert session.first_stat_count == session.second_stat_count == len(session.rows)
+    assert session.closed and not session.pointer
+    tests.append('native_first_fields_fresh_second_count_and_cleanup')
+    # Active writers may change timestamps, never size/inode/links or envelope.
+    info = original_stat(file); key = (info.st_dev, info.st_ino)
+    with scan({'nvme': file}) as session:
+        os.utime(file, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+        session.validate({key}, {})
+    with scan({'nvme': file}) as session:
+        try: session.validate({key}, {key: dict(data_bytes=0, ceiling_bytes=0)})
+        except RuntimeError as error: assert 'reserved envelope' in str(error)
+        else: raise AssertionError('active writer bypassed allocation limit')
+    tests.append('active_writer_timestamps_only_and_live_envelope')''')
+replace("for name in ('index-a','index-ab','index-中文'):",
+        "for name in ('index-a','index-ab','index-中文',os.fsdecode(b'index-\\xff')):")
+start = source.index('        def counted_batch(paths):')
+end = source.index("        assert value==expected and set(calls.values())=={2}", start)
+source = source[:start] + '''        @contextlib.contextmanager
+        def counted_scan(roots):
+            with scan(roots) as session:
+                yield session
+                assert session.first_stat_count == session.second_stat_count == len(session.rows)
+                for _, path, _ in session.observations(): calls[path] += 2
+            assert session.closed and not session.pointer
+        with (patch.object(os, 'stat', counted_stat),
+              patch.dict(functions[variant].__globals__, {'_scan_file_tree': counted_scan})
+              if variant == 'prototype' else contextlib.nullcontext()):
+            value=functions[variant](roots,_observed_stats={} if capture else None)
+''' + source[end:]
+replace("kind='d844_second_pass_fresh_stat_batch_component_v1'",
+        "kind='d856_transaction_native_file_tree_component_v1'")
+replace("reused_driver_sha256='eba30738e09478af3d885b1a686296431b0b03536f79ef361859665064829a9b'",
+        "reused_driver_sha256="+repr(template_sha))
+replace("save('component_result2.json',result)", "save('component_result.json',result)")
+replace("    online_gil_wait_fraction_measured=False,", "    online_gil_wait_fraction_measured=False,\n"
+    "    ordering_scope='same stable DFS output; first read BFS; simultaneous failures may order differently',\n"
+    "    first_and_second_stats='native successful completion counts, not strace',\n"
+    "    native_snapshot_lifetime='one locked inventory only; no cache or thread',")
+compile(source, str(RAW/'component_program.py.snapshot'), 'exec')
+with (RAW/'component_program.py.snapshot').open('x') as stream:
+    stream.write(source)
+with (RAW/'template_reuse.json').open('x') as stream:
+    json.dump(dict(path=str(template), sha256=template_sha,
+        generated_sha256=hashlib.sha256(source.encode()).hexdigest(),
+        changes='Current rollback parent; complete native first observation and in-place second '
+        'validation; same inventory/accounting/settlement; real-boundary fault injection and '
+        'completion counts; preserve D844 alternating timing/profile driver and fixture assertions.'),
+        stream, indent=2)
+exec(compile(source, str(RAW/'component_program.py.snapshot'), 'exec'),
+     dict(__file__=str(RAW/'component_program.py.snapshot'), __name__='__main__'))

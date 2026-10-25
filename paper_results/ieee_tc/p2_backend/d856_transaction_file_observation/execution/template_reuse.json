@@ -1,0 +1,6 @@
+{
+  "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d844_20261025/component_resume_program.py.snapshot",
+  "sha256": "ce98fcb2b5f141362ff4f36c313f8045a0850e21b0c975a51b6ffb4b753746ed",
+  "generated_sha256": "23cfe1f11f6290718ce379727d28e3754524871075b508b262a4a3de9617660a",
+  "changes": "Current rollback parent; complete native first observation and in-place second validation; same inventory/accounting/settlement; real-boundary fault injection and completion counts; preserve D844 alternating timing/profile driver and fixture assertions."
+}

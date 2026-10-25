@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "component_domain_gone": true,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D856_TRANSACTION_FILE_OBSERVATION_20261026.md",
+    "sha256": "f165c8d1b36483995e53df3e7cecdd4aacabcc0fe88f3c880a0f934b417aee48"
+  },
+  "protected_147_unchanged": true,
+  "native_cuda_initialized": false,
+  "serving_source_unchanged": true,
+  "scope": {
+    "unit": "primelora-tc-aux-85600000000000000000000000000002.scope",
+    "invocation_id": "a8655e0479e8453daffc91fa61d0384f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-85600000000000000000000000000002.scope",
+    "inode": 32618514
+  },
+  "disk_free_bytes": 182826823680
+}
