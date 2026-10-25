@@ -1,4 +1,96 @@
-# IEEE TC execution status — D835 complete 3B W2 registered, launch pending
+# IEEE TC execution status — D835 complete, joint SLO unchanged; backing up
+
+## 2026-10-25 D835：完整回放及计量完成，候选未改善主要缺口
+
+本轮progress，前半段为实际存活监测。PLAN/V1/单轮V2完整核对；D835自然
+4000/4000成功、原生合同匹配、失败0，service/replay/watchdog均退出0。
+actual service/aux域已消失、三卡真正释放、四卡15MiB/0util且compute-apps空，
+远端3B/7B/monitor均inactive/PID0。没有重启或第二个性能执行。
+
+复用D832完整计量：联合3683/4000=92.075%，与D832完全相同，仍差117条。
+TTFT3766、TPOT3910；TTFT-only227、TPOT-only83、both7。U11312.991220
+GPU-s≤预算12083.063870；较D832增加4.325038。P95TTFT2309.773313ms
+（低18.018503ms），平均TTFT781.173101、TPOT15.995603、E2E2599.124332ms。
+不把小幅变化称显著或因果收益；D711独立数值未知，N_correct=null，不能G1/G2。
+
+7162次绑定复用、2936次在锁被占用时发生，机制确实触发，不是节省毫秒。
+505真实fetch/1172100920线上字节，两端ID/字节/SHA一致、请求打包0；17次
+原request-LRU回收。505条settlement（504owner+1subscriber）都先结束再
+成功，409load/157首token早于pressure finish；尾部保留E2E，不扣重叠时间。
+服务峰值33197580288B，high/max/OOM/swap0；147保护及用户修改一致。
+
+context第一次在新加closed=true断言停止，失败保留：native RPC无publisher，
+close不会设置publisher-only标志。原数据false保留，依据空active/三成员
+retired及既有实际释放证据恢复剩余分析；不是修改生产代码或放宽实际清理。
+raw context_attempt1.json、原/恢复source快照均保留，既有交付检查未重做覆盖。
+
+本轮完整结论见D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md；
+正在github-sync明确路径备份，尚不能说备份已完成。当前生产仍D834候选，
+备份后只撤回该差异到D831基点，不再沿无联合收益的成员绑定方向重复实验。
+没有新优化候选、GPU回放、baseline/k3s/远端调整或图表。下一重型前须处理
+已关闭日志和实际磁盘准入，不动唯一资产。完整后续范围不变，目标active。
+
+## 2026-10-25 13:36:50 CST：D835过半，2136条终态
+
+上一轮及本轮均为verified wait。完整重读PLAN，使用monitor-experiment
+连续24次约50秒间隔只读检查，原服务始终active、Invocation仍为
+362a52b6bf2b4c18aa1ca70c500e4994；tmux原pane3851422仍存活，未重启。
+最新2136/4000终态，全部成功/native_contract_matched，失败0。
+监测cell7905自然结束，只是观察窗口结束，原实验继续；不据此重启或收尾。
+
+watchdog sample2048：3张GPU实际持有，服务峰值26605740032B，
+主机可用98205679616B，high/max/OOM/swap均0，无warning/abort；
+磁盘150569168896B，高于本轮100GiB停止线。当前不清理、不压缩、不构建、
+不推送备份、不修改代码/配置/远端，不并发新实验或重做baseline适配。
+
+尚无完整性能结论。下一继续同一D835自然回放，待4000终态且实际GPU释放、
+远端停止后，再复用D832计量/交付/settlement分析及核查新增成员复用计数。
+D832的92.075%仍是最新完整SLO，D711数值身份未知不变；完整两模型
+主比较、A1–A5、S1–S13、CE/Pareto、文档图表与最终V2同步仍待完成。
+整体目标active，本条状态更新不在性能运行中提交推送。
+
+## 2026-10-25 13:16:36 CST：D835持续原回放，727条终态
+
+本轮verified wait。完整核对PLAN，按monitor-experiment连续12次低频只读
+检查原服务域，Invocation一直为362a52b6bf2b4c18aa1ca70c500e4994；
+实际服务active、Tasks435，tmux原pane3851422仍存活。监测cell7899已自然
+结束，不代表实验结束，不重启原回放。最新727/4000终态，727成功且原生
+输出合同匹配，失败0；不是完整SLO结果，也不替代D711独立数值身份核查。
+
+watchdog sample851：实际占用3张GPU，服务峰值19731120128B，主机可用
+98752614400B，high/max/OOM/swap均0，无warning/abort；磁盘可用
+157215277056B，仍高于当前运行100GiB停止线。低于下一重型150GiB启动
+门槛不触发本轮中止；不在性能运行中扫描、清理、压缩、备份推送或改代码。
+没有第二个实验、配置/远端/baseline/共享k3s调整。
+
+下一继续监测同一D835至自然终态及真实GPU释放，再复用D832完整计量与
+交付/settlement核查，补核新增成员复用计数。最新已完成性能仍为D832联合
+92.075%，不能预判本轮改善。完整同版两模型主比较、A1–A5、S1–S13、
+CE/Pareto、文档/图表与最终V2同步范围不变；整体目标active。
+
+## 2026-10-25 13:03:49 CST：D835已启动，核实实际请求完成
+
+本轮progress：13项入口/配置测试通过，147项保护一致，14条明确执行路径
+已提交5cfd17b45783531a53b6acae9e3b9eca6c9cc695并推送核实
+backup/d835-completed-membership-reuse-fullw2-20261025；不是最终V2同步。
+实际启动gate通过：磁盘161511538688B≥161061273600B，主机可用
+114233655296B≥109521666048B。未降低保护门槛或重跑D834资格。
+
+tmux tc-d835-3b-completed-membership-reuse-full-w2活跃，服务域
+primelora-tc-svc-480ef03484e44c05986bab8390bb56f1.scope active，InvocationID
+362a52b6bf2b4c18aa1ca70c500e4994。实际replay W2全4000、view SHA
+5558de43ede0e2cf49c7478dcfb94640e7a8516406f53766fabfdf524bf91174。
+最新已核查5条terminal，5成功/native_contract_matched，0失败；尚无最终结果。
+最后资源采样75：服务峰值13289500672B，high/max/OOM/swap0，1张GPU实际
+持有，无安全告警。此为运行初期状态，不据此宣称SLO合格或候选有效。
+
+远端启动核实1000Mbps/full，直接复用只读发布缓存；未改网络、未请求打包。
+两artifact服务及本轮monitor运行中，结束由run_and_release按身份停止，
+不要在中途重启/压缩/维护。启动检查scope835…01已inactive，无遗留工具session。
+下一只监控同一个tmux/服务域和request_terminals；不因观察超时重启，
+不并发新实验、构建、压缩、Git推送或修改生产代码。自然终态后验证实际
+GPU释放与远端停止，再复用D832分析并核查新增binding复用计数。
+整体目标active，最新完整比较仍D832的92.075%；完整未完成范围不删减。
 
 ## 2026-10-25 D835：进入同合同完整W2，不再增加局部资格
 

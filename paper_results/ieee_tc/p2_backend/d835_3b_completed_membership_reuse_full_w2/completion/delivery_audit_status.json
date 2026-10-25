@@ -1,0 +1,5 @@
+{
+  "status": "pending_attempt_level_delivery_audit",
+  "reason": "D816 permits deferred preparation; do not apply the legacy all-published assertion.",
+  "no_delivery_correctness_or_zero_cost_inference": true
+}

@@ -1,0 +1,47 @@
+"""Reuse D832 actual delivery/lifecycle/owner checks; record D834 counters."""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd832_20261025/context_program.py.snapshot'
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+assert _sha == '3c23d609047d1772cedf83d19b67819c5f8a5bc71959119f7dffc4609923d598'
+_source = _template.read_text()
+_replacements = (
+    ('d832_3b_owned_file_readiness_full_w2', 'd835_3b_completed_membership_reuse_full_w2'),
+    ('d832_observed_delivery_and_required_reclamation_v1', 'd835_observed_delivery_and_required_reclamation_v1'),
+    ('d832_full_w2_closure_v1', 'd835_full_w2_closure_v1'),
+    ('d832_vs_d829_single_observation_v1', 'd835_vs_d832_single_observation_v1'),
+    ('d829_3b_admitted_owner_anchor_full_w2/completion', 'd832_3b_owned_file_readiness_full_w2/completion'),
+    ('versus_d829.json', 'versus_d832.json'),
+    ('Owned file readiness improves observed joint SLO and P95 TTFT while GPU seconds increase; the run remains below 95%. This is not statistical evidence or a G1/G2 win. Actual settlement coverage is a separate pending audit.',
+     'Completed membership reuse leaves observed joint SLO unchanged, with slightly lower P95 TTFT and slightly higher GPU seconds. The run remains below 95%; no G1/G2 win or causal gain is established. Actual settlement coverage remains a separate audit.'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_anchor = "current=read(OUT/'completion/full4000.json')"
+assert _source.count(_anchor) == 1
+_source = _source.replace(_anchor, '''with outcome.open('rb') as stream:
+    domains = list(ijson.items(stream,
+        'coordination_after_shutdown.ieee_shared_file_pressure', use_float=True))
+assert len(domains) == 1
+domain = domains[0]
+assert domain['observation_transport'] == 'native_rpc_v1'
+assert domain['closed'] is True and not domain['active_transfer_ids']
+assert domain['physical_capacity_reserved'] is False
+assert 0 <= domain['reused_attachments_during_transition'] <= domain['reused_attachments']
+save(OUT/'completion/membership_reuse_actual.json', dict(
+    passed=True, mechanism_triggered=domain['reused_attachments'] > 0,
+    snapshot=domain, source_refs=[ref(outcome), ref(Path(__file__))],
+    limitation='Reuse and lock-held counts are actual observations, not milliseconds saved; the complete workload determines performance. Actual start/finish ordering is unchanged.'))
+''' + _anchor)
+compile(_source, str(_raw / 'context_program.py.snapshot'), 'exec')
+with (_raw / 'context_template.json').open('x') as _stream:
+    json.dump(dict(source=str(_template), sha256=_sha, replacements=_replacements,
+        changes='Run/previous-observation identities and evidence-based interpretation; add actual D834 membership snapshot checks. Reuse unchanged full delivery, lifecycle and owner-anchor checks.'), _stream, indent=2)
+    _stream.write('\n')
+with (_raw / 'context_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw / 'context_program.py.snapshot'), 'exec'), globals())

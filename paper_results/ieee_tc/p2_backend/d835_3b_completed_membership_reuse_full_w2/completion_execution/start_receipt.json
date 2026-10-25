@@ -1,0 +1,13 @@
+{
+  "backup_ref": "refs/heads/backup/d835-completed-membership-reuse-fullw2-20261025",
+  "head": "5cfd17b45783531a53b6acae9e3b9eca6c9cc695",
+  "identity": {
+    "inode": 32260149,
+    "invocation_id": "0fb331e96e0d4c5cbeaa710ca4f9a770",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83500000000000000000000000000001.scope",
+    "unit": "primelora-tc-aux-83500000000000000000000000000001.scope"
+  },
+  "launched": true,
+  "qualification_sha256": "4232f8d28ed724c6e4d5cbee1db5b156cbc9401c01c2b7c45ea600e3ab4b25f2",
+  "tmux": "tc-d835-3b-completed-membership-reuse-full-w2"
+}

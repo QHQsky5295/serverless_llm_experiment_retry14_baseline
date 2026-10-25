@@ -1,0 +1,179 @@
+"""Audit actual D817 transfers and file-reclamation events after real release."""
+import collections
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2'
+sys.path.insert(0,str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import audit_closed_outcome
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path))
+def save(path,value):
+    with path.open('x') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0)=={2,3,26,27}
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'context_resume_identity.json',own)
+group=Path(own['path'])
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+for row in read(OUT/'completion/manifest.json')['files']:
+    assert p.digest(ROOT/row['path'])==row['sha256']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+projection=read(RAW/'remote_client_projection.json')
+transfers=projection['transfers']
+states=collections.Counter(row['state'] for row in transfers)
+summary=read(OUT/'completion/delivery_applicability_and_reclamation.json')
+assert summary['passed'] and dict(states)==summary['client_attempt_states']
+assert read(OUT/'completion/closed_outcome.json')['passed']
+assert read(OUT/'completion/owner_publication_actual.json')['passed']
+required=[row for row in summary['cache_snapshot']['replacements'] if row['policy']=='request_lru_v1']
+with outcome.open('rb') as stream:
+    domains = list(ijson.items(stream,
+        'coordination_after_shutdown.ieee_shared_file_pressure', use_float=True))
+assert len(domains) == 1
+domain = domains[0]
+assert domain['observation_transport'] == 'native_rpc_v1'
+assert domain['closed'] is False  # Native RPC has no publisher to close.
+assert not domain['active_transfer_ids']
+assert domain['members'] and all(m['state'] == 'retired' for m in domain['members'])
+assert domain['physical_capacity_reserved'] is False
+assert 0 <= domain['reused_attachments_during_transition'] <= domain['reused_attachments']
+save(OUT/'completion/membership_reuse_actual.json', dict(
+    passed=True, mechanism_triggered=domain['reused_attachments'] > 0,
+    snapshot=domain, source_refs=[ref(outcome), ref(Path(__file__))],
+    limitation='Reuse and lock-held counts are actual observations, not milliseconds saved; the complete workload determines performance. Actual start/finish ordering is unchanged.'))
+current=read(OUT/'completion/full4000.json')
+old_dir=ROOT/'paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/completion'
+old=read(old_dir/'full4000.json')
+assert current['counts']['n']==old['counts']['n']==4000
+assert current['common_slo_sha256']==old['common_slo_sha256']
+assert current['workload']==old['workload']=='W2'
+metrics={}
+for name in ('ttft_ms','tpot_ms','e2e_ms'):
+    metrics[name]={}
+    for stat in ('mean','p50_type1','p95_type1'):
+        a,b=old['metrics'][name][stat],current['metrics'][name][stat]
+        metrics[name][stat]=dict(previous=a,current=b,current_minus_previous=b-a,
+            lower_better_improvement_fraction=(a-b)/a)
+old_stages=read(old_dir/'stages/diagnosis.json')
+new_stages=read(OUT/'completion/stages/diagnosis.json')
+def all_group(value):
+    groups=[g for g in value['groups'] if g['dimension']=='all' and g['label']=='all']
+    assert len(groups)==1 and groups[0]['n']==4000
+    return groups[0]['metrics']
+a,b=all_group(old_stages),all_group(new_stages)
+stage_means={key:dict(previous=a[key]['mean'],current=b[key]['mean'],
+    current_minus_previous=b[key]['mean']-a[key]['mean']) for key in a if key in b}
+save(OUT/'completion/versus_d832.json',dict(
+    kind='d835_vs_d832_single_observation_v1',previous_counts=old['counts'],current_counts=current['counts'],
+    joint_delta_requests=current['counts']['joint_pass']-old['counts']['joint_pass'],
+    joint_delta_percentage_points=100*(current['joint_slo_fraction']-old['joint_slo_fraction']),
+    previous_gpu_seconds=old['physical_gpu_seconds'],current_gpu_seconds=current['physical_gpu_seconds'],
+    gpu_seconds_delta=current['physical_gpu_seconds']-old['physical_gpu_seconds'],
+    gpu_seconds_improvement_fraction=1-current['physical_gpu_seconds']/old['physical_gpu_seconds'],
+    metrics=metrics,all_request_stage_means=stage_means,confidence_interval=None,
+    numerical_correctness_qualified=False,ranking_eligible=False,
+    source_refs=[ref(old_dir/'full4000.json'),ref(OUT/'completion/full4000.json'),
+        ref(old_dir/'stages/diagnosis.json'),ref(OUT/'completion/stages/diagnosis.json')]))
+
+
+# Retain all 4000 requests and the existing source/timing contract. Only the
+# accepted non-native path may use a historical owner anchor; it grants no
+# current tier/capacity. Live owner transactions and post-load state still bind.
+metric_for_anchor=read(OUT/'completion/full4000.json')
+request_ref=next(row for row in metric_for_anchor['source_refs']
+    if Path(row['path']).name.startswith('experiment_results_full'))
+request_path=Path(request_ref['path'])
+assert p.digest(request_path)==request_ref['sha256']
+source_counts=collections.Counter()
+acquisition_scopes=collections.Counter()
+checked=[]
+request_ids=set()
+with request_path.open('rb') as stream:
+    for row in ijson.items(stream,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        rid=row['request_id']
+        assert rid not in request_ids
+        request_ids.add(rid)
+        evidence=row['gpu_reference_evidence']
+        admission=evidence['source_admission']
+        source=admission['source']
+        source_counts[(source['tier'],source['native'])]+=1
+        snapshot=evidence['snapshot_before_acquisition']
+        acquisition_scopes[snapshot.get('acquisition_observation_scope',snapshot.get('kind','guarded_source'))]+=1
+        anchor=admission.get('native_owner_anchor')
+        expected=source['native'] is False and source['tier'] in ('remote','nvme','host')
+        assert (anchor is not None)==expected
+        if not expected:
+            assert snapshot.get('acquisition_observation_scope')!='admission_owner_identity_only_v1'
+            continue
+        assert evidence['cached_source_only'] is False
+        assert anchor['kind']=='admission_native_owner_anchor_v1'
+        assert anchor['request_id']==rid and anchor['adapter_id']==row['adapter_id']
+        assert snapshot['acquisition_observation_scope']=='admission_owner_identity_only_v1'
+        assert snapshot['fresh_acquisition_observation'] is False
+        assert all(snapshot[key]==value for key,value in anchor.items())
+        assert anchor['captured_monotonic_s']<=admission['admitted_monotonic_s']
+        receipt=evidence['receipt']
+        intent=evidence['intent']
+        proof=receipt['file_demand_transaction']
+        assert receipt['owner_id']==intent['expected_owner_id']==anchor['owner_id']
+        assert receipt['clock_id']==anchor['clock_id']==admission['clock_id']
+        assert receipt['acquired'] is True
+        assert proof['kind']=='protected_file_owner_turn_v1'
+        assert proof['observed_epoch']==intent['expected_epoch']>=anchor['epoch']
+        assert proof['observed_epoch']<=proof['validated_epoch']<=receipt['epoch']
+        assert proof['live_native_constraints_checked'] is True
+        assert proof['controller_capacity_snapshot_reused'] is False
+        assert receipt['file_source_witness']==intent['file_source_witness']
+        assert receipt['file_source_witness']['lease_id']==evidence['local_source_reference']['lease_id']
+        post=receipt['post_load_source_snapshot']
+        assert isinstance(post,dict) and post['owner_id']==anchor['owner_id']
+        assert post['clock_id']==anchor['clock_id'] and post['epoch']>=proof['validated_epoch']
+        checked.append(dict(request_id=rid,adapter_id=row['adapter_id'],source_tier=source['tier'],
+            owner_id=anchor['owner_id'],anchor_epoch=anchor['epoch'],
+            observed_epoch=proof['observed_epoch'],validated_epoch=proof['validated_epoch'],
+            post_epoch=post['epoch'],native_load_invoked=receipt['native_load_invoked'],
+            fresh_capacity_recheck='snapshot_after_capacity_wait' in evidence))
+assert len(request_ids)==4000 and checked
+save(OUT/'completion/owner_anchor_actual.json',dict(
+    passed=True,full_request_count=len(request_ids),anchored_requests=len(checked),
+    source_counts=[dict(tier=key[0],native=key[1],n=value) for key,value in sorted(source_counts.items())],
+    acquisition_scopes=dict(acquisition_scopes),
+    live_transaction_checks=len(checked),post_load_snapshots=len(checked),
+    epoch_advanced=sum(row['validated_epoch']>row['anchor_epoch'] for row in checked),
+    fresh_capacity_rechecks=sum(row['fresh_capacity_recheck'] for row in checked),
+    requests=checked,source_refs=[request_ref,ref(Path(__file__))],
+    limitation='Observed receipts and frozen-source checks, not independent numerical adapter proof or exhaustive concurrent-interleaving verification. No history anchor is relabeled as fresh readiness or capacity.'))
+
+metric=read(OUT/'completion/full4000.json')
+counts=metric['counts']
+partition=dict(ttft_only_fail=counts['tpot_pass']-counts['joint_pass'],
+    tpot_only_fail=counts['ttft_pass']-counts['joint_pass'],
+    both_fail=counts['n']-counts['ttft_pass']-counts['tpot_pass']+counts['joint_pass'])
+assert sum(partition.values())==counts['n']-counts['joint_pass']
+identities=[read(RAW/name) for name in ('completion_identity.json', 'context_identity.json')]
+for identity in identities:
+    assert not Path(identity['path']).exists()
+assert all(int(line.split()[1])==0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'closure.json',dict(passed=True,kind='d835_full_w2_closure_v1',
+    counts=counts,violation_partition=partition,shortfall_to_3800=3800-counts['joint_pass'],
+    numerical_correctness_qualified=False,n_correct=metric['n_correct'],ranking_eligible=False,
+    primary_targets_achieved=False,new_replays=0,confidence_interval=None,
+    previous_auxiliary_scopes_removed=identities,
+    resources={key:(group/key).read_text().strip() for key in ('memory.peak','memory.events','memory.swap.current')},
+    decision='Retain this complete W2 observation and all earlier candidates. Completed membership reuse leaves observed joint SLO unchanged, with slightly lower P95 TTFT and slightly higher GPU seconds. The run remains below 95%; no G1/G2 win or causal gain is established. Actual settlement coverage remains a separate audit. No same-key retry, threshold change or automatic expansion to W1/W0; inspect the complete stage and transfer evidence before deciding the next candidate.'))
+save(OUT/'closure_manifest.json',dict(files=[ref(x) for x in sorted((OUT/'completion').rglob('*')) if x.is_file()]+[ref(OUT/'closure.json')]))
+print(json.dumps(dict(passed=True,states=dict(states),replacement_policies=summary['replacement_policies'],
+    required_reclamations=len(required),violation_partition=partition),indent=2))

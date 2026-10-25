@@ -1,0 +1,50 @@
+"""Resume D835 audit after correcting a transport-specific observation rule.
+
+The retained native-RPC implementation has no shared publisher: close() returns
+without setting the publisher-closed flag. Retirement and actual release, not
+that flag, prove completion. Do not alter serving code or repeat the replay.
+"""
+import hashlib
+import json
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw / 'context_program.py.snapshot'
+_original = _template.read_text()
+_sha = hashlib.sha256(_template.read_bytes()).hexdigest()
+_marker = "with outcome.open('rb') as stream:\n    domains = list(ijson.items(stream,"
+assert _original.count(_marker) == 1
+_prefix = _original.split("outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'", 1)[0]
+_prefix = _prefix.replace("RAW/'context_identity.json'", "RAW/'context_resume_identity.json'")
+_tail = _original[_original.index(_marker):]
+_old = "assert domain['closed'] is True and not domain['active_transfer_ids']"
+assert _tail.count(_old) == 1
+_tail = _tail.replace(_old, """assert domain['closed'] is False  # Native RPC has no publisher to close.
+assert not domain['active_transfer_ids']
+assert domain['members'] and all(m['state'] == 'retired' for m in domain['members'])""")
+_tail = _tail.replace("('completion_identity.json',)", "('completion_identity.json', 'context_identity.json')")
+_bridge = """outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+projection=read(RAW/'remote_client_projection.json')
+transfers=projection['transfers']
+states=collections.Counter(row['state'] for row in transfers)
+summary=read(OUT/'completion/delivery_applicability_and_reclamation.json')
+assert summary['passed'] and dict(states)==summary['client_attempt_states']
+assert read(OUT/'completion/closed_outcome.json')['passed']
+assert read(OUT/'completion/owner_publication_actual.json')['passed']
+required=[row for row in summary['cache_snapshot']['replacements'] if row['policy']=='request_lru_v1']
+"""
+_source = _prefix + _bridge + _tail
+compile(_source, str(_raw/'context_resume_program.py.snapshot'), 'exec')
+with (_raw/'context_attempt1.json').open('x') as _stream:
+    json.dump(dict(returncode=1, failure='AssertionError: native-RPC publisher-closed flag incorrectly required true',
+        original_program=dict(path=str(_template), sha256=_sha),
+        observed=dict(observation_transport='native_rpc_v1', closed=False,
+            reused_attachments=7162, reused_attachments_during_transition=2936,
+            active_transfer_count=0, retired_members=3),
+        source_explanation='SharedFileTransferDomain.close returns before setting _closed when _publisher is None; retired members and empty active set plus the existing physical-release audit are authoritative.',
+        existing_delivery_checks_retained=True, production_code_changed=False, performance_rerun=False),
+        _stream, indent=2)
+    _stream.write('\n')
+with (_raw/'context_resume_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'context_resume_program.py.snapshot'), 'exec'), globals())

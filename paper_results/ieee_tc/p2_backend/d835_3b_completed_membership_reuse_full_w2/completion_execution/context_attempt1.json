@@ -1,0 +1,20 @@
+{
+  "returncode": 1,
+  "failure": "AssertionError: native-RPC publisher-closed flag incorrectly required true",
+  "original_program": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d835_20261025/context_program.py.snapshot",
+    "sha256": "aaff012f49a871a959721b0159ebecd9115ac720481b1ad61e517d1ddaf28643"
+  },
+  "observed": {
+    "observation_transport": "native_rpc_v1",
+    "closed": false,
+    "reused_attachments": 7162,
+    "reused_attachments_during_transition": 2936,
+    "active_transfer_count": 0,
+    "retired_members": 3
+  },
+  "source_explanation": "SharedFileTransferDomain.close returns before setting _closed when _publisher is None; retired members and empty active set plus the existing physical-release audit are authoritative.",
+  "existing_delivery_checks_retained": true,
+  "production_code_changed": false,
+  "performance_rerun": false
+}

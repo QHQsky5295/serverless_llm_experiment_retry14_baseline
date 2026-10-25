@@ -1,0 +1,27 @@
+{
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/completion_program.py.snapshot",
+  "sha256": "7c8f56f3b9c40babd29bd32c875d4a05b83881a4454734d02858f3247e9537bc",
+  "replacements": [
+    [
+      "d832_3b_owned_file_readiness_full_w2",
+      "d835_3b_completed_membership_reuse_full_w2"
+    ],
+    [
+      "d832_20261025",
+      "d835_20261025"
+    ],
+    [
+      "D832_OWNED_FILE_READINESS_FULL_W2_20261025.md",
+      "D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md"
+    ],
+    [
+      "d832_single_w2_frozen_resource_reference_observation_v1",
+      "d835_single_w2_frozen_resource_reference_observation_v1"
+    ],
+    [
+      "d831_owned_file_readiness/closure.json",
+      "d834_completed_membership_reuse/closure.json"
+    ]
+  ],
+  "changes": "Run/output/qualification identities only; frozen full-W2 metrics, stages, profile, resource reference and protection checks unchanged. Actual delivery/owner/settlement and new membership counters remain separate audits."
+}

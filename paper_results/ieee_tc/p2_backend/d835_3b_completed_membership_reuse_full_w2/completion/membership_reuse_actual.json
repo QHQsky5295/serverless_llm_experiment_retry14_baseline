@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "mechanism_triggered": true,
+  "snapshot": {
+    "file_owner_id": "f414e79e532e455ca06f29f6926bd4bf",
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "observation_transport": "native_rpc_v1",
+    "closed": false,
+    "reused_attachments": 7162,
+    "reused_attachments_during_transition": 2936,
+    "active_transfer_ids": [],
+    "members": [
+      {
+        "owner_id": "175941c196554a3e9fb428ffee379d37",
+        "state": "retired",
+        "caller_cancelled": false
+      },
+      {
+        "owner_id": "64925657a3394444bf7ce7c6b4b1ff47",
+        "state": "retired",
+        "caller_cancelled": false
+      },
+      {
+        "owner_id": "ee7e3033335d44f9be9cd2cd10de4508",
+        "state": "retired",
+        "caller_cancelled": false
+      }
+    ],
+    "physical_capacity_reserved": false
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d835_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "8b7605ae0f7ca1c6241b95fb743b802ffda075b330b5d0385bdea9634e06c84a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d835_20261025/resume_context.py",
+      "sha256": "3be36c991d5c03c6dbdcab630c6a4273c955dc9e7e1e5ad7be498527bba1db9d"
+    }
+  ],
+  "limitation": "Reuse and lock-held counts are actual observations, not milliseconds saved; the complete workload determines performance. Actual start/finish ordering is unchanged."
+}

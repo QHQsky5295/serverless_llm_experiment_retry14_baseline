@@ -1,0 +1,84 @@
+"""Reuse the explicit-path D826 checkpoint for the complete D835 observation."""
+import hashlib
+from pathlib import Path
+
+_raw = Path(__file__).resolve().parent
+_template = _raw.parent / 'd826_20261025/backup_results.py'
+assert hashlib.sha256(_template.read_bytes()).hexdigest() == 'e0a920555b39e4fe64c67355a8177ed14db98dd35bf22144dd7952c0479e16b9'
+_source = _template.read_text()
+_replacements = (
+    ('d826_3b_single_verification_full_w2', 'd835_3b_completed_membership_reuse_full_w2'),
+    ('D826_SINGLE_VERIFICATION_FULL_W2_20261025.md', 'D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md'),
+    ('d825_single_destination_verification/closure.json', 'd834_completed_membership_reuse/closure.json'),
+    ("'start_identity.json', 'completion_identity.json', 'context_identity.json'):",
+     "'start_identity.json', 'completion_identity.json', 'context_identity.json', 'context_resume_identity.json', 'settlement_identity.json'):"),
+    ("'analysis_metrics.log', 'analysis_stages.log', 'completion.log', 'context.log')",
+     "'analysis_metrics.log', 'analysis_stages.log', 'resume_context.py', 'context_resume_program.py.snapshot', 'context_resume_identity.json', 'context_attempt1.json', 'audit_settlement.py', 'settlement_program.py.snapshot', 'settlement_template.json', 'settlement_identity.json', 'backup_program.py.snapshot')"),
+    ('3e24adf7f8bfa58304c7e29267af4a4d07d5758ecd07d8a8d7da4deefae5a417',
+     'e7cef9992ce4519278b50e1fb8341900d30cf0d5d139d86ce2e9b9b5da048406'),
+    ('Reuse D825 446 distinct checks and D826 7 entry checks; no production change during closure.',
+     'Reuse D834 452 distinct CPU checks and D835 13 entry checks; no production change during closure. Native accounting, delivery, owner references and settlement passed. The incorrect transport-specific analysis assertion is retained and corrected without a replay.'),
+    ('tc: seal D826 full W2 mixed outcome and actual content verification',
+     'tc: seal D835 full W2 unchanged SLO and membership reuse evidence'),
+    ('backup/d826-complete-20261025', 'backup/d835-complete-20261025'),
+)
+for _old, _new in _replacements:
+    assert _old in _source, _old
+    _source = _source.replace(_old, _new)
+_marker = "files.append(OUT / 'closure_manifest.json')"
+_extra = '''
+settlement=read(OUT/'settlement_analysis/summary.json')
+assert settlement['passed'] is True
+for path in sorted((OUT/'settlement_analysis').rglob('*')):
+    if path.is_file():
+        files.append(path)
+membership=read(OUT/'completion/membership_reuse_actual.json')
+assert membership['passed'] and membership['mechanism_triggered']
+closed_scopes=[]
+for number in range(1,7):
+    unit='primelora-tc-aux-'+'835'+('0'*27)+str(number).zfill(2)+'.scope'
+    props=call(['systemctl','--user','show',unit,'-p','ActiveState','-p','InvocationID','-p','ControlGroup'])
+    assert 'ActiveState=inactive' in props and 'InvocationID=\\n' in props+'\\n'
+    assert 'ControlGroup=\\n' in props+'\\n'
+    closed_scopes.append(dict(unit=unit,properties=props))
+metric=read(OUT/'completion/full4000.json')
+delta=read(OUT/'completion/versus_d832.json')
+assert delta['joint_delta_requests']==0
+save(OUT/'development_decision.json',dict(
+    kind='d835_full_w2_development_decision_v1',
+    mechanism_observed=True,settlement_checked=True,request_count=4000,
+    observed_joint_pass=metric['counts']['joint_pass'],
+    observed_within_frozen_budget=read(OUT/'completion/comparison.json')['observed_within_budget'],
+    numerical_adapter_correctness_qualified=False,n_correct=None,ranking_eligible=False,
+    final_configuration_frozen=False,primary_targets_achieved=False,
+    retain_as_performance_optimization=False,production_rollback_pending=True,
+    decision='Do not retain D834 as an established performance improvement: joint SLO is unchanged at 3683/4000, GPU time is slightly higher, and the small P95 difference does not establish causal benefit in one run. Retain all observations; no same-key retry.',
+    next='After this immutable backup, restore only the D834 candidate delta to the D831 development base. Use existing complete preparation evidence plus rejected-history and primary-source review before another candidate; do not expand a local membership-optimization loop.',
+    closed_analysis_scopes=closed_scopes,
+    source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in files]))
+files.append(OUT/'development_decision.json')
+'''
+assert _source.count(_marker) == 1
+_source = _source.replace(_marker, _marker+'\n'+_extra)
+_old_add = "call(['git', 'add', '--', *paths])"
+_new_add = """ignored=[]
+ordinary_add=[]
+for path in paths:
+    result=subprocess.run(['git','check-ignore','-q','--',path],cwd=ROOT)
+    assert result.returncode in (0,1)
+    if result.returncode==0:
+        assert path.startswith(str(OUT.relative_to(ROOT))+'/completion_execution/')
+        assert (ROOT/path).stat().st_size < 1048576
+        ignored.append(path)
+    else:
+        ordinary_add.append(path)
+if ordinary_add:
+    call(['git','add','--',*ordinary_add])
+if ignored:
+    call(['git','add','-f','--',*ignored])"""
+assert _source.count(_old_add) == 1
+_source = _source.replace(_old_add, _new_add)
+compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec')
+with (_raw/'backup_program.py.snapshot').open('x') as _stream:
+    _stream.write(_source)
+exec(compile(_source, str(_raw/'backup_program.py.snapshot'), 'exec'), globals())

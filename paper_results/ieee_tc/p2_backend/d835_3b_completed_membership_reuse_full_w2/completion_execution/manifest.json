@@ -1,0 +1,111 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/complete.py.snapshot",
+      "sha256": "6f365444d09abf256592c01db4fd8dc4a2e3bae0f5cd238fd3e56999e68f4eeb"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/close_context.py.snapshot",
+      "sha256": "678885e46f8ab55d9f9ee15815151a1f6ce05a4b9922928c63c085895a67da08"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup_results.py.snapshot",
+      "sha256": "27efb7ab55ff672fff12576384abdd18684db8d473ce95ab9c7749145d0aa165"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_program.py.snapshot",
+      "sha256": "4427e40c636b492420eb2598254bb8c585c5c9f2ad481c27e73903365ec92056"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_program.py.snapshot",
+      "sha256": "aaff012f49a871a959721b0159ebecd9115ac720481b1ad61e517d1ddaf28643"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_identity.json",
+      "sha256": "0458e9cb99ee9fb619f78b1219b6a648275217247b08c7221babea65f7783572"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_identity.json",
+      "sha256": "d6dbad3f47681f06b28cb010c995f5c22b06c9cbbb59b1d15c933fe4b2acb45d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/completion_template.json",
+      "sha256": "e37bec0cd0b56b3948a0905782caeb81a4f50bbec8d0cca65be26cfd7b612735"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_template.json",
+      "sha256": "9346d33adfb574c267882792710cdcf37e8460383fa42b282e7008245f5c939c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/start_receipt.json",
+      "sha256": "37f3efe7620846c6d6519004a541802d71156d21fbaefb2d16695aa2d5233553"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup.json",
+      "sha256": "1eeecdaac8f93edd74f3b5623da8b5168e1dfede4ad4fde917b11422c14a14e0"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/commit.json",
+      "sha256": "9d9c4cf1b94d4c8abd962b77a0fcf7415415987c60d22edeb047bb7a6c242ec7"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_start.log",
+      "sha256": "a9ed7c282df5ef5c9b1b74d8665c599b777b70ce45d24c3280a345d4ad984209"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_stop.log",
+      "sha256": "74313c08835507ddd9ab807ae7e1d39a846dccaf6de96da214d9ecf4057b0052"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/remote_health.json",
+      "sha256": "1b2a7e7c4fbe1a252352e16376d31506cf5e4d60447c05fa22957ba71c691a35"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/analysis_metrics.log",
+      "sha256": "1c2096e46fef3afbdb3d942cb612eb5e6cb0fcfb009b29f4b23ab321f46a08a3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/analysis_stages.log",
+      "sha256": "c1ddaeba2009756ff42814d74925d0f0dc33499125a5bc6334352ce72ec320bc"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/resume_context.py.snapshot",
+      "sha256": "3be36c991d5c03c6dbdcab630c6a4273c955dc9e7e1e5ad7be498527bba1db9d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_resume_program.py.snapshot",
+      "sha256": "f9bee2ec534604ba9904cb378f33087651bffbb65d88a783a179b0e301b0a995"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_resume_identity.json",
+      "sha256": "80212cd85b8a70a9abe884c7096dd379b461ead29dd9800e862d47c8348ed1ef"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/context_attempt1.json",
+      "sha256": "782f45a4a204f2dbc16e71024403441125cced1c189fdbbb57b6abc555b14b5d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/audit_settlement.py.snapshot",
+      "sha256": "49f2adde875de26229123f880dd48370e9cb9d4c61d33e4469287bbab0446458"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_program.py.snapshot",
+      "sha256": "8910061eabfc0d8cf5af810a9b18d8e8c4f818cc89b084a18a3ac72150ed892f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_template.json",
+      "sha256": "f163b07b41020671b1cf716c0e37337fd7d71965c60003bf34e8f5bd32968814"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/settlement_identity.json",
+      "sha256": "d281cc96f8b240c2aaf7d77496d4e16ef3fc262c1a24b86f27b95d443a97cb8e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/completion_execution/backup_program.py.snapshot",
+      "sha256": "a909ef937959e45bc7d6a84be275731af7254e7643d56b71d4b3b3997cd5dcbb"
+    }
+  ],
+  "remote_monitor_sha256": "e7cef9992ce4519278b50e1fb8341900d30cf0d5d139d86ce2e9b9b5da048406",
+  "protected_files": 147,
+  "procedure_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/backup_results.py"
+}

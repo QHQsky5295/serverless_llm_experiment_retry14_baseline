@@ -1,0 +1,20 @@
+{
+  "files": [
+    "configs/ieee_tc/20261025_d835_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D835_COMPLETED_MEMBERSHIP_REUSE_FULL_W2_20261025.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/execution_contract_tests.json",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d835_3b_completed_membership_reuse_full_w2/prelaunch/stop_remote.sh.snapshot"
+  ],
+  "head": "5cfd17b45783531a53b6acae9e3b9eca6c9cc695",
+  "ref": "refs/heads/backup/d835-completed-membership-reuse-fullw2-20261025"
+}
