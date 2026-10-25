@@ -1,0 +1,37 @@
+"""D737: existing focused CPU/spawn/ownership checks, no GPU replay."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent / 'tests1'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+def main():
+    RAW.mkdir(exist_ok=False)
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    save(RAW/'test_identity.json', p.scope_identity(p.cg_path().name))
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                       '--format=csv,noheader'], text=True).strip()
+    prior = json.loads((ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/prelaunch/qualification.json').read_text())
+    for path, sha in prior['protected'].items(): assert p.digest(Path(path)) == sha, path
+    tests = ['tests.test_ieee_tc_host_execution_projection', 'tests.test_ieee_tc_identity_recheck', 'tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation', 'tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement', 'tests.test_ieee_tc_transfer_pressure.IntegratedNativeHostReplacement']
+    with (RAW/'tests.log').open('x') as log:
+        result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+    for path, sha in prior['protected'].items(): assert p.digest(Path(path)) == sha, path
+    save(RAW/'test_result.json', dict(returncode=result.returncode,
+        resources=p.cgroup_snapshot(p.cg_path()), tests=tests,
+        protected_files_unchanged=len(prior['protected']), new_gpu_replays=0,
+        python=sys.executable))
+    print(json.dumps(dict(returncode=result.returncode, log=str(RAW/'tests.log'))))
+    raise SystemExit(result.returncode)
+
+if __name__ == '__main__': main()

@@ -1,0 +1,35 @@
+{
+  "returncode": 1,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84500000000000000000000000000004.scope",
+    "memory.current": 11259904,
+    "memory.peak": 567209984,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 12467647\nuser_usec 10888325\nsystem_usec 1579322\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "tests": [
+    "tests.test_ieee_tc_host_execution_projection",
+    "tests.test_ieee_tc_identity_recheck",
+    "tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement",
+    "tests.test_ieee_tc_transfer_pressure.IntegratedNativeHostReplacement"
+  ],
+  "protected_files_unchanged": 1,
+  "new_gpu_replays": 0,
+  "python": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python"
+}

@@ -1,0 +1,123 @@
+"""Classify D843 saved decode frames; no new sampling or serving changes."""
+import ast
+import collections
+import importlib.util
+import json
+import os
+from pathlib import Path
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+SOURCE = RAW.parent / 'd843_20261025'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d845_saved_rpc_callers'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def put(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def main():
+    assert set(os.sched_getaffinity(0)) == {2, 3, 26, 27}
+    scope = p.scope_identity(p.cg_path().name)
+    group = Path(scope['path'])
+    before = p.cgroup_snapshot(group)
+    OUT.mkdir(parents=True, exist_ok=False)
+    cpu = json.loads((SOURCE / 'full4000_cpu_samples.json').read_text())
+    old = json.loads((ROOT / 'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/business_callers.json').read_text())
+    controllers = [x for x in old['details'] if x['role'] == 'controller']
+    assert len(controllers) == 1
+    controller = controllers[0]
+    process, = [x for x in cpu['processes'] if x['pid'] == controller['pid']]
+    refs = process['source_refs']
+    for ref in refs:
+        assert p.digest(Path(ref['path'])) == ref['sha256']
+    spec = importlib.util.spec_from_file_location('d843_reader', SOURCE / 'collect_cpu.py')
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    launch = SOURCE / '3b_max3_full_w2/launch.launch'
+    receipt = json.loads((launch / 'exec_receipt.json').read_text())
+    t0 = receipt['external_replay']['replay_t0_s']
+    terminals = []
+    for row, partial in reader.rows(launch / 'physical_deployment/request_terminals.jsonl'):
+        assert not partial
+        assert row['clock_id'] == receipt['external_replay']['clock_id']
+        terminals.append(row)
+    assert len(terminals) == len({x['request_id'] for x in terminals}) == 4000
+    end = max(x['at'] for x in terminals)
+    meta_path = Path(refs[0]['path'])
+    meta = json.loads(meta_path.read_text())
+    runner = ROOT / 'scripts/run_all_experiments.py'
+    text = runner.read_text()
+    tree = ast.parse(text)
+    calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+             and isinstance(n.func, ast.Attribute)
+             and (n.func.attr.startswith('ieee_') or n.func.attr == '_rpc')]
+    selected, counts = [], collections.Counter()
+    window = missing = truncated = 0
+    for row, partial in reader.rows(meta_path.with_suffix('.stacks.jsonl')):
+        assert not partial
+        if not t0 <= row['observed_monotonic_s'] <= end:
+            continue
+        mains = [x for x in row['threads'] if x['ident'] == meta['main_thread_ident']]
+        if not mains:
+            missing += 1
+            continue
+        main_thread, = mains
+        window += 1
+        truncated += int(main_thread['truncated'])
+        frames = main_thread['frames']
+        positions = [i for i, f in enumerate(frames) if f[0] == str(runner)
+                     and f[1] == '_decode_native_rpc_frame']
+        if not positions:
+            continue
+        i, = positions
+        assert frames[i + 1][1] == '_send_rpc_on_channel'
+        api_pos = next(j for j in range(i + 2, len(frames))
+                       if frames[j][0] == str(runner) and frames[j][1].startswith('ieee_'))
+        api = frames[api_pos]
+        caller = frames[api_pos + 1]
+        expression = None
+        if caller[0] == str(runner):
+            matching = [n for n in calls if n.func.attr == api[1]
+                        and n.lineno <= caller[2] <= n.end_lineno]
+            if len(matching) == 1:
+                expression = ast.get_source_segment(text, matching[0])
+        key = (api[1], caller[0], caller[1], caller[2], expression)
+        counts[key] += 1
+        selected.append(dict(index=row['index'], at=row['observed_monotonic_s'],
+                             api=api, caller=caller, expression=expression,
+                             frames=frames, truncated=main_thread['truncated']))
+    assert window == controller['window_samples'] == 1937
+    assert missing == truncated == 0
+    existing = [x for x in controller['inclusive'] if x['function'] == '_decode_native_rpc_frame']
+    assert len(existing) == 1 and len(selected) == existing[0]['samples'] == 125
+    groups = [dict(api=k[0], caller_file=k[1], caller_function=k[2], caller_line=k[3],
+                   expression=k[4], samples=v) for k, v in counts.most_common()]
+    qualified = json.loads((ROOT / 'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/prelaunch/qualification.json').read_text())
+    for path, sha in qualified['protected'].items():
+        assert p.digest(Path(path)) == sha, path
+    source_paths = [Path(__file__), SOURCE / 'collect_cpu.py', SOURCE / 'full4000_cpu_samples.json',
+                    launch / 'exec_receipt.json', launch / 'physical_deployment/request_terminals.jsonl', runner]
+    result = dict(kind='d845_saved_rpc_callers_v1', source_run='D843', controller_pid=controller['pid'],
+                  window_samples=window, missing=missing, truncated=truncated,
+                  decode_samples=len(selected), groups=groups, samples=selected,
+                  source_refs=refs + [dict(path=str(x), sha256=p.digest(x)) for x in source_paths],
+                  protected=dict(entries=len(qualified['protected']), changed=[]),
+                  new_gpu_runs=0, new_samples=0, cpu_time_profile=False, formal_qualification=False,
+                  caveats=['GIL-scheduled frame frequency is not CPU time or removable latency.',
+                           'Call expression classification requires an exact saved caller line.',
+                           'No numerical adapter correctness qualification is inferred.'])
+    put(OUT / 'classification.json', result)
+    put(OUT / 'resources.json', dict(scope=scope, before=before, after=p.cgroup_snapshot(group)))
+    with (OUT / 'classify_saved_rpc.py.snapshot').open('xb') as stream:
+        stream.write(Path(__file__).read_bytes())
+    print(json.dumps(dict(window=window, decoded=len(selected), groups=groups)))
+
+
+if __name__ == '__main__':
+    main()

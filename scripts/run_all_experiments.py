@@ -20662,7 +20662,10 @@ class ScenarioRunner:
             feedback = gpu_feedback[aid_int]
             if aid_int in gpu_staging:
                 feedback['remote'] = await gpu_staging[aid_int]
-            observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
+            # Staging only checks current source identity/absence, not capacity.
+            # Keep the fresh owner read; the GPU action still takes its complete
+            # source_snapshot and the native commit rechecks physical admission.
+            observed = await target_engine.ieee_gpu_reference(operation='source_identity_snapshot')
             current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
             if current is not None:
                 if ((current['adapter_id'], current['lora_path']) != (aid, row['lora_path'])

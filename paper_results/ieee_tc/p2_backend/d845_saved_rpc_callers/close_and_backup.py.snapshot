@@ -1,0 +1,94 @@
+"""Curate D845 and reuse the D824 explicit-path backup procedure."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d845_saved_rpc_callers'
+DOC = ROOT / 'docs/ieee_tc/D845_STAGING_SOURCE_CONSUMER_20261025.md'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+identity = p.scope_identity(p.cg_path().name)
+save(RAW / 'close_identity.json', identity)
+test = json.loads((RAW / 'tests4/test_result.json').read_text())
+assert test['returncode'] == 0
+log = (RAW / 'tests4/tests.log').read_text()
+assert re.search(r'^Ran 67 tests in [0-9.]+s$', log, re.MULTILINE)
+assert re.search(r'^OK$', log, re.MULTILINE)
+assert json.loads((RAW / 'tests1/test_result.json').read_text())['returncode'] == 1
+assert json.loads((RAW / 'tests2/test_result.json').read_text())['returncode'] == 1
+assert json.loads((RAW / 'tests3/test_result.json').read_text())['returncode'] == 1
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+ast_scope = json.loads((RAW / 'ast_scope.json').read_text())
+assert p.digest(ROOT / 'scripts/run_all_experiments.py') == ast_scope['candidate_sha256']
+old = json.loads((ROOT / 'paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch/closure.json').read_text())
+for path, sha in old['user_protected'].items():
+    assert p.digest(Path(path)) == sha
+qualified = json.loads((ROOT / 'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/prelaunch/qualification.json').read_text())
+for path, sha in qualified['protected'].items():
+    assert p.digest(Path(path)) == sha
+seal = p.verify_seal(RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+scopes = []
+for suffix in ('01', '02', '03', '04', '05'):
+    unit = 'primelora-tc-aux-845000000000000000000000000000' + suffix + '.scope'
+    state = subprocess.check_output(['systemctl', '--user', 'show', unit, '-p', 'ActiveState'], text=True)
+    assert state.strip() == 'ActiveState=inactive'
+    assert not (Path(identity['path']).parent / unit).exists()
+    scopes.append(dict(unit=unit, inactive=True, path_removed=True))
+for name in ('qualify.py', 'qualify_test_correction.py', 'archive_failed_test.py',
+             'qualification_program.py.snapshot', 'qualification_test_correction.py.snapshot',
+             'qualification_tests3.py.snapshot', 'qualification_tests4.py.snapshot',
+             'ast_scope.json', 'tests1/test_identity.json', 'tests1/test_result.json',
+             'tests1/test_source.py.snapshot', 'tests2/test_identity.json', 'tests2/test_result.json',
+             'tests2/test_source.py.snapshot', 'tests3/test_identity.json', 'tests3/test_result.json',
+             'tests3/test_source.py.snapshot', 'tests4/test_identity.json', 'tests4/test_result.json'):
+    dest = OUT / 'qualification' / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with dest.open('xb') as stream:
+        stream.write((RAW / name).read_bytes())
+for attempt in ('tests1', 'tests2', 'tests3', 'tests4'):
+    with (OUT / 'qualification' / attempt / 'tests.txt').open('xb') as stream:
+        stream.write((RAW / attempt / 'tests.log').read_bytes())
+with (OUT / 'close_and_backup.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT / 'closure.json', dict(passed=True, cpu_tests=67,
+    first_test_failure='Test ContextVar inherited by queue task misclassified a preserved full GPU read; test only corrected.',
+    second_test_failure='Test direct-caller check also ran on independent mutation tasks; restricted to the query scope under test.',
+    third_test_failure='Default mixed fixture has handoff profiles; test used residency. Reuse the fixture original handoff contract, no new profile or production change.',
+    production_unchanged_between_test_attempts=True, scopes=scopes,
+    user_protected=old['user_protected'], protected=seal,
+    doc=dict(path=str(DOC), sha256=p.digest(DOC)), ast_scope=ast_scope,
+    new_gpu_runs=0, numerical_correctness_qualified=False, performance_candidate_accepted=False,
+    disk_free_bytes=os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize,
+    next='One ordinary full 3B W2 with D840 contract; no new profiling or short GPU replay.'))
+files = [dict(path=str(path), sha256=p.digest(path)) for path in sorted(OUT.rglob('*')) if path.is_file()]
+save(OUT / 'final_manifest.json', dict(files=files, self_excluded=True))
+template = RAW.parent / 'd824_20261025/backup.py'
+source = template.read_text()
+source = source.replace('d824_current_ingress_pending', 'd845_saved_rpc_callers')
+source = source.replace('107185c45f49a891c0b391b1140b7d765e83daea', 'a9a0e7c8d9c40ec21285acc22abec49c6a865d0c')
+source = source.replace('D824_CURRENT_INGRESS_AND_CONTROL_20261025.md', 'D845_STAGING_SOURCE_CONSUMER_20261025.md')
+source = source.replace("files = [ROOT/'docs/ieee_tc/D845", "files = [ROOT/'scripts/run_all_experiments.py', ROOT/'tests/test_ieee_tc_host_execution_projection.py', ROOT/'docs/ieee_tc/D845")
+source = source.replace('len(paths) == len(set(paths)) == 20', 'len(paths) == len(set(paths))')
+source = source.replace('backup/d824-current-ingress-control-20261025', 'backup/d845-staging-source-20261025')
+source = source.replace('tc: preserve current 3B ingress and actual scaling-trigger diagnosis (D824)', 'tc: qualify fresh staging-source identity at one measured caller (D845)')
+source = source.replace("'closed analysis and strict count/source checks', 'script compile'", "'saved-stack attribution and 67 CPU tests', 'one-constant production AST proof'")
+with (RAW / 'backup_program.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(RAW / 'backup_program.py.snapshot'), 'exec'),
+     {'__name__': '__main__', '__file__': str(__file__)})
+save(RAW / 'backup_resources.json', p.cgroup_snapshot(Path(identity['path'])))

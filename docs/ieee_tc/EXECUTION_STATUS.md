@@ -1,4 +1,27 @@
-# IEEE TC execution status — D843 delivery closed; D844 batch-stat rejected
+# IEEE TC execution status — D845 staging-source candidate CPU-qualified
+
+## 2026-10-25 D845实际调用归类与单点候选
+
+本轮为实质进展，无新GPU/remote运行。复用D843全部1937个controller业务
+样本，将125个解码样本完整归属：GPU execute的source_snapshot61，
+prepare_gpu_source前置查询41，planner的routing_source_snapshot23；无
+缺失/截断，频次不当CPU时间或可删除时延。D514/D516/D519的execute负结果
+继续有效，不改该调用；D691原缺少前置查询独立调用证据，本次补齐。
+
+唯一生产改动为prepare_gpu_source的operation切换既有实时identity接口，
+AST仅一个常量；后续GPU action完整source_snapshot及实际物理准入均保留。
+无跨调用缓存、codec、配置、九式或阈值修改。67项针对性CPU检查最终通过
+4.270秒，完成域峰值567242752B、high/max/OOM/swap0。前三次测试侧错误
+（上下文继承归属、独立mutation任务归属、handoff夹具场景误用）及源码日志
+保留，生产候选未随修测试而改变；不作为性能重复或成功收益。
+
+当前正按明确路径备份D845证据/候选。下一直接一次普通完整3B W2，复用
+D840配置、D725 profile、D648 SLO和D657预算/源/视图/map/真实远端合同，
+仅新运行及缓存路径；不新增profiling、组件计时或GPU短前缀。先实际核查
+150/100GiB及内存/GPU状态，不放宽门槛。完整结果决定接受/撤回。
+D840未插桩92.10%、U11235.329655仍是父性能点，D843仅诊断；D711独立
+数值正确性未知不变。全部3B/最终7B比较、A1–A5、S1–S13、审稿文档/
+图表/V2仍开放，goal active；不重开HydraServe基础适配或共享k3s。
 
 ## 2026-10-25 D844结果备份与收尾
 

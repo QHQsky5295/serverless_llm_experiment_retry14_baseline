@@ -154,6 +154,72 @@ class GPUExecutionProjection(unittest.TestCase):
         asyncio.run(asyncio.wait_for(run(), 5))
 
 
+class GPUStagingProjection(unittest.TestCase):
+    """Only the prerequisite identity read changes; GPU execution stays full."""
+    def test_remote_prerequisite_uses_fresh_identity_then_full_gpu_observation(self):
+        self._check_staging(remote_gpu=True)
+
+    def test_existing_file_prerequisite_uses_fresh_identity_then_full_gpu_observation(self):
+        self._check_staging(remote_gpu=False)
+
+    def _check_staging(self, *, remote_gpu):
+        import inspect
+        pressure.setUpModule()
+        self.addCleanup(pressure.tearDownModule)
+        factory = pressure.MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, slot, owner, snapshot, loads = factory.make(remote_gpu=remote_gpu)
+        original_reference = slot.engine.ieee_gpu_reference.side_effect
+        observations = []
+        async def reference(*, operation, **kw):
+            if operation not in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
+                return await original_reference(operation=operation, **kw)
+            # A queue task inherits its creator's ContextVars. Classify the
+            # actual direct runner caller, not that inherited task context.
+            frame = inspect.currentframe().f_back
+            try:
+                while frame and not frame.f_code.co_filename.endswith('/scripts/run_all_experiments.py'):
+                    frame = frame.f_back
+                self.assertIsNotNone(frame)
+                inside = frame.f_code.co_name == 'prepare_gpu_source'
+            finally:
+                del frame
+            value = await original_reference(operation=operation, **kw)
+            if operation.endswith('source_snapshot') or operation == 'source_identity_snapshot':
+                observations.append((inside, operation, value))
+            if inside and operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
+                self.assertEqual(operation, 'source_identity_snapshot')
+                self.assertNotIn('native_footprints', value)
+                # Compare with another real owner read, not a cached fixture.
+                # Ignore only the read's capture time; every identity is live.
+                fresh = owner.source_snapshot()
+                for key in fresh:
+                    if key != 'captured_monotonic_s':
+                        self.assertEqual(value[key], fresh[key])
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        async def run():
+            try:
+                # The default mixed fixture has handoff profiles; the remote
+                # single-target fixture is also used by residency checks.
+                await factory.execute(runner, slot, mode='residency' if remote_gpu else 'handoff')
+                identity_positions = [i for i, (inside, op, _) in enumerate(observations)
+                                      if inside and op == 'source_identity_snapshot']
+                full_positions = [i for i, (inside, op, _) in enumerate(observations)
+                                  if not inside and op == 'source_snapshot']
+                self.assertTrue(identity_positions)
+                self.assertTrue(full_positions)
+                self.assertGreater(max(full_positions), min(identity_positions))
+                self.assertTrue(all('native_footprints' in observations[i][2] for i in full_positions))
+                self.assertIn(('host', 'a'), loads)
+                self.assertIn(('gpu', 'a'), loads)
+                self.assertGreater(slot.engine.ieee_prepare_host.await_count, 0)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 5))
+
+
 class HostExecutionProjection(unittest.TestCase):
     def test_no_physical_snapshot_in_execution_but_actual_loader_still_runs(self):
         async def run():

@@ -1,0 +1,71 @@
+{
+  "passed": true,
+  "cpu_tests": 67,
+  "first_test_failure": "Test ContextVar inherited by queue task misclassified a preserved full GPU read; test only corrected.",
+  "second_test_failure": "Test direct-caller check also ran on independent mutation tasks; restricted to the query scope under test.",
+  "third_test_failure": "Default mixed fixture has handoff profiles; test used residency. Reuse the fixture original handoff contract, no new profile or production change.",
+  "production_unchanged_between_test_attempts": true,
+  "scopes": [
+    {
+      "unit": "primelora-tc-aux-84500000000000000000000000000001.scope",
+      "inactive": true,
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84500000000000000000000000000002.scope",
+      "inactive": true,
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84500000000000000000000000000003.scope",
+      "inactive": true,
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84500000000000000000000000000004.scope",
+      "inactive": true,
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84500000000000000000000000000005.scope",
+      "inactive": true,
+      "path_removed": true
+    }
+  ],
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D845_STAGING_SOURCE_CONSUMER_20261025.md",
+    "sha256": "38efac8bba8333eb5509ca2cf32cbce63668048aa409fc1d272ab461bfbb3ded"
+  },
+  "ast_scope": {
+    "parent_commit": "a9a0e7c8d9c40ec21285acc22abec49c6a865d0c",
+    "changes": [
+      {
+        "old": "source_snapshot",
+        "new": "source_identity_snapshot",
+        "old_line": 20665,
+        "new_line": 20668
+      }
+    ],
+    "candidate_sha256": "0a437263c05751aa7efe396f22256f5548dfda28f0bdce1ddf3acfb606d99403",
+    "template": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d737_20261023/test_unittest.py",
+      "sha256": "833dfe534a81f9b38f2a9bd96300ccee3df1cc171c9a55583be497a0a6b9b3f3"
+    }
+  },
+  "new_gpu_runs": 0,
+  "numerical_correctness_qualified": false,
+  "performance_candidate_accepted": false,
+  "disk_free_bytes": 162525954048,
+  "next": "One ordinary full 3B W2 with D840 contract; no new profiling or short GPU replay."
+}
