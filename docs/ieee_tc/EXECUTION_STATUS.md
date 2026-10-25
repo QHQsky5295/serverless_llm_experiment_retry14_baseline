@@ -1,4 +1,17 @@
-# IEEE TC execution status — D841 storage restored; D842 current W2 control diagnosis
+# IEEE TC execution status — D843 current full-W2 diagnostic registration
+
+## 2026-10-25 D843一次完整当前W2观察，准备启动
+
+本轮先重读完整PLAN、V1/单轮V2、存储与baseline停止规则。D842已保存的
+外层区间不能拆分当前函数，D734旧1000前缀早于多次优化且不覆盖晚期。
+按上轮明确边界登记一次D843完整W2，复用既有python_frames_v1/full_source_v1，
+同D840全部配置仅三个工作路径变化，未改生产代码/九公式/工件/生成/评价。
+无新短前缀、无新观察框架或参数搜索；该运行仅诊断，不参与性能排名。
+正在做针对性入口检查、147保护和明确路径备份，尚未启动。D840仍92.10%、
+U11235.329655预算内未达标，数值正确性未知保留。D841存储维护已完成，不重做。
+结束后按早/晚阶段和当前区间关联函数，形成一个可证伪候选或排除，不连续
+追加局部诊断。详见D843_CURRENT_W2_CONTROLLER_DIAGNOSTIC_20261025.md。
+完整主线与最终交付仍开放，不重开HydraServe适配或访问共享k3s，goal active。
 
 ## 2026-10-25 16:46 D841/D842已完成明确路径备份
 
