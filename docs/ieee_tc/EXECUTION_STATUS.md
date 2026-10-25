@@ -1,5 +1,14 @@
 # IEEE TC execution status — D841 storage restored; D842 current W2 control diagnosis
 
+## 2026-10-25 16:46 D841/D842已完成明确路径备份
+
+26个新证据/文档路径提交fbd660dd8c75e8001df99bd6e4b1a12e5e94eb3d，
+远端backup/d842-control-and-storage-20261025核实同SHA；未force，最终V2
+仍未同步，用户manifest未stage。raw/d842_20261025/backup.json保存回执。
+三项D841、三项D842辅助scope均已退出，四卡无compute进程；当前可用
+164111626240B约152.84GiB。生产未改，无新性能运行。下一直接按下节的
+单一当前后半程控制路径问题推进，不重做维护/相同区间分析/旧短前缀。
+
 ## 2026-10-25 D841维护与D842现有时间线分析完成
 
 本轮为progress，未新增GPU回放/生产机制/远端操作。完整PLAN、V1/单轮V2、
