@@ -394,7 +394,8 @@ class SharedFileTransferDomain:
             if cancelled:
                 raise asyncio.CancelledError()
 
-    async def run(self, adapter_id, source_tier, target_tier, operation, *, required_engine=None):
+    async def run(self, adapter_id, source_tier, target_tier, operation, *, required_engine=None,
+                  on_io_joined=None):
         if (not isinstance(adapter_id, str) or not adapter_id
                 or source_tier not in ('remote', 'nvme', 'host')
                 or target_tier not in ('nvme', 'host', 'native_host') or source_tier == target_tier):
@@ -440,6 +441,11 @@ class SharedFileTransferDomain:
             record.update(operation_outcome='running', io_started_at=time.monotonic())
             result = await operation()
             record.update(operation_outcome='completed', io_joined_at=time.monotonic())
+            # The actual writer and cleanup have joined. A consumer may now
+            # protect/use the verified output while this SAME owned operation
+            # settles conservative pressure acknowledgements in its finally.
+            if on_io_joined is not None:
+                on_io_joined(result)
             return result
         except BaseException as exc:
             if isinstance(exc, UnresolvedTransferOperation):

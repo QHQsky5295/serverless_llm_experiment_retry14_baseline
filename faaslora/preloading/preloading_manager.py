@@ -93,11 +93,14 @@ class OwnedMovementQueue:
             raise RuntimeError('movement cancellation is still settling on its physical owner')
         if job is None:
             future = loop.create_future()
+            ready_future = loop.create_future()
             # Observe errors even when all interests have been withdrawn. This
             # does not change what an awaiting consumer receives.
             future.add_done_callback(lambda f: None if f.cancelled() else f.exception())
+            ready_future.add_done_callback(lambda f: None if f.cancelled() else f.exception())
             job = dict(job_id=uuid.uuid4().hex, key=key, state='pending', action=action,
-                intents={}, subscriptions={}, future=future, task=None, ready=ready, attempts=[],
+                intents={}, subscriptions={}, future=future, ready_future=ready_future,
+                task=None, ready=ready, attempts=[],
                 created_at=time.monotonic(), finished_at=None, stop_requested=False,
                 deferred_revision=-1)
             self._keys[key] = job
@@ -137,6 +140,8 @@ class OwnedMovementQueue:
                 raise TypeError('owned movement executor must return MovementOutcome')
             attempt.update(state=result.state, reason=result.reason)
             if result.state == 'deferred':
+                if job['ready_future'].done():
+                    raise RuntimeError('a published movement cannot become deferred')
                 # Retain the actual refusal observation, not a prediction of
                 # future capacity. Monitoring can compare subsequent state
                 # without re-running the physical operation on every tick.
@@ -145,6 +150,8 @@ class OwnedMovementQueue:
                 job['deferred_revision'] = revision
             else:
                 job['state'] = 'completed'
+                if not job['ready_future'].done():
+                    job['ready_future'].set_result(copy.deepcopy(result.value))
                 job['future'].set_result(result.value)
         except asyncio.CancelledError:
             job['state'] = attempt['state'] = 'cancelled'
@@ -162,6 +169,13 @@ class OwnedMovementQueue:
             attempt['error_type'] = type(exc).__name__
             job['future'].set_exception(exc)
         finally:
+            # A readiness observation is not settlement. Preserve a later
+            # failure on the terminal future; before readiness, wake both.
+            if job['future'].done() and not job['ready_future'].done():
+                if job['future'].cancelled():
+                    job['ready_future'].cancel()
+                else:
+                    job['ready_future'].set_exception(job['future'].exception())
             attempt['finished_at'] = time.monotonic()
             if job['state'] in ('completed', 'cancelled', 'failed', 'superseded'):
                 job['finished_at'] = attempt['finished_at']
@@ -204,12 +218,29 @@ class OwnedMovementQueue:
                 job['state'] = 'pending'
         self._pump()
 
-    async def wait(self, intent_id):
+    def publish_ready(self, intent_id, attempt_id, value):
+        """Executor-observed output; keep the operation and all interests live.
+
+        The physical executor supplies a verified publication, not a forecast.
+        No state becomes completed and no concurrency/capacity is returned.
+        """
+        self._bind()
+        job = self._intents[intent_id]
+        if (job['state'] != 'executing' or not job['attempts']
+                or job['attempts'][-1]['attempt_id'] != attempt_id
+                or job['ready_future'].done()):
+            raise ValueError('readiness must belong to the current unpublished execution')
+        job['ready_future'].set_result(copy.deepcopy(value))
+        job['attempts'][-1]['output_ready_at'] = time.monotonic()
+
+    async def wait(self, intent_id, *, on_ready=None):
         self._bind()
         job = self._intents[intent_id]
         try:
+            if on_ready is not None:
+                on_ready(copy.deepcopy(await asyncio.shield(job['ready_future'])))
             return await asyncio.shield(job['future'])
-        except asyncio.CancelledError:
+        except BaseException:
             await self.withdraw(intent_id)
             raise
         finally:
@@ -232,6 +263,7 @@ class OwnedMovementQueue:
         if task is None:
             job['state'], job['finished_at'] = 'cancelled', time.monotonic()
             job['future'].cancel()
+            job['ready_future'].cancel()
             self._keys.pop(job['key'], None)
             job['action'] = None
             return
@@ -250,6 +282,7 @@ class OwnedMovementQueue:
             # never ran, but no owned operation was entered either.
             job.update(state='cancelled', finished_at=time.monotonic(), task=None, action=None)
             job['future'].cancel()
+            job['ready_future'].cancel()
             self._keys.pop(job['key'], None)
             self._pump()
 

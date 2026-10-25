@@ -5077,6 +5077,180 @@ class DeferredNativeHostCapacity(unittest.IsolatedAsyncioTestCase):
         await queue.close()
 
 
+class OwnedFileReadiness(unittest.IsolatedAsyncioTestCase):
+    """D831 readiness overlaps settlement, never releases operation ownership."""
+
+    async def test_shared_readiness_keeps_both_interests_and_terminal_error(self):
+        queue, release = OwnedMovementQueue(1), asyncio.Event()
+        self.addAsyncCleanup(queue.close)
+        factory, seen = OwnedMovements(), []
+        async def action(attempt):
+            queue.publish_ready('first', attempt, {'copy': 'verified'})
+            await release.wait()
+            raise RuntimeError('late settlement failure')
+        factory.submit(queue, 'first', action, adapter='a')
+        factory.submit(queue, 'second', action, adapter='a')
+        first = asyncio.create_task(queue.wait('first', on_ready=lambda v: seen.append(('first', v))))
+        second = asyncio.create_task(queue.wait('second', on_ready=lambda v: seen.append(('second', v))))
+        try:
+            for _ in range(10):
+                await asyncio.sleep(0)
+            self.assertEqual(len(seen), 2)
+            seen[0][1]['copy'] = 'consumer mutation'
+            self.assertEqual(seen[1][1]['copy'], 'verified')
+            self.assertEqual(queue.snapshot()[0]['state'], 'executing')
+            self.assertEqual(set(queue.snapshot()[0]['active_intents']), {'first', 'second'})
+            self.assertFalse(first.done() or second.done())
+        finally:
+            release.set()
+        outcomes = await asyncio.gather(first, second, return_exceptions=True)
+        self.assertTrue(all(isinstance(e, RuntimeError) for e in outcomes))
+        self.assertEqual(queue.snapshot()[0]['state'], 'failed')
+        self.assertEqual(queue.snapshot()[0]['active_intents'], [])
+
+    async def test_repeated_cancel_after_ready_joins_actual_cleanup(self):
+        queue, cleanup, release = OwnedMovementQueue(1), asyncio.Event(), asyncio.Event()
+        self.addAsyncCleanup(queue.close)
+        ready = asyncio.Event()
+        async def action(attempt):
+            queue.publish_ready('first', attempt, 'output')
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleanup.set()
+                await release.wait()
+        OwnedMovements().submit(queue, 'first', action)
+        waiter = asyncio.create_task(queue.wait('first', on_ready=lambda v: ready.set()))
+        await asyncio.wait_for(ready.wait(), 2)
+        waiter.cancel()
+        await asyncio.wait_for(cleanup.wait(), 2)
+        waiter.cancel()
+        await asyncio.sleep(0)
+        self.assertFalse(waiter.done())
+        self.assertEqual(queue.snapshot()[0]['state'], 'executing')
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await waiter
+        self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')
+
+    async def test_readiness_callback_failure_withdraws_its_writer(self):
+        queue, closed = OwnedMovementQueue(1), asyncio.Event()
+        self.addAsyncCleanup(queue.close)
+        async def action(attempt):
+            queue.publish_ready('first', attempt, 'output')
+            try:
+                await asyncio.Event().wait()
+            finally:
+                closed.set()
+        OwnedMovements().submit(queue, 'first', action)
+        def reject(value):
+            raise ValueError('invalid consumer identity')
+        with self.assertRaisesRegex(ValueError, 'invalid consumer'):
+            await queue.wait('first', on_ready=reject)
+        self.assertTrue(closed.is_set())
+        self.assertEqual(queue.snapshot()[0]['active_intents'], [])
+
+    async def test_request_settlement_repeated_cancel_still_joins_writer(self):
+        from scripts.run_all_experiments import RuntimeRequestReservation, ScenarioRunner
+        queue, ready, cleanup, release = (OwnedMovementQueue(1), asyncio.Event(),
+                                         asyncio.Event(), asyncio.Event())
+        self.addAsyncCleanup(queue.close)
+        async def action(attempt):
+            queue.publish_ready('first', attempt, 'verified')
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleanup.set()
+                await release.wait()
+        OwnedMovements().submit(queue, 'first', action)
+        reservation = RuntimeRequestReservation('request')
+        reservation.gpu_reference_evidence['file_preparation_settlement'] = {'state': 'waiting'}
+        reservation.file_preparation_task = asyncio.create_task(
+            queue.wait('first', on_ready=lambda value: ready.set()))
+        await asyncio.wait_for(ready.wait(), 2)
+        settling = asyncio.create_task(ScenarioRunner._settle_runtime_file_preparation(reservation))
+        await asyncio.sleep(0)
+        settling.cancel()
+        await asyncio.wait_for(cleanup.wait(), 2)
+        settling.cancel()
+        await asyncio.sleep(0)
+        self.assertFalse(settling.done() or reservation.file_preparation_task.done())
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await settling
+        self.assertIsNone(reservation.file_preparation_task)
+        self.assertEqual(reservation.gpu_reference_evidence['file_preparation_settlement']['state'], 'cancelled')
+        self.assertFalse(queue.snapshot()[0]['active_intents'])
+
+    async def test_readiness_cannot_be_deferred_or_rebound(self):
+        queue = OwnedMovementQueue(1)
+        self.addAsyncCleanup(queue.close)
+        async def action(attempt):
+            with self.assertRaises(ValueError):
+                queue.publish_ready('first', 'another-attempt', 'bad')
+            queue.publish_ready('first', attempt, 'output')
+            with self.assertRaises(ValueError):
+                queue.publish_ready('first', attempt, 'replacement')
+            return MovementOutcome('deferred', reason='not a valid transition')
+        OwnedMovements().submit(queue, 'first', action)
+        with self.assertRaisesRegex(RuntimeError, 'published movement'):
+            await queue.wait('first')
+
+    async def check_real_file_before_finish(self, *, fail):
+        factory = FileObjectiveReplacement()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, engine, *_ = factory.make(victims=('b', 'c', 'd'), target='nvme')
+        self.addAsyncCleanup(queue.close)
+        runner._remote_materialize_locks = {'a': asyncio.Lock()}
+        runner.nvme_dir, runner._nvme_cache = fixture.nvme, {}
+        from scripts.run_all_experiments import RuntimeRequestReservation
+        reservation = RuntimeRequestReservation('request')
+        reservation.bind(NS(engine=engine, instance_id='replica'), 'a', False)
+        original = engine.ieee_transfer_event
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def held(**command):
+            if command['operation'] == 'finish':
+                entered.set()
+                await release.wait()
+                if fail:
+                    raise RuntimeError('controlled finish failure')
+            return await original(**command)
+        engine.ieee_transfer_event = held
+        try:
+            path, _ = await asyncio.wait_for(runner._ensure_local_async('a', reservation=reservation), 2)
+            await asyncio.wait_for(entered.wait(), 2)
+            self.assertEqual(Path(path), fixture.nvme/'a')
+            self.assertFalse(fixture.owner.materializations or fixture.owner._transfer_workspaces)
+            self.assertTrue(fixture.owner.leases and fixture.owner._file_movement_interests)
+            self.assertEqual(queue.snapshot()[0]['state'], 'executing')
+            self.assertFalse(reservation.file_preparation_task.done())
+            self.assertEqual(reservation.gpu_reference_evidence['remote_preparation']['state'], 'published')
+            settling = asyncio.create_task(runner._settle_runtime_file_preparation(reservation))
+            await asyncio.sleep(0)
+            self.assertFalse(settling.done())
+        finally:
+            release.set()
+        if fail:
+            with self.assertRaisesRegex(RuntimeError, 'controlled finish failure'):
+                await settling
+            self.assertEqual(reservation.gpu_reference_evidence['file_preparation_settlement']['state'], 'failed')
+            self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['state'], 'finish_pending')
+        else:
+            await settling
+            self.assertEqual(reservation.gpu_reference_evidence['file_preparation_settlement']['state'], 'settled')
+            self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['state'], 'finished')
+        self.assertIsNone(reservation.file_preparation_task)
+        self.assertFalse(fixture.owner._file_movement_interests)
+        runner._release_runtime_local_source(reservation)
+        self.assertFalse(fixture.owner.leases)
+
+    async def test_real_verified_file_is_consumable_before_all_finish_acknowledgements(self):
+        await self.check_real_file_before_finish(fail=False)
+
+    async def test_late_finish_failure_cannot_be_reported_as_success(self):
+        await self.check_real_file_before_finish(fail=True)
+
+
 class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
     """D815 counterexample through existing physical fixtures; no GPU inference."""
 
@@ -5088,7 +5262,8 @@ class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
         runner._remote_materialize_locks = {'a': asyncio.Lock()}
         runner.nvme_dir, runner._nvme_cache = fixture.nvme, {}
         reservation = NS(adapter_id='a', request_id='request', gpu_reference_evidence={},
-            local_source_owner=None, slot=NS(engine=engine, instance_id='replica'))
+            local_source_owner=None, file_preparation_task=None,
+            slot=NS(engine=engine, instance_id='replica'))
         return factory, fixture, runner, queue, engine, reservation
 
     def call(self, runner, engine, name, required):
@@ -5099,6 +5274,7 @@ class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
     async def test_actual_request_reclaims_within_budget_then_pins_source(self):
         _, fixture, runner, queue, _, reservation = self.make()
         path, _ = await runner._ensure_local_async('a', reservation=reservation)
+        await runner._settle_runtime_file_preparation(reservation)
         self.assertEqual(Path(path), fixture.nvme/'a')
         owner = fixture.owner
         event = owner._file_replacement_events[-1]
@@ -5198,14 +5374,23 @@ class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
     async def test_queue_return_to_read_lease_has_no_reclamation_gap(self):
         _, fixture, runner, _, _, reservation = self.make()
         materialize = runner._materialize_remote_adapter_async
+        protected_observations = []
         async def transfer(*args, **kwargs):
             result = await materialize(*args, **kwargs)
             self.assertFalse(fixture.manager._delete_path(str(fixture.nvme/'a')))
-            self.assertTrue(any(row['required'] for row in fixture.owner._file_movement_interests.values()))
+            # IO readiness may already have handed the source to a real read
+            # lease. Either ownership must span the terminal-return boundary.
+            protected = (any(row['required'] for row in fixture.owner._file_movement_interests.values())
+                         or bool(fixture.owner.leases))
+            self.assertTrue(protected)
+            protected_observations.append(protected)
             return result
         runner._materialize_remote_adapter_async = transfer
         path, _ = await runner._ensure_local_async('a', reservation=reservation)
         self.assertTrue(Path(path).is_dir())
+        self.assertFalse(fixture.manager._delete_path(path))
+        await runner._settle_runtime_file_preparation(reservation)
+        self.assertTrue(protected_observations)
         reference = reservation.gpu_reference_evidence['local_source_reference']
         fixture.owner.release(lease_id=reference['lease_id'], expected_owner_id=fixture.owner.owner_id)
         self.assertTrue(fixture.manager._delete_path(path))

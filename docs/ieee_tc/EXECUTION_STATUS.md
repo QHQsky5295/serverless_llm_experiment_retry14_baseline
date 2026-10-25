@@ -1,4 +1,39 @@
-# IEEE TC execution status — D830 completion-dependency analysis closed; target unmet
+# IEEE TC execution status — D831 owned file readiness CPU-qualified; target unmet
+
+## 2026-10-25 D831：文件可消费与压力结算分离，CPU验证完成
+
+本轮progress：完整重读PLAN、冻结V1/单轮V2与当前执行约束；复用D830的
+503条真实关联证据，实现唯一有所有权的执行顺序候选。不改变九公式、native
+pressure通道/串行顺序、物理预算、remote交付、SLO或任何baseline。
+IO及清理join且内容确认后发布可消费通知；读租约保护真实文件；原请求持有
+准备任务，成功终态必须join。残余等待计入E2E，晚到失败不冒作成功。
+
+首轮2个fixture接入错误、第二轮1个旧用例terminal边界错误均保留原日志/
+回执/源码；后者已改为验证interest→真实读租约的保护连续性，并join后释放。
+最终针对性91项、完整相关回归433项以及补充2项请求计量/晚到失败测试通过；
+共435不同测试，91项不重复累计。最大峰值1815482368B，所有high/max/OOM/
+swap为0，147旧投稿保护项一致。具体见D831_OWNED_FILE_READINESS_20261025.md。
+
+目前没有新GPU性能运行，最近完整3B W2仍D829：3638/4000=90.95%，
+U11246.510437GPU-s，距95%差162条；D711独立数值未知、N_correct=null及
+ranking=false不变。不以CPU测试宣称性能改善或资格完全通过。
+下一步：归档全部失败和通过证据→明确路径备份→新身份完整3B W2，不重复
+短Full，不叠加第二候选。共享k3s不改，HydraServe已完成的隔离适配不重做。
+最终同版两模型M1/M2与Full、A1–A5、S1–S13、成本/CE、审稿文档、图表及
+最终V2同步仍待完成；整体目标active。
+
+以下为D830已完成记录：
+
+后置检查点回执：D830七条明确路径已提交
+8b0158bfeb527b6f51d3e3dba567ff3fc0722b5d，推送并核实
+backup/d830-selected-owner-completion-20261025。15份当前/复用材料逐项归档
+读回SHA一致；7个aux scope均inactive、ControlGroup/Invocation空，已记录
+身份对应cgroup路径消失，工具session全部终态。GPU空、stage空，用户manifest
+未stage；baseline及生产逻辑未改。结束磁盘161545789440B、主机可用内存
+111427444kB，下一重型仍需实际准入。非最终V2同步，不为后置回执递归提交。
+本文后续“待备份”是归档前状态，已完成。D830报告中corrected脚本行数应为
+42（而非44）；不改已备份数据/来源SHA，后续文档编辑时一并勘误。
+下一步仍是下述有所有权的发布/结算依赖核查；整体目标active，无新性能运行。
 
 ## 2026-10-25 D830：所选副本与全域结算依赖，离线核对完成
 

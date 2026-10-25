@@ -1313,6 +1313,7 @@ class RuntimeRequestReservation:
     gpu_reference_engine: Optional[Any] = None
     gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
     local_source_owner: Optional[Any] = None
+    file_preparation_task: Optional[Any] = None
     ieee_routing_evidence: Optional[Dict[str, Any]] = None
     ieee_load_pending: bool = False
     ieee_pending_admission: Optional[Dict[str, Any]] = None
@@ -17334,7 +17335,10 @@ class ScenarioRunner:
             raise
         finally:
             try:
-                await self._finish_runtime_request_reservation(reservation)
+                try:
+                    await self._settle_runtime_file_preparation(reservation, cancel=True)
+                finally:
+                    await self._finish_runtime_request_reservation(reservation)
             finally:
                 del live[reservation.request_id]
                 if reservation.slot is not None:
@@ -18242,6 +18246,48 @@ class ScenarioRunner:
                 lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
             reference['state'] = 'released'
 
+    @staticmethod
+    async def _settle_runtime_file_preparation(reservation, *, cancel=False):
+        """Join the request's publication/settlement task before its terminal.
+
+        Readiness never releases the movement's ownership. Cancellation may
+        withdraw this subscriber, but its writer/RPC cleanup still has to join.
+        A late error is raised, not converted into successful inference.
+        """
+        task = reservation.file_preparation_task
+        if task is None:
+            return
+        record = reservation.gpu_reference_evidence['file_preparation_settlement']
+        if cancel and not task.done():
+            task.cancel()
+        interrupted = False
+        try:
+            while True:
+                try:
+                    await asyncio.shield(task)
+                    break
+                except asyncio.CancelledError:
+                    if task.done():
+                        task.result()
+                        interrupted = True
+                        break
+                    interrupted = True
+                    if not task.cancelling():
+                        task.cancel()
+            record['state'] = 'settled'
+        except BaseException as exc:
+            record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
+                          error_type=type(exc).__name__)
+            raise
+        finally:
+            # Reaching here after shield cancellation never abandons a live
+            # child: the loop above keeps joining until an actual terminal.
+            if task.done():
+                record['settled_monotonic_s'] = time.monotonic()
+                reservation.file_preparation_task = None
+        if interrupted:
+            raise asyncio.CancelledError()
+
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:
             reservation.slot.status = 'draining'
@@ -18929,6 +18975,12 @@ class ScenarioRunner:
                         raise ValueError('completed request lacks matching native interval events')
             else:
                 engine_timing = dict(per_request_timing or getattr(_engine, "last_timing", {}) or {})
+            if _reservation.file_preparation_task is not None:
+                # This can overlap generation, but not the successful request
+                # terminal. Include any remaining settlement in completion
+                # notification/E2E; native first/last token times stay intact.
+                await self._settle_runtime_file_preparation(_reservation)
+                t_end = time.perf_counter()
             native_token_timing: Dict[str, Any] = {}
             if timing_contract == "ieee_tc_native_v1":
                 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline, local_monotonic_clock_id
@@ -20772,7 +20824,8 @@ class ScenarioRunner:
 
     async def _queue_ieee_file_preparation(self, *, adapter_id, target_tier,
             target_engine, target_replica, trigger_reason, plan_id, activation_id=None,
-            source_path=None, density=0., intent_id=None, replacement_epoch=None):
+            source_path=None, density=0., intent_id=None, replacement_epoch=None,
+            on_source_ready=None):
         """One common owned movement entry for handoff, residency and demand.
 
         The existing file executors still own allocation, publication and join
@@ -20826,9 +20879,20 @@ class ScenarioRunner:
                 if target_tier != StorageTier.NVME or self._remote_artifact_client is None:
                     raise ValueError('remote preparation must enter the owned NVMe stage')
                 transfer = {}
+                def io_ready(value):
+                    ok, elapsed = value
+                    if not ok:
+                        raise RuntimeError('remote movement did not publish its target')
+                    observed = references.source_snapshot(adapter_id)
+                    if not any(s['tier'] == target_tier.value and s['path'] == str(target)
+                               and s['content_sha256'] == content for s in observed['sources']):
+                        raise RuntimeError('file readiness lacks matching confirmed publication')
+                    queue.publish_ready(intent_id, attempt_id, dict(state='published',
+                        target_path=str(target), io_ms=elapsed, remote_transfer=transfer,
+                        attempt_id=attempt_id, _io_owner_intent_id=intent_id))
                 ok, elapsed = await self._materialize_remote_adapter_async(adapter_id, target,
                     target_engine=target_engine, transfer_evidence=transfer, _movement_owned=True,
-                    replacement_epoch=replacement_epoch)
+                    replacement_epoch=replacement_epoch, on_io_joined=io_ready)
                 if not ok:
                     raise RuntimeError('remote movement did not publish its target')
                 result = dict(state='published', target_path=str(target), io_ms=elapsed,
@@ -20857,7 +20921,12 @@ class ScenarioRunner:
                 demand=trigger_reason == 'demand')
             # Only the operation creator can bind this transfer to its own admitted
             # source interval. A subscriber does not acquire the creator's timing.
-            result = copy.deepcopy(await queue.wait(intent_id))
+            def notify(value):
+                value['_movement'] = dict(job_id=job_id, intent_id=intent_id,
+                    owns_io=value.pop('_io_owner_intent_id', None) == intent_id)
+                on_source_ready(value)
+            result = copy.deepcopy(await queue.wait(intent_id,
+                on_ready=notify if on_source_ready is not None else None))
         result['_movement'] = dict(job_id=job_id, intent_id=intent_id,
             owns_io=result.pop('_io_owner_intent_id', None) == intent_id)
         return result
@@ -20987,7 +21056,8 @@ class ScenarioRunner:
         os.close(member['pidfd'])
         member.update(state='retired', retirement_receipt=receipt)
 
-    async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation):
+    async def _run_ieee_file_transfer(self, adapter_id, source_tier, target_tier, engine, operation,
+                                      *, on_io_joined=None):
         """One real IO interval, visible to all cores sharing this file owner.
 
         An activation may precede its engine. Its interval lives at the file
@@ -21000,7 +21070,10 @@ class ScenarioRunner:
         if self.model_cfg.get('ieee_admission_profile') is None:
             if engine is not None:
                 await self._attach_ieee_host_budget(engine)
-            return await operation()
+            result = await operation()
+            if on_io_joined is not None:
+                on_io_joined(result)
+            return result
         domain = self._ieee_file_pressure_domain()
         # Runtime activation joins the domain before pool publication. Its
         # membership lock, not an earlier routing-pool list, decides recipients
@@ -21012,7 +21085,7 @@ class ScenarioRunner:
             await self._attach_ieee_file_pressure(engine)
         try:
             return await domain.run(adapter_id, source_tier, target_tier, operation,
-                                    required_engine=engine)
+                                    required_engine=engine, on_io_joined=on_io_joined)
         finally:
             for owner_id, target in getattr(self, '_ieee_gpu_movement_owners', {}).items():
                 member = domain.members.get(id(target))
@@ -21053,7 +21126,7 @@ class ScenarioRunner:
         adapter_id: str,
         dst: Path,
         *, target_engine=None, transfer_evidence=None, _movement_owned=False, movement_context=None,
-        replacement_epoch=None,
+        replacement_epoch=None, on_source_ready=None, on_io_joined=None,
     ) -> Tuple[bool, float]:
         """Materialize one Remote->NVMe miss with one auditable link charge.
 
@@ -21073,7 +21146,8 @@ class ScenarioRunner:
                         raise ValueError('queued remote copy requires explicit movement provenance')
                     result = await self._queue_ieee_file_preparation(adapter_id=adapter_id,
                         target_tier=StorageTier.NVME, target_engine=target_engine,
-                        replacement_epoch=replacement_epoch, **movement_context)
+                        replacement_epoch=replacement_epoch, on_source_ready=on_source_ready,
+                        **movement_context)
                     if result['_movement']['owns_io'] and transfer_evidence is not None:
                         transfer_evidence.update(result['remote_transfer'])
                     # A shared copy is not this request's own full-load timing
@@ -21085,7 +21159,7 @@ class ScenarioRunner:
                             adapter_id, dst, cancel_event=cancellation, transfer_evidence=transfer_evidence,
                             replacement_epoch=replacement_epoch))
                 return await self._run_ieee_file_transfer(adapter_id, 'remote', 'nvme',
-                    target_engine, operation)
+                    target_engine, operation, on_io_joined=on_io_joined)
             return self._materialize_remote_adapter(adapter_id, dst)
 
         src = self.remote_dir / adapter_id
@@ -21144,7 +21218,7 @@ class ScenarioRunner:
                 view = owner.source_snapshot(adapter_id)
                 transfer_ms = 0.
                 from contextlib import nullcontext
-                # Retain request ownership across queue return -> read acquisition.
+                # Retain request ownership across source readiness -> read acquisition.
                 # A completed transfer is not yet a protected reader reference.
                 demand = (owner.file_movement_interest(intent_id=uuid.uuid4().hex,
                     target=self.nvme_dir / adapter_id,
@@ -21153,14 +21227,41 @@ class ScenarioRunner:
                 with demand:
                     if not view['sources']:
                         transfer_evidence = {}
-                        ok, transfer_ms = await self._materialize_remote_adapter_async(
+                        if reservation.file_preparation_task is not None:
+                            raise RuntimeError('request already owns a file preparation')
+                        ready = asyncio.get_running_loop().create_future()
+                        settlement = dict(kind='file_io_ready_owned_settlement_v1',
+                            state='waiting_for_source', started_monotonic_s=time.monotonic())
+                        reservation.gpu_reference_evidence['file_preparation_settlement'] = settlement
+                        def source_ready(value):
+                            if not ready.done():
+                                settlement.update(state='ready_pending_settlement',
+                                    source_ready_monotonic_s=time.monotonic(),
+                                    movement=dict(value['_movement']))
+                                ready.set_result(value)
+                        task = asyncio.create_task(self._materialize_remote_adapter_async(
                             adapter_id, self.nvme_dir / adapter_id, target_engine=reservation.slot.engine,
-                            transfer_evidence=transfer_evidence,
+                            transfer_evidence=transfer_evidence, on_source_ready=source_ready,
                             movement_context=dict(trigger_reason='demand',
                                 plan_id=f'request:{reservation.request_id}',
-                                target_replica=reservation.slot.instance_id))
-                        if not ok:
-                            raise RuntimeError('IEEE remote materialization did not complete')
+                                target_replica=reservation.slot.instance_id)))
+                        reservation.file_preparation_task = task
+                        try:
+                            await asyncio.wait((ready, task), return_when=asyncio.FIRST_COMPLETED)
+                            if task.done():
+                                # Prioritize a known failure over a readiness
+                                # notification delivered in the same loop turn.
+                                ok, transfer_ms = task.result()
+                                if not ok:
+                                    raise RuntimeError('IEEE remote materialization did not complete')
+                            else:
+                                value = ready.result()
+                                transfer_ms = value.get('io_ms', 0.) if value['_movement']['owns_io'] else 0.
+                                if value['_movement']['owns_io']:
+                                    transfer_evidence.update(value['remote_transfer'])
+                        finally:
+                            if not ready.done():
+                                ready.cancel()
                         if transfer_evidence:
                             # A coalesced subscriber owns waiting, not this IO.
                             reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence

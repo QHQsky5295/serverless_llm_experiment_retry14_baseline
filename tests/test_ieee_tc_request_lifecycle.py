@@ -839,6 +839,65 @@ def native_reference_fixture():
 
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
+    def check_file_settlement_after_native_tokens(self, *, fail):
+        """Actual request completion must join ready IO's outstanding owner."""
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        self.file_source(runner, trace)
+        self.bind_preparation_fixture(runner, slot)
+        transfer, generate = runner._run_ieee_file_transfer, slot.engine.generate_prepared.side_effect
+        entered, generated, release = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        native = {}
+        async def held_transfer(*args, **kwargs):
+            value = await transfer(*args, **kwargs)
+            entered.set()
+            await release.wait()
+            if fail:
+                raise RuntimeError('late file settlement failure')
+            return value
+        async def observed_generation(**kwargs):
+            value = await generate(**kwargs)
+            native.update(value[3])
+            generated.set()
+            return value
+        runner._run_ieee_file_transfer = held_transfer
+        slot.engine.generate_prepared.side_effect = observed_generation
+        async def run():
+            request = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            try:
+                await asyncio.wait_for(entered.wait(), 2)
+                await asyncio.wait_for(generated.wait(), 2)
+                self.assertFalse(request.done(), 'native tokens must not bypass outstanding settlement')
+                self.assertEqual(slot.active_requests, 1)
+            finally:
+                released_at = time.monotonic()
+                release.set()
+            result = await request
+            if fail:
+                self.assertFalse(result.success)
+                self.assertIn('late file settlement failure', result.error)
+                self.assertEqual(result.gpu_reference_evidence['file_preparation_settlement']['state'], 'failed')
+            else:
+                self.assertTrue(result.success, result.error)
+                timing = result.native_token_timing
+                self.assertGreaterEqual(timing['controller_completed_monotonic_s'], released_at)
+                for field in ('native_first_token_monotonic_s', 'native_last_token_monotonic_s', 'native_tpot_ms'):
+                    self.assertEqual(timing[field], native[field])
+                self.assertAlmostEqual(timing['worker_to_controller_completion_ms'], 1000*(
+                    timing['controller_completed_monotonic_s']-native['worker_completed_monotonic_s']))
+                self.assertEqual(result.gpu_reference_evidence['file_preparation_settlement']['state'], 'settled')
+            self.assertEqual(slot.active_requests, 0)
+            self.assertEqual(owner.snapshot()['live_leases'], 0)
+            self.assertFalse(runner._stack.residency_manager.local_source_references.leases)
+            self.assertFalse(runner._unsettled_runtime_reservations)
+            await runner._stack.preloading_manager.ieee_movements.close()
+        asyncio.run(run())
+
+    def test_ready_file_settlement_remains_in_completion_not_tpot(self):
+        self.check_file_settlement_after_native_tokens(fail=False)
+
+    def test_late_file_settlement_failure_overrides_completed_native_generation(self):
+        self.check_file_settlement_after_native_tokens(fail=True)
+
     def test_host_transfer_is_controller_policy_not_backend_profile_configuration(self):
         from scripts.run_all_experiments import _prepare_scenario_runtime_model_config
         from faaslora.experiment.instance_pool import FrozenServiceProfiles
@@ -3158,7 +3217,7 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.runner._materialize_remote_adapter_async = AsyncMock(side_effect=materialize)
         reservation = SimpleNamespace(adapter_id='a', request_id='r',
             slot=SimpleNamespace(engine=Mock(), instance_id='replica'),
-            gpu_reference_evidence={}, local_source_owner=None)
+            gpu_reference_evidence={}, local_source_owner=None, file_preparation_task=None)
         attempts = []
         original_acquire = self.owner.acquire_confirmed
         def compete_then_acquire(**kwargs):
