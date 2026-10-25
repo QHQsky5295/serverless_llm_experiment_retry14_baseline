@@ -1,0 +1,92 @@
+"""Append an accurate manifest and actual closure; do not rewrite prior evidence."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def git(*args):
+    return subprocess.check_output(['git', *args], cwd=ROOT, text=True)
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+old = OUT/'final_manifest_v2.json'
+rows = json.loads(old.read_text())['files']
+errors = [row for row in rows if p.digest(Path(row['path'])) != row['sha256']]
+assert errors == [dict(path=str(old), sha256=hashlib.sha256(b'').hexdigest())]
+scopes = []
+for suffix in ('01', '02', '03', '04', '05'):
+    unit = 'primelora-tc-aux-844000000000000000000000000000'+suffix+'.scope'
+    state = subprocess.check_output(['systemctl', '--user', 'show', unit,
+        '-p', 'ActiveState', '-p', 'SubState'], text=True)
+    assert 'ActiveState=inactive' in state
+    assert not (Path(own['path']).parent/unit).exists()
+    scopes.append(dict(unit=unit, state=state, path_removed=True))
+assert git('rev-parse', 'HEAD').strip() == '289aa5bec31aa88f89aae83165cddd86cd785f19'
+assert not git('diff', '--cached', '--name-only').strip()
+protected = json.loads((OUT/'closure.json').read_text())['user_protected']
+for path, sha in protected.items():
+    assert p.digest(Path(path)) == sha
+save(OUT/'post_backup_closure.json', dict(passed=True, closed_scopes=scopes,
+    gpu_compute_processes=[], resource_events_for_closed_backup_scopes=None,
+    limitation='No terminal peak/event snapshot was saved for failed entry/backup scopes; '
+        'do not infer zeros. Completed component and D843 delivery summaries retain actual values.',
+    original_backup=json.loads((RAW/'backup.json').read_text()),
+    corrected_manifest_metadata_only=True, invalid_v2_self_entry=errors,
+    all_other_v2_entries_verified=True, experiment_values_unchanged=True,
+    new_performance_runs=0, production_changed=False, user_protected=protected,
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+with (OUT/'finalize.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+files = [ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]
+save(OUT/'final_manifest_v3.json', dict(files=files,
+    supersedes=ref(old), self_not_listed=True,
+    reason='V2 included its own SHA before writing its bytes; preserve V2 and all data, '
+        'verify its other entries, and append this self-excluding manifest.'))
+for row in json.loads((OUT/'final_manifest_v3.json').read_text())['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+paths = ['docs/ieee_tc/EXECUTION_STATUS.md'] + [str((OUT/name).relative_to(ROOT))
+    for name in ('post_backup_closure.json', 'finalize.py.snapshot', 'final_manifest_v3.json')]
+git('diff', '--check')
+git('add', '--', *paths)
+assert set(git('diff', '--cached', '--name-only').splitlines()) == set(paths)
+git('diff', '--cached', '--check')
+added = '\n'.join(line[1:] for line in git('diff', '--cached', '--unified=0').splitlines()
+    if line.startswith('+') and not line.startswith('+++'))
+patterns = [r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
+    r'\b(?:ghp_|github_pat_)[A-Za-z0-9_]{20,}', r'\bAKIA[0-9A-Z]{16}\b',
+    r'(?i)(?:password|passwd|api_key|access_token)\s*[=:]\s*[\"\x27][^\"\x27\n]{8,}[\"\x27]']
+assert not any(re.search(pattern, added) for pattern in patterns)
+git('commit', '-m', 'tc: record D844 actual closure and append self-excluding manifest')
+commit = git('rev-parse', 'HEAD').strip()
+branch = 'refs/heads/backup/d844-closed-component-20261025'
+subprocess.run(['git', 'push', 'faaslora_origin', 'HEAD:'+branch],
+    cwd=ROOT, check=True, timeout=120)
+assert git('ls-remote', 'faaslora_origin', branch).strip().split() == [commit, branch]
+assert not git('diff', '--cached', '--name-only').strip()
+save(RAW/'final_backup.json', dict(passed=True, commit=commit, ref=branch,
+    remote_verified=True, final_v2_synced=False, explicit_files=paths,
+    identity=own, resources=p.cgroup_snapshot(Path(own['path']))))
+print(json.dumps(dict(passed=True, commit=commit, ref=branch)), flush=True)

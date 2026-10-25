@@ -1,5 +1,18 @@
 # IEEE TC execution status — D843 delivery closed; D844 batch-stat rejected
 
+## 2026-10-25 D844结果备份与收尾
+
+45个明确路径提交289aa5bec31aa88f89aae83165cddd86cd785f19，远端
+backup/d844-closed-component-20261025已核实同SHA；未force、未stage用户
+manifest，备份不等于最终V2同步。D843交付核验与D844各辅助域均已退出，
+无GPU实验，当前磁盘162540789760B约151.38GiB。生产未变、无需回滚。
+
+提交检查保留失败源码快照的一行额外EOF，逐项核实后其余路径正常通过；未
+改归档字节或全局Git配置。后置核查发现final_manifest_v2意外包含自身空文件
+SHA；新增v3清单排除自身并记录该元数据错误，不覆盖v2，不改实验数值/源
+SHA。收尾回执与修订清单另作正常小型检查点。下一任务仍为下节限定的保存
+栈实际RPC调用者归类，不重新进入stat局部试验、GPU诊断或HydraServe适配。
+
 ## 2026-10-25 D843交付证据补齐；D844组件负结果，不接入生产
 
 本轮为实质进展：复用D840工具完成D843逐transfer/owner/settlement审计，505次

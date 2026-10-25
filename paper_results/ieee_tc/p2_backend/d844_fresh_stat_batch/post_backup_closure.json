@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "closed_scopes": [
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000001.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000002.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000003.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000004.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    },
+    {
+      "unit": "primelora-tc-aux-84400000000000000000000000000005.scope",
+      "state": "ActiveState=inactive\nSubState=dead\n",
+      "path_removed": true
+    }
+  ],
+  "gpu_compute_processes": [],
+  "resource_events_for_closed_backup_scopes": null,
+  "limitation": "No terminal peak/event snapshot was saved for failed entry/backup scopes; do not infer zeros. Completed component and D843 delivery summaries retain actual values.",
+  "original_backup": {
+    "passed": true,
+    "commit": "289aa5bec31aa88f89aae83165cddd86cd785f19",
+    "remote": "faaslora_origin",
+    "ref": "refs/heads/backup/d844-closed-component-20261025",
+    "remote_verified": true,
+    "final_v2_synced": false,
+    "explicit_files": 45,
+    "scope": {
+      "unit": "primelora-tc-aux-84400000000000000000000000000005.scope",
+      "invocation_id": "34bb4f924c8c4a0ab835f14673db7a24",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-84400000000000000000000000000005.scope",
+      "inode": 32422587
+    }
+  },
+  "corrected_manifest_metadata_only": true,
+  "invalid_v2_self_entry": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d844_fresh_stat_batch/final_manifest_v2.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "all_other_v2_entries_verified": true,
+  "experiment_values_unchanged": true,
+  "new_performance_runs": 0,
+  "production_changed": false,
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "disk_free_bytes": 162540711936
+}
