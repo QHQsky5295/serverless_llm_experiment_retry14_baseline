@@ -1,0 +1,10 @@
+{
+  "stage": "git_whitespace_check",
+  "exit_code": 2,
+  "offending_path": "paper_results/ieee_tc/p2_backend/d833_prefetch_control/tests_output.txt",
+  "line": 15,
+  "reason": "Verbatim pytest warning contains two spaces on an otherwise empty line.",
+  "action": "Preserve raw output; strict whitespace check on all other files, allow blank-at-eol only on this log.",
+  "performance_rerun": false,
+  "test_rerun": false
+}

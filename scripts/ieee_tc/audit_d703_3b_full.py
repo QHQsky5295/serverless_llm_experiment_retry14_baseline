@@ -247,6 +247,174 @@ def clipped_sequential_stages(start, end, boundaries):
     return {name: 1000*(b-a) for name, a, b in zip(names, points, points[1:])}
 
 
+def prefetch_control_partition(admitted, job, pressure, transfer):
+    """D833: witnessed pre-fetch boundaries; no inferred lock acquisition.
+
+    Native observed_at marks execution, not parent RPC return. Members attached
+    after IO start are retained separately and cannot enlarge its start barrier.
+    """
+    attempts = [a for a in job['attempts'] if a['state'] == 'completed']
+    if len(attempts) != 1 or job['state'] != 'completed':
+        raise ValueError('one completed movement attempt required')
+    attempt = attempts[0]
+    if (pressure['state'] != 'finished' or pressure['operation_outcome'] != 'completed'
+            or pressure['projection_policy'] != 'native_rpc_v1'
+            or list(job['key'][:3]) != [pressure['file_owner_id'], pressure['target_tier'], pressure['adapter_id']]
+            or transfer['artifact_id'] != pressure['adapter_id']
+            or transfer['loading_clock_id'] != pressure['clock_id']):
+        raise ValueError('movement/pressure/transfer identity mismatch')
+    created, io = pressure['created_at'], pressure['io_started_at']
+    fetch = transfer['loading_started_monotonic_s']
+    order = [job['created_at'], attempt['started_at'], created, io, fetch,
+             transfer['client_completed_monotonic_s'], pressure['io_joined_at'],
+             attempt['output_ready_at'], pressure['finished_at'], attempt['finished_at']]
+    if (not all(type(t) in (int, float) and math.isfinite(t) for t in [admitted, *order])
+            or order != sorted(order) or admitted > fetch):
+        raise ValueError('finite ordered same-clock boundaries required')
+    initial, late = [], []
+    for owner, member in pressure['participants'].items():
+        receipt = member['start_receipt']
+        if (receipt['clock_id'] != pressure['clock_id'] or receipt['owner_id'] != owner
+                or receipt['transfer_id'] != pressure['transfer_id']
+                or not created <= receipt['observed_at'] <= pressure['finished_at']):
+            raise ValueError('native start receipt identity/time mismatch')
+        (initial if receipt['observed_at'] <= io else late).append(receipt)
+    if not initial:
+        raise ValueError('no witnessed initial start acknowledgement')
+    observed = sorted(r['observed_at'] for r in initial)
+    stages = clipped_sequential_stages(admitted, fetch, [
+        ('admission_to_movement_created_ms', job['created_at']),
+        ('movement_queue_ms', attempt['started_at']),
+        ('attempt_to_pressure_created_ms', created),
+        ('pressure_created_to_first_native_start_ms', observed[0]),
+        ('first_to_last_native_start_ms', observed[-1]),
+        ('last_native_start_to_io_started_ms', io)])
+    stages['io_started_to_fetch_thread_ms'] = stages.pop('after_last_boundary_ms')
+    metrics = ('parent_rpc_channel_acquire_ms', 'parent_rpc_send_flush_ms',
+               'parent_rpc_wait_response_ms')
+    nested = {}
+    for metric in metrics:
+        values = [r['timing'][metric] for r in initial]
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in values):
+            raise ValueError('finite nonnegative native RPC timings required')
+        nested['start_rpc_sum_'+metric] = math.fsum(values)
+    envelope = 1000*(io-created)
+    residual = envelope-math.fsum(nested.values())
+    if residual < -1.:
+        raise ValueError('serial RPC sum exceeds containing start envelope')
+    return dict(stages=stages, nested=nested, initial_participants=len(initial),
+        late_participants=len(late), before_fetch_ms=1000*(fetch-admitted),
+        pressure_start_envelope_ms=envelope,
+        uninstrumented_start_residual_ms=residual)
+
+
+def diagnose_prefetch_control(raw, output, preparation_audit, settlement_audit, stage_audit):
+    """Reuse D818 transfer cohort and D832 exact job/pressure links, CPU-only."""
+    import ijson
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    prep = read(preparation_audit/'diagnosis.json')
+    settled = read(settlement_audit/'summary.json')
+    stage = read(stage_audit/'diagnosis.json')
+    if (not all(r['passed'] for r in (prep, settled, stage))
+            or any(r['source_run'] != str(raw) for r in (prep, stage))):
+        raise ValueError('same-run completed source audits required')
+    inputs = []
+    def table(path, references):
+        source = next(r for r in references if r['path'] == str(path))
+        if digest(path) != source['sha256']:
+            raise ValueError('sealed input table changed')
+        inputs.append(path)
+        with path.open() as stream:
+            rows = list(csv.DictReader(stream))
+        index = {r['request_id']:r for r in rows}
+        if len(index) != len(rows):
+            raise ValueError('duplicate request identity')
+        return index
+    cohort = table(preparation_audit/'remote_requests.csv', prep['outputs'])
+    settlements = table(settlement_audit/'requests.csv', settled['outputs'])
+    stages = table(stage_audit/'requests.csv', [stage['request_table']])
+    outcome_ref = next(r for r in prep['source_refs'] if Path(r['path']).name == 'main_outcome.json')
+    if outcome_ref['sha256'] != next(r['sha256'] for r in settled['source_refs']
+                                    if r['path'] == outcome_ref['path']):
+        raise ValueError('different outcome identities in joined audits')
+    outcome = Path(outcome_ref['path'])
+    if not outcome.exists():
+        outcome = outcome.with_suffix('.json.gz')
+    def open_source():
+        return gzip.open(outcome, 'rb') if outcome.suffix == '.gz' else outcome.open('rb')
+    decoded = hashlib.sha256()
+    with open_source() as stream:
+        for block in iter(lambda:stream.read(1024*1024), b''):
+            decoded.update(block)
+    if decoded.hexdigest() != outcome_ref['sha256']:
+        raise ValueError('decoded immutable outcome SHA differs')
+    sources = {}
+    for key, prefix, identity in (
+            ('jobs', 'coordination_after_shutdown.ieee_movements.item', 'job_id'),
+            ('pressure', 'transfer_pressure.item', 'transfer_id'),
+            ('transfers', 'remote_transfers.item', 'transfer_id')):
+        with open_source() as stream:
+            values = list(ijson.items(stream, prefix, use_float=True))
+        sources[key] = {v[identity]:v for v in values}
+        if len(sources[key]) != len(values):
+            raise ValueError('duplicate source event identity')
+    rows = []
+    for rid, old in cohort.items():
+        link, s = settlements[rid], stages[rid]
+        if link['owns_io'] != 'True':
+            raise ValueError('coalesced subscriber cannot claim own transfer')
+        job = sources['jobs'][link['job_id']]
+        subscription = job['subscriptions'][link['intent_id']]
+        if (subscription['metadata']['plan_id'] != 'request:'+rid
+                or subscription['metadata']['target_replica'] != s['replica']):
+            raise ValueError('request movement subscription mismatch')
+        pressure = sources['pressure'][link['pressure_id']]
+        transfer = sources['transfers'][old['transfer_id']]
+        part = prefetch_control_partition(float(s['admitted']), job, pressure, transfer)
+        error = max(abs(math.fsum(part['stages'].values())-part['before_fetch_ms']),
+                    abs(part['before_fetch_ms']-float(old['before_fetch_ms'])))
+        if error > 1.:
+            raise ValueError('pre-fetch stage reconciliation exceeds 1ms')
+        rows.append(dict(request_id=rid, ordinal=int(old['ordinal']),
+            adapter_id=old['adapter_id'], transfer_id=old['transfer_id'],
+            job_id=link['job_id'], pressure_id=link['pressure_id'],
+            ttft_pass=old['ttft_pass']=='True', partition_error_ms=error,
+            **part['stages'], **part['nested'],
+            **{k:v for k,v in part.items() if k not in ('stages','nested')}))
+    if len(rows) != prep['joined_remote_requests'] or len(stages) != prep['request_population']:
+        raise ValueError('sealed population differs')
+    def summary(selected):
+        return dict(n=len(selected), metrics={key:timing_stats([r[key] for r in selected])
+                    for key in rows[0] if key.endswith('_ms') or key.endswith('_participants')})
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'requests.csv').open('x') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    report = dict(passed=True, kind='d833_prefetch_control_partition_v1',
+        source_run=str(raw), full_request_population=len(stages), joined_requests=len(rows),
+        unjoined_remote_requests=prep['unjoined_remote_requests'],
+        groups={label:summary([r for r in rows if label=='all'
+            or (label=='ttft_fail' and not r['ttft_pass'])
+            or (label=='ttft_pass' and r['ttft_pass'])]) for label in ('all','ttft_fail','ttft_pass')},
+        additive_stage_fields=list(part['stages']), decoded_outcome_sha256=decoded.hexdigest(),
+        limitations=['Conditional existing transfer cohort, not a new performance experiment.',
+            'RPC sums are nested in start envelope; never add them to sequential stages.',
+            'No lock-acquisition timestamp: residual includes scheduling and instrumentation gaps, not pure lock wait.',
+            'Native observed_at is method execution, not RPC return or thread CPU time.',
+            'Late-attached native participants are not part of the initial IO barrier.',
+            'No counterfactual SLO, causal gain, CI or independent numerical correctness proof.'],
+        source_refs=[ref(path) for path in (*inputs, outcome, preparation_audit/'diagnosis.json',
+            settlement_audit/'summary.json', stage_audit/'diagnosis.json', Path(__file__))],
+        outputs=[ref(output/'requests.csv')])
+    with (output/'diagnosis.json').open('x') as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+    print(json.dumps(dict(passed=True, joined_requests=len(rows), groups=report['groups']), indent=2))
+
+
 def diagnose_remote_preparation(raw, output, stage_audit):
     """D818: reuse sealed stages and stream compressed source evidence once.
 
@@ -1478,6 +1646,9 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--diagnose-remote-preparation', type=Path)
+    parser.add_argument('--diagnose-prefetch-control', type=Path)
+    parser.add_argument('--preparation-audit', type=Path)
+    parser.add_argument('--settlement-audit', type=Path)
     parser.add_argument('--compare-stage-audits', type=Path)
     parser.add_argument('--reference-stage-audit', type=Path)
     parser.add_argument('--stage-audit', type=Path)
@@ -1485,12 +1656,17 @@ if __name__ == "__main__":
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation, args.compare_stage_audits)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
         parser.error('select exactly one offline analysis mode')
     if args.compare_stage_audits is not None:
         if args.reference_stage_audit is None or args.stage_audit is None:
             parser.error('--reference-stage-audit and --stage-audit are required for --compare-stage-audits')
         compare_stage_audits(args.reference_stage_audit.resolve(), args.stage_audit.resolve(), args.compare_stage_audits.resolve())
+    elif args.diagnose_prefetch_control is not None:
+        if any(x is None for x in (args.preparation_audit, args.settlement_audit, args.stage_audit)):
+            parser.error('--preparation-audit, --settlement-audit and --stage-audit are required')
+        diagnose_prefetch_control(args.raw.resolve(), args.diagnose_prefetch_control.resolve(),
+            args.preparation_audit.resolve(), args.settlement_audit.resolve(), args.stage_audit.resolve())
     elif args.diagnose_remote_preparation is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-remote-preparation')

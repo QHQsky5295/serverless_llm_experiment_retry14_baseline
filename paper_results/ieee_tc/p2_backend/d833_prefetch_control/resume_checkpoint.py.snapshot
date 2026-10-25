@@ -1,0 +1,43 @@
+"""Resume only Git after preserving pytest's verbatim whitespace warning."""
+from pathlib import Path
+
+template = Path(__file__).with_name('checkpoint.py')
+source = template.read_text()
+exec(compile(source[:source.index('assert os.sched_getaffinity')], str(template), 'exec'))
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'checkpoint_resume_identity.json', own)
+closure = read(OUT/'closure.json')
+assert not Path(closure['identity']['path']).exists()
+for row in closure['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+paths = [str(Path(row['path']).relative_to(ROOT)) for row in closure['files']]
+paths.append(str((OUT/'closure.json').relative_to(ROOT)))
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+log_path = str((OUT/'tests_output.txt').relative_to(ROOT))
+failure = dict(stage='git_whitespace_check', exit_code=2,
+    offending_path=log_path, line=15, reason='Verbatim pytest warning contains two spaces on an otherwise empty line.',
+    action='Preserve raw output; strict whitespace check on all other files, allow blank-at-eol only on this log.',
+    performance_rerun=False, test_rerun=False)
+save(OUT/'checkpoint_attempt1.json', failure)
+with (OUT/'resume_checkpoint.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+extras = [str((OUT/name).relative_to(ROOT)) for name in
+          ('checkpoint_attempt1.json', 'resume_checkpoint.py.snapshot')]
+for name in extras:
+    assert 'PRIVATE KEY-----' not in (ROOT/name).read_text()
+call(['git','add','--',*extras])
+paths += extras
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+call(['git','-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff','--cached','--check','--',*[path for path in paths if path != log_path]])
+call(['git','-c','core.whitespace=-blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff','--cached','--check','--',log_path])
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git','commit','-m','tc: isolate pre-fetch control stages without rerunning D832 (D833)'])
+head = call(['git','rev-parse','HEAD'])
+ref = 'refs/heads/backup/d833-prefetch-control-20261025'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW/'checkpoint.json', dict(passed=True, head=head, ref=ref, files=paths,
+                                v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

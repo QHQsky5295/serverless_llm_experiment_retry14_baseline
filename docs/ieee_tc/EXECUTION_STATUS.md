@@ -1,4 +1,37 @@
-# IEEE TC execution status — D832 full 3B W2 audited; 92.075%, target unmet
+# IEEE TC execution status — D833 pre-fetch diagnosis complete; 3B W2 still 92.075%
+
+## 2026-10-25 D833：复用D832，获取前等待已分清
+
+本轮progress，完整重读PLAN/V1/单轮V2与最新规则；没有生产代码、GPU回放、
+baseline/远端/共享k3s改动。D831仍是开发基点，D832联合3683/4000=92.075%、
+U11308.666183GPU-s，预算内但仍差117条；D711独立数值未知，不宣布G1/G2。
+
+复用503条精确关联IO（TTFT违约185条），全部原4000及其余11条Remote保留。
+获取前359.051ms细分：admission→job1.685、job排队79.639、attempt→pressure
+60.436、pressure建立→首native start58.739、首→末126.616、末→IO17.695、
+IO→线程14.241。违约子集合计580.221ms。与原分段误差0，解码outcome SHA
+等于原始未压缩SHA，不恢复大JSON或复制资产。pressure start包络203.050ms，
+其中RPC回复累计164.695ms是嵌套值；剩余34.655ms不称纯锁等待。
+
+既有analyzer新增离线入口，9项新增测试包含于160项通过。第一次误用无pytest
+环境，0项执行/退出1已保留；改用已有0.30环境，无安装。测试/分析峰值
+818696192/736440320B，high/max/OOM/swap0。两项受限任务已结束。
+数据/解释见D833_PREFETCH_CONTROL_DIAGNOSIS_20261025.md及
+paper_results/ieee_tc/p2_backend/d833_prefetch_control/。正在明确路径备份。
+
+下一主线只核查“激活已绑定的目标为何每次传输仍先幂等attach，再在真实start
+事务中检查”的必要性；60.436ms仍含snapshot/调度，不能全归attach。先核对
+所有入口及退休/取消和HOST预算，最小CPU依赖验证后才决定候选；不重开
+D595/D598并行ACK、D822共享压力、D628移锁或D827清理。没有新依据不重跑。
+同版两模型M1/M2、A1–A5、S1–S13、CE/Pareto、审稿文档、图表与最终V2同步
+均未完成；HydraServe隔离适配不重做，共享k3s不动。目标active。
+
+后置回执：12条收尾路径已提交e25dcc1befd9d6a466c1ab2559badec576aa1d53，
+推送并核实backup/d832-storage-20261025。最后aux13已inactive且Invocation/
+ControlGroup空，所有本轮工具session终态，四卡15MiB/0util、compute-apps空，
+stage空；仅原用户manifest为tracked dirty。结束磁盘161524400128B、主机
+可用约106GiB。该后置记录不递归提交；最终V2同步仍未完成。下一按下文
+准备瓶颈主线推进，本轮为完整结果收尾progress，目标active，不宣布达标。
 
 ## 2026-10-25 D832：结果已备份，闭合大日志已无损压缩
 

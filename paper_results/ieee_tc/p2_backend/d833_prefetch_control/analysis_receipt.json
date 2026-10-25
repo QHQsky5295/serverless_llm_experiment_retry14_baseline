@@ -1,0 +1,41 @@
+{
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "scripts/ieee_tc/audit_d703_3b_full.py",
+    "--raw",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/3b_max3_full_w2",
+    "--diagnose-prefetch-control",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d833_prefetch_control/analysis",
+    "--preparation-audit",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/preparation_analysis",
+    "--settlement-audit",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/settlement_analysis",
+    "--stage-audit",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/completion/stages"
+  ],
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-83300000000000000000000000000004.scope",
+    "invocation_id": "f8f613a7109f4b0abb32d65142b5defe",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83300000000000000000000000000004.scope",
+    "inode": 32249933
+  },
+  "started_unix": 1792903277.5328634,
+  "finished_unix": 1792903320.2979414,
+  "resources": {
+    "memory.peak": "736440320",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "09e686f536c613f31bf20b27400128bbdfbf8b360b388559751a7444d438dad4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "424ccbaafe441920a5d62c1416cb7c440ed0cfea7299b3e962f6dbd1aea70dc1"
+    }
+  ]
+}

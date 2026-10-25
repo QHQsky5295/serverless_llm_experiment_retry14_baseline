@@ -637,3 +637,61 @@ def test_d818_rejects_invalid_local_boundaries(start, end, boundaries):
     from scripts.ieee_tc.audit_d703_3b_full import clipped_sequential_stages
     with pytest.raises(ValueError):
         clipped_sequential_stages(start, end, boundaries)
+
+
+def d833_control_fixture():
+    job = dict(state='completed', key=['file-owner', 'nvme', 'adapter', 'sha'],
+        created_at=1., attempts=[dict(state='completed', started_at=2.,
+            output_ready_at=9., finished_at=10.)])
+    pressure = dict(state='finished', operation_outcome='completed',
+        projection_policy='native_rpc_v1', file_owner_id='file-owner', target_tier='nvme',
+        adapter_id='adapter', transfer_id='pressure', clock_id='clock', created_at=3.,
+        io_started_at=6., io_joined_at=8., finished_at=10., participants={})
+    for owner, observed in [('owner-1', 4.), ('owner-2', 5.), ('late-owner', 8.5)]:
+        pressure['participants'][owner] = dict(start_receipt=dict(owner_id=owner,
+            transfer_id='pressure', clock_id='clock', observed_at=observed,
+            timing=dict(parent_rpc_channel_acquire_ms=100., parent_rpc_send_flush_ms=10.,
+                        parent_rpc_wait_response_ms=200.)))
+    transfer = dict(artifact_id='adapter', loading_clock_id='clock',
+        loading_started_monotonic_s=7., client_completed_monotonic_s=8.)
+    return job, pressure, transfer
+
+
+def test_d833_prefetch_partition_and_late_members():
+    from scripts.ieee_tc.audit_d703_3b_full import prefetch_control_partition
+    result = prefetch_control_partition(0., *d833_control_fixture())
+    assert list(result['stages'].values()) == [1000.]*7
+    assert result['before_fetch_ms'] == 7000.
+    assert result['initial_participants'] == 2
+    assert result['late_participants'] == 1
+    assert result['nested']['start_rpc_sum_parent_rpc_wait_response_ms'] == 400.
+    assert result['uninstrumented_start_residual_ms'] == 2380.
+
+
+def test_d833_clips_work_started_before_admission():
+    from scripts.ieee_tc.audit_d703_3b_full import prefetch_control_partition
+    result = prefetch_control_partition(2.5, *d833_control_fixture())
+    assert list(result['stages'].values()) == [0., 0., 500., 1000., 1000., 1000., 1000.]
+    assert sum(result['stages'].values()) == result['before_fetch_ms']
+
+
+@pytest.mark.parametrize('defect', ['clock', 'owner', 'order', 'rpc', 'receipt', 'attempt', 'nan'])
+def test_d833_rejects_invalid_source_evidence(defect):
+    from scripts.ieee_tc.audit_d703_3b_full import prefetch_control_partition
+    job, pressure, transfer = d833_control_fixture()
+    if defect == 'clock':
+        transfer['loading_clock_id'] = 'other'
+    elif defect == 'owner':
+        job['key'][0] = 'other'
+    elif defect == 'order':
+        pressure['created_at'] = 7.
+    elif defect == 'rpc':
+        pressure['participants']['owner-1']['start_receipt']['timing']['parent_rpc_wait_response_ms'] = 10000.
+    elif defect == 'receipt':
+        pressure['participants']['owner-1']['start_receipt']['transfer_id'] = 'other'
+    elif defect == 'attempt':
+        job['attempts'].append(dict(job['attempts'][0]))
+    else:
+        pressure['io_started_at'] = float('nan')
+    with pytest.raises(ValueError):
+        prefetch_control_partition(0., job, pressure, transfer)

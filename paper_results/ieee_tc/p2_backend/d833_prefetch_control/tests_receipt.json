@@ -1,0 +1,36 @@
+{
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_ieee_tc_diagnostic_plot.py"
+  ],
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-83300000000000000000000000000003.scope",
+    "invocation_id": "b23647555bd0427f8a4e2513fdb75ddd",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-83300000000000000000000000000003.scope",
+    "inode": 32249654
+  },
+  "started_unix": 1792903241.0483522,
+  "finished_unix": 1792903270.6871166,
+  "resources": {
+    "memory.peak": "818696192",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "09e686f536c613f31bf20b27400128bbdfbf8b360b388559751a7444d438dad4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_diagnostic_plot.py",
+      "sha256": "424ccbaafe441920a5d62c1416cb7c440ed0cfea7299b3e962f6dbd1aea70dc1"
+    }
+  ]
+}

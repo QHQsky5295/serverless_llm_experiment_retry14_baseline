@@ -1,0 +1,10 @@
+{
+  "status": "launcher_environment_error",
+  "scope": "primelora-tc-aux-83300000000000000000000000000002.scope",
+  "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+  "command": "python -B -m pytest -q -p no:cacheprovider tests/test_ieee_tc_diagnostic_plot.py",
+  "exit_code": 1,
+  "stderr": "No module named pytest",
+  "tests_executed": 0,
+  "action": "Use existing primelora_vllm0300_tc_20260925 environment with pytest; no dependency installation or test changes."
+}

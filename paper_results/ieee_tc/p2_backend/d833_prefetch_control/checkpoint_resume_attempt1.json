@@ -1,0 +1,6 @@
+{
+  "exit_code": 1,
+  "reason": "Literal private-key marker check matched its own source text; no credential was detected.",
+  "stopped_before_commit": true,
+  "action": "Use the existing structured secret regex; retain failed source snapshot."
+}

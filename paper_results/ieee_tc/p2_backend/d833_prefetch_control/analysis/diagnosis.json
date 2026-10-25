@@ -1,0 +1,436 @@
+{
+  "passed": true,
+  "kind": "d833_prefetch_control_partition_v1",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/3b_max3_full_w2",
+  "full_request_population": 4000,
+  "joined_requests": 503,
+  "unjoined_remote_requests": [
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_00216"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_00610"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_00623"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_01006"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_01647"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02345"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02967"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_03011"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03022"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_03300"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03644"
+    }
+  ],
+  "groups": {
+    "all": {
+      "n": 503,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 503,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 503,
+          "mean": 1.6847573355891952,
+          "p50_type1": 1.1064917780458927,
+          "p95_type1": 3.987399861216545
+        },
+        "movement_queue_ms": {
+          "count": 503,
+          "mean": 79.63932393244643,
+          "p50_type1": 0.18757721409201622,
+          "p95_type1": 397.8407667018473
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 503,
+          "mean": 60.43606487086143,
+          "p50_type1": 0.3696042113006115,
+          "p95_type1": 304.34222612529993
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 503,
+          "mean": 58.73940253508079,
+          "p50_type1": 14.886600896716118,
+          "p95_type1": 277.51176012679935
+        },
+        "first_to_last_native_start_ms": {
+          "count": 503,
+          "mean": 126.61587657817967,
+          "p50_type1": 37.62708092108369,
+          "p95_type1": 505.1162838935852
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 503,
+          "mean": 17.695008650251754,
+          "p50_type1": 2.044900320470333,
+          "p95_type1": 84.68165108934045
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 503,
+          "mean": 14.240506856848539,
+          "p50_type1": 1.7652381211519241,
+          "p95_type1": 17.66142202541232
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 503,
+          "mean": 3.5353590480642576,
+          "p50_type1": 1.1218762956559658,
+          "p95_type1": 10.064031463116407
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 503,
+          "mean": 0.1655946741210182,
+          "p50_type1": 0.14238432049751282,
+          "p95_type1": 0.30949851498007774
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 503,
+          "mean": 164.69456921618573,
+          "p50_type1": 101.13806510344148,
+          "p95_type1": 543.5531749390066
+        },
+        "initial_participants": {
+          "count": 503,
+          "mean": 2.7773359840954273,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 503,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 503,
+          "mean": 359.0509407592578,
+          "p50_type1": 226.1239313520491,
+          "p95_type1": 1212.6596909947693
+        },
+        "pressure_start_envelope_ms": {
+          "count": 503,
+          "mean": 203.05028776351222,
+          "p50_type1": 128.8918098434806,
+          "p95_type1": 665.2747071348131
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 503,
+          "mean": 34.654764825141214,
+          "p50_type1": 2.207367215305567,
+          "p95_type1": 190.8326018601656
+        }
+      }
+    },
+    "ttft_fail": {
+      "n": 185,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 185,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 185,
+          "mean": 1.9738801301935234,
+          "p50_type1": 1.1669737286865711,
+          "p95_type1": 5.53369615226984
+        },
+        "movement_queue_ms": {
+          "count": 185,
+          "mean": 132.32794101475864,
+          "p50_type1": 0.5483892746269703,
+          "p95_type1": 546.3510029949248
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 185,
+          "mean": 108.81002836835546,
+          "p50_type1": 14.36809217557311,
+          "p95_type1": 476.1012648232281
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 185,
+          "mean": 82.67041117808706,
+          "p50_type1": 21.0286402143538,
+          "p95_type1": 355.82680394873023
+        },
+        "first_to_last_native_start_ms": {
+          "count": 185,
+          "mean": 203.35268153985209,
+          "p50_type1": 118.62554587423801,
+          "p95_type1": 698.9725180901587
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 185,
+          "mean": 24.803900157378333,
+          "p50_type1": 2.151619177311659,
+          "p95_type1": 158.73172413557768
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 185,
+          "mean": 26.282117304366988,
+          "p50_type1": 1.9134809263050556,
+          "p95_type1": 101.92539216950536
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 185,
+          "mean": 4.259325614249384,
+          "p50_type1": 1.4252280816435814,
+          "p95_type1": 10.959312785416842
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 185,
+          "mean": 0.1878458956206167,
+          "p50_type1": 0.1521548256278038,
+          "p95_type1": 0.42736995965242386
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 185,
+          "mean": 245.15421835806322,
+          "p50_type1": 163.78318332135677,
+          "p95_type1": 710.8780820854008
+        },
+        "initial_participants": {
+          "count": 185,
+          "mean": 2.9891891891891893,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 185,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 185,
+          "mean": 580.2209596929921,
+          "p50_type1": 391.62931218743324,
+          "p95_type1": 1571.5446989051998
+        },
+        "pressure_start_envelope_ms": {
+          "count": 185,
+          "mean": 310.82699287531744,
+          "p50_type1": 186.78383575752378,
+          "p95_type1": 848.3244250528514
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 185,
+          "mean": 61.22560300738425,
+          "p50_type1": 4.3745506554841995,
+          "p95_type1": 342.4237226136029
+        }
+      }
+    },
+    "ttft_pass": {
+      "n": 318,
+      "metrics": {
+        "partition_error_ms": {
+          "count": 318,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "admission_to_movement_created_ms": {
+          "count": 318,
+          "mean": 1.516556967659004,
+          "p50_type1": 1.0626940056681633,
+          "p95_type1": 2.8195390477776527
+        },
+        "movement_queue_ms": {
+          "count": 318,
+          "mean": 48.98714103864845,
+          "p50_type1": 0.13925926759839058,
+          "p95_type1": 298.4464471228421
+        },
+        "attempt_to_pressure_created_ms": {
+          "count": 318,
+          "mean": 32.29397918835704,
+          "p50_type1": 0.2539241686463356,
+          "p95_type1": 193.62954888492823
+        },
+        "pressure_created_to_first_native_start_ms": {
+          "count": 318,
+          "mean": 44.817274865407335,
+          "p50_type1": 13.3625497110188,
+          "p95_type1": 202.13573798537254
+        },
+        "first_to_last_native_start_ms": {
+          "count": 318,
+          "mean": 81.97339570425076,
+          "p50_type1": 24.019988253712654,
+          "p95_type1": 319.45838080719113
+        },
+        "last_native_start_to_io_started_ms": {
+          "count": 318,
+          "mean": 13.55933277346428,
+          "p50_type1": 2.0037018693983555,
+          "p95_type1": 61.04644387960434
+        },
+        "io_started_to_fetch_thread_ms": {
+          "count": 318,
+          "mean": 7.23516744555636,
+          "p50_type1": 1.637785229831934,
+          "p95_type1": 10.390258394181728
+        },
+        "start_rpc_sum_parent_rpc_channel_acquire_ms": {
+          "count": 318,
+          "mean": 3.114183530000583,
+          "p50_type1": 0.9719324298202991,
+          "p95_type1": 9.480149019509554
+        },
+        "start_rpc_sum_parent_rpc_send_flush_ms": {
+          "count": 318,
+          "mean": 0.15264978111024546,
+          "p50_type1": 0.1344596967101097,
+          "p95_type1": 0.2814498730003834
+        },
+        "start_rpc_sum_parent_rpc_wait_response_ms": {
+          "count": 318,
+          "mean": 117.88628276572241,
+          "p50_type1": 43.94150758162141,
+          "p95_type1": 413.5609520599246
+        },
+        "initial_participants": {
+          "count": 318,
+          "mean": 2.6540880503144653,
+          "p50_type1": 3,
+          "p95_type1": 3
+        },
+        "late_participants": {
+          "count": 318,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0
+        },
+        "before_fetch_ms": {
+          "count": 318,
+          "mean": 230.38284798334323,
+          "p50_type1": 151.4732651412487,
+          "p95_type1": 817.6920008845627
+        },
+        "pressure_start_envelope_ms": {
+          "count": 318,
+          "mean": 140.35000334312238,
+          "p50_type1": 59.57489088177681,
+          "p95_type1": 474.4248799979687
+        },
+        "uninstrumented_start_residual_ms": {
+          "count": 318,
+          "mean": 19.19688726628914,
+          "p50_type1": 1.567075029015541,
+          "p95_type1": 154.13564164191484
+        }
+      }
+    }
+  },
+  "additive_stage_fields": [
+    "admission_to_movement_created_ms",
+    "movement_queue_ms",
+    "attempt_to_pressure_created_ms",
+    "pressure_created_to_first_native_start_ms",
+    "first_to_last_native_start_ms",
+    "last_native_start_to_io_started_ms",
+    "io_started_to_fetch_thread_ms"
+  ],
+  "decoded_outcome_sha256": "9794e94e318fe36119a1b3ed0d9d1bba1e7b84fe91debe899df8d52145eec116",
+  "limitations": [
+    "Conditional existing transfer cohort, not a new performance experiment.",
+    "RPC sums are nested in start envelope; never add them to sequential stages.",
+    "No lock-acquisition timestamp: residual includes scheduling and instrumentation gaps, not pure lock wait.",
+    "Native observed_at is method execution, not RPC return or thread CPU time.",
+    "Late-attached native participants are not part of the initial IO barrier.",
+    "No counterfactual SLO, causal gain, CI or independent numerical correctness proof."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/preparation_analysis/remote_requests.csv",
+      "sha256": "0b514fd61ba5229a0b23dd5ca9e08fe7723638870bdfea65eb62849ba8a13f73",
+      "bytes": 177286
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/settlement_analysis/requests.csv",
+      "sha256": "8be68e5455988e8d2c2879dc50fca96b61162389e849e846d0f6f07b57d91456",
+      "bytes": 177929
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/completion/stages/requests.csv",
+      "sha256": "116ee38abb08446ff076184bd903d2583853fc97b3fc873a129f0f40461a4496",
+      "bytes": 2453684
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d832_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "sha256": "6af569aa9dd48c7970a9d95d635c5c0d061c77a9c9a30c0dbcdf1de62cce320f",
+      "bytes": 120080059
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/preparation_analysis/diagnosis.json",
+      "sha256": "2ee8660c47ff5cbc2c634a8b951ff9f1ce74397210b80c37b3de60c000453d4c",
+      "bytes": 12742
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/settlement_analysis/summary.json",
+      "sha256": "c2115441f70022ca3453b2d409d71ab19b4a3604b97124dc51f7313c81d8f34e",
+      "bytes": 3958
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2/completion/stages/diagnosis.json",
+      "sha256": "9e965f4a7e337267c77c877868c26669c09ee06b2c74dae742ed89707d34a9d2",
+      "bytes": 231543
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "09e686f536c613f31bf20b27400128bbdfbf8b360b388559751a7444d438dad4",
+      "bytes": 104795
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d833_prefetch_control/analysis/requests.csv",
+      "sha256": "feccbb5ad5476faf27a4cb044abcc5ceaeea68ab8ff061cc153aef7337d04e60",
+      "bytes": 195813
+    }
+  ]
+}

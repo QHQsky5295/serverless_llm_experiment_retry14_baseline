@@ -1,0 +1,94 @@
+"""Reuse D832 explicit-path checkpoint checks for offline D833 evidence."""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d833_prefetch_control'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+        stderr=subprocess.STDOUT, timeout=60).strip()
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'checkpoint_identity.json', own)
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not call(['git','diff','--cached','--name-only'])
+assert call(['git','branch','--show-current']) == 'retry14_continuous_queue_v2'
+assert call(['git','-C','/home/qhq/serverless_llm_baselines','rev-parse','HEAD']) == 'e1c433bab982366a82ad188ef703270d89d6ea06'
+closed = {}
+for mode in ('tests', 'analysis'):
+    receipt = read(OUT/(mode+'_receipt.json'))
+    assert receipt['returncode'] == 0
+    assert all(int(row.split()[1]) == 0 for row in receipt['resources']['memory.events'].splitlines())
+    assert receipt['resources']['memory.swap.current'] == '0'
+    for source in receipt['sources']:
+        assert p.digest(Path(source['path'])) == source['sha256']
+    previous = receipt['identity']
+    closed[mode] = call(['systemctl','--user','show',previous['unit'],
+                        '-p','ActiveState','-p','ControlGroup','-p','InvocationID'])
+    assert 'ActiveState=inactive' in closed[mode] and not Path(previous['path']).exists()
+report = read(OUT/'analysis/diagnosis.json')
+assert report['passed'] and report['full_request_population'] == 4000 and report['joined_requests'] == 503
+for source in report['source_refs'] + report['outputs']:
+    assert p.digest(Path(source['path'])) == source['sha256']
+seal = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+protected = {name: row['sha256'] for name,row in read(seal)['entries'].items()}
+prior = read(ROOT/'paper_results/ieee_tc/p2_backend/d831_owned_file_readiness/closure.json')
+protected.update(prior['user_protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+for name, sha in prior['production_sources'].items():
+    assert p.digest(Path(name)) == sha, name
+for name in ('execute.py','checkpoint.py'):
+    source = RAW/name
+    ast.parse(source.read_text())
+    with (OUT/(name+'.snapshot')).open('xb') as stream:
+        stream.write(source.read_bytes())
+files = [ROOT/name for name in ('scripts/ieee_tc/audit_d703_3b_full.py',
+    'tests/test_ieee_tc_diagnostic_plot.py', 'docs/ieee_tc/EXECUTION_STATUS.md',
+    'docs/ieee_tc/D833_PREFETCH_CONTROL_DIAGNOSIS_20261025.md')]
+files += sorted(x for x in OUT.rglob('*') if x.is_file())
+group = Path(own['path'])
+save(OUT/'closure.json', dict(passed=True, identity=own, closed_scopes=closed,
+    protected_files=len(protected), user_protected=prior['user_protected'],
+    production_sources_unchanged=prior['production_sources'],
+    files=[dict(path=str(path), sha256=p.digest(path)) for path in files],
+    resources={key:(group/key).read_text().strip() for key in
+               ('memory.peak','memory.events','memory.swap.current')},
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize,
+    production_changed=False, performance_runs_added=0, goal_complete=False))
+files.append(OUT/'closure.json')
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert path.stat().st_size < 2*1024*1024
+    assert not secret.search(path.read_text()), str(path)
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+call(['git','-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff','--check','--',*paths])
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+call(['git','-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff','--cached','--check'])
+call(['git','commit','-m','tc: isolate pre-fetch control stages without rerunning D832 (D833)'])
+head = call(['git','rev-parse','HEAD'])
+ref = 'refs/heads/backup/d833-prefetch-control-20261025'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW/'checkpoint.json', dict(passed=True, head=head, ref=ref, files=paths,
+                                v2_synchronized=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

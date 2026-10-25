@@ -1,0 +1,48 @@
+"""D833 bounded offline analysis; reuse D703/D832 tables, no service launch."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d833_prefetch_control'
+PRIOR = ROOT/'paper_results/ieee_tc/p2_backend/d832_3b_owned_file_readiness_full_w2'
+RUN = RAW.parent/'d832_20261025/3b_max3_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+mode = sys.argv[1]
+assert mode in ('tests', 'analysis')
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+OUT.mkdir(parents=True, exist_ok=True)
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+if mode == 'tests':
+    command = [sys.executable, '-B', '-m', 'pytest', '-q', '-p', 'no:cacheprovider',
+               'tests/test_ieee_tc_diagnostic_plot.py']
+else:
+    assert json.loads((OUT/'tests_receipt.json').read_text())['returncode'] == 0
+    command = [sys.executable, '-B', 'scripts/ieee_tc/audit_d703_3b_full.py',
+        '--raw', str(RUN), '--diagnose-prefetch-control', str(OUT/'analysis'),
+        '--preparation-audit', str(PRIOR/'preparation_analysis'),
+        '--settlement-audit', str(PRIOR/'settlement_analysis'),
+        '--stage-audit', str(PRIOR/'completion/stages')]
+started = time.time()
+with (OUT/(mode+'_output.txt')).open('x') as stream:
+    done = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT,
+                          env=dict(os.environ, CUDA_VISIBLE_DEVICES=''))
+record = dict(command=command, returncode=done.returncode, identity=identity,
+    started_unix=started, finished_unix=time.time(),
+    resources={key:(group/key).read_text().strip() for key in
+               ('memory.peak','memory.events','memory.swap.current')},
+    sources=[dict(path=str(ROOT/path), sha256=p.digest(ROOT/path)) for path in
+             ('scripts/ieee_tc/audit_d703_3b_full.py', 'tests/test_ieee_tc_diagnostic_plot.py')])
+with (OUT/(mode+'_receipt.json')).open('x') as stream:
+    json.dump(record, stream, indent=2)
+    stream.write('\n')
+print(json.dumps(record, indent=2))
+print((OUT/(mode+'_output.txt')).read_text()[-3000:])
+raise SystemExit(done.returncode)
