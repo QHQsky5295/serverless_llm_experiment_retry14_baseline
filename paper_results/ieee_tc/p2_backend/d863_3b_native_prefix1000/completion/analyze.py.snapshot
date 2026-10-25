@@ -1,0 +1,41 @@
+"""D863: reuse the D723 bounded native-window analysis, without a new replay."""
+import hashlib
+import json
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent/'d723_20261022/analyze.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e'
+source = template.read_text()
+for old, new in (
+    ("RUN=RAW/'3b_step_components100'", "RUN=RAW/'3b_native_prefix1000'"),
+    ('expected_count=100)', 'expected_count=1000)'),
+    ('len(requests)==100\n', 'len(requests)==1000\n'),
+    ('protocol_bound_count=100,', 'protocol_bound_count=1000,'),
+    ("core['complete_request_observations']==100,", "core['complete_request_observations']==1000,"),
+    ('native_bound_count=100,', 'native_bound_count=1000,'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+# D816 permits cancelled/deferred preparation attempts. D723 predates that
+# semantic change. Do not assert all attempts published or silently discard them.
+# Native-window attribution does not require a new full delivery audit.
+start = source.index("assert len(server)==len(server_rows)==len(transfers)")
+end = source.index("slo=read(ROOT/", start)
+source = source[:start] + '''assert len(server)==len(server_rows)
+delivery_status=dict(status='pending_attempt_level_delivery_audit',
+    attempt_states=dict(collections.Counter(r['state'] for r in transfers)),
+    local_attempts=len(transfers),server_events=len(server_rows),
+    independent_numerical_correctness_qualified=False,
+    reason='Current deferred/cancelled preparation semantics differ from D723; no all-published or zero-cost assumption.')
+save(OUT/'delivery_audit_status.json',delivery_status)
+''' + source[end:]
+source = source.replace('request_time_pack_count=0,',
+    "request_time_pack_count=sum(bool(r.get('remote_pack_performed')) for r in transfers),\n    delivery_audit_status=delivery_status,")
+compile(source, str(template), 'exec')
+with (raw/'analysis_template.json').open('x') as stream:
+    json.dump(dict(template=str(template), sha256=hashlib.sha256(template.read_bytes()).hexdigest(),
+        derived_source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+        count=1000, native_analyzer_unchanged=True, thresholds_unchanged=True,
+        delivery_assertion_deferred_not_claimed_passed=True),stream,indent=2)
+exec(compile(source, str(template), 'exec'), globals())

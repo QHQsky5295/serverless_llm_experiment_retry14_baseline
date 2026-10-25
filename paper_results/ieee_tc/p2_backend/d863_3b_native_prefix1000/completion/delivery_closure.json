@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "remote_transfers": 146,
+  "wire_bytes": 338845661,
+  "request_time_pack_count": 0,
+  "raw_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/3b_native_prefix1000/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "09bb4c80e76e1924e578a64b8a1b65781b1871abe94a1851907978adc9ecb6ef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/remote_transfers.jsonl",
+      "sha256": "8cd3091f302b7b3e88eef0e1bff90e4d507788270760aec36d670aeb1d4bacf1"
+    }
+  ],
+  "resolves": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/analysis1/delivery_audit_status.json",
+    "sha256": "426f942ec2b431f99a562bc05ff0601e9aea11f5a305ccc35dc8f6ffbd5a8a81"
+  },
+  "numerical_correctness_qualified": false
+}

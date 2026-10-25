@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-a71fcd85252c1e0b051cd4fe602565d7.scope",
+    "invocation_id": "984dffbde07e44889b54b6ad1a969742",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a71fcd85252c1e0b051cd4fe602565d7.scope",
+    "inode": 32733875
+  },
+  "resources": {
+    "memory.peak": "1112813568",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  },
+  "scripts": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/collect_and_analyze.py": "d7c65723a2f0437a1a82f5d2a3443578ebb1274beac0ccad0c64e6ed9b33ff42",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/analyze.py": "1203aa75e88d934f388616be7d1a68d78e33ee998815cbe5a62e43d296bf8d12"
+  }
+}

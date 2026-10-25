@@ -1,0 +1,36 @@
+"""D863: reuse D723 collection after actual release; no shared-service actions."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent/'d723_20261022/collect_and_analyze.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '39e00d3fab5812fb4b4dd5091c9f813e096d77d9fe1f366f5fcefb05e95d35fb'
+source = template.read_text()
+for old,new in (
+    ("RUN=RAW/'3b_step_components100'", "RUN=RAW/'3b_native_prefix1000'"),
+    ('/tc/d723_20261022/remote_monitor.log', '/tc/d863_20261026_attempt2/remote_monitor.log'),
+    ("qualification=read(RAW/'qualification2.json')", "qualification=read(ROOT/'paper_results/ieee_tc/p2_backend/d863_3b_native_prefix1000/prelaunch_attempt2/qualification.json')"),
+    ("for helper in ('analyze.py','analyze_components.py'):", "for helper in ('analyze.py',):"),
+    ("('collect_and_analyze.py','analyze.py','analyze_components.py')", "('collect_and_analyze.py','analyze.py')"),
+    ('protected_count=144', 'protected_count=147'),
+):
+    assert old in source,old
+    source=source.replace(old,new)
+old="for path,sha in qualification['refs'].items(): assert p.digest(Path(path))==sha,path"
+new='''head=read(RAW/'start_receipt.json')['head']
+for path,sha in qualification['refs'].items():
+    file=Path(path)
+    if file==ROOT/'docs/ieee_tc/EXECUTION_STATUS.md':
+        content=subprocess.check_output(['git','show',head+':'+str(file.relative_to(ROOT))],cwd=ROOT)
+        assert __import__('hashlib').sha256(content).hexdigest()==sha,path
+    else:
+        assert p.digest(file)==sha,path
+for path,sha in qualification['protected'].items(): assert p.digest(Path(path))==sha,path
+seal_path=RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal_path)=='79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+seal=p.verify_seal(seal_path)
+assert seal['pass'] and seal['entry_count']==147
+save(RAW/'protected_147_after.json',seal)'''
+assert old in source
+source=source.replace(old,new)
+exec(compile(source,str(template),'exec'),globals())

@@ -1,4 +1,81 @@
-# IEEE TC execution status — D863 current native prefix diagnostic registered
+# IEEE TC execution status — D863 native diagnostic completed and analyzed
+
+## 2026-10-26 D863完成：短输出违约的控制交叠已定位
+
+本轮完整重读权威计划、AGENTS、V1/V2和状态；同一诊断从510推进至1000，
+没有重启或补跑。1000/1000成功、native count/binding/time检查通过，三个
+core记录完整、1000/1000窗口覆盖；n_correct仍null、ranking=false。
+真实GPU释放和本次远端三个服务停止均已验证，当前无GPU实验。
+
+D648共同阈值：TTFT981、TPOT969、联合952/1000=95.2%；这是有观察开销的
+前1000诊断，不能替代D858完整4000的93.65%或宣告G1/G2达标。31个TPOT
+违约全部≤64token，30个≤32。违约组平均decode476.960ms中client238.358ms，
+engine step200.640ms、input非client28.490ms、其余9.472ms。控制交叠中
+demand_load_and_acquire28.07%、source_snapshot23.53%、prepare_host21.30%、
+pending_gpu_reference16.71%，合计89.61%；routing snapshot仅2.52%。
+scheduler子阶段仅1.729ms。由此不继续无证据降低token预算或重做已否定投影。
+
+146次远程交付双端ID/SHA/字节核验通过，338845661B，请求内pack0。服务
+峰值20921794560B，high/max/OOM/swap0。离线分析复用D723/D722及既有整数
+区间分析器，无GPU重跑；三个CPU分析均受3/4GiB与swap0限制，已完成。
+147保护项和用户manifest不变；工作缓存空，磁盘约167GiB。生产仍D857，
+诊断入口40项测试和e8e36dcf/25f8c112备份保留。完成包见
+paper_results/ieee_tc/p2_backend/d863_3b_native_prefix1000/completion。
+
+下一主线：先备份本次小型结果/分析脚本与解释，再依据上述四个控制入口检查
+共同工作及历史/官方实现，只选一个可证伪候选。不选新阈值、不重复观察、
+不重做whole-owner线程/ctypes-stat/已否定projection。当前仍未达到完整G1/G2，
+所有同版本两模型W0/W1/W2、baseline/dLoRA、A1–A5、S1–S13、数值证明、
+审稿图文和最终V2同步继续保留。goal active，当前turn为progress。
+
+以下保留原监测和启动记录。
+
+## D863同一诊断持续监测（本轮verified wait）
+
+本轮完整重读权威计划、AGENTS、当前状态及monitor-experiment；前一轮分类
+为progress（入口适配/检查/备份/真实启动），本轮持续核验同一tmux PID1932962
+与服务InvocationID508251a318e24d238d16a93a597e6923为active，没有重新启动。
+成功终态从43推进至510/1000，当前失败0；这是诊断进度，不是正确性或SLO
+最终验收。sample688、monotonic2470719.853556543：服务峰值18408722432B，
+high/max/OOM/swap0，host available98760585216B，disk176331026432B，
+无外来GPU compute、无保护告警。此前三份native日志最大27014581B，仍在
+原64MiB上限内；不通过改cap或换样本确保完整性。
+
+期间只读核查D723原生窗口分析入口，未运行CPU分析、扫描/压缩、构建、备份
+或并行GPU任务，未改生产/配置。当前唯一任务仍是
+d863_20261026_attempt2/3b_native_prefix1000；下一继续到1000条结束、真实
+GPU释放与本次远端服务停止，再复用原生窗口分析。保留全部未完成范围和
+goal active；不能因本轮为等待或尚无最终指标而重启诊断、标blocked/complete。
+
+## D863本次实际进展：前缀投影修正、40项检查、备份和运行
+
+第一次启动被W2-only-full入口在创建服务前拒绝，原launcher.log保留，零GPU
+测量；远端三服务已按原InvocationID安全停止。随后从完整已验证W2映射取
+前缀的最小适配已通过40项定向测试（含完整W2、诊断身份、尾部错误拒绝、
+service一致及原生观察器）；D857的86项生产语义检查按源SHA复用。
+提交25f8c1122d3da42bec29a413291b2910547fac70已推送并验证
+backup/d863-native-prefix1000-attempt2-20261026，无force。最终V2仍未同步。
+资格/备份scope a723d6a7102c29b56029066af0926cd9已退出；stage空、用户manifest
+仍未stage。后置运行回执不在测量期间另开备份。
+
+唯一当前GPU任务：raw d863_20261026_attempt2/3b_native_prefix1000，
+tmux tc-d863-attempt2-3b-native-prefix1000，pane PID1932962；服务
+primelora-tc-svc-f68dea65090b495aa4ab7c2e2b9cf496.scope，InvocationID
+508251a318e24d238d16a93a597e6923。已核对真实exec_receipt的W2、source4000、
+prefix1000、原map SHA28c97dc7…及diagnostic_prefix_v1；原生header已生成，
+64MiB/200000span、无components/inventory附加计时，非正式性能结果。
+
+watchdog sample93/monotonic2470116.555237921：服务峰值16969895936B，
+high/max/OOM/swap0，主机available96571604992B、disk179704418304B，持3卡，
+无保护告警。已看到前4条正常终态，不把初段结果当共同SLO验收。接下来只
+监测这次1000条至结束和实际释放，按本次远端InvocationID关闭服务，然后
+复用既有native分析器分解；不能重复启动该键、扩大cap、筛样本或改在线策略。
+
+本轮是有实质代码/检查/启动进展的执行，不是阻塞。goal active；当前仍没有
+新增G1/G2达标结论。所有两模型主比较、baseline/dLoRA、A1–A5、S1–S13、
+数值证明、审稿图文及最终V2交付均继续保留。
+
+以下保留启动前状态。
 
 ## 2026-10-26 D863：当前原生decode分解，启动前登记
 

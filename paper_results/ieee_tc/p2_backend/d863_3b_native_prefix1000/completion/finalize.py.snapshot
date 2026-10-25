@@ -1,0 +1,152 @@
+"""D863 closed-evidence curation, reusing D723 checks and native interval math."""
+import collections
+import csv
+import json
+import math
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import ijson
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'3b_native_prefix1000'
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d863_3b_native_prefix1000/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.analyze_control_path_overhead import core_interval_overlap,write_csv
+
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def ref(path): return dict(path=str(path),sha256=p.digest(path))
+
+own=p.scope_identity(p.cg_path().name)
+save(RAW/'finalize_identity.json',own)
+group=Path(own['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+for name in ('analysis_execution.json','iteration_execution.json'):
+    execution=read(RAW/name)
+    assert execution['passed']
+    identity=execution['identity']
+    assert not p.owned_pids(Path(identity['path']))
+    closed=p.stop_scope_identity(identity,grace_seconds=0)
+    assert closed['released'] and not closed['targets']
+assert read(RAW/'collection.json')['passed']
+audit=read(RAW/'analysis1/audit.json')
+assert audit['protocol_bound_count']==1000 and audit['component_observations_complete']
+core=read(RAW/'analysis1/core_timing/summary.json')
+for item in core['sources']: assert p.digest(Path(item['path']))==item['sha256']
+for name,sha in read(RAW/'iterations1/manifest.json')['outputs'].items():
+    assert p.digest(RAW/'iterations1'/name)==sha
+with (RAW/'analysis1/core_timing/decode_windows.csv').open() as f:
+    windows=list(csv.DictReader(f))
+assert len(windows)==1000 and all(w['observation_complete']=='True' for w in windows)
+client_rows=[]
+for source in core['sources']:
+    path=Path(source['path'])
+    if path.suffix!='.jsonl': continue
+    spans=collections.defaultdict(list)
+    with path.open() as f:
+        header=json.loads(next(f)); pid=header['pid']
+        for line in f:
+            row=json.loads(line)
+            if row.get('boundary')!='client': continue
+            label='/'.join(str(row['details'].get(k,'')) for k in ('request_type','utility','worker_method','operation'))
+            spans[label].append((row['begin_ns'],row['end_ns']))
+    indices={}
+    for label,intervals in spans.items():
+        intervals.sort()
+        assert all(a[1]<=b[0] for a,b in zip(intervals,intervals[1:]))
+        prefix=[]; total=0
+        for a,b in intervals: prefix.append(total); total+=b-a
+        indices[label]=dict(starts=[a for a,b in intervals],ends=[b for a,b in intervals],prefix=prefix)
+    for w in windows:
+        if w['worker_pid']!=str(pid): continue
+        overlaps={k:core_interval_overlap(v,int(w['first_ns']),int(w['last_ns'])) for k,v in indices.items()}
+        assert math.isclose(sum(overlaps.values())/1e6,float(w['client_ms']),abs_tol=1e-9)
+        client_rows.extend(dict(request_id=w['request_id'],tokens=int(w['tokens']),
+            tpot_miss=w['timing_tpot_miss']=='True',label=k,overlap_ms=v/1e6)
+            for k,v in overlaps.items() if v)
+groups=[]
+for name,choose in [('all',lambda r:True),('short_2_32',lambda r:int(r['tokens'])<=32),
+                    ('short_2_64',lambda r:int(r['tokens'])<=64)]:
+    for miss in (False,True):
+        selected=[w for w in windows if choose(w) and (w['timing_tpot_miss']=='True')==miss]
+        ids={w['request_id'] for w in selected}
+        totals=collections.defaultdict(list)
+        for row in client_rows:
+            if row['request_id'] in ids: totals[row['label']].append(row['overlap_ms'])
+        denom=math.fsum(float(w['client_ms']) for w in selected)
+        for label,values in totals.items():
+            groups.append(dict(group=name,tpot_miss=miss,requests=len(selected),label=label,
+                requests_overlapped=len(values),total_overlap_ms=math.fsum(values),
+                mean_overlap_ms=math.fsum(values)/len(selected),
+                fraction_of_client_overlap=math.fsum(values)/denom if denom else None))
+
+# This specific diagnostic has no cancelled/deferred transfers, so the original
+# D723 all-published proof applies to its actual population (not future runs).
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as f: transfers=next(ijson.items(f,'remote_transfers',use_float=True))
+server_rows=[json.loads(line) for line in (RAW/'remote_transfers.jsonl').read_text().splitlines()]
+server={r['transfer_id']:r for r in server_rows}
+assert len(server)==len(server_rows)==len(transfers)==146
+assert set(server)=={r['http_transfer_id'] for r in transfers}
+clock=read(RAW/'remote_health.json')['3b']['clock_id']
+for row in transfers:
+    peer=server[row['http_transfer_id']]
+    assert row['state']=='published' and row['content_verified'] and row['published_archive_verified']
+    assert row['artifact_id']==peer['artifact_id']
+    assert row['remote_archive_sha256']==peer['archive_sha256']
+    assert row['transferred_bytes']==peer['archive_bytes']==peer['bytes_read']==peer['bytes_written']
+    assert peer['clock_id']==clock and peer['outcome']=='sent'
+    assert not row['remote_pack_performed'] and not peer['pack_performed'] and not peer['temporary_created']
+delivery=dict(passed=True,remote_transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+    request_time_pack_count=0,raw_refs=[ref(outcome),ref(RAW/'remote_transfers.jsonl')],
+    resolves=ref(RAW/'analysis1/delivery_audit_status.json'),numerical_correctness_qualified=False)
+OUT.mkdir(parents=True,exist_ok=False)
+copies={
+    'native_audit.json':RAW/'analysis1/audit.json','common_slo.json':RAW/'analysis1/common_slo.json',
+    'core_summary.json':RAW/'analysis1/core_timing/summary.json',
+    'core_boundaries.csv':RAW/'analysis1/core_timing/boundaries.csv',
+    'core_processes.csv':RAW/'analysis1/core_timing/processes.csv',
+    'decode_windows.csv':RAW/'iterations1/decode_windows.csv',
+    'iteration_summary.json':RAW/'iterations1/summary.json',
+    'iteration_groups.csv':RAW/'iterations1/groups.csv',
+    'allocation_shapes.csv':RAW/'iterations1/allocation_shapes.csv',
+    'collection.json':RAW/'collection.json','analysis_execution.json':RAW/'analysis_execution.json',
+    'iteration_execution.json':RAW/'iteration_execution.json','analysis_template.json':RAW/'analysis_template.json',
+}
+for name in ('analyze.py','audit_iterations.py','collect_and_analyze.py','finalize.py'):
+    copies[name+'.snapshot']=RAW/name
+for name,source in copies.items():
+    assert source.stat().st_size<2*1024**2
+    with (OUT/name).open('xb') as f: f.write(source.read_bytes())
+write_csv(client_rows,OUT/'client_decode_overlaps.csv')
+write_csv(groups,OUT/'client_overlap_groups.csv')
+save(OUT/'delivery_closure.json',delivery)
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert not any(Path('/dev/shm/tc-d863-attempt2-3b-native-prefix1000').iterdir())
+assert not any((RAW/'3b_nvme_native_prefix1000').iterdir())
+resources=p.cgroup_snapshot(group)
+assert all(v==0 for v in resources['memory.events'].values()) and resources['memory.swap.current']==0
+save(OUT/'closure.json',dict(passed=True,n_correct=None,ranking_eligible=False,new_gpu_diagnostics=1,
+    new_formal_performance_points=0,protected_files_unchanged=147,user_manifest_unchanged=True,
+    service_path_removed=True,remote_owned_units_inactive=True,work_caches_empty=True,
+    production_policy_changed=False,observer_changed=False,finalizer_identity=own,resources=resources,
+    disk_available_bytes=shutil.disk_usage(ROOT).free,
+    caveats=['Observed host intervals are not GPU kernel time or counterfactual removable latency.',
+             'Per-request overlap sums are not exclusive service wall time; short/long groups differ in work.',
+             'The 1000-prefix observation cannot replace the full4000 result or prove G1/G2.']))
+save(OUT/'manifest.json',dict(files=[ref(f) for f in sorted(OUT.iterdir())],
+    raw_step_table=ref(RAW/'iterations1/steps.csv')))
+print(json.dumps(dict(passed=True,delivery=delivery,client_groups=groups,resources=resources)))
