@@ -296,6 +296,35 @@ class FileStateProcessTests(unittest.TestCase):
         finally:
             asyncio.run(manager.stop())
 
+    def test_process_owner_async_native_retirement_uses_pidfd(self):
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+        child = subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.buffer.read()'],
+                                 stdin=subprocess.PIPE)
+        fd = None
+        try:
+            async def reserve_and_check():
+                await facade.call_async('configure_host_budget', limit_bytes=1024**2)
+                nonlocal fd
+                fd = _open_pidfd(child.pid)
+                await facade.reserve_native_host_async(owner_id='async-native', limit_bytes=4096,
+                                                       exit_pidfd=fd)
+                os.close(fd)
+                fd = None
+                with self.assertRaisesRegex(RuntimeError, 'has not exited'):
+                    await facade.call_async('retire_native_host', owner_id='async-native')
+            asyncio.run(reserve_and_check())
+            child.stdin.close()
+            child.stdin = None
+            child.wait(timeout=10)
+            asyncio.run(facade.call_async('retire_native_host', owner_id='async-native'))
+        finally:
+            if fd is not None:
+                os.close(fd)
+            if child.stdin is not None:
+                child.stdin.close()
+            child.wait(timeout=10)
+            facade.close()
+
     def test_real_pidfd_survives_parent_fd_close_until_actual_exit(self):
         self.call('configure_host_budget', limit_bytes=1024**2)
         child = subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.buffer.read()'],
