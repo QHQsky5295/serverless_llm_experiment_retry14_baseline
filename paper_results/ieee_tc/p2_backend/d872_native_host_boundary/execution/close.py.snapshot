@@ -1,0 +1,63 @@
+"""Reuse D871 source/protection/closure primitives for D872 CPU witnesses."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d872_native_host_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW / 'closure_identity.json', scope)
+verified = json.loads((OUT / 'verification.json').read_text())
+assert verified['passed'] and verified['returncode'] == 0
+assert not p.scope_still_owned(verified['identity'])
+assert not Path(verified['identity']['path']).exists()
+assert verified['resources']['memory.swap.current'] == 0
+assert all(value == 0 for value in verified['resources']['memory.events'].values())
+assert '32 passed, 19 warnings, 10 subtests passed' in (OUT / 'tests.txt').read_text()
+for source in verified['sources']:
+    assert p.digest(Path(source['path'])) == source['sha256']
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT / 'configs/generated/lora_manifest_1000.json'):
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT / 'execution'
+execution.mkdir(exist_ok=False)
+for name in ('verify.py', 'close.py', 'backup.py'):
+    path = RAW / name
+    compile(path.read_text(), str(path), 'exec')
+    with (execution / (name + '.snapshot')).open('xb') as stream:
+        stream.write(path.read_bytes())
+doc = ROOT / 'docs/ieee_tc/D872_NATIVE_HOST_CONSTRUCTION_BOUNDARY_20261026.md'
+save(OUT / 'closure.json', dict(
+    passed=True, scope=scope, protected=protected, user_protected=user, doc=ref(doc),
+    production_changes=False, new_gpu_replays=0, performance_gain=None,
+    n_correct=None, ranking_eligible=False, confidence_interval=None,
+    tests=dict(total=32, new=3, subtests=10, warnings=19, source=ref(OUT / 'tests.txt')),
+    disk_free_bytes=os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize))
+save(OUT / 'final_manifest.json', dict(
+    files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, tests=32, new_gpu_replays=0)))

@@ -1,0 +1,32 @@
+"""Reuse D871/D849 explicit-path backup and exact raw-log handling."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd871_20261026/backup_executed.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '74c8edcd9927746ec2bb9712f2eb99e9a39d449bf555c2a54ae1763840a4c378'
+source = template.read_text()
+changes = (
+    ('D871 evidence', 'D872 evidence'),
+    ('d871_current_remote_preparation', 'd872_native_host_boundary'),
+    ('bcc3585698e1d7021b310217ff771cc87da00eea', 'b76f510d64d3b52c9bf2b44dcb822c111f7187e5'),
+    ('D871_CURRENT_PREPARATION_BOUNDARY_20261026.md', 'D872_NATIVE_HOST_CONSTRUCTION_BOUNDARY_20261026.md'),
+    ("         ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',", "         ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',\n         ROOT/'tests/test_ieee_tc_gpu_references.py',\n         ROOT/'tests/test_ieee_tc_core_interleave.py',"),
+    ('backup/d871-current-preparation-20261026', 'backup/d872-host-boundary-20261026'),
+    ('tc: preserve D871 current remote preparation and native execution boundary',
+     'tc: verify D872 native HOST allocation and commit-thread boundaries'),
+    ("ordinary = [path for path in paths if not path.endswith(('.csv','.snapshot'))]",
+     "raw_log = 'paper_results/ieee_tc/p2_backend/d872_native_host_boundary/tests.txt'\nordinary = [path for path in paths if not path.endswith(('.csv','.snapshot')) and path != raw_log]"),
+    ("git('diff','--cached','--check','--',*ordinary)",
+     "git('diff','--cached','--check','--',*ordinary)\ngit('-c','core.whitespace=-blank-at-eol,-blank-at-eof,space-before-tab','diff','--cached','--check','--',raw_log)"),
+    ("git('-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol','diff','--cached','--check','--',*csvs)",
+     "if csvs:\n    git('-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol','diff','--cached','--check','--',*csvs)"),
+)
+for old, new in changes:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+target = raw / 'backup_executed.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

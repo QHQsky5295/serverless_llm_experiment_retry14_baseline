@@ -1,4 +1,33 @@
-# IEEE TC execution status — D871 current preparation analyzed, next native CPU/commit boundary
+# IEEE TC execution status — D872 native HOST split boundary verified, implementation next
+
+## 2026-10-26 D872：三个CPU边界见证通过，未新增性能实验
+
+新增3项测试加相邻回归，共32项/10subtests通过，19条既有警告保留。
+实际证明：workspace projection不建立在途reservation；整loader让出core
+后原cache/slot不变量会拒绝提交；已安装vLLM Future回调在完成线程执行，
+不会自动回到core。这不是当前串行生产bug或OOM，不代表异步候选已实现。
+
+下一单一候选明确为“新鲜预算持有→私有CPU构造→唤醒core重新检查/提交”。
+保留每owner单构造顺序，取消/私有对象/临时空间真实结算，GPU与KV admission
+留在串行core。不能直接to_thread、提前ready或释放预算；也不再堆叠反例
+检查、同类profiling或重复短回放。复用现有owner/movement/native utility。
+详见D872_NATIVE_HOST_CONSTRUCTION_BOUNDARY_20261026.md。生产源码未改，
+当前默认仍D869/D870；此前负面候选不恢复。
+
+测试峰值670244864B，high/max/OOM/swap均0，scope已退出，无GPU/远端操作。
+完整性能仍3773/4000=94.325%、U11931.565094、预算12083.063870，数值
+正确性未知，G1/G2未闭口。所有同版本双模型主矩阵、baseline/dLoRA、A1–A5、
+S1–S13、数值证明、审稿图文和最终V2交付继续开放；目标active，目标前不画图。
+
+### D871完成备份回执（提交后追加）
+
+15个明确文件已提交为`b76f510d64d3b52c9bf2b44dcb822c111f7187e5`，
+推送并核验`refs/heads/backup/d871-current-preparation-20261026`成功。
+来源SHA、147保护项、用户manifest、语法、逐请求分解、diff和凭据检查通过；
+复用未变分析器的既有测试。用户manifest未stage，无force push，最终V2
+仍未同步。此回执随下一正常检查点保存，不为回执循环提交。新汇总约564KiB，
+关闭时可用176020758528B；所有分析已结束，无新GPU测量。下一步仍是本节
+唯一原生CPU构造/提交边界，不回到旧微优化；完整范围与active目标不变。
 
 ## 2026-10-26 D871：复用完整日志，未新增GPU运行
 

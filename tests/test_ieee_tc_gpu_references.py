@@ -166,6 +166,22 @@ class NativeFileHostPreparation(unittest.TestCase):
     def release(self, lease='host-only'):
         return self.owner.release_host_source(lease_id=lease, expected_owner_id=self.owner.owner_id)
 
+    def test_d872_yielding_whole_loader_breaks_serial_cache_transaction(self):
+        # A deterministic interleaving witness, NOT a current production bug.
+        # A future async implementation must revalidate/commit on the core;
+        # merely moving today's entire loader to a thread loses its invariant.
+        original = self.loader
+        def interleaved_demand(**kwargs):
+            self.manager._registered_adapters[3] = NativeAdapter()
+            self.manager.activate(3)
+            return original(**kwargs)
+        self.owner.file_host_loader = interleaved_demand
+        with self.assertRaisesRegex(RuntimeError, 'changed GPU or unrelated CPU residency'):
+            self.prepare()
+        self.assertTrue(self.owner._poisoned)
+        self.assertNotIn('host-only', self.owner._host_leases)
+        self.assertNotIn('host-only', self.owner._file_host_preparations)
+
     def test_cpu_only_completion_pin_identity_and_transport_idempotence(self):
         before = list(self.manager.lora_index_to_id)
         result = self.prepare()
@@ -337,6 +353,24 @@ class NativeHostWorkspace(unittest.TestCase):
     def configure(self, budget=910, contract=None):
         return self.owner.configure_host_budget(expected_owner_id=self.owner.owner_id,
             tensor_budget_bytes=budget, workspace_contract=self.contract if contract is None else contract)
+
+    def test_d872_projection_does_not_reserve_an_unstarted_background_build(self):
+        self.configure()
+        before = copy.deepcopy(self.owner.snapshot())
+        first = self.project(310, 300)
+        second = self.project(310, 300)
+        demand = self.project(310, 300, proactive=False)
+        self.assertTrue(all(row['admitted'] for row in (first, second, demand)))
+        self.assertEqual(first, second)
+        self.assertEqual(self.owner.snapshot(), before)
+        # All three can pass only because this hypothetical caller lets them
+        # observe the same occupancy before any one starts allocating. The
+        # current serial path re-observes real occupancy and does NOT do this.
+        simultaneous_peak = 310 + sum(row['incoming_peak_bytes']
+                                      for row in (first, second, demand))
+        self.assertEqual(simultaneous_peak, 1210)
+        self.assertGreater(simultaneous_peak, first['tensor_budget_bytes'])
+        self.assertFalse(self.project(610, 300)['admitted'])
 
     def test_background_return_does_not_waive_actual_occupancy_or_budget(self):
         self.checker.return_value['allocator_policy']['policy'] = 'uncached_background_v1'

@@ -1,0 +1,70 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
+rootdir: /home/qhq/serverless_llm_experiment_retry14_baseline
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 32 items
+
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_actual_worker_uses_cpu_loader_not_worker_gpu_activation PASSED [  3%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_cpu_capacity_defers_without_native_lru_or_gpu_eviction PASSED [  6%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_cpu_only_completion_pin_identity_and_transport_idempotence PASSED [  9%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_d872_yielding_whole_loader_breaks_serial_cache_transaction PASSED [ 12%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_native_failure_or_hidden_gpu_activation_invalidates_owner PASSED [ 15%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_new_host_object_can_use_another_verified_tier_after_complete_eviction PASSED [ 18%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_reuse_does_not_reload_or_change_frozen_tensor_subbudget PASSED [ 21%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_tensor_budget_deferral_has_no_cache_or_source_publication PASSED [ 25%]
+tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation::test_uncached_candidate_reaches_the_actual_worker_budget_contract PASSED [ 28%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_actual_worker_reserves_demand_space_before_loading_a_staged_target PASSED [ 31%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_background_return_does_not_waive_actual_occupancy_or_budget PASSED [ 34%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_d872_projection_does_not_reserve_an_unstarted_background_build PASSED [ 37%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_layout_bound_and_cache_capacity_cannot_change_silently 
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_layout_bound_and_cache_capacity_cannot_change_silently PASSED [ 40%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_partition_is_inside_budget_and_rejects_one_byte_short PASSED [ 43%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_partition_requires_empty_and_verified_owner PASSED [ 46%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_proactive_staging_cannot_consume_demand_or_future_cache_growth PASSED [ 50%]
+tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace::test_real_occupancy_not_future_free_credit_controls_both_paths PASSED [ 53%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_abort_and_fault_are_handled_by_native_paths PASSED [ 56%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_atomic_utility_is_never_split_and_exception_identity_survives PASSED [ 59%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_batch_inflight_is_work_and_future_completion_is_not_faked PASSED [ 62%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_blocking_idle_wakeup_keeps_native_wait_contract PASSED [ 65%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_changed_source_version_policy_and_topology_reject 
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_changed_source_version_policy_and_topology_reject PASSED [ 68%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_configuration_reaches_backend_and_rejects_unowned_modes PASSED [ 71%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_d872_native_future_callback_does_not_return_to_core_thread PASSED [ 75%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_idle_callback_and_empty_abort_queue_match_native PASSED [ 78%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_idle_drains_and_add_transitions_to_work_without_losing_input PASSED [ 81%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_native_source_and_disabled_path_are_exact PASSED [ 84%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_nonprime_utility_is_not_reordered_or_counted PASSED [ 87%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_owner_collision_and_unqualified_executor_fail PASSED [ 90%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_real_pending_gpu_bridge_remains_one_control_transaction PASSED [ 93%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_shutdown_does_not_add_fairness_yields PASSED [ 96%]
+tests/test_ieee_tc_core_interleave.py::AtomicControlFairness::test_work_rounds_preserve_fifo_and_original_step PASSED [100%]
+
+=============================== warnings summary ===============================
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/_pytest/config/__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+../.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+faaslora/api/http_server.py:55
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceRequest(BaseModel):
+
+faaslora/api/http_server.py:77
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InferenceResponse(BaseModel):
+
+faaslora/api/http_server.py:99
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class SystemStatusResponse(BaseModel):
+
+faaslora/api/http_server.py:123
+  /home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class PreloadingRequest(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============= 32 passed, 19 warnings, 10 subtests passed in 10.32s =============

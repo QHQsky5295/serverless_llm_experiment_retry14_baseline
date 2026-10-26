@@ -70,6 +70,37 @@ def fixture(*, enabled=True, work=True, requests=()):
 
 
 class AtomicControlFairness(unittest.TestCase):
+    def test_d872_native_future_callback_does_not_return_to_core_thread(self):
+        # Execute the installed native utility method, just as native_input()
+        # above extracts the installed input loop. No GPU/model initialization.
+        from typing import Callable
+        tree = ast.parse(NATIVE.read_text())
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef)
+                   and n.name == 'EngineCoreProc')
+        method = next(n for n in cls.body if isinstance(n, ast.FunctionDef)
+                      and n.name == '_invoke_utility_method')
+        method.decorator_list = []
+        native = NS()
+        namespace = dict(Future=Future, Callable=Callable, UtilityOutput=object,
+                         UtilityResult=lambda value: value, EngineCoreProc=native,
+                         logger=logging.getLogger(__name__))
+        exec(compile(ast.Module(body=[method], type_ignores=[]), str(NATIVE), 'exec'), namespace)
+        native._invoke_utility_method = namespace['_invoke_utility_method']
+        result = Future()
+        output = NS(result=None)
+        replies = []
+        core_thread = threading.get_ident()
+        native._invoke_utility_method('build', lambda: result, output,
+            lambda value: replies.append((threading.get_ident(), value.result)))
+        self.assertEqual(replies, [])
+        worker = threading.Thread(target=lambda: result.set_result('private_cpu_object'))
+        worker.start()
+        worker.join(timeout=5)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(len(replies), 1)
+        self.assertEqual(replies[0][1], 'private_cpu_object')
+        self.assertNotEqual(replies[0][0], core_thread)
+
     def test_native_source_and_disabled_path_are_exact(self):
         self.assertEqual(native_input_fingerprint(native_input()),_NATIVE_INPUT_AST_SHA)
         core,state,_,_,_=fixture(enabled=False,requests=[utility(1),utility(2)])
