@@ -5201,9 +5201,14 @@ async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
                     aid, local_path, StorageTier.HOST, target_engine=engine, movement_context=dict(
                         target_replica=slot.instance_id, trigger_reason='residency', plan_id=f'profile-setup/{number}')))
             elif source == 'native_host':
+                # This collector establishes a controlled empty-cache source;
+                # it does not run/register a residency objective. The wave ID
+                # is provenance, not authority for a native preparation plan.
+                # An absent plan still enforces real byte/cache capacity; the
+                # native owner rejects staging/replacement without a real plan.
                 setup['transfers'].append(await boundary._queue_ieee_native_host_preparation(
                     slot=slot, adapter_id=aid, source_path=local_path,
-                    trigger_reason='residency', plan_id=f'profile-setup/{number}'))
+                    trigger_reason='residency', plan_id=None))
             elif source == 'gpu':
                 state = await engine.ieee_gpu_reference(operation='snapshot')
                 reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',

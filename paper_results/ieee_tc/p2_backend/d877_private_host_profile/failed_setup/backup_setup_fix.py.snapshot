@@ -1,0 +1,43 @@
+"""Save failed evidence and the tested controlled-source correction only."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d877_private_host_profile/failed_setup'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert git('rev-parse','HEAD')=='da4fbb6f43e7626e8c84915238b6818b39273e77'
+assert not git('diff','--cached','--name-only')
+assert p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+save(OUT/'setup_fix_test.json',dict(passed=True,exit_code=0,tests=1,elapsed_s=8.690,
+    command='python -B -m unittest tests.test_ieee_tc_preflight.ControlledNativeSourceSetup -v',
+    evidence_kind='tool execution transcript session 84414; no separate test log was written',
+    scope='primelora-tc-aux-be0b7aff8e32421584c3ec8d26b9c76f.scope',
+    source_sha256=p.digest(ROOT/'scripts/ieee_tc_preflight.py'),
+    test_sha256=p.digest(ROOT/'tests/test_ieee_tc_preflight.py')))
+with (OUT/'backup_setup_fix.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+paths=['scripts/ieee_tc_preflight.py','tests/test_ieee_tc_preflight.py',
+    'docs/ieee_tc/EXECUTION_STATUS.md','docs/ieee_tc/D877_PRIVATE_HOST_PROFILE_20261026.md']
+paths += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+')
+for name in paths:assert not secret.search((ROOT/name).read_text())
+git('diff','--check','--',*paths);git('add','--',*paths)
+assert set(git('diff','--cached','--name-only').splitlines())==set(paths)
+git('diff','--cached','--check')
+git('commit','-m','tc: distinguish controlled source setup from registered preparation plans')
+head=git('rev-parse','HEAD');ref='refs/heads/backup/d877-controlled-source-fix-20261026'
+save(RAW/'setup_fix_commit.json',dict(commit=head,ref=ref,files=paths))
+git('-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert git('ls-remote','faaslora_origin',ref).split()==[head,ref]
+save(RAW/'setup_fix_backup.json',dict(passed=True,commit=head,ref=ref,final_v2_synced=False))
+print(json.dumps(dict(passed=True,commit=head,ref=ref)))

@@ -1,4 +1,32 @@
-# IEEE TC execution status — D877 same-candidate source profile preparation
+# IEEE TC execution status — D877 setup failure closed; controlled-source fix tested
+
+### D877实际结果：32/423后受控准备等待，非完整性能结果
+
+18项长度绑定测试通过，提交`da4fbb6f43e7626e8c84915238b6818b39273e77`
+已推送核验`backup/d877-private-host-profile-20261026`。实际source测量完成
+前4 waves共32条，在第5组native_host setup停止推进。只读原生观测显示
+private construction started/settled/in-flight均0、无native缓存条目。
+结合调用链定位：collector传入`profile-setup/4`作为preparation_plan_id，
+但它根本没有注册residency objective；新路径正确拒绝无权威计划的准备，
+movement等待没有后续计划事件。不是GPU OOM，也不是构造线程死锁证据。
+
+已向唯一归属的资格父进程发SIGINT；GPU/scope和远端两服务/monitor均释放。
+32条日志、只读观察、启动/中止回执完整保留；取消时未写最终source1.json，
+如实记缺失，不补造423条raw或导出profile。服务峰值5720973312B、
+high/max/OOM/swap0，147保护项不变。首个CPU入口曾因非UUID scope名拒绝，
+发生在任何输出前，亦已记入failed_setup/summary。py-spy只读尝试被权限拒绝，
+未提权、未改ptrace。
+
+现仅修正collector的native_host受控setup：plan_id=None，wave身份仍记录；
+它不冒充planner，仍保留真实字节/缓存容量检查，无计划不能进行staging替换。
+生产begin/commit、完整Full的计划注册及九公式不改。新增针对调用语义的1项
+测试通过（8.690s），复用此前18项和D874/D875；不增加其他宽泛资格。
+
+下一步D878：同423原cases、修正后的已有collector、匹配native环境，仅一次
+新键source测量；严格export后立即完整新键3B W2。不再短Full/旧profiling，
+不重做SLO/Resident、不把32条片段用于排名。当前无GPU/远端任务；目标active，
+全部范围开放，当前完整性能仍D870的94.325%与U11931.565094，数值证明未知。
+最终V2仍未同步；备份分支不当作最终交付。
 
 ## 2026-10-26 D877：补齐候选初始化，不改变评价参考
 

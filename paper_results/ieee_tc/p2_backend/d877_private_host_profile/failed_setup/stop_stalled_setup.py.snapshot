@@ -1,0 +1,45 @@
+"""Record read-only owner state and interrupt only this stalled qualification."""
+import json
+import os
+from pathlib import Path
+import signal
+import socket
+import sys
+import time
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+receipt=read(RAW/'source1_launch.launch/exec_receipt.json')
+identity=receipt['service_identity']
+assert p.scope_still_owned(identity)
+owned=p.owned_pids(Path(identity['path']))
+parent=next(item for item in owned if item['pid']==2846775)
+worker=next(item for item in owned if item['pid']==2847468)
+ready=read(Path('/tmp/faaslora_worker_bnz6t6g1/ready.json'))
+assert ready['status']=='ready'
+results={}
+for key,command in [('scheduler',dict(cmd='ieee_scheduler_observation')),
+    ('sources',dict(cmd='ieee_gpu_reference',kwargs=dict(operation='source_snapshot')))]:
+    with socket.create_connection((ready['host'],ready['port']),timeout=5) as connection:
+        connection.settimeout(5)
+        connection.sendall((json.dumps(command)+'\n').encode())
+        with connection.makefile('rb') as stream:
+            results[key]=json.loads(stream.readline(8*1024*1024))
+save(RAW/'stalled_setup_observation.json',dict(kind='read_only_stalled_source_setup_v1',
+    observed_monotonic_s=time.monotonic(),identity=identity,owned=owned,observations=results,
+    py_spy_attempt='permission_denied; no elevated attempt or ptrace change',
+    reason='No progress after wave 3; native-host controlled setup passes an unregistered plan ID',
+    performance_eligible=False))
+fd=os.pidfd_open(parent['pid'])
+try:
+    stat=Path(f'/proc/{parent["pid"]}/stat').read_text().rsplit(') ',1)[1].split()
+    assert int(stat[19])==parent['start_ticks'] and p.cg_path(parent['pid'])==Path(identity['path'])
+    signal.pidfd_send_signal(fd,signal.SIGINT)
+finally:os.close(fd)
+save(RAW/'interrupt_receipt.json',dict(pid=parent['pid'],start_ticks=parent['start_ticks'],
+    signal='SIGINT',monotonic_s=time.monotonic(),identity=identity,physical_release_not_yet_proven=True))
+print(json.dumps(dict(interrupted_parent=parent['pid'],observations=list(results))))

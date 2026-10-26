@@ -1,0 +1,57 @@
+"""Preserve D877's controlled-setup failure; no partial profile export."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d877_private_host_profile/failed_setup'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'source1_launch.json')
+assert not launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+stop=(RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive')==3 and stop.count('MainPID=0')==3
+observed=read(RAW/'stalled_setup_observation.json')
+construction=observed['observations']['scheduler']['result']['control_interleave']['private_host_construction']
+assert construction['started']==construction['settled']==construction['in_flight']==0
+records=[]
+with (RAW/'source1_launch.launch/service.log').open() as f:
+    for line in f:
+        if line.startswith('{"event": "native_source_profile_sample"'):records.append(json.loads(line))
+assert len(records)==32
+samples=[]
+with (RAW/'source1_launch.launch/watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row.get('event')=='resource_sample':samples.append(row)
+resources=dict(memory_peak_bytes=max(s['service']['memory.peak'] for s in samples),
+    swap_peak_bytes=max(s['service']['memory.swap.current'] for s in samples),
+    events={k:max(s['service']['memory.events'][k] for s in samples) for k in ('high','max','oom','oom_kill')})
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+OUT.mkdir(exist_ok=False)
+refs=[RAW/'source1_launch.json',RAW/'source1_launch.launch/service.log',RAW/'stalled_setup_observation.json',
+    RAW/'interrupt_receipt.json',RAW/'remote_stop.log',RAW/'remote_start.log',RAW/'tests.log',
+    ROOT/'scripts/ieee_tc_preflight.py',ROOT/'scripts/ieee_tc/run_d298_capacity_source.sh',
+    ROOT/'tests/test_ieee_tc_preflight.py']
+for path in [RAW/'stop_stalled_setup.py',Path(__file__)]:
+    with (OUT/(path.name+'.snapshot')).open('xb') as f:f.write(path.read_bytes())
+save(OUT/'summary.json',dict(closure_passed=True,profile_complete=False,performance_run=False,
+    classification='controlled_profile_setup_contract_error',planned_requests=423,
+    observed_completed_samples=32,n_correct=None,ranking_eligible=False,
+    native_private_construction=construction,resources=resources,protected=protected,
+    physical_released=True,remote_stopped=True,source_result_json_present=(RAW/'source1.json').exists(),
+    cause='controlled setup used profile-setup/4 as an unregistered authoritative preparation plan',
+    interruption='single owned parent SIGINT; raw callback did not publish final JSON on cancellation',
+    first_cpu_launcher_error='non-UUID scope name rejected before any output; corrected UUID scope passed 18 tests',
+    next='explicit plan-free controlled empty-cache setup, preserving strict production plan validation',
+    refs={str(path):p.digest(path) for path in refs}))
+save(OUT/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in sorted(OUT.iterdir())]))
+print(json.dumps(dict(closed=True,completed_samples=32,resources=resources)))

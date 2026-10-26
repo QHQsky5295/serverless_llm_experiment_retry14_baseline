@@ -1,0 +1,56 @@
+{
+  "closure_passed": true,
+  "profile_complete": false,
+  "performance_run": false,
+  "classification": "controlled_profile_setup_contract_error",
+  "planned_requests": 423,
+  "observed_completed_samples": 32,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "native_private_construction": {
+    "policy": "private_cpu_core_commit_v1",
+    "started": 0,
+    "settled": 0,
+    "discarded": 0,
+    "failed": 0,
+    "in_flight": 0,
+    "closed": false
+  },
+  "resources": {
+    "memory_peak_bytes": 5720973312,
+    "swap_peak_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "physical_released": true,
+  "remote_stopped": true,
+  "source_result_json_present": false,
+  "cause": "controlled setup used profile-setup/4 as an unregistered authoritative preparation plan",
+  "interruption": "single owned parent SIGINT; raw callback did not publish final JSON on cancellation",
+  "first_cpu_launcher_error": "non-UUID scope name rejected before any output; corrected UUID scope passed 18 tests",
+  "next": "explicit plan-free controlled empty-cache setup, preserving strict production plan validation",
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/source1_launch.json": "212053d353c3f2e3d4d7cabd6d0862f7972635f70711cafd87eabbe4b00f3b4b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/source1_launch.launch/service.log": "00c58e5f3e493ff347ab38ff1c41af92d287b77b808faa104aa7b0206678e3c6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/stalled_setup_observation.json": "377ed70c028785d7980c53e7094e481e138ceac3fc9f8c3dcf9a73c1b26baa86",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/interrupt_receipt.json": "c554a342bfd67f33b4df1531d57205ed6541f326a6ee2de72a8d6e5b1b3f922e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/remote_stop.log": "bdb15c2f0fcd365f903078a014a85e0df5c81b87889965b721e8535bb18aadce",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/remote_start.log": "3fbab5b9882c7ca33126e89612d4f798025461dbff85bf3090dbefd1fa462ad8",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026/tests.log": "ea8d133b0ef5ec5e0a48ba54f80530ae2cc677403ade2e6b1b99a49bd10c605a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "45efeea09fbb0ffab5f1dd876ce0ab50bf608271ef65c227d8759cedda6d68b5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d298_capacity_source.sh": "eca8dbcbdb4ba670bda03693583027ee361257b83371f7f53f984f5e8ef7790f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py": "c3121bc3422a2d585efa9f9e3562ba1157ea817f436fc64e38fd9d827d2ae38f"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d877_private_host_profile/failed_setup/close_failed_setup.py.snapshot",
+      "sha256": "6ee16671338dbda1a97d4654a497b4c16a6d7050fba1c8d8b1847381fd629478"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d877_private_host_profile/failed_setup/stop_stalled_setup.py.snapshot",
+      "sha256": "b2d0b88a624263eba44aa21fb494fab24e63c2ea12b2cfed063d9465fa4ca728"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d877_private_host_profile/failed_setup/summary.json",
+      "sha256": "4ad5588e9b63dd5cc8c1ac8c81623b8f0b45f82b070ca6668210688e84203145"
+    }
+  ]
+}

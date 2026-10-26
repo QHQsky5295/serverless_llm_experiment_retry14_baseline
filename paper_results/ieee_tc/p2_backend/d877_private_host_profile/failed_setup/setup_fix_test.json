@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "exit_code": 0,
+  "tests": 1,
+  "elapsed_s": 8.69,
+  "command": "python -B -m unittest tests.test_ieee_tc_preflight.ControlledNativeSourceSetup -v",
+  "evidence_kind": "tool execution transcript session 84414; no separate test log was written",
+  "scope": "primelora-tc-aux-be0b7aff8e32421584c3ec8d26b9c76f.scope",
+  "source_sha256": "653ccde78f45aab173f023b79b3c665c879e14e3c185fe7ade91d74f69c22d66",
+  "test_sha256": "fe6916fe79ad5bf54cace2ed594448706f6d7d27adb25ba5a2fbaadffcd5b2ab"
+}

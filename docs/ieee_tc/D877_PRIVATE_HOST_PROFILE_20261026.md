@@ -26,3 +26,22 @@ curated：`paper_results/ieee_tc/p2_backend/d877_private_host_profile/`。
 后续唯一主线：导出匹配初始化 → 新键完整4000请求W2 → 按冻结指标接受/撤销。
 同版本两模型全场景、其余baseline/dLoRA、A1–A5/S1–S13、数值证据、审稿图文
 及最终V2均仍开放；目标前不绘图，不操作共享k3s。
+
+## 实际失败、收尾与最小修正
+
+18项长度初始化测试通过后，实际source测量完成32/423条，停止在第5组
+native_host受控准备。core只读观察显示started=settled=in_flight=0，当前
+native源为空。调用链中collector使用未注册的`profile-setup/4`计划身份，
+新private begin要求非空计划必须是权威注册计划，因而该调用不能启动。
+这里不是新增线程死锁的证据，也不是性能退化结论。
+
+仅中止此资格父进程，资源释放已验证。取消没有生成最终source1.json；
+保留32条样本日志、原生观察及全部失败/启动/释放证据，不构造缺失结果。
+服务峰值5720973312B，high/max/OOM/swap0；远端全部本轮服务停止。
+首次CPU入口的非UUID scope名拒绝亦记入失败说明，不冒称一次无误执行。
+
+修正是明确区分测量wave标签与生产计划授权：空cache受控setup没有运行
+planner，故调用plan_id=None；原生容量检查不变，staging仍需真实计划。
+仅改变collector，不修改生产计划验证或Full机制。新增1项调用语义测试
+通过，原18项和D874/D875证据复用。下一新键D878继续同423 cases，完成后
+严格export再完整W2；不再追加无关资格或短Full。

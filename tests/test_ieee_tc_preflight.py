@@ -1816,5 +1816,30 @@ class PrivateHostOverlapQualification(unittest.TestCase):
         self.assertEqual(self.releases, ['release'])
 
 
+class ControlledNativeSourceSetup(unittest.TestCase):
+    def test_wave_label_is_not_an_authoritative_residency_plan(self):
+        import asyncio
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        engine = SimpleNamespace(ieee_gpu_reference=AsyncMock(side_effect=[
+            {'sources': []}, {'live_leases': 0, 'live_host_source_leases': 0}]))
+        boundary = SimpleNamespace(
+            _stack=SimpleNamespace(residency_manager=SimpleNamespace(
+                local_source_references=SimpleNamespace(roots={}))),
+            model_cfg={}, _nvme_cache={},
+            _attach_ieee_host_budget=AsyncMock(return_value={}),
+            _queue_ieee_file_preparation=AsyncMock(return_value={'target_path': '/controlled/a'}),
+            _queue_ieee_native_host_preparation=AsyncMock(return_value={'state': 'native_host_prepared'}))
+        result = {}
+        cases = [[{'source': 'native_host', 'case_id': 'original-case', 'adapter_id': 'a'}]]
+        collect = AsyncMock()
+        with patch.object(p, 'collect_native_source_wave', collect):
+            asyncio.run(p.qualify_native_source_matrix(engine, boundary, None, cases, result))
+        self.assertIsNone(boundary._queue_ieee_native_host_preparation.call_args.kwargs['plan_id'])
+        self.assertEqual(result['profile_waves'][0]['requests'], ['original-case'])
+        self.assertTrue(result['profile_waves'][0]['complete'])
+        collect.assert_awaited_once()
+
+
 if __name__ == '__main__':
     unittest.main()
