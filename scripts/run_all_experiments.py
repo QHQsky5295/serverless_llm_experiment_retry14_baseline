@@ -19787,33 +19787,37 @@ class ScenarioRunner:
                     process_owner = hasattr(references, 'call_async')
                     for registered_aid in current['registered_cpu_adapter_ids']:
                         victim = rows[registered_aid]
-                        view = (await references.call_async('source_snapshot', adapter_id=victim['adapter_id'])
-                                if process_owner else references.source_snapshot(victim['adapter_id']))
-                        local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
-                        if local:
-                            fallback = local[0]
-                            if process_owner:
-                                held = await references.call_async(
-                                    'acquire_confirmed', path=fallback['path'],
-                                    adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
-                                    expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
-                                    expected_content_sha256=victim['content_sha256'])
+                        if process_owner:
+                            # Selection and confirmation are one owner command;
+                            # an outer snapshot would reintroduce a TOCTOU epoch
+                            # race while another preparation task changes tiers.
+                            held = await references.call_async(
+                                'acquire_best', adapter_id=victim['adapter_id'],
+                                lease_id=uuid.uuid4().hex,
+                                content_sha256=victim['content_sha256'])
+                            if held is None:
+                                fallback = victim['remote_fallback']
                             else:
+                                confirmed = held['confirmed_source']
+                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
+                                                footprint_bytes=confirmed['allocated_file_bytes'])
+                        else:
+                            view = references.source_snapshot(victim['adapter_id'])
+                            local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
+                            if local:
+                                fallback = local[0]
                                 with references.lock:
                                     held = references.acquire_confirmed(path=fallback['path'],
                                         adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
                                         expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
                                         expected_content_sha256=victim['content_sha256'])
+                                confirmed = held['confirmed_source']
+                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
+                                                footprint_bytes=confirmed['allocated_file_bytes'])
+                            else:
+                                fallback, held = victim['remote_fallback'], None
+                        if held is not None:
                             file_holds.append(held)
-                            # The read pin revalidates this copy and may
-                            # refresh its bounded physical allocation. Bind
-                            # all fallback fields to that single confirmed
-                            # observation, not the earlier planning view.
-                            confirmed = held['confirmed_source']
-                            fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
-                                            footprint_bytes=confirmed['allocated_file_bytes'])
-                        else:
-                            fallback, held = victim['remote_fallback'], None
                         file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
                 except BaseException:
                     for held in file_holds:
