@@ -31,11 +31,12 @@ or inferred release is introduced.
 
 ## Boundary and remaining qualification
 
-The opt-in process owner is still not enabled for a formal replay. Before that
-step, the remaining synchronous lifecycle paths (notably rare retirement and
-shutdown calls) must be audited so a process-mode run cannot silently block or
-mix owners. The production default and all historical results are unchanged.
-Only after that audit will a new no-GPU integration smoke be run, followed by
-one PrimeLoRA replay under a new execution identity if the ownership receipts,
-native token contract, joint SLO, and physical GPU accounting all remain
-valid.
+The rare retirement path now also joins process-owned native retirement and
+runtime source release asynchronously; shutdown remains a separate lifecycle
+operation. The opt-in process owner is still not enabled for a formal replay.
+Before that step, a no-GPU integration smoke must exercise startup, demand,
+publication, cancellation, retirement, and close together so process-mode and
+legacy-owner identities cannot be mixed. The production default and all
+historical results are unchanged. Only after that smoke will one PrimeLoRA
+replay receive a new execution identity, subject to ownership receipts, the
+native token contract, joint SLO, and physical GPU accounting.

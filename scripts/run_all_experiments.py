@@ -14752,8 +14752,8 @@ class ScenarioRunner:
                 allocation = getattr(slot.engine, '_physical_allocation', None)
                 if allocation is None or allocation.released is not True:
                     raise RuntimeError('runtime cleanup requires confirmed physical release')
-            self._retire_ieee_host_budget(slot.engine)
-            self._settle_exited_runtime_reservations(slot)
+            await self._retire_ieee_host_budget(slot.engine)
+            await self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
         await self._notify_dispatch_capacity_changed(wake_all=True)
         if residency_failure is not None:
@@ -15060,7 +15060,7 @@ class ScenarioRunner:
                     await domain.retire(new_engine)
             finally:
                 await new_engine.shutdown()
-                self._retire_ieee_host_budget(new_engine)
+                await self._retire_ieee_host_budget(new_engine)
             raise
         runtime_startup_latency_ms = max(
             0.0,
@@ -15349,13 +15349,18 @@ class ScenarioRunner:
                 if member is not None and member['state'] == 'attached':
                     await settle(domain.retire(engine))
                 await settle(engine.shutdown())
-                self._retire_ieee_host_budget(engine)
+                await self._retire_ieee_host_budget(engine)
                 if published:
                     self.instance_pool.remove_instance(activation_id)
             # Unadopted bytes never enabled native adapter allocation. Startup
             # and file readers above have joined; adopted bytes use pidfd only.
-            if activation_id in files.host_budget_snapshot()['activation_reservations']:
-                files.cancel_activation_host(activation_id=activation_id)
+            budget = (await files.call_async('host_budget_snapshot')
+                      if hasattr(files, 'call_async') else files.host_budget_snapshot())
+            if activation_id in budget['activation_reservations']:
+                if hasattr(files, 'call_async'):
+                    await files.call_async('cancel_activation_host', activation_id=activation_id)
+                else:
+                    files.cancel_activation_host(activation_id=activation_id)
             raise
 
     def _handle_pending_scale_up_task_done(self, task: asyncio.Task) -> None:
@@ -17916,7 +17921,7 @@ class ScenarioRunner:
                     reference['protected_until_native_acquisition'] = {
                         key: receipt[key] for key in ('owner_id', 'lease_id', 'lora_path',
                             'clock_id', 'acquired_monotonic_s')}
-                self._release_runtime_local_source(reservation)
+                await self._release_runtime_local_source_async(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
             if receipt.get('reason') == 'native_host_tensor_budget':
@@ -18307,6 +18312,20 @@ class ScenarioRunner:
             reference['state'] = 'released'
 
     @staticmethod
+    async def _release_runtime_local_source_async(reservation: RuntimeRequestReservation) -> None:
+        reference = reservation.gpu_reference_evidence.get('local_source_reference')
+        if reference is None or reference['state'] != 'held':
+            return
+        refs = reservation.local_source_owner.local_source_references
+        if hasattr(refs, 'call_async'):
+            await refs.call_async('release', lease_id=reference['lease_id'],
+                                  expected_owner_id=reference['owner_id'])
+        else:
+            reservation.local_source_owner.release_local_source(
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+        reference['state'] = 'released'
+
+    @staticmethod
     async def _settle_runtime_file_preparation(reservation, *, cancel=False):
         """Join the request's publication/settlement task before its terminal.
 
@@ -18492,7 +18511,7 @@ class ScenarioRunner:
                 entry['control_event']['outcome'] = 'retirement_'+record['state']
             raise
 
-    def _settle_exited_runtime_reservations(self, slot) -> None:
+    async def _settle_exited_runtime_reservations(self, slot) -> None:
         reservations = [r for r in getattr(self, '_unsettled_runtime_reservations', {}).values()
                         if r.slot is slot and not r.released]
         if not reservations:
@@ -18516,7 +18535,7 @@ class ScenarioRunner:
             pending = reservation.ieee_pending_admission
             if pending is not None and pending['state'] != 'closed':
                 pending['state'] = 'retired_with_runtime'
-            self._release_runtime_controller_accounting(reservation, native_outcome='runtime_exited')
+            await self._release_runtime_controller_accounting(reservation, native_outcome='runtime_exited')
 
     async def _finish_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if not reservation.bound or reservation.released:
@@ -18593,18 +18612,18 @@ class ScenarioRunner:
         except BaseException:
             self._retain_runtime_request_reservation(reservation)
             raise
-        self._release_runtime_controller_accounting(reservation, native_outcome='no_acquisition')
+        await self._release_runtime_controller_accounting(reservation, native_outcome='no_acquisition')
         if slot is not None:
             self._refresh_slot_runtime_hints(slot)
             await self._notify_dispatch_capacity_changed(notify_admission=False, slot_wake_all=False)
         self._schedule_all_runtime_gpu_forward()
 
-    def _release_runtime_controller_accounting(self, reservation, *, native_outcome):
+    async def _release_runtime_controller_accounting(self, reservation, *, native_outcome):
         """Synchronous local ownership commit, after native ack OR physical exit."""
         if reservation.released:
             return
         slot = reservation.slot
-        self._release_runtime_local_source(reservation)
+        await self._release_runtime_local_source_async(reservation)
         self._settle_native_reference_intent(reservation, 'gpu', native_outcome)
         self._settle_native_reference_intent(reservation, 'host', native_outcome)
         self._complete_ieee_pending_load(reservation)
@@ -21192,15 +21211,19 @@ class ScenarioRunner:
                 raise asyncio.CancelledError()
             return receipt
 
-    def _retire_ieee_host_budget(self, engine):
+    async def _retire_ieee_host_budget(self, engine):
         members = getattr(self, '_ieee_host_budget_members', {})
         member = members.get(id(engine))
         if member is None or member['state'] == 'retired':
             return
         # Only an actual native process exit returns its entire allowance,
         # including allocator caches. Shared logical slots do not call this.
-        receipt = self._stack.residency_manager.local_source_references.retire_native_host(
-            owner_id=member['owner_id'], exit_pidfd=member['pidfd'])
+        references = self._stack.residency_manager.local_source_references
+        if hasattr(references, 'call_async'):
+            receipt = await references.call_async('retire_native_host', owner_id=member['owner_id'])
+        else:
+            receipt = references.retire_native_host(
+                owner_id=member['owner_id'], exit_pidfd=member['pidfd'])
         os.close(member['pidfd'])
         member.update(state='retired', retirement_receipt=receipt)
 
