@@ -1,4 +1,24 @@
-# IEEE TC execution status — D882 cost-fusion candidate qualified; full W2 pending
+# IEEE TC execution status — D883 full W2 registration, launch pending
+
+## D883登记：同D870配置的完整4000请求W2（2026-10-26）
+
+本轮落实D882下一动作，不新增生产候选。复用322项检查和独立定价等价性；
+只增加D883独占输出/缓存路径与原runner case，配置/原生descriptor/D725
+profile/共同SLO不变，private CPU构造及整图模式关闭。没有短Full或新profiling。
+以D870联合94.325%、U11931.565094为参照，一次新版本完整观测；不重跑择优。
+N_correct未知与所有未完成范围保留。已重读完整计划/冻结V1/单轮V2及最新
+资源/基线规则；共享k3s不是本项目，既有HydraServe隔离适配与D510完成记录
+复用，不接管或重新部署共享集群。具体启动、备份、资源和完成以回执为准。
+目前准备启动前检查，不能把登记写成完成；旧投稿与用户manifest不覆盖。
+
+### D882实际关闭/备份回执（随下一正常检查点保存）
+
+closure通过：147旧投稿项与用户manifest不变，所有本轮辅助域退出、GPU无作业。
+38个明确文件已提交`43934903a32987523bdd6a1864ee43fbc7a18668`，并核验远端
+`refs/heads/backup/d882-replacement-cost-fusion-20261026`与本地HEAD一致。
+final V2仍未同步，未force push、未stage用户manifest。可用174350356480B，
+下一主线为D883一次完整3B W2，不重跑组件/短Full，不恢复已关闭候选。
+完整goal继续active；本节点是候选实现/验证进展，不是G1/G2性能闭口。
 
 ## D882：原生替换代价共用解析（2026-10-26）
 
