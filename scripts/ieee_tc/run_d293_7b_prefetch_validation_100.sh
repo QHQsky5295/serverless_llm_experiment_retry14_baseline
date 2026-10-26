@@ -927,6 +927,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d915)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_max3_full_w2_release_contract
+    CONFIG=configs/ieee_tc/20261027_d912_3b_max3_full_w2_process_owner.yaml
+    TAG=d915_3b_max3_full_w2_release_contract
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d876)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/3b_max3_full_w2
     CONFIG=configs/ieee_tc/20261026_d876_3b_max3_full_w2.yaml
@@ -1479,6 +1486,24 @@ if [[ "${1:-d293}" == d914 ]]; then
   export FAASLORA_OUTPUT_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d914_20261027/3b_max3_full_w2_file_hold_finally
   export FAASLORA_NVME_CACHE_DIR="$ROOT/results/ieee_tc/p2_backend_qualification/d914_20261027/3b_nvme_w2_file_hold_finally"
   export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d914-3b-w2-file-hold-finally
+  export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
+fi
+if [[ "${1:-d293}" == d915 ]]; then
+  export FAASLORA_FILE_STATE_PROCESS=1
+  export FAASLORA_TC_REPLAY_PROFILE=W2
+  export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
+  export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
+  export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
+  export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+  export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
+  export FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal
+  export FAASLORA_OUTPUT_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_max3_full_w2_release_contract
+  export FAASLORA_NVME_CACHE_DIR="$ROOT/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_nvme_w2_release_contract"
+  export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d915-3b-w2-release-contract
   export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
 fi
 if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 || "${1:-d293}" == d835 || "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d870 || "${1:-d293}" == d883 || "${1:-d293}" == d886 || "${1:-d293}" == d876 || "${1:-d293}" == d880 || "${1:-d293}" == d866 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
