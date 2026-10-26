@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "new_gpu_replays": 0,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-d8700000000000000000000000000003.scope",
+    "invocation_id": "2f4f695fe45c428f8e30dec4d3f6cb7c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8700000000000000000000000000003.scope",
+    "inode": 32850394
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8700000000000000000000000000003.scope",
+    "memory.current": 35557376,
+    "memory.peak": 747839488,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 137527533\nuser_usec 129903444\nsystem_usec 7624089\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "resolves": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/closed_outcome.json",
+      "sha256": "90ba91a7128b60ec26002638e6cdffe824f3462495b9a43bf5585e2aed36429f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "8ea1d7572c1c59355eac0c5db9d2906075de1f429d5d9c9244ad7440cd04ffdf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/owner_publication_actual.json",
+      "sha256": "78923f46ccba0c8b9eee54b54e08249fab8eafb0611023630901dca57e9c7b95"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/decoder_actual.json",
+      "sha256": "0957bd63b181ed57b7cea75bd0980c81dbbe32ebcec59d9be778194121e18a01"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/owner_anchor_actual.json",
+      "sha256": "b8134f8b7cd8f3768fa67ae6cd690f26ea05536a7666f7035b558bcc5f852044"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/versus_d858.json",
+      "sha256": "b71204c3e15e32b62c6d14d212448e21083446489b011ab5c21b0dbd654812d4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/settlement_analysis/summary.json",
+      "sha256": "1c306d3d1baffa4a624e75e43becc7cb388a8f3428ab954aae0d6b64a9609455"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/closure.json",
+      "sha256": "d3d926b3442dc9a51ff4710d80807a08b72203e09cb4a11d67f7ba9c1168e480"
+    }
+  ],
+  "limitation": "Append-only completion of previously pending evidence; independent numerical adapter correctness remains unknown. Single known-workload observation, not a confidence interval or dominance claim."
+}

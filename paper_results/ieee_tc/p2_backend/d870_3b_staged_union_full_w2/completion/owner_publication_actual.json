@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "attempts": 505,
+  "all_attempts_included": true,
+  "verification_modes": {
+    "owner_publication": 505
+  },
+  "stream_content_verified": 0,
+  "final_content_verified": 505,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/remote_client_projection.json",
+      "sha256": "bfdcb1e871b283ec206518164857f4d2b36b509afd25dd550dd1047e08a77163"
+    }
+  ],
+  "scope": "Runtime confirmation of final destination content, not independent numerical adapter correctness. Frozen implementation/source verification is retained in prelaunch and completion manifests."
+}

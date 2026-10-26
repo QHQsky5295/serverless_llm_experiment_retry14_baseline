@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/native_and_lifecycle/actual_native_descriptor.json",
+      "sha256": "e06a529ec3d44569ec4d15c8db67d27797191b7242732700e51c5f53941098c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/native_and_lifecycle/native_and_lifecycle.py.snapshot",
+      "sha256": "b3ba6ac273601cc5d444d7cb76d0e801c262538e090feb68a4630fe92a47b89d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/native_and_lifecycle/paired_stages/diagnosis.json",
+      "sha256": "0325541930c3cfa3bb44287a823787c22be0bbc60dab57db1db22ea8021df82e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/native_and_lifecycle/paired_stages/paired_requests.csv",
+      "sha256": "f95374344fe1fd0777b014ce8c09c477a35cee9ff9ff7d0c4ec42b9f43260eff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/native_and_lifecycle/resources.json",
+      "sha256": "b852f4f76d6bd062295096b4e146f22881adcd25a0349212157a68614f0dc795"
+    }
+  ]
+}

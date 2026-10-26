@@ -1,0 +1,38 @@
+"""D870: adapt the tested D866 explicit-path result backup, not its metrics.
+
+Only campaign identity, actual default descriptor evidence, resource identities,
+remote monitor SHA and test-description change. No broad staging or force push.
+"""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd866_20261026/backup_program.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == (
+    '725ff4d6d59b4c88e28a9be96e0a0809c30370ebe748591a4e7ef51a982d575e')
+source = template.read_text()
+changes = (
+    ('d866_3b_native_host_graph_full_w2', 'd870_3b_staged_union_full_w2'),
+    ('D866_NATIVE_HOST_GRAPH_FULL_W2_20261026.md',
+     'D870_STAGED_UNION_FULL_W2_20261026.md'),
+    ("'start_identity.json', 'start_resume_identity.json',", "'start_identity.json',"),
+    ('prelaunch_resume/qualification.json', 'prelaunch/qualification.json'),
+    ('actual_native_graph.json', 'actual_native_descriptor.json'),
+    ('827c75af60d7194d096b4e81a14a0d545472d6fdd32d9bec61379d40f5211d4a',
+     '60708643ace365638c6b9f22d32beeb838504468db453ebda06730f933c97661'),
+    ('Reuse D865 26 targeted CPU/native-path checks and D866 4 run-contract checks.',
+     'Reuse D869 323 semantic checks and D870 4 run-contract checks.'),
+    ('actual graph-mode coverage passed', 'actual default descriptor coverage passed'),
+    ('tc: preserve D866 full W2 native graph trade-off and exact lifecycle evidence',
+     'tc: preserve D870 full W2 staged-union trade-off and lifecycle evidence'),
+    ('refs/heads/backup/d866-complete-20261026',
+     'refs/heads/backup/d870-complete-20261026'),
+)
+for old, new in changes:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+target = raw / 'backup_program.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

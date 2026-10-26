@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "head": "2440b7aa5d47ea5bbcc98c9955706f6af09d2283",
+  "ref": "refs/heads/backup/d870-staged-union-fullw2-20261026",
+  "files": [
+    "configs/ieee_tc/20261026_d870_3b_max3_full_w2.yaml",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "docs/ieee_tc/D870_STAGED_UNION_FULL_W2_20261026.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/reused_d869.json",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/stop_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/prelaunch/tests.txt"
+  ],
+  "v2_synchronized": false
+}

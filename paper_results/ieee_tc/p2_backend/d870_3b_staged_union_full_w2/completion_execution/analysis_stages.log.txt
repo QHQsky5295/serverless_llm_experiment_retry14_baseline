@@ -1,0 +1,2 @@
+W1026 09:36:19.317000 2560816 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+{"passed": true, "counts": {"n": 4000, "ttft_pass": 3843, "tpot_eligible": 4000, "tpot_pass": 3921, "joint_pass": 3773}, "output": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/stages", "max_stage_identity_error_ms": 0.0}

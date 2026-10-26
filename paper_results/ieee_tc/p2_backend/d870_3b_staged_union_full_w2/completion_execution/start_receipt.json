@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "2440b7aa5d47ea5bbcc98c9955706f6af09d2283",
+  "backup_ref": "refs/heads/backup/d870-staged-union-fullw2-20261026",
+  "tmux": "tc-d870-3b-staged-union-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-d8700000000000000000000000000001.scope",
+    "invocation_id": "ead0b221638b4db5a2a3d853c9ceb653",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8700000000000000000000000000001.scope",
+    "inode": 32817046
+  },
+  "qualification_sha256": "4c3eea17a0f60c135033752166390a201be22645a22a40dc84984a311d826276"
+}
