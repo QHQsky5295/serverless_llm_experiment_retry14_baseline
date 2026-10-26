@@ -25144,20 +25144,12 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             await action()
         except BaseException as exc:
             errors.append(error_record(stage,exc)); failure_objects.append(exc)
-    # Workspace deletion is an owner operation.  It must precede stack.stop,
-    # which closes the process-local file owner; otherwise a failed replay can
-    # leave only an uncallable controller facade for cleanup.  Runtime shutdown
-    # above has already ended request contexts before this quiescence check.
-    cleanup_result = dict(complete=False, roots=claims, reason='shutdown_unresolved')
-    if not errors:
-        try:
-            cleanup_result = _cleanup_ieee_run_workspaces(stack, claims)
-        except BaseException as exc:
-            errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
-    # These snapshots still consult the owner-backed coordination state.  Take
-    # them after request/runtime shutdown but before stack.stop closes the file
-    # owner; the cleanup above has already proven that no live dependency
-    # remains.
+    # These snapshots consult owner-backed coordination state and therefore
+    # must precede destructive workspace cleanup.  Runtime shutdown above has
+    # ended request contexts, while the owner and its roots are still available
+    # for a post-shutdown measurement.  Taking the snapshot after deletion
+    # makes a successful cleanup look like a measurement failure because the
+    # owner state file has already been removed.
     coordination_after_shutdown = None
     try:
         coordination_after_shutdown = service._current_coord_metrics()
@@ -25172,6 +25164,16 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
         except BaseException as exc:
             measurement_errors.append(error_record('cpu_preparation_snapshot', exc))
             failure_objects.append(exc)
+    # Workspace deletion is an owner operation.  It must precede stack.stop,
+    # which closes the process-local file owner; otherwise a failed replay can
+    # leave only an uncallable controller facade for cleanup.  The snapshots
+    # above are intentionally taken before this destructive step.
+    cleanup_result = dict(complete=False, roots=claims, reason='shutdown_unresolved')
+    if not errors:
+        try:
+            cleanup_result = _cleanup_ieee_run_workspaces(stack, claims)
+        except BaseException as exc:
+            errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
     try:
         await stack.stop()
     except BaseException as exc:
