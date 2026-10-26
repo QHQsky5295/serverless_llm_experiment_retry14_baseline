@@ -1,0 +1,220 @@
+"""Offline D831 coverage extension to the existing complete-run audit.
+
+Join request -> movement job/intent exactly; pressure joins use the unique
+same-owner/adapter/attempt interval, never equality of unrelated UUIDs.
+"""
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'3b_max3_full_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d880_private_host_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+from scripts.ieee_tc.audit_d703_3b_full import clipped_interval_union
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+
+def observed_load_span(receipt, ready):
+    invoked = receipt['native_load_invoked']
+    assert type(invoked) is bool
+    start = receipt['native_load_started_monotonic_s']
+    end = receipt['native_load_completed_monotonic_s']
+    if invoked:
+        assert type(start) in (int, float) and type(end) in (int, float)
+        assert ready <= start <= end == receipt['acquired_monotonic_s']
+        assert receipt['gpu_resident_before_load'] is False
+        return start, end
+    assert start is None and end is None
+    assert receipt['gpu_resident_before_load'] is True
+    assert receipt['gpu_confirmed_before_acquisition'] is True
+    assert receipt['source_tier_before_acquisition'] == 'gpu'
+    assert receipt['acquired'] is True
+    assert ready <= receipt['acquired_monotonic_s']
+    return None, None
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'settlement_resume_identity.json', own)
+group = Path(own['path'])
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+assert read(OUT/'closure.json')['passed']
+metric = read(OUT/'completion/full4000.json')
+request_ref = next(r for r in metric['source_refs']
+    if Path(r['path']).name.startswith('experiment_results_full'))
+request_path = Path(request_ref['path'])
+assert p.digest(request_path) == request_ref['sha256']
+outcome = RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as stream:
+    jobs = {j['job_id']: j for j in ijson.items(stream,
+        'coordination_after_shutdown.ieee_movements.item', use_float=True)}
+with outcome.open('rb') as stream:
+    pressure = list(ijson.items(stream, 'transfer_pressure.item', use_float=True))
+by_key = collections.defaultdict(list)
+for record in pressure:
+    by_key[(record['file_owner_id'], record['target_tier'], record['adapter_id'])].append(record)
+rows, reused, seen = [], [], set()
+states = collections.Counter()
+without_settlement = collections.Counter()
+with request_path.open('rb') as stream:
+    for request in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        rid = request['request_id']
+        assert rid not in seen and request['success'] is True
+        seen.add(rid)
+        evidence, timing = request['gpu_reference_evidence'], request['native_token_timing']
+        settlement = evidence.get('file_preparation_settlement')
+        if settlement is None:
+            without_settlement[request['readiness_tier_before_dispatch']] += 1
+            continue
+        states[settlement['state']] += 1
+        assert settlement['kind'] == 'file_io_ready_owned_settlement_v1'
+        assert settlement['state'] == 'settled'
+        movement = settlement['movement']
+        job = jobs[movement['job_id']]
+        subscription = job['subscriptions'][movement['intent_id']]
+        assert job['key'][2] == request['adapter_id']
+        assert job['state'] == 'completed' and not job['active_intents']
+        assert subscription['metadata']['plan_id'] == 'request:'+rid
+        assert subscription['metadata']['trigger_reason'] == 'demand'
+        assert subscription['metadata']['target_replica'] == request['instance_id']
+        assert subscription['demand'] is True
+        started = settlement['started_monotonic_s']
+        ready = settlement['source_ready_monotonic_s']
+        observed = settlement['settled_monotonic_s']
+        completed = timing['controller_completed_monotonic_s']
+        assert started <= ready <= observed <= completed
+        assert job['finished_at'] <= subscription['observed_terminal_at'] <= observed
+        assert evidence['local_source_reference']['state'] == 'released'
+        assert evidence['local_source_reference']['owner_id'] == job['key'][0]
+        assert evidence['receipt']['file_source_witness']['content_sha256'] == job['key'][3]
+        attempts = [a for a in job['attempts'] if a['state'] == 'completed']
+        assert len(attempts) == 1
+        attempt = attempts[0]
+        assert attempt['finished_at'] == job['finished_at']
+        if 'output_ready_at' not in attempt:
+            # A source can become reusable before execution. It is not a new
+            # remote IO and supplies no evidence about overlapped pressure.
+            assert job['finished_at'] <= ready
+            reused.append(dict(request_id=rid, job_id=job['job_id'],
+                owns_io=movement['owns_io'], state='completed_before_ready_callback'))
+            continue
+        assert attempt['started_at'] <= attempt['output_ready_at'] <= ready
+        matches = [s for s in by_key[tuple(job['key'][:3])]
+            if s['source_tier'] == 'remote' and s['operation_outcome'] == 'completed'
+            and attempt['started_at'] <= s['created_at'] <= s['io_started_at']
+            <= s['io_joined_at'] <= attempt['output_ready_at'] <= s['finished_at']
+            <= attempt['finished_at']]
+        assert len(matches) == 1, (rid, len(matches))
+        pressure_record = matches[0]
+        assert pressure_record['state'] == 'finished'
+        assert pressure_record['projection_policy'] == 'native_rpc_v1'
+        assert pressure_record['clock_id'] == timing['native_clock_id']
+        assert pressure_record['clock_id'] == evidence['source_admission']['clock_id']
+        for participant in pressure_record['participants'].values():
+            assert participant['state'] == 'finished'
+            finish = participant['finish_receipt']
+            assert finish['clock_id'] == pressure_record['clock_id']
+            assert finish['transfer_id'] == pressure_record['transfer_id']
+            assert finish['observed_at'] <= pressure_record['finished_at']
+        remote = evidence.get('remote_preparation')
+        if movement['owns_io']:
+            assert remote is not None and remote['content_verified'] is True
+            assert remote['local_source_owner_id'] == job['key'][0]
+            assert remote['loading_clock_id'] == pressure_record['clock_id']
+            assert pressure_record['io_started_at'] <= remote['loading_started_monotonic_s']
+            assert remote['client_completed_monotonic_s'] <= pressure_record['io_joined_at']
+        else:
+            assert remote is None, 'subscriber must not claim another request IO'
+        load = evidence['receipt']
+        load_start, load_end = observed_load_span(load, ready)
+        acquired = load['acquired_monotonic_s']
+        finish = pressure_record['finished_at']
+        joined = pressure_record['io_joined_at']
+        native_first, native_last = timing['native_first_token_monotonic_s'], timing['native_last_token_monotonic_s']
+        worker_done = timing['worker_completed_monotonic_s']
+        assert finish <= job['finished_at'] <= observed <= completed
+        load_overlap = (clipped_interval_union(load_start, load_end, [(joined, finish)])[0]
+            if load_start is not None else None)
+        decode_overlap = clipped_interval_union(native_first, native_last, [(joined, finish)])[0]
+        rows.append(dict(request_id=rid, adapter_id=request['adapter_id'],
+            job_id=job['job_id'], intent_id=movement['intent_id'], pressure_id=pressure_record['transfer_id'],
+            owns_io=movement['owns_io'], native_load_invoked=load['native_load_invoked'],
+            load_starts_before_pressure_finish=(load_start < finish if load_start is not None else None),
+            first_token_before_pressure_finish=native_first < finish,
+            last_token_before_pressure_finish=native_last < finish,
+            worker_done_before_pressure_finish=worker_done < finish,
+            source_ready_to_load_ms=(1000*(load_start-ready) if load_start is not None else None),
+            source_ready_to_acquisition_ms=1000*(acquired-ready),
+            pressure_finish_envelope_ms=1000*(finish-joined),
+            load_overlap_pressure_ms=(1000*load_overlap if load_overlap is not None else None),
+            decode_overlap_pressure_ms=1000*decode_overlap,
+            pressure_tail_after_worker_ms=1000*max(0., finish-worker_done),
+            job_finish_to_join_observation_ms=1000*(observed-job['finished_at']),
+            worker_to_controller_completion_ms=1000*(completed-worker_done),
+            pressure_finished_at=finish, job_finished_at=job['finished_at'],
+            subscription_terminal_at=subscription['observed_terminal_at'],
+            join_observed_at=observed, controller_completed_at=completed))
+
+assert len(seen) == 4000 and rows
+assert len(rows)+len(reused)+sum(without_settlement.values()) == len(seen)
+assert set(states) == {'settled'}
+target = OUT/'settlement_analysis'
+target.mkdir(exist_ok=False)
+with (target/'requests.csv').open('x') as stream:
+    writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+    writer.writeheader()
+    writer.writerows(rows)
+metric_fields = [key for key in rows[0] if key.endswith('_ms')]
+report = dict(passed=True, kind='d880_actual_owned_file_settlement_v1',
+    full_request_population=len(seen), states=dict(states), joined_requests=len(rows),
+    distinct_joined_pressure_transfers=len({r['pressure_id'] for r in rows}),
+    own_io_requests=sum(r['owns_io'] for r in rows),
+    coalesced_subscribers=sum(not r['owns_io'] for r in rows),
+    completed_before_ready_callback=reused,
+    without_settlement_by_selected_tier=dict(without_settlement),
+    observed_overlap_counts={key: sum(row[key] is True for row in rows) for key in
+        ('load_starts_before_pressure_finish','first_token_before_pressure_finish',
+         'last_token_before_pressure_finish','worker_done_before_pressure_finish')},
+    metrics={key: timing_stats([r[key] for r in rows if r[key] is not None]) for key in metric_fields},
+    metric_sample_counts={key:sum(r[key] is not None for r in rows) for key in metric_fields},
+    native_load_population=sum(r['native_load_invoked'] for r in rows),
+    gpu_reuse_population=sum(not r['native_load_invoked'] for r in rows),
+    all_joined_jobs_and_pressure_finished_before_request_success=True,
+    late_failure_or_cancel_observed_in_full_replay=False,
+    failure_cancel_path_coverage='D831 CPU tests only; no failures/cancellations claimed in D880',
+    join_method='Exact movement job+intent; unique same-owner/adapter/target/attempt pressure envelope',
+    limitations=['Join observation is not background completion or pure wait time.',
+        'Pressure/load/decode overlaps are nested observations, not additive saved latency.',
+        'No counterfactual SLO, independent numerical adapter proof, or cross-workload claim.',
+        'Requests with no new file preparation are retained, not counted as missing settlement.',
+        'Confirmed GPU reuse has no native load interval: null load-only metrics, explicit sample counts; settlement, acquisition and native token timing remain checked.'],
+    source_refs=[request_ref, ref(outcome), ref(OUT/'completion/full4000.json'), ref(Path(__file__))],
+    outputs=[ref(target/'requests.csv')])
+save(target/'summary.json', report)
+assert all(int(line.split()[1]) == 0 for line in (group/'memory.events').read_text().splitlines())
+assert (group/'memory.swap.current').read_text().strip() == '0'
+save(target/'resources.json', dict(identity=own, resources={key:(group/key).read_text().strip()
+    for key in ('memory.peak','memory.events','memory.swap.current')}))
+save(target/'manifest.json', dict(files=[ref(x) for x in sorted(target.iterdir()) if x.is_file()]))
+print(json.dumps({key:report[key] for key in ('passed','full_request_population','states',
+    'joined_requests','own_io_requests','coalesced_subscribers','observed_overlap_counts','metrics')}, indent=2))

@@ -1,0 +1,25 @@
+{
+  "commit": "badf4bc4012be589d761ece700278bb4b254a80e",
+  "ref": "refs/heads/backup/d880-private-host-full-w2-20261026",
+  "paths": [
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "configs/ieee_tc/20261026_d880_3b_max3_full_w2.yaml",
+    "docs/ieee_tc/D880_PRIVATE_HOST_FULL_W2_20261026.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/backup_and_start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/complete.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/prepare.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch/stop_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/export/coverage.json",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/export/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/export/preparation.json",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/export/service.json",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/completion/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d879_private_host_profile/completion/summary.json"
+  ]
+}

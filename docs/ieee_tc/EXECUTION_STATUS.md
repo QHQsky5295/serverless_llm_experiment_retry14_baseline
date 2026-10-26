@@ -1,4 +1,106 @@
-# IEEE TC execution status — D879 measured profile complete; D880 full W2 next
+# IEEE TC execution status — D880 closed; W2 remains below joint SLO
+
+## D880收尾完成与候选决定（2026-10-26 13:41）
+
+delivery/owner/settlement、4000条原生descriptor/控制回执和配对阶段核算通过；
+无额外GPU回放。505次实际remote传输共1172100920B，与D870相同，服务端/
+客户端ID、字节和SHA一致，无按请求打包。服务峰值33156608000B，high/max/
+OOM/swap均0。原147投稿项与用户manifest保持不变。
+
+private CPU构造有1367个唯一joined完成回执、其中discarded=0；请求期间
+按owner取最后累计快照为started1363/settled1362/failed0/discarded0，1个
+owner最后快照in_flight=1。这些快照不是shutdown总数，不能与1367冲突地
+拼成最终总量。准备journal保留completed1367/deferred1727/file_held2；
+后两条无receipt保持原样，不填造失败/关闭状态，全部物理GPU已释放另有证据。
+
+配对结果135条joint fail→pass、147条pass→fail，净少12条。U减少
+623.460826GPU-s（5.2253%），P95 TTFT增加44.005996ms（2.1932%）。
+资源减少直接对应两个新增GPU首分配从约10.8/12.9秒延后至323.4/325.1秒；
+分配边界差约625.220878GPU-s，最终释放反而晚约1.760052GPU-s。无期间
+释放间隙；不能把该账目差解释成CPU构造直接节省或清理加速。为什么扩容
+更晚仍需实际控制/初始化证据，不能由时间边界推造因果。
+
+决定：不晋升为达标Full或默认配置；保留opt-in实现和所有完整观测作为已知
+workload的取舍点，不补同键重复。当前无生产源修改。下一步优先复用本轮/
+D870现有控制记录与请求阶段，限于“新增等待和扩容边界为何变化”的一个
+离线问题；先排除初始化profile/闭环时序影响，再决定接受/撤销或新假设，
+不增加无明确问题的profiling/短Full，不重复已关闭方向。仍须回到完整主线。
+本轮属于progress：一次完整测量、收尾和有界解释，不是G1/G2完成。
+实际备份以raw/backup_completion.json为准；最终V2仍未同步。完整范围继续开放。
+
+## 2026-10-26 D880完整结果：资源下降，联合服务质量未达标
+
+同一回放已4000/4000终态；launch pass及service/watchdog/replay退出码0，
+本机GPU/scope和远端两交付服务/monitor均已实际释放。自动workspace清理后
+可用174456225792B（13:36），恢复到150GiB新重型任务线以上。
+complete.py在独立3/4GiB、swap0辅助域完成，严格D879 profile和147保护项
+检查通过。没有同键重跑或运行期间配置/远端变更。
+
+共同SLO：TTFT3819、TPOT3932、联合3761/4000=94.025%，距离3800差39条；
+U=11308.104268402793 GPU-s，在12083.063870235463预算内；平均TTFT
+720.868700ms、P95 TTFT2050.450553ms、平均TPOT15.547622ms、平均E2E
+2482.941439ms。相对D870联合少12条（-0.30pp），P95 TTFT更高，U更少。
+这是单轮资源—延迟取舍，不是优化达标；N_correct仍null，不作最终排名或CI。
+请求结果SHA `fa2d660464cb4d862e599142dae8ed918f45dbae59eaa8d99cd57fee7038667f`；
+full4000分析SHA `f887f158ac501251133d256d39ab87c119f3210eb13a00621d9300e745f995b5`。
+
+当前只执行既有delivery/settlement、实际private-construction和生命周期分析；
+其完成以各自回执为准，尚不据准备程序存在宣称全部通过。之后保存/备份，
+依完整证据接受/撤销或定位下一主线问题，不重跑同键、不放宽评价门槛。
+完整goal active；全部同版本双模型矩阵、其余baseline/dLoRA、A1–A5/S1–S13、
+独立数值证明、两轮审稿图文和最终V2仍开放，最终V2没有同步。
+
+## D880当前实际状态（2026-10-26 13:13，持续监控同一执行键）
+
+D879严格完成后，D880通过Full runtime/dedicated child模型身份及160类profile
+加载检查。提交`badf4bc4012be589d761ece700278bb4b254a80e`已推送并核验
+`backup/d880-private-host-full-w2-20261026`，最终V2仍未同步；用户manifest未stage。
+tmux `tc-d880-3b-private-host-full-w2`已启动，raw/start_receipt.json为实际回执。
+12:28首次观察16/4000终态；12:33:52同一执行键已到259/4000，期间162、219
+两次观察亦推进。watchdog sample410的service memory15418335232B，
+high/max/OOM/swap0，无warning/abort；12:33磁盘可用173978484736B。
+这是已验证的正常等待，不是阻塞或完整性能结果；终端5000ms/live CE不是
+共同SLO验收。不得重启或重跑。PLAN及冻结V1/单轮V2的SHA均与登记一致。
+本轮只做轻量监控、收尾程序只读核查和状态记录；未修改生产配置、操作共享
+k3s、维护远端、压缩/扫描、构建或push。新增无关untracked内容保持原样。
+
+12:42继续核验同一tmux存活，777/4000终态（中间357→447→545→648），
+已观察三个活动副本。watchdog sample891，service19526647808B，
+high/max/OOM/swap0，无warning/abort。12:39磁盘可用172309377024B。
+这段正常等待期间仅准备raw/close_delivery.py和native_and_lifecycle.py：
+前者严格复用D870并将直接比较父点改为D870；后者保留原descriptor/阶段
+核算，增加既有pending回执的private-construction计数及实际joined回执汇总。
+按owner取累计端点，不相加重复快照；请求快照不冒充shutdown最终计数，
+未观测失败/未结算数不填零，不由触发证明净收益或独立数值正确性。
+两个程序仅通过轻量语法检查，尚未执行分析、生成结果或提交；必须等实际
+资源释放并依次完成complete→delivery→native/lifecycle后记录真实回执。
+本轮属于同一性能测量的verified wait及收尾准备，不是新完整性能结论。
+
+13:00:16同一tmux/pane PID2939759仍live，终态2039/4000；12:43以来
+多次轻量观察均推进。watchdog sample1973，service25941368832B，
+high/max/OOM/swap0，无warning/abort。12:59可用磁盘165728940032B。
+此阶段仅verified wait，无生产/远端配置改动、重跑或性能判优。完整原始
+结果和关闭回执尚未生成，所有收尾分析继续等待实际结束；不启动下一任务。
+
+13:12:57同一tmux/pane PID2939759仍live，3027/4000终态；连续轻量观察
+均推进。watchdog sample2723，service31364001792B，high/max/OOM/swap0，
+无warning/abort。13:09前对当时2743条小型terminal日志单次流式核查：
+success=2743、native_contract_matched=2743、error_types为空；这不代替
+完整请求审计或独立数值正确性，未把部分记录外推为4000条结果。
+13:11:58磁盘可用161003499520B，已略低于150GiB新重型任务准入线；
+仍高于100GiB运行中安全停止线，不因此中止或重跑现有测量。结束后先核对
+自动workspace释放后的实际余量；不足则按已有安全回收规则处理，禁止直接
+启动新重型任务。当前不进行并发扫描/压缩/清理。完整goal继续active，
+本段为verified wait，不是阻塞或新增性能结论；全部后续范围不变。
+
+下一步只监控同一轮至结束→物理/远端释放→运行raw/complete.py（复用D870
+计算、严格绑定D879新profile）→复用D870 delivery/settlement/native-lifecycle
+分析并补本候选实际construction计数→保存/备份→按完整数据接受/撤销/定位。
+当前不得并行扫描/压缩、构建、修改生产源或维护远端。原始目录为
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d880_20261026`，
+RUN子目录`3b_max3_full_w2`，OUT为`paper_results/ieee_tc/p2_backend/d880_private_host_full_w2`。
+本段为启动后的轻量记录，随下一正常检查点提交，不在GPU测量时额外push。
+完整goal active；没有新增完整性能结论，也未完成所有后续计划。
 
 ## 2026-10-26 D879完成，返回完整4000请求主线
 

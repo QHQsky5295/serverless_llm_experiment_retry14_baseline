@@ -1,0 +1,203 @@
+{
+  "kind": "d880_vs_d870_single_observation_v1",
+  "previous_counts": {
+    "n": 4000,
+    "ttft_pass": 3843,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3921,
+    "joint_pass": 3773
+  },
+  "current_counts": {
+    "n": 4000,
+    "ttft_pass": 3819,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3932,
+    "joint_pass": 3761
+  },
+  "joint_delta_requests": -12,
+  "joint_delta_percentage_points": -0.30000000000000027,
+  "previous_gpu_seconds": 11931.565094108693,
+  "current_gpu_seconds": 11308.104268402793,
+  "gpu_seconds_delta": -623.4608257059008,
+  "gpu_seconds_improvement_fraction": 0.05225306326441115,
+  "metrics": {
+    "ttft_ms": {
+      "mean": {
+        "previous": 705.991452362854,
+        "current": 720.8687003062805,
+        "current_minus_previous": 14.877247943426482,
+        "lower_better_improvement_fraction": -0.021072844286760734
+      },
+      "p50_type1": {
+        "previous": 460.720743983984,
+        "current": 468.0786281824112,
+        "current_minus_previous": 7.3578841984272,
+        "lower_better_improvement_fraction": -0.015970377488978404
+      },
+      "p95_type1": {
+        "previous": 2006.4445571042597,
+        "current": 2050.450553186238,
+        "current_minus_previous": 44.00599608197808,
+        "lower_better_improvement_fraction": -0.021932325977393766
+      }
+    },
+    "tpot_ms": {
+      "mean": {
+        "previous": 15.579477195235766,
+        "current": 15.547622404109603,
+        "current_minus_previous": -0.03185479112616285,
+        "lower_better_improvement_fraction": 0.002044663676898228
+      },
+      "p50_type1": {
+        "previous": 13.749418613900032,
+        "current": 13.717083490508443,
+        "current_minus_previous": -0.03233512339158828,
+        "lower_better_improvement_fraction": 0.0023517447755135594
+      },
+      "p95_type1": {
+        "previous": 25.78953662040559,
+        "current": 25.76681599020958,
+        "current_minus_previous": -0.022720630196008784,
+        "lower_better_improvement_fraction": 0.0008810018780264328
+      }
+    },
+    "e2e_ms": {
+      "mean": {
+        "previous": 2464.0770871957066,
+        "current": 2482.9414391827304,
+        "current_minus_previous": 18.864351987023838,
+        "lower_better_improvement_fraction": -0.007655747494690923
+      },
+      "p50_type1": {
+        "previous": 2094.5582571439445,
+        "current": 2093.0173490196466,
+        "current_minus_previous": -1.5409081242978573,
+        "lower_better_improvement_fraction": 0.0007356721251568231
+      },
+      "p95_type1": {
+        "previous": 5118.731341324747,
+        "current": 5202.848175540566,
+        "current_minus_previous": 84.11683421581984,
+        "lower_better_improvement_fraction": -0.016433141066952362
+      }
+    }
+  },
+  "all_request_stage_means": {
+    "arrival_to_admission_ms": {
+      "previous": 287.93997506587766,
+      "current": 297.19340039778035,
+      "current_minus_previous": 9.25342533190269
+    },
+    "admission_to_acquired_ms": {
+      "previous": 211.55482814938296,
+      "current": 218.1864435483003,
+      "current_minus_previous": 6.631615398917347
+    },
+    "executable_to_engine_ms": {
+      "previous": 60.166681263712235,
+      "current": 59.46445610502269,
+      "current_minus_previous": -0.7022251586895436
+    },
+    "engine_entry_to_queue_ms": {
+      "previous": 42.53044644091278,
+      "current": 42.39005549135618,
+      "current_minus_previous": -0.14039094955660403
+    },
+    "native_engine_queue_ms": {
+      "previous": 1.6178740407340229,
+      "current": 1.9098149902420118,
+      "current_minus_previous": 0.291940949507989
+    },
+    "native_prefill_ms": {
+      "previous": 102.18164740223438,
+      "current": 101.72452977357898,
+      "current_minus_previous": -0.4571176286553964
+    },
+    "ttft_ms": {
+      "previous": 705.991452362854,
+      "current": 720.8687003062805,
+      "current_minus_previous": 14.877247943426482
+    },
+    "tpot_ms": {
+      "previous": 15.579477195235766,
+      "current": 15.547622404109603,
+      "current_minus_previous": -0.03185479112616285
+    },
+    "e2e_ms": {
+      "previous": 2464.0770871957066,
+      "current": 2482.9414391827304,
+      "current_minus_previous": 18.864351987023838
+    },
+    "arrival_release_lateness_ms": {
+      "previous": 61.39418020064477,
+      "current": 62.920205013128,
+      "current_minus_previous": 1.5260248124832287
+    },
+    "dispatch_window_wait_ms": {
+      "previous": 36.34277963032946,
+      "current": 36.64622885163408,
+      "current_minus_previous": 0.3034492213046178
+    },
+    "runtime_slot_wait_ms": {
+      "previous": 190.20301523490343,
+      "current": 197.62696653301828,
+      "current_minus_previous": 7.423951298114844
+    },
+    "routing_nested_ms": {
+      "previous": 54.9697093385,
+      "current": 59.16092916025,
+      "current_minus_previous": 4.191219821749996
+    },
+    "before_final_load_ms": {
+      "previous": 346.00506278630223,
+      "current": 364.11989253564656,
+      "current_minus_previous": 18.114829749344324
+    },
+    "final_native_load_ms": {
+      "previous": 28.03258362572582,
+      "current": 28.51137341317636,
+      "current_minus_previous": 0.4787897874505411
+    },
+    "stale_rechecks": {
+      "previous": 0.00125,
+      "current": 0.0025,
+      "current_minus_previous": 0.00125
+    },
+    "peer_prefill_fraction": {
+      "previous": 0.04892861246648972,
+      "current": 0.050677580979136015,
+      "current_minus_previous": 0.001748968512646297
+    },
+    "peer_demand_load_fraction": {
+      "previous": 0.004975990326314154,
+      "current": 0.0054626951993833345,
+      "current_minus_previous": 0.00048670487306918045
+    },
+    "peer_decode_fraction": {
+      "previous": 0.46658692790119377,
+      "current": 0.46824109612396103,
+      "current_minus_previous": 0.0016541682227672605
+    }
+  },
+  "confidence_interval": null,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/full4000.json",
+      "sha256": "8f7f186d6669b2aa3fe298e681c4f367397e21fd47402cb8f7a47ac175749291"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/full4000.json",
+      "sha256": "f887f158ac501251133d256d39ab87c119f3210eb13a00621d9300e745f995b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/stages/diagnosis.json",
+      "sha256": "9a926bba95e8a2b33fd538a1b5fe8e011cd7872c4995a68ea36dba58c4f05f4b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/stages/diagnosis.json",
+      "sha256": "c4634208488b7c9bbdd8fe80216b0659086bd4a4f18d290c666e53b23fdc7ad1"
+    }
+  ]
+}

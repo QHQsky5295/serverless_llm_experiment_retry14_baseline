@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "badf4bc4012be589d761ece700278bb4b254a80e",
+  "backup_ref": "refs/heads/backup/d880-private-host-full-w2-20261026",
+  "tmux": "tc-d880-3b-private-host-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-1aaa578aea8445d583db4206ba88a354.scope",
+    "invocation_id": "d30d100774734cbb915c816c4231e709",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-1aaa578aea8445d583db4206ba88a354.scope",
+    "inode": 32932741
+  },
+  "qualification_sha256": "7cc309dc276f0b102b3e8737ea18e83de83c4fd18dc22cccf8611dc9ab15921c"
+}

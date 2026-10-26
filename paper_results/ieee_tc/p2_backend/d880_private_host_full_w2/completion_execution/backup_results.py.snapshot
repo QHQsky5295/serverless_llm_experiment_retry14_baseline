@@ -1,0 +1,30 @@
+"""D880 uses the D870 explicit-file backup after actual completion, not during replay."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd870_20261026/backup_program.py.snapshot'
+expected = '69dc17343e383a099672db522f523fc46c59ca51211e0596dfcf9ac5bebb74cb'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == expected
+source = template.read_text()
+changes = (
+    ('d870_3b_staged_union_full_w2', 'd880_private_host_full_w2'),
+    ('D870_STAGED_UNION_FULL_W2_20261026.md', 'D880_PRIVATE_HOST_FULL_W2_20261026.md'),
+    ("remote_sha = '60708643ace365638c6b9f22d32beeb838504468db453ebda06730f933c97661'",
+     "remote_sha = next(line.split()[0] for line in (RAW / 'remote_stop.log').read_text().splitlines() if line.endswith('/d880_20261026/remote_monitor.log'))"),
+    ('Reuse D869 323 semantic checks and D870 4 run-contract checks.',
+     'Reuse D874 semantic checks, D875 actual native qualification, D879 matched initialization and D880 strict full-runtime profile binding.'),
+    ('actual default descriptor coverage passed',
+     'actual default descriptor and private-construction receipt coverage passed'),
+    ('tc: preserve D870 full W2 staged-union trade-off and lifecycle evidence',
+     'tc: preserve D880 full W2 private HOST construction and lifecycle evidence'),
+    ('refs/heads/backup/d870-complete-20261026', 'refs/heads/backup/d880-complete-20261026'),
+)
+for old, new in changes:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+target = raw / 'backup_program.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

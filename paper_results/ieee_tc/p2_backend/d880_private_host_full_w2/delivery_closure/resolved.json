@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "new_gpu_replays": 0,
+  "production_changed": false,
+  "identity": {
+    "unit": "primelora-tc-aux-11478b8412614a78966f42d68d880002.scope",
+    "invocation_id": "750306c5e4974c09bcb0d8d35135a68d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11478b8412614a78966f42d68d880002.scope",
+    "inode": 32966010
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11478b8412614a78966f42d68d880002.scope",
+    "memory.current": 36462592,
+    "memory.peak": 737402880,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 126567422\nuser_usec 119225240\nsystem_usec 7342182\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "resolves": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/closed_outcome.json",
+      "sha256": "32bc394e5648385796e92ec1608ba0d3cc8505007820b0a81baf79ea1dd837ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "2a0e10b4fb290f98b4f5ce712edb54348d256025820c9ed1d97f22f8d3c78f63"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/owner_publication_actual.json",
+      "sha256": "25f7b167c232af5a828765c7adc7ed6644b5b756e9f2ddf283b387ff586d5233"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/decoder_actual.json",
+      "sha256": "4001156ac94a3a6963f1014efdc60880eda77cd9068bd4d42af65aa256862b93"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/owner_anchor_actual.json",
+      "sha256": "22d4fb7e7c976640b7f8463d8b61c7f8c31354d1ab6ac9b10be6cb32ed2b1a7a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/versus_d870.json",
+      "sha256": "48cdfe7a5757fcf8734a8ba11ac507bf9f36b4a482609bd5ad3753cd408d5c26"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/settlement_analysis/summary.json",
+      "sha256": "e26cd9539389b61cddb08ae3e0d622a2af4019abb78dfd478a236d8d7478a590"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/closure.json",
+      "sha256": "1b24f62dd53aac033ea73fcbd609028acf5a955f3b4e5930344f4f0afebc6bd5"
+    }
+  ],
+  "limitation": "Append-only completion of previously pending evidence; independent numerical adapter correctness remains unknown. Single known-workload observation, not a confidence interval or dominance claim."
+}

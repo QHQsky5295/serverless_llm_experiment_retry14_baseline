@@ -1,0 +1,169 @@
+# D880 exact source template: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/native_and_lifecycle.py
+# Source SHA256: b3ba6ac273601cc5d444d7cb76d0e801c262538e090feb68a4630fe92a47b89d.
+# Retain its descriptor/stage accounting; update identity/parent and add private-construction evidence only.
+"""D880 offline receipt coverage plus retained D823 paired-stage accounting.
+
+No replay, production change, new performance formula, or numerical proof.
+"""
+import collections
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d880_private_host_full_w2'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import compare_stage_audits
+
+def read(path):
+    return json.loads(path.read_text())
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+closure = read(OUT/'delivery_closure/resolved.json')
+assert closure['passed'] and not Path(closure['identity']['path']).exists()
+save(RAW/'native_lifecycle_identity.json', identity)
+metric = read(OUT/'completion/full4000.json')
+source = next(r for r in metric['source_refs']
+    if Path(r['path']).name.startswith('experiment_results_full'))
+path = Path(source['path'])
+assert p.digest(path) == source['sha256']
+library = RAW.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'
+expected = 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+assert p.digest(library) == expected
+counts = collections.Counter()
+seen = set()
+private_by_owner = collections.defaultdict(list)
+with path.open('rb') as stream:
+    for row in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        assert row['request_id'] not in seen and row['success'] is True
+        seen.add(row['request_id'])
+        receipt = row['gpu_reference_evidence']['receipt']
+        actual = receipt['native_host_descriptor']
+        assert actual == dict(kind='fresh_native_tensor_descriptor_v1', library=str(library),
+            sha256=expected, torch_version='2.13.0+cu130', python_abi='cpython-312',
+            tensor_state_cached=False)
+        assert receipt['acquired'] is True
+        counts[(receipt['owner_id'], receipt['worker_pid'], receipt['worker_rank'])] += 1
+        pending = row['gpu_reference_evidence']['pending_kv_admission']['receipt']
+        private = pending['control_interleave']['private_host_construction']
+        assert pending['scheduler_pid'] == receipt['worker_pid']
+        assert pending['clock_id'] == receipt['clock_id']
+        assert private['policy'] == 'private_cpu_core_commit_v1'
+        for key in ('started', 'settled', 'discarded', 'failed', 'in_flight'):
+            assert type(private[key]) is int and private[key] >= 0
+        assert private['in_flight'] in (0, 1)
+        assert private['started'] == private['settled'] + private['failed'] + private['in_flight']
+        assert private['discarded'] <= private['settled']
+        private_by_owner[(pending['scheduler_owner_id'], pending['scheduler_pid'],
+                          pending['clock_id'])].append(dict(
+            request_id=row['request_id'], observed_at=pending['observed_at'], **private))
+assert len(seen) == 4000
+target = OUT/'native_and_lifecycle'
+target.mkdir(exist_ok=False)
+save(target/'actual_native_descriptor.json', dict(passed=True, all_requests=4000,
+    owners=[dict(owner_id=k[0], worker_pid=k[1], worker_rank=k[2], requests=v)
+        for k,v in sorted(counts.items())],
+    native_host_descriptor=actual,
+    source_refs=[source, ref(library), ref(ROOT/'faaslora/memory/native_host_descriptor.py'),
+        ref(ROOT/'faaslora/memory/gpu_monitor.py'), ref(Path(__file__))],
+    scope='All request acquisition receipts report the default per-tensor descriptor entry and exact qualified library. This is executed-worker configuration coverage, not a per-call invocation count or independent numerical adapter proof.',
+    n_correct=None, ranking_eligible=False))
+
+# These are existing per-request registration snapshots, not shutdown totals.
+# Keep one cumulative endpoint per native owner; never sum repeated snapshots.
+private_owners = []
+for key, observations in sorted(private_by_owner.items()):
+    observations.sort(key=lambda row: row['observed_at'])
+    for before, after in zip(observations, observations[1:]):
+        assert before['observed_at'] < after['observed_at']
+        assert all(after[name] >= before[name]
+                   for name in ('started', 'settled', 'discarded', 'failed'))
+    private_owners.append(dict(scheduler_owner_id=key[0], worker_pid=key[1],
+        clock_id=key[2], observations=len(observations),
+        first=observations[0], last=observations[-1]))
+
+outcome = RAW/'3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json'
+attempt_states, receipt_modes = collections.Counter(), collections.Counter()
+constructed = {}
+with outcome.open('rb') as stream:
+    for preparation in ijson.items(stream,
+            'mechanism_events._ieee_native_host_preparations.item', use_float=True):
+        for attempt in preparation['attempts']:
+            attempt_states[attempt['state']] += 1
+            actual_receipt = attempt.get('receipt')
+            if actual_receipt is None:
+                receipt_modes['no_receipt'] += 1
+                continue
+            private = actual_receipt.get('private_construction')
+            if private is None:
+                receipt_modes['no_private_construction_receipt'] += 1
+                continue
+            receipt_modes['private_construction_receipt'] += 1
+            assert private['kind'] == 'private_cpu_core_commit_v1' and private['joined'] is True
+            assert type(private['discarded']) is bool
+            assert actual_receipt['native_load_invoked'] is True
+            start = actual_receipt['load_started_monotonic_s']
+            finished = actual_receipt['load_completed_monotonic_s']
+            settled = actual_receipt['construction_settled_monotonic_s']
+            assert 0 < start <= finished <= settled
+            key = (actual_receipt['owner_id'], private['token'])
+            observation = dict(owner_id=key[0], token=key[1],
+                adapter_id=preparation['adapter_id'], plan_id=preparation['plan_id'],
+                trigger_reason=preparation['trigger_reason'],
+                target_replica=preparation['target_replica'],
+                started_monotonic_s=start, completed_monotonic_s=finished,
+                settled_monotonic_s=settled, discarded=private['discarded'],
+                held=actual_receipt['held'], file_reference_released=attempt.get('file_reference_released'),
+                native_host_reference_released=attempt.get('release_receipt', {}).get('released'))
+            if key in constructed:
+                assert constructed[key] == observation
+            constructed[key] = observation
+save(target/'private_construction_coverage.json', dict(
+    kind='d880_actual_private_cpu_construction_coverage_v1',
+    request_snapshot_count=sum(row['observations'] for row in private_owners),
+    per_owner_request_snapshot_endpoints=private_owners,
+    last_snapshot_cumulative={name: sum(row['last'][name] for row in private_owners)
+        for name in ('started', 'settled', 'discarded', 'failed')},
+    last_snapshot_in_flight_by_owner=[dict(owner_id=row['scheduler_owner_id'],
+        in_flight=row['last']['in_flight']) for row in private_owners],
+    shutdown_counters_known=False, attempts_by_state=dict(attempt_states),
+    receipts_by_mode=dict(receipt_modes), unique_settled_constructions=len(constructed),
+    discarded_constructions=sum(row['discarded'] for row in constructed.values()),
+    construction_receipts=list(constructed.values()),
+    triggered=bool(constructed) or any(row['last']['started'] > 0 for row in private_owners),
+    joined_settlement_observed=bool(constructed),
+    source_refs=[source, ref(outcome), ref(Path(__file__))],
+    limitation='Per-request snapshots precede their registration completion, not shutdown. Receipt counts include recorded joined settlements; unobserved failed or unfinished constructions are not filled with zero. Trigger evidence is not numerical adapter correctness, per-iteration overlap, or causal latency savings.',
+    n_correct=None, ranking_eligible=False, causal_latency_savings=None))
+compare_stage_audits(
+    ROOT/'paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2/completion/stages',
+    OUT/'completion/stages', target/'paired_stages')
+resources = p.cgroup_snapshot(group)
+assert all(v == 0 for v in resources['memory.events'].values())
+assert resources['memory.swap.current'] == 0
+save(target/'resources.json', dict(identity=identity, resources=resources))
+with (target/'native_and_lifecycle.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(target/'manifest.json', dict(files=[ref(x) for x in sorted(target.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True, requests=len(seen), owners=len(counts), output=str(target)), indent=2))
