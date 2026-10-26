@@ -1817,28 +1817,125 @@ class PrivateHostOverlapQualification(unittest.TestCase):
 
 
 class ControlledNativeSourceSetup(unittest.TestCase):
-    def test_wave_label_is_not_an_authoritative_residency_plan(self):
+    def setUp(self):
         import asyncio
+        import threading
         from types import SimpleNamespace
         from unittest.mock import AsyncMock
-        engine = SimpleNamespace(ieee_gpu_reference=AsyncMock(side_effect=[
-            {'sources': []}, {'live_leases': 0, 'live_host_source_leases': 0}]))
-        boundary = SimpleNamespace(
+        from tests.test_ieee_tc_gpu_references import PrivateNativeHostConstruction
+        # Exercise the real native owner, not a mocked movement queue that
+        # would miss its plan/provenance contract as the old test did.
+        self.native = PrivateNativeHostConstruction()
+        self.native.setUp()
+        self.addCleanup(self.native.tearDown)
+        self.native.finish.set()
+        self.file_leases, self.commands = set(), []
+        self.record = {}
+        def acquire(**command):
+            self.file_leases.add(command['lease_id'])
+            return dict(command, owner_id='files')
+        def release(**command):
+            self.assertEqual(command['expected_owner_id'], 'files')
+            self.file_leases.remove(command['lease_id'])
+        refs = SimpleNamespace(roots={}, lock=threading.RLock(),
+            source_snapshot=lambda aid: dict(owner_id='files', epoch=1, sources=[
+                dict(path='/existing/adapter-4', content_sha256='a'*64)]),
+            acquire_confirmed=acquire, release=release)
+        async def native_call(operation, **command):
+            if operation == 'source_snapshot':
+                return self.native.owner.source_snapshot()
+            if operation in ('source_identity_snapshot', 'snapshot'):
+                return self.native.owner.snapshot()
+            self.assertTrue(self.file_leases, 'file must remain pinned through native settlement')
+            if operation == 'prepare_file_host_and_hold':
+                self.commands.append(command)
+                build = self.native.owner.begin_file_host_construction(**command)
+                if isinstance(build, dict):
+                    return build
+                build.start(self.native.wakes.append)
+                self.assertTrue(await asyncio.to_thread(build.done.wait, 5))
+                return self.native.owner.finish_file_host_construction(build)
+            if operation == 'release_host_source':
+                return self.native.owner.release_host_source(**command)
+            raise AssertionError(operation)
+        async def rpc(operation, **command):
+            from faaslora.clock import local_monotonic_clock_id
+            # Production IEEEWorkerObservationExtension stamps every reply;
+            # the raw owner intentionally does not know the transport clock.
+            return dict(await native_call(operation, **command), clock_id=local_monotonic_clock_id())
+        self.engine = SimpleNamespace(ieee_gpu_reference=rpc, _lora_int_id=lambda aid: 4)
+        self.boundary = SimpleNamespace(
             _stack=SimpleNamespace(residency_manager=SimpleNamespace(
-                local_source_references=SimpleNamespace(roots={}))),
-            model_cfg={}, _nvme_cache={},
+                local_source_references=refs)),
+            model_cfg={'ieee_native_host_tensor_budget_bytes': 910}, _nvme_cache={},
+            _ieee_artifact_identities={'adapter-4': {'content_sha256': 'a'*64}},
             _attach_ieee_host_budget=AsyncMock(return_value={}),
-            _queue_ieee_file_preparation=AsyncMock(return_value={'target_path': '/controlled/a'}),
-            _queue_ieee_native_host_preparation=AsyncMock(return_value={'state': 'native_host_prepared'}))
+            _attach_ieee_file_pressure=AsyncMock(return_value={}),
+            _queue_ieee_file_preparation=AsyncMock(return_value={'target_path': '/existing/adapter-4'}))
+
+    async def prepare(self):
+        return await p.prepare_controlled_native_host_source(
+            self.engine, self.boundary, 'adapter-4', '/existing/adapter-4', self.record)
+
+    def test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue(self):
+        import asyncio
+        from unittest.mock import AsyncMock
         result = {}
-        cases = [[{'source': 'native_host', 'case_id': 'original-case', 'adapter_id': 'a'}]]
+        cases = [[{'source': 'native_host', 'case_id': 'original-case', 'adapter_id': 'adapter-4'}]]
         collect = AsyncMock()
         with patch.object(p, 'collect_native_source_wave', collect):
-            asyncio.run(p.qualify_native_source_matrix(engine, boundary, None, cases, result))
-        self.assertIsNone(boundary._queue_ieee_native_host_preparation.call_args.kwargs['plan_id'])
+            asyncio.run(p.qualify_native_source_matrix(self.engine, self.boundary, None, cases, result))
+        self.assertEqual(len(self.commands), 1)
+        self.assertNotIn('preparation_plan_id', self.commands[0])
+        self.assertFalse(self.native.owner._preparation_plans)
+        self.assertFalse(self.file_leases)
+        self.assertEqual(self.native.owner.snapshot()['live_host_source_leases'], 0)
+        self.assertIn(4, self.native.manager._registered_adapters)
+        self.assertNotIn(4, self.native.manager.lora_index_to_id)
+        self.assertTrue(result['profile_waves'][0]['transfers'][-1]['file_reference_released'])
         self.assertEqual(result['profile_waves'][0]['requests'], ['original-case'])
         self.assertTrue(result['profile_waves'][0]['complete'])
         collect.assert_awaited_once()
+
+    def test_capacity_rejection_is_terminal_not_an_unwakeable_retry(self):
+        import asyncio
+        self.native.extra_accounted = 10000
+        with self.assertRaisesRegex(RuntimeError, 'did not prepare its prescribed source'):
+            asyncio.run(self.prepare())
+        self.assertEqual(len(self.commands), 1)
+        self.assertFalse(self.file_leases)
+        self.assertEqual(self.record['state'], 'deferred')
+
+    def test_cancel_waits_for_native_completion_and_releases_both_references(self):
+        import asyncio
+        async def run():
+            self.native.finish.clear()
+            task = asyncio.create_task(self.prepare())
+            self.assertTrue(await asyncio.to_thread(self.native.entered.wait, 5))
+            task.cancel()
+            await asyncio.sleep(0)
+            self.assertTrue(self.file_leases)
+            self.assertFalse(task.done())
+            self.native.finish.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        asyncio.run(run())
+        self.assertFalse(self.file_leases)
+        self.assertEqual(self.native.owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_unknown_native_outcome_retains_file_for_failed_run_shutdown(self):
+        import asyncio
+        original = self.engine.ieee_gpu_reference
+        async def rpc(operation, **command):
+            if operation == 'prepare_file_host_and_hold':
+                raise RuntimeError('lost native reply')
+            return await original(operation, **command)
+        self.engine.ieee_gpu_reference = rpc
+        with self.assertRaisesRegex(RuntimeError, 'lost native reply'):
+            asyncio.run(self.prepare())
+        self.assertEqual(self.record['state'], 'native_outcome_unresolved')
+        self.assertTrue(self.file_leases)
+        self.assertNotIn('file_reference_released', self.record)
 
 
 if __name__ == '__main__':

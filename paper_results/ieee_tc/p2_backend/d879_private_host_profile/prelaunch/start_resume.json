@@ -1,0 +1,10 @@
+{
+  "cause": "git add refused ignored *.log; no commit/remote/GPU start occurred",
+  "action": "only two inspected small curated test logs explicitly force-added; no broad force add",
+  "source_sha256": "b9b84e3210051c6afd538dab893e8e8b32a88b5c37c3a9eeaaea2f4c142eb8d6",
+  "changes": {
+    "RAW/'start_identity.json'": "RAW/'start_resume_identity.json'",
+    " and not git('diff','--cached','--name-only')": "",
+    "git('diff','--check','--',*paths);git('add','--',*paths)": "assert set(git('diff','--cached','--name-only').splitlines()).issubset(set(paths))\nlogs=[name for name in paths if name.endswith(('/tests.log','/tests2.log'))]\nassert len(logs)==2 and all((ROOT/name).stat().st_size<100000 for name in logs)\ngit('diff','--check','--',*paths)\ngit('add','--',*[name for name in paths if name not in logs])\ngit('add','-f','--',*logs)"
+  }
+}

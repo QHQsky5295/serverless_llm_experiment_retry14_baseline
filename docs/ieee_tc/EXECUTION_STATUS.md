@@ -1,4 +1,25 @@
-# IEEE TC execution status — D878 repaired source profile registered
+# IEEE TC execution status — D878 failed setup closed; D879 registered
+
+## 2026-10-26 D878实际失败与受控准备入口修正
+
+D878在32/423条后明确返回`movement intent requires plan/trigger/replica/activation provenance`。
+上一轮只将native plan设空，却仍走必须非空plan的在线movement队列，是collector
+修复遗漏，不是生产策略性能结果。raw/traceback保留，GPU/scope、远端两个服务
+和monitor全部释放；不导出不完整profile，不用32条片段排名。启动提交
+`23db2a1691729d5aa58b49a42a60820ef90483de`已核验备份，最终V2仍未同步。
+
+本次只改collector：受控HOST初态直接复用D875已验证的原生CPU-only操作，
+保留confirmed file pin、原生owner/clock/identity、容量和HOST release；
+不冒充在线planner、不改生产九公式/计划检查、不重试未准备成功的初态。
+取消先等待真实结算再释放，未知RPC结果保留文件引用交失败关闭。
+4项使用真实native owner的CPU测试通过(9.593s)；首次fixture遗漏worker clock
+封装的失败保留。旧1项仅mock队列的测试不足，已替换；不重复D874/D875资格。
+
+下一步D879同423原输入/同D877模型配置，只修正setup路径并新输出命名空间。
+严格完成后直接新键完整3B W2，事先用已有Full loader核对profile/model/context。
+当前完整性能仍D870的94.325%、U11931.565094，数值正确性未知、G1/G2未完成。
+同版本双模型矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、数值证明、两轮审稿
+图文与最终V2全部开放，goal active。不得重复短Full或重做共同SLO/Resident。
 
 ## 2026-10-26 D878：继续同一个候选的必要初始化
 

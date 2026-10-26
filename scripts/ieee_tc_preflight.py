@@ -5149,6 +5149,83 @@ def validate_capacity_probe_observation(observation, model_config, contract):
                 tokens_per_block=block, all_max_context_lanes_fit=True)
 
 
+async def prepare_controlled_native_host_source(engine, boundary, adapter_id, source_path, record):
+    """Establish a measured HOST initial state, not an online planner decision.
+
+    Reuse the native CPU-only operation qualified by qualify_private_host_overlap.
+    No movement queue/fictional residency objective is involved. The confirmed
+    file remains pinned through the actual RPC and HOST-reference retirement.
+    Unknown outcomes retain it for failed-run shutdown; no retry or fallback.
+    """
+    import asyncio
+    from faaslora.clock import local_monotonic_clock_id
+    await boundary._attach_ieee_file_pressure(engine)
+    references = boundary._stack.residency_manager.local_source_references
+    content = boundary._ieee_artifact_identities[adapter_id]['content_sha256']
+    with references.lock:
+        state = references.source_snapshot(adapter_id)
+        source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
+        if source is None or source['content_sha256'] != content:
+            raise ValueError('controlled HOST setup requires its confirmed file source')
+        file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+            lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
+            expected_epoch=state['epoch'], expected_content_sha256=content)
+    record.update(kind='controlled_native_host_source_setup_v1', file_reference=file_ref,
+                  state='file_held', planner_qualified=False)
+    known, cancelled = True, False
+    async def settle(awaitable):
+        nonlocal cancelled
+        task = asyncio.ensure_future(awaitable)
+        while True:
+            try:
+                return await asyncio.shield(task)
+            except asyncio.CancelledError:
+                if task.cancelled():
+                    raise
+                cancelled = True
+    try:
+        observed = await engine.ieee_gpu_reference(operation='source_identity_snapshot')
+        owner_id = observed['owner_id']
+        clock_id = local_monotonic_clock_id()
+        def checked(value):
+            if value.get('owner_id') != owner_id or value.get('clock_id') != clock_id:
+                raise ValueError('controlled HOST setup acknowledgement owner/clock differs')
+            return value
+        checked(observed)
+        command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=engine._lora_int_id(adapter_id),
+            lora_name=adapter_id, lora_path=str(source_path), expected_owner_id=owner_id,
+            expected_epoch=observed['epoch'], expected_content_sha256=content,
+            native_host_tensor_budget_bytes=boundary.model_cfg['ieee_native_host_tensor_budget_bytes'])
+        record.update(command=command, state='native_pending')
+        known = False
+        receipt = await settle(engine.ieee_gpu_reference(operation='prepare_file_host_and_hold', **command))
+        record['receipt'] = receipt
+        checked(receipt)
+        if type(receipt.get('held')) is not bool:
+            raise ValueError('controlled HOST setup lacks an explicit outcome')
+        if receipt['held']:
+            if any(receipt.get(k) != command[k] for k in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path')):
+                raise ValueError('controlled HOST setup changed its protected identity')
+            released = await settle(engine.ieee_gpu_reference(operation='release_host_source',
+                lease_id=command['lease_id'], expected_owner_id=owner_id))
+            record['release_receipt'] = released
+            if checked(released).get('released') is not True:
+                raise RuntimeError('controlled HOST setup reference was not released')
+        known = True
+        record['state'] = 'completed' if receipt['held'] else 'deferred'
+        if cancelled:
+            raise asyncio.CancelledError()
+        if not receipt['held']:
+            raise RuntimeError('controlled HOST setup did not prepare its prescribed source: ' + str(receipt.get('reason')))
+        return record
+    finally:
+        if known:
+            references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
+            record['file_reference_released'] = True
+        else:
+            record['state'] = 'native_outcome_unresolved'
+
+
 async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
     """Controlled source setup + actual loading/generation, on the existing path.
 
@@ -5201,14 +5278,9 @@ async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
                     aid, local_path, StorageTier.HOST, target_engine=engine, movement_context=dict(
                         target_replica=slot.instance_id, trigger_reason='residency', plan_id=f'profile-setup/{number}')))
             elif source == 'native_host':
-                # This collector establishes a controlled empty-cache source;
-                # it does not run/register a residency objective. The wave ID
-                # is provenance, not authority for a native preparation plan.
-                # An absent plan still enforces real byte/cache capacity; the
-                # native owner rejects staging/replacement without a real plan.
-                setup['transfers'].append(await boundary._queue_ieee_native_host_preparation(
-                    slot=slot, adapter_id=aid, source_path=local_path,
-                    trigger_reason='residency', plan_id=None))
+                controlled = dict(wave=number, adapter_id=aid, source_path=local_path)
+                setup['transfers'].append(controlled)
+                await prepare_controlled_native_host_source(engine, boundary, aid, local_path, controlled)
             elif source == 'gpu':
                 state = await engine.ieee_gpu_reference(operation='snapshot')
                 reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',

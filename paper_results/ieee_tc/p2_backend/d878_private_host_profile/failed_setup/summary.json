@@ -1,0 +1,49 @@
+{
+  "closure_passed": true,
+  "profile_complete": false,
+  "performance_run": false,
+  "classification": "controlled_profile_setup_contract_error",
+  "planned_requests": 423,
+  "observed_completed_samples": 32,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "resources": {
+    "memory_peak_bytes": 5729480704,
+    "swap_peak_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-1deade1d80dc49008ae24491cfca5dd3.scope",
+    "invocation_id": "3cea059e445e409b814a036fe0c0b148",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-1deade1d80dc49008ae24491cfca5dd3.scope",
+    "inode": 32926043
+  },
+  "physical_released": true,
+  "remote_stopped": true,
+  "profile_workspaces_removed": true,
+  "error": "movement intent requires plan/trigger/replica/activation provenance",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py\", line 6459, in backend_model_check\n    await qualify_native_source_matrix(engine, source_boundary, bins, waves, result)\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py\", line 5209, in qualify_native_source_matrix\n    setup['transfers'].append(await boundary._queue_ieee_native_host_preparation(\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 20094, in _queue_ieee_native_host_preparation\n    queue.submit(key=(owner_id, 'host', adapter_id, content), intent_id=intent,\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 86, in submit\n    raise ValueError('movement intent requires plan/trigger/replica/activation provenance')\nValueError: movement intent requires plan/trigger/replica/activation provenance\n",
+  "cause": "previous collector fix removed native plan identity but still submitted to a movement queue requiring plan provenance",
+  "fix_scope": "collector only: explicit controlled native operation with real file pin, native hold/release and no fake planner",
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/source1.json": "93e3ce56c90f7482d16ef8a1614c43df165560f369ff34b94c88d0472ef2e0a1",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/source1_launch.json": "689a136e5c01139bf8b14b6d6122d5c5ae9ccd1693c0b1193682b0ccf4be3de2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/remote_transfers.jsonl": "91c13953ce5720e2d3d757309e246173a2a43057e2c7271271cbc5e379d14e36",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/remote_monitor.log": "7986423c66b0d6d1ea5842165c2368912fb086edd0494f76e609c93ab3633cbb",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/remote_stop.log": "dfbd7e0f96ecc8b089ab02f5ce0d132a083dea7ef1a464fd523a2c82ba7ce2f5",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d878_20261026/backup.json": "cb37b39924f68d4970b28090fbf8ef75f8d6a02704cbd827ab9240375b4e7f22"
+  }
+}

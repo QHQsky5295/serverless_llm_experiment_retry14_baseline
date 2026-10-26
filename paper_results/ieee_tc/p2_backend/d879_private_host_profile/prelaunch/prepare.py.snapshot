@@ -1,0 +1,57 @@
+"""Reuse the existing measured-profile tools after the controlled setup repair."""
+import ast, json, os, subprocess, sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d879_private_host_profile'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name);save(RAW/'prepare_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'preflight.json',gate)
+assert gate['preflight_pass'],gate['issues']
+prior=ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile'
+test=read(prior/'failed_setup/tests2.json');assert test['passed']
+for name,sha in test['refs'].items():assert p.digest(Path(name))==sha,name
+assert read(prior/'failed_setup/summary.json')['closure_passed']
+assert read(ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native/summary.json')['passed']
+config=ROOT/'configs/ieee_tc/20261026_d877_3b_private_host_source.yaml'
+with (RAW/'prepare.log').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','scripts.ieee_tc.prepare_d701_3b_same_spec_profile',
+        '--rebind-private-host-config',str(config),'--output',str(OUT),
+        '--raw-directory',str(RAW),'--campaign','D879_20261026'],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+old=read(prior/'source_spec.json');new=read(OUT/'source_spec.json')
+assert old['waves']==new['waves'] and old['representatives']==new['representatives']
+assert read(prior/'development_contract.json')['model_config']==read(OUT/'development_contract.json')['model_config']
+for name in ('start_remote.sh','stop_remote.sh','run_and_release.sh','check_remote_health_stdlib.py','complete.py'):
+    content=(RAW.parent/'d878_20261026'/name).read_text().replace('d878','d879').replace('D878','D879')
+    with (RAW/name).open('x') as f:f.write(content)
+    if name.endswith('.sh'):subprocess.run(['bash','-n',str(RAW/name)],check=True)
+    else:ast.parse(content)
+subprocess.run(['bash','-n','scripts/ieee_tc/run_d298_capacity_source.sh'],cwd=ROOT,check=True)
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+prelaunch=OUT/'prelaunch';prelaunch.mkdir()
+refs=[p.PLAN,config,prior/'failed_setup/tests2.json',prior/'failed_setup/summary.json',
+    ROOT/'scripts/ieee_tc_preflight.py',ROOT/'scripts/ieee_tc/prepare_d701_3b_same_spec_profile.py',
+    ROOT/'scripts/ieee_tc/export_d701_3b_profile.py',ROOT/'scripts/ieee_tc/run_d298_capacity_source.sh',
+    ROOT/'tests/test_ieee_tc_preflight.py',ROOT/'scripts/run_all_experiments.py',
+    ROOT/'faaslora/memory/gpu_monitor.py',ROOT/'faaslora/memory/residency_manager.py',
+    ROOT/'faaslora/scheduling/core_interleave.py',ROOT/'faaslora/scheduling/vllm_ieee_scheduler.py',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    *[path for path in OUT.iterdir() if path.is_file()]]
+for path in sorted(RAW.iterdir()):
+    if path.suffix in ('.py','.sh'):
+        refs.append(path)
+        with (prelaunch/(path.name+'.snapshot')).open('xb') as f:f.write(path.read_bytes())
+save(prelaunch/'qualification.json',dict(passed=True,identity=identity,
+    refs={str(path):p.digest(path) for path in refs},protected=protected,
+    reused_tests='D878 four controlled native-owner tests; D877 initializer 18; D874/D875 native',
+    repeated_tests=0,production_model_changed=False,cases_reused=423,
+    timing_samples_reused=False,frozen_slo_changed=False,resident_reference_changed=False,
+    n_correct=None,ranking_eligible=False,resources=p.cgroup_snapshot(Path(identity['path']))))
+print('D879 ready: controlled setup, unchanged 423 cases/model and production candidate')

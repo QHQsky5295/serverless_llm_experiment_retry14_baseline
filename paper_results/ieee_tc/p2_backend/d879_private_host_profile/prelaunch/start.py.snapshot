@@ -1,0 +1,47 @@
+"""Back up collector repair and failed evidence; launch the single new source key."""
+import json, os, re, shlex, subprocess, sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d879_private_host_profile'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+def git(*args):return call(['git',*args])
+assert os.sched_getaffinity(0)=={2,3,26,27}
+identity=p.scope_identity(p.cg_path().name);save(RAW/'start_identity.json',identity)
+q=read(OUT/'prelaunch/qualification.json')
+assert q['passed'] and not p.owned_pids(Path(q['identity']['path']))
+for name,sha in q['refs'].items():assert p.digest(Path(name))==sha,name
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert git('rev-parse','HEAD')=='23db2a1691729d5aa58b49a42a60820ef90483de'
+assert git('branch','--show-current')=='retry14_continuous_queue_v2' and not git('diff','--cached','--name-only')
+paths=['scripts/ieee_tc/run_d298_capacity_source.sh','scripts/ieee_tc_preflight.py','tests/test_ieee_tc_preflight.py',
+    'docs/ieee_tc/D878_REPAIRED_SOURCE_PROFILE_20261026.md','docs/ieee_tc/D879_CONTROLLED_NATIVE_SOURCE_PROFILE_20261026.md',
+    'docs/ieee_tc/EXECUTION_STATUS.md']
+paths += [str(path.relative_to(ROOT)) for directory in (OUT,ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile/failed_setup')
+          for path in sorted(directory.rglob('*')) if path.is_file()]
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+')
+for name in paths:assert not secret.search((ROOT/name).read_text())
+git('diff','--check','--',*paths);git('add','--',*paths)
+assert set(git('diff','--cached','--name-only').splitlines())==set(paths)
+git('diff','--cached','--check')
+git('commit','-m','tc: separate controlled native source setup from online preparation plans (D879)')
+head=git('rev-parse','HEAD');ref='refs/heads/backup/d879-controlled-native-setup-20261026'
+save(RAW/'commit.json',dict(commit=head,ref=ref,paths=paths))
+git('-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref)
+assert git('ls-remote','faaslora_origin',ref).split()==[head,ref]
+save(RAW/'backup.json',dict(passed=True,commit=head,ref=ref,final_v2_synced=False))
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'launch_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+assert not (RAW/'source1.json').exists() and not (RAW/'source1_launch.json').exists()
+session='tc-d879-3b-private-host-profile'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+call(['bash',str(RAW/'start_remote.sh')]);call(['/usr/bin/python3','-B',str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),shlex.join(['bash',str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json',dict(launched=True,head=head,backup_ref=ref,tmux=session,identity=identity))
+print(json.dumps(dict(launched=True,head=head,backup_ref=ref,tmux=session)))

@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
-  d877|d878)
+  d877|d878|d879)
     # D725's exact 423 cases; new measurements for private CPU construction.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/${1}_20261026
     CONFIG=configs/ieee_tc/20261026_d877_3b_private_host_source.yaml
@@ -166,7 +166,7 @@ if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "$
   export FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
 fi
 export FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE=prepublished_gzip_v1
-if [[ "${1:-d298}" == d877 || "${1:-d298}" == d878 ]]; then
+if [[ "${1:-d298}" == d877 || "${1:-d298}" == d878 || "${1:-d298}" == d879 ]]; then
   export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
   MODEL_PROFILE=llama32_3b_main_modelscope
   REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json

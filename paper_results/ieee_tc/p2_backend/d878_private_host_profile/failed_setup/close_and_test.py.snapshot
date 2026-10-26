@@ -1,0 +1,57 @@
+"""Retain actual failed source collection and test its controlled setup repair."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile/failed_setup'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'source1_launch.json');raw=read(RAW/'source1.json')
+assert not launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert not raw['pass'] and len(raw['requests'])==32 and raw['physical_allocation']['released']
+assert raw['error']=='movement intent requires plan/trigger/replica/activation provenance'
+stop=(RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive')==3 and stop.count('MainPID=0')==3
+paths=[line for line in stop.splitlines() if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(paths)==1
+for local,remote in [('remote_transfers.jsonl',paths[0]),('remote_monitor.log','/home/lab14/primelora_remote/tc/d878_20261026/remote_monitor.log')]:
+    with (RAW/local).open('xb') as f:
+        subprocess.run(['ssh','-o','BatchMode=yes','primelora-artifact-174','cat',remote],stdout=f,stderr=subprocess.PIPE,check=True,timeout=55)
+samples=[]
+with (RAW/'source1_launch.launch/watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row.get('event')=='resource_sample':samples.append(row)
+resources=dict(memory_peak_bytes=max(s['service']['memory.peak'] for s in samples),
+    swap_peak_bytes=max(s['service']['memory.swap.current'] for s in samples),
+    events={k:max(s['service']['memory.events'][k] for s in samples) for k in ('high','max','oom','oom_kill')})
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+OUT.mkdir(exist_ok=False)
+refs=[RAW/'source1.json',RAW/'source1_launch.json',RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log',RAW/'remote_stop.log',RAW/'backup.json']
+save(OUT/'summary.json',dict(closure_passed=True,profile_complete=False,performance_run=False,
+    classification='controlled_profile_setup_contract_error',planned_requests=423,observed_completed_samples=32,
+    n_correct=None,ranking_eligible=False,resources=resources,protected=protected,identity=identity,
+    physical_released=True,remote_stopped=True,profile_workspaces_removed=raw['profile_workspaces_removed'],
+    error=raw['error'],traceback=raw['traceback'],
+    cause='previous collector fix removed native plan identity but still submitted to a movement queue requiring plan provenance',
+    fix_scope='collector only: explicit controlled native operation with real file pin, native hold/release and no fake planner',
+    refs={str(path):p.digest(path) for path in refs}))
+command=[sys.executable,'-B','-m','unittest','tests.test_ieee_tc_preflight.ControlledNativeSourceSetup','-v']
+with (OUT/'tests.log').open('x') as log:
+    result=subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+save(OUT/'tests.json',dict(passed=result.returncode==0,returncode=result.returncode,command=command,
+    refs={str(path):p.digest(path) for path in (ROOT/'scripts/ieee_tc_preflight.py',ROOT/'tests/test_ieee_tc_preflight.py',OUT/'tests.log')}))
+with (OUT/'close_and_test.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]))
+assert result.returncode==0
+print(json.dumps(dict(closed=True,tests_passed=True,resources=resources)))

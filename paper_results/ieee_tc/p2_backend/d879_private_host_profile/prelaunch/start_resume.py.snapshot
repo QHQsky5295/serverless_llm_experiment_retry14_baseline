@@ -1,0 +1,29 @@
+"""Resume before commit; explicitly include only the two reviewed small test logs."""
+import hashlib, json
+from pathlib import Path
+RAW=Path(__file__).resolve().parent
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d879_private_host_profile'
+source=RAW/'start.py'
+content=source.read_text()
+changes={
+    "RAW/'start_identity.json'":"RAW/'start_resume_identity.json'",
+    " and not git('diff','--cached','--name-only')":"",
+    "git('diff','--check','--',*paths);git('add','--',*paths)":
+    "assert set(git('diff','--cached','--name-only').splitlines()).issubset(set(paths))\n"
+    "logs=[name for name in paths if name.endswith(('/tests.log','/tests2.log'))]\n"
+    "assert len(logs)==2 and all((ROOT/name).stat().st_size<100000 for name in logs)\n"
+    "git('diff','--check','--',*paths)\n"
+    "git('add','--',*[name for name in paths if name not in logs])\n"
+    "git('add','-f','--',*logs)"
+}
+for old,new in changes.items():
+    assert content.count(old)==1,old
+    content=content.replace(old,new)
+with (OUT/'prelaunch/start_resume.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+with (OUT/'prelaunch/start_resume.json').open('x') as f:
+    json.dump(dict(cause='git add refused ignored *.log; no commit/remote/GPU start occurred',
+        action='only two inspected small curated test logs explicitly force-added; no broad force add',
+        source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),changes=changes),f,indent=2)
+    f.write('\n')
+exec(compile(content,str(source)+'[explicit-log-resume]','exec'),{'__file__':str(source),'__name__':'__main__'})

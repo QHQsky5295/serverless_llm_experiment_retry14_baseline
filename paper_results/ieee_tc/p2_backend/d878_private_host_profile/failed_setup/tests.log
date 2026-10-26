@@ -1,0 +1,121 @@
+test_cancel_waits_for_native_completion_and_releases_both_references (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_cancel_waits_for_native_completion_and_releases_both_references) ... W1026 12:13:09.581000 2906373 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceRequest(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class SystemStatusResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class PreloadingRequest(BaseModel):
+FAIL
+test_capacity_rejection_is_terminal_not_an_unwakeable_retry (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_capacity_rejection_is_terminal_not_an_unwakeable_retry) ... ERROR
+test_unknown_native_outcome_retains_file_for_failed_run_shutdown (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_unknown_native_outcome_retains_file_for_failed_run_shutdown) ... Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<ControlledNativeSourceSetup.prepare() done, defined at /home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py:1871> exception=ValueError('controlled HOST setup acknowledgement owner/clock differs')>
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1872, in prepare
+    return await p.prepare_controlled_native_host_source(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5194, in prepare_controlled_native_host_source
+    checked(observed)
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5192, in checked
+    raise ValueError('controlled HOST setup acknowledgement owner/clock differs')
+ValueError: controlled HOST setup acknowledgement owner/clock differs
+ERROR
+test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue) ... ERROR
+
+======================================================================
+ERROR: test_capacity_rejection_is_terminal_not_an_unwakeable_retry (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_capacity_rejection_is_terminal_not_an_unwakeable_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1899, in test_capacity_rejection_is_terminal_not_an_unwakeable_retry
+    asyncio.run(self.prepare())
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1872, in prepare
+    return await p.prepare_controlled_native_host_source(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5194, in prepare_controlled_native_host_source
+    checked(observed)
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5192, in checked
+    raise ValueError('controlled HOST setup acknowledgement owner/clock differs')
+ValueError: controlled HOST setup acknowledgement owner/clock differs
+
+======================================================================
+ERROR: test_unknown_native_outcome_retains_file_for_failed_run_shutdown (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_unknown_native_outcome_retains_file_for_failed_run_shutdown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1930, in test_unknown_native_outcome_retains_file_for_failed_run_shutdown
+    asyncio.run(self.prepare())
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1872, in prepare
+    return await p.prepare_controlled_native_host_source(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5194, in prepare_controlled_native_host_source
+    checked(observed)
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5192, in checked
+    raise ValueError('controlled HOST setup acknowledgement owner/clock differs')
+ValueError: controlled HOST setup acknowledgement owner/clock differs
+
+======================================================================
+ERROR: test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1882, in test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue
+    asyncio.run(p.qualify_native_source_matrix(self.engine, self.boundary, None, cases, result))
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5283, in qualify_native_source_matrix
+    await prepare_controlled_native_host_source(engine, boundary, aid, local_path, controlled)
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5194, in prepare_controlled_native_host_source
+    checked(observed)
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 5192, in checked
+    raise ValueError('controlled HOST setup acknowledgement owner/clock differs')
+ValueError: controlled HOST setup acknowledgement owner/clock differs
+
+======================================================================
+FAIL: test_cancel_waits_for_native_completion_and_releases_both_references (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_cancel_waits_for_native_completion_and_releases_both_references)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1917, in test_cancel_waits_for_native_completion_and_releases_both_references
+    asyncio.run(run())
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py", line 1909, in run
+    self.assertTrue(await asyncio.to_thread(self.native.entered.wait, 5))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 4 tests in 14.155s
+
+FAILED (failures=1, errors=3)

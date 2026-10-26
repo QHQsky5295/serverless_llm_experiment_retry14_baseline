@@ -1,0 +1,17 @@
+{
+  "passed": false,
+  "returncode": 1,
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_ieee_tc_preflight.ControlledNativeSourceSetup",
+    "-v"
+  ],
+  "refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "14acf850c3205656b50e01c1682a524c8cf2872cf0db8cfe775a4f08d68004be",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py": "acc3fbf235b1363c5a95387ae60719b0a249900cc9822ec940a170c6eb9f5e42",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d878_private_host_profile/failed_setup/tests.log": "504753133c67b22d2aef0580e2573e946c66c569c4c35452c6fab58531891f79"
+  }
+}

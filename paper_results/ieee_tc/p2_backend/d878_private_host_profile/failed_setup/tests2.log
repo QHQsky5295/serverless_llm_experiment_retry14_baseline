@@ -1,0 +1,20 @@
+test_cancel_waits_for_native_completion_and_releases_both_references (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_cancel_waits_for_native_completion_and_releases_both_references) ... W1026 12:14:00.453000 2908255 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceRequest(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class InferenceResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class SystemStatusResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+  class PreloadingRequest(BaseModel):
+ok
+test_capacity_rejection_is_terminal_not_an_unwakeable_retry (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_capacity_rejection_is_terminal_not_an_unwakeable_retry) ... ok
+test_unknown_native_outcome_retains_file_for_failed_run_shutdown (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_unknown_native_outcome_retains_file_for_failed_run_shutdown) ... ok
+test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue (tests.test_ieee_tc_preflight.ControlledNativeSourceSetup.test_wave_setup_uses_real_native_owner_without_fake_plan_or_queue) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 9.593s
+
+OK

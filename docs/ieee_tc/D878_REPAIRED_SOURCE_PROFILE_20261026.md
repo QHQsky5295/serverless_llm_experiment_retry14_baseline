@@ -14,3 +14,14 @@ D877在32/423条后因collector传入未注册计划编号而等待，已保留�
 结果以`paper_results/ieee_tc/p2_backend/d878_private_host_profile/completion/`
 为准，未完成不宣称通过。导出后直接登记完整新键3B W2，保留D870对照与
 D876零到达失败。独立数值正确性仍未知，完整目标active，全部后续范围不变。
+# 实际结果补记
+
+D878在32/423后返回movement provenance ValueError。取消plan参数并不能让
+在线队列成为无规划器的受控测量入口；前一修复遗漏了这一调用合同。
+原始source1.json/traceback和失败资格保留，物理GPU、scope及远端均释放。
+不导出profile，不把此片段作性能数据。详见failed_setup/summary.json。
+
+collector现直接复用D875的原生HOST-only操作，并保持confirmed文件引用、
+新鲜owner/clock、实际预算与原生释放；未知结果不伪造释放。生产队列、
+计划生命周期和九公式不变。4项实际native owner测试通过，首次fixture
+遗漏worker时钟封装的失败保留。下一D879复用原cases；不是新优化候选。

@@ -1,0 +1,20 @@
+"""Repeat only four setup tests after matching the real worker clock envelope."""
+import json, os, subprocess, sys
+from pathlib import Path
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile/failed_setup'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+command=[sys.executable,'-B','-m','unittest','tests.test_ieee_tc_preflight.ControlledNativeSourceSetup','-v']
+with (OUT/'tests2.log').open('x') as log:
+    result=subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+record=dict(passed=result.returncode==0,command=command,identity=identity,
+    first_failure='CPU fixture omitted native worker clock envelope; production code unchanged',
+    refs={str(path):p.digest(path) for path in (ROOT/'scripts/ieee_tc_preflight.py',ROOT/'tests/test_ieee_tc_preflight.py',OUT/'tests2.log')},
+    resources=p.cgroup_snapshot(Path(identity['path'])))
+with (OUT/'tests2.json').open('x') as f:json.dump(record,f,indent=2);f.write('\n')
+with (OUT/'test_setup2.py.snapshot').open('xb') as f:f.write(Path(__file__).read_bytes())
+assert result.returncode==0
+print('Four controlled setup tests passed with actual native owner/worker envelope')
