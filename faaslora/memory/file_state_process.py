@@ -454,6 +454,10 @@ class ProcessLocalSourceReferences:
         return self.process.submit(operation, **args).result()
 
     async def call_async(self, operation, *, on_result=None, **args):
+        if operation == 'preparation_snapshot':
+            args = dict(args)
+            args['manifests'] = self._serializable_preparation_manifests(args['manifests'])
+            args['limits'] = dict(args['limits'])
         return await self.process.call_async(operation, on_result=on_result, **args)
 
     def subscribe_file_changes(self, subscriber_id, callback):

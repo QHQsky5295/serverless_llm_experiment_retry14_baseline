@@ -245,10 +245,11 @@ class FileStateProcessTests(unittest.TestCase):
             files = {'weights': (len(payload), hashlib.sha256(payload).hexdigest())}
             manifests = FrozenPreparationDescriptions({'a': files})
             facade.configure_host_budget(1024**2)
-            snapshot = facade.preparation_snapshot(
+            snapshot = asyncio.run(facade.call_async(
+                'preparation_snapshot',
                 manifests=manifests,
                 limits={'host': 1024**2, 'nvme': 1024**2},
-            )
+            ))
             self.assertEqual(snapshot['artifacts']['a']['content_sha256'],
                              preparation_content_sha256(files))
         finally:
