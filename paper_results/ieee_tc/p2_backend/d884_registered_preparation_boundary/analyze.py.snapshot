@@ -1,0 +1,134 @@
+"""D884: bounded reuse of D882 journal and D868 allocator-receipt analyses.
+
+No GPU replay or production change. Counts describe existing successful
+transactions; they are not removable time, inferred initial state, or speedup.
+"""
+import collections
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+save(RAW/'identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+source = RAW.parent/'d883_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json'
+assert p.digest(source) == 'be4d50d582bd4bc245e329eca56e02bb0ecf493c923ae708b5b812faad8bec3d'
+counts, groups, seen = collections.Counter(), collections.Counter(), set()
+rows = []
+with source.open('rb') as stream:
+    for plan in ijson.items(stream, 'mechanism_events._ieee_gpu_preparation_plans.item', use_float=True):
+        counts['plans'] += 1
+        for attempt in plan.get('attempts', []):
+            counts['attempts'] += 1
+            receipt = attempt.get('receipt')
+            if receipt is None:
+                counts['missing_receipt'] += 1
+                continue
+            if receipt.get('acquired') is not True:
+                counts['not_acquired:'+str(receipt.get('reason'))] += 1
+                continue
+            key = (receipt['owner_id'], receipt['lease_id'])
+            assert key not in seen
+            seen.add(key)
+            allocation = receipt.get('host_allocation')
+            if allocation is None:
+                counts['acquired_without_host_allocation'] += 1
+                assert receipt.get('preparation_reused_gpu') is True
+                continue
+            before = allocation['before']['before']
+            assert before['available'] is True
+            scope = receipt['transaction_scope']
+            storage_scope = before['scope']
+            staged_bytes = before['staged_only_pinned_storage_bytes'] + before['staged_only_pageable_storage_bytes']
+            # Scope includes even fully aliased staged sources; zero exclusive
+            # staged bytes alone cannot prove that the staging set is empty.
+            no_staging_in_precheck = storage_scope == 'process_pinned_allocator_plus_registered_pageable_tensors'
+            if no_staging_in_precheck:
+                assert staged_bytes == 0
+            replacement = receipt['replacement']
+            host_victims = replacement['host_victim_adapter_ids']
+            row = dict(plan_id=plan['plan_id'], owner_id=key[0], lease_id=key[1],
+                transaction_scope=scope, precheck_scope=storage_scope,
+                precheck_no_staging=no_staging_in_precheck,
+                staged_exclusive_bytes=staged_bytes,
+                host_victims=len(host_victims), gpu_victims=len(replacement['victim_adapter_ids']),
+                after_storage_observation=allocation['after_storage_observation'],
+                construction_reserved_bytes=allocation['before']['in_flight_peak_upper_bytes'])
+            rows.append(row)
+            groups[(scope, storage_scope, bool(host_victims),
+                    row['construction_reserved_bytes'] > 0)] += 1
+            if scope == 'native_host_to_preallocated_gpu':
+                assert not host_victims
+                counts['registered_activation'] += 1
+                if no_staging_in_precheck and row['construction_reserved_bytes'] == 0:
+                    counts['registered_activation_no_staging_at_budget_precheck'] += 1
+                else:
+                    counts['registered_activation_other_staging_or_reservation_at_precheck'] += 1
+            else:
+                assert scope == 'budgeted_staging_joint_cpu_gpu_commit'
+                counts['staging_commit'] += 1
+
+stack_path = ROOT/'paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/stack_samples.json'
+stacks = json.loads(stack_path.read_text())
+stack_counts = collections.Counter()
+for process in stacks['processes']:
+    if 'gpu_core' not in process['role_evidence']:
+        continue
+    stack_counts['processes'] += 1
+    stack_counts['request_window_samples'] += process['main_phase_counts']['request_window']
+    stack_counts['all_phase_truncated_samples'] += process['truncated_main_samples']
+    for row in process['request_window_nearest_project']:
+        if row['function'] == 'validate_native_gpu_epoch':
+            stack_counts['nearest_objective_validation'] += row['samples']
+        if row['file'].endswith('/gpu_monitor.py') and row['function'] == 'add':
+            stack_counts['nearest_host_tensor_add'] += row['samples']
+assert stack_counts['processes'] == 3
+save(OUT/'transactions.json', dict(source=ref(source), transactions=rows))
+save(OUT/'summary.json', dict(passed=True, counts=dict(counts),
+    populations=[dict(transaction_scope=k[0], precheck_scope=k[1],
+        has_host_victim=k[2], has_construction_reservation=k[3], count=n)
+        for k,n in sorted(groups.items())],
+    older_d843_stack_occurrences=dict(stack_counts),
+    source_refs=[ref(source), ref(stack_path), ref(Path(__file__)),
+        ref(RAW.parent/'d882_20261026/analyze.py'), ref(RAW.parent/'d868_20261026/analyze.py')],
+    new_gpu_replays=0, production_changed=False, n_correct=None, ranking_eligible=False,
+    caveats=[
+        'Counts refer to successful D883 GPU preparation transactions, not distinct requests or saved latency.',
+        'The saved allocator report is at the budget precheck, not a saved cost-provider graph or a proof of its initial staging set.',
+        'D843 is older, separately instrumented, truncated and GIL-biased; nearest frame counts are not CPU time shares.',
+        'D674 counterexamples still reject unconditional first-graph reuse and cross-call caching.',
+        'A new synchronous no-CPU-mutation proof and tests would be required before any implementation.',
+    ]))
+resources = p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+save(OUT/'resources.json', dict(identity=identity, resources=resources))
+with (OUT/'analyze.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json', dict(files=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True, counts=dict(counts), older_stack_counts=dict(stack_counts))))

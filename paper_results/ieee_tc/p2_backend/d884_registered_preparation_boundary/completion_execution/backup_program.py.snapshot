@@ -1,0 +1,140 @@
+"""D826 adaptation of the D752 explicit-path, protected-result backup procedure."""
+import ast
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True,
+                                   stderr=subprocess.STDOUT, timeout=60).strip()
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW / 'backup_completion_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+resources = read(OUT/'resources.json')
+assert not Path(resources['identity']['path']).exists()
+assert all(v == 0 for v in resources['resources']['memory.events'].values())
+assert resources['resources']['memory.swap.current'] == 0
+diagnosis = read(OUT/'summary.json')
+assert diagnosis['passed'] and diagnosis['new_gpu_replays'] == 0
+assert not diagnosis['production_changed'] and not diagnosis['ranking_eligible']
+assert diagnosis['n_correct'] is None
+for row in diagnosis['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+counts = diagnosis['counts']
+assert counts['attempts'] == 4010
+assert counts['registered_activation'] == 1383
+assert counts['registered_activation_no_staging_at_budget_precheck'] == 1303
+assert counts['registered_activation_other_staging_or_reservation_at_precheck'] == 80
+assert counts['staging_commit'] == 1462 and counts['missing_receipt'] == 6
+assert len(read(OUT/'transactions.json')['transactions']) == 1383 + 1462
+source_shas = {
+    ROOT/'faaslora/memory/gpu_monitor.py': '33b9a1ec1423ef678612b8d9c70703d152e844e24dc720600105eb0e97338f58',
+    ROOT/'faaslora/memory/residency_manager.py': 'c62acac49b5f1b78c2d3e18984faa902a22f9a2aa6b5d574b1d116205fb94e6f',
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'): 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md': '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md': '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+}
+native = Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm')
+source_shas.update({
+    native/'lora/model_manager.py': '6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302',
+    native/'utils/cache.py': '397e993cebeeb44f37104e6f9a48ac7b4f3f878e0294fd8899e22f161de379c5',
+    native/'lora/worker_manager.py': '7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522',
+})
+for path, sha in source_shas.items(): assert p.digest(path) == sha, str(path)
+save(OUT/'source_boundary.json', dict(
+    parent_head=call(['git', 'rev-parse', 'HEAD']),
+    unchanged_sources={str(path): sha for path, sha in source_shas.items()},
+    candidate_implemented=False, new_gpu_replays=0,
+    source_script=dict(path=str(RAW/'backup_results.py'),sha256=p.digest(RAW/'backup_results.py')),
+    reused_backup_template=dict(path=str(RAW.parent/'d868_20261026/backup_program.py.snapshot'),
+        sha256=p.digest(RAW.parent/'d868_20261026/backup_program.py.snapshot'))))
+q = {'protected': {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}}
+evolving = {ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',
+    ROOT/'docs/ieee_tc/D884_REGISTERED_PREPARATION_BOUNDARY_20261026.md'}
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = {name: row['sha256'] for name, row in read(seal)['entries'].items()}
+assert len(protected) == 147
+protected.update(q['protected'])
+for name, sha in protected.items():
+    assert p.digest(Path(name)) == sha, name
+manifest = read(OUT/'manifest.json')
+for row in manifest['files']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+files = [path for path in sorted(OUT.iterdir()) if path.is_file()]
+evidence = OUT / 'completion_execution'
+evidence.mkdir(exist_ok=False)
+small = ('analyze.py', 'identity.json',
+         'backup_results.py', 'backup_program.py.snapshot')
+for name in small:
+    source = RAW / name
+    if name.endswith('.py'):
+        ast.parse(source.read_text())
+    target = evidence / (name + '.snapshot' if name.endswith('.py') else name + '.txt' if name.endswith('.log') else name)
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(target) == p.digest(source)
+    files.append(target)
+remote_sha = None  # No remote service or GPU run in D884.
+save(evidence / 'manifest.json', dict(
+    files=[dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path))
+           for path in files if path.parent == evidence],
+    remote_monitor_sha256=remote_sha, protected_files=len(protected),
+    procedure_source=str(RAW.parent / 'd868_20261026/backup_program.py.snapshot')))
+files += [evidence / 'manifest.json', *sorted(evolving)]
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths))
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+assert not call(['git', 'diff', '--cached', '--name-only'])
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ \t]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ \t]*=[ \t]*[\x22\x27]?[A-Za-z0-9+/]{8,})')
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git', 'diff', '--check', '--', *[str(x.relative_to(ROOT)) for x in evolving]])
+call(['git', 'add', '--', *paths])
+assert set(call(['git', 'diff', '--cached', '--name-only']).splitlines()) == set(paths)
+ordinary = [x for x in paths if not x.endswith(('.csv', '.snapshot'))]
+csvs = [x for x in paths if x.endswith('.csv')]
+snapshots = [x for x in paths if x.endswith('.snapshot')]
+call(['git', 'diff', '--cached', '--check', '--', *ordinary])
+call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])
+call(['git', '-c', 'core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff', '--cached', '--check', '--', *snapshots])
+save(RAW / 'backup_precommit_check.json', dict(passed=True, files=paths,
+     protected_files=len(protected), syntax_checked=True,
+     qualification='D884 streamed authoritative journal audit: 4010 attempts, unique successful leases, 2845 allocation receipts and source/output SHA. No production changes or new GPU run.'))
+call(['git', 'commit', '-m', 'tc: preserve D884 registered preparation boundary and evidence-limited next candidate'])
+head = call(['git', 'rev-parse', 'HEAD'])
+ref = 'refs/heads/backup/d884-preparation-boundary-20261026'
+call(['git', '-c', 'http.version=HTTP/1.1', 'push', 'faaslora_origin', 'HEAD:' + ref])
+assert call(['git', '-c', 'http.version=HTTP/1.1', 'ls-remote', 'faaslora_origin', ref]).split()[0] == head
+save(RAW / 'backup_completion.json', dict(passed=True, head=head, ref=ref,
+     files=paths, v2_synchronized=False, protected_files=len(protected),
+     remote_monitor_sha256=remote_sha))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths)), indent=2))
+

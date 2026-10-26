@@ -1,0 +1,23 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary/completion_execution/analyze.py.snapshot",
+      "sha256": "6315cc991220bb39a15436fc24032fcf35f2f7956d33f7c838e3d8506fa04441"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary/completion_execution/identity.json",
+      "sha256": "564da24ed04990d5aef9d500b10e98ce7f29427af7c568ba3a10e8fafad8f89e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary/completion_execution/backup_results.py.snapshot",
+      "sha256": "e14806df864e2be918a7d163b09b469a71dc9e3894d455b837b06d489c509154"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d884_registered_preparation_boundary/completion_execution/backup_program.py.snapshot",
+      "sha256": "172ee63aebc4e33d46673c18a1e1344ac6844f148f85c49b38532ece7d56bc8b"
+    }
+  ],
+  "remote_monitor_sha256": null,
+  "protected_files": 147,
+  "procedure_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d868_20261026/backup_program.py.snapshot"
+}

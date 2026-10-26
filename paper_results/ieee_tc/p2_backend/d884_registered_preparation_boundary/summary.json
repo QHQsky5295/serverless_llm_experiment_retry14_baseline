@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "counts": {
+    "plans": 2788,
+    "attempts": 4010,
+    "registered_activation": 1383,
+    "registered_activation_no_staging_at_budget_precheck": 1303,
+    "not_acquired:stale_snapshot": 1061,
+    "acquired_without_host_allocation": 81,
+    "staging_commit": 1462,
+    "registered_activation_other_staging_or_reservation_at_precheck": 80,
+    "missing_receipt": 6,
+    "not_acquired:replacement_benefit_not_greater_than_loss": 15,
+    "not_acquired:no_eligible_replacement_victim": 2
+  },
+  "populations": [
+    {
+      "transaction_scope": "budgeted_staging_joint_cpu_gpu_commit",
+      "precheck_scope": "process_pinned_allocator_plus_registered_and_staged_pageable_tensors",
+      "has_host_victim": true,
+      "has_construction_reservation": false,
+      "count": 51
+    },
+    {
+      "transaction_scope": "budgeted_staging_joint_cpu_gpu_commit",
+      "precheck_scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+      "has_host_victim": true,
+      "has_construction_reservation": false,
+      "count": 1411
+    },
+    {
+      "transaction_scope": "native_host_to_preallocated_gpu",
+      "precheck_scope": "process_pinned_allocator_plus_registered_and_staged_pageable_tensors",
+      "has_host_victim": false,
+      "has_construction_reservation": false,
+      "count": 80
+    },
+    {
+      "transaction_scope": "native_host_to_preallocated_gpu",
+      "precheck_scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+      "has_host_victim": false,
+      "has_construction_reservation": false,
+      "count": 1303
+    }
+  ],
+  "older_d843_stack_occurrences": {
+    "processes": 3,
+    "request_window_samples": 5910,
+    "all_phase_truncated_samples": 4,
+    "nearest_host_tensor_add": 483,
+    "nearest_objective_validation": 40
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d883_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "be4d50d582bd4bc245e329eca56e02bb0ecf493c923ae708b5b812faad8bec3d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d843_3b_controller_full_w2/completion/stack_samples.json",
+      "sha256": "8ae23881c5b8311fb46d4f4cbf6b6e671c355821cbe7ccc85ce89abffd804cfb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d884_20261026/analyze.py",
+      "sha256": "6315cc991220bb39a15436fc24032fcf35f2f7956d33f7c838e3d8506fa04441"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d882_20261026/analyze.py",
+      "sha256": "55011f5849b54a09a02b16941766f3809efff9e32142904a25f1c8af91fe9728"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d868_20261026/analyze.py",
+      "sha256": "21cb87cd2701552c01b2fcc902e4aa078cdfeafd3e17d800dd2ddd8b556cdc7c"
+    }
+  ],
+  "new_gpu_replays": 0,
+  "production_changed": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "caveats": [
+    "Counts refer to successful D883 GPU preparation transactions, not distinct requests or saved latency.",
+    "The saved allocator report is at the budget precheck, not a saved cost-provider graph or a proof of its initial staging set.",
+    "D843 is older, separately instrumented, truncated and GIL-biased; nearest frame counts are not CPU time shares.",
+    "D674 counterexamples still reject unconditional first-graph reuse and cross-call caching.",
+    "A new synchronous no-CPU-mutation proof and tests would be required before any implementation."
+  ]
+}

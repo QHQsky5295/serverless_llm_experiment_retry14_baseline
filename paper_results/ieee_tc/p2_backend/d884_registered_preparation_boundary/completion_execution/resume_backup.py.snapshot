@@ -1,0 +1,73 @@
+"""Resume D884 backup only; preserve its first failed publication attempt.
+
+The inherited CSV whitespace check had no CSV paths, so git checked every
+staged file, including immutable historical snapshots with a final blank line.
+Keep the original snapshots; apply each existing whitespace rule only to its
+actual file group. No analysis or performance measurement is repeated.
+"""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+original = (raw/'backup_program.py.snapshot').read_text()
+header = original[:original.index('assert os.sched_getaffinity')]
+tail = original[original.index('ordinary = [x for x in paths'):]
+old = """call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',
+      'diff', '--cached', '--check', '--', *csvs])"""
+assert tail.count(old) == 1
+tail = tail.replace(old, "if csvs:\n    " + old.replace('\n', '\n    '))
+body = r'''
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+own = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_resume_identity.json', own)
+assert not call(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'])
+previous = read(RAW/'backup_completion_identity.json')
+assert not Path(previous['path']).exists() and not p.scope_still_owned(previous)
+evidence = OUT/'completion_execution'
+doc = ROOT/'docs/ieee_tc/D884_REGISTERED_PREPARATION_BOUNDARY_20261026.md'
+status = ROOT/'docs/ieee_tc/EXECUTION_STATUS.md'
+files = sorted(path for path in OUT.rglob('*') if path.is_file()) + [doc, status]
+expected_staged = {str(path.relative_to(ROOT)) for path in files}
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == expected_staged
+protected = read(OUT/'source_boundary.json')['unchanged_sources']
+protected[str(ROOT/'configs/generated/lora_manifest_1000.json')] = '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+for name, sha in protected.items(): assert p.digest(Path(name)) == sha, name
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+sealed = p.verify_seal(seal)
+assert sealed['pass'] and sealed['entry_count'] == 147
+for manifest_name in ('manifest.json', 'completion_execution/manifest.json'):
+    for row in read(OUT/manifest_name)['files']:
+        path = Path(row['path'])
+        if not path.is_absolute(): path = ROOT/path
+        assert p.digest(path) == row['sha256'], str(path)
+for row in read(OUT/'summary.json')['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+assert read(OUT/'summary.json')['passed']
+for name in ('resume_backup.py','backup_resume_program.py.snapshot'):
+    source = RAW/name
+    ast.parse(source.read_text())
+    target = evidence/(name+'.snapshot')
+    with target.open('xb') as stream: stream.write(source.read_bytes())
+    files.append(target)
+failure = evidence/'backup_first_attempt.json'
+save(failure, dict(status='publication_check_failed_before_commit',
+    reason='Inherited CSV group was empty; git checked all staged snapshots under CSV trailing-blank rules.',
+    original_snapshot_preserved=True, new_measurements=0, identity=previous,
+    correction='Only run the CSV-specific whitespace command when CSV paths are present.'))
+files.append(failure)
+remote_sha = None
+paths = [str(path.relative_to(ROOT)) for path in files]
+assert len(paths) == len(set(paths)) and 'configs/generated/lora_manifest_1000.json' not in paths
+secret = re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+|(?im:^[ 	]*(?:password|passwd|secret|api_key|PRIME_REMOTE_TOKEN)[ 	]*=[ 	]*["']?[A-Za-z0-9+/]{8,})')
+for path in files: assert not secret.search(path.read_text()), str(path)
+call(['git','add','--',*paths])
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+'''
+generated = raw/'backup_resume_program.py.snapshot'
+secret_line = next(line for line in original.splitlines() if line.startswith('secret = re.compile'))
+body = '\n'.join(secret_line if line.startswith('secret = re.compile') else line
+                 for line in body.splitlines()) + '\n'
+source = header + body + tail
+compile(source, str(generated), 'exec')
+with generated.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(generated), 'exec'), globals())

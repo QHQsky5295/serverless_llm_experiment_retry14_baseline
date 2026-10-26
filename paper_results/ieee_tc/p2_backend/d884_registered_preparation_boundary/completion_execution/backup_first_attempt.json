@@ -1,0 +1,13 @@
+{
+  "status": "publication_check_failed_before_commit",
+  "reason": "Inherited CSV group was empty; git checked all staged snapshots under CSV trailing-blank rules.",
+  "original_snapshot_preserved": true,
+  "new_measurements": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-d8840000000000000000000000000002.scope",
+    "invocation_id": "c069a4fe6fd94615bad41ef256e27824",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8840000000000000000000000000002.scope",
+    "inode": 33049499
+  },
+  "correction": "Only run the CSV-specific whitespace command when CSV paths are present."
+}

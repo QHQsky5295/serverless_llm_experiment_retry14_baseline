@@ -1,0 +1,23 @@
+{
+  "parent_head": "c5a75815e7a94cbcfd75c5e22f14071c2d7e69e2",
+  "unchanged_sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "33b9a1ec1423ef678612b8d9c70703d152e844e24dc720600105eb0e97338f58",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "c62acac49b5f1b78c2d3e18984faa902a22f9a2aa6b5d574b1d116205fb94e6f",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/cache.py": "397e993cebeeb44f37104e6f9a48ac7b4f3f878e0294fd8899e22f161de379c5",
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522"
+  },
+  "candidate_implemented": false,
+  "new_gpu_replays": 0,
+  "source_script": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d884_20261026/backup_results.py",
+    "sha256": "e14806df864e2be918a7d163b09b469a71dc9e3894d455b837b06d489c509154"
+  },
+  "reused_backup_template": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d868_20261026/backup_program.py.snapshot",
+    "sha256": "23a722adbe253948b9b061b3471489f0c79cdf825deab4db1a89ee608cce8800"
+  }
+}

@@ -1,4 +1,41 @@
-# IEEE TC execution status — D883 complete and audited; joint SLO still below target
+# IEEE TC execution status — D884 branch audit complete; no new performance claim
+
+## D884：已注册主动准备分支核查（2026-10-26）
+
+复用D883权威journal，无新GPU实验/生产修改：2788计划、4010attempts；
+1383个registered HOST→GPU成功，其中1303在预算前scope明确无staging且
+无私有构造预留、80仍有其他staging；1462 staged提交、81 GPU复用、
+1061 stale、15收益不足、2无victim、6缺回执。无CPU victim是该registered
+分支事实，不是两次物理图相同的独立证明，不从旧时延扣除任何时间。
+
+已核对D329/D674/D675/D680/D735/D747/D751/D864–D883与上游/本机代码。
+不重做HOST交接、跨调用图缓存、整体线程、整图或private CPU候选。D843
+旧core业务5910采样中HOST add483、objective validation40，不能当CPU
+比例；本轮不围绕重复objective校验再开小组件性能实验。
+
+下一唯一候选：同一次主动准备内，严格限定已注册目标且无任何staging/
+私有构造/CPU替换的路径，验证cost-provider新鲜图可否供预算前检查使用。
+必须先证明真实native/GPU-removal包装链只读HOST、无yield，并仍新读
+allocator/workspace；staged/CPU变更保留完整清点，异常不吞掉。详见
+D884_REGISTERED_PREPARATION_BOUNDARY_20261026.md。当前只有覆盖范围与
+代码推理，尚未实现新资格或性能收益；不得把1303当最终可复用/改善请求数。
+父版明确为D883/c5a75815，D882等价重构保留但不宣称有效性能贡献。
+
+有界测试通过后一次完整3B W2新版本，不追加profiling/短Full或同键重复。
+共同D648/95%/75%、D725 profile、原工件/trace/真实remote均不改；本轮
+分析峰值53063680B、资源事件/swap0，scope已inactive，GPU无作业。
+旧147项/用户manifest/源SHA与备份以随后回执为准。整体goal仍active，
+当前性能仍D883联合93.825%、U11934.813584，N_correct=null，未闭口。
+两模型同版本矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、数值证明、审稿
+图文及最终V2均未省略。HydraServe隔离适配复用，不动共享k3s。
+
+### D883实际备份回执（随下一正常检查点保存）
+
+59个明确文件已提交c5a75815e7a94cbcfd75c5e22f14071c2d7e69e2，并核验
+远端refs/heads/backup/d883-complete-20261026一致。raw/backup_completion.json
+passed=true；147旧投稿项、用户manifest及源SHA检查通过。备份辅助域已退出，
+无GPU作业。未stage用户manifest，未force push；最终V2仍未同步。
+下一动作和全量未完成范围见下文，完整goal继续active，不重跑D883。
 
 ## D883收尾完成与候选决定（2026-10-26 16:02 CST）
 
