@@ -9677,7 +9677,9 @@ class ScenarioRunner:
             if index not in reused_indexes:
                 self._ieee_publish_identity_frontier(slot, state)
         adapter_id = trace.adapter_id
-        files = owner.source_snapshot(adapter_id) if adapter_id else None
+        files = ((await owner.call_async('source_snapshot', adapter_id=adapter_id)
+                  if hasattr(owner, 'call_async') else owner.source_snapshot(adapter_id))
+                 if adapter_id else None)
         if files is not None:
             captured = files.get('captured_monotonic_s')
             if (type(captured) not in (int, float) or not math.isfinite(captured)
@@ -14067,7 +14069,7 @@ class ScenarioRunner:
         await self._refresh_ieee_deferred_host_capacity()
         # NoHandoff disables only the activating-replica path, not this ready
         # steady-state path. Existing in-flight plans keep their immutable epoch.
-        self._schedule_ieee_residency_epochs()
+        await self._schedule_ieee_residency_epochs()
         return changed
 
     async def _refresh_ieee_deferred_host_capacity(self):
@@ -14135,7 +14137,7 @@ class ScenarioRunner:
                 del tasks[key]
                 task.result()  # A failed epoch is evidence, not a swallowed warning/retry.
 
-    def _schedule_ieee_residency_epochs(self):
+    async def _schedule_ieee_residency_epochs(self):
         if not self._hierarchical_residency_enabled:
             return
         if not hasattr(self, '_ieee_residency_tasks'):
@@ -14167,7 +14169,7 @@ class ScenarioRunner:
             # carried into a later round. This is a planning observation, NOT
             # an atomic cross-owner snapshot, source lease or byte reservation.
             started = time.monotonic()
-            shared_files = self._ieee_preparation_file_snapshot()
+            shared_files = await self._ieee_preparation_file_snapshot()
             observation = dict(round_id=uuid.uuid4().hex,
                 owner_id=shared_files['owner_id'], epoch=shared_files['epoch'],
                 captured_at=shared_files['captured_at'], started_at=started,
@@ -15219,9 +15221,15 @@ class ScenarioRunner:
         layout = profiles.activation_layout()
         activation_id = 'ieee-activation-' + uuid.uuid4().hex
         files = self._stack.residency_manager.local_source_references
-        files.configure_host_budget(self.model_cfg['ieee_host_budget_bytes'])
-        files.reserve_activation_host(activation_id=activation_id,
-            limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
+        if hasattr(files, 'call_async'):
+            await files.call_async('configure_host_budget',
+                                   limit_bytes=self.model_cfg['ieee_host_budget_bytes'])
+            await files.call_async('reserve_activation_host', activation_id=activation_id,
+                                   limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
+        else:
+            files.configure_host_budget(self.model_cfg['ieee_host_budget_bytes'])
+            files.reserve_activation_host(activation_id=activation_id,
+                limit_bytes=self.model_cfg['ieee_native_host_tensor_budget_bytes'])
         record = dict(activation_id=activation_id, target_replica=activation_id,
             category=activation_kind, policy=policy, trigger_at=time.monotonic(),
             clock_id=local_monotonic_clock_id(), state='planning', plan_sha256=None)
@@ -20201,13 +20209,17 @@ class ScenarioRunner:
             if cancelled:
                 raise asyncio.CancelledError()
 
-    def _ieee_preparation_file_snapshot(self):
+    async def _ieee_preparation_file_snapshot(self):
         """One fresh complete observation of the shared physical file owner."""
         manager = self._stack.residency_manager
         manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
-        return manager.local_source_references.preparation_snapshot(manifests=manifests,
+        references = manager.local_source_references
+        kwargs = dict(manifests=manifests,
             limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
-                    for tier in manager.local_source_references.roots})
+                    for tier in references.roots})
+        if hasattr(references, 'call_async'):
+            return await references.call_async('preparation_snapshot', **kwargs)
+        return references.preparation_snapshot(**kwargs)
 
     async def _plan_ieee_preparation_for_slot(self, *, slot, mode, file_snapshot=None):
         """Read the real backend and file owners, then run the IEEE selector.
@@ -20233,7 +20245,8 @@ class ScenarioRunner:
         # Physical execution/deferred-capacity checks keep their full reports.
         observed_engine = slot.engine
         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
-        files = self._ieee_preparation_file_snapshot() if file_snapshot is None else file_snapshot
+        files = (await self._ieee_preparation_file_snapshot()
+                 if file_snapshot is None else file_snapshot)
         plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
@@ -21106,7 +21119,10 @@ class ScenarioRunner:
             self._ieee_host_budget_members = {}
         async with self._ieee_host_budget_lock:
             files = self._stack.residency_manager.local_source_references
-            files.configure_host_budget(total)
+            if hasattr(files, 'call_async'):
+                await files.call_async('configure_host_budget', limit_bytes=total)
+            else:
+                files.configure_host_budget(total)
             old = self._ieee_host_budget_members.get(id(engine))
             if old is not None:
                 if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
@@ -21135,8 +21151,13 @@ class ScenarioRunner:
             try:
                 if gpu_process_identity(pid) != identity:
                     raise RuntimeError('native HOST process changed during pidfd binding')
-                files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd,
-                    activation_id=getattr(self, '_ieee_host_activation_ids', {}).get(id(engine)))
+                activation_id = getattr(self, '_ieee_host_activation_ids', {}).get(id(engine))
+                if hasattr(files, 'reserve_native_host_async'):
+                    await files.reserve_native_host_async(owner_id=owner_id, limit_bytes=native,
+                        exit_pidfd=fd, activation_id=activation_id)
+                else:
+                    files.reserve_native_host(owner_id=owner_id, limit_bytes=native, exit_pidfd=fd,
+                        activation_id=activation_id)
             except BaseException:
                 os.close(fd)
                 raise
@@ -21348,16 +21369,24 @@ class ScenarioRunner:
                     raise ValueError('IEEE materialization requires its request owner and real remote client')
                 manager = self._stack.residency_manager
                 owner = manager.local_source_references
-                view = owner.source_snapshot(adapter_id)
+                view = (await owner.call_async('source_snapshot', adapter_id=adapter_id)
+                        if hasattr(owner, 'call_async') else owner.source_snapshot(adapter_id))
                 transfer_ms = 0.
                 from contextlib import nullcontext
                 # Retain request ownership across source readiness -> read acquisition.
                 # A completed transfer is not yet a protected reader reference.
-                demand = (owner.file_movement_interest(intent_id=uuid.uuid4().hex,
-                    target=self.nvme_dir / adapter_id,
-                    content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
-                    required=True) if not view['sources'] else nullcontext())
-                with demand:
+                if not view['sources']:
+                    demand = (owner.async_file_movement_interest(
+                        intent_id=uuid.uuid4().hex, target=self.nvme_dir / adapter_id,
+                        content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
+                        required=True) if hasattr(owner, 'call_async') else
+                        _async_wrap_context(owner.file_movement_interest(
+                            intent_id=uuid.uuid4().hex, target=self.nvme_dir / adapter_id,
+                            content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'],
+                            required=True)))
+                else:
+                    demand = _async_wrap_context(nullcontext())
+                async with demand:
                     if not view['sources']:
                         transfer_evidence = {}
                         if reservation.file_preparation_task is not None:
@@ -21400,15 +21429,27 @@ class ScenarioRunner:
                             reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     # Re-observe and pin atomically against publishers/reclaimers;
                     # no network, native RPC or await is allowed inside this lock.
-                    with owner.lock:
-                        view = owner.source_snapshot(adapter_id)
+                    if hasattr(owner, 'call_async'):
+                        view = await owner.call_async('source_snapshot', adapter_id=adapter_id)
                         candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
                         if not candidates:
                             raise RuntimeError('completed remote materialization has no verified source')
                         source = candidates[0]
-                        reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
-                            lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                        reference = await owner.call_async(
+                            'acquire_confirmed', path=source['path'], adapter_id=adapter_id,
+                            lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'],
+                            expected_epoch=view['epoch'],
                             expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                    else:
+                        with owner.lock:
+                            view = owner.source_snapshot(adapter_id)
+                            candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
+                            if not candidates:
+                                raise RuntimeError('completed remote materialization has no verified source')
+                            source = candidates[0]
+                            reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
+                                lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                                expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
                 reservation.local_source_owner = manager
                 reservation.gpu_reference_evidence['local_source_reference'] = reference
                 self._nvme_cache[adapter_id] = source['path']

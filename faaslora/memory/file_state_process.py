@@ -674,6 +674,11 @@ class ProcessLocalSourceReferences:
     def reserve_native_host(self, *, exit_pidfd, **args):
         return self.process.reserve_native_host(exit_pidfd=exit_pidfd, **args).result()
 
+    async def reserve_native_host_async(self, *, exit_pidfd, **args):
+        """Join a pidfd-backed native reservation without blocking the loop."""
+        return await self.process.call_async(
+            'reserve_native_host', exit_pidfd=DupFd(exit_pidfd), **args)
+
     def retire_native_host(self, *, owner_id, exit_pidfd):
         # The owner process already retains the transferred pidfd.  The public
         # facade intentionally does not ask callers to pass a numeric child fd.
