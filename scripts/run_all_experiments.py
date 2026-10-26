@@ -19851,13 +19851,60 @@ class ScenarioRunner:
                 self._ieee_artifact_identities[row['adapter_id']]['content_sha256']
             evidence.update(state='native_pending', lease_id=command['lease_id'])
             file_holds, file_fallbacks = [], {}
-            if staged is not None:
+            references = self._stack.residency_manager.local_source_references
+            process_owner = hasattr(references, 'call_async')
+            file_release_cancelled = False
+
+            async def release_file_holds():
+                """Join every file-lease release before this attempt can exit.
+
+                A cancelled preparation task must not abandon a lease after the
+                process owner has already applied the corresponding acquire.
+                ``call_async`` joins the owner command, but the release loop
+                itself also has to be cancellation-safe: otherwise cancellation
+                between two releases leaves a partially protected fallback set
+                with no evidence record.  Only an acknowledged release removes
+                a hold from the local list; an unacknowledged release remains
+                explicitly retained until the owning engine exits.
+                """
+                nonlocal file_release_cancelled
+                if not file_holds:
+                    evidence['host_file_fallbacks_released'] = True
+                    return
                 references = self._stack.residency_manager.local_source_references
+                remaining, failures = [], []
+                for held in tuple(file_holds):
+                    try:
+                        if process_owner:
+                            receipt, cancelled = await settle(
+                                references.call_async(
+                                    'release', lease_id=held['lease_id'],
+                                    expected_owner_id=held['owner_id']))
+                            file_release_cancelled |= cancelled
+                        else:
+                            receipt = references.release(
+                                lease_id=held['lease_id'],
+                                expected_owner_id=held['owner_id'])
+                        if (not isinstance(receipt, dict)
+                                or receipt.get('released') is not True):
+                            raise RuntimeError('file fallback lease release was not acknowledged')
+                    except BaseException as exc:
+                        remaining.append(held)
+                        failures.append(exc)
+                file_holds[:] = remaining
+                if remaining:
+                    self._retain_ieee_unresolved_file_holds(
+                        engine=engine, references=references, holds=remaining,
+                        evidence=evidence)
+                if failures:
+                    raise RuntimeError('file fallback leases remain unresolved') from failures[0]
+                evidence['host_file_fallbacks_released'] = True
+
+            if staged is not None:
                 try:
                     # Hold each actual fastest remaining file copy before the
                     # native transaction. No predicted path or stale snapshot
                     # is used as a fallback after CPU/GPU reclamation.
-                    process_owner = hasattr(references, 'call_async')
                     for registered_aid in current['registered_cpu_adapter_ids']:
                         victim = rows[registered_aid]
                         if process_owner:
@@ -19909,21 +19956,24 @@ class ScenarioRunner:
                             file_holds.append(held)
                         file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
                 except BaseException:
-                    for held in file_holds:
-                        if process_owner:
-                            await references.call_async('release', lease_id=held['lease_id'],
-                                                        expected_owner_id=held['owner_id'])
-                        else:
-                            references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                    await release_file_holds()
                     raise
             evidence['host_file_fallbacks'] = file_fallbacks
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
                 replacement_epoch=objective, preparation_plan_id=plan_id,
                 **({'host_file_fallbacks': file_fallbacks} if staged is not None else {}))
             superseded = False
+            native_started = False
+            native_outcome_known = False
             try:
+                # The coroutine is the boundary at which the native owner may
+                # accept the command.  Before it starts, ordinary cleanup is
+                # safe; after it starts, unknown outcome must retain the exact
+                # file copies until engine shutdown.
+                native_started = True
                 receipt, cancelled = await settle(call)
                 receipt = checked(receipt)
+                native_outcome_known = True
                 if receipt.get('reason') in ('preparation_source_set_changed', 'preparation_source_binding_changed'):
                     if (receipt.get('acquired') is not False
                             or receipt.get('preparation_plan_id') != plan_id
@@ -19948,22 +19998,19 @@ class ScenarioRunner:
                         native_preparation_source_conflict(frozen=frozen, observed=receipt['source_observation'])
                     superseded = True
             except BaseException:
-                evidence['state'] = 'native_outcome_unresolved'
-                # The RPC may still be reclaiming against these exact copies.
-                # Retain unknown ownership; do not make them evictable.  Once
-                # the owning engine has exited, _cleanup_removed_slot releases
-                # these exact leases through the same file owner.
-                self._retain_ieee_unresolved_file_holds(
-                    engine=engine, references=references, holds=file_holds,
-                    evidence=evidence)
-                raise
-            for held in file_holds:
-                if hasattr(references, 'call_async'):
-                    await references.call_async('release', lease_id=held['lease_id'],
-                                                expected_owner_id=held['owner_id'])
+                if native_started and not native_outcome_known:
+                    evidence['state'] = 'native_outcome_unresolved'
+                    # The RPC may still be reclaiming against these exact
+                    # copies.  Retain unknown ownership; do not make them
+                    # evictable until the owning engine has exited.
+                    self._retain_ieee_unresolved_file_holds(
+                        engine=engine, references=references, holds=file_holds,
+                        evidence=evidence)
                 else:
-                    references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
-            evidence['host_file_fallbacks_released'] = True
+                    await release_file_holds()
+                raise
+            else:
+                await release_file_holds()
             evidence['receipt'] = receipt
             if receipt.get('acquired') is True:
                 evidence['state'] = 'releasing'
@@ -19984,7 +20031,7 @@ class ScenarioRunner:
                     interval['cost_model_updated'] = costs.record_completed_load(
                         PreparationClass(**context['preparation_class']), interval)
                     evidence['preparation_interval'] = interval
-                if cancelled or release_cancelled:
+                if cancelled or release_cancelled or file_release_cancelled:
                     raise asyncio.CancelledError()
                 return MovementOutcome('completed', dict(adapter_int_id=aid, receipt=receipt,
                     reused=source['gpu_slot'] is not None, release_receipt=released))
