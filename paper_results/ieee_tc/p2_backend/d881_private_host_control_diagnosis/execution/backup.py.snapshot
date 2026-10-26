@@ -1,0 +1,25 @@
+"""Reuse D871 explicit-file backup, preserving the divergent final V2 branch."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent/'d871_20261026/backup_executed.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '74c8edcd9927746ec2bb9712f2eb99e9a39d449bf555c2a54ae1763840a4c378'
+source = template.read_text()
+changes = (
+    ('D871 evidence', 'D881 evidence'),
+    ('d871_current_remote_preparation', 'd881_private_host_control_diagnosis'),
+    ('bcc3585698e1d7021b310217ff771cc87da00eea', 'a0a81bcfb47674aefd85949375c3e91ae82dd68c'),
+    ('D871_CURRENT_PREPARATION_BOUNDARY_20261026.md', 'D881_PRIVATE_HOST_CONTROL_DIAGNOSIS_20261026.md'),
+    ('backup/d871-current-preparation-20261026', 'backup/d881-private-host-diagnosis-20261026'),
+    ('tc: preserve D871 current remote preparation and native execution boundary',
+     'tc: close D880 private HOST candidate with actual control and preparation evidence'),
+)
+for old, new in changes:
+    assert source.count(old) >= 1, old
+    source = source.replace(old, new)
+target = raw/'backup_executed.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(target), 'exec'), globals())

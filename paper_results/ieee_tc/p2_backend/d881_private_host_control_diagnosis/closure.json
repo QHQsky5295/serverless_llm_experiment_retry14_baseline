@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-11478b8412614a78966f42d68d881003.scope",
+    "invocation_id": "f398b185e1a54858b908eb9531b5b75e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11478b8412614a78966f42d68d881003.scope",
+    "inode": 32977280
+  },
+  "closed_tasks": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-11478b8412614a78966f42d68d881002.scope",
+        "invocation_id": "3dd8b2384a794948815bd32469269546",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11478b8412614a78966f42d68d881002.scope",
+        "inode": 32973209
+      },
+      "path_removed": true
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D881_PRIVATE_HOST_CONTROL_DIAGNOSIS_20261026.md",
+    "sha256": "d6d1b5d72a3ad3dbe5c1c6356e619fc9b3983c5ba0bfaa2181c498d7a6366198",
+    "bytes": 8151
+  },
+  "protocols": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+      "bytes": 82192
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+      "bytes": 18511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+      "bytes": 4135
+    }
+  ],
+  "production_changes": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "tests": {
+    "reused": "Unchanged D730/D824 controller and D703/D833 partition arithmetic",
+    "current": "Full control ratios/limits; 4000 shared population; 503 exact links; source identities and zero stage reconciliation error"
+  },
+  "disk_free_bytes": 174358953984
+}

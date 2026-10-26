@@ -1,0 +1,79 @@
+{
+  "n": 1930,
+  "limits": {
+    "queue_upper": 8,
+    "queue_lower": 1,
+    "active_upper": 0.875,
+    "active_lower": 0.4375,
+    "ttft_upper_ms": 5000.0,
+    "ttft_lower_ms": 219.51805600110674,
+    "ttft_window_s": 55.0,
+    "scale_down_cooldown_s": 48.0
+  },
+  "actions": [
+    {
+      "action": "scale_up",
+      "target_instances": 2,
+      "current_instances": 1,
+      "reason": "ieee_max_score_above_one",
+      "observed_at": 2496447.870334949,
+      "queue_depth": 1,
+      "active_requests": 8,
+      "ready_capacity": 8,
+      "ready_instances": 1,
+      "pending_instances": 0,
+      "active_saturation": 1.0,
+      "p95_ttft_ms": 677.7671622112393,
+      "ttft_sample_count": 40,
+      "ratios": {
+        "queue": 0.125,
+        "active": 1.1428571428571428,
+        "ttft": 0.13555343244224788
+      },
+      "score": 1.1428571428571428,
+      "all_low": false,
+      "low_since": null,
+      "draining_active_requests": 0,
+      "draining_instances": 0,
+      "outcome": "activation_scheduled",
+      "scheduled": 1,
+      "relative_s": 322.861324342899
+    },
+    {
+      "action": "scale_up",
+      "target_instances": 3,
+      "current_instances": 2,
+      "reason": "ieee_max_score_above_one",
+      "observed_at": 2496449.901891009,
+      "queue_depth": 2,
+      "active_requests": 8,
+      "ready_capacity": 8,
+      "ready_instances": 1,
+      "pending_instances": 1,
+      "active_saturation": 1.0,
+      "p95_ttft_ms": 1151.8146069720387,
+      "ttft_sample_count": 48,
+      "ratios": {
+        "queue": 0.25,
+        "active": 1.1428571428571428,
+        "ttft": 0.23036292139440775
+      },
+      "score": 1.1428571428571428,
+      "all_low": false,
+      "low_since": null,
+      "draining_active_requests": 0,
+      "draining_instances": 0,
+      "outcome": "activation_scheduled",
+      "scheduled": 1,
+      "relative_s": 324.89288040297106
+    }
+  ],
+  "low_queue_active_no_pending_n": 1576,
+  "all_low_n": 0,
+  "low_load_p95_ttft_ms": {
+    "count": 1576,
+    "mean": 2065.9599997907485,
+    "p50_type1": 1799.6459659188986,
+    "p95_type1": 3413.631790317595
+  }
+}

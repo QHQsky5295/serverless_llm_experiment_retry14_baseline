@@ -1,0 +1,380 @@
+{
+  "distinct_request_transfers": 503,
+  "dominant_preparation_stages": {
+    "before_fetch_ms": 146,
+    "extract_verify_ms": 1,
+    "file_publication_envelope_ms": 194,
+    "native_load_ms": 1,
+    "published_to_native_start_ms": 106,
+    "reserve_receive_write_ms": 55
+  },
+  "groups": {
+    "all": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 503,
+          "mean": 1314.0141981807546,
+          "p50_type1": 1072.0751066692173,
+          "p95_type1": 2840.892757754773
+        },
+        "after_last_boundary_ms": {
+          "count": 503,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 503,
+          "mean": 0.09118763370731953,
+          "p50_type1": 0.057233963161706924,
+          "p95_type1": 0.17327209934592247
+        },
+        "before_fetch_ms": {
+          "count": 503,
+          "mean": 316.05493731678246,
+          "p50_type1": 182.83885112032294,
+          "p95_type1": 1055.690563749522
+        },
+        "extract_verify_ms": {
+          "count": 503,
+          "mean": 80.90417224739791,
+          "p50_type1": 64.84923092648387,
+          "p95_type1": 159.79886194691062
+        },
+        "file_publication_envelope_ms": {
+          "count": 503,
+          "mean": 321.83253370729045,
+          "p50_type1": 264.3076009117067,
+          "p95_type1": 856.3872533850372
+        },
+        "headers_ms": {
+          "count": 503,
+          "mean": 3.693141267222036,
+          "p50_type1": 2.815878950059414,
+          "p95_type1": 10.151389054954052
+        },
+        "native_load_ms": {
+          "count": 503,
+          "mean": 41.02593668964256,
+          "p50_type1": 38.12337201088667,
+          "p95_type1": 50.61133159324527
+        },
+        "partition_error_ms": {
+          "count": 503,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 503,
+          "mean": 290.2377800512355,
+          "p50_type1": 197.96318793669343,
+          "p95_type1": 738.7205841951072
+        },
+        "reserve_receive_write_ms": {
+          "count": 503,
+          "mean": 260.1745092674764,
+          "p50_type1": 146.8340321443975,
+          "p95_type1": 1211.8817558512092
+        },
+        "ttft_ms": {
+          "count": 503,
+          "mean": 1802.6321353298235,
+          "p50_type1": 1559.3605930916965,
+          "p95_type1": 3555.065358057618
+        }
+      },
+      "n": 503
+    },
+    "ttft_fail": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 133,
+          "mean": 2250.9025039354383,
+          "p50_type1": 2210.7503339648247,
+          "p95_type1": 4308.007572311908
+        },
+        "after_last_boundary_ms": {
+          "count": 133,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 133,
+          "mean": 0.1111077915008803,
+          "p50_type1": 0.060889869928359985,
+          "p95_type1": 0.20654918625950813
+        },
+        "before_fetch_ms": {
+          "count": 133,
+          "mean": 608.2976717690944,
+          "p50_type1": 417.18418430536985,
+          "p95_type1": 2070.4876352101564
+        },
+        "extract_verify_ms": {
+          "count": 133,
+          "mean": 109.23753257252667,
+          "p50_type1": 77.87261484190822,
+          "p95_type1": 237.31325939297676
+        },
+        "file_publication_envelope_ms": {
+          "count": 133,
+          "mean": 472.9291643961368,
+          "p50_type1": 323.04935716092587,
+          "p95_type1": 1400.9302579797804
+        },
+        "headers_ms": {
+          "count": 133,
+          "mean": 4.165538271566979,
+          "p50_type1": 2.815878950059414,
+          "p95_type1": 11.822161264717579
+        },
+        "native_load_ms": {
+          "count": 133,
+          "mean": 43.755018729996635,
+          "p50_type1": 37.323441822081804,
+          "p95_type1": 55.821644607931376
+        },
+        "partition_error_ms": {
+          "count": 133,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 133,
+          "mean": 471.3011319973135,
+          "p50_type1": 279.0320450440049,
+          "p95_type1": 1657.0627940818667
+        },
+        "reserve_receive_write_ms": {
+          "count": 133,
+          "mean": 541.1053384073023,
+          "p50_type1": 218.51273905485868,
+          "p95_type1": 1647.3957672715187
+        },
+        "ttft_ms": {
+          "count": 133,
+          "mean": 2916.890878618968,
+          "p50_type1": 2798.336146399379,
+          "p95_type1": 4799.937659408897
+        }
+      },
+      "n": 133
+    },
+    "ttft_pass": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 370,
+          "mean": 977.2408342202874,
+          "p50_type1": 925.963238812983,
+          "p95_type1": 1853.1289766542614
+        },
+        "after_last_boundary_ms": {
+          "count": 370,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 370,
+          "mean": 0.08402714455449903,
+          "p50_type1": 0.05546305328607559,
+          "p95_type1": 0.12436462566256523
+        },
+        "before_fetch_ms": {
+          "count": 370,
+          "mean": 211.0055219596,
+          "p50_type1": 111.0512837767601,
+          "p95_type1": 683.7761681526899
+        },
+        "extract_verify_ms": {
+          "count": 370,
+          "mean": 70.71947786025703,
+          "p50_type1": 61.62295863032341,
+          "p95_type1": 127.38888897001743
+        },
+        "file_publication_envelope_ms": {
+          "count": 370,
+          "mean": 267.5194205137322,
+          "p50_type1": 240.73396530002356,
+          "p95_type1": 475.0879188068211
+        },
+        "headers_ms": {
+          "count": 370,
+          "mean": 3.5233336953899346,
+          "p50_type1": 2.815860789269209,
+          "p95_type1": 9.941872209310532
+        },
+        "native_load_ms": {
+          "count": 370,
+          "mean": 40.04494233459637,
+          "p50_type1": 38.27334102243185,
+          "p95_type1": 50.61133159324527
+        },
+        "partition_error_ms": {
+          "count": 370,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 370,
+          "mean": 225.15284543278048,
+          "p50_type1": 184.28322998806834,
+          "p95_type1": 442.33771972358227
+        },
+        "reserve_receive_write_ms": {
+          "count": 370,
+          "mean": 159.19126527937684,
+          "p50_type1": 125.33978605642915,
+          "p95_type1": 372.4922058172524
+        },
+        "ttft_ms": {
+          "count": 370,
+          "mean": 1402.1012897691312,
+          "p50_type1": 1327.8236472979188,
+          "p95_type1": 2384.982403367758
+        }
+      },
+      "n": 370
+    }
+  },
+  "joined_remote_requests": 503,
+  "kind": "d818_remote_preparation_partition_v1",
+  "limitations": [
+    "Conditional selected-replica cohort, not a cross-system causal comparison.",
+    "Receive interval includes reservation and local writes; not pure network latency.",
+    "Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.",
+    "Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.",
+    "Independent numerical adapter correctness remains unknown."
+  ],
+  "outputs": [
+    {
+      "bytes": 117516,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d881_private_host_control_diagnosis/partition/transfers.csv",
+      "sha256": "0a091b125af03ae599ca2d7e25edb9928667507d43458dcbd111cd64b27f3e4e"
+    },
+    {
+      "bytes": 177508,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d881_private_host_control_diagnosis/partition/remote_requests.csv",
+      "sha256": "ea68b51b689e52462ebd45452df217cf55e9c78718f40e79b8ee87c4374db6b4"
+    }
+  ],
+  "passed": true,
+  "request_population": 4000,
+  "selected_remote": 510,
+  "source_refs": [
+    {
+      "bytes": 329260478,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d880_20261026/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d880_3b_max3_full_w2.json",
+      "sha256": "fa2d660464cb4d862e599142dae8ed918f45dbae59eaa8d99cd57fee7038667f"
+    },
+    {
+      "bytes": 1007213780,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d880_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "a8e3d516f80b52591532b5982c9bd3256985261af3980455af61498dae9b58eb"
+    },
+    {
+      "bytes": 2444048,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/stages/requests.csv",
+      "sha256": "8bec3d768fb317f03c3d1f77b3675ef2d2f0942001aafa9e6aa22fd4458dbd6d"
+    },
+    {
+      "bytes": 229272,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/completion/stages/diagnosis.json",
+      "sha256": "c4634208488b7c9bbdd8fe80216b0659086bd4a4f18d290c666e53b23fdc7ad1"
+    },
+    {
+      "bytes": 105664,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "af283bda695a0d50ba04b20cd23de5d21b3adc5756606d49cb50f71cc3d03a52"
+    }
+  ],
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d880_20261026/3b_max3_full_w2",
+  "transfers": {
+    "metrics": {
+      "after_publication_ms": {
+        "count": 505,
+        "mean": 127.13428762289557,
+        "p50_type1": 69.39321802929044,
+        "p95_type1": 393.04018625989556
+      },
+      "before_extract_ms": {
+        "count": 505,
+        "mean": 0.091037866982198,
+        "p50_type1": 0.057233963161706924,
+        "p95_type1": 0.17327209934592247
+      },
+      "extract_verify_ms": {
+        "count": 505,
+        "mean": 80.86385977094864,
+        "p50_type1": 64.84923092648387,
+        "p95_type1": 159.79886194691062
+      },
+      "file_publication_envelope_ms": {
+        "count": 505,
+        "mean": 321.4417984718365,
+        "p50_type1": 264.3076009117067,
+        "p95_type1": 856.3872533850372
+      },
+      "headers_ms": {
+        "count": 505,
+        "mean": 3.6897197319655723,
+        "p50_type1": 2.815878950059414,
+        "p95_type1": 10.151389054954052
+      },
+      "reserve_receive_write_ms": {
+        "count": 505,
+        "mean": 259.66539440012656,
+        "p50_type1": 146.8340321443975,
+        "p95_type1": 1211.8817558512092
+      },
+      "total_ms": {
+        "count": 505,
+        "mean": 792.886097864755,
+        "p50_type1": 612.4901860021055,
+        "p95_type1": 1938.6144140735269
+      }
+    },
+    "n": 505
+  },
+  "unjoined_remote_requests": [
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_01335"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_01647"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02496"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02507"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_02967"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03012"
+    },
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_03644"
+    }
+  ]
+}

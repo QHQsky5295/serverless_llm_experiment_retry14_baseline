@@ -1,0 +1,136 @@
+"""Reuse D730/D824 control arithmetic and D871 preparation partition on D880.
+
+Bounded, closed-log analysis only; no changed threshold or counterfactual SLO.
+"""
+import collections
+import contextlib
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d881_private_host_control_diagnosis'
+sys.path.insert(0, str(ROOT))
+import ijson
+import yaml
+from scripts.ieee_tc.audit_d703_3b_full import (
+    read, ref, digest, p, diagnose_remote_preparation, diagnose_prefetch_control,
+)
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+
+assert not OUT.exists()
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+scope = p.scope_identity(p.cg_path().name)
+cg = Path(scope['path'])
+assert (cg/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (cg/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (cg/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+save(RAW/'identity.json', scope)
+OUT.mkdir(parents=True)
+template = ROOT/'paper_results/ieee_tc/p2_backend/d730_ingress_pending_diagnosis/analyze.py.snapshot'
+assert digest(template) == 'f9d36f8d506ad7a224b75eb85e9f7e41af794c009738b09d36d1e2c5ae1bbd21'
+assert digest(ROOT/'scripts/ieee_tc/audit_d703_3b_full.py') == 'af283bda695a0d50ba04b20cd23de5d21b3adc5756606d49cb50f71cc3d03a52'
+text = template.read_text()
+block = text[text.index("run = Path(stage['source_run'])"):text.index('OUT.mkdir(parents=True)')]
+bases = {
+    'd870': ROOT/'paper_results/ieee_tc/p2_backend/d870_3b_staged_union_full_w2',
+    'd880': ROOT/'paper_results/ieee_tc/p2_backend/d880_private_host_full_w2',
+}
+controls, tables, sources = {}, {}, [ref(template), ref(Path(__file__))]
+expected = {
+    'd870': '86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136',
+    'd880': 'a8e3d516f80b52591532b5982c9bd3256985261af3980455af61498dae9b58eb',
+}
+for name, base in bases.items():
+    stage_path = base/'completion/stages/diagnosis.json'
+    stage = read(stage_path)
+    assert stage['passed'] and stage['counts']['n'] == 4000
+    path = Path(stage['request_table']['path'])
+    assert digest(path) == stage['request_table']['sha256']
+    with path.open() as handle:
+        tables[name] = list(csv.DictReader(handle))
+    outcome = Path(stage['source_run'])/'launch.launch/physical_deployment/main_outcome.json'
+    assert digest(outcome) == expected[name]
+    executable = block.replace('20261022_d729_3b_bulk_loader_full_w0.yaml',
+                               f'20261026_{name}_3b_max3_full_w2.yaml')
+    snapshot = OUT/f'{name}_control_executed.py.snapshot'
+    with snapshot.open('x') as handle:
+        handle.write(executable)
+    namespace = dict(stage=stage, ROOT=ROOT, Path=Path, read=read, yaml=yaml,
+                     ijson=ijson, timing_stats=timing_stats)
+    exec(compile(executable, str(snapshot), 'exec'), namespace)
+    controls[name] = namespace['control']
+    save(OUT/f'{name}_control.json', controls[name])
+    sources.extend(ref(item) for item in (stage_path, path, outcome,
+        namespace['launch_path'], namespace['config_path'], snapshot))
+assert controls['d870']['limits'] == controls['d880']['limits']
+
+# Reuse the already-sealed paired result, rather than recomputing outcomes.
+paired_path = bases['d880']/'native_and_lifecycle/paired_stages/diagnosis.json'
+paired = read(paired_path)
+phases = [r for r in paired['groups'] if r['dimension'] == 'phase']
+assert len(phases) == 8 and all(r['n'] == 500 for r in phases)
+source_fields = ('arrival_release_lateness_ms', 'dispatch_window_wait_ms',
+                 'runtime_slot_wait_ms', 'ttft_ms', 'tpot_ms')
+phase_rows = []
+for phase in range(8):
+    entry = dict(phase=phase)
+    for name, table in tables.items():
+        rows = [r for r in table if int(r['phase']) == phase]
+        assert len(rows) == 500
+        entry[name] = dict(n=len(rows), tiers=dict(collections.Counter(r['tier'] for r in rows)),
+            metrics={key:timing_stats([float(r[key]) for r in rows]) for key in source_fields})
+    phase_rows.append(entry)
+
+base = bases['d880']
+run = Path(read(base/'completion/stages/diagnosis.json')['source_run'])
+with (RAW/'preparation_analysis.txt').open('x') as log, contextlib.redirect_stdout(log):
+    diagnose_remote_preparation(run, OUT/'partition', base/'completion/stages')
+    diagnose_prefetch_control(run, OUT/'prefetch_control', OUT/'partition',
+                             base/'settlement_analysis', base/'completion/stages')
+
+def actions(control):
+    return [dict(relative_s=e['relative_s'], action=e['action'],
+        trigger_components=[k for k,v in e['ratios'].items() if v is not None and v > 1],
+        ratios=e['ratios'], ttft_sample_count=e['ttft_sample_count'],
+        ready_instances=e['ready_instances'], pending_instances=e['pending_instances'])
+        for e in control['actions']]
+
+first = {name:{key:table[0][key] for key in ('request_id','ordinal','adapter_id',
+    'prompt_tokens','output_tokens',*source_fields)} for name,table in tables.items()}
+report = dict(kind='d881_closed_control_and_preparation_v1', passed=True,
+    new_gpu_replays=0, production_changes=False, metric_changes=False,
+    actual_actions={key:actions(value) for key,value in controls.items()},
+    first_requests=first, phases=phases, ingress_by_phase=phase_rows,
+    n_correct=None, ranking_eligible=False, confidence_interval=None,
+    limitations=[
+        'Actual controller inputs explain actions, not the cause of input latency.',
+        'Phase is a common ordinal block of 500, not the W2 rotation period of 100.',
+        'Candidate changes private HOST construction and its necessary initialization profile; not an isolated microbenchmark.',
+        'Single-run stage differences are descriptive, not causal or significant gains.',
+        'Resource reduction follows allocation boundaries, not proven CPU preparation savings.',
+        'Remote cohorts are selected-replica outcomes, not controlled counterfactuals.',
+        'No new performance replay, SLO adjustment, numerical proof or ranking.'],
+    sources=sources+[ref(paired_path)], scope=scope)
+save(OUT/'diagnosis.json', report)
+with (OUT/'analyze.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+save(OUT/'resources.json', dict(scope=scope, peak_bytes=int((cg/'memory.peak').read_text()),
+    events=(cg/'memory.events').read_text(), swap_bytes=int((cg/'memory.swap.current').read_text())))
+save(OUT/'manifest.json', dict(files=[ref(x) for x in sorted(OUT.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True, actual_actions=report['actual_actions'],
+    first_requests=first, new_gpu_replays=0)))

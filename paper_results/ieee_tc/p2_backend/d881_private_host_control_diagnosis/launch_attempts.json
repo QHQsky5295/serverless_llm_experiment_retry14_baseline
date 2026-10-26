@@ -1,0 +1,20 @@
+{
+  "attempt1": {
+    "unit": "primelora-tc-aux-11478b8412614a78966f42d68d881001.scope",
+    "returncode": 1,
+    "reached_source_read": false,
+    "reason": "process affinity assertion; AllowedCPUs alone did not set sched_getaffinity"
+  },
+  "attempt2": {
+    "identity": {
+      "unit": "primelora-tc-aux-11478b8412614a78966f42d68d881002.scope",
+      "invocation_id": "3dd8b2384a794948815bd32469269546",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11478b8412614a78966f42d68d881002.scope",
+      "inode": 32973209
+    },
+    "returncode": 0,
+    "taskset": "2,3,26,27"
+  },
+  "gpu_replays": 0,
+  "analysis_criteria_unchanged": true
+}

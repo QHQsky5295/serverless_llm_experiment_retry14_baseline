@@ -1,0 +1,95 @@
+"""Reuse closed-analysis checks from D871, with D881's actual populations."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d881_private_host_control_diagnosis'
+sys.path.insert(0, str(ROOT))
+from scripts.ieee_tc.audit_d703_3b_full import read, ref, digest, p
+
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json', scope)
+identity = read(RAW/'identity.json')
+assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+resource = read(OUT/'resources.json')
+assert resource['swap_bytes'] == 0
+assert all(int(row.split()[1]) == 0 for row in resource['events'].splitlines())
+for row in read(OUT/'manifest.json')['files']:
+    assert digest(Path(row['path'])) == row['sha256']
+report = read(OUT/'diagnosis.json')
+prep = read(OUT/'partition/diagnosis.json')
+control = read(OUT/'prefetch_control/diagnosis.json')
+assert all(r['passed'] for r in (report, prep, control))
+assert prep['request_population'] == control['full_request_population'] == 4000
+assert prep['selected_remote'] == 510
+assert prep['joined_remote_requests'] == control['joined_requests'] == 503
+assert len(prep['unjoined_remote_requests']) == 7
+assert prep['groups']['ttft_fail']['n'] == control['groups']['ttft_fail']['n'] == 133
+for item in (prep, control):
+    for row in item['outputs']:
+        assert digest(Path(row['path'])) == row['sha256']
+# Deduplicate large immutable sources already verified by the actual analysis.
+checks = {row['path']: row['sha256'] for row in report['sources']}
+for item in (prep, control):
+    for row in item['source_refs']:
+        if row['path'] in checks:
+            assert checks[row['path']] == row['sha256']
+        else:
+            assert digest(Path(row['path'])) == row['sha256']
+            checks[row['path']] = row['sha256']
+seal = RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'
+assert digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert digest(Path(path)) == sha
+protocol = {
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'):
+        'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':
+        '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':
+        '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+}
+for path, sha in protocol.items():
+    assert digest(path) == sha
+execution = OUT/'execution'
+execution.mkdir(exist_ok=False)
+for name in ('analyze.py', 'close.py', 'backup.py', 'preparation_analysis.txt'):
+    path = RAW/name
+    if path.suffix == '.py':
+        compile(path.read_text(), str(path), 'exec')
+    with (execution/(name+'.snapshot')).open('xb') as handle:
+        handle.write(path.read_bytes())
+save(OUT/'launch_attempts.json', dict(
+    attempt1=dict(unit='primelora-tc-aux-11478b8412614a78966f42d68d881001.scope',
+        returncode=1, reached_source_read=False, reason='process affinity assertion; AllowedCPUs alone did not set sched_getaffinity'),
+    attempt2=dict(identity=identity, returncode=0, taskset='2,3,26,27'),
+    gpu_replays=0, analysis_criteria_unchanged=True))
+doc = ROOT/'docs/ieee_tc/D881_PRIVATE_HOST_CONTROL_DIAGNOSIS_20261026.md'
+save(OUT/'closure.json', dict(passed=True, scope=scope,
+    closed_tasks=[dict(identity=identity, path_removed=True)],
+    protected=protected, user_protected=user, doc=ref(doc),
+    protocols=[ref(path) for path in protocol], production_changes=False,
+    new_gpu_replays=0, n_correct=None, ranking_eligible=False, confidence_interval=None,
+    tests=dict(reused='Unchanged D730/D824 controller and D703/D833 partition arithmetic',
+        current='Full control ratios/limits; 4000 shared population; 503 exact links; source identities and zero stage reconciliation error'),
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json', dict(files=[ref(x) for x in sorted(OUT.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, joined=503, ttft_failed=133, new_gpu_replays=0)))

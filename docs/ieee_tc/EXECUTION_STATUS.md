@@ -1,4 +1,44 @@
-# IEEE TC execution status — D880 closed; W2 remains below joint SLO
+# IEEE TC execution status — D881 bounded diagnosis closed; W2 still below joint SLO
+
+## D881：实际扩容原因与后半段等待（2026-10-26）
+
+复用D730/D824控制核算和D871准备分解，未改生产代码、阈值或生成数据，
+无新GPU回放。D870两次扩容10.642/12.690s由首请求TTFT/5000=1.369134
+触发，只有1/2个TTFT样本；D880在322.861/324.893s由active/0.875=
+1.142857触发，样本40/48。首请求TTFT6845.669→4329.560ms，dispatch
+window6304.862→3700.095ms。两轮all-low/缩容均0。资源差对应更晚分配，
+不能归为后台构造直接节省；与D824/D862/D867同类反馈问题到此关闭。
+
+八个500请求输入段联合差依次0,+6,+4,+11,+2,-21,-14,0。第6/7段TTFT
+增加148.942/57.480ms，主要是runtime-slot包络与来源取得；原生prefill
+只增加1.144/0.465ms。D880选中Remote510条，503条own IO精确关联、7条
+共享/来源变化保持未关联，133条TTFT违约；准备均值1314.014ms，顺序误差0。
+本地三个等待/确认包络约928.125ms，不能叫纯锁时间或反事实可删除时间。
+503条request/job/pressure/transfer关联通过；条件组不作共同因果对照。
+
+决定：结束private CPU构造候选的性能评价，不晋升、不作为下一候选默认
+叠加基础；代码与证据保留opt-in，默认串行路径本来未覆盖。后续以D870
+串行/匹配profile为参照，不重跑同键、不调阈值或追加泛化profiling。
+下一单一问题限于前台准入/来源准备事务的可证明重复工作；先读当前调用、
+D863/D868及否决历史、官方代码，出现具体新前提才实现一个候选。D869联合
+清点已完成，不重复；并行ACK/压力共享/attach/提前通知/整owner线程/
+stat/projection/graph等已关闭方向不得无新前提重开。
+
+CPU分析峰值764837888B，high/max/OOM/swap0，scope已退出。首入口缺
+taskset，在读取结果前拒绝；第二入口按既有affinity完成，非性能重跑。
+产物d881_private_host_control_diagnosis；文档D881_PRIVATE_HOST_CONTROL_DIAGNOSIS_20261026.md。
+本轮为progress，完整目标active；仍94.025%/94.325%未达95%，N_correct=null。
+全部同版本双模型矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、数值证明、
+两轮审稿图文和最终V2保留；实际保护/备份以随后closure与backup回执为准。
+
+### D880实际备份回执（随下一正常检查点保存）
+
+60个明确文件已提交`a0a81bcfb47674aefd85949375c3e91ae82dd68c`，推送并核验
+`refs/heads/backup/d880-complete-20261026`成功。完整指标/阶段、真实交付、
+owner/settlement、4000请求descriptor与private-construction覆盖、来源SHA、
+147保护项、用户manifest、语法/diff/凭据检查通过。未stage用户manifest，
+未广泛stage无关untracked内容，未force push。最终V2仍未同步，备份不冒充
+最终交付。无GPU/远端测量任务；本轮progress，完整goal继续active。
 
 ## D880收尾完成与候选决定（2026-10-26 13:41）
 
