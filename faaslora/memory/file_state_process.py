@@ -509,8 +509,38 @@ class ProcessLocalSourceReferences:
     def file_budget_snapshot(self, limits):
         return self._call('file_budget_snapshot', limits=limits)
 
+    @staticmethod
+    def _serializable_preparation_manifests(manifests):
+        """Detach frozen metadata before sending it across the process boundary.
+
+        ``FrozenPreparationDescriptions`` deliberately uses mapping proxies to
+        prevent controller-side mutation.  Those proxies are not picklable,
+        while the child owner only needs the validated file-size/digest pairs
+        and reconstructs its own immutable representation.  The conversion is
+        therefore a value-only IPC encoding, not a second residency ledger.
+        """
+        try:
+            items = manifests.items()
+        except AttributeError as exc:
+            raise TypeError('preparation manifests must be a mapping') from exc
+        detached = {}
+        for adapter_id, files in items:
+            try:
+                file_items = files.items()
+            except AttributeError as exc:
+                raise TypeError('preparation manifest files must be a mapping') from exc
+            detached[str(adapter_id)] = {
+                str(path): (size, digest)
+                for path, (size, digest) in file_items
+            }
+        return detached
+
     def preparation_snapshot(self, *, manifests, limits):
-        return self._call('preparation_snapshot', manifests=manifests, limits=limits)
+        return self._call(
+            'preparation_snapshot',
+            manifests=self._serializable_preparation_manifests(manifests),
+            limits=dict(limits),
+        )
 
     def file_preparation_snapshot(self):
         return self._call('file_preparation_snapshot')

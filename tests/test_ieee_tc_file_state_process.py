@@ -21,7 +21,7 @@ from faaslora.memory.residency_manager import ResidencyManager, StorageTier
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.metrics.metrics_collector import _open_pidfd
 from faaslora.storage.http_artifact_store import (
-    _verified_file_signature, preparation_content_sha256,
+    FrozenPreparationDescriptions, _verified_file_signature, preparation_content_sha256,
 )
 
 
@@ -235,6 +235,22 @@ class FileStateProcessTests(unittest.TestCase):
                     snapshot = await facade.call_async('source_snapshot', adapter_id='a')
                     self.assertEqual(snapshot['owner_id'], facade.owner_id)
             asyncio.run(check())
+        finally:
+            facade.close()
+
+    def test_facade_preparation_snapshot_detaches_mappingproxy_metadata(self):
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+        try:
+            payload = b'process-boundary-preparation'
+            files = {'weights': (len(payload), hashlib.sha256(payload).hexdigest())}
+            manifests = FrozenPreparationDescriptions({'a': files})
+            facade.configure_host_budget(1024**2)
+            snapshot = facade.preparation_snapshot(
+                manifests=manifests,
+                limits={'host': 1024**2, 'nvme': 1024**2},
+            )
+            self.assertEqual(snapshot['artifacts']['a']['content_sha256'],
+                             preparation_content_sha256(files))
         finally:
             facade.close()
 
