@@ -207,7 +207,8 @@ class FileStateProcessTests(unittest.TestCase):
         try:
             with facade.materializing(self.nvme / 'a', budgeted=True) as transfer_id:
                 with facade.transfer_workspace(transfer_id) as staging:
-                    facade.prepare_transfer(transfer_id, staging, 11, files,
+                    frozen = FrozenPreparationDescriptions({'a': files})
+                    facade.prepare_transfer(transfer_id, staging, 11, frozen['a'],
                                             limit_bytes=1024**2)
                     target_file = Path(staging) / 'weights'
                     target_file.write_bytes(payload)

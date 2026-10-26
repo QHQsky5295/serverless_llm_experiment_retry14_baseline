@@ -542,6 +542,29 @@ class ProcessLocalSourceReferences:
             }
         return detached
 
+    @staticmethod
+    def _serializable_expected_files(expected):
+        """Detach one frozen file tree before sending it through IPC.
+
+        Remote delivery returns the selected adapter's file map from
+        ``FrozenPreparationDescriptions``.  Its mapping-proxy is intentional
+        for controller-side immutability, but it is not a process-boundary
+        value.  The owner validates the same size/digest pairs after decoding;
+        this conversion only changes the transport representation.
+        """
+        try:
+            items = expected.items()
+        except AttributeError as exc:
+            raise TypeError('expected file manifest must be a mapping') from exc
+        detached = {}
+        for name, pair in items:
+            try:
+                size, digest = pair
+            except (TypeError, ValueError) as exc:
+                raise TypeError('expected file manifest entries need size/digest pairs') from exc
+            detached[str(name)] = (size, digest)
+        return detached
+
     def preparation_snapshot(self, *, manifests, limits):
         return self._call(
             'preparation_snapshot',
@@ -574,12 +597,18 @@ class ProcessLocalSourceReferences:
 
     def prepare_transfer(self, transfer_id, staging, archive_bytes, expected, *, limit_bytes):
         return self._call('prepare_transfer', transfer_id=transfer_id, staging=staging,
-                          archive_bytes=archive_bytes, expected=expected,
+                          archive_bytes=archive_bytes,
+                          expected=self._serializable_expected_files(expected),
                           limit_bytes=limit_bytes)
 
     def prepare_copy(self, transfer_id, staging, expected, *, limit_bytes):
         return self._call('prepare_copy', transfer_id=transfer_id, staging=staging,
-                          expected=expected, limit_bytes=limit_bytes)
+                          expected=self._serializable_expected_files(expected),
+                          limit_bytes=limit_bytes)
+
+    def quiescent(self):
+        """Return the child owner's live-dependency census for safe teardown."""
+        return self._call('quiescent')
 
     def copy_confirmed(self, source, target, *, limit_bytes, cancel_event=None,
                        evidence=None, expected_content_sha256=None,

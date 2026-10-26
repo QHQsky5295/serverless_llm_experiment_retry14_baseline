@@ -25061,6 +25061,24 @@ def _cleanup_ieee_run_workspaces(stack, claims):
         if (path.is_symlink() or not path.is_dir()
                 or (path.stat().st_dev,path.stat().st_ino) != (row['device'],row['inode'])):
             raise RuntimeError('workspace cleanup identity changed')
+    # Process-local ownership deliberately exposes no controller-side lock or
+    # ledger.  Ask the child owner for the same quiescence proof, then perform
+    # each deletion through its value-only mutation API.  Keep the legacy
+    # in-process path for configurations that do not use the owner process.
+    if hasattr(owner, 'quiescent'):
+        owner.quiescent()
+        receipt = dict(complete=False, roots=copy.deepcopy(claims),
+                       inventory_before=owner.inventory())
+        for row in claims:
+            path = Path(row['path'])
+            for child in tuple(path.iterdir()):
+                if not owner.delete(child):
+                    raise RuntimeError('workspace cleanup has unresolved references')
+        receipt['inventory_after'] = owner.inventory()
+        for row in claims:
+            Path(row['path']).rmdir()
+        receipt['complete'] = True
+        return receipt
     with owner.lock:
         if owner.leases or owner.materializations or owner._file_preparation_plans:
             raise RuntimeError('workspace cleanup has unresolved references or movements')
