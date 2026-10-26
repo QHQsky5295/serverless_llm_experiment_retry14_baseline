@@ -1,0 +1,438 @@
+{
+  "assembly": {
+    "content_index": {
+      "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+    },
+    "control_settings_applied_to_source_collector": false,
+    "full_development_contract": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d877_private_host_profile/development_contract.json",
+      "sha256": "576c775bcac00b62626ef3dd25ab58dc39a045a1256a7ca4c4eb6527461c6295"
+    },
+    "helper": "scripts.run_all_experiments._prepare_scenario_runtime_model_config",
+    "instance_model_overrides": {},
+    "kind": "main_source_runtime_assembly_v1",
+    "performance_samples_relabelled": false,
+    "planned_child_model_config": {
+      "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "backend": "vllm",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "compilation_config": {
+        "cudagraph_capture_sizes": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          32,
+          64,
+          128,
+          256,
+          512,
+          1024
+        ],
+        "max_cudagraph_capture_size": 1024
+      },
+      "device_id": 0,
+      "dtype": "float16",
+      "enable_chunked_prefill": true,
+      "enable_lora": true,
+      "enable_prefix_caching": false,
+      "enforce_eager": false,
+      "generation_contract": "fixed_length_greedy_v1",
+      "gpu_memory_utilization": 0.72,
+      "ieee_admission_profile": {
+        "model_backend_id": "native-model/9fdda092c2a90440fa3be4280c225e49e9bb4e3cd56c05b009f0dbbaf7d533d7",
+        "profile_id": "native-completed/946649d652fb2f7c4495f0452bdcd10dd0283362de969f7523a10fe27c83ffb0",
+        "profile_means": [
+          98.375,
+          171.69230769230768
+        ],
+        "transfer_limit": 3,
+        "window_s": 5.0
+      },
+      "ieee_control_interleave": "atomic_control_yield_v1",
+      "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+      "ieee_gpu_references": true,
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_host_construction": "private_cpu_core_commit_v1",
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "dtype": "torch.float16",
+        "kind": "native_host_workspace_contract_v1",
+        "max_resident_pinned_bytes": 18350080,
+        "max_transient_tensor_bytes": 36730056,
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+      },
+      "ieee_physical_allocation": true,
+      "ieee_scheduler_observation": true,
+      "ieee_worker_observation": true,
+      "max_cpu_loras": 32,
+      "max_input_len": 759,
+      "max_lora_rank": 16,
+      "max_loras": 8,
+      "max_model_len": 1024,
+      "max_num_batched_tokens": 4096,
+      "max_num_seqs": 8,
+      "max_output_tokens_cap": 256,
+      "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+      "requested_enforce_eager": "auto",
+      "requested_runtime_concurrency_cap": 8,
+      "resolved_enforce_eager": false,
+      "runtime_concurrency_cap": 8,
+      "safetensors_load_strategy": "auto",
+      "skip_stale_gpu_cleanup": true,
+      "tensor_parallel_size": 1,
+      "timing_contract": "ieee_tc_native_v1",
+      "visible_device_ids": [
+        0
+      ],
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "vllm_use_v1": true
+    },
+    "production_profile_frozen": false,
+    "workload": {
+      "fixed_output_max_tokens": 256,
+      "fixed_prompt_max_tokens": 759,
+      "generation_contract": "fixed_length_greedy_v1"
+    }
+  },
+  "campaign": "D877_20261026",
+  "content_index": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "dynamic_measurement_required": true,
+  "gpu_runs": 0,
+  "identity_only_resolver_passed": true,
+  "kind": "d701_3b_same_spec_profile_preparation_v1",
+  "launchable": false,
+  "length_initialization": {
+    "audit": {
+      "path": "paper_results/ieee_tc/p2_backend/d643_3b_initializer/completed_length_audit.json",
+      "sha256": "96ea9b77be21b5cb08ccaaed1e636ab9432e90831287ebc3a7368e175daca7fa"
+    },
+    "backend_version": "0.30.0",
+    "base_model_config": {
+      "backend": "vllm",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "compilation_config": {
+        "cudagraph_capture_sizes": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          32,
+          64,
+          128,
+          256,
+          512,
+          1024
+        ],
+        "max_cudagraph_capture_size": 1024
+      },
+      "dtype": "float16",
+      "enable_chunked_prefill": true,
+      "enable_lora": true,
+      "enable_prefix_caching": false,
+      "enforce_eager": false,
+      "generation_contract": "fixed_length_greedy_v1",
+      "gpu_memory_utilization": 0.72,
+      "ieee_control_interleave": "atomic_control_yield_v1",
+      "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+      "ieee_gpu_references": true,
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_host_construction": "private_cpu_core_commit_v1",
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "dtype": "torch.float16",
+        "kind": "native_host_workspace_contract_v1",
+        "max_resident_pinned_bytes": 18350080,
+        "max_transient_tensor_bytes": 36730056,
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+      },
+      "ieee_physical_allocation": true,
+      "ieee_scheduler_observation": true,
+      "ieee_worker_observation": true,
+      "max_cpu_loras": 32,
+      "max_input_len": 759,
+      "max_lora_rank": 16,
+      "max_loras": 8,
+      "max_model_len": 1024,
+      "max_num_batched_tokens": 4096,
+      "max_num_seqs": 8,
+      "max_output_tokens_cap": 256,
+      "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+      "requested_enforce_eager": "auto",
+      "resolved_enforce_eager": false,
+      "runtime_concurrency_cap": 8,
+      "skip_stale_gpu_cleanup": true,
+      "tensor_parallel_size": 1,
+      "timing_contract": "ieee_tc_native_v1",
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "vllm_use_v1": true
+    },
+    "capacity_resolution": "historical_facade_max_cpu_loras_v1",
+    "development_only": true,
+    "input_upper_bounds": [
+      759
+    ],
+    "kind": "measured_admission_initialization_v1",
+    "length_transfer": {
+      "invariant": "observed_native_completed_lengths_under_identical_fixed_output_contract",
+      "kind": "native_fixed_output_private_host_length_transfer_v1",
+      "model_config_changes": {
+        "compilation_config": {
+          "source": null,
+          "target": {
+            "cudagraph_capture_sizes": [
+              1,
+              2,
+              4,
+              8,
+              16,
+              32,
+              64,
+              128,
+              256,
+              512,
+              1024
+            ],
+            "max_cudagraph_capture_size": 1024
+          }
+        },
+        "ieee_host_construction": {
+          "source": null,
+          "target": "private_cpu_core_commit_v1"
+        }
+      },
+      "numerical_correctness_qualified": false,
+      "source_model_identity": {
+        "backend": "vllm",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "dtype": "float16",
+        "enable_chunked_prefill": true,
+        "enable_lora": true,
+        "enable_prefix_caching": false,
+        "enforce_eager": false,
+        "generation_contract": "fixed_length_greedy_v1",
+        "gpu_memory_utilization": 0.72,
+        "ieee_control_interleave": "atomic_control_yield_v1",
+        "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+        "ieee_gpu_references": true,
+        "ieee_host_budget_bytes": 17179869184,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "ieee_native_host_allocator_policy": "uncached_background_v1",
+        "ieee_native_host_tensor_budget_bytes": 2147483648,
+        "ieee_native_host_workspace": {
+          "dtype": "torch.float16",
+          "kind": "native_host_workspace_contract_v1",
+          "max_resident_pinned_bytes": 18350080,
+          "max_transient_tensor_bytes": 36730056,
+          "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+        },
+        "ieee_physical_allocation": true,
+        "ieee_scheduler_observation": true,
+        "ieee_worker_observation": true,
+        "max_cpu_loras": 32,
+        "max_input_len": 759,
+        "max_lora_rank": 16,
+        "max_loras": 8,
+        "max_model_len": 1024,
+        "max_num_batched_tokens": 4096,
+        "max_num_seqs": 8,
+        "max_output_tokens_cap": 256,
+        "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+        "requested_enforce_eager": "auto",
+        "resolved_enforce_eager": false,
+        "runtime_concurrency_cap": 8,
+        "skip_stale_gpu_cleanup": true,
+        "tensor_parallel_size": 1,
+        "timing_contract": "ieee_tc_native_v1",
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "vllm_use_v1": true
+      },
+      "target_model_identity": {
+        "backend": "vllm",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "compilation_config": {
+          "cudagraph_capture_sizes": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32,
+            64,
+            128,
+            256,
+            512,
+            1024
+          ],
+          "max_cudagraph_capture_size": 1024
+        },
+        "dtype": "float16",
+        "enable_chunked_prefill": true,
+        "enable_lora": true,
+        "enable_prefix_caching": false,
+        "enforce_eager": false,
+        "generation_contract": "fixed_length_greedy_v1",
+        "gpu_memory_utilization": 0.72,
+        "ieee_control_interleave": "atomic_control_yield_v1",
+        "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+        "ieee_gpu_references": true,
+        "ieee_host_budget_bytes": 17179869184,
+        "ieee_host_construction": "private_cpu_core_commit_v1",
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "ieee_native_host_allocator_policy": "uncached_background_v1",
+        "ieee_native_host_tensor_budget_bytes": 2147483648,
+        "ieee_native_host_workspace": {
+          "dtype": "torch.float16",
+          "kind": "native_host_workspace_contract_v1",
+          "max_resident_pinned_bytes": 18350080,
+          "max_transient_tensor_bytes": 36730056,
+          "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+        },
+        "ieee_physical_allocation": true,
+        "ieee_scheduler_observation": true,
+        "ieee_worker_observation": true,
+        "max_cpu_loras": 32,
+        "max_input_len": 759,
+        "max_lora_rank": 16,
+        "max_loras": 8,
+        "max_model_len": 1024,
+        "max_num_batched_tokens": 4096,
+        "max_num_seqs": 8,
+        "max_output_tokens_cap": 256,
+        "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+        "requested_enforce_eager": "auto",
+        "resolved_enforce_eager": false,
+        "runtime_concurrency_cap": 8,
+        "skip_stale_gpu_cleanup": true,
+        "tensor_parallel_size": 1,
+        "timing_contract": "ieee_tc_native_v1",
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "vllm_use_v1": true
+      },
+      "timing_samples_transferred": false
+    },
+    "model": "3b",
+    "observed_buckets": [
+      {
+        "bucket": 0,
+        "completed_output_mean": 98.375,
+        "unique_requests": 8
+      },
+      {
+        "bucket": 1,
+        "completed_output_mean": 171.69230769230768,
+        "unique_requests": 13
+      }
+    ],
+    "performance_samples_relabelled": false,
+    "production_profile_frozen": false,
+    "runtime_receipt_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+    "source_recorded_model_config": {
+      "backend": "vllm",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "device_id": 0,
+      "dtype": "float16",
+      "enable_chunked_prefill": true,
+      "enable_lora": true,
+      "enable_prefix_caching": false,
+      "enforce_eager": false,
+      "generation_contract": "fixed_length_greedy_v1",
+      "gpu_memory_utilization": 0.72,
+      "ieee_control_interleave": "atomic_control_yield_v1",
+      "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+      "ieee_gpu_references": true,
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "dtype": "torch.float16",
+        "kind": "native_host_workspace_contract_v1",
+        "max_resident_pinned_bytes": 18350080,
+        "max_transient_tensor_bytes": 36730056,
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+      },
+      "ieee_physical_allocation": true,
+      "ieee_scheduler_observation": true,
+      "ieee_worker_observation": true,
+      "max_cpu_loras": 32,
+      "max_input_len": 759,
+      "max_lora_rank": 16,
+      "max_loras": 8,
+      "max_model_len": 1024,
+      "max_num_batched_tokens": 4096,
+      "max_num_seqs": 8,
+      "max_output_tokens_cap": 256,
+      "name": "/home/qhq/serverless_llm_experiment_retry14_baseline/models/LLM-Research--Llama-3.2-3B-Instruct",
+      "requested_enforce_eager": "auto",
+      "resolved_enforce_eager": false,
+      "resolved_safetensors_load_strategy": "prefetch",
+      "runtime_concurrency_cap": 8,
+      "safetensors_load_decision": "auto_prefetch_memory_safe",
+      "safetensors_load_strategy": "auto",
+      "safetensors_mem_available_bytes": 109935992832,
+      "safetensors_model_bytes": 6425529048,
+      "skip_stale_gpu_cleanup": true,
+      "tensor_parallel_size": 1,
+      "timing_contract": "ieee_tc_native_v1",
+      "visible_device_ids": [
+        0
+      ],
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "vllm_use_v1": true
+    },
+    "source_run": {
+      "path": "results/ieee_tc/p2_backend_qualification/d642_20261017/source1.json",
+      "sha256": "753122375a5f3269ba15c2f03c7c90342058546741d6fe519715f49d7ca18c64"
+    },
+    "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "transfer_limit": 3,
+    "transfer_limit_source": "owned_movement_concurrency",
+    "unique_original_requests": 21,
+    "window_s": 5.0
+  },
+  "no_new_trace_or_adapter": true,
+  "planned_requests": 423,
+  "preparation_schema_reused": true,
+  "profile_export_authorized": false,
+  "representative_measurement_waves": 75,
+  "representatives": 24,
+  "source_plan": {
+    "count": 1000,
+    "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "profile": "W0",
+    "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+  },
+  "source_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "source_spec": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d877_private_host_profile/source_spec.json",
+    "sha256": "07bd2d108059049dfd690bffff51a321815189f45762b110f27989e57f8a3c19"
+  },
+  "timing_samples_reused": false,
+  "waves": 76
+}

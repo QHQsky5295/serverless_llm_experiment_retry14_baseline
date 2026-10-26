@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d877)
+    # D725's exact 423 cases; new measurements for private CPU construction.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d877_20261026
+    CONFIG=configs/ieee_tc/20261026_d877_3b_private_host_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d877_private_host_profile/source_spec.json
+    ;;
   d821)
     # Existing D725 first six waves, only the D820 pressure transport differs.
     # This checks the real process boundary, not a new service profile.
@@ -160,6 +166,18 @@ if [[ "${1:-d298}" == d642 || "${1:-d298}" == d644 || "${1:-d298}" == d647 || "$
   export FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
 fi
 export FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE=prepublished_gzip_v1
+if [[ "${1:-d298}" == d877 ]]; then
+  export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
+  MODEL_PROFILE=llama32_3b_main_modelscope
+  REPLAY_TRACE=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
+  export FAASLORA_WORKER_START_TIMEOUT_S=600 FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
+  export FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal
+  export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
+fi
 export FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1
 export PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True
 export VLLM_CACHE_ROOT=/home/qhq/.cache/vllm

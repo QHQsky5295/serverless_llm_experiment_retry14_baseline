@@ -1,4 +1,14 @@
-# IEEE TC execution status — D875 native qualified; D876 stopped before arrivals by profile identity
+# IEEE TC execution status — D877 same-candidate source profile preparation
+
+## 2026-10-26 D877：补齐候选初始化，不改变评价参考
+
+已复核完整PLAN、冻结V1/单轮V2和D725最终成功入口。复用423条既有source
+cases，为D875已合格的私有CPU构造补齐严格匹配的服务/准备实测；不重跑232项
+资格、短Full或共同SLO/Resident，不删D876零到达失败。只扩展已有prepare、
+runner与显式完成长度转移接口，生产候选不变。实际状态见D877 qualification、
+start_receipt和export；未测不声称完成。完成后直接新键完整3B W2。
+当前完整性能仍D870：3773/4000、U11931.565094；独立数值正确性未知。
+全部矩阵/消融/敏感性/审稿文档与最终V2继续开放，goal active。
 
 ### D875/D876备份与D876启动后实际结果
 

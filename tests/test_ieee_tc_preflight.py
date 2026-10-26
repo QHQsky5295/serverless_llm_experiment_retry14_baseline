@@ -1517,6 +1517,31 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def test_private_host_transfer_only_reuses_completed_counts(self):
+        candidate = self.graph_transfer_fixture()
+        # The historical initializer source already has the same owner policies.
+        policies = dict(ieee_control_interleave='atomic_control_yield_v1',
+                        ieee_file_demand_transaction='protected_file_owner_turn_v1')
+        for cfg in (self.cfg, self.run['model_config'], self.entry['model_config'], candidate):
+            cfg.update(policies)
+        self.bind()
+        candidate['ieee_host_construction'] = 'private_cpu_core_commit_v1'
+        self.binding['kind'] = 'native_fixed_output_private_host_length_transfer_v1'
+        self.binding['model_config_changes']['ieee_host_construction'] = dict(
+            source=None, target='private_cpu_core_commit_v1')
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        for changes in (dict(ieee_host_construction='other'), dict(max_loras=9),
+                        dict(generation_contract='natural_stop'),
+                        dict(ieee_control_interleave=None)):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **changes))
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
     def test_graph_transfer_rejects_natural_stop_on_both_sides(self):
         candidate = self.graph_transfer_fixture()
         for cfg in (self.cfg, self.run['model_config'], self.entry['model_config'], candidate):

@@ -4215,7 +4215,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_control_length_transfer_v1',
         'native_fixed_output_file_demand_length_transfer_v1',
         'native_fixed_output_metadata_length_transfer_v1',
-        'native_fixed_output_graph_length_transfer_v1')
+        'native_fixed_output_graph_length_transfer_v1',
+        'native_fixed_output_private_host_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
         fields.add('model_config_changes')
@@ -4225,7 +4226,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_control_length_transfer_v1',
             'native_fixed_output_file_demand_length_transfer_v1',
             'native_fixed_output_metadata_length_transfer_v1',
-            'native_fixed_output_graph_length_transfer_v1')):
+            'native_fixed_output_graph_length_transfer_v1',
+            'native_fixed_output_private_host_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -4265,11 +4267,12 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
+        private_host_transfer = binding['kind'] == 'native_fixed_output_private_host_length_transfer_v1'
         capacity_fields = {'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
         permitted = (capacity_fields
                      if capacity_transfer else {'max_num_batched_tokens'})
         numeric_changes = changes
-        if graph_transfer:
+        if graph_transfer or private_host_transfer:
             # Only historical *completed fixed-output counts* are reusable.
             # Capture sizes alter performance identity, so every timing class
             # must be remeasured. No existing source configuration is rewritten.
@@ -4288,6 +4291,15 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 raise ValueError('fixed-output graph capture sizes are invalid')
             permitted = {'compilation_config'}
             numeric_changes = {}
+            if private_host_transfer:
+                # This transfers completed prescribed token counts, never
+                # timings. CPU construction changes the strict timing identity.
+                if (identity.get('ieee_host_construction') != 'private_cpu_core_commit_v1'
+                        or 'ieee_host_construction' in source_identity
+                        or identity.get('ieee_control_interleave') != 'atomic_control_yield_v1'
+                        or identity.get('ieee_file_demand_transaction') != 'protected_file_owner_turn_v1'):
+                    raise ValueError('fixed-output private HOST completed-length transfer contract differs')
+                permitted.add('ieee_host_construction')
         if control_transfer or file_transfer or metadata_transfer:
             # Reuse only completed fixed-output lengths, NOT latency or SLO.
             # Explicitly retain the changed policy in the target identity; the

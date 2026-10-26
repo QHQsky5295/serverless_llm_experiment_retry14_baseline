@@ -171,8 +171,9 @@ def main() -> None:
     print(json.dumps(manifest, indent=2, sort_keys=True))
 
 
-def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) -> None:
-    """Reuse D701 cases, not times, under an explicit graph-only identity change."""
+def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
+                        *, private_host: bool = False) -> None:
+    """Reuse D701 cases, not times, under explicit graph/CPU-construction changes."""
     if out.exists():
         raise FileExistsError(f"append-only preparation exists: {out}")
     original = read(OUT_SPEC)
@@ -184,6 +185,12 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) 
     changed = copy.deepcopy(new_config)
     model_key = 'llama32_3b_main_modelscope'
     graph = changed['model_profiles'][model_key]['model'].pop('compilation_config')
+    changes = {'compilation_config': dict(source=None, target=graph)}
+    if private_host:
+        policy = changed['model_profiles'][model_key]['model'].pop('ieee_host_construction')
+        if policy != 'private_cpu_core_commit_v1':
+            raise ValueError('unknown private HOST construction policy')
+        changes['ieee_host_construction'] = dict(source=None, target=policy)
     if changed != old_config:
         raise ValueError('graph rebind also changes non-graph model or input configuration')
     contract_path = ROOT / original['full_development_contract']['path']
@@ -193,8 +200,9 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) 
     spec = copy.deepcopy(original)
     spec.pop('full_development_contract')
     spec['admission_initialization'].update(
-        kind='native_fixed_output_graph_length_transfer_v1',
-        model_config_changes={'compilation_config': dict(source=None, target=graph)})
+        kind=('native_fixed_output_private_host_length_transfer_v1' if private_host
+              else 'native_fixed_output_graph_length_transfer_v1'),
+        model_config_changes=changes)
     spec['nvme_parent'] = str(raw.resolve())
     spec['purpose'] = 'same_cases_fresh_native_timings_after_explicit_graph_coverage_change'
     spec['derivation'] = dict(kind='same_spec_graph_rebind_v1', campaign=campaign,
@@ -203,6 +211,15 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) 
         source_config=dict(path=str(CONFIG), sha256=digest(CONFIG)),
         candidate_config=dict(path=str(config_path), sha256=digest(config_path)),
         requests_changed=False, timing_samples_reused=False)
+    if private_host:
+        spec['purpose'] = 'same_cases_fresh_native_timings_after_private_cpu_construction_change'
+        spec['derivation']['kind'] = 'same_spec_private_host_rebind_v1'
+        previous = BASE / 'd725_3b_graph_profile/source_spec.json'
+        previous_spec = read(previous)
+        if (previous_spec['waves'] != spec['waves']
+                or previous_spec['representatives'] != spec['representatives']):
+            raise ValueError('private HOST collection differs from completed D725 cases')
+        spec['derivation']['previous_measured_spec'] = dict(path=str(previous), sha256=digest(previous))
     cfg = copy.deepcopy(new_config['model_profiles'][model_key]['model'])
     cfg.update(generation_contract='fixed_length_greedy_v1',
         canonical_prompt_renderer='role_lines_v1', max_input_len=759,
@@ -253,15 +270,20 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str) 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rebind-graph-config', type=Path)
+    parser.add_argument('--rebind-private-host-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--raw-directory', type=Path)
     parser.add_argument('--campaign')
     args = parser.parse_args()
-    if args.rebind_graph_config:
+    selected_config = args.rebind_graph_config or args.rebind_private_host_config
+    if args.rebind_graph_config and args.rebind_private_host_config:
+        parser.error('choose one configuration rebind')
+    if selected_config:
         if not all((args.output, args.raw_directory, args.campaign)):
             parser.error('graph rebind requires output, raw-directory and campaign')
-        rebind_graph_config(args.rebind_graph_config.resolve(strict=True), args.output.resolve(),
-                            args.raw_directory.resolve(), args.campaign)
+        rebind_graph_config(selected_config.resolve(strict=True), args.output.resolve(),
+                            args.raw_directory.resolve(), args.campaign,
+                            private_host=bool(args.rebind_private_host_config))
     else:
         if any((args.output, args.raw_directory, args.campaign)):
             parser.error('output overrides require rebind-graph-config')
