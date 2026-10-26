@@ -1,0 +1,39 @@
+"""Start the backed-up new execution key once using existing remote/Full runners."""
+import json
+import os
+from pathlib import Path
+import shlex
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d880_private_host_full_w2/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def call(args):return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'start_identity.json',identity)
+q=json.loads((OUT/'qualification.json').read_text())
+assert q['passed'] and not p.owned_pids(Path(q['identity']['path']))
+for path,sha in q['refs'].items():assert p.digest(Path(path))==sha,path
+backup=json.loads((RAW/'backup.json').read_text())
+assert backup['passed'] and call(['git','rev-parse','HEAD'])==backup['commit']
+assert not call(['git','diff','--name-only','HEAD','--','faaslora','scripts/run_all_experiments.py'])
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert not (RAW/'3b_max3_full_w2').exists()
+assert not Path('/dev/shm/tc-d880-3b-w2').exists()
+gate=p.preflight([ROOT,RAW],32*p.GIB)
+save(RAW/'launch_gate.json',gate)
+assert gate['preflight_pass'],gate['issues']
+session='tc-d880-3b-private-host-full-w2'
+assert subprocess.run(['tmux','has-session','-t',session],stderr=subprocess.DEVNULL).returncode!=0
+call(['bash',str(RAW/'start_remote.sh')])
+call(['/usr/bin/python3','-B',str(RAW/'check_remote_health_stdlib.py')])
+call(['tmux','new-session','-d','-s',session,'-c',str(ROOT),
+      shlex.join(['bash',str(RAW/'run_and_release.sh')])])
+save(RAW/'start_receipt.json',dict(launched=True,head=backup['commit'],backup_ref=backup['ref'],
+    tmux=session,identity=identity,qualification_sha256=p.digest(OUT/'qualification.json')))
+print(json.dumps(dict(launched=True,tmux=session,head=backup['commit'])))

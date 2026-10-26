@@ -1,4 +1,27 @@
-# IEEE TC execution status — D878 failed setup closed; D879 registered
+# IEEE TC execution status — D879 measured profile complete; D880 full W2 next
+
+## 2026-10-26 D879完成，返回完整4000请求主线
+
+423/423原生测量通过，76waves/24代表工件；严格导出160服务类、96准备类，
+415服务样本和332准备样本。423真实remote传输无按请求打包；全部物理GPU、
+scope和远端服务释放，147保护项不变。服务峰值5726973952B、high/max/OOM/
+swap均0。source SHA `f66c1fc3e969bfc4e7ae04a05e1e09f7ffb378a3fc2fea473d2a366fcc89f973`。
+service SHA `07b85e3d8c583a5315d4fa8ecdf74274480d541305c4b00e8bde085044722645`；
+preparation SHA `1efc6d73961162049de1fd2f92f557fd57af0cc1acae2ebffef6e30a936eb3d3`。
+这是初始化实测，不是完整性能或独立数值证明，不改变共同SLO/Resident。
+
+D880复用D876 Full候选并绑定D879初始化，事先复用D726严格runtime/child/profile
+加载检查；通过后直接4000请求W2，不再短Full。原输入/生成/remote/三实例上限
+及评价尺子不变。启动以D880 start_receipt.json为准，完成以实际launch和分析为准。
+当前最新完整性能仍D870：3773/4000，U11931.565094；完整目标仍active，剩余
+双模型矩阵、baseline/dLoRA、A1–A5/S1–S13、数值证明及审稿/图表/最终V2不删减。
+
+D879已实际启动，提交`ec6dfedf9a1d6f0c24f66bcea48fce7d92aff61c`及备份
+`backup/d879-controlled-native-setup-20261026`已核验。首个启动备份因两份小型
+测试日志被*.log忽略而停止；未启动GPU/remote。原始入口保留，续作只显式
+加入这两份已检查日志，未force push或广泛stage。测量已越过之前失败的wave4，
+完整结果等待source/export回执。D880仅条件性准备：先D879完成，再严格加载
+匹配profile后完整4000 W2；不与当前source测量并行，不增加短Full。
 
 ## 2026-10-26 D878实际失败与受控准备入口修正
 
