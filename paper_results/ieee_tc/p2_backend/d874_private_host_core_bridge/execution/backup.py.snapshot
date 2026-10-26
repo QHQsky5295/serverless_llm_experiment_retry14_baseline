@@ -1,0 +1,17 @@
+"""Explicit tested D874 paths, verified backup ref, never force the V2 branch."""
+from pathlib import Path
+
+previous = Path(__file__).resolve().parent.parent / 'd873_20261026/backup_executed.py.snapshot'
+source = previous.read_text().replace('D873', 'D874').replace('d873', 'd874')
+source = source.replace('d874_private_host_ownership', 'd874_private_host_core_bridge')
+source = source.replace('D874_PRIVATE_HOST_OWNERSHIP', 'D874_PRIVATE_HOST_CORE_BRIDGE')
+source = source.replace('97b031a45ec070939f9f70a4aeb24383a9e4c69d', 'ac931b559657507fb9428f280b87f15dcb373ea0')
+source = source.replace("ROOT/'tests/test_ieee_tc_gpu_references.py',", "ROOT/'tests/test_ieee_tc_core_interleave.py',\n         ROOT/'faaslora/scheduling/core_interleave.py',\n         ROOT/'faaslora/scheduling/vllm_ieee_scheduler.py',\n         ROOT/'scripts/run_all_experiments.py',")
+source = source.replace('backup/d874-private-host-ownership-20261026', 'backup/d874-private-host-core-20261026')
+source = source.replace('tc: implement private CPU LoRA construction ownership and core-only settlement',
+    'tc: connect private HOST construction to native core completion and shutdown')
+destination = Path(__file__).with_name('backup_executed.py.snapshot')
+compile(source, str(destination), 'exec')
+with destination.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(destination), 'exec'))

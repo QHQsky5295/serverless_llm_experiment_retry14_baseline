@@ -1238,6 +1238,39 @@ class IEEEWorkerObservationExtension:
     never call it as per-request monitoring in a performance campaign.
     """
 
+    def _ieee_reference_reply(self, value):
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+        return {**value, 'clock_id': local_monotonic_clock_id(),
+                'native_host_allocator_policy': self._ieee_host_allocator_policy,
+                'native_host_descriptor': native_host_descriptor()[1],
+                'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
+                'completion_fence_scope': 'current_worker_cuda_stream',
+                'production_launch_authorized': False}
+
+    def _ieee_private_host_owner(self):
+        from faaslora.scheduling.core_interleave import HOST_CONSTRUCTION_POLICY
+        if self.vllm_config.additional_config.get('ieee_tc_host_construction') != HOST_CONSTRUCTION_POLICY:
+            raise RuntimeError('private HOST construction was not enabled for this worker')
+        if not hasattr(self, '_ieee_gpu_reference_owner'):
+            IEEEWorkerObservationExtension.ieee_gpu_reference(self, operation='snapshot')
+        owner = self._ieee_gpu_reference_owner
+        if owner.manager is not self.model_runner.lora_manager._adapter_manager:
+            raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')
+        return owner
+
+    def ieee_begin_file_host_construction(self, command):
+        # Only UniProc's core-local RPC may transport this private object. It is
+        # never an RPC response to a frontend or a published residency source.
+        owner = IEEEWorkerObservationExtension._ieee_private_host_owner(self)
+        result = owner.begin_file_host_construction(**command)
+        return (IEEEWorkerObservationExtension._ieee_reference_reply(self, result)
+                if isinstance(result, dict) else result)
+
+    def ieee_finish_file_host_construction(self, build, cancelled):
+        owner = IEEEWorkerObservationExtension._ieee_private_host_owner(self)
+        result = owner.finish_file_host_construction(build, cancelled=cancelled)
+        return IEEEWorkerObservationExtension._ieee_reference_reply(self, result)
+
     def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Single-worker native reference operation or core-owned HOST preparation.
 
@@ -1279,12 +1312,7 @@ class IEEEWorkerObservationExtension:
             # identity. The cached transaction keeps its original epochs and
             # times; a replay does not repeat loading, fencing or releasing.
             diagnostic_control_event(diagnostic_id, 'native_ready')
-            return {**value, 'clock_id': local_monotonic_clock_id(),
-                    'native_host_allocator_policy': self._ieee_host_allocator_policy,
-                    'native_host_descriptor': native_host_descriptor()[1],
-                    'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
-                    'completion_fence_scope': 'current_worker_cuda_stream',
-                    'production_launch_authorized': False}
+            return IEEEWorkerObservationExtension._ieee_reference_reply(self, value)
         if not hasattr(self, '_ieee_gpu_reference_owner'):
             def completion_fence():
                 with torch.cuda.device(self.device):

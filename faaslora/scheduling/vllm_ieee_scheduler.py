@@ -239,7 +239,8 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
             raise RuntimeError('native EngineCore transfer bridge name collision')
         EngineCore.ieee_transfer_event = _core_transfer_event
         self._ieee_control_interleave = None
-        if config.additional_config.get('ieee_tc_control_interleave') is not None:
+        if (config.additional_config.get('ieee_tc_control_interleave') is not None
+                or config.additional_config.get('ieee_tc_host_construction') is not None):
             from vllm.v1.engine.core import EngineCoreProc
             from vllm.v1.engine import EngineCoreRequestType
             from vllm.v1.executor.uniproc_executor import UniProcExecutor

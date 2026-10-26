@@ -1,0 +1,17 @@
+"""Reuse D873's bounded CPU launcher for the connected private-build path."""
+from pathlib import Path
+import hashlib
+
+previous = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d873_20261026/verify_executed.py.snapshot')
+source = previous.read_text()
+source = source.replace('d873_20261026', 'd874_20261026').replace(
+    'd873_private_host_ownership', 'd874_private_host_core_bridge')
+source = source.replace("'faaslora/scheduling/core_interleave.py')]", "'faaslora/scheduling/core_interleave.py',\n    'faaslora/scheduling/vllm_ieee_scheduler.py', 'scripts/run_all_experiments.py')]")
+source = source.replace("'tests/test_ieee_tc_core_interleave.py::AtomicControlFairness'", "'tests/test_ieee_tc_core_interleave.py',\n    'tests/test_ieee_tc_pending_gpu_pipeline.py', 'tests/test_ieee_tc_lora_metadata_publication.py'")
+source = source.replace('Private CPU construction ownership and adjacent reference regression; core bridge not connected, no native asynchronous or performance qualification.',
+    'Connected core/worker/frontend ownership and cancellation/shutdown checks; CPU fixtures, not native CUDA or performance qualification.')
+destination = Path(__file__).with_name('verify_executed.py.snapshot')
+with destination.open('x') as stream:
+    stream.write(source)
+print('D873 launcher SHA256 ' + hashlib.sha256(previous.read_bytes()).hexdigest(), flush=True)
+exec(compile(source, str(destination), 'exec'))

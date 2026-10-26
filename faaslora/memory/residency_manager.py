@@ -1891,14 +1891,29 @@ class NativeHostConstruction:
                     self.wake_failure = traceback.format_exc()
 
         self._thread = threading.Thread(target=run, name='ieee-private-host-build', daemon=False)
-        self._thread.start()
+        try:
+            self._thread.start()
+        except BaseException:
+            import traceback
+            self.failure = traceback.format_exc()
+            self._construct = None
+            self.completed_at = time.monotonic()
+            self.done.set()
+            wake(self)  # Report definite start failure through core settlement.
 
     def join_completed(self):
         if threading.get_ident() != self.owner_thread:
             raise RuntimeError('native HOST construction settlement requires its owner')
         if self._thread is None or not self.done.is_set():
             raise RuntimeError('native HOST construction is still in flight')
-        self._thread.join()  # Wakeup is a local nonblocking enqueue, not a commit.
+        if self._thread.ident is not None:
+            self._thread.join()  # Wakeup is a local nonblocking enqueue, not a commit.
+
+    def join_for_shutdown(self):
+        if threading.get_ident() != self.owner_thread or self._thread is None:
+            raise RuntimeError('native HOST shutdown requires its started owner task')
+        if self._thread.ident is not None:
+            self._thread.join()
 
 
 class IEEEBackendGPUReferences:

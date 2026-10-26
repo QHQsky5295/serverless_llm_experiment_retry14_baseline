@@ -1,0 +1,89 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-v",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_ieee_tc_gpu_references.py",
+    "tests/test_ieee_tc_core_interleave.py",
+    "tests/test_ieee_tc_pending_gpu_pipeline.py",
+    "tests/test_ieee_tc_lora_metadata_publication.py"
+  ],
+  "identity": {
+    "unit": "primelora-tc-aux-87400000000000000000000000000002.scope",
+    "invocation_id": "645dd59df3ce46a08fc5c8bbf84f8973",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87400000000000000000000000000002.scope",
+    "inode": 32890645
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87400000000000000000000000000002.scope",
+    "memory.current": 84582400,
+    "memory.peak": 720080896,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 15291907\nuser_usec 13442644\nsystem_usec 1849263\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+      "sha256": "363ecd8b2757813c48ed04018423f0bc97e690969ecfda8b0904d6dcc67608bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_interleave.py",
+      "sha256": "889ffc01672bf8697269d90c55efadf9cb1f1941420a9b02dd4b52aad087b28c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "c62acac49b5f1b78c2d3e18984faa902a22f9a2aa6b5d574b1d116205fb94e6f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "b1ecd505a44463bc54d65fe3c1f8ba41c5d1b9b42bf174ea5558d6c1db0f6d68"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+      "sha256": "020cc411a4ef3b67f2b0e6d39da9ae844189dae957f886def9a34a31510a77dd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "f29e7c698fa199da671de985a1e469031f690d4eb055ae79d2952fdd44d1ad4d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "415a594fba27ff8e9ad14e37cfe71cd005f539b9c5f5f7f2fb5b8592ec65f14d"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+      "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d874_20261026/verify_final.py",
+      "sha256": "3355ca83a517d486c8dbc18fd150a63b59206bfb50ddb756231f00eb9fea4361"
+    }
+  ],
+  "no_cuda_model_loaded": true,
+  "new_gpu_replays": 0,
+  "production_changes": true,
+  "scope": "Connected core/worker/frontend ownership and cancellation/shutdown checks; CPU fixtures, not native CUDA or performance qualification.",
+  "performance_gain": null,
+  "numerical_adapter_correctness": null
+}

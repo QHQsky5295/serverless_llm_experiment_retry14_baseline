@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-87400000000000000000000000000003.scope",
+    "invocation_id": "7e507aeb2fd14baeae6037e6ae9132ac",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87400000000000000000000000000003.scope",
+    "inode": 32892583
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D874_PRIVATE_HOST_CORE_BRIDGE_20261026.md",
+    "sha256": "50257a6dfcb1d8185c09e7af472d55302877ac9393db7842fbd524a44d0d09d6",
+    "bytes": 5492
+  },
+  "production_changes": true,
+  "new_gpu_replays": 0,
+  "performance_gain": null,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "tests": {
+    "total": 232,
+    "new": 9,
+    "extended": 1,
+    "subtests": 102,
+    "warnings": 19,
+    "source": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d874_private_host_core_bridge/final_source/tests.txt",
+      "sha256": "5216a4d931acf2bc52299565de025bbb821ae441870907cf5af3cadfaccd0136",
+      "bytes": 38563
+    }
+  },
+  "disk_free_bytes": 176083517440
+}

@@ -1,0 +1,16 @@
+"""Reuse the final D873 closure; retain the first D874 fixture failure."""
+from pathlib import Path
+
+previous = Path(__file__).resolve().parent.parent / 'd873_20261026/close_executed.py.snapshot'
+source = previous.read_text().replace('d873_private_host_ownership', 'd874_private_host_core_bridge')
+source = source.replace('D873_PRIVATE_HOST_OWNERSHIP_20261026.md', 'D874_PRIVATE_HOST_CORE_BRIDGE_20261026.md')
+source = source.replace('172 passed, 19 warnings, 68 subtests passed', '232 passed, 19 warnings, 102 subtests passed')
+source = source.replace("assert initial['passed'] and not p.scope_still_owned(initial['identity'])",
+    "assert not initial['passed'] and initial['returncode'] == 1\nassert not p.scope_still_owned(initial['identity'])")
+source = source.replace('total=172, new=11, extended=1, subtests=68', 'total=232, new=9, extended=1, subtests=102')
+source = source.replace('tests=172', 'tests=232')
+destination = Path(__file__).with_name('close_executed.py.snapshot')
+compile(source, str(destination), 'exec')
+with destination.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(destination), 'exec'))

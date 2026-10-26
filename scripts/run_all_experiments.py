@@ -3807,6 +3807,13 @@ class InferenceEngine:
                         or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
                     raise ValueError('native control interleave requires the qualified IEEE single-GPU owner')
                 kwargs['additional_config']['ieee_tc_control_interleave'] = POLICY
+            if self.model_cfg.get('ieee_host_construction') is not None:
+                from faaslora.scheduling.core_interleave import POLICY, HOST_CONSTRUCTION_POLICY
+                if (self.model_cfg['ieee_host_construction'] != HOST_CONSTRUCTION_POLICY
+                        or self.model_cfg.get('ieee_control_interleave') != POLICY or not enable_lora
+                        or not isinstance(self.model_cfg.get('ieee_native_host_workspace'), dict)):
+                    raise ValueError('private HOST construction requires native interleave, LoRA and workspace')
+                kwargs['additional_config']['ieee_tc_host_construction'] = HOST_CONSTRUCTION_POLICY
             if self.model_cfg.get('ieee_lora_metadata_policy') is not None:
                 from faaslora.memory.lora_metadata_publication import POLICY
                 if (self.model_cfg['ieee_lora_metadata_policy'] != POLICY or not enable_lora
@@ -3859,7 +3866,8 @@ class InferenceEngine:
             if (os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")
                     or self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
                     or self.model_cfg.get("ieee_scheduler_observation", False)
-                    or self.model_cfg.get("ieee_control_interleave") is not None):
+                    or self.model_cfg.get("ieee_control_interleave") is not None
+                    or self.model_cfg.get("ieee_host_construction") is not None):
                 raise RuntimeError(f"TC backend construction failed without config retry: {detail}") from exc
             self._maybe_kill_stale_gpu_processes()
             try:
@@ -5070,6 +5078,17 @@ class InferenceEngine:
                              "prepare_file_host_and_hold", "configure_host_budget",
                              "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
             raise ValueError("unknown GPU reference operation")
+        if (operation == 'prepare_file_host_and_hold'
+                and self.model_cfg.get('ieee_host_construction') is not None):
+            from faaslora.scheduling.core_interleave import HOST_CONSTRUCTION_POLICY
+            if self.model_cfg['ieee_host_construction'] != HOST_CONSTRUCTION_POLICY:
+                raise ValueError('unknown native HOST construction policy')
+            # A core utility resolves after private CPU completion and a fresh
+            # core-thread commit. Other operations retain their atomic path.
+            result = await self.engine.engine_core.call_utility_async('ieee_prepare_file_host', kwargs)
+            if not isinstance(result, dict):
+                raise RuntimeError('invalid core-owned HOST preparation acknowledgement')
+            return result
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):
             raise RuntimeError("backend lacks native worker collective RPC")

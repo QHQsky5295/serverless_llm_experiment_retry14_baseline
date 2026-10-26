@@ -1,0 +1,26 @@
+"""Preserve pytest's raw summary; its seven equals signs are not a merge conflict."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw / 'backup_executed.py.snapshot').read_text()
+source = source.replace("RAW/'backup_identity.json'", "RAW/'backup_resume_identity.json'")
+source = source.replace("assert not git('diff','--cached','--name-only').strip()\nclosure =", "closure =", 1)
+before = "git('-c','core.whitespace=-blank-at-eol,-blank-at-eof,space-before-tab','diff','--cached','--check','--',*raw_logs)"
+after = """raw_check = subprocess.run(['git', '-c', 'core.whitespace=-blank-at-eol,-blank-at-eof,space-before-tab',
+    'diff', '--cached', '--check', '--', *raw_logs], cwd=ROOT, text=True, capture_output=True)
+assert raw_check.returncode == 2 and not raw_check.stderr
+assert raw_check.stdout.strip() == 'paper_results/ieee_tc/p2_backend/d874_private_host_core_bridge/tests.txt:297: leftover conflict marker'
+assert (OUT/'tests.txt').read_text().splitlines()[296] == '======= 1 failed, 231 passed, 19 warnings, 102 subtests passed in 12.40s ======='
+# Exact captured pytest summary only. All source/docs still receive strict diff checks.
+"""
+assert source.count(before) == 1
+source = source.replace(before, after)
+destination = raw / 'backup_resume_executed.py.snapshot'
+compile(source, str(destination), 'exec')
+with destination.open('x') as stream:
+    stream.write(source)
+out = Path('/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d874_private_host_core_bridge/execution')
+for path in (Path(__file__), destination):
+    with (out / (path.name + '.snapshot')).open('xb') as stream:
+        stream.write(path.read_bytes())
+exec(compile(source, str(destination), 'exec'))

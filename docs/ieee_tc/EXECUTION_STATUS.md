@@ -1,4 +1,30 @@
-# IEEE TC execution status — D873 private HOST ownership implemented, core bridge next
+# IEEE TC execution status — D874 private HOST core bridge connected, native qualification next
+
+## 2026-10-26 D874：同一候选已接通，232项CPU检查通过
+
+完成core utility/Future/本地WAKEUP、worker begin/finish、前端opt-in及shutdown
+join结算。后台只构造私有CPU对象，原线程新鲜复核后提交/回包；GPU/KV原子
+事务不拆、九公式不变，默认YAML仍串行。不是又一轮仅profiling或边界讨论。
+232项/102subtests通过、19条既有警告；首次新测试调用原生函数签名错误
+（231通过/1失败）已修正并保留原记录，非生产运行失败。CPU峰值720080896B，
+high/max/OOM/swap0；无GPU、远端或共享k3s操作。详见D874文档及curated。
+
+下一步只做受影响的真实vLLM混合推理/allocator/关闭资格，继而新键完整3B W2；
+不增加100/1000 Full前缀、不再同类profiling、不重开已否决方向。新路径尚未
+有实际GPU证据，不能宣称性能改善。当前完整D870仍94.325%（差27条），
+U11931.565094在12083.063870预算内；数值正确性未知、G1/G2未完成。
+全部同版本双模型主矩阵、baseline/dLoRA、A1–A5/S1–S13、数值证明、两轮
+审稿图文和最终V2继续开放，goal active；本轮为实现/验证progress。
+按github-sync保存明确路径检查点，未stage用户manifest、不强推最终V2。
+
+### D873完成备份回执（提交后追加）
+
+17个明确文件已提交`ac931b559657507fb9428f280b87f15dcb373ea0`，推送并核验
+`refs/heads/backup/d873-private-host-ownership-20261026`成功。172项最终源码
+测试、SHA、147保护项、用户manifest、语法、diff与凭据检查通过；未stage用户
+manifest、未force push，最终V2仍未同步。回执随下一正常检查点保存。
+无GPU/远端任务；下一步直接接通该API的core完成通知/关闭结算，不重做已有
+所有权测试或profiling。完整范围开放，目标active；本轮归类progress。
 
 ## 2026-10-26 D873：单候选的构造/提交所有权已实现，未启用异步回放
 

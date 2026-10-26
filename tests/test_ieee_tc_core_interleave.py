@@ -9,10 +9,10 @@ import queue
 import threading
 from types import ModuleType, SimpleNamespace as NS
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.scheduling.core_interleave import (
-    AtomicControlInterleave, POLICY, _NATIVE_INPUT_AST_SHA,
+    AtomicControlInterleave, POLICY, HOST_CONSTRUCTION_POLICY, _NATIVE_INPUT_AST_SHA,
     install_core_control_interleave, native_input_fingerprint,
 )
 
@@ -36,9 +36,11 @@ def native_input():
     return namespace['_process_input_queue']
 
 
-def fixture(*, enabled=True, work=True, requests=()):
+def fixture(*, enabled=True, host=False, work=True, requests=()):
     config=NS(additional_config={'ieee_tc_control_interleave':POLICY} if enabled else {},
               model_config=NS(is_moe=False))
+    if host:
+        config.additional_config['ieee_tc_host_construction'] = HOST_CONSTRUCTION_POLICY
     scheduler=NS(vllm_config=config,parallel_config=NS(tensor_parallel_size=1,
         pipeline_parallel_size=1,data_parallel_size=1))
     class Executor: pass
@@ -53,6 +55,7 @@ def fixture(*, enabled=True, work=True, requests=()):
             for request in requests:self.input_queue.put(request)
         def has_work(self):return self.work or self.batch_work
         def is_running(self):return self.running
+        def shutdown(self):self.calls.append(('shutdown', None))
         def _notify_idle_state_callbacks(self):self.callbacks+=1
         def _handle_client_request(self,kind,payload):
             self.calls.append((kind,payload[1] if kind is Kind.UTILITY else payload))
@@ -260,24 +263,223 @@ class AtomicControlFairness(unittest.TestCase):
         native=object();args_mock=Mock(side_effect=lambda **kw:NS(**kw))
         frontend=ModuleType('faaslora.scheduling.vllm_ieee_frontend')
         frontend.IEEENativeAsyncLLM=NS(from_engine_args=Mock(return_value=native))
-        for case in ('valid','missing_references','missing_scheduler','wrong_policy'):
+        for case in ('valid','missing_references','missing_scheduler','wrong_policy',
+                     'host','host_no_workspace','host_no_interleave','host_wrong_policy','host_no_lora'):
             current=dict(cfg)
             if case=='missing_references':current['ieee_gpu_references']=False
             if case=='missing_scheduler':current['ieee_scheduler_observation']=False
             if case=='wrong_policy':current['ieee_control_interleave']='x'
+            if case.startswith('host'):
+                current.update(ieee_host_construction=HOST_CONSTRUCTION_POLICY,
+                               ieee_native_host_workspace={'kind': 'native_host_workspace_contract_v1'})
+            if case=='host_no_workspace':current.pop('ieee_native_host_workspace')
+            if case=='host_no_interleave':current.pop('ieee_control_interleave')
+            if case=='host_wrong_policy':current['ieee_host_construction']='wrong'
             engine=runner.InferenceEngine(current,{})
             engine._resolve_vllm_visible_devices=Mock(return_value='0')
             engine._resolve_vllm_executor_backend=Mock(return_value=None)
             with patch.object(runner,'_lazy_import_vllm',return_value=True), \
                  patch.object(runner,'AsyncEngineArgs',args_mock), \
                  patch.dict('sys.modules',{'faaslora.scheduling.vllm_ieee_frontend':frontend}):
-                if case=='valid':
+                if case in ('valid','host'):
                     actual=asyncio.run(engine._try_create_engine('local',1,.8,1024,True,True,2,16))
                     self.assertIs(actual,native)
                     self.assertEqual(args_mock.call_args.kwargs['additional_config']['ieee_tc_control_interleave'],POLICY)
+                    self.assertEqual(args_mock.call_args.kwargs['additional_config'].get('ieee_tc_host_construction'),
+                                     HOST_CONSTRUCTION_POLICY if case=='host' else None)
                 else:
-                    with self.assertRaisesRegex(RuntimeError,'control interleave'):
-                        asyncio.run(engine._try_create_engine('local',1,.8,1024,True,True,2,16))
+                    with self.assertRaisesRegex(RuntimeError,'control interleave|HOST construction'):
+                        asyncio.run(engine._try_create_engine('local',1,.8,1024,True,case!='host_no_lora',2,16))
+
+
+class PrivateHostCoreBridge(unittest.TestCase):
+    """Real reference owner + worker bridge + installed native input/Future code."""
+
+    def setUp(self):
+        from tests.test_ieee_tc_gpu_references import PrivateNativeHostConstruction
+        from faaslora.memory.gpu_monitor import IEEEWorkerObservationExtension
+        self.f = PrivateNativeHostConstruction()
+        self.f.setUp()
+        self.core, self.state, self.cls, scheduler, _ = fixture(host=True)
+        self.worker = NS(vllm_config=scheduler.vllm_config,
+            model_runner=NS(lora_manager=NS(_adapter_manager=self.f.manager)),
+            _ieee_gpu_reference_owner=self.f.owner, rank=0,
+            _ieee_host_allocator_policy={'verified': True})
+        self.rpc_calls = []
+        def rpc(method, *, args):
+            self.rpc_calls.append((method, threading.get_ident()))
+            return [getattr(IEEEWorkerObservationExtension, method)(self.worker, *args)]
+        self.core.collective_rpc = rpc
+
+    def tearDown(self):
+        self.f.finish.set()
+        build = self.f.owner._native_host_build
+        if build is not None and build._thread is not None and build._thread.ident is not None:
+            build._thread.join(5)
+
+    def begin(self):
+        result = self.core.ieee_prepare_file_host(self.f.command())
+        self.assertTrue(self.f.entered.wait(5))
+        return result, self.state.host_construction.active[0]
+
+    def finish(self, build):
+        self.f.finish.set()
+        self.assertTrue(build.done.wait(5))
+        build._thread.join(5)  # Enqueue finished; commit still belongs to core.
+        self.core._process_input_queue()
+
+    def test_private_work_yields_native_steps_and_commit_keeps_fifo(self):
+        command = self.f.command()
+        replies = []
+        self.core.utility_hook = lambda payload: replies.append(
+            self.core.ieee_prepare_file_host(payload[3][0]))
+        self.core.input_queue.put(utility(1, 'ieee_prepare_file_host', [command]))
+        self.core.input_queue.put(utility(2, 'check_health'))
+        self.core._process_input_queue()
+        future = replies[0]
+        build = self.state.host_construction.active[0]
+        self.assertTrue(self.f.entered.wait(5))
+        self.assertFalse(future.done())
+        self.core._process_engine_step()
+        self.assertFalse(self.f.owner.source_snapshot()['sources'])
+        self.assertEqual(self.f.owner.host_construction_reserved_bytes(), 300)
+        self.core.utility_hook = None
+        callbacks = []
+        future.add_done_callback(lambda value: callbacks.append(threading.get_ident()))
+        self.finish(build)
+        self.assertTrue(future.result()['held'])
+        self.assertEqual(callbacks, [threading.get_ident()])
+        self.assertEqual(self.core.calls, [(Kind.UTILITY, 1), ('step', None), (Kind.UTILITY, 2)])
+        self.assertEqual(self.state.yields, 2)
+        self.assertTrue(all(tid == threading.get_ident() for _, tid in self.rpc_calls))
+        self.assertNotEqual(self.f.loader_threads[0], threading.get_ident())
+        self.assertEqual(self.state.host_construction.snapshot()['settled'], 1)
+        self.assertIn('clock_id', future.result())
+        self.assertIsNone(build.model)
+
+    def test_native_utility_reply_runs_on_core_not_constructor(self):
+        from typing import Callable
+        tree = ast.parse(NATIVE.read_text())
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'EngineCoreProc')
+        method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_invoke_utility_method')
+        method.decorator_list = []
+        native = NS()
+        namespace = dict(Future=Future, Callable=Callable, UtilityOutput=object,
+            UtilityResult=lambda value: value, EngineCoreProc=native, logger=logging.getLogger(__name__))
+        exec(compile(ast.Module(body=[method], type_ignores=[]), str(NATIVE), 'exec'), namespace)
+        native._invoke_utility_method = namespace['_invoke_utility_method']
+        output, replies = NS(result=None), []
+        native._invoke_utility_method('host', lambda: self.core.ieee_prepare_file_host(self.f.command()), output,
+            lambda value: replies.append((threading.get_ident(), value.result)))
+        build = self.state.host_construction.active[0]
+        self.assertTrue(self.f.entered.wait(5))
+        self.assertEqual(replies, [])
+        self.finish(build)
+        self.assertEqual(len(replies), 1)
+        self.assertEqual(replies[0][0], threading.get_ident())
+        self.assertTrue(replies[0][1]['held'])
+
+    def test_pending_duplicate_and_cancel_cannot_release_work(self):
+        command = self.f.command()
+        future = self.core.ieee_prepare_file_host(command)
+        build = self.state.host_construction.active[0]
+        self.assertFalse(future.cancel())
+        self.assertIs(self.core.ieee_prepare_file_host(command), future)
+        with self.assertRaisesRegex(ValueError, 'identity changed'):
+            self.core.ieee_prepare_file_host({**command, 'lora_path': '/changed'})
+        other = self.core.ieee_prepare_file_host(self.f.command(lease='other', aid=5))
+        self.assertEqual(other['reason'], 'native_host_construction_busy')
+        self.assertEqual(self.state.host_construction.started, 1)
+        self.finish(build)
+        self.assertTrue(future.result()['held'])
+
+    def test_idle_completion_is_wakeup_not_fake_model_work(self):
+        future, build = self.begin()
+        self.core.work = False
+        self.finish(build)
+        self.assertFalse(self.core.has_work())
+        self.assertTrue(future.result()['held'])
+        self.assertEqual(self.state.yields, 0)
+        self.assertFalse(self.core.calls)
+        # Ordinary native wakeups remain ordinary dispatches.
+        self.core.input_queue.put((Kind.WAKEUP, None))
+        self.core._process_input_queue()
+        self.assertEqual(self.core.calls, [(Kind.WAKEUP, None)])
+
+    def test_shutdown_joins_and_discards_before_native_worker_destruction(self):
+        future, build = self.begin()
+        join = build.join_for_shutdown
+        def release_at_join():
+            self.assertFalse(future.done())
+            self.assertNotIn(('shutdown', None), self.core.calls)
+            self.f.finish.set()
+            join()
+        self.core.running = False
+        with patch.object(build, 'join_for_shutdown', side_effect=release_at_join):
+            self.core.shutdown()
+        self.assertEqual(self.core.calls, [('shutdown', None)])
+        self.assertEqual(future.result()['reason'], 'construction_cancelled')
+        self.assertTrue(future.result()['private_construction']['discarded'])
+        self.assertFalse(self.f.manager._registered_adapters)
+        self.assertIsNone(build.model)
+        self.core._process_input_queue()  # Already-settled wake does not settle twice.
+        self.assertEqual(self.state.host_construction.settled, 1)
+        with self.assertRaisesRegex(RuntimeError, 'shutting down'):
+            self.core.ieee_prepare_file_host(self.f.command(lease='later'))
+
+    def test_construct_failure_is_error_not_ready_or_released(self):
+        self.f.owner.file_host_constructor = Mock(side_effect=RuntimeError('private failure'))
+        future = self.core.ieee_prepare_file_host(self.f.command())
+        build = self.state.host_construction.active[0]
+        self.finish(build)
+        with self.assertRaisesRegex(RuntimeError, 'private failure'):
+            future.result()
+        self.assertTrue(self.f.owner._poisoned)
+        self.assertIs(self.f.owner._native_host_build, build)
+        self.assertFalse(build.settled)
+        self.assertFalse(self.f.manager._registered_adapters)
+        self.assertEqual(self.state.host_construction.failed, 1)
+        self.core.shutdown()
+        self.assertEqual(self.core.calls, [('shutdown', None)])
+
+    def test_thread_start_failure_is_settled_as_error_without_joining_unstarted_thread(self):
+        with patch('threading.Thread.start', side_effect=RuntimeError('start failure')):
+            future = self.core.ieee_prepare_file_host(self.f.command())
+        self.core._process_input_queue()
+        with self.assertRaisesRegex(RuntimeError, 'start failure'):
+            future.result()
+        self.assertTrue(self.f.owner._poisoned)
+        self.assertFalse(self.f.manager._registered_adapters)
+
+    def test_policy_requires_interleave_and_cannot_change_after_install(self):
+        with self.assertRaisesRegex(ValueError, 'requires native control interleave'):
+            fixture(enabled=False, host=True)
+        self.core.scheduler.vllm_config.additional_config.pop('ieee_tc_host_construction')
+        with self.assertRaisesRegex(ValueError, 'changed after installation'):
+            install_core_control_interleave(self.cls, self.core.scheduler,
+                executor_type=type(self.core.model_executor), request_types=Kind, native_version='0.30.0')
+
+
+class HostPreparationFrontend(unittest.IsolatedAsyncioTestCase):
+    async def test_optin_routes_only_cpu_preparation_and_validates_terminal_reply(self):
+        from scripts.run_all_experiments import InferenceEngine
+        utility_call = AsyncMock(return_value={'held': True})
+        worker_call = AsyncMock(return_value=[{'original': True}])
+        engine = NS(model_cfg={'ieee_gpu_references': True, 'ieee_host_construction': HOST_CONSTRUCTION_POLICY},
+            backend='vllm', _engine_dead=False,
+            engine=NS(engine_core=NS(call_utility_async=utility_call), collective_rpc=worker_call))
+        result = await InferenceEngine.ieee_gpu_reference(engine, operation='prepare_file_host_and_hold', lease_id='l')
+        self.assertEqual(result, {'held': True})
+        utility_call.assert_awaited_once_with('ieee_prepare_file_host', {'lease_id': 'l'})
+        worker_call.assert_not_awaited()
+        self.assertEqual(await InferenceEngine.ieee_gpu_reference(engine, operation='source_snapshot'), {'original': True})
+        worker_call.assert_awaited_once_with('ieee_gpu_reference', kwargs={'operation': 'source_snapshot'})
+        utility_call.return_value = ['not a core receipt']
+        with self.assertRaisesRegex(RuntimeError, 'core-owned HOST'):
+            await InferenceEngine.ieee_gpu_reference(engine, operation='prepare_file_host_and_hold')
+        engine.model_cfg.pop('ieee_host_construction')
+        self.assertEqual(await InferenceEngine.ieee_gpu_reference(engine, operation='prepare_file_host_and_hold'),
+                         {'original': True})
 
 
 if __name__=='__main__':unittest.main()

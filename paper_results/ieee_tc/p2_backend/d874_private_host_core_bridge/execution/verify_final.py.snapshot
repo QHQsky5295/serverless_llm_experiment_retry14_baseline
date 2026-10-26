@@ -1,0 +1,10 @@
+"""Keep the first CPU fixture failure; run final source in a new output path."""
+from pathlib import Path
+
+source = Path(__file__).with_name('verify_executed.py.snapshot').read_text()
+source = source.replace("p2_backend/d874_private_host_core_bridge'", "p2_backend/d874_private_host_core_bridge/final_source'")
+source = source.replace("RAW / 'identity.json'", "RAW / 'identity_final.json'")
+destination = Path(__file__).with_name('verify_final_executed.py.snapshot')
+with destination.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(destination), 'exec'))
