@@ -25138,6 +25138,24 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             cleanup_result = _cleanup_ieee_run_workspaces(stack, claims)
         except BaseException as exc:
             errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
+    # These snapshots still consult the owner-backed coordination state.  Take
+    # them after request/runtime shutdown but before stack.stop closes the file
+    # owner; the cleanup above has already proven that no live dependency
+    # remains.
+    coordination_after_shutdown = None
+    try:
+        coordination_after_shutdown = service._current_coord_metrics()
+    except BaseException as exc:
+        measurement_errors.append(error_record('coordination_snapshot',exc))
+        failure_objects.append(exc)
+    cpu_frontend_preparation = None
+    factory = getattr(service, 'engine_factory', None)
+    if isinstance(factory, DedicatedScenarioEngineFactory):
+        try:
+            cpu_frontend_preparation = factory.preparation_evidence()
+        except BaseException as exc:
+            measurement_errors.append(error_record('cpu_preparation_snapshot', exc))
+            failure_objects.append(exc)
     try:
         await stack.stop()
     except BaseException as exc:
@@ -25163,18 +25181,10 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_proactive_diagnostic',
             '_ieee_source_observation_stats','_ieee_route_cache_stats',
             '_ieee_runtime_quarantine_events','_ieee_scalein_events')})
-    try:
-        data['coordination_after_shutdown'] = service._current_coord_metrics()
-    except BaseException as exc:
-        measurement_errors.append(error_record('coordination_snapshot',exc))
-        failure_objects.append(exc)
-    factory = getattr(service, 'engine_factory', None)
-    if isinstance(factory, DedicatedScenarioEngineFactory):
-        try:
-            data['cpu_frontend_preparation'] = factory.preparation_evidence()
-        except BaseException as exc:
-            measurement_errors.append(error_record('cpu_preparation_snapshot', exc))
-            failure_objects.append(exc)
+    if coordination_after_shutdown is not None:
+        data['coordination_after_shutdown'] = coordination_after_shutdown
+    if cpu_frontend_preparation is not None:
+        data['cpu_frontend_preparation'] = cpu_frontend_preparation
     data['cleanup'] = cleanup_result
     if primary_error is not None or failure_objects:
         active = getattr(service,'_active_scenario_result',None)
