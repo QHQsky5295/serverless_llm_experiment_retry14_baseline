@@ -20197,7 +20197,9 @@ class ScenarioRunner:
                         raise UnresolvedTransferOperation('native HOST loading/release outcome unresolved') from exc
                     raise
             try:
-                return await self._run_ieee_file_transfer(adapter_id, source['tier'], 'native_host', engine, owned_materialize)
+                return await self._run_ieee_file_transfer(
+                    adapter_id, file_ref['confirmed_source']['tier'], 'native_host',
+                    engine, owned_materialize)
             finally:
                 if known:
                     if hasattr(references, 'call_async'):
