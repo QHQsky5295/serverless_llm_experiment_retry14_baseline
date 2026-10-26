@@ -1,0 +1,146 @@
+"""D868: reuse closed D863 native spans and D866 streamed receipts, no replay.
+
+Uses the existing D866 streaming recipe and existing CSV/statistics helpers.
+CPU ratios are operation aggregates, never a request-latency counterfactual.
+"""
+import collections
+import csv
+import json
+import math
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.analyze_control_path_overhead import write_csv
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+save(RAW/'identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+base = ROOT/'paper_results/ieee_tc/p2_backend'
+source = base/'d863_3b_native_prefix1000/completion/core_boundaries.csv'
+assert p.digest(source) == '31137f08a80bfc73b57aa7031809300c83471ce0336dc8475a0bd69e2fd5e58c'
+groups = collections.defaultdict(list)
+with source.open(newline='') as stream:
+    for row in csv.DictReader(stream):
+        if row['boundary'] == 'client':
+            groups[row['label'], row['state']].append(row)
+cpu_rows = []
+for (label, state), rows in sorted(groups.items()):
+    count = sum(int(row['count']) for row in rows)
+    wall = math.fsum(float(row['total_ms']) for row in rows)
+    cpu = math.fsum(float(row['thread_cpu_ms']) for row in rows)
+    assert count > 0 and wall > 0 and cpu >= 0
+    cpu_rows.append(dict(operation=label, state=state, count=count,
+        wall_ms=wall, thread_cpu_ms=cpu, mean_wall_ms=wall/count,
+        mean_thread_cpu_ms=cpu/count, thread_cpu_wall_ratio=cpu/wall))
+write_csv(cpu_rows, OUT/'control_cpu.csv')
+
+metric_path = base/'d866_3b_native_host_graph_full_w2/completion/full4000.json'
+metric = json.loads(metric_path.read_text())
+request_ref = next(row for row in metric['source_refs']
+    if Path(row['path']).name.startswith('experiment_results_full'))
+requests = Path(request_ref['path'])
+assert p.digest(requests) == request_ref['sha256']
+staging = []
+rpc_sizes = collections.defaultdict(list)
+seen = set()
+missing_host_check = []
+def collect_rpc(value, path):
+    if isinstance(value, dict):
+        if 'parent_rpc_response_bytes' in value:
+            size = value['parent_rpc_response_bytes']
+            assert type(size) is int and size >= 0
+            rpc_sizes[path].append(size)
+        for key, child in value.items():
+            if isinstance(child, (dict, list)):
+                collect_rpc(child, path+'.'+key)
+    elif isinstance(value, list):
+        for child in value:
+            collect_rpc(child, path+'[]')
+
+with requests.open('rb') as stream:
+    for request in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        rid = request['request_id']
+        assert rid not in seen and request['success'] is True
+        seen.add(rid)
+        evidence = request['gpu_reference_evidence']
+        receipt = evidence['receipt']
+        allocation = receipt.get('host_allocation')
+        if allocation is None:
+            missing_host_check.append(rid)
+        else:
+            values = {}
+            for phase in ('before', 'after'):
+                observed = allocation[phase]['before']
+                assert observed['available'] is True
+                values[phase+'_scope'] = observed['scope']
+                for key in ('registered_pinned_storage_bytes', 'registered_pageable_storage_bytes',
+                            'staged_only_pinned_storage_bytes', 'staged_only_pageable_storage_bytes'):
+                    values[phase+'_'+key] = observed[key]
+            staging.append(dict(request_id=rid, tier=request['readiness_tier_before_dispatch'],
+                source_tier_before_acquisition=receipt['source_tier_before_acquisition'],
+                after_storage_observation=allocation['after_storage_observation'], **values))
+        collect_rpc(evidence, 'gpu_reference_evidence')
+assert len(seen) == 4000
+write_csv(staging, OUT/'request_host_accounting.csv')
+size_rows = [dict(path=path, occurrence_count=len(values),
+    bytes=timing_stats(values)) for path, values in sorted(rpc_sizes.items())]
+save(OUT/'rpc_size_occurrences.json', dict(rows=size_rows,
+    caveat='Nested receipts may repeat a historical RPC. Occurrences are not distinct exchanges or current source-snapshot RPCs.'))
+counts = dict(total_requests=len(seen), host_allocation_receipts=len(staging),
+    missing_host_allocation_request_ids=missing_host_check,
+    before_scope_counts=dict(collections.Counter(row['before_scope'] for row in staging)),
+    after_scope_counts=dict(collections.Counter(row['after_scope'] for row in staging)),
+    before_positive_staged_storage=sum(row['before_staged_only_pinned_storage_bytes']+
+        row['before_staged_only_pageable_storage_bytes'] > 0 for row in staging),
+    after_positive_staged_storage=sum(row['after_staged_only_pinned_storage_bytes']+
+        row['after_staged_only_pageable_storage_bytes'] > 0 for row in staging),
+    after_storage_observation_counts=dict(collections.Counter(row['after_storage_observation'] for row in staging)))
+sources = [source, metric_path, requests, Path(__file__),
+    ROOT/'scripts/analyze_control_path_overhead.py',
+    ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py',
+    ROOT/'faaslora/memory/gpu_monitor.py',
+    RAW.parent/'d866_20261026/settlement_resume_program.py.snapshot']
+save(OUT/'summary.json', dict(passed=True, analysis_kind='closed_control_cpu_and_staging_d868_v1',
+    new_gpu_replays=0, production_changes=False, numerical_correctness_qualified=False,
+    ranking_eligible=False, counts=counts, cpu_rows=cpu_rows,
+    source_refs=[ref(path) for path in sources],
+    caveats=['D863 is an instrumented 1000-request diagnostic; D866 is a separate complete graph-opt-in run.',
+        'Thread CPU/wall is not GIL occupancy, GPU idle time, or a removable latency fraction.',
+        'Whole-process operation groups and request-overlap groups use different populations.',
+        'D866 HOST receipts show live staging at acquisition, not frequency/cost of the doubled source_snapshot branch.',
+        'RPC occurrence byte sizes include repeated receipt copies and omit unsaved planning calls.',
+        'One fresh union graph might yield two independent scope views; not implemented or performance-qualified.']))
+resources = p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+save(RAW/'resources.json', dict(identity=identity, resources=resources))
+with (OUT/'analyze.py.snapshot').open('xb') as stream:
+    stream.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json', dict(outputs=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()],
+    source_refs=[ref(path) for path in sources]))
+print(json.dumps(dict(passed=True, counts=counts, memory_peak=resources['memory.peak'])))

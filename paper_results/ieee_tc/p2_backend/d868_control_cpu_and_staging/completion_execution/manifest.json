@@ -1,0 +1,27 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging/completion_execution/analyze.py.snapshot",
+      "sha256": "21cb87cd2701552c01b2fcc902e4aa078cdfeafd3e17d800dd2ddd8b556cdc7c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging/completion_execution/identity.json",
+      "sha256": "f557b0a2d966270fc914f127a69868d7e28b69301ba5e3b5c4a6bbc221f51884"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging/completion_execution/resources.json",
+      "sha256": "a8282362e887444834fdf52341c524e3edf9e2274befac3b45caeceed8aec5c9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging/completion_execution/backup_results.py.snapshot",
+      "sha256": "89270f4efb1cdf12115a4ba26a6ea69c292ee2e31eb07296a9af7c740a1f12c5"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d868_control_cpu_and_staging/completion_execution/backup_program.py.snapshot",
+      "sha256": "23a722adbe253948b9b061b3471489f0c79cdf825deab4db1a89ee608cce8800"
+    }
+  ],
+  "remote_monitor_sha256": null,
+  "protected_files": 147,
+  "procedure_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d867_20261026/backup_program.py.snapshot"
+}

@@ -1,0 +1,52 @@
+"""Reuse D867 explicit-path backup; validate D868's closed offline analysis."""
+import hashlib
+from pathlib import Path
+
+RAW = Path(__file__).resolve().parent
+template = RAW.parent/'d867_20261026/backup_program.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == 'b0bff9ce5d0fa8e7970ba78b43e41daccdc56809002224a3ef359ceece856079'
+source = template.read_text()
+source = source.replace('d867_native_graph_residual', 'd868_control_cpu_and_staging')
+start = source.index("diagnosis = read(OUT/'startup/diagnosis.json')")
+end = source.index("q = {'protected':", start)
+source = source[:start] + '''diagnosis = read(OUT/'summary.json')
+assert diagnosis['passed'] and diagnosis['new_gpu_replays'] == 0
+assert not diagnosis['production_changes'] and not diagnosis['ranking_eligible']
+assert not diagnosis['numerical_correctness_qualified']
+for row in diagnosis['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+counts = diagnosis['counts']
+assert counts['total_requests'] == counts['host_allocation_receipts'] == 4000
+assert not counts['missing_host_allocation_request_ids']
+assert counts['before_positive_staged_storage'] == 416
+assert counts['after_positive_staged_storage'] == 413
+assert sum(counts['after_storage_observation_counts'].values()) == 4000
+''' + source[end:]
+source = source.replace('D867_NATIVE_GRAPH_RESIDUAL_20261026.md',
+                        'D868_CONTROL_CPU_AND_STAGING_20261026.md')
+source = source.replace("manifest = read(OUT/'startup/manifest.json')\nassert manifest['passed']",
+                        "manifest = read(OUT/'manifest.json')")
+source = source.replace("files = [path for path in sorted((OUT/'startup').iterdir()) if path.is_file()]",
+                        "files = [path for path in sorted(OUT.iterdir()) if path.is_file()]")
+start = source.index('small = (')
+end = source.index('for name in small:', start)
+source = source[:start] + '''small = ('analyze.py', 'identity.json', 'resources.json',
+         'backup_results.py', 'backup_program.py.snapshot')
+''' + source[end:]
+source = source.replace('No remote service or GPU run in D867.',
+                        'No remote service or GPU run in D868.')
+source = source.replace("procedure_source=str(RAW.parent / 'd866_20261026/backup_program.py.snapshot')",
+                        "procedure_source=str(RAW.parent / 'd867_20261026/backup_program.py.snapshot')")
+start = source.index("     qualification='D867")
+end = source.index("call(['git', 'commit'", start)
+source = source[:start] + """     qualification='D868 stream analysis passed: 4000 receipts, complete accounting partitions, validated D863 CPU rows and source/output SHA. No production changes or new GPU run.'))
+""" + source[end:]
+source = source.replace('tc: close D867 startup feedback attribution and retain full residual evidence',
+                        'tc: preserve D868 native control CPU and live staging evidence')
+source = source.replace('refs/heads/backup/d867-residual-20261026',
+                        'refs/heads/backup/d868-control-cpu-20261026')
+generated = RAW/'backup_program.py.snapshot'
+compile(source, str(generated), 'exec')
+with generated.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(generated), 'exec'), globals())

@@ -1,4 +1,35 @@
-# IEEE TC execution status — D867 closed-run attribution complete, SLO gap remains
+# IEEE TC execution status — D868 current control CPU evidence, SLO gap remains
+
+## 2026-10-26 08:00 CST：D868现有控制CPU/暂存证据已保存
+
+本轮离线progress，无新GPU回放/生产改动/调参。复用D863已校验CSV和D866
+逐请求流；当前推理工作中的HOST准备/完整来源/按需引用/pending引用平均
+墙钟152.729/92.322/109.705/56.011ms，线程CPU占98.970–99.640%。这不是
+GIL比例、GPU空闲或可扣除请求时延；外层JSON编码不在这些core区间内。
+D8664000条都有HOST前后观察，416/413条前/后含真实暂存；不能据此声称
+完整source_snapshot双遍历恰发生416次。完整数据/限制见D868文档与curated。
+
+下一唯一候选：现有有staged的来源查询重复遍历registered图，研究一次新鲜
+union清点生成两个独立scope视图。D671只完成无staged复制；不重开D329跨调用
+缓存、不再微调D864整图实现、不恢复D192/D737/线程/stat/文件projection。
+先有界组件语义/开销验证，未实施、未有性能收益，不直接跑Full或增加profiling。
+图内ID重编号、共享storage的并集/独占回收量与消费决胜必须保持语义。
+
+D868辅助域已inactive/dead，峰值52928512B，high/max/OOM/swap0；无GPU或
+远端操作。当前D866仍93.70%、差52条，数值正确性未知，G1/G2未达成，默认
+基础仍D857/D858，graph保持opt-in。HydraServe隔离适配复用，不动共享k3s。
+全部同版本双模型、baseline/dLoRA、A1–A5/S1–S13、数值证明、图文与最终V2
+同步保持开放，goal active。现在保存证据并正常备份，不把检查点当最终交付。
+
+### D867备份回执（提交后追加）
+
+检查点`f7a8b306728f7ec20f6c6a0f9bb9166083adc6dc`已推送并ls-remote核验
+`refs/heads/backup/d867-residual-20261026`，14个明确路径，暂存区已空；用户
+manifest未stage。首次备份在空CSV类别的pathspec检查中停止，未commit/push；
+原脚本/快照不改，仅跳过不存在类别、按原snapshot规则检查全部快照后继续。
+原失败及继续依据保存于curated `backup_resume/receipt.json`，未重跑分析。
+147保护项、来源SHA、diff及凭据检查通过。最终V2仍未同步；本段随下一正常
+检查点保存。当前没有GPU运行或远端操作；下一问题与完整范围保持上述主线。
 
 ## 2026-10-26 07:40 CST：D867复用完整日志，早扩容原因已恢复
 

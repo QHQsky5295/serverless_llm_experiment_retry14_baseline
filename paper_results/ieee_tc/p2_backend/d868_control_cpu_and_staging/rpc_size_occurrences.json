@@ -1,0 +1,125 @@
+{
+  "rows": [
+    {
+      "path": "gpu_reference_evidence.cache_source_rechecks[].conflict.timing",
+      "occurrence_count": 6,
+      "bytes": {
+        "count": 6,
+        "mean": 2256,
+        "p50_type1": 2235,
+        "p95_type1": 2287
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.last_conflict.timing",
+      "occurrence_count": 6,
+      "bytes": {
+        "count": 6,
+        "mean": 2256,
+        "p50_type1": 2235,
+        "p95_type1": 2287
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.native_host_source.receipt.timing",
+      "occurrence_count": 1112,
+      "bytes": {
+        "count": 1112,
+        "mean": 2257.2158273381297,
+        "p50_type1": 2257,
+        "p95_type1": 2262
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.pending_kv_admission.close_receipt.timing",
+      "occurrence_count": 4000,
+      "bytes": {
+        "count": 4000,
+        "mean": 516.8835,
+        "p50_type1": 517,
+        "p95_type1": 517
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.pending_kv_admission.receipt.timing",
+      "occurrence_count": 2239,
+      "bytes": {
+        "count": 2239,
+        "mean": 615.522554711925,
+        "p50_type1": 616,
+        "p95_type1": 618
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.prior_routing_attempts[].native_host_source.conflict.timing",
+      "occurrence_count": 56,
+      "bytes": {
+        "count": 56,
+        "mean": 2178.035714285714,
+        "p50_type1": 2175,
+        "p95_type1": 2204
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.prior_routing_attempts[].pending_kv_admission.close_receipt.timing",
+      "occurrence_count": 189,
+      "bytes": {
+        "count": 189,
+        "mean": 449.9100529100529,
+        "p50_type1": 450,
+        "p95_type1": 450
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.prior_routing_attempts[].pending_kv_admission.receipt.timing",
+      "occurrence_count": 97,
+      "bytes": {
+        "count": 97,
+        "mean": 615.2783505154639,
+        "p50_type1": 616,
+        "p95_type1": 618
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.receipt.timing",
+      "occurrence_count": 2239,
+      "bytes": {
+        "count": 2239,
+        "mean": 22717.064314426083,
+        "p50_type1": 22958,
+        "p95_type1": 23422
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.release_receipt.timing",
+      "occurrence_count": 4000,
+      "bytes": {
+        "count": 4000,
+        "mean": 2169.648,
+        "p50_type1": 2168,
+        "p95_type1": 2199
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.snapshot_before_acquisition.held_source_receipt.timing",
+      "occurrence_count": 1106,
+      "bytes": {
+        "count": 1106,
+        "mean": 2257.216998191682,
+        "p50_type1": 2257,
+        "p95_type1": 2262
+      }
+    },
+    {
+      "path": "gpu_reference_evidence.snapshot_before_acquisition.timing",
+      "occurrence_count": 6,
+      "bytes": {
+        "count": 6,
+        "mean": 12137.666666666666,
+        "p50_type1": 12138,
+        "p95_type1": 12146
+      }
+    }
+  ],
+  "caveat": "Nested receipts may repeat a historical RPC. Occurrences are not distinct exchanges or current source-snapshot RPCs."
+}
