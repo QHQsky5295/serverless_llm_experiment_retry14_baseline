@@ -19543,17 +19543,29 @@ class ScenarioRunner:
                         transfer_evidence.update(transfer_id=transfer_id,
                             local_source_owner_id=owner.local_source_references.owner_id,
                             target_path=str(dst.resolve()))
+                        if getattr(references, 'process', None) is not None:
+                            # The process owner accepts only value arguments; the
+                            # publication mutation and its source-reference guard
+                            # run inside that owner.  A legacy in-process owner
+                            # still receives the residency manager callback.
+                            def publish_verified(staging, target, verified_files):
+                                return references.publish_transfer(
+                                    transfer_id, staging, target,
+                                    verified_files=verified_files)
+                        else:
+                            def publish_verified(staging, target, verified_files):
+                                return references.publish_transfer(
+                                    transfer_id, staging, target,
+                                    lambda source, destination: owner.publish_local_source(
+                                        source, destination, transfer_id=transfer_id),
+                                    verified_files=verified_files)
                         ok, elapsed_ms, size_bytes = self._remote_artifact_client.download_artifact(
                             adapter_id, str(dst),
                             workspace=lambda target: references.transfer_workspace(transfer_id),
                             reserve_files=lambda staging, archive_bytes, files: references.prepare_transfer(
                                 transfer_id, staging, archive_bytes, files,
                                 limit_bytes=int(owner.tier_capacities[StorageTier.NVME].total_bytes)),
-                            publish_verified=lambda staging, target, verified_files: references.publish_transfer(
-                                transfer_id, staging, target,
-                                lambda source, destination: owner.publish_local_source(
-                                    source, destination, transfer_id=transfer_id),
-                                verified_files=verified_files),
+                            publish_verified=publish_verified,
                             cancel_event=cancel_event, require_content_manifest=True,
                             content_verification='owner_publication',
                             evidence=transfer_evidence)
@@ -25110,12 +25122,25 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
     def error_record(stage, exc):
         return dict(stage=stage,type=type(exc).__name__,message=str(exc),
                     traceback=''.join(traceback.format_exception(exc)))
-    for stage, action in (('runtime_shutdown',service._shutdown_instance_pool),
-                          ('stack_stop',stack.stop)):
+    for stage, action in (('runtime_shutdown',service._shutdown_instance_pool),):
         try:
             await action()
         except BaseException as exc:
             errors.append(error_record(stage,exc)); failure_objects.append(exc)
+    # Workspace deletion is an owner operation.  It must precede stack.stop,
+    # which closes the process-local file owner; otherwise a failed replay can
+    # leave only an uncallable controller facade for cleanup.  Runtime shutdown
+    # above has already ended request contexts before this quiescence check.
+    cleanup_result = dict(complete=False, roots=claims, reason='shutdown_unresolved')
+    if not errors:
+        try:
+            cleanup_result = _cleanup_ieee_run_workspaces(stack, claims)
+        except BaseException as exc:
+            errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
+    try:
+        await stack.stop()
+    except BaseException as exc:
+        errors.append(error_record('stack_stop',exc)); failure_objects.append(exc)
     data = dict(kind='ieee_main_outcome_v1',scenario=service.name,
         planned_request_count=len(service.traces),
         run_completed=primary_error is None,
@@ -25149,12 +25174,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
         except BaseException as exc:
             measurement_errors.append(error_record('cpu_preparation_snapshot', exc))
             failure_objects.append(exc)
-    data['cleanup'] = dict(complete=False,roots=claims,reason='shutdown_unresolved')
-    if not errors:
-        try:
-            data['cleanup'] = _cleanup_ieee_run_workspaces(stack,claims)
-        except BaseException as exc:
-            errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
+    data['cleanup'] = cleanup_result
     if primary_error is not None or failure_objects:
         active = getattr(service,'_active_scenario_result',None)
         data['completed_scenario_windows'] = asdict(active) if active is not None else None
