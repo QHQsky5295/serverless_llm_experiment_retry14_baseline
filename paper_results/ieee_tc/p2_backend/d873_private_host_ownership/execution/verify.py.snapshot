@@ -1,0 +1,18 @@
+"""D873 reuses the D872 bounded test launcher for the split ownership API."""
+from pathlib import Path
+import hashlib
+
+previous = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d872_20261026/verify.py')
+source = previous.read_text()
+source = source.replace('d872_20261026', 'd873_20261026').replace(
+    'd872_native_host_boundary', 'd873_private_host_ownership')
+source = source.replace("'tests/test_ieee_tc_gpu_references.py::NativeFileHostPreparation',\n    'tests/test_ieee_tc_gpu_references.py::NativeHostWorkspace',",
+                        "'tests/test_ieee_tc_gpu_references.py',")
+source = source.replace('production_changes=False', 'production_changes=True')
+source = source.replace('Deterministic serial-ownership/utility-callback witnesses, not async implementation or performance qualification.',
+    'Private CPU construction ownership and adjacent reference regression; core bridge not connected, no native asynchronous or performance qualification.')
+destination = Path(__file__).with_name('verify_executed.py.snapshot')
+with destination.open('x') as stream:
+    stream.write(source)
+print('D872 launcher SHA256 ' + hashlib.sha256(previous.read_bytes()).hexdigest(), flush=True)
+exec(compile(source, str(destination), 'exec'))

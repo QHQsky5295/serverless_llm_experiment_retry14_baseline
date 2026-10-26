@@ -1,4 +1,34 @@
-# IEEE TC execution status — D872 native HOST split boundary verified, implementation next
+# IEEE TC execution status — D873 private HOST ownership implemented, core bridge next
+
+## 2026-10-26 D873：单候选的构造/提交所有权已实现，未启用异步回放
+
+在现有 owner 实现 begin 预算持有、私有 CPU 构造、join 后原生线程重查/提交。
+需求加载也观察在途上界；计划、当前 cache、内容和物理占用重新检查；取消
+不提前释放，需求抢先完成的重复工作真实记录。GPU 激活/KV admission 不拆。
+这是生产模块内的局部 API 实现，不再是仅 profiling/边界分析；但 EngineCore
+utility/WAKEUP/Future 和关闭结算桥尚未接入，runner/config 未启用异步模式。
+
+最终源码172项/68subtests通过（新增11项，另扩展原 worker 私有回调验证），
+19条既有警告；前一版170项证据保留。CPU测试峰值674369536B，high/max/
+OOM/swap均0，无GPU/远端操作。详见D873_PRIVATE_HOST_OWNERSHIP_20261026.md。
+完整性能仍3773/4000=94.325%、U11931.565094、预算12083.063870，数值
+正确性未知，G1/G2未完成；不宣称性能改善，不绘图。
+
+下一步继续同一候选的 core 唤醒/原线程提交和关闭/取消结算接入，然后做
+改变路径所需的原生验证和新版本完整回放；不重复D872反例、HOST组件微测
+或原因profiling。保守在途峰值可能与allocator已见字节重叠，应明确记录其
+延后需求的代价，不当作互斥实际字节或保证收益。未新增性能调参/评价阈值。
+全部同版本两模型矩阵、baseline/dLoRA、A1–A5、S1–S13、数值证明、审稿图文
+和最终V2交付继续开放。目标active，本轮为实现/验证progress。
+
+### D872完成备份回执（提交后追加）
+
+11个明确文件已提交为`97b031a45ec070939f9f70a4aeb24383a9e4c69d`，推送及
+ls-remote核验`refs/heads/backup/d872-host-boundary-20261026`成功。32项测试、
+源SHA、147保护项、用户manifest、语法、diff与凭据检查通过，未stage用户
+manifest、未force push，最终V2仍未同步。此回执随下一正常检查点保存。
+无GPU/远端任务；下一步直接进入本节单一所有权协议实现，不重复这三个边界
+见证或profiling。完整实验范围保持开放，目标active；本轮归类progress。
 
 ## 2026-10-26 D872：三个CPU边界见证通过，未新增性能实验
 

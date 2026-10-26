@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-87300000000000000000000000000003.scope",
+    "invocation_id": "a6af5fa6fdcf4e35ae614952f1eaff22",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87300000000000000000000000000003.scope",
+    "inode": 32883330
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D873_PRIVATE_HOST_OWNERSHIP_20261026.md",
+    "sha256": "17d6915c37d456faa55a6358b9ebe1df523c9d3cd0534ac77f171aa8637ab94b",
+    "bytes": 6096
+  },
+  "production_changes": true,
+  "new_gpu_replays": 0,
+  "performance_gain": null,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "tests": {
+    "total": 172,
+    "new": 11,
+    "extended": 1,
+    "subtests": 68,
+    "warnings": 19,
+    "source": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d873_private_host_ownership/final_source/tests.txt",
+      "sha256": "841cfb8c8ba7ad618a85bd3abb803bf5952fb49139d4b20a241b6dff8690b4c0",
+      "bytes": 28860
+    }
+  },
+  "disk_free_bytes": 176087273472
+}

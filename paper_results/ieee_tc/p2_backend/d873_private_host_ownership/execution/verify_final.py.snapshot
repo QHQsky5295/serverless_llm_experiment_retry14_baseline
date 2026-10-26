@@ -1,0 +1,12 @@
+"""Final source regression; retain the first D873 test receipt unchanged."""
+from pathlib import Path
+
+source = Path(__file__).with_name('verify_executed.py.snapshot').read_text()
+source = source.replace("/ 'd873_private_host_ownership'", "/ 'd873_private_host_ownership/final_source'")
+# OUT is expressed as one path literal in the reused launcher.
+source = source.replace("p2_backend/d873_private_host_ownership'", "p2_backend/d873_private_host_ownership/final_source'")
+source = source.replace("RAW / 'identity.json'", "RAW / 'identity_final.json'")
+destination = Path(__file__).with_name('verify_final_executed.py.snapshot')
+with destination.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(destination), 'exec'))

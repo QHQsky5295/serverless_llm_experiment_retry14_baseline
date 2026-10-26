@@ -1,0 +1,31 @@
+"""Reuse the explicit-path D872 backup, with this implementation checkpoint."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd872_20261026/backup_executed.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '1fb0e386600458a5b2b4fe5e49866451c8711f251349e3fbb2e3aee513898de8'
+source = template.read_text()
+changes = (
+    ('D872 evidence', 'D873 implementation and evidence'),
+    ('d872_native_host_boundary', 'd873_private_host_ownership'),
+    ('b76f510d64d3b52c9bf2b44dcb822c111f7187e5', '97b031a45ec070939f9f70a4aeb24383a9e4c69d'),
+    ('D872_NATIVE_HOST_CONSTRUCTION_BOUNDARY_20261026.md', 'D873_PRIVATE_HOST_OWNERSHIP_20261026.md'),
+    ("         ROOT/'tests/test_ieee_tc_core_interleave.py',",
+     "         ROOT/'faaslora/memory/gpu_monitor.py',\n         ROOT/'faaslora/memory/residency_manager.py',"),
+    ('backup/d872-host-boundary-20261026', 'backup/d873-private-host-ownership-20261026'),
+    ('tc: verify D872 native HOST allocation and commit-thread boundaries',
+     'tc: implement private CPU LoRA construction ownership and core-only settlement'),
+    ("raw_log = 'paper_results/ieee_tc/p2_backend/d873_private_host_ownership/tests.txt'",
+     "raw_logs = [path for path in paths if path.endswith('/tests.txt')]"),
+    ('and path != raw_log]', 'and path not in raw_logs]'),
+    ("'--',raw_log)", "'--',*raw_logs)"),
+)
+for old, new in changes:
+    assert old in source, old
+    source = source.replace(old, new)
+target = raw / 'backup_executed.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

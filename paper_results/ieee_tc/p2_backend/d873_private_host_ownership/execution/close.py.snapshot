@@ -1,0 +1,25 @@
+"""Reuse D872 closure checks; qualify final code, retain both test receipts."""
+from pathlib import Path
+
+previous = Path(__file__).resolve().parent.parent / 'd872_20261026/close.py'
+source = previous.read_text().replace('d872_native_host_boundary', 'd873_private_host_ownership')
+source = source.replace("OUT / 'verification.json'", "OUT / 'final_source/verification.json'")
+source = source.replace("OUT / 'tests.txt'", "OUT / 'final_source/tests.txt'")
+source = source.replace('32 passed, 19 warnings, 10 subtests passed', '172 passed, 19 warnings, 68 subtests passed')
+source = source.replace('D872_NATIVE_HOST_CONSTRUCTION_BOUNDARY_20261026.md',
+                        'D873_PRIVATE_HOST_OWNERSHIP_20261026.md')
+source = source.replace('production_changes=False', 'production_changes=True')
+source = source.replace('total=32, new=3, subtests=10', 'total=172, new=11, extended=1, subtests=68')
+source = source.replace('tests=32', 'tests=172')
+source = source.replace("('verify.py', 'close.py', 'backup.py')", "('verify.py', 'verify_final.py', 'close.py', 'backup.py', 'verify_executed.py.snapshot', 'verify_final_executed.py.snapshot')")
+source = source.replace("execution = OUT / 'execution'", """initial = json.loads((OUT / 'verification.json').read_text())
+assert initial['passed'] and not p.scope_still_owned(initial['identity'])
+assert not Path(initial['identity']['path']).exists()
+assert initial['resources']['memory.swap.current'] == 0
+assert all(value == 0 for value in initial['resources']['memory.events'].values())
+execution = OUT / 'execution'""")
+destination = Path(__file__).with_name('close_executed.py.snapshot')
+compile(source, str(destination), 'exec')
+with destination.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(destination), 'exec'))

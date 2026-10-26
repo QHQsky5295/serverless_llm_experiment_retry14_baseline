@@ -1839,6 +1839,68 @@ class LocalSourceReferences:
                 self._file_inventory(after_managed_root_deletion=True)
 
 
+class NativeHostConstruction:
+    """One private CPU build; completion is NOT native-cache publication.
+
+    Only ``construct`` executes off the owner thread. The result is kept here,
+    never in a Future (whose traceback/result could retain weights after
+    settlement). A cancelled waiter cannot cancel or release this operation.
+    Its owner must join and commit/discard it on the original native thread.
+    """
+
+    def __init__(self, command, allocation, construct, owner_thread):
+        self.command = MappingProxyType(dict(command))
+        self.allocation = copy.deepcopy(allocation)
+        self.owner_thread = owner_thread
+        self.token = uuid.uuid4().hex
+        self.peak_bytes = allocation['contract']['peak_additional_tensor_bytes']
+        self.started_at = self.completed_at = None
+        self.model = None
+        self.failure = self.wake_failure = None
+        self.done = threading.Event()
+        self._construct = construct
+        self._thread = None
+        self.settled = False
+
+    def start(self, wake):
+        if threading.get_ident() != self.owner_thread or self._thread is not None:
+            raise RuntimeError('native HOST construction must start once on its owner')
+        if not callable(wake):
+            raise ValueError('native HOST construction requires a core wakeup')
+
+        def run():
+            import traceback
+            self.started_at = time.monotonic()
+            try:
+                self.model = self._construct(
+                    adapter_int_id=self.command['adapter_int_id'],
+                    lora_name=self.command['lora_name'], lora_path=self.command['lora_path'])
+                if self.model is None or self.model.id != self.command['adapter_int_id']:
+                    raise RuntimeError('private native HOST model identity mismatch')
+            except BaseException:
+                # Keep diagnostic text, not a traceback retaining partial tensors.
+                self.failure = traceback.format_exc()
+                self.model = None
+            finally:
+                self._construct = None
+                self.completed_at = time.monotonic()
+                self.done.set()
+                try:
+                    wake(self)
+                except BaseException:
+                    self.wake_failure = traceback.format_exc()
+
+        self._thread = threading.Thread(target=run, name='ieee-private-host-build', daemon=False)
+        self._thread.start()
+
+    def join_completed(self):
+        if threading.get_ident() != self.owner_thread:
+            raise RuntimeError('native HOST construction settlement requires its owner')
+        if self._thread is None or not self.done.is_set():
+            raise RuntimeError('native HOST construction is still in flight')
+        self._thread.join()  # Wakeup is a local nonblocking enqueue, not a commit.
+
+
 class IEEEBackendGPUReferences:
     """Request references on the *native* CPU/GPU LoRA caches of one worker.
 
@@ -1855,12 +1917,15 @@ class IEEEBackendGPUReferences:
 
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
                  file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None,
-                 host_activation_storage_witness=None, proactive_host_activation_storage_witness=None):
+                 host_activation_storage_witness=None, proactive_host_activation_storage_witness=None,
+                 file_host_constructor=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
         self.preparation_loader = preparation_loader
         self.file_host_loader = file_host_loader
+        self.file_host_constructor = file_host_constructor
+        self._native_host_build = None
         self.host_allocation_check = host_allocation_check
         # Optional qualified native callback, not a general cached budget check.
         # It must read allocator counters again; only HOST storage evidence from
@@ -1965,6 +2030,14 @@ class IEEEBackendGPUReferences:
         old = self._sources.get(adapter_int_id)
         content = self._source_contents.get(adapter_int_id)
         staged = self._staged_host.get(adapter_int_id)
+        build = self._native_host_build
+        if build is not None and build.command['adapter_int_id'] == adapter_int_id:
+            command = build.command
+            if ((command['lora_name'], command['lora_path']) != source and not (
+                    expected_content_sha256 is not None
+                    and command.get('expected_content_sha256') == expected_content_sha256
+                    and command['lora_name'] == source[0])):
+                raise ValueError('native source differs from in-flight HOST construction')
 
         def conflict(reason, *, live=None):
             # Keep the historical exception prefix stable while preserving the
@@ -2217,12 +2290,26 @@ class IEEEBackendGPUReferences:
         increment = 0 if contract is None else contract['peak_additional_tensor_bytes']
         growth = partition['registered_upper_bytes'] - registered
         reserve = growth + partition['demand_load_peak_bytes'] if proactive and contract is not None else 0
-        projected = current + increment + reserve
+        in_flight = self.host_construction_reserved_bytes()
+        projected = current + increment + reserve + in_flight
         return dict(admitted=projected <= partition['tensor_budget_bytes'],
                     accounted_bytes=current, incoming_peak_bytes=increment,
+                    in_flight_peak_upper_bytes=in_flight,
                     reserved_for_cache_growth_and_demand_bytes=reserve,
                     projected_bytes=projected, tensor_budget_bytes=partition['tensor_budget_bytes'],
                     reason=None if projected <= partition['tensor_budget_bytes'] else 'native_host_workspace_pressure')
+
+    def host_construction_reserved_bytes(self):
+        """Conservative extra bound, not a claim of disjoint physical bytes.
+
+        During construction, pinned allocator counters can already include a
+        part of this peak. We do not subtract guessed overlap or give credit for
+        a future release. Only the native owner can settle the held bound.
+        """
+        if threading.get_ident() != self.thread_id:
+            raise RuntimeError('native HOST reservation observation requires its owner')
+        build = self._native_host_build
+        return 0 if build is None else build.peak_bytes
 
     def register_preparation_plan(self, *, plan_id, objective, target_adapter_ids, expected_owner_id):
         """Register the entire selected set before any candidate may execute.
@@ -2444,7 +2531,9 @@ class IEEEBackendGPUReferences:
                 raise ValueError('HOST source lease reused for another adapter')
             return dict(receipt)
         if (lease_id in self._host_released or lease_id in self._leases
-                or lease_id in self._released or lease_id in self._staged_host_leases):
+                or lease_id in self._released or lease_id in self._staged_host_leases
+                or (self._native_host_build is not None
+                    and lease_id == self._native_host_build.command['lease_id'])):
             raise ValueError('HOST source lease is not unused')
         if expected_epoch > self.epoch or (expected_source_id is None and expected_epoch != self.epoch):
             return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
@@ -2501,19 +2590,11 @@ class IEEEBackendGPUReferences:
         self.epoch += 1
         return {'released': True, 'already_released': False, **self.snapshot()}
 
-    def prepare_file_host_and_hold(self, *, lease_id, adapter_int_id, lora_name,
-                                  lora_path, expected_owner_id, expected_epoch,
-                                  native_host_tensor_budget_bytes, preparation_plan_id=None,
-                                  expected_content_sha256=None):
-        """Protected local file -> native CPU registration/pin, without GPU load.
-
-        This explicit path does not call the worker's add_adapter (which also
-        activates GPU). It uses only an empty CPU cache entry; full-cache
-        replacement needs the IEEE HOST objective and is not silently LRU.
-        The supplied immutable sub-budget bounds accounted native tensor bytes
-        and conservative loading workspace, NOT total service HOST memory.
-        The controller must keep its confirmed file lease through completion.
-        """
+    def _file_host_preparation_state(self, *, lease_id, adapter_int_id, lora_name,
+                                     lora_path, expected_owner_id, expected_epoch,
+                                     native_host_tensor_budget_bytes, preparation_plan_id=None,
+                                     expected_content_sha256=None):
+        """Shared, fresh owner validation; a dict is a terminal receipt."""
         if (not isinstance(lease_id, str) or not lease_id
                 or type(adapter_int_id) is not int or adapter_int_id <= 0
                 or not isinstance(lora_name, str) or not lora_name
@@ -2534,7 +2615,9 @@ class IEEEBackendGPUReferences:
                 raise ValueError('released native HOST preparation cannot be revived')
             return copy.deepcopy(old['receipt'])
         if (lease_id in self._host_leases or lease_id in self._host_released
-                or lease_id in self._staged_host_leases or lease_id in self._leases or lease_id in self._released):
+                or lease_id in self._staged_host_leases or lease_id in self._leases or lease_id in self._released
+                or (self._native_host_build is not None
+                    and lease_id == self._native_host_build.command['lease_id'])):
             raise ValueError('native HOST preparation lease is not unused')
         if expected_epoch != self.epoch:
             return dict(held=False, reason='stale_snapshot', **self.snapshot())
@@ -2562,6 +2645,146 @@ class IEEEBackendGPUReferences:
                 raise ValueError('native staging source differs from the registered plan')
         if not callable(self.file_host_loader):
             raise RuntimeError('native CPU-only loader is not attached')
+        return slots, identity, source, cpu, cached, needs_staging
+
+    def begin_file_host_construction(self, **command):
+        """Reserve one private build on core; do not publish or start it here.
+
+        This local-only API returns an owned task, not a wire-serializable
+        receipt. The core bridge must keep it until joined settlement even if
+        the requester cancels. Existing hits use the unchanged serial path.
+        """
+        state = self._file_host_preparation_state(**command)
+        if isinstance(state, dict):
+            return state
+        if not self._host_construction_plan_current(command):
+            return dict(held=False, reason='preparation_plan_changed', **self.snapshot())
+        if state[4] or command['adapter_int_id'] in self._staged_host:
+            return self.prepare_file_host_and_hold(**command)
+        if self._native_host_build is not None:
+            return dict(held=False, reason='native_host_construction_busy', **self.snapshot())
+        if self._native_host_workspace is None or not callable(self.file_host_constructor):
+            raise RuntimeError('private HOST construction requires its frozen workspace and constructor')
+        allocation = self.host_allocation_check(lora_path=command['lora_path'], reuse=False,
+            tensor_budget_bytes=command['native_host_tensor_budget_bytes'], proactive=True)
+        if not allocation['admitted']:
+            return dict(held=False, reason=allocation['reason'], allocation=allocation, **self.snapshot())
+        build = NativeHostConstruction(command, allocation, self.file_host_constructor, self.thread_id)
+        self._native_host_build = build
+        return build
+
+    def _host_construction_plan_current(self, command):
+        plan_id = command.get('preparation_plan_id')
+        if plan_id is None:
+            return True
+        plan = self._preparation_plans.get(plan_id)
+        aid = command['adapter_int_id']
+        if plan is None or aid not in plan['pending']:
+            return False
+        row = next(row for row in plan['objective']['sources'] if row['adapter_int_id'] == aid)
+        if ((row['adapter_id'], row['lora_path']) != (command['lora_name'], command['lora_path'])
+                and not (command.get('expected_content_sha256') is not None
+                         and row.get('content_sha256') == command['expected_content_sha256']
+                         and row['adapter_id'] == command['lora_name'])):
+            raise ValueError('private HOST construction differs from its selected plan source')
+        return True
+
+    def finish_file_host_construction(self, build, *, cancelled=False):
+        """Join then revalidate/commit on core; no old capacity/epoch reuse.
+
+        An intervening demand/cache change is normal, unlike mutation inside a
+        serial loader. It can make this work redundant or require staging. No
+        GPU activation, victim eviction or new plan is performed here.
+        """
+        self._refresh()
+        if build is not self._native_host_build or build.settled or type(cancelled) is not bool:
+            raise ValueError('native HOST construction has no matching live owner')
+        build.join_completed()
+        command = dict(build.command)
+        aid, lease = command['adapter_int_id'], command['lease_id']
+        budget = command['native_host_tensor_budget_bytes']
+        try:
+            reason = 'construction_cancelled' if cancelled else None
+            if build.failure or build.wake_failure:
+                raise RuntimeError(build.failure or build.wake_failure)
+            if not self._host_construction_plan_current(command):
+                reason = reason or 'preparation_plan_changed'
+            # Clear the reservation only inside this serialized settlement.
+            # The private result is either discarded or included in the fresh
+            # physical observation before any object becomes available.
+            self._native_host_build = None
+            command['expected_epoch'] = self.epoch
+            duplicate = aid in self._caches()[0] or aid in self._staged_host
+            # A demand load may legitimately use another confirmed location
+            # for the same immutable content. It wins; never relabel that live
+            # copy with the private build's historical path.
+            if (aid in self._caches()[0]
+                    and self._sources.get(aid) != (command['lora_name'], command['lora_path'])):
+                reason = reason or 'required_source_changed'
+            state = None if reason is not None else self._file_host_preparation_state(**command)
+            if isinstance(state, dict):
+                reason = state.get('reason', 'preparation_already_completed')
+            discard = reason is not None or duplicate
+            if discard:
+                build.model = None
+                after = self.host_allocation_check(lora_path=None, reuse=True,
+                    tensor_budget_bytes=budget)
+            else:
+                after = self.host_allocation_check(lora_path=None, reuse=True,
+                    tensor_budget_bytes=budget, _private_model=build.model)
+            if not after['admitted']:
+                raise RuntimeError('settled private HOST construction exceeds its tensor budget')
+            if reason is not None:
+                self._host_released.add(lease)
+                receipt = dict(held=False, reason=reason, **self.snapshot())
+            else:
+                if not duplicate:
+                    source = (command['lora_name'], command['lora_path'])
+                    self._staged_host[aid] = dict(model=build.model, source=source,
+                        content_sha256=command.get('expected_content_sha256'), source_id=uuid.uuid4().hex,
+                        allocation={**build.allocation, 'after': after['before']})
+                    build.model = None  # Ownership moves to the accounted native owner.
+                    self.epoch += 1
+                    if not state[5]:
+                        # The fresh context proved an empty slot; no implicit LRU.
+                        self._register_staged_host(aid)
+                command['expected_epoch'] = self.epoch
+                receipt = self.prepare_file_host_and_hold(**command)
+            receipt.update(native_load_invoked=True,
+                private_construction=dict(kind='private_cpu_core_commit_v1',
+                    token=build.token, reserved_peak_upper_bytes=build.peak_bytes,
+                    discarded=discard, joined=True, allocator_after=after['before']),
+                load_started_monotonic_s=build.started_at,
+                load_completed_monotonic_s=build.completed_at,
+                construction_settled_monotonic_s=time.monotonic())
+            if receipt.get('held'):
+                self._file_host_preparations[lease]['receipt'] = copy.deepcopy(receipt)
+            build.settled = True
+            return receipt
+        except BaseException:
+            # Retain the task/peak on uncertain settlement. No silent retry or
+            # assertion that native allocation/publication was rolled back.
+            self._native_host_build = build
+            self._poisoned = True
+            self._poison_reason = 'private native HOST settlement invalidated'
+            raise
+
+    def prepare_file_host_and_hold(self, *, lease_id, adapter_int_id, lora_name,
+                                  lora_path, expected_owner_id, expected_epoch,
+                                  native_host_tensor_budget_bytes, preparation_plan_id=None,
+                                  expected_content_sha256=None):
+        """Protected file -> CPU registration/pin; GPU activation stays separate.
+
+        Empty CPU entries may be filled, otherwise a registered plan must own
+        staging. The confirmed file lease remains held through completion.
+        """
+        state = self._file_host_preparation_state(lease_id=lease_id, adapter_int_id=adapter_int_id,
+            lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
+            expected_epoch=expected_epoch, native_host_tensor_budget_bytes=native_host_tensor_budget_bytes,
+            preparation_plan_id=preparation_plan_id, expected_content_sha256=expected_content_sha256)
+        if isinstance(state, dict):
+            return state
+        slots, identity, source, cpu, cached, needs_staging = state
         before = (slots, tuple(cpu), tuple(cpu.pinned_items))
         start = time.monotonic()
         try:
@@ -2659,7 +2882,9 @@ class IEEEBackendGPUReferences:
             return dict(receipt)
         if lease_id in self._released:
             raise ValueError('released lease ID cannot be reused')
-        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
+        if (lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases
+                or (self._native_host_build is not None
+                    and lease_id == self._native_host_build.command['lease_id'])):
             raise ValueError('GPU lease collides with a HOST source lease')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
@@ -2812,7 +3037,9 @@ class IEEEBackendGPUReferences:
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         source = (lora_name, lora_path)
-        if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
+        if (lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases
+                or (self._native_host_build is not None
+                    and lease_id == self._native_host_build.command['lease_id'])):
             raise ValueError('GPU lease collides with a HOST source lease')
         if lease_id in self._leases:
             receipt = self._leases[lease_id]
@@ -3144,7 +3371,9 @@ class IEEEBackendGPUReferences:
                 raise ValueError('released preparation lease cannot be reused')
             return copy.deepcopy(previous['receipt'])
         if (lease_id in self._leases or lease_id in self._released or lease_id in self._host_leases
-                or lease_id in self._host_released or lease_id in self._staged_host_leases):
+                or lease_id in self._host_released or lease_id in self._staged_host_leases
+                or (self._native_host_build is not None
+                    and lease_id == self._native_host_build.command['lease_id'])):
             raise ValueError('preparation lease is not unused')
         if expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}

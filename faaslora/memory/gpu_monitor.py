@@ -1323,7 +1323,7 @@ class IEEEWorkerObservationExtension:
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
             def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse, proactive=False,
-                                      _same_transaction_storage=None):
+                                      _same_transaction_storage=None, _private_model=None):
                 import vllm
                 from vllm.utils.torch_utils import PIN_MEMORY
                 if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
@@ -1332,11 +1332,18 @@ class IEEEWorkerObservationExtension:
                         or any(name.endswith('.experts') for name in manager.modules)):
                     raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
                 if _same_transaction_storage is None:
+                    staged_models = self._ieee_gpu_reference_owner.staged_models()
+                    if _private_model is not None:
+                        if not reuse or lora_path is not None or proactive:
+                            raise ValueError('private model observation is only for completed settlement')
+                        if _private_model.id in staged_models:
+                            raise ValueError('private model cannot replace accounted staging')
+                        staged_models = {**staged_models, _private_model.id: _private_model}
                     before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
-                        staged_models=self._ieee_gpu_reference_owner.staged_models(),
+                        staged_models=staged_models,
                         include_tensor_views=False))
                 else:
-                    if not reuse or proactive or lora_path is not None:
+                    if not reuse or proactive or lora_path is not None or _private_model is not None:
                         raise ValueError('same-transaction HOST evidence is only for a qualified postcheck')
                     before = _ieee_reobserve_pinned_host_allocator(_same_transaction_storage)
                 if not before['available']:
@@ -1349,7 +1356,8 @@ class IEEEWorkerObservationExtension:
                 else:
                     contract = _ieee_file_host_contract(lora_path, native_loader.lora_config.lora_dtype)
                 increment = 0 if reuse else contract['peak_additional_tensor_bytes']
-                admitted = before['accounted_tensor_bytes'] + increment <= tensor_budget_bytes
+                reserved = self._ieee_gpu_reference_owner.host_construction_reserved_bytes()
+                admitted = before['accounted_tensor_bytes'] + increment + reserved <= tensor_budget_bytes
                 workspace = self._ieee_gpu_reference_owner.host_workspace_check(
                     before=before, contract=contract, proactive=proactive)
                 reason = None if admitted else 'native_host_tensor_budget'
@@ -1357,6 +1365,7 @@ class IEEEWorkerObservationExtension:
                     admitted, reason = False, workspace['reason']
                 return dict(admitted=admitted, reason=reason,
                             before=before, contract=contract, tensor_budget_bytes=tensor_budget_bytes,
+                            in_flight_peak_upper_bytes=reserved,
                             allocator_policy=self._ieee_host_allocator_policy,
                             workspace_projection=workspace,
                             total_host_memory_covered=False)
@@ -1383,6 +1392,24 @@ class IEEEWorkerObservationExtension:
                         or owner.demand_loader is not demand_loader):
                     raise RuntimeError('proactive HOST activation loader binding changed')
                 return host_activation_storage_witness(adapter_int_id=adapter_int_id, previous=previous)
+            def file_host_constructor(*, adapter_int_id, lora_name, lora_path):
+                """Private CPU object only: no LRU, source or GPU publication.
+
+                Qualified dense native loader reads static module mappings;
+                official packing/scaling/pinning changes only this new object.
+                Allocation permission and owner checks are caller/core duties.
+                """
+                from vllm.lora.request import LoRARequest
+                from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+                request = LoRARequest(lora_name=lora_name, lora_int_id=adapter_int_id,
+                                      lora_path=lora_path, load_inplace=False)
+                with gpu_sync_allowed():
+                    loaded = native_loader._load_adapter(request)
+                    manager._create_merged_loras_inplace(loaded)
+                if not any(manager._get_lora_layer_weights(loaded, name) for name in manager.modules):
+                    raise RuntimeError('prepared adapter matched no executable native module')
+                return loaded
+
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
                 from vllm.lora.request import LoRARequest
@@ -1424,7 +1451,8 @@ class IEEEWorkerObservationExtension:
                 host_allocation_check=host_allocation_check,
                 host_allocation_recheck=host_allocation_recheck,
                 host_activation_storage_witness=host_activation_storage_witness,
-                proactive_host_activation_storage_witness=proactive_host_activation_storage_witness)
+                proactive_host_activation_storage_witness=proactive_host_activation_storage_witness,
+                file_host_constructor=file_host_constructor)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

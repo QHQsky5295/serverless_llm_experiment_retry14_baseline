@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-v",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_ieee_tc_gpu_references.py",
+    "tests/test_ieee_tc_core_interleave.py::AtomicControlFairness"
+  ],
+  "identity": {
+    "unit": "primelora-tc-aux-87300000000000000000000000000002.scope",
+    "invocation_id": "e1d13e78f1e2408292128f507c674241",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87300000000000000000000000000002.scope",
+    "inode": 32881471
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87300000000000000000000000000002.scope",
+    "memory.current": 34705408,
+    "memory.peak": 674369536,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 13776535\nuser_usec 12120072\nsystem_usec 1656463\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+      "sha256": "363ecd8b2757813c48ed04018423f0bc97e690969ecfda8b0904d6dcc67608bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_core_interleave.py",
+      "sha256": "f873eab1121a43b710516a4ab71b68a578b6d8ead79db1af50b9e89926f8e52c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "aaf7884446f86460346495f1de66556dd9d1f246cf028bbf07bcef78bb1f9a70"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "1048c63a2496ce13d387cb2286bdf1b3341871dd40d51ba4b5a9be365872e0f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+      "sha256": "1589b725320adf9dc3746d59a6d696ac736363ed514bbccebfc603cc356cc52a"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+      "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d873_20261026/verify_final.py",
+      "sha256": "076a9ea55563b5dbf0a8b65be24a647813a35523debb099c99ab0affedf07718"
+    }
+  ],
+  "no_cuda_model_loaded": true,
+  "new_gpu_replays": 0,
+  "production_changes": true,
+  "scope": "Private CPU construction ownership and adjacent reference regression; core bridge not connected, no native asynchronous or performance qualification.",
+  "performance_gain": null,
+  "numerical_adapter_correctness": null
+}

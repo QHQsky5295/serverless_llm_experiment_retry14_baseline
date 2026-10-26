@@ -1,0 +1,49 @@
+"""D872: bounded native preparation dependency checks, no model replay."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d873_private_host_ownership/final_source'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW / 'identity_final.json', identity)
+group = Path(identity['path'])
+OUT.mkdir(parents=True, exist_ok=False)
+paths = [ROOT / path for path in (
+    'tests/test_ieee_tc_gpu_references.py', 'tests/test_ieee_tc_core_interleave.py',
+    'faaslora/memory/residency_manager.py', 'faaslora/memory/gpu_monitor.py',
+    'faaslora/scheduling/core_interleave.py')]
+native = Path('/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py')
+for path in paths:
+    compile(path.read_text(), str(path), 'exec')
+command = [sys.executable, '-B', '-m', 'pytest', '-v', '-p', 'no:cacheprovider',
+    'tests/test_ieee_tc_gpu_references.py',
+    'tests/test_ieee_tc_core_interleave.py::AtomicControlFairness']
+with (OUT / 'tests.txt').open('x') as stream:
+    check = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT)
+save(OUT / 'verification.json', dict(
+    passed=check.returncode == 0, returncode=check.returncode, command=command,
+    identity=identity, resources=p.cgroup_snapshot(group),
+    sources=[dict(path=str(path), sha256=p.digest(path)) for path in (*paths, native, Path(__file__))],
+    no_cuda_model_loaded=True, new_gpu_replays=0, production_changes=True,
+    scope='Private CPU construction ownership and adjacent reference regression; core bridge not connected, no native asynchronous or performance qualification.',
+    performance_gain=None, numerical_adapter_correctness=None))
+assert check.returncode == 0
+print(json.dumps(dict(passed=True, output=str(OUT), new_gpu_replays=0)))

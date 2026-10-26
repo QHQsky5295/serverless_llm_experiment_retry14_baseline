@@ -336,6 +336,252 @@ class NativeFileHostPreparation(unittest.TestCase):
                 self.assertIs(call.kwargs['include_tensor_views'], False)
                 self.assertIn('staged_models', call.kwargs)
             self.assertIs(inventory.call_args_list[-1].kwargs['staged_models'][5], loaded5)
+            # The new private callback uses native parsing + private packing,
+            # but cannot register/activate or run owner observations off-core.
+            before = (tuple(self.manager._registered_adapters), tuple(self.manager.lora_index_to_id))
+            loaded6 = NativeAdapter()
+            loaded6.id = 6
+            loader._load_adapter.return_value = loaded6
+            self.manager._create_merged_loras_inplace.reset_mock()
+            inventory.reset_mock()
+            private = owner.file_host_constructor(adapter_int_id=6, lora_name='adapter-6',
+                lora_path='/existing/adapter-6')
+            self.assertIs(private, loaded6)
+            self.manager._create_merged_loras_inplace.assert_called_once_with(loaded6)
+            inventory.assert_not_called()
+            loader.add_adapter.assert_not_called()
+            self.assertEqual(before, (tuple(self.manager._registered_adapters),
+                                     tuple(self.manager.lora_index_to_id)))
+
+
+class PrivateNativeHostConstruction(unittest.TestCase):
+    """Owned split transaction, not CUDA/pinned allocator qualification."""
+
+    def setUp(self):
+        self.manager = NativeManager()
+        for aid in (1, 2, 3):
+            self.manager.remove_adapter(aid)
+        self.entered, self.finish = threading.Event(), threading.Event()
+        self.wakes, self.loader_threads = [], []
+        self.model_refs = []
+        self.extra_accounted = 0
+        self.incoming = dict(pinned_allocation_policy='uncached_v1', dtype='torch.float16',
+            resident_pinned_upper_bytes=100, transient_tensor_upper_bytes=200,
+            peak_additional_tensor_bytes=300)
+
+        def construct(**args):
+            self.loader_threads.append(threading.get_ident())
+            self.entered.set()
+            if not self.finish.wait(5):
+                raise RuntimeError('fixture did not release private construction')
+            model = NativeAdapter()
+            model.id = args['adapter_int_id']
+            self.model_refs.append(weakref.ref(model))
+            return model
+
+        def check(*, lora_path, tensor_budget_bytes, reuse, proactive=False, _private_model=None):
+            registered = 100 * len(self.manager._registered_adapters)
+            current = 10 + registered + 100 * len(self.owner.staged_models()) + self.extra_accounted
+            if _private_model is not None:
+                current += 100
+            before = dict(accounted_tensor_bytes=current, registered_exclusive_storage_bytes=registered)
+            contract = None if reuse else self.incoming
+            projection = self.owner.host_workspace_check(before=before, contract=contract, proactive=proactive)
+            reserved = self.owner.host_construction_reserved_bytes()
+            admitted = current + reserved + (0 if reuse else 300) <= tensor_budget_bytes
+            if projection is not None:
+                admitted = admitted and projection['admitted']
+            return dict(admitted=admitted, reason=None if admitted else 'native_host_workspace_pressure',
+                before=before, contract=contract, workspace_projection=projection,
+                allocator_policy=dict(policy='uncached_v1', verified=True))
+
+        def reuse_only(**args):
+            self.assertTrue(args['reuse'], 'split commit must not load a second time')
+            return check(lora_path=None, reuse=True, tensor_budget_bytes=args['tensor_budget_bytes'])
+
+        self.owner = IEEEBackendGPUReferences(self.manager, Mock(), file_host_loader=reuse_only,
+            file_host_constructor=construct, host_allocation_check=check)
+        self.owner.configure_host_budget(expected_owner_id=self.owner.owner_id, tensor_budget_bytes=910,
+            workspace_contract=dict(kind='native_host_workspace_contract_v1', dtype='torch.float16',
+                max_resident_pinned_bytes=100, max_transient_tensor_bytes=200, source_audit_sha256='a'*64))
+
+    def tearDown(self):
+        # A failing assertion must not leave a non-daemon fixture thread alive.
+        self.finish.set()
+        build = self.owner._native_host_build
+        if build is not None and build._thread is not None:
+            build._thread.join(5)
+
+    def command(self, *, lease='private-host', aid=4, plan=None):
+        return dict(lease_id=lease, adapter_int_id=aid, lora_name=f'adapter-{aid}',
+            lora_path=f'/existing/adapter-{aid}', expected_owner_id=self.owner.owner_id,
+            expected_epoch=self.owner.snapshot()['epoch'], native_host_tensor_budget_bytes=910,
+            preparation_plan_id=plan, expected_content_sha256='a'*64)
+
+    def begin(self, *, plan=None):
+        if plan is not None:
+            self.owner._preparation_plans[plan] = dict(identity=('fixture-sha', (4,)), pending={4},
+                objective={'sources': [dict(adapter_int_id=4, adapter_id='adapter-4',
+                    lora_path='/existing/adapter-4', content_sha256='a'*64)]})
+        build = self.owner.begin_file_host_construction(**self.command(plan=plan))
+        build.start(self.wakes.append)
+        self.assertTrue(self.entered.wait(5))
+        return build
+
+    def complete(self, build, **kwargs):
+        self.finish.set()
+        self.assertTrue(build.done.wait(5))
+        return self.owner.finish_file_host_construction(build, **kwargs)
+
+    def test_reservation_is_visible_to_demand_and_no_early_ready(self):
+        build = self.begin()
+        self.assertEqual(self.owner.host_construction_reserved_bytes(), 300)
+        self.assertEqual(self.owner.source_snapshot()['sources'], [])
+        self.assertFalse(self.owner.staged_models())
+        second = self.owner.begin_file_host_construction(**self.command(lease='second', aid=5))
+        self.assertEqual(second['reason'], 'native_host_construction_busy')
+        self.extra_accounted = 310
+        check = self.owner.host_allocation_check(lora_path='/existing/adapter-5', reuse=False,
+            tensor_budget_bytes=910, proactive=False)
+        self.assertFalse(check['admitted'])  # 320 + reserved300 + incoming300.
+        self.assertEqual(check['workspace_projection']['in_flight_peak_upper_bytes'], 300)
+        self.extra_accounted = 0
+        receipt = self.complete(build)
+        self.assertTrue(receipt['held'])
+        self.assertTrue(receipt['native_load_invoked'])
+        self.assertNotEqual(self.loader_threads[0], self.owner.thread_id)
+        self.assertEqual(self.wakes, [build])
+        self.assertIsNone(build.model)
+        self.assertEqual(self.owner.host_construction_reserved_bytes(), 0)
+        self.assertIn(4, self.manager._registered_adapters.pinned_items)
+        self.assertEqual(self.manager.lora_index_to_id, [None, None])
+        self.assertEqual(self.owner.prepare_file_host_and_hold(**self.command()), receipt)
+        with self.assertRaisesRegex(ValueError, 'matching live owner'):
+            self.owner.finish_file_host_construction(build)
+
+    def test_intervening_cache_and_gpu_changes_use_current_staging_decision(self):
+        build = self.begin(plan='selected')
+        for aid in (1, 2, 3):
+            model = NativeAdapter()
+            model.id = aid
+            self.manager.add_adapter(model)
+        self.manager.activate(3)
+        receipt = self.complete(build)
+        self.assertTrue(receipt['held'])
+        self.assertEqual(receipt['tier'], 'staging')
+        self.assertEqual(set(self.manager._registered_adapters), {1, 2, 3})
+        self.assertIn(3, self.manager.lora_index_to_id)
+        self.assertIs(self.owner.staged_models()[4], self.model_refs[0]())
+
+    def test_demand_winner_discards_private_object_and_records_actual_work(self):
+        build = self.begin()
+        model = NativeAdapter()
+        model.id = 4
+        self.manager.add_adapter(model)
+        self.owner._sources[4] = ('adapter-4', '/existing/adapter-4')
+        self.owner._source_contents[4] = 'a'*64
+        self.owner._remember_source_object(4)
+        receipt = self.complete(build)
+        self.assertTrue(receipt['held'])
+        self.assertTrue(receipt['native_load_invoked'])
+        self.assertTrue(receipt['private_construction']['discarded'])
+        self.assertIsNone(self.model_refs[0]())
+        self.assertIs(self.manager._registered_adapters.cache[4], model)
+
+    def test_cancel_cannot_free_an_inflight_build(self):
+        build = self.begin()
+        with self.assertRaisesRegex(RuntimeError, 'still in flight'):
+            self.owner.finish_file_host_construction(build, cancelled=True)
+        self.assertEqual(self.owner.host_construction_reserved_bytes(), 300)
+        receipt = self.complete(build, cancelled=True)
+        self.assertEqual(receipt['reason'], 'construction_cancelled')
+        self.assertTrue(receipt['private_construction']['discarded'])
+        self.assertFalse(self.manager._registered_adapters)
+        self.assertIsNone(self.model_refs[0]())
+        self.assertIn('private-host', self.owner._host_released)
+
+    def test_closed_plan_discards_even_if_cpu_entry_is_available(self):
+        build = self.begin(plan='selected')
+        self.owner.close_preparation_plan(plan_id='selected', expected_owner_id=self.owner.owner_id)
+        receipt = self.complete(build)
+        self.assertEqual(receipt['reason'], 'preparation_plan_changed')
+        self.assertFalse(self.owner.staged_models())
+        self.assertFalse(self.manager._registered_adapters)
+
+    def test_empty_cache_does_not_waive_selected_plan_identity(self):
+        self.owner._preparation_plans['wrong'] = dict(identity=('fixture', (4,)), pending={4},
+            objective={'sources': [dict(adapter_int_id=4, adapter_id='another', lora_path='/wrong')]})
+        with self.assertRaisesRegex(ValueError, 'selected plan source'):
+            self.owner.begin_file_host_construction(**self.command(plan='wrong'))
+        self.assertIsNone(self.owner._native_host_build)
+
+    def test_demand_winner_at_equivalent_location_is_not_relabelled(self):
+        build = self.begin()
+        model = NativeAdapter()
+        model.id = 4
+        self.manager.add_adapter(model)
+        self.owner._sources[4] = ('adapter-4', '/another-confirmed-location')
+        self.owner._source_contents[4] = 'a'*64
+        self.owner._remember_source_object(4)
+        receipt = self.complete(build)
+        self.assertEqual(receipt['reason'], 'required_source_changed')
+        self.assertTrue(receipt['native_load_invoked'])
+        self.assertIsNone(self.model_refs[0]())
+        self.assertEqual(self.owner._sources[4][1], '/another-confirmed-location')
+        self.assertFalse(self.owner._poisoned)
+
+    def test_current_capacity_without_plan_does_not_evict_a_victim(self):
+        build = self.begin()
+        for aid in (1, 2, 3):
+            model = NativeAdapter()
+            model.id = aid
+            self.manager.add_adapter(model)
+        receipt = self.complete(build)
+        self.assertEqual(receipt['reason'], 'host_replacement_required')
+        self.assertEqual(set(self.manager._registered_adapters), {1, 2, 3})
+        self.assertIsNone(self.model_refs[0]())
+
+    def test_build_lease_and_content_cannot_be_rebound(self):
+        build = self.begin()
+        with self.assertRaisesRegex(ValueError, 'not unused'):
+            self.owner.prepare_file_host_and_hold(**self.command())
+        with self.assertRaisesRegex(ValueError, 'in-flight HOST construction'):
+            self.owner._validate_source_binding(4, ('different', '/wrong'), 'b'*64)
+        with self.assertRaisesRegex(RuntimeError, 'start once'):
+            build.start(self.wakes.append)
+        self.complete(build, cancelled=True)
+
+    def test_wrong_thread_cannot_publish(self):
+        build = self.begin()
+        self.finish.set()
+        self.assertTrue(build.done.wait(5))
+        errors = []
+        def wrong_owner():
+            try:
+                self.owner.finish_file_host_construction(build)
+            except RuntimeError as error:
+                errors.append(str(error))
+        thread = threading.Thread(target=wrong_owner)
+        thread.start()
+        thread.join(5)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('outside its worker thread', errors[0])
+        self.assertFalse(self.manager._registered_adapters)
+        self.assertTrue(self.owner.finish_file_host_construction(build)['held'])
+
+    def test_failed_construction_has_no_ready_or_false_release_receipt(self):
+        def fail(**args):
+            raise RuntimeError('native construction failed')
+        self.owner.file_host_constructor = fail
+        build = self.owner.begin_file_host_construction(**self.command())
+        build.start(self.wakes.append)
+        self.assertTrue(build.done.wait(5))
+        with self.assertRaisesRegex(RuntimeError, 'native construction failed'):
+            self.owner.finish_file_host_construction(build)
+        self.assertTrue(self.owner._poisoned)
+        self.assertIs(self.owner._native_host_build, build)
+        self.assertFalse(build.settled)
+        self.assertFalse(self.owner._file_host_preparations)
 
 
 class NativeHostWorkspace(unittest.TestCase):
