@@ -5334,6 +5334,173 @@ async def qualify_native_source_intervals(engine, plan, adapters, result):
                               target_tokens=target, actual_tokens=generated[2], tier=native.tier)), flush=True)
 
 
+async def qualify_private_host_overlap(engine, plan, adapters, result):
+    """Existing four requests: CPU preparation during native decode, not Full.
+
+    No sleeps, artificial load, changed token limits or synthetic weights. The
+    second distinct adapter is constructed privately after the first request's
+    actual first-token event. Other requests then use the normal native path.
+    """
+    import asyncio
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.scheduling.core_interleave import HOST_CONSTRUCTION_POLICY
+    cfg = result['model_config']
+    if cfg.get('ieee_host_construction') != HOST_CONSTRUCTION_POLICY:
+        raise ValueError('private HOST qualification requires its explicit opt-in')
+    rows = [json.loads(entry.source_json) for entry in plan.entries]
+    first_aid = rows[0]['adapter_id']
+    other = next((row['adapter_id'] for row in rows if row['adapter_id'] != first_aid), None)
+    if other is None or len(rows) != 4:
+        raise ValueError('private HOST qualification needs the original four requests and distinct adapters')
+    result.update(performance_sample=False, semantic_full_pool_qualification=False,
+        numerical_adapter_correctness_qualified=False, n_correct=None,
+        input_mode='existing_four_requests_private_host_during_native_decode',
+        host_preparation_adapter=other, request_events={})
+    state = await engine.ieee_gpu_reference(operation='snapshot')
+    result['host_budget_installation'] = await engine.ieee_gpu_reference(
+        operation='configure_host_budget', expected_owner_id=state['owner_id'],
+        tensor_budget_bytes=cfg['ieee_native_host_tensor_budget_bytes'],
+        workspace_contract=cfg['ieee_native_host_workspace'])
+    references, pending, tasks, prepared = {}, {}, [], []
+    host = None
+    first = asyncio.Event()
+    for entry, row in zip(plan.entries, rows):
+        target = min(row['expected_output_tokens'], 256)
+        request = engine.prepare_request('', target, row['expected_input_tokens'],
+                                         chat_messages=row['body']['messages'])
+        if request.max_tokens != target:
+            raise RuntimeError('private HOST qualification changed target tokens')
+        prepared.append(request)
+        result['requests'].append(dict(request_id=entry.request_id, adapter_id=row['adapter_id'],
+            source_row_sha256=entry.source_sha256, target_tokens=target,
+            prompt_sha256=hashlib.sha256(request.prompt.encode()).hexdigest(),
+            input_content_tokens=request.input_tokens, **{'pass': False}))
+
+    async def acquire(index):
+        aid = rows[index]['adapter_id']
+        if cfg.get('ieee_admission_profile') is not None:
+            intent = uuid.uuid4().hex
+            pending[index] = intent
+            reply = await engine.ieee_register_pending(intent_id=intent,
+                prompt=prepared[index].prompt, max_tokens=prepared[index].max_tokens, adapter_id=aid)
+            result['requests'][index]['pending_admission'] = reply
+            if (reply.get('kind') != 'ieee_pending_admission_v1'
+                    or reply.get('intent_id') != intent or reply.get('state') != 'pending'
+                    or reply.get('clock_id') != local_monotonic_clock_id()
+                    or reply.get('physical_kv_reservation') is not False):
+                raise RuntimeError('private HOST qualification lacks registered native demand')
+        current = await engine.ieee_gpu_reference(operation='snapshot')
+        receipt = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+            lease_id='private-host-qualification/'+plan.entries[index].request_id,
+            adapter_int_id=engine._lora_int_id(aid), lora_name=aid, lora_path=adapters[aid]['path'],
+            expected_owner_id=current['owner_id'], expected_epoch=current['epoch'])
+        references[index] = receipt
+        result['requests'][index]['reference'] = receipt
+        if receipt.get('acquired') is not True:
+            raise RuntimeError('private HOST qualification acquisition failed without retry')
+
+    async def generate(index):
+        case, reference = result['requests'][index], references[index]
+        events = result['request_events'][case['request_id']] = []
+        def observe(event):
+            events.append(dict(event))
+            if index == 0 and event['kind'] == 'first_token':
+                first.set()
+        output = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared[index],
+            lora_path=reference['lora_path'], adapter_id=case['adapter_id'], temperature=0., top_p=1.,
+            generation_seed=42, return_timing=True, gpu_reference=reference,
+            native_event_observer=observe,
+            **({'pending_admission_id': pending[index]} if index in pending else {})), timeout=1800.)
+        timing = output[3]
+        case.update(actual_tokens=output[2], timing=timing)
+        if (output[2] != case['target_tokens'] or timing.get('native_terminal_observed') is not True
+                or timing.get('native_clock_id') != local_monotonic_clock_id()
+                or any(timing.get('gpu_reference_'+key) != reference[key]
+                       for key in ('owner_id', 'lease_id', 'adapter_int_id'))):
+            raise RuntimeError('private HOST qualification lost native identity/generation contract')
+        case['pass'] = True
+
+    try:
+        await acquire(0)
+        tasks.append(asyncio.create_task(generate(0)))
+        first_event = asyncio.create_task(first.wait())
+        try:
+            completed, _ = await asyncio.wait((first_event, tasks[0]),
+                timeout=1800., return_when=asyncio.FIRST_COMPLETED)
+            if first_event not in completed:
+                if tasks[0] in completed:
+                    await tasks[0]  # Preserve a native generation exception.
+                raise RuntimeError('generation ended or timed out before its native first-token event')
+        finally:
+            first_event.cancel()
+            await asyncio.gather(first_event, return_exceptions=True)
+        state = await engine.ieee_gpu_reference(operation='source_identity_snapshot')
+        result['before_private'] = state
+        if engine._lora_int_id(other) in state['registered_cpu_adapter_ids']:
+            raise RuntimeError('private HOST target was already registered')
+        result['stage'] = 'private_host_during_decode'
+        host = await engine.ieee_gpu_reference(operation='prepare_file_host_and_hold',
+            lease_id='private-host-qualification/cpu', adapter_int_id=engine._lora_int_id(other),
+            lora_name=other, lora_path=adapters[other]['path'], expected_owner_id=state['owner_id'],
+            expected_epoch=state['epoch'], native_host_tensor_budget_bytes=cfg['ieee_native_host_tensor_budget_bytes'])
+        result['private_host_receipt'] = host
+        private = host.get('private_construction', {})
+        if (host.get('held') is not True or host.get('native_load_invoked') is not True
+                or private.get('kind') != HOST_CONSTRUCTION_POLICY or private.get('joined') is not True
+                or private.get('discarded') is not False):
+            raise RuntimeError('native private construction was not exercised and joined')
+        result['after_private'] = await engine.ieee_gpu_reference(operation='source_identity_snapshot')
+        actual = result['after_private']
+        if (engine._lora_int_id(other) not in actual['registered_cpu_adapter_ids']
+                or engine._lora_int_id(other) in actual['slot_adapter_ids']):
+            raise RuntimeError('CPU construction did not preserve HOST-only publication')
+        for index in range(1, len(rows)):
+            await acquire(index)
+            tasks.append(asyncio.create_task(generate(index)))
+        await asyncio.gather(*tasks)
+        timing = result['requests'][0]['timing']
+        overlap = min(host['load_completed_monotonic_s'], timing['native_last_token_monotonic_s']) - max(
+            host['load_started_monotonic_s'], timing['native_first_token_monotonic_s'])
+        result['private_construction_decode_overlap_s'] = max(0., overlap)
+        if overlap <= 0:
+            raise RuntimeError('native construction had no observed decode overlap; no injected retry')
+        result['host_core_after'] = await engine.ieee_scheduler_observation()
+        counts = result['host_core_after']['control_interleave']['private_host_construction']
+        if counts['started'] != 1 or counts['settled'] != 1 or counts['failed'] or counts['in_flight']:
+            raise RuntimeError('private HOST native core did not settle exactly one construction')
+        result['slot_content'] = {}
+        for aid in dict.fromkeys(row['adapter_id'] for row in rows):
+            audit = await qualify_slot_content_snapshot(engine, engine._lora_int_id(aid))
+            result['slot_content'][aid] = audit
+            if not audit['pass']:
+                raise RuntimeError('private HOST registered-to-slot content mismatch')
+    finally:
+        # Qualification cleanup does not turn a partial/failed case into PASS.
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        result['pending_releases'] = []
+        for intent in pending.values():
+            receipt = await engine.ieee_close_pending(intent_id=intent)
+            result['pending_releases'].append(receipt)
+            if receipt.get('intent_id') != intent or receipt.get('closed') is not True:
+                raise RuntimeError('qualification pending demand retirement unacknowledged')
+        result['reference_releases'] = []
+        for reference in references.values():
+            if reference.get('acquired'):
+                receipt = await engine.ieee_gpu_reference(operation='release',
+                    lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+                result['reference_releases'].append(receipt)
+                if receipt.get('released') is not True:
+                    raise RuntimeError('qualification GPU reference release unacknowledged')
+        if host is not None and host.get('held'):
+            result['host_release'] = await engine.ieee_gpu_reference(operation='release_host_source',
+                lease_id=host['lease_id'], expected_owner_id=host['owner_id'])
+            if result['host_release'].get('released') is not True:
+                raise RuntimeError('qualification HOST reference release unacknowledged')
+
+
 async def qualify_native_capacity_wait(engine, plan, adapters, result):
     """Controlled native pin contention, not a Full/performance workload.
 
@@ -5538,7 +5705,7 @@ async def initialize_qualification_runtime(model_config, mode):
     from scripts.run_all_experiments import SubprocessInferenceEngineProxy
     physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
                         'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
-                        'native_numerical_repeat')
+                        'native_numerical_repeat', 'native_private_host')
     if physical and model_config.get('ieee_physical_allocation') is not True:
         raise ValueError('physical qualification requires actual GPU allocation before startup')
     if not physical and mode != 'cancel_pairs_subprocess':
@@ -6067,7 +6234,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
                     'native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
                     'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
-                    'native_numerical_repeat') or (
+                    'native_numerical_repeat', 'native_private_host') or (
                     mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
                                  'native_source_matrix', 'native_slot_content', 'native_warm_reference',
                                  'native_execution_metadata', 'native_numerical_repeat') and count != 4):
@@ -6114,7 +6281,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             cfg['ieee_gpu_references'] = False
         if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
                     'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
-                    'native_numerical_repeat'):
+                    'native_numerical_repeat', 'native_private_host'):
             cfg['ieee_physical_allocation'] = True
             if mode != 'native_source_matrix':
                 result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
@@ -6237,7 +6404,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['requested_model_config'] = dict(cfg)
         if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
                     'native_source_matrix', 'native_slot_content', 'native_warm_reference',
-                    'native_execution_metadata', 'native_numerical_repeat'):
+                    'native_execution_metadata', 'native_numerical_repeat', 'native_private_host'):
             engine = await initialize_qualification_runtime(cfg, mode)
         else:
             # Retain ownership even if direct initialization raises, so the
@@ -6277,6 +6444,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             await qualify_native_source_intervals(engine, plan, adapters, result)
         elif mode == 'native_capacity_wait':
             await qualify_native_capacity_wait(engine, plan, adapters, result)
+        elif mode == 'native_private_host':
+            await qualify_private_host_overlap(engine, plan, adapters, result)
         elif mode == 'native_numerical_repeat':
             await qualify_numerical_repeat(engine, plan, adapters, result)
         elif mode not in ('sequential', 'native_lifecycle', 'native_slot_content', 'native_execution_metadata'):
@@ -6579,7 +6748,7 @@ def main():
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
                         'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
                         'native_source_matrix', 'native_slot_content', 'native_warm_reference',
-                        'native_execution_metadata', 'native_numerical_repeat'], default='sequential')
+                        'native_execution_metadata', 'native_numerical_repeat', 'native_private_host'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

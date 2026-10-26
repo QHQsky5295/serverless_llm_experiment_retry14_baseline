@@ -1,4 +1,34 @@
-# IEEE TC execution status — D874 private HOST core bridge connected, native qualification next
+# IEEE TC execution status — D875 native private HOST qualified; D876 full W2 registered
+
+## 2026-10-26 D875：真实原生资格通过，返回完整回放
+
+4条原请求152/59/123/217原生token全部匹配，私有构造started=settled=1，
+failed/discarded/in-flight0；先HOST-only再按需GPU激活，两个adapter slot内容
+检查通过，4个pending/4个GPU引用/1个HOST引用释放。CPU构造与首末token
+区间交集65.801491ms，不当作逐iteration推进或净加速证据。服务峰值
+6004101120B，high/max/OOM/swap0，物理GPU与scope释放，147保护项不变。
+9项入口测试及pending修正后的3项通过；D874的232项语义检查复用。
+三次失败保留：旧CLI参数、遗漏冻结工具链、资格入口遗漏pending登记；
+均不是完整性能运行，不为通过修改生产admission/模型/SLO。详见D875文档。
+
+D876已登记唯一opt-in新键，配置/remote管理复用D870，4000请求真实remote W2，
+无短Full/新profiling/新工件。先保存可回退备份，再启动；是否实际启动查
+`results/ieee_tc/p2_backend_qualification/d876_20261026/start_receipt.json`。
+当前完整性能仍D870：3773/4000=94.325%，U11931.565094，预算12083.063870；
+独立数值正确性未知、G1/G2未完成，目标active。全部同版本双模型矩阵、
+剩余baseline/dLoRA、A1–A5/S1–S13、数值证明、审稿图文及最终V2仍开放。
+共享k3s不动，图表仍延期；本轮是实现验证progress，不是目标完成。
+
+### D874完成备份回执（提交后追加）
+
+22个明确路径已提交`936ab94b2badf8a09cde127e5fe5d9737996ebd2`，推送并核验
+`refs/heads/backup/d874-private-host-core-20261026`。232项测试、来源/输出SHA、
+147保护项及用户manifest、语法与凭据检查通过。首次备份在原始pytest汇总
+以七个等号开头、被git误报conflict marker时停止，未commit；续作只精确核验
+该行原始字节并保留，源码/文档仍严格检查。失败与续作脚本均保留，未改测试
+记录或重跑实验。用户manifest未stage，暂存区为空，最终V2仍未同步。
+本回执随下一正常检查点保存；无GPU/远端任务。下一步真实原生混合推理资格
+后完整新键回放，当前不重复CPU检查、不再profiling。完整范围开放，goal active。
 
 ## 2026-10-26 D874：同一候选已接通，232项CPU检查通过
 

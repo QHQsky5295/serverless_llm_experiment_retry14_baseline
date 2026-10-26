@@ -1,0 +1,58 @@
+"""Affected qualification-entry tests and exact D870-derived backend config."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+source = ROOT/'configs/ieee_tc/20261026_d870_3b_max3_full_w2.yaml'
+config = yaml.safe_load(source.read_text())
+model = dict(config['model'], ieee_host_construction='private_cpu_core_commit_v1')
+qualification = dict(model_profiles={'llama32_3b_main_modelscope': dict(
+    model=model, storage=dict(remote_dir=config['storage']['remote_dir']))})
+destination = ROOT/'configs/ieee_tc/20261026_d875_3b_private_host_native.yaml'
+with destination.open('x') as stream:
+    yaml.safe_dump(qualification, stream, sort_keys=False)
+paths = [ROOT/x for x in ('scripts/ieee_tc_preflight.py','tests/test_ieee_tc_preflight.py',
+    'tests/test_ieee_tc_launch.py','faaslora/memory/gpu_monitor.py',
+    'faaslora/memory/residency_manager.py','faaslora/scheduling/core_interleave.py',
+    'faaslora/scheduling/vllm_ieee_scheduler.py','scripts/run_all_experiments.py')]
+for path in paths:
+    compile(path.read_text(), str(path), 'exec')
+command = [sys.executable,'-B','-m','pytest','-v','-p','no:cacheprovider',
+    'tests/test_ieee_tc_preflight.py::PrivateHostOverlapQualification',
+    'tests/test_ieee_tc_preflight.py::SlotContentQualification',
+    'tests/test_ieee_tc_launch.py::NativeAllocatorLaunchContract::test_source_profiles_use_actual_full_subprocess_boundary',
+    'tests/test_ieee_tc_launch.py::NativeAllocatorLaunchContract::test_source_profiles_cannot_bypass_physical_allocation']
+with (OUT/'entry_tests.txt').open('x') as stream:
+    checked = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT)
+seal = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+protected = p.verify_seal(seal)
+manifest = ROOT/'configs/generated/lora_manifest_1000.json'
+assert p.digest(manifest) == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+save(OUT/'entry_verification.json', dict(passed=checked.returncode == 0,
+    command=command, returncode=checked.returncode, identity=identity,
+    resources=p.cgroup_snapshot(Path(identity['path'])), protected=protected,
+    sources={str(path): p.digest(path) for path in (*paths, source, destination, Path(__file__))},
+    configuration_derivation='D870 native model plus only private_cpu_core_commit_v1; existing local frozen qualification, not remote performance',
+    reused_cpu_ownership_tests=232, native_qualification_pending=True))
+assert checked.returncode == 0
+print(json.dumps(dict(passed=True, output=str(OUT))))

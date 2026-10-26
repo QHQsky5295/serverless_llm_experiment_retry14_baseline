@@ -1697,5 +1697,99 @@ class SlotContentQualification(unittest.TestCase):
                 asyncio.run(p.qualify_slot_content_snapshot(engine, 7))
 
 
+class PrivateHostOverlapQualification(unittest.TestCase):
+    def run_case(self, *, overlap=True, fail_generation=False):
+        import asyncio
+        from types import SimpleNamespace as NS
+        from unittest.mock import AsyncMock
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.scheduling.core_interleave import HOST_CONSTRUCTION_POLICY
+
+        async def exercise():
+            finished = asyncio.Event()
+            held = False
+            releases = []
+            def identity(aid):
+                return {'a': 1, 'b': 2}[aid]
+            async def reference(operation, **kwargs):
+                nonlocal held
+                if operation in ('snapshot', 'source_identity_snapshot'):
+                    return dict(owner_id='owner', epoch=1,
+                        registered_cpu_adapter_ids=[1, 2] if held else [1], slot_adapter_ids=[1, 0])
+                if operation == 'configure_host_budget':
+                    return dict(configured=True)
+                if operation == 'demand_load_and_acquire':
+                    return dict(kwargs, owner_id='owner', acquired=True)
+                if operation == 'prepare_file_host_and_hold':
+                    held = True
+                    finished.set()
+                    return dict(kwargs, owner_id='owner', held=True, native_load_invoked=True,
+                        private_construction=dict(kind=HOST_CONSTRUCTION_POLICY, joined=True, discarded=False),
+                        load_started_monotonic_s=2. if overlap else 10.,
+                        load_completed_monotonic_s=3. if overlap else 11.)
+                if operation in ('release', 'release_host_source'):
+                    releases.append(operation)
+                    return dict(released=True)
+                raise AssertionError(operation)
+            async def generate(**kwargs):
+                self.assertIn('pending_admission_id', kwargs)
+                if fail_generation:
+                    raise RuntimeError('native failed before first token')
+                observer = kwargs['native_event_observer']
+                observer(dict(kind='first_token'))
+                await finished.wait()
+                observer(dict(kind='last_token'))
+                timing = dict(native_terminal_observed=True, native_clock_id=local_monotonic_clock_id(),
+                    native_first_token_monotonic_s=1., native_last_token_monotonic_s=5.)
+                for key in ('owner_id', 'lease_id', 'adapter_int_id'):
+                    timing['gpu_reference_'+key] = kwargs['gpu_reference'][key]
+                return None, None, kwargs['request_plan'].max_tokens, timing
+            def prepare(prompt, target, input_tokens, **kwargs):
+                return NS(prompt='original prompt', max_tokens=target, input_tokens=input_tokens)
+            async def register(**kwargs):
+                return dict(kind='ieee_pending_admission_v1', intent_id=kwargs['intent_id'],
+                    state='pending', clock_id=local_monotonic_clock_id(), physical_kv_reservation=False)
+            async def close(intent_id):
+                return dict(intent_id=intent_id, closed=True)
+            engine = NS(_lora_int_id=identity, prepare_request=prepare,
+                ieee_register_pending=register, ieee_close_pending=close,
+                ieee_gpu_reference=reference, generate_prepared=generate,
+                ieee_scheduler_observation=AsyncMock(return_value=dict(control_interleave=dict(
+                    private_host_construction=dict(started=1, settled=1, failed=0, in_flight=0)))))
+            plan = NS(entries=[NS(request_id=str(i), source_sha256=str(i), source_json=json.dumps(dict(
+                adapter_id=aid, expected_output_tokens=target, expected_input_tokens=20,
+                body=dict(messages=[dict(role='user', content='original prompt')]))))
+                for i, (aid, target) in enumerate(zip(('a','a','b','a'), (152,59,123,217)))])
+            result = dict(requests=[], model_config=dict(ieee_host_construction=HOST_CONSTRUCTION_POLICY,
+                ieee_admission_profile={'frozen': True},
+                ieee_native_host_tensor_budget_bytes=100, ieee_native_host_workspace={}))
+            self.result, self.releases = result, releases
+            with patch.object(p, 'qualify_slot_content_snapshot', new=AsyncMock(return_value={'pass': True})):
+                await p.qualify_private_host_overlap(engine, plan, {a: {'path': '/'+a} for a in ('a','b')}, result)
+            return result
+        return asyncio.run(exercise())
+
+    def test_original_targets_overlap_and_release_are_not_numerical_proof(self):
+        result = self.run_case()
+        self.assertEqual([r['actual_tokens'] for r in result['requests']], [152,59,123,217])
+        self.assertEqual(result['private_construction_decode_overlap_s'], 1.)
+        self.assertFalse(result['performance_sample'])
+        self.assertIsNone(result['n_correct'])
+        self.assertEqual(self.releases.count('release'), 4)
+        self.assertEqual(self.releases.count('release_host_source'), 1)
+        self.assertEqual(len(result['pending_releases']), 4)
+
+    def test_no_observed_overlap_fails_but_releases(self):
+        with self.assertRaisesRegex(RuntimeError, 'no observed decode overlap'):
+            self.run_case(overlap=False)
+        self.assertEqual(self.releases.count('release'), 4)
+        self.assertEqual(self.releases.count('release_host_source'), 1)
+
+    def test_early_native_failure_propagates_without_waiting_for_timeout(self):
+        with self.assertRaisesRegex(RuntimeError, 'native failed before first token'):
+            self.run_case(fail_generation=True)
+        self.assertEqual(self.releases, ['release'])
+
+
 if __name__ == '__main__':
     unittest.main()

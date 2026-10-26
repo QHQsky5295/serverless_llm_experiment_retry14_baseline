@@ -341,6 +341,30 @@ class D870FullContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class D876FullContract(unittest.TestCase):
+    def test_only_private_host_policy_and_three_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d870_3b_max3_full_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d876_3b_max3_full_w2.yaml').read_text())
+        self.assertEqual(new['model'].pop('ieee_host_construction'), 'private_cpu_core_commit_v1')
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertEqual(old[section].pop(field).replace('d870', 'd876'), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_same_full_runner_environment_without_profiling(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        old = re.search(r'^  d870\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        new = re.search(r'^  d876\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertEqual(old.replace('d870', 'd876'), new)
+        blocks = re.findall(r'^if \[\[ ([^\n]+)\]\]; then\n(.*?)^fi', shell, re.M | re.S)
+        previous = [body for condition, body in blocks if '== d870' in condition]
+        selected = [body for condition, body in blocks if '== d876' in condition]
+        self.assertEqual(len(selected), 2)
+        self.assertEqual(previous, selected)
+        self.assertNotIn('d876', (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text())
+
+
 class D858FullContract(unittest.TestCase):
     def test_only_three_exclusive_paths_change_from_d846(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261025_d846_3b_max3_full_w2.yaml').read_text())

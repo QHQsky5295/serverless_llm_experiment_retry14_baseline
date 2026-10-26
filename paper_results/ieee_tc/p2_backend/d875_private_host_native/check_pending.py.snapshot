@@ -1,0 +1,32 @@
+"""Validate the missing native demand registration in the new qualification."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+assert os.sched_getaffinity(0)=={2,3,26,27}
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+check=json.loads((OUT/'entry_verification.json').read_text())
+assert check['passed']
+changed=[str(ROOT/name) for name in ('scripts/ieee_tc_preflight.py','tests/test_ieee_tc_preflight.py')]
+for name,sha in check['sources'].items():
+    if name not in changed: assert p.digest(Path(name))==sha,name
+for name in changed:
+    compile(Path(name).read_text(),name,'exec')
+check['sources'].update({name:p.digest(Path(name)) for name in changed})
+check['identity']=p.scope_identity(p.cg_path().name)
+check['command']=[sys.executable,'-B','-m','pytest','-v','-p','no:cacheprovider',
+    'tests/test_ieee_tc_preflight.py::PrivateHostOverlapQualification']
+with (OUT/'pending_tests.txt').open('x') as stream:
+    child=subprocess.run(check['command'],cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT)
+check.update(passed=child.returncode==0,returncode=child.returncode,
+    resources=p.cgroup_snapshot(Path(check['identity']['path'])),
+    reason='New qualification must register/retire native demand when retaining D870 admission config; no production policy change.')
+with (OUT/'pending_verification.json').open('x') as stream:json.dump(check,stream,indent=2)
+assert child.returncode==0
+print('Affected pending qualification checks passed')

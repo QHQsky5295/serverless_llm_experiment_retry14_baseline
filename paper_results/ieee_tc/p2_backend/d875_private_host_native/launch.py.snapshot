@@ -1,0 +1,44 @@
+"""Reuse native four-request qualification and the established physical gate."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+save(RAW/'launch_identity.json', p.scope_identity(p.cg_path().name))
+qualification = json.loads((OUT/'entry_verification.json').read_text())
+assert qualification['passed']
+assert not p.owned_pids(Path(qualification['identity']['path']))
+for path, sha in qualification['sources'].items():
+    assert p.digest(Path(path)) == sha, path
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+os.environ['FAASLORA_TC_NVML_BINDING']='/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py'
+os.environ['FAASLORA_TC_NVML_SHA256']='4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea'
+receipt=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json')
+assert p.digest(receipt)=='cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf'
+trace=Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+assert p.digest(trace)=='4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+command=['/usr/bin/env','CUDA_VISIBLE_DEVICES=0','VLLM_NO_USAGE_STATS=1','PYTHONUNBUFFERED=1',
+ 'PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True',
+ '/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python','-B',str(ROOT/'scripts/ieee_tc_preflight.py'),
+ 'backend-model-check','--runtime-receipt',str(receipt),
+ '--config',str(ROOT/'configs/ieee_tc/20261026_d875_3b_private_host_native.yaml'),
+ '--model-profile','llama32_3b_main_modelscope','--trace',str(trace),
+ '--request-count','4','--qualification-mode','native_private_host',
+ '--output',str(RAW/'native_private_host.json')]
+result=p.gated_launch(command,RAW/'native_launch.json',predicted_growth=2*p.GIB)
+save(RAW/'native_launch.json',result)
+print(json.dumps(dict(passed=result['pass'],service=result.get('service_unit'))))
+raise SystemExit(0 if result['pass'] else 2)

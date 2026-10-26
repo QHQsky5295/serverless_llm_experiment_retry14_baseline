@@ -1,0 +1,57 @@
+"""Register one full new-key replay; reuse D870 inputs, runners and remote management."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d876_private_host_full_w2/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+native=ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native/summary.json'
+assert json.loads(native.read_text())['passed']
+OUT.mkdir(parents=True,exist_ok=False)
+source=ROOT/'configs/ieee_tc/20261026_d870_3b_max3_full_w2.yaml'
+config=yaml.safe_load(source.read_text())
+config['model']['ieee_host_construction']='private_cpu_core_commit_v1'
+for section,field in [('experiment','output_dir'),('storage','nvme_cache_dir'),('storage','host_cache_dir')]:
+    config[section][field]=config[section][field].replace('d870','d876')
+destination=ROOT/'configs/ieee_tc/20261026_d876_3b_max3_full_w2.yaml'
+with destination.open('x') as f:yaml.safe_dump(config,f,sort_keys=False)
+for name in ('start_remote.sh','stop_remote.sh','run_and_release.sh','check_remote_health_stdlib.py'):
+    old=RAW.parent/'d870_20261026'/name
+    text=old.read_text().replace('d870','d876')
+    with (RAW/name).open('x') as f:f.write(text)
+    if name.endswith('.sh'):subprocess.run(['bash','-n',str(RAW/name)],check=True)
+    else:compile(text,str(RAW/name),'exec')
+command=[sys.executable,'-B','-m','unittest',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D876FullContract',
+    'tests.test_ieee_tc_d456_diagnostic_contract.D870FullContract','-v']
+with (OUT/'tests.txt').open('x') as f:
+    result=subprocess.run(command,cwd=ROOT,stdout=f,stderr=subprocess.STDOUT)
+assert result.returncode==0
+paths=[source,destination,native,ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+    ROOT/'tests/test_ieee_tc_d456_diagnostic_contract.py',ROOT/'scripts/ieee_tc_preflight.py',
+    ROOT/'scripts/run_all_experiments.py',ROOT/'faaslora/memory/gpu_monitor.py',
+    ROOT/'faaslora/memory/residency_manager.py',ROOT/'faaslora/scheduling/core_interleave.py',
+    ROOT/'faaslora/scheduling/vllm_ieee_scheduler.py',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
+for path in sorted(RAW.iterdir()):
+    if path.suffix in ('.py','.sh'):
+        paths.append(path)
+        with (OUT/(path.name+'.snapshot')).open('xb') as f:f.write(path.read_bytes())
+save(OUT/'qualification.json',dict(passed=True,identity=identity,command=command,
+    refs={str(path):p.digest(path) for path in paths},native_qualified=True,performance_accepted=False,
+    numerical_correctness_qualified=False,source_count=4000,replay_profile='W2',diagnostic_prefix_count=None,
+    config_change='only private_cpu_core_commit_v1; three output/cache namespaces',
+    same_frozen_trace=True,no_new_artifacts=True,resources=p.cgroup_snapshot(Path(identity['path']))))
+print('D876 full source and same-policy runner contract passed')

@@ -1,0 +1,81 @@
+"""Close native qualification; retain all failed attempts and actual evidence."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+save(RAW/'finish_identity.json',p.scope_identity(p.cg_path().name))
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+q=read(OUT/'pending_verification.json')
+assert q['passed']
+for name,sha in q['sources'].items():assert p.digest(Path(name))==sha,name
+native=read(RAW/'native_private_host_pending.json')
+assert native['pass'] and native['stage']=='complete'
+assert native['physical_allocation']['released'] and native['shutdown_called']
+assert native['n_correct'] is None and not native['performance_sample']
+assert len(native['requests'])==4 and all(r['pass'] and r['actual_tokens']==r['target_tokens'] for r in native['requests'])
+attempts=[]
+for launch_name, result_name, reason in (
+    ('native_launch.json',None,'obsolete CLI option; no model loaded'),
+    ('native_argfix_launch.json','native_private_host.json','inherited qualification launcher omitted frozen native toolchain'),
+    ('native_bound_launch.json','native_private_host_bound.json','new qualification omitted native demand registration, rejected before first token'),
+    ('native_pending_launch.json','native_private_host_pending.json','qualified actual private CPU construction with live generation')):
+    launch=read(RAW/launch_name)
+    assert launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+    directory=RAW/(Path(launch_name).stem+'.launch')
+    peak=swap=0
+    events={}
+    samples=0
+    with (directory/'watchdog.jsonl').open() as stream:
+        for line in stream:
+            item=json.loads(line)
+            if item['event']=='resource_sample':
+                samples+=1
+                state=item['service']
+                peak=max(peak,state.get('memory.peak') or 0)
+                swap=max(swap,state.get('memory.swap.current') or 0)
+                for name,value in state['memory.events'].items():events[name]=max(events.get(name,0),value)
+    row=dict(launch=str(RAW/launch_name),launch_sha256=p.digest(RAW/launch_name),
+        passed=launch['pass'],reason=reason,classification=launch.get('classification'),
+        resource_peak_bytes=peak,swap_peak_bytes=swap,memory_events=events,samples=samples,
+        native_release=True,scope_removed=True)
+    if result_name:
+        result=read(RAW/result_name)
+        row.update(result=str(RAW/result_name),result_sha256=p.digest(RAW/result_name),stage=result['stage'])
+    attempts.append(row)
+assert attempts[-1]['passed']
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+summary=dict(passed=True,kind='private_host_native_overlap_qualification_v1',attempts=attempts,
+    source_sha256=p.digest(RAW/'native_private_host_pending.json'),
+    requests=[{k:r[k] for k in ('request_id','adapter_id','target_tokens','actual_tokens','prompt_sha256','pass')} for r in native['requests']],
+    private_construction=native['private_host_receipt']['private_construction'],
+    overlap_s=native['private_construction_decode_overlap_s'],
+    overlap_scope='CPU construction interval intersects first-to-last native token interval; not per-iteration GPU progress or latency reduction proof',
+    core=native['host_core_after']['control_interleave']['private_host_construction'],
+    slot_content={aid:value['pass'] for aid,value in native['slot_content'].items()},
+    pending_releases=native['pending_releases'],
+    gpu_reference_release_count=len(native['reference_releases']),host_released=native['host_release']['released'],
+    protected=seal,independent_numerical_correctness=None,n_correct=None,
+    performance_result=False,new_full_replays=0,remaining_full_replay='D876 new key, same 4000-request 3B W2',
+    no_remote_service_change=True,no_shared_k3s_change=True,
+    disk_free_bytes=p.shutil.disk_usage(ROOT).free if hasattr(p,'shutil') else None)
+save(OUT/'summary.json',summary)
+for name in ('prepare.py','launch.py','launch_argfix.py','launch_bound.py','check_pending.py',
+             'launch_pending.py','finish.py','preflight_before_pending.py.snapshot','tests_before_pending.py.snapshot'):
+    destination=OUT/(name if name.endswith('.snapshot') else name+'.snapshot')
+    with destination.open('xb') as f:f.write((RAW/name).read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path))
+    for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True,overlap_s=summary['overlap_s'],attempts=len(attempts),
+    resource_peak_bytes=attempts[-1]['resource_peak_bytes'],events=attempts[-1]['memory_events'])))

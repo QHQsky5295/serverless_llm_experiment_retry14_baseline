@@ -1,0 +1,13 @@
+"""Correct the inherited CLI option; preserve the no-model argument failure."""
+from pathlib import Path
+
+source_path = Path(__file__).with_name('launch.py')
+source = source_path.read_text()
+assert source.count("'--trace'") == 1
+source = source.replace("'--trace'", "'--replay-trace'")
+source = source.replace("RAW/'launch_identity.json'", "RAW/'launch_argfix_identity.json'")
+source = source.replace("RAW/'native_launch.json'", "RAW/'native_argfix_launch.json'")
+snapshot = Path(__file__).with_name('launch_argfix_executed.py.snapshot')
+with snapshot.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(snapshot), 'exec'))

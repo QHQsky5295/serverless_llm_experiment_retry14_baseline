@@ -1,0 +1,290 @@
+{
+  "passed": true,
+  "kind": "private_host_native_overlap_qualification_v1",
+  "attempts": [
+    {
+      "launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_launch.json",
+      "launch_sha256": "cdb3543801c49cb8973673054773f86c5b44ed392ecf890b1988e408277e71e7",
+      "passed": false,
+      "reason": "obsolete CLI option; no model loaded",
+      "classification": "qualification_command_failure",
+      "resource_peak_bytes": 30953472,
+      "swap_peak_bytes": 0,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "samples": 1,
+      "native_release": true,
+      "scope_removed": true
+    },
+    {
+      "launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_argfix_launch.json",
+      "launch_sha256": "99b80b59c77b35f00c2f5bceeeb1e70d2683171f2d4d58cfc1f547e0a88c91d8",
+      "passed": false,
+      "reason": "inherited qualification launcher omitted frozen native toolchain",
+      "classification": "qualification_command_failure",
+      "resource_peak_bytes": 5696434176,
+      "swap_peak_bytes": 0,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "samples": 101,
+      "native_release": true,
+      "scope_removed": true,
+      "result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_private_host.json",
+      "result_sha256": "f872c6919f6c9164578c33eb396acd55ced816c2c60b91ea51907d937be8052b",
+      "stage": "engine_initialization"
+    },
+    {
+      "launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_bound_launch.json",
+      "launch_sha256": "30451cba12129732c5ba234d1acd37ccac465748eb75d64a892d1734fdeaee55",
+      "passed": false,
+      "reason": "new qualification omitted native demand registration, rejected before first token",
+      "classification": "qualification_command_failure",
+      "resource_peak_bytes": 5691224064,
+      "swap_peak_bytes": 0,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "samples": 111,
+      "native_release": true,
+      "scope_removed": true,
+      "result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_private_host_bound.json",
+      "result_sha256": "0aedf5f7381609fadadfb17990ad1dc46caff9a05a72dc3f55932d3834205645",
+      "stage": "worker_and_scheduler_observation"
+    },
+    {
+      "launch": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_pending_launch.json",
+      "launch_sha256": "0b9387cdc103e061bc4d621f2633393310c754b5daafd81417a29c39fa6a4f41",
+      "passed": true,
+      "reason": "qualified actual private CPU construction with live generation",
+      "classification": null,
+      "resource_peak_bytes": 6004101120,
+      "swap_peak_bytes": 0,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "samples": 72,
+      "native_release": true,
+      "scope_removed": true,
+      "result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/native_private_host_pending.json",
+      "result_sha256": "6271ff38508fc0344acb27317ff9ba3e13d07936935bfeee290d4e0b4e561183",
+      "stage": "complete"
+    }
+  ],
+  "source_sha256": "6271ff38508fc0344acb27317ff9ba3e13d07936935bfeee290d4e0b4e561183",
+  "requests": [
+    {
+      "request_id": "req_00000",
+      "adapter_id": "finance_lora",
+      "target_tokens": 152,
+      "actual_tokens": 152,
+      "prompt_sha256": "d48b8782cd47f7438837d530fb7e329f42e0f7bb1857c4cf7e53acb3c9417cc6",
+      "pass": true
+    },
+    {
+      "request_id": "req_00001",
+      "adapter_id": "finance_lora",
+      "target_tokens": 59,
+      "actual_tokens": 59,
+      "prompt_sha256": "7d909f88ed53d92b35fc65d502ec3db8d213c2cec3c220074ea1a92c235864c5",
+      "pass": true
+    },
+    {
+      "request_id": "req_00002",
+      "adapter_id": "writing_lora_0011",
+      "target_tokens": 123,
+      "actual_tokens": 123,
+      "prompt_sha256": "40b3a3a0009e919a9849c35f420de5bc87a313bf48e287fd12b4dc5422e736bf",
+      "pass": true
+    },
+    {
+      "request_id": "req_00003",
+      "adapter_id": "finance_lora",
+      "target_tokens": 217,
+      "actual_tokens": 217,
+      "prompt_sha256": "ee3fa20a89e360813cdd6abf93ce33113972f0f6d5fac1cf440f1ff6450d9d52",
+      "pass": true
+    }
+  ],
+  "private_construction": {
+    "kind": "private_cpu_core_commit_v1",
+    "token": "dfbfbb2c7f2f49479f69a6feaa940b31",
+    "reserved_peak_upper_bytes": 27554560,
+    "discarded": false,
+    "joined": true,
+    "allocator_after": {
+      "kind": "native_pinned_host_allocator_v1",
+      "available": true,
+      "registered_pinned_storage_bytes": 9175040,
+      "registered_pageable_storage_bytes": 0,
+      "staged_only_pinned_storage_bytes": 9175040,
+      "staged_only_pageable_storage_bytes": 0,
+      "registered_exclusive_storage_bytes": 9175040,
+      "scope": "process_pinned_allocator_plus_registered_and_staged_pageable_tensors",
+      "pinned_allocated_bytes": 18390348,
+      "pinned_active_bytes": 18390348,
+      "pinned_cached_bytes": 0,
+      "pinned_blocks": 555,
+      "pinned_active_blocks": 555,
+      "native_pageable_storage_bytes": 0,
+      "accounted_tensor_bytes": 18390348,
+      "total_host_memory_covered": false
+    }
+  },
+  "overlap_s": 0.06580149102956057,
+  "overlap_scope": "CPU construction interval intersects first-to-last native token interval; not per-iteration GPU progress or latency reduction proof",
+  "core": {
+    "policy": "private_cpu_core_commit_v1",
+    "started": 1,
+    "settled": 1,
+    "discarded": 0,
+    "failed": 0,
+    "in_flight": 0,
+    "closed": false
+  },
+  "slot_content": {
+    "finance_lora": true,
+    "writing_lora_0011": true
+  },
+  "pending_releases": [
+    {
+      "intent_id": "d31588fb5729496083296f9d1a232c3d",
+      "closed": true,
+      "receipt": {
+        "kind": "ieee_native_request_retirement_v1",
+        "retired": true,
+        "request_id": "d31588fb5729496083296f9d1a232c3d-8506e062",
+        "scheduler_owner_id": "01bb467d57204d5296bbedf82c9d3d84",
+        "retirement_fence": 0,
+        "processed_step_seq": 0,
+        "retired_monotonic_s": 2492562.908149658,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "external_request_id": "d31588fb5729496083296f9d1a232c3d"
+      },
+      "timing": {
+        "parent_rpc_channel_acquire_ms": 0.2920660190284252,
+        "parent_rpc_response_pickup_delay_ms": 0.0,
+        "parent_rpc_send_flush_ms": 0.042725820094347,
+        "parent_rpc_request_bytes": 136,
+        "parent_rpc_response_bytes": 517,
+        "parent_rpc_wait_response_ms": 2.2881366312503815,
+        "parent_rpc_transport": "native_async_socket_v1",
+        "parent_rpc_thread_resume_delay_ms": 0.0
+      }
+    },
+    {
+      "intent_id": "d999150311824471aacd081cde24b575",
+      "closed": true,
+      "receipt": {
+        "kind": "ieee_native_request_retirement_v1",
+        "retired": true,
+        "request_id": "d999150311824471aacd081cde24b575-b68d6819",
+        "scheduler_owner_id": "01bb467d57204d5296bbedf82c9d3d84",
+        "retirement_fence": 0,
+        "processed_step_seq": 0,
+        "retired_monotonic_s": 2492562.011740414,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "external_request_id": "d999150311824471aacd081cde24b575"
+      },
+      "timing": {
+        "parent_rpc_channel_acquire_ms": 0.21936697885394096,
+        "parent_rpc_response_pickup_delay_ms": 0.0,
+        "parent_rpc_send_flush_ms": 0.03845943138003349,
+        "parent_rpc_request_bytes": 135,
+        "parent_rpc_response_bytes": 517,
+        "parent_rpc_wait_response_ms": 1.248201820999384,
+        "parent_rpc_transport": "native_async_socket_v1",
+        "parent_rpc_thread_resume_delay_ms": 0.0
+      }
+    },
+    {
+      "intent_id": "ae7f7127abab4933ad3c061d6a1dc04d",
+      "closed": true,
+      "receipt": {
+        "kind": "ieee_native_request_retirement_v1",
+        "retired": true,
+        "request_id": "ae7f7127abab4933ad3c061d6a1dc04d-8bafa23d",
+        "scheduler_owner_id": "01bb467d57204d5296bbedf82c9d3d84",
+        "retirement_fence": 0,
+        "processed_step_seq": 0,
+        "retired_monotonic_s": 2492562.873275044,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "external_request_id": "ae7f7127abab4933ad3c061d6a1dc04d"
+      },
+      "timing": {
+        "parent_rpc_channel_acquire_ms": 0.18549803644418716,
+        "parent_rpc_response_pickup_delay_ms": 0.0,
+        "parent_rpc_send_flush_ms": 0.0371420755982399,
+        "parent_rpc_request_bytes": 136,
+        "parent_rpc_response_bytes": 517,
+        "parent_rpc_wait_response_ms": 1.2165578082203865,
+        "parent_rpc_transport": "native_async_socket_v1",
+        "parent_rpc_thread_resume_delay_ms": 0.0
+      }
+    },
+    {
+      "intent_id": "b0dc196c5ca2488b8402e780f95e5e48",
+      "closed": true,
+      "receipt": {
+        "kind": "ieee_native_request_retirement_v1",
+        "retired": true,
+        "request_id": "b0dc196c5ca2488b8402e780f95e5e48-91bca287",
+        "scheduler_owner_id": "01bb467d57204d5296bbedf82c9d3d84",
+        "retirement_fence": 0,
+        "processed_step_seq": 0,
+        "retired_monotonic_s": 2492563.985676101,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "external_request_id": "b0dc196c5ca2488b8402e780f95e5e48"
+      },
+      "timing": {
+        "parent_rpc_channel_acquire_ms": 0.1827380619943142,
+        "parent_rpc_response_pickup_delay_ms": 0.0,
+        "parent_rpc_send_flush_ms": 0.036226119846105576,
+        "parent_rpc_request_bytes": 136,
+        "parent_rpc_response_bytes": 517,
+        "parent_rpc_wait_response_ms": 0.9336802177131176,
+        "parent_rpc_transport": "native_async_socket_v1",
+        "parent_rpc_thread_resume_delay_ms": 0.0
+      }
+    }
+  ],
+  "gpu_reference_release_count": 4,
+  "host_released": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "independent_numerical_correctness": null,
+  "n_correct": null,
+  "performance_result": false,
+  "new_full_replays": 0,
+  "remaining_full_replay": "D876 new key, same 4000-request 3B W2",
+  "no_remote_service_change": true,
+  "no_shared_k3s_change": true,
+  "disk_free_bytes": 175977873408
+}

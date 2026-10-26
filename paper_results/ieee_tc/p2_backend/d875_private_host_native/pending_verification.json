@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "command": [
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+    "-B",
+    "-m",
+    "pytest",
+    "-v",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_ieee_tc_preflight.py::PrivateHostOverlapQualification"
+  ],
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-87500000000000000000000000000005.scope",
+    "invocation_id": "9d480e42c5ec4e59a0cb7e182022dfc7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87500000000000000000000000000005.scope",
+    "inode": 32903510
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-87500000000000000000000000000005.scope",
+    "memory.current": 40673280,
+    "memory.peak": 98799616,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 931287\nuser_usec 793688\nsystem_usec 137599\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py": "565d61d079a0689d9a515ce3006b343f1c5e84fec89ee503fc0765d4aac42d3b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py": "7dc3177a84af208987e468cd3f919002bf681b2f91405999512304a242f1d12b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py": "60d30cddc916bdaf416dfdeee29e11c8d8bc3dc590ec51d20f96ba96d986ea66",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "b1ecd505a44463bc54d65fe3c1f8ba41c5d1b9b42bf174ea5558d6c1db0f6d68",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "c62acac49b5f1b78c2d3e18984faa902a22f9a2aa6b5d574b1d116205fb94e6f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py": "020cc411a4ef3b67f2b0e6d39da9ae844189dae957f886def9a34a31510a77dd",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py": "f29e7c698fa199da671de985a1e469031f690d4eb055ae79d2952fdd44d1ad4d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "415a594fba27ff8e9ad14e37cfe71cd005f539b9c5f5f7f2fb5b8592ec65f14d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261026_d870_3b_max3_full_w2.yaml": "9579490e6aa1992fd6130268b861f1a344081d61c5882243aa69d701f7eecebd",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261026_d875_3b_private_host_native.yaml": "cb2a7adaddb4954bce681662c79725e7143eec9f6d7c2de76b3d054d8ba33376",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d875_20261026/prepare.py": "7c3a09c655fb7d949c3ad50d3fb8bd5410c602369dc84c0b230aeea89821fb9c"
+  },
+  "configuration_derivation": "D870 native model plus only private_cpu_core_commit_v1; existing local frozen qualification, not remote performance",
+  "reused_cpu_ownership_tests": 232,
+  "native_qualification_pending": true,
+  "reason": "New qualification must register/retire native demand when retaining D870 admission config; no production policy change."
+}

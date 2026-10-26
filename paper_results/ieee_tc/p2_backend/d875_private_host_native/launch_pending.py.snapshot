@@ -1,0 +1,29 @@
+"""Same bound native qualification with real pending demand ownership."""
+import json
+import os
+from pathlib import Path
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc_native_toolchain import bind_native_toolchain
+previous=json.loads((RAW/'native_bound_launch.json').read_text())
+assert previous['native_gpu_context_release_confirmed'] and previous['service_path_removed']
+env,receipt=bind_native_toolchain(os.environ,
+    python='/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python',
+    contract=str(ROOT/'configs/ieee_tc/native_toolchain_cuda130_v1.json'),
+    expected_sha='328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c')
+os.environ.update(env)
+os.environ.update(FAASLORA_WORKER_START_TIMEOUT_S='600',FAASLORA_KEEP_DEDICATED_WORKER_LOGS='1',
+    HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',PYTHONNOUSERSITE='1',
+    FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=str(RAW.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'),
+    FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256='b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044')
+source=(RAW/'launch.py').read_text().replace("'--trace'","'--replay-trace'")
+source=source.replace('entry_verification.json','pending_verification.json')
+source=source.replace('launch_identity.json','launch_pending_identity.json')
+source=source.replace('native_launch.json','native_pending_launch.json')
+source=source.replace('native_private_host.json','native_private_host_pending.json')
+snapshot=RAW/'launch_pending_executed.py.snapshot'
+with snapshot.open('x') as stream:stream.write(source)
+exec(compile(source,str(snapshot),'exec'))
