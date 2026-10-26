@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
+import hashlib
 import inspect
 import multiprocessing
 from multiprocessing.reduction import DupFd
@@ -24,6 +25,7 @@ from pathlib import Path
 import pickle
 import shutil
 import threading
+import time
 import uuid
 
 
@@ -48,6 +50,7 @@ _COMPOSITE = frozenset({
     'begin_workspace', 'end_workspace', 'begin_interest', 'end_interest',
     'publish_transfer', 'acquire_best', 'delete', 'reserve_native_host',
     'retire_native_host', 'quiescent', 'begin_mutation',
+    'acquire_confirmed_with_manifest',
 })
 
 
@@ -127,6 +130,15 @@ def _dispatch(operation, args):
             return _OWNER.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
                 lease_id=lease_id, expected_owner_id=view['owner_id'],
                 expected_epoch=view['epoch'], expected_content_sha256=expected)
+    if operation == 'acquire_confirmed_with_manifest':
+        with _OWNER.lock:
+            reference = _OWNER.acquire_confirmed(**args)
+            path = Path(args['path']).resolve()
+            record = _OWNER._confirmed_sources.get(path)
+            if record is None:
+                raise RuntimeError('confirmed source disappeared after acquisition')
+            return dict(reference=reference,
+                        expected_files=pickle.loads(pickle.dumps(record['expected_files'], protocol=5)))
     if operation == 'delete':
         target = Path(args['path']).resolve()
         if target.parent not in _OWNER.roots.values():
@@ -446,6 +458,14 @@ class ProcessLocalSourceReferences:
                           expected_epoch=expected_epoch,
                           expected_content_sha256=expected_content_sha256)
 
+    def acquire_confirmed_with_manifest(self, *, path, adapter_id, lease_id,
+                                        expected_owner_id, expected_epoch,
+                                        expected_content_sha256):
+        return self._call('acquire_confirmed_with_manifest', path=path,
+                          adapter_id=adapter_id, lease_id=lease_id,
+                          expected_owner_id=expected_owner_id,
+                          expected_epoch=expected_epoch, expected_content_sha256=expected_content_sha256)
+
     def release(self, *, lease_id, expected_owner_id):
         return self._call('release', lease_id=lease_id, expected_owner_id=expected_owner_id)
 
@@ -492,6 +512,87 @@ class ProcessLocalSourceReferences:
     def prepare_copy(self, transfer_id, staging, expected, *, limit_bytes):
         return self._call('prepare_copy', transfer_id=transfer_id, staging=staging,
                           expected=expected, limit_bytes=limit_bytes)
+
+    def copy_confirmed(self, source, target, *, limit_bytes, cancel_event=None,
+                       evidence=None, expected_content_sha256=None,
+                       replacement_epoch=None):
+        """Copy a confirmed source while the child owns only state transitions.
+
+        The byte loop stays in the caller (normally the existing owned I/O
+        thread).  The child performs source acquisition, allocation, verified
+        publication, and release; it never holds its lock across body I/O.
+        """
+        from ..clock import local_monotonic_clock_id
+        from ..storage.http_artifact_store import _verified_file_signature
+
+        source, target = Path(source).resolve(strict=True), Path(target).resolve()
+        if target.parent not in self.roots.values() or source == target:
+            raise ValueError('local preparation requires a distinct managed destination')
+        lease_id = uuid.uuid4().hex
+        snapshot = self._call('source_snapshot', adapter_id=target.name)
+        if expected_content_sha256 is None:
+            expected_content_sha256 = next((row['content_sha256'] for row in snapshot['sources']
+                                            if row['path'] == str(source)), None)
+        if not isinstance(expected_content_sha256, str):
+            raise ValueError('local preparation requires a confirmed source content identity')
+        acquired = self.acquire_confirmed_with_manifest(
+            path=source, adapter_id=target.name, lease_id=lease_id,
+            expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'],
+            expected_content_sha256=expected_content_sha256)
+        reference = acquired['reference']
+        expected = acquired['expected_files']
+        receipt = evidence if evidence is not None else {}
+        receipt.update(kind='ieee_confirmed_file_copy_v2', state='started',
+                       source=reference, target_path=str(target), copied_bytes=0,
+                       clock_id=local_monotonic_clock_id(), source_reference_released=False)
+        try:
+            def cancelled():
+                if cancel_event is not None and cancel_event.is_set():
+                    raise RuntimeError('managed file copy cancelled before publication')
+
+            with self.materializing(target, replacement_epoch=replacement_epoch, budgeted=True) as transfer_id:
+                receipt['transfer_id'] = transfer_id
+                with self.transfer_workspace(transfer_id) as staging:
+                    receipt['file_reservation'] = self.prepare_copy(
+                        transfer_id, staging, expected, limit_bytes=limit_bytes)
+                    verified_files = {}
+                    for name, (size, digest) in sorted(expected.items()):
+                        cancelled()
+                        source_file, target_file = source / name, Path(staging) / name
+                        actual = hashlib.sha256()
+                        with source_file.open('rb') as reader, target_file.open('r+b') as writer:
+                            if os.fstat(writer.fileno()).st_size != size:
+                                raise RuntimeError('copy destination differs from reservation')
+                            remaining = size
+                            while remaining:
+                                cancelled()
+                                chunk = reader.read(min(1024 * 1024, remaining))
+                                if not chunk:
+                                    raise RuntimeError('confirmed source truncated during copy')
+                                if writer.write(chunk) != len(chunk):
+                                    raise RuntimeError('preallocated file copy made a partial write')
+                                actual.update(chunk)
+                                receipt['copied_bytes'] += len(chunk)
+                                remaining -= len(chunk)
+                            if reader.read(1):
+                                raise RuntimeError('confirmed source grew during copy')
+                        if actual.hexdigest() != digest:
+                            raise RuntimeError('confirmed source content changed during copy')
+                        verified_files[name] = dict(
+                            size_bytes=size, sha256=digest,
+                            signature=_verified_file_signature(target_file.lstat()))
+                    cancelled()
+                    receipt['confirmed_file_publication'] = self.publish_transfer(
+                        transfer_id, staging, target, verified_files=verified_files)
+                    receipt['ready_at'] = time.monotonic()
+                    receipt['state'] = 'published'
+            return receipt
+        except BaseException as exc:
+            receipt.update(state='not_published', error_type=type(exc).__name__)
+            raise
+        finally:
+            self.release(lease_id=lease_id, expected_owner_id=reference['owner_id'])
+            receipt.update(finished_at=time.monotonic(), source_reference_released=True)
 
     def materializing(self, target, *, replacement_epoch=None, budgeted=False):
         return _ProcessContext(self, 'materialization', 'begin_materialization',

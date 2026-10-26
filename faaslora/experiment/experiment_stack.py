@@ -102,6 +102,7 @@ def _build_experiment_config(
         "registry": {"backend": registry_backend, "redis": {}},
         "memory": {
             "file_cache_policy": preload_cfg.get('file_cache_policy', 'planned_only'),
+            "file_state_process": bool(preload_cfg.get('file_state_process', False)),
             "gpu": {
                 "total_memory_gb": gpu_total_mb / 1024,
                 "safety_margin": 0.15,

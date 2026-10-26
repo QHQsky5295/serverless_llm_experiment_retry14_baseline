@@ -3813,10 +3813,16 @@ class ResidencyManager:
         nvme_dir = nvme_cfg.get("cache_dir") or storage_config.get("local", {}).get("cache_dir")
         self.host_cache_dir = Path(host_dir) if host_dir else None
         self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
-        self.local_source_references = LocalSourceReferences({
-            'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir},
-            file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
+        roots = {'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir}
+        if memory_config.get('file_state_process', False):
+            from .file_state_process import ProcessLocalSourceReferences
+            self.local_source_references = ProcessLocalSourceReferences(
+                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
+        else:
+            self.local_source_references = LocalSourceReferences(
+                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
         self.local_transfer_evidence: List[Dict[str, Any]] = []
+        self._local_transfer_evidence_lock = threading.Lock()
         self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
         
         self.logger.info("Residency manager initialized")
@@ -3860,6 +3866,13 @@ class ResidencyManager:
         evidence = dict(artifact_id=artifact_id, source_path=str(source_path),
                         target_tier=target_tier.value, state='not_started')
         try:
+            if getattr(self.local_source_references, 'process', None) is not None:
+                return self.local_source_references.copy_confirmed(
+                    source_path, directory / artifact_id,
+                    limit_bytes=int(self.tier_capacities[target_tier].total_bytes),
+                    cancel_event=cancel_event, evidence=evidence,
+                    expected_content_sha256=expected_content_sha256,
+                    replacement_epoch=replacement_epoch)
             return self.local_source_references.copy_confirmed(
                 source_path, directory / artifact_id,
                 limit_bytes=int(self.tier_capacities[target_tier].total_bytes),
@@ -3870,7 +3883,7 @@ class ResidencyManager:
                 evidence.update(state='rejected', error_type=type(exc).__name__)
             raise
         finally:
-            with self.local_source_references.lock:
+            with self._local_transfer_evidence_lock:
                 self.local_transfer_evidence.append(copy.deepcopy(evidence))
 
     def publish_local_source(self, staging: Path, target: Path, *, transfer_id=None) -> None:
@@ -3884,6 +3897,15 @@ class ResidencyManager:
                 raise RuntimeError('publication conflicts with a live source reference')
             publish_directory(staging, target)
 
+    def _confirmed_source_exists(self, source: Path, artifact_id: str) -> bool:
+        """Query confirmed ownership without reaching into a child ledger."""
+        refs = self.local_source_references
+        if getattr(refs, 'process', None) is not None:
+            view = refs.source_snapshot(artifact_id)
+            resolved = source.resolve()
+            return any(Path(row['path']).resolve() == resolved for row in view['sources'])
+        return refs._validated_source(source) is not None
+
     async def start(self):
         """Start the residency manager"""
         self.logger.info("Starting residency manager...")
@@ -3893,6 +3915,8 @@ class ResidencyManager:
     async def stop(self):
         """Stop the residency manager and background monitoring."""
         await self.stop_monitoring()
+        if getattr(self.local_source_references, 'process', None) is not None:
+            self.local_source_references.close()
 
     def set_tracked_gpu_device_ids(self, device_ids: Optional[List[int]]) -> None:
         """Update the active GPU device set that contributes to the shared GPU tier."""
@@ -4609,9 +4633,7 @@ class ResidencyManager:
         if source_path:
             try:
                 source = Path(source_path).resolve()
-                with self.local_source_references.lock:
-                    confirmed = self.local_source_references._validated_source(source)
-                if confirmed is not None:
+                if self._confirmed_source_exists(source, artifact_id):
                     if source == (tier_dir / artifact_id).resolve():
                         return str(source)
                     self.materialize_confirmed_source(artifact_id, source, target_tier)
@@ -4651,7 +4673,7 @@ class ResidencyManager:
         try:
             if src.is_dir():
                 from ..storage.http_artifact_store import staged_directory
-                if self.local_source_references._validated_source(src.resolve()) is not None:
+                if self._confirmed_source_exists(src.resolve(), artifact_id):
                     # It may have been confirmed after the caller's first
                     # observation. Never slip that race into unbudgeted I/O.
                     raise RuntimeError('newly confirmed source requires budgeted preparation')

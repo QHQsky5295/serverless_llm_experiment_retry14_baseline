@@ -15,6 +15,10 @@ import unittest
 from faaslora.memory.file_state_process import (
     FileStateCall, FileStateProcess, ProcessLocalSourceReferences,
 )
+from faaslora.experiment.experiment_config import ExperimentConfig
+from faaslora.memory.gpu_monitor import GPUMemoryMonitor
+from faaslora.memory.residency_manager import ResidencyManager
+from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.metrics.metrics_collector import _open_pidfd
 from faaslora.storage.http_artifact_store import (
     _verified_file_signature, preparation_content_sha256,
@@ -194,6 +198,51 @@ class FileStateProcessTests(unittest.TestCase):
                 self.assertEqual(snapshot['owner_id'], facade.owner_id)
         finally:
             facade.close()
+
+    def test_facade_copy_keeps_byte_io_outside_the_child_owner(self):
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+        payload = b'facade-copy'
+        files = {'weights': (len(payload), hashlib.sha256(payload).hexdigest())}
+        content = preparation_content_sha256(files)
+        try:
+            with facade.materializing(self.nvme / 'a', budgeted=True) as transfer_id:
+                with facade.transfer_workspace(transfer_id) as staging:
+                    facade.prepare_transfer(transfer_id, staging, 11, files,
+                                            limit_bytes=1024**2)
+                    target_file = Path(staging) / 'weights'
+                    target_file.write_bytes(payload)
+                    verified = {'weights': dict(
+                        size_bytes=len(payload), sha256=files['weights'][1],
+                        signature=_verified_file_signature(target_file.stat()))}
+                    facade.publish_transfer(transfer_id, staging, self.nvme / 'a',
+                                            verified_files=verified)
+            copied = facade.copy_confirmed(self.nvme / 'a', self.host / 'a',
+                                           limit_bytes=1024**2,
+                                           expected_content_sha256=content)
+            self.assertEqual(copied['state'], 'published')
+            self.assertEqual((self.host / 'a' / 'weights').read_bytes(), payload)
+            self.assertEqual(facade.source_snapshot('a')['sources'].__len__(), 2)
+        finally:
+            facade.close()
+
+    def test_residency_manager_process_owner_constructs_and_closes_in_pytest_module(self):
+        config = ExperimentConfig({
+            'registry': {'backend': 'memory'},
+            'memory': {
+                'file_state_process': True,
+                'file_cache_policy': 'planned_only',
+                'gpu': {'total_memory_gb': 1, 'device_ids': [],
+                        'monitor': {'observation_mode': 'process_allocator',
+                                    'enable_nvml': False}},
+                'host': {'total_memory_gb': 1, 'cache_dir': str(self.host)},
+                'nvme': {'cache_size_gb': 1, 'cache_dir': str(self.nvme)},
+            },
+            'storage': {'local': {'cache_dir': str(self.nvme)},
+                        'host_cache_dir': str(self.host)},
+        })
+        manager = ResidencyManager(config, ArtifactRegistry(config), GPUMemoryMonitor(config))
+        self.assertIsNotNone(getattr(manager.local_source_references, 'process', None))
+        asyncio.run(manager.stop())
 
     def test_real_pidfd_survives_parent_fd_close_until_actual_exit(self):
         self.call('configure_host_budget', limit_bytes=1024**2)
