@@ -33,7 +33,8 @@ or inferred release is introduced.
 
 The rare retirement path now also joins process-owned native retirement and
 runtime source release asynchronously; shutdown remains a separate lifecycle
-operation. The opt-in process owner is still not enabled for a formal replay.
+operation, and manager shutdown now joins quiescent close off the event loop.
+The opt-in process owner is still not enabled for a formal replay.
 Before that step, a no-GPU integration smoke must exercise startup, demand,
 publication, cancellation, retirement, and close together so process-mode and
 legacy-owner identities cannot be mixed. The production default and all

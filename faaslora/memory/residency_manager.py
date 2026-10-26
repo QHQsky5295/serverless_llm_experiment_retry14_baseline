@@ -3916,7 +3916,7 @@ class ResidencyManager:
         """Stop the residency manager and background monitoring."""
         await self.stop_monitoring()
         if getattr(self.local_source_references, 'process', None) is not None:
-            self.local_source_references.close()
+            await self.local_source_references.close_async()
 
     def set_tracked_gpu_device_ids(self, device_ids: Optional[List[int]]) -> None:
         """Update the active GPU device set that contributes to the shared GPU tier."""

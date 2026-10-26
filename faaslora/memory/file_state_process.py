@@ -686,3 +686,18 @@ class ProcessLocalSourceReferences:
 
     def close(self):
         self.process.close()
+
+    async def close_async(self):
+        """Join quiescent shutdown outside the request event loop."""
+        task = asyncio.create_task(asyncio.to_thread(self.close))
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(task)
+                break
+            except asyncio.CancelledError:
+                if task.cancelled():
+                    raise
+                cancelled = True
+        if cancelled:
+            raise asyncio.CancelledError()
