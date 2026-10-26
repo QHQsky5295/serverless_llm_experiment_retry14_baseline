@@ -1,0 +1,22 @@
+"""D885: reuse D882/D869 bounded qualification for the changed HOST interval."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent/'d869_20261026/qualify.py'
+source = template.read_text().replace('d869_staged_union_projection', 'd885_registered_preparation_storage')
+start = source.index('tests = [')
+end = source.index("\nwith (OUT/'tests.txt')", start)
+source = source[:start] + """tests = ['tests.test_ieee_tc_worker_observation', 'tests.test_ieee_tc_gpu_references',
+    'tests.test_ieee_tc_hit_host_transaction',
+    'tests.test_ieee_tc_transfer_pressure.IntegratedNativeHostReplacement',
+    'tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement']""" + source[end:]
+source = source.replace("ROOT/'tests/test_ieee_tc_gpu_references.py', ROOT/'scripts/ieee_tc/host_descriptor_witness.py',",
+    "ROOT/'tests/test_ieee_tc_gpu_references.py', ROOT/'tests/test_ieee_tc_transfer_pressure.py',\n"
+    "           ROOT/'faaslora/memory/residency_manager.py', ROOT/'tests/test_ieee_tc_hit_host_transaction.py',")
+compile(source, str(raw/'qualify_executed.py.snapshot'), 'exec')
+with (raw/'qualify_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+with (raw/'template.sha256').open('x') as stream:
+    stream.write(hashlib.sha256(template.read_bytes()).hexdigest() + '  ' + str(template) + '\n')
+exec(compile(source, str(raw/'qualify_executed.py.snapshot'), 'exec'), globals())

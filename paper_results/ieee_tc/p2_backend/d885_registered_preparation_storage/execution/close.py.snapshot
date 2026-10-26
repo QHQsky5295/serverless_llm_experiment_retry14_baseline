@@ -1,0 +1,41 @@
+"""Reuse D882 closure utilities and protection checks for D885 qualification."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw.parent/'d882_20261026/close.py').read_text()
+source = source.replace('d882_replacement_cost_fusion', 'd885_registered_preparation_storage')
+source = source.replace('D882_REPLACEMENT_COST_FUSION_20261026.md',
+                        'D885_REGISTERED_PREPARATION_STORAGE_20261026.md')
+start = source.index('identities = [')
+end = source.index("seal = Path(", start)
+source = source[:start] + '''identities = [RAW/name for name in ('qualification_identity.json', 'boundaries_identity.json')]
+for path in identities:
+    identity = read(path)
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+qualification = read(OUT/'qualification.json')
+boundaries = read(OUT/'boundaries/qualification.json')
+assert qualification['passed'] and boundaries['passed']
+for path, sha in boundaries['source_shas'].items(): assert p.digest(Path(path)) == sha
+for name in ('faaslora/memory/gpu_monitor.py', 'faaslora/memory/residency_manager.py'):
+    assert qualification['source_shas'][str(ROOT/name)] == p.digest(ROOT/name)
+for evidence in (qualification, boundaries):
+    resources = evidence['resources']
+    assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+''' + source[end:]
+start = source.index("save(OUT/'attempts.json'")
+end = source.index('doc = ROOT/', start)
+source = source[:start] + '''save(OUT/'attempts.json', dict(
+    tests=[dict(attempt=1,tests=328,passed=328,errors=0),
+           dict(attempt=2,tests=2,passed=2,errors=0,reason='two expanded boundary cases only')],
+    production_unchanged_between_test_passes=True,
+    new_gpu_replays=0, changed_production_policy=False))
+''' + source[end:]
+source = source.replace('tests=322,production_changes=', 'tests=328,boundary_followups=2,production_changes=')
+source = source.replace("'faaslora/preloading/preloading_planner.py'", "'faaslora/memory/residency_manager.py'")
+source = source.replace('One D883 full 3B W2, same D870 configuration/D725 profile; no extra short replay',
+                        'One D886 full 3B W2, same D883 configuration/D725 profile; no extra short replay')
+source = source.replace('tests=322,new_gpu_replays=0', 'tests=328,boundary_followups=2,new_gpu_replays=0')
+compile(source, str(raw/'close_executed.py.snapshot'), 'exec')
+with (raw/'close_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(raw/'close_executed.py.snapshot'), 'exec'), globals())

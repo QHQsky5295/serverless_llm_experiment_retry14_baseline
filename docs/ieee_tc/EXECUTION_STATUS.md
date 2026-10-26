@@ -1,4 +1,36 @@
-# IEEE TC execution status — D884 branch audit complete; no new performance claim
+# IEEE TC execution status — D885 qualified; next one full 3B W2, no performance claim
+
+## D885：同次已注册准备共享物理图（2026-10-26）
+
+已实现D884唯一候选：仅起点已注册、全局无staging/私有CPU构造的worker同步
+路径，把replacement-cost实时完整物理图用于预算前检查；原生类型/线程/方法、
+实际GPU removal包装链及捕获callback、worker loader/fence均核验，预算时
+allocator/workspace仍新读，原收益/victim/live KV/来源/引用及九公式不变。
+staged/CPU变更保持新清点，异常不吞掉；没有跨调用图缓存或新的调参常数。
+
+328项检查通过，再定向扩展两个边界测试并通过；两遍间生产源未变。合格路径
+一清点，新调用tensor变化被重新观察；staging在定价后消失仍两清点。真实native
+GPU-only回收保留HOST对象，包装链/方法/fence变化拒绝。两辅助域均退出，
+峰值2401820672/2475663360B，high/max/OOM/swap0。无新GPU回放/remote操作。
+详见D885_REGISTERED_PREPARATION_STORAGE_20261026.md。保护和备份以随后
+closure/backup回执为准；未stage用户manifest，最终V2仍未同步。
+
+下一唯一动作D886：同D883配置和D725 profile，一次完整4000请求3B W2。
+不补短Full/profiling/组件计时，不重跑同键，不改变95%/75%或真实远端语义。
+现有性能仍93.825%、U11934.813584，N_correct=null；本轮是实现/资格进展，
+不是G1/G2闭口。全量双模型同版本矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、
+独立数值证明、两轮审稿图文及最终V2全部保留，完整goal active。共享k3s不动。
+
+### D884实际备份回执（随下一正常检查点保存）
+
+16个明确文件已提交5b016894afd343a5bc4696cde8b59e4cf5b17630，远端
+refs/heads/backup/d884-preparation-boundary-20261026已核验一致。旧147项、
+用户manifest和源SHA通过；无用户文件入stage、无force，最终V2仍未同步。
+所有分析/备份域已inactive，未开启GPU/remote。首次备份因空CSV列表把旧
+源码快照误用CSV末尾空行规则而止于提交前；恢复入口另有一次生成源码引号
+错误，均未重跑分析。保留旧快照，按实际文件组检查并复用原秘密扫描式后
+完成。raw/backup_completion.json与attempt3_entry_failure.json保留回执。
+下一动作严格按下文D884候选边界进入一次实现/定向验证，不再重复本轮统计。
 
 ## D884：已注册主动准备分支核查（2026-10-26）
 

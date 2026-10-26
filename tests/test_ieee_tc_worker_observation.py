@@ -725,6 +725,8 @@ class NativeHostPhysicalProjection(unittest.TestCase):
         expected = monitor._ieee_lora_host_inventory(self.native, include_tensor_views=False) | self.pool
         objective = {'kind': 'ieee_owned_gpu_objective_v2'}
         fallbacks = {'fixture': 'held'}
+        self.owner._native_host_build = None
+        self.owner.registered_preparation_storage_witness = Mock(return_value={'fixture': 'witness'})
         def execute(**kwargs):
             self.assertEqual(kwargs['protected_adapter_ids'], (7,))
             gpu, host = kwargs['replacement_cost_provider']()
@@ -741,10 +743,65 @@ class NativeHostPhysicalProjection(unittest.TestCase):
                 scheduler_observation=observation,
                 lengths=CompletedLengthSnapshot('fixture-model', 'fixture-profile', 1., {0: 8.}),
                 replacement_epoch=objective,
-                host_file_fallbacks=fallbacks)
+                host_file_fallbacks=fallbacks, adapter_int_id=7)
         costs.assert_called_once_with(objective=objective, native_inventory=expected, file_fallbacks=fallbacks)
         self.assertEqual(result['gpu_costs'], {7: 1.})
         self.assertEqual(result['host_costs'], {7: 2.})
+
+    def test_registered_precheck_reuses_only_this_calls_graph(self):
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+        from faaslora.preloading import preloading_planner
+        from faaslora.scheduling.resource_coordinator import CompletedLengthSnapshot
+        self.owner._native_host_build = None
+        self.owner.registered_preparation_storage_witness = Mock(return_value={'fixture': 'witness'})
+        reads = []
+        def check(*, _registered_preparation_inventory=None, **kwargs):
+            inventory = (_registered_preparation_inventory if _registered_preparation_inventory is not None
+                else monitor._ieee_lora_host_inventory(self.native, staged_models=self.staged,
+                                                       include_tensor_views=False))
+            reads.append(_registered_preparation_inventory is not None)
+            return monitor._ieee_pinned_host_observation(inventory)
+        self.owner.host_allocation_check = check
+        clear_staging_after_pricing = False
+        def execute(**kwargs):
+            kwargs['replacement_cost_provider']()
+            if clear_staging_after_pricing:
+                self.staged.clear()  # CPU-changing branch cannot gain eligibility at precheck time.
+            return kwargs['_preparation_host_precheck'](tensor_budget_bytes=8192)
+        self.owner.proactive_host_prepare_and_acquire = execute
+        observation = dict(scheduler_pid=os.getpid(), clock_id=local_monotonic_clock_id(), captured_at=1.,
+            kind='ieee_native_scheduler_observation_v1', admitted=[],
+            adapter_transfers=dict(transfer_scope='replica_owned_file_preparation_and_serialized_native_v1',
+                                  active_transfers=0, active_transfer_ids=[]))
+        def run():
+            return self.worker.ieee_gpu_reference(operation='proactive_host_prepare_and_acquire',
+                scheduler_observation=observation,
+                lengths=CompletedLengthSnapshot('fixture-model', 'fixture-profile', 1., {0: 8.}),
+                replacement_epoch={'kind': 'ieee_owned_gpu_objective_v2'}, adapter_int_id=7)
+        with self.observations(), patch.object(preloading_planner, 'native_replacement_costs',
+                return_value=({}, {})), patch.object(monitor, '_ieee_lora_host_inventory',
+                wraps=monitor._ieee_lora_host_inventory) as graphs:
+            first = run()
+            self.assertEqual(graphs.call_count, 1)
+            import torch
+            self.models[7].loras['private'].lora_a = torch.empty((4, 32), dtype=torch.float32)
+            second = run()
+            self.assertEqual(graphs.call_count, 2)
+            self.assertNotEqual(first['accounted_tensor_bytes'], second['accounted_tensor_bytes'])
+            self.owner._native_host_build = object()
+            run()
+            self.assertEqual(graphs.call_count, 4)
+            self.owner._native_host_build = None
+            self.staged[9] = SimpleNamespace(id=9, rank=4, loras=self.models[8].loras)
+            clear_staging_after_pricing = True
+            run()
+            self.assertEqual(graphs.call_count, 6)
+            self.assertEqual(self.owner.registered_preparation_storage_witness.call_count, 4)
+            self.owner.registered_preparation_storage_witness.side_effect = RuntimeError('binding changed')
+            with self.assertRaisesRegex(RuntimeError, 'binding changed'):
+                run()
+            self.assertEqual(graphs.call_count, 6)
+        self.assertEqual(reads, [True, True, False, False])
 
 
 class NativeReplacementCostFusion(unittest.TestCase):

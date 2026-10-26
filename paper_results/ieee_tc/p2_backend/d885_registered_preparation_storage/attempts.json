@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "attempt": 1,
+      "tests": 328,
+      "passed": 328,
+      "errors": 0
+    },
+    {
+      "attempt": 2,
+      "tests": 2,
+      "passed": 2,
+      "errors": 0,
+      "reason": "two expanded boundary cases only"
+    }
+  ],
+  "production_unchanged_between_test_passes": true,
+  "new_gpu_replays": 0,
+  "changed_production_policy": false
+}

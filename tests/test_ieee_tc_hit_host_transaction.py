@@ -494,6 +494,31 @@ class ProactiveHostTransaction(unittest.TestCase):
 
 
 class RegisteredProactiveHostTransaction(unittest.TestCase):
+    def test_call_local_precheck_runs_after_gpu_only_removal(self):
+        case = references.NativeObjectiveReplacement()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        owner = case.owner
+        owner.host_allocation_check = Mock(return_value={'admitted': True})
+        owner.host_allocation_recheck = Mock(return_value={'admitted': True})
+        owner.proactive_host_activation_storage_witness = Mock(return_value={'kind': 'fixture'})
+        owner.configure_host_budget(expected_owner_id=owner.owner_id, tensor_budget_bytes=1024)
+        owner.host_allocation_check.reset_mock()
+        registered = dict(case.manager._registered_adapters.cache)
+        def precheck(**kwargs):
+            self.assertEqual(dict(case.manager._registered_adapters.cache), registered)
+            self.assertNotIn(3, case.manager._active_adapters)
+            return dict(admitted=True, before={'fixture': 1},
+                        before_storage_observation='same_transaction_registered_preparation_v1')
+        check = Mock(side_effect=precheck)
+        result = case.prepare(case.epoch(), _preparation_host_precheck=check)
+        self.assertTrue(result['acquired'])
+        check.assert_called_once_with(tensor_budget_bytes=1024)
+        owner.host_allocation_check.assert_not_called()
+        owner.host_allocation_recheck.assert_called_once()
+        self.assertEqual(result['host_allocation']['before']['before_storage_observation'],
+                         'same_transaction_registered_preparation_v1')
+
     def test_registered_objective_replacement_keeps_exact_victim_and_fallback(self):
         case = references.NativeObjectiveReplacement()
         case.setUp()
@@ -603,6 +628,81 @@ class NativeHostActivationWitness(unittest.TestCase):
             self.witness()
 
 
+class NativeRegisteredPreparationWitness(unittest.TestCase):
+    """Actual native removal callbacks with tiny CPU objects; no GPU timings."""
+    def setUp(self):
+        from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
+        from vllm.lora.model_manager import AdapterLRUCache, LRUCacheLoRAModelManager
+        from faaslora.memory.residency_manager import IEEEBackendGPUReferences
+        self.manager = object.__new__(LRUCacheLoRAModelManager)
+        self.manager.lora_config = SimpleNamespace(max_loras=2, max_cpu_loras=4)
+        self.manager.modules, self.manager.moe_ep_load_spec = {}, None
+        self.manager.lora_index_to_id = [1, None]
+        self.manager._registered_adapters = AdapterLRUCache(4, self.manager.deactivate_adapter)
+        self.manager._active_adapters = AdapterLRUCache(2, self.manager._deactivate_adapter)
+        self.manager._registered_adapters[1] = SimpleNamespace(id=1)
+        self.manager._registered_adapters[2] = SimpleNamespace(id=2)
+        self.manager._active_adapters[1] = None
+        self.loader = object.__new__(LRUCacheWorkerLoRAManager)
+        self.loader._adapter_manager = self.manager
+        self.owner = IEEEBackendGPUReferences(self.manager, lambda: None)
+        self.addCleanup(patch.stopall)
+        patch('vllm.__version__', '0.30.0').start()
+
+    def witness(self, previous=None):
+        return monitor._ieee_registered_preparation_storage_witness(
+            self.loader, self.manager, self.owner, 2, previous=previous)
+
+    def test_native_gpu_removal_preserves_host_graph_boundary(self):
+        before = self.witness()
+        cpu = dict(self.manager._registered_adapters.cache)
+        self.manager._active_adapters.pop(1)
+        self.owner._refresh()
+        self.assertEqual(self.manager.lora_index_to_id, [None, None])
+        self.assertEqual(dict(self.manager._registered_adapters.cache), cpu)
+        self.assertEqual(self.witness(previous=before), before)
+
+    def test_removal_wrapper_and_captured_original_both_qualified(self):
+        gpu = self.manager._active_adapters
+        saved = gpu._on_remove
+        gpu._on_remove = Mock(wraps=saved)
+        with self.assertRaisesRegex(RuntimeError, 'callback chain'):
+            self.witness()
+        gpu._on_remove = saved
+        cache, wrapped, _ = self.owner._native_removal_bindings[id(gpu)]
+        self.owner._native_removal_bindings[id(gpu)] = (cache, wrapped, Mock())
+        with self.assertRaisesRegex(RuntimeError, 'callback chain'):
+            self.witness()
+
+    def test_cpu_deactivation_callback_or_overridden_pop_rejected(self):
+        gpu = self.manager._active_adapters
+        saved = gpu.deactivate_fn
+        gpu.deactivate_fn = self.manager.deactivate_adapter
+        with self.assertRaisesRegex(RuntimeError, 'callback chain'):
+            self.witness()
+        gpu.deactivate_fn = saved
+        gpu.pop = Mock()
+        with self.assertRaisesRegex(RuntimeError, 'removal method'):
+            self.witness()
+
+    def test_staged_construction_membership_and_thread_changes_rejected(self):
+        before = self.witness()
+        self.owner._native_host_build = object()
+        with self.assertRaisesRegex(RuntimeError, 'staging or construction'):
+            self.witness(previous=before)
+        self.owner._native_host_build = None
+        self.owner._staged_host[3] = {'model': object()}
+        with self.assertRaisesRegex(RuntimeError, 'staging or construction'):
+            self.witness(previous=before)
+        self.owner._staged_host.clear()
+        self.manager._registered_adapters[2] = SimpleNamespace(id=2)
+        with self.assertRaisesRegex(RuntimeError, 'membership changed'):
+            self.witness(previous=before)
+        self.owner.thread_id = -1
+        with self.assertRaisesRegex(RuntimeError, 'qualified native owner'):
+            self.witness()
+
+
 class AllocatorReobservation(unittest.TestCase):
     def test_exact_graph_projection_with_staging_alias_and_fresh_counters(self):
         rows = [dict(pinned=False, allocated_bytes=64, adapter_ids=[1]),
@@ -668,6 +768,18 @@ class NativeWorkerRecheck(unittest.TestCase):
             proactive = factory.call_args.kwargs['proactive_host_activation_storage_witness']
             owner.preparation_loader = factory.call_args.kwargs['preparation_loader']
             owner.demand_loader = factory.call_args.kwargs['demand_loader']
+            owner.completion_fence = factory.call_args.args[1]
+            registered = factory.call_args.kwargs['registered_preparation_storage_witness']
+            with patch.object(monitor, '_ieee_registered_preparation_storage_witness',
+                              return_value={'kind': 'registered-fixture'}) as witness:
+                saved = registered(adapter_int_id=4)
+                self.assertEqual(registered(adapter_int_id=4, previous=saved), saved)
+                fence = owner.completion_fence
+                owner.completion_fence = Mock()
+                with self.assertRaisesRegex(RuntimeError, 'worker binding changed'):
+                    registered(adapter_int_id=4)
+                owner.completion_fence = fence
+                self.assertEqual(witness.call_count, 2)
             with patch.object(monitor, '_ieee_host_activation_storage_witness',
                               return_value={'kind': 'native-fixture'}) as witness:
                 saved = proactive(adapter_int_id=4, loader=owner.preparation_loader)
@@ -691,7 +803,17 @@ class NativeWorkerRecheck(unittest.TestCase):
             self.assertEqual(allocator.call_count, 2)
             self.assertEqual(owner.host_workspace_check.call_count, 2)
             self.assertEqual(owner.host_construction_reserved_bytes.call_count, 2)
+            graph = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+            inventory.reset_mock()
+            shared = full(lora_path=None, reuse=True, tensor_budget_bytes=2048,
+                          _registered_preparation_inventory=graph)
+            inventory.assert_not_called()
+            self.assertEqual(shared['before'], before['before'])
+            self.assertEqual(shared['before_storage_observation'],
+                             'same_transaction_registered_preparation_v1')
             allocator.return_value = stats(allocated=4096)
+            self.assertFalse(full(lora_path=None, reuse=True, tensor_budget_bytes=2048,
+                                  _registered_preparation_inventory=graph)['admitted'])
             self.assertFalse(recheck(before_check=before, tensor_budget_bytes=2048)['admitted'])
             allocator.return_value = stats()
             owner.host_workspace_check.return_value = dict(admitted=False, reason='workspace-fixture')

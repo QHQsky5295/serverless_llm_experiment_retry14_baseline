@@ -1933,7 +1933,7 @@ class IEEEBackendGPUReferences:
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
                  file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None,
                  host_activation_storage_witness=None, proactive_host_activation_storage_witness=None,
-                 file_host_constructor=None):
+                 file_host_constructor=None, registered_preparation_storage_witness=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
@@ -1949,6 +1949,7 @@ class IEEEBackendGPUReferences:
         self.host_allocation_recheck = host_allocation_recheck
         self.host_activation_storage_witness = host_activation_storage_witness
         self.proactive_host_activation_storage_witness = proactive_host_activation_storage_witness
+        self.registered_preparation_storage_witness = registered_preparation_storage_witness
         self._native_host_tensor_budget = None
         self._native_host_workspace = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
@@ -1990,6 +1991,7 @@ class IEEEBackendGPUReferences:
         self._closed_preparation_plans: Set[str] = set()
         self._poisoned = False
         self._poison_reason = 'GPU reference owner invalidated'
+        self._native_removal_bindings = {}
         for cache in self._caches():
             if not isinstance(cache.pinned_items, set) or not all(
                 callable(getattr(cache, name, None)) for name in ('pin', '_unpin', '_on_remove')
@@ -2021,6 +2023,9 @@ class IEEEBackendGPUReferences:
             original(key, value)
 
         cache._on_remove = removed
+        # The qualified registered-only preparation path checks the actual
+        # wrapper AND its captured native callback, not just a function name.
+        self._native_removal_bindings[id(cache)] = (cache, removed, original)
 
     def _caches(self):
         return self.manager._registered_adapters, self.manager._active_adapters
@@ -3002,7 +3007,8 @@ class IEEEBackendGPUReferences:
                          expected_content_sha256: Optional[str] = None,
                          file_source_witness: Optional[Dict[str, Any]] = None,
                          release_host_lease_id: Optional[str] = None,
-                         proactive_storage_witness=None) -> Dict[str, Any]:
+                         proactive_storage_witness=None,
+                         _preparation_host_precheck=None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -3167,8 +3173,14 @@ class IEEEBackendGPUReferences:
         if self._native_host_tensor_budget is not None:
             if not callable(self.host_allocation_check):
                 raise RuntimeError('budgeted native demand requires its allocation checker')
-            host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit or staged is not None,
-                tensor_budget_bytes=self._native_host_tensor_budget)
+            if _preparation_host_precheck is not None:
+                if (loader is not self.preparation_loader or not cpu_hit or staged is not None
+                        or required_source_tier != 'host'):
+                    raise ValueError('registered preparation precheck used outside its HOST transaction')
+                host_check = _preparation_host_precheck(tensor_budget_bytes=self._native_host_tensor_budget)
+            else:
+                host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit or staged is not None,
+                    tensor_budget_bytes=self._native_host_tensor_budget)
             if not isinstance(host_check, dict) or type(host_check.get('admitted')) is not bool:
                 raise ValueError('native HOST allocation checker lacks an explicit outcome')
             if not host_check['admitted']:
@@ -3184,9 +3196,9 @@ class IEEEBackendGPUReferences:
                 # Only the private proactive caller supplies this callback,
                 # after CPU victim removal/staged registration. Its worker
                 # closure also checks the exact loader binding and native copy
-                # contract; a boolean or earlier cost-provider graph cannot
-                # authorize reuse. The fresh budget precheck above is the start
-                # of this serialized, CPU-read-only activation transaction.
+                # contract; a boolean alone cannot authorize reuse. The budget
+                # precheck above is fresh, or separately qualified across the
+                # registered-only cost/decision interval (never CPU mutation).
                 if (proactive_storage_witness is not self.proactive_host_activation_storage_witness
                         or loader is not self.preparation_loader
                         or not callable(proactive_storage_witness)):
@@ -3337,7 +3349,7 @@ class IEEEBackendGPUReferences:
             capacity_only: bool, decide, replacement_epoch=None,
             protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None,
             host_replacement_costs=None, replacement_cost_provider=None,
-            expected_content_sha256=None) -> Dict[str, Any]:
+            expected_content_sha256=None, _preparation_host_precheck=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -3611,6 +3623,7 @@ class IEEEBackendGPUReferences:
                 expected_source_id=(self._source_incarnations.get(adapter_int_id)
                     if self.proactive_host_activation_storage_witness is not None else None),
                 proactive_storage_witness=self.proactive_host_activation_storage_witness,
+                _preparation_host_precheck=_preparation_host_precheck,
                 expected_content_sha256=expected_content_sha256)
             if not receipt['acquired']:
                 self._poisoned = True

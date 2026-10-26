@@ -1,0 +1,17 @@
+"""Second bounded pass: only the two expanded callback-boundary tests."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw/'qualify_executed.py.snapshot').read_text()
+source = source.replace("d885_registered_preparation_storage'", "d885_registered_preparation_storage/boundaries'")
+source = source.replace("RAW/'qualification_identity.json'", "RAW/'boundaries_identity.json'")
+source = source.replace("RAW/'resource_gate.json'", "RAW/'boundaries_resource_gate.json'")
+start = source.index('tests = [')
+end = source.index("\nwith (OUT/'tests.txt')", start)
+source = source[:start] + """tests = [
+    'tests.test_ieee_tc_hit_host_transaction.NativeWorkerRecheck',
+    'tests.test_ieee_tc_worker_observation.NativeHostPhysicalProjection.test_registered_precheck_reuses_only_this_calls_graph']""" + source[end:]
+compile(source, str(raw/'boundaries_executed.py.snapshot'), 'exec')
+with (raw/'boundaries_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(raw/'boundaries_executed.py.snapshot'), 'exec'), globals())

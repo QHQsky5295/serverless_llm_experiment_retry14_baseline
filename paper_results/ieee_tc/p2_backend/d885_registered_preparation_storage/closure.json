@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d8850000000000000000000000000003.scope",
+    "invocation_id": "827994bb0f05422c911a7bd944361352",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8850000000000000000000000000003.scope",
+    "inode": 33060611
+  },
+  "closed_tasks": [
+    {
+      "unit": "primelora-tc-aux-d8850000000000000000000000000001.scope",
+      "invocation_id": "36a954306d3247d782e9f4376c06f029",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8850000000000000000000000000001.scope",
+      "inode": 33057920
+    },
+    {
+      "unit": "primelora-tc-aux-d8850000000000000000000000000002.scope",
+      "invocation_id": "16d73b9d1e63493bbf0155a54047e800",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8850000000000000000000000000002.scope",
+      "inode": 33058831
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D885_REGISTERED_PREPARATION_STORAGE_20261026.md",
+    "sha256": "fb81647980c3abbbfec5de7dacce73834263f8eac8f2e71bda364785eb1022f8"
+  },
+  "protocols": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    }
+  ],
+  "tests": 328,
+  "boundary_followups": 2,
+  "production_changes": [
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/memory/residency_manager.py"
+  ],
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "next": "One D886 full 3B W2, same D883 configuration/D725 profile; no extra short replay",
+  "disk_free_bytes": 172900073472
+}

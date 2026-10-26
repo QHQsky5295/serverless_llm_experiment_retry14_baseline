@@ -1,0 +1,21 @@
+{
+  "purpose": "Installed native source identity for D885 CPU contract qualification, not GPU performance or numerical-output proof",
+  "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "cuda_visible_devices": "",
+  "vllm": "0.30.0",
+  "torch": "2.13.0+cu130",
+  "files": [
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py",
+      "sha256": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/cache.py",
+      "sha256": "397e993cebeeb44f37104e6f9a48ac7b4f3f878e0294fd8899e22f161de379c5"
+    }
+  ]
+}

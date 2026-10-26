@@ -1,0 +1,8 @@
+W1026 16:51:17.219000 3560629 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_actual_worker_rechecks_workspace_counters_and_loader_qualification (tests.test_ieee_tc_hit_host_transaction.NativeWorkerRecheck.test_actual_worker_rechecks_workspace_counters_and_loader_qualification) ... ok
+test_registered_precheck_reuses_only_this_calls_graph (tests.test_ieee_tc_worker_observation.NativeHostPhysicalProjection.test_registered_precheck_reuses_only_this_calls_graph) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.026s
+
+OK

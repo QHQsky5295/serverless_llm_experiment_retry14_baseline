@@ -666,6 +666,63 @@ def _ieee_host_activation_storage_witness(native_loader, manager, adapter_int_id
     return witness
 
 
+def _ieee_registered_preparation_storage_witness(native_loader, manager, owner,
+                                                 adapter_int_id, *, previous=None):
+    """Prove the HOST-read-only cost/decision/GPU-removal interval of one call.
+
+    No CPU registration, staging or background construction may cross this
+    interval. The caller is the synchronous worker closure, not an RPC flag.
+    A fresh physical graph is still taken on every invocation. The identities
+    below assert membership; the exact native removal path supplies the proof
+    that an optional GPU victim cannot mutate retained CPU tensor storage.
+    """
+    import threading
+    import vllm
+    from vllm.lora.worker_manager import LRUCacheWorkerLoRAManager
+    from vllm.lora.model_manager import AdapterLRUCache, LoRAModelManager, LRUCacheLoRAModelManager
+    from vllm.utils.cache import LRUCache
+    from .residency_manager import IEEEBackendGPUReferences
+    if (vllm.__version__ != '0.30.0' or type(owner) is not IEEEBackendGPUReferences
+            or type(native_loader) is not LRUCacheWorkerLoRAManager
+            or type(manager) is not LRUCacheLoRAModelManager
+            or native_loader._adapter_manager is not manager or owner.manager is not manager
+            or threading.get_ident() != owner.thread_id or manager.moe_ep_load_spec is not None):
+        raise RuntimeError('registered preparation requires the qualified native owner')
+    if owner.staged_models() or owner._native_host_build is not None:
+        raise RuntimeError('registered preparation storage interval cannot cross staging or construction')
+    methods = ((manager.list_adapters, LoRAModelManager.list_adapters),
+               (manager._get_lora_layer_weights, LoRAModelManager._get_lora_layer_weights),
+               (manager._deactivate_adapter, LoRAModelManager._deactivate_adapter),
+               (owner._refresh, IEEEBackendGPUReferences._refresh),
+               (owner._caches, IEEEBackendGPUReferences._caches))
+    if any(getattr(bound, '__func__', None) is not expected for bound, expected in methods):
+        raise RuntimeError('registered preparation rejects overridden native methods')
+    cpu, gpu = owner._caches()
+    if type(cpu) is not AdapterLRUCache or type(gpu) is not AdapterLRUCache:
+        raise RuntimeError('registered preparation requires native adapter caches')
+    for name in ('pop', '__getitem__', '__delitem__', '_unpin'):
+        if getattr(getattr(gpu, name), '__func__', None) is not getattr(LRUCache, name):
+            raise RuntimeError('registered preparation GPU removal method changed')
+    binding = owner._native_removal_bindings.get(id(gpu))
+    if (binding is None or binding[0] is not gpu or binding[1] is not gpu._on_remove
+            or getattr(binding[2], '__self__', None) is not gpu
+            or getattr(binding[2], '__func__', None) is not AdapterLRUCache._on_remove
+            or getattr(gpu.deactivate_fn, '__self__', None) is not manager
+            or getattr(gpu.deactivate_fn, '__func__', None) is not LoRAModelManager._deactivate_adapter):
+        raise RuntimeError('registered preparation GPU removal callback chain changed')
+    registered = manager.list_adapters()
+    if adapter_int_id not in registered:
+        raise RuntimeError('registered preparation target is not registered')
+    witness = dict(kind='registered_preparation_storage_interval_v1', owner_id=owner.owner_id,
+        thread_id=owner.thread_id, manager_id=id(manager), loader_id=id(native_loader),
+        adapter_int_id=adapter_int_id,
+        registered=tuple(sorted((aid, id(model)) for aid, model in registered.items())),
+        modules=tuple(sorted((name, id(module)) for name, module in manager.modules.items())))
+    if previous is not None and witness != previous:
+        raise RuntimeError('registered preparation HOST membership changed')
+    return witness
+
+
 def _ieee_slot_tensor_comparison(source, actual):
     """Compare one CPU readback, including native zero padding, without tolerance.
 
@@ -1351,7 +1408,8 @@ class IEEEWorkerObservationExtension:
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
             def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse, proactive=False,
-                                      _same_transaction_storage=None, _private_model=None):
+                                      _same_transaction_storage=None, _private_model=None,
+                                      _registered_preparation_inventory=None):
                 import vllm
                 from vllm.utils.torch_utils import PIN_MEMORY
                 if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
@@ -1359,7 +1417,12 @@ class IEEEWorkerObservationExtension:
                         or manager.moe_ep_load_spec is not None
                         or any(name.endswith('.experts') for name in manager.modules)):
                     raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
-                if _same_transaction_storage is None:
+                if _registered_preparation_inventory is not None:
+                    if (not reuse or lora_path is not None or proactive or _private_model is not None
+                            or _same_transaction_storage is not None):
+                        raise ValueError('registered preparation inventory requires its qualified precheck')
+                    before = _ieee_pinned_host_observation(_registered_preparation_inventory)
+                elif _same_transaction_storage is None:
                     staged_models = self._ieee_gpu_reference_owner.staged_models()
                     if _private_model is not None:
                         if not reuse or lora_path is not None or proactive:
@@ -1396,6 +1459,8 @@ class IEEEWorkerObservationExtension:
                             in_flight_peak_upper_bytes=reserved,
                             allocator_policy=self._ieee_host_allocator_policy,
                             workspace_projection=workspace,
+                            **({'before_storage_observation': 'same_transaction_registered_preparation_v1'}
+                               if _registered_preparation_inventory is not None else {}),
                             total_host_memory_covered=False)
             def host_allocation_recheck(*, before_check, tensor_budget_bytes):
                 # Qualified above for this exact native loader. The owner calls
@@ -1420,6 +1485,15 @@ class IEEEWorkerObservationExtension:
                         or owner.demand_loader is not demand_loader):
                     raise RuntimeError('proactive HOST activation loader binding changed')
                 return host_activation_storage_witness(adapter_int_id=adapter_int_id, previous=previous)
+            def registered_preparation_storage_witness(*, adapter_int_id, previous=None):
+                owner = self._ieee_gpu_reference_owner
+                if (self.model_runner.lora_manager is not native_loader
+                        or owner.preparation_loader is not preparation_loader
+                        or owner.demand_loader is not demand_loader
+                        or owner.completion_fence is not completion_fence):
+                    raise RuntimeError('registered preparation worker binding changed')
+                return _ieee_registered_preparation_storage_witness(native_loader, manager, owner,
+                    adapter_int_id, previous=previous)
             def file_host_constructor(*, adapter_int_id, lora_name, lora_path):
                 """Private CPU object only: no LRU, source or GPU publication.
 
@@ -1480,6 +1554,7 @@ class IEEEWorkerObservationExtension:
                 host_allocation_recheck=host_allocation_recheck,
                 host_activation_storage_witness=host_activation_storage_witness,
                 proactive_host_activation_storage_witness=proactive_host_activation_storage_witness,
+                registered_preparation_storage_witness=registered_preparation_storage_witness,
                 file_host_constructor=file_host_constructor)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
@@ -1516,14 +1591,38 @@ class IEEEWorkerObservationExtension:
             kwargs['protected_adapter_ids'] = tuple(sorted(protected_ids))
             objective = kwargs.get('replacement_epoch')
             file_fallbacks = kwargs.pop('host_file_fallbacks', None)
+            # This closure and its evidence live only for this synchronous call.
+            # The RPC cannot supply a checker or a graph. CPU-changing branches
+            # still use the original fresh precheck, without exception fallback.
+            kwargs['_preparation_host_precheck'] = None
             if objective is not None and objective.get('kind') == 'ieee_owned_gpu_objective_v2':
+                preparation_storage = {}
                 def replacement_cost_provider():
                     from faaslora.preloading.preloading_planner import native_replacement_costs
+                    if (not owner.staged_models() and owner._native_host_build is None
+                            and kwargs['adapter_int_id'] in manager.list_adapters()):
+                        preparation_storage['witness'] = owner.registered_preparation_storage_witness(
+                            adapter_int_id=kwargs['adapter_int_id'])
                     inventory = {**_ieee_lora_host_inventory(manager, include_tensor_views=False),
                                  **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
+                    if preparation_storage:
+                        preparation_storage['inventory'] = inventory
                     return native_replacement_costs(objective=objective,
                         native_inventory=inventory, file_fallbacks=file_fallbacks)
+                def preparation_host_precheck(*, tensor_budget_bytes):
+                    if not preparation_storage:
+                        return owner.host_allocation_check(lora_path=None, reuse=True,
+                            tensor_budget_bytes=tensor_budget_bytes)
+                    owner.registered_preparation_storage_witness(adapter_int_id=kwargs['adapter_int_id'],
+                        previous=preparation_storage['witness'])
+                    # Fresh allocator/workspace at budget time; only the graph
+                    # already measured for replacement pricing is shared.
+                    inventory = preparation_storage.pop('inventory')
+                    return owner.host_allocation_check(lora_path=None, reuse=True,
+                        tensor_budget_bytes=tensor_budget_bytes,
+                        _registered_preparation_inventory=inventory)
                 kwargs['replacement_cost_provider'] = replacement_cost_provider
+                kwargs['_preparation_host_precheck'] = preparation_host_precheck
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.
