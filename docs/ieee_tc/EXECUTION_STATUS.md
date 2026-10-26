@@ -1,4 +1,36 @@
-# IEEE TC execution status — D870 full 3B W2 closed, 94.325% within budget, not qualified
+# IEEE TC execution status — D871 current preparation analyzed, next native CPU/commit boundary
+
+## 2026-10-26 D871：复用完整日志，未新增GPU运行
+
+D818/D833原分析器在D870上完成：4000总体、508 selected-remote、505实际
+IO唯一关联，123条TTFT违约，分解误差0ms。违约组获取前/确认发布/发布后
+等待合计1556.000ms，占准备2149.118ms的72.402%；这些是含本地核查与
+调度的包络，不是纯CPU或纯网络，不能扣除或直接换算反事实SLO。
+完整性能仍3773/4000=94.325%、U11931.565094、预算12083.063870；数值
+正确性未知、G1/G2未闭口。新数据只改善原因证据，未改变上述性能。
+
+下一唯一问题为原生checkpoint→CPU tensor构造与owner/cache提交的依赖。
+这与已回退D851–D854整文件owner线程化不同；实际source证明现有方法
+包含容量/身份检查和状态写入，不能直接to_thread。先复用现有fixture核查
+在途预算持有和core内重新检查/提交能否成立；不提前改生产实现，不重做
+D863 profiling或HOST组件微测，不叠加graph/GC/阈值调整。见
+D871_CURRENT_PREPARATION_BOUNDARY_20261026.md，完整旧失败保留。
+
+分析峰值736641024B、high/max/OOM/swap均0，已退出，无GPU任务/远端
+操作。两个首次入口拒绝均在输出创建前，明确保留为launcher问题，非性能
+失败/择优。新产物小，不删除唯一数据；后续重型运行仍检查150/100GiB。
+当前属于progress；全部同版本双模型W0/W1/W2、baseline/dLoRA、A1–A5、
+S1–S13、数值证明、审稿图文及最终V2仍开放，目标active、目标前不绘图。
+
+### D870完成证据备份回执（提交后追加）
+
+59个明确路径已检查并提交为`bcc3585698e1d7021b310217ff771cc87da00eea`，
+推送及ls-remote核验`refs/heads/backup/d870-complete-20261026`通过。
+SHA、147保护项、用户manifest、语法、diff和凭据检查通过；既有323项
+语义测试与4项运行合同测试复用，完整回放/来源/阶段/释放检查均通过。
+未stage用户manifest，未force push；最终V2仍未同步。本提交后回执随下一
+正常检查点保存，不为回执反复建提交。无新GPU任务，下一步仍是上述3B
+完整日志的有界原因核查，所有未完成范围和active目标保持不变。
 
 ## 2026-10-26 09:40 CST：D870完整结果及下一主线
 

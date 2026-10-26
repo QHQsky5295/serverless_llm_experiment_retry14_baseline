@@ -1,0 +1,6 @@
+D871 offline analysis launcher, 2026-10-26 09:52 CST.
+tc-d871-remote-analysis2.scope exited before output creation. Process affinity
+passed after explicit taskset. Existing scope_identity rejected the descriptive
+unit name because it requires primelora-tc-aux-<32 hex digits>.scope.
+No source analysis, GPU replay or production mutation occurred. Next launch
+uses the established D849 unit naming convention; no gate is weakened.

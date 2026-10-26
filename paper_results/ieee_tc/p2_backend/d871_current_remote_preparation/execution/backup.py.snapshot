@@ -1,0 +1,26 @@
+"""Reuse D849 explicit-path backup; only closed D871 outputs and documents."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd849_20261025/backup_executed.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '912f7c5284f55af93a4a17446bbe6547159b0e29476ffb14615d4b171a581469'
+source = template.read_text()
+changes = (
+    ('D824 evidence', 'D871 evidence'),
+    ('d849_current_remote_preparation', 'd871_current_remote_preparation'),
+    ('720e9419d1bda55b7fc5ccdc84b886279df60634', 'bcc3585698e1d7021b310217ff771cc87da00eea'),
+    ('D849_CURRENT_REMOTE_PREPARATION_20261025.md', 'D871_CURRENT_PREPARATION_BOUNDARY_20261026.md'),
+    ("         ROOT/'scripts/ieee_tc/audit_d703_3b_full.py',\n         ROOT/'tests/test_ieee_tc_diagnostic_plot.py',\n", ''),
+    ('backup/d849-current-preparation-20261025', 'backup/d871-current-preparation-20261026'),
+    ('tc: preserve D849 current preparation and compressed-source identity',
+     'tc: preserve D871 current remote preparation and native execution boundary'),
+)
+for old, new in changes:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+target = raw / 'backup_executed.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

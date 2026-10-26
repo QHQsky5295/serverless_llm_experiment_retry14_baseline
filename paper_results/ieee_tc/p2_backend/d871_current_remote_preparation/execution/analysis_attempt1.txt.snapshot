@@ -1,0 +1,6 @@
+D871 offline analysis launcher, 2026-10-26 09:51 CST.
+systemd scope tc-d871-remote-analysis.scope exited before output creation.
+AssertionError at analyze.py line 30: os.sched_getaffinity(0) != {2,3,26,27}.
+AllowedCPUs alone did not set the process affinity expected by the existing
+wrapper. No source analysis, GPU replay or production mutation occurred.
+Next launch retains the same limits and adds explicit taskset -c 2,3,26,27.

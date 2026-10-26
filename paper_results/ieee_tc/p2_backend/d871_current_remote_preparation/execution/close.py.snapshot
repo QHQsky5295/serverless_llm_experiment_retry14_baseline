@@ -1,0 +1,78 @@
+"""Reuse D849 closure primitives for D871's unchanged D818/D833 analysis."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d871_current_remote_preparation'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+scope = p.scope_identity(p.cg_path().name)
+save(RAW / 'closure_identity.json', scope)
+identity = read(RAW / 'identity.json')
+assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+resource = read(OUT / 'resources.json')['after']
+assert resource['memory.swap.current'] == 0
+assert all(value == 0 for value in resource['memory.events'].values())
+prep = read(OUT / 'partition/diagnosis.json')
+control = read(OUT / 'control/diagnosis.json')
+assert prep['passed'] and control['passed']
+assert prep['request_population'] == control['full_request_population'] == 4000
+assert prep['selected_remote'] == 508
+assert prep['joined_remote_requests'] == control['joined_requests'] == 505
+assert prep['groups']['ttft_fail']['n'] == control['groups']['ttft_fail']['n'] == 123
+for report in (prep, control):
+    for row in report['outputs'] + report['source_refs']:
+        assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+source_shas = {Path(r['path']).name: r['sha256'] for r in prep['source_refs']}
+assert source_shas['main_outcome.json'] == '86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136'
+assert next(v for k, v in source_shas.items() if k.startswith('experiment_results_full')) == 'a072f263228791f507bbeb8a7c91c8e277167a3f1632742c1bf2b500c5210965'
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT / 'configs/generated/lora_manifest_1000.json'):
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path, sha in user.items():
+    assert p.digest(Path(path)) == sha
+execution = OUT / 'execution'
+execution.mkdir(exist_ok=False)
+for name in ('analyze.py', 'close.py', 'backup.py', 'analysis_attempt1.txt', 'analysis_attempt2.txt'):
+    path = RAW / name
+    if path.suffix == '.py':
+        compile(path.read_text(), str(path), 'exec')
+    with (execution / (name + '.snapshot')).open('xb') as stream:
+        stream.write(path.read_bytes())
+doc = ROOT / 'docs/ieee_tc/D871_CURRENT_PREPARATION_BOUNDARY_20261026.md'
+save(OUT / 'closure.json', dict(
+    passed=True, scope=scope, closed_tasks=[dict(identity=identity, path_removed=True)],
+    protected=protected, user_protected=user, doc=ref(doc), production_changes=False,
+    new_gpu_replays=0, n_correct=None, ranking_eligible=False, confidence_interval=None,
+    tests=dict(reused='D849 16 source/control tests; unchanged analyzer SHA; D870 sealed metrics',
+               current='Exact 505 links, complete 4000 population, sequential identities and source SHAs'),
+    disk_free_bytes=os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize))
+save(OUT / 'final_manifest.json', dict(
+    files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, protected=147, joined=505, ttft_failed=123, new_gpu_replays=0)))
