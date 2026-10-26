@@ -1,0 +1,72 @@
+{
+  "passed": false,
+  "tests": 8,
+  "failures": [],
+  "errors": [
+    [
+      "test_real_pidfd_survives_parent_fd_close_until_actual_exit (test_ieee_tc_file_state_process.FileStateProcessTests.test_real_pidfd_survives_parent_fd_close_until_actual_exit)",
+      "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_state_process.py\", line 155, in test_real_pidfd_survives_parent_fd_close_until_actual_exit\n    fd = os.pidfd_open(child.pid)\n         ^^^^^^^^^^^^^\nAttributeError: module 'os' has no attribute 'pidfd_open'\n"
+    ]
+  ],
+  "skipped": [],
+  "identity": {
+    "unit": "primelora-tc-aux-d8880000000000000000000000000001.scope",
+    "invocation_id": "bc3d171335f04c44a0b171c5307fcbd3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000001.scope",
+    "inode": 33112897
+  },
+  "before": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000001.scope",
+    "memory.current": 35684352,
+    "memory.peak": 52596736,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 294058\nuser_usec 201355\nsystem_usec 92703\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "after": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000001.scope",
+    "memory.current": 324415488,
+    "memory.peak": 637816832,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=4\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=4",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 18810267\nuser_usec 16267636\nsystem_usec 2542630\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": {
+    "faaslora/memory/file_state_process.py": "9f3057b1636bf04c55838733f5bc54cde0705bbd7a95519bd0cdf0f3c42166f1",
+    "tests/test_ieee_tc_file_state_process.py": "28e7e4cb7403bebc2f393a5bcddbad180e33cd8a7ad8a76bd4e2c9a36e5ac69e",
+    "faaslora/memory/residency_manager.py": "ba096152107469e4807a1e4427927e9409d600d0f89b54ce8048374cb5599e92",
+    "scripts/run_all_experiments.py": "415a594fba27ff8e9ad14e37cfe71cd005f539b9c5f5f7f2fb5b8592ec65f14d"
+  },
+  "driver_sha256": "6050d3383c55cce943d246dd1173e0abc5dbfad2a635d28453fab6f498023387",
+  "new_gpu_replays": 0,
+  "production_runner_switched": false,
+  "note": "component semantics only; no latency/SLO improvement claim"
+}

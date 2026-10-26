@@ -1,0 +1,120 @@
+"""D887/D888 closure using the established D871 protection/provenance checks."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+ANALYSIS = RAW.parent / 'd887_20261026'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d888_isolated_file_state_owner'
+PREP = ROOT / 'paper_results/ieee_tc/p2_backend/d887_current_preparation_dependencies'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+
+def snapshot(source, target):
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    assert p.digest(source) == p.digest(target)
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                   '--format=csv,noheader'], text=True).strip()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW / 'closure_identity.json', identity)
+q1, q2 = read(RAW / 'qualification.json'), read(RAW / 'pidfd_retry/qualification.json')
+assert q1['tests'] == 8 and not q1['passed'] and len(q1['errors']) == 1 and not q1['failures']
+assert "module 'os' has no attribute 'pidfd_open'" in q1['errors'][0][1]
+assert q2['passed'] and q2['tests'] == 1 and not q2['errors'] and not q2['failures']
+assert q2['pidfd_only']
+for name in ('faaslora/memory/file_state_process.py', 'faaslora/memory/residency_manager.py',
+             'scripts/run_all_experiments.py'):
+    assert q1['sources'][name] == q2['sources'][name] == p.digest(ROOT / name)
+assert q2['sources']['tests/test_ieee_tc_file_state_process.py'] == p.digest(
+    ROOT / 'tests/test_ieee_tc_file_state_process.py')
+analysis_resources = read(PREP / 'resources.json')
+closed = [read(ANALYSIS / 'identity.json'), q1['identity'], q2['identity']]
+for prior in closed:
+    assert not p.scope_still_owned(prior) and not Path(prior['path']).exists()
+for item in (analysis_resources, q1, q2):
+    assert not any(item['after']['memory.events'].values())
+    assert item['after']['memory.swap.current'] == 0
+for part in ('partition', 'control'):
+    report = read(PREP / part / 'diagnosis.json')
+    assert report['passed']
+    for row in report['outputs'] + report['source_refs']:
+        assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+prep = read(PREP / 'partition/diagnosis.json')
+assert prep['request_population'] == 4000 and prep['selected_remote'] == 511
+assert prep['joined_remote_requests'] == 503 and prep['groups']['ttft_fail']['n'] == 134
+seal = RAW.parent.parent / 'slora_qualification/d435_20261011/protected_before.json'
+assert p.digest(seal) == '79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54'
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT / 'configs/generated/lora_manifest_1000.json'):
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for name, sha in user.items():
+    assert p.digest(Path(name)) == sha
+OUT.mkdir(exist_ok=False)
+execution = OUT / 'execution'
+execution.mkdir()
+for source, name in (
+    (ANALYSIS / 'analyze.py', 'd887_analyze.py.snapshot'),
+    (ANALYSIS / 'identity.json', 'd887_identity.json'),
+    (RAW / 'qualify.py', 'qualify.py.snapshot'),
+    (RAW / 'close.py', 'close.py.snapshot'),
+    (RAW / 'backup.py', 'backup.py.snapshot'),
+    (RAW / 'qualification.json', 'attempt1.json'),
+    (RAW / 'unittest.log', 'attempt1.txt'),
+    (RAW / 'pidfd_retry/qualification.json', 'pidfd_retry.json'),
+    (RAW / 'pidfd_retry/unittest.log', 'pidfd_retry.txt'),
+):
+    if source.suffix == '.py':
+        ast.parse(source.read_text())
+    snapshot(source, execution / name)
+# Reconstruct and verify the exact first-test source; never hide the failed
+# attempt by overwriting its identity or presenting the fixed test as original.
+original_test = (ROOT / 'tests/test_ieee_tc_file_state_process.py').read_text()
+original_test = original_test.replace('from faaslora.metrics.metrics_collector import _open_pidfd\n', '')
+original_test = original_test.replace('        fd = None\n        try:\n            fd = _open_pidfd(child.pid)\n',
+                                    '        fd = os.pidfd_open(child.pid)\n        try:\n')
+with (execution / 'attempt1_test.py.snapshot').open('x') as stream:
+    stream.write(original_test)
+assert p.digest(execution / 'attempt1_test.py.snapshot') == q1['sources']['tests/test_ieee_tc_file_state_process.py']
+for path in (ROOT / 'faaslora/memory/file_state_process.py',
+             ROOT / 'tests/test_ieee_tc_file_state_process.py'):
+    ast.parse(path.read_text())
+doc887 = ROOT / 'docs/ieee_tc/D887_CURRENT_PREPARATION_DEPENDENCIES_20261026.md'
+doc888 = ROOT / 'docs/ieee_tc/D888_ISOLATED_FILE_STATE_OWNER_20261026.md'
+save(PREP / 'final_manifest.json', dict(
+    files=[ref(path) for path in sorted(PREP.rglob('*')) if path.is_file()],
+    doc=ref(doc887), new_gpu_replays=0))
+save(OUT / 'closure.json', dict(passed=True, scope=identity, closed_tasks=closed,
+    protected=protected, user_protected=user, doc=ref(doc888), analysis_doc=ref(doc887),
+    analysis_manifest=ref(PREP / 'final_manifest.json'), tests=8, unique_passed=8,
+    attempts=[dict(tests=8, passed=7, errors=1), dict(tests=1, passed=1, errors=0)],
+    production_runner_switched=False, new_gpu_replays=0, n_correct=None,
+    ranking_eligible=False, confidence_interval=None,
+    sources=q2['sources'], disk_free_bytes=os.statvfs(ROOT).f_bavail * os.statvfs(ROOT).f_frsize,
+    next='Migrate existing file-owner call sites to this process boundary; no new hypothesis or GPU replay yet'))
+save(OUT / 'final_manifest.json', dict(
+    files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True, unique_passed=8, protected=147, new_gpu_replays=0)))

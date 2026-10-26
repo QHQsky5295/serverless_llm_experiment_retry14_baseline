@@ -1,0 +1,68 @@
+"""D888 isolated authoritative file-owner component qualification, CPU only."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+PIDFD_ONLY = sys.argv[1:] == ['--pidfd-only']
+if sys.argv[1:] and not PIDFD_ONLY:
+    raise ValueError('unsupported qualification selection')
+if PIDFD_ONLY:
+    RAW = RAW / 'pidfd_retry'
+sys.path.insert(0, str(ROOT))
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def main():
+    from scripts import ieee_tc_preflight as p
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                       '--format=csv,noheader'], text=True).strip()
+    assert p.digest(Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')) == \
+        'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+    assert p.digest(ROOT / 'configs/generated/lora_manifest_1000.json') == \
+        '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+    identity = p.scope_identity(p.cg_path().name)
+    group = Path(identity['path'])
+    files = ['faaslora/memory/file_state_process.py', 'tests/test_ieee_tc_file_state_process.py',
+             'faaslora/memory/residency_manager.py', 'scripts/run_all_experiments.py']
+    sources = {name: p.digest(ROOT / name) for name in files}
+    RAW.mkdir(exist_ok=True)
+    save(RAW / 'identity.json', identity)
+    before = p.cgroup_snapshot(group)
+    if PIDFD_ONLY:
+        sys.path.insert(0, str(ROOT / 'tests'))
+        suite = unittest.defaultTestLoader.loadTestsFromName(
+            'test_ieee_tc_file_state_process.FileStateProcessTests.'
+            'test_real_pidfd_survives_parent_fd_close_until_actual_exit')
+    else:
+        suite = unittest.defaultTestLoader.discover(str(ROOT / 'tests'),
+                                                   pattern='test_ieee_tc_file_state_process.py')
+    with (RAW / 'unittest.log').open('x') as stream:
+        result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
+    receipt = dict(passed=result.wasSuccessful(), tests=result.testsRun,
+        failures=[(str(test), error) for test, error in result.failures],
+        errors=[(str(test), error) for test, error in result.errors],
+        skipped=[(str(test), reason) for test, reason in result.skipped],
+        identity=identity, before=before, after=p.cgroup_snapshot(group),
+        sources=sources, driver_sha256=p.digest(Path(__file__)),
+        new_gpu_replays=0, production_runner_switched=False, pidfd_only=PIDFD_ONLY,
+        note='component semantics only; no latency/SLO improvement claim')
+    save(RAW / 'qualification.json', receipt)
+    print(json.dumps({key: receipt[key] for key in ('passed', 'tests', 'failures', 'errors')}), flush=True)
+    raise SystemExit(0 if result.wasSuccessful() else 1)
+
+
+if __name__ == '__main__':
+    main()

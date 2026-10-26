@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "tests": 1,
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "identity": {
+    "unit": "primelora-tc-aux-d8880000000000000000000000000002.scope",
+    "invocation_id": "fd67cf25d4c14c20bcba30060aee232f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000002.scope",
+    "inode": 33113650
+  },
+  "before": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000002.scope",
+    "memory.current": 35905536,
+    "memory.peak": 52834304,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 241891\nuser_usec 162256\nsystem_usec 79635\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "after": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000002.scope",
+    "memory.current": 321720320,
+    "memory.peak": 637837312,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 4453274\nuser_usec 3825377\nsystem_usec 627897\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": {
+    "faaslora/memory/file_state_process.py": "9f3057b1636bf04c55838733f5bc54cde0705bbd7a95519bd0cdf0f3c42166f1",
+    "tests/test_ieee_tc_file_state_process.py": "9e1463f45959c105412450345824bbda1cccefaab5c31864b8336ee70d832bc3",
+    "faaslora/memory/residency_manager.py": "ba096152107469e4807a1e4427927e9409d600d0f89b54ce8048374cb5599e92",
+    "scripts/run_all_experiments.py": "415a594fba27ff8e9ad14e37cfe71cd005f539b9c5f5f7f2fb5b8592ec65f14d"
+  },
+  "driver_sha256": "ba20bd5053059406aa1cb5677764496da9008114667ecb79b1653346b87c8527",
+  "new_gpu_replays": 0,
+  "production_runner_switched": false,
+  "pidfd_only": true,
+  "note": "component semantics only; no latency/SLO improvement claim"
+}

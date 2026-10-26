@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d8880000000000000000000000000003.scope",
+    "invocation_id": "6d0dbce54eae458695dd038b3793ae5f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000003.scope",
+    "inode": 33116694
+  },
+  "closed_tasks": [
+    {
+      "unit": "primelora-tc-aux-d8870000000000000000000000000001.scope",
+      "invocation_id": "8cc2d77d1f5f463e998e5edd70913146",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8870000000000000000000000000001.scope",
+      "inode": 33105666
+    },
+    {
+      "unit": "primelora-tc-aux-d8880000000000000000000000000001.scope",
+      "invocation_id": "bc3d171335f04c44a0b171c5307fcbd3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000001.scope",
+      "inode": 33112897
+    },
+    {
+      "unit": "primelora-tc-aux-d8880000000000000000000000000002.scope",
+      "invocation_id": "fd67cf25d4c14c20bcba30060aee232f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8880000000000000000000000000002.scope",
+      "inode": 33113650
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D888_ISOLATED_FILE_STATE_OWNER_20261026.md",
+    "sha256": "c207bfcda8cfcfa3e328c513fa39f0e6fac895a8dd17ff100a0f07dc9161978c",
+    "bytes": 5500
+  },
+  "analysis_doc": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D887_CURRENT_PREPARATION_DEPENDENCIES_20261026.md",
+    "sha256": "07a4d9595adc531bab6fee4780218022e97e4a67382a01cb2056c902b606fa73",
+    "bytes": 4991
+  },
+  "analysis_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d887_current_preparation_dependencies/final_manifest.json",
+    "sha256": "1fb9819eef800c6970f89e904540d9d75199fa5f9f2749e0e06188bd52f479eb",
+    "bytes": 1985
+  },
+  "tests": 8,
+  "unique_passed": 8,
+  "attempts": [
+    {
+      "tests": 8,
+      "passed": 7,
+      "errors": 1
+    },
+    {
+      "tests": 1,
+      "passed": 1,
+      "errors": 0
+    }
+  ],
+  "production_runner_switched": false,
+  "new_gpu_replays": 0,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "sources": {
+    "faaslora/memory/file_state_process.py": "9f3057b1636bf04c55838733f5bc54cde0705bbd7a95519bd0cdf0f3c42166f1",
+    "tests/test_ieee_tc_file_state_process.py": "9e1463f45959c105412450345824bbda1cccefaab5c31864b8336ee70d832bc3",
+    "faaslora/memory/residency_manager.py": "ba096152107469e4807a1e4427927e9409d600d0f89b54ce8048374cb5599e92",
+    "scripts/run_all_experiments.py": "415a594fba27ff8e9ad14e37cfe71cd005f539b9c5f5f7f2fb5b8592ec65f14d"
+  },
+  "disk_free_bytes": 171327545344,
+  "next": "Migrate existing file-owner call sites to this process boundary; no new hypothesis or GPU replay yet"
+}

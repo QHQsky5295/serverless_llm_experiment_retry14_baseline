@@ -1,0 +1,22 @@
+test_actual_spawn_identity_and_frozen_submission (test_ieee_tc_file_state_process.FileStateProcessTests.test_actual_spawn_identity_and_frozen_submission) ... ok
+test_cancelled_waiter_rejoins_the_same_mutation (test_ieee_tc_file_state_process.FileStateProcessTests.test_cancelled_waiter_rejoins_the_same_mutation) ... ok
+test_capacity_cannot_be_spent_twice (test_ieee_tc_file_state_process.FileStateProcessTests.test_capacity_cannot_be_spent_twice) ... ok
+test_corrupt_bytes_never_publish_and_context_kind_is_checked (test_ieee_tc_file_state_process.FileStateProcessTests.test_corrupt_bytes_never_publish_and_context_kind_is_checked) ... ok
+test_real_pidfd_survives_parent_fd_close_until_actual_exit (test_ieee_tc_file_state_process.FileStateProcessTests.test_real_pidfd_survives_parent_fd_close_until_actual_exit) ... ERROR
+test_reserved_publication_atomic_acquisition_and_reclamation (test_ieee_tc_file_state_process.FileStateProcessTests.test_reserved_publication_atomic_acquisition_and_reclamation) ... ok
+test_worker_death_does_not_create_a_new_owner (test_ieee_tc_file_state_process.FileStateProcessTests.test_worker_death_does_not_create_a_new_owner) ... ok
+test_cancellation_inside_wait_does_not_cancel_pending_command (test_ieee_tc_file_state_process.FileStateWaitTests.test_cancellation_inside_wait_does_not_cancel_pending_command) ... ok
+
+======================================================================
+ERROR: test_real_pidfd_survives_parent_fd_close_until_actual_exit (test_ieee_tc_file_state_process.FileStateProcessTests.test_real_pidfd_survives_parent_fd_close_until_actual_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_state_process.py", line 155, in test_real_pidfd_survives_parent_fd_close_until_actual_exit
+    fd = os.pidfd_open(child.pid)
+         ^^^^^^^^^^^^^
+AttributeError: module 'os' has no attribute 'pidfd_open'
+
+----------------------------------------------------------------------
+Ran 8 tests in 14.533s
+
+FAILED (errors=1)

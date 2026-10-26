@@ -1,0 +1,41 @@
+"""Reuse D871 explicit-path backup for the D887 diagnosis/D888 component."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw.parent / 'd871_20261026/backup_executed.py.snapshot').read_text()
+changes = (
+    ('D871 evidence', 'D887/D888 evidence and component'),
+    ('d871_current_remote_preparation', 'd888_isolated_file_state_owner'),
+    ('bcc3585698e1d7021b310217ff771cc87da00eea', '84f985a70290ea953be989a97c2953d0eb76a784'),
+    ('D871_CURRENT_PREPARATION_BOUNDARY_20261026.md', 'D888_ISOLATED_FILE_STATE_OWNER_20261026.md'),
+    ('backup/d871-current-preparation-20261026', 'backup/d888-isolated-file-owner-20261026'),
+    ('tc: preserve D871 current remote preparation and native execution boundary',
+     'tc: qualify process-owned file state and preserve D887 preparation evidence'),
+    ("ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',",
+     "ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',\n"
+     "         ROOT/'docs/ieee_tc/D887_CURRENT_PREPARATION_DEPENDENCIES_20261026.md',\n"
+     "         ROOT/'faaslora/memory/file_state_process.py',\n"
+     "         ROOT/'tests/test_ieee_tc_file_state_process.py',\n"
+     "         *[path for path in sorted((ROOT/'paper_results/ieee_tc/p2_backend/"
+     "d887_current_preparation_dependencies').rglob('*')) if path.is_file()],"),
+)
+for old, new in changes:
+    assert old in source, old
+    source = source.replace(old, new)
+anchor = "assert p.digest(Path(closure['doc']['path'])) == closure['doc']['sha256']"
+source = source.replace(anchor, anchor + '''
+assert p.digest(Path(closure['analysis_doc']['path'])) == closure['analysis_doc']['sha256']
+assert p.digest(Path(closure['analysis_manifest']['path'])) == closure['analysis_manifest']['sha256']
+for row in json.loads(Path(closure['analysis_manifest']['path']).read_text())['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+for name, sha in closure['sources'].items():
+    assert p.digest(ROOT/name) == sha
+''')
+for name in ('csvs', 'snapshots'):
+    lines = source.splitlines()
+    source = '\n'.join(('if '+name+':\n    '+line if line.startswith('git(') and
+                         line.endswith('*'+name+')') else line) for line in lines) + '\n'
+compile(source, str(raw / 'backup_executed.py.snapshot'), 'exec')
+with (raw / 'backup_executed.py.snapshot').open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(raw / 'backup_executed.py.snapshot'), 'exec'), globals())

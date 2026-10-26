@@ -1,0 +1,6 @@
+test_real_pidfd_survives_parent_fd_close_until_actual_exit (test_ieee_tc_file_state_process.FileStateProcessTests.test_real_pidfd_survives_parent_fd_close_until_actual_exit) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.085s
+
+OK

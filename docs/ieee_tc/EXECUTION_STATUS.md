@@ -1,4 +1,51 @@
-# IEEE TC execution status — D886 complete; 3B W2 below joint SLO; close this microdirection
+# IEEE TC execution status — D887 diagnosed; D888 process-owned file state component qualified
+
+## D887/D888：有依据推进新的进程边界，尚未切换Full（2026-10-26）
+
+最新用户已明确：不要因进程架构与旧实现不同而放弃有潜力的性能方向。
+继续按完整PLAN/G1/G2推进；不改变九公式、95%/75%、独立数值证据及
+一次执行键规则。共享k3s不是本项目集群，已有HydraServe隔离适配与结果
+复用，不重启基础部署，不改其工作负载/权限/网络。
+
+D887复用D886日志完成严格分段：4000完整人口，dispatch Remote511条，
+503条own-IO可关联，134条TTFT违约；分解误差0。该违约组平均准入→取得
+adapter2041.003ms，其中发布555.665ms、发布后→原生开始414.643ms。
+是区间证据，不是GIL/锁的CPU时间证明，不减去这些区间造反事实结果。
+无GPU新回放；分析峰值731500544B，high/max/OOM/swap0。
+
+D888新增faaslora/memory/file_state_process.py：单spawn子进程拥有原
+LocalSourceReferences；固定值命令、原子选源+acquire、上下文ID、进程内
+publication、真实pidfd、可join取消和拒绝丢失活引用的关闭。没有父进程
+复制账本，没有新policy/调参/公式/资源特权。当前只是组件；既有manager
+与runner源码SHA未变，不能宣称Full已切换或性能改善。
+
+8个不同语义检查已有通过记录。首次7通过/1错误仅因测试误用本Python
+缺少的os.pidfd_open；复用项目已有Linux binding后单查该项通过，组件
+源码两次未改。保留首次失败与所有SHA，不重跑其余7项。两次峰值
+637816832/637837312B，3/4GiB、swap0、CPU2/3/26/27，保护事件0；已退出。
+
+**唯一下一实现任务**：完成这个候选的全调用迁移（异步router/planner/
+activation/reference；同步IO回执；文件copy/复合锁段；通知、取消、退出
+清理），静态manifest一次安装不逐次重建。不能再次退回只加线程，不能
+把原子事务拆出空窗；调用迁移完成后按原资格复用做必要检查和一次完整
+3B W2，不加另一轮宽泛诊断。D885/D886重复清点方向仍关闭。
+
+当前性能仍D886联合93.750%、U11936.649579<12083.063870，差50条达95%；
+N_correct=null、不进入达标排名、无CI。完整双模型W0/W1/W2/G1/G2、剩余
+baseline/dLoRA、A1–A5/S1–S13、独立数值证明、审稿图文、最终V2交付全部
+保留；完整goal active。正在保存显式文件检查点，实际推送见D888 raw
+backup.json；未提前声称最终V2已同步。用户manifest永不stage，旧投稿不改。
+
+详细文档：D887_CURRENT_PREPARATION_DEPENDENCIES_20261026.md；
+D888_ISOLATED_FILE_STATE_OWNER_20261026.md。
+
+### D886实际备份回执（随下一正常检查点保存）
+
+60个明确文件已提交84f985a70290ea953be989a97c2953d0eb76a784，远端
+refs/heads/backup/d886-complete-20261026核验一致。raw/backup_completion.json
+passed=true；147旧投稿项、用户manifest及源SHA通过。所有D886分析/备份域
+inactive/dead、GPU无作业，remote已停止。无用户文件stage、无force；最终V2
+仍未同步。下文唯一下一分析问题和完整未完成范围不变，goal保持active。
 
 ## D886完成、证据收尾与下一主线（2026-10-26 18:21 CST）
 

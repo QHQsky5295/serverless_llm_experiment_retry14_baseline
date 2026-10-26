@@ -1,0 +1,49 @@
+"""D887 reuses D871/D818/D833 on closed D886, with identities only changed.
+
+No production changes, replay, threshold changes or inference from removed spans.
+"""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW.parent / 'd886_20261026/3b_max3_full_w2'
+OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d887_current_preparation_dependencies'
+BASE = ROOT / 'paper_results/ieee_tc/p2_backend/d886_registered_preparation_full_w2'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import (
+    diagnose_remote_preparation, diagnose_prefetch_control,
+)
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(
+    ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+assert p.digest(BASE / 'completion/full4000.json') == 'aa4fabe65848548e781768ff5aba75efe10d8b0e497e1c7dbaa174829cb00fb6'
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+save(RAW / 'identity.json', identity)
+OUT.mkdir(parents=True, exist_ok=False)
+before = p.cgroup_snapshot(group)
+try:
+    diagnose_remote_preparation(RUN, OUT / 'partition', BASE / 'completion/stages')
+    diagnose_prefetch_control(RUN, OUT / 'control', OUT / 'partition',
+                             BASE / 'settlement_analysis', BASE / 'completion/stages')
+finally:
+    save(OUT / 'resources.json', dict(
+        identity=identity, before=before, after=p.cgroup_snapshot(group),
+        program_sha256=p.digest(Path(__file__)),
+        analyzer_sha256=p.digest(ROOT / 'scripts/ieee_tc/audit_d703_3b_full.py'),
+        new_gpu_replays=0, production_changes=False, n_correct=None,
+        confidence_interval=None))
