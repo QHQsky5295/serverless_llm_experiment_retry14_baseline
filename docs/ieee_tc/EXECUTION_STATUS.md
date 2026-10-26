@@ -1,4 +1,27 @@
-# IEEE TC execution status — D885 qualified; next one full 3B W2, no performance claim
+# IEEE TC execution status — D886 registered for one full 3B W2; no new result yet
+
+## D886启动前登记（2026-10-26）
+
+承接D885唯一候选，以D883完全同配置（仅三个独占路径不同）、D725 profile、
+原3B W2 4000请求及真实已发布远端工件，执行一次完整观测。复用328项检查
+和两项扩展边界验证，只检查新启动键/路径，没有短Full、profiling或新调参。
+直接参照D883联合93.825%、U11934.813584；D870的94.325%保留作早期参照。
+不改变共同95%/75%、D648 SLO/D657预算、原生生成与生命周期计量。
+
+文档D886_REGISTERED_PREPARATION_FULL_W2_20261026.md已登记。尚无新性能
+结果，实际备份与启动以raw/backup.json、start_receipt.json为准。运行后核验
+新事务回执实际覆盖、全4000终态/原生计量/真实交付/物理释放；N_correct仍
+需独立数值证明。全部双模型矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、
+审稿图文和最终V2保留；完整goal active。共享k3s不动，达标前不画图。
+
+### D885实际备份回执（随下一正常检查点保存）
+
+closure通过：147旧投稿项、用户manifest、冻结协议及本轮生产源核验通过。
+26个明确文件已提交5f197a2bfe2f757f713ef0eec46d6883e7fa737e，远端
+refs/heads/backup/d885-registered-preparation-storage-20261026已核验一致。
+四个辅助域均inactive，无GPU/remote作业；raw/backup.json passed=true。
+未stage用户修改、未force push，最终V2仍未同步。下一动作严格为D886
+单次完整3B W2，不重复资格/短回放或改评价口径。完整goal继续active。
 
 ## D885：同次已注册准备共享物理图（2026-10-26）
 

@@ -1,0 +1,96 @@
+"""Reuse D883 launch qualification; no new profile or GPU qualification."""
+import ast, json, os, re, subprocess, sys
+from pathlib import Path
+import yaml
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d886_registered_preparation_full_w2/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f: json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def call(args): return subprocess.check_output(args,cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'prepare_identity.json',identity)
+group=Path(identity['path'])
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+events_before=(group/'memory.events').read_text()
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert call(['git','rev-parse','HEAD'])=='5f197a2bfe2f757f713ef0eec46d6883e7fa737e'
+assert not call(['git','diff','--name-only','HEAD','--','faaslora','scripts/run_all_experiments.py'])
+assert not call(['git','diff','--cached','--name-only'])
+assert not (RAW/'3b_max3_full_w2').exists()
+assert not Path('/dev/shm/tc-d886-3b-w2').exists()
+gate=p.preflight([ROOT,RAW],32*p.GIB);save(RAW/'preflight.json',gate)
+assert gate['preflight_pass'],gate['issues']
+old_path=ROOT/'configs/ieee_tc/20261026_d883_3b_max3_full_w2.yaml'
+new_path=ROOT/'configs/ieee_tc/20261026_d886_3b_max3_full_w2.yaml'
+old=yaml.safe_load(old_path.read_text());new=yaml.safe_load(new_path.read_text())
+for section,field in [('experiment','output_dir'),('storage','nvme_cache_dir'),('storage','host_cache_dir')]:
+    assert old[section].pop(field).replace('d883','d886')==new[section].pop(field)
+assert old==new and new['workload']['total_requests']==4000
+assert 'ieee_host_construction' not in new['model']
+qualified=ROOT/'paper_results/ieee_tc/p2_backend/d885_registered_preparation_storage'
+q=read(qualified/'boundaries/qualification.json')
+first=read(qualified/'qualification.json')
+assert first['passed'] and first['returncode']==0
+assert 'Ran 328 tests' in (qualified/'tests.txt').read_text()
+assert read(qualified/'closure.json')['passed']
+assert q['passed'] and q['returncode']==0
+assert 'Ran 2 tests' in (qualified/'boundaries/tests.txt').read_text()
+for name,sha in q['source_shas'].items(): assert p.digest(Path(name))==sha,name
+previous=read(ROOT/'paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/qualification.json')
+# Keep unchanged inputs/toolchain/dependencies. Bind current production sources
+# explicitly; old campaign scripts and mutable documentation are not new run inputs.
+refs={name:sha for name,sha in previous['refs'].items()
+      if not name.startswith(str(ROOT/'docs/ieee_tc')+'/')
+      and not name.startswith(str(ROOT/'faaslora')+'/')
+      and not name.startswith(str(ROOT/'scripts')+'/')
+      and not name.startswith(str(ROOT/'tests')+'/')
+      and not (name.endswith(('.py','.sh')) and '/p2_backend_qualification/' in name)}
+refs.update(q['source_shas'])
+for name,sha in refs.items(): assert p.digest(Path(name))==sha,name
+assert refs[str(p.PLAN)]=='d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+fixed={
+ 'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+ 'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+ 'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for name,sha in fixed.items(): assert p.digest(ROOT/name)==sha,name
+refs.update({str(ROOT/name):sha for name,sha in fixed.items()})
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'protected_147.json',seal)
+files=call(['git','ls-files','faaslora','scripts/ieee_tc_preflight.py','scripts/run_all_experiments.py',
+            'scripts/run_all_experiments_user_scope.sh','scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh',
+            'tests/test_ieee_tc_d456_diagnostic_contract.py']).splitlines()
+for name in files: refs[str(ROOT/name)]=p.digest(ROOT/name)
+for path in [old_path,new_path,qualified/'qualification.json',qualified/'boundaries/qualification.json',qualified/'closure.json',qualified/'native_boundary.json']:
+    refs[str(path)]=p.digest(path)
+for path in sorted(RAW.iterdir()):
+    if path.suffix not in ('.py','.sh'): continue
+    if path.suffix=='.py': ast.parse(path.read_text())
+    else: call(['bash','-n',str(path)])
+    with (OUT/(path.name+'.snapshot')).open('xb') as f:f.write(path.read_bytes())
+    refs[str(path)]=p.digest(path)
+call(['bash','-n',str(ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh')])
+with (OUT/'tests.txt').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','unittest',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D886FullContract',
+        'tests.test_ieee_tc_d456_diagnostic_contract.D883FullContract','-v'],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=55)
+assert (group/'memory.events').read_text()==events_before
+assert (group/'memory.swap.current').read_text().strip()=='0'
+save(OUT/'qualification.json',dict(passed=True,identity=identity,refs=refs,
+    protected={str(ROOT/'configs/generated/lora_manifest_1000.json'):fixed['configs/generated/lora_manifest_1000.json']},
+    requests=4000,replay_profile='W2',replay_scope='full_source_v1',new_gpu_replays=0,
+    source_cpu_tests_reused=328,expanded_boundary_tests_reused=2,launch_contract_tests=4,profile_reused='D725',
+    candidate='D885 same-transaction registered preparation HOST graph',private_cpu_construction=False,graph_mode=False,
+    extra_full_prefix=False,observer_enabled=False,frozen_slo_changed=False,resident_reference_changed=False,
+    n_correct=None,ranking_eligible=False,resources=p.cgroup_snapshot(group)))
+save(OUT/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True,requests=4000,reused_tests=328,reused_expanded_tests=2,launch_tests=4)))

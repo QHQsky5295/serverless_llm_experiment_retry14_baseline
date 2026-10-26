@@ -1,0 +1,9 @@
+test_only_three_output_paths_change_from_d883 (tests.test_ieee_tc_d456_diagnostic_contract.D886FullContract.test_only_three_output_paths_change_from_d883) ... ok
+test_same_full_environment_without_graph_or_cpu_observer (tests.test_ieee_tc_d456_diagnostic_contract.D886FullContract.test_same_full_environment_without_graph_or_cpu_observer) ... ok
+test_only_three_output_paths_change_from_d870 (tests.test_ieee_tc_d456_diagnostic_contract.D883FullContract.test_only_three_output_paths_change_from_d870) ... ok
+test_same_full_environment_without_graph_or_cpu_observer (tests.test_ieee_tc_d456_diagnostic_contract.D883FullContract.test_same_full_environment_without_graph_or_cpu_observer) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.044s
+
+OK
