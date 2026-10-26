@@ -17,7 +17,7 @@ from faaslora.memory.file_state_process import (
 )
 from faaslora.experiment.experiment_config import ExperimentConfig
 from faaslora.memory.gpu_monitor import GPUMemoryMonitor
-from faaslora.memory.residency_manager import ResidencyManager
+from faaslora.memory.residency_manager import ResidencyManager, StorageTier
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.metrics.metrics_collector import _open_pidfd
 from faaslora.storage.http_artifact_store import (
@@ -256,6 +256,45 @@ class FileStateProcessTests(unittest.TestCase):
         manager = ResidencyManager(config, ArtifactRegistry(config), GPUMemoryMonitor(config))
         self.assertIsNotNone(getattr(manager.local_source_references, 'process', None))
         asyncio.run(manager.stop())
+
+    def test_manager_process_owner_materializes_confirmed_source(self):
+        config = ExperimentConfig({
+            'registry': {'backend': 'memory'},
+            'memory': {
+                'file_state_process': True,
+                'file_cache_policy': 'planned_only',
+                'gpu': {'total_memory_gb': 1, 'device_ids': [],
+                        'monitor': {'observation_mode': 'process_allocator',
+                                    'enable_nvml': False}},
+                'host': {'total_memory_gb': 1, 'cache_dir': str(self.host)},
+                'nvme': {'cache_size_gb': 1, 'cache_dir': str(self.nvme)},
+            },
+            'storage': {'local': {'cache_dir': str(self.nvme)},
+                        'host_cache_dir': str(self.host)},
+        })
+        manager = ResidencyManager(config, ArtifactRegistry(config), GPUMemoryMonitor(config))
+        refs = manager.local_source_references
+        payload = b'manager-process-copy'
+        files = {'weights': (len(payload), hashlib.sha256(payload).hexdigest())}
+        content = preparation_content_sha256(files)
+        try:
+            with refs.materializing(self.nvme / 'a', budgeted=True) as transfer_id:
+                with refs.transfer_workspace(transfer_id) as staging:
+                    refs.prepare_copy(transfer_id, staging, files, limit_bytes=1024**2)
+                    target = Path(staging) / 'weights'
+                    target.write_bytes(payload)
+                    refs.publish_transfer(transfer_id, staging, self.nvme / 'a',
+                                          verified_files={'weights': dict(
+                                              size_bytes=len(payload),
+                                              sha256=files['weights'][1],
+                                              signature=_verified_file_signature(target.stat()))})
+            manager.materialize_confirmed_source(
+                'a', self.nvme / 'a', StorageTier.HOST,
+                expected_content_sha256=content)
+            state = refs.source_snapshot('a')
+            self.assertEqual({row['tier'] for row in state['sources']}, {'host', 'nvme'})
+        finally:
+            asyncio.run(manager.stop())
 
     def test_real_pidfd_survives_parent_fd_close_until_actual_exit(self):
         self.call('configure_host_budget', limit_bytes=1024**2)

@@ -18,8 +18,11 @@ or inferred release is introduced.
 
 ## Evidence
 
-- `tests/test_ieee_tc_file_state_process.py`: 14 passed, including an actual
+- `tests/test_ieee_tc_file_state_process.py`: 15 passed, including an actual
   async facade context whose entry and exit receipts are joined.
+- The same module exercises the `ResidencyManager` process-mode path from
+  verified NVMe publication through HOST materialization and quiescent close;
+  both tiers are observed from the child-owned source snapshot.
 - Request-path and demand suites: 14 additional tests passed.
 - Python compilation and `git diff --check` passed.
 - The full preflight file-state subset remains green. A broader preflight
@@ -34,10 +37,12 @@ or inferred release is introduced.
 The rare retirement path now also joins process-owned native retirement and
 runtime source release asynchronously; shutdown remains a separate lifecycle
 operation, and manager shutdown now joins quiescent close off the event loop.
-The opt-in process owner is still not enabled for a formal replay.
-Before that step, a no-GPU integration smoke must exercise startup, demand,
-publication, cancellation, retirement, and close together so process-mode and
-legacy-owner identities cannot be mixed. The production default and all
-historical results are unchanged. Only after that smoke will one PrimeLoRA
-replay receive a new execution identity, subject to ownership receipts, the
-native token contract, joint SLO, and physical GPU accounting.
+The opt-in process owner is still not enabled for a formal replay. The
+no-GPU integration smoke now exercises verified publication, asynchronous
+materialization, context closure, and manager shutdown. A later smoke must
+also exercise demand cancellation and native retirement together before a
+formal replay, so process-mode and legacy-owner identities cannot be mixed.
+The production default and all historical results are unchanged. Only after
+that smoke will one PrimeLoRA replay receive a new execution identity, subject
+to ownership receipts, the native token contract, joint SLO, and physical GPU
+accounting.
