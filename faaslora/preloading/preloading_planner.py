@@ -1151,6 +1151,11 @@ def native_gpu_fallback_costs(*, objective, native_inventory):
         tuple(native_inventory['slot_adapter_ids']), tuple(native_inventory['registered_cpu_adapter_ids']))
     values = frozen_preparation_costs(frozen['cost_estimates'])
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    return _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows)
+
+
+def _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows):
+    """Pure pricing over this call's validated objective and physical graph."""
     result = {}
     for aid in native_inventory['slot_adapter_ids']:
         if aid is None:
@@ -1185,6 +1190,16 @@ def native_host_replacement_costs(*, objective, native_inventory, file_fallbacks
     observed, _, _ = NativeSourceSnapshot._footprints(native_inventory, slots, ids)
     values = frozen_preparation_costs(frozen['cost_estimates'])
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    return _native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
+                                         observed, values, rows)
+
+
+def _native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
+                                  observed, values, rows):
+    ids = tuple(native_inventory['registered_cpu_adapter_ids'])
+    slots = tuple(native_inventory['slot_adapter_ids'])
+    if set(file_fallbacks) != {str(a) for a in ids}:
+        raise ValueError('native HOST replacement requires complete file fallback observations')
     footprints = {r['adapter_int_id']: r for r in native_inventory['host_adapter_footprints']}
     result = {}
     for aid in ids:
@@ -1221,6 +1236,32 @@ def native_host_replacement_costs(*, objective, native_inventory, file_fallbacks
         result[aid] = dict(loss_ms=loss, usable_bytes=footprints[aid]['exclusive_storage_bytes'],
                            fallback_tier=source['tier'])
     return result
+
+
+def native_replacement_costs(*, objective, native_inventory, file_fallbacks=None):
+    """Price both fallback tiers from ONE fresh, validated worker observation.
+
+    Only pure decoding/validation of identical arguments is shared. The graph
+    is still measured by the caller on every operation; no tensor, epoch, cost,
+    budget or confirmation survives this call. In particular this does not
+    authorize reusing the graph after HOST replacement/staging registration.
+    The later allocation and admission checks remain independent and live.
+    """
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    frozen = validate_native_gpu_epoch(objective)
+    if frozen['kind'] != 'ieee_owned_gpu_objective_v2':
+        raise ValueError('mixed preparation requires its owned cost snapshot')
+    if native_inventory['slot_capacity_bytes'] != frozen['slot_capacity_bytes']:
+        raise ValueError('native slot geometry changed within the preparation epoch')
+    observed, _, _ = NativeSourceSnapshot._footprints(native_inventory,
+        tuple(native_inventory['slot_adapter_ids']), tuple(native_inventory['registered_cpu_adapter_ids']))
+    values = frozen_preparation_costs(frozen['cost_estimates'])
+    rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    gpu = _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows)
+    host = (_native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
+                                         observed, values, rows)
+            if file_fallbacks is not None else None)
+    return gpu, host
 
 
 def validate_native_gpu_epoch(epoch):

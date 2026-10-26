@@ -1,0 +1,24 @@
+"""Reuse explicit D871 backup; include only the two source and three test edits."""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent/'d871_20261026/backup_executed.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '74c8edcd9927746ec2bb9712f2eb99e9a39d449bf555c2a54ae1763840a4c378'
+source = template.read_text()
+changes = (
+    ('D871 evidence','D882 candidate'),
+    ('d871_current_remote_preparation','d882_replacement_cost_fusion'),
+    ('bcc3585698e1d7021b310217ff771cc87da00eea','d2dd933103736d82b386b1b06328119c8a6971c6'),
+    ('D871_CURRENT_PREPARATION_BOUNDARY_20261026.md','D882_REPLACEMENT_COST_FUSION_20261026.md'),
+    ('backup/d871-current-preparation-20261026','backup/d882-replacement-cost-fusion-20261026'),
+    ('tc: preserve D871 current remote preparation and native execution boundary',
+     'tc: fuse same-observation native replacement pricing with independent equivalence checks'),
+    ("ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',",
+     "ROOT/'docs/ieee_tc/EXECUTION_STATUS.md',\n         ROOT/'faaslora/memory/gpu_monitor.py',\n         ROOT/'faaslora/preloading/preloading_planner.py',\n         ROOT/'tests/test_ieee_tc_worker_observation.py',\n         ROOT/'tests/test_ieee_tc_transfer_pressure.py',\n         ROOT/'tests/test_ieee_tc_hit_host_transaction.py',"),
+)
+for old,new in changes:
+    assert old in source,old
+    source = source.replace(old,new)
+with (raw/'backup_executed.py.snapshot').open('x') as handle: handle.write(source)
+exec(compile(source,str(raw/'backup_executed.py.snapshot'),'exec'),globals())

@@ -1,0 +1,42 @@
+{
+  "read_only_probes": [
+    "d8820000000000000000000000000001",
+    "d8820000000000000000000000000002",
+    "d8820000000000000000000000000003"
+  ],
+  "tests": [
+    {
+      "attempt": 1,
+      "tests": 322,
+      "passed": 321,
+      "errors": 1,
+      "reason": "pre-existing fixture lacks private-build reservation API"
+    },
+    {
+      "attempt": 2,
+      "tests_started": false,
+      "reason": "retained seal resolved relative to attempt subdirectory"
+    },
+    {
+      "attempt": 3,
+      "tests": 322,
+      "passed": 322,
+      "errors": 0
+    }
+  ],
+  "component": [
+    {
+      "attempt": 1,
+      "passed": false,
+      "reason": "asserted all fixture calls have HOST fallback; actual legal GPU-only input"
+    },
+    {
+      "attempt": 2,
+      "passed": true,
+      "cases": 2
+    }
+  ],
+  "failed_analysis_final_resource_snapshot": null,
+  "new_gpu_replays": 0,
+  "changed_production_policy": false
+}

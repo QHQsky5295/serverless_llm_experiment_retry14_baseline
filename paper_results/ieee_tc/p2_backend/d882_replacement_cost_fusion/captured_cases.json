@@ -1,0 +1,728 @@
+{
+  "cases": [
+    {
+      "objective": {
+        "kind": "ieee_owned_gpu_objective_v2",
+        "owner_id": "controlled-native",
+        "epoch": 13,
+        "slot_adapter_ids": [
+          938516,
+          null
+        ],
+        "slot_capacity_bytes": 1048576,
+        "planning_sha256": "62eeb7a777168a5eb1e4e778e95a78fe2361df19a45ef971bf001e36b365eda7",
+        "profile_id": "controlled-file-costs-not-measurements",
+        "cost_sequence": 0,
+        "cost_estimates": [
+          {
+            "class": {
+              "tier": "host",
+              "representation": "native_cpu_dense_ab_v1:torch.float16:unpinned",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 0
+            },
+            "load_ms": 2.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "native_cpu_dense_ab_v1:torch.float16:unpinned",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 2.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 5.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 5.0
+          },
+          {
+            "class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 20.0
+          },
+          {
+            "class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 20.0
+          },
+          {
+            "class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 80.0
+          },
+          {
+            "class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 80.0
+          }
+        ],
+        "size_edges_bytes": [
+          8192
+        ],
+        "sources": [
+          {
+            "adapter_id": "a",
+            "adapter_int_id": 542018,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/a",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "remote_fallback": {
+              "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "footprint_bytes": 12295,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "b",
+            "adapter_int_id": 938516,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/b",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "c",
+            "adapter_int_id": 908846,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/c",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "d",
+            "adapter_int_id": 815686,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/d",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          }
+        ],
+        "gpu_candidates": [
+          {
+            "adapter_id": "a",
+            "adapter_int_id": 542018,
+            "source_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "source_load_ms": 20.0,
+            "benefit_ms": 15.533980582524272
+          },
+          {
+            "adapter_id": "d",
+            "adapter_int_id": 815686,
+            "source_class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "source_load_ms": 80.0,
+            "benefit_ms": 15.533980582524272
+          }
+        ],
+        "physical_resources_reserved": false,
+        "arrival_counts": {
+          "a": 80,
+          "b": 1,
+          "c": 2,
+          "d": 20
+        },
+        "total_arrivals": 103,
+        "demand_observed_at": 100.0,
+        "window_seconds": 300.0,
+        "plan_sha256": "ad6aa62e78f4437a1f031acfd3db7e78092873471e5382c0a73129eada5c3627"
+      },
+      "native_inventory": {
+        "uniform_slot_layout": true,
+        "host_footprint_scope": "native_registered_tensor_storage_capacity",
+        "host_budget_reserved": false,
+        "host_allocator_overhead_included": false,
+        "slot_adapter_ids": [
+          938516,
+          null
+        ],
+        "registered_cpu_adapter_ids": [
+          542018,
+          908846,
+          938516
+        ],
+        "slot_capacity_bytes": 1048576,
+        "pool_allocated_bytes": 2097152,
+        "host_tensor_storage_bytes": 1536,
+        "pool_tensor_views": [
+          {
+            "dtype": "torch.float16"
+          }
+        ],
+        "host_allocations": [
+          {
+            "allocation_id": 0,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              542018
+            ],
+            "pinned": false
+          },
+          {
+            "allocation_id": 1,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              908846
+            ],
+            "pinned": false
+          },
+          {
+            "allocation_id": 2,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              938516
+            ],
+            "pinned": false
+          }
+        ],
+        "host_adapter_footprints": [
+          {
+            "adapter_int_id": 542018,
+            "allocation_ids": [
+              0
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          },
+          {
+            "adapter_int_id": 908846,
+            "allocation_ids": [
+              1
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          },
+          {
+            "adapter_int_id": 938516,
+            "allocation_ids": [
+              2
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          }
+        ]
+      },
+      "file_fallbacks": null
+    },
+    {
+      "objective": {
+        "kind": "ieee_owned_gpu_objective_v2",
+        "owner_id": "controlled-native",
+        "epoch": 13,
+        "slot_adapter_ids": [
+          938516,
+          null
+        ],
+        "slot_capacity_bytes": 1048576,
+        "planning_sha256": "62eeb7a777168a5eb1e4e778e95a78fe2361df19a45ef971bf001e36b365eda7",
+        "profile_id": "controlled-file-costs-not-measurements",
+        "cost_sequence": 0,
+        "cost_estimates": [
+          {
+            "class": {
+              "tier": "host",
+              "representation": "native_cpu_dense_ab_v1:torch.float16:unpinned",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 0
+            },
+            "load_ms": 2.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "native_cpu_dense_ab_v1:torch.float16:unpinned",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 2.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 5.0
+          },
+          {
+            "class": {
+              "tier": "host",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 5.0
+          },
+          {
+            "class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 20.0
+          },
+          {
+            "class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 20.0
+          },
+          {
+            "class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "load_ms": 80.0
+          },
+          {
+            "class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "load_ms": 80.0
+          }
+        ],
+        "size_edges_bytes": [
+          8192
+        ],
+        "sources": [
+          {
+            "adapter_id": "a",
+            "adapter_int_id": 542018,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/a",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "remote_fallback": {
+              "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "footprint_bytes": 12295,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "b",
+            "adapter_int_id": 938516,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/b",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "c",
+            "adapter_int_id": 908846,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/c",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          },
+          {
+            "adapter_id": "d",
+            "adapter_int_id": 815686,
+            "lora_path": "/tmp/tmpuit_oiub/nvme/d",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "remote_fallback": {
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "footprint_bytes": 15,
+              "native": false,
+              "owner_id": "immutable_artifact_origin",
+              "path": null,
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "tier": "remote"
+            }
+          }
+        ],
+        "gpu_candidates": [
+          {
+            "adapter_id": "a",
+            "adapter_int_id": 542018,
+            "source_class": {
+              "tier": "nvme",
+              "representation": "verified_regular_file_tree_v1",
+              "layout_id": "exact_content_sha256:3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "size_bin": 1
+            },
+            "source_load_ms": 20.0,
+            "benefit_ms": 15.533980582524272
+          },
+          {
+            "adapter_id": "d",
+            "adapter_int_id": 815686,
+            "source_class": {
+              "tier": "remote",
+              "representation": "tar_gzip_verified_file_tree_v1",
+              "layout_id": "exact_content_sha256:7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "size_bin": 0
+            },
+            "source_load_ms": 80.0,
+            "benefit_ms": 15.533980582524272
+          }
+        ],
+        "physical_resources_reserved": false,
+        "arrival_counts": {
+          "a": 80,
+          "b": 1,
+          "c": 2,
+          "d": 20
+        },
+        "total_arrivals": 103,
+        "demand_observed_at": 100.0,
+        "window_seconds": 300.0,
+        "plan_sha256": "ad6aa62e78f4437a1f031acfd3db7e78092873471e5382c0a73129eada5c3627"
+      },
+      "native_inventory": {
+        "uniform_slot_layout": true,
+        "host_footprint_scope": "native_registered_tensor_storage_capacity",
+        "host_budget_reserved": false,
+        "host_allocator_overhead_included": false,
+        "slot_adapter_ids": [
+          938516,
+          542018
+        ],
+        "registered_cpu_adapter_ids": [
+          542018,
+          908846,
+          938516
+        ],
+        "slot_capacity_bytes": 1048576,
+        "pool_allocated_bytes": 2097152,
+        "host_tensor_storage_bytes": 1536,
+        "pool_tensor_views": [
+          {
+            "dtype": "torch.float16"
+          }
+        ],
+        "host_allocations": [
+          {
+            "allocation_id": 0,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              542018
+            ],
+            "pinned": false
+          },
+          {
+            "allocation_id": 1,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              908846
+            ],
+            "pinned": false
+          },
+          {
+            "allocation_id": 2,
+            "allocated_bytes": 512,
+            "adapter_ids": [
+              938516
+            ],
+            "pinned": false
+          }
+        ],
+        "host_adapter_footprints": [
+          {
+            "adapter_int_id": 542018,
+            "allocation_ids": [
+              0
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          },
+          {
+            "adapter_int_id": 908846,
+            "allocation_ids": [
+              1
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          },
+          {
+            "adapter_int_id": 938516,
+            "allocation_ids": [
+              2
+            ],
+            "storage_bytes": 512,
+            "exclusive_storage_bytes": 512,
+            "dtypes": [
+              "torch.float16"
+            ],
+            "representation": "native_cpu_dense_ab_v1",
+            "has_packed_modules": false
+          }
+        ]
+      },
+      "file_fallbacks": {
+        "542018": {
+          "source": {
+            "adapter_id": "a",
+            "path": "/tmp/tmpuit_oiub/nvme/a",
+            "tier": "nvme",
+            "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 12295,
+            "allocated_file_bytes": 16384,
+            "allocated_bytes": 20480,
+            "unique_file_count": 2,
+            "native": false,
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "footprint_bytes": 16384
+          },
+          "file_reference": {
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "lease_id": "292bf2faa30944b59b960b6bac458211",
+            "adapter_id": "a",
+            "path": "/tmp/tmpuit_oiub/nvme/a",
+            "tier": "nvme",
+            "device": 2050,
+            "inode": 188492859,
+            "state": "held",
+            "content_verified": true,
+            "capacity_reserved": false,
+            "confirmed_source": {
+              "adapter_id": "a",
+              "path": "/tmp/tmpuit_oiub/nvme/a",
+              "tier": "nvme",
+              "content_sha256": "3c1f65aaaacdb0c32c0a83533b0debd0827caf97560be0f7bce55df0f02db7e0",
+              "content_verified": true,
+              "representation": "verified_regular_file_tree_v1",
+              "file_path_bytes": 12295,
+              "allocated_file_bytes": 16384,
+              "allocated_bytes": 20480,
+              "unique_file_count": 2
+            },
+            "file_footprint": {
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 12295,
+              "file_path_bytes": 12295,
+              "allocated_bytes": 20480,
+              "allocated_file_bytes": 16384,
+              "unique_file_count": 2,
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false
+            }
+          }
+        },
+        "908846": {
+          "source": {
+            "adapter_id": "c",
+            "path": "/tmp/tmpuit_oiub/host/c",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 15,
+            "allocated_file_bytes": 8192,
+            "allocated_bytes": 12288,
+            "unique_file_count": 2,
+            "native": false,
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "footprint_bytes": 8192
+          },
+          "file_reference": {
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "lease_id": "2f1b5f8ac6ff4582b8fc97ab1e1ad5ea",
+            "adapter_id": "c",
+            "path": "/tmp/tmpuit_oiub/host/c",
+            "tier": "host",
+            "device": 2050,
+            "inode": 188492778,
+            "state": "held",
+            "content_verified": true,
+            "capacity_reserved": false,
+            "confirmed_source": {
+              "adapter_id": "c",
+              "path": "/tmp/tmpuit_oiub/host/c",
+              "tier": "host",
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "content_verified": true,
+              "representation": "verified_regular_file_tree_v1",
+              "file_path_bytes": 15,
+              "allocated_file_bytes": 8192,
+              "allocated_bytes": 12288,
+              "unique_file_count": 2
+            },
+            "file_footprint": {
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 15,
+              "file_path_bytes": 15,
+              "allocated_bytes": 12288,
+              "allocated_file_bytes": 8192,
+              "unique_file_count": 2,
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false
+            }
+          }
+        },
+        "938516": {
+          "source": {
+            "adapter_id": "b",
+            "path": "/tmp/tmpuit_oiub/host/b",
+            "tier": "host",
+            "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+            "content_verified": true,
+            "representation": "verified_regular_file_tree_v1",
+            "file_path_bytes": 15,
+            "allocated_file_bytes": 8192,
+            "allocated_bytes": 12288,
+            "unique_file_count": 2,
+            "native": false,
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "footprint_bytes": 8192
+          },
+          "file_reference": {
+            "owner_id": "e821b23c96754af2ac94dd541fedca25",
+            "lease_id": "b55a436e5d034f3a86c81d42806c03f0",
+            "adapter_id": "b",
+            "path": "/tmp/tmpuit_oiub/host/b",
+            "tier": "host",
+            "device": 2050,
+            "inode": 188492722,
+            "state": "held",
+            "content_verified": true,
+            "capacity_reserved": false,
+            "confirmed_source": {
+              "adapter_id": "b",
+              "path": "/tmp/tmpuit_oiub/host/b",
+              "tier": "host",
+              "content_sha256": "7230304b790efb5d21461057051d538668c3cfd8851b0b4682386b8a20f2b324",
+              "content_verified": true,
+              "representation": "verified_regular_file_tree_v1",
+              "file_path_bytes": 15,
+              "allocated_file_bytes": 8192,
+              "allocated_bytes": 12288,
+              "unique_file_count": 2
+            },
+            "file_footprint": {
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 15,
+              "file_path_bytes": 15,
+              "allocated_bytes": 12288,
+              "allocated_file_bytes": 8192,
+              "unique_file_count": 2,
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false
+            }
+          }
+        }
+      }
+    }
+  ]
+}

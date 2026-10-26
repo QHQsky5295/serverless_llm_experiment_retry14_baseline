@@ -1,4 +1,39 @@
-# IEEE TC execution status — D881 bounded diagnosis closed; W2 still below joint SLO
+# IEEE TC execution status — D882 cost-fusion candidate qualified; full W2 pending
+
+## D882：原生替换代价共用解析（2026-10-26）
+
+沿D881主线完成单一候选：仅融合同一新鲜物理图上GPU/HOST定价的共同
+objective验证、footprints验证和cost解析；所有物理清点、预算/allocator、
+admission、来源/epoch、fence和九公式保持原样。没有跨调用cache或新参数，
+不叠加private CPU/整图候选。native_gpu_fallback_costs与HOST旧入口保留。
+
+D870权威journal：HOST准备3445尝试，62注册+1508staging实际加载、1875
+过期延后；成功无加载分支0，因此不优化file-host reuse。GPU尝试4028，
+1395普通HOST激活、1501staging提交、79GPU复用、1031过期、14收益不足、
+8缺回执。最早物理图跨CPU替换的复用未实现，D674边界保留。
+
+322项检查通过；独立对照为父提交d2dd933两个原函数体，不是重构wrapper。
+现有集成fixture两种输入结果逐字段相等；纯GPU0.178387→0.178032ms，双层
+定价0.408365→0.232515ms（3条目CPU组件100次/路径，无模型性能/CI含义）。
+首测试旧fixture遗漏D874预留接口、第二入口seal相对路径、首组件误要求
+所有输入含HOST fallback三项失败完整保留；修复测试/入口，生产预算未改。
+
+产物d882_replacement_cost_fusion；文档D882_REPLACEMENT_COST_FUSION_20261026.md。
+本轮progress但不是Full达标。仍用D870联合94.325%、U11931.565094作已知
+串行参照，D88094.025%不晋升；N_correct=null。下一明确任务D883：同D870
+配置、D725 profile、完整4000 W2单次新键，复用native资格，不补短Full/
+profiling。不筛结果、不改协议。先完成本候选测试/保护与明确文件备份。
+所有双模型同版本矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、独立数值证明、
+两轮审稿文档/图表及最终V2保留。保护和备份结果以随后closure/backup为准。
+
+### D881实际关闭/备份回执（随下一正常检查点保存）
+
+closure已核对147旧投稿项、用户manifest及冻结协议零变化。22个明确文件
+提交`d2dd933103736d82b386b1b06328119c8a6971c6`，推送并核验
+`refs/heads/backup/d881-private-host-diagnosis-20261026`成功。所有辅助域退出，
+无GPU作业；未stage用户manifest、未force push。最终V2仍未同步，不将备份
+当最终交付。无生产修改；本轮progress，完整goal继续active，下一动作和
+全部剩余范围见下文，不重开本次已闭合的扩容反馈诊断。
 
 ## D881：实际扩容原因与后半段等待（2026-10-26）
 

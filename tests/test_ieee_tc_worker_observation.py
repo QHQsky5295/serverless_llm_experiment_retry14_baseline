@@ -1,5 +1,6 @@
 """Native observation wiring and storage accounting; fake tensors, no CUDA work."""
 import asyncio
+import copy
 import os
 from contextlib import contextmanager, nullcontext
 from types import SimpleNamespace
@@ -734,17 +735,102 @@ class NativeHostPhysicalProjection(unittest.TestCase):
             adapter_transfers=dict(transfer_scope='replica_owned_file_preparation_and_serialized_native_v1',
                                   active_transfers=0, active_transfer_ids=[]))
         with self.observations(), \
-             patch.object(preloading_planner, 'native_gpu_fallback_costs', return_value={7: 1.}) as gpu, \
-             patch.object(preloading_planner, 'native_host_replacement_costs', return_value={7: 2.}) as host:
+             patch.object(preloading_planner, 'native_replacement_costs',
+                          return_value=({7: 1.}, {7: 2.})) as costs:
             result = self.worker.ieee_gpu_reference(operation='proactive_host_prepare_and_acquire',
                 scheduler_observation=observation,
                 lengths=CompletedLengthSnapshot('fixture-model', 'fixture-profile', 1., {0: 8.}),
                 replacement_epoch=objective,
                 host_file_fallbacks=fallbacks)
-        gpu.assert_called_once_with(objective=objective, native_inventory=expected)
-        host.assert_called_once_with(objective=objective, native_inventory=expected, file_fallbacks=fallbacks)
+        costs.assert_called_once_with(objective=objective, native_inventory=expected, file_fallbacks=fallbacks)
         self.assertEqual(result['gpu_costs'], {7: 1.})
         self.assertEqual(result['host_costs'], {7: 2.})
+
+
+class NativeReplacementCostFusion(unittest.TestCase):
+    """D882: shared pure parsing, never shared physical observations."""
+    def fixture(self):
+        from faaslora.preloading import preloading_planner as planner
+        native, _, _ = NativeHostStagedUnionProjection().fixture()
+        inventory = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        inventory.update(uniform_slot_layout=True, slot_adapter_ids=[7, None],
+            registered_cpu_adapter_ids=[7, 8], slot_capacity_bytes=32, pool_allocated_bytes=64,
+            pool_tensor_views=[{'dtype': 'torch.float16'}])
+        remote = dict(tier='remote', native=False, footprint_bytes=512,
+                      representation='fixture_file', content_sha256='a' * 64)
+        frozen = dict(kind='ieee_owned_gpu_objective_v2', slot_capacity_bytes=32,
+            sources=[dict(adapter_int_id=aid, adapter_id=str(aid), content_sha256='a' * 64,
+                          remote_fallback=remote) for aid in (7, 8)],
+            arrival_counts={'7': 10, '8': 5}, total_arrivals=15,
+            size_edges_bytes=[1024], cost_estimates=[])
+        values = {planner.FrozenPreparationProfiles.source_class(remote, (1024,)): 100.}
+        for capacity, representation, *_ in NativeHostStagedUnionProjection.consumer(inventory)[0].values():
+            source = dict(native=True, tier='host', footprint_bytes=capacity,
+                          representation=representation, expected_content_sha256='a' * 64)
+            values[planner.FrozenPreparationProfiles.source_class(source, (1024,))] = 10.
+        fallbacks = {str(aid): dict(source=remote, file_reference=None) for aid in (7, 8)}
+        return planner, inventory, frozen, values, fallbacks
+
+    def test_same_costs_one_validation_and_no_input_mutation(self):
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        planner, inv, frozen, values, fallbacks = self.fixture()
+        before = copy.deepcopy((inv, frozen, values, fallbacks))
+        with patch.object(planner, 'validate_native_gpu_epoch', return_value=frozen) as validate, \
+             patch.object(planner, 'frozen_preparation_costs', return_value=values) as costs, \
+             patch.object(NativeSourceSnapshot, '_footprints', wraps=NativeSourceSnapshot._footprints) as parse:
+            expected = (planner.native_gpu_fallback_costs(objective={}, native_inventory=inv),
+                planner.native_host_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks))
+            self.assertEqual((validate.call_count, costs.call_count, parse.call_count), (2, 2, 2))
+            for mock in (validate, costs, parse): mock.reset_mock()
+            actual = planner.native_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks)
+            self.assertEqual(actual, expected)
+            self.assertEqual((validate.call_count, costs.call_count, parse.call_count), (1, 1, 1))
+        self.assertEqual((inv, frozen, values, fallbacks), before)
+        self.assertEqual(actual[0], {7: 10 / 15 * 10.})
+        self.assertEqual(actual[1][7]['loss_ms'], 10 / 15 * 100.)
+        self.assertEqual(actual[1][8]['loss_ms'], 5 / 15 * 90.)
+        self.assertEqual(actual[1][7]['usable_bytes'], 256)
+        self.assertEqual(actual[1][8]['usable_bytes'], 0)  # shared allocation cannot be reclaimed
+
+    def test_gpu_only_zero_demand_and_each_call_uses_current_arguments(self):
+        planner, inv, frozen, values, fallbacks = self.fixture()
+        with patch.object(planner, 'validate_native_gpu_epoch', return_value=frozen), \
+             patch.object(planner, 'frozen_preparation_costs', return_value=values):
+            first = planner.native_replacement_costs(objective={}, native_inventory=inv)
+            self.assertEqual(first, (planner.native_gpu_fallback_costs(objective={}, native_inventory=inv), None))
+            frozen['arrival_counts'], frozen['total_arrivals'] = {}, 0
+            second = planner.native_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks)
+            self.assertEqual(second[0], {7: 0.})
+            self.assertTrue(all(row['loss_ms'] == 0. for row in second[1].values()))
+            # Even zero-demand entries need current complete alias/storage facts.
+            inv['host_allocations'][0]['allocated_bytes'] += 1
+            with self.assertRaisesRegex(ValueError, 'distinct storage union'):
+                planner.native_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks)
+
+    def test_both_entry_paths_reject_corrupt_graph_and_file_lease(self):
+        planner, inv, frozen, values, fallbacks = self.fixture()
+        def combined():
+            return planner.native_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks)
+        def separate():
+            planner.native_gpu_fallback_costs(objective={}, native_inventory=inv)
+            return planner.native_host_replacement_costs(objective={}, native_inventory=inv, file_fallbacks=fallbacks)
+        changes = [
+            lambda: inv['host_adapter_footprints'][1].update(exclusive_storage_bytes=1),
+            lambda: inv['host_allocations'][0].update(pinned='unknown'),
+            lambda: fallbacks.pop('8'),
+            lambda: fallbacks['7'].update(source={**fallbacks['7']['source'], 'content_sha256': 'b' * 64}),
+            lambda: fallbacks['7'].update(file_reference={'state': 'held'}),
+            lambda: fallbacks['7'].update(source={**fallbacks['7']['source'], 'tier': 'nvme'},
+                file_reference={'state': 'held', 'content_verified': False}),
+        ]
+        for change in changes:
+            planner, inv, frozen, values, fallbacks = self.fixture()
+            with self.subTest(change=change), \
+                 patch.object(planner, 'validate_native_gpu_epoch', return_value=frozen), \
+                 patch.object(planner, 'frozen_preparation_costs', return_value=values):
+                change()
+                for call in (separate, combined):
+                    with self.assertRaises(ValueError): call()
 
 
 class NativePinnedHostAccounting(unittest.TestCase):

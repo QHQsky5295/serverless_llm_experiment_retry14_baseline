@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": 0,
+      "registered_adapters": 3,
+      "allocations": 3,
+      "calls_per_path": 100,
+      "separate_mean_ms": 0.17838671,
+      "combined_mean_ms": 0.17803214,
+      "exact_outputs_equal": true
+    },
+    {
+      "case": 1,
+      "registered_adapters": 3,
+      "allocations": 3,
+      "calls_per_path": 100,
+      "separate_mean_ms": 0.40836473,
+      "combined_mean_ms": 0.23251494,
+      "exact_outputs_equal": true
+    }
+  ],
+  "original_parent": "d2dd933103736d82b386b1b06328119c8a6971c6",
+  "original_planner_sha256": "91da2378aed5b0e636c4c37dacce72a675b813351f2bfe36a7440baf5f48951c",
+  "fixture": "IntegratedNativeHostReplacement: real selector and validators, CPU/fake cache fixture, NOT a model performance sample",
+  "oracle": "Original two function bodies from immutable parent commit",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "b10730dc9b98957d2295214fc04c69d491afaeeb322cd09b10b969c1f16fe517"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "7b4dd3017e92894a5e933e73e5979a02dbf76fd975d9f49eacff1da3f3352a43"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d882_20261026/component.py",
+      "sha256": "a7e3f83534ecb207631caefd65364633f953bb5eef5afff4a9f1ae35afd90b72"
+    }
+  ],
+  "no_state_cache": true,
+  "no_physical_inventory_omission": true,
+  "full_replay_passed": false,
+  "n_correct": null
+}

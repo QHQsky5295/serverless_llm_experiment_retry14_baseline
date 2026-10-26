@@ -1,0 +1,139 @@
+"""D882: existing journals + independent parent-function equivalence, CPU only."""
+import ast
+import asyncio
+import collections
+import copy
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+from unittest.mock import patch
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d882_replacement_cost_fusion'
+sys.path.insert(0, str(ROOT))
+import ijson
+from scripts import ieee_tc_preflight as p
+from faaslora.preloading import preloading_planner as planner
+from tests import test_ieee_tc_transfer_pressure as pressure
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'analysis_identity.json', identity)
+group = Path(identity['path'])
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+assert json.loads((OUT/'attempt3/qualification.json').read_text())['passed']
+source = RAW.parent/'d870_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json'
+assert p.digest(source) == '86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136'
+counts, times = {}, {}
+for kind in ('native_host', 'gpu'):
+    counter, duration, seen = collections.Counter(), collections.defaultdict(list), set()
+    records = attempts = missing = 0
+    with source.open('rb') as stream:
+        for row in ijson.items(stream, f'mechanism_events._ieee_{kind}_preparation' +
+                ('s.item' if kind == 'native_host' else '_plans.item'), use_float=True):
+            records += 1
+            for attempt in row.get('attempts', []):
+                attempts += 1
+                receipt = attempt.get('receipt')
+                if receipt is None:
+                    missing += 1
+                    continue
+                if kind == 'native_host':
+                    label = ('held', receipt.get('tier'), receipt.get('native_load_invoked')) if receipt.get('held') else ('deferred', receipt.get('reason'))
+                    if receipt.get('held'):
+                        key = (receipt['owner_id'], receipt['lease_id'])
+                        assert key not in seen
+                        seen.add(key)
+                        duration[str(label)].append(1000*(receipt['load_completed_monotonic_s']-receipt['load_started_monotonic_s']))
+                else:
+                    label = (receipt.get('acquired'), receipt.get('transaction_scope'), receipt.get('reason'))
+                counter[str(label)] += 1
+    counts[kind] = dict(records=records, attempts=attempts, missing_receipts=missing, populations=dict(counter))
+    times[kind] = {key:dict(count=len(values), sum_ms=sum(values), mean_ms=sum(values)/len(values))
+                  for key,values in duration.items()}
+save(OUT/'historical_counts.json', dict(source=ref(source), counts=counts, conditional_host_durations=times,
+    meaning='Authoritative journals only; no shutdown duplicates; envelopes are not removable time or predicted request gains.'))
+
+# Use the PRE-EDIT bodies as an independent oracle, not the refactored wrappers.
+parent = 'd2dd933103736d82b386b1b06328119c8a6971c6'
+original = subprocess.check_output(['git','show',parent+':faaslora/preloading/preloading_planner.py'],cwd=ROOT,text=True)
+names = {'native_gpu_fallback_costs', 'native_host_replacement_costs'}
+definitions = [node for node in ast.parse(original).body if isinstance(node,ast.FunctionDef) and node.name in names]
+assert len(definitions) == 2
+namespace = dict(vars(planner))
+exec(compile(ast.Module(body=definitions,type_ignores=[]), '<D881-original-pricing>', 'exec'), namespace)
+captured = []
+combined = planner.native_replacement_costs
+def observe(**kwargs):
+    value = combined(**kwargs)
+    captured.append(copy.deepcopy(kwargs))
+    return value
+
+pressure.setUpModule()
+case = pressure.IntegratedNativeHostReplacement()
+try:
+    factory, (fixture, runner, queue, slot, owner, snapshot, loads) = case.make()
+    async def exercise():
+        try:
+            with patch.object(planner, 'native_replacement_costs', side_effect=observe):
+                await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 5)
+            factory.check_clean(fixture, runner, owner)
+        finally:
+            await queue.close()
+    asyncio.run(exercise())
+finally:
+    case.doCleanups()
+    pressure.tearDownModule()
+assert captured and all(row['file_fallbacks'] is not None for row in captured)
+
+def separate(row):
+    inputs = {k:row[k] for k in ('objective','native_inventory')}
+    return (namespace['native_gpu_fallback_costs'](**inputs),
+            namespace['native_host_replacement_costs'](**row))
+
+results = []
+for index,row in enumerate(captured):
+    untouched = copy.deepcopy(row)
+    expected = separate(row)
+    assert combined(**row) == expected and row == untouched
+    old_ns = new_ns = 0
+    # One bounded component study, fixed alternating order, not model repeats/CI.
+    for repeat in range(100):
+        for label in (('separate','combined') if repeat % 2 == 0 else ('combined','separate')):
+            start = time.perf_counter_ns()
+            actual = separate(row) if label == 'separate' else combined(**row)
+            elapsed = time.perf_counter_ns()-start
+            assert actual == expected
+            if label == 'separate': old_ns += elapsed
+            else: new_ns += elapsed
+    assert row == untouched
+    results.append(dict(case=index, registered_adapters=len(row['native_inventory']['registered_cpu_adapter_ids']),
+        allocations=len(row['native_inventory']['host_allocations']), calls_per_path=100,
+        separate_mean_ms=old_ns/1e8, combined_mean_ms=new_ns/1e8, exact_outputs_equal=True))
+save(OUT/'component_equivalence.json', dict(passed=True, cases=results,
+    original_parent=parent, original_planner_sha256=hashlib.sha256(original.encode()).hexdigest(),
+    fixture='IntegratedNativeHostReplacement: real selector and validators, CPU/fake cache fixture, NOT a model performance sample',
+    oracle='Original two function bodies from immutable parent commit',
+    source_refs=[ref(ROOT/'faaslora/preloading/preloading_planner.py'), ref(ROOT/'tests/test_ieee_tc_transfer_pressure.py'), ref(Path(__file__))],
+    no_state_cache=True, no_physical_inventory_omission=True, full_replay_passed=False, n_correct=None))
+resources = p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+save(OUT/'analysis_resources.json', dict(identity=identity,resources=resources))
+print(json.dumps(dict(passed=True, counts=counts, component_cases=results), indent=2))

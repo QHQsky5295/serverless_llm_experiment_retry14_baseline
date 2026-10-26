@@ -1,0 +1,11 @@
+"""Rerun the same checks after completing the pre-existing owner fixture API."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw.parent/'qualify_executed.py.snapshot').read_text().replace(
+    "p2_backend/d882_replacement_cost_fusion'", "p2_backend/d882_replacement_cost_fusion/attempt2'")
+source = source.replace("ROOT/'tests/test_ieee_tc_transfer_pressure.py',",
+    "ROOT/'tests/test_ieee_tc_transfer_pressure.py', ROOT/'tests/test_ieee_tc_hit_host_transaction.py',")
+with (raw/'qualify_executed.py.snapshot').open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(raw/'qualify_executed.py.snapshot'), 'exec'), globals())

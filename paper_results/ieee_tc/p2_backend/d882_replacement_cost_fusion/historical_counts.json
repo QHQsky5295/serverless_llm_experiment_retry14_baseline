@@ -1,0 +1,46 @@
+{
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136"
+  },
+  "counts": {
+    "native_host": {
+      "records": 1611,
+      "attempts": 3445,
+      "missing_receipts": 0,
+      "populations": {
+        "('held', 'host', True)": 62,
+        "('deferred', 'stale_snapshot')": 1875,
+        "('held', 'staging', True)": 1508
+      }
+    },
+    "gpu": {
+      "records": 2854,
+      "attempts": 4028,
+      "missing_receipts": 8,
+      "populations": {
+        "(True, 'native_host_to_preallocated_gpu', None)": 1395,
+        "(False, None, 'stale_snapshot')": 1031,
+        "(True, None, None)": 79,
+        "(True, 'budgeted_staging_joint_cpu_gpu_commit', None)": 1501,
+        "(False, 'native_host_to_preallocated_gpu', 'replacement_benefit_not_greater_than_loss')": 14
+      }
+    }
+  },
+  "conditional_host_durations": {
+    "native_host": {
+      "('held', 'host', True)": {
+        "count": 62,
+        "sum_ms": 5346.273041795939,
+        "mean_ms": 86.23021035154741
+      },
+      "('held', 'staging', True)": {
+        "count": 1508,
+        "sum_ms": 224342.89061278105,
+        "mean_ms": 148.7684951013137
+      }
+    },
+    "gpu": {}
+  },
+  "meaning": "Authoritative journals only; no shutdown duplicates; envelopes are not removable time or predicted request gains."
+}

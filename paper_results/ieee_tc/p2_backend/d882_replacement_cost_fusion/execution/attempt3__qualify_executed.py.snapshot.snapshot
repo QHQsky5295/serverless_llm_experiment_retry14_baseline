@@ -1,0 +1,59 @@
+"""D869 bounded CPU regressions, reusing the existing preflight and fixtures."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d882_replacement_cost_fusion/attempt3'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'qualification_identity.json', identity)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+                                    '--format=csv,noheader'], text=True).strip()
+gate = p.preflight([ROOT, RAW], 64*p.MIB)
+save(RAW/'resource_gate.json', gate)
+assert gate['preflight_pass'], gate['issues']
+seal_path = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.verify_seal(seal_path)['pass']
+user_sha = p.digest(ROOT/'configs/generated/lora_manifest_1000.json')
+assert user_sha == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+OUT.mkdir(exist_ok=False)
+tests = ['tests.test_ieee_tc_worker_observation', 'tests.test_ieee_tc_gpu_references',
+    'tests.test_ieee_tc_hit_host_transaction',
+    'tests.test_ieee_tc_transfer_pressure.IntegratedNativeHostReplacement',
+    'tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement']
+with (OUT/'tests.txt').open('x') as log:
+    done = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+                          cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=120)
+resources = p.cgroup_snapshot(group)
+sources = [ROOT/'faaslora/memory/gpu_monitor.py', ROOT/'tests/test_ieee_tc_worker_observation.py',
+           ROOT/'tests/test_ieee_tc_gpu_references.py', ROOT/'tests/test_ieee_tc_transfer_pressure.py', ROOT/'tests/test_ieee_tc_hit_host_transaction.py',
+           ROOT/'faaslora/experiment/instance_pool.py', ROOT/'faaslora/preloading/preloading_planner.py']
+save(OUT/'qualification.json', dict(passed=done.returncode == 0, returncode=done.returncode,
+    tests=tests, identity=identity, resources=resources, gate=gate,
+    plan_sha256=p.check_plan(), seal=p.verify_seal(seal_path), user_manifest_sha256=user_sha,
+    source_shas={str(path): p.digest(path) for path in sources},
+    source_parent_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    cpu_only=True, native_component_measured=False, full_performance_run=False, n_correct=None))
+with (OUT/'qualify.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == user_sha
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+print(json.dumps(dict(passed=done.returncode == 0, output=str(OUT), resources=resources)))
+assert done.returncode == 0

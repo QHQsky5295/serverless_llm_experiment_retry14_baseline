@@ -1,0 +1,11 @@
+"""Same checks; anchor the retained protection seal outside attempt subdirs."""
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+source = (raw.parent/'attempt2/qualify_executed.py.snapshot').read_text().replace(
+    'd882_replacement_cost_fusion/attempt2', 'd882_replacement_cost_fusion/attempt3')
+source = source.replace("RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json'",
+    "Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')")
+with (raw/'qualify_executed.py.snapshot').open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(raw/'qualify_executed.py.snapshot'), 'exec'), globals())

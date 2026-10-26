@@ -1,0 +1,83 @@
+"""Close CPU-only candidate evidence with the existing protection utilities."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d882_replacement_cost_fusion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+def read(path):
+    return json.loads(path.read_text())
+
+def ref(path):
+    return dict(path=str(path),sha256=p.digest(path))
+
+assert os.sched_getaffinity(0) == {2,3,26,27}
+scope = p.scope_identity(p.cg_path().name)
+save(RAW/'closure_identity.json',scope)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+identities = [RAW/name for name in ('qualification_identity.json','attempt2/qualification_identity.json',
+    'attempt3/qualification_identity.json','analysis_identity.json','component_identity.json')]
+for path in identities:
+    identity = read(path)
+    assert not p.scope_still_owned(identity) and not Path(identity['path']).exists()
+qualification = read(OUT/'attempt3/qualification.json')
+assert qualification['passed']
+for path,sha in qualification['source_shas'].items():
+    assert p.digest(Path(path)) == sha
+assert read(OUT/'component_equivalence.json')['passed']
+counts = read(OUT/'historical_counts.json')
+assert counts['counts']['native_host']['attempts'] == 3445
+assert counts['counts']['gpu']['missing_receipts'] == 8
+for evidence in (qualification,read(OUT/'qualification.json'),read(OUT/'component_resources.json')):
+    resources = evidence['resources']
+    assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+seal = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+protected = p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count'] == 147
+user = {str(ROOT/'configs/generated/lora_manifest_1000.json'):
+    '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'}
+for path,sha in user.items(): assert p.digest(Path(path)) == sha
+protocols = {
+    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'):'d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',
+}
+for path,sha in protocols.items(): assert p.digest(path) == sha
+execution = OUT/'execution'
+execution.mkdir(exist_ok=False)
+for path in sorted(RAW.rglob('*')):
+    if path.is_file() and (path.suffix == '.py' or path.name.endswith('.py.snapshot') or
+            path.name in ('template.sha256','qualification_identity.json','resource_gate.json')):
+        if path.suffix == '.py' or path.name.endswith('.py.snapshot'):
+            compile(path.read_text(),str(path),'exec')
+        target = execution/(str(path.relative_to(RAW)).replace('/','__') + '.snapshot')
+        with target.open('xb') as handle: handle.write(path.read_bytes())
+save(OUT/'attempts.json', dict(
+    read_only_probes=['d8820000000000000000000000000001','d8820000000000000000000000000002','d8820000000000000000000000000003'],
+    tests=[dict(attempt=1,tests=322,passed=321,errors=1,reason='pre-existing fixture lacks private-build reservation API'),
+           dict(attempt=2,tests_started=False,reason='retained seal resolved relative to attempt subdirectory'),
+           dict(attempt=3,tests=322,passed=322,errors=0)],
+    component=[dict(attempt=1,passed=False,reason='asserted all fixture calls have HOST fallback; actual legal GPU-only input'),
+               dict(attempt=2,passed=True,cases=2)],
+    failed_analysis_final_resource_snapshot=None,
+    new_gpu_replays=0, changed_production_policy=False))
+doc = ROOT/'docs/ieee_tc/D882_REPLACEMENT_COST_FUSION_20261026.md'
+save(OUT/'closure.json', dict(passed=True,scope=scope,closed_tasks=[read(path) for path in identities],
+    protected=protected,user_protected=user,doc=ref(doc),protocols=[ref(path) for path in protocols],
+    tests=322,production_changes=['faaslora/memory/gpu_monitor.py','faaslora/preloading/preloading_planner.py'],
+    new_gpu_replays=0,n_correct=None,ranking_eligible=False,confidence_interval=None,
+    next='One D883 full 3B W2, same D870 configuration/D725 profile; no extra short replay',
+    disk_free_bytes=os.statvfs(ROOT).f_bavail*os.statvfs(ROOT).f_frsize))
+save(OUT/'final_manifest.json',dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True,protected=147,tests=322,new_gpu_replays=0)))

@@ -654,7 +654,8 @@ class NativeWorkerRecheck(unittest.TestCase):
         worker.model_runner = SimpleNamespace(lora_manager=loader)
         worker._ieee_host_allocator_policy = {'verified': False}
         owner = SimpleNamespace(manager=native, snapshot=Mock(return_value={}),
-            staged_models=lambda: {}, host_workspace_check=Mock(return_value=None))
+            staged_models=lambda: {}, host_workspace_check=Mock(return_value=None),
+            host_construction_reserved_bytes=Mock(return_value=0))
         with patch('faaslora.memory.residency_manager.IEEEBackendGPUReferences',
                    return_value=owner) as factory, \
              patch.object(vllm, '__version__', '0.30.0'), \
@@ -689,6 +690,7 @@ class NativeWorkerRecheck(unittest.TestCase):
             inventory.assert_called_once()
             self.assertEqual(allocator.call_count, 2)
             self.assertEqual(owner.host_workspace_check.call_count, 2)
+            self.assertEqual(owner.host_construction_reserved_bytes.call_count, 2)
             allocator.return_value = stats(allocated=4096)
             self.assertFalse(recheck(before_check=before, tensor_budget_bytes=2048)['admitted'])
             allocator.return_value = stats()

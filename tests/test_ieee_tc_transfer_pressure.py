@@ -2179,15 +2179,12 @@ class MixedOwnedPreparation(unittest.TestCase):
                 result = snapshot() if operation in ('source_snapshot', 'routing_source_snapshot') else getattr(owner, operation)(**kw)
             return dict(result, worker_pid=os.getpid(), clock_id=local_monotonic_clock_id())
         async def prepare(**kw):
-            from faaslora.preloading.preloading_planner import (native_gpu_fallback_costs,
-                native_host_replacement_costs)
-            fallbacks = native_gpu_fallback_costs(objective=kw['replacement_epoch'],
-                                                 native_inventory=snapshot()['native_footprints'])
+            from faaslora.preloading.preloading_planner import native_replacement_costs
             file_fallbacks = kw.pop('host_file_fallbacks', None)
+            fallbacks, host_costs = native_replacement_costs(objective=kw['replacement_epoch'],
+                native_inventory=snapshot()['native_footprints'], file_fallbacks=file_fallbacks)
             if file_fallbacks is not None:
-                kw['host_replacement_costs'] = native_host_replacement_costs(
-                    objective=kw['replacement_epoch'], native_inventory=snapshot()['native_footprints'],
-                    file_fallbacks=file_fallbacks)
+                kw['host_replacement_costs'] = host_costs
             return dict(owner.proactive_host_prepare_and_acquire(**kw, fallback_costs=fallbacks,
                 decide=lambda *_: dict(admit=True, reason='admit')), clock_id=local_monotonic_clock_id())
         slot.engine.ieee_gpu_reference = AsyncMock(side_effect=reference)
