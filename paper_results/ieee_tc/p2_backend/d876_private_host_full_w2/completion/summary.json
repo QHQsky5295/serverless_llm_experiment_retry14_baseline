@@ -1,0 +1,41 @@
+{
+  "kind": "candidate_profile_binding_start_failure_v1",
+  "closure_passed": true,
+  "performance_passed": false,
+  "classification": "protocol_or_launcher_error",
+  "cause": "new private HOST configuration was not accompanied by a matching native service profile",
+  "n_plan": 4000,
+  "n_arrived": 0,
+  "n_submitted": 0,
+  "n_terminal": 0,
+  "n_correct": null,
+  "gpu_seconds_observed": 0.0,
+  "gpu_seconds": null,
+  "ranking_eligible": false,
+  "native_release": true,
+  "service_scope_removed": true,
+  "remote_services_stopped": true,
+  "physical_link_mbps": 1000,
+  "physical_link_duplex": "full",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/3b_max3_full_w2/launch.json": "9301f98d08c76873a9e1cc0ea3c1103e96b51fe79aa8ae055ae08af259559d63",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/3b_max3_full_w2/launch.launch/service.log": "3fae7286018d97ae6359bfbe4e282ac6d3739e282b180b8eecc9ab6bcbb4ea9b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/3b_max3_full_w2/launch.launch/replay.jsonl": "1cf05502a6b5a7ee67aa8ea5cd9ffdaaa499d47f82c2e6dbcd640c3ee26cb9d3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/3b_max3_full_w2/launch.launch/physical_deployment/physical_resource_summary.json": "29f36d9d387ee831484b6f9063e05c28d98a126c21dbc5429f96c89d93ebec83",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/remote_start.log": "e725e8f0128cdc74adcbba42876c9f2f60392c5c7160fd50f40af5aaa0786bf2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/remote_stop.log": "767fcbd3fa20ac50dc6641bf918ba66750e9b16da2159ab485f74b74e9269afe",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/backup.json": "abce1aca87424c42a18eabcb823cc97ce6348689b547e1758a4b8e11e6c38f29",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d876_20261026/start_receipt.json": "124a22ea3957aaf6cecddc312d5f3ae3ece5da0f86b1d21f1cd2b57ce979993b"
+  },
+  "next": "Reuse D725 source matrix and exporter with the qualified candidate; then one full new-key W2",
+  "changes_to_frozen_slo": false,
+  "changes_to_resident_reference": false
+}

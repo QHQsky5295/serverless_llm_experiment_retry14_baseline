@@ -22,3 +22,20 @@ N_correct未知时仍未知，不能把4000原生长度成功直接叫4000数值
 汇总目录：`paper_results/ieee_tc/p2_backend/d876_private_host_full_w2/`。
 重型运行前后不压缩/扫描/构建其他任务，监控磁盘及内存；结束后复用既有
 complete/native_and_lifecycle/close_delivery分析器，保留失败与不足。目标前不绘图。
+
+## 实际尝试：到达前拒绝，不产生性能点
+
+已备份提交`bef55873a9084a962d3e6a272d097443a04309b0`后启动。原生远端服务
+健康，链路1000Mb/s/full。ScenarioRunner在加载D725服务标定时拒绝新的
+`ieee_host_construction`配置身份：`service profile model/configuration/context mismatch`。
+这是候选注册没有同步补齐测量初始化的遗漏，不通过删除身份字段、关闭检查
+或更改旧profile标签来通过。
+
+原计划4000请求，实际到达/提交/终态均0，无GPU allocation。U_obs=0是启动
+前观察，不是低成本成功；正式U及N_correct为null、排名不合格。全套资源和
+远端两服务/monitor已正常释放，失败目录永久保留。
+
+下一步只补本候选受影响的source-matrix标定，复用D725最终有效423请求索引、
+原工件/trace、`run_d298_capacity_source.sh`和`export_d701_3b_profile`；不新造
+负载、不重做共同SLO或Resident参考。取得匹配新身份的真实初始化测量后再
+执行完整新键W2。当前D875资格仍有效，D870仍是最新完整性能，不宣称改善。

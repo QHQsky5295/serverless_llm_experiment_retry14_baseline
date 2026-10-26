@@ -1,0 +1,73 @@
+"""Retain the zero-arrival profile binding failure and close resources honestly."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'3b_max3_full_w2'
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d876_private_host_full_w2/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT,text=True,stderr=subprocess.STDOUT,timeout=55).strip()
+assert os.sched_getaffinity(0)=={2,3,26,27}
+identity=p.scope_identity(p.cg_path().name)
+save(RAW/'close_start_failure_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RUN/'launch.json')
+assert not launch['pass'] and launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
+physical=read(RUN/'launch.launch/physical_deployment/physical_resource_summary.json')
+assert physical['n_plan']==4000 and physical['n_terminal']==0 and not physical['allocation_journals']
+assert physical['physical_gpu_seconds_total'] is None and physical['n_correct'] is None
+events=[json.loads(line) for line in (RUN/'launch.launch/replay.jsonl').read_text().splitlines()]
+incomplete=[event for event in events if event['event']=='replay_incomplete']
+assert len(incomplete)==1 and incomplete[0]['N_arrived']==incomplete[0]['N_submitted']==0
+log=(RUN/'launch.launch/service.log').read_text()
+assert 'service profile model/configuration/context mismatch' in log
+remote=(RAW/'remote_stop.log').read_text()
+assert remote.count('ActiveState=inactive')==3 and remote.count('MainPID=0')==3
+assert (RAW/'remote_start.log').read_text().splitlines()[:2]==['1000','full']
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+OUT.mkdir(parents=True,exist_ok=False)
+refs=[RUN/'launch.json',RUN/'launch.launch/service.log',RUN/'launch.launch/replay.jsonl',
+    RUN/'launch.launch/physical_deployment/physical_resource_summary.json',RAW/'remote_start.log',
+    RAW/'remote_stop.log',RAW/'backup.json',RAW/'start_receipt.json']
+save(OUT/'summary.json',dict(kind='candidate_profile_binding_start_failure_v1',
+    closure_passed=True,performance_passed=False,classification='protocol_or_launcher_error',
+    cause='new private HOST configuration was not accompanied by a matching native service profile',
+    n_plan=4000,n_arrived=0,n_submitted=0,n_terminal=0,n_correct=None,
+    gpu_seconds_observed=0.,gpu_seconds=None,ranking_eligible=False,
+    native_release=True,service_scope_removed=True,remote_services_stopped=True,
+    physical_link_mbps=1000,physical_link_duplex='full',protected=protected,
+    refs={str(path):p.digest(path) for path in refs},
+    next='Reuse D725 source matrix and exporter with the qualified candidate; then one full new-key W2',
+    changes_to_frozen_slo=False,changes_to_resident_reference=False))
+with (OUT/'close_start_failure.py.snapshot').open('xb') as stream:stream.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path)) for path in sorted(OUT.iterdir())]))
+assert git('rev-parse','HEAD')=='bef55873a9084a962d3e6a272d097443a04309b0'
+assert not git('diff','--cached','--name-only')
+paths=['docs/ieee_tc/EXECUTION_STATUS.md','docs/ieee_tc/D876_PRIVATE_HOST_FULL_W2_20261026.md']
+paths += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+secret=re.compile(r'-----BEGIN (?:OPENSSH |RSA |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]+')
+for path in paths:assert not secret.search((ROOT/path).read_text())
+git('diff','--check','--',*paths)
+git('add','--',*paths)
+assert set(git('diff','--cached','--name-only').splitlines())==set(paths)
+git('diff','--cached','--check')
+branch='refs/heads/backup/d876-profile-start-failure-20261026'
+assert not git('ls-remote','faaslora_origin',branch)
+git('commit','-m','tc: retain D876 pre-arrival profile binding failure and next calibration')
+commit=git('rev-parse','HEAD')
+save(RAW/'close_commit.json',dict(commit=commit,ref=branch,paths=paths))
+subprocess.run(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+branch],cwd=ROOT,check=True,timeout=55)
+assert git('ls-remote','faaslora_origin',branch).split()==[commit,branch]
+save(RAW/'close_backup.json',dict(passed=True,commit=commit,ref=branch,final_v2_synced=False,files=len(paths)))
+print(json.dumps(dict(closed=True,commit=commit,ref=branch,n_arrived=0)))

@@ -1,4 +1,22 @@
-# IEEE TC execution status — D875 native private HOST qualified; D876 full W2 registered
+# IEEE TC execution status — D875 native qualified; D876 stopped before arrivals by profile identity
+
+### D875/D876备份与D876启动后实际结果
+
+30个明确文件提交`bef55873a9084a962d3e6a272d097443a04309b0`，推送并核验
+`refs/heads/backup/d875-native-d876-full-ready-20261026`；用户manifest未stage，
+最终V2仍未同步。D876真实启动但在ScenarioRunner加载服务标定时明确拒绝：
+`service profile model/configuration/context mismatch`。新native HOST开关改变
+严格模型身份，而D725标定仍对应旧配置。N_plan4000、arrived/submitted/
+terminal0、无allocation；U_obs=0不作完整成本，N_correct与正式U仍null。
+本机scope/GPU和远端两个服务/monitor均释放，实际链路仍1000Mb/s full。
+
+这是未补齐候选标定身份的启动失败，不是性能退化，也不是完成4000请求。
+不删除匹配检查、不给旧测量换新标签、不直接重跑同配置。下一步复用D725
+最终有效的423条原生source-matrix及export入口，为这个已通过原生资格的
+候选补齐受影响的服务/准备初始化标定，然后新键完整3B W2。不重新做232项
+资格、短Full、旧原因profiling或共同SLO/Resident参考；95%/预算均不变。
+参考最终入口`run_d298_capacity_source.sh d725`及D725 `complete.py`，不要
+复用历史首次失败启动器。当前无运行，完整范围继续开放，goal active。
 
 ## 2026-10-26 D875：真实原生资格通过，返回完整回放
 
