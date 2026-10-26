@@ -17463,7 +17463,12 @@ class ScenarioRunner:
                     else:
                         receipt = refs.release(
                             lease_id=hold['lease_id'], expected_owner_id=hold['owner_id'])
-                    if not isinstance(receipt, dict) or receipt.get('released') is not True:
+                    # The process-owned LocalSourceReferences.release command
+                    # returns None on success.  In-process adapters may return
+                    # an explicit receipt; both are valid acknowledgements.
+                    if (receipt is not None
+                            and (not isinstance(receipt, dict)
+                                 or receipt.get('released') is not True)):
                         raise RuntimeError('retained file lease release was not acknowledged')
                 except BaseException as exc:
                     failures.append(exc)
@@ -19885,8 +19890,12 @@ class ScenarioRunner:
                             receipt = references.release(
                                 lease_id=held['lease_id'],
                                 expected_owner_id=held['owner_id'])
-                        if (not isinstance(receipt, dict)
-                                or receipt.get('released') is not True):
+                        # The process-owned LocalSourceReferences.release
+                        # command returns None on success.  In-process
+                        # adapters may return an explicit receipt instead.
+                        if (receipt is not None
+                                and (not isinstance(receipt, dict)
+                                     or receipt.get('released') is not True)):
                             raise RuntimeError('file fallback lease release was not acknowledged')
                     except BaseException as exc:
                         remaining.append(held)
@@ -19965,6 +19974,7 @@ class ScenarioRunner:
             superseded = False
             native_started = False
             native_outcome_known = False
+            file_release_error = None
             try:
                 # The coroutine is the boundary at which the native owner may
                 # accept the command.  Before it starts, ordinary cleanup is
@@ -20010,7 +20020,15 @@ class ScenarioRunner:
                     await release_file_holds()
                 raise
             else:
-                await release_file_holds()
+                try:
+                    await release_file_holds()
+                except BaseException as exc:
+                    # A confirmed native receipt still owns a GPU operation;
+                    # do not skip its release merely because file protection
+                    # cleanup reported an independent owner error.  The exact
+                    # file holds remain retained by the helper and are dealt
+                    # with after engine exit.
+                    file_release_error = exc
             evidence['receipt'] = receipt
             if receipt.get('acquired') is True:
                 evidence['state'] = 'releasing'
@@ -20033,8 +20051,12 @@ class ScenarioRunner:
                     evidence['preparation_interval'] = interval
                 if cancelled or release_cancelled or file_release_cancelled:
                     raise asyncio.CancelledError()
+                if file_release_error is not None:
+                    raise file_release_error
                 return MovementOutcome('completed', dict(adapter_int_id=aid, receipt=receipt,
                     reused=source['gpu_slot'] is not None, release_receipt=released))
+            if file_release_error is not None:
+                raise file_release_error
             if cancelled:
                 raise asyncio.CancelledError()
             if superseded:
