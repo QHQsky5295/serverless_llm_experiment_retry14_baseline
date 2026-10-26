@@ -21566,17 +21566,25 @@ class ScenarioRunner:
                             reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
                     # Re-observe and pin atomically against publishers/reclaimers;
                     # no network, native RPC or await is allowed inside this lock.
+                    expected_content_sha256 = self._ieee_artifact_identities[adapter_id]['content_sha256']
                     if hasattr(owner, 'call_async'):
-                        view = await owner.call_async('source_snapshot', adapter_id=adapter_id)
-                        candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
-                        if not candidates:
-                            raise RuntimeError('completed remote materialization has no verified source')
-                        source = candidates[0]
+                        # Selection and lease installation must be one owner
+                        # transaction.  A snapshot followed by a second RPC
+                        # admits an epoch TOCTOU race: another confirmed
+                        # publication can advance the source frontier between
+                        # the two calls even though the exact source is still
+                        # valid.  ``acquire_best`` performs the same HOST then
+                        # NVMe choice under the owner's lock and returns the
+                        # installed lease, so no stale epoch is carried across
+                        # the process boundary.
                         reference = await owner.call_async(
-                            'acquire_confirmed', path=source['path'], adapter_id=adapter_id,
-                            lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'],
-                            expected_epoch=view['epoch'],
-                            expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                            'acquire_best', adapter_id=adapter_id,
+                            lease_id=uuid.uuid4().hex,
+                            content_sha256=expected_content_sha256)
+                        if reference is None:
+                            raise RuntimeError('completed remote materialization has no verified source')
+                        source = {'path': reference['path'], 'tier': reference['tier'],
+                                  'content_sha256': reference['confirmed_source']['content_sha256']}
                     else:
                         with owner.lock:
                             view = owner.source_snapshot(adapter_id)
@@ -21586,7 +21594,7 @@ class ScenarioRunner:
                             source = candidates[0]
                             reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
                                 lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
-                                expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                                expected_content_sha256=expected_content_sha256)
                 reservation.local_source_owner = manager
                 reservation.gpu_reference_evidence['local_source_reference'] = reference
                 self._nvme_cache[adapter_id] = source['path']
