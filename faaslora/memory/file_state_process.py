@@ -402,6 +402,36 @@ class _ProcessContext:
         return False
 
 
+class _AsyncProcessContext:
+    """Async counterpart used by request/preparation event-loop paths.
+
+    Entry and exit are still independent owner commands.  The child therefore
+    never holds a context lock while the caller performs byte I/O, and a
+    cancelled request is joined by ``call_async`` before its context is closed.
+    """
+
+    def __init__(self, owner, kind, begin_operation, begin_args):
+        self._owner = owner
+        self._kind = kind
+        self._begin_operation = begin_operation
+        self._begin_args = dict(begin_args)
+        self._context_id = None
+        self.value = None
+
+    async def __aenter__(self):
+        receipt = await self._owner.call_async(self._begin_operation, **self._begin_args)
+        self._context_id = receipt['context_id']
+        self.value = receipt['value']
+        return self.value
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if self._context_id is None:
+            return False
+        context_id, self._context_id = self._context_id, None
+        await self._owner.call_async('end_' + self._kind, context_id=context_id)
+        return False
+
+
 class ProcessLocalSourceReferences:
     """Value-only facade for a :class:`FileStateProcess` owner.
 
@@ -599,17 +629,35 @@ class ProcessLocalSourceReferences:
                                dict(target=target, replacement_epoch=replacement_epoch,
                                     budgeted=budgeted))
 
+    def async_materializing(self, target, *, replacement_epoch=None, budgeted=False):
+        return _AsyncProcessContext(self, 'materialization', 'begin_materialization',
+                                    dict(target=target, replacement_epoch=replacement_epoch,
+                                         budgeted=budgeted))
+
     def transfer_workspace(self, transfer_id):
         return _ProcessContext(self, 'workspace', 'begin_workspace',
                                dict(transfer_id=transfer_id))
+
+    def async_transfer_workspace(self, transfer_id):
+        return _AsyncProcessContext(self, 'workspace', 'begin_workspace',
+                                    dict(transfer_id=transfer_id))
 
     def file_movement_interest(self, *, intent_id, target, content_sha256, required):
         return _ProcessContext(self, 'interest', 'begin_interest', dict(
             intent_id=intent_id, target=target, content_sha256=content_sha256,
             required=required))
 
+    def async_file_movement_interest(self, *, intent_id, target, content_sha256, required):
+        return _AsyncProcessContext(self, 'interest', 'begin_interest', dict(
+            intent_id=intent_id, target=target, content_sha256=content_sha256,
+            required=required))
+
     def mutation(self, path, *, transfer_id=None):
         return _ProcessContext(self, 'mutation', 'begin_mutation', dict(
+            path=path, transfer_id=transfer_id))
+
+    def async_mutation(self, path, *, transfer_id=None):
+        return _AsyncProcessContext(self, 'mutation', 'begin_mutation', dict(
             path=path, transfer_id=transfer_id))
 
     def publish_transfer(self, transfer_id, staging, target, *, verified_files=None):

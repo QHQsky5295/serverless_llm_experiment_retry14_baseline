@@ -9,6 +9,7 @@ allocation and preemption remain the backend's authority.
 import asyncio
 import contextvars
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -445,7 +446,9 @@ class SharedFileTransferDomain:
             # protect/use the verified output while this SAME owned operation
             # settles conservative pressure acknowledgements in its finally.
             if on_io_joined is not None:
-                on_io_joined(result)
+                joined = on_io_joined(result)
+                if inspect.isawaitable(joined):
+                    await joined
             return result
         except BaseException as exc:
             if isinstance(exc, UnresolvedTransferOperation):

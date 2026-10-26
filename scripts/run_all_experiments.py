@@ -47,6 +47,7 @@ Transformers 后端与实验真实性
 import argparse
 import asyncio
 import concurrent.futures
+from contextlib import asynccontextmanager
 import copy
 import gc
 import hashlib
@@ -70,6 +71,13 @@ from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Sequence, Tuple
+
+
+@asynccontextmanager
+async def _async_wrap_context(context):
+    """Use a legacy synchronous owner context from an async call site."""
+    with context:
+        yield context.value if hasattr(context, 'value') else None
 
 
 def _apply_allocator_import_defaults(environment):
@@ -17728,8 +17736,14 @@ class ScenarioRunner:
                     or reference.get('adapter_id') != adapter_id
                     or reference.get('path') != local_path):
                 raise ValueError('atomic file demand requires the selected owned file source')
-            intent['file_source_witness'] = local_owner.local_source_references.demand_witness(
-                reference, content_sha256=intent.get('expected_content_sha256'))
+            refs = local_owner.local_source_references
+            if hasattr(refs, 'call_async'):
+                intent['file_source_witness'] = await refs.call_async(
+                    'demand_witness', reference=reference,
+                    content_sha256=intent.get('expected_content_sha256'))
+            else:
+                intent['file_source_witness'] = refs.demand_witness(
+                    reference, content_sha256=intent.get('expected_content_sha256'))
         if cached_only:
             intent['required_source_tier'] = selected_source.tier
         if guarded_source is not None:
@@ -18138,20 +18152,39 @@ class ScenarioRunner:
         elif source['tier'] in ('host', 'nvme'):
             manager = self._stack.residency_manager
             try:
-                reference = manager.local_source_references.acquire_confirmed(
-                    path=source['path'], adapter_id=reservation.adapter_id,
-                    lease_id=uuid.uuid4().hex, expected_owner_id=source['owner_id'],
-                    expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'])
+                refs = manager.local_source_references
+                lease_id = uuid.uuid4().hex
+                def adopt_file_reference(value):
+                    reservation.local_source_owner = manager
+                    evidence['local_source_reference'] = value
+                if hasattr(refs, 'call_async'):
+                    reference = await refs.call_async(
+                        'acquire_confirmed', on_result=adopt_file_reference,
+                        path=source['path'], adapter_id=reservation.adapter_id,
+                        lease_id=lease_id, expected_owner_id=source['owner_id'],
+                        expected_epoch=source['epoch'],
+                        expected_content_sha256=source['content_sha256'])
+                else:
+                    reference = refs.acquire_confirmed(
+                        path=source['path'], adapter_id=reservation.adapter_id,
+                        lease_id=lease_id, expected_owner_id=source['owner_id'],
+                        expected_epoch=source['epoch'],
+                        expected_content_sha256=source['content_sha256'])
             except ConfirmedSourceConflict as exc:
                 evidence['file_source_conflict'] = str(exc)
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
-            reservation.local_source_owner = manager
-            evidence['local_source_reference'] = reference
+            if not hasattr(refs, 'call_async'):
+                reservation.local_source_owner = manager
+                evidence['local_source_reference'] = reference
         elif source['tier'] == 'remote':
             # No local copy is borrowed. Do not turn an intervening completed
             # file publication into a request classified as a Remote miss.
-            current = self._stack.residency_manager.local_source_references.source_snapshot(reservation.adapter_id)
+            refs = self._stack.residency_manager.local_source_references
+            if hasattr(refs, 'call_async'):
+                current = await refs.call_async('source_snapshot', adapter_id=reservation.adapter_id)
+            else:
+                current = refs.source_snapshot(reservation.adapter_id)
             if current['owner_id'] != source['owner_id'] or current['epoch'] != source['epoch']:
                 evidence['file_source_conflict'] = 'Remote source view changed before admission'
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
@@ -19631,27 +19664,27 @@ class ScenarioRunner:
                 raise ValueError('GPU preparation acknowledgement owner/clock differs')
             return value
         source_feedback = {}
-        def checked_binding_conflict(observed):
+        async def checked_binding_conflict(observed):
             conflict = native_preparation_source_conflict(frozen=frozen, observed=observed,
                                                         binding_targets=targets)
             references = self._stack.residency_manager.local_source_references
             confirmations = []
-            with references.lock:
-                for change in conflict['changed_source_bindings']:
-                    aid, name = change['adapter_int_id'], change['adapter_id']
-                    identity = self._ieee_artifact_identities[name]
-                    content = (rows[aid]['content_sha256'] if mixed else
-                        rows[aid]['host_class']['layout_id'].removeprefix('exact_content_sha256:'))
-                    if (InferenceEngine._lora_int_id(name) != aid
-                            or identity['rank'] != change['rank']
-                            or identity['content_sha256'] != content):
-                        raise ValueError('GPU objective source copy contradicts the immutable registry')
-                    files = references.source_snapshot(name)
-                    copies = confirmed_file_copy_pair(files=files, file_owner_id=references.owner_id,
-                        adapter_id=name, content_sha256=content,
-                        expected_path=change['expected_lora_path'], observed_path=change['observed_lora_path'])
-                    confirmations.append(dict(adapter_id=name, content_sha256=content,
-                        file_owner_id=references.owner_id, file_epoch=files['epoch'], confirmed_files=copies))
+            for change in conflict['changed_source_bindings']:
+                aid, name = change['adapter_int_id'], change['adapter_id']
+                identity = self._ieee_artifact_identities[name]
+                content = (rows[aid]['content_sha256'] if mixed else
+                    rows[aid]['host_class']['layout_id'].removeprefix('exact_content_sha256:'))
+                if (InferenceEngine._lora_int_id(name) != aid
+                        or identity['rank'] != change['rank']
+                        or identity['content_sha256'] != content):
+                    raise ValueError('GPU objective source copy contradicts the immutable registry')
+                files = (await references.call_async('source_snapshot', adapter_id=name)
+                         if hasattr(references, 'call_async') else references.source_snapshot(name))
+                copies = confirmed_file_copy_pair(files=files, file_owner_id=references.owner_id,
+                    adapter_id=name, content_sha256=content,
+                    expected_path=change['expected_lora_path'], observed_path=change['observed_lora_path'])
+                confirmations.append(dict(adapter_id=name, content_sha256=content,
+                    file_owner_id=references.owner_id, file_epoch=files['epoch'], confirmed_files=copies))
             return conflict, confirmations
         async def execute(aid, attempt_id):
             row = rows[aid]
@@ -19679,7 +19712,7 @@ class ScenarioRunner:
                 evidence.update(state='source_identity_conflict', expected_source=dict(
                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
-                self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
+                await self._supersede_ieee_native_file_copy_async(observed=current, owner_id=owner_id,
                     adapter_id=row['adapter_id'], source_path=row['lora_path'],
                     plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
             cpu_ids = set(current['registered_cpu_adapter_ids'])
@@ -19689,7 +19722,7 @@ class ScenarioRunner:
                     and (r.get('adapter_id') != rows[r['adapter_int_id']]['adapter_id']
                          or r.get('content_sha256') != rows[r['adapter_int_id']].get('content_sha256'))
                     for r in current['sources'])):
-                conflict, copies = checked_binding_conflict(current)
+                conflict, copies = await checked_binding_conflict(current)
                 evidence.update(state='superseded', prepare_rpc_submitted=False, binding_confirmations=copies)
                 raise PreparationPlanSuperseded(dict(plan_id=plan_id,
                     plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective_binding')
@@ -19712,31 +19745,44 @@ class ScenarioRunner:
                     # Hold each actual fastest remaining file copy before the
                     # native transaction. No predicted path or stale snapshot
                     # is used as a fallback after CPU/GPU reclamation.
-                    with references.lock:
-                        for registered_aid in current['registered_cpu_adapter_ids']:
-                            victim = rows[registered_aid]
-                            view = references.source_snapshot(victim['adapter_id'])
-                            local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
-                            if local:
-                                fallback = local[0]
-                                held = references.acquire_confirmed(path=fallback['path'],
+                    process_owner = hasattr(references, 'call_async')
+                    for registered_aid in current['registered_cpu_adapter_ids']:
+                        victim = rows[registered_aid]
+                        view = (await references.call_async('source_snapshot', adapter_id=victim['adapter_id'])
+                                if process_owner else references.source_snapshot(victim['adapter_id']))
+                        local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
+                        if local:
+                            fallback = local[0]
+                            if process_owner:
+                                held = await references.call_async(
+                                    'acquire_confirmed', path=fallback['path'],
                                     adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
                                     expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
                                     expected_content_sha256=victim['content_sha256'])
-                                file_holds.append(held)
-                                # The read pin revalidates this copy and may
-                                # refresh its bounded physical allocation. Bind
-                                # all fallback fields to that single confirmed
-                                # observation, not the earlier planning view.
-                                confirmed = held['confirmed_source']
-                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
-                                                footprint_bytes=confirmed['allocated_file_bytes'])
                             else:
-                                fallback, held = victim['remote_fallback'], None
-                            file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
+                                with references.lock:
+                                    held = references.acquire_confirmed(path=fallback['path'],
+                                        adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
+                                        expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                                        expected_content_sha256=victim['content_sha256'])
+                            file_holds.append(held)
+                            # The read pin revalidates this copy and may
+                            # refresh its bounded physical allocation. Bind
+                            # all fallback fields to that single confirmed
+                            # observation, not the earlier planning view.
+                            confirmed = held['confirmed_source']
+                            fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
+                                            footprint_bytes=confirmed['allocated_file_bytes'])
+                        else:
+                            fallback, held = victim['remote_fallback'], None
+                        file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
                 except BaseException:
                     for held in file_holds:
-                        references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                        if process_owner:
+                            await references.call_async('release', lease_id=held['lease_id'],
+                                                        expected_owner_id=held['owner_id'])
+                        else:
+                            references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
                     raise
             evidence['host_file_fallbacks'] = file_fallbacks
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
@@ -19761,7 +19807,7 @@ class ScenarioRunner:
                             or receipt['source_observation'].get('epoch') != receipt['epoch']):
                         raise ValueError('GPU objective rejection does not match its submitted command')
                     if receipt['reason'] == 'preparation_source_binding_changed':
-                        conflict, copies = checked_binding_conflict(receipt['source_observation'])
+                        conflict, copies = await checked_binding_conflict(receipt['source_observation'])
                         if (receipt.get('native_operation_applied') is not False
                                 or receipt.get('changed_source_bindings') != conflict['changed_source_bindings']):
                             raise ValueError('GPU binding rejection lacks its matching no-operation witness')
@@ -19775,7 +19821,11 @@ class ScenarioRunner:
                 # Retain unknown ownership; do not make them evictable.
                 raise
             for held in file_holds:
-                references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                if hasattr(references, 'call_async'):
+                    await references.call_async('release', lease_id=held['lease_id'],
+                                                expected_owner_id=held['owner_id'])
+                else:
+                    references.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
             evidence['host_file_fallbacks_released'] = True
             evidence['receipt'] = receipt
             if receipt.get('acquired') is True:
@@ -19947,6 +19997,26 @@ class ScenarioRunner:
                     stage=exc.stage, receipt=exc.receipt))
                 raise
 
+    async def _supersede_ieee_native_file_copy_async(self, *, observed, owner_id, adapter_id,
+            source_path, plan_id, stage, record):
+        """Async variant for the process-owned file-state path."""
+        from faaslora.preloading.preloading_planner import (
+            supersede_confirmed_native_file_copy, PreparationPlanSuperseded)
+        references = self._stack.residency_manager.local_source_references
+        identity = self._ieee_artifact_identities[adapter_id]
+        files = (await references.call_async('source_snapshot', adapter_id=adapter_id)
+                 if hasattr(references, 'call_async') else references.source_snapshot(adapter_id))
+        try:
+            supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
+                adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
+                lora_path=str(source_path), expected_rank=identity['rank'],
+                content_sha256=identity['content_sha256'], files=files,
+                file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
+        except PreparationPlanSuperseded as exc:
+            record.update(state='superseded', preparation_supersession=dict(
+                stage=exc.stage, receipt=exc.receipt))
+            raise
+
     async def _queue_ieee_native_host_preparation(self, *, slot, adapter_id, source_path,
             trigger_reason, plan_id, activation_id=None, density=0.):
         """Confirmed file -> native CPU tensor on the existing movement queue.
@@ -20017,7 +20087,7 @@ class ScenarioRunner:
                 record['source_identity_conflict'] = dict(attempt_id=attempt_id,
                     expected_source=dict(adapter_id=adapter_id, lora_path=str(source_path)),
                     observed_source=copy.deepcopy(native), observed_epoch=observed['epoch'])
-                self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
+                await self._supersede_ieee_native_file_copy_async(observed=observed, owner_id=owner_id,
                     adapter_id=adapter_id, source_path=source_path, plan_id=plan_id,
                     stage='native_target_copy', record=record)
             if native is not None and native['gpu_slot'] is not None:
@@ -20027,14 +20097,24 @@ class ScenarioRunner:
             # the same owner lock, then release the lock before any native RPC.
             # Routing's independently selected stale-snapshot rejection remains
             # strict; this is the preparation path's current-source acquisition.
-            with references.lock:
-                state = references.source_snapshot(adapter_id)
+            if hasattr(references, 'call_async'):
+                state = await references.call_async('source_snapshot', adapter_id=adapter_id)
                 source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
                 if source is None or source['content_sha256'] != content:
                     raise ValueError('native HOST preparation has no matching confirmed file source')
-                file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                file_ref = await references.call_async(
+                    'acquire_confirmed', path=str(source_path), adapter_id=adapter_id,
                     lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
                     expected_epoch=state['epoch'], expected_content_sha256=content)
+            else:
+                with references.lock:
+                    state = references.source_snapshot(adapter_id)
+                    source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
+                    if source is None or source['content_sha256'] != content:
+                        raise ValueError('native HOST preparation has no matching confirmed file source')
+                    file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                        lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
+                        expected_epoch=state['epoch'], expected_content_sha256=content)
             evidence = dict(attempt_id=attempt_id, file_reference=file_ref, state='file_held')
             record['attempts'].append(evidence)
             known = True
@@ -20082,7 +20162,11 @@ class ScenarioRunner:
                 return await self._run_ieee_file_transfer(adapter_id, source['tier'], 'native_host', engine, owned_materialize)
             finally:
                 if known:
-                    references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
+                    if hasattr(references, 'call_async'):
+                        await references.call_async('release', lease_id=file_ref['lease_id'],
+                                                    expected_owner_id=file_ref['owner_id'])
+                    else:
+                        references.release(lease_id=file_ref['lease_id'], expected_owner_id=file_ref['owner_id'])
                     evidence['file_reference_released'] = True
                 else:
                     # Lost replies can still have a reader/pin. The failed run
@@ -20488,12 +20572,16 @@ class ScenarioRunner:
         if mode == 'handoff' and not activation_id:
             raise ValueError('file handoff requires its actual activation identity')
         references = self._stack.residency_manager.local_source_references
+        async def file_call(operation, **kwargs):
+            if hasattr(references, 'call_async'):
+                return await references.call_async(operation, **kwargs)
+            return getattr(references, operation)(**kwargs)
         queue = self._stack.preloading_manager.ieee_movements
         replacement_epoch = None
         if replacement_costs is not None:
             from faaslora.preloading.preloading_planner import freeze_file_replacement_epoch
             replacement_epoch = freeze_file_replacement_epoch(
-                file_snapshot=references.replacement_source_snapshot(), plan=plan,
+                file_snapshot=await file_call('replacement_source_snapshot'), plan=plan,
                 identities=self._ieee_artifact_identities, profiles=self._preparation_profiles,
                 costs=replacement_costs)
         options = {(row['artifact_id'], row['target']['tier']): row for row in plan['options']}
@@ -20542,7 +20630,7 @@ class ScenarioRunner:
                                   and bool(recipes))
         if owned_file_replacement:
             replacement_epoch = objectives['file']
-        registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
+        registration = await file_call('register_file_preparation_plan', plan_id=plan_id, targets=targets.values())
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
             state='registered', registration=registration, started_at=time.monotonic(), results=[])
@@ -20606,13 +20694,13 @@ class ScenarioRunner:
                         raise PreparationPlanSuperseded(conflict, stage='native_file_fallback')
                     if cancelled:
                         raise asyncio.CancelledError()
-                record['fallback_binding'] = references.bind_file_native_fallbacks(plan_id=plan_id,
+                record['fallback_binding'] = await file_call('bind_file_native_fallbacks', plan_id=plan_id,
                     objective=replacement_epoch, receipts=[e['receipt'] for e in native_fallbacks])
             fallback_ready.set()
         record['native_fallbacks'] = native_fallbacks
         async def release_native_fallbacks():
             async with fallback_cleanup_lock:
-                references.unbind_file_native_fallbacks(plan_id=plan_id)
+                await file_call('unbind_file_native_fallbacks', plan_id=plan_id)
                 interrupted_cleanup = False
                 unresolved = False
                 for evidence in native_fallbacks:
@@ -20651,7 +20739,8 @@ class ScenarioRunner:
         async def execute(candidate, row, content):
             await fallback_ready.wait()
             aid, tier = candidate.artifact_id, candidate.target_tier.value
-            state = references.source_snapshot(aid)
+            state = (await references.call_async('source_snapshot', adapter_id=aid)
+                     if hasattr(references, 'call_async') else references.source_snapshot(aid))
             sources = {s['tier']: s for s in state['sources']}
             if any(s['content_sha256'] != content for s in sources.values()):
                 raise ValueError('file plan execution observed different content')
@@ -20670,8 +20759,12 @@ class ScenarioRunner:
             # copy; successful queue return joins publication and cleanup.
             for target_tier, target_aid in targets:
                 if target_aid == aid:
-                    references.finish_file_preparation_target(plan_id=plan_id,
-                        tier=target_tier, adapter_id=aid)
+                    if hasattr(references, 'call_async'):
+                        await references.call_async('finish_file_preparation_target', plan_id=plan_id,
+                                                    tier=target_tier, adapter_id=aid)
+                    else:
+                        references.finish_file_preparation_target(plan_id=plan_id,
+                            tier=target_tier, adapter_id=aid)
             record['results'].append(dict(adapter_id=aid, target_tier=tier, result=result))
             return result
         gpu_staging = {}
@@ -20693,7 +20786,7 @@ class ScenarioRunner:
                     record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
                         expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
                         observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])
-                    self._supersede_ieee_native_file_copy(observed=observed,
+                    await self._supersede_ieee_native_file_copy_async(observed=observed,
                         owner_id=gpu_objective['owner_id'], adapter_id=aid,
                         source_path=row['lora_path'], plan_id=native_plan_id,
                         stage='native_staging_copy', record=record)
@@ -20736,7 +20829,11 @@ class ScenarioRunner:
                 for _, _, row in gpu_recipes.values():
                     for tier, aid in targets:
                         if aid == row['adapter_id']:
-                            references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
+                            if hasattr(references, 'call_async'):
+                                await references.call_async('finish_file_preparation_target', plan_id=plan_id,
+                                                            tier=tier, adapter_id=aid)
+                            else:
+                                references.finish_file_preparation_target(plan_id=plan_id, tier=tier, adapter_id=aid)
                 record['results'].extend(dict(adapter_id=row['adapter_id'], target_tier='gpu', result=value)
                     for (_, _, row), value in zip(gpu_recipes.values(), result))
                 return result
@@ -20819,7 +20916,7 @@ class ScenarioRunner:
                         for (tier, aid), target in targets.items()))
                     # No task handoff between the final target observation and
                     # the owner's existing atomic close invariant.
-                    return joined, references.close_file_preparation_plan(plan_id=plan_id)
+                    return joined, await file_call('close_file_preparation_plan', plan_id=plan_id)
                 (joined, closed), interrupted = await settle(close_files_after_join())
                 cancelled |= interrupted
                 record['shared_target_joins'] = joined
@@ -20863,6 +20960,10 @@ class ScenarioRunner:
         manager = self._stack.residency_manager
         queue = self._stack.preloading_manager.ieee_movements
         references = manager.local_source_references
+        async def file_call(operation, **kwargs):
+            if hasattr(references, 'call_async'):
+                return await references.call_async(operation, **kwargs)
+            return getattr(references, operation)(**kwargs)
         if replacement_epoch is not None:
             from faaslora.preloading.preloading_planner import validate_file_replacement_epoch
             replacement_epoch = copy.deepcopy(replacement_epoch)
@@ -20890,7 +20991,7 @@ class ScenarioRunner:
         async def execute(attempt_id):
             # A completed old Future is never a residency claim. Re-observe
             # the physical owner each time before deciding a copy is reusable.
-            state = references.source_snapshot(adapter_id)
+            state = await file_call('source_snapshot', adapter_id=adapter_id)
             for source in state['sources']:
                 if source['tier'] == target_tier.value:
                     if source['content_sha256'] != content or source['path'] != str(target):
@@ -20901,11 +21002,11 @@ class ScenarioRunner:
                 if target_tier != StorageTier.NVME or self._remote_artifact_client is None:
                     raise ValueError('remote preparation must enter the owned NVMe stage')
                 transfer = {}
-                def io_ready(value):
+                async def io_ready(value):
                     ok, elapsed = value
                     if not ok:
                         raise RuntimeError('remote movement did not publish its target')
-                    observed = references.source_snapshot(adapter_id)
+                    observed = await file_call('source_snapshot', adapter_id=adapter_id)
                     if not any(s['tier'] == target_tier.value and s['path'] == str(target)
                                and s['content_sha256'] == content for s in observed['sources']):
                         raise RuntimeError('file readiness lacks matching confirmed publication')
@@ -20923,7 +21024,7 @@ class ScenarioRunner:
                 result = await self._materialize_confirmed_source_async(adapter_id, source_path,
                     target_tier, target_engine=target_engine, _movement_owned=True,
                     expected_content_sha256=content, replacement_epoch=replacement_epoch)
-            observed = references.source_snapshot(adapter_id)
+            observed = await file_call('source_snapshot', adapter_id=adapter_id)
             if not any(s['tier'] == target_tier.value and s['path'] == str(target)
                        and s['content_sha256'] == content for s in observed['sources']):
                 raise RuntimeError('file movement lacks matching confirmed publication')
@@ -20936,8 +21037,12 @@ class ScenarioRunner:
                 # Actual file IO/source cleanup and native pressure settlement
                 # have already joined. Only a real owner event enables recheck.
                 return MovementOutcome('deferred', reason=str(exc))
-        with references.file_movement_interest(intent_id=intent_id, target=target,
-                content_sha256=content, required=trigger_reason == 'demand'):
+        context = (references.async_file_movement_interest if hasattr(references, 'call_async')
+                   else references.file_movement_interest)
+        with_context = context(intent_id=intent_id, target=target,
+                               content_sha256=content, required=trigger_reason == 'demand')
+        async with (with_context if hasattr(references, 'call_async')
+                    else _async_wrap_context(with_context)):
             job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
                 intent_id=intent_id, metadata=metadata, density=density, action=attempt,
                 demand=trigger_reason == 'demand')
@@ -21088,13 +21193,19 @@ class ScenarioRunner:
         """
         total = self.model_cfg.get('ieee_host_budget_bytes')
         if total is not None:
-            self._stack.residency_manager.local_source_references.configure_host_budget(total)
+            references = self._stack.residency_manager.local_source_references
+            if hasattr(references, 'call_async'):
+                await references.call_async('configure_host_budget', limit_bytes=total)
+            else:
+                references.configure_host_budget(total)
         if self.model_cfg.get('ieee_admission_profile') is None:
             if engine is not None:
                 await self._attach_ieee_host_budget(engine)
             result = await operation()
             if on_io_joined is not None:
-                on_io_joined(result)
+                joined = on_io_joined(result)
+                if inspect.isawaitable(joined):
+                    await joined
             return result
         domain = self._ieee_file_pressure_domain()
         # Runtime activation joins the domain before pool publication. Its
@@ -22249,6 +22360,7 @@ def _apply_preloading_env_overrides(preload_cfg: Dict[str, Any]) -> Tuple[Dict[s
         _parse_env_bool,
     )
     _apply("FAASLORA_GPU_DYNAMIC_FORWARDING_ENABLED", "gpu_dynamic_forwarding_enabled", _parse_env_bool)
+    _apply("FAASLORA_FILE_STATE_PROCESS", "file_state_process", _parse_env_bool)
     _apply(
         "FAASLORA_HOST_PROMOTION_ON_NVME_HIT_ENABLED",
         "host_promotion_on_nvme_hit_enabled",

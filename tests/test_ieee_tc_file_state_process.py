@@ -225,6 +225,19 @@ class FileStateProcessTests(unittest.TestCase):
         finally:
             facade.close()
 
+    def test_async_facade_context_joins_entry_and_exit(self):
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+        try:
+            async def check():
+                async with facade.async_file_movement_interest(
+                        intent_id='async-interest', target=self.nvme / 'a',
+                        content_sha256='0' * 64, required=True):
+                    snapshot = await facade.call_async('source_snapshot', adapter_id='a')
+                    self.assertEqual(snapshot['owner_id'], facade.owner_id)
+            asyncio.run(check())
+        finally:
+            facade.close()
+
     def test_residency_manager_process_owner_constructs_and_closes_in_pytest_module(self):
         config = ExperimentConfig({
             'registry': {'backend': 'memory'},
