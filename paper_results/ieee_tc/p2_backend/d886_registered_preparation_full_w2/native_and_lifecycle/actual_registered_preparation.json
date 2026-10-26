@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "counts": {
+    "plans": 2886,
+    "attempts": 4043,
+    "same_transaction_registered_preparation": 1360,
+    "not_acquired:stale_snapshot": 1084,
+    "existing_gpu_reused": 94,
+    "allocation_precheck_unmarked": 1495,
+    "missing_receipt": 5,
+    "not_acquired:replacement_benefit_not_greater_than_loss": 5
+  },
+  "successful_leases": 2949,
+  "populations": [
+    {
+      "transaction_scope": "budgeted_staging_joint_cpu_gpu_commit",
+      "precheck_scope": "process_pinned_allocator_plus_registered_and_staged_pageable_tensors",
+      "before_storage_observation": "unmarked",
+      "transactions": 54
+    },
+    {
+      "transaction_scope": "budgeted_staging_joint_cpu_gpu_commit",
+      "precheck_scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+      "before_storage_observation": "unmarked",
+      "transactions": 1368
+    },
+    {
+      "transaction_scope": "native_host_to_preallocated_gpu",
+      "precheck_scope": "process_pinned_allocator_plus_registered_and_staged_pageable_tensors",
+      "before_storage_observation": "unmarked",
+      "transactions": 73
+    },
+    {
+      "transaction_scope": "native_host_to_preallocated_gpu",
+      "precheck_scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+      "before_storage_observation": "same_transaction_registered_preparation_v1",
+      "transactions": 1360
+    }
+  ],
+  "mechanism_triggered": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d886_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "85cbac4a77ae02d8487236f6d81e0fdbc4e9a228ef174f29f9b3d75aa7e7ad35"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "01ba761b98178bc51eb53f8380dfaf24919bfa44f563672185a02fc4c3a8fe2c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "ba096152107469e4807a1e4427927e9409d600d0f89b54ce8048374cb5599e92"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d886_20261026/native_and_lifecycle.py",
+      "sha256": "d0b3eca00fa57d3429be42de73731a65eed5aecf4f610a5b5f2d0a6a41fc2d8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d884_20261026/analyze.py",
+      "sha256": "6315cc991220bb39a15436fc24032fcf35f2f7956d33f7c838e3d8506fa04441"
+    }
+  ],
+  "scope": "Actual successful preparation transaction markers and recorded boundary invariants. Not per-request benefit, removed time, independent tensor equivalence, numerical correctness, or a causal speedup estimate.",
+  "n_correct": null,
+  "ranking_eligible": false
+}

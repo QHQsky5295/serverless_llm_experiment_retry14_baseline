@@ -1,0 +1,34 @@
+"""D886: reuse D883's explicit-path, protected-result completion backup.
+
+Only campaign identity, actual remote-monitor SHA and qualification description
+change. Preserve evidence and user dirt; no force push or final-V2 overwrite.
+"""
+import hashlib
+from pathlib import Path
+
+raw = Path(__file__).resolve().parent
+template = raw.parent / 'd883_20261026/backup_program.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == (
+    '18b0584d7249e5702e3a7df21471f195ecdd1d232e7131b5d4d8debcb406eb95')
+source = template.read_text()
+changes = (
+    ('d883_cost_fusion_full_w2', 'd886_registered_preparation_full_w2'),
+    ('D883_COST_FUSION_FULL_W2_20261026.md',
+     'D886_REGISTERED_PREPARATION_FULL_W2_20261026.md'),
+    ('61a83ec4af79aec8254d76e66b603806c945332233ebd443b129297c82be88b2',
+     '6aeff0e27e6a407705d33d62fd215c33660c680c11a29ece2be1ae9be95c1e69'),
+    ('Reuse D882 322 semantic checks and D883 4 run-contract checks.',
+     'Reuse D885 328 semantic checks plus two expanded boundary checks and D886 four run-contract checks.'),
+    ('tc: preserve D883 complete W2 cost-fusion observation and lifecycle evidence',
+     'tc: preserve D886 complete W2 preparation observation and close micro-optimization direction'),
+    ('refs/heads/backup/d883-complete-20261026',
+     'refs/heads/backup/d886-complete-20261026'),
+)
+for old, new in changes:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+target = raw / 'backup_program.py.snapshot'
+compile(source, str(target), 'exec')
+with target.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(target), 'exec'), globals())

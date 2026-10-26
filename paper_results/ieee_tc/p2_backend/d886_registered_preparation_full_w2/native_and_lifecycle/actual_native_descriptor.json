@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "all_requests": 4000,
+  "owners": [
+    {
+      "owner_id": "16b09b7902c840be855056db2f29f527",
+      "worker_pid": 3597050,
+      "worker_rank": 0,
+      "requests": 1326
+    },
+    {
+      "owner_id": "9d2a5ce1e1434e61bb6b99a6b5a05200",
+      "worker_pid": 3595267,
+      "worker_rank": 0,
+      "requests": 1396
+    },
+    {
+      "owner_id": "d846e3fb097242c9837ac640bbf7ed25",
+      "worker_pid": 3597189,
+      "worker_rank": 0,
+      "requests": 1278
+    }
+  ],
+  "native_host_descriptor": {
+    "kind": "fresh_native_tensor_descriptor_v1",
+    "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "torch_version": "2.13.0+cu130",
+    "python_abi": "cpython-312",
+    "tensor_state_cached": false
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d886_20261026/3b_max3_full_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d886_3b_max3_full_w2.json",
+      "sha256": "1ac392388fb0c2d7b8fcf91e79f191a4a633c23a817fd6615cf12fb104917253",
+      "bytes": 331661897
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/native_host_descriptor.py",
+      "sha256": "badbca7add2a1653c7e761acc5a25b16b077a1be27fd27238a9838a5c2bc6d0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "01ba761b98178bc51eb53f8380dfaf24919bfa44f563672185a02fc4c3a8fe2c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d886_20261026/native_and_lifecycle.py",
+      "sha256": "d0b3eca00fa57d3429be42de73731a65eed5aecf4f610a5b5f2d0a6a41fc2d8f"
+    }
+  ],
+  "scope": "All request acquisition receipts report the default per-tensor descriptor entry and exact qualified library. This is executed-worker configuration coverage, not a per-call invocation count or independent numerical adapter proof.",
+  "n_correct": null,
+  "ranking_eligible": false
+}

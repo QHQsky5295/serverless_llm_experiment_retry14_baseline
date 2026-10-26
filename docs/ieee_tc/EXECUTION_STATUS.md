@@ -1,4 +1,116 @@
-# IEEE TC execution status — D886 registered for one full 3B W2; no new result yet
+# IEEE TC execution status — D886 complete; 3B W2 below joint SLO; close this microdirection
+
+## D886完成、证据收尾与下一主线（2026-10-26 18:21 CST）
+
+同一次4000请求回放完成：4000成功/原生合同匹配，TTFT/TPOT/E2E重算误差0；
+实际GPU与服务域释放，两个远端工件服务及监控已停止。没有同键重跑、生产
+修改或阈值调整。启动90a242a；完整goal仍active，不把完成本轮当全计划完成。
+
+共同D648评价：联合3750/4000=93.750%，TTFT3825、TPOT3917；U11936.649579442106，
+小于共同预算12083.063870235463。平均/P95 TTFT708.185964/2058.673564ms，
+平均/P95 TPOT15.599105/26.695655ms；平均/P95 E2E2467.428640/5212.829972ms。
+比D883联合少3条（−0.075百分点），U多1.835995，P95 TTFT少95.212589ms；
+比D870联合少23条。仍差50条达95%，独立数值证明未知，N_correct=null，
+不进入G1/G2达标排名，不输出CI或整体优越结论。指标原文及单轮V2已重读。
+
+真实新事务标识1360次，2886计划/4043attempts，成功2949leases，stale1084、
+收益不足5、缺回执5均保留。4000请求native descriptor与3实际owner核验通过。
+配对159条joint fail→pass、162条pass→fail。全请求平均TTFT下降14.805ms，
+其中到达→准入下降10.570、准入→acquired下降1.851；不把这些观测因果归于
+少一次图清点。505次真实fetch/1172100920字节，内容/owner/settlement通过。
+服务峰值33180139520B，high/max/OOM/swap0，最小主机可用96787902464B；
+分析均在3/4GiB、swap0、CPU2/3/26/27，现已退出。147旧项和用户manifest不变。
+测量最低磁盘156032237568B；自动回收后171336376320B（约159.6GiB）。不为
+收尾另清唯一资产或再做全盘扫描；下个重型任务照常检查150GiB及新增余量。
+
+**关闭D885/D886重复清点微优化方向**：有实际触发但无主目标改善，不继续
+短Full、profiling、同键重跑或叠加小组件微调。实现暂不再改，不晋升性能
+贡献。下一唯一分析问题是已有日志的服务等待：250条违约中167仅TTFT、75
+仅TPOT、8双违约；175条TTFT违约有131条最大阶段为准入→取得adapter、44
+条为到达→准入。对照历史关闭项及现有协调/准备时间线，识别系统关键路径，
+没有具体新证据不重开旧方向。尚未批准/实现另一候选，不新跑诊断矩阵。
+
+详见D886_REGISTERED_PREPARATION_FULL_W2_20261026.md及curated completion、
+delivery_closure、native_and_lifecycle。当前进行明确文件备份，实际回执以
+raw/backup_completion.json为准；不stage用户manifest、不force push，最终V2
+仍未同步。两模型同版本W0/W1/W2/G1/G2、剩余baseline/dLoRA、A1–A5/S1–S13、
+独立数值证明、两轮审稿文档/图表和最终交付全部保留；达标前不画图。
+
+### D886半程监测（2026-10-26 17:39:26 CST）
+
+本轮verified wait：已重读完整计划与状态，复用monitor-experiment；同一
+tmux/实际EngineCore3595267/watchdog3593418持续存活，终态已推进至2038/4000，
+全部success及native_contract_matched。3张GPU持有、无foreign compute；
+服务峰值25916051456B，high/max/OOM/swap0，主机可用98232377344B，无保护告警。
+未改生产源/配置/阈值/负载/远端服务，未分析大日志、维护、构建或push。
+尚无终态launch.json，不给全4000 SLO/GPU-s或独立数值正确性结论。
+
+磁盘162600706048B（约151.44GiB），接近下一重型任务150GiB启动门槛，
+仍高于本轮100GiB停止线。本轮测量中不清理；结束后若低于启动余量，
+先复用既有维护办法，核查已闭口且可重建的旧缓存/已封存证据无损压缩，
+不得删除本轮尚待审计cache、唯一工件、原始/失败证据或修改保护门槛。
+不以维护替代完整收尾和后续主线。监测session24635继续；下一步仍是完整
+回放及真实释放，再按deferred_analysis_preparation.json依次核验与比较。
+全部未完成矩阵/消融/敏感性/数值证明/图文/V2保留，goal active。
+
+### D886四分之一负载监测（2026-10-26 17:25:14 CST）
+
+本轮verified wait：同一EngineCore3595267/watchdog3593418与tmux持续存活，
+终态770→847→877→907→1007，1007成功且原生合同匹配；尚无launch.json终态。
+3张GPU持有，foreign compute为空，服务峰值20992983040B，high/max/OOM/swap0；
+主机可用98475585536B，磁盘167062478848B，保护监控无告警。
+这不是共同SLO统计或数值正确性证明。没有更改代码、阈值、负载或远端服务，
+未执行分析/维护/构建/push；本轮沿用monitor-experiment及session24635。
+继续同键完整回放，结束后真实释放→既有离线核验→比较→备份。完整未完成
+范围不变，goal保持active，不因正常等待标blocked或启动下一候选。
+
+### D886持续推进及收尾入口准备（2026-10-26 17:18:34 CST）
+
+同一tmux、EngineCore3595267和watchdog3593418已重新核验；544/4000终态，
+544成功/原生合同匹配，未完成。3张GPU、无外来计算，服务峰值18447798272B，
+high/max/OOM/swap0，主机可用98735534080B，磁盘169367289856B；无保护事件。
+计划SHA仍为d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83。
+
+只读核对D883统计入口并按新目录复制复用complete.py、close_delivery.py、
+native_and_lifecycle.py，立即比较父版改为D883。末项复用D884流式事务统计，
+补D885真实before_storage_observation标识及其记录边界检查，不推造节省时间。
+仅ast.parse通过；未运行分析、未读取大结果、未改变生产或本轮输入。
+raw/deferred_analysis_preparation.json记录模板/生成SHA和待执行顺序。
+这不是新资格门槛或实验结果。完成且真实释放后，在既有3/4GiB、swap0、
+CPU2/3/26/27辅助范围依次执行，再核验全部来源、分析结论和备份。
+
+当前继续等待完整回放，监测session24635；禁止因观察超时重启同键。完整
+双模型矩阵、baseline/dLoRA、A1–A5/S1–S13、数值证明及最终图文/V2均保留。
+
+### D886持续监测（2026-10-26 17:11:53 CST）
+
+本轮为verified wait：已核验tmux、实际VLLM EngineCore PID3595267及
+watchdog PID3593418持续存活，请求终态从52→97→135→169推进，169成功、
+169原生合同匹配。3张GPU持有，foreign compute为空；服务峰值17037332480B，
+high/max/OOM/swap0，主机可用99016171520B，磁盘171036520448B。没有终态
+launch.json，未完成4000回放，不给新性能/正确性结论，不触发重启或重跑。
+只读监测工具session24635每50秒输出既有watchdog与进度，出现launch.json或
+tmux消失后结束；下一轮先核验同一运行/监测handle，不新开候选。无生产修改、
+清理/压缩/构建/push。后续实验与最终交付范围不变，完整goal active。
+
+### D886实际启动回执（2026-10-26 17:07:46 CST）
+
+四项启动合同检查通过，D885的328+2项资格复用；147旧投稿项、用户manifest
+和冻结输入SHA通过。启动commit 90a242a507921f9835a9a91161e8fc74b1eb3b95
+已备份并核验refs/heads/backup/d886-registered-preparation-full-w2-20261026。
+未stage用户manifest，未force push，最终V2仍未同步。真实远端链路读回
+1000/full，D80已发布工件服务已启动；不动共享k3s，不重复发布缓存。
+
+完整回放正在运行，tmux为tc-d886-3b-registered-preparation-full-w2；实际服务域
+primelora-tc-svc-1b1172c521e94e9ba8b381e674a42872.scope，InvocationID为
+6c9cf73f87c645b1a0cb39d2b9cf6324。17:07:46采样已出现5条终态，5成功且
+原生合同匹配，3张GPU实际持有。服务峰值17037332480B，high/max/OOM/swap0，
+主机可用98395541504B，无保护告警。此为进度不是4000请求结果或数值正确性
+证明；尚无新SLO/GPU时间结论。raw/initial_monitor.json及启动回执已保存。
+
+下一动作只监测本轮实际进度与自动释放；不重启、不重跑同键、不并发维护或
+启动下一候选。完成后按已登记顺序核验、比较及备份，再决定主线。全量未完成
+范围如下保留；完整goal继续active。本回执随下一正常检查点保存，测量中不push。
 
 ## D886启动前登记（2026-10-26）
 

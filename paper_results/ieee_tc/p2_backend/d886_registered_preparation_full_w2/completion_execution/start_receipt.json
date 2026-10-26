@@ -1,0 +1,13 @@
+{
+  "launched": true,
+  "head": "90a242a507921f9835a9a91161e8fc74b1eb3b95",
+  "backup_ref": "refs/heads/backup/d886-registered-preparation-full-w2-20261026",
+  "tmux": "tc-d886-3b-registered-preparation-full-w2",
+  "identity": {
+    "unit": "primelora-tc-aux-d8860000000000000000000000000002.scope",
+    "invocation_id": "98c444d439bb4357ba2cd80d8853b56f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8860000000000000000000000000002.scope",
+    "inode": 33065951
+  },
+  "qualification_sha256": "dc5412fa406c4c2797bc8d60c3b67f508a30106855ee1052de070e5107ddb31d"
+}
