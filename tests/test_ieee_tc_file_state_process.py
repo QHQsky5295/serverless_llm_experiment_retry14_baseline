@@ -252,6 +252,14 @@ class FileStateProcessTests(unittest.TestCase):
             ))
             self.assertEqual(snapshot['artifacts']['a']['content_sha256'],
                              preparation_content_sha256(files))
+            content = preparation_content_sha256(files)
+            registration = asyncio.run(facade.call_async(
+                'register_file_preparation_plan',
+                plan_id='process-plan',
+                targets={'a': dict(adapter_id='a', tier='nvme', content_sha256=content)}.values(),
+            ))
+            self.assertTrue(registration['registered'])
+            asyncio.run(facade.call_async('close_file_preparation_plan', plan_id='process-plan'))
         finally:
             facade.close()
 

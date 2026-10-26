@@ -458,6 +458,9 @@ class ProcessLocalSourceReferences:
             args = dict(args)
             args['manifests'] = self._serializable_preparation_manifests(args['manifests'])
             args['limits'] = dict(args['limits'])
+        elif operation == 'register_file_preparation_plan':
+            args = dict(args)
+            args['targets'] = list(args['targets'])
         return await self.process.call_async(operation, on_result=on_result, **args)
 
     def subscribe_file_changes(self, subscriber_id, callback):
@@ -550,7 +553,8 @@ class ProcessLocalSourceReferences:
         return self._call('file_preparation_snapshot')
 
     def register_file_preparation_plan(self, *, plan_id, targets):
-        return self._call('register_file_preparation_plan', plan_id=plan_id, targets=targets)
+        return self._call('register_file_preparation_plan', plan_id=plan_id,
+                          targets=list(targets))
 
     def finish_file_preparation_target(self, *, plan_id, tier, adapter_id, **kwargs):
         return self._call('finish_file_preparation_target', plan_id=plan_id, tier=tier,

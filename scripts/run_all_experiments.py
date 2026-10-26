@@ -20662,7 +20662,11 @@ class ScenarioRunner:
                                   and bool(recipes))
         if owned_file_replacement:
             replacement_epoch = objectives['file']
-        registration = await file_call('register_file_preparation_plan', plan_id=plan_id, targets=targets.values())
+        registration = await file_call(
+            'register_file_preparation_plan',
+            plan_id=plan_id,
+            targets=list(targets.values()),
+        )
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
             state='registered', registration=registration, started_at=time.monotonic(), results=[])
