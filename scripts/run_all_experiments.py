@@ -14752,6 +14752,11 @@ class ScenarioRunner:
                 allocation = getattr(slot.engine, '_physical_allocation', None)
                 if allocation is None or allocation.released is not True:
                     raise RuntimeError('runtime cleanup requires confirmed physical release')
+            # Any file lease retained because a native preparation RPC lacked
+            # a terminal receipt is safe to release only after this worker has
+            # exited and its physical allocation has been returned.  This is
+            # the second half of the fail-closed ownership protocol.
+            await self._release_ieee_unresolved_file_holds(slot.engine)
             await self._retire_ieee_host_budget(slot.engine)
             await self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
@@ -17404,6 +17409,74 @@ class ScenarioRunner:
             adapter_int_id=intent['adapter_int_id'],
             completion=asyncio.get_running_loop().create_future())
 
+    def _retain_ieee_unresolved_file_holds(self, *, engine, references, holds, evidence):
+        """Retain file protection until the owning native process has exited.
+
+        A native preparation RPC can be cancelled after the worker accepted the
+        command but before the controller receives a terminal receipt.  The
+        file leases must remain live in that interval because the worker may
+        still read the protected copies.  They become releasable only after the
+        corresponding engine shutdown has been acknowledged.  Keep this
+        second-stage ownership explicit instead of leaking leases or releasing
+        them speculatively from the cancelled preparation task.
+        """
+        if not holds:
+            return
+        pending = getattr(self, '_ieee_unresolved_file_holds', None)
+        if pending is None:
+            pending = self._ieee_unresolved_file_holds = []
+        seen = {(item['owner_id'], item['lease_id'])
+                for entry in pending for item in entry['holds']}
+        retained = []
+        for hold in holds:
+            if not isinstance(hold, dict):
+                continue
+            key = (hold.get('owner_id'), hold.get('lease_id'))
+            if not all(isinstance(value, str) and value for value in key) or key in seen:
+                continue
+            seen.add(key)
+            retained.append(dict(owner_id=key[0], lease_id=key[1]))
+        if not retained:
+            return
+        pending.append(dict(engine=engine, references=references, holds=retained,
+                            evidence=evidence))
+        evidence['unresolved_file_holds'] = copy.deepcopy(retained)
+
+    async def _release_ieee_unresolved_file_holds(self, engine):
+        """Release file leases retained for a native engine after its exit."""
+        pending = getattr(self, '_ieee_unresolved_file_holds', None)
+        if not pending:
+            return
+        remaining, failures = [], []
+        for entry in pending:
+            if entry['engine'] is not engine:
+                remaining.append(entry)
+                continue
+            refs = entry['references']
+            unreleased = []
+            for hold in entry['holds']:
+                try:
+                    if hasattr(refs, 'call_async'):
+                        receipt = await refs.call_async(
+                            'release', lease_id=hold['lease_id'],
+                            expected_owner_id=hold['owner_id'])
+                    else:
+                        receipt = refs.release(
+                            lease_id=hold['lease_id'], expected_owner_id=hold['owner_id'])
+                    if not isinstance(receipt, dict) or receipt.get('released') is not True:
+                        raise RuntimeError('retained file lease release was not acknowledged')
+                except BaseException as exc:
+                    failures.append(exc)
+                    unreleased.append(hold)
+            if unreleased:
+                entry['holds'] = unreleased
+                remaining.append(entry)
+            else:
+                entry['evidence']['unresolved_file_holds_released_after_engine_exit'] = True
+        self._ieee_unresolved_file_holds = remaining
+        if failures:
+            raise RuntimeError('retained native file leases remain unresolved') from failures[0]
+
     def _settle_native_reference_intent(self, reservation, kind, outcome):
         evidence = reservation.gpu_reference_evidence
         section = evidence if kind == 'gpu' else evidence.get('native_host_source', {})
@@ -19877,7 +19950,12 @@ class ScenarioRunner:
             except BaseException:
                 evidence['state'] = 'native_outcome_unresolved'
                 # The RPC may still be reclaiming against these exact copies.
-                # Retain unknown ownership; do not make them evictable.
+                # Retain unknown ownership; do not make them evictable.  Once
+                # the owning engine has exited, _cleanup_removed_slot releases
+                # these exact leases through the same file owner.
+                self._retain_ieee_unresolved_file_holds(
+                    engine=engine, references=references, holds=file_holds,
+                    evidence=evidence)
                 raise
             for held in file_holds:
                 if hasattr(references, 'call_async'):
@@ -20228,6 +20306,9 @@ class ScenarioRunner:
                     # Lost replies can still have a reader/pin. The failed run
                     # retains ownership, rather than evicting an in-use file.
                     evidence['state'] = 'native_outcome_unresolved'
+                    self._retain_ieee_unresolved_file_holds(
+                        engine=engine, references=references, holds=[file_ref],
+                        evidence=evidence)
         intent = uuid.uuid4().hex
         # Same native owner/tier/content coalesces CPU work, but never aliases a
         # tmpfs file copy whose owner is the shared file-domain ID.
