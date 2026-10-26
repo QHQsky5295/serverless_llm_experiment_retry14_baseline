@@ -20141,14 +20141,9 @@ class ScenarioRunner:
             # Routing's independently selected stale-snapshot rejection remains
             # strict; this is the preparation path's current-source acquisition.
             if hasattr(references, 'call_async'):
-                state = await references.call_async('source_snapshot', adapter_id=adapter_id)
-                source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
-                if source is None or source['content_sha256'] != content:
-                    raise ValueError('native HOST preparation has no matching confirmed file source')
                 file_ref = await references.call_async(
-                    'acquire_confirmed', path=str(source_path), adapter_id=adapter_id,
-                    lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
-                    expected_epoch=state['epoch'], expected_content_sha256=content)
+                    'acquire_confirmed_current', path=str(source_path), adapter_id=adapter_id,
+                    lease_id=uuid.uuid4().hex, expected_content_sha256=content)
             else:
                 with references.lock:
                     state = references.source_snapshot(adapter_id)

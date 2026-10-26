@@ -48,7 +48,7 @@ _METHODS = frozenset({
 _COMPOSITE = frozenset({
     'identity', 'begin_materialization', 'end_materialization',
     'begin_workspace', 'end_workspace', 'begin_interest', 'end_interest',
-    'publish_transfer', 'acquire_best', 'delete', 'reserve_native_host',
+    'publish_transfer', 'acquire_best', 'acquire_confirmed_current', 'delete', 'reserve_native_host',
     'retire_native_host', 'quiescent', 'begin_mutation',
     'acquire_confirmed_with_manifest',
 })
@@ -129,6 +129,23 @@ def _dispatch(operation, args):
                 raise ValueError('file source differs from frozen adapter content')
             return _OWNER.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
                 lease_id=lease_id, expected_owner_id=view['owner_id'],
+                expected_epoch=view['epoch'], expected_content_sha256=expected)
+    if operation == 'acquire_confirmed_current':
+        # Exact-path acquisition must also select and confirm under one owner
+        # lock.  A controller-side snapshot followed by acquire_confirmed has
+        # a TOCTOU epoch gap whenever another tier movement publishes a file.
+        with _OWNER.lock:
+            adapter_id, path = args['adapter_id'], str(Path(args['path']).resolve())
+            view = _OWNER.source_snapshot(adapter_id)
+            source = next((row for row in view['sources']
+                           if str(Path(row['path']).resolve()) == path), None)
+            if source is None:
+                raise ValueError('confirmed file source is not currently registered')
+            expected = args['expected_content_sha256']
+            if source['content_sha256'] != expected:
+                raise ValueError('file source differs from frozen adapter content')
+            return _OWNER.acquire_confirmed(path=path, adapter_id=adapter_id,
+                lease_id=args['lease_id'], expected_owner_id=view['owner_id'],
                 expected_epoch=view['epoch'], expected_content_sha256=expected)
     if operation == 'acquire_confirmed_with_manifest':
         with _OWNER.lock:

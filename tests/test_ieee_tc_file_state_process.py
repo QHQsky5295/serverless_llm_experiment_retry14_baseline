@@ -90,6 +90,10 @@ class FileStateProcessTests(unittest.TestCase):
             self.call('acquire_best', adapter_id='a', lease_id='wrong', content_sha256='0' * 64)
         held = self.call('acquire_best', adapter_id='a', lease_id='read', content_sha256=content)
         self.assertEqual(held['owner_id'], self.identity['owner_id'])
+        current = self.call('acquire_confirmed_current', path=self.nvme / 'a',
+                            adapter_id='a', lease_id='read-current',
+                            expected_content_sha256=content)
+        self.assertEqual(current['confirmed_source']['content_sha256'], content)
         self.call('end_interest', context_id=interest['context_id'])
         witness = self.call('demand_witness', reference=held, content_sha256=content)
         self.assertEqual(witness['lease_id'], 'read')
@@ -97,6 +101,7 @@ class FileStateProcessTests(unittest.TestCase):
         self.assertEqual((self.nvme / 'a' / 'weights').read_bytes(), payload)
         released = self.owner.submit('release', lease_id='read', expected_owner_id=held['owner_id'])
         released.result()
+        self.call('release', lease_id='read-current', expected_owner_id=current['owner_id'])
         self.assertIn(('nvme',), released.receipt()['file_changes'])
         self.assertTrue(self.call('delete', path=self.nvme / 'a'))
         self.assertEqual(self.call('source_snapshot', adapter_id='a')['sources'], [])
