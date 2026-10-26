@@ -256,6 +256,62 @@ def _ieee_clone_registered_host_inventory(inventory: Dict[str, Any]) -> Dict[str
     return result
 
 
+def _ieee_registered_host_inventory_from_union(inventory: Dict[str, Any]) -> Dict[str, Any]:
+    """Induce the registered graph from this invocation's fresh staged union.
+
+    The caller has just inventoried every live tensor, including each aliased
+    view's pinning. Remove staged owners, not their nominal byte sizes: shared
+    storage remains charged, and registered-only exclusive capacity can grow.
+    Allocation IDs are local to each graph and are remapped densely; adapter
+    ordering and every consumer-visible footprint remain unchanged. Neither
+    table nor any mutable field is shared with the union. No state is cached.
+
+    This accepts only the producer's runtime schema, not a tensor-view or
+    requested subset observation. Physical validity remains the producer's
+    responsibility and downstream graph validation is unchanged.
+    """
+    fields = {'host_allocations', 'host_adapter_footprints', 'host_tensor_storage_bytes',
+              'host_footprint_scope', 'host_staged_adapter_ids',
+              'host_allocator_overhead_included', 'host_budget_reserved'}
+    if (type(inventory) is not dict or set(inventory) != fields
+            or inventory['host_footprint_scope'] != 'native_registered_and_staged_tensor_storage_capacity'
+            or type(inventory['host_staged_adapter_ids']) is not list
+            or not inventory['host_staged_adapter_ids']
+            or inventory['host_allocator_overhead_included'] is not False
+            or inventory['host_budget_reserved'] is not False):
+        raise ValueError('registered HOST projection requires a fresh staged runtime union')
+    staged = set(inventory['host_staged_adapter_ids'])
+    physical, adapters = [], []
+    remap = [None] * len(inventory['host_allocations'])
+    exclusive = {}
+    for index, row in enumerate(inventory['host_allocations']):
+        if (set(row) != {'allocation_id', 'device', 'allocated_bytes', 'pinned', 'adapter_ids'}
+                or row['allocation_id'] != index):
+            raise ValueError('registered HOST projection allocation schema changed')
+        owners = [aid for aid in row['adapter_ids'] if aid not in staged]
+        if not owners:
+            continue
+        allocation_id = len(physical)
+        remap[index] = allocation_id
+        physical.append({**row, 'allocation_id': allocation_id, 'adapter_ids': owners})
+        if len(owners) == 1:
+            aid = owners[0]
+            exclusive[aid] = exclusive.get(aid, 0) + row['allocated_bytes']
+    for row in inventory['host_adapter_footprints']:
+        if set(row) != {'adapter_int_id', 'rank', 'allocation_ids', 'representation',
+                       'has_packed_modules', 'storage_bytes', 'exclusive_storage_bytes', 'dtypes'}:
+            raise ValueError('registered HOST projection adapter schema changed')
+        aid = row['adapter_int_id']
+        if aid in staged:
+            continue
+        ids = [remap[index] for index in row['allocation_ids']]
+        if None in ids:
+            raise ValueError('registered HOST projection lost an owned allocation')
+        adapters.append({**row, 'allocation_ids': ids, 'dtypes': row['dtypes'].copy(),
+                         'exclusive_storage_bytes': exclusive.get(aid, 0)})
+    return _ieee_host_inventory_result(physical, adapters, None, False, None, None)
+
+
 def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
     """Account allocator-retained pinned blocks, not just reachable LoRA views.
 
@@ -1657,7 +1713,12 @@ class IEEEWorkerObservationExtension:
             # Physical consumers also use allocations/edges/dtypes, not HOST
             # view descriptions. Keep the full fresh graph and all checks;
             # the isolated worker-observation endpoint retains tensor details.
-            host = _ieee_lora_host_inventory(manager, include_tensor_views=False)
+            staged = owner.staged_models() if operation == 'source_snapshot' else {}
+            if staged:
+                union = _ieee_lora_host_inventory(manager, staged_models=staged, include_tensor_views=False)
+                host = _ieee_registered_host_inventory_from_union(union)
+            else:
+                host = _ieee_lora_host_inventory(manager, include_tensor_views=False)
             result['native_footprints'] = {
                 **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
@@ -1665,10 +1726,9 @@ class IEEEWorkerObservationExtension:
                 # Physical observation/admission consumers need staging and
                 # allocator evidence. Routing and initialized planning consume
                 # the complete registered graph above, not these extra reports.
-                staged = owner.staged_models()
                 # This reuse is within one observation, never across calls.
                 result['native_staging_footprints'] = (
-                    _ieee_lora_host_inventory(manager, staged_models=staged, include_tensor_views=False)
+                    union
                     if staged else _ieee_clone_registered_host_inventory(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
                 publisher = getattr(self, '_ieee_metadata_publisher', None)

@@ -456,6 +456,131 @@ class NativeHostIndependentGraphCopy(unittest.TestCase):
                     monitor._ieee_clone_registered_host_inventory(graph)
 
 
+class NativeHostStagedUnionProjection(unittest.TestCase):
+    def fixture(self, staged_id=1):
+        native, models = NativeHostFootprint().native_models()
+        # The early staged ID deliberately discovers the shared allocation
+        # before registered adapter 7's private allocations (different numbering).
+        staged = {staged_id: SimpleNamespace(id=staged_id, rank=4, loras={
+            'first_shared': models[8].loras['shared'],
+            'registered_private': models[7].loras['private']})}
+        return native, models, staged
+
+    @staticmethod
+    def consumer(graph):
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        ids = [r['adapter_int_id'] for r in graph['host_adapter_footprints']]
+        slots = [ids[0] if ids else None, None]
+        pool = dict(uniform_slot_layout=True, slot_adapter_ids=slots,
+            registered_cpu_adapter_ids=ids, slot_capacity_bytes=32, pool_allocated_bytes=64,
+            pool_tensor_views=[{'dtype': 'torch.float16'}])
+        return NativeSourceSnapshot._footprints({**graph, **pool}, tuple(slots), tuple(ids))
+
+    @staticmethod
+    def canonical(graph):
+        # IDs identify vertices only inside one observation. Preserve all edge
+        # multiplicity, capacity/pinning and adapter data when comparing graphs.
+        rows = graph['host_allocations']
+        def allocation(row):
+            return (row['device'], row['allocated_bytes'], row['pinned'], tuple(row['adapter_ids']))
+        adapters = []
+        for row in graph['host_adapter_footprints']:
+            adapters.append({**row, 'allocation_ids': sorted(allocation(rows[i]) for i in row['allocation_ids'])})
+        return {**graph, 'host_allocations': sorted(map(allocation, rows)),
+                'host_adapter_footprints': adapters}
+
+    def test_shared_private_and_interleaved_ids_preserve_graph_and_consumers(self):
+        import copy
+        for staged_id in (1, 6, 9, 11):
+            native, models, staged = self.fixture(staged_id)
+            # Registered 10 makes 9 an interleaved staged ID.
+            models[10] = models.pop(8)
+            models[10].id = 10
+            reference = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+            union = monitor._ieee_lora_host_inventory(native, staged_models=staged, include_tensor_views=False)
+            unchanged = copy.deepcopy(union)
+            actual = monitor._ieee_registered_host_inventory_from_union(union)
+            with self.subTest(staged_id=staged_id):
+                self.assertEqual(self.canonical(actual), self.canonical(reference))
+                self.assertEqual(self.consumer(actual), self.consumer(reference))
+                self.assertEqual(union, unchanged)
+                self.assertEqual(actual['host_adapter_footprints'][0]['exclusive_storage_bytes'], 256)
+                self.assertEqual(union['host_adapter_footprints'][0 if staged_id > 7 else 1]['exclusive_storage_bytes'], 0)
+                if staged_id < 7:
+                    self.assertNotEqual(actual['host_allocations'], reference['host_allocations'])
+
+    def test_staged_only_storage_drops_and_empty_registered_is_valid(self):
+        import torch
+        native, models, staged = self.fixture()
+        extra = SimpleNamespace(lora_a=torch.empty((4, 16)), lora_b=torch.empty((16, 4)))
+        staged[2] = SimpleNamespace(id=2, rank=4, loras={'only_staged': extra})
+        staged[3] = SimpleNamespace(id=3, rank=4, loras={'only_staged': extra})
+        for empty in (False, True):
+            if empty:
+                models.clear()
+            union = monitor._ieee_lora_host_inventory(native, staged_models=staged, include_tensor_views=False)
+            actual = monitor._ieee_registered_host_inventory_from_union(union)
+            expected = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+            self.assertEqual(self.canonical(actual), self.canonical(expected))
+            self.assertEqual(self.consumer(actual), self.consumer(expected))
+            self.assertGreater(union['host_tensor_storage_bytes'], actual['host_tensor_storage_bytes'])
+
+    def test_replacement_cost_and_gpu_fallback_consumers_ignore_local_vertex_numbering(self):
+        from faaslora.preloading import preloading_planner as planner
+        native, _, staged = self.fixture()
+        reference = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        projected = monitor._ieee_registered_host_inventory_from_union(
+            monitor._ieee_lora_host_inventory(native, staged_models=staged, include_tensor_views=False))
+        pool = dict(uniform_slot_layout=True, slot_adapter_ids=[7, None],
+            registered_cpu_adapter_ids=[7, 8], slot_capacity_bytes=32, pool_allocated_bytes=64,
+            pool_tensor_views=[{'dtype': 'torch.float16'}])
+        remote = dict(tier='remote', native=False, footprint_bytes=512,
+                      representation='fixture_file', content_sha256='a' * 64)
+        frozen = dict(kind='ieee_owned_gpu_objective_v2', slot_capacity_bytes=32,
+            sources=[dict(adapter_int_id=aid, adapter_id=str(aid), content_sha256='a' * 64,
+                          remote_fallback=remote) for aid in (7, 8)],
+            arrival_counts={'7': 10, '8': 5}, total_arrivals=15, size_edges_bytes=[1024], cost_estimates=[])
+        values = {planner.FrozenPreparationProfiles.source_class(remote, (1024,)): 100.}
+        for capacity, representation, *_ in self.consumer(reference)[0].values():
+            source = dict(native=True, tier='host', footprint_bytes=capacity,
+                          representation=representation, expected_content_sha256='a' * 64)
+            values[planner.FrozenPreparationProfiles.source_class(source, (1024,))] = 10.
+        fallbacks = {str(aid): dict(source=remote, file_reference=None) for aid in (7, 8)}
+        with patch.object(planner, 'validate_native_gpu_epoch', return_value=frozen), \
+             patch.object(planner, 'frozen_preparation_costs', return_value=values):
+            outcomes = []
+            for graph in (reference, projected):
+                inventory = {**graph, **pool}
+                outcomes.append((planner.native_gpu_fallback_costs(objective={}, native_inventory=inventory),
+                    planner.native_host_replacement_costs(objective={}, native_inventory=inventory,
+                                                         file_fallbacks=fallbacks)))
+        self.assertEqual(outcomes[0], outcomes[1])
+        self.assertEqual(outcomes[1][1][7]['usable_bytes'], 256)
+        self.assertEqual(outcomes[1][1][8]['usable_bytes'], 0)
+
+    def test_all_mutable_containers_are_independent_and_unknown_schema_rejected(self):
+        native, _, staged = self.fixture()
+        union = monitor._ieee_lora_host_inventory(native, staged_models=staged, include_tensor_views=False)
+        actual = monitor._ieee_registered_host_inventory_from_union(union)
+        def ids(value):
+            if type(value) in (dict, list):
+                yield id(value)
+                for child in value.values() if type(value) is dict else value:
+                    yield from ids(child)
+        self.assertFalse(set(ids(union)) & set(ids(actual)))
+        actual['host_adapter_footprints'][0]['dtypes'].append('changed')
+        self.assertNotIn('changed', union['host_adapter_footprints'][1]['dtypes'])
+        for table in ('host_allocations', 'host_adapter_footprints'):
+            union[table][0]['unknown'] = []
+            with self.assertRaisesRegex(ValueError, 'schema changed'):
+                monitor._ieee_registered_host_inventory_from_union(union)
+            del union[table][0]['unknown']
+        for options in ({}, {'include_tensor_views': False},
+                        {'include_tensor_views': False, 'requested_adapter_ids': [7]}):
+            with self.assertRaisesRegex(ValueError, 'fresh staged runtime union'):
+                monitor._ieee_registered_host_inventory_from_union(monitor._ieee_lora_host_inventory(native, **options))
+
+
 class NativeHostPhysicalProjection(unittest.TestCase):
     """Actual extension/CPU inventory path; CUDA and native owner are separate fixtures."""
     def setUp(self):
@@ -502,7 +627,24 @@ class NativeHostPhysicalProjection(unittest.TestCase):
             self.staged[9] = SimpleNamespace(id=9, rank=4, loras=self.models[8].loras)
             self.snapshot()
             self.assertEqual(copied.call_count, 1)
-            self.assertEqual(inventory.call_count, 4)  # Registered and combined graphs are both fresh.
+            self.assertEqual(inventory.call_count, 3)  # One fresh union produces two independent views.
+
+    def test_staged_path_queries_every_view_once_and_reobserves_next_call(self):
+        import torch
+        self.staged[1] = SimpleNamespace(id=1, rank=4, loras=self.models[7].loras)
+        original, queries = torch.Tensor.is_pinned, []
+        def pinned(tensor):
+            queries.append(id(tensor))
+            return original(tensor)
+        with self.observations() as allocator, patch.object(torch.Tensor, 'is_pinned', pinned):
+            first = self.snapshot()
+            self.models[7].loras['private'].lora_a = torch.empty((4, 32), dtype=torch.float32)
+            second = self.snapshot()
+            self.assertEqual(allocator.call_count, 2)
+        self.assertEqual(len(queries), 20)  # 6 registered + 4 staged views on EACH invocation.
+        for result, capacity in ((first, 768), (second, 1152)):
+            self.assertEqual(result['native_footprints']['host_tensor_storage_bytes'], capacity)
+            self.assertEqual(result['native_staging_footprints']['host_tensor_storage_bytes'], capacity)
 
     def test_physical_snapshot_preserves_graph_allocator_and_independent_returns(self):
         from faaslora.experiment.instance_pool import NativeSourceSnapshot

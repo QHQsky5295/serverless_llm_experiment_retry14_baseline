@@ -1,0 +1,25 @@
+{
+  "reason": "explicit git add stopped on two ignored small curated service.log files",
+  "experiment_repeated": false,
+  "no_commit_before_resume": true,
+  "explicitly_included_logs": [
+    "paper_results/ieee_tc/p2_backend/d869_staged_union_projection/gc_attribution/service.log",
+    "paper_results/ieee_tc/p2_backend/d869_staged_union_projection/unobserved/service.log"
+  ],
+  "original_backup_source_sha256": "f1b6ad7ae97080e1264acd5839831a0a8cdf95bf461ccfcb588438fbca5b91d3",
+  "seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d8690000000000000000000000000006.scope",
+    "invocation_id": "3e4b5db3bb254bf2ae9cc5da6b4d8568",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d8690000000000000000000000000006.scope",
+    "inode": 32813686
+  },
+  "user_manifest_unstaged": true
+}

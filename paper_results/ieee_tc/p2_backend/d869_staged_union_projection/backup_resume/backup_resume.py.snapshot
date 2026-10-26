@@ -1,0 +1,84 @@
+"""Resume the checked backup after two small curated service.log files were ignored.
+
+No experiment retry. Preserve original scripts/receipts; explicitly include only
+these two immutable logs, without changing global ignore rules or user staging.
+"""
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d869_staged_union_projection'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def call(args):
+    return subprocess.check_output(args, cwd=ROOT, text=True, stderr=subprocess.STDOUT, timeout=60).strip()
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'backup_resume_identity.json', identity)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'])
+assert call(['git','rev-parse','HEAD']) == '60e3876ed2a0dfd211bf5fd2d67ac62081d75214'
+assert not Path(read(RAW/'backup_completion_identity.json')['path']).exists()
+seal = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+qualification = read(OUT/'qualification.json')
+for path, sha in qualification['source_shas'].items():
+    assert p.digest(Path(path)) == sha, path
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == qualification['user_manifest_sha256']
+for row in read(OUT/'manifest.json')['files']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+for row in read(OUT/'completion_execution/manifest.json')['files']:
+    assert p.digest(ROOT/row['path']) == row['sha256'], row['path']
+files = sorted(path for path in OUT.rglob('*') if path.is_file())
+files += [ROOT/name for name in ('docs/ieee_tc/EXECUTION_STATUS.md',
+    'docs/ieee_tc/D869_STAGED_UNION_PROJECTION_20261026.md', 'faaslora/memory/gpu_monitor.py',
+    'tests/test_ieee_tc_worker_observation.py', 'tests/test_ieee_tc_gpu_references.py')]
+paths = [str(path.relative_to(ROOT)) for path in files]
+missing = {str((OUT/label/'service.log').relative_to(ROOT)) for label in ('unobserved','gc_attribution')}
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)-missing
+assert all((ROOT/path).stat().st_size < 4096 for path in missing)
+resume_dir = OUT/'backup_resume'
+resume_dir.mkdir(exist_ok=False)
+with (resume_dir/'backup_resume.py.snapshot').open('xb') as f:
+    f.write(Path(__file__).read_bytes())
+save(resume_dir/'receipt.json', dict(reason='explicit git add stopped on two ignored small curated service.log files',
+    experiment_repeated=False, no_commit_before_resume=True, explicitly_included_logs=sorted(missing),
+    original_backup_source_sha256=p.digest(RAW/'backup_program.py.snapshot'), seal=seal,
+    identity=identity, user_manifest_unstaged=True))
+files += sorted(resume_dir.iterdir())
+paths = [str(path.relative_to(ROOT)) for path in files]
+template = ast.parse((RAW/'backup_program.py.snapshot').read_text())
+assignment = next(node for node in template.body if isinstance(node, ast.Assign)
+                  and any(isinstance(x, ast.Name) and x.id == 'secret' for x in node.targets))
+exec(compile(ast.Module(body=[assignment], type_ignores=[]), '<reused-secret-check>', 'exec'))
+for path in files:
+    assert not secret.search(path.read_text()), str(path)
+call(['git','add','-f','--',*sorted(missing)])
+call(['git','add','--',*[str(path.relative_to(ROOT)) for path in resume_dir.iterdir()]])
+assert set(call(['git','diff','--cached','--name-only']).splitlines()) == set(paths)
+assert 'configs/generated/lora_manifest_1000.json' not in paths
+ordinary = [path for path in paths if not path.endswith('.snapshot')]
+snapshots = [path for path in paths if path.endswith('.snapshot')]
+call(['git','diff','--cached','--check','--',*ordinary])
+call(['git','-c','core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof',
+      'diff','--cached','--check','--',*snapshots])
+save(RAW/'backup_precommit_check.json', dict(passed=True, files=paths, protected_files=147,
+    qualification='323 regressions, both unfiltered native components, one observer-only attribution',
+    ignored_logs_explicitly_added=True, snapshots_keep_original_eof=True))
+call(['git','commit','-m','tc: validate staged union projection and preserve component pause evidence D869'])
+head = call(['git','rev-parse','HEAD'])
+ref = 'refs/heads/backup/d869-staged-union-20261026'
+call(['git','-c','http.version=HTTP/1.1','push','faaslora_origin','HEAD:'+ref])
+assert call(['git','-c','http.version=HTTP/1.1','ls-remote','faaslora_origin',ref]).split()[0] == head
+save(RAW/'backup_completion.json', dict(passed=True, head=head, ref=ref, files=paths,
+    v2_synchronized=False, production_promoted=False, full_performance_run=False))
+print(json.dumps(dict(passed=True, head=head, ref=ref, files=len(paths))))

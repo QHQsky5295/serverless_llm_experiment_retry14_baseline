@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d869_staged_union_projection/completion_execution/backup_results.py.snapshot",
+      "sha256": "a18e0e87ab73756c610c54bb2c9cad211582c1a2c5776ac82e6e19ba171c7c46"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d869_staged_union_projection/completion_execution/backup_program.py.snapshot",
+      "sha256": "f1b6ad7ae97080e1264acd5839831a0a8cdf95bf461ccfcb588438fbca5b91d3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d869_staged_union_projection/completion_execution/finalize_identity.json",
+      "sha256": "0177f0ecae97516cfd6a320ce6930002b38e08a1521a9998987e604575e21ecd"
+    }
+  ],
+  "remote_monitor_sha256": null,
+  "protected_files": 147,
+  "procedure_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d867_20261026/backup_program.py.snapshot"
+}

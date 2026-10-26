@@ -1669,14 +1669,23 @@ class NativeDemandTransactions(unittest.TestCase):
             self.assertEqual(fresh['native_footprints']['host_allocations'][0]['allocated_bytes'], 32)
             staged = {5: object()}
             host_inventory.reset_mock()
-            host_inventory.side_effect = [{'host_tensor_storage_bytes': 32},
-                                          {'host_tensor_storage_bytes': 48}]
+            union = copy.deepcopy(host_graph)
+            union['host_tensor_storage_bytes'] = 48
+            union['host_allocations'][0]['allocated_bytes'] = 32
+            union['host_adapter_footprints'][0].update(storage_bytes=32, exclusive_storage_bytes=32)
+            union['host_allocations'].append(dict(allocated_bytes=16, allocation_id=1,
+                                                 device='cpu', pinned=False, adapter_ids=[5]))
+            union['host_adapter_footprints'].append(dict(adapter_int_id=5, rank=4, allocation_ids=[1],
+                representation='native_cpu_dense_ab_v1', has_packed_modules=False,
+                storage_bytes=16, exclusive_storage_bytes=16, dtypes=['torch.float16']))
+            union.update(host_footprint_scope='native_registered_and_staged_tensor_storage_capacity',
+                         host_staged_adapter_ids=[5])
+            host_inventory.return_value = union
             with patch.object(worker._ieee_gpu_reference_owner, 'staged_models', return_value=staged):
                 live_staged = worker.ieee_gpu_reference(operation='source_snapshot')
-            self.assertEqual(host_inventory.call_count, 2)
+            self.assertEqual(host_inventory.call_count, 1)
             self.assertEqual(host_inventory.call_args_list[0].args, (self.manager,))
-            self.assertEqual(host_inventory.call_args_list[0].kwargs, {'include_tensor_views': False})
-            self.assertEqual(host_inventory.call_args_list[1].kwargs,
+            self.assertEqual(host_inventory.call_args_list[0].kwargs,
                              {'staged_models': staged, 'include_tensor_views': False})
             self.assertEqual(live_staged['native_footprints']['host_tensor_storage_bytes'], 32)
             self.assertEqual(live_staged['native_staging_footprints']['host_tensor_storage_bytes'], 48)

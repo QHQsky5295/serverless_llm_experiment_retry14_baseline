@@ -1,0 +1,29 @@
+"""Single D869 attribution, reusing the sealed probe and D686 GC observer.
+
+Changes observation only. No GC policy edits, filtering, additional candidates,
+or reinterpretation of the earlier unobserved pause as a confirmed GC event.
+"""
+from pathlib import Path
+import hashlib
+
+HERE = Path(__file__).resolve().parent
+source = (HERE.parent/'native_probe.py').read_text()
+assert hashlib.sha256(source.encode()).hexdigest() == '1ba4ea26ba4f22cf66d3529b3844c58177eb491ae4c960221ac5dcfea9f9c278'
+edits = [
+    ('from scripts import ieee_tc_preflight as p\n',
+     'from scripts import ieee_tc_preflight as p\nfrom scripts.ieee_tc.gc_observation import GCObservation\nobserver = GCObservation()\n'),
+    ('    measurements = []\n', '    observer.__enter__()\n    measurements = []\n'),
+    ('            cpu, wall = time.process_time_ns(), time.perf_counter_ns()\n',
+     "            observer.mark('measurement', index, label)\n            cpu, wall = time.process_time_ns(), time.perf_counter_ns()\n"),
+    ('            measurements.append(dict(index=index, variant=label, wall_ns=elapsed, cpu_ns=used))\n',
+     '            measurements.append(dict(index=index, variant=label, wall_ns=elapsed, cpu_ns=used, begin_ns=wall, end_ns=wall+elapsed))\n'),
+    ("    result['measurements'] = measurements\n", "    observer.__exit__()\n    result['gc_observation'] = observer.report()\n    result['historical_d869_pause_cause_not_retroactively_proven'] = True\n    result['measurements'] = measurements\n"),
+    ('except Exception as error:\n', 'except Exception as error:\n    if observer.active:\n        observer.__exit__()\n'),
+]
+for old, new in edits:
+    assert source.count(old) == 1, old
+    source = source.replace(old, new)
+with (HERE/'instrumented_probe.py.snapshot').open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(HERE/'instrumented_probe.py.snapshot'), 'exec'),
+     {'__file__': __file__, '__name__': '__main__'})

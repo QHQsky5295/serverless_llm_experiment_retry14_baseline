@@ -1,4 +1,35 @@
-# IEEE TC execution status — D868 current control CPU evidence, SLO gap remains
+# IEEE TC execution status — D869 staged-union candidate qualified, full performance pending
+
+## 2026-10-26 08:22 CST：D869有暂存单次清点候选已验证，下一次完整W2
+
+本轮有代码/测试进展：source_snapshot有staged时一次新鲜union生成独立
+registered图；保留实时逐view检查、alias/独占容量、allocator与所有公式。
+无staged路径沿用D671，默认D747描述器，不叠加D864 graph。323项回归通过。
+两次仅tiny原生组件诊断（第二次仅加已有GC观察器），没有基座模型或请求回放。
+
+原测量双清点/候选均值9.769268/18.394101ms，中位9.840019/5.806455ms；
+候选有257.164301ms长停顿，未删除。唯一原因核查候选285.902310ms中
+279.516048ms与GC交叠（97.766278%），不追溯证明原停顿、不扣除、不关闭GC。
+两次均19/20组较快，但均值较差，不能宣布净改善。语义/可执行性通过，未
+晋升最终配置。详见D869文档和curated；数据及失败反例完整保留。
+
+**下一主线：一次新键完整3B W2，现有D857/D858配置＋D869改动，仍用默认
+逐tensor描述器，不再追加组件/GC/100或1000请求过渡诊断。**完整结果决定
+接受或撤销。当前最新完整D866仍93.70%、差52条，数值正确性未知，G1/G2
+未完成；D866 graph不作为默认基础，不能因某个微测中位数改善宣布达标。
+
+两次native服务和前序辅助域均inactive/dead，无GPU任务；CPU峰值约0.62GiB，
+high/max/OOM/swap0，旧147保护项/用户manifest不变，约165.4GiB可用。
+HydraServe已有隔离适配复用，不触碰共享k3s。全部同版本双模型、baseline/
+dLoRA、A1–A5/S1–S13、数值证明、图文和最终V2同步保持开放，goal active。
+本轮按显式路径备份候选和完整证据，不强推V2、不把备份称最终交付。
+
+### D868备份回执（提交后追加）
+
+检查点`60e3876ed2a0dfd211bf5fd2d67ac62081d75214`已推送并ls-remote核验
+`refs/heads/backup/d868-control-cpu-20261026`，14个明确路径。来源/输出SHA、
+保护项、diff、语法及凭据检查通过；用户manifest未stage，暂存区已空。
+最终V2仍未同步；本回执随下一正常检查点保存，无重复分析或GPU执行。
 
 ## 2026-10-26 08:00 CST：D868现有控制CPU/暂存证据已保存
 

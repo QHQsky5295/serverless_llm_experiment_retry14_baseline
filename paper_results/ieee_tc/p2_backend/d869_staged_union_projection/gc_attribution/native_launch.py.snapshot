@@ -1,0 +1,19 @@
+"""Reuse the exact D869 native launch contract for one observer-only invocation."""
+from pathlib import Path
+import hashlib
+HERE = Path(__file__).resolve().parent
+source = (HERE.parent/'native_launch.py').read_text()
+assert hashlib.sha256(source.encode()).hexdigest() == 'ce70e61f8cfa87f23be5ba59fa25185c04e8fdd654be61933240901acc1c561d'
+# Raw output is new; the already qualified runtime/library locations are fixed.
+for old, new in [
+    ("receipt = RAW.parent/'runtime_20260926/cuda_import_attempt3.json'",
+     "receipt = RAW.parent.parent/'runtime_20260926/cuda_import_attempt3.json'"),
+    ("library = RAW.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'",
+     "library = RAW.parent.parent/'d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so'"),
+]:
+    assert source.count(old) == 1
+    source = source.replace(old, new)
+with (HERE/'instrumented_launcher.py.snapshot').open('x') as handle:
+    handle.write(source)
+exec(compile(source, str(HERE/'instrumented_launcher.py.snapshot'), 'exec'),
+     {'__file__': __file__, '__name__': '__main__'})

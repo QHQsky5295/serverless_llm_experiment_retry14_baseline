@@ -1,0 +1,2 @@
+Running scope as unit: primelora-tc-svc-2b9704b0e4f94575ab64f942feb10af5.scope
+{"passed": true, "summary": {"two_fresh_inventories": {"wall_ns": {"mean": 9769268.05, "median": 9840018.5, "minimum": 9158066, "maximum": 10305235}, "cpu_ns": {"mean": 10187726, "median": 10290584.0, "minimum": 9542534, "maximum": 10790152}}, "one_fresh_union_projection": {"wall_ns": {"mean": 18394101.25, "median": 5806455.0, "minimum": 5386062, "maximum": 257164301}, "cpu_ns": {"mean": 19184634.9, "median": 6055087.0, "minimum": 5611983, "maximum": 268210687}}}, "error": null}

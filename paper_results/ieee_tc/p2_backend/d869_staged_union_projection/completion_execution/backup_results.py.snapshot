@@ -1,0 +1,56 @@
+"""Reuse D867 explicit-path backup for the tested D869 candidate and both probes."""
+import hashlib
+from pathlib import Path
+RAW = Path(__file__).resolve().parent
+template = RAW.parent/'d867_20261026/backup_program.py.snapshot'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == 'b0bff9ce5d0fa8e7970ba78b43e41daccdc56809002224a3ef359ceece856079'
+source = template.read_text().replace('d867_native_graph_residual', 'd869_staged_union_projection')
+start = source.index("resources = read(RAW/'resources.json')")
+end = source.index("q = {'protected':", start)
+source = source[:start] + '''diagnosis = read(OUT/'summary.json')
+assert diagnosis['passed'] and diagnosis['semantic_tests'] == 323
+assert not diagnosis['full_performance_run'] and not diagnosis['ranking_eligible']
+assert not diagnosis['production_promoted'] and diagnosis['n_correct'] is None
+assert not Path(diagnosis['identity']['path']).exists()
+for closure in diagnosis['closures']:
+    assert not Path(closure['identity']['path']).exists()
+for row in diagnosis['source_refs']:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+qualification = read(OUT/'qualification.json')
+assert qualification['passed']
+for name, sha in qualification['source_shas'].items():
+    assert p.digest(Path(name)) == sha, name
+for name in ('faaslora/memory/gpu_monitor.py', 'tests/test_ieee_tc_worker_observation.py',
+             'tests/test_ieee_tc_gpu_references.py'):
+    ast.parse((ROOT/name).read_text())
+''' + source[end:]
+source = source.replace('D867_NATIVE_GRAPH_RESIDUAL_20261026.md', 'D869_STAGED_UNION_PROJECTION_20261026.md')
+source = source.replace("ROOT/'docs/ieee_tc/D869_STAGED_UNION_PROJECTION_20261026.md'}",
+    "ROOT/'docs/ieee_tc/D869_STAGED_UNION_PROJECTION_20261026.md',\n    ROOT/'faaslora/memory/gpu_monitor.py', ROOT/'tests/test_ieee_tc_worker_observation.py',\n    ROOT/'tests/test_ieee_tc_gpu_references.py'}")
+source = source.replace("manifest = read(OUT/'startup/manifest.json')\nassert manifest['passed']",
+                        "manifest = read(OUT/'manifest.json')")
+source = source.replace("manifest['outputs']", "manifest['files']")
+source = source.replace("files = [path for path in sorted((OUT/'startup').iterdir()) if path.is_file()]",
+                        "files = [path for path in sorted(OUT.rglob('*')) if path.is_file()]")
+start = source.index('small = (')
+end = source.index('for name in small:', start)
+source = source[:start] + "small = ('backup_results.py', 'backup_program.py.snapshot', 'finalize_identity.json')\n" + source[end:]
+source = source.replace('No remote service or GPU run in D867.',
+                        'No remote service operations; both tiny native services released.')
+source = source.replace("procedure_source=str(RAW.parent / 'd866_20261026/backup_program.py.snapshot')",
+                        "procedure_source=str(RAW.parent / 'd867_20261026/backup_program.py.snapshot')")
+# Empty-category pathspec must never accidentally check every staged file.
+source = source.replace("call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',\n      'diff', '--cached', '--check', '--', *csvs])",
+    "if csvs:\n    call(['git', '-c', 'core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol',\n          'diff', '--cached', '--check', '--', *csvs])")
+start = source.index("     qualification='D867")
+end = source.index("call(['git', 'commit'", start)
+source = source[:start] + "     qualification='D869 323 regressions, native two-view semantics, all unfiltered component measurements and one unchanged-policy GC attribution retained. No full workload or numerical-correctness claim.'))\n" + source[end:]
+source = source.replace('tc: close D867 startup feedback attribution and retain full residual evidence',
+                        'tc: validate staged union projection and preserve component pause evidence D869')
+source = source.replace('refs/heads/backup/d867-residual-20261026',
+                        'refs/heads/backup/d869-staged-union-20261026')
+generated = RAW/'backup_program.py.snapshot'
+compile(source, str(generated), 'exec')
+with generated.open('x') as stream:
+    stream.write(source)
+exec(compile(source, str(generated), 'exec'), globals())

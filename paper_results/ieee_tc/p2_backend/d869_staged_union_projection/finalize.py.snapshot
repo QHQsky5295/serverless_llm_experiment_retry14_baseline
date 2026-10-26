@@ -1,0 +1,106 @@
+"""Retain both component observations, GC attribution and closed resource evidence."""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d869_staged_union_projection'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+def ref(path): return dict(path=str(path), sha256=p.digest(path))
+identity = p.scope_identity(p.cg_path().name)
+save(RAW/'finalize_identity.json', identity)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+qualification = read(OUT/'qualification.json')
+assert qualification['passed']
+for path, sha in qualification['source_shas'].items():
+    assert p.digest(Path(path)) == sha, path
+closures = []
+for path in (RAW/'qualification_identity.json', RAW/'native_supervisor_identity.json',
+             RAW/'gc_attribution/native_supervisor_identity.json'):
+    old = read(path)
+    assert not Path(old['path']).exists()
+    state = subprocess.check_output(['systemctl','--user','show',old['unit'],
+                                   '-p','ActiveState','--value'], text=True).strip()
+    assert state == 'inactive'
+    closures.append(dict(identity=old, active_state=state))
+probes = []
+source_refs = []
+for label, source in (('unobserved', RAW), ('gc_attribution', RAW/'gc_attribution')):
+    native, launch = read(source/'native_probe.json'), read(source/'native_launch.json')
+    assert native['passed'] and launch['pass'] and native['semantic_equal']
+    assert native['production_source_sha256'] == p.digest(ROOT/'faaslora/memory/gpu_monitor.py')
+    service = native['service']['service_identity']
+    assert not Path(service['path']).exists()
+    state = subprocess.check_output(['systemctl','--user','show',service['unit'],
+                                    '-p','ActiveState','--value'], text=True).strip()
+    assert state == 'inactive'
+    closures.append(dict(identity=service, active_state=state))
+    entry = dict(label=label, summary=native['summary'], lower_better_fraction=native['mean_wall_lower_better_fraction'])
+    pairs = {}
+    for row in native['measurements']:
+        pairs.setdefault(row['index'], {})[row['variant']] = row['wall_ns']
+    entry['candidate_faster_pairs'] = sum(row['one_fresh_union_projection'] < row['two_fresh_inventories']
+                                          for row in pairs.values())
+    if label == 'gc_attribution':
+        observed = native['gc_observation']
+        assert observed['gc_policy_unchanged']
+        overlaps = []
+        for row in native['measurements']:
+            events = [event for event in observed['events']
+                      if event['begin_ns'] < row['end_ns'] and event['end_ns'] > row['begin_ns']]
+            overlap = sum(max(0, min(row['end_ns'], e['end_ns'])-max(row['begin_ns'], e['begin_ns']))
+                          for e in events)
+            overlaps.append(dict(**row, gc_overlap_ns=overlap,
+                gc_overlap_fraction=overlap/row['wall_ns'], generations=[e['generation'] for e in events]))
+        entry.update(gc_policy_before=observed['before'], gc_policy_after=observed['after'],
+                     gc_events=len(observed['events']), overlaps=overlaps,
+                     historical_first_pause_cause_unknown=True)
+        save(OUT/'gc_overlap.json', entry)
+    probes.append(entry)
+    target = OUT/label
+    target.mkdir(exist_ok=False)
+    for name in ('native_probe.py','native_probe.json','native_launch.py','native_launch.json',
+                 'native_preregister.json','native_supervisor_identity.json'):
+        path = source/name
+        source_refs.append(ref(path))
+        with (target/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as handle:
+            handle.write(path.read_bytes())
+    for path in sorted((source/'native_launch.launch').iterdir()):
+        if path.is_file():
+            with (target/path.name).open('xb') as handle:
+                handle.write(path.read_bytes())
+    for path in sorted(source.glob('instrumented*.snapshot')):
+        with (target/path.name).open('xb') as handle:
+            handle.write(path.read_bytes())
+seal = p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count'] == 147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json') == qualification['user_manifest_sha256']
+resources = p.cgroup_snapshot(group)
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+save(OUT/'summary.json', dict(passed=True, semantic_tests=323, probes=probes,
+    closures=closures, seal=seal, identity=identity, resources=resources,
+    plan_sha256=p.check_plan(), source_refs=source_refs, disk_available_bytes=shutil.disk_usage(ROOT).free,
+    user_manifest_sha256=qualification['user_manifest_sha256'],
+    measurement_policy='retain all calls; no GC subtraction; observer run does not replace first run',
+    candidate_status='qualified mechanics; complete-workload performance not yet measured',
+    full_performance_run=False, n_correct=None, ranking_eligible=False,
+    production_promoted=False, changed_model_config=False, original_pin_dispatcher_preserved=True))
+for name in ('finalize.py','qualification_identity.json','resource_gate.json'):
+    with (OUT/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as f:
+        f.write((RAW/name).read_bytes())
+save(OUT/'manifest.json', dict(files=[ref(path) for path in sorted(OUT.rglob('*')) if path.is_file()]))
+worst = max(probes[1]['overlaps'], key=lambda row: row['wall_ns'])
+print(json.dumps(dict(passed=True, worst_attributed_call=worst, closures=len(closures), resources=resources)))

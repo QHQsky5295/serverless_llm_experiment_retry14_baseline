@@ -1,0 +1,15 @@
+{
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "qualification_sha256": "300eb3fc67c412d84e01e7e8e21902166577ea488109aad00602d4364ac07b2c",
+  "runtime_receipt_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+  "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+  "library_sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d869_20261026/gc_attribution/native_probe.py": "3bcdff4b47f47c74cc30a19fb67380e850ee1b8974dba700034a71916c15d680",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d869_20261026/gc_attribution/native_launch.py": "3c61f6c944dae2ada3678b8d0693fff44c85c5b10d97209c3c90d407f185b521"
+  },
+  "paired_component_schedule": 20,
+  "native_pin_qualification_reused": true,
+  "full_performance_run": false,
+  "source_parent_head": "60e3876ed2a0dfd211bf5fd2d67ac62081d75214"
+}
