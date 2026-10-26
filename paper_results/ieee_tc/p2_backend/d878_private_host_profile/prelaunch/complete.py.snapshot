@@ -1,0 +1,63 @@
+"""Close and export the actual source measurement using the existing strict exporter."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27}
+identity=p.scope_identity(p.cg_path().name);save(RAW/'completion_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RAW/'source1_launch.json')
+assert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+assert launch['service_returncode']==launch['watchdog_returncode']==0
+stop=(RAW/'remote_stop.log').read_text()
+assert stop.count('ActiveState=inactive')==3 and stop.count('MainPID=0')==3
+paths=[line for line in stop.splitlines() if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-') and line.endswith('.jsonl')]
+assert len(paths)==1
+for local,remote in [('remote_transfers.jsonl',paths[0]),('remote_monitor.log',
+    '/home/lab14/primelora_remote/tc/d878_20261026/remote_monitor.log')]:
+    with (RAW/local).open('xb') as f:
+        subprocess.run(['ssh','-o','BatchMode=yes','primelora-artifact-174','cat',remote],
+            stdout=f,stderr=subprocess.PIPE,check=True,timeout=55)
+with (RAW/'export.log').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','scripts.ieee_tc.export_d701_3b_profile',
+        '--preparation-directory',str(OUT),'--raw-directory',str(RAW),
+        '--config','configs/ieee_tc/20261026_d877_3b_private_host_source.yaml'],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+manifest=read(OUT/'export/manifest.json')
+assert manifest['campaign']=='D878_20261026' and manifest['passed']
+raw=read(RAW/'source1.json')
+assert len(raw['requests'])==423 and raw['physical_allocation']['released']
+samples=[]
+with (RAW/'source1_launch.launch/watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row.get('event')=='resource_sample':samples.append(row)
+resources=dict(memory_peak_bytes=max(s['service']['memory.peak'] for s in samples),
+    swap_peak_bytes=max(s['service']['memory.swap.current'] for s in samples),
+    events={k:max(s['service']['memory.events'][k] for s in samples) for k in ('high','max','oom','oom_kill')})
+q=read(OUT/'prelaunch/qualification.json')
+for name,sha in q['refs'].items():assert p.digest(Path(name))==sha,name
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+completion=OUT/'completion';completion.mkdir(exist_ok=False)
+refs=[RAW/'source1.json',RAW/'source1_launch.json',RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log',
+    RAW/'remote_start.log',RAW/'remote_stop.log',RAW/'backup.json',OUT/'export/manifest.json']
+save(completion/'summary.json',dict(passed=True,requests=423,coverage=manifest['coverage'],
+    remote_delivery=manifest['remote_delivery'],resources=resources,protected=protected,
+    startup_latency_ms=raw['startup_latency_ms'],physical_released=True,remote_stopped=True,
+    performance_run=False,n_correct=None,ranking_eligible=False,
+    frozen_slo_changed=False,resident_reference_changed=False,
+    refs={str(path):p.digest(path) for path in refs},
+    next='same candidate plus matching profile, one full new-key 4000-request 3B W2'))
+save(completion/'manifest.json',dict(files=[dict(path=str(path),sha256=p.digest(path))
+    for path in sorted(OUT.rglob('*')) if path.is_file()]))
+print(json.dumps(dict(passed=True,requests=423,resources=resources,coverage=manifest['coverage'])))

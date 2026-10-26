@@ -1,0 +1,65 @@
+"""Register a repaired collector execution; reuse all unchanged qualification evidence."""
+import ast
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d878_private_host_profile'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path):return json.loads(path.read_text())
+def save(path,value):
+    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+identity=p.scope_identity(p.cg_path().name);save(RAW/'prepare_identity.json',identity)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+gate=p.preflight([ROOT,RAW],8*p.GIB);save(RAW/'preflight.json',gate)
+assert gate['preflight_pass'],gate['issues']
+prior=ROOT/'paper_results/ieee_tc/p2_backend/d877_private_host_profile'
+test=read(prior/'failed_setup/setup_fix_test.json')
+assert test['passed'] and test['source_sha256']==p.digest(ROOT/'scripts/ieee_tc_preflight.py')
+assert test['test_sha256']==p.digest(ROOT/'tests/test_ieee_tc_preflight.py')
+assert read(prior/'failed_setup/summary.json')['closure_passed']
+assert read(ROOT/'paper_results/ieee_tc/p2_backend/d875_private_host_native/summary.json')['passed']
+config=ROOT/'configs/ieee_tc/20261026_d877_3b_private_host_source.yaml'
+with (RAW/'prepare.log').open('x') as log:
+    subprocess.run([sys.executable,'-B','-m','scripts.ieee_tc.prepare_d701_3b_same_spec_profile',
+        '--rebind-private-host-config',str(config),'--output',str(OUT),
+        '--raw-directory',str(RAW),'--campaign','D878_20261026'],
+        cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+old=read(prior/'source_spec.json');new=read(OUT/'source_spec.json')
+assert old['waves']==new['waves'] and old['representatives']==new['representatives']
+assert read(prior/'development_contract.json')['model_config']==read(OUT/'development_contract.json')['model_config']
+for name in ('start_remote.sh','stop_remote.sh','run_and_release.sh','check_remote_health_stdlib.py','complete.py'):
+    source=RAW.parent/'d877_20261026'/name
+    content=source.read_text().replace('d877','d878').replace('D877','D878')
+    content=content.replace('20261026_d878_3b_private_host_source.yaml','20261026_d877_3b_private_host_source.yaml')
+    with (RAW/name).open('x') as f:f.write(content)
+    if name.endswith('.sh'):subprocess.run(['bash','-n',str(RAW/name)],check=True)
+    else:ast.parse(content)
+subprocess.run(['bash','-n','scripts/ieee_tc/run_d298_capacity_source.sh'],cwd=ROOT,check=True)
+protected=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert protected['pass']
+prelaunch=OUT/'prelaunch';prelaunch.mkdir()
+refs=[p.PLAN,config,prior/'failed_setup/setup_fix_test.json',prior/'failed_setup/summary.json',
+    ROOT/'scripts/ieee_tc_preflight.py',ROOT/'scripts/ieee_tc/prepare_d701_3b_same_spec_profile.py',
+    ROOT/'scripts/ieee_tc/export_d701_3b_profile.py',ROOT/'scripts/ieee_tc/run_d298_capacity_source.sh',
+    ROOT/'tests/test_ieee_tc_preflight.py',ROOT/'scripts/run_all_experiments.py',
+    ROOT/'faaslora/memory/gpu_monitor.py',ROOT/'faaslora/memory/residency_manager.py',
+    ROOT/'faaslora/scheduling/core_interleave.py',ROOT/'faaslora/scheduling/vllm_ieee_scheduler.py',
+    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    *[path for path in OUT.iterdir() if path.is_file()]]
+for path in sorted(RAW.iterdir()):
+    if path.suffix in ('.py','.sh'):
+        refs.append(path)
+        with (prelaunch/(path.name+'.snapshot')).open('xb') as f:f.write(path.read_bytes())
+save(prelaunch/'qualification.json',dict(passed=True,identity=identity,
+    refs={str(path):p.digest(path) for path in refs},protected=protected,
+    reused_tests='D877 18 initializer + 1 controlled setup; D874/D875 native',
+    repeated_tests=0,production_model_changed=False,cases_reused=423,
+    timing_samples_reused=False,frozen_slo_changed=False,resident_reference_changed=False,
+    n_correct=None,ranking_eligible=False,resources=p.cgroup_snapshot(Path(identity['path']))))
+print('D878 ready: same cases/model; repaired controlled setup; no repeated qualifications')

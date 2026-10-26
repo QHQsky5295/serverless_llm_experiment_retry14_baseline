@@ -1,4 +1,15 @@
-# IEEE TC execution status — D877 setup failure closed; controlled-source fix tested
+# IEEE TC execution status — D878 repaired source profile registered
+
+## 2026-10-26 D878：继续同一个候选的必要初始化
+
+上一轮为progress：D877实际失败定位、关闭与collector修复测试已完成。
+修复提交`1d11ba52d15838702db83491a1b9c1eb9fe5955b`已核验备份
+`backup/d877-controlled-source-fix-20261026`，最终V2仍未同步。
+本次复用同423条输入、D877模型配置和18+1项测试，不再重复宽泛资格。
+新raw/spec只改变输出命名空间；启动/完成以D878实际回执为准。
+严格export完成后直接完整新键3B W2，95%/75%/共同SLO/Resident不变。
+当前完整性能仍D870的94.325%、U11931.565094，数值证明未知；全部未完成
+主矩阵、baseline/dLoRA、A1–A5/S1–S13及审稿图文/最终V2保留，goal active。
 
 ### D877实际结果：32/423后受控准备等待，非完整性能结果
 
