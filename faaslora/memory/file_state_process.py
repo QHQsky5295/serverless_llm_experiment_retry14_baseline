@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
+import inspect
 import multiprocessing
 from multiprocessing.reduction import DupFd
 import os
@@ -194,11 +195,26 @@ def _execute(message):
 class FileStateCall:
     """An owned command. A cancelled waiter can rejoin this exact receipt."""
 
-    def __init__(self, future):
+    def __init__(self, future, *, on_receipt=None):
         self._future = future
+        self._on_receipt = on_receipt
+        self._observe_lock = threading.Lock()
+        self._observed = False
+
+    def _observe(self, receipt):
+        callback = self._on_receipt
+        if callback is None:
+            return
+        with self._observe_lock:
+            if self._observed:
+                return
+            self._observed = True
+        callback(receipt)
 
     def receipt(self, timeout=None):
-        return self._future.result(timeout=timeout)
+        receipt = self._future.result(timeout=timeout)
+        self._observe(receipt)
+        return receipt
 
     @staticmethod
     def _value(receipt):
@@ -220,6 +236,7 @@ class FileStateCall:
             # Consume only this abandoned wrapper's exception, not its receipt.
             future.add_done_callback(lambda done: None if done.cancelled() else done.exception())
             raise
+        self._observe(receipt)
         return self._value(receipt)
 
 
@@ -235,6 +252,7 @@ class FileStateProcess:
     def __init__(self, roots, *, file_cache_policy='planned_only'):
         self._lock = threading.Lock()
         self._closed = self._closing = False
+        self._event_callbacks = {}
         frozen_roots = {key: str(Path(value).resolve()) for key, value in roots.items() if value}
         self._pool = ProcessPoolExecutor(max_workers=1,
             mp_context=multiprocessing.get_context('spawn'),
@@ -248,7 +266,68 @@ class FileStateProcess:
                 raise RuntimeError('file state process is closing or closed')
             # Serialize before submitting, as in the existing pure planner.
             message = pickle.dumps((operation, args), protocol=5)
-            return FileStateCall(self._pool.submit(_execute, message))
+            return FileStateCall(self._pool.submit(_execute, message),
+                                 on_receipt=self._observe_receipt)
+
+    def _observe_receipt(self, receipt):
+        """Deliver child-published file changes exactly once per command.
+
+        The callback is deliberately attached to the command receipt rather
+        than executed by the child.  It therefore cannot perform controller
+        I/O while the owner lock is held, and a cancelled waiter can still
+        deliver the event when it rejoins the same command.
+        """
+        changes = tuple(receipt.get('file_changes', ()))
+        if not changes:
+            return
+        with self._lock:
+            callbacks = tuple(self._event_callbacks.values())
+        tiers = tuple(sorted({tier for change in changes for tier in change}))
+        for callback in callbacks:
+            callback(tiers)
+
+    def subscribe_file_changes(self, subscriber_id, callback):
+        if not subscriber_id or not callable(callback):
+            raise ValueError('file state subscription requires identity/callback')
+        with self._lock:
+            if self._closed or self._closing:
+                raise RuntimeError('file state process is closing or closed')
+            if subscriber_id in self._event_callbacks:
+                raise ValueError('duplicate file state subscription')
+            self._event_callbacks[subscriber_id] = callback
+
+    def unsubscribe_file_changes(self, subscriber_id):
+        with self._lock:
+            self._event_callbacks.pop(subscriber_id, None)
+
+    async def call_async(self, operation, *, on_result=None, **args):
+        """Await one owned command without abandoning its mutation receipt.
+
+        A caller cancellation is remembered, but the exact process command is
+        joined before cancellation is re-raised.  ``on_result`` is synchronous
+        and is run before that re-raise so a caller can adopt a lease or
+        registration while ownership is still explicit.  An async callback is
+        rejected instead of silently creating a second unjoined task.
+        """
+        call = self.submit(operation, **args)
+        cancelled = False
+        while True:
+            try:
+                value = await call.wait()
+                break
+            except asyncio.CancelledError:
+                if call._future.cancelled():
+                    raise
+                cancelled = True
+        if on_result is not None:
+            adopted = on_result(value)
+            if inspect.isawaitable(adopted):
+                if inspect.iscoroutine(adopted):
+                    adopted.close()
+                raise TypeError('file state receipt adoption must be synchronous')
+        if cancelled:
+            raise asyncio.CancelledError()
+        return value
 
     def reserve_native_host(self, *, exit_pidfd, **args):
         return self.submit('reserve_native_host', exit_pidfd=DupFd(exit_pidfd), **args)

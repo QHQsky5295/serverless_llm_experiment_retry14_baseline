@@ -149,6 +149,37 @@ class FileStateProcessTests(unittest.TestCase):
             self.owner.close()
         self.call('cancel_activation_host', activation_id='kept')
 
+    def test_receipt_event_is_delivered_once_after_cancelled_waiter_rejoins(self):
+        self.call('configure_host_budget', limit_bytes=1024**2)
+        events = []
+        self.owner.subscribe_file_changes('test-events', events.append)
+
+        async def check():
+            command = self.owner.submit('reserve_activation_host',
+                                         activation_id='eventful', limit_bytes=4096)
+            waiter = asyncio.create_task(command.wait())
+            await asyncio.sleep(0)
+            waiter.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await waiter
+            # Rejoining the exact command must deliver the child receipt and
+            # its event once; it must not execute a second reservation.
+            value = await command.wait()
+            self.assertEqual(value['activation_reserved_bytes'], 4096)
+
+        asyncio.run(check())
+        self.call('cancel_activation_host', activation_id='eventful')
+        self.assertEqual(events, [('host',)])
+        self.owner.unsubscribe_file_changes('test-events')
+
+    def test_async_receipt_adoption_must_not_spawn_a_second_task(self):
+        async def check():
+            with self.assertRaisesRegex(TypeError, 'synchronous'):
+                await self.owner.call_async(
+                    'identity', on_result=lambda value: asyncio.sleep(0))
+
+        asyncio.run(check())
+
     def test_real_pidfd_survives_parent_fd_close_until_actual_exit(self):
         self.call('configure_host_budget', limit_bytes=1024**2)
         child = subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.buffer.read()'],
