@@ -19791,10 +19791,26 @@ class ScenarioRunner:
                             # Selection and confirmation are one owner command;
                             # an outer snapshot would reintroduce a TOCTOU epoch
                             # race while another preparation task changes tiers.
+                            # The owner command is a mutation.  A controller
+                            # cancellation may arrive after the child has
+                            # installed its lease but before ``call_async``
+                            # re-raises that cancellation.  Adopt the joined
+                            # receipt synchronously so the enclosing cleanup
+                            # can release exactly that lease; otherwise the
+                            # owner reaches shutdown with one hidden file
+                            # reference.
+                            adopted = []
+                            def adopt_acquired(receipt):
+                                if receipt is not None:
+                                    adopted.append(receipt)
+                                    file_holds.append(receipt)
                             held = await references.call_async(
                                 'acquire_best', adapter_id=victim['adapter_id'],
                                 lease_id=uuid.uuid4().hex,
-                                content_sha256=victim['content_sha256'])
+                                content_sha256=victim['content_sha256'],
+                                on_result=adopt_acquired)
+                            if adopted:
+                                held = adopted[-1]
                             if held is None:
                                 fallback = victim['remote_fallback']
                             else:
@@ -19816,7 +19832,7 @@ class ScenarioRunner:
                                                 footprint_bytes=confirmed['allocated_file_bytes'])
                             else:
                                 fallback, held = victim['remote_fallback'], None
-                        if held is not None:
+                        if held is not None and held not in file_holds:
                             file_holds.append(held)
                         file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
                 except BaseException:
