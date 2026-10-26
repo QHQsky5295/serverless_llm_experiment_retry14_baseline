@@ -12,7 +12,9 @@ import sys
 import tempfile
 import unittest
 
-from faaslora.memory.file_state_process import FileStateCall, FileStateProcess
+from faaslora.memory.file_state_process import (
+    FileStateCall, FileStateProcess, ProcessLocalSourceReferences,
+)
 from faaslora.metrics.metrics_collector import _open_pidfd
 from faaslora.storage.http_artifact_store import (
     _verified_file_signature, preparation_content_sha256,
@@ -179,6 +181,19 @@ class FileStateProcessTests(unittest.TestCase):
                     'identity', on_result=lambda value: asyncio.sleep(0))
 
         asyncio.run(check())
+
+    def test_value_only_facade_keeps_contexts_in_the_child_owner(self):
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+        try:
+            self.assertNotEqual(facade.owner_id, self.identity['owner_id'])
+            facade.configure_host_budget(1024**2)
+            with facade.file_movement_interest(intent_id='facade-interest',
+                                               target=self.nvme / 'a',
+                                               content_sha256='0' * 64, required=True):
+                snapshot = facade.source_snapshot('a')
+                self.assertEqual(snapshot['owner_id'], facade.owner_id)
+        finally:
+            facade.close()
 
     def test_real_pidfd_survives_parent_fd_close_until_actual_exit(self):
         self.call('configure_host_budget', limit_bytes=1024**2)

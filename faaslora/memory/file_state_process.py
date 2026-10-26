@@ -37,7 +37,7 @@ _SEQUENCE = 0
 _METHODS = frozenset({
     'configure_host_budget', 'host_budget_snapshot', 'reserve_activation_host',
     'cancel_activation_host', 'source_snapshot', 'acquire_confirmed', 'release',
-    'demand_witness', 'inventory', 'file_budget_snapshot', 'preparation_snapshot',
+    'acquire', 'demand_witness', 'inventory', 'file_budget_snapshot', 'preparation_snapshot',
     'file_preparation_snapshot', 'register_file_preparation_plan',
     'finish_file_preparation_target', 'close_file_preparation_plan',
     'bind_file_native_fallbacks', 'unbind_file_native_fallbacks',
@@ -47,7 +47,7 @@ _COMPOSITE = frozenset({
     'identity', 'begin_materialization', 'end_materialization',
     'begin_workspace', 'end_workspace', 'begin_interest', 'end_interest',
     'publish_transfer', 'acquire_best', 'delete', 'reserve_native_host',
-    'retire_native_host', 'quiescent',
+    'retire_native_host', 'quiescent', 'begin_mutation',
 })
 
 
@@ -103,6 +103,8 @@ def _dispatch(operation, args):
         return _begin('workspace', _OWNER.transfer_workspace(**args))
     if operation == 'begin_interest':
         return _begin('interest', _OWNER.file_movement_interest(**args))
+    if operation == 'begin_mutation':
+        return _begin('mutation', _OWNER.mutation(**args))
     if operation.startswith('end_'):
         return _end(operation[4:], **args)
     if operation == 'publish_transfer':
@@ -361,3 +363,172 @@ class FileStateProcess:
         self._pool.shutdown(wait=True, cancel_futures=False)
         with self._lock:
             self._closed, self._closing = True, False
+
+
+class _ProcessContext:
+    """Synchronous context facade whose state lives in the child owner."""
+
+    def __init__(self, owner, kind, begin_operation, begin_args):
+        self._owner = owner
+        self._kind = kind
+        self._begin_operation = begin_operation
+        self._begin_args = dict(begin_args)
+        self._context_id = None
+        self.value = None
+
+    def __enter__(self):
+        receipt = self._owner._call(self._begin_operation, **self._begin_args)
+        self._context_id = receipt['context_id']
+        self.value = receipt['value']
+        return self.value
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._context_id is None:
+            return False
+        context_id, self._context_id = self._context_id, None
+        self._owner._call('end_' + self._kind, context_id=context_id)
+        return False
+
+
+class ProcessLocalSourceReferences:
+    """Value-only facade for a :class:`FileStateProcess` owner.
+
+    This class intentionally exposes no controller-side ledger or lock.  The
+    synchronous methods are for setup/legacy lifecycle code; request handlers
+    should use ``call_async`` so state queries and mutations do not block the
+    event loop.  Contexts hold their bookkeeping in the child process while
+    the caller performs body I/O outside the owner transaction.
+    """
+
+    def __init__(self, roots, *, file_cache_policy='planned_only'):
+        self.roots = {key: Path(value).resolve() for key, value in roots.items() if value}
+        self.file_cache_policy = file_cache_policy
+        self.process = FileStateProcess(self.roots, file_cache_policy=file_cache_policy)
+        identity = self._call('identity')
+        self.owner_id = identity['owner_id']
+        self.identity = identity
+
+    def _call(self, operation, **args):
+        return self.process.submit(operation, **args).result()
+
+    async def call_async(self, operation, *, on_result=None, **args):
+        return await self.process.call_async(operation, on_result=on_result, **args)
+
+    def subscribe_file_changes(self, subscriber_id, callback):
+        self.process.subscribe_file_changes(subscriber_id, callback)
+
+    def unsubscribe_file_changes(self, subscriber_id):
+        self.process.unsubscribe_file_changes(subscriber_id)
+
+    def configure_host_budget(self, limit_bytes):
+        return self._call('configure_host_budget', limit_bytes=limit_bytes)
+
+    def host_budget_snapshot(self):
+        return self._call('host_budget_snapshot')
+
+    def reserve_activation_host(self, *, activation_id, limit_bytes):
+        return self._call('reserve_activation_host', activation_id=activation_id,
+                          limit_bytes=limit_bytes)
+
+    def cancel_activation_host(self, *, activation_id):
+        return self._call('cancel_activation_host', activation_id=activation_id)
+
+    def source_snapshot(self, adapter_id):
+        return self._call('source_snapshot', adapter_id=adapter_id)
+
+    def acquire(self, *, path, adapter_id, lease_id):
+        return self._call('acquire', path=path, adapter_id=adapter_id, lease_id=lease_id)
+
+    def acquire_confirmed(self, *, path, adapter_id, lease_id, expected_owner_id,
+                          expected_epoch, expected_content_sha256):
+        return self._call('acquire_confirmed', path=path, adapter_id=adapter_id,
+                          lease_id=lease_id, expected_owner_id=expected_owner_id,
+                          expected_epoch=expected_epoch,
+                          expected_content_sha256=expected_content_sha256)
+
+    def release(self, *, lease_id, expected_owner_id):
+        return self._call('release', lease_id=lease_id, expected_owner_id=expected_owner_id)
+
+    def demand_witness(self, reference, *, content_sha256):
+        return self._call('demand_witness', reference=reference,
+                          content_sha256=content_sha256)
+
+    def inventory(self, **kwargs):
+        return self._call('inventory', **kwargs)
+
+    def file_budget_snapshot(self, limits):
+        return self._call('file_budget_snapshot', limits=limits)
+
+    def preparation_snapshot(self, *, manifests, limits):
+        return self._call('preparation_snapshot', manifests=manifests, limits=limits)
+
+    def file_preparation_snapshot(self):
+        return self._call('file_preparation_snapshot')
+
+    def register_file_preparation_plan(self, *, plan_id, targets):
+        return self._call('register_file_preparation_plan', plan_id=plan_id, targets=targets)
+
+    def finish_file_preparation_target(self, *, plan_id, tier, adapter_id, **kwargs):
+        return self._call('finish_file_preparation_target', plan_id=plan_id, tier=tier,
+                          adapter_id=adapter_id, **kwargs)
+
+    def close_file_preparation_plan(self, *, plan_id):
+        return self._call('close_file_preparation_plan', plan_id=plan_id)
+
+    def bind_file_native_fallbacks(self, *, plan_id, **kwargs):
+        return self._call('bind_file_native_fallbacks', plan_id=plan_id, **kwargs)
+
+    def unbind_file_native_fallbacks(self, *, plan_id):
+        return self._call('unbind_file_native_fallbacks', plan_id=plan_id)
+
+    def replacement_source_snapshot(self):
+        return self._call('replacement_source_snapshot')
+
+    def prepare_transfer(self, transfer_id, staging, archive_bytes, expected, *, limit_bytes):
+        return self._call('prepare_transfer', transfer_id=transfer_id, staging=staging,
+                          archive_bytes=archive_bytes, expected=expected,
+                          limit_bytes=limit_bytes)
+
+    def prepare_copy(self, transfer_id, staging, expected, *, limit_bytes):
+        return self._call('prepare_copy', transfer_id=transfer_id, staging=staging,
+                          expected=expected, limit_bytes=limit_bytes)
+
+    def materializing(self, target, *, replacement_epoch=None, budgeted=False):
+        return _ProcessContext(self, 'materialization', 'begin_materialization',
+                               dict(target=target, replacement_epoch=replacement_epoch,
+                                    budgeted=budgeted))
+
+    def transfer_workspace(self, transfer_id):
+        return _ProcessContext(self, 'workspace', 'begin_workspace',
+                               dict(transfer_id=transfer_id))
+
+    def file_movement_interest(self, *, intent_id, target, content_sha256, required):
+        return _ProcessContext(self, 'interest', 'begin_interest', dict(
+            intent_id=intent_id, target=target, content_sha256=content_sha256,
+            required=required))
+
+    def mutation(self, path, *, transfer_id=None):
+        return _ProcessContext(self, 'mutation', 'begin_mutation', dict(
+            path=path, transfer_id=transfer_id))
+
+    def publish_transfer(self, transfer_id, staging, target, *, verified_files=None):
+        return self._call('publish_transfer', transfer_id=transfer_id, staging=staging,
+                          target=target, verified_files=verified_files)
+
+    def acquire_best(self, *, adapter_id, lease_id, content_sha256):
+        return self._call('acquire_best', adapter_id=adapter_id, lease_id=lease_id,
+                          content_sha256=content_sha256)
+
+    def delete(self, path):
+        return self._call('delete', path=path)
+
+    def reserve_native_host(self, *, exit_pidfd, **args):
+        return self.process.reserve_native_host(exit_pidfd=exit_pidfd, **args).result()
+
+    def retire_native_host(self, *, owner_id, exit_pidfd):
+        # The owner process already retains the transferred pidfd.  The public
+        # facade intentionally does not ask callers to pass a numeric child fd.
+        return self._call('retire_native_host', owner_id=owner_id)
+
+    def close(self):
+        self.process.close()
