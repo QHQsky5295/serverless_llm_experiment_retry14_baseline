@@ -25530,6 +25530,10 @@ async def _main_async_impl(
 
     bw_mbps    = float(storage_cfg.get("bandwidth_mbps", 100))
     remote_dir = REPO_ROOT / storage_cfg.get("remote_dir", "artifacts/remote")
+    output_dir_override = _read_env_override("FAASLORA_OUTPUT_DIR")
+    if output_dir_override is not None:
+        exp_cfg["output_dir"] = output_dir_override
+        applied_env_overrides["FAASLORA_OUTPUT_DIR"] = output_dir_override
     output_dir = REPO_ROOT / exp_cfg.get("output_dir", "results")
     num_runs = max(1, int(exp_cfg.get("num_runs", 1)))
     if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') == '1':
