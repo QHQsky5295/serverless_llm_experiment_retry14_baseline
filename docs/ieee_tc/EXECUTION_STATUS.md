@@ -1,4 +1,28 @@
-# IEEE TC execution status — D869 staged-union candidate qualified, full performance pending
+# IEEE TC execution status — D870 full 3B W2 registration, staged-union candidate
+
+## 2026-10-26：D870进入一次完整3B W2，尚未填性能结果
+
+本轮沿D869已验证单一改动，复用D857/D858配置和默认D747逐tensor描述器。
+4000请求、W2、真实远端、max3及全部冻结指标不变；不叠加D864 graph，
+不增加前缀微测/GC调参。323项语义回归复用，仅核查新执行入口及配置身份。
+D858为直接参考93.65%/11311.401341 GPU-s；D866另一个候选93.70%保留。
+前后保护147旧项和用户manifest，辅助/服务内存约束不变，测量时不维护远端。
+注册完成并备份后启动tmux完整回放；实际启动以start_receipt.json为准。
+本段不是已完成结果或达标声明，数值正确性未知，G1/G2仍未完成。
+
+用户再次说明k3s非本项目；沿用HydraServe已经完成的隔离适配，不接管共享
+集群、不重复基础资格。完整双模型/基线/dLoRA/消融/敏感性/图文/V2仍开放。
+详见D870_STAGED_UNION_FULL_W2_20261026.md。目标继续active。
+
+### D869备份回执（提交后追加）
+
+检查点`af824ab5967c1c28d988abd0db10e40bffcba36f`已推送并ls-remote核验
+`refs/heads/backup/d869-staged-union-20261026`，42个明确路径。首次备份因
+两个不足4KiB的curated service.log命中全局ignore而停于stage；未commit。
+只显式加入这两个已核验小日志后完成原检查/提交，失败原因和恢复脚本保留，
+没有重跑实验或修改ignore。源码/输出SHA、147保护项、diff、语法与凭据检查
+通过；用户manifest未stage，暂存区为空，全部资源域已退出，无GPU进程。
+最终V2仍未同步；本回执随下一正常检查点保存。候选下一步完整W2，不再微测。
 
 ## 2026-10-26 08:22 CST：D869有暂存单次清点候选已验证，下一次完整W2
 
