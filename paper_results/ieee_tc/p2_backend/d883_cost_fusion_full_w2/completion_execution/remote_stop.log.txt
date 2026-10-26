@@ -1,0 +1,14 @@
+MainPID=0
+Result=success
+Id=primelora-artifact-tc-3b.service
+ActiveState=inactive
+MainPID=0
+Result=success
+Id=primelora-artifact-tc-7b.service
+ActiveState=inactive
+MainPID=0
+Result=success
+Id=primelora-artifact-monitor-d883-max3-fullw2.service
+ActiveState=inactive
+/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-3b2da16b6d7f40218779d799f045cece.jsonl
+61a83ec4af79aec8254d76e66b603806c945332233ebd443b129297c82be88b2  /home/lab14/primelora_remote/tc/d883_20261026/remote_monitor.log

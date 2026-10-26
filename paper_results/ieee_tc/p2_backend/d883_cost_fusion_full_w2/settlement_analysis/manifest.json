@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/settlement_analysis/requests.csv",
+      "sha256": "73a6aff437853809390610d2a18c6454e3be3ff3ab9cb79eda01efebbaa3e696"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/settlement_analysis/resources.json",
+      "sha256": "b421a2d45ebb84a7994e67eb87e13889a4fe949b208431d12f842a39c586ed99"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/settlement_analysis/summary.json",
+      "sha256": "14c92216042dd32c875692058cdefa9ef09448eb037ca82039df9001c73315c2"
+    }
+  ]
+}

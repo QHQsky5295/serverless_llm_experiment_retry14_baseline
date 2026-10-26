@@ -1,0 +1,116 @@
+W1026 15:57:59.478000 3446003 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+{
+  "kind": "d713_closed_delivery_and_control_context_v1",
+  "passed": true,
+  "native_metric_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/full4000.json",
+    "sha256": "9d3b642ffa477cc21852e16bd1e291ad8be50eb1b2c286380e2a931f41a4e304",
+    "bytes": 77806
+  },
+  "terminal_meta": {
+    "run_completed": true,
+    "error": null,
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "control": {
+    "scale_down_events": 0,
+    "scale_up_event_log": [
+      {
+        "timestamp": 1792997134.4546764,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 1,
+        "target_instances": 2,
+        "actual_instances": 2,
+        "request_index": 1,
+        "instance_id": "ieee-activation-a080a00398784f58a2e62b86c1a50906",
+        "device_id": 1,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 1,
+        "submitted_request_count": 1,
+        "completed_request_count": 1,
+        "arrived_request_count": 1,
+        "activation_id": "ieee-activation-a080a00398784f58a2e62b86c1a50906",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "50f1bf2a2b75ce9e4a4c4ef7fa0cfa9a19a0e92807319f1d060064b5d54f85a7",
+        "engine_activation_ms": 35902.533136773854,
+        "preparation_state": "completed",
+        "activation_submission_sequence": 0,
+        "pending_scale_up_instances_at_submit": 0,
+        "submission_request_index": 1,
+        "submission_timestamp": 1792997134.454669
+      },
+      {
+        "timestamp": 1792997135.4682393,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 1,
+        "target_instances": 3,
+        "actual_instances": 3,
+        "request_index": 1,
+        "instance_id": "ieee-activation-5079bb8756a542faa9957daf9601aab2",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 1,
+        "submitted_request_count": 1,
+        "completed_request_count": 1,
+        "arrived_request_count": 1,
+        "activation_id": "ieee-activation-5079bb8756a542faa9957daf9601aab2",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "ccfdf312f8c0eaa5a9db634c433d61c0d419a26629ff31a2d29ce877758ddd38",
+        "engine_activation_ms": 34826.5840052627,
+        "preparation_state": "completed",
+        "activation_submission_sequence": 1,
+        "pending_scale_up_instances_at_submit": 1,
+        "submission_request_index": 1,
+        "submission_timestamp": 1792997135.4682353
+      }
+    ],
+    "completed_scale_up_events": 2,
+    "scale_down_event_log": []
+  },
+  "physical_allocation_count": 3,
+  "all_allocations_released": true,
+  "remote": {
+    "transfers": 505,
+    "wire_bytes": 1172100920,
+    "all_server_client_ids_bytes_hashes_match": true,
+    "request_time_packing": false
+  },
+  "resources": {
+    "events": {
+      "watchdog_ready": 1,
+      "resource_sample": 4078,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "memory_events_max": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "service_peak_bytes": 33254084608,
+    "max_swap_bytes": 0,
+    "min_host_available_bytes": 96325468160,
+    "min_free_disk_bytes": 157597589504
+  }
+}
+{
+  "passed": true,
+  "states": {
+    "published": 505
+  },
+  "replacement_policies": {
+    "request_lru_v1": 20
+  },
+  "required_reclamations": 20,
+  "violation_partition": {
+    "ttft_only_fail": 174,
+    "tpot_only_fail": 59,
+    "both_fail": 14
+  }
+}

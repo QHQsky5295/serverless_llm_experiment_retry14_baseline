@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/actual_profile_binding.json",
+      "sha256": "685fdbbe2bfa2566543261af45b4ac4fbc2ffed5cc1ff7c0c210999f90772787"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/analysis_resources.json",
+      "sha256": "8d9f5611aa8aec6688495ca1e2ea0deba8efd0210c42277332e31e905d3e4f46"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/comparison.json",
+      "sha256": "6cf5132e38de84597ce88832fd0d5b4af946dfc38edd76c0b4c3eb36334b38c2"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/complete.py.snapshot",
+      "sha256": "c8df871ad973be2ac7429b2e6c252794f6c046fc0190fa2176f306728d6ccad3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/full4000.json",
+      "sha256": "9d3b642ffa477cc21852e16bd1e291ad8be50eb1b2c286380e2a931f41a4e304"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/protected_147_after.json",
+      "sha256": "5a88ff8a6eb65454973364d55797e9d5445c66b2d6b589fe532224faffe7b2f7"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/stages/diagnosis.json",
+      "sha256": "8e1cca51d5fd0c9a6b680b4e44811e115e77a8fd5897b094a70cfe34a3d1ab03"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/stages/requests.csv",
+      "sha256": "0a476dd518658d68d29f8220d4ca5a8db671d47e54d48021cd135ec82efe6628"
+    }
+  ]
+}

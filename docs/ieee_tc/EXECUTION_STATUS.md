@@ -1,4 +1,87 @@
-# IEEE TC execution status — D883 full W2 registration, launch pending
+# IEEE TC execution status — D883 complete and audited; joint SLO still below target
+
+## D883收尾完成与候选决定（2026-10-26 16:02 CST）
+
+真实交付/owner/settlement、4000条原生descriptor回执与配对阶段核算均通过。
+505次远端获取、1172100920线上字节，与D870相同；无请求中打包。
+服务峰值33254084608B，high/max/OOM/swap0，所有分析域/GPU已退出。
+147保护项与用户manifest未变。完整数据保存，不补同键重复。
+
+配对131条joint fail→pass、151条pass→fail，净少20；八段净变化-2/0/+6/
+0/0/-12/-5/-7。全请求TTFT均值多16.999ms，其中到达→准入多12.006ms，
+准入→取得adapter多4.873ms，prefill仅多0.702ms。资源多3.248490GPU-s，
+由更早分配+3.606049及更早释放-0.357559解释；期间无释放间隙。这些是
+实际阶段/生命周期账目，不是纯计算融合导致退化的因果估计。
+
+决定：本候选系统收益未体现，不晋升达标Full，不继续优化该微小组件或
+追加同配置实验。当前收尾不改生产源，等价重构不冒称有效性能贡献。
+下一任务限于复用D883/D870现有日志与D863/D868、否决历史，核对前台
+准入/来源事务尚存的具体重复或串行依赖；对照官方资料后，有新证据才
+推进一个候选。不重开private CPU/并行ACK/整owner线程/提前通知/图缓存，
+不改变冻结阈值，不追加泛化profiling。实际备份由随后回执确认。
+
+当前为progress而非闭口：93.825%未达95%，N_correct仍null。双模型同版本
+主矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、数值证明、两轮审稿图文和
+最终V2同步全部保留；完整goal active，最终V2未同步，不force push。
+
+## D883完整回放与共同指标（2026-10-26）
+
+4000/4000请求终态、成功且原生生成合同匹配。launch pass、service/replay/
+watchdog退出码均0，本机GPU和服务域实际释放，远端两个交付服务及监控
+均inactive/MainPID0。complete.py已在独立3/4GiB、swap0辅助域完成。
+未重启/重跑，同一执行键首次有效结果保留。
+
+共同阈值下TTFT3812、TPOT3927、联合3753/4000=93.825%，距离3800差47条；
+U=11934.81358408602 GPU-s，低于12083.063870235463共同预算。平均TTFT
+722.990733ms、P95 TTFT2153.886152ms、平均TPOT15.698958ms、平均E2E
+2494.265345ms。相对D870联合少20条（-0.50pp），P95更高，资源未改善。
+完整指标SHA为9d3b642ffa477cc21852e16bd1e291ad8be50eb1b2c286380e2a931f41a4e304。
+独立数值正确性仍未知，N_correct=null；不进入最终排名或宣告G1/G2达标。
+
+当前只执行既有真实交付/owner/settlement和配对阶段核算，不新增GPU回放。
+完整回放未体现组件加速的服务收益，不能由微测晋升候选；最终保留/撤销及
+下一主线判断在上述证据完成后记录。旧147项和用户manifest校验通过。
+目标active，双模型同版本矩阵、剩余baseline/dLoRA、A1–A5/S1–S13、独立
+数值证明、两轮审稿图文与最终V2仍开放。此为结果落盘进展，不是项目完成。
+
+### D883续查：同一存活运行，不重启（2026-10-26 14:51 CST）
+
+本轮完整重读PLAN/当前状态并采用monitor-experiment轻量检查。服务
+InvocationID仍为fc48ee071a4e4896b3a74087821ae0d1；控制进程3261991与
+三EngineCore进程3263866/3265726/3265761实际存活，tmux pane未退出。
+终态从41推进至302/4000，302成功且原生合同匹配；不从前缀推断完整SLO。
+watchdog无warning/abort，内存high/max/OOM/swap均0；MemAvailable
+98942103552B，可用磁盘171884965888B。此为verified wait，不是阻塞或结束。
+
+已在本轮raw目录按D870复用生成close_delivery.py与native_and_lifecycle.py，
+仅改D883输出身份及比较父点D870，AST解析通过；尚未执行，未改生产路径。
+完整回放/远端自动释放完成后依次complete.py、close_delivery.py、
+native_and_lifecycle.py；每项在独立3/4GiB、swap0、CPU2/3/26/27辅助域内
+运行，以免前一分析域仍存活时误判已释放。运行中不推送、不清理/构建。
+没有新增实验或结果结论，完整目标继续active；不因等待重启同键。
+
+### D883实际启动与首次监测（2026-10-26 14:46 CST）
+
+4项启动配置测试通过，D882的322项检查直接复用，无GPU短回放。17个明确
+文件提交3ff164b4b0f4c8abe69734bcc378bb62e2d6d7d2并核验备份ref
+`backup/d883-cost-fusion-full-w2-20261026`；最终V2仍未同步，未force push。
+真实远端启动前1000Mb/s/full，无请求中打包。正式启动资源检查通过，
+GPU初态空闲，约162GiB磁盘/106GiB MemAvailable；保护147项和用户manifest未变。
+
+运行中tmux `tc-d883-3b-cost-fusion-full-w2`，服务域
+`primelora-tc-svc-6d5f26ccc4f640c9ace1e5947ad624ec.scope`，InvocationID
+`fc48ee071a4e4896b3a74087821ae0d1`；外置监控和回放已工作，不能重复启动。
+14:46快照41/4000条终态、41成功且原生合同匹配；这不是数值正确性或
+完整性能结论。当前持有3卡，内存峰值17271291904B，high/max/OOM/swap0，
+无保护警报。raw/initial_monitor.json记录实际快照，非最终统计。
+若systemd旧aux域显示active，已读TasksCurrent均0，不当作运行作业，也未
+在测量中清理旧域。后续仅轻量监测，不并行扫描/压缩/构建/第二个实验。
+
+下一动作：等待本次唯一完整回放自然完成→核验launch.json实际释放及
+remote_stop.log→复用raw/complete.py算共同SLO/生命周期与D870比较→
+真实交付/owner/settlement/原生字段审计→保存所有结果与检查点。
+不按中途结果重启，不加profile/短Full，不改生产代码或阈值。全部剩余范围
+仍见D883登记和完整PLAN，目标active；本轮是启动进展，不是性能闭口。
 
 ## D883登记：同D870配置的完整4000请求W2（2026-10-26）
 

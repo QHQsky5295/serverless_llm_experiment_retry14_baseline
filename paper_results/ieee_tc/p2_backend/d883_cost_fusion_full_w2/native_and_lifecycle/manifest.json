@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/native_and_lifecycle/actual_native_descriptor.json",
+      "sha256": "b42e6667b2bd7c7ddaeea0052c7aae89b0c470a3e82f877662619f4e8236263b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/native_and_lifecycle/native_and_lifecycle.py.snapshot",
+      "sha256": "fc02c92fdf4603fcd3d1f9e98139cc1098ceb2493566445f5f10a26a13f8bdd4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/native_and_lifecycle/paired_stages/diagnosis.json",
+      "sha256": "f510c988cba004ea4a0192ed5c13639ac0d11041dbe6a7fcb1afeca646361483"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/native_and_lifecycle/paired_stages/paired_requests.csv",
+      "sha256": "7c83d8a0fb751524a52c84179b3348c09e6455222d016df39f10097e02af3be9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/native_and_lifecycle/resources.json",
+      "sha256": "2c95ff54a1b0227f472acc2718dd7233f88259f7d86e2c5ff251b2d79b2dc367"
+    }
+  ]
+}

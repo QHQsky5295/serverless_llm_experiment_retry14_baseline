@@ -1,0 +1,23 @@
+{
+  "commit": "3ff164b4b0f4c8abe69734bcc378bb62e2d6d7d2",
+  "ref": "refs/heads/backup/d883-cost-fusion-full-w2-20261026",
+  "paths": [
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py",
+    "configs/ieee_tc/20261026_d883_3b_max3_full_w2.yaml",
+    "docs/ieee_tc/D883_COST_FUSION_FULL_W2_20261026.md",
+    "docs/ieee_tc/EXECUTION_STATUS.md",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/backup_and_start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/check_remote_health_stdlib.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/complete.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/manifest.json",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/prepare.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/protected_147.json",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/qualification.json",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/run_and_release.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/start.py.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/start_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/stop_remote.sh.snapshot",
+    "paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/prelaunch/tests.txt"
+  ]
+}

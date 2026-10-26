@@ -1,0 +1,76 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/actual_profile_binding.json",
+      "sha256": "685fdbbe2bfa2566543261af45b4ac4fbc2ffed5cc1ff7c0c210999f90772787"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/analysis_resources.json",
+      "sha256": "8d9f5611aa8aec6688495ca1e2ea0deba8efd0210c42277332e31e905d3e4f46"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/closed_outcome.json",
+      "sha256": "ca3dde0e1f601957765a789fe3f3833aebb63444a9dca81ef013fd7e18f2d32d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/comparison.json",
+      "sha256": "6cf5132e38de84597ce88832fd0d5b4af946dfc38edd76c0b4c3eb36334b38c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/complete.py.snapshot",
+      "sha256": "c8df871ad973be2ac7429b2e6c252794f6c046fc0190fa2176f306728d6ccad3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/decoder_actual.json",
+      "sha256": "e5f62739f02490b6fa99b6cbbfbcd38e5de4e8fc89c3e98e5e5fecdb467f2fc3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/delivery_applicability_and_reclamation.json",
+      "sha256": "ecfd79ced095bb6fd5aab060fc8bcb38d934fe540b1c2a0e04c6b2fc34342024"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/delivery_audit_status.json",
+      "sha256": "acd91dd536dcec1796d9f6a278ab2a7c1dfa535de58fa4523aca3e6019ff3565"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/full4000.json",
+      "sha256": "9d3b642ffa477cc21852e16bd1e291ad8be50eb1b2c286380e2a931f41a4e304"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/manifest.json",
+      "sha256": "c5eed7c69919ec8ed44f2a32e34b8cf218a974ec87fb1636bc54d257ebbf4eb4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/owner_anchor_actual.json",
+      "sha256": "201a1c22cfcc45bb17d6cc3adac897ea0460859b36693b3ff17200f2137bb618"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/owner_publication_actual.json",
+      "sha256": "ee1b4e00ac72af3f306318a10743c624b93a6228cd602ad3e7a9e94f6cfcfd9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/owner_publication_audit_status.json",
+      "sha256": "52f60fd498f83f601b2c2a14f3b933fa15486b1a0cc71b23a26f0261f6dfeed8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/protected_147_after.json",
+      "sha256": "5a88ff8a6eb65454973364d55797e9d5445c66b2d6b589fe532224faffe7b2f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/stages/diagnosis.json",
+      "sha256": "8e1cca51d5fd0c9a6b680b4e44811e115e77a8fd5897b094a70cfe34a3d1ab03"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/stages/requests.csv",
+      "sha256": "0a476dd518658d68d29f8220d4ca5a8db671d47e54d48021cd135ec82efe6628"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/completion/versus_d870.json",
+      "sha256": "8a8000b38888c3fce7a59c7785ea264880312e191bba2af4a029ecfecea4ab58"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d883_cost_fusion_full_w2/closure.json",
+      "sha256": "bc972b5e974919257bcd35c3ff7967e8e2fdc7c8f3ed9fdebec202ae3094f8d8"
+    }
+  ]
+}
