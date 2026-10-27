@@ -598,6 +598,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d916)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d916_20261027/7b_current_full_w2
+    CONFIG=configs/ieee_tc/20261017_d611_7b_inventory_extent_full_w2.yaml
+    TAG=d916_7b_current_full_w2
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
   d615)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d615_20261017/7b_three_replica_full_w2
     CONFIG=configs/ieee_tc/20261017_d615_7b_three_replica_full_w2.yaml
@@ -1196,7 +1203,7 @@ export FAASLORA_TC_QUALIFICATION=1
 export FAASLORA_TC_EXTERNAL_REPLAY=1
 export FAASLORA_TC_REPLAY_PROFILE=W0
 unset FAASLORA_TC_ADAPTER_MAP FAASLORA_TC_ADAPTER_MAP_SHA256
-if [[ "${1:-d293}" == d554 || "${1:-d293}" == d598 || "${1:-d293}" == d603 || "${1:-d293}" == d607 || "${1:-d293}" == d611 || "${1:-d293}" == d615 || "${1:-d293}" == d621 || "${1:-d293}" == d629 || "${1:-d293}" == d632 ]]; then
+if [[ "${1:-d293}" == d554 || "${1:-d293}" == d598 || "${1:-d293}" == d603 || "${1:-d293}" == d607 || "${1:-d293}" == d611 || "${1:-d293}" == d615 || "${1:-d293}" == d621 || "${1:-d293}" == d629 || "${1:-d293}" == d632 || "${1:-d293}" == d916 ]]; then
   export FAASLORA_TC_REPLAY_PROFILE=W2
   export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json"
   export FAASLORA_TC_ADAPTER_MAP_SHA256=48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300
@@ -1504,6 +1511,24 @@ if [[ "${1:-d293}" == d915 ]]; then
   export FAASLORA_OUTPUT_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_max3_full_w2_release_contract
   export FAASLORA_NVME_CACHE_DIR="$ROOT/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_nvme_w2_release_contract"
   export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d915-3b-w2-release-contract
+  export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
+fi
+if [[ "${1:-d293}" == d916 ]]; then
+  export FAASLORA_FILE_STATE_PROCESS=1
+  export FAASLORA_TC_REPLAY_PROFILE=W2
+  export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261015_7b_w2_adapter_map_v1.json"
+  export FAASLORA_TC_ADAPTER_MAP_SHA256=48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300
+  export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_CONTRACT="$ROOT/configs/ieee_tc/native_toolchain_cuda130_v1.json"
+  export FAASLORA_TC_NATIVE_TOOLCHAIN_SHA256=328b202599d90b9e037ebad53bc7696a9997be2f0f412aaaeda2c1a0cc9c5b1c
+  export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json
+  export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+  export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
+  export FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER=isal
+  export FAASLORA_OUTPUT_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d916_20261027/7b_current_full_w2
+  export FAASLORA_NVME_CACHE_DIR="$ROOT/results/ieee_tc/p2_backend_qualification/d916_20261027/7b_nvme_current_full_w2"
+  export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d916-7b-current-full-w2
   export PYTHONPATH="/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d838_20261025/dependency:$ROOT"
 fi
 if [[ "${1:-d293}" == d814 || "${1:-d293}" == d817 || "${1:-d293}" == d822 || "${1:-d293}" == d826 || "${1:-d293}" == d829 || "${1:-d293}" == d832 || "${1:-d293}" == d835 || "${1:-d293}" == d840 || "${1:-d293}" == d843 || "${1:-d293}" == d861 || "${1:-d293}" == d858 || "${1:-d293}" == d870 || "${1:-d293}" == d883 || "${1:-d293}" == d886 || "${1:-d293}" == d876 || "${1:-d293}" == d880 || "${1:-d293}" == d866 || "${1:-d293}" == d854 || "${1:-d293}" == d846 || "${1:-d293}" == d863 || "${1:-d293}" == d863_attempt2 ]]; then
