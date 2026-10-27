@@ -5083,6 +5083,42 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
             )
         )
 
+    def test_ieee_current_demand_guard_suppresses_stale_ttft_only_pressure(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.coord_cfg = {"ieee_scale_up_current_demand_guard": True}
+        runner._runtime_forward_capacity_limit = lambda: 8
+        snapshot = {
+            "ratios": {"queue": 0.0, "active": 0.5, "ttft": 2.7},
+        }
+        self.assertTrue(
+            runner._ieee_scale_up_current_demand_covers_projection(
+                snapshot=snapshot,
+                handoff_plan={"queue_at_ready_request_count": 0},
+                current_instances=1,
+                pending_scale_up_instances=2,
+                backlog=0,
+                active_requests=0,
+            )
+        )
+
+    def test_ieee_current_demand_guard_keeps_demand_pressure_scale_up(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner.coord_cfg = {"ieee_scale_up_current_demand_guard": True}
+        runner._runtime_forward_capacity_limit = lambda: 8
+        snapshot = {
+            "ratios": {"queue": 1.25, "active": 0.5, "ttft": 2.7},
+        }
+        self.assertFalse(
+            runner._ieee_scale_up_current_demand_covers_projection(
+                snapshot=snapshot,
+                handoff_plan={"queue_at_ready_request_count": 0},
+                current_instances=1,
+                pending_scale_up_instances=0,
+                backlog=10,
+                active_requests=0,
+            )
+        )
+
     def test_scale_up_initial_admission_request_budget_tracks_incremental_dispatch_capacity(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._runtime_forward_capacity_limit = lambda: 2

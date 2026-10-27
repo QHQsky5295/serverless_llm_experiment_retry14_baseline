@@ -11803,6 +11803,54 @@ class ScenarioRunner:
         covered_capacity = max(1, current) * runtime_cap
         return visible_work <= covered_capacity
 
+    def _ieee_scale_up_current_demand_covers_projection(
+        self,
+        *,
+        snapshot: Dict[str, Any],
+        handoff_plan: Optional[Dict[str, Any]],
+        current_instances: int,
+        pending_scale_up_instances: int,
+        backlog: int,
+        active_requests: int,
+    ) -> bool:
+        """Check whether a TTFT-only scale-up has no current work to serve.
+
+        IEEE's max-score rule remains the source of the scale-up proposal.  This
+        execution guard only rejects a proposal when the TTFT component is the
+        sole component above one and the current/pending capacity already covers
+        the observed work.  A queue or active-capacity violation always wins, so
+        this cannot suppress demand-driven scale-out.  The guard uses only the
+        current live snapshot and the existing ready-time handoff projection; it
+        never consults future trace rows.
+        """
+        if not bool(
+            getattr(self, "coord_cfg", {}).get(
+                "ieee_scale_up_current_demand_guard", False
+            )
+        ):
+            return False
+        ratios = dict(snapshot.get("ratios") or {})
+        try:
+            queue_ratio = float(ratios.get("queue"))
+            active_ratio = float(ratios.get("active"))
+            ttft_ratio = float(ratios.get("ttft"))
+        except (TypeError, ValueError):
+            return False
+        if not all(math.isfinite(value) for value in (queue_ratio, active_ratio, ttft_ratio)):
+            return False
+        # The guard is only for stale end-to-end latency pressure.  If either
+        # demand signal itself crosses its limit, scale out normally.
+        if ttft_ratio <= 1.0 or queue_ratio >= 1.0 or active_ratio >= 1.0:
+            return False
+        return self._scale_up_capacity_covers_ready_projection(
+            handoff_plan=handoff_plan,
+            current_instances=current_instances,
+            pending_scale_up_instances=pending_scale_up_instances,
+            backlog=backlog,
+            active_requests=active_requests,
+            busy_ratio=active_ratio,
+        )
+
     def _build_scale_up_runtime_handoff_plans(
         self,
         base_plan: Optional[Dict[str, Any]],
@@ -14037,17 +14085,61 @@ class ScenarioRunner:
         decision = SimpleNamespace(reason=snapshot['reason'], target_instances=snapshot['target_instances'])
         changed = False
         if snapshot['action'] == ScalingAction.SCALE_UP:
-            # One activation per control interval; physical device reservations
-            # and the owner budgets, not a prediction of future arrivals, limit it.
+            # The IEEE score is intentionally computed before this guard.  A
+            # stale end-to-end TTFT sample may remain above its upper limit
+            # after the associated work has completed; starting more replicas
+            # in that interval only creates idle GPU residency.  Reuse the
+            # existing causal handoff projection and current work counts to
+            # suppress that one case, while queue/active pressure still follows
+            # the unmodified IEEE scale-up path.
             arrived = self._arrived_request_count(replay_t0)
-            count = self._schedule_background_scale_up_instance_pool(result=result,
-                coord_enabled=coord_enabled, decision=decision, current_instances=ready,
-                pending_scale_up_instances=pending, request_index=arrived,
-                completed_request_count=completed_count, queue_visible_request_count=arrived,
-                arrived_request_count=arrived, target_instances=snapshot['target_instances'],
-                runtime_handoff_plans=None, startup_parallelism_limit=pending+1)
-            changed = count > 0
-            record.update(outcome='activation_scheduled' if changed else 'no_free_device', scheduled=count)
+            handoff_plan = None
+            if bool(
+                getattr(self, "coord_cfg", {}).get(
+                    "ieee_scale_up_current_demand_guard", False
+                )
+            ):
+                self._live_scale_up_preferred_gpu_adapters(
+                    replay_t0=replay_t0,
+                    arrived_request_count=arrived,
+                    queue_visible_request_count=arrived,
+                    submitted_count=arrived,
+                    submitted_traces=None,
+                )
+                handoff_plan = dict(
+                    getattr(self, "_last_scale_up_handoff_plan", {}) or {}
+                )
+            if self._ieee_scale_up_current_demand_covers_projection(
+                snapshot=snapshot,
+                handoff_plan=handoff_plan,
+                current_instances=ready,
+                pending_scale_up_instances=pending,
+                backlog=backlog,
+                active_requests=active_requests,
+            ):
+                record.update(
+                    outcome='no_action_current_demand_covered',
+                    scale_up_guard='current_demand_projection',
+                    handoff_queue_at_ready=int(
+                        (handoff_plan or {}).get(
+                            'queue_at_ready_request_count', 0
+                        )
+                        or 0
+                    ),
+                )
+                self._live_scale_eval_last_at = now
+                changed = False
+            else:
+                # One activation per control interval; physical device reservations
+                # and the owner budgets, not a prediction of future arrivals, limit it.
+                count = self._schedule_background_scale_up_instance_pool(result=result,
+                    coord_enabled=coord_enabled, decision=decision, current_instances=ready,
+                    pending_scale_up_instances=pending, request_index=arrived,
+                    completed_request_count=completed_count, queue_visible_request_count=arrived,
+                    arrived_request_count=arrived, target_instances=snapshot['target_instances'],
+                    runtime_handoff_plans=None, startup_parallelism_limit=pending+1)
+                changed = count > 0
+                record.update(outcome='activation_scheduled' if changed else 'no_free_device', scheduled=count)
         elif snapshot['action'] == ScalingAction.SCALE_DOWN:
             # IEEE: withdraw -> drain admitted work -> release. The decision
             # already established all-low/cooldown; chance idleness is not an
