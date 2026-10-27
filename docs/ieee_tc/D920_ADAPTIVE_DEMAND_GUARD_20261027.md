@@ -62,3 +62,16 @@ TTFT 窗口和已在途 activation 决定。候选只在以下条件同时成立
 
 不重复运行 D917，不按结果修改 guard 规则，不用本次结果选择对手或改变共同
 比较协议。
+
+## 5. D920 终态与修复
+
+D920 在约 446 个请求终态、约 6 分钟回放后失败，不能进入任何性能汇总。失败
+栈位于新守卫为 ready-time 投影构造 route-aware 模拟 Router 的路径；实际
+IEEE Router 所需的 `service_bin_ms`、selection strategy 和 locality slack
+没有从真实 Router 复制到模拟 Router，导致其错误拒绝构造。服务资源域被
+正常释放，OOM、swap、high 和外部远端服务故障均未出现。
+
+这不是放宽合同或重跑同一键的理由。修复为让模拟 Router 使用真实 Router 的
+同一策略参数，保持模拟与实际选择语义一致；修复通过已有 route-aware/guard
+定向测试和 Python 编译检查。下一次运行使用新的 execution key，D920 的失败
+原始日志和 `launch.json` 永久保留。

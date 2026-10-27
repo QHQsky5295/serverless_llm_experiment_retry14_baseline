@@ -11183,6 +11183,12 @@ class ScenarioRunner:
                     or self._runtime_max_active_loras()
                 ),
             ),
+            service_bin_ms=getattr(router, "service_bin_ms", None),
+            ieee_selection_strategy=str(
+                getattr(router, "ieee_selection_strategy", "service_bins")
+                or "service_bins"
+            ),
+            locality_load_slack=getattr(router, "locality_load_slack", None),
         )
         runtime_cap = max(
             1, int(getattr(sim_router, "runtime_concurrency_cap", 1) or 1)
