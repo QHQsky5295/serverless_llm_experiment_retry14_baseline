@@ -99,6 +99,10 @@ ieee_snapshot=...)`，因此没有回到 legacy routing，也没有放宽
 分离，避免预测过程改变下一次真实控制快照。
 
 这一定义保留了原假设的可证伪性：守卫只可能抑制“TTFT 单项超限且当前需求已被
-已有容量覆盖”的动作；若 queue/active 压力越界，仍执行原 IEEE 扩容。修复后
-使用新的 D922 execution key，D920/D921 的失败记录不混入正式性能表，也不以
-失败结果挑选配置。
+已有容量覆盖”的动作；若 queue/active 压力越界，仍执行原 IEEE 扩容。修复后计划
+使用新的 execution key。D922 已在服务 profile 装载阶段停止，尚未进入回放：新
+配置中的 native-host workspace 审计摘要有一个字符错误，冻结 profile 正确拒绝了
+model/configuration/context 不一致的配置。该失败同样不进入性能表；原始
+`launch.json` 和服务日志保留。D923 将只修正这一配置摘要并使用独立输出路径，
+继续验证前述 snapshot 语义。D920/D921/D922 的失败记录不用于筛选结果或改变
+guard 规则。
