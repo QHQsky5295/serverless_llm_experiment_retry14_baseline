@@ -11070,6 +11070,16 @@ class ScenarioRunner:
 
     def _copy_scale_up_routing_simulation_slot(self, slot: Any) -> Any:
         simulated = copy.copy(slot)
+        # The projection mutates active counts and pending demand while it
+        # scans the hypothetical first-service prefix.  These ownership
+        # containers must be detached from the live slot; otherwise a routing
+        # prediction could alter the next real controller snapshot.
+        simulated.active_adapter_counts = dict(
+            getattr(slot, "active_adapter_counts", {}) or {}
+        )
+        simulated.ieee_pending_load_ids = set(
+            getattr(slot, "ieee_pending_load_ids", set()) or set()
+        )
         simulated.gpu_resident_adapters = set(
             getattr(slot, "gpu_resident_adapters", set()) or set()
         )
@@ -11126,6 +11136,197 @@ class ScenarioRunner:
         for adapter_id in planned_gpu_adapters:
             simulated.mark_adapter_tier(adapter_id, "gpu")
         return simulated
+
+    def _ieee_scale_up_projection_snapshot(
+        self,
+        trace: Any,
+        simulated_slots: List[Any],
+        *,
+        runtime_cap: int,
+        epoch: int,
+    ) -> tuple:
+        """Build the committed-state view used by the scale-up projection.
+
+        The projection is not a request admission and cannot reuse the live
+        router's last decision.  For the IEEE policy it therefore constructs
+        the same immutable ``ReplicaRoutingSnapshot`` value that the request
+        path consumes, using the copied state at the predicted ready point and
+        the already frozen artifact/profile identities.  This keeps the
+        prediction on the confirmed-tier path; it must fail explicitly when a
+        measured profile or immutable artifact identity is unavailable.
+        """
+        from faaslora.experiment.instance_pool import ReplicaRoutingSnapshot
+
+        adapter_id = getattr(trace, "adapter_id", None)
+        if not adapter_id:
+            raise ValueError(
+                "IEEE scale-up projection requires an adapter-bound trace"
+            )
+        identity = getattr(self, "_ieee_artifact_identities", {}).get(adapter_id)
+        if not isinstance(identity, dict):
+            raise ValueError(
+                f"IEEE scale-up projection lacks frozen artifact identity for {adapter_id}"
+            )
+
+        # The new slot is created before an engine exists, so inherit only the
+        # frozen service-profile definition from an incumbent replica.  This
+        # does not copy a mutable EWMA estimate or a cache hint.
+        profile_owner = next(
+            (
+                slot
+                for slot in simulated_slots
+                if getattr(slot, "service_class_bins", None) is not None
+                and getattr(slot, "service_cost_model", None) is not None
+            ),
+            None,
+        )
+        if profile_owner is None:
+            raise ValueError(
+                "IEEE scale-up projection requires frozen service profiles on a replica"
+            )
+        owner_bins = profile_owner.service_class_bins
+        owner_model = profile_owner.service_cost_model
+        owner_profiles = getattr(owner_model, "_profiles", None)
+        if owner_bins is None or owner_model is None or not owner_profiles:
+            raise ValueError(
+                "IEEE scale-up projection cannot classify without measured service profiles"
+            )
+
+        prompt_tokens = int(
+            getattr(trace, "prompt_input_tokens", None)
+            or getattr(trace, "expected_input_tokens", 0)
+            or 0
+        )
+        output_tokens = int(
+            getattr(trace, "expected_output_tokens", 0)
+            or getattr(trace, "prompt_output_tokens", 0)
+            or 0
+        )
+        if prompt_tokens < 0 or output_tokens < 1:
+            raise ValueError("IEEE scale-up projection has invalid trace token bounds")
+        adapter_rank = identity.get("rank")
+        remote_bytes = identity.get("remote_payload_bytes")
+        if type(adapter_rank) is not int or adapter_rank < 1:
+            raise ValueError("IEEE scale-up projection has invalid adapter rank")
+        if type(remote_bytes) is not int or remote_bytes < 1:
+            raise ValueError("IEEE scale-up projection has invalid artifact footprint")
+
+        def native_source_for(slot: Any):
+            state = getattr(slot, "native_source_state", None)
+            for source in getattr(state, "sources", ()) or ():
+                if source.adapter_id == adapter_id:
+                    return source
+            return None
+
+        def class_and_cost(slot: Any):
+            tier = str(slot.predicted_cache_tier(adapter_id)).strip().lower()
+            if tier not in {"gpu", "host", "nvme", "remote"}:
+                raise ValueError(
+                    f"IEEE scale-up projection observed unsupported adapter tier {tier!r}"
+                )
+            source = native_source_for(slot)
+            representation = None
+            footprint_bytes = remote_bytes
+            if source is not None and source.tier in {"gpu", "host"}:
+                tier = source.tier
+                if tier == "gpu":
+                    footprint_bytes = source.gpu_slot_capacity_bytes
+                    representation = source.gpu_representation
+                else:
+                    footprint_bytes = source.host_storage_bytes
+                    representation = source.host_representation
+            if type(footprint_bytes) is not int or footprint_bytes < 1:
+                # The frozen service profile bins are measured by the profile
+                # owner; the projection cannot invent a footprint.  The
+                # immutable remote payload is the only valid identity fallback
+                # for a planned copy not yet owned by a native worker.
+                footprint_bytes = remote_bytes
+            candidates = [
+                key
+                for key in owner_profiles
+                if key.tier == tier
+                and (representation is None or key.representation == representation)
+            ]
+            if not candidates:
+                candidates = [key for key in owner_profiles if key.tier == tier]
+            if not candidates:
+                raise ValueError(
+                    f"IEEE scale-up projection has no measured profile for tier {tier!r}"
+                )
+            if representation is None:
+                # A copied cache hint without a native owner refers to the
+                # managed file tree, not to the separate native HOST loader.
+                # Prefer that measured representation when the profile records
+                # both; otherwise use the only available representation.
+                file_candidates = [
+                    key
+                    for key in candidates
+                    if key.representation == "verified_regular_file_tree_v1"
+                ]
+                representation = min(
+                    key.representation for key in (file_candidates or candidates)
+                )
+            bins = getattr(slot, "service_class_bins", None) or owner_bins
+            model = getattr(slot, "service_cost_model", None) or owner_model.new_replica()
+            key = bins.classify(
+                tier=tier,
+                prompt_tokens=prompt_tokens,
+                declared_output_tokens=output_tokens,
+                adapter_rank=adapter_rank,
+                footprint_bytes=footprint_bytes,
+                representation=representation,
+                admitted_after_accept=max(
+                    1, int(getattr(slot, "active_requests", 0) or 0) + 1
+                ),
+            )
+            if key not in getattr(model, "_profiles", {}):
+                raise ValueError(
+                    "IEEE scale-up projection classified an unsupported measured service class"
+                )
+            return key, model.estimate(key)
+
+        rows = []
+        for slot in simulated_slots:
+            active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+            active = frozenset(
+                adapter
+                for adapter, count in (getattr(slot, "active_adapter_counts", {}) or {}).items()
+                if int(count or 0) > 0
+            )
+            key, service = class_and_cost(slot)
+            utilization = float(getattr(slot, "gpu_utilization_pct", 0.0) or 0.0)
+            if not math.isfinite(utilization) or not 0.0 <= utilization <= 100.0:
+                raise ValueError("IEEE scale-up projection has invalid utilization")
+            max_active_loras = int(
+                getattr(self, "_runtime_max_active_loras")() or 0
+            )
+            if max_active_loras < 1:
+                raise ValueError(
+                    "IEEE scale-up projection requires a positive active-adapter capacity"
+                )
+            rows.append(
+                ReplicaRoutingSnapshot(
+                    epoch=int(epoch),
+                    request_id=str(getattr(trace, "request_id", "")),
+                    replica_id=str(getattr(slot, "instance_id", "")),
+                    adapter_id=adapter_id,
+                    runtime_ready=getattr(slot, "status", "running") == "running",
+                    available_slots=max(0, int(runtime_cap) - active_requests),
+                    admitted_requests=active_requests,
+                    active_adapters=active,
+                    max_active_loras=max_active_loras,
+                    pending_loads=max(
+                        0, int(len(getattr(slot, "ieee_pending_load_ids", set()) or set()))
+                    ),
+                    gpu_utilization_pct=utilization,
+                    last_dispatch_at=max(
+                        0.0, float(getattr(slot, "ieee_last_dispatch_at", 0.0) or 0.0)
+                    ),
+                    service_class=key,
+                    service=service,
+                )
+            )
+        return tuple(rows)
 
     def _route_aware_scale_up_first_service_prefix_state(
         self,
@@ -11212,9 +11413,22 @@ class ScenarioRunner:
                 if adapter_id
                 else 0.0
             )
-            selected = sim_router.select_instance(
-                adapter_id, adapter_size_mb=size_mb
-            )
+            if sim_router.policy == "ieee_confirmed":
+                projection_snapshot = self._ieee_scale_up_projection_snapshot(
+                    trace,
+                    simulated_slots,
+                    runtime_cap=runtime_cap,
+                    epoch=max(0, int(getattr(self, "_ieee_routing_epoch", 0) or 0) + 1),
+                )
+                selected = sim_router.select_instance(
+                    adapter_id,
+                    adapter_size_mb=size_mb,
+                    ieee_snapshot=projection_snapshot,
+                )
+            else:
+                selected = sim_router.select_instance(
+                    adapter_id, adapter_size_mb=size_mb
+                )
             if selected is None:
                 break
             current_active = max(

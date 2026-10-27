@@ -75,3 +75,30 @@ IEEE Router 所需的 `service_bin_ms`、selection strategy 和 locality slack
 同一策略参数，保持模拟与实际选择语义一致；修复通过已有 route-aware/guard
 定向测试和 Python 编译检查。下一次运行使用新的 execution key，D920 的失败
 原始日志和 `launch.json` 永久保留。
+
+## 6. D921 终态与第二个语义修复
+
+D921 使用独立 execution key 重新触发了扩容路径，但在约 268 个请求终态后
+停止，仍不能进入性能汇总。第二次失败不来自远端制品服务、GPU、磁盘、内存或
+回放器；服务资源已正常释放，`launch.json` 将其记录为失败运行并保留原始日志。
+
+失败位置为 `ieee_confirmed` 路由的 ready-time 投影：D921 已经复制了副本的
+缓存与负载状态，却仍以没有 `ieee_snapshot` 的方式调用正式 Router。正式
+Router 拒绝这种调用是正确的，因为它会把“最近一次 hint”误当成已提交的
+候选状态。因而 D921 暴露的是预测器与正式路由合同之间的缺口，而不是证明
+当前需求守卫无效。
+
+修复内容是为投影中的每个候选副本构造不可变的
+`ReplicaRoutingSnapshot`：使用复制状态中的活动请求、活动 adapter、待处理
+负载、GPU 利用率和最近调度时间，使用冻结工件身份中的 rank/载荷身份，并由
+冻结服务 profile 分类出对应的 D/T/O 类。扩容产生的尚未拥有 engine 的副本
+只继承 profile 定义，不继承其他副本的在线 EWMA 或缓存提示；缺少 profile 或
+工件身份时显式失败。随后投影仍调用 `Router.select_instance(...,
+ieee_snapshot=...)`，因此没有回到 legacy routing，也没有放宽
+`confirmed-tier` 约束。模拟副本的活动计数和 pending 集合同时与真实副本
+分离，避免预测过程改变下一次真实控制快照。
+
+这一定义保留了原假设的可证伪性：守卫只可能抑制“TTFT 单项超限且当前需求已被
+已有容量覆盖”的动作；若 queue/active 压力越界，仍执行原 IEEE 扩容。修复后
+使用新的 D922 execution key，D920/D921 的失败记录不混入正式性能表，也不以
+失败结果挑选配置。
