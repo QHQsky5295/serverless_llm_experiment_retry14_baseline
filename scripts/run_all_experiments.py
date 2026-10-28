@@ -20288,20 +20288,29 @@ class ScenarioRunner:
                                 fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
                                                 footprint_bytes=confirmed['allocated_file_bytes'])
                         else:
-                            view = references.source_snapshot(victim['adapter_id'])
-                            local = sorted(view['sources'], key=lambda s: ('host','nvme').index(s['tier']))
-                            if local:
-                                fallback = local[0]
-                                with references.lock:
+                            # Selection and confirmation must be one owner
+                            # transaction.  A snapshot taken before entering
+                            # this lock can become stale while another
+                            # residency task publishes/reclaims the same
+                            # adapter, producing a false hard failure even
+                            # though a current local source is available.
+                            with references.lock:
+                                view = references.source_snapshot(victim['adapter_id'])
+                                local = sorted(
+                                    view['sources'],
+                                    key=lambda s: ('host', 'nvme').index(s['tier']),
+                                )
+                                if local:
+                                    fallback = local[0]
                                     held = references.acquire_confirmed(path=fallback['path'],
                                         adapter_id=victim['adapter_id'], lease_id=uuid.uuid4().hex,
                                         expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
                                         expected_content_sha256=victim['content_sha256'])
-                                confirmed = held['confirmed_source']
-                                fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
-                                                footprint_bytes=confirmed['allocated_file_bytes'])
-                            else:
-                                fallback, held = victim['remote_fallback'], None
+                                    confirmed = held['confirmed_source']
+                                    fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
+                                                    footprint_bytes=confirmed['allocated_file_bytes'])
+                                else:
+                                    fallback, held = victim['remote_fallback'], None
                         if held is not None and held not in file_holds:
                             file_holds.append(held)
                         file_fallbacks[str(registered_aid)] = dict(source=fallback, file_reference=held)
