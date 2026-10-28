@@ -11288,8 +11288,20 @@ class ScenarioRunner:
                 admitted_after_accept=active_requests + 1,
             )
             if key not in getattr(model, "_profiles", {}):
+                profile_keys = getattr(model, "_profiles", {}) or {}
+                same_tier = sorted({
+                    repr(candidate)
+                    for candidate in profile_keys
+                    if getattr(candidate, "tier", None) == tier
+                })[:12]
                 raise ValueError(
-                    "IEEE scale-up projection classified an unsupported measured service class"
+                    "IEEE scale-up projection classified an unsupported measured service class: "
+                    f"slot={getattr(slot, 'instance_id', None)!r} "
+                    f"active={active_requests} cap={runtime_cap} tier={tier!r} "
+                    f"prompt={prompt_tokens} output={output_tokens} rank={adapter_rank} "
+                    f"representation={representation!r} key={key!r} "
+                    f"profile_id={getattr(model, 'profile_id', None)!r} "
+                    f"profile_count={len(profile_keys)} same_tier={same_tier}"
                 )
             return key, model.estimate(key)
 
