@@ -49,6 +49,9 @@ from faaslora.experiment.instance_pool import (
     InstanceSlot,
     ObservedRequestCost,
     Router,
+    ServiceClassBins,
+    ServiceComponents,
+    ServiceCostModel,
 )
 from faaslora.preloading.preloading_planner import PreloadingPlanner
 from faaslora.registry.schema import ArtifactMetadata, ArtifactStatus, StorageTier
@@ -4862,6 +4865,59 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         )
 
         self.assertEqual([trace.adapter_id for trace in routed], ["finance"])
+
+    def test_ieee_projection_marks_saturated_replica_infeasible_without_new_profile_class(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._runtime_max_active_loras = lambda: 14
+        runner._ieee_artifact_identities = {
+            "adapter": {
+                "rank": 8,
+                "remote_payload_bytes": 20 * 1024 * 1024,
+                "remote_representation": "tar_gzip_verified_file_tree_v1",
+            }
+        }
+        bins = ServiceClassBins(
+            prompt_tokens=(759,),
+            declared_output_tokens=(24, 91, 217, 256),
+            adapter_rank=(8, 16, 64),
+            footprint_bytes=(),
+            admitted_requests=(1, 2, 4, 8, 14),
+        )
+        remote_key = bins.classify(
+            tier="remote", prompt_tokens=100, declared_output_tokens=24,
+            adapter_rank=8, footprint_bytes=20 * 1024 * 1024,
+            representation="tar_gzip_verified_file_tree_v1", admitted_after_accept=14,
+        )
+        model = ServiceCostModel(
+            {remote_key: ServiceComponents(1.0, 2.0, 3.0)}, beta=0.5,
+            profile_id="profile",
+        )
+        slot = SimpleNamespace(
+            active_requests=14,
+            active_adapter_counts={},
+            ieee_pending_load_ids=set(),
+            gpu_utilization_pct=50.0,
+            ieee_last_dispatch_at=0.0,
+            status="running",
+            instance_id="replica-1",
+            service_class_bins=bins,
+            service_cost_model=model,
+            native_source_state=None,
+            predicted_cache_tier=lambda adapter_id: "remote",
+        )
+        trace = SimpleNamespace(
+            request_id="request-1", adapter_id="adapter",
+            prompt_input_tokens=100, expected_output_tokens=24,
+        )
+
+        (snapshot,) = runner._ieee_scale_up_projection_snapshot(
+            trace, [slot], runtime_cap=14, epoch=1,
+        )
+
+        self.assertEqual(snapshot.available_slots, 0)
+        self.assertIsNone(snapshot.service_class)
+        self.assertIsNone(snapshot.service)
+        self.assertFalse(snapshot.feasible)
 
     def test_predict_scale_up_handoff_plan_uses_router_aware_first_service_prefix(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)

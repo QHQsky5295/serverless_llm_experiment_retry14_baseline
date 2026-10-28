@@ -11219,6 +11219,16 @@ class ScenarioRunner:
             return None
 
         def class_and_cost(slot: Any):
+            active_requests = max(0, int(getattr(slot, "active_requests", 0) or 0))
+            # A saturated replica is not a candidate for this projected
+            # admission.  Its unavailable snapshot must not be classified as
+            # a new measured service class (active_requests + 1), because that
+            # class is necessarily outside the frozen admitted-request bins.
+            # The router will exclude the resulting snapshot via
+            # ``available_slots == 0``; no latency estimate is needed for an
+            # impossible admission.
+            if active_requests >= int(runtime_cap):
+                return None, None
             tier = str(slot.predicted_cache_tier(adapter_id)).strip().lower()
             if tier not in {"gpu", "host", "nvme", "remote"}:
                 raise ValueError(
@@ -11275,9 +11285,7 @@ class ScenarioRunner:
                 adapter_rank=adapter_rank,
                 footprint_bytes=footprint_bytes,
                 representation=representation,
-                admitted_after_accept=max(
-                    1, int(getattr(slot, "active_requests", 0) or 0) + 1
-                ),
+                admitted_after_accept=active_requests + 1,
             )
             if key not in getattr(model, "_profiles", {}):
                 raise ValueError(
