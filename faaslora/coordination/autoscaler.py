@@ -142,7 +142,7 @@ class IEEEReplicaControl:
         self.samples = deque()
         self.seen_requests = set()
 
-    def observe_ttft(self, request_id, ttft_ms, *, observed_at):
+    def observe_ttft(self, request_id, ttft_ms, *, observed_at, pressure_class="unknown"):
         if (not isinstance(request_id, str) or not request_id
                 or isinstance(ttft_ms, bool) or not isinstance(ttft_ms, (int, float))
                 or not math.isfinite(ttft_ms) or ttft_ms < 0
@@ -153,7 +153,9 @@ class IEEEReplicaControl:
             return False
         self.last_observation = observed_at
         self.seen_requests.add(request_id)
-        self.samples.append((observed_at, float(ttft_ms)))
+        if not isinstance(pressure_class, str) or not pressure_class:
+            raise ValueError('invalid IEEE TTFT pressure class')
+        self.samples.append((observed_at, float(ttft_ms), pressure_class))
         return True
 
     def evaluate(self, *, now, queue_depth, active_requests, ready_capacity,
@@ -173,8 +175,11 @@ class IEEEReplicaControl:
         cfg = self.config
         while self.samples and self.samples[0][0] <= now-cfg['ttft_window_s']:
             self.samples.popleft()
-        values = sorted(value for _, value in self.samples)
-        p95 = values[math.ceil(.95*len(values))-1] if values else None  # Type-1, no interpolation.
+        ordered = sorted(self.samples, key=lambda sample: sample[1])
+        p95_index = math.ceil(.95*len(ordered))-1 if ordered else None
+        p95_sample = ordered[p95_index] if p95_index is not None else None
+        p95 = p95_sample[1] if p95_sample is not None else None  # Type-1, no interpolation.
+        p95_pressure_class = p95_sample[2] if p95_sample is not None else None
         saturation = active_requests / ready_capacity if ready_capacity else 0.
         ratios = dict(queue=queue_depth/cfg['queue_upper'], active=saturation/cfg['active_upper'],
                       ttft=None if p95 is None else p95/cfg['ttft_upper_ms'])
@@ -196,7 +201,8 @@ class IEEEReplicaControl:
         return dict(action=action, target_instances=target, current_instances=total, reason=reason,
             observed_at=now, queue_depth=queue_depth, active_requests=active_requests,
             ready_capacity=ready_capacity, ready_instances=ready_instances, pending_instances=pending_instances,
-            active_saturation=saturation, p95_ttft_ms=p95, ttft_sample_count=len(values),
+            active_saturation=saturation, p95_ttft_ms=p95, ttft_sample_count=len(ordered),
+            p95_pressure_class=p95_pressure_class,
             ratios=ratios, score=score, all_low=all_low, low_since=self.low_since)
 
 

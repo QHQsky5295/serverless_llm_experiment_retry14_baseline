@@ -823,6 +823,33 @@ def _is_warm_standard_request(
         return False
     return str(getattr(request, "cache_tier", "remote") or "remote").lower() == "gpu"
 
+
+def _ieee_ttft_pressure_class(request: Any) -> str:
+    """Classify a completed TTFT sample from causal path observations.
+
+    This annotation is used only by the IEEE execution guard.  It does not
+    change the controller's P95 value or any paper equation.  Samples from a
+    newly activated runtime are startup feedback; samples dispatched to a
+    confirmed non-GPU tier or delayed by admission/slot waiting are live
+    demand evidence.
+    """
+    if bool(getattr(request, "scaleup_first_service", False)) or bool(
+        getattr(request, "scaleup_affected", False)
+    ):
+        return "scaleup_warmup"
+    if bool(getattr(request, "adapter_replica_mismatch", False)) or bool(
+        getattr(request, "adapter_remote_cold_before_dispatch", False)
+    ):
+        return "tier_mismatch"
+    try:
+        admission_wait = float(getattr(request, "dispatch_admission_wait_ms", 0.0) or 0.0)
+        slot_wait = float(getattr(request, "runtime_slot_wait_ms", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        admission_wait = slot_wait = 0.0
+    if admission_wait > 0.0 or slot_wait > 0.0:
+        return "admission_wait"
+    return "other"
+
 from faaslora.datasets.workload_generator import WorkloadGenerator, WorkloadConfig, RequestTrace
 from faaslora.datasets.dataset_loader import WorkloadDataset
 from faaslora.registry.schema import StorageTier
@@ -12091,6 +12118,15 @@ class ScenarioRunner:
         # demand signal itself crosses its limit, scale out normally.
         if ttft_ratio <= 1.0 or queue_ratio >= 1.0 or active_ratio >= 1.0:
             return False
+        # A P95 sample caused by an already confirmed tier mismatch or by
+        # admission/slot waiting is actionable demand evidence.  Only startup
+        # feedback (or an unclassified sample from older callers) is eligible
+        # for current-demand suppression.
+        if str(snapshot.get("p95_pressure_class") or "unknown") in (
+            "tier_mismatch",
+            "admission_wait",
+        ):
+            return False
         return self._scale_up_capacity_covers_ready_projection(
             handoff_plan=handoff_plan,
             current_instances=current_instances,
@@ -14305,7 +14341,12 @@ class ScenarioRunner:
         for index in range(cursor, len(results_view)):
             item = results_view[index]
             if getattr(item, 'success', False):
-                controller.observe_ttft(item.request_id, item.overall_ttft_ms, observed_at=now)
+                controller.observe_ttft(
+                    item.request_id,
+                    item.overall_ttft_ms,
+                    observed_at=now,
+                    pressure_class=_ieee_ttft_pressure_class(item),
+                )
         self._ieee_ttft_result_cursor = (results_view, len(results_view))
         ready = self.instance_pool.count()
         pending = self._pending_scale_up_count()
