@@ -11192,15 +11192,24 @@ class ScenarioRunner:
                 "IEEE scale-up projection cannot classify without measured service profiles"
             )
 
-        prompt_tokens = int(
-            getattr(trace, "prompt_input_tokens", None)
-            or getattr(trace, "expected_input_tokens", 0)
-            or 0
-        )
-        output_tokens = int(
-            getattr(trace, "expected_output_tokens", 0)
-            or getattr(trace, "prompt_output_tokens", 0)
-            or 0
+        # Projection features must be the same declared request features that
+        # the execution contract sends to the backend.  Raw trace bounds are
+        # not sufficient here: the fixed-output contract caps generation and
+        # the canonical prompt renderer trims inputs before admission.  Using
+        # raw bounds would create a class that can never be observed by the
+        # native service profile and would make the control plane reject an
+        # otherwise valid request.
+        prompt_tokens = self._trace_input_tokens_hint(trace)
+        model_cfg = getattr(self, "model_cfg", None)
+        if not isinstance(model_cfg, dict) or not model_cfg:
+            model_cfg = getattr(getattr(self, "engine", None), "model_cfg", {}) or {}
+        max_input_len = int(model_cfg.get("max_input_len", 0) or 0)
+        if max_input_len > 0:
+            prompt_tokens = min(prompt_tokens, max_input_len)
+        output_cap = int(model_cfg.get("max_output_tokens_cap", 0) or 0)
+        output_tokens = self._trace_requested_output_tokens(
+            trace,
+            output_cap or int(getattr(trace, "expected_output_tokens", 0) or 1),
         )
         if prompt_tokens < 0 or output_tokens < 1:
             raise ValueError("IEEE scale-up projection has invalid trace token bounds")
