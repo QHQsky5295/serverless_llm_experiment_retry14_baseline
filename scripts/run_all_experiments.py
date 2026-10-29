@@ -16885,7 +16885,12 @@ class ScenarioRunner:
             stack._nvme_paths[aid] = str(dst.resolve())
             stack.registry.update_artifact(aid, {"storage_path": str(dst.resolve())})
             await stack.residency_manager.admit_artifact(aid, StorageTier.NVME)
-            size_bytes = int(evidence.get("size_bytes", 0) or 0)
+            size_bytes = int(
+                evidence.get("transferred_bytes", 0)
+                or evidence.get("payload_bytes_verified", 0)
+                or evidence.get("size_bytes", 0)
+                or 0
+            )
             transferred_bytes += max(0, size_bytes)
             transfer_count += 1
 
