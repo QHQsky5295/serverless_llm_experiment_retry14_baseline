@@ -1575,6 +1575,16 @@ class InstancePool:
         return list(groups.values())
 
 
+class StaleReplicaRoutingSnapshot(ValueError):
+    """The committed replica view became obsolete before selection.
+
+    IEEE routing deliberately refuses to select from a view whose owner set no
+    longer matches the live pool.  The request owner must collect a fresh view;
+    callers can catch this typed condition without converting unrelated
+    selection errors into retries.
+    """
+
+
 class Router:
     """
     Request router (B2). Selects instance for a request.
@@ -1881,7 +1891,8 @@ class Router:
             if any(s.adapter_id != adapter_id for s in ieee_snapshot):
                 raise ValueError('snapshot targets a different adapter')
             if {s.replica_id for s in ieee_snapshot} != {s.instance_id for s in slots}:
-                raise ValueError('replica membership changed; retry from updated owner snapshot')
+                raise StaleReplicaRoutingSnapshot(
+                    'replica membership changed; retry from updated owner snapshot')
             self.selection_count += 1
             self.readiness_aware_selection_count += 1
             if self.ieee_selection_strategy == 'gpu_locality':

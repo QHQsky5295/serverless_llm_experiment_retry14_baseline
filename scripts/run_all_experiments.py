@@ -172,6 +172,7 @@ try:
         InstanceSlot,
         ObservedRequestCost,
         Router,
+        StaleReplicaRoutingSnapshot,
     )
     from faaslora.coordination.autoscaler import ScalingMetrics, ScalingAction
     FAASLORA_EXPERIMENT_AVAILABLE = True
@@ -179,6 +180,7 @@ except ImportError:
     ExperimentStack = None
     InstancePool = None  # type: ignore[misc, assignment]
     Router = None  # type: ignore[misc, assignment]
+    StaleReplicaRoutingSnapshot = None  # type: ignore[misc, assignment]
     ScalingMetrics = None  # type: ignore[misc, assignment]
     ScalingAction = None  # type: ignore[misc, assignment]
     FAASLORA_EXPERIMENT_AVAILABLE = False
@@ -19254,9 +19256,22 @@ class ScenarioRunner:
                 if committed is None:
                     continue
                 snapshot, source_evidence = committed
-                slot, selected_ieee_decision = self.router.select_instance_with_decision(
-                    adapter_id, ieee_snapshot=snapshot
-                )
+                try:
+                    slot, selected_ieee_decision = self.router.select_instance_with_decision(
+                        adapter_id, ieee_snapshot=snapshot
+                    )
+                except StaleReplicaRoutingSnapshot:
+                    # The owner set changed after the immutable view was
+                    # committed.  Do not route from a stale confirmed tier
+                    # state and do not convert this recoverable race into a
+                    # failed request: collect a fresh owner snapshot while
+                    # retaining the request's original arrival deadline.
+                    stats = getattr(self, '_ieee_source_observation_stats', None)
+                    if stats is not None:
+                        stats['selection_membership_rejections'] = (
+                            stats.get('selection_membership_rejections', 0) + 1
+                        )
+                    continue
             else:
                 self._refresh_all_slot_runtime_hints()
                 slot = (self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
