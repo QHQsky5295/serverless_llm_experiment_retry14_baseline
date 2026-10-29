@@ -16460,8 +16460,10 @@ class ScenarioRunner:
             and (len(replay.plan.entries) == replay.plan.source_count
                  or replay_scope == 'diagnostic_prefix_v1')
             and replay.plan.rate_scale == 1.
-            and math.isclose(context['replay_t0_s'] - context['deployment_notice_s'],
-                             60., rel_tol=0., abs_tol=1e-6)
+            and math.isclose(
+                context['replay_t0_s'] - context['deployment_notice_s'],
+                float(context.get('replay_delay_s', 60.0) or 60.0),
+                rel_tol=0., abs_tol=1e-6)
             and context['deployment_notice_s'] == deployment.notice
             and context['replay_t0_s'] == deployment.arrival_start
             and context['clock_id'] == deployment.clock_id
@@ -16480,6 +16482,7 @@ class ScenarioRunner:
             dispatch_admission_mode=self._dispatch_admission_mode(),
             request_timeout_s=request_timeout_s,
             request_deadline_origin='planned_arrival',
+            replay_delay_s=float(context.get('replay_delay_s', 60.0) or 60.0),
             physical_deployment_path=str(deployment.root),
             formal_comparison_qualified=False)
         if mechanism is not None:

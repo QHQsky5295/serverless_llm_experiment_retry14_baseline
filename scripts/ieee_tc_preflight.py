@@ -1535,8 +1535,15 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                            'production_launch_authorized': False}
                 if replay_ready is not None:
                     notice = time.perf_counter()
+                    if tiny:
+                        replay_delay_s = 0.2
+                    else:
+                        replay_delay_s = float(os.environ.get('FAASLORA_TC_REPLAY_DELAY_S', '60'))
+                        if not math.isfinite(replay_delay_s) or replay_delay_s < 60.0:
+                            raise ValueError('FAASLORA_TC_REPLAY_DELAY_S must be finite and >= 60s')
                     origin = {'deployment_notice_s': notice,
-                              'replay_t0_s': notice+(0.2 if tiny else 60.),
+                              'replay_t0_s': notice+replay_delay_s,
+                              'replay_delay_s': replay_delay_s,
                               'clock_id': replay_ready['clock_id']}
                     receipt['external_replay'] = {
                         **origin, 'address': str(Path(tmp)/'replay.sock'), 'nonce': nonce,
