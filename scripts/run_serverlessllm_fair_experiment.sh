@@ -3,6 +3,14 @@ set -euo pipefail
 
 ROOT_DIR="${SLLM_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
 MAIN_REPO="${SLLM_MAIN_REPO:-/home/qhq/serverless_llm_experiment_retry14_baseline}"
+
+# The artifact service requires the same bearer token used by the PrimeLoRA
+# runners.  Keep the token in the local operator config; never print or commit
+# it.  An explicitly exported token still takes precedence for other hosts.
+if [[ -z "${PRIME_REMOTE_TOKEN:-}" && -r "/home/qhq/.config/primelora-tc-d75/artifact.token" ]]; then
+  IFS= read -r PRIME_REMOTE_TOKEN < "/home/qhq/.config/primelora-tc-d75/artifact.token"
+  export PRIME_REMOTE_TOKEN
+fi
 SHARED_INPUT_DIR="${SLLM_SHARED_INPUT_DIR:-${ROOT_DIR}/results/shared_inputs}"
 RESULT_DIR="${SLLM_RESULT_DIR:-${ROOT_DIR}/results/replay}"
 LOG_DIR="${SLLM_LOG_DIR:-${ROOT_DIR}/results/logs}"
