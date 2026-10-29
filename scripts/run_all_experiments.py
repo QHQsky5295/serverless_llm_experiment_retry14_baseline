@@ -47,6 +47,8 @@ Transformers 后端与实验真实性
 import argparse
 import asyncio
 import concurrent.futures
+import queue
+import threading
 from contextlib import asynccontextmanager
 import copy
 import gc
@@ -27425,32 +27427,81 @@ async def main_async(*args, **kwargs):
         raise ValueError('requested diagnostic population differs from launch receipt')
     deployment = PhysicalGPUDeployment(root=receipt_path.parent/'physical_deployment',
         plan=plan, context=context)
-    with (receipt_path.parent/'service_ingress.jsonl').open('x') as log:
-        def emit(event):
-            log.write(json.dumps(event, separators=(',', ':'))+'\n')
-            log.flush()
-        emit({'event': 'service_ingress_identity', **identity})
-        ingress = ExternalReplayIngress(plan, context, emit=emit)
-        work = None
+    # Ingress events are diagnostic evidence, not application work.  Writing
+    # and flushing one JSON line synchronously on this event loop made the
+    # receiver stop reading the socket while the model was serving requests;
+    # D930/D931 expose that as 100+ ms arrival-release delay even though the
+    # native engine queue remained about 5 ms.  Keep the exact receive
+    # timestamp in the event object, but move only the disk write to one
+    # process-local writer thread.  A FIFO queue preserves event order and the
+    # final join makes the log lossless before the run is closed.
+    ingress_log_path = receipt_path.parent/'service_ingress.jsonl'
+    log = ingress_log_path.open('x')
+    log_queue = queue.SimpleQueue()
+    log_writer_error = []
+    log_writer_stop = object()
+
+    def write_ingress_log():
         try:
-            # Header/clock/input verification completes BEFORE any startup path.
-            await ingress.start()
-            work = asyncio.create_task(_main_async_impl(*args, **kwargs,
-                external_replay=ingress, physical_deployment=deployment))
-            await asyncio.wait({work, ingress.background_task}, return_when=asyncio.FIRST_COMPLETED)
-            ingress.raise_if_failed()
-            result = await work
-            ingress.raise_if_failed()
-            if not ingress.complete:
-                raise RuntimeError('model run ended before complete external offered input')
-            return result
+            while True:
+                event = log_queue.get()
+                if event is log_writer_stop:
+                    break
+                log.write(json.dumps(event, separators=(',', ':'))+'\n')
+                log.flush()
+        except BaseException as exc:
+            log_writer_error.append(exc)
         finally:
-            if work is not None:
-                if not work.done():
-                    work.cancel()
-                await asyncio.gather(work, return_exceptions=True)
             try:
-                await ingress.close()
+                log.flush()
+            finally:
+                log.close()
+
+    log_writer = threading.Thread(
+        target=write_ingress_log,
+        name='primelora-service-ingress-log',
+        daemon=False,
+    )
+    log_writer.start()
+
+    def emit(event):
+        if log_writer_error:
+            raise RuntimeError('service ingress evidence writer failed') from log_writer_error[0]
+        # Copy the mapping so later request-state mutations cannot alter the
+        # already-observed event that is waiting in the writer queue.
+        log_queue.put(dict(event))
+
+    work = None
+    ingress = ExternalReplayIngress(plan, context, emit=emit)
+    try:
+        emit({'event': 'service_ingress_identity', **identity})
+        # Header/clock/input verification completes BEFORE any startup path.
+        await ingress.start()
+        work = asyncio.create_task(_main_async_impl(*args, **kwargs,
+            external_replay=ingress, physical_deployment=deployment))
+        await asyncio.wait({work, ingress.background_task}, return_when=asyncio.FIRST_COMPLETED)
+        ingress.raise_if_failed()
+        result = await work
+        ingress.raise_if_failed()
+        if not ingress.complete:
+            raise RuntimeError('model run ended before complete external offered input')
+        return result
+    finally:
+        if work is not None:
+            if not work.done():
+                work.cancel()
+            await asyncio.gather(work, return_exceptions=True)
+        try:
+            await ingress.close()
+        finally:
+            # Stop the writer only after ingress.close(), which emits the
+            # terminal event.  Any writer exception remains a run failure;
+            # instrumentation cannot silently disappear from a qualified run.
+            log_queue.put(log_writer_stop)
+            log_writer.join()
+            try:
+                if log_writer_error:
+                    raise RuntimeError('service ingress evidence writer failed') from log_writer_error[0]
             finally:
                 # Also preserve partial requests and open leases on failure;
                 # never derive return from request completion or a vanished slot.
