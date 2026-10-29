@@ -7814,6 +7814,9 @@ class ScenarioRunner:
         self._initial_preload_wall_s = 0.0
         self._initial_preload_bytes = 0
         self._initial_preload_transfer_count = 0
+        self._initial_preload_remote_bytes = 0
+        self._initial_preload_remote_transfer_count = 0
+        self._initial_preload_mode = "none"
         self._initial_preload_injected_wait_s = 0.0
         self._initial_preload_gpu_count = self._runtime_gpu_count_for_cfg(self.model_cfg)
         self._primary_engine_initialization_wall_s = 0.0
@@ -16644,6 +16647,7 @@ class ScenarioRunner:
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
             self._require_ieee_full_qualification()
+            await self._preload_ieee_initial_nvme()
             if self.coord_cfg.get('ieee_cpu_frontend_policy') is not None:
                 if not isinstance(self.engine_factory, DedicatedScenarioEngineFactory):
                     raise ValueError('CPU preparation requires the original shared runtime factory')
@@ -16807,6 +16811,91 @@ class ScenarioRunner:
                 f"headroom={float(preload_budget.get('target_headroom_bytes', 0) or 0) / (1024.0 * 1024.0):.1f}MB)"
             )
         print(f"    Preload done  total_io={total_io:.0f}ms  nvme={len(self._nvme_cache)}  host={len(getattr(self._stack, '_host_paths', {}))}")
+
+    async def _preload_ieee_initial_nvme(self):
+        """Optionally stage the fixed artifact manifest before GPU activation.
+
+        The IEEE native path intentionally starts with an empty owned residency
+        state, but a deployment may have a bounded NVMe tier large enough for
+        the complete published artifact set.  When explicitly enabled, stage
+        that fixed manifest before the first physical GPU is acquired.  This is
+        deployment work (and is recorded as such); it is not request-triggered
+        remote I/O and therefore must not be folded into request TTFT/E2E.
+        No future request or hot-set information is consulted here.
+        """
+        cfg = getattr(self, "preload_cfg", {}) or {}
+        if not bool(cfg.get("ieee_initial_nvme_preload", False)):
+            return
+        stack = getattr(self, "_stack", None)
+        remote = getattr(self, "_remote_artifact_client", None)
+        if stack is None or remote is None:
+            raise RuntimeError(
+                "ieee_initial_nvme_preload requires the configured remote artifact client"
+            )
+
+        if not getattr(stack, "_started", False):
+            await stack.start()
+            stack._started = True
+        stack._ensure_registered()
+        capacity_mb = float(
+            cfg.get("ieee_initial_nvme_capacity_mb", cfg.get("nvme_capacity_mb", 0))
+            or 0.0
+        )
+        if capacity_mb <= 0.0:
+            raise ValueError(
+                "ieee_initial_nvme_preload requires a positive NVMe capacity"
+            )
+        capacity_bytes = int(capacity_mb * 1024.0 * 1024.0)
+        size_fn = getattr(stack, "_artifact_size_mb", None)
+        ordered = sorted(
+            (str(aid) for aid in self.adapter_info if aid),
+            key=lambda aid: aid,
+        )
+        required_bytes = 0
+        for aid in ordered:
+            size_mb = float(size_fn(aid) if callable(size_fn) else 0.0)
+            required_bytes += max(0, int(size_mb * 1024.0 * 1024.0))
+        if required_bytes > capacity_bytes:
+            raise RuntimeError(
+                "ieee_initial_nvme_preload manifest exceeds configured capacity: "
+                f"required={required_bytes} capacity={capacity_bytes}"
+            )
+
+        started = time.perf_counter()
+        transferred_bytes = 0
+        transfer_count = 0
+        for aid in ordered:
+            dst = stack.nvme_dir / aid
+            evidence: Dict[str, Any] = {}
+            ok, _ = await self._owned_artifact_io(
+                lambda cancellation, aid=aid, dst=dst, evidence=evidence: self._materialize_remote_adapter(
+                    aid,
+                    dst,
+                    cancel_event=cancellation,
+                    transfer_evidence=evidence,
+                )
+            )
+            if not ok:
+                raise RuntimeError(
+                    f"ieee initial NVMe preload failed for adapter {aid}"
+                )
+            stack._nvme_paths[aid] = str(dst.resolve())
+            stack.registry.update_artifact(aid, {"storage_path": str(dst.resolve())})
+            await stack.residency_manager.admit_artifact(aid, StorageTier.NVME)
+            size_bytes = int(evidence.get("size_bytes", 0) or 0)
+            transferred_bytes += max(0, size_bytes)
+            transfer_count += 1
+
+        stack.sync_local_tier_paths(force=True)
+        self._initial_preload_remote_bytes = transferred_bytes
+        self._initial_preload_remote_transfer_count = transfer_count
+        self._initial_preload_gpu_count = 0
+        self._initial_preload_mode = "ieee_initial_nvme_manifest_pre_gpu_v1"
+        print(
+            "    IEEE deployment preload: "
+            f"{transfer_count} adapters, {transferred_bytes / 1024**3:.3f} GiB, "
+            f"wall={(time.perf_counter() - started):.3f}s, GPU seconds excluded"
+        )
 
     async def _warmup_engine_hot_set(
         self,
@@ -26817,13 +26906,19 @@ async def _main_async_impl(
                 )
                 runner._initial_preload_bytes = max(
                     0,
-                    int(preload_limiter_after.get("total_bytes", 0) or 0)
-                    - int(preload_limiter_before.get("total_bytes", 0) or 0),
+                    max(
+                        int(preload_limiter_after.get("total_bytes", 0) or 0)
+                        - int(preload_limiter_before.get("total_bytes", 0) or 0),
+                        int(getattr(runner, "_initial_preload_remote_bytes", 0) or 0),
+                    ),
                 )
                 runner._initial_preload_transfer_count = max(
                     0,
-                    int(preload_limiter_after.get("transfer_count", 0) or 0)
-                    - int(preload_limiter_before.get("transfer_count", 0) or 0),
+                    max(
+                        int(preload_limiter_after.get("transfer_count", 0) or 0)
+                        - int(preload_limiter_before.get("transfer_count", 0) or 0),
+                        int(getattr(runner, "_initial_preload_remote_transfer_count", 0) or 0),
+                    ),
                 )
                 runner._initial_preload_injected_wait_s = max(
                     0.0,
