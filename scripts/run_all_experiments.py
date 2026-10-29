@@ -21445,17 +21445,22 @@ class ScenarioRunner:
                     raise asyncio.CancelledError()
         async def move(aid, tier, source, density):
             intent = uuid.uuid4().hex
-            intents.append(intent)
             objective = (replacement_epoch if replacement_epoch is not None and any(
                 row['adapter_id'] == aid and row['target_tier'] == tier
                 for row in replacement_epoch['candidates']) else None)
-            if objective is not None and owned_file_replacement:
-                fallback_intents.append(intent)
+            def register_intent(_job_id):
+                # Track only intents accepted by the shared movement queue.
+                # This keeps finalization aligned with physical ownership when
+                # source validation or movement-context setup fails before
+                # queue submission.
+                intents.append(intent)
+                if objective is not None and owned_file_replacement:
+                    fallback_intents.append(intent)
             return await self._queue_ieee_file_preparation(adapter_id=aid,
                 target_tier=StorageTier(tier), target_engine=target_engine, target_replica=target_replica,
                 trigger_reason=mode, plan_id=plan_id, activation_id=activation_id,
                 source_path=source, density=density, intent_id=intent,
-                replacement_epoch=objective)
+                replacement_epoch=objective, on_intent_registered=register_intent)
         async def execute(candidate, row, content):
             await fallback_ready.wait()
             aid, tier = candidate.artifact_id, candidate.target_tier.value
@@ -21664,7 +21669,7 @@ class ScenarioRunner:
     async def _queue_ieee_file_preparation(self, *, adapter_id, target_tier,
             target_engine, target_replica, trigger_reason, plan_id, activation_id=None,
             source_path=None, density=0., intent_id=None, replacement_epoch=None,
-            on_source_ready=None):
+            on_source_ready=None, on_intent_registered=None):
         """One common owned movement entry for handoff, residency and demand.
 
         The existing file executors still own allocation, publication and join
@@ -21706,6 +21711,8 @@ class ScenarioRunner:
         content = identity['content_sha256']
         target = references.roots[target_tier.value] / adapter_id
         intent_id = intent_id or uuid.uuid4().hex
+        if on_intent_registered is not None and not callable(on_intent_registered):
+            raise TypeError('intent registration callback must be callable')
         metadata = dict(trigger_reason=trigger_reason, plan_id=plan_id,
                         activation_id=activation_id, target_replica=target_replica)
         async def execute(attempt_id):
@@ -21766,6 +21773,13 @@ class ScenarioRunner:
             job_id = queue.submit(key=(references.owner_id, target_tier.value, adapter_id, content),
                 intent_id=intent_id, metadata=metadata, density=density, action=attempt,
                 demand=trigger_reason == 'demand')
+            # The caller may need to join this operation if its coroutine is
+            # cancelled or a sibling plan supersedes it.  Register the intent
+            # only after the queue has accepted it: an exception while entering
+            # the movement context or submitting the job leaves no owned queue
+            # operation to join.
+            if on_intent_registered is not None:
+                on_intent_registered(job_id)
             # Only the operation creator can bind this transfer to its own admitted
             # source interval. A subscriber does not acquire the creator's timing.
             def notify(value):

@@ -5485,6 +5485,29 @@ class OwnedFileMovement(unittest.TestCase):
             await queue.close()
         asyncio.run(run())
 
+    def test_file_intent_registration_callback_matches_queue_ownership(self):
+        fixture, runner, queue, engine, _ = self.make()
+        async def run():
+            registered = []
+            result = await runner._queue_ieee_file_preparation(
+                adapter_id='a', target_tier=StorageTier.NVME, target_engine=engine,
+                target_replica='replica', trigger_reason='residency', plan_id='plan',
+                intent_id='registered', on_intent_registered=registered.append)
+            self.assertEqual(len(registered), 1)
+            self.assertEqual(result['_movement']['intent_id'], 'registered')
+            self.assertTrue(queue.snapshot())
+
+            rejected = []
+            with self.assertRaisesRegex(ValueError, 'movement intent requires'):
+                await runner._queue_ieee_file_preparation(
+                    adapter_id='a', target_tier=StorageTier.NVME, target_engine=engine,
+                    target_replica='', trigger_reason='residency', plan_id='plan',
+                    intent_id='rejected', on_intent_registered=rejected.append)
+            self.assertEqual(rejected, [])
+            self.assertFalse(any('rejected' in row['active_intents'] for row in queue.snapshot()))
+            await queue.close()
+        asyncio.run(run())
+
     def test_last_cancel_joins_real_http_reader_before_releasing_budget_and_pressure(self):
         from tests.test_http_artifact_store import archive_bytes, SizedResponse
         fixture, runner, queue, engine, ledger = self.make()
