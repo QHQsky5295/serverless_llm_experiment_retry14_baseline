@@ -362,5 +362,34 @@ class FileDemandProfileAudit(unittest.TestCase):
             with self.assertRaises(ValueError):audit_file_demand_source_run(raw)
 
 
+class RetainedControlAnalysisInputs(unittest.TestCase):
+    def test_existing_output_is_not_overwritten(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
+        with tempfile.TemporaryDirectory() as root:
+            output = Path(root)
+            marker = output/'existing.json'
+            marker.write_text('preserve')
+            with self.assertRaisesRegex(ValueError, 'new output'):
+                analyze_retained_controls(output, [Path('missing-source')])
+            self.assertEqual(marker.read_text(), 'preserve')
+
+    def test_empty_or_duplicate_sources_are_rejected_before_reading(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
+        with tempfile.TemporaryDirectory() as root:
+            for sources in ([], [Path('same'), Path('same')]):
+                with self.subTest(sources=sources), self.assertRaisesRegex(ValueError, 'unique explicit'):
+                    analyze_retained_controls(Path(root)/'new', sources)
+            self.assertFalse((Path(root)/'new').exists())
+
+    def test_changed_protocol_cannot_be_silently_used(self):
+        from unittest.mock import patch
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
+        with tempfile.TemporaryDirectory() as root, patch(
+                'scripts.ieee_tc.analyze_d455_stages.sha256', return_value='different'):
+            with self.assertRaisesRegex(ValueError, 'frozen metric protocol'):
+                analyze_retained_controls(Path(root)/'new', [Path('missing-source')])
+            self.assertFalse((Path(root)/'new').exists())
+
+
 if __name__=='__main__':
     unittest.main()

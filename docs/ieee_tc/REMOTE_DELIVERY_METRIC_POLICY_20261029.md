@@ -32,7 +32,7 @@
 \mathrm{E2E}_r=t_r^{\mathrm{done}}-t_r^{\mathrm{arr}}.
 \]
 
-其中 (t_r^{\mathrm{arr}}) 是冻结轨迹的计划到达时间，(t_r^{(1)}) 是客户端观察到首个输出 token/chunk 的时间，(t_r^{\mathrm{done}}) 是客户端确认正常完成的时间。远端网络传输是服务路径的一部分，所以不能从 TTFT/E2E 中删除。
+其中 (t_r^{\mathrm{arr}}) 是冻结轨迹的计划到达时间，(t_r^{(1)}) 是冻结 V1/V2 中首个原生输出 token 的时间，不是任意客户端 chunk 到达时间；(t_r^{\mathrm{done}}) 是已登记计量路径的完成通知时间。控制器终态与 HTTP 客户端终态的区别保留，不混称为同一端点。远端网络传输是服务路径的一部分，所以不能从 TTFT/E2E 中删除。
 
 对请求内可校准的阶段，记录以下 span：
 
@@ -84,10 +84,10 @@ T_r^{\mathrm{delivery}}
 \[
 U_s=\int_{W}\sum_{d\in\mathcal G}a_{s,d}(t)\,dt,
 \qquad
-\mathrm{GPU\!\text{-}s/request}=U_s/N_{\mathrm{planned}}.
+R_s=U_s/N_{\mathrm{correct}}.
 \]
 
-失败、超时或不正确请求仍进入计划分母并保留其资源开销；若运行不满足共同服务资格，不以低 GPU-s/request 取得主排名。
+G1 的分母是正确完成数，不是计划数。另报诊断量 \(U_s/N_{\mathrm{planned}}\)，保留所有失败、超时及不正确请求的资源开销；不能把这个诊断量改名为 per-correct 指标。正确性未知时 \(N_{\mathrm{correct}}\) 和 G1 的 \(R_s\) 保持未知，零正确完成时为 N/A。若运行不满足共同服务资格，不以低诊断资源值取得主排名。
 
 ## 5. 100 Mbps/1 Gbps 证据与解释
 
@@ -99,7 +99,7 @@ U_s=\int_{W}\sum_{d\in\mathcal G}a_{s,d}(t)\,dt,
 
 - 实际协商链路与应用层 achieved throughput；
 - 请求级远程 miss 次数、字节、并发和等待分解；
-- no-delay/local-sim 或应用层带宽敏感性作为乐观上界/敏感性，而非伪造的 100 Gbps 实测；
+- no-delay/local-sim 仅作路径诊断，应用层带宽实验作为敏感性；二者都不是严格性能上界，也不是 100 Gbps 实测；
 - 在相同链路下的 PrimeLoRA 与 baseline 配对结果。
 
 因此，远程传输延迟**不能从最终 TTFT/E2E 删除**；应通过共同环境、阶段分解和带宽敏感性说明它的外部可迁移边界。只有远端无关维护和请求前一次性发布准备不进入主请求延迟。
@@ -126,4 +126,6 @@ U_s=\int_{W}\sum_{d\in\mathcal G}a_{s,d}(t)\,dt,
 
 ## 8. 固定裁决
 
-本文件从 2026-10-29 起作为所有后续 PrimeLoRA/baseline 对比的冻结口径。它不改变既有历史结果的身份；历史结果只能在字段和交付合同匹配时复用。若未来需要研究“在线打包服务”或另一种远端供应协议，必须新建协议版本、重新登记执行键，并与本协议结果分开。
+本文件是既有 `METRIC_PROTOCOL_FROZEN_V1.md` 与 `METRIC_PROTOCOL_SINGLE_RUN_V2.md` 的远端交付解释备忘录，不另设指标协议、不修改已经冻结的端点、分母、SLO 或资格条件。V1 SHA 为 `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`，单轮 V2 SHA 为 `193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d`。2026-10-29 核对修正了本备忘录初版的客户端 chunk/原生 token 混称、G1 分母误写及严格上界措辞；原始测量和冻结文件未改。
+
+历史结果只能在字段和交付合同匹配时复用。若未来需要研究“在线打包服务”或另一种远端供应协议，必须新建协议版本、重新登记执行键，并与现有结果分开。不可恢复的阶段分解只标未知，不为取得新字段而强制重跑已有有效测量。

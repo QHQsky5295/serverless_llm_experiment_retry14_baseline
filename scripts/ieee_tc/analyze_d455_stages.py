@@ -324,13 +324,167 @@ def analyze_owner_decode(output):
     return result
 
 
+def analyze_retained_controls(output, sources):
+    """Reuse native/binding/stage helpers for explicit completed 7B control runs.
+
+    This is a descriptive audit, not a correctness certificate or a controlled
+    causal comparison. Different compiler caches/configurations remain possible.
+    """
+    import hashlib
+    from scripts.ieee_tc.plot_d290_diagnostic import binding_checks
+
+    output = Path(output)
+    if output.exists() or not sources or len(set(map(str, sources))) != len(sources):
+        raise ValueError('new output and unique explicit retained sources required')
+    protocol_paths = [ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+                      ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']
+    if [sha256(x) for x in protocol_paths] != [
+        '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+        '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d']:
+        raise ValueError('frozen metric protocol identity differs')
+    threshold_path = ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'
+    if sha256(threshold_path) != '2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3':
+        raise ValueError('D394 threshold identity differs')
+    thresholds = read(threshold_path)['groups']
+    index_path = ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json'
+    content = {a['id']:hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),
+        sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        for a in read(index_path)['artifacts']}
+    refs = [dict(path=str(x), sha256=sha256(x)) for x in
+            [*protocol_paths, threshold_path, index_path, Path(__file__).resolve()]]
+    reports = {}
+    for source in map(Path, sources):
+        name = source.parent.parent.name
+        if name in reports:
+            raise ValueError('run directory identifiers must be distinct')
+        launch_path = source.parent/'launch.json'
+        physical_path = source.parent/'launch.launch/physical_deployment/summary.json'
+        outcome_path = physical_path.parent/'main_outcome.json'
+        launch, physical = read(launch_path), read(physical_path)
+        if (not launch['pass'] or not physical['measurement_complete'] or physical['open_lease_ids']
+                or any(physical[k] != 4000 for k in ('n_plan','n_terminal','n_native_contract_complete'))):
+            raise ValueError('complete retained replay and resource lifecycle required')
+        with outcome_path.open('rb') as stream:
+            if next(ijson.items(stream, 'run_completed')) is not True:
+                raise ValueError('main service outcome is incomplete')
+        gpu_s = 0.0
+        for intervals in physical['device_intervals'].values():
+            previous_end = -math.inf
+            for a, b in sorted(intervals):
+                if not all(math.isfinite(x) for x in (a,b)) or not previous_end <= a <= b:
+                    raise ValueError('invalid/disjoint physical ownership intervals')
+                gpu_s += b-a
+                previous_end = b
+        if (abs(gpu_s-physical['gpu_seconds_observed']) > 1e-6
+                or abs(gpu_s-sum(physical['window_gpu_seconds'].values())) > 1e-6):
+            raise ValueError('physical lifecycle/window integral mismatch')
+        for journal in physical['allocation_journals']:
+            if not journal['released'] or sha256(Path(journal['path'])) != journal['sha256']:
+                raise ValueError('allocation journal identity/release mismatch')
+        if sha256(Path(physical['request_terminals_path'])) != physical['request_terminals_sha256']:
+            raise ValueError('terminal journal identity mismatch')
+        with source.open('rb') as stream:
+            metadata = next(ijson.items(stream, 'metadata', use_float=True))
+        rows, identities, counts, bindings = [], [], Counter(), Counter()
+        seen, tier_counts = set(), Counter()
+        external = launch['external_replay']
+        with source.open('rb') as stream:
+            for r in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+                rid, n = r['request_id'], r['native_token_timing']
+                if rid in seen or r['success'] is not True:
+                    raise ValueError('unique successful requests required')
+                seen.add(rid)
+                row = partition_retained_request_stages(r,
+                    arrival_start_s=external['replay_t0_s'], clock_id=external['clock_id'])
+                checks = binding_checks(r, content[r['adapter_id']])
+                if not all(checks.values()):
+                    raise ValueError(f'control-plane binding failed: {rid}: {checks}')
+                bindings.update({k:int(v) for k,v in checks.items()})
+                count = r['completion_tokens']
+                if (count != min(r['source_expected_output_tokens'],256)
+                        or count != n['native_output_tokens'] or not n['native_terminal_observed']
+                        or n['native_clock_id'] != physical['clock_id']
+                        or r['generation_contract'] != 'fixed_length_greedy_v1'
+                        or r['gpu_reference_evidence']['confirmed_dispatch_snapshot'] is not True):
+                    raise ValueError('native token/generation/dispatch contract differs')
+                tpot = ((n['native_last_token_monotonic_s']-n['native_first_token_monotonic_s'])*1000/(count-1)
+                        if count >= 2 else None)
+                if tpot is not None and (not math.isfinite(tpot) or tpot < 0 or abs(tpot-r['tpot_ms']) > 1):
+                    raise ValueError('native TPOT reconstruction failed')
+                group = thresholds[0 if n['actual_prompt_tokens'] <= 616 else 1]
+                tt = row['ttft_ms'] <= group['ttft_ms']
+                tp = tpot is None or tpot <= group['tpot_ms']
+                counts.update(N=1, ttft_pass=int(tt), tpot_pass_including_single_token=int(tp),
+                    joint_timing_pass=int(tt and tp), single_token=int(count==1),
+                    tpot_conditional_pass=int(tp and count>=2), tpot_conditional_N=int(count>=2))
+                tier_counts[r['readiness_tier_before_dispatch']] += 1
+                identities.append([rid, r['adapter_id'], r['scheduled_arrival_offset_s'],
+                    r['canonical_prompt_sha256'], n['native_prompt_token_ids_sha256'],
+                    n['actual_prompt_tokens'], count, r['generation_contract']])
+                row.update(tpot_ms=tpot, source_offset_s=r['scheduled_arrival_offset_s'])
+                rows.append(row)
+        if len(rows) != 4000 or set(tier_counts)-{'gpu','host','nvme','remote'}:
+            raise ValueError('complete 4000 dispatch tiers required')
+        rows.sort(key=lambda r:(r['source_offset_s'],r['request_id']))
+        identities.sort(key=lambda r:r[0])
+        with outcome_path.open('rb') as stream:
+            controls = list(ijson.items(stream, 'mechanism_events._ieee_control_events.item', use_float=True))
+        if not controls:
+            raise ValueError('retained control journal is absent')
+        metrics = {key:timing_stats([r[key] for r in rows if r[key] is not None])
+                   for key in ('ttft_ms','tpot_ms','e2e_ms')}
+        for key in metrics:
+            ordered = sorted(r[key] for r in rows if r[key] is not None)
+            metrics[key]['p99_type1'] = ordered[math.ceil(.99*len(ordered))-1] if ordered else None
+        reports[name] = dict(counts=dict(counts), metrics=metrics,
+            input_contract_sha256=hashlib.sha256(json.dumps(identities,separators=(',',':')).encode()).hexdigest(),
+            source_trace_sha256=metadata['shared_trace_sha256'],
+            source_subset_sha256=metadata['shared_adapter_subset_sha256'],
+            original_trace_role=metadata['trace_role'], original_formal_run=metadata['formal_run'],
+            n_correct=physical['n_correct'], gpu_seconds_per_correct_request=None,
+            physical_gpu_seconds=gpu_s, gpu_seconds_per_offered=gpu_s/4000,
+            physical_windows=physical['window_gpu_seconds'], native_binding_checks=dict(bindings),
+            dispatch_tier_counts=dict(tier_counts),
+            max_stage_identity_error_ms=max(r['max_identity_error_ms'] for r in rows),
+            mean_stages_ms={k:timing_stats([r['stages_ms'][k] for r in rows])['mean'] for k in rows[0]['stages_ms']},
+            first100_ttft_ms=timing_stats([r['ttft_ms'] for r in rows[:100]]),
+            first3_ttft_ms=[r['ttft_ms'] for r in rows[:3]],
+            control_outcomes=dict(Counter(c['outcome'] for c in controls)),
+            first_control_actions=[c for c in controls if c['outcome'] != 'no_action'][:12],
+            suppressed_control_actions=[c for c in controls if c['outcome']=='no_action_current_demand_covered'],
+            measurement_complete=True, independent_holdout=False, g1_g2_qualified=False)
+        refs.extend(dict(path=str(x), sha256=sha256(x)) for x in
+                    (source, launch_path, physical_path, outcome_path))
+    report = dict(kind='retained_7b_control_observation_v1', reports=reports, source_refs=refs,
+        matched_request_inputs=len({r['input_contract_sha256'] for r in reports.values()})==1,
+        causal_attribution_established=False, independent_numerical_qualification=False,
+        new_performance_runs=0, confidence_interval=None,
+        caveats=['Binding witnesses do not certify numerical LoRA arithmetic.',
+            'GPU-s/offered is diagnostic; unknown N_correct is not replaced by 4000.',
+            'Matched input does not establish identical compiler caches or sole-feature execution differences.',
+            'Timing attainment is not correctness-qualified joint SLO.',
+            'No single-configuration cross-scenario optimum or G2 budget qualification.'])
+    output.mkdir(parents=True,exist_ok=False)
+    with (output/'summary.json').open('x') as stream:
+        json.dump(report,stream,indent=2,allow_nan=False)
+    print(json.dumps(dict(output=str(output), matched_request_inputs=report['matched_request_inputs'],
+        reports={k:{f:r[f] for f in ('counts','metrics','physical_gpu_seconds','control_outcomes')}
+                 for k,r in reports.items()}),indent=2))
+    return report
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--include-d458', action='store_true')
     parser.add_argument('--owner-decode', action='store_true')
+    parser.add_argument('--retained-control-source', action='append', type=Path)
     args = parser.parse_args()
-    if args.owner_decode:
+    if args.retained_control_source:
+        if args.include_d458 or args.owner_decode:
+            parser.error('explicit retained sources cannot be mixed with registered legacy modes')
+        analyze_retained_controls(args.output,args.retained_control_source)
+    elif args.owner_decode:
         if not args.include_d458:parser.error('--owner-decode requires --include-d458')
         analyze_owner_decode(args.output)
     else:
