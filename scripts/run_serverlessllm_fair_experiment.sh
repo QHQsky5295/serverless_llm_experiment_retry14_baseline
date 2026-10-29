@@ -15,6 +15,9 @@ TOTAL_REQUESTS="${SLLM_TOTAL_REQUESTS:?SLLM_TOTAL_REQUESTS is required}"
 SELECTED_NUM_ADAPTERS="${SLLM_SELECTED_NUM_ADAPTERS:?SLLM_SELECTED_NUM_ADAPTERS is required}"
 SAMPLING_SEED="${SLLM_SAMPLING_SEED:-42}"
 GENERATION_SEED="${SLLM_GENERATION_SEED:-${SAMPLING_SEED}}"
+GENERATION_CONTRACT="${SLLM_GENERATION_CONTRACT:-${FAIR_GENERATION_CONTRACT:-legacy}}"
+FIXED_OUTPUT_MAX_TOKENS="${SLLM_FIXED_OUTPUT_MAX_TOKENS:-${FAIR_FIXED_OUTPUT_MAX_TOKENS:-256}}"
+FIXED_PROMPT_MAX_TOKENS="${SLLM_FIXED_PROMPT_MAX_TOKENS:-${FAIR_FIXED_PROMPT_MAX_TOKENS:-759}}"
 SERVING_MODEL_NAME="${SLLM_SERVING_MODEL_NAME:-${MODEL_PROFILE}}"
 WORKER_GPUS="${SLLM_WORKER_GPUS:-0,1,2,3}"
 BACKEND="${SLLM_BACKEND:-auto}"
@@ -459,6 +462,7 @@ echo "      prompt_guard(model/max_len/max_input/output_cap)=${PROMPT_GUARD_TOKE
 echo "      backend=${BACKEND}"
 echo "      replay_timeout_s=${TIMEOUT_S}"
 echo "      replay_max_requests=${REPLAY_MAX_REQUESTS:-0}"
+echo "      generation_contract=${GENERATION_CONTRACT} fixed_output_max_tokens=${FIXED_OUTPUT_MAX_TOKENS} fixed_prompt_max_tokens=${FIXED_PROMPT_MAX_TOKENS}"
 echo "      deploy_overrides(min/max/target/keep_alive)=${DEPLOY_MIN_INSTANCES:-default}/${DEPLOY_MAX_INSTANCES:-default}/${DEPLOY_TARGET:-default}/${DEPLOY_KEEP_ALIVE:-default}"
 echo "      post_deploy_wait_s=${POST_DEPLOY_WAIT_S}"
 echo "      empty_success_retries=${EMPTY_SUCCESS_RETRIES} delay_s=${EMPTY_SUCCESS_RETRY_DELAY_S}"
@@ -597,6 +601,23 @@ if [[ "${ACTUAL_BACKEND}" == "vllm" ]]; then
 fi
 
 BACKEND="${ACTUAL_BACKEND}"
+case "${GENERATION_CONTRACT}" in
+  legacy) ;;
+  fixed_length_greedy_v1)
+    if [[ "${BACKEND}" != "vllm" ]]; then
+      echo "[ERROR] fixed_length_greedy_v1 requires the vLLM backend for native token IDs; got ${BACKEND}" >&2
+      exit 1
+    fi
+    if [[ ! "${FIXED_OUTPUT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ || ! "${FIXED_PROMPT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]]; then
+      echo "[ERROR] fixed-length contract caps must be positive integers" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "[ERROR] SLLM_GENERATION_CONTRACT must be legacy or fixed_length_greedy_v1; got ${GENERATION_CONTRACT}" >&2
+    exit 1
+    ;;
+esac
 echo "      runtime_backend=${BACKEND} head_env=${SLLM_HEAD_ENV} worker_env=${SLLM_WORKER_ENV} store_env=${SLLM_STORE_ENV} direct_path_mode=${SLLM_DIRECT_PATH_MODE}"
 export SLLM_HEAD_SESSION="${SLLM_HEAD_SESSION:-sllm_head_${STACK_SUFFIX}}"
 export SLLM_STORE_SESSION="${SLLM_STORE_SESSION:-sllm_store_${STACK_SUFFIX}}"
@@ -618,6 +639,13 @@ fi
 
 echo "[5/5] Replaying shared trace with live metrics"
 SLLM_REPLAY_EXTRA_ARGS=()
+if [[ "${GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  SLLM_REPLAY_EXTRA_ARGS+=(
+    --vllm-native-generate
+    --force-stream
+    --include-stream-usage
+  )
+fi
 if [[ -n "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}" ]]; then
   SLLM_REPLAY_EXTRA_ARGS+=(
     --request-remote-adapter-map "${SLLM_REQUEST_REMOTE_ADAPTER_MAP}"
@@ -647,6 +675,9 @@ run_python_in_env sllm_head_official \
   --output-token-cost-usd "${OUTPUT_TOKEN_COST_USD}" \
   --ttft-slo-ms "${TTFT_SLO_MS}" \
   --generation-seed "${GENERATION_SEED}" \
+  --generation-contract "${GENERATION_CONTRACT}" \
+  --fixed-output-max-tokens "${FIXED_OUTPUT_MAX_TOKENS}" \
+  --fixed-prompt-max-tokens "${FIXED_PROMPT_MAX_TOKENS}" \
   --require-server-metrics \
   --label "${RUN_TAG}" \
   --output "${REPLAY_PATH}" \

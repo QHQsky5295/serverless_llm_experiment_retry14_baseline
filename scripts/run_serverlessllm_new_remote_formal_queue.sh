@@ -69,6 +69,9 @@ run_one() {
   SLLM_TOTAL_REQUESTS="4000" \
   SLLM_SELECTED_NUM_ADAPTERS="500" \
   SLLM_SAMPLING_SEED="42" \
+  SLLM_GENERATION_CONTRACT="fixed_length_greedy_v1" \
+  SLLM_FIXED_OUTPUT_MAX_TOKENS="256" \
+  SLLM_FIXED_PROMPT_MAX_TOKENS="759" \
   SLLM_RUN_TAG="${run_tag}" \
   SLLM_RESULT_TAG="${run_tag}_serverlessllm_new" \
   SLLM_SHARED_TRACE_PATH="${trace_path}" \
