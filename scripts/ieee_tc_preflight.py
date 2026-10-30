@@ -3519,6 +3519,12 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             # native fixed-length/ignore_eos decoding.
             generation_config.eos_token_id = []
             generation_config.forced_eos_token_id = None
+            # Keep the independent reference under the same no-EOS,
+            # fixed-length contract as the native run.  Some model-family
+            # generation configs otherwise stop before producing any token
+            # even when max_new_tokens is present.
+            generation_config.min_new_tokens = target
+            generation_config.max_new_tokens = target
             with torch.inference_mode():
                 output = model.generate(
                     input_ids=inputs, attention_mask=mask,
