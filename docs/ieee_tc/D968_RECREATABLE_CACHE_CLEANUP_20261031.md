@@ -20,3 +20,7 @@ The cleanup is limited to these re-creatable cache directories. It does not
 alter tracked code, paper sources, result JSON, logs, or the frozen artifact
 pool. The exact paths and pre-cleanup sizes are recorded here before deletion.
 
+The listed directories were removed after this manifest was committed. The
+post-cleanup free space is approximately 169 GiB; all GPUs are idle and no
+experiment is running.
+
