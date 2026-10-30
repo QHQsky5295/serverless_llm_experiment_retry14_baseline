@@ -17,7 +17,9 @@ export MAX_JOBS=2
 IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
 export PRIME_REMOTE_TOKEN
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
-export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18081
+# The frozen 3B artifact publication is served by the historical 3B endpoint;
+# 18081 is the separate 7B publication used by the D955/D969 runs.
+export FAASLORA_REMOTE_ARTIFACT_ENDPOINT=http://192.168.4.174:18080
 export FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE=prepublished_gzip_v1
 export FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1
 export PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True
