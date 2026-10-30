@@ -244,6 +244,47 @@ class FileStateProcessTests(unittest.TestCase):
         finally:
             facade.close()
 
+    def test_async_context_cancellation_after_entry_receipt_closes_owner_context(self):
+        """A cancelled async entry must not orphan a child-owned context.
+
+        The injected owner models cancellation after the child has committed
+        ``begin_interest`` and the facade has received its receipt, but before
+        the caller can enter the body.  This is the shutdown race that left a
+        live file movement interest without a controller-side context id.
+        """
+        facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
+
+        class CancelAfterBegin:
+            def __init__(self, wrapped):
+                self.wrapped = wrapped
+                self.cancel_begin = True
+
+            async def call_async(self, operation, *, on_result=None, **kwargs):
+                if operation == 'begin_interest' and self.cancel_begin:
+                    self.cancel_begin = False
+                    receipt = await self.wrapped.call_async(operation, **kwargs)
+                    if on_result is not None:
+                        on_result(receipt)
+                    raise asyncio.CancelledError()
+                return await self.wrapped.call_async(
+                    operation, on_result=on_result, **kwargs)
+
+        try:
+            context = facade.async_file_movement_interest(
+                intent_id='cancelled-entry', target=self.nvme / 'a',
+                content_sha256='0' * 64, required=True)
+            context._owner = CancelAfterBegin(facade)
+
+            async def check():
+                with self.assertRaises(asyncio.CancelledError):
+                    await context.__aenter__()
+                snapshot = await facade.call_async('file_preparation_snapshot')
+                self.assertEqual(snapshot['movement_interests'], [])
+
+            asyncio.run(check())
+        finally:
+            facade.close()
+
     def test_facade_preparation_snapshot_detaches_mappingproxy_metadata(self):
         facade = ProcessLocalSourceReferences({'host': self.host, 'nvme': self.nvme})
         try:

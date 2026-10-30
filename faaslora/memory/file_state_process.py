@@ -436,9 +436,33 @@ class _AsyncProcessContext:
         self.value = None
 
     async def __aenter__(self):
-        receipt = await self._owner.call_async(self._begin_operation, **self._begin_args)
-        self._context_id = receipt['context_id']
-        self.value = receipt['value']
+        # ``call_async`` joins a cancelled owner command before re-raising
+        # cancellation.  Entry therefore has one extra ownership boundary:
+        # the child may have created the context by the time the caller is
+        # cancelled, while the receipt would otherwise never be adopted by
+        # this facade.  Adopt the receipt through the synchronous callback and
+        # close the child context before propagating the cancellation.  Without
+        # this, shutdown can leave a live interest/lease with no context id
+        # available to the controller for cleanup.
+        def adopt(receipt):
+            self._context_id = receipt['context_id']
+            self.value = receipt['value']
+
+        try:
+            receipt = await self._owner.call_async(
+                self._begin_operation, on_result=adopt, **self._begin_args)
+        except asyncio.CancelledError:
+            if self._context_id is not None:
+                context_id, self._context_id = self._context_id, None
+                await self._owner.call_async(
+                    'end_' + self._kind, context_id=context_id)
+            raise
+        # Keep this assignment for owners that do not invoke the optional
+        # receipt-adoption callback (the process facade does, but this context
+        # is intentionally usable with a small test/dummy owner too).
+        if self._context_id is None:
+            self._context_id = receipt['context_id']
+            self.value = receipt['value']
         return self.value
 
     async def __aexit__(self, exc_type, exc, tb):
