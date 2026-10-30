@@ -15748,6 +15748,23 @@ class ScenarioRunner:
             instance_id = self.instance_pool.add_instance(engine, coordinator, owns_engine=True,
                 owns_coordinator=True, device_id=device_id, instance_id=activation_id)
             published = True
+            # The IEEE confirmed path owns a real physical runtime just like
+            # the legacy dedicated path.  Register its lifecycle at the
+            # trigger boundary before any preparation work can publish
+            # requests; otherwise resource accounting silently contains only
+            # the initial replica and undercounts GPU-s during scale-out.
+            lifecycle_created_offset_s = max(
+                0.0, float(record['trigger_at']) - float(self._run_started_at)
+            ) if getattr(self, '_run_started_at', 0.0) > 0.0 else 0.0
+            self._ensure_instance_lifecycle_record(
+                instance_id,
+                runtime_kind='dedicated',
+                gpu_count=self._runtime_gpu_count_for_cfg(getattr(engine, 'model_cfg', None)),
+                device_id=device_id,
+                created_offset_s=lifecycle_created_offset_s,
+                lifecycle_source='ieee_confirmed_scale_up',
+                model_name=(getattr(engine, 'model_cfg', {}) or {}).get('name'),
+            )
             slot = self.instance_pool.get_slot(instance_id)
             if late_activation_replan:
                 # Keep the slot out of the routable view while the fresh
@@ -15774,7 +15791,18 @@ class ScenarioRunner:
                 slot.status = 'running'
             elif preparation is not None and not preparation.done():
                 self._ieee_file_plan_engines[preparation] = engine
-            record.update(state='runtime_ready', engine_ready_at=time.monotonic(),
+            engine_ready_at = time.monotonic()
+            self._ensure_instance_lifecycle_record(
+                instance_id,
+                runtime_kind='dedicated',
+                gpu_count=self._runtime_gpu_count_for_cfg(getattr(engine, 'model_cfg', None)),
+                device_id=device_id,
+                ready_offset_s=max(0.0, engine_ready_at - float(self._run_started_at))
+                if getattr(self, '_run_started_at', 0.0) > 0.0 else 0.0,
+                lifecycle_source='ieee_confirmed_scale_up',
+                model_name=(getattr(engine, 'model_cfg', {}) or {}).get('name'),
+            )
+            record.update(state='runtime_ready', engine_ready_at=engine_ready_at,
                           native_owner_id=observed['owner_id'])
             initialized.set_result(slot)
             await self._notify_dispatch_capacity_changed(wake_all=True)
@@ -15801,6 +15829,10 @@ class ScenarioRunner:
                     raise
             if engine is not None:
                 if published:
+                    self._mark_instance_lifecycle_removed(
+                        activation_id,
+                        reason='activation_failed',
+                    )
                     self.instance_pool.get_slot(activation_id).status = 'draining'
                 domain = getattr(self, '_shared_file_pressure', None)
                 member = domain.members.get(id(engine)) if domain is not None else None
