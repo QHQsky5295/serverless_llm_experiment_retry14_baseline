@@ -14323,7 +14323,8 @@ class ScenarioRunner:
         if controller is None:
             controller = IEEEReplicaControl(self.coord_cfg.get('ieee_scaling'),
                 interval_s=self._scale_eval_interval_s,
-                min_instances=self.instance_pool.min_instances, max_instances=self.instance_pool.max_instances)
+                min_instances=self.instance_pool.min_instances, max_instances=self.instance_pool.max_instances,
+                predictive_config=self.coord_cfg.get('ieee_predictive_scaling'))
             self._ieee_scale_controller = controller
         return controller
 
@@ -14368,9 +14369,11 @@ class ScenarioRunner:
             if r.slot is not None and r.slot.status == 'draining' and not r.released)
         if type(backlog) is not int or backlog < active_requests + draining_active:
             raise ValueError('unfinished arrivals do not cover the admitted set')
+        arrived = self._arrived_request_count(replay_t0)
         snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests-draining_active,
             active_requests=active_requests, ready_capacity=ready*self._runtime_forward_capacity_limit(),
-            ready_instances=ready, pending_instances=pending)
+            ready_instances=ready, pending_instances=pending,
+            arrived_request_count=arrived, completed_request_count=completed_count)
         if snapshot is None:
             return False
         snapshot.update(draining_active_requests=draining_active,
@@ -14390,7 +14393,6 @@ class ScenarioRunner:
             # existing causal handoff projection and current work counts to
             # suppress that one case, while queue/active pressure still follows
             # the unmodified IEEE scale-up path.
-            arrived = self._arrived_request_count(replay_t0)
             handoff_plan = None
             if bool(
                 getattr(self, "coord_cfg", {}).get(
@@ -16211,6 +16213,14 @@ class ScenarioRunner:
         )
         self._live_scale_up_events = result.scale_up_events
         self._last_live_scale_up_completed_at = time.perf_counter()
+        predictive_controller = getattr(self, '_ieee_scale_controller', None)
+        if (predictive_controller is not None
+                and getattr(self, '_routing_policy', None) == 'ieee_confirmed'
+                and scale_event.get('engine_activation_ms') is not None
+                and float(scale_event.get('engine_activation_ms') or 0.0) > 0.0):
+            predictive_controller.observe_activation_latency(
+                float(scale_event['engine_activation_ms'])
+            )
         instance_id = event.get("instance_id")
         if instance_id and event.get("runtime_kind") == "dedicated":
             self._scaleup_runtime_instance_ids.add(str(instance_id))

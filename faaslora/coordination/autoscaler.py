@@ -117,7 +117,8 @@ class IEEEReplicaControl:
     _fields = frozenset(('queue_upper', 'queue_lower', 'active_upper', 'active_lower',
         'ttft_upper_ms', 'ttft_lower_ms', 'ttft_window_s', 'scale_down_cooldown_s'))
 
-    def __init__(self, config, *, interval_s, min_instances, max_instances):
+    def __init__(self, config, *, interval_s, min_instances, max_instances,
+                 predictive_config=None):
         if not isinstance(config, dict) or set(config) != self._fields:
             raise ValueError('IEEE scaling requires the complete explicit limit/window configuration')
         values = {}
@@ -141,6 +142,88 @@ class IEEEReplicaControl:
         self.low_since = None
         self.samples = deque()
         self.seen_requests = set()
+        self.predictive_config = None
+        self._work_history = deque()
+        self._arrival_rate_ewma = None
+        self._service_rate_ewma = None
+        self._activation_horizon_s = None
+        if predictive_config is not None:
+            if not isinstance(predictive_config, dict):
+                raise ValueError('IEEE predictive scaling configuration must be a mapping')
+            expected = frozenset(('enabled', 'history_window_s', 'ewma_beta'))
+            if set(predictive_config) != expected:
+                raise ValueError('IEEE predictive scaling requires the complete explicit configuration')
+            if predictive_config.get('enabled') is not True:
+                raise ValueError('IEEE predictive scaling configuration must explicitly enable the candidate')
+            history_window_s = predictive_config.get('history_window_s')
+            ewma_beta = predictive_config.get('ewma_beta')
+            if (isinstance(history_window_s, bool) or not isinstance(history_window_s, (int, float))
+                    or not math.isfinite(history_window_s) or history_window_s <= 0
+                    or isinstance(ewma_beta, bool) or not isinstance(ewma_beta, (int, float))
+                    or not math.isfinite(ewma_beta) or not 0 < ewma_beta <= 1):
+                raise ValueError('invalid IEEE predictive scaling history/beta')
+            self.predictive_config = {
+                'history_window_s': float(history_window_s),
+                'ewma_beta': float(ewma_beta),
+            }
+
+    def observe_activation_latency(self, latency_ms):
+        """Update the measured readiness horizon after a completed activation."""
+        if self.predictive_config is None:
+            return
+        if (isinstance(latency_ms, bool) or not isinstance(latency_ms, (int, float))
+                or not math.isfinite(latency_ms) or latency_ms <= 0):
+            raise ValueError('invalid measured IEEE activation latency')
+        horizon_s = float(latency_ms) / 1000.0
+        beta = self.predictive_config['ewma_beta']
+        if self._activation_horizon_s is None:
+            self._activation_horizon_s = horizon_s
+        else:
+            self._activation_horizon_s = beta * horizon_s + (1.0 - beta) * self._activation_horizon_s
+
+    def _observe_work(self, *, now, arrived_request_count, completed_request_count,
+                      ready_instances):
+        if self.predictive_config is None:
+            return None
+        for value in (arrived_request_count, completed_request_count, ready_instances):
+            if type(value) is not int or value < 0:
+                raise ValueError('IEEE predictive workload counts must be nonnegative integers')
+        self._work_history.append((float(now), arrived_request_count,
+                                   completed_request_count, ready_instances))
+        window = self.predictive_config['history_window_s']
+        while self._work_history and self._work_history[0][0] < now - window:
+            self._work_history.popleft()
+        if len(self._work_history) < 2:
+            return None
+        first = self._work_history[0]
+        elapsed = float(now) - first[0]
+        if elapsed <= 0:
+            return None
+        arrival_rate = max(0.0, (arrived_request_count - first[1]) / elapsed)
+        completed_delta = max(0, completed_request_count - first[2])
+        # Integrate the observed ready-instance count over the same causal
+        # interval.  This is a capacity rate, not a future-trace estimate.
+        ready_instance_seconds = 0.0
+        previous = first
+        for current in list(self._work_history)[1:]:
+            dt = max(0.0, current[0] - previous[0])
+            ready_instance_seconds += dt * max(0, previous[3])
+            previous = current
+        ready_instance_seconds += max(0.0, now - previous[0]) * max(0, previous[3])
+        service_rate = (completed_delta / ready_instance_seconds
+                        if ready_instance_seconds > 0 else 0.0)
+        beta = self.predictive_config['ewma_beta']
+        self._arrival_rate_ewma = (arrival_rate if self._arrival_rate_ewma is None
+                                   else beta * arrival_rate + (1.0 - beta) * self._arrival_rate_ewma)
+        if service_rate > 0:
+            self._service_rate_ewma = (service_rate if self._service_rate_ewma is None
+                                       else beta * service_rate + (1.0 - beta) * self._service_rate_ewma)
+        return {
+            'arrival_rate_rps': self._arrival_rate_ewma,
+            'service_rate_rps_per_ready_instance': self._service_rate_ewma,
+            'activation_horizon_s': self._activation_horizon_s,
+            'history_elapsed_s': elapsed,
+        }
 
     def observe_ttft(self, request_id, ttft_ms, *, observed_at, pressure_class="unknown"):
         if (not isinstance(request_id, str) or not request_id
@@ -159,7 +242,8 @@ class IEEEReplicaControl:
         return True
 
     def evaluate(self, *, now, queue_depth, active_requests, ready_capacity,
-                 ready_instances, pending_instances):
+                 ready_instances, pending_instances, arrived_request_count=None,
+                 completed_request_count=None):
         for value in (queue_depth, active_requests, ready_capacity, ready_instances, pending_instances):
             if type(value) is not int or value < 0:
                 raise ValueError('IEEE control counts must be nonnegative integers')
@@ -173,6 +257,14 @@ class IEEEReplicaControl:
             return None
         self.last_evaluation = now
         cfg = self.config
+        predictive = None
+        if self.predictive_config is not None:
+            if arrived_request_count is None or completed_request_count is None:
+                raise ValueError('IEEE predictive scaling requires causal workload counters')
+            predictive = self._observe_work(now=now,
+                arrived_request_count=arrived_request_count,
+                completed_request_count=completed_request_count,
+                ready_instances=ready_instances)
         while self.samples and self.samples[0][0] <= now-cfg['ttft_window_s']:
             self.samples.popleft()
         ordered = sorted(self.samples, key=lambda sample: sample[1])
@@ -198,12 +290,31 @@ class IEEEReplicaControl:
                 and now-self.low_since >= cfg['scale_down_cooldown_s']):
             action, reason, target = ScalingAction.SCALE_DOWN, 'ieee_all_low_through_cooldown', total-1
             self.low_since = now  # Each additional reclamation needs its own cooldown.
+        predictive_target = None
+        if predictive is not None:
+            horizon = predictive.get('activation_horizon_s')
+            service_rate = predictive.get('service_rate_rps_per_ready_instance')
+            arrival_rate = predictive.get('arrival_rate_rps')
+            if (horizon is not None and horizon > 0 and service_rate is not None
+                    and service_rate > 0 and arrival_rate is not None):
+                forecast_work = max(0.0, float(queue_depth)) + float(arrival_rate) * horizon
+                predictive_target = min(
+                    self.max_instances,
+                    max(self.min_instances,
+                        math.ceil(forecast_work / (service_rate * horizon))),
+                )
+                if predictive_target > total:
+                    action, reason, target = (ScalingAction.SCALE_UP,
+                        'ieee_forecast_horizon_capacity', predictive_target)
+                elif action == ScalingAction.SCALE_DOWN and predictive_target >= total:
+                    action, reason, target = ScalingAction.NO_ACTION, 'ieee_forecast_preserved_capacity', total
         return dict(action=action, target_instances=target, current_instances=total, reason=reason,
             observed_at=now, queue_depth=queue_depth, active_requests=active_requests,
             ready_capacity=ready_capacity, ready_instances=ready_instances, pending_instances=pending_instances,
             active_saturation=saturation, p95_ttft_ms=p95, ttft_sample_count=len(ordered),
             p95_pressure_class=p95_pressure_class,
-            ratios=ratios, score=score, all_low=all_low, low_since=self.low_since)
+            ratios=ratios, score=score, all_low=all_low, low_since=self.low_since,
+            predictive_observation=predictive, predictive_target_instances=predictive_target)
 
 
 class AutoScaler:
