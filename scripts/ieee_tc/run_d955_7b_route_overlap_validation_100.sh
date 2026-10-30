@@ -2,7 +2,10 @@
 set -euo pipefail
 
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d955_20261030/7b_route_overlap_validation_100
+RUN_ID="${FAASLORA_D955_RUN_ID:-d955_20261030}"
+RUN_TAG="${FAASLORA_D955_RUN_TAG:-d955_7b_route_overlap_validation_100}"
+RAW_ROOT="${FAASLORA_D955_RAW_ROOT:-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification}"
+RAW="$RAW_ROOT/$RUN_ID/7b_route_overlap_validation_100"
 cd "$ROOT"
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
@@ -29,11 +32,11 @@ export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/pap
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0
-export FAASLORA_RESULTS_TAG=d955_7b_route_overlap_validation_100
-export FAASLORA_OUTPUT_DIR="$RAW"
-export FAASLORA_NVME_CACHE_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d955_20261030/7b_nvme_route_overlap_validation_100
-export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d955-7b-route-overlap-validation-100
-export FAASLORA_TC_LAUNCH_OUTPUT="$RAW/launch.json"
+export FAASLORA_RESULTS_TAG="$RUN_TAG"
+export FAASLORA_OUTPUT_DIR="${FAASLORA_OUTPUT_DIR:-$RAW}"
+export FAASLORA_NVME_CACHE_DIR="${FAASLORA_NVME_CACHE_DIR:-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/$RUN_ID/7b_nvme_route_overlap_validation_100}"
+export FAASLORA_HOST_CACHE_DIR="${FAASLORA_HOST_CACHE_DIR:-/dev/shm/tc-$RUN_TAG}"
+export FAASLORA_TC_LAUNCH_OUTPUT="${FAASLORA_TC_LAUNCH_OUTPUT:-$RAW/launch.json}"
 export FAASLORA_TC_PREDICTED_GROWTH_GIB=16
 export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py
 export FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea
