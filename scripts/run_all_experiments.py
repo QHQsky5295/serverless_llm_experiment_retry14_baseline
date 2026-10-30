@@ -9673,6 +9673,7 @@ class ScenarioRunner:
         owner = self._stack.residency_manager.local_source_references
         slots = tuple(self.instance_pool.get_slots())
         engines = tuple(slot.engine for slot in slots)
+        adapter_id = trace.adapter_id
         requested_ids = [InferenceEngine._lora_int_id(trace.adapter_id)] if trace.adapter_id else []
         if getattr(self, '_ieee_route_confirmed_snapshot_cache', False):
             collector = self._ieee_collect_confirmed_snapshot_cache
@@ -9680,7 +9681,34 @@ class ScenarioRunner:
             collector = self._ieee_collect_route_identity_cache
         else:
             collector = self._ieee_collect_native_sources
-        observations, collection = await collector(slots, requested_adapter_ids=requested_ids)
+        # Native replica observations and the file-owner observation are
+        # independent read-only snapshots.  Start the asynchronous file-owner
+        # request before waiting for native workers so their wall times can
+        # overlap.  This does not relax confirmation: both snapshots are still
+        # checked for membership/identity, and selected-source protection below
+        # remains the linearization point for the actual copy.  Synchronous
+        # legacy owners retain the historical ordering because executing their
+        # call inline would block the event loop.
+        file_snapshot_task = None
+        call_async = getattr(owner, 'call_async', None)
+        if adapter_id and inspect.iscoroutinefunction(call_async):
+            file_snapshot_task = asyncio.create_task(
+                call_async('source_snapshot', adapter_id=adapter_id)
+            )
+        try:
+            observations, collection = await collector(
+                slots, requested_adapter_ids=requested_ids
+            )
+            if file_snapshot_task is not None:
+                files = await file_snapshot_task
+            else:
+                files = (owner.source_snapshot(adapter_id) if adapter_id else None)
+        except BaseException:
+            if file_snapshot_task is not None and not file_snapshot_task.done():
+                file_snapshot_task.cancel()
+            if file_snapshot_task is not None:
+                await asyncio.gather(file_snapshot_task, return_exceptions=True)
+            raise
         # Scale-up/removal during RPC collection is not a complete current view.
         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
@@ -9710,10 +9738,6 @@ class ScenarioRunner:
                 slot.native_device_uuid = device_uuid
             if index not in reused_indexes:
                 self._ieee_publish_identity_frontier(slot, state)
-        adapter_id = trace.adapter_id
-        files = ((await owner.call_async('source_snapshot', adapter_id=adapter_id)
-                  if hasattr(owner, 'call_async') else owner.source_snapshot(adapter_id))
-                 if adapter_id else None)
         if files is not None:
             captured = files.get('captured_monotonic_s')
             if (type(captured) not in (int, float) or not math.isfinite(captured)
@@ -18731,7 +18755,8 @@ class ScenarioRunner:
                 def adopt_file_reference(value):
                     reservation.local_source_owner = manager
                     evidence['local_source_reference'] = value
-                if hasattr(refs, 'call_async'):
+                call_async = getattr(refs, 'call_async', None)
+                if inspect.iscoroutinefunction(call_async):
                     reference = await refs.call_async(
                         'acquire_confirmed', on_result=adopt_file_reference,
                         path=source['path'], adapter_id=reservation.adapter_id,
@@ -18755,7 +18780,8 @@ class ScenarioRunner:
             # No local copy is borrowed. Do not turn an intervening completed
             # file publication into a request classified as a Remote miss.
             refs = self._stack.residency_manager.local_source_references
-            if hasattr(refs, 'call_async'):
+            call_async = getattr(refs, 'call_async', None)
+            if inspect.iscoroutinefunction(call_async):
                 current = await refs.call_async('source_snapshot', adapter_id=reservation.adapter_id)
             else:
                 current = refs.source_snapshot(reservation.adapter_id)
