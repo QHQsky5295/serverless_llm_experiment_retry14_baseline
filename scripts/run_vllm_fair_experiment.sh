@@ -72,6 +72,13 @@ VLLM_REMOTE_ARTIFACT_CACHE_DIR="${VLLM_REMOTE_ARTIFACT_CACHE_DIR:-${ROOT_DIR}/re
 VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
 VLLM_REMOTE_ARTIFACT_STAGE_WORKERS="${VLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-${BASELINE_REMOTE_ARTIFACT_STAGE_WORKERS:-1}}"
 VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
+# vLLM 0.10.2/PyTorch 2.8 writes torch-compile artifacts below
+# VLLM_CACHE_ROOT.  Multiple TP=1 replicas otherwise share one rank_0_0
+# directory and can delete one another's temporary artifact during startup.
+# Keep the cache persistent and keyed only by host plus the physical CUDA mask;
+# do not use a run id (which would turn every run into a cold compile) or change
+# native compilation/eager policy.
+VLLM_DEVICE_COMPILE_CACHE_ROOT="${VLLM_DEVICE_COMPILE_CACHE_ROOT:-${HOME}/.cache/vllm/device_compile_cache}"
 VLLM_RESIDENT_PROTOCOL_V1="${VLLM_RESIDENT_PROTOCOL_V1:-0}"
 VLLM_RESIDENT_LEAD_S="${VLLM_RESIDENT_LEAD_S:-60}"
 VLLM_RESIDENT_SERVICE_MEMORY_HIGH="${VLLM_RESIDENT_SERVICE_MEMORY_HIGH:-72G}"
@@ -1058,6 +1065,7 @@ if [[ "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic_remote" ]]; then
   echo "      vllm_remote_artifact_bandwidth_mib_s=${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
 fi
 echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCESSING}"
+echo "      device_compile_cache_root=${VLLM_DEVICE_COMPILE_CACHE_ROOT}"
 echo "      host_memory_guard_hard=${VLLM_HOST_MIN_MEM_GB}GiB warn=${VLLM_HOST_WARN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
@@ -1154,11 +1162,16 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   replica_gpu_mask="${VLLM_REPLICA_GPU_MASKS[${replica_idx}]}"
   ensure_port_is_free "${replica_port}" "vLLM API"
   replica_log="${SERVER_LOG_PREFIX}_r${replica_idx}.log"
+  cache_host="$(hostname -s 2>/dev/null || hostname)"
+  cache_device_key="${replica_gpu_mask//,/__}"
+  replica_compile_cache_root="${VLLM_DEVICE_COMPILE_CACHE_ROOT}/host-${cache_host}/cuda-${cache_device_key}"
+  mkdir -p "${replica_compile_cache_root}"
   launch_epoch="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import time; print(f"{time.monotonic():.6f}")')"
   env_args=(
     PYTHONNOUSERSITE=1
     PYTHONUNBUFFERED=1
     CUDA_VISIBLE_DEVICES="${replica_gpu_mask}"
+    VLLM_CACHE_ROOT="${replica_compile_cache_root}"
     VLLM_USE_V1="${VLLM_USE_V1_EFFECTIVE}"
     VLLM_USE_FLASHINFER_SAMPLER="${VLLM_USE_FLASHINFER_SAMPLER_EFFECTIVE}"
   )
