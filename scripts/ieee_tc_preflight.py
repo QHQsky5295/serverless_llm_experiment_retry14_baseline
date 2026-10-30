@@ -3159,8 +3159,16 @@ def snapshot_reference_backbone(root):
     if not shards or any(not isinstance(n,str) or Path(n).name != n
                          or not n.endswith('.safetensors') for n in shards):
         raise ValueError('reference requires a local ordinary safetensors shard index')
+    # Tokenizer serialization is model-family dependent.  Llama-2's audited
+    # checkpoint includes both tokenizer.json and tokenizer.model, whereas the
+    # frozen Llama-3.2 checkpoint is fast-tokenizer-only.  Snapshot the
+    # existing immutable tokenizer representation instead of requiring an
+    # unrelated absent file; this changes no rendering or serving behavior.
+    tokenizer_assets = {'tokenizer.json'}
+    if (root / 'tokenizer.model').is_file():
+        tokenizer_assets.add('tokenizer.model')
     names = sorted(shards | {'model.safetensors.index.json','config.json','tokenizer_config.json',
-                            'tokenizer.json','tokenizer.model','special_tokens_map.json',
+                            *tokenizer_assets,'special_tokens_map.json',
                             'generation_config.json'})
     files = []
     for name in names:
