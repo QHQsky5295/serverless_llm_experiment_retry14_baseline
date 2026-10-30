@@ -38,7 +38,10 @@ margin was below the floor.
 
 The launch gate records `pass=false`, and no complete result JSON was emitted.
 Consequently D968 provides only a discarded diagnostic prefix and cannot
-establish correctness, joint SLO, lifecycle GPU-s/request, or G1/G2.
+establish correctness, joint SLO, lifecycle GPU-s/request, or G1/G2. After
+termination, the re-creatable NVMe adapter copies from this incomplete run were
+removed to restore the disk safety margin; the launch audit, partial replay
+logs, and this provenance document were retained.
 
 ## Artifact paths
 
