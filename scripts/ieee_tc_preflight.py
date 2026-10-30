@@ -3517,7 +3517,10 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             # None makes Transformers fall back to model.generation_config.
             # An empty collection is the explicit no-EOS contract required by
             # native fixed-length/ignore_eos decoding.
-            generation_config.eos_token_id = []
+            # ``[]`` is interpreted as an immediate stop by some recent
+            # Llama generation configs (while older configs treated it as an
+            # empty stop set).  ``None`` is the portable no-EOS form here.
+            generation_config.eos_token_id = None
             generation_config.forced_eos_token_id = None
             # Keep the independent reference under the same no-EOS,
             # fixed-length contract as the native run.  Some model-family
@@ -3528,7 +3531,8 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             with torch.inference_mode():
                 output = model.generate(
                     input_ids=inputs, attention_mask=mask,
-                    max_new_tokens=target, pad_token_id=tokenizer.eos_token_id,
+                    min_new_tokens=target, max_new_tokens=target,
+                    eos_token_id=None, pad_token_id=tokenizer.eos_token_id,
                     generation_config=generation_config, use_cache=True,
                     return_dict_in_generate=True, output_scores=True)
             sequences = output.sequences
