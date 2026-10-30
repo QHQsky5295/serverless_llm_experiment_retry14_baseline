@@ -83,6 +83,15 @@ GPU-s 口径或远端交付协议。
 只有离线审计同时显示 debt 请求被覆盖、非 debt 请求不被无依据扩容、并且不会
 复现 D930/D965 的失败模式，才创建新的 GPU execution key 做一次完整回放。
 
+这一方向也与近期已发表系统的机制边界一致，但不照搬其硬件假设：BlitzScale
+明确指出扩容期间队列等待会直接进入端到端 SLO，并将突发到达与扩容数据平面
+速度作为尾延迟来源；Chiron 则以等待时间估计和分层 backpressure 处理长启动
+时间下的资源决策。PrimeLoRA 这里只借鉴“用可观测等待/服务能力预测就绪时刻
+容量”的原则，不引入其 GPU multicast、分层 batch 或未来请求信息。
+
+- [BlitzScale, OSDI 2025](https://www.usenix.org/system/files/osdi25-zhang-dingyan.pdf)
+- [Chiron, arXiv 2501.08090](https://arxiv.org/abs/2501.08090)
+
 ## 5. 状态
 
 D984 没有修改代码、配置、远端服务或旧结果；不生成论文图。D983 仍保持
