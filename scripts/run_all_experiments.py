@@ -14824,7 +14824,6 @@ class ScenarioRunner:
         arrival, and the autoscaler/router observe that same online queue state.
         """
         self._active_replay_t0 = replay_t0
-        self._ieee_request_replay_active = True
         launched_count = 0
         completed_indices: set[int] = set()
         observed_raw: List[Any] = []
@@ -14985,7 +14984,6 @@ class ScenarioRunner:
             raise
         finally:
             self._active_replay_t0 = None
-            self._ieee_request_replay_active = False
             if not dispatcher.done():
                 dispatcher.cancel()
             for task in active_tasks:
@@ -15699,43 +15697,6 @@ class ScenarioRunner:
             if self._service_profiles is not None:
                 self._service_profiles.validate_runtime(engine.model_cfg)
 
-            # A native IEEE activation is planned once before startup so that
-            # remote/file staging can overlap model initialization.  Startup
-            # on the measured 7B runtime is long enough for the observed
-            # demand window to change materially, however.  Publishing the
-            # replica with the old trigger-time GPU prefix makes the first
-            # dispatch use a stale preparation epoch even though no future
-            # request was used in that epoch.  For non-initial activations,
-            # close that pre-init epoch after the worker exists and make one
-            # fresh, owner-confirmed handoff plan from demand observed up to
-            # this publication boundary.  This is a new planning epoch, not
-            # a legacy forecast: it never reads future trace entries and the
-            # old epoch remains fully recorded for provenance.
-            late_activation_replan = (
-                activation_kind in ('natural_scaleout', 'controlled')
-                and policy != 'no_handoff'
-                and preparation is not None
-                # A scale-up outside an active replay has no arrival boundary
-                # at which a late demand snapshot could be interpreted.  Keep
-                # the measured activation/test path unchanged there; during a
-                # real replay this value is set before the control loop starts.
-                and bool(getattr(self, '_ieee_request_replay_active', False))
-            )
-            if late_activation_replan:
-                preparation.cancel()
-                await settle(asyncio.gather(preparation, return_exceptions=True))
-                preparation = None
-                record['trigger_plan_sha256'] = record.get('plan_sha256')
-                record['trigger_preparation_state'] = record.get('preparation_state')
-                record['trigger_preparation_terminal_at'] = record.get('preparation_terminal_at')
-                record['preparation_replan'] = {
-                    'kind': 'observed_ready_boundary_v1',
-                    'future_requests_used': False,
-                    'demand_source': 'hotness_tracker_snapshot_at_worker_ready',
-                    'native_source': 'worker_source_snapshot_after_startup',
-                    'file_source': 'shared_file_owner_snapshot_after_startup',
-                    'state': 'pending',
-                }
             observed = await engine.ieee_gpu_reference(operation='source_snapshot')
             if native_activation_layout(observed) != layout:
                 raise ValueError('actual initialized GPU layout differs from frozen measurements')
@@ -15766,30 +15727,7 @@ class ScenarioRunner:
                 model_name=(getattr(engine, 'model_cfg', {}) or {}).get('name'),
             )
             slot = self.instance_pool.get_slot(instance_id)
-            if late_activation_replan:
-                # Keep the slot out of the routable view while the fresh
-                # observed-demand epoch is executed.  It is already an owned
-                # physical runtime, so cleanup/retirement remains fail-closed
-                # if the new epoch cannot be completed.
-                slot.status = 'preparing'
-                fresh_plan = await self._plan_ieee_preparation_for_slot(
-                    slot=slot, mode='handoff')
-                record['plan_sha256'] = fresh_plan['plan_sha256']
-                record['preparation_replan'].update(
-                    state='planned', plan_sha256=fresh_plan['plan_sha256'],
-                    demand_observed_at=fresh_plan.get('demand_observed_at'),
-                    total_arrivals=fresh_plan.get('total_arrivals'),
-                )
-                await self._run_ieee_file_preparation_plan(
-                    plan=fresh_plan, target_engine=engine,
-                    target_replica=activation_id, activation_id=activation_id,
-                    gpu_slot=slot)
-                record['preparation_replan']['state'] = 'completed'
-                record['preparation_state'] = 'completed'
-                record.pop('preparation_error', None)
-                record['preparation_terminal_at'] = time.monotonic()
-                slot.status = 'running'
-            elif preparation is not None and not preparation.done():
+            if preparation is not None and not preparation.done():
                 self._ieee_file_plan_engines[preparation] = engine
             engine_ready_at = time.monotonic()
             self._ensure_instance_lifecycle_record(
