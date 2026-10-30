@@ -3544,7 +3544,13 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
                 record['native_prefix'] = native_ids[:min(first_divergence + 3, len(native_ids))]
                 record['reference_prefix'] = reference_ids[:min(first_divergence + 3, len(reference_ids))]
                 scores = getattr(output, 'scores', ())
-                if first_divergence < len(scores):
+                # A native/reference length mismatch can place the first
+                # divergence exactly at the end of the shorter sequence.  In
+                # that case there is no score row or native token at that
+                # position; retain the mismatch record without indexing past
+                # either sequence.
+                if (first_divergence < len(scores)
+                        and first_divergence < len(native_ids)):
                     top_values, top_ids = torch.topk(scores[first_divergence][0], k=2)
                     native_value = scores[first_divergence][0, native_ids[first_divergence]]
                     record.update(
