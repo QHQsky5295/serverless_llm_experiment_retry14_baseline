@@ -3432,6 +3432,12 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             raise ValueError('native request IDs do not match the frozen trace prefix')
         tokenizer = AutoTokenizer.from_pretrained(
             backbone, local_files_only=True, trust_remote_code=False)
+        # The native fixed-output path hashes the exact decoded prompt after
+        # token-boundary truncation.  Transformers' default cleanup can alter
+        # whitespace around byte-level tokens (observable for Llama-3.2 at the
+        # 759-token boundary), so the independent witness must use the native
+        # contract explicitly rather than the library default.
+        tokenizer.clean_up_tokenization_spaces = False
         renderer_cfg = dict(cfg)
         renderer_cfg.update(
             backend='vllm', generation_contract='fixed_length_greedy_v1',
