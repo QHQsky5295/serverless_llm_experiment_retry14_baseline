@@ -515,6 +515,138 @@ def analyze_retained_controls(output, sources, *, model='7b', launches=None):
     return report
 
 
+def control_busy_time_bounds(controls, requests):
+    """Retrospective lower bound, not an exact occupancy or alternative policy.
+
+    In the TP=1 retained runs, confirmed admission through the native last token
+    is inside the owned runtime reservation. Merge by native owner and clip at
+    routing withdrawal: draining owners are excluded by the sampled controller.
+    Pre-admission reservation and post-token cleanup are intentionally absent.
+    """
+    from collections import defaultdict
+    if not controls or not requests:
+        raise ValueError('nonempty controls and requests required')
+    previous = -math.inf
+    withdrawals = {}
+    for c in controls:
+        now = c['observed_at']
+        if not math.isfinite(now) or now <= previous:
+            raise ValueError('control observations must be finite and increasing')
+        previous = now
+        if c['action'] == 'scale_down':
+            replica = c['target_replica']
+            if c['outcome'] != 'drained_replica_retired' or replica in withdrawals:
+                raise ValueError('complete unique withdrawal required')
+            withdrawals[replica] = now
+    intervals, seen = defaultdict(list), set()
+    for r in requests:
+        a, b = float(r['admitted']), float(r['last'])
+        if (r['request_id'] in seen or not r['owner'] or not r['replica']
+                or not all(math.isfinite(x) for x in (a, b)) or b < a):
+            raise ValueError('invalid or duplicate admitted request interval')
+        seen.add(r['request_id'])
+        b = min(b, withdrawals.get(r['replica'], math.inf))
+        if b > a:
+            intervals[r['owner']].append((a, b))
+    merged = []
+    for spans in intervals.values():
+        union = []
+        for a, b in sorted(spans):
+            if union and a <= union[-1][1]:
+                union[-1] = (union[-1][0], max(b, union[-1][1]))
+            else:
+                union.append((a, b))
+        merged.extend(union)
+    windows = []
+    for c in controls:
+        observation = c['predictive_observation']
+        if observation is None:
+            continue
+        elapsed, sampled = (observation['history_elapsed_s'],
+                            observation['busy_instance_seconds'])
+        if (not all(math.isfinite(x) for x in (elapsed, sampled))
+                or elapsed <= 0 or sampled < 0):
+            raise ValueError('invalid sampled work window')
+        now = c['observed_at']
+        start = now - elapsed
+        lower = sum(max(0., min(b, now) - max(a, start)) for a, b in merged)
+        windows.append(dict(observed_at=now, history_elapsed_s=elapsed,
+            sampled_busy_instance_seconds=sampled, owned_busy_lower_bound_s=lower,
+            sampled_to_lower_bound=sampled/lower if lower > 0 else None,
+            action=c['action'], reason=c['reason'],
+            predictive_target_instances=c['predictive_target_instances']))
+    ratios = sorted(w['sampled_to_lower_bound'] for w in windows
+                    if w['sampled_to_lower_bound'] is not None)
+    releases = []
+    for row in windows:
+        if row['action'] != 'scale_down':
+            continue
+        following = [c['observed_at'] for c in controls
+                     if c['action'] == 'scale_up' and c['observed_at'] > row['observed_at']]
+        releases.append(dict(row, next_scale_up_after_s=(
+            min(following)-row['observed_at'] if following else None)))
+    return dict(request_count=len(requests), control_count=len(controls),
+        window_count=len(windows), owner_union_intervals=len(merged),
+        windows_below_owned_lower_bound=sum(w['sampled_busy_instance_seconds'] + 1e-6
+            < w['owned_busy_lower_bound_s'] for w in windows),
+        windows_below_90pct_of_lower_bound=sum(x < .9 for x in ratios),
+        ratio_quantiles={str(p): ratios[math.ceil(p*len(ratios))-1] if ratios else None
+                         for p in (.05, .5, .95)},
+        scale_down_with_score_above_one=sum(c['action'] == 'scale_down' and c['score'] > 1
+                                           for c in controls),
+        releases=releases)
+
+
+def audit_control_busy_windows(output, stages):
+    """Reuse sealed D716 request tables; never rewrite the performance results."""
+    import csv
+    output = Path(output)
+    if output.exists() or not stages or len(set(map(str, stages))) != len(stages):
+        raise ValueError('new output and unique stage reports required')
+    refs, reports = [], {}
+    for path in map(Path, stages):
+        stage = read(path)
+        if stage['passed'] is not True or stage['counts']['n'] != 4000:
+            raise ValueError('complete passed stage report required')
+        table = Path(stage['request_table']['path'])
+        if sha256(table) != stage['request_table']['sha256']:
+            raise ValueError('sealed request table changed')
+        raw = Path(stage['source_run'])
+        name = raw.parent.name
+        if name in reports:
+            raise ValueError('ambiguous run identity')
+        source_refs = [r for r in stage['source_refs']
+                       if Path(r['path']).name.startswith('experiment_results_')]
+        if len(source_refs) != 1 or sha256(Path(source_refs[0]['path'])) != source_refs[0]['sha256']:
+            raise ValueError('stage request source identity changed')
+        outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
+        with outcome.open('rb') as stream:
+            if next(ijson.items(stream, 'run_completed')) is not True:
+                raise ValueError('control outcome is incomplete')
+        with outcome.open('rb') as stream:
+            controls = list(ijson.items(stream, 'mechanism_events._ieee_control_events.item', use_float=True))
+        with table.open(newline='') as stream:
+            rows = list(csv.DictReader(stream))
+        if len(rows) != 4000:
+            raise ValueError('full request table required')
+        reports[name] = control_busy_time_bounds(controls, rows)
+        refs.extend(dict(path=str(p), sha256=sha256(p)) for p in (path, table, outcome))
+        refs.extend(source_refs)
+    refs.append(dict(path=str(Path(__file__).resolve()), sha256=sha256(Path(__file__))))
+    report = dict(kind='retained_control_busy_lower_bound_v1', reports=reports,
+        source_refs=refs, new_performance_runs=0, causal_attribution_established=False,
+        limitations=['Retrospective TP=1 native-owner union; not exact active-slot accounting.',
+            'Reservation before confirmed admission and cleanup after last token are excluded.',
+            'Window overlap is not independent replication; no CI or counterfactual SLO.',
+            '90% is descriptive error reporting, not an online threshold or acceptance gate.',
+            'No replay of another controller policy and no changed performance metric.'])
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'summary.json').open('x') as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+    print(json.dumps(dict(output=str(output), reports=reports), indent=2))
+    return report
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--output', required=True, type=Path)
@@ -524,8 +656,13 @@ if __name__ == '__main__':
     parser.add_argument('--retained-control-launch', action='append', type=Path,
                         help='explicit successful receipts in the same order as sources')
     parser.add_argument('--retained-control-model', choices=('7b', '3b'), default='7b')
+    parser.add_argument('--control-busy-stage', action='append', type=Path)
     args = parser.parse_args()
-    if args.retained_control_source:
+    if args.control_busy_stage:
+        if args.retained_control_source or args.retained_control_launch or args.include_d458 or args.owner_decode:
+            parser.error('busy-stage analysis cannot be mixed with performance comparison modes')
+        audit_control_busy_windows(args.output, args.control_busy_stage)
+    elif args.retained_control_source:
         if args.include_d458 or args.owner_decode:
             parser.error('explicit retained sources cannot be mixed with registered legacy modes')
         analyze_retained_controls(args.output,args.retained_control_source,

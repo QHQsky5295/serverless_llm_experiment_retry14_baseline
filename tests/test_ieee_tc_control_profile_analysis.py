@@ -428,6 +428,65 @@ class RetainedControlAnalysisInputs(unittest.TestCase):
             self.assertFalse((Path(root)/'new').exists())
 
 
+class ControlBusyBounds(unittest.TestCase):
+    @staticmethod
+    def control(now, sampled=0., elapsed=10., action='no_action'):
+        return dict(observed_at=now, action=action, reason='test', score=.2,
+            outcome='drained_replica_retired' if action == 'scale_down' else 'no_action',
+            target_replica='a', predictive_target_instances=1,
+            predictive_observation=dict(history_elapsed_s=elapsed, busy_instance_seconds=sampled))
+
+    @staticmethod
+    def request(rid, a, b, replica='a', owner='owner-a'):
+        return dict(request_id=rid, admitted=a, last=b, replica=replica, owner=owner)
+
+    def test_owner_union_and_withdrawal_not_double_counted(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        c = self.control(5., action='scale_down')
+        c['predictive_observation'] = None
+        rows = [self.request('1', 0., 8.), self.request('2', 3., 6.),
+                self.request('3', 2., 4., 'b', 'owner-b')]
+        result = control_busy_time_bounds([c, self.control(10., 4.)], rows)
+        self.assertEqual(result['ratio_quantiles']['0.5'], 4/7)
+        self.assertEqual(result['owner_union_intervals'], 2)
+        self.assertEqual(result['windows_below_90pct_of_lower_bound'], 1)
+
+    def test_window_clipping_and_zero_busy_unknown_ratio(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        result = control_busy_time_bounds([self.control(10., 2., 4.)],
+                                         [self.request('1', 0., 8.)])
+        self.assertEqual(result['ratio_quantiles']['0.5'], 1.)
+        result = control_busy_time_bounds([self.control(20., 0., 4.)],
+                                         [self.request('1', 0., 8.)])
+        self.assertIsNone(result['ratio_quantiles']['0.5'])
+
+    def test_repeated_replica_labels_merge_by_native_owner(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        result = control_busy_time_bounds([self.control(10., 6.)],
+            [self.request('1', 0., 5.), self.request('2', 1., 6., 'alias')])
+        self.assertEqual(result['owner_union_intervals'], 1)
+        self.assertEqual(result['ratio_quantiles']['0.5'], 1.)
+
+    def test_invalid_intervals_and_duplicate_requests_fail(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        for rows in ([self.request('1', 3., 2.)], [self.request('1', 0., float('nan'))],
+                     [self.request('1', 0., 1.)]*2):
+            with self.assertRaises(ValueError):
+                control_busy_time_bounds([self.control(10.)], rows)
+
+    def test_incomplete_or_nonmonotonic_control_is_not_exact_release(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        bad = self.control(10., action='scale_down');bad['outcome'] = 'draining_admitted_requests'
+        for controls in ([bad], [self.control(10.), self.control(10.)]):
+            with self.assertRaises(ValueError):
+                control_busy_time_bounds(controls, [self.request('1', 0., 1.)])
+
+    def test_existing_output_refused_without_reading_sources(self):
+        from scripts.ieee_tc.analyze_d455_stages import audit_control_busy_windows
+        with tempfile.TemporaryDirectory() as root, self.assertRaisesRegex(ValueError, 'new output'):
+            audit_control_busy_windows(Path(root), [Path('absent')])
+
+
 class SealedCsvEncoding(unittest.TestCase):
     def test_zero_cohort_keeps_schema_but_missing_schema_does_not_create_a_file(self):
         import csv
