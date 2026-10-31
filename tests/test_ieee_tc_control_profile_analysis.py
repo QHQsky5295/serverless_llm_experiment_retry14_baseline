@@ -428,5 +428,32 @@ class RetainedControlAnalysisInputs(unittest.TestCase):
             self.assertFalse((Path(root)/'new').exists())
 
 
+class SealedCsvEncoding(unittest.TestCase):
+    def test_lf_bytes_round_trip_without_post_hash_normalization(self):
+        import csv
+        import hashlib
+        from scripts.ieee_tc.audit_d703_3b_full import write_exclusive_csv, ref
+        rows = [dict(request_id='请求,1', value='quoted "value"\nnext', passed=True),
+                dict(request_id='req_2', value='1.2345', passed=False)]
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root)/'requests.csv'
+            write_exclusive_csv(path, rows)
+            raw = path.read_bytes()
+            self.assertNotIn(b'\r', raw)
+            self.assertEqual(ref(path)['sha256'], hashlib.sha256(raw).hexdigest())
+            with path.open(encoding='utf-8', newline='') as handle:
+                actual = list(csv.DictReader(handle))
+            self.assertEqual(actual, [{k: str(v) for k, v in row.items()} for row in rows])
+
+    def test_existing_csv_is_not_replaced(self):
+        from scripts.ieee_tc.audit_d703_3b_full import write_exclusive_csv
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root)/'requests.csv'
+            path.write_bytes(b'original\r\n')
+            with self.assertRaises(FileExistsError):
+                write_exclusive_csv(path, [dict(value=1)])
+            self.assertEqual(path.read_bytes(), b'original\r\n')
+
+
 if __name__=='__main__':
     unittest.main()

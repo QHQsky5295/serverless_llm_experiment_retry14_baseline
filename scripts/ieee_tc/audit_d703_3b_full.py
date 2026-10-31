@@ -41,6 +41,14 @@ PROFILE_MANIFEST = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_pr
 OUT = ROOT / "paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile"
 
 
+def write_exclusive_csv(path, rows):
+    """Write stable LF bytes before provenance hashing; never rewrite a seal."""
+    with path.open('x', encoding='utf-8', newline='') as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator='\n')
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def clipped_interval_union(start, end, spans):
     """Witnessed temporal overlap, not attributable delay or a token stall."""
     if not all(type(v) in (int, float) and math.isfinite(v) for v in (start, end)) or start > end:
@@ -535,8 +543,7 @@ def diagnose_remote_preparation(raw, output, stage_audit):
         raise ValueError('missing request population')
     output.mkdir(parents=True, exist_ok=False)
     for name, rows in (('transfers.csv',transfer_rows),('remote_requests.csv',requests)):
-        with (output/name).open('x') as h:
-            w=csv.DictWriter(h,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+        write_exclusive_csv(output/name, rows)
     def summary(rows):
         return dict(n=len(rows), metrics={k:timing_stats([r[k] for r in rows])
                     for k in rows[0] if k.endswith('_ms')} if rows else {})
@@ -712,9 +719,7 @@ def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
             'Ingress and routing fields are nested; never add them to the six TTFT stages again.',
             'All 4000 requests retained; no new performance execution or protocol change.'])
     output.mkdir(parents=True, exist_ok=False)
-    with (output/'requests.csv').open('x') as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-        writer.writeheader(); writer.writerows(rows)
+    write_exclusive_csv(output/'requests.csv', rows)
     report['request_table'] = ref(output/'requests.csv')
     with (output/'diagnosis.json').open('x') as handle:
         json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')

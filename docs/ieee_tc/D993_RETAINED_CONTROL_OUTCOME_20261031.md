@@ -1,5 +1,13 @@
 # D993 — common-SLO and physical-resource outcome audit
 
+Subsequent D994 provenance correction: commit-time CRLF-to-LF formatting changed
+the saved stage CSV bytes without updating its sealed reference. The old CSV
+therefore no longer passes that byte seal; it is retained unchanged. D994 rebuilt
+the stage analysis from raw requests, verified all 4,000 parsed rows identical,
+and reproduced every count below. See D994_3B_CURRENT_REMOTE_CRITICAL_PATH_20261031.md
+for both hashes and the new valid source-bound analysis. This is a formatting
+provenance defect, not evidence of changed measurements; do not bypass the seal.
+
 2026-10-31. Reuses retained measurements; no new performance replay or figure.
 The same D992 run completed 4,000/4,000 requests, zero failures, and actual
 GPU/service release. The previously running process/session is closed.
