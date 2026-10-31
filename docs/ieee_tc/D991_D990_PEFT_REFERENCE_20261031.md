@@ -9,10 +9,20 @@ but it cannot certify the 4,000-request D989 performance run.
 
 Observed outcome: the native/PEFT witness matched exactly for 94 of 100
 requests. Prompt identity and request mapping were complete; the six remaining
-requests are retained as mismatches rather than silently discarded. This is a
-bounded numerical witness (and is therefore `pass=false` and
-`semantic_full_pool_qualification=false`), not evidence that the D989
-4,000-request run is formally correct. The 94% agreement is modestly above the
-previous 7B bounded witness (92/100), but the independent HF/PEFT reference
-remains a diagnostic rather than the production-backend oracle.
+requests are retained as mismatches rather than silently discarded. Exact
+sequence consistency is therefore `pass=false`; independently, the bounded
+scope requires `semantic_full_pool_qualification=false`. This is not evidence that the D989
+4,000-request run is formally correct. The previous bounded witness recorded
+92/100; these different executions do not establish an improvement in numerical
+correctness. The independent HF/PEFT reference remains a diagnostic rather
+than the production-backend oracle.
+
+At the first divergence, all six native decisions select one of the PEFT top-two tokens:
+four have a reported top-two logit gap of 0.015625 and two have a gap of zero.
+All native and reference lengths equal the targets. This is consistent with
+numerical near-ties, but does not prove numerical equivalence or exclude wrong
+adapter execution; the six exact mismatches and unknown full-run correctness
+remain. No repeat witness or new performance replay is warranted solely to seek
+a higher match percentage. Use the existing native binding evidence and retain
+the numerical limitation in the complete experiment comparison.
 

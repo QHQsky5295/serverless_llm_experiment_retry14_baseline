@@ -363,6 +363,43 @@ class FileDemandProfileAudit(unittest.TestCase):
 
 
 class RetainedControlAnalysisInputs(unittest.TestCase):
+    def test_explicit_attempt_paths_are_not_selected_by_recency(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_control_paths
+        source = Path('/runs/key/result.json')
+        default = retained_control_paths(source)
+        self.assertEqual(default[0], Path('/runs/key/launch.json'))
+        explicit = retained_control_paths(source, Path('/runs/key/launch_retry5.json'))
+        self.assertEqual(explicit[1], Path(
+            '/runs/key/launch_retry5.launch/physical_deployment/summary.json'))
+        self.assertEqual(explicit[2], explicit[1].parent/'main_outcome.json')
+
+    def test_explicit_attempt_count_matches_sources(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaisesRegex(ValueError, 'match source count'):
+                analyze_retained_controls(Path(root)/'new', [Path('missing')], launches=[])
+
+    def test_frozen_group_boundaries_are_model_specific(self):
+        from scripts.ieee_tc.analyze_d455_stages import (
+            retained_control_reference, retained_threshold_group)
+        for model, edge in [('7b', 616), ('3b', 506)]:
+            with self.subTest(model=model):
+                threshold, content = retained_control_reference(model)
+                groups = json.loads(threshold.read_text())['groups']
+                self.assertEqual(retained_threshold_group(groups, edge), groups[0])
+                self.assertEqual(retained_threshold_group(groups, edge+1), groups[1])
+                self.assertIn(model, content.name)
+        with self.assertRaisesRegex(ValueError, 'model must be'):
+            retained_control_reference('13b')
+
+    def test_missing_or_ambiguous_group_is_not_defaulted(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_threshold_group
+        group = dict(lower_exclusive=None, upper_inclusive=506)
+        for groups, n in [([], 10), ([group, group], 10), ([group], 507),
+                          ([group], float('nan')), ([group], 0)]:
+            with self.subTest(groups=groups, n=n), self.assertRaises(ValueError):
+                retained_threshold_group(groups, n)
+
     def test_existing_output_is_not_overwritten(self):
         from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
         with tempfile.TemporaryDirectory() as root:

@@ -324,8 +324,47 @@ def analyze_owner_decode(output):
     return result
 
 
-def analyze_retained_controls(output, sources):
-    """Reuse native/binding/stage helpers for explicit completed 7B control runs.
+def retained_control_reference(model):
+    """Select an existing frozen reference, never infer thresholds from results."""
+    references = {
+        '7b': ('20261010_7b_slo_d394_frozen.json',
+               '2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3',
+               '20260927_7b_materialized_content_index.json'),
+        '3b': ('20261017_3b_slo_d648_frozen.json',
+               'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8',
+               '20260927_3b_remote_content_index.json'),
+    }
+    if model not in references:
+        raise ValueError('retained control model must be 7b or 3b')
+    filename, digest, content = references[model]
+    threshold_path = ROOT/'paper_results/ieee_tc/protocols'/filename
+    if sha256(threshold_path) != digest:
+        raise ValueError('frozen threshold identity differs')
+    return threshold_path, ROOT/'paper_results/ieee_tc/inputs'/content
+
+
+def retained_threshold_group(groups, prompt_tokens):
+    if not math.isfinite(prompt_tokens) or prompt_tokens <= 0:
+        raise ValueError('positive finite native prompt count required')
+    matches = [g for g in groups
+               if (g['lower_exclusive'] is None or prompt_tokens > g['lower_exclusive'])
+               and (g['upper_inclusive'] is None or prompt_tokens <= g['upper_inclusive'])]
+    if len(matches) != 1:
+        raise ValueError('native prompt must match exactly one frozen threshold group')
+    return matches[0]
+
+
+def retained_control_paths(source, launch_path=None):
+    """Select an explicit successful attempt, not the newest/best attempt."""
+    launch_path = Path(launch_path) if launch_path is not None else source.parent/'launch.json'
+    if launch_path.suffix != '.json':
+        raise ValueError('explicit launch receipt must be a JSON path')
+    physical_path = launch_path.with_suffix('.launch')/'physical_deployment/summary.json'
+    return launch_path, physical_path, physical_path.parent/'main_outcome.json'
+
+
+def analyze_retained_controls(output, sources, *, model='7b', launches=None):
+    """Reuse native/binding/stage helpers for explicit completed control runs.
 
     This is a descriptive audit, not a correctness certificate or a controlled
     causal comparison. Different compiler caches/configurations remain possible.
@@ -336,30 +375,28 @@ def analyze_retained_controls(output, sources):
     output = Path(output)
     if output.exists() or not sources or len(set(map(str, sources))) != len(sources):
         raise ValueError('new output and unique explicit retained sources required')
+    if launches is not None and len(launches) != len(sources):
+        raise ValueError('explicit launch receipts must match source count and order')
     protocol_paths = [ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
                       ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']
     if [sha256(x) for x in protocol_paths] != [
         '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
         '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d']:
         raise ValueError('frozen metric protocol identity differs')
-    threshold_path = ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'
-    if sha256(threshold_path) != '2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3':
-        raise ValueError('D394 threshold identity differs')
+    threshold_path, index_path = retained_control_reference(model)
     thresholds = read(threshold_path)['groups']
-    index_path = ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json'
     content = {a['id']:hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),
         sort_keys=True, separators=(',', ':')).encode()).hexdigest()
         for a in read(index_path)['artifacts']}
     refs = [dict(path=str(x), sha256=sha256(x)) for x in
             [*protocol_paths, threshold_path, index_path, Path(__file__).resolve()]]
     reports = {}
-    for source in map(Path, sources):
+    for source_index, source in enumerate(map(Path, sources)):
         name = source.parent.parent.name
         if name in reports:
             raise ValueError('run directory identifiers must be distinct')
-        launch_path = source.parent/'launch.json'
-        physical_path = source.parent/'launch.launch/physical_deployment/summary.json'
-        outcome_path = physical_path.parent/'main_outcome.json'
+        launch_path, physical_path, outcome_path = retained_control_paths(
+            source, None if launches is None else launches[source_index])
         launch, physical = read(launch_path), read(physical_path)
         if (not launch['pass'] or not physical['measurement_complete'] or physical['open_lease_ids']
                 or any(physical[k] != 4000 for k in ('n_plan','n_terminal','n_native_contract_complete'))):
@@ -411,7 +448,7 @@ def analyze_retained_controls(output, sources):
                         if count >= 2 else None)
                 if tpot is not None and (not math.isfinite(tpot) or tpot < 0 or abs(tpot-r['tpot_ms']) > 1):
                     raise ValueError('native TPOT reconstruction failed')
-                group = thresholds[0 if n['actual_prompt_tokens'] <= 616 else 1]
+                group = retained_threshold_group(thresholds, n['actual_prompt_tokens'])
                 tt = row['ttft_ms'] <= group['ttft_ms']
                 tp = tpot is None or tpot <= group['tpot_ms']
                 counts.update(N=1, ttft_pass=int(tt), tpot_pass_including_single_token=int(tp),
@@ -450,12 +487,17 @@ def analyze_retained_controls(output, sources):
             first100_ttft_ms=timing_stats([r['ttft_ms'] for r in rows[:100]]),
             first3_ttft_ms=[r['ttft_ms'] for r in rows[:3]],
             control_outcomes=dict(Counter(c['outcome'] for c in controls)),
+            control_action_reasons={action:dict(Counter(c['reason'] for c in controls
+                if c['action']==action and c['outcome'] in
+                ('activation_scheduled','drained_replica_retired')))
+                for action in ('scale_up','scale_down')},
             first_control_actions=[c for c in controls if c['outcome'] != 'no_action'][:12],
             suppressed_control_actions=[c for c in controls if c['outcome']=='no_action_current_demand_covered'],
             measurement_complete=True, independent_holdout=False, g1_g2_qualified=False)
         refs.extend(dict(path=str(x), sha256=sha256(x)) for x in
                     (source, launch_path, physical_path, outcome_path))
-    report = dict(kind='retained_7b_control_observation_v1', reports=reports, source_refs=refs,
+    report = dict(kind=f'retained_{model}_control_observation_v1', model=model,
+        reports=reports, source_refs=refs,
         matched_request_inputs=len({r['input_contract_sha256'] for r in reports.values()})==1,
         causal_attribution_established=False, independent_numerical_qualification=False,
         new_performance_runs=0, confidence_interval=None,
@@ -479,11 +521,15 @@ if __name__ == '__main__':
     parser.add_argument('--include-d458', action='store_true')
     parser.add_argument('--owner-decode', action='store_true')
     parser.add_argument('--retained-control-source', action='append', type=Path)
+    parser.add_argument('--retained-control-launch', action='append', type=Path,
+                        help='explicit successful receipts in the same order as sources')
+    parser.add_argument('--retained-control-model', choices=('7b', '3b'), default='7b')
     args = parser.parse_args()
     if args.retained_control_source:
         if args.include_d458 or args.owner_decode:
             parser.error('explicit retained sources cannot be mixed with registered legacy modes')
-        analyze_retained_controls(args.output,args.retained_control_source)
+        analyze_retained_controls(args.output,args.retained_control_source,
+            model=args.retained_control_model, launches=args.retained_control_launch)
     elif args.owner_decode:
         if not args.include_d458:parser.error('--owner-decode requires --include-d458')
         analyze_owner_decode(args.output)

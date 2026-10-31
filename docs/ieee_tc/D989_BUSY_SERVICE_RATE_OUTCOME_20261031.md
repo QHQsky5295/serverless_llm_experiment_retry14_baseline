@@ -7,15 +7,19 @@
   TP=1, four RTX 3090 GPUs, resource envelope and control limits as D983,
   D987 and D988.
 - Code commit: `be5ba93c` (`retry14_continuous_queue_v2`).
-- The first four attempts are retained as protocol/initialization failures:
-  missing auxiliary scope, wrong trace path, missing NVML binding, missing
-  allocator variables, and missing venv PATH respectively. None reached the
-  request replay and none is included in this outcome.
-- The fifth attempt passed the gated launch, completed 4,000/4,000 requests
+- Five saved unsuccessful receipts (`launch.json` and `launch_retry1.json`
+  through `launch_retry4.json`) precede the successful `launch_retry5.json`.
+  The first two record a wrong trace path and missing NVML binding. The other
+  three have incomplete physical summaries with zero terminal requests. All
+  are retained and excluded from this completed-run outcome; initial tool-level
+  failures without these receipts are not assigned fabricated attempt numbers.
+- The sixth saved attempt passed the gated launch, completed 4,000/4,000 requests
   with zero request failures, and released the service scope and GPU context.
-- `n_correct` is not available because the independent numerical LoRA oracle
-  is not enabled. D989 is therefore a development/control diagnosis, not a
-  formal G1/G2 comparison point.
+- The original physical summary stores `n_correct=null`. Preserve this field
+  while auditing the request-level V1 execution contract separately. D393/D637
+  already established that full cross-backend exact sequence equality is not
+  required by V1; absence of that oracle is not a new execution hold. D989
+  retains its development/control identity, not a formal G1/G2 comparison point.
 
 ## Mechanism evidence
 
@@ -27,6 +31,15 @@ new release path actually executed; the result is not inferred from an idle
 tail or a post-hoc resource calculation.
 
 ## Result
+
+D993 has now completed the frozen-reference reconstruction: D983, D988 and
+D989 have joint timing counts 3,794, 3,996 and 3,961 out of 4,000, respectively
+(94.85%, 99.90%, 99.025%). D989 therefore clears the joint timing requirement;
+D983 does not. Their Type-1 P95 TTFT values are 3,429.478899, 1,571.805127 and
+1,766.285444 ms. All 4,000 native/owner/slot/content binding checks pass in each
+run. This is still a W0 development observation, not cross-scenario completion.
+The following table preserves the earlier saved runner summaries; use the
+D993 reconstruction for frozen-protocol comparison.
 
 | metric | D983 overlap-preserved | D988 forecast-release candidate | D989 busy-service-rate candidate |
 |---|---:|---:|---:|
@@ -42,6 +55,13 @@ tail or a post-hoc resource calculation.
 | average LoRA I/O (ms) | 95.063 | 79.179 | 87.061 |
 | physical GPU-s/request | 2.4300 | 3.8028 | 2.4365 |
 
+The table's TTFT attainment is the legacy 5,000-ms development indicator, not
+the D394 common joint TTFT/TPOT criterion. Its percentile values are the saved
+runner summaries, not yet the frozen Type-1 reconstruction. Resource values
+divide physical GPU-s by offered requests; they must not be relabeled
+GPU-s/correct-request while `n_correct` is unknown. The next retained-log audit
+uses the frozen reference and original token timestamps without changing data.
+
 D989 reduces physical owner-union GPU-s/request by about 35.9% relative to
 D988 while retaining 99.8% TTFT-SLO attainment. It is within about 0.27% of
 D983's physical GPU-s/request and improves D983's average TTFT by about 36.3%,
@@ -50,14 +70,17 @@ These comparisons are development observations only because numerical
 correctness is still unknown and D989 uses a different candidate execution
 key.
 
-The result supports the narrow causal hypothesis that ready replicas should
+The result is consistent with the narrow control hypothesis that ready replicas should
 not be counted as service capacity when they carry no active request, and that
 forecast release needs a dwell timer independent of the TTFT-sample timer.
 It does not establish that this is the final PrimeLoRA controller: the small
-resource gap to D983, the 0.2-point SLO loss relative to D988, and the absence
-of a numerical oracle remain open. The next step is an oracle-enabled smoke
-and one complete validation replay of this exact candidate before any baseline
-comparison or figure-level claim.
+resource gap to D983 and the common joint-SLO reconstruction remain open.
+The 0.2-point difference is only the legacy TTFT indicator, not a separate
+rejection criterion. D990/D991 have since completed a bounded
+native/PEFT witness (94/100 exact matches, not full correctness qualification).
+Do not repeat this completed 4,000-request key: first reconstruct its joint
+timing attainment from retained logs and finish the already-running D992 3B
+cross-model validation. W1/W2 coverage remains separate, outstanding work.
 
 ## Evidence paths
 

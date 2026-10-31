@@ -1,0 +1,605 @@
+{
+  "kind": "retained_3b_control_observation_v1",
+  "model": "3b",
+  "reports": {
+    "d972_20261031": {
+      "counts": {
+        "N": 4000,
+        "ttft_pass": 3754,
+        "tpot_pass_including_single_token": 3878,
+        "joint_timing_pass": 3650,
+        "single_token": 0,
+        "tpot_conditional_pass": 3878,
+        "tpot_conditional_N": 4000
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 798.9213406684576,
+          "p50_type1": 533.297804184258,
+          "p95_type1": 2316.0496135242283,
+          "p99_type1": 3309.1996680013835
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 16.63159342802259,
+          "p50_type1": 14.281498324856454,
+          "p95_type1": 30.360358567642315,
+          "p99_type1": 47.001446198139874
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 2649.6645655997563,
+          "p50_type1": 2276.0254913009703,
+          "p95_type1": 5511.354202404618,
+          "p99_type1": 6833.06179381907
+        }
+      },
+      "input_contract_sha256": "d7638e0d77e903ccb75dde34e8aaec08a93211c50f9c1319ff0b257c132b8920",
+      "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "source_subset_sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b",
+      "original_trace_role": "exploratory",
+      "original_formal_run": false,
+      "n_correct": null,
+      "gpu_seconds_per_correct_request": null,
+      "physical_gpu_seconds": 11310.910081950948,
+      "gpu_seconds_per_offered": 2.827727520487737,
+      "physical_windows": {
+        "arrival": 11242.372814083472,
+        "cleanup": 31.098548103589565,
+        "drain": 1.9638866521418095,
+        "pre_arrival": 35.474833111744374
+      },
+      "native_binding_checks": {
+        "request_adapter_binding": 4000,
+        "owner_binding": 4000,
+        "lease_binding": 4000,
+        "native_adapter_binding": 4000,
+        "slot_binding": 4000,
+        "frozen_content_binding": 4000,
+        "acquired_and_released": 4000,
+        "common_native_clock": 4000,
+        "acquired_before_dispatch": 4000,
+        "token_digest_transport": 4000
+      },
+      "dispatch_tier_counts": {
+        "remote": 512,
+        "gpu": 1809,
+        "host": 1068,
+        "nvme": 611
+      },
+      "max_stage_identity_error_ms": 0.0,
+      "mean_stages_ms": {
+        "arrival_release_ms": 60.02380458579864,
+        "release_to_acquire_ms": 35.104244083864614,
+        "acquire_to_resume_ms": 3.101652955170721,
+        "runtime_slot_wait_ms": 222.05329664296005,
+        "runtime_to_controller_admission_ms": 0.0,
+        "admission_to_engine_dispatch_ms": 322.3769974652678,
+        "engine_entry_to_queue_ms": 49.469445007503964,
+        "native_engine_queue_ms": 2.3211486025247723,
+        "native_prefill_ms": 104.47075132536702,
+        "native_decode_ms": 1746.3509534900077,
+        "worker_completion_notification_ms": 32.24119573913049,
+        "worker_to_controller_completion_ms": 72.1510757021606
+      },
+      "first100_ttft_ms": {
+        "count": 100,
+        "mean": 451.64286718703806,
+        "p50_type1": 317.9171564988792,
+        "p95_type1": 931.7148891277611
+      },
+      "first3_ttft_ms": [
+        2639.610568061471,
+        130.23340329527855,
+        453.28786689788103
+      ],
+      "control_outcomes": {
+        "no_action": 1930,
+        "activation_scheduled": 2
+      },
+      "control_action_reasons": {
+        "scale_up": {
+          "ieee_max_score_above_one": 2
+        },
+        "scale_down": {}
+      },
+      "first_control_actions": [
+        {
+          "action": "scale_up",
+          "target_instances": 2,
+          "current_instances": 1,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 2898209.362081643,
+          "queue_depth": 1,
+          "active_requests": 8,
+          "ready_capacity": 8,
+          "ready_instances": 1,
+          "pending_instances": 0,
+          "active_saturation": 1.0,
+          "p95_ttft_ms": 796.9446848146617,
+          "ttft_sample_count": 40,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.125,
+            "active": 1.1428571428571428,
+            "ttft": 0.15938893696293235
+          },
+          "score": 1.1428571428571428,
+          "all_low": false,
+          "low_since": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 3,
+          "current_instances": 2,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 2898213.431426288,
+          "queue_depth": 2,
+          "active_requests": 8,
+          "ready_capacity": 8,
+          "ready_instances": 1,
+          "pending_instances": 1,
+          "active_saturation": 1.0,
+          "p95_ttft_ms": 1504.2452705092728,
+          "ttft_sample_count": 51,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.25,
+            "active": 1.1428571428571428,
+            "ttft": 0.3008490541018546
+          },
+          "score": 1.1428571428571428,
+          "all_low": false,
+          "low_since": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        }
+      ],
+      "suppressed_control_actions": [],
+      "measurement_complete": true,
+      "independent_holdout": false,
+      "g1_g2_qualified": false
+    },
+    "d992_20261101": {
+      "counts": {
+        "N": 4000,
+        "ttft_pass": 3810,
+        "tpot_pass_including_single_token": 3846,
+        "joint_timing_pass": 3678,
+        "single_token": 0,
+        "tpot_conditional_pass": 3846,
+        "tpot_conditional_N": 4000
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 737.9038006016053,
+          "p50_type1": 474.22353690490127,
+          "p95_type1": 2197.8596937842667,
+          "p99_type1": 3247.531745582819
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 17.087155681938082,
+          "p50_type1": 14.70958399312461,
+          "p95_type1": 31.665976243940268,
+          "p99_type1": 48.04751048795879
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 2609.796408907394,
+          "p50_type1": 2229.9901503138244,
+          "p95_type1": 5491.982796695083,
+          "p99_type1": 6722.789625637233
+        }
+      },
+      "input_contract_sha256": "d7638e0d77e903ccb75dde34e8aaec08a93211c50f9c1319ff0b257c132b8920",
+      "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+      "source_subset_sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b",
+      "original_trace_role": "exploratory",
+      "original_formal_run": false,
+      "n_correct": null,
+      "gpu_seconds_per_correct_request": null,
+      "physical_gpu_seconds": 8268.639917650726,
+      "gpu_seconds_per_offered": 2.0671599794126814,
+      "physical_windows": {
+        "arrival": 8213.554279140662,
+        "cleanup": 18.728922807145864,
+        "drain": 1.052416792139411,
+        "pre_arrival": 35.304298910778016
+      },
+      "native_binding_checks": {
+        "request_adapter_binding": 4000,
+        "owner_binding": 4000,
+        "lease_binding": 4000,
+        "native_adapter_binding": 4000,
+        "slot_binding": 4000,
+        "frozen_content_binding": 4000,
+        "acquired_and_released": 4000,
+        "common_native_clock": 4000,
+        "acquired_before_dispatch": 4000,
+        "token_digest_transport": 4000
+      },
+      "dispatch_tier_counts": {
+        "remote": 509,
+        "gpu": 1767,
+        "host": 1209,
+        "nvme": 515
+      },
+      "max_stage_identity_error_ms": 0.0,
+      "mean_stages_ms": {
+        "arrival_release_ms": 40.22285407688469,
+        "release_to_acquire_ms": 30.626656721229665,
+        "acquire_to_resume_ms": 5.170314364368096,
+        "runtime_slot_wait_ms": 198.16948361811228,
+        "runtime_to_controller_admission_ms": 0.0,
+        "admission_to_engine_dispatch_ms": 296.4773404166335,
+        "engine_entry_to_queue_ms": 60.08247393241618,
+        "native_engine_queue_ms": 2.8487739107804373,
+        "native_prefill_ms": 104.30590356118046,
+        "native_decode_ms": 1774.5483581577428,
+        "worker_completion_notification_ms": 40.941299511818215,
+        "worker_to_controller_completion_ms": 56.402950636227615
+      },
+      "first100_ttft_ms": {
+        "count": 100,
+        "mean": 507.7589237736538,
+        "p50_type1": 331.85908617451787,
+        "p95_type1": 1119.195309933275
+      },
+      "first3_ttft_ms": [
+        5506.640857085586,
+        127.16745212674141,
+        512.2864060103893
+      ],
+      "control_outcomes": {
+        "no_action": 1935,
+        "activation_scheduled": 4,
+        "drained_replica_retired": 3
+      },
+      "control_action_reasons": {
+        "scale_up": {
+          "ieee_max_score_above_one": 3,
+          "ieee_forecast_horizon_capacity": 1
+        },
+        "scale_down": {
+          "ieee_forecast_capacity_release": 3
+        }
+      },
+      "first_control_actions": [
+        {
+          "action": "scale_up",
+          "target_instances": 2,
+          "current_instances": 1,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 2927639.617326003,
+          "queue_depth": 0,
+          "active_requests": 0,
+          "ready_capacity": 8,
+          "ready_instances": 1,
+          "pending_instances": 0,
+          "active_saturation": 0.0,
+          "p95_ttft_ms": 5506.640857085586,
+          "ttft_sample_count": 1,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.0,
+            "ttft": 1.101328171417117
+          },
+          "score": 1.101328171417117,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 0.01802997424694235,
+            "service_rate_rps_per_busy_instance": 0.24386202869782278,
+            "activation_horizon_s": null,
+            "history_elapsed_s": 54.52713508391753,
+            "busy_instance_seconds": 4.100679410155863
+          },
+          "predictive_target_instances": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 3,
+          "current_instances": 2,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 2927641.650491574,
+          "queue_depth": 0,
+          "active_requests": 0,
+          "ready_capacity": 8,
+          "ready_instances": 1,
+          "pending_instances": 1,
+          "active_saturation": 0.0,
+          "p95_ttft_ms": 5506.640857085586,
+          "ttft_sample_count": 1,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.0,
+            "ttft": 1.101328171417117
+          },
+          "score": 1.101328171417117,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 0.01818079188221415,
+            "service_rate_rps_per_busy_instance": 0.24386202869782278,
+            "activation_horizon_s": null,
+            "history_elapsed_s": 54.5505837360397,
+            "busy_instance_seconds": 4.100679410155863
+          },
+          "predictive_target_instances": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 2,
+          "current_instances": 3,
+          "reason": "ieee_forecast_capacity_release",
+          "observed_at": 2927729.838749593,
+          "queue_depth": 0,
+          "active_requests": 2,
+          "ready_capacity": 24,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.08333333333333333,
+          "p95_ttft_ms": 1267.820328939706,
+          "ttft_sample_count": 32,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.09523809523809523,
+            "ttft": 0.2535640657879412
+          },
+          "score": 0.2535640657879412,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 0.5807395512022568,
+            "service_rate_rps_per_busy_instance": 0.5328330733484651,
+            "activation_horizon_s": 37.509783152490854,
+            "history_elapsed_s": 53.40596064599231,
+            "busy_instance_seconds": 57.674679406452924
+          },
+          "predictive_target_instances": 2,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-3b86e442ed0c411286b30be43ed12dab",
+          "released_monotonic_s": 2927739.32041149
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 3,
+          "current_instances": 2,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 2928375.201375746,
+          "queue_depth": 1,
+          "active_requests": 15,
+          "ready_capacity": 16,
+          "ready_instances": 2,
+          "pending_instances": 0,
+          "active_saturation": 0.9375,
+          "p95_ttft_ms": 1043.2537058368325,
+          "ttft_sample_count": 56,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.125,
+            "active": 1.0714285714285714,
+            "ttft": 0.2086507411673665
+          },
+          "score": 1.0714285714285714,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 1.1330128309914147,
+            "service_rate_rps_per_busy_instance": 0.7099307991727482,
+            "activation_horizon_s": 37.509783152490854,
+            "history_elapsed_s": 53.81569538312033,
+            "busy_instance_seconds": 72.90602120338008
+          },
+          "predictive_target_instances": 2,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 2,
+          "current_instances": 3,
+          "reason": "ieee_forecast_capacity_release",
+          "observed_at": 2928461.507851169,
+          "queue_depth": 0,
+          "active_requests": 3,
+          "ready_capacity": 24,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.125,
+          "p95_ttft_ms": 1519.5486485026777,
+          "ttft_sample_count": 92,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.14285714285714285,
+            "ttft": 0.30390972970053554
+          },
+          "score": 0.30390972970053554,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 1.7387883268224837,
+            "service_rate_rps_per_busy_instance": 0.9687568870609511,
+            "activation_horizon_s": 37.152816083747894,
+            "history_elapsed_s": 53.404034930747,
+            "busy_instance_seconds": 96.1037376774475
+          },
+          "predictive_target_instances": 2,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-2f7d0ca95326442b81aa290af1cbea7d",
+          "released_monotonic_s": 2928471.397246666
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 3,
+          "current_instances": 2,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 2930325.888047897,
+          "queue_depth": 8,
+          "active_requests": 16,
+          "ready_capacity": 16,
+          "ready_instances": 2,
+          "pending_instances": 0,
+          "active_saturation": 1.0,
+          "p95_ttft_ms": 2473.9336376078427,
+          "ttft_sample_count": 60,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 1.0,
+            "active": 1.1428571428571428,
+            "ttft": 0.49478672752156855
+          },
+          "score": 1.1428571428571428,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 1.3741124340637676,
+            "service_rate_rps_per_busy_instance": 0.7872379133297427,
+            "activation_horizon_s": 37.152816083747894,
+            "history_elapsed_s": 53.57812929479405,
+            "busy_instance_seconds": 74.25219035008922
+          },
+          "predictive_target_instances": 3,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 2,
+          "current_instances": 3,
+          "reason": "ieee_forecast_capacity_release",
+          "observed_at": 2930418.814630959,
+          "queue_depth": 0,
+          "active_requests": 5,
+          "ready_capacity": 24,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.20833333333333334,
+          "p95_ttft_ms": 1366.0665825009346,
+          "ttft_sample_count": 43,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.2380952380952381,
+            "ttft": 0.27321331650018693
+          },
+          "score": 0.27321331650018693,
+          "all_low": false,
+          "low_since": null,
+          "predictive_observation": {
+            "arrival_rate_rps": 0.7858664663374689,
+            "service_rate_rps_per_busy_instance": 0.4731901762754097,
+            "activation_horizon_s": 40.01743459631689,
+            "history_elapsed_s": 54.27116676000878,
+            "busy_instance_seconds": 89.96791377663612
+          },
+          "predictive_target_instances": 2,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-c9e6e8c4b08f45b4be84f755da642626",
+          "released_monotonic_s": 2930428.476687785
+        }
+      ],
+      "suppressed_control_actions": [],
+      "measurement_complete": true,
+      "independent_holdout": false,
+      "g1_g2_qualified": false
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json",
+      "sha256": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d455_stages.py",
+      "sha256": "356ffdc0473a907260fecfdef53489ccb375a43dc471194e6d6b0fceb9a0c088"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d972_20261031/3b_overlap_lifecycle_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d972_3b_overlap_preserved_lifecycle_full.json",
+      "sha256": "b8912382c904a32b3b2c222a1cf9e456c4346c2ba0189514aaba5a8d1f3caf99"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d972_20261031/3b_overlap_lifecycle_full/launch.json",
+      "sha256": "c3b87d53c928af24d95e256b733f03b5225c24ab6c79a73a507d06cb9679959b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d972_20261031/3b_overlap_lifecycle_full/launch.launch/physical_deployment/summary.json",
+      "sha256": "01839337be57ab74eb5f4d9bbaeff6653f63b9ae5970b1e0a1010b31e0943f7a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d972_20261031/3b_overlap_lifecycle_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "dd87f63e70161a06652f45c7e9d0f04f27523d10c5e4f95171f956de55b7f1d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d992_20261101/3b_busy_service_rate_validation/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d992_3b_busy_service_rate_validation.json",
+      "sha256": "1f40b4818c8a74878248734a296ee5308e85640d496ce0966a27f048f74611a0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d992_20261101/3b_busy_service_rate_validation/launch.json",
+      "sha256": "62e317cb1a55d3cc759c64681ba99f2af815ec9e5a54cc55a50bc83193586f2d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d992_20261101/3b_busy_service_rate_validation/launch.launch/physical_deployment/summary.json",
+      "sha256": "5afe1e20c8a2e5a73cf70c2e67a32dfc9158c64927236220f68667c58a9eb9bb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d992_20261101/3b_busy_service_rate_validation/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "4263ae2929030dc6fd69e37a261761d1141cd1ed17621552751c24aec10eb7bc"
+    }
+  ],
+  "matched_request_inputs": true,
+  "causal_attribution_established": false,
+  "independent_numerical_qualification": false,
+  "new_performance_runs": 0,
+  "confidence_interval": null,
+  "caveats": [
+    "Binding witnesses do not certify numerical LoRA arithmetic.",
+    "GPU-s/offered is diagnostic; unknown N_correct is not replaced by 4000.",
+    "Matched input does not establish identical compiler caches or sole-feature execution differences.",
+    "Timing attainment is not correctness-qualified joint SLO.",
+    "No single-configuration cross-scenario optimum or G2 budget qualification."
+  ]
+}

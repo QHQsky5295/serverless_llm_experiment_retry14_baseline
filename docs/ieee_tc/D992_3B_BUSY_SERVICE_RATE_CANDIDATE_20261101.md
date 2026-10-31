@@ -9,7 +9,12 @@ artifacts, with `formal_run=false`.
 
 This is a cross-model development validation. It is evaluated against the
 existing D972 3B overlap-preserved outcome using physical owner-union
-GPU-seconds/request, arrival-to-first-token P95, E2E SLO attainment, and the
+GPU-seconds/offered-request, arrival-to-first-token P95, frozen common joint
+TTFT/TPOT timing attainment, and the
 same request-contract fields. It is not a baseline ranking point and cannot
 establish semantic correctness beyond the bounded 3B witness protocol.
+
+The original mention of E2E SLO was a documentation error, not a change to the
+frozen metric protocol or this run's control configuration. Full E2E remains
+a reported metric; it does not replace the joint TTFT/TPOT criterion.
 

@@ -24,9 +24,10 @@ causally integrated busy-group seconds over the frozen history window.
   cooldown as D987/D988.
 - New execution key and unique NVMe/HOST cache roots; no historical result is
   overwritten and no formal result is replaced.
-- Formal flag remains disabled until an independent numerical correctness
-  oracle is present; correctness, completion, SLO and physical owner-union
-  accounting remain mandatory gates.
+- Formal flag remains disabled for this registered development execution.
+  Correctness of the V1 request/adapter/native-accounting contract, completion,
+  common joint SLO and physical owner-union accounting remain necessary;
+  D393/D637 do not require a full cross-backend exact-sequence oracle.
 - The only online-control changes are the busy-group service-rate observation
   and the independent causal forecast-release dwell described above.
 

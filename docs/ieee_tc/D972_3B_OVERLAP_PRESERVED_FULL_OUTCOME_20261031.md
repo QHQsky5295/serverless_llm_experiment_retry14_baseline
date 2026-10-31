@@ -2,6 +2,12 @@
 
 ## Scope and status
 
+Correction from D993 retained-data audit (2026-10-31): this is **W2**, not W0.
+The common joint TTFT/TPOT count is **3,650/4,000 = 91.25%**, below 95%;
+the legacy 5-second TTFT value below is not a joint-SLO result. Physical
+owner-union occupancy is **11,310.910081950948 GPU-s**, not 12,194.16.
+See `D993_RETAINED_CONTROL_OUTCOME_20261031.md` and its source-bound JSON.
+
 D972 is a complete 4,000-request development run for the Llama-3.2-3B workload after restoring the pre-init artifact-preparation overlap. It is not a formal comparison point: the run uses the frozen seed-42 trace and records `formal_run=false`. The result is retained as implementation and measurement evidence; it must not be used as a seed-level confidence interval or as a baseline ranking claim.
 
 The run uses the IEEE confirmed-state path with the existing vLLM backend, dedicated single-GPU runtimes, the historical 3B shared trace and 500-adapter map, and the prepublished-gzip remote artifact endpoint on the artifact node. The 3B endpoint was served on port 18080. The 7B endpoint was not involved in this run.
@@ -44,9 +50,9 @@ The run began with one GPU and naturally scaled to three GPUs through two confir
 - activation 1: 35.37 s engine activation, submitted at request 208;
 - activation 2: 36.09 s engine activation, submitted at request 221.
 
-The physical lifecycle ledger contains three records (initial GPU plus two scale-outs), all with explicit creation, ready, shutdown, startup, and ready-state intervals. The measured lifecycle totals are:
+The logical instance lifecycle ledger contains three records (initial GPU plus two scale-outs), with creation, ready, shutdown, startup, and ready-state intervals. Its diagnostic totals are:
 
-- physical lifecycle GPU-seconds: 12,194.16;
+- logical lifecycle GPU-seconds: 12,194.16 (not the physical owner-union metric);
 - startup GPU-seconds: 120.04;
 - ready GPU-seconds: 12,074.12;
 - active GPU-seconds: 7,667.98;
@@ -55,6 +61,11 @@ The physical lifecycle ledger contains three records (initial GPU plus two scale
 - maximum allocated GPUs: 3.
 
 The lifecycle fields are now emitted by the IEEE dedicated scale-up path itself. This is a measurement correction relative to older development results whose scale-out lifetime records were incomplete; it is not a performance optimization.
+
+For G1/G2 resource accounting use the separate allocation/release ledger:
+11,310.910081950948 GPU-s, or 2.827727520487737 GPU-s/offered-request.
+The original `n_correct=null` is preserved; logical activity totals are not
+added to, or substituted for, this physical integral.
 
 ## Request-contract audit
 
@@ -73,5 +84,11 @@ These checks establish contract and timing integrity. They do not establish sema
 
 ## Interpretation for the optimization sequence
 
-D972 confirms that restoring pre-init preparation overlap removes the broad regression seen in the late-ready full-replan candidate while retaining confirmed owner/tier snapshots at request routing and admission. The run is therefore suitable for the next cross-model correctness audit and for deciding whether a new formal configuration is warranted. Before any baseline comparison, the 3B configuration still requires the planned validation/freeze procedure and an independent semantic-correctness check; no configuration should be selected from this single development outcome by performance alone.
+D972 is retained as a development observation after restoring pre-init overlap,
+with confirmed owner/tier snapshots. It is not joint-SLO feasible under the
+frozen 3B thresholds. D393/D637 distinguish the V1 native request/adapter
+execution contract from full independent arithmetic proof; no new all-request
+PEFT exact-equality gate is introduced. The bounded D980/D981 witness remains
+diagnostic. Continue from retained stage evidence and the current D992 result,
+without repeating this completed execution key or changing thresholds.
 
