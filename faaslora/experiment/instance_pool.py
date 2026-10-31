@@ -640,6 +640,12 @@ class FrozenServiceProfiles:
     Placement IDs and explicitly diagnostic-only capture switches are excluded
     from model configuration: moving an otherwise identical replica or enabling
     native token-ID observation does not change its measured service profile.
+    Control feature gates are likewise excluded only when they do not alter the
+    backend service/admission contract.  In particular, the opt-in read-only
+    control deferral gate changes when an observation is serviced, not the
+    measured class costs used by admission; it therefore reuses the same frozen
+    post-ready profile.  The interleave, file-demand, and LoRA metadata policies
+    remain identity-bearing and are intentionally not excluded here.
     Resource/input hashes are supplied by the frozen campaign contract, not
     inferred from run names.
     Reading this file validates its data contract; model and resource qualification
@@ -682,9 +688,17 @@ class FrozenServiceProfiles:
             # identity keeps this field; measured post-ready profiles do not.
             'ieee_backbone_loader',
         }
+        control_feature_fields = {
+            # This is a scheduler-control feature gate.  It does not change
+            # the native model, fixed-output service classes, or admission
+            # measurement contract represented by this profile.  Keep the
+            # actual gate in the resolved run identity and receipts; only the
+            # reusable measured profile identity omits it.
+            'ieee_control_deferral',
+        }
         return {key: value for key, value in model_config.items()
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
-                               | startup_loader_fields)}
+                               | startup_loader_fields | control_feature_fields)}
 
     def validate_runtime(self, model_config: Mapping) -> None:
         identity = json.dumps(self.model_identity(model_config), sort_keys=True, allow_nan=False)

@@ -442,6 +442,22 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
                 self.load(expected_context=self.context | {field: 'f'*64})
 
+    def test_readonly_control_deferral_reuses_backend_profile_identity(self):
+        candidate = self.model | {'ieee_control_deferral': 'readonly_control_defer_v1'}
+        self.assertEqual(FrozenServiceProfiles.model_identity(candidate),
+                         FrozenServiceProfiles.model_identity(self.model))
+        profiles = self.load(model_config=candidate)
+        key = profiles.bins.classify(**self.features)
+        self.assertEqual(profiles.profiles[key], ServiceComponents(125., 375., 500.))
+
+        # The reusable profile exemption is intentionally narrow: a change to
+        # the core interleave policy remains an identity mismatch.
+        with self.assertRaisesRegex(ValueError, 'context mismatch'):
+            self.load(model_config=self.model | {
+                'ieee_control_interleave': 'atomic_control_yield_v1',
+                'ieee_control_deferral': 'readonly_control_defer_v1',
+            })
+
     def test_context_bins_and_fixed_generation_are_required(self):
         for bad in ({}, self.context | {'extra': 'f'*64},
                     self.context | {'backend_environment_sha256': 'unlocked'}):
