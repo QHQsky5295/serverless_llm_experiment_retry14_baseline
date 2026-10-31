@@ -17293,7 +17293,8 @@ class ScenarioRunner:
                     await self._release_dispatch_admission()
             try:
                 return await self._run_offered_request(trace.request_id, scheduled_arrival_at,
-                    lambda: self._serve_with_arrived_file_preparation(trace, serve))
+                    lambda: self._serve_with_arrived_file_preparation(
+                        trace, serve, request_plan=request_plan))
             finally:
                 self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
@@ -17884,7 +17885,7 @@ class ScenarioRunner:
         self._attach_control_path_background_metrics(result)
         return result, coord_m
 
-    async def _serve_with_arrived_file_preparation(self, trace, serve):
+    async def _serve_with_arrived_file_preparation(self, trace, serve, *, request_plan=None):
         """Owned demand IO before scarce dispatch/runtime admission, never lookahead.
 
         Called inside the offered-arrival deadline after the request arrived.
@@ -17892,6 +17893,50 @@ class ScenarioRunner:
         active-LoRA/KV admission still run for every served request. File IO
         uses the existing queue, capacity reservation, pressure and cancel join.
         """
+        arrival_route_policy = getattr(self, 'coord_cfg', {}).get(
+            'ieee_route_confirmed_arrival_prefetch')
+        if arrival_route_policy is not None:
+            if arrival_route_policy != 'route_confirmed_arrival_prefetch_v1':
+                raise ValueError('unsupported route-confirmed arrival preparation policy')
+            # The helper performs only a confirmed snapshot and submits the
+            # existing owned movement.  It runs concurrently with dispatch
+            # admission; unlike the historical arrival-preparation candidate,
+            # it does not make the request wait for the transfer before entering
+            # the normal admission path.
+            if request_plan is None:
+                raise ValueError('route-confirmed arrival preparation needs a request plan')
+            overlap = asyncio.create_task(
+                self._arrived_route_confirmed_file_preparation(trace, request_plan))
+            try:
+                result = await serve()
+            except BaseException:
+                if not overlap.done():
+                    overlap.cancel()
+                await asyncio.gather(overlap, return_exceptions=True)
+                raise
+            source = (result.gpu_reference_evidence or {}).get('source_admission', {}).get('source', {})
+            cancelled_overlap = False
+            if (not isinstance(source, dict) or source.get('tier') != 'remote') and not overlap.done():
+                overlap.cancel()
+                cancelled_overlap = True
+            try:
+                record = await asyncio.shield(overlap)
+            except asyncio.CancelledError:
+                await asyncio.gather(overlap, return_exceptions=True)
+                if not cancelled_overlap:
+                    raise
+                record = dict(
+                    kind='route_confirmed_arrival_file_preparation_v1',
+                    policy=arrival_route_policy,
+                    request_id=getattr(trace, 'request_id', None),
+                    adapter_id=getattr(trace, 'adapter_id', None),
+                    state='cancelled',
+                    reason='source_revalidated_nonremote',
+                    physical_gpu_reservation=False,
+                    admission_granted=False,
+                )
+            result.gpu_reference_evidence['route_confirmed_arrival_file_preparation'] = record
+            return result
         policy = getattr(self, 'coord_cfg', {}).get('ieee_arrival_file_preparation')
         if policy is None:
             return await serve()
@@ -19177,6 +19222,85 @@ class ScenarioRunner:
             )
         )
         return True
+
+    async def _arrived_route_confirmed_file_preparation(self, trace, request_plan):
+        """Start demand IO from a confirmed arrival-time route, without blocking it.
+
+        The ordinary request path observes and revalidates routing again after
+        dispatch admission.  This helper is only an overlap opportunity: it
+        uses one confirmed snapshot to start a shared NVMe movement, never
+        grants a runtime slot, and never supplies a source-admission receipt.
+        The movement is joined by the request path through the existing owned
+        file queue; a stale route therefore cannot authorize execution.
+        """
+        policy = getattr(self, 'coord_cfg', {}).get(
+            'ieee_route_confirmed_arrival_prefetch')
+        record = dict(
+            kind='route_confirmed_arrival_file_preparation_v1',
+            policy=policy,
+            request_id=getattr(trace, 'request_id', None),
+            adapter_id=getattr(trace, 'adapter_id', None),
+            physical_gpu_reservation=False,
+            admission_granted=False,
+            state='skipped',
+        )
+        if policy != 'route_confirmed_arrival_prefetch_v1':
+            record['reason'] = 'disabled'
+            return record
+        if (not trace.adapter_id or self._stack is None
+                or self._remote_artifact_client is None
+                or getattr(self, '_routing_policy', None) != 'ieee_confirmed'):
+            record['reason'] = 'ineligible_request'
+            return record
+        try:
+            committed = await self._ieee_request_snapshot(trace, request_plan)
+            if committed is None:
+                record['reason'] = 'snapshot_membership_rejected'
+                return record
+            snapshot, source_evidence = committed
+            slot, decision = self.router.select_instance_with_decision(
+                trace.adapter_id, ieee_snapshot=snapshot)
+            if slot is None or decision is None:
+                record['reason'] = 'no_feasible_confirmed_route'
+                return record
+            source = (source_evidence.get(slot.instance_id, {}) or {}).get('source')
+            if not isinstance(source, dict) or source.get('tier') != 'remote':
+                record['reason'] = 'selected_source_not_remote'
+                record['selected_replica_id'] = slot.instance_id
+                record['selected_tier'] = source.get('tier') if isinstance(source, dict) else None
+                return record
+            from faaslora.clock import local_monotonic_clock_id
+            record.update(
+                state='started',
+                selected_replica_id=slot.instance_id,
+                selected_source=dict(source),
+                clock_id=local_monotonic_clock_id(),
+                snapshot_epoch=max(row.epoch for row in snapshot),
+                started_monotonic_s=time.monotonic(),
+            )
+            prepared = await self._queue_ieee_file_preparation(
+                adapter_id=trace.adapter_id,
+                target_tier=StorageTier.NVME,
+                target_engine=slot.engine,
+                target_replica=slot.instance_id,
+                trigger_reason='demand',
+                plan_id=f'route-confirmed-arrival:{trace.request_id}',
+            )
+            record.update(
+                state='completed',
+                settled_monotonic_s=time.monotonic(),
+                preparation=prepared,
+            )
+            return record
+        except asyncio.CancelledError:
+            record.update(state='cancelled', settled_monotonic_s=time.monotonic())
+            raise
+        except BaseException as exc:
+            # This is an overlap only.  The request's normal confirmed source
+            # path remains authoritative if the optional movement fails.
+            record.update(state='failed', error_type=type(exc).__name__, error=str(exc),
+                          settled_monotonic_s=time.monotonic())
+            return record
 
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:

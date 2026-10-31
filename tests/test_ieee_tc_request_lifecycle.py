@@ -2255,6 +2255,61 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertFalse(started)
         runner._queue_ieee_file_preparation.assert_not_awaited()
 
+    def test_route_confirmed_arrival_preparation_overlaps_without_admission_authority(self):
+        from types import SimpleNamespace
+        from faaslora.registry.schema import StorageTier
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch':
+                'route_confirmed_arrival_prefetch_v1'
+        }
+        runner._remote_artifact_client = object()
+        runner._queue_ieee_file_preparation = AsyncMock(
+            return_value={'state': 'published', 'target_path': '/nvme/adapter-a'})
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (SimpleNamespace(epoch=7),),
+            {slot.instance_id: {'source': {
+                'tier': 'remote', 'native': False,
+                'content_sha256': 'a' * 64,
+                'representation': 'tar_gzip_verified_file_tree_v1',
+            }}},
+        ))
+        runner.router.select_instance_with_decision = Mock(
+            return_value=(slot, SimpleNamespace()))
+        record = asyncio.run(
+            runner._arrived_route_confirmed_file_preparation(trace, plan))
+        self.assertEqual(record['state'], 'completed')
+        self.assertEqual(record['selected_replica_id'], slot.instance_id)
+        self.assertFalse(record['admission_granted'])
+        runner._queue_ieee_file_preparation.assert_awaited_once_with(
+            adapter_id='adapter-a', target_tier=StorageTier.NVME,
+            target_engine=slot.engine, target_replica=slot.instance_id,
+            trigger_reason='demand', plan_id='route-confirmed-arrival:req-a')
+
+    def test_route_confirmed_arrival_wrapper_joins_overlap_and_publishes_receipt(self):
+        runner, _, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch':
+                'route_confirmed_arrival_prefetch_v1'
+        }
+        runner._arrived_route_confirmed_file_preparation = AsyncMock(
+            return_value={'kind': 'route_confirmed_arrival_file_preparation_v1',
+                          'state': 'completed', 'admission_granted': False})
+        sentinel = SimpleNamespace(gpu_reference_evidence={
+            'source_admission': {'source': {'tier': 'remote'}}})
+
+        async def serve():
+            return sentinel
+
+        result = asyncio.run(
+            runner._serve_with_arrived_file_preparation(
+                trace, serve, request_plan=plan))
+        self.assertIs(result, sentinel)
+        self.assertEqual(
+            result.gpu_reference_evidence['route_confirmed_arrival_file_preparation']['state'],
+            'completed')
+        runner._arrived_route_confirmed_file_preparation.assert_awaited_once_with(trace, plan)
+
     def test_arrival_preparation_coalesces_two_observed_demands_without_gpu_slots(self):
         runner, slot, trace, _, _, _ = self.build('remote')
         client = self.file_source(runner, trace)
