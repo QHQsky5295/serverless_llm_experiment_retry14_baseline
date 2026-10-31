@@ -1353,6 +1353,12 @@ class RuntimeRequestReservation:
     gpu_reference_evidence: Dict[str, Any] = field(default_factory=dict)
     local_source_owner: Optional[Any] = None
     file_preparation_task: Optional[Any] = None
+    # Optional overlap started only after a confirmed replica/source view has
+    # been selected but before a runtime lane is available.  This is distinct
+    # from ``file_preparation_task``: the latter belongs to an admitted
+    # reservation and its terminal settlement, while this task is merely an
+    # arrived-demand optimization and never grants admission by itself.
+    route_confirmed_file_preparation_task: Optional[Any] = None
     ieee_routing_evidence: Optional[Dict[str, Any]] = None
     ieee_load_pending: bool = False
     ieee_pending_admission: Optional[Dict[str, Any]] = None
@@ -17996,9 +18002,17 @@ class ScenarioRunner:
         finally:
             try:
                 try:
-                    await self._settle_runtime_file_preparation(reservation, cancel=True)
+                    # A route-confirmed overlap may still own a file-movement
+                    # queue operation even though this request never acquired
+                    # a runtime lane.  Join it before releasing controller
+                    # state; never abandon an in-flight writer on cancellation.
+                    await self._settle_route_confirmed_file_preparation(
+                        reservation, cancel=True)
                 finally:
-                    await self._finish_runtime_request_reservation(reservation)
+                    try:
+                        await self._settle_runtime_file_preparation(reservation, cancel=True)
+                    finally:
+                        await self._finish_runtime_request_reservation(reservation)
             finally:
                 del live[reservation.request_id]
                 if reservation.slot is not None:
@@ -19062,6 +19076,108 @@ class ScenarioRunner:
         if interrupted:
             raise asyncio.CancelledError()
 
+    async def _settle_route_confirmed_file_preparation(self, reservation, *, cancel=False):
+        """Join an optional route-confirmed NVMe preparation task.
+
+        The task is started only after this request has a confirmed routing
+        snapshot and has failed the per-replica runtime-lane reservation.  It
+        is therefore a demand-driven overlap, not look-ahead or pre-routing
+        preparation.  Its failure must not change the ordinary request path:
+        the admitted path will perform the normal owned preparation again.
+        Cancellation still joins the underlying movement queue before the
+        reservation can be retried or released.
+        """
+        task = reservation.route_confirmed_file_preparation_task
+        if task is None:
+            return
+        record = reservation.gpu_reference_evidence.setdefault(
+            'route_confirmed_file_preparation', {})
+        interrupted = False
+        if cancel and not task.done():
+            task.cancel()
+        try:
+            while True:
+                try:
+                    result = await asyncio.shield(task)
+                    record.update(state='completed', preparation=result)
+                    break
+                except asyncio.CancelledError:
+                    if task.done():
+                        # Consume the child outcome so a cancellation/failure
+                        # cannot become an unobserved task exception.
+                        try:
+                            task.result()
+                        except asyncio.CancelledError:
+                            pass
+                        except BaseException as exc:
+                            record.update(state='failed', error_type=type(exc).__name__)
+                        interrupted = True
+                        break
+                    interrupted = True
+                    if not task.cancelling():
+                        task.cancel()
+                except BaseException as exc:
+                    # This overlap is an optimization only.  Preserve the
+                    # failure receipt and let the normal admitted path decide
+                    # whether the request itself can be served.
+                    record.update(state='failed', error_type=type(exc).__name__,
+                                  error=str(exc))
+                    break
+        finally:
+            if task.done():
+                record['settled_monotonic_s'] = time.monotonic()
+                reservation.route_confirmed_file_preparation_task = None
+        # A cancellation of the owning request must remain a cancellation;
+        # only a child task that independently reported cancellation is
+        # normalized into an optional-overlap failure receipt.
+        if interrupted:
+            raise asyncio.CancelledError()
+
+    def _start_route_confirmed_file_preparation(self, reservation, *, trace, slot, source):
+        """Start one bounded demand movement after confirmed routing.
+
+        This method is intentionally called only on a failed runtime-lane
+        reservation.  It never selects a replica, changes the source tier in
+        the dispatch record, or creates a native/GPU reservation.
+        """
+        policy = getattr(self, 'coord_cfg', {}).get(
+            'ieee_route_confirmed_wait_file_preparation')
+        if policy != 'route_confirmed_wait_v1':
+            return False
+        if (reservation.route_confirmed_file_preparation_task is not None
+                or not trace.adapter_id or slot is None
+                or not isinstance(source, dict)
+                or source.get('tier') != 'remote'
+                or self._remote_artifact_client is None
+                or self._stack is None):
+            return False
+        from faaslora.clock import local_monotonic_clock_id
+        record = dict(
+            kind='route_confirmed_file_preparation_v1',
+            policy=policy,
+            state='started',
+            request_id=reservation.request_id,
+            adapter_id=trace.adapter_id,
+            selected_replica_id=slot.instance_id,
+            selected_source=dict(source),
+            clock_id=local_monotonic_clock_id(),
+            started_monotonic_s=time.monotonic(),
+            physical_gpu_reservation=False,
+            admission_granted=False,
+        )
+        reservation.gpu_reference_evidence['route_confirmed_file_preparation'] = record
+        reservation.route_confirmed_file_preparation_task = asyncio.create_task(
+            self._queue_ieee_file_preparation(
+                adapter_id=trace.adapter_id,
+                target_tier=StorageTier.NVME,
+                target_engine=slot.engine,
+                target_replica=slot.instance_id,
+                trigger_reason='demand',
+                plan_id=f'route-confirmed:{reservation.request_id}',
+            )
+        )
+        return True
+
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:
             reservation.slot.status = 'draining'
@@ -19462,10 +19578,24 @@ class ScenarioRunner:
                             raise RuntimeError('duplicate IEEE pending adapter-load request')
                         slot.ieee_pending_load_ids.add(_reservation.request_id)
                         _reservation.ieee_load_pending = True
+                    # If this request previously waited with a confirmed-route
+                    # file movement in flight, settle that movement before
+                    # source protection.  Source admission remains the
+                    # linearization point; the overlap has no authority to
+                    # bypass it.  If a fresh route already sees a non-remote
+                    # source, cancel the now-unnecessary optional movement
+                    # instead of waiting for it.
+                    if (_reservation.route_confirmed_file_preparation_task is not None
+                            and source.get('tier') != 'remote'):
+                        await self._settle_route_confirmed_file_preparation(
+                            _reservation, cancel=True)
+                    else:
+                        await self._settle_route_confirmed_file_preparation(_reservation)
                     if not await self._ieee_protect_selected_source(_reservation,
                             source, selected_ieee_decision.service_class,
                             **({'pending_request_plan': request_plan} if combined_gpu else {})):
                         await self._finish_runtime_request_reservation(_reservation)
+                        await self._settle_route_confirmed_file_preparation(_reservation)
                         _reservation.gpu_reference_evidence.pop('prior_routing_attempts', None)
                         _reservation.ieee_routing_attempts.append(_reservation.gpu_reference_evidence)
                         _reservation.retry_known_conflict()
@@ -19476,6 +19606,16 @@ class ScenarioRunner:
                     if created_at > 0.0:
                         selected_instance_age_s = max(0.0, time.time() - created_at)
                 break
+            # A confirmed route can expose a remote source while the selected
+            # replica is temporarily full.  Start at most one owned NVMe
+            # movement for this arrived request; no pre-routing or look-ahead
+            # work is allowed.  The next loop either consumes the completed
+            # source or reselects after a stale/conflicting route.
+            if ieee_routing and slot is not None:
+                selected_source = (source_evidence.get(slot.instance_id, {})
+                                   .get('source'))
+                self._start_route_confirmed_file_preparation(
+                    _reservation, trace=trace, slot=slot, source=selected_source)
             cond = self._runtime_slot_capacity_cond()
             async with cond:
                 try:

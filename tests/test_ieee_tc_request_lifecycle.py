@@ -2205,6 +2205,56 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertFalse(refs.leases)
         self.assertEqual(owner.snapshot()['live_leases'], 0)
 
+    def test_route_confirmed_wait_preparation_starts_only_after_lane_rejection(self):
+        from faaslora.registry.schema import StorageTier
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_wait_file_preparation': 'route_confirmed_wait_v1'
+        }
+        runner._routing_policy = 'ieee_confirmed'
+        runner._remote_artifact_client = object()
+        runner._stack = SimpleNamespace()
+        runner._queue_ieee_file_preparation = AsyncMock(
+            return_value={'state': 'published', 'target_path': '/nvme/adapter-a'})
+        reservation = RuntimeRequestReservation('route-wait-request')
+        source = {
+            'tier': 'remote', 'native': False,
+            'content_sha256': 'a' * 64,
+            'representation': 'tar_gzip_verified_file_tree_v1',
+        }
+
+        async def run():
+            started = runner._start_route_confirmed_file_preparation(
+                reservation, trace=trace, slot=slot, source=source)
+            self.assertTrue(started)
+            self.assertFalse(reservation.bound)
+            await runner._settle_route_confirmed_file_preparation(reservation)
+
+        asyncio.run(run())
+        runner._queue_ieee_file_preparation.assert_awaited_once_with(
+            adapter_id='adapter-a', target_tier=StorageTier.NVME,
+            target_engine=slot.engine, target_replica=slot.instance_id,
+            trigger_reason='demand', plan_id='route-confirmed:route-wait-request')
+        record = reservation.gpu_reference_evidence['route_confirmed_file_preparation']
+        self.assertEqual(record['kind'], 'route_confirmed_file_preparation_v1')
+        self.assertEqual(record['selected_replica_id'], slot.instance_id)
+        self.assertFalse(record['admission_granted'])
+
+    def test_route_confirmed_wait_preparation_is_not_started_for_local_source(self):
+        runner, slot, trace, _, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_wait_file_preparation': 'route_confirmed_wait_v1'
+        }
+        runner._remote_artifact_client = object()
+        runner._stack = SimpleNamespace()
+        runner._queue_ieee_file_preparation = AsyncMock()
+        reservation = RuntimeRequestReservation('route-wait-local')
+        started = runner._start_route_confirmed_file_preparation(
+            reservation, trace=trace, slot=slot,
+            source={'tier': 'nvme', 'native': False})
+        self.assertFalse(started)
+        runner._queue_ieee_file_preparation.assert_not_awaited()
+
     def test_arrival_preparation_coalesces_two_observed_demands_without_gpu_slots(self):
         runner, slot, trace, _, _, _ = self.build('remote')
         client = self.file_source(runner, trace)
