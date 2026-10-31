@@ -150,21 +150,25 @@ class IEEEReplicaControl:
         if predictive_config is not None:
             if not isinstance(predictive_config, dict):
                 raise ValueError('IEEE predictive scaling configuration must be a mapping')
-            expected = frozenset(('enabled', 'history_window_s', 'ewma_beta'))
-            if set(predictive_config) != expected:
+            base_expected = frozenset(('enabled', 'history_window_s', 'ewma_beta'))
+            expected = frozenset((*base_expected, 'allow_forecast_scale_down'))
+            if set(predictive_config) not in (base_expected, expected):
                 raise ValueError('IEEE predictive scaling requires the complete explicit configuration')
             if predictive_config.get('enabled') is not True:
                 raise ValueError('IEEE predictive scaling configuration must explicitly enable the candidate')
             history_window_s = predictive_config.get('history_window_s')
             ewma_beta = predictive_config.get('ewma_beta')
+            allow_forecast_scale_down = predictive_config.get('allow_forecast_scale_down', False)
             if (isinstance(history_window_s, bool) or not isinstance(history_window_s, (int, float))
                     or not math.isfinite(history_window_s) or history_window_s <= 0
                     or isinstance(ewma_beta, bool) or not isinstance(ewma_beta, (int, float))
-                    or not math.isfinite(ewma_beta) or not 0 < ewma_beta <= 1):
+                    or not math.isfinite(ewma_beta) or not 0 < ewma_beta <= 1
+                    or type(allow_forecast_scale_down) is not bool):
                 raise ValueError('invalid IEEE predictive scaling history/beta')
             self.predictive_config = {
                 'history_window_s': float(history_window_s),
                 'ewma_beta': float(ewma_beta),
+                'allow_forecast_scale_down': allow_forecast_scale_down,
             }
 
     def observe_activation_latency(self, latency_ms):
@@ -308,6 +312,17 @@ class IEEEReplicaControl:
                         'ieee_forecast_horizon_capacity', predictive_target)
                 elif action == ScalingAction.SCALE_DOWN and predictive_target >= total:
                     action, reason, target = ScalingAction.NO_ACTION, 'ieee_forecast_preserved_capacity', total
+                elif (self.predictive_config['allow_forecast_scale_down']
+                        and action == ScalingAction.NO_ACTION
+                        and predictive_target < total
+                        and not pending_instances
+                        and ready_instances > self.min_instances):
+                    if self.low_since is None:
+                        self.low_since = now
+                    elif now - self.low_since >= cfg['scale_down_cooldown_s']:
+                        action, reason, target = (ScalingAction.SCALE_DOWN,
+                            'ieee_forecast_capacity_release', total - 1)
+                        self.low_since = now
         return dict(action=action, target_instances=target, current_instances=total, reason=reason,
             observed_at=now, queue_depth=queue_depth, active_requests=active_requests,
             ready_capacity=ready_capacity, ready_instances=ready_instances, pending_instances=pending_instances,
