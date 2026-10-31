@@ -13,3 +13,9 @@ near-ties remain separately reported. Even a complete 100-request witness
 cannot set `n_correct=4000` for D989 or promote the 4,000-request run to formal
 G1/G2 qualification.
 
+Observed outcome: 100/100 requests completed without failure; all 100 satisfied
+the fixed-length contract, exposed a native terminal event, and emitted a
+native token-ID SHA-256. The bounded run used 43 distinct canonical prompts and
+46 target lengths. Its physical owner-union GPU time was 335.415 GPU-s, but this
+number is diagnostic only and is not normalized into the formal comparison.
+
