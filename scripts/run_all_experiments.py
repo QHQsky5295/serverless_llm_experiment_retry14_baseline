@@ -13628,6 +13628,23 @@ class ScenarioRunner:
                 busy += 1
         return busy / float(len(groups))
 
+    def _busy_instance_count(self) -> int:
+        """Return the causal number of runtime groups carrying work.
+
+        IEEE predictive service-rate estimation must not credit a ready group
+        that carried no admitted request.  Runtime groups, rather than raw
+        GPU slots, are the unit of service capacity here; this is TP-safe and
+        matches the existing busy-ratio observation used by the live control
+        path.
+        """
+        if self.instance_pool is None:
+            return 0
+        groups = self.instance_pool.get_runtime_groups()
+        return sum(
+            1 for group in groups
+            if any(int(getattr(slot, "active_requests", 0) or 0) > 0 for slot in group)
+        )
+
     def _current_runtime_group_count(self) -> int:
         if self.instance_pool is None:
             return 1 if getattr(self, "engine", None) is not None else 0
@@ -14370,10 +14387,12 @@ class ScenarioRunner:
         if type(backlog) is not int or backlog < active_requests + draining_active:
             raise ValueError('unfinished arrivals do not cover the admitted set')
         arrived = self._arrived_request_count(replay_t0)
+        busy_instances = self._busy_instance_count()
         snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests-draining_active,
             active_requests=active_requests, ready_capacity=ready*self._runtime_forward_capacity_limit(),
             ready_instances=ready, pending_instances=pending,
-            arrived_request_count=arrived, completed_request_count=completed_count)
+            arrived_request_count=arrived, completed_request_count=completed_count,
+            busy_instances=busy_instances)
         if snapshot is None:
             return False
         snapshot.update(draining_active_requests=draining_active,

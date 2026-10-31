@@ -147,6 +147,11 @@ class IEEEReplicaControl:
         self._arrival_rate_ewma = None
         self._service_rate_ewma = None
         self._activation_horizon_s = None
+        # Forecast-based release has a separate causal dwell timer.  The
+        # ordinary IEEE low-load timer intentionally requires a valid TTFT
+        # sample; reusing it would continuously reset forecast release on a
+        # workload with no completed TTFT observation in the current window.
+        self._forecast_low_since = None
         if predictive_config is not None:
             if not isinstance(predictive_config, dict):
                 raise ValueError('IEEE predictive scaling configuration must be a mapping')
@@ -186,14 +191,18 @@ class IEEEReplicaControl:
             self._activation_horizon_s = beta * horizon_s + (1.0 - beta) * self._activation_horizon_s
 
     def _observe_work(self, *, now, arrived_request_count, completed_request_count,
-                      ready_instances):
+                      ready_instances, busy_instances):
         if self.predictive_config is None:
             return None
-        for value in (arrived_request_count, completed_request_count, ready_instances):
+        for value in (arrived_request_count, completed_request_count,
+                      ready_instances, busy_instances):
             if type(value) is not int or value < 0:
                 raise ValueError('IEEE predictive workload counts must be nonnegative integers')
+        if busy_instances > ready_instances:
+            raise ValueError('IEEE busy instances cannot exceed ready instances')
         self._work_history.append((float(now), arrived_request_count,
-                                   completed_request_count, ready_instances))
+                                   completed_request_count, ready_instances,
+                                   busy_instances))
         window = self.predictive_config['history_window_s']
         while self._work_history and self._work_history[0][0] < now - window:
             self._work_history.popleft()
@@ -205,17 +214,20 @@ class IEEEReplicaControl:
             return None
         arrival_rate = max(0.0, (arrived_request_count - first[1]) / elapsed)
         completed_delta = max(0, completed_request_count - first[2])
-        # Integrate the observed ready-instance count over the same causal
-        # interval.  This is a capacity rate, not a future-trace estimate.
-        ready_instance_seconds = 0.0
+        # Integrate busy-instance time over the same causal interval.  Ready
+        # replicas that carried no request are not credited as service
+        # capacity.  This is a causal service-rate estimate, not a future
+        # trace estimate.  A completed interval with no busy-instance time
+        # yields no new sample rather than inventing an infinite rate.
+        busy_instance_seconds = 0.0
         previous = first
         for current in list(self._work_history)[1:]:
             dt = max(0.0, current[0] - previous[0])
-            ready_instance_seconds += dt * max(0, previous[3])
+            busy_instance_seconds += dt * max(0, previous[4])
             previous = current
-        ready_instance_seconds += max(0.0, now - previous[0]) * max(0, previous[3])
-        service_rate = (completed_delta / ready_instance_seconds
-                        if ready_instance_seconds > 0 else 0.0)
+        busy_instance_seconds += max(0.0, now - previous[0]) * max(0, previous[4])
+        service_rate = (completed_delta / busy_instance_seconds
+                        if busy_instance_seconds > 0 else 0.0)
         beta = self.predictive_config['ewma_beta']
         self._arrival_rate_ewma = (arrival_rate if self._arrival_rate_ewma is None
                                    else beta * arrival_rate + (1.0 - beta) * self._arrival_rate_ewma)
@@ -224,9 +236,10 @@ class IEEEReplicaControl:
                                        else beta * service_rate + (1.0 - beta) * self._service_rate_ewma)
         return {
             'arrival_rate_rps': self._arrival_rate_ewma,
-            'service_rate_rps_per_ready_instance': self._service_rate_ewma,
+            'service_rate_rps_per_busy_instance': self._service_rate_ewma,
             'activation_horizon_s': self._activation_horizon_s,
             'history_elapsed_s': elapsed,
+            'busy_instance_seconds': busy_instance_seconds,
         }
 
     def observe_ttft(self, request_id, ttft_ms, *, observed_at, pressure_class="unknown"):
@@ -247,7 +260,7 @@ class IEEEReplicaControl:
 
     def evaluate(self, *, now, queue_depth, active_requests, ready_capacity,
                  ready_instances, pending_instances, arrived_request_count=None,
-                 completed_request_count=None):
+                 completed_request_count=None, busy_instances=None):
         for value in (queue_depth, active_requests, ready_capacity, ready_instances, pending_instances):
             if type(value) is not int or value < 0:
                 raise ValueError('IEEE control counts must be nonnegative integers')
@@ -265,10 +278,13 @@ class IEEEReplicaControl:
         if self.predictive_config is not None:
             if arrived_request_count is None or completed_request_count is None:
                 raise ValueError('IEEE predictive scaling requires causal workload counters')
+            if busy_instances is None:
+                raise ValueError('IEEE predictive scaling requires causal busy-instance observations')
             predictive = self._observe_work(now=now,
                 arrived_request_count=arrived_request_count,
                 completed_request_count=completed_request_count,
-                ready_instances=ready_instances)
+                ready_instances=ready_instances,
+                busy_instances=busy_instances)
         while self.samples and self.samples[0][0] <= now-cfg['ttft_window_s']:
             self.samples.popleft()
         ordered = sorted(self.samples, key=lambda sample: sample[1])
@@ -297,7 +313,7 @@ class IEEEReplicaControl:
         predictive_target = None
         if predictive is not None:
             horizon = predictive.get('activation_horizon_s')
-            service_rate = predictive.get('service_rate_rps_per_ready_instance')
+            service_rate = predictive.get('service_rate_rps_per_busy_instance')
             arrival_rate = predictive.get('arrival_rate_rps')
             if (horizon is not None and horizon > 0 and service_rate is not None
                     and service_rate > 0 and arrival_rate is not None):
@@ -308,21 +324,26 @@ class IEEEReplicaControl:
                         math.ceil(forecast_work / (service_rate * horizon))),
                 )
                 if predictive_target > total:
+                    self._forecast_low_since = None
                     action, reason, target = (ScalingAction.SCALE_UP,
                         'ieee_forecast_horizon_capacity', predictive_target)
-                elif action == ScalingAction.SCALE_DOWN and predictive_target >= total:
-                    action, reason, target = ScalingAction.NO_ACTION, 'ieee_forecast_preserved_capacity', total
+                elif predictive_target >= total:
+                    self._forecast_low_since = None
+                elif action == ScalingAction.SCALE_DOWN:
+                    self._forecast_low_since = None
                 elif (self.predictive_config['allow_forecast_scale_down']
-                        and action == ScalingAction.NO_ACTION
-                        and predictive_target < total
                         and not pending_instances
                         and ready_instances > self.min_instances):
-                    if self.low_since is None:
-                        self.low_since = now
-                    elif now - self.low_since >= cfg['scale_down_cooldown_s']:
+                    if self._forecast_low_since is None:
+                        self._forecast_low_since = now
+                    elif now - self._forecast_low_since >= cfg['scale_down_cooldown_s']:
                         action, reason, target = (ScalingAction.SCALE_DOWN,
                             'ieee_forecast_capacity_release', total - 1)
-                        self.low_since = now
+                        self._forecast_low_since = now
+                else:
+                    self._forecast_low_since = None
+                if action == ScalingAction.SCALE_DOWN and predictive_target >= total:
+                    action, reason, target = ScalingAction.NO_ACTION, 'ieee_forecast_preserved_capacity', total
         return dict(action=action, target_instances=target, current_instances=total, reason=reason,
             observed_at=now, queue_depth=queue_depth, active_requests=active_requests,
             ready_capacity=ready_capacity, ready_instances=ready_instances, pending_instances=pending_instances,
