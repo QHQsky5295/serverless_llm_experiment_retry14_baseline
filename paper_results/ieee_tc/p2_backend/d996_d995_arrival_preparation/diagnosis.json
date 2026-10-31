@@ -1,0 +1,144 @@
+{
+  "arrival_preparation": {
+    "file_wait_ms": {
+      "count": 511,
+      "mean": 1390.1213276684794,
+      "p50_type1": 1158.2323480397463,
+      "p95_type1": 2880.524236243218
+    },
+    "owned_transferred_bytes": 1172100920,
+    "owning_requests": 505,
+    "recorded_requests": 4000,
+    "states": {
+      "file_already_published": 290,
+      "native_presence_hint": 3199,
+      "prepared": 511
+    },
+    "unique_observed_transfers": 505,
+    "unrecorded_requests": 0
+  },
+  "distinct_request_transfers": 0,
+  "dominant_preparation_stages": {},
+  "groups": {
+    "all": {
+      "metrics": {},
+      "n": 0
+    },
+    "ttft_fail": {
+      "metrics": {},
+      "n": 0
+    },
+    "ttft_pass": {
+      "metrics": {},
+      "n": 0
+    }
+  },
+  "joined_remote_requests": 0,
+  "kind": "d818_remote_preparation_partition_v1",
+  "limitations": [
+    "Conditional selected-replica cohort, not a cross-system causal comparison.",
+    "Receive interval includes reservation and local writes; not pure network latency.",
+    "Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.",
+    "Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.",
+    "Pre-routing preparation is nested within arrival-to-admission; never add it again to E2E.",
+    "Dispatch tier is not arrival tier; absent early records mean unrecorded, not zero preparation.",
+    "Shared early receipts may refer to the same transfer; global transfer rows count physical bytes once.",
+    "Independent numerical adapter correctness remains unknown."
+  ],
+  "outputs": [
+    {
+      "bytes": 117182,
+      "path": "paper_results/ieee_tc/p2_backend/d996_d995_arrival_preparation/transfers.csv",
+      "sha256": "f9628349a7990dbbbbb11ae04316a30dd6ca3ccea5b612cbe36cf265a737e471"
+    },
+    {
+      "bytes": 422,
+      "path": "paper_results/ieee_tc/p2_backend/d996_d995_arrival_preparation/remote_requests.csv",
+      "sha256": "076ffde169952158ce7e44d237438d7480055a706278ddc057f95dab3e437555"
+    },
+    {
+      "bytes": 503558,
+      "path": "paper_results/ieee_tc/p2_backend/d996_d995_arrival_preparation/arrival_preparation.csv",
+      "sha256": "419116e12d59ff01e3041e1ec0089b19d2b309b9c18656cefe8c503f18997611"
+    }
+  ],
+  "passed": true,
+  "request_population": 4000,
+  "selected_remote": 0,
+  "source_refs": [
+    {
+      "bytes": 299493661,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d995_20261031/3b_busy_service_rate_validation/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d995_3b_arrival_preparation_full_w2.json",
+      "sha256": "9c9abb80522c2342e4b08f5a4e3ce138df37f9d7451b72cf86ba571361a960c9"
+    },
+    {
+      "bytes": 589776846,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d995_20261031/3b_busy_service_rate_validation/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "5cba6af71beb95b260b734f4bfb034975f08d22f77402226b51326f8be93c426"
+    },
+    {
+      "bytes": 2484271,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d996_20261031/d995_stage_diagnosis/requests.csv",
+      "sha256": "8094eccf54ef3d7b15639b4998d14220691b4f5f9b61bee647664f63a44798d8"
+    },
+    {
+      "bytes": 238279,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d996_20261031/d995_stage_diagnosis/diagnosis.json",
+      "sha256": "612d02b799575cb3768651a894bfd8d7c0e0db54ec5ec214748c4fa983e5522d"
+    },
+    {
+      "bytes": 112335,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "9026602533cc6a8348b1e05709302d69a38d6074f28a85dcc2881ca068340f33"
+    }
+  ],
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d995_20261031/3b_busy_service_rate_validation",
+  "transfers": {
+    "metrics": {
+      "after_publication_ms": {
+        "count": 505,
+        "mean": 116.22876611233937,
+        "p50_type1": 68.46050499007106,
+        "p95_type1": 456.7131120711565
+      },
+      "before_extract_ms": {
+        "count": 505,
+        "mean": 0.12010476173888339,
+        "p50_type1": 0.058379024267196655,
+        "p95_type1": 0.1935753971338272
+      },
+      "extract_verify_ms": {
+        "count": 505,
+        "mean": 203.21520792301928,
+        "p50_type1": 169.68340426683426,
+        "p95_type1": 328.9571590721607
+      },
+      "file_publication_envelope_ms": {
+        "count": 505,
+        "mean": 335.0067508969419,
+        "p50_type1": 267.7981168963015,
+        "p95_type1": 1114.5927938632667
+      },
+      "headers_ms": {
+        "count": 505,
+        "mean": 3.3507021088706384,
+        "p50_type1": 2.817436121404171,
+        "p95_type1": 6.48197578266263
+      },
+      "reserve_receive_write_ms": {
+        "count": 505,
+        "mean": 248.326647393221,
+        "p50_type1": 155.75080830603838,
+        "p95_type1": 1017.7311087027192
+      },
+      "total_ms": {
+        "count": 505,
+        "mean": 906.2481791961311,
+        "p50_type1": 736.3570369780064,
+        "p95_type1": 1911.5348388440907
+      }
+    },
+    "n": 505
+  },
+  "unjoined_remote_requests": []
+}

@@ -429,6 +429,19 @@ class RetainedControlAnalysisInputs(unittest.TestCase):
 
 
 class SealedCsvEncoding(unittest.TestCase):
+    def test_zero_cohort_keeps_schema_but_missing_schema_does_not_create_a_file(self):
+        import csv
+        from scripts.ieee_tc.audit_d703_3b_full import write_exclusive_csv
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root)/'empty.csv'
+            with self.assertRaises(ValueError):
+                write_exclusive_csv(path, [])
+            self.assertFalse(path.exists())
+            write_exclusive_csv(path, [], fieldnames=('request_id', 'latency_ms'))
+            self.assertEqual(path.read_bytes(), b'request_id,latency_ms\n')
+            with path.open() as h:
+                self.assertEqual(list(csv.DictReader(h)), [])
+
     def test_lf_bytes_round_trip_without_post_hash_normalization(self):
         import csv
         import hashlib
@@ -453,6 +466,137 @@ class SealedCsvEncoding(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_exclusive_csv(path, [dict(value=1)])
             self.assertEqual(path.read_bytes(), b'original\r\n')
+
+
+class ArrivedFilePreparationAnalysis(unittest.TestCase):
+    def fixture(self):
+        transfer = dict(transfer_id='t1', artifact_id='adapter-a', loading_clock_id='clock',
+            state='published', loading_started_monotonic_s=10.2, published_monotonic_s=10.4,
+            client_completed_monotonic_s=10.5, transferred_bytes=1024)
+        early = dict(policy='observed_remote_demand_v1', request_id='r1', adapter_id='adapter-a',
+            clock_id='clock', state='prepared', target_replica=None, physical_gpu_reservation=False,
+            observed_monotonic_s=10.1, started_monotonic_s=10.15, settled_monotonic_s=10.6,
+            preparation=dict(state='published', remote_transfer=copy.deepcopy(transfer),
+                             _movement=dict(owns_io=True)))
+        request = dict(request_id='r1', adapter_id='adapter-a', readiness_tier_before_dispatch='nvme',
+            gpu_reference_evidence=dict(arrival_file_preparation=early),
+            native_token_timing=dict(native_clock_id='clock', controller_admitted_monotonic_s=10.8),
+            external_arrival_timing=dict(planned_arrival_s=10.))
+        return request, {'t1':transfer}
+
+    def test_nvme_dispatch_does_not_erase_earlier_remote_wait_or_bytes(self):
+        from scripts.ieee_tc.audit_d703_3b_full import arrived_file_preparation_row
+        request, transfers = self.fixture()
+        before = copy.deepcopy(request)
+        row = arrived_file_preparation_row(request, transfers)
+        self.assertEqual(row['dispatch_tier'], 'nvme')
+        self.assertAlmostEqual(row['file_wait_ms'], 450.)
+        self.assertAlmostEqual(row['observation_to_admission_ms'], 700.)
+        self.assertEqual(row['owned_transferred_bytes'],1024)
+        self.assertEqual(request,before)
+
+    def test_shared_transfer_may_precede_subscriber_but_has_no_second_byte_charge(self):
+        from scripts.ieee_tc.audit_d703_3b_full import arrived_file_preparation_row
+        request, transfers = self.fixture()
+        early = request['gpu_reference_evidence']['arrival_file_preparation']
+        early.update(observed_monotonic_s=10.3, started_monotonic_s=10.35)
+        early['preparation']['_movement']['owns_io'] = False
+        row = arrived_file_preparation_row(request, transfers)
+        self.assertEqual(row['transfer_id'],'t1')
+        self.assertEqual(row['owned_transferred_bytes'],0)
+        self.assertAlmostEqual(row['file_wait_ms'],250.)
+
+    def test_absent_record_is_unknown_and_hint_is_not_a_gpu_readiness_claim(self):
+        from scripts.ieee_tc.audit_d703_3b_full import arrived_file_preparation_row
+        request, transfers = self.fixture()
+        early = request['gpu_reference_evidence']['arrival_file_preparation']
+        for state in ('native_presence_hint','file_already_published'):
+            early.update(state=state)
+            row = arrived_file_preparation_row(request, transfers)
+            self.assertEqual(row['dispatch_tier'], 'nvme')
+            self.assertEqual(row['file_wait_ms'],0.)
+            self.assertIsNone(row['transfer_id'])
+        request['gpu_reference_evidence'].clear()
+        self.assertIsNone(arrived_file_preparation_row(request, transfers))
+
+    def test_zero_selected_remote_cohort_keeps_global_bytes_and_early_evidence(self):
+        import csv
+        from scripts.ieee_tc.audit_d703_3b_full import (diagnose_remote_preparation,
+            digest, write_exclusive_csv)
+        for recorded,remote in ((True,False),(False,False),(False,True)):
+            with self.subTest(recorded=recorded,remote=remote),tempfile.TemporaryDirectory() as root:
+                raw,stage,output = (Path(root)/name for name in ('raw','stage','output'))
+                raw.mkdir(); stage.mkdir()
+                request,transfers = self.fixture()
+                transfer=transfers['t1']
+                transfer.update(http_transfer_id='http1',payload_bytes_verified=2048,
+                    headers_received_monotonic_s=10.25, body_received_monotonic_s=10.3,
+                    extraction_started_monotonic_s=10.32,extraction_completed_monotonic_s=10.35)
+                if recorded:
+                    request['gpu_reference_evidence']['arrival_file_preparation']['preparation'][
+                        'remote_transfer']=copy.deepcopy(transfer)
+                else:
+                    request['gpu_reference_evidence'].clear()
+                if remote:
+                    request['readiness_tier_before_dispatch']='remote'
+                    request['native_token_timing']['controller_admitted_monotonic_s']=10.1
+                    request['gpu_reference_evidence'].update(
+                        preparation_interval=dict(remote_transfer_id='t1',clock_id='clock'),
+                        remote_preparation=copy.deepcopy(transfer),
+                        receipt=dict(native_load_started_monotonic_s=10.6,
+                            native_load_completed_monotonic_s=10.7,acquired_monotonic_s=10.7))
+                result=raw/'experiment_results_full_fixture.json'
+                result.write_text(json.dumps(dict(detailed_results=dict(tc_ieee_full=dict(requests=[request])))))
+                outcome=raw/'launch.launch/physical_deployment/main_outcome.json'
+                outcome.parent.mkdir(parents=True)
+                outcome.write_text(json.dumps(dict(remote_transfers=[transfer])))
+                table=stage/'requests.csv'
+                write_exclusive_csv(table,[dict(request_id='r1',tier='remote' if remote else 'nvme',
+                    ordinal=0,slo_group='pass',owner='owner',ttft_pass=True,tpot_pass=True,joint_pass=True,
+                    ttft_ms=1000.,admitted=10.1,admission_to_acquired_ms=600.)])
+                (stage/'diagnosis.json').write_text(json.dumps(dict(passed=True,source_run=str(raw),
+                    request_table=dict(path=str(table),sha256=digest(table)),
+                    source_refs=[dict(path=str(result),sha256=digest(result))])))
+                diagnose_remote_preparation(raw,output,stage)
+                report=json.loads((output/'diagnosis.json').read_text())
+                self.assertEqual(report['selected_remote'],int(remote))
+                self.assertEqual(report['joined_remote_requests'],int(remote))
+                self.assertEqual(report['transfers']['n'],1)
+                self.assertEqual(report['arrival_preparation']['recorded_requests'],int(recorded))
+                self.assertEqual(report['arrival_preparation']['unrecorded_requests'],int(not recorded))
+                self.assertEqual(report['arrival_preparation']['owned_transferred_bytes'],1024 if recorded else None)
+                with (output/'remote_requests.csv').open() as h:
+                    reader=csv.DictReader(h)
+                    self.assertIn('request_id',reader.fieldnames)
+                    self.assertEqual(len(list(reader)),int(remote))
+                with (output/'transfers.csv').open() as h:
+                    self.assertEqual(sum(int(row['bytes']) for row in csv.DictReader(h)),1024)
+
+    def test_reuse_is_not_a_new_download(self):
+        from scripts.ieee_tc.audit_d703_3b_full import arrived_file_preparation_row
+        request, transfers = self.fixture()
+        early = request['gpu_reference_evidence']['arrival_file_preparation']
+        early['preparation'] = dict(state='reused',_movement=dict(owns_io=False))
+        self.assertEqual(arrived_file_preparation_row(request,transfers)['owned_transferred_bytes'],0)
+        early['preparation']['_movement']['owns_io'] = True
+        with self.assertRaises(ValueError):
+            arrived_file_preparation_row(request, transfers)
+
+    def test_wrong_owner_clock_identity_and_omitted_wait_are_rejected(self):
+        from scripts.ieee_tc.audit_d703_3b_full import arrived_file_preparation_row
+        patches = [dict(request_id='other'),dict(adapter_id='other'),dict(clock_id='other'),
+            dict(target_replica='already-selected'),dict(physical_gpu_reservation=True),
+            dict(observed_monotonic_s=9.),dict(settled_monotonic_s=11.),
+            dict(started_monotonic_s=10.3),dict(state='unverified')]
+        for patch in patches:
+            request, transfers = self.fixture()
+            request['gpu_reference_evidence']['arrival_file_preparation'].update(patch)
+            with self.subTest(patch=patch),self.assertRaises(ValueError):
+                arrived_file_preparation_row(request, transfers)
+        request, transfers = self.fixture()
+        transfers['t1']['transferred_bytes'] += 1
+        with self.assertRaises(ValueError):
+            arrived_file_preparation_row(request, transfers)
 
 
 if __name__=='__main__':

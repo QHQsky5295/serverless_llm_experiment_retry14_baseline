@@ -41,10 +41,13 @@ PROFILE_MANIFEST = ROOT / "paper_results/ieee_tc/p2_backend/d701_3b_same_spec_pr
 OUT = ROOT / "paper_results/ieee_tc/p2_backend/d703_3b_full_w0_d701profile"
 
 
-def write_exclusive_csv(path, rows):
+def write_exclusive_csv(path, rows, *, fieldnames=None):
     """Write stable LF bytes before provenance hashing; never rewrite a seal."""
+    fields = fieldnames if fieldnames is not None else (list(rows[0]) if rows else None)
+    if not fields:
+        raise ValueError('empty CSV requires an explicit field schema')
     with path.open('x', encoding='utf-8', newline='') as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator='\n')
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
 
@@ -444,6 +447,72 @@ def diagnose_prefetch_control(raw, output, preparation_audit, settlement_audit, 
     print(json.dumps(dict(passed=True, joined_requests=len(rows), groups=report['groups']), indent=2))
 
 
+ARRIVAL_FILE_FIELDS = ('request_id', 'adapter_id', 'state', 'dispatch_tier',
+    'observed_monotonic_s', 'admitted_monotonic_s', 'file_wait_ms',
+    'observation_to_admission_ms', 'transfer_id', 'owns_io', 'owned_transferred_bytes')
+
+
+def arrived_file_preparation_row(request, transfers):
+    """Audit pre-routing demand separately; a later NVMe hit does not erase IO.
+
+    No record means the policy was not recorded, NOT zero remote preparation.
+    Shared receipts identify the transfer but never claim its bytes twice.
+    The existing native arrival/TTFT/TPOT evaluator remains authoritative.
+    """
+    evidence = request['gpu_reference_evidence']
+    early = evidence.get('arrival_file_preparation')
+    if early is None:
+        return None
+    n, ext = request['native_token_timing'], request['external_arrival_timing']
+    state = early['state']
+    if (early['policy'] != 'observed_remote_demand_v1'
+            or early['request_id'] != request['request_id']
+            or early['adapter_id'] != request['adapter_id']
+            or early['clock_id'] != n['native_clock_id']
+            or early['target_replica'] is not None
+            or early['physical_gpu_reservation'] is not False
+            or (state == 'backbone_only' and bool(request['adapter_id']))
+            or state not in ('prepared', 'native_presence_hint', 'file_already_published', 'backbone_only')):
+        raise ValueError('arrival preparation identity or policy differs')
+    arrival, observed, admitted = (ext['planned_arrival_s'], early['observed_monotonic_s'],
+                                   n['controller_admitted_monotonic_s'])
+    def ordered(*values):
+        return (all(type(v) in (int,float) and math.isfinite(v) for v in values)
+                and list(values) == sorted(values))
+    if not ordered(arrival, observed, admitted):
+        raise ValueError('arrival preparation is outside the real pre-admission interval')
+    row = dict(request_id=request['request_id'], adapter_id=request['adapter_id'], state=state,
+        dispatch_tier=request['readiness_tier_before_dispatch'], observed_monotonic_s=observed,
+        admitted_monotonic_s=admitted, file_wait_ms=0.,
+        observation_to_admission_ms=(admitted-observed)*1000,
+        transfer_id=None, owns_io=False, owned_transferred_bytes=0)
+    if state != 'prepared':
+        return row
+    start, settled = early['started_monotonic_s'], early['settled_monotonic_s']
+    if not ordered(observed, start, settled, admitted):
+        raise ValueError('file wait is outside the recorded arrival/admission bounds')
+    prepared = early['preparation']
+    owns = prepared['_movement']['owns_io']
+    if type(owns) is not bool or prepared['state'] not in ('published', 'reused'):
+        raise ValueError('explicit completed movement ownership required')
+    row.update(file_wait_ms=(settled-start)*1000, owns_io=owns)
+    if prepared['state'] == 'reused':
+        if owns or prepared.get('remote_transfer') is not None:
+            raise ValueError('reused file cannot own a new remote transfer')
+        return row
+    t = prepared['remote_transfer']
+    if (transfers.get(t['transfer_id']) != t or t['artifact_id'] != request['adapter_id']
+            or t['loading_clock_id'] != early['clock_id'] or t['state'] != 'published'
+            or not ordered(t['loading_started_monotonic_s'], t['published_monotonic_s'],
+                           t['client_completed_monotonic_s'], settled)
+            or (owns and t['loading_started_monotonic_s'] < start)):
+        raise ValueError('early transfer lacks exact closed identity or timing')
+    if type(t['transferred_bytes']) is not int or t['transferred_bytes'] < 0:
+        raise ValueError('remote bytes must be observed nonnegative integer bytes')
+    row.update(transfer_id=t['transfer_id'], owned_transferred_bytes=t['transferred_bytes'] if owns else 0)
+    return row
+
+
 def diagnose_remote_preparation(raw, output, stage_audit):
     """D818: reuse sealed stages and stream compressed source evidence once.
 
@@ -497,7 +566,7 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             adapter_id=t['artifact_id'], bytes=t['transferred_bytes'], payload_bytes=t['payload_bytes_verified'],
             **{name:1000*(b-a) for name,a,b in zip(names,times,times[1:])},
             total_ms=1000*(times[-1]-times[0])))
-    requests, missing, seen = [], [], set()
+    requests, missing, early_rows, seen = [], [], [], set()
     with open_source(result) as h:
         for r in ijson.items(h, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
             rid = r['request_id']
@@ -505,6 +574,9 @@ def diagnose_remote_preparation(raw, output, stage_audit):
                 raise ValueError('request/stage population mismatch')
             seen.add(rid)
             s, e = stages[rid], r['gpu_reference_evidence']
+            early = arrived_file_preparation_row(r, by_id)
+            if early is not None:
+                early_rows.append(early)
             if s['tier'] != 'remote':
                 continue
             p = e.get('preparation_interval') or {}
@@ -541,9 +613,26 @@ def diagnose_remote_preparation(raw, output, stage_audit):
                 partition_error_ms=error, dominant_preparation_stage=max(part,key=part.__getitem__), **part))
     if seen != set(stages):
         raise ValueError('missing request population')
+    early_owned = [r['transfer_id'] for r in early_rows if r['owns_io']]
+    if len(early_owned) != len(set(early_owned)):
+        raise ValueError('one physical early transfer has more than one claiming creator')
     output.mkdir(parents=True, exist_ok=False)
-    for name, rows in (('transfers.csv',transfer_rows),('remote_requests.csv',requests)):
-        write_exclusive_csv(output/name, rows)
+    # A policy may finish every remote demand before routing. A zero-sized
+    # selected-Remote cohort is valid, not a failed run or an invented zero cost.
+    remote_fields = ('request_id','transfer_id','adapter_id','ordinal','slo_group','owner',
+        'ttft_pass','tpot_pass','joint_pass','ttft_ms','admission_to_acquired_ms',
+        'transfer_started_before_admission','transfer_published_before_admission',
+        'partition_error_ms','dominant_preparation_stage','before_fetch_ms','headers_ms',
+        'reserve_receive_write_ms','before_extract_ms','extract_verify_ms',
+        'file_publication_envelope_ms','published_to_native_start_ms','native_load_ms',
+        'after_last_boundary_ms')
+    transfer_fields = ('transfer_id','http_transfer_id','adapter_id','bytes','payload_bytes',
+        'headers_ms','reserve_receive_write_ms','before_extract_ms','extract_verify_ms',
+        'file_publication_envelope_ms','after_publication_ms','total_ms')
+    for name, rows, fields in (('transfers.csv',transfer_rows,transfer_fields),
+            ('remote_requests.csv',requests,remote_fields),
+            ('arrival_preparation.csv',early_rows,ARRIVAL_FILE_FIELDS)):
+        write_exclusive_csv(output/name, rows, fieldnames=fields)
     def summary(rows):
         return dict(n=len(rows), metrics={k:timing_stats([r[k] for r in rows])
                     for k in rows[0] if k.endswith('_ms')} if rows else {})
@@ -551,6 +640,14 @@ def diagnose_remote_preparation(raw, output, stage_audit):
         request_population=len(stages), selected_remote=sum(s['tier']=='remote' for s in stages.values()),
         joined_remote_requests=len(requests), unjoined_remote_requests=missing,
         distinct_request_transfers=len({r['transfer_id'] for r in requests}),
+        arrival_preparation=dict(recorded_requests=len(early_rows),
+            unrecorded_requests=len(seen)-len(early_rows),
+            states=dict(collections.Counter(r['state'] for r in early_rows)),
+            owning_requests=sum(r['owns_io'] for r in early_rows),
+            owned_transferred_bytes=(sum(r['owned_transferred_bytes'] for r in early_rows)
+                                     if early_rows else None),
+            unique_observed_transfers=len({r['transfer_id'] for r in early_rows if r['transfer_id'] is not None}),
+            file_wait_ms=timing_stats([r['file_wait_ms'] for r in early_rows if r['state']=='prepared'])),
         transfers=summary(transfer_rows), groups={label:summary([r for r in requests
             if label=='all' or (label=='ttft_fail' and not r['ttft_pass'])
             or (label=='ttft_pass' and r['ttft_pass'])]) for label in ('all','ttft_fail','ttft_pass')},
@@ -559,9 +656,12 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             'Receive interval includes reservation and local writes; not pure network latency.',
             'Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.',
             'Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.',
+            'Pre-routing preparation is nested within arrival-to-admission; never add it again to E2E.',
+            'Dispatch tier is not arrival tier; absent early records mean unrecorded, not zero preparation.',
+            'Shared early receipts may refer to the same transfer; global transfer rows count physical bytes once.',
             'Independent numerical adapter correctness remains unknown.'],
         source_refs=[ref(x) for x in (result,outcome,stage_csv,stage_audit/'diagnosis.json',Path(__file__))],
-        outputs=[ref(output/x) for x in ('transfers.csv','remote_requests.csv')])
+        outputs=[ref(output/x) for x in ('transfers.csv','remote_requests.csv','arrival_preparation.csv')])
     with (output/'diagnosis.json').open('x') as h:
         json.dump(report,h,indent=2,sort_keys=True,allow_nan=False); h.write('\n')
     print(json.dumps({k:report[k] for k in ('passed','request_population','selected_remote','joined_remote_requests','distinct_request_transfers')}))
