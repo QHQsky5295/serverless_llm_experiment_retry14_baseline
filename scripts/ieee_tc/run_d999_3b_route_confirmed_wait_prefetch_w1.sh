@@ -17,6 +17,8 @@ export PATH="/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:$PATH"
 export CUDA_HOME=/usr/local/cuda-13.0
 export FLASHINFER_NVCC=/usr/local/cuda-13.0/bin/nvcc
 export MAX_JOBS=2
+export NO_PROXY="192.168.4.174,10.199.227.174,127.0.0.1,localhost,::1"
+export no_proxy="$NO_PROXY"
 IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
 export PRIME_REMOTE_TOKEN
 export FAASLORA_REMOTE_ARTIFACT_ENABLED=1
