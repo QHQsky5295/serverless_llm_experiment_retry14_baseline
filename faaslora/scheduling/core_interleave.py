@@ -4,6 +4,7 @@ The optional private CPU builder completes through this same core queue; GPU
 admission remains atomic. No extra model step or time-budget policy is added.
 """
 import ast
+from collections import deque
 import hashlib
 import inspect
 import os
@@ -15,10 +16,13 @@ from dataclasses import dataclass
 
 POLICY = 'atomic_control_yield_v1'
 HOST_CONSTRUCTION_POLICY = 'private_cpu_core_commit_v1'
+READONLY_DEFERRAL_POLICY = 'readonly_control_defer_v1'
 _NATIVE_INPUT_AST_SHA = '5d1a82d46b2a673a0f8e32db251d1251613c6f63794758cea9eae6dd5845a845'
 _PRIME_METHODS = frozenset(('ieee_scheduler_observation', 'ieee_request_retirement',
     'ieee_prepare_host', 'ieee_admit_and_demand_load', 'ieee_pending_admission',
     'ieee_pending_gpu_reference', 'ieee_transfer_event', 'ieee_prepare_file_host'))
+_READONLY_GPU_OPERATIONS = frozenset(('source_snapshot', 'routing_source_snapshot',
+    'source_identity_snapshot', 'request_source_snapshot'))
 
 
 @dataclass(frozen=True)
@@ -138,12 +142,17 @@ def native_input_fingerprint(method):
 
 
 class AtomicControlInterleave:
-    def __init__(self, core_class, scheduler, executor_type, request_types):
+    def __init__(self, core_class, scheduler, executor_type, request_types,
+                 *, readonly_deferral=False):
         self.core_class, self.scheduler = core_class, scheduler
         self.executor_type, self.request_types = executor_type, request_types
+        self.readonly_deferral = bool(readonly_deferral)
         self.pid, self.thread = os.getpid(), threading.get_ident()
         self.core = None
         self.input_turns = self.controls = self.yields = self.backlog_yields = 0
+        self.deferred_readonly = 0
+        self.executed_deferred_readonly = 0
+        self._deferred = deque()
         self.host_construction = None
 
     def _owner(self, core):
@@ -167,6 +176,41 @@ class AtomicControlInterleave:
             (method == 'collective_rpc' and isinstance(args, (tuple, list))
              and len(args) > 0 and args[0] == 'ieee_gpu_reference')))
 
+    def _readonly_control(self, request):
+        """Return whether a utility is a proven read-only observation.
+
+        This classifier is deliberately closed-world.  A malformed payload or
+        unknown operation is handled by the original native path, never queued
+        as a deferred control.  The worker-side operation remains responsible
+        for validating the actual command and its state/epoch.
+        """
+        if not self.readonly_deferral:
+            return False
+        kind, payload = request
+        if kind != self.request_types.UTILITY:
+            return False
+        if not isinstance(payload, (tuple, list)) or len(payload) != 4:
+            return False
+        method, args = payload[2:]
+        if method == 'ieee_scheduler_observation':
+            return True
+        if method != 'collective_rpc' or not isinstance(args, (tuple, list)):
+            return False
+        if len(args) < 4 or args[0] != 'ieee_gpu_reference':
+            return False
+        kwargs = args[3]
+        if not isinstance(kwargs, dict):
+            return False
+        return kwargs.get('operation') in _READONLY_GPU_OPERATIONS
+
+    def _defer_readonly(self, core, request):
+        if (self._readonly_control(request) and core.is_running()
+                and core.has_work()):
+            self._deferred.append(request)
+            self.deferred_readonly += 1
+            return True
+        return False
+
     def _handle(self, core, request):
         completion = (self.host_construction is not None
                       and self.host_construction.handle_wakeup(core, request))
@@ -187,6 +231,14 @@ class AtomicControlInterleave:
     def process_input_queue(self, core):
         self._owner(core)
         self.input_turns += 1
+        # A deferred read-only call was observed before the previous native
+        # step.  Execute it before consuming later input so its original queue
+        # position is not silently reordered.  It is never re-deferred.
+        if self._deferred:
+            request = self._deferred.popleft()
+            self.executed_deferred_readonly += 1
+            if self._handle(core, request):
+                return
         # Same native idle wait, idle callbacks and duplicate-abort draining.
         # FIFO queue ownership remains with the native engine core.
         while not core.has_work() and core.is_running():
@@ -197,6 +249,8 @@ class AtomicControlInterleave:
             block = core.process_input_queue_block
             try:
                 request = core.input_queue.get(block=block)
+                if self._defer_readonly(core, request):
+                    return
                 if self._handle(core, request):
                     return
             except queue.Empty:
@@ -205,17 +259,25 @@ class AtomicControlInterleave:
                 break
         while not core.input_queue.empty():
             request = core.input_queue.get_nowait()
+            if self._defer_readonly(core, request):
+                return
             if self._handle(core, request):
                 return
         # The original busy loop alone advances the model and publishes counts.
         # There is no reentrant step, and no split inside an admission transaction.
 
     def snapshot(self):
-        return dict(kind='ieee_native_control_interleave_v1', policy=POLICY,
+        result = dict(kind='ieee_native_control_interleave_v1', policy=POLICY,
             input_turns=self.input_turns, handled_controls=self.controls,
             yields_to_native_loop=self.yields, yields_with_queued_input=self.backlog_yields,
             **({'private_host_construction': self.host_construction.snapshot()}
                if self.host_construction is not None else {}))
+        if self.readonly_deferral:
+            result['readonly_deferral'] = dict(policy=READONLY_DEFERRAL_POLICY,
+                deferred=self.deferred_readonly,
+                executed=self.executed_deferred_readonly,
+                pending=len(self._deferred))
+        return result
 
 
 def install_core_control_interleave(core_class, scheduler, *, executor_type,
@@ -223,6 +285,11 @@ def install_core_control_interleave(core_class, scheduler, *, executor_type,
     config = scheduler.vllm_config
     policy = config.additional_config.get('ieee_tc_control_interleave')
     host_policy = config.additional_config.get('ieee_tc_host_construction')
+    readonly_policy = config.additional_config.get('ieee_tc_control_deferral')
+    if readonly_policy not in (None, READONLY_DEFERRAL_POLICY):
+        raise ValueError('unknown read-only control deferral policy')
+    if readonly_policy is not None and policy != POLICY:
+        raise ValueError('read-only control deferral requires native control interleave')
     if policy is None:
         if host_policy is not None:
             raise ValueError('private HOST construction requires native control interleave')
@@ -241,11 +308,14 @@ def install_core_control_interleave(core_class, scheduler, *, executor_type,
             raise ValueError('control interleave already has another scheduler owner')
         if (existing.host_construction is not None) != (host_policy is not None):
             raise ValueError('native HOST construction policy changed after installation')
+        if existing.readonly_deferral != (readonly_policy is not None):
+            raise ValueError('read-only control deferral policy changed after installation')
         return existing
     if (getattr(core_class, '_ieee_core_host_timing', None) is not None
             or native_input_fingerprint(core_class._process_input_queue) != _NATIVE_INPUT_AST_SHA):
         raise ValueError('control interleave native input source changed or was already wrapped')
-    state = AtomicControlInterleave(core_class, scheduler, executor_type, request_types)
+    state = AtomicControlInterleave(core_class, scheduler, executor_type, request_types,
+                                    readonly_deferral=readonly_policy is not None)
     if host_policy is not None:
         if hasattr(core_class, 'ieee_prepare_file_host'):
             raise ValueError('native HOST construction utility is already installed')

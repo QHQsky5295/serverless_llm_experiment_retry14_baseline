@@ -12,7 +12,8 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.scheduling.core_interleave import (
-    AtomicControlInterleave, POLICY, HOST_CONSTRUCTION_POLICY, _NATIVE_INPUT_AST_SHA,
+    AtomicControlInterleave, POLICY, HOST_CONSTRUCTION_POLICY, READONLY_DEFERRAL_POLICY,
+    _NATIVE_INPUT_AST_SHA,
     install_core_control_interleave, native_input_fingerprint,
 )
 
@@ -36,11 +37,13 @@ def native_input():
     return namespace['_process_input_queue']
 
 
-def fixture(*, enabled=True, host=False, work=True, requests=()):
+def fixture(*, enabled=True, host=False, readonly=False, work=True, requests=()):
     config=NS(additional_config={'ieee_tc_control_interleave':POLICY} if enabled else {},
               model_config=NS(is_moe=False))
     if host:
         config.additional_config['ieee_tc_host_construction'] = HOST_CONSTRUCTION_POLICY
+    if readonly:
+        config.additional_config['ieee_tc_control_deferral'] = READONLY_DEFERRAL_POLICY
     scheduler=NS(vllm_config=config,parallel_config=NS(tensor_parallel_size=1,
         pipeline_parallel_size=1,data_parallel_size=1))
     class Executor: pass
@@ -123,6 +126,82 @@ class AtomicControlFairness(unittest.TestCase):
         self.assertEqual(state.snapshot(),dict(kind='ieee_native_control_interleave_v1',
             policy=POLICY,input_turns=3,handled_controls=3,
             yields_to_native_loop=3,yields_with_queued_input=2))
+
+    def test_readonly_control_is_deferred_until_one_native_step(self):
+        request = utility(1, 'collective_rpc',
+                          ['ieee_gpu_reference', None, [],
+                           {'operation': 'routing_source_snapshot'}])
+        core,state,_,_,_=fixture(readonly=True, requests=[request, utility(2, 'check_health')])
+        core._process_input_queue()
+        self.assertEqual(core.calls, [])
+        self.assertEqual(core.input_queue.qsize(), 1)
+        self.assertEqual(state.deferred_readonly, 1)
+        self.assertEqual(state.executed_deferred_readonly, 0)
+        core._process_engine_step()
+        core._process_input_queue()
+        self.assertEqual(core.calls, [('step', None), (Kind.UTILITY, 1)])
+        self.assertEqual(state.executed_deferred_readonly, 1)
+        self.assertEqual(core.input_queue.qsize(), 1)
+        core._process_input_queue()
+        self.assertEqual(core.calls[-1], (Kind.UTILITY, 2))
+        self.assertEqual(state.snapshot()['readonly_deferral'],
+                         dict(policy=READONLY_DEFERRAL_POLICY, deferred=1,
+                              executed=1, pending=0))
+
+    def test_readonly_scheduler_observation_is_deferred_and_idle_is_immediate(self):
+        core,state,_,_,_=fixture(readonly=True,
+                                  requests=[utility(1, 'ieee_scheduler_observation')])
+        core._process_input_queue()
+        self.assertEqual(core.calls, [])
+        self.assertEqual(state.deferred_readonly, 1)
+        core._process_engine_step()
+        core._process_input_queue()
+        self.assertEqual(core.calls, [('step', None), (Kind.UTILITY, 1)])
+
+        idle, idle_state, _, _, _ = fixture(readonly=True, work=False,
+                                            requests=[utility(2, 'ieee_scheduler_observation')])
+        idle._process_input_queue()
+        self.assertEqual(idle.calls, [(Kind.UTILITY, 2)])
+        self.assertEqual(idle_state.deferred_readonly, 0)
+
+    def test_readonly_classifier_is_closed_world_and_keeps_mutations_native(self):
+        read = utility(1, 'collective_rpc',
+                       ['ieee_gpu_reference', None, [],
+                        {'operation': 'source_identity_snapshot'}])
+        unknown = utility(2, 'collective_rpc',
+                          ['ieee_gpu_reference', None, [], {'operation': 'acquire'}])
+        malformed = utility(3, 'collective_rpc', ['ieee_gpu_reference'])
+        core,state,_,_,_=fixture(readonly=True, requests=[unknown, malformed, read])
+        core._process_input_queue()
+        # A mutating/unknown utility remains on the native path and yields;
+        # the read-only request is not inspected past that FIFO boundary.
+        self.assertEqual(core.calls, [(Kind.UTILITY, 2)])
+        self.assertEqual(state.deferred_readonly, 0)
+        self.assertEqual(core.input_queue.qsize(), 2)
+        core._process_engine_step()
+        core._process_input_queue()
+        self.assertEqual(core.calls[-1], (Kind.UTILITY, 3))
+        self.assertEqual(state.deferred_readonly, 0)
+        core._process_engine_step()
+        core._process_input_queue()
+        self.assertEqual(state.deferred_readonly, 1)
+        self.assertEqual(core.calls[-1], ('step', None))
+        core._process_engine_step()
+        core._process_input_queue()
+        self.assertEqual(core.calls[-1], (Kind.UTILITY, 1))
+
+    def test_deferral_requires_interleave_and_cannot_change_after_install(self):
+        core,state,cls,scheduler,executor=fixture(readonly=False)
+        scheduler.vllm_config.additional_config.pop('ieee_tc_control_interleave')
+        scheduler.vllm_config.additional_config['ieee_tc_control_deferral'] = READONLY_DEFERRAL_POLICY
+        with self.assertRaisesRegex(ValueError, 'requires native control interleave'):
+            install_core_control_interleave(cls, scheduler, executor_type=executor,
+                request_types=Kind, native_version='0.30.0')
+        core,state,cls,scheduler,executor=fixture(readonly=True)
+        scheduler.vllm_config.additional_config['ieee_tc_control_deferral'] = 'unknown'
+        with self.assertRaisesRegex(ValueError, 'unknown read-only control deferral'):
+            install_core_control_interleave(cls, scheduler, executor_type=executor,
+                request_types=Kind, native_version='0.30.0')
 
     def test_idle_drains_and_add_transitions_to_work_without_losing_input(self):
         core,state,_,_,_=fixture(work=False,requests=[utility(1),utility(2)])
@@ -290,6 +369,25 @@ class AtomicControlFairness(unittest.TestCase):
                 else:
                     with self.assertRaisesRegex(RuntimeError,'control interleave|HOST construction'):
                         asyncio.run(engine._try_create_engine('local',1,.8,1024,True,case!='host_no_lora',2,16))
+
+    def test_readonly_deferral_configuration_reaches_backend_and_is_opt_in(self):
+        from scripts import run_all_experiments as runner
+        cfg=dict(ieee_scheduler_observation=True, ieee_input_upper_bounds=[20,100],
+                 ieee_gpu_references=True, ieee_control_interleave=POLICY,
+                 ieee_control_deferral=READONLY_DEFERRAL_POLICY)
+        native=object(); args_mock=Mock(side_effect=lambda **kw:NS(**kw))
+        frontend=ModuleType('faaslora.scheduling.vllm_ieee_frontend')
+        frontend.IEEENativeAsyncLLM=NS(from_engine_args=Mock(return_value=native))
+        engine=runner.InferenceEngine(cfg,{})
+        engine._resolve_vllm_visible_devices=Mock(return_value='0')
+        engine._resolve_vllm_executor_backend=Mock(return_value=None)
+        with patch.object(runner,'_lazy_import_vllm',return_value=True), \
+             patch.object(runner,'AsyncEngineArgs',args_mock), \
+             patch.dict('sys.modules',{'faaslora.scheduling.vllm_ieee_frontend':frontend}):
+            actual=asyncio.run(engine._try_create_engine('local',1,.8,1024,True,True,2,16))
+        self.assertIs(actual,native)
+        self.assertEqual(args_mock.call_args.kwargs['additional_config']['ieee_tc_control_deferral'],
+                         READONLY_DEFERRAL_POLICY)
 
 
 class PrivateHostCoreBridge(unittest.TestCase):

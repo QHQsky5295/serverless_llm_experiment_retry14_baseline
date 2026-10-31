@@ -3846,6 +3846,14 @@ class InferenceEngine:
                         or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
                     raise ValueError('native control interleave requires the qualified IEEE single-GPU owner')
                 kwargs['additional_config']['ieee_tc_control_interleave'] = POLICY
+            if self.model_cfg.get('ieee_control_deferral') is not None:
+                from faaslora.scheduling.core_interleave import POLICY, READONLY_DEFERRAL_POLICY
+                if (self.model_cfg['ieee_control_deferral'] != READONLY_DEFERRAL_POLICY
+                        or self.model_cfg.get('ieee_control_interleave') != POLICY
+                        or not self.model_cfg.get('ieee_scheduler_observation', False)
+                        or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
+                    raise ValueError('read-only control deferral requires the qualified IEEE interleave owner')
+                kwargs['additional_config']['ieee_tc_control_deferral'] = READONLY_DEFERRAL_POLICY
             if self.model_cfg.get('ieee_host_construction') is not None:
                 from faaslora.scheduling.core_interleave import POLICY, HOST_CONSTRUCTION_POLICY
                 if (self.model_cfg['ieee_host_construction'] != HOST_CONSTRUCTION_POLICY
