@@ -17278,7 +17278,8 @@ class ScenarioRunner:
                     self._release_live_started_lora(getattr(trace, "adapter_id", None))
                     await self._release_dispatch_admission()
             try:
-                return await self._run_offered_request(trace.request_id, scheduled_arrival_at, serve)
+                return await self._run_offered_request(trace.request_id, scheduled_arrival_at,
+                    lambda: self._serve_with_arrived_file_preparation(trace, serve))
             finally:
                 self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
@@ -17868,6 +17869,66 @@ class ScenarioRunner:
         result.aggregate(elapsed, coord_m)
         self._attach_control_path_background_metrics(result)
         return result, coord_m
+
+    async def _serve_with_arrived_file_preparation(self, trace, serve):
+        """Owned demand IO before scarce dispatch/runtime admission, never lookahead.
+
+        Called inside the offered-arrival deadline after the request arrived.
+        Native presence is only a skip hint; ordinary confirmed routing and
+        active-LoRA/KV admission still run for every served request. File IO
+        uses the existing queue, capacity reservation, pressure and cancel join.
+        """
+        policy = getattr(self, 'coord_cfg', {}).get('ieee_arrival_file_preparation')
+        if policy is None:
+            return await serve()
+        if (policy != 'observed_remote_demand_v1'
+                or getattr(self, '_routing_policy', None) != 'ieee_confirmed'
+                or not self.model_cfg.get('ieee_gpu_references')
+                or self._remote_artifact_client is None):
+            raise ValueError('arrival file preparation requires confirmed routing and real owned IO')
+        from faaslora.clock import local_monotonic_clock_id
+        record = dict(policy=policy, request_id=trace.request_id, adapter_id=trace.adapter_id,
+            clock_id=local_monotonic_clock_id(), observed_monotonic_s=time.monotonic(),
+            target_replica=None, physical_gpu_reservation=False)
+        async def execute():
+            result = await serve()
+            result.gpu_reference_evidence['arrival_file_preparation'] = copy.deepcopy(record)
+            return result
+        if not trace.adapter_id:
+            record['state'] = 'backbone_only'
+            return await execute()
+        aid = InferenceEngine._lora_int_id(trace.adapter_id)
+        for slot in self.instance_pool.get_slots():
+            state = slot.native_source_state
+            if state is not None and any(row.adapter_int_id == aid for row in state.sources):
+                # A stale positive can only skip this optional overlap. It
+                # cannot authorize generation, skip revalidation or invent a hit.
+                record['state'] = 'native_presence_hint'
+                return await execute()
+        refs = self._stack.residency_manager.local_source_references
+        view = (await refs.call_async('source_snapshot', adapter_id=trace.adapter_id)
+                if hasattr(refs, 'call_async') else refs.source_snapshot(trace.adapter_id))
+        if view['sources']:
+            record['state'] = 'file_already_published'
+            return await execute()
+        content = self._ieee_artifact_identities[trace.adapter_id]['content_sha256']
+        context = (refs.async_file_movement_interest if hasattr(refs, 'call_async')
+                   else refs.file_movement_interest)
+        interest = context(intent_id=uuid.uuid4().hex,
+            target=refs.roots['nvme'] / trace.adapter_id, content_sha256=content, required=True)
+        # Keep the verified file protected across queue completion and routing.
+        # The later native source transaction installs its own actual read lease.
+        async with (interest if hasattr(refs, 'call_async') else _async_wrap_context(interest)):
+            record['started_monotonic_s'] = time.monotonic()
+            prepared = await self._queue_ieee_file_preparation(
+                adapter_id=trace.adapter_id, target_tier=StorageTier.NVME,
+                target_engine=None, target_replica=None, trigger_reason='demand',
+                plan_id=f'request:{trace.request_id}')
+            record.update(state='prepared', settled_monotonic_s=time.monotonic(),
+                          preparation=prepared)
+            # No background IO is abandoned and no old timing is subtracted.
+            # All wait remains inside arrival-to-first-token and the deadline.
+            return await execute()
 
     async def _exec_request(
         self,
@@ -21780,6 +21841,8 @@ class ScenarioRunner:
             raise TypeError('intent registration callback must be callable')
         metadata = dict(trigger_reason=trigger_reason, plan_id=plan_id,
                         activation_id=activation_id, target_replica=target_replica)
+        if target_replica is None:
+            metadata['placement_phase'] = 'before_routing'
         async def execute(attempt_id):
             # A completed old Future is never a residency claim. Re-observe
             # the physical owner each time before deciding a copy is reusable.

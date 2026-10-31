@@ -4,10 +4,13 @@ set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 RUN_ID="${FAASLORA_D992_RUN_ID:-d992_20261101}"
 RUN_TAG="${FAASLORA_D992_RUN_TAG:-d992_3b_busy_service_rate_validation}"
+CONFIG="${FAASLORA_D992_CONFIG:-configs/ieee_tc/20261101_d992_3b_busy_service_rate_validation.yaml}"
 RAW_ROOT="${FAASLORA_D970_RAW_ROOT:-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification}"
 RAW="$RAW_ROOT/$RUN_ID/3b_busy_service_rate_validation"
 cd "$ROOT"
-mkdir -p "$RAW"
+test -f "$CONFIG"
+mkdir -p "$RAW_ROOT/$RUN_ID"
+mkdir "$RAW"  # A frozen execution key must never truncate an earlier launcher log.
 exec >"$RAW/launcher.log" 2>&1
 
 export PATH="/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:$PATH"
@@ -52,5 +55,5 @@ export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 
 exec bash scripts/run_all_experiments_user_scope.sh \
-  --config configs/ieee_tc/20261101_d992_3b_busy_service_rate_validation.yaml \
+  --config "$CONFIG" \
   --scenario tc_ieee_full --full-stack

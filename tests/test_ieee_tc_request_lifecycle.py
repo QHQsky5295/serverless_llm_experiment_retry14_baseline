@@ -2171,6 +2171,141 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             if key.tier == 'remote':
                 self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
 
+    def test_arrival_preparation_finishes_before_dispatch_then_uses_confirmed_routing(self):
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        client = self.file_source(runner, trace)
+        self.bind_preparation_fixture(runner, slot)
+        runner.coord_cfg = dict(ieee_arrival_file_preparation='observed_remote_demand_v1')
+        opened = client._opener.open.side_effect
+        def check_before_reservation(*args, **kwargs):
+            self.assertEqual(slot.active_requests, 0)
+            self.assertFalse(getattr(runner, '_live_runtime_reservations', {}))
+            return opened(*args, **kwargs)
+        client._opener.open.side_effect = check_before_reservation
+        async def run():
+            result = await runner._serve_with_arrived_file_preparation(trace,
+                lambda: runner._exec_request(trace, 4, 0., request_plan=plan))
+            await runner._stack.preloading_manager.ieee_movements.close()
+            return result
+        result = asyncio.run(run())
+        self.assertTrue(result.success, result.error)
+        evidence = result.gpu_reference_evidence
+        early = evidence['arrival_file_preparation']
+        self.assertEqual(early['state'], 'prepared')
+        self.assertIsNone(early['target_replica'])
+        self.assertEqual(evidence['source_admission']['source']['tier'], 'nvme')
+        self.assertEqual(result.readiness_tier_before_dispatch, 'nvme')
+        self.assertNotIn('remote_preparation', evidence)  # Not a post-admission fetch.
+        self.assertTrue(early['preparation']['_movement']['owns_io'])
+        self.assertLessEqual(early['settled_monotonic_s'], evidence['source_admission']['admitted_monotonic_s'])
+        self.assertEqual(client._opener.open.call_count, 1)
+        self.assertEqual(slot.active_requests, 0)
+        refs = runner._stack.residency_manager.local_source_references
+        self.assertFalse(refs._file_movement_interests)
+        self.assertFalse(refs.leases)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_arrival_preparation_coalesces_two_observed_demands_without_gpu_slots(self):
+        runner, slot, trace, _, _, _ = self.build('remote')
+        client = self.file_source(runner, trace)
+        runner.coord_cfg = dict(ieee_arrival_file_preparation='observed_remote_demand_v1')
+        other = SimpleNamespace(**vars(trace))
+        other.request_id = 'second-arrived-request'
+        async def serve():
+            self.assertEqual(slot.active_requests, 0)
+            return SimpleNamespace(gpu_reference_evidence={})
+        async def run():
+            results = await asyncio.gather(*[
+                runner._serve_with_arrived_file_preparation(t, serve) for t in (trace, other)])
+            await runner._stack.preloading_manager.ieee_movements.close()
+            return results
+        results = asyncio.run(run())
+        self.assertEqual(client._opener.open.call_count, 1)
+        self.assertEqual(sum(r.gpu_reference_evidence['arrival_file_preparation']
+            ['preparation']['_movement']['owns_io'] for r in results), 1)
+        refs = runner._stack.residency_manager.local_source_references
+        self.assertFalse(refs._file_movement_interests)
+
+    def test_arrival_preparation_cancellation_joins_writer_before_releasing_interest(self):
+        from tests.test_http_artifact_store import SizedResponse
+        runner, slot, trace, _, _, _ = self.build('remote')
+        client = self.file_source(runner, trace)
+        runner.coord_cfg = dict(ieee_arrival_file_preparation='observed_remote_demand_v1')
+        entered, release = threading.Event(), threading.Event()
+        opened = client._opener.open.side_effect
+        class HeldResponse(SizedResponse):
+            def read(inner, *args):
+                entered.set()
+                if not release.wait(5):
+                    raise RuntimeError('fixture body barrier timeout')
+                return super().read(*args)
+        client._opener.open.side_effect = lambda *a, **kw: HeldResponse(opened(*a, **kw).getvalue())
+        serve = AsyncMock()
+        refs = runner._stack.residency_manager.local_source_references
+        async def run():
+            task = asyncio.create_task(runner._serve_with_arrived_file_preparation(trace, serve))
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+                task.cancel()
+                await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                self.assertTrue(refs._file_movement_interests)
+                self.assertEqual(slot.active_requests, 0)
+            finally:
+                release.set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+                await runner._stack.preloading_manager.ieee_movements.close()
+        asyncio.run(run())
+        serve.assert_not_awaited()
+        self.assertFalse(refs._file_movement_interests)
+        self.assertFalse(refs.materializations)
+        self.assertFalse(refs._transfer_workspaces)
+
+    def test_arrival_preparation_preserves_published_and_native_hint_fast_paths(self):
+        for native_hint in (False, True):
+            with self.subTest(native_hint=native_hint):
+                runner, slot, trace, _, _, _ = self.build('remote')
+                client = self.file_source(runner, trace, publish=not native_hint)
+                runner.coord_cfg = dict(ieee_arrival_file_preparation='observed_remote_demand_v1')
+                if native_hint:
+                    slot.native_source_state = SimpleNamespace(sources=[SimpleNamespace(
+                        adapter_int_id=InferenceEngine._lora_int_id(trace.adapter_id))])
+                before = client._opener.open.call_count
+                serve = AsyncMock(return_value=SimpleNamespace(gpu_reference_evidence={}))
+                result = asyncio.run(runner._serve_with_arrived_file_preparation(trace, serve))
+                self.assertEqual(client._opener.open.call_count, before)
+                serve.assert_awaited_once()
+                self.assertEqual(result.gpu_reference_evidence['arrival_file_preparation']['state'],
+                    'native_presence_hint' if native_hint else 'file_already_published')
+
+    def test_arrival_preparation_opt_in_does_not_change_default_or_accept_unknown_policy(self):
+        runner, _, trace, _, _, _ = self.build('remote')
+        sentinel = object()
+        serve = AsyncMock(return_value=sentinel)
+        runner.coord_cfg = {}
+        self.assertIs(asyncio.run(runner._serve_with_arrived_file_preparation(trace, serve)), sentinel)
+        runner.coord_cfg['ieee_arrival_file_preparation'] = 'unsupported'
+        with self.assertRaises(ValueError):
+            asyncio.run(runner._serve_with_arrived_file_preparation(trace, serve))
+        serve.assert_awaited_once()
+
+    def test_unplaced_movement_only_accepts_explicit_pre_route_nvme_demand(self):
+        from faaslora.preloading.preloading_manager import OwnedMovementQueue, MovementOutcome
+        async def run():
+            metadata = dict(trigger_reason='demand', plan_id='arrived-request', target_replica=None,
+                            placement_phase='before_routing')
+            for tier, demand, extra in [('gpu', True, {}), ('host', True, {}),
+                    ('nvme', False, {'trigger_reason': 'residency'}),
+                    ('nvme', True, {'placement_phase': 'selected_replica'})]:
+                queue = OwnedMovementQueue(1)
+                with self.assertRaises(ValueError):
+                    queue.submit(key=('owner', tier, 'adapter', 'content'), intent_id='i',
+                        metadata=metadata | extra, density=0., demand=demand,
+                        action=AsyncMock(return_value=MovementOutcome('completed', {})))
+                await queue.close()
+        asyncio.run(run())
+
     def test_remote_subscriber_does_not_claim_creators_preparation_interval(self):
         from tests.test_http_artifact_store import SizedResponse
         from faaslora.registry.schema import StorageTier

@@ -5394,6 +5394,31 @@ class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
 
 
 class OwnedFileMovement(unittest.TestCase):
+    def test_unplaced_arrived_demand_reports_pressure_to_existing_native_member(self):
+        fixture, runner, queue, engine, ledger = self.make()
+        native_counts = []
+        native_event = engine.ieee_transfer_event
+        async def observed_event(**command):
+            receipt = await native_event(**command)
+            native_counts.append(ledger.snapshot()['active_transfers'])
+            return receipt
+        engine.ieee_transfer_event = observed_event
+        opened = fixture.client._opener.open.side_effect
+        def during_transfer(*args, **kwargs):
+            self.assertEqual(native_counts[-1], 1)
+            return opened(*args, **kwargs)
+        fixture.client._opener.open.side_effect = during_transfer
+        async def run():
+            await runner._attach_ieee_file_pressure(engine)
+            result = await runner._queue_ieee_file_preparation(adapter_id='a',
+                target_tier=StorageTier.NVME, target_engine=None, target_replica=None,
+                trigger_reason='demand', plan_id='already-arrived-request')
+            self.assertTrue(result['_movement']['owns_io'])
+            self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            self.assertEqual(len(runner._adapter_transfer_pressure_evidence), 1)
+            await queue.close()
+        asyncio.run(run())
+
     def make(self):
         from unittest.mock import Mock
         from tests.test_http_artifact_store import archive_bytes, SizedResponse

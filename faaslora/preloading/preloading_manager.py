@@ -77,10 +77,14 @@ class OwnedMovementQueue:
         # key = (physical owner incarnation, target tier, adapter, content identity)
         if key[1] not in ('gpu', 'host', 'nvme'):
             raise ValueError('unknown physical movement target tier')
+        unplaced_file_demand = (isinstance(metadata, dict) and demand and key[1] == 'nvme'
+            and 'target_replica' in metadata and metadata['target_replica'] is None
+            and metadata.get('placement_phase') == 'before_routing')
         if (not isinstance(metadata, dict) or metadata.get('trigger_reason') not in
                 ('handoff', 'residency', 'demand')
-                or any(not isinstance(metadata.get(k), str) or not metadata[k]
-                       for k in ('plan_id', 'target_replica'))
+                or not isinstance(metadata.get('plan_id'), str) or not metadata['plan_id']
+                or (not unplaced_file_demand and
+                    (not isinstance(metadata.get('target_replica'), str) or not metadata['target_replica']))
                 or (metadata['trigger_reason'] == 'handoff' and
                     (not isinstance(metadata.get('activation_id'), str) or not metadata['activation_id']))):
             raise ValueError('movement intent requires plan/trigger/replica/activation provenance')
