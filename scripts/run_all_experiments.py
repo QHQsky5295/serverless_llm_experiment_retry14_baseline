@@ -17262,13 +17262,15 @@ class ScenarioRunner:
                 if reconcile_policy not in (
                         None,
                         'route_confirmed_arrival_reconcile_v1',
-                        'route_confirmed_arrival_reconcile_nonblocking_v1'):
+                        'route_confirmed_arrival_reconcile_nonblocking_v1',
+                        'route_confirmed_arrival_reconcile_reroute_v1'):
                     raise ValueError('unsupported route-confirmed arrival reconciliation policy')
                 effective_arrival_prefetch_task = (
                     arrival_prefetch_task
                     if reconcile_policy in (
                         'route_confirmed_arrival_reconcile_v1',
                         'route_confirmed_arrival_reconcile_nonblocking_v1',
+                        'route_confirmed_arrival_reconcile_reroute_v1',
                     )
                     else None
                 )
@@ -19374,6 +19376,9 @@ class ScenarioRunner:
         reconcile_policy = getattr(self, 'coord_cfg', {}).get(
             'ieee_route_confirmed_arrival_prefetch_reconciliation')
         nonblocking = reconcile_policy == 'route_confirmed_arrival_reconcile_nonblocking_v1'
+        allow_confirmed_nonremote_reroute = (
+            reconcile_policy == 'route_confirmed_arrival_reconcile_reroute_v1'
+        )
         if nonblocking and not arrival_prefetch_task.done():
             record.update(state='not_updated',
                           reason='arrival_prefetch_pending_nonblocking')
@@ -19424,10 +19429,26 @@ class ScenarioRunner:
             record['fresh_snapshot_epoch'] = max(
                 (int(row.epoch) for row in fresh_snapshot), default=None)
             if fresh_slot.instance_id != selected_slot.instance_id:
-                record['reason'] = 'fresh_route_selected_different_replica'
-                return dict(updated=False, record=record, snapshot=snapshot,
-                            source_evidence=source_evidence, decision=selected_decision,
-                            slot=selected_slot)
+                # The arrival prefetch has no authority to move a request by
+                # itself.  Once it has completed, however, a fresh confirmed
+                # snapshot may identify a different replica whose source is
+                # already non-Remote.  Reusing that confirmed decision avoids
+                # waiting for a stale replica and preserves the same
+                # route->snapshot->admission linearization as an ordinary
+                # request.  Never reroute to a fresh Remote source.
+                if not allow_confirmed_nonremote_reroute or fresh_tier == 'remote':
+                    record['reason'] = 'fresh_route_selected_different_replica'
+                    return dict(updated=False, record=record, snapshot=snapshot,
+                                source_evidence=source_evidence, decision=selected_decision,
+                                slot=selected_slot)
+                record.update(
+                    state='updated',
+                    reason='confirmed_prefetch_reroute_published',
+                    selected_source=dict(fresh_source),
+                )
+                return dict(updated=True, record=record, snapshot=fresh_snapshot,
+                            source_evidence=fresh_sources, decision=fresh_decision,
+                            slot=fresh_slot)
             if fresh_tier == 'remote':
                 record['reason'] = 'fresh_route_still_remote'
                 return dict(updated=False, record=record, snapshot=snapshot,
