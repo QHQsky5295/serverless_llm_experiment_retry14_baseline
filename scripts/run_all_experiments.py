@@ -17263,7 +17263,8 @@ class ScenarioRunner:
                         None,
                         'route_confirmed_arrival_reconcile_v1',
                         'route_confirmed_arrival_reconcile_nonblocking_v1',
-                        'route_confirmed_arrival_reconcile_reroute_v1'):
+                        'route_confirmed_arrival_reconcile_reroute_v1',
+                        'route_confirmed_arrival_reconcile_reroute_preadmission_v1'):
                     raise ValueError('unsupported route-confirmed arrival reconciliation policy')
                 effective_arrival_prefetch_task = (
                     arrival_prefetch_task
@@ -17271,9 +17272,16 @@ class ScenarioRunner:
                         'route_confirmed_arrival_reconcile_v1',
                         'route_confirmed_arrival_reconcile_nonblocking_v1',
                         'route_confirmed_arrival_reconcile_reroute_v1',
+                        'route_confirmed_arrival_reconcile_reroute_preadmission_v1',
                     )
                     else None
                 )
+                if reconcile_policy == 'route_confirmed_arrival_reconcile_reroute_preadmission_v1':
+                    await self._maybe_wait_arrival_prefetch_before_admission(
+                        trace=trace,
+                        request_plan=request_plan,
+                        arrival_prefetch_task=effective_arrival_prefetch_task,
+                    )
                 await asyncio.sleep(0)
                 admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
@@ -19336,6 +19344,46 @@ class ScenarioRunner:
             record.update(state='failed', error_type=type(exc).__name__, error=str(exc),
                           settled_monotonic_s=time.monotonic())
             return record
+
+    async def _maybe_wait_arrival_prefetch_before_admission(
+        self,
+        *,
+        trace,
+        request_plan,
+        arrival_prefetch_task,
+    ):
+        """Wait for arrival preparation without holding dispatch capacity.
+
+        This is an advisory pre-admission phase.  It only waits when a fresh
+        confirmed view still selects a Remote source.  No runtime slot,
+        adapter lease, GPU reference, or admission decision is granted here;
+        the normal request path must re-snapshot and revalidate after the
+        shared dispatch admission boundary.
+        """
+        if (arrival_prefetch_task is None or arrival_prefetch_task.done()
+                or not getattr(trace, 'adapter_id', None)
+                or getattr(self, '_routing_policy', None) != 'ieee_confirmed'):
+            return
+        try:
+            committed = await self._ieee_request_snapshot(trace, request_plan)
+            if committed is None:
+                return
+            snapshot, sources = committed
+            slot, decision = self.router.select_instance_with_decision(
+                trace.adapter_id, ieee_snapshot=snapshot)
+            if slot is None or decision is None:
+                return
+            tier = getattr(getattr(decision, 'service_class', None), 'tier', None)
+            if tier != 'remote':
+                return
+        except BaseException:
+            # This check is advisory; the authoritative request path below
+            # handles membership races and failures with its normal retry.
+            return
+        try:
+            await asyncio.shield(arrival_prefetch_task)
+        except BaseException:
+            return
 
     async def _reconcile_arrival_prefetch_route(
         self,

@@ -2462,6 +2462,28 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertIs(outcome['slot'], fresh_slot)
         self.assertEqual(outcome['decision'], nvme_decision)
 
+    def test_preadmission_wait_only_applies_to_fresh_confirmed_remote_route(self):
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        remote_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='remote'),
+            replica_id=slot.instance_id,
+        )
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (SimpleNamespace(epoch=9),),
+            {slot.instance_id: {'source': {'tier': 'remote'}}},
+        ))
+        runner.router.select_instance_with_decision = Mock(
+            return_value=(slot, remote_decision))
+
+        async def run():
+            pending = asyncio.create_task(asyncio.sleep(.01, result={'state': 'completed'}))
+            await runner._maybe_wait_arrival_prefetch_before_admission(
+                trace=trace, request_plan=plan, arrival_prefetch_task=pending)
+            return pending.done()
+
+        self.assertTrue(asyncio.run(run()))
+        runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
+
     def test_nonblocking_arrival_prefetch_does_not_wait_for_pending_task(self):
         runner, slot, trace, plan, _, _ = self.build('remote')
         runner.coord_cfg = {
