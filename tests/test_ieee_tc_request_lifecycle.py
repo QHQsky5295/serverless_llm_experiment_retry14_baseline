@@ -2298,7 +2298,8 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         sentinel = SimpleNamespace(gpu_reference_evidence={
             'source_admission': {'source': {'tier': 'remote'}}})
 
-        async def serve():
+        async def serve(arrival_prefetch_task):
+            self.assertIsNotNone(arrival_prefetch_task)
             return sentinel
 
         result = asyncio.run(
@@ -2309,6 +2310,54 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             result.gpu_reference_evidence['route_confirmed_arrival_file_preparation']['state'],
             'completed')
         runner._arrived_route_confirmed_file_preparation.assert_awaited_once_with(trace, plan)
+
+    def test_completed_arrival_prefetch_reconciles_confirmed_nvme_tier(self):
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        remote_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='remote'),
+            replica_id=slot.instance_id,
+        )
+        nvme_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='nvme'),
+            replica_id=slot.instance_id,
+        )
+        fresh_row = SimpleNamespace(epoch=9)
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (fresh_row,),
+            {slot.instance_id: {'source': {
+                'tier': 'nvme', 'native': False, 'path': '/nvme/adapter-a',
+                'content_sha256': 'a' * 64,
+                'representation': 'verified_regular_file_tree_v1',
+            }}},
+        ))
+        runner.router.select_instance_with_decision = Mock(
+            return_value=(slot, nvme_decision))
+
+        async def run():
+            prefetch = asyncio.create_task(asyncio.sleep(0, result={
+                'kind': 'route_confirmed_arrival_file_preparation_v1',
+                'state': 'completed',
+            }))
+            return await runner._reconcile_arrival_prefetch_route(
+                trace=trace,
+                request_plan=plan,
+                arrival_prefetch_task=prefetch,
+                selected_slot=slot,
+                selected_decision=remote_decision,
+                snapshot=(SimpleNamespace(epoch=8),),
+                source_evidence={slot.instance_id: {'source': {
+                    'tier': 'remote', 'native': False,
+                    'content_sha256': 'a' * 64,
+                    'representation': 'tar_gzip_verified_file_tree_v1',
+                }}},
+            )
+
+        outcome = asyncio.run(run())
+        self.assertTrue(outcome['updated'])
+        self.assertEqual(outcome['record']['reason'], 'confirmed_prefetch_published')
+        self.assertEqual(outcome['record']['after_tier'], 'nvme')
+        self.assertEqual(outcome['decision'], nvme_decision)
+        runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
 
     def test_arrival_preparation_coalesces_two_observed_demands_without_gpu_slots(self):
         runner, slot, trace, _, _, _ = self.build('remote')

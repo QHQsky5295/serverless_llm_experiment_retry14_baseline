@@ -17254,9 +17254,18 @@ class ScenarioRunner:
                     max_tokens,
                 )
                 request_plan_cache[trace.request_id] = request_plan
-            async def serve():
+            async def serve(arrival_prefetch_task=None):
                 # Include dispatcher yielding and every service queue in the
                 # same offered-arrival deadline, including already-late tasks.
+                reconcile_policy = getattr(self, 'coord_cfg', {}).get(
+                    'ieee_route_confirmed_arrival_prefetch_reconciliation')
+                if reconcile_policy not in (None, 'route_confirmed_arrival_reconcile_v1'):
+                    raise ValueError('unsupported route-confirmed arrival reconciliation policy')
+                effective_arrival_prefetch_task = (
+                    arrival_prefetch_task
+                    if reconcile_policy == 'route_confirmed_arrival_reconcile_v1'
+                    else None
+                )
                 await asyncio.sleep(0)
                 admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
@@ -17275,6 +17284,7 @@ class ScenarioRunner:
                         max_tokens,
                         temperature,
                         request_plan=request_plan,
+                        arrival_prefetch_task=effective_arrival_prefetch_task,
                         dispatch_admission_wait_ms=dispatch_admission_wait_ms,
                         dispatch_window_wait_ms=dispatch_window_wait_ms,
                         arrival_release_lateness_ms=arrival_release_lateness_ms,
@@ -17908,7 +17918,7 @@ class ScenarioRunner:
             overlap = asyncio.create_task(
                 self._arrived_route_confirmed_file_preparation(trace, request_plan))
             try:
-                result = await serve()
+                result = await serve(overlap)
             except BaseException:
                 if not overlap.done():
                     overlap.cancel()
@@ -17996,6 +18006,7 @@ class ScenarioRunner:
         temperature: float,
         *,
         request_plan: Optional[RequestExecutionPlan] = None,
+        arrival_prefetch_task: Optional[asyncio.Task] = None,
         dispatch_admission_wait_ms: float = 0.0,
         dispatch_window_wait_ms: float = 0.0,
         arrival_release_lateness_ms: float = 0.0,
@@ -18017,7 +18028,8 @@ class ScenarioRunner:
         try:
             return await self._exec_request_in_reservation(
                 trace, max_tokens, temperature, _reservation=reservation,
-                request_plan=request_plan, dispatch_admission_wait_ms=dispatch_admission_wait_ms,
+                request_plan=request_plan, arrival_prefetch_task=arrival_prefetch_task,
+                dispatch_admission_wait_ms=dispatch_admission_wait_ms,
                 dispatch_window_wait_ms=dispatch_window_wait_ms,
                 arrival_release_lateness_ms=arrival_release_lateness_ms,
                 scheduled_arrival_offset_s=scheduled_arrival_offset_s,
@@ -19302,6 +19314,105 @@ class ScenarioRunner:
                           settled_monotonic_s=time.monotonic())
             return record
 
+    async def _reconcile_arrival_prefetch_route(
+        self,
+        *,
+        trace,
+        request_plan,
+        arrival_prefetch_task,
+        selected_slot,
+        selected_decision,
+        snapshot,
+        source_evidence,
+    ):
+        """Re-observe a completed arrival prefetch before source admission.
+
+        The arrival task is only an owned file movement.  It has no routing or
+        admission authority.  Once it publishes a verified NVMe target, the
+        request path may collect one fresh confirmed snapshot and use the new
+        tier only when the same replica remains selected.  A changed replica,
+        failed movement, or still-Remote source leaves the original decision
+        untouched.  This closes the D1000 state-propagation gap without
+        treating a prefetch receipt as a residency or GPU lease.
+        """
+        record = dict(
+            kind='route_confirmed_arrival_prefetch_reconciliation_v1',
+            request_id=getattr(trace, 'request_id', None),
+            adapter_id=getattr(trace, 'adapter_id', None),
+            before_tier=(getattr(getattr(selected_decision, 'service_class', None),
+                                 'tier', None)
+                         if selected_decision is not None else None),
+            selected_replica_id=getattr(selected_slot, 'instance_id', None),
+            state='not_updated',
+        )
+        if arrival_prefetch_task is None:
+            record['reason'] = 'no_arrival_prefetch_task'
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
+        try:
+            prefetch = await asyncio.shield(arrival_prefetch_task)
+        except asyncio.CancelledError:
+            record.update(state='not_updated', reason='arrival_prefetch_cancelled')
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
+        except BaseException as exc:
+            record.update(state='not_updated', reason='arrival_prefetch_failed',
+                          error_type=type(exc).__name__)
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
+        if not isinstance(prefetch, dict) or prefetch.get('state') != 'completed':
+            record.update(state='not_updated', reason='arrival_prefetch_not_completed',
+                          prefetch_state=(prefetch.get('state') if isinstance(prefetch, dict) else None))
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
+        record['prefetch_state'] = 'completed'
+        try:
+            committed = await self._ieee_request_snapshot(trace, request_plan)
+            if committed is None:
+                record['reason'] = 'fresh_snapshot_membership_rejected'
+                return dict(updated=False, record=record, snapshot=snapshot,
+                            source_evidence=source_evidence, decision=selected_decision,
+                            slot=selected_slot)
+            fresh_snapshot, fresh_sources = committed
+            fresh_slot, fresh_decision = self.router.select_instance_with_decision(
+                trace.adapter_id, ieee_snapshot=fresh_snapshot)
+            if fresh_slot is None or fresh_decision is None:
+                record['reason'] = 'fresh_snapshot_no_feasible_route'
+                return dict(updated=False, record=record, snapshot=snapshot,
+                            source_evidence=source_evidence, decision=selected_decision,
+                            slot=selected_slot)
+            record['fresh_selected_replica_id'] = fresh_slot.instance_id
+            fresh_source = (fresh_sources.get(fresh_slot.instance_id, {}) or {}).get('source')
+            fresh_tier = fresh_source.get('tier') if isinstance(fresh_source, dict) else None
+            record['after_tier'] = fresh_tier
+            record['fresh_snapshot_epoch'] = max(
+                (int(row.epoch) for row in fresh_snapshot), default=None)
+            if fresh_slot.instance_id != selected_slot.instance_id:
+                record['reason'] = 'fresh_route_selected_different_replica'
+                return dict(updated=False, record=record, snapshot=snapshot,
+                            source_evidence=source_evidence, decision=selected_decision,
+                            slot=selected_slot)
+            if fresh_tier == 'remote':
+                record['reason'] = 'fresh_route_still_remote'
+                return dict(updated=False, record=record, snapshot=snapshot,
+                            source_evidence=source_evidence, decision=selected_decision,
+                            slot=selected_slot)
+            record.update(state='updated', reason='confirmed_prefetch_published',
+                          selected_source=dict(fresh_source))
+            return dict(updated=True, record=record, snapshot=fresh_snapshot,
+                        source_evidence=fresh_sources, decision=fresh_decision,
+                        slot=fresh_slot)
+        except BaseException as exc:
+            record.update(state='not_updated', reason='fresh_snapshot_failed',
+                          error_type=type(exc).__name__)
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
+
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:
             reservation.slot.status = 'draining'
@@ -19596,6 +19707,7 @@ class ScenarioRunner:
         *,
         _reservation: RuntimeRequestReservation,
         request_plan: Optional[RequestExecutionPlan] = None,
+        arrival_prefetch_task: Optional[asyncio.Task] = None,
         dispatch_admission_wait_ms: float = 0.0,
         dispatch_window_wait_ms: float = 0.0,
         arrival_release_lateness_ms: float = 0.0,
@@ -19613,6 +19725,8 @@ class ScenarioRunner:
         adapter_path_resolution_us = 0.0
         gpu_admission_decision_us = 0.0
         selected_instance_age_s = 0.0
+        arrival_prefetch_reconciled = False
+        arrival_prefetch_reconciliation = None
         # Partition at the SAME global-admission boundary used by run_one.
         # Starting another clock here drops request lookup/reservation setup
         # (D123: three >1 ms errors in dispatch, TTFT and E2E alike).
@@ -19669,6 +19783,31 @@ class ScenarioRunner:
                         ).strip().lower() or selected_readiness_tier
                     except Exception:
                         selected_readiness_tier = "remote"
+            if (
+                ieee_routing
+                and slot is not None
+                and adapter_id
+                and selected_readiness_tier == 'remote'
+                and arrival_prefetch_task is not None
+                and not arrival_prefetch_reconciled
+            ):
+                reconciliation = await self._reconcile_arrival_prefetch_route(
+                    trace=trace,
+                    request_plan=request_plan,
+                    arrival_prefetch_task=arrival_prefetch_task,
+                    selected_slot=slot,
+                    selected_decision=selected_ieee_decision,
+                    snapshot=snapshot,
+                    source_evidence=source_evidence,
+                )
+                arrival_prefetch_reconciled = True
+                arrival_prefetch_reconciliation = reconciliation.get('record')
+                if reconciliation.get('updated'):
+                    snapshot = reconciliation['snapshot']
+                    source_evidence = reconciliation['source_evidence']
+                    selected_ieee_decision = reconciliation['decision']
+                    slot = reconciliation['slot']
+                    selected_readiness_tier = selected_ieee_decision.service_class.tier
             routing_decision_us += max(
                 0.0,
                 (time.perf_counter_ns() - routing_started_ns) / 1000.0,
@@ -19680,6 +19819,10 @@ class ScenarioRunner:
             if reserved:
                 _reservation.bind(slot, adapter_id, active_adapter_reserved)
                 if ieee_routing:
+                    if arrival_prefetch_reconciliation is not None:
+                        _reservation.gpu_reference_evidence[
+                            'arrival_prefetch_route_reconciliation'] = copy.deepcopy(
+                                arrival_prefetch_reconciliation)
                     record = dict(kind='ieee_predecision_received_view_v1',
                         selected_replica_id=slot.instance_id,
                         selection_contract=self.router.selection_contract(),
