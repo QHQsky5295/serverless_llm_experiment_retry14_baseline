@@ -17,13 +17,13 @@ execution path. Admission and reservation authority were intentionally kept in
 the normal path; the reconciliation code was not allowed to grant a lease or
 admission by itself.
 
-The implementation gate and unit-level behavior were present. However, the
-completed run did **not** persist a request-level
-`arrival_prefetch_route_reconciliation` record or an aggregate trigger count in
-the final result. Therefore this run cannot establish how often reconciliation
-was invoked, accepted, rejected, or changed a route. The performance result is
-usable as an auditable observation, but a causal claim for the proposed
-mechanism would be unsupported.
+The implementation gate and unit-level behavior were present, and the final
+request records did persist the reconciliation evidence. The run contains 509
+reconciliation records: 249 changed the confirmed source to a local tier and
+260 did not update the route. This makes the mechanism observable, but the
+result still does not establish that the route change itself caused the
+regression, because the reconciliation path also changes the critical-path
+waiting and scale-out timing.
 
 ## Execution integrity and provenance
 
@@ -75,42 +75,56 @@ TTFT-only failures were 156, TPOT-only failures 137, and two-sided failures
 
 ## Mechanism evidence and limitation
 
-The configuration contains the reconciliation gate and the unit test verifies
-the intended state transition in isolation. The full-run result rows contain
-the ordinary readiness, mismatch, timing, and admission fields, but no
-persisted reconciliation evidence. Searches of the raw result and service log
-also found no request-level reconciliation event. Consequently:
+The configuration contains the reconciliation gate, the unit test verifies the
+state transition in isolation, and the full run records the following values
+inside each request's `gpu_reference_evidence`:
 
-1. the gate was configured and code-tested;
-2. full-run activation and route-change frequency are unknown;
-3. no performance difference can be attributed specifically to successful
-   reconciliation;
-4. the result must not be described as proof that confirmed-tier propagation
-   helps or hurts.
+| Reconciliation outcome | Count |
+|---|---:|
+| `updated` (`confirmed_prefetch_published`) | 249 |
+| `not_updated` | 260 |
+| `fresh_route_selected_different_replica` | 258 |
+| `arrival_prefetch_not_completed` | 1 |
+| `fresh_snapshot_membership_rejected` | 1 |
+| Total records | 509 |
 
-This is a measurement-contract defect to correct before any future test of
-the hypothesis, not a reason to rerun the same execution key. A future
-candidate must record the reconciliation state in the request row and an
-aggregate count, while retaining the same trace, SLO contract, and physical
-resource accounting.
+The 249 updated records selected NVMe in 247 cases, host in one case, and GPU
+in one case. The 260 non-updated records had a mean TTFT of 2,464.9 ms,
+compared with 2,159.5 ms for updated records; both groups are concentrated in
+the late remote-preparation population and should not be interpreted as a
+randomized treatment comparison.
+
+This evidence rules out the earlier hypothesis that the gate was simply never
+reached. It does **not** isolate route reconciliation from its waiting cost:
+`_reconcile_arrival_prefetch_route` shields and awaits the arrival task before
+collecting a fresh snapshot. When the task is still in flight, this turns an
+intended overlap into a serial wait before reservation. The concurrent increase
+from four scale-ups/no scale-downs in D1000 to ten scale-ups/nine scale-downs
+in D1001, together with higher dispatch and ingress waits, is consistent with
+that critical-path serialization. It is a falsifiable implementation-level
+explanation, not a post-hoc claim that route reconciliation is intrinsically
+harmful.
 
 ## Bottleneck interpretation
 
 Relative to D1000, D1001 produced more scale churn (10 scale-ups and 9
 scale-downs versus D1000's 4 scale-ups and no scale-downs), higher dispatch
-and ingress waiting, and worse TTFT. Because the reconciliation trigger is
-not recorded, the most defensible interpretation is that the added waiting
-and/or altered control-path timing interacted adversely with scale-out; the
-data do not identify whether the route update itself, the wait for its input,
-or a downstream admission consequence caused the regression.
+and ingress waiting, and worse TTFT. The persisted evidence identifies the
+most plausible next bottleneck as the unconditional await of the arrival task,
+not the existence of a second confirmed snapshot by itself. The data still do
+not prove whether the remaining loss is entirely from that wait or partly from
+the altered route/admission state.
 
 The next step is therefore a code-and-log audit of the reconciliation path and
-its scale-event interaction, followed by one new falsifiable candidate only
-after request-level evidence is made observable. Blindly enabling a locality
-slack or repeating D1001 would not be justified: historical locality audits
-show that a non-GPU tier can have lower exact service cost than a GPU choice,
-so locality must be evaluated with the full cost and SLO state rather than a
-GPU-preference rule.
+its scale-event interaction, followed by one new falsifiable candidate that
+keeps reconciliation non-blocking: consume the task only when it is already
+complete; otherwise preserve the original confirmed route and let normal
+admission proceed. The candidate must retain the same request-level evidence
+and compare its scale-event and wait distributions with D1000. Blindly
+enabling a locality slack or repeating D1001 would not be justified: historical
+locality audits show that a non-GPU tier can have lower exact service cost than
+a GPU choice, so locality must be evaluated with the full cost and SLO state
+rather than a GPU-preference rule.
 
 ## Decision
 
