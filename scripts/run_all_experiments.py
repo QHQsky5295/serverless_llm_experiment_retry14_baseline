@@ -17259,7 +17259,10 @@ class ScenarioRunner:
                 # same offered-arrival deadline, including already-late tasks.
                 reconcile_policy = getattr(self, 'coord_cfg', {}).get(
                     'ieee_route_confirmed_arrival_prefetch_reconciliation')
-                if reconcile_policy not in (None, 'route_confirmed_arrival_reconcile_v1'):
+                if reconcile_policy not in (
+                        None,
+                        'route_confirmed_arrival_reconcile_v1',
+                        'route_confirmed_arrival_reconcile_nonblocking_v1'):
                     raise ValueError('unsupported route-confirmed arrival reconciliation policy')
                 effective_arrival_prefetch_task = (
                     arrival_prefetch_task
@@ -19325,7 +19328,7 @@ class ScenarioRunner:
         snapshot,
         source_evidence,
     ):
-        """Re-observe a completed arrival prefetch before source admission.
+        """Re-observe an arrival prefetch before source admission.
 
         The arrival task is only an owned file movement.  It has no routing or
         admission authority.  Once it publishes a verified NVMe target, the
@@ -19350,8 +19353,19 @@ class ScenarioRunner:
             return dict(updated=False, record=record, snapshot=snapshot,
                         source_evidence=source_evidence, decision=selected_decision,
                         slot=selected_slot)
+        reconcile_policy = getattr(self, 'coord_cfg', {}).get(
+            'ieee_route_confirmed_arrival_prefetch_reconciliation')
+        nonblocking = reconcile_policy == 'route_confirmed_arrival_reconcile_nonblocking_v1'
+        if nonblocking and not arrival_prefetch_task.done():
+            record.update(state='not_updated',
+                          reason='arrival_prefetch_pending_nonblocking')
+            return dict(updated=False, record=record, snapshot=snapshot,
+                        source_evidence=source_evidence, decision=selected_decision,
+                        slot=selected_slot)
         try:
-            prefetch = await asyncio.shield(arrival_prefetch_task)
+            prefetch = (arrival_prefetch_task.result()
+                        if nonblocking else
+                        await asyncio.shield(arrival_prefetch_task))
         except asyncio.CancelledError:
             record.update(state='not_updated', reason='arrival_prefetch_cancelled')
             return dict(updated=False, record=record, snapshot=snapshot,

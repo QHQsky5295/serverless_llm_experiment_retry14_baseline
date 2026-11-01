@@ -2359,6 +2359,45 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertEqual(outcome['decision'], nvme_decision)
         runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
 
+    def test_nonblocking_arrival_prefetch_does_not_wait_for_pending_task(self):
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch_reconciliation':
+                'route_confirmed_arrival_reconcile_nonblocking_v1'
+        }
+        remote_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='remote'),
+            replica_id=slot.instance_id,
+        )
+        runner._ieee_request_snapshot = AsyncMock()
+
+        async def run():
+            pending = asyncio.create_task(asyncio.sleep(60, result={
+                'state': 'completed'}))
+            try:
+                return await runner._reconcile_arrival_prefetch_route(
+                    trace=trace,
+                    request_plan=plan,
+                    arrival_prefetch_task=pending,
+                    selected_slot=slot,
+                    selected_decision=remote_decision,
+                    snapshot=(SimpleNamespace(epoch=8),),
+                    source_evidence={slot.instance_id: {'source': {
+                        'tier': 'remote', 'native': False,
+                        'content_sha256': 'a' * 64,
+                        'representation': 'tar_gzip_verified_file_tree_v1',
+                    }}},
+                )
+            finally:
+                pending.cancel()
+                await asyncio.gather(pending, return_exceptions=True)
+
+        outcome = asyncio.run(run())
+        self.assertFalse(outcome['updated'])
+        self.assertEqual(
+            outcome['record']['reason'], 'arrival_prefetch_pending_nonblocking')
+        runner._ieee_request_snapshot.assert_not_awaited()
+
     def test_arrival_preparation_coalesces_two_observed_demands_without_gpu_slots(self):
         runner, slot, trace, _, _, _ = self.build('remote')
         client = self.file_source(runner, trace)
