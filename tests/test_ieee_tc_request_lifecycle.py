@@ -2296,7 +2296,10 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             return_value={'kind': 'route_confirmed_arrival_file_preparation_v1',
                           'state': 'completed', 'admission_granted': False})
         sentinel = SimpleNamespace(gpu_reference_evidence={
-            'source_admission': {'source': {'tier': 'remote'}}})
+            'source_admission': {'source': {'tier': 'remote'}},
+            'route_confirmed_arrival_file_preparation': {
+                'state': 'completed',
+            }})
 
         async def serve(arrival_prefetch_task):
             self.assertIsNotNone(arrival_prefetch_task)
@@ -2310,6 +2313,54 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             result.gpu_reference_evidence['route_confirmed_arrival_file_preparation']['state'],
             'completed')
         runner._arrived_route_confirmed_file_preparation.assert_awaited_once_with(trace, plan)
+
+    def test_route_confirmed_arrival_pre_admission_waits_before_serve(self):
+        runner, _, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch':
+                'route_confirmed_arrival_prefetch_v1',
+            'ieee_route_confirmed_arrival_admission':
+                'route_confirmed_arrival_pre_admission_v1',
+        }
+        order = []
+        release = asyncio.Event()
+
+        async def prepare(*args):
+            await release.wait()
+            order.append('prefetch_done')
+            return {
+                'kind': 'route_confirmed_arrival_file_preparation_v1',
+                'state': 'completed',
+                'admission_granted': False,
+            }
+
+        runner._arrived_route_confirmed_file_preparation = prepare
+        sentinel = SimpleNamespace(gpu_reference_evidence={
+            'source_admission': {'source': {'tier': 'remote'}},
+            'route_confirmed_arrival_file_preparation': {
+                'state': 'completed',
+            }})
+
+        async def serve(arrival_prefetch_task):
+            order.append(('serve', arrival_prefetch_task.done()))
+            return sentinel
+
+        async def run():
+            task = asyncio.create_task(
+                runner._serve_with_arrived_file_preparation(
+                    trace, serve, request_plan=plan))
+            await asyncio.sleep(0)
+            self.assertEqual(order, [])
+            release.set()
+            return await task
+
+        result = asyncio.run(run())
+        self.assertIs(result, sentinel)
+        self.assertEqual(order, ['prefetch_done', ('serve', True)])
+        self.assertEqual(
+            result.gpu_reference_evidence[
+                'route_confirmed_arrival_file_preparation']['admission_placement'],
+            'pre_dispatch')
 
     def test_completed_arrival_prefetch_reconciles_confirmed_nvme_tier(self):
         runner, slot, trace, plan, _, _ = self.build('remote')

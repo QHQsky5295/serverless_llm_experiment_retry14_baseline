@@ -17914,6 +17914,11 @@ class ScenarioRunner:
         if arrival_route_policy is not None:
             if arrival_route_policy != 'route_confirmed_arrival_prefetch_v1':
                 raise ValueError('unsupported route-confirmed arrival preparation policy')
+            arrival_admission_policy = getattr(self, 'coord_cfg', {}).get(
+                'ieee_route_confirmed_arrival_admission')
+            if arrival_admission_policy not in (
+                    None, 'route_confirmed_arrival_pre_admission_v1'):
+                raise ValueError('unsupported route-confirmed arrival admission policy')
             # The helper performs only a confirmed snapshot and submits the
             # existing owned movement.  It runs concurrently with dispatch
             # admission; unlike the historical arrival-preparation candidate,
@@ -17924,6 +17929,13 @@ class ScenarioRunner:
             overlap = asyncio.create_task(
                 self._arrived_route_confirmed_file_preparation(trace, request_plan))
             try:
+                if arrival_admission_policy == 'route_confirmed_arrival_pre_admission_v1':
+                    # Preparation ownership is independent from runtime-lane
+                    # ownership.  Waiting here keeps a cold file movement out
+                    # of slot.active_requests and the runtime busy-service
+                    # observation; the request's arrival-to-admission clock
+                    # still includes this wait through the enclosing wrapper.
+                    await asyncio.shield(overlap)
                 result = await serve(overlap)
             except BaseException:
                 if not overlap.done():
@@ -17952,6 +17964,9 @@ class ScenarioRunner:
                     admission_granted=False,
                 )
             result.gpu_reference_evidence['route_confirmed_arrival_file_preparation'] = record
+            if (arrival_admission_policy == 'route_confirmed_arrival_pre_admission_v1'
+                    and isinstance(record, dict)):
+                record['admission_placement'] = 'pre_dispatch'
             return result
         policy = getattr(self, 'coord_cfg', {}).get('ieee_arrival_file_preparation')
         if policy is None:
