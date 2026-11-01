@@ -17266,7 +17266,10 @@ class ScenarioRunner:
                     raise ValueError('unsupported route-confirmed arrival reconciliation policy')
                 effective_arrival_prefetch_task = (
                     arrival_prefetch_task
-                    if reconcile_policy == 'route_confirmed_arrival_reconcile_v1'
+                    if reconcile_policy in (
+                        'route_confirmed_arrival_reconcile_v1',
+                        'route_confirmed_arrival_reconcile_nonblocking_v1',
+                    )
                     else None
                 )
                 await asyncio.sleep(0)
