@@ -23538,6 +23538,14 @@ def _apply_explicit_env_overrides(
         float,
     )
     _apply("FAASLORA_MAX_CONCURRENT_LOADS", coord_cfg, "max_concurrent_loads", int)
+    predictive_scaling_cfg = coord_cfg.get("ieee_predictive_scaling")
+    if isinstance(predictive_scaling_cfg, dict):
+        _apply(
+            "FAASLORA_IEEE_ALLOW_FORECAST_SCALE_DOWN",
+            predictive_scaling_cfg,
+            "allow_forecast_scale_down",
+            _parse_env_bool,
+        )
     _apply("FAASLORA_ROUTING_POLICY", coord_cfg, "routing_policy", lambda v: str(v).strip().lower())
     _apply(
         "FAASLORA_COORDINATION_ENABLED",

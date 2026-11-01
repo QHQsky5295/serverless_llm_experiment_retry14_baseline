@@ -203,7 +203,9 @@ class MainlineConfigSmokeTests(unittest.TestCase):
             "enable_prefix_caching": False,
         }
         workload_cfg = {}
-        coord_cfg = {}
+        coord_cfg = {
+            "ieee_predictive_scaling": {"allow_forecast_scale_down": True},
+        }
         hw_cfg = {}
 
         with patch.dict(
@@ -216,6 +218,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 "FAASLORA_ENABLE_CHUNKED_PREFILL": "true",
                 "FAASLORA_ENABLE_PREFIX_CACHING": "true",
                 "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE": "true",
+                "FAASLORA_IEEE_ALLOW_FORECAST_SCALE_DOWN": "false",
             },
             clear=False,
         ):
@@ -233,6 +236,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertTrue(model_cfg["enable_chunked_prefill"])
         self.assertTrue(model_cfg["enable_prefix_caching"])
         self.assertTrue(coord_cfg["ieee_route_identity_recheck_cache"])
+        self.assertFalse(coord_cfg["ieee_predictive_scaling"]["allow_forecast_scale_down"])
         self.assertEqual(
             applied,
             {
@@ -243,6 +247,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 "FAASLORA_ENABLE_CHUNKED_PREFILL": True,
                 "FAASLORA_ENABLE_PREFIX_CACHING": True,
                 "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE": True,
+                "FAASLORA_IEEE_ALLOW_FORECAST_SCALE_DOWN": False,
             },
         )
 
