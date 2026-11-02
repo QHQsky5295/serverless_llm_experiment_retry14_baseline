@@ -1,0 +1,60 @@
+{
+  "kind": "retained_native_descriptor_activation_audit_v1",
+  "recorded_date": "2026-11-02",
+  "source_commit": "0b826147ae000fc288dd59d9945dd0efad8b3be1",
+  "production_source_changed": false,
+  "previous_goal_turn": "progress: D1016 completed, analyzed and backed up",
+  "observations": [
+    {
+      "run": "d1000_20261101/d1000_3b_route_confirmed_arrival_prefetch_w1",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1000_20261101/d1000_3b_route_confirmed_arrival_prefetch_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1000_3b_route_confirmed_arrival_prefetch_w1.json",
+      "sha256": "f1d0d342814e77e2d41c0cc8d7641aa3e40fb70112b5202e2e8d6b0f5b92dfb0",
+      "request_count": 4000,
+      "receipt_field": "gpu_reference_evidence.receipt.native_host_descriptor",
+      "descriptor_kind_counts": {"python_tensor_descriptor_v1": 4000},
+      "missing": 0
+    },
+    {
+      "run": "d1016_20261102_attempt2/d1016_attempt2_3b_native_prefix1000",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102_attempt2/d1016_attempt2_3b_native_prefix1000/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1016_attempt2_3b_native_prefix1000.json",
+      "sha256": "7b289b0eceb47d269d6e256d9f2d1ac8fbc9a3488062b65162466d1d3a15fb9e",
+      "request_count": 1000,
+      "receipt_field": "gpu_reference_evidence.receipt.native_host_descriptor",
+      "descriptor_kind_counts": {"python_tensor_descriptor_v1": 1000},
+      "missing": 0
+    }
+  ],
+  "collection": {
+    "method": "existing ijson.items per-request projection",
+    "prefix": "detailed_results.tc_ieee_full.requests.item",
+    "auxiliary_unit": "primelora-tc-aux-3a411c2b29af472fbacb1090d1017003.scope",
+    "returncode": 0,
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpu_affinity": [2, 3, 26, 27],
+    "peak_resource_log": null,
+    "preliminary_wrong_source_probe": "The same detailed_results prefix was first applied to main_outcome.json and returned zero rows; it was not accepted as missing receipts. Correct adjacent experiment_results sources above yielded the complete expected populations."
+  },
+  "candidate": {
+    "run_id": "d1017_20261102",
+    "run_tag": "d1017_3b_restored_fresh_descriptor_w2",
+    "runner": "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh",
+    "runner_sha256": "b4b6cc7dec705cb63d5b86465d937602e1a6cda86e1bb423ae2176dadd971633",
+    "config": "configs/ieee_tc/20261101_d1000_3b_route_confirmed_arrival_prefetch_w1.yaml",
+    "config_sha256": "f0009adf6de00590ba6e7e1dcc882ac85ef48be3e035a49545855a40558b9c05",
+    "path_overrides": "Existing runner overrides output/NVMe/HOST by unique run_id/run_tag; no configuration or trace regeneration.",
+    "native_library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "native_library_sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "inventory_mode": "descriptor",
+    "expected_native_kind": "fresh_native_tensor_descriptor_v1",
+    "profile_observer": null,
+    "request_count": 4000,
+    "workload": "W2",
+    "formal_run": false,
+    "n_correct": null,
+    "performance_result": null,
+    "historical_counterpart": "D749 retained D748 after 3787/4000 versus D742 3727/4000; later D886 explicitly retained the D747 descriptor. Those are not current-version performance predictions.",
+    "exclusions": "No whole-graph D866 mode, tensor-state cache, deferred source confirmation, isal restoration, controller change, threshold change or repeat of an existing execution key."
+  }
+}
