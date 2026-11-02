@@ -192,6 +192,19 @@ class D519DiagnosticContract(unittest.TestCase):
 
 
 class D1016CurrentNativeDiagnosticContract(unittest.TestCase):
+    def test_measurement_repair_attempt_uses_new_paths_without_policy_change(self):
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        block = re.search(r'^  d1016_attempt2_3b_native_prefix1000\)(.*?)^    ;;',
+                          wrapper, re.M | re.S).group(1)
+        self.assertIn('/d1016_20261102_attempt2', block)
+        self.assertEqual(wrapper.count('d1016_attempt2_3b_native_prefix1000'), 1)
+        self.assertNotIn('export ', block)
+        runner = (ROOT/'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh').read_text()
+        self.assertIn('export FAASLORA_OUTPUT_DIR="$RAW"', runner)
+        self.assertIn('export FAASLORA_NVME_CACHE_DIR="$RAW_ROOT/$RUN_ID/${RUN_TAG}_nvme"', runner)
+        self.assertIn('export FAASLORA_HOST_CACHE_DIR="/dev/shm/tc-$RUN_TAG"', runner)
+        self.assertIn('mkdir "$RAW"', runner)
+
     def test_current_d1000_policy_only_three_exclusive_paths_change(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261101_d1000_3b_route_confirmed_arrival_prefetch_w1.yaml').read_text())
         new = yaml.safe_load((ROOT/'configs/ieee_tc/20261102_d1016_3b_native_prefix1000.yaml').read_text())

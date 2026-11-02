@@ -167,3 +167,37 @@ pidfd_send_signal 失败；改用既定 `/usr/bin/python3` 后原测试通过，
 只完成原登记的 1000 请求问题，不追加另一套性能 smoke 或扩大诊断样本。
 重新启动前仍检查磁盘/内存、源与备份；当前尚未运行修正后的 GPU attempt。
 最终主线与全部未完成项不变。
+
+## 修正测量错误后的 attempt 2 登记
+
+2026-11-02：新身份为 `d1016_20261102_attempt2/`
+`d1016_attempt2_3b_native_prefix1000`，不覆盖上一中止目录。复用原 D1016
+配置（SHA `1f6ecbbff539862823bafe4964335ca7267149cea2099f24f3cc0db807cef286`），
+原 runner 用新 run ID/tag 覆盖 output、NVMe、HOST 三个独占路径；不复制
+工件或负载、不改变任何性能参数。wrapper 只新增该 tag 的观察输出目录。
+这是修复已确认测量错误后的新 attempt，不是追加胜负/覆盖率采样。
+
+```bash
+env -u FAASLORA_REMOTE_ARTIFACT_GZIP_DECODER \
+  PYTHONPATH=/home/qhq/serverless_llm_experiment_retry14_baseline \
+  FAASLORA_D1000_RUN_ID=d1016_20261102_attempt2 \
+  FAASLORA_D1000_RUN_TAG=d1016_attempt2_3b_native_prefix1000 \
+  FAASLORA_D1000_CONFIG=configs/ieee_tc/20261102_d1016_3b_native_prefix1000.yaml \
+  FAASLORA_D1000_PREFIX_COUNT=1000 \
+  FAASLORA_D1000_NATIVE_PROFILE=host_spans_v1 \
+  bash scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh
+```
+
+继续复用上一轮 37 项诊断合同检查与修正后的 22 项 GPU 归属/监督检查；
+本轮只检查新输出映射和 shell 语法，不重复广泛资格。上一中止记录、完整
+分析的输入完整性要求、观察上限、资源保护、未知数值正确性均保持不变。
+本节登记时尚未启动，不预写成功或瓶颈结论。用户修改的总 tracker 不覆盖；
+本文件继续承接实际状态。完整主比较、A1–A5、S1–S13及最终交付不删减。
+
+attempt 2 启动前：新映射和既有两项 D1016 合同共 3 项通过，两个 shell
+语法通过；147 项旧结果核验不变。可用磁盘 161612382208 B（约 150.51 GiB），
+MemAvailable 111611817984 B（约 103.95 GiB），没有 GPU 计算任务或 tmux
+实验。原生前缀最多 32 GiB 新增预算沿用旧值，不改变 150/100 GiB 门槛。
+再次只读认证 health 成功，既有 remote clock ID 与交付模式不变，不重启服务。
+GPU 归属修正已在提交 `b9fc395e6fa7ac4a245dfa94727047fc1d5fd1f2` 保存；
+本次只登记新输出路径，不再次修改监督或生产策略。
