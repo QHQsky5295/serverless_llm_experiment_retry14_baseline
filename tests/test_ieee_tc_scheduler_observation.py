@@ -500,6 +500,56 @@ class NativeHookWiring(unittest.TestCase):
             asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
                 False, True, 8, 16))
         self.assertNotIn('compilation_config', args_mock.call_args.kwargs)
+        self.assertNotIn('specialize_active_lora', args_mock.call_args.kwargs)
+
+    def test_native_active_lora_specialization_forwarded_and_identity_preserved(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        for enabled in (False, True):
+            with self.subTest(enabled=enabled):
+                cfg = {'timing_contract': 'ieee_tc_native_v1',
+                       'specialize_active_lora': enabled, 'max_num_seqs': 8}
+                engine = runner.InferenceEngine(cfg, {})
+                engine._resolve_vllm_visible_devices = Mock(return_value='0')
+                engine._resolve_vllm_executor_backend = Mock(return_value=None)
+                args_mock = Mock(side_effect=lambda **kw: NS(**kw))
+                native = object()
+                with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+                     patch.object(runner, 'AsyncEngineArgs', args_mock), \
+                     patch.object(runner, 'AsyncLLMEngine', NS(from_engine_args=Mock(return_value=native))):
+                    actual = asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                        False, True, 32, 16, max_cpu_loras=32))
+                self.assertIs(actual, native)
+                args = args_mock.call_args.kwargs
+                self.assertIs(args['specialize_active_lora'], enabled)
+                self.assertEqual((args['max_loras'], args['max_cpu_loras'], args['max_num_seqs']),
+                                 (32, 32, 8))
+                self.assertIs(FrozenServiceProfiles.model_identity(cfg)['specialize_active_lora'], enabled)
+                self.assertEqual(cfg['specialize_active_lora'], enabled)
+
+    def test_invalid_active_lora_specialization_is_not_coerced_or_ignored(self):
+        for value, lora in ((None, True), (0, True), (1, True), ('true', True),
+                            ([], True), (True, False), (False, False)):
+            with self.subTest(value=value, lora=lora):
+                engine = runner.InferenceEngine({'timing_contract': 'ieee_tc_native_v1',
+                    'specialize_active_lora': value}, {})
+                with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+                     patch.object(runner, 'AsyncEngineArgs') as args:
+                    with self.assertRaisesRegex(RuntimeError, 'without config retry.*specialize_active_lora'):
+                        asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                            False, lora, 32, 16))
+                    args.assert_not_called()
+
+    def test_native_active_lora_specialization_rejection_does_not_retry_default(self):
+        engine = runner.InferenceEngine({'timing_contract': 'ieee_tc_native_v1',
+            'specialize_active_lora': True}, {})
+        engine._resolve_vllm_visible_devices = Mock(return_value='0')
+        engine._resolve_vllm_executor_backend = Mock(return_value=None)
+        with patch.object(runner, '_lazy_import_vllm', return_value=True), \
+             patch.object(runner, 'AsyncEngineArgs', side_effect=ValueError('unsupported specialization')) as args:
+            with self.assertRaisesRegex(RuntimeError, 'without config retry.*unsupported specialization'):
+                asyncio.run(engine._try_create_engine('local-model', 1, .72, 1024,
+                    False, True, 32, 16))
+            self.assertEqual(args.call_count, 1)
 
     def test_invalid_compilation_mapping_fails_without_retry(self):
         for value in ({}, [], 'default', False):

@@ -1560,6 +1560,40 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def test_active_lora_specialization_reuses_only_prescribed_lengths(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        candidate = self.slot_transfer_fixture()
+        parent = dict(candidate)
+        candidate['specialize_active_lora'] = True
+        self.binding['kind'] = 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
+        self.binding['model_config_changes']['specialize_active_lora'] = dict(source=None, target=True)
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        self.assertNotEqual(FrozenServiceProfiles.model_identity(parent),
+                            FrozenServiceProfiles.model_identity(candidate))
+        for extra in ({'specialize_active_lora': False}, {'specialize_active_lora': 1},
+                      {'max_num_seqs': 16}, {'max_cpu_loras': 64},
+                      {'generation_contract': 'natural_stop'}):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **extra))
+        self.binding['kind'] = 'native_fixed_output_graph_slot_length_transfer_v1'
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_active_lora_specialization_rejects_incomplete_or_undeclared_evidence(self):
+        candidate = self.slot_transfer_fixture()
+        candidate['specialize_active_lora'] = True
+        self.binding['kind'] = 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+        self.binding['model_config_changes']['specialize_active_lora'] = dict(source=None, target=True)
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
     def test_private_host_transfer_only_reuses_completed_counts(self):
         candidate = self.graph_transfer_fixture()
         # The historical initializer source already has the same owner policies.

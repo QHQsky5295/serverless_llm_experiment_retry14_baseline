@@ -1,0 +1,67 @@
+{
+  "kind": "d1021_active_lora_specialization_entry_checks_v1",
+  "status": "cpu_entry_verified_gpu_not_started",
+  "performance_claim": false,
+  "source_parent_commit": "7a5ed764c63bc87d29456f700d69d640a45164af",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": [
+    {
+      "file": "tests/test_ieee_tc_scheduler_observation.py",
+      "selector": "compilation or active_lora_specialization",
+      "passed": 7,
+      "deselected": 24,
+      "exit_code": 0,
+      "scope": "primelora-tc-aux-d1021000000000000000000000000001.scope"
+    },
+    {
+      "file": "tests/test_ieee_tc_preflight.py",
+      "selector": "transfer",
+      "passed": 15,
+      "deselected": 108,
+      "exit_code": 0,
+      "scope": "primelora-tc-aux-d1021000000000000000000000000002.scope"
+    },
+    {
+      "file": "tests/test_ieee_tc_preflight.py",
+      "selector": "active_lora_specialization",
+      "passed": 2,
+      "deselected": 121,
+      "exit_code": 0,
+      "scope": "primelora-tc-aux-d1021000000000000000000000000003.scope"
+    }
+  ],
+  "test_warnings_per_invocation": 19,
+  "test_interpreter": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "resource_configuration": {
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max_bytes": 0,
+    "cpus": "2,3,26,27",
+    "cuda_visible_devices": "",
+    "all_four_scopes_inactive_after_exit": true,
+    "terminal_peak_and_event_samples": null
+  },
+  "preparation": {
+    "scope": "primelora-tc-aux-d1021000000000000000000000000004.scope",
+    "exit_code": 0,
+    "requests": 423,
+    "waves": 76,
+    "new_weights_or_trace": false,
+    "timing_samples_reused": false,
+    "source_spec_sha256": "1849fcf1d2e28b0e9ab9039194e8c5905ff89554ae9351bfb31a1cd32320c080",
+    "development_contract_sha256": "8fd47e200d37966f9dc5ac12aeffbb002c4518e715e83a49f850c35966280d8c",
+    "prepare_sha256": "855f53bc1112885bd7b213a91eab77bc027339e4271513fbff087e3c46432788"
+  },
+  "protected_verification": {
+    "passed": true,
+    "entries": 147,
+    "changed": [],
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  },
+  "instrumentation_changes": [],
+  "shared_k3s_changed": false,
+  "remote_service_changed": false,
+  "gpu_runs": 0,
+  "n_correct": null,
+  "ranking_eligible": false
+}

@@ -3898,6 +3898,15 @@ class InferenceEngine:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
                 kwargs["disable_custom_all_reduce"] = True
+            if "specialize_active_lora" in self.model_cfg:
+                # Keep residency capacity separate from the native kernel's
+                # active-adapter grid. This is vLLM's own option, not a custom
+                # dispatch policy; absent means the native default. Preserve
+                # it in model/profile identity and propagate native rejection.
+                specialize = self.model_cfg["specialize_active_lora"]
+                if type(specialize) is not bool or not enable_lora:
+                    raise ValueError("specialize_active_lora requires a boolean and enabled LoRA")
+                kwargs["specialize_active_lora"] = specialize
             if enable_lora:
                 kwargs["enable_lora"] = True
                 kwargs["max_lora_rank"] = max_lora_rank
