@@ -156,25 +156,44 @@ class IEEEReplicaControl:
             if not isinstance(predictive_config, dict):
                 raise ValueError('IEEE predictive scaling configuration must be a mapping')
             base_expected = frozenset(('enabled', 'history_window_s', 'ewma_beta'))
-            expected = frozenset((*base_expected, 'allow_forecast_scale_down'))
-            if set(predictive_config) not in (base_expected, expected):
+            optional_expected = frozenset(('allow_forecast_scale_down',
+                                           'initial_activation_horizon_s'))
+            if set(predictive_config) - (base_expected | optional_expected):
+                raise ValueError('IEEE predictive scaling requires the complete explicit configuration')
+            if not base_expected <= set(predictive_config):
                 raise ValueError('IEEE predictive scaling requires the complete explicit configuration')
             if predictive_config.get('enabled') is not True:
                 raise ValueError('IEEE predictive scaling configuration must explicitly enable the candidate')
             history_window_s = predictive_config.get('history_window_s')
             ewma_beta = predictive_config.get('ewma_beta')
             allow_forecast_scale_down = predictive_config.get('allow_forecast_scale_down', False)
+            initial_activation_horizon_s = predictive_config.get('initial_activation_horizon_s')
             if (isinstance(history_window_s, bool) or not isinstance(history_window_s, (int, float))
                     or not math.isfinite(history_window_s) or history_window_s <= 0
                     or isinstance(ewma_beta, bool) or not isinstance(ewma_beta, (int, float))
                     or not math.isfinite(ewma_beta) or not 0 < ewma_beta <= 1
-                    or type(allow_forecast_scale_down) is not bool):
+                    or type(allow_forecast_scale_down) is not bool
+                    or (initial_activation_horizon_s is not None and (
+                        isinstance(initial_activation_horizon_s, bool)
+                        or not isinstance(initial_activation_horizon_s, (int, float))
+                        or not math.isfinite(initial_activation_horizon_s)
+                        or initial_activation_horizon_s <= 0))):
                 raise ValueError('invalid IEEE predictive scaling history/beta')
             self.predictive_config = {
                 'history_window_s': float(history_window_s),
                 'ewma_beta': float(ewma_beta),
                 'allow_forecast_scale_down': allow_forecast_scale_down,
             }
+            if initial_activation_horizon_s is not None:
+                # This is a measured prior for the first causal control
+                # rounds.  Once a real activation completes, observations
+                # replace it through observe_activation_latency().  It is not
+                # a future-trace hint and does not bypass the workload-rate
+                # requirement below.
+                self.predictive_config['initial_activation_horizon_s'] = float(
+                    initial_activation_horizon_s
+                )
+                self._activation_horizon_s = float(initial_activation_horizon_s)
 
     def observe_activation_latency(self, latency_ms):
         """Update the measured readiness horizon after a completed activation."""

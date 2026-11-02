@@ -1653,6 +1653,56 @@ class IEEEControlContract(unittest.TestCase):
         control.observe_ttft('good', 10, observed_at=2.)
         with self.assertRaises(ValueError): self.evaluate(control, 1.)
 
+    def test_measured_activation_prior_drives_only_causal_forecast_and_is_replaced(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        limits = ieee_control_fixture()
+        control = IEEEReplicaControl(
+            limits,
+            interval_s=1,
+            min_instances=1,
+            max_instances=4,
+            predictive_config={
+                'enabled': True,
+                'history_window_s': 10.0,
+                'ewma_beta': 0.5,
+                'allow_forecast_scale_down': False,
+                'initial_activation_horizon_s': 4.0,
+            },
+        )
+        self.assertAlmostEqual(control._activation_horizon_s, 4.0)
+        self.assertIsNotNone(control.evaluate(
+            now=0.0, queue_depth=0, active_requests=0, ready_capacity=8,
+            ready_instances=1, pending_instances=0,
+            arrived_request_count=0, completed_request_count=0,
+            busy_instances=1,
+        ))
+        decision = control.evaluate(
+            now=1.0, queue_depth=0, active_requests=1, ready_capacity=8,
+            ready_instances=1, pending_instances=0,
+            arrived_request_count=10, completed_request_count=1,
+            busy_instances=1,
+        )
+        self.assertEqual(decision['action'], ScalingAction.SCALE_UP)
+        self.assertEqual(decision['reason'], 'ieee_forecast_horizon_capacity')
+        self.assertEqual(decision['target_instances'], 4)
+        control.observe_activation_latency(2000.0)
+        self.assertAlmostEqual(control._activation_horizon_s, 3.0)
+
+    def test_invalid_activation_prior_is_rejected(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        for value in (True, 0, -1, float('nan'), float('inf'), '4'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                IEEEReplicaControl(
+                    ieee_control_fixture(), interval_s=1, min_instances=1,
+                    max_instances=4,
+                    predictive_config={
+                        'enabled': True,
+                        'history_window_s': 10.0,
+                        'ewma_beta': 0.5,
+                        'initial_activation_horizon_s': value,
+                    },
+                )
+
 
 class IEEEActualControl(unittest.TestCase):
     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):
