@@ -1,0 +1,421 @@
+{
+  "arrival_preparation": {
+    "file_wait_ms": {
+      "count": 0,
+      "mean": null,
+      "p50_type1": null,
+      "p95_type1": null
+    },
+    "owned_transferred_bytes": null,
+    "owning_requests": 0,
+    "recorded_requests": 0,
+    "states": {},
+    "unique_observed_transfers": 0,
+    "unrecorded_requests": 4000
+  },
+  "association_counts": {
+    "direct_preparation_interval": 13,
+    "route_prefetch_and_native_file_witness": 479
+  },
+  "distinct_request_transfers": 491,
+  "dominant_preparation_stages": {
+    "before_fetch_ms": 27,
+    "extract_verify_ms": 57,
+    "file_publication_envelope_ms": 251,
+    "published_to_native_start_ms": 122,
+    "reserve_receive_write_ms": 35
+  },
+  "groups": {
+    "all": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 492,
+          "mean": 1023.0260834209545,
+          "p50_type1": 858.9751441031694,
+          "p95_type1": 1949.823278002441
+        },
+        "after_last_boundary_ms": {
+          "count": 492,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 492,
+          "mean": 0.17054403310535643,
+          "p50_type1": 0.05696481093764305,
+          "p95_type1": 0.2940041013062
+        },
+        "before_fetch_ms": {
+          "count": 492,
+          "mean": 59.46307942532457,
+          "p50_type1": 2.31003575026989,
+          "p95_type1": 331.44377497956157
+        },
+        "extract_verify_ms": {
+          "count": 492,
+          "mean": 183.7620013800442,
+          "p50_type1": 165.6164056621492,
+          "p95_type1": 291.12087469547987
+        },
+        "file_publication_envelope_ms": {
+          "count": 492,
+          "mean": 321.05175683055285,
+          "p50_type1": 261.81406574323773,
+          "p95_type1": 973.2480621896684
+        },
+        "headers_ms": {
+          "count": 492,
+          "mean": 1.7758562083817957,
+          "p50_type1": 2.476031892001629,
+          "p95_type1": 4.042375832796097
+        },
+        "native_load_ms": {
+          "count": 492,
+          "mean": 39.19988128780653,
+          "p50_type1": 37.88767708465457,
+          "p95_type1": 47.872534953057766
+        },
+        "partition_error_ms": {
+          "count": 492,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 492,
+          "mean": 280.56704877152646,
+          "p50_type1": 193.5625458136201,
+          "p95_type1": 860.3965537622571
+        },
+        "reserve_receive_write_ms": {
+          "count": 492,
+          "mean": 137.03591548421275,
+          "p50_type1": 58.92464192584157,
+          "p95_type1": 733.5237390361726
+        },
+        "ttft_ms": {
+          "count": 492,
+          "mean": 2177.2292764361464,
+          "p50_type1": 1455.2098871208727,
+          "p95_type1": 3276.649555657059
+        }
+      },
+      "n": 492
+    },
+    "ttft_fail": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 101,
+          "mean": 1509.5819356934269,
+          "p50_type1": 1498.6885390244424,
+          "p95_type1": 2726.439842954278
+        },
+        "after_last_boundary_ms": {
+          "count": 101,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 101,
+          "mean": 0.34971874539214787,
+          "p50_type1": 0.06342027336359024,
+          "p95_type1": 0.3413539379835129
+        },
+        "before_fetch_ms": {
+          "count": 101,
+          "mean": 123.01682282958438,
+          "p50_type1": 5.242082756012678,
+          "p95_type1": 430.9527762234211
+        },
+        "extract_verify_ms": {
+          "count": 101,
+          "mean": 210.556962112389,
+          "p50_type1": 176.23261222615838,
+          "p95_type1": 376.70262483879924
+        },
+        "file_publication_envelope_ms": {
+          "count": 101,
+          "mean": 455.6131047003045,
+          "p50_type1": 314.4710538908839,
+          "p95_type1": 1219.648594968021
+        },
+        "headers_ms": {
+          "count": 101,
+          "mean": 2.08038804444051,
+          "p50_type1": 2.64674611389637,
+          "p95_type1": 5.042470991611481
+        },
+        "native_load_ms": {
+          "count": 101,
+          "mean": 39.269570971258204,
+          "p50_type1": 37.1255986392498,
+          "p95_type1": 46.92261712625623
+        },
+        "partition_error_ms": {
+          "count": 101,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 101,
+          "mean": 412.42249567744017,
+          "p50_type1": 304.0119311772287,
+          "p95_type1": 1074.8086110688746
+        },
+        "reserve_receive_write_ms": {
+          "count": 101,
+          "mean": 266.27287261261796,
+          "p50_type1": 113.85455774143338,
+          "p95_type1": 1118.9828389324248
+        },
+        "ttft_ms": {
+          "count": 101,
+          "mean": 5220.980393442113,
+          "p50_type1": 2608.329606708139,
+          "p95_type1": 27879.568925127387
+        }
+      },
+      "n": 101
+    },
+    "ttft_pass": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 391,
+          "mean": 897.3428581536407,
+          "p50_type1": 788.6404977180064,
+          "p95_type1": 1821.4423339813948
+        },
+        "after_last_boundary_ms": {
+          "count": 391,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 391,
+          "mean": 0.12426105115915198,
+          "p50_type1": 0.05550263449549675,
+          "p95_type1": 0.22191228345036507
+        },
+        "before_fetch_ms": {
+          "count": 391,
+          "mean": 43.04638355875107,
+          "p50_type1": 1.8668021075427532,
+          "p95_type1": 259.3254237435758
+        },
+        "extract_verify_ms": {
+          "count": 391,
+          "mean": 176.84054093511628,
+          "p50_type1": 163.81312580779195,
+          "p95_type1": 275.64456406980753
+        },
+        "file_publication_envelope_ms": {
+          "count": 391,
+          "mean": 286.2929431864482,
+          "p50_type1": 244.73187932744622,
+          "p95_type1": 773.0095502920449
+        },
+        "headers_ms": {
+          "count": 391,
+          "mean": 1.6971919745149668,
+          "p50_type1": 2.4413596838712692,
+          "p95_type1": 3.837689757347107
+        },
+        "native_load_ms": {
+          "count": 391,
+          "mean": 39.181879604868875,
+          "p50_type1": 38.03263185545802,
+          "p95_type1": 47.96237777918577
+        },
+        "partition_error_ms": {
+          "count": 391,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 391,
+          "mean": 246.5072018725564,
+          "p50_type1": 177.13549314066768,
+          "p95_type1": 674.7017931193113
+        },
+        "reserve_receive_write_ms": {
+          "count": 391,
+          "mean": 103.65245597022573,
+          "p50_type1": 51.53657589107752,
+          "p95_type1": 260.9294750727713
+        },
+        "ttft_ms": {
+          "count": 391,
+          "mean": 1390.9917756238633,
+          "p50_type1": 1289.7577350959182,
+          "p95_type1": 2336.2476280890405
+        }
+      },
+      "n": 391
+    }
+  },
+  "joined_remote_requests": 492,
+  "kind": "d1024_shared_remote_preparation_partition_v1",
+  "limitations": [
+    "Conditional selected-replica cohort, not a cross-system causal comparison.",
+    "Receive interval includes reservation and local writes; not pure network latency.",
+    "Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.",
+    "Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.",
+    "Pre-routing preparation is nested within arrival-to-admission; never add it again to E2E.",
+    "Dispatch tier is not arrival tier; absent early records mean unrecorded, not zero preparation.",
+    "Shared early receipts may refer to the same transfer; global transfer rows count physical bytes once.",
+    "Independent numerical adapter correctness remains unknown.",
+    "Route-prefetch task lifetime can overlap admission and native execution; it is not additive E2E.",
+    "A shared ID/content/file-witness join is temporal evidence, not isolated causal waiting or a profile sample.",
+    "Native-source reuse without an invoked load remains unpartitioned, not a fabricated zero load."
+  ],
+  "outputs": [
+    {
+      "bytes": 116818,
+      "path": "paper_results/ieee_tc/p2_backend/d1024_shared_prefetch/remote_preparation/transfers.csv",
+      "sha256": "f1be269bef2cf8670217fd9cfc3043e708962e5249ad58d7c556bd58c0f07b59"
+    },
+    {
+      "bytes": 185894,
+      "path": "paper_results/ieee_tc/p2_backend/d1024_shared_prefetch/remote_preparation/remote_requests.csv",
+      "sha256": "f2ec07109187cc40ca8b3d5bdb166518f63fb3f17d28c2228fe0c187696c7259"
+    },
+    {
+      "bytes": 169,
+      "path": "paper_results/ieee_tc/p2_backend/d1024_shared_prefetch/remote_preparation/arrival_preparation.csv",
+      "sha256": "7b1a38b186e2d1acd296541e52f546fc8c0b29b0a6f5434a324e425390a8f552"
+    },
+    {
+      "bytes": 565200,
+      "path": "paper_results/ieee_tc/p2_backend/d1024_shared_prefetch/remote_preparation/route_prefetch.csv",
+      "sha256": "b709df3145437af2add12fab7d8018597438824f8cee2d38f7706c0213713252"
+    }
+  ],
+  "passed": true,
+  "request_population": 4000,
+  "route_prefetch": {
+    "completed_before_admission": 3,
+    "metrics": {
+      "arrival_to_start_ms": {
+        "count": 485,
+        "mean": 290.8120902264779,
+        "p50_type1": 23.999833036214113,
+        "p95_type1": 565.0946912355721
+      },
+      "publication_to_settled_ms": {
+        "count": 485,
+        "mean": 409.2567280587769,
+        "p50_type1": 299.8857949860394,
+        "p95_type1": 1139.6110551431775
+      },
+      "start_to_fetch_ms": {
+        "count": 485,
+        "mean": 163.5921486893419,
+        "p50_type1": 70.36652602255344,
+        "p95_type1": 633.7347468361259
+      },
+      "task_elapsed_ms": {
+        "count": 485,
+        "mean": 1327.3937114552816,
+        "p50_type1": 1167.8629969246686,
+        "p95_type1": 2603.094508405775
+      }
+    },
+    "owned_transferred_bytes": 1118673067,
+    "owning_requests": 482,
+    "recorded_requests": 4000,
+    "states": {
+      "completed": 485,
+      "skipped": 3515
+    },
+    "unique_observed_transfers": 482,
+    "unrecorded_requests": 0
+  },
+  "selected_remote": 493,
+  "source_refs": [
+    {
+      "bytes": 285793600,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1022_3b_active_lora_w2_full.json",
+      "sha256": "c4910ebfd3f3b61981f2df3c3fcd94233f5060d4b601167dbea8299acfcac317"
+    },
+    {
+      "bytes": 446084605,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "06adb7e9c302e17d80cef826a145dc35e5d7770e0b812b1868f437c9007dfdda"
+    },
+    {
+      "bytes": 2350479,
+      "path": "paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/stages/requests.csv",
+      "sha256": "1ce422bb721c7e82d6df9d21a2b519d2fae558940fc1bf07c51656d7f5efb871"
+    },
+    {
+      "bytes": 227041,
+      "path": "paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/stages/diagnosis.json",
+      "sha256": "e5dd8b11742d195bf0ba0ea8867649442d807fe02655a0648539592eb28fa801"
+    },
+    {
+      "bytes": 137555,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3cefdc50f1c2f2ee4a6c9d5ad5395ad924d9e369376cbd3608ba3d06848f88b8"
+    }
+  ],
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full",
+  "transfers": {
+    "metrics": {
+      "after_publication_ms": {
+        "count": 503,
+        "mean": 122.29664949329928,
+        "p50_type1": 67.2304630279541,
+        "p95_type1": 536.5513218566775
+      },
+      "before_extract_ms": {
+        "count": 503,
+        "mean": 0.17250665865290474,
+        "p50_type1": 0.05848100408911705,
+        "p95_type1": 0.2940041013062
+      },
+      "extract_verify_ms": {
+        "count": 503,
+        "mean": 186.68300266031392,
+        "p50_type1": 167.1644737944007,
+        "p95_type1": 299.5338439941406
+      },
+      "file_publication_envelope_ms": {
+        "count": 503,
+        "mean": 318.54167044770054,
+        "p50_type1": 261.81406574323773,
+        "p95_type1": 967.5606652162969
+      },
+      "headers_ms": {
+        "count": 503,
+        "mean": 3.467332790226159,
+        "p50_type1": 2.7875080704689026,
+        "p95_type1": 10.230834130197763
+      },
+      "reserve_receive_write_ms": {
+        "count": 503,
+        "mean": 233.17878401169838,
+        "p50_type1": 142.89134088903666,
+        "p95_type1": 938.954730052501
+      },
+      "total_ms": {
+        "count": 503,
+        "mean": 864.3399460618912,
+        "p50_type1": 708.1311061047018,
+        "p95_type1": 1839.90138489753
+      }
+    },
+    "n": 503
+  },
+  "unjoined_remote_requests": [
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03012"
+    }
+  ]
+}

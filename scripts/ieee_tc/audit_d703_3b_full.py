@@ -646,7 +646,99 @@ def arrived_file_preparation_row(request, transfers):
     return row
 
 
-def diagnose_remote_preparation(raw, output, stage_audit):
+def route_confirmed_preparation_row(request, transfers):
+    """D1024: explicit task association, never a nearest-time or adapter-only join.
+
+    Subscribers do not own the creator's bytes or preparation-profile sample.
+    A task may finish after admission; its lifetime is not additive E2E.
+    """
+    early = request['gpu_reference_evidence'].get('route_confirmed_arrival_file_preparation')
+    if early is None:
+        return None
+    if (early['kind'] != 'route_confirmed_arrival_file_preparation_v1'
+            or early['policy'] not in ('route_confirmed_arrival_prefetch_v1',
+                                      'route_confirmed_arrival_prefetch_files_first_v1')
+            or early['request_id'] != request['request_id']
+            or early['adapter_id'] != request['adapter_id']
+            or early['physical_gpu_reservation'] is not False
+            or early['admission_granted'] is not False
+            or early['state'] not in ('completed', 'skipped', 'cancelled', 'failed')):
+        raise ValueError('route-confirmed preparation identity or authority differs')
+    row = dict(request_id=request['request_id'], adapter_id=request['adapter_id'],
+        dispatch_tier=request['readiness_tier_before_dispatch'], state=early['state'],
+        reason=early.get('reason'), transfer_id=None, owns_io=None, owned_transferred_bytes=None,
+        selected_replica_id=early.get('selected_replica_id'),
+        start_monotonic_s=None, settled_monotonic_s=None,
+        arrival_to_start_ms=None, task_elapsed_ms=None, start_to_fetch_ms=None,
+        publication_to_settled_ms=None, completed_before_admission=None)
+    if early['state'] != 'completed':
+        return row
+    n = request['native_token_timing']
+    arrival = request['external_arrival_timing']['planned_arrival_s']
+    start, end = early['started_monotonic_s'], early['settled_monotonic_s']
+    if (not all(type(v) in (int, float) and math.isfinite(v) for v in (arrival, start, end))
+            or not arrival <= start <= end or early['clock_id'] != n['native_clock_id']):
+        raise ValueError('route-confirmed preparation time/clock differs')
+    prep = early['preparation']
+    owns = prep['_movement']['owns_io']
+    if type(owns) is not bool or prep['state'] not in ('published', 'reused'):
+        raise ValueError('explicit completed movement ownership required')
+    row.update(start_monotonic_s=start, settled_monotonic_s=end,
+        arrival_to_start_ms=(start-arrival)*1000, task_elapsed_ms=(end-start)*1000,
+        completed_before_admission=end <= n['controller_admitted_monotonic_s'],
+        owns_io=owns, owned_transferred_bytes=0)
+    if prep['state'] == 'reused':
+        if owns or prep.get('remote_transfer') is not None:
+            raise ValueError('reused file cannot claim a new transfer')
+        return row
+    t = prep['remote_transfer']
+    publication = t['confirmed_file_publication']
+    times = [t[k] for k in ('loading_started_monotonic_s', 'published_monotonic_s',
+                            'client_completed_monotonic_s')]
+    if (transfers.get(t['transfer_id']) != t or t['state'] != 'published'
+            or t['artifact_id'] != request['adapter_id']
+            or t['loading_clock_id'] != early['clock_id']
+            or not all(type(v) in (int, float) and math.isfinite(v) for v in times)
+            or times != sorted(times) or times[-1] > end
+            or (owns and times[0] < start)
+            or prep['target_path'] != t['target_path']
+            or publication['path'] != t['target_path']
+            or publication['adapter_id'] != request['adapter_id']
+            or publication['owner_id'] != early['selected_source']['owner_id']
+            or publication['content_sha256'] != early['selected_source']['content_sha256']
+            or publication['content_verified'] is not True
+            or type(t['transferred_bytes']) is not int or t['transferred_bytes'] < 0):
+        raise ValueError('route-confirmed transfer identity, content or timing differs')
+    row.update(transfer_id=t['transfer_id'],
+        owned_transferred_bytes=t['transferred_bytes'] if owns else 0,
+        start_to_fetch_ms=max(0., times[0]-start)*1000,
+        publication_to_settled_ms=(end-times[1])*1000)
+    return row
+
+
+def route_prefetch_transfer_for_native(request, row, transfers):
+    """Bind a task receipt to the actual native file witness, not just an ID."""
+    if row is None or row['transfer_id'] is None:
+        return None
+    t = transfers[row['transfer_id']]
+    receipt = request['gpu_reference_evidence']['receipt']
+    witness = receipt.get('file_source_witness')
+    publication = t['confirmed_file_publication']
+    if (not witness or any(witness.get(k) != publication[k]
+            for k in ('owner_id', 'adapter_id', 'path', 'content_sha256', 'tier'))
+            or receipt['lora_path'] != publication['path']
+            or receipt['clock_id'] != t['loading_clock_id']):
+        raise ValueError('prefetch transfer differs from actual native file witness')
+    # A native reuse has no measured final-load interval. Preserve association
+    # in the arrival table without inventing a zero native-load partition.
+    if receipt['native_load_invoked'] is not True:
+        return None
+    if not t['published_monotonic_s'] <= receipt['native_load_started_monotonic_s']:
+        raise ValueError('publication must precede the witnessed native file load')
+    return t
+
+
+def diagnose_remote_preparation(raw, output, stage_audit, *, include_route_prefetch=False):
     """D818: reuse sealed stages and stream compressed source evidence once.
 
     Conditional diagnosis only. No counterfactual SLO, numerical correctness,
@@ -699,7 +791,7 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             adapter_id=t['artifact_id'], bytes=t['transferred_bytes'], payload_bytes=t['payload_bytes_verified'],
             **{name:1000*(b-a) for name,a,b in zip(names,times,times[1:])},
             total_ms=1000*(times[-1]-times[0])))
-    requests, missing, early_rows, seen = [], [], [], set()
+    requests, missing, early_rows, route_rows, seen = [], [], [], [], set()
     with open_source(result) as h:
         for r in ijson.items(h, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
             rid = r['request_id']
@@ -710,10 +802,20 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             early = arrived_file_preparation_row(r, by_id)
             if early is not None:
                 early_rows.append(early)
+            route = route_confirmed_preparation_row(r, by_id) if include_route_prefetch else None
+            if route is not None:
+                route_rows.append(route)
             if s['tier'] != 'remote':
                 continue
             p = e.get('preparation_interval') or {}
             tid = p.get('remote_transfer_id')
+            association = 'direct_preparation_interval'
+            shared = None
+            if tid is None and include_route_prefetch:
+                shared = route_prefetch_transfer_for_native(r, route, by_id)
+                if shared is not None:
+                    tid = shared['transfer_id']
+                    association = 'route_prefetch_and_native_file_witness'
             if tid is None:
                 missing.append(dict(request_id=rid, reason=p.get('reason'),
                                     remote_receipt_present=e.get('remote_preparation') is not None))
@@ -721,7 +823,7 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             t, n = by_id[tid], r['native_token_timing']
             receipt = e['receipt']
             if (t['artifact_id'] != r['adapter_id'] or t['loading_clock_id'] != p['clock_id']
-                    or t != e['remote_preparation']):
+                    or (shared is None and t != e['remote_preparation'])):
                 raise ValueError('exact transfer identity/clock/receipt mismatch')
             start, end = float(s['admitted']), receipt['acquired_monotonic_s']
             part = clipped_sequential_stages(start, end, [
@@ -744,11 +846,16 @@ def diagnose_remote_preparation(raw, output, stage_audit):
                 transfer_started_before_admission=t['loading_started_monotonic_s']<start,
                 transfer_published_before_admission=t['published_monotonic_s']<start,
                 partition_error_ms=error, dominant_preparation_stage=max(part,key=part.__getitem__), **part))
+            if include_route_prefetch:
+                requests[-1]['association'] = association
     if seen != set(stages):
         raise ValueError('missing request population')
     early_owned = [r['transfer_id'] for r in early_rows if r['owns_io']]
     if len(early_owned) != len(set(early_owned)):
         raise ValueError('one physical early transfer has more than one claiming creator')
+    route_owned = [r['transfer_id'] for r in route_rows if r['owns_io']]
+    if len(route_owned) != len(set(route_owned)):
+        raise ValueError('one physical route transfer has more than one claiming creator')
     output.mkdir(parents=True, exist_ok=False)
     # A policy may finish every remote demand before routing. A zero-sized
     # selected-Remote cohort is valid, not a failed run or an invented zero cost.
@@ -759,6 +866,8 @@ def diagnose_remote_preparation(raw, output, stage_audit):
         'reserve_receive_write_ms','before_extract_ms','extract_verify_ms',
         'file_publication_envelope_ms','published_to_native_start_ms','native_load_ms',
         'after_last_boundary_ms')
+    if include_route_prefetch:
+        remote_fields += ('association',)
     transfer_fields = ('transfer_id','http_transfer_id','adapter_id','bytes','payload_bytes',
         'headers_ms','reserve_receive_write_ms','before_extract_ms','extract_verify_ms',
         'file_publication_envelope_ms','after_publication_ms','total_ms')
@@ -766,6 +875,9 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             ('remote_requests.csv',requests,remote_fields),
             ('arrival_preparation.csv',early_rows,ARRIVAL_FILE_FIELDS)):
         write_exclusive_csv(output/name, rows, fieldnames=fields)
+    if include_route_prefetch:
+        write_exclusive_csv(output/'route_prefetch.csv', route_rows,
+            fieldnames=list(route_rows[0]) if route_rows else ('request_id', 'state'))
     def summary(rows):
         return dict(n=len(rows), metrics={k:timing_stats([r[k] for r in rows])
                     for k in rows[0] if k.endswith('_ms')} if rows else {})
@@ -795,6 +907,23 @@ def diagnose_remote_preparation(raw, output, stage_audit):
             'Independent numerical adapter correctness remains unknown.'],
         source_refs=[ref(x) for x in (result,outcome,stage_csv,stage_audit/'diagnosis.json',Path(__file__))],
         outputs=[ref(output/x) for x in ('transfers.csv','remote_requests.csv','arrival_preparation.csv')])
+    if include_route_prefetch:
+        report['kind'] = 'd1024_shared_remote_preparation_partition_v1'
+        report['route_prefetch'] = dict(recorded_requests=len(route_rows),
+            unrecorded_requests=len(seen)-len(route_rows),
+            states=dict(collections.Counter(r['state'] for r in route_rows)),
+            owning_requests=len(route_owned), owned_transferred_bytes=sum(
+                r['owned_transferred_bytes'] or 0 for r in route_rows),
+            unique_observed_transfers=len({r['transfer_id'] for r in route_rows if r['transfer_id']}),
+            completed_before_admission=sum(r['completed_before_admission'] is True for r in route_rows),
+            metrics={k:timing_stats([r[k] for r in route_rows if r[k] is not None])
+                     for k in route_rows[0] if k.endswith('_ms')} if route_rows else {})
+        report['association_counts'] = dict(collections.Counter(r['association'] for r in requests))
+        report['outputs'].append(ref(output/'route_prefetch.csv'))
+        report['limitations'] += [
+            'Route-prefetch task lifetime can overlap admission and native execution; it is not additive E2E.',
+            'A shared ID/content/file-witness join is temporal evidence, not isolated causal waiting or a profile sample.',
+            'Native-source reuse without an invoked load remains unpartitioned, not a fabricated zero load.']
     with (output/'diagnosis.json').open('x') as h:
         json.dump(report,h,indent=2,sort_keys=True,allow_nan=False); h.write('\n')
     print(json.dumps({k:report[k] for k in ('passed','request_population','selected_remote','joined_remote_requests','distinct_request_transfers')}))
@@ -2047,6 +2176,7 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-native-startup', type=Path)
     parser.add_argument('--worker-log', type=Path, action='append')
     parser.add_argument('--diagnose-remote-preparation', type=Path)
+    parser.add_argument('--include-route-prefetch', action='store_true')
     parser.add_argument('--diagnose-prefetch-control', type=Path)
     parser.add_argument('--preparation-audit', type=Path)
     parser.add_argument('--settlement-audit', type=Path)
@@ -2057,6 +2187,8 @@ if __name__ == "__main__":
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
+    if args.include_route_prefetch and args.diagnose_remote_preparation is None:
+        parser.error('--include-route-prefetch requires --diagnose-remote-preparation')
     if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
         parser.error('select exactly one offline analysis mode')
     if args.diagnose_native_startup is not None:
@@ -2080,7 +2212,8 @@ if __name__ == "__main__":
     elif args.diagnose_remote_preparation is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-remote-preparation')
-        diagnose_remote_preparation(args.raw, args.diagnose_remote_preparation, args.stage_audit)
+        diagnose_remote_preparation(args.raw, args.diagnose_remote_preparation,
+            args.stage_audit, include_route_prefetch=args.include_route_prefetch)
     elif args.diagnose_decode_overlap is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-decode-overlap')

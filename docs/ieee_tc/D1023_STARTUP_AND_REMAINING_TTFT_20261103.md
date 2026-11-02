@@ -161,3 +161,10 @@ request-transfer 关联，复用 D1022 日志补足这 479 条共享文件等待
 未完成范围保持：同版本两模型 W0/W1/W2 与 G1/G2、独立数值正确性范围、
 A1–A5、S1–S13、CE/Pareto、B1/B2/C1/C2/C3 与两轮审稿证据文档、后期图表、
 最终 V2 集成。现有多项 baseline 工作已完成，不因这份待办范围又重开基础适配。
+
+后置备份回执：12 文件检查点 8558abb7457e02fb96639c9569c88ecfa7832458 已推送，
+ls-remote 核验 origin/retry14_continuous_queue_v2 与 faaslora_origin 的
+backup/d1023-native-startup-evidence-20261103 均为该 SHA。后者是回退备份，
+不是分歧 V2 的最终集成；未强推。staged diff/凭据模式检查通过；两个用户
+dirty 文件未暂存、SHA 不变。当前 GPU compute 为空，无新回放或分析运行；
+可用磁盘 161410715648 B。此后置回执随下一正常检查点提交，不重开任何已闭合实验。
