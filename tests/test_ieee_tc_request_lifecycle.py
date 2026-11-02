@@ -2314,6 +2314,113 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             'completed')
         runner._arrived_route_confirmed_file_preparation.assert_awaited_once_with(trace, plan)
 
+    def test_files_first_prefetch_skips_only_optional_route_for_verified_shared_file(self):
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        self.file_source(runner, trace, publish=True)
+        runner.coord_cfg = {'ieee_route_confirmed_arrival_prefetch':
+                           'route_confirmed_arrival_prefetch_files_first_v1'}
+        runner._ieee_request_snapshot = AsyncMock(side_effect=AssertionError('unneeded native query'))
+        runner._queue_ieee_file_preparation = AsyncMock()
+        refs = runner._stack.residency_manager.local_source_references
+        before = refs.source_snapshot(trace.adapter_id)
+        record = asyncio.run(runner._arrived_route_confirmed_file_preparation(trace, plan))
+        after = refs.source_snapshot(trace.adapter_id)
+        self.assertEqual(record['reason'], 'confirmed_shared_file_available')
+        self.assertEqual(record['file_source_prefilter']['observed_tiers'], ['nvme'])
+        self.assertFalse(record['full_route_snapshot_attempted'])
+        self.assertFalse(record['admission_granted'])
+        self.assertFalse(record['physical_gpu_reservation'])
+        self.assertFalse(record['file_source_prefilter']['snapshot_holds_reference'])
+        self.assertEqual(before['sources'], after['sources'])
+        self.assertEqual(before['epoch'], after['epoch'])
+        self.assertEqual(slot.active_requests, 0)
+        runner._ieee_request_snapshot.assert_not_awaited()
+        runner._queue_ieee_file_preparation.assert_not_awaited()
+
+    def test_files_first_empty_file_view_keeps_confirmed_route_and_owned_movement(self):
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        self.file_source(runner, trace, publish=False)
+        runner.coord_cfg = {'ieee_route_confirmed_arrival_prefetch':
+                           'route_confirmed_arrival_prefetch_files_first_v1'}
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (SimpleNamespace(epoch=9),), {slot.instance_id: {'source': {'tier': 'remote'}}}))
+        runner.router.select_instance_with_decision = Mock(return_value=(slot, SimpleNamespace()))
+        runner._queue_ieee_file_preparation = AsyncMock(return_value={'state': 'published'})
+        record = asyncio.run(runner._arrived_route_confirmed_file_preparation(trace, plan))
+        self.assertEqual(record['state'], 'completed')
+        self.assertEqual(record['file_source_prefilter']['observed_tiers'], [])
+        self.assertTrue(record['full_route_snapshot_attempted'])
+        self.assertFalse(record['admission_granted'])
+        runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
+        runner._queue_ieee_file_preparation.assert_awaited_once()
+
+    def test_files_first_observation_does_not_replace_authoritative_request_path(self):
+        runner, _, trace, plan, _, _ = self.build('remote')
+        self.file_source(runner, trace, publish=True)
+        runner.coord_cfg = {'ieee_route_confirmed_arrival_prefetch':
+                           'route_confirmed_arrival_prefetch_files_first_v1'}
+        refs = runner._stack.residency_manager.local_source_references
+        view = refs.source_snapshot(trace.adapter_id)
+        # Exercise the process-owner async boundary as used by Full.
+        runner._stack.residency_manager.local_source_references = SimpleNamespace(
+            call_async=AsyncMock(return_value=view))
+        runner._ieee_request_snapshot = AsyncMock(return_value='fresh authoritative view')
+
+        async def serve(task):
+            observed = await task
+            self.assertFalse(observed['full_route_snapshot_attempted'])
+            # Eviction/publication may occur since the advisory view. The main
+            # path must read again, not consume the prefilter as its source.
+            current = await runner._ieee_request_snapshot(trace, plan)
+            self.assertEqual(current, 'fresh authoritative view')
+            return SimpleNamespace(gpu_reference_evidence={})
+
+        out = asyncio.run(runner._serve_with_arrived_file_preparation(trace, serve, request_plan=plan))
+        runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
+        runner._stack.residency_manager.local_source_references.call_async.assert_awaited_once_with(
+            'source_snapshot', adapter_id=trace.adapter_id)
+        self.assertEqual(out.gpu_reference_evidence['route_confirmed_arrival_file_preparation']['reason'],
+                         'confirmed_shared_file_available')
+
+    def test_files_first_rejects_bad_file_identity_without_fabricating_a_hit(self):
+        for change in ('content', 'clock', 'capture'):
+            with self.subTest(change=change):
+                runner, _, trace, plan, _, _ = self.build('remote')
+                self.file_source(runner, trace, publish=True)
+                refs = runner._stack.residency_manager.local_source_references
+                view = refs.source_snapshot(trace.adapter_id)
+                if change == 'content':
+                    view['sources'][0]['content_sha256'] = 'wrong'
+                elif change == 'clock':
+                    view['clock_id'] = 'wrong'
+                else:
+                    view['captured_monotonic_s'] = float('inf')
+                runner._stack.residency_manager.local_source_references = SimpleNamespace(
+                    call_async=AsyncMock(return_value=view))
+                runner.coord_cfg = {'ieee_route_confirmed_arrival_prefetch':
+                                   'route_confirmed_arrival_prefetch_files_first_v1'}
+                runner._ieee_request_snapshot = AsyncMock()
+                runner._queue_ieee_file_preparation = AsyncMock()
+                record = asyncio.run(runner._arrived_route_confirmed_file_preparation(trace, plan))
+                self.assertEqual(record['state'], 'failed')
+                self.assertFalse(record['admission_granted'])
+                runner._ieee_request_snapshot.assert_not_awaited()
+                runner._queue_ieee_file_preparation.assert_not_awaited()
+
+    def test_files_first_cancellation_propagates_without_route_or_movement(self):
+        runner, _, trace, plan, _, _ = self.build('remote')
+        self.file_source(runner, trace, publish=False)
+        runner.coord_cfg = {'ieee_route_confirmed_arrival_prefetch':
+                           'route_confirmed_arrival_prefetch_files_first_v1'}
+        runner._stack.residency_manager.local_source_references = SimpleNamespace(
+            call_async=AsyncMock(side_effect=asyncio.CancelledError))
+        runner._ieee_request_snapshot = AsyncMock()
+        runner._queue_ieee_file_preparation = AsyncMock()
+        with self.assertRaises(asyncio.CancelledError):
+            asyncio.run(runner._arrived_route_confirmed_file_preparation(trace, plan))
+        runner._ieee_request_snapshot.assert_not_awaited()
+        runner._queue_ieee_file_preparation.assert_not_awaited()
+
     def test_route_confirmed_arrival_pre_admission_waits_before_serve(self):
         runner, _, trace, plan, _, _ = self.build('remote')
         runner.coord_cfg = {

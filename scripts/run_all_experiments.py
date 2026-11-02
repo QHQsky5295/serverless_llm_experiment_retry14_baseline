@@ -17927,7 +17927,8 @@ class ScenarioRunner:
         arrival_route_policy = getattr(self, 'coord_cfg', {}).get(
             'ieee_route_confirmed_arrival_prefetch')
         if arrival_route_policy is not None:
-            if arrival_route_policy != 'route_confirmed_arrival_prefetch_v1':
+            if arrival_route_policy not in ('route_confirmed_arrival_prefetch_v1',
+                    'route_confirmed_arrival_prefetch_files_first_v1'):
                 raise ValueError('unsupported route-confirmed arrival preparation policy')
             arrival_admission_policy = getattr(self, 'coord_cfg', {}).get(
                 'ieee_route_confirmed_arrival_admission')
@@ -19292,7 +19293,8 @@ class ScenarioRunner:
             admission_granted=False,
             state='skipped',
         )
-        if policy != 'route_confirmed_arrival_prefetch_v1':
+        if policy not in ('route_confirmed_arrival_prefetch_v1',
+                'route_confirmed_arrival_prefetch_files_first_v1'):
             record['reason'] = 'disabled'
             return record
         if (not trace.adapter_id or self._stack is None
@@ -19301,6 +19303,36 @@ class ScenarioRunner:
             record['reason'] = 'ineligible_request'
             return record
         try:
+            if policy == 'route_confirmed_arrival_prefetch_files_first_v1':
+                # Shared verified files are available to every replica. Their
+                # presence is sufficient to skip this *optional* remote-IO
+                # probe; no all-replica native query is needed to establish it.
+                # This observation is never passed to authoritative routing,
+                # never pinned, and never used to relabel dispatch readiness.
+                from faaslora.clock import local_monotonic_clock_id
+                from faaslora.experiment.instance_pool import confirmed_file_sources_by_tier
+                owner = self._stack.residency_manager.local_source_references
+                started = time.monotonic()
+                files = (await owner.call_async('source_snapshot', adapter_id=trace.adapter_id)
+                         if inspect.iscoroutinefunction(getattr(owner, 'call_async', None))
+                         else owner.source_snapshot(trace.adapter_id))
+                received = time.monotonic()
+                sources = confirmed_file_sources_by_tier(files=files,
+                    identity=self._ieee_artifact_identities[trace.adapter_id],
+                    clock_id=local_monotonic_clock_id())
+                captured = files.get('captured_monotonic_s')
+                if (type(captured) not in (int, float) or not math.isfinite(captured)
+                        or captured <= 0 or captured > received):
+                    raise ValueError('prefetch file observation lacks a valid capture time')
+                record['file_source_prefilter'] = dict(owner_id=files['owner_id'],
+                    epoch=files['epoch'], captured_monotonic_s=captured,
+                    observed_tiers=sorted(sources), elapsed_ms=(received-started)*1000,
+                    snapshot_holds_reference=False)
+                if sources:
+                    record['reason'] = 'confirmed_shared_file_available'
+                    record['full_route_snapshot_attempted'] = False
+                    return record
+            record['full_route_snapshot_attempted'] = True
             committed = await self._ieee_request_snapshot(trace, request_plan)
             if committed is None:
                 record['reason'] = 'snapshot_membership_rejected'

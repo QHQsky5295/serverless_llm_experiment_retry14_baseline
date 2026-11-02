@@ -468,19 +468,18 @@ class ServiceObservationClass:
                 raise ValueError('class indices must be nonnegative integers')
 
 
-def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
-                           identity: Mapping, adapter_int_id: int,
-                           bins: 'ServiceClassBins', prompt_tokens: int,
-                           declared_output_tokens: int, admitted_after_accept: int):
-    """Compose received owners' state without substituting legacy cache hints.
+def confirmed_file_sources_by_tier(*, files: Mapping, identity: Mapping,
+                                   clock_id: str) -> dict:
+    """Validate received shared file sources without a native/GPU observation.
 
-    Native HOST is executable-loader CPU state, not the managed HOST file tree.
-    Prefer it within HOST; NVMe/Remote remain distinct file representations.
-    Neither this view nor a predicted GPU hit acquires a reference.
+    A positive row can suppress optional remote prefetch, but never grants a
+    read lease or native executability. The ordinary routing/admission path
+    must collect and protect its own source, including after a concurrent
+    eviction. Keep the exact same file identity checks for both consumers.
     """
     adapter_id = identity['adapter_id']
     if (files.get('kind') != 'confirmed_file_sources_v1' or files.get('adapter_id') != adapter_id
-            or files.get('clock_id') != native.clock_id or files.get('snapshot_holds_reference') is not False
+            or files.get('clock_id') != clock_id or files.get('snapshot_holds_reference') is not False
             or not isinstance(files.get('owner_id'), str) or not files['owner_id']
             or type(files.get('epoch')) is not int or files['epoch'] < 0
             or not isinstance(files.get('sources'), list)):
@@ -497,6 +496,22 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
                 or not isinstance(row.get('path'), str) or not Path(row['path']).is_absolute()):
             raise ValueError('routing file source differs from frozen content/representation')
         file_by_tier[tier] = row
+    return file_by_tier
+
+
+def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
+                           identity: Mapping, adapter_int_id: int,
+                           bins: 'ServiceClassBins', prompt_tokens: int,
+                           declared_output_tokens: int, admitted_after_accept: int):
+    """Compose received owners' state without substituting legacy cache hints.
+
+    Native HOST is executable-loader CPU state, not the managed HOST file tree.
+    Prefer it within HOST; NVMe/Remote remain distinct file representations.
+    Neither this view nor a predicted GPU hit acquires a reference.
+    """
+    adapter_id = identity['adapter_id']
+    file_by_tier = confirmed_file_sources_by_tier(
+        files=files, identity=identity, clock_id=native.clock_id)
     features = dict(prompt_tokens=prompt_tokens, declared_output_tokens=declared_output_tokens,
                     admitted_after_accept=admitted_after_accept)
     selected = next((source for source in native.sources
