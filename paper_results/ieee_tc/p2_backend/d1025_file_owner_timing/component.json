@@ -1,0 +1,194 @@
+{
+  "artifact_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+  "artifacts": [],
+  "calls": [
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "identity",
+      "ok": true,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 1,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "identity",
+        "parent_observed_ns": 3149292303068301,
+        "parent_submitted_ns": 3149280361165090,
+        "worker_cpu_ns": 171106,
+        "worker_ended_ns": 3149292300886158,
+        "worker_started_ns": 3149292300703322
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "begin_materialization",
+      "ok": true,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 2,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_materialization",
+        "parent_observed_ns": 3149292305632933,
+        "parent_submitted_ns": 3149292303141575,
+        "worker_cpu_ns": 260226,
+        "worker_ended_ns": 3149292305308580,
+        "worker_started_ns": 3149292305041821
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "begin_workspace",
+      "ok": true,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 3,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_workspace",
+        "parent_observed_ns": 3149292306662237,
+        "parent_submitted_ns": 3149292305671438,
+        "worker_cpu_ns": 348199,
+        "worker_ended_ns": 3149292306342674,
+        "worker_started_ns": 3149292305986694
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "prepare_copy",
+      "ok": false,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 4,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "prepare_copy",
+        "parent_observed_ns": 3149292308342472,
+        "parent_submitted_ns": 3149292306699331,
+        "worker_cpu_ns": 1113290,
+        "worker_ended_ns": 3149292308143418,
+        "worker_started_ns": 3149292307022044
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "end_workspace",
+      "ok": true,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 5,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_workspace",
+        "parent_observed_ns": 3149292309441309,
+        "parent_submitted_ns": 3149292308359959,
+        "worker_cpu_ns": 730340,
+        "worker_ended_ns": 3149292309287987,
+        "worker_started_ns": 3149292308550035
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "end_materialization",
+      "ok": true,
+      "owner_id": "6ce9412764c34b3dbec8c04ad081c107",
+      "pid": 2630975,
+      "sequence": 6,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_materialization",
+        "parent_observed_ns": 3149292309789085,
+        "parent_submitted_ns": 3149292309460355,
+        "worker_cpu_ns": 23099,
+        "worker_ended_ns": 3149292309675158,
+        "worker_started_ns": 3149292309648073
+      }
+    }
+  ],
+  "completed": false,
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "elapsed_ns": 13746109463,
+  "environment": {
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1025-component.scope\n",
+    "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:16:04) [GCC 11.2.0]"
+  },
+  "error": {
+    "message": "local file capacity conflict: retained copies plus transfer exceed tier budget",
+    "type": "RuntimeError"
+  },
+  "kind": "file_owner_component_diagnostic_v1",
+  "resources_before_exit": {
+    "memory.events": "low 0\nhigh 4091\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.peak": "3303809024",
+    "memory.swap.current": "0",
+    "memory.swap.max": "0"
+  },
+  "scope": "isolated_CPU_fixture_not_full_workload",
+  "selection": "size_sorted_min_upper_median_max",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/file_state_process.py": "e45ca417cb5a14f205d8451b543546ed961100e271b86680c80f169577440442",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "10fb41d67a31e6d22c840fd134a9e0dfc4182a97c2ee931cbde143d89ad1d333",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_state_process.py": "1cad8253c85a6e4d2a62099b2312917fca3c26ec4906c335f82651f19c01d902"
+  }
+}

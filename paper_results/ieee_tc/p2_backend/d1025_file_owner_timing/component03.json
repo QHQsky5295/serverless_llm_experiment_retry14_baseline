@@ -1,0 +1,990 @@
+{
+  "artifact_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+  "artifacts": [
+    {
+      "adapter_id": "gaming_lora_0010",
+      "allocation_unit_bytes": 4096,
+      "bytes": 28015916,
+      "content_sha256": "b25837cdfe74cb94c002ebd72cf16a4ebfbcfa48e9dbeb3a659112970df4da7d",
+      "file_count": 8,
+      "filesystem": "ext4",
+      "fixture_limit_bytes": 168165376,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "verified": true
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "allocation_unit_bytes": 4096,
+      "bytes": 38501676,
+      "content_sha256": "bad03b7f780a565109d091de7db10272baf7c7723988169556a6bf5a933bb7a2",
+      "file_count": 8,
+      "filesystem": "ext4",
+      "fixture_limit_bytes": 231079936,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "verified": true
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "allocation_unit_bytes": 4096,
+      "bytes": 56327468,
+      "content_sha256": "1c2cd2e76f9916ddd30543f2e9550eea5fcdcb44b87764191748c1c91cf28aa8",
+      "file_count": 8,
+      "filesystem": "ext4",
+      "fixture_limit_bytes": 338034688,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "verified": true
+    }
+  ],
+  "calls": [
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "identity",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 1,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "identity",
+        "parent_observed_ns": 3149622311494215,
+        "parent_submitted_ns": 3149611233984593,
+        "worker_cpu_ns": 102779,
+        "worker_ended_ns": 3149622311158828,
+        "worker_started_ns": 3149622311052378
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "begin_materialization",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 2,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_materialization",
+        "parent_observed_ns": 3149622313350903,
+        "parent_submitted_ns": 3149622311535425,
+        "worker_cpu_ns": 556260,
+        "worker_ended_ns": 3149622312788360,
+        "worker_started_ns": 3149622312223004
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "begin_workspace",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 3,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_workspace",
+        "parent_observed_ns": 3149622314867983,
+        "parent_submitted_ns": 3149622313406685,
+        "worker_cpu_ns": 597384,
+        "worker_ended_ns": 3149622314503892,
+        "worker_started_ns": 3149622313900052
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "prepare_copy",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 4,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "prepare_copy",
+        "parent_observed_ns": 3149622320859546,
+        "parent_submitted_ns": 3149622315118294,
+        "worker_cpu_ns": 4751333,
+        "worker_ended_ns": 3149622320404528,
+        "worker_started_ns": 3149622315645462
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "publish_transfer",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 5,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "publish_transfer",
+        "parent_observed_ns": 3149622543084632,
+        "parent_submitted_ns": 3149622448921082,
+        "worker_cpu_ns": 92712197,
+        "worker_ended_ns": 3149622542682827,
+        "worker_started_ns": 3149622449955697
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_0",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 6,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622544254903,
+        "parent_submitted_ns": 3149622449070844,
+        "worker_cpu_ns": 1148763,
+        "worker_ended_ns": 3149622543954308,
+        "worker_started_ns": 3149622542802904
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_1",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 7,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622545177121,
+        "parent_submitted_ns": 3149622449115861,
+        "worker_cpu_ns": 870026,
+        "worker_ended_ns": 3149622544911252,
+        "worker_started_ns": 3149622544038775
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_2",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 8,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622546110499,
+        "parent_submitted_ns": 3149622449147809,
+        "worker_cpu_ns": 859252,
+        "worker_ended_ns": 3149622545842434,
+        "worker_started_ns": 3149622544980916
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_3",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 9,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622547052893,
+        "parent_submitted_ns": 3149622449177209,
+        "worker_cpu_ns": 884584,
+        "worker_ended_ns": 3149622546796614,
+        "worker_started_ns": 3149622545909598
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_4",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 10,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622548028637,
+        "parent_submitted_ns": 3149622449204511,
+        "worker_cpu_ns": 875947,
+        "worker_ended_ns": 3149622547744423,
+        "worker_started_ns": 3149622546866034
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_5",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 11,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622548966557,
+        "parent_submitted_ns": 3149622449229523,
+        "worker_cpu_ns": 909525,
+        "worker_ended_ns": 3149622548727661,
+        "worker_started_ns": 3149622547815840
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_6",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 12,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622549871781,
+        "parent_submitted_ns": 3149622449254340,
+        "worker_cpu_ns": 848293,
+        "worker_ended_ns": 3149622549650798,
+        "worker_started_ns": 3149622548800219
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "queued_source_snapshot_7",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 13,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149622550819631,
+        "parent_submitted_ns": 3149622449280096,
+        "worker_cpu_ns": 880606,
+        "worker_ended_ns": 3149622550602500,
+        "worker_started_ns": 3149622549719689
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "end_workspace",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 14,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_workspace",
+        "parent_observed_ns": 3149622553942396,
+        "parent_submitted_ns": 3149622551275850,
+        "worker_cpu_ns": 1599269,
+        "worker_ended_ns": 3149622553457467,
+        "worker_started_ns": 3149622551841226
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "end_materialization",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 15,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_materialization",
+        "parent_observed_ns": 3149622554869343,
+        "parent_submitted_ns": 3149622553980309,
+        "worker_cpu_ns": 72316,
+        "worker_ended_ns": 3149622554600006,
+        "worker_started_ns": 3149622554521268
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "delete",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 16,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "delete",
+        "parent_observed_ns": 3149622562865773,
+        "parent_submitted_ns": 3149622554925737,
+        "worker_cpu_ns": 7114130,
+        "worker_ended_ns": 3149622562646501,
+        "worker_started_ns": 3149622555526931
+      }
+    },
+    {
+      "adapter_id": "gaming_lora_0010",
+      "label": "inventory",
+      "ok": true,
+      "owner_id": "812a46a60c3a466085a3853d357abef1",
+      "pid": 2643656,
+      "sequence": 17,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "inventory",
+        "parent_observed_ns": 3149622564032523,
+        "parent_submitted_ns": 3149622562930120,
+        "worker_cpu_ns": 334046,
+        "worker_ended_ns": 3149622563814978,
+        "worker_started_ns": 3149622563477158
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "identity",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 1,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "identity",
+        "parent_observed_ns": 3149633312462623,
+        "parent_submitted_ns": 3149625166743487,
+        "worker_cpu_ns": 135558,
+        "worker_ended_ns": 3149633312074473,
+        "worker_started_ns": 3149633311933439
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "begin_materialization",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 2,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_materialization",
+        "parent_observed_ns": 3149633314876440,
+        "parent_submitted_ns": 3149633312560103,
+        "worker_cpu_ns": 561929,
+        "worker_ended_ns": 3149633313966424,
+        "worker_started_ns": 3149633313396206
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "begin_workspace",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 3,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_workspace",
+        "parent_observed_ns": 3149633316581873,
+        "parent_submitted_ns": 3149633314921859,
+        "worker_cpu_ns": 632454,
+        "worker_ended_ns": 3149633316066310,
+        "worker_started_ns": 3149633315426666
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "prepare_copy",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 4,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "prepare_copy",
+        "parent_observed_ns": 3149633322789195,
+        "parent_submitted_ns": 3149633316884366,
+        "worker_cpu_ns": 4817028,
+        "worker_ended_ns": 3149633322327427,
+        "worker_started_ns": 3149633317502407
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "publish_transfer",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 5,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "publish_transfer",
+        "parent_observed_ns": 3149633630929201,
+        "parent_submitted_ns": 3149633518617569,
+        "worker_cpu_ns": 111223165,
+        "worker_ended_ns": 3149633630612824,
+        "worker_started_ns": 3149633519371523
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_0",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 6,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633632223363,
+        "parent_submitted_ns": 3149633518755767,
+        "worker_cpu_ns": 1146278,
+        "worker_ended_ns": 3149633631907409,
+        "worker_started_ns": 3149633630757944
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_1",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 7,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633633168249,
+        "parent_submitted_ns": 3149633518789019,
+        "worker_cpu_ns": 952232,
+        "worker_ended_ns": 3149633632965905,
+        "worker_started_ns": 3149633632011068
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_2",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 8,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633634192871,
+        "parent_submitted_ns": 3149633518812872,
+        "worker_cpu_ns": 924176,
+        "worker_ended_ns": 3149633633979105,
+        "worker_started_ns": 3149633633052324
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_3",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 9,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633635188635,
+        "parent_submitted_ns": 3149633518834573,
+        "worker_cpu_ns": 924040,
+        "worker_ended_ns": 3149633634986691,
+        "worker_started_ns": 3149633634060018
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_4",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 10,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633636128406,
+        "parent_submitted_ns": 3149633518855322,
+        "worker_cpu_ns": 872262,
+        "worker_ended_ns": 3149633635943904,
+        "worker_started_ns": 3149633635068937
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_5",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 11,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633637046296,
+        "parent_submitted_ns": 3149633518874060,
+        "worker_cpu_ns": 855125,
+        "worker_ended_ns": 3149633636875294,
+        "worker_started_ns": 3149633636017736
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_6",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 12,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633637948089,
+        "parent_submitted_ns": 3149633518891494,
+        "worker_cpu_ns": 835645,
+        "worker_ended_ns": 3149633637783004,
+        "worker_started_ns": 3149633636944869
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "queued_source_snapshot_7",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 13,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149633638845180,
+        "parent_submitted_ns": 3149633518908414,
+        "worker_cpu_ns": 842549,
+        "worker_ended_ns": 3149633638699948,
+        "worker_started_ns": 3149633637855117
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "end_workspace",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 14,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_workspace",
+        "parent_observed_ns": 3149633641117779,
+        "parent_submitted_ns": 3149633638979049,
+        "worker_cpu_ns": 1505313,
+        "worker_ended_ns": 3149633640676254,
+        "worker_started_ns": 3149633639156109
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "end_materialization",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 15,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_materialization",
+        "parent_observed_ns": 3149633641799506,
+        "parent_submitted_ns": 3149633641156642,
+        "worker_cpu_ns": 53643,
+        "worker_ended_ns": 3149633641672442,
+        "worker_started_ns": 3149633641615532
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "delete",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 16,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "delete",
+        "parent_observed_ns": 3149633650242924,
+        "parent_submitted_ns": 3149633641823652,
+        "worker_cpu_ns": 8087919,
+        "worker_ended_ns": 3149633650096139,
+        "worker_started_ns": 3149633641999365
+      }
+    },
+    {
+      "adapter_id": "medical_lora_0014",
+      "label": "inventory",
+      "ok": true,
+      "owner_id": "4fbce57041ea421a87254fb21f06026e",
+      "pid": 2644091,
+      "sequence": 17,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "inventory",
+        "parent_observed_ns": 3149633650697572,
+        "parent_submitted_ns": 3149633650263240,
+        "worker_cpu_ns": 134584,
+        "worker_ended_ns": 3149633650550204,
+        "worker_started_ns": 3149633650413611
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "identity",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 1,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "identity",
+        "parent_observed_ns": 3149642576155179,
+        "parent_submitted_ns": 3149635157241773,
+        "worker_cpu_ns": 106891,
+        "worker_ended_ns": 3149642575843741,
+        "worker_started_ns": 3149642575732921
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "begin_materialization",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 2,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_materialization",
+        "parent_observed_ns": 3149642576820606,
+        "parent_submitted_ns": 3149642576191711,
+        "worker_cpu_ns": 186717,
+        "worker_ended_ns": 3149642576643983,
+        "worker_started_ns": 3149642576454446
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "begin_workspace",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 3,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "begin_workspace",
+        "parent_observed_ns": 3149642577468735,
+        "parent_submitted_ns": 3149642576841421,
+        "worker_cpu_ns": 247833,
+        "worker_ended_ns": 3149642577281408,
+        "worker_started_ns": 3149642577030653
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "prepare_copy",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 4,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "prepare_copy",
+        "parent_observed_ns": 3149642579543487,
+        "parent_submitted_ns": 3149642577593584,
+        "worker_cpu_ns": 1567209,
+        "worker_ended_ns": 3149642579381724,
+        "worker_started_ns": 3149642577811484
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "publish_transfer",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 5,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "publish_transfer",
+        "parent_observed_ns": 3149642949914240,
+        "parent_submitted_ns": 3149642796015528,
+        "worker_cpu_ns": 152234557,
+        "worker_ended_ns": 3149642949614138,
+        "worker_started_ns": 3149642797357238
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_0",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 6,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642951165989,
+        "parent_submitted_ns": 3149642796142065,
+        "worker_cpu_ns": 1133768,
+        "worker_ended_ns": 3149642950869267,
+        "worker_started_ns": 3149642949732386
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_1",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 7,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642952096476,
+        "parent_submitted_ns": 3149642796171957,
+        "worker_cpu_ns": 949103,
+        "worker_ended_ns": 3149642951912522,
+        "worker_started_ns": 3149642950960837
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_2",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 8,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642953126818,
+        "parent_submitted_ns": 3149642796193726,
+        "worker_cpu_ns": 862736,
+        "worker_ended_ns": 3149642952855902,
+        "worker_started_ns": 3149642951990664
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_3",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 9,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642954063074,
+        "parent_submitted_ns": 3149642796391377,
+        "worker_cpu_ns": 942227,
+        "worker_ended_ns": 3149642953872516,
+        "worker_started_ns": 3149642952927737
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_4",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 10,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642955075655,
+        "parent_submitted_ns": 3149642796460396,
+        "worker_cpu_ns": 916346,
+        "worker_ended_ns": 3149642954867612,
+        "worker_started_ns": 3149642953948825
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_5",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 11,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642956051925,
+        "parent_submitted_ns": 3149642796506659,
+        "worker_cpu_ns": 926121,
+        "worker_ended_ns": 3149642955871655,
+        "worker_started_ns": 3149642954943016
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_6",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 12,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642956959425,
+        "parent_submitted_ns": 3149642796549156,
+        "worker_cpu_ns": 836785,
+        "worker_ended_ns": 3149642956794565,
+        "worker_started_ns": 3149642955955529
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "queued_source_snapshot_7",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 13,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "source_snapshot",
+        "parent_observed_ns": 3149642957853927,
+        "parent_submitted_ns": 3149642796590964,
+        "worker_cpu_ns": 841463,
+        "worker_ended_ns": 3149642957712034,
+        "worker_started_ns": 3149642956868433
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "end_workspace",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 14,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_workspace",
+        "parent_observed_ns": 3149642958806750,
+        "parent_submitted_ns": 3149642957978000,
+        "worker_cpu_ns": 516006,
+        "worker_ended_ns": 3149642958670008,
+        "worker_started_ns": 3149642958151307
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "end_materialization",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 15,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "end_materialization",
+        "parent_observed_ns": 3149642959133338,
+        "parent_submitted_ns": 3149642958821471,
+        "worker_cpu_ns": 21799,
+        "worker_ended_ns": 3149642958993027,
+        "worker_started_ns": 3149642958969580
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "delete",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 16,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "delete",
+        "parent_observed_ns": 3149642969973683,
+        "parent_submitted_ns": 3149642959157755,
+        "worker_cpu_ns": 10479625,
+        "worker_ended_ns": 3149642969823869,
+        "worker_started_ns": 3149642959340357
+      }
+    },
+    {
+      "adapter_id": "code_lora_0495",
+      "label": "inventory",
+      "ok": true,
+      "owner_id": "22c2e3a3869d42e38e13cad415c1c0cb",
+      "pid": 2644438,
+      "sequence": 17,
+      "timing": {
+        "clock": "host_monotonic_ns",
+        "kind": "file_owner_command_timing_v1",
+        "operation": "inventory",
+        "parent_observed_ns": 3149642970443860,
+        "parent_submitted_ns": 3149642969991999,
+        "worker_cpu_ns": 133584,
+        "worker_ended_ns": 3149642970291630,
+        "worker_started_ns": 3149642970156100
+      }
+    }
+  ],
+  "completed": true,
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "elapsed_ns": 33094012933,
+  "environment": {
+    "affinity": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1025-component03.scope\n",
+    "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:16:04) [GCC 11.2.0]"
+  },
+  "kind": "file_owner_component_diagnostic_v1",
+  "resources_before_exit": {
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.peak": "1845735424",
+    "memory.swap.current": "0",
+    "memory.swap.max": "0"
+  },
+  "scope": "isolated_CPU_fixture_not_full_workload",
+  "selection": "size_sorted_min_upper_median_max",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/file_state_process.py": "e45ca417cb5a14f205d8451b543546ed961100e271b86680c80f169577440442",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "10fb41d67a31e6d22c840fd134a9e0dfc4182a97c2ee931cbde143d89ad1d333",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_state_process.py": "ff69c8a2eb0bca96c0b11bfe0687ef624096dd5feed29aad3fe8024a80e7cb54"
+  }
+}

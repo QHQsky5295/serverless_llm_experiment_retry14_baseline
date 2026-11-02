@@ -1,0 +1,10 @@
+{
+  "kind": "d1025_component02_abort_v1",
+  "completed": false,
+  "reason": "native environment import spawned humming build subprocesses; memory.high reclaim makes this CPU fixture unsuitable for owner-only timings",
+  "performance_result": false,
+  "scope": "primelora-tc-aux-d1025-component02.scope",
+  "snapshot": "ControlGroup=/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1025-component02.scope\nMemoryCurrent=3415535616\nTasksCurrent=45\nActiveState=active\nInvocationID=9866104d40c4490a9410908657cd5ce6\nlow 0\nhigh 90280\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n3416391680\n0\n    PID    PPID STAT   RSS COMMAND\n2634885 1875020 Ssl  959800 python\n2635295 2634885 Sl   913808 python\n2635756       1 Dl   737844 python\n2635758 2635295 Dl   737836 python\n2635760       1 Dl   738044 python\n2635762 2635295 Dl   738340 python\n2636048 2634885 Dl   685484 python\n",
+  "termination": "SIGTERM to this verified owned scope only; closure recorded separately",
+  "report_expected_but_not_completed": "component02.json"
+}

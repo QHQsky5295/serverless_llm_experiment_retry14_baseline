@@ -223,24 +223,53 @@ def _execute(message):
     return response
 
 
+def _execute_timed(message):
+    """Opt-in component observation; never a scheduling or capacity input.
+
+    The host monotonic clock is shared by these local processes. This measures
+    the whole owner command (including argument decoding/receipt construction),
+    not pure file IO or time holding an individual owner lock. CPU time is a
+    separate observation, not an additive phase of wall time.
+    """
+    started_ns = time.monotonic_ns()
+    cpu_started_ns = time.process_time_ns()
+    receipt = _execute(message)
+    cpu_elapsed_ns = time.process_time_ns() - cpu_started_ns
+    ended_ns = time.monotonic_ns()
+    receipt['diagnostic_timing'] = dict(
+        kind='file_owner_command_timing_v1', clock='host_monotonic_ns',
+        worker_started_ns=started_ns, worker_ended_ns=ended_ns,
+        worker_cpu_ns=cpu_elapsed_ns)
+    return receipt
+
+
 class FileStateCall:
     """An owned command. A cancelled waiter can rejoin this exact receipt."""
 
-    def __init__(self, future, *, on_receipt=None):
+    def __init__(self, future, *, on_receipt=None, diagnostic_submission=None):
         self._future = future
         self._on_receipt = on_receipt
         self._observe_lock = threading.Lock()
         self._observed = False
+        self._diagnostic_submission = diagnostic_submission
 
     def _observe(self, receipt):
         callback = self._on_receipt
-        if callback is None:
+        if callback is None and self._diagnostic_submission is None:
             return
         with self._observe_lock:
             if self._observed:
                 return
             self._observed = True
-        callback(receipt)
+            if self._diagnostic_submission is not None:
+                # First caller observation, not the pipe receive instant. This
+                # includes IPC/deserialization, scheduling and delayed joining;
+                # it must not be labelled pure IPC or pure event-loop delay.
+                receipt['diagnostic_timing'].update(
+                    **self._diagnostic_submission,
+                    parent_observed_ns=time.monotonic_ns())
+        if callback is not None:
+            callback(receipt)
 
     def receipt(self, timeout=None):
         receipt = self._future.result(timeout=timeout)
@@ -280,7 +309,10 @@ class FileStateProcess:
     wired into the experiment runner until its complete call-site migration.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only'):
+    def __init__(self, roots, *, file_cache_policy='planned_only', diagnostic_timing=False):
+        if type(diagnostic_timing) is not bool:
+            raise TypeError('diagnostic_timing must be a bool')
+        self._diagnostic_timing = diagnostic_timing
         self._lock = threading.Lock()
         self._closed = self._closing = False
         self._event_callbacks = {}
@@ -292,13 +324,17 @@ class FileStateProcess:
     def submit(self, operation, **args):
         if operation not in _METHODS | _COMPOSITE:
             raise ValueError('unknown file state operation')
+        diagnostic = (dict(operation=operation, parent_submitted_ns=time.monotonic_ns())
+                      if self._diagnostic_timing else None)
         with self._lock:
             if self._closed or self._closing:
                 raise RuntimeError('file state process is closing or closed')
             # Serialize before submitting, as in the existing pure planner.
             message = pickle.dumps((operation, args), protocol=5)
-            return FileStateCall(self._pool.submit(_execute, message),
-                                 on_receipt=self._observe_receipt)
+            execute = _execute_timed if self._diagnostic_timing else _execute
+            return FileStateCall(self._pool.submit(execute, message),
+                                 on_receipt=self._observe_receipt,
+                                 diagnostic_submission=diagnostic)
 
     def _observe_receipt(self, receipt):
         """Deliver child-published file changes exactly once per command.

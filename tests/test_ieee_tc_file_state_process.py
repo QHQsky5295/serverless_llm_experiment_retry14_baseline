@@ -4,12 +4,14 @@ import asyncio
 from concurrent.futures import Future
 from concurrent.futures.process import BrokenProcessPool
 import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
 import signal
 import sys
 import tempfile
+import time
 import unittest
 
 from faaslora.memory.file_state_process import (
@@ -17,7 +19,9 @@ from faaslora.memory.file_state_process import (
 )
 from faaslora.experiment.experiment_config import ExperimentConfig
 from faaslora.memory.gpu_monitor import GPUMemoryMonitor
-from faaslora.memory.residency_manager import ResidencyManager, StorageTier
+from faaslora.memory.residency_manager import (
+    ResidencyManager, StorageTier, _file_allocation_ceiling, _file_allocation_geometry,
+)
 from faaslora.registry.artifact_registry import ArtifactRegistry
 from faaslora.metrics.metrics_collector import _open_pidfd
 from faaslora.storage.http_artifact_store import (
@@ -54,6 +58,7 @@ class FileStateProcessTests(unittest.TestCase):
         self.call('end_materialization', context_id=material['context_id'])
 
     def test_actual_spawn_identity_and_frozen_submission(self):
+        self.assertNotIn('diagnostic_timing', self.owner.submit('identity').receipt())
         self.assertNotEqual(self.identity['pid'], os.getpid())
         self.assertEqual(self.identity['start_method'], 'spawn')
         self.assertEqual(self.identity['affinity'], sorted(os.sched_getaffinity(0)))
@@ -67,6 +72,29 @@ class FileStateProcessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unknown file state operation'):
             self.owner.submit('__getattribute__', name='_confirmed_sources')
         self.call('cancel_activation_host', activation_id='startup')
+
+    def test_opt_in_timing_partitions_real_success_and_typed_failure(self):
+        self.owner.close()
+        self.owner = FileStateProcess({'host': self.host, 'nvme': self.nvme},
+                                      diagnostic_timing=True)
+        good = self.owner.submit('identity')
+        good.result(timeout=30)
+        failed = self.owner.submit('end_workspace', context_id='absent')
+        with self.assertRaises(KeyError):
+            failed.result(timeout=30)
+        for command in (good, failed):
+            receipt = command.receipt()
+            timing = dict(receipt['diagnostic_timing'])
+            edges = [timing[key] for key in (
+                'parent_submitted_ns', 'worker_started_ns',
+                'worker_ended_ns', 'parent_observed_ns')]
+            self.assertEqual(edges, sorted(edges))
+            self.assertEqual(sum(b - a for a, b in zip(edges, edges[1:])),
+                             edges[-1] - edges[0])
+            self.assertGreaterEqual(timing['worker_cpu_ns'], 0)
+            self.assertEqual(timing['clock'], 'host_monotonic_ns')
+            self.assertEqual(command.receipt()['diagnostic_timing'], timing)
+        self.assertEqual(failed.receipt()['sequence'], good.receipt()['sequence'] + 1)
 
     def test_reserved_publication_atomic_acquisition_and_reclamation(self):
         payload = b'existing owner semantics'
@@ -430,6 +458,23 @@ class FileStateProcessTests(unittest.TestCase):
 
 
 class FileStateWaitTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancelled_timed_call_records_first_rejoin_once(self):
+        future, events = Future(), []
+        command = FileStateCall(future, on_receipt=events.append,
+            diagnostic_submission=dict(operation='identity', parent_submitted_ns=1))
+        waiter = asyncio.create_task(command.wait())
+        await asyncio.sleep(0)
+        waiter.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await waiter
+        future.set_result(dict(ok=True, value='same command', diagnostic_timing=dict(
+            worker_started_ns=2, worker_ended_ns=3, worker_cpu_ns=1)))
+        self.assertEqual(await command.wait(), 'same command')
+        first = dict(command.receipt()['diagnostic_timing'])
+        self.assertEqual(await command.wait(), 'same command')
+        self.assertEqual(command.receipt()['diagnostic_timing'], first)
+        self.assertEqual(len(events), 1)
+
     async def test_cancellation_inside_wait_does_not_cancel_pending_command(self):
         future = Future()
         command = FileStateCall(future)
@@ -443,5 +488,133 @@ class FileStateWaitTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await command.wait(), {'lease_id': 'still-owned'})
 
 
+def component_diagnostic(content_index, artifact_root, workspace_parent, output):
+    """Reuse this real-owner fixture on three existing assets, not a GPU replay.
+
+    One source at a time is copied into a temporary owned workspace. The frozen
+    pool is read-only; the original bytes/SHA and publication checks are kept.
+    Eight deliberately queued source observations test the timing boundary, not
+    the frequency or magnitude of queueing in the full application.
+    """
+    content_index, artifact_root = Path(content_index), Path(artifact_root)
+    output = Path(output)
+    if output.exists():
+        raise FileExistsError(output)
+    index_bytes = content_index.read_bytes()
+    artifacts = sorted(json.loads(index_bytes)['artifacts'],
+                       key=lambda item: (sum(f['size_bytes'] for f in item['files']), item['id']))
+    selected = [artifacts[i] for i in sorted({0, len(artifacts) // 2, len(artifacts) - 1})]
+    report = dict(kind='file_owner_component_diagnostic_v1',
+                  scope='isolated_CPU_fixture_not_full_workload', completed=False,
+                  content_index=dict(path=str(content_index), sha256=hashlib.sha256(index_bytes).hexdigest()),
+                  artifact_root=str(artifact_root), selection='size_sorted_min_upper_median_max',
+                  calls=[], artifacts=[], environment=dict(python=sys.version,
+                    affinity=sorted(os.sched_getaffinity(0)),
+                    cgroup=Path('/proc/self/cgroup').read_text()))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic_ns()
+    try:
+        for item in selected:
+            adapter_id = item['id']
+            files = {entry['path']: (entry['size_bytes'], entry['sha256']) for entry in item['files']}
+            total_bytes = sum(size for size, _ in files.values())
+            with tempfile.TemporaryDirectory(prefix='ieee-file-component-', dir=workspace_parent) as temporary:
+                root = Path(temporary)
+                host, nvme = root / 'host', root / 'nvme'
+                host.mkdir()
+                nvme.mkdir()
+                owner = FileStateProcess({'host': host, 'nvme': nvme}, diagnostic_timing=True)
+
+                def collect(command, label):
+                    receipt = command.receipt(timeout=120)
+                    report['calls'].append(dict(label=label, adapter_id=adapter_id,
+                        sequence=receipt['sequence'], owner_id=receipt['owner_id'],
+                        pid=receipt['pid'], ok=receipt['ok'], timing=receipt['diagnostic_timing']))
+                    return command.result()
+
+                def call(operation, **args):
+                    return collect(owner.submit(operation, **args), operation)
+
+                try:
+                    identity = call('identity')  # Includes spawn; not steady IPC.
+                    material = call('begin_materialization', target=nvme / adapter_id, budgeted=True)
+                    workspace = call('begin_workspace', transfer_id=material['value'])
+                    staging = Path(workspace['value'])
+                    try:
+                        filesystem, unit = _file_allocation_geometry(nvme)
+                        # Reuse the qualified reservation law; logical bytes
+                        # times a guessed factor is not an ext4 allocation bound.
+                        limit_bytes = sum(_file_allocation_ceiling(size, unit, filesystem)
+                                          for size, _ in files.values())
+                        call('prepare_copy', transfer_id=material['value'], staging=staging,
+                             expected=files, limit_bytes=limit_bytes)
+                        verified = {}
+                        for name, (size, digest) in files.items():
+                            source = artifact_root / adapter_id / name
+                            target = staging / name
+                            # prepare_copy owns the exact preallocated destination.
+                            if source.stat().st_size != size:
+                                raise ValueError('source size differs from frozen content index')
+                            with source.open('rb') as reader, target.open('r+b') as writer:
+                                remaining = size
+                                while remaining:
+                                    chunk = reader.read(min(1024**2, remaining))
+                                    if not chunk:
+                                        raise ValueError('source shortened during diagnostic copy')
+                                    writer.write(chunk)
+                                    remaining -= len(chunk)
+                                if reader.read(1):
+                                    raise ValueError('source grew during diagnostic copy')
+                            verified[name] = dict(size_bytes=size, sha256=digest,
+                                signature=_verified_file_signature(target.stat()))
+                        publication_call = owner.submit('publish_transfer',
+                            transfer_id=material['value'], staging=staging,
+                            target=nvme / adapter_id, verified_files=verified)
+                        queued = [owner.submit('source_snapshot', adapter_id=adapter_id) for _ in range(8)]
+                        publication = collect(publication_call, 'publish_transfer')
+                        for ordinal, command in enumerate(queued):
+                            view = collect(command, f'queued_source_snapshot_{ordinal}')
+                            assert view['sources'][0]['content_sha256'] == publication['content_sha256']
+                        assert publication['content_sha256'] == preparation_content_sha256(files)
+                        report['artifacts'].append(dict(adapter_id=adapter_id, file_count=len(files),
+                            bytes=total_bytes, owner_id=identity['owner_id'],
+                            content_sha256=publication['content_sha256'], verified=True,
+                            filesystem=filesystem, allocation_unit_bytes=unit,
+                            fixture_limit_bytes=limit_bytes))
+                    finally:
+                        call('end_workspace', context_id=workspace['context_id'])
+                        call('end_materialization', context_id=material['context_id'])
+                    call('delete', path=nvme / adapter_id)
+                    assert call('inventory')['allocated_file_bytes'] == 0
+                finally:
+                    owner.close()
+        report['completed'] = True
+    except BaseException as exc:
+        report['error'] = dict(type=type(exc).__name__, message=str(exc))
+        raise
+    finally:
+        report['elapsed_ns'] = time.monotonic_ns() - started
+        report['sources'] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in (
+            Path(__file__), Path(__file__).resolve().parents[1] / 'faaslora/memory/file_state_process.py',
+            Path(__file__).resolve().parents[1] / 'faaslora/memory/residency_manager.py')}
+        cgroup = Path('/sys/fs/cgroup') / report['environment']['cgroup'].strip().split('::', 1)[1].lstrip('/')
+        report['resources_before_exit'] = {name: (cgroup / name).read_text().strip() for name in (
+            'memory.peak', 'memory.events', 'memory.swap.current', 'memory.high', 'memory.max', 'memory.swap.max')}
+        with output.open('x') as handle:
+            json.dump(report, handle, indent=2, sort_keys=True)
+            handle.write('\n')
+
+
 if __name__ == '__main__':
-    unittest.main()
+    if '--component-diagnostic' in sys.argv:
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--component-diagnostic', required=True, help='new report JSON path')
+        parser.add_argument('--content-index', required=True)
+        parser.add_argument('--artifact-root', required=True)
+        parser.add_argument('--workspace-parent', required=True)
+        args = parser.parse_args()
+        component_diagnostic(args.content_index, args.artifact_root,
+                             args.workspace_parent, args.component_diagnostic)
+    else:
+        unittest.main()

@@ -154,3 +154,10 @@ python scripts/ieee_tc/audit_d703_3b_full.py \
 A1–A5、S1–S13、CE/Pareto、B1/B2/C1/C2/C3与两轮审稿证据文档、后期图表、
 最终V2集成。已完成基线适配与观测直接复用，不能将上述“外部比较”解释为
 全部基线重跑。当前仍不作图、不改论文、不新增权重或负载。
+
+后置备份回执：10文件检查点7489cc9e1a241da7010528c809e33b439da21d23
+已推送并ls-remote核验origin/retry14_continuous_queue_v2与faaslora_origin的
+backup/d1024-shared-prefetch-evidence-20261103。后者只是可回退备份，尚非
+历史分歧V2的最终集成；没有强推。暂存路径/差异/凭据模式检查通过。
+收尾时无GPU compute进程、无D1024辅助scope；可用磁盘161397600256字节。
+两个用户dirty文件仍未触碰。此后置说明随下一正常检查点提交，不重复发布。
