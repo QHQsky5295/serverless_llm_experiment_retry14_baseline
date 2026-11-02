@@ -4244,7 +4244,15 @@ class ConfirmedFilePublication(unittest.TestCase):
             def __init__(inner, *args, **kwargs):
                 inner.hash = real_hash(*args, **kwargs)
             def update(inner, data):
-                hashed.append((len(data), self.owner.lock._is_owned()))
+                # The publishing thread retains the RLock; a digest reader
+                # must be excluded even though it is not itself that owner.
+                protected = self.owner.lock._is_owned()
+                if not protected:
+                    acquired = self.owner.lock.acquire(blocking=False)
+                    if acquired:
+                        self.owner.lock.release()
+                    protected = not acquired
+                hashed.append((len(data), protected))
                 inner.hash.update(data)
             def hexdigest(inner):
                 return inner.hash.hexdigest()
@@ -4262,6 +4270,123 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.assertEqual(receipt['content_verification'], 'owner_publication')
         self.assertFalse(receipt['stream_content_verified'])
         self.assertTrue(receipt['content_verified'])
+
+    def test_parallel_confirmation_retains_owner_and_joins_before_visibility(self):
+        from faaslora.memory import residency_manager as residency
+        actual_verify = residency._verify_publication_file_contents
+        entered = {name: threading.Event() for name in self.payload}
+        proceed, returned = threading.Event(), threading.Event()
+        readers, results, errors = {}, [], []
+
+        def verify(file, digest):
+            name = 'nested/weights' if file.name == 'weights' else file.name
+            readers[name] = threading.get_ident()
+            entered[name].set()
+            if not proceed.wait(5):
+                raise TimeoutError('parallel confirmation test barrier')
+            actual_verify(file, digest)
+
+        def fetch():
+            try:
+                results.append(self.fetch())
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                returned.set()
+
+        writer = threading.Thread(target=fetch)
+        with patch.object(residency, '_verify_publication_file_contents', side_effect=verify), \
+                patch.object(residency.os, 'sched_getaffinity', return_value={2, 3}):
+            writer.start()
+            try:
+                for event in entered.values():
+                    self.assertTrue(event.wait(3))
+                self.assertEqual(len(set(readers.values())), len(self.payload))
+                self.assertNotIn(writer.ident, readers.values())
+                acquired = self.owner.lock.acquire(blocking=False)
+                if acquired:
+                    self.owner.lock.release()
+                self.assertFalse(acquired)
+                self.assertFalse(returned.is_set())
+                self.assertFalse((self.nvme / 'a').exists())
+                self.assertTrue(self.owner._transfer_workspaces)
+            finally:
+                proceed.set()
+                writer.join(5)
+        self.assertFalse(writer.is_alive())
+        self.assertFalse(errors)
+        self.assertTrue(results[0][0])
+        self.assertTrue(self.owner.source_snapshot('a')['sources'][0]['content_verified'])
+
+    def test_confirmation_failure_joins_readers_before_workspace_cleanup(self):
+        from faaslora.memory import residency_manager as residency
+        actual_verify = residency._verify_publication_file_contents
+        actual_executor = residency.ThreadPoolExecutor
+        reading, proceed, shutting_down, returned = (threading.Event() for _ in range(4))
+        errors = []
+
+        class ObservedExecutor(actual_executor):
+            def shutdown(inner, *args, **kwargs):
+                shutting_down.set()
+                return super().shutdown(*args, **kwargs)
+
+        def verify(file, digest):
+            if file.name == 'weights':
+                reading.set()
+                if not proceed.wait(5):
+                    raise TimeoutError('failure confirmation test barrier')
+                actual_verify(file, digest)
+            else:
+                if not reading.wait(3):
+                    raise TimeoutError('peer confirmation did not start')
+                raise RuntimeError('injected digest failure')
+
+        def fetch():
+            try:
+                self.fetch()
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                returned.set()
+
+        writer = threading.Thread(target=fetch)
+        with patch.object(residency, '_verify_publication_file_contents', side_effect=verify), \
+                patch.object(residency, 'ThreadPoolExecutor', ObservedExecutor), \
+                patch.object(residency.os, 'sched_getaffinity', return_value={2, 3}):
+            writer.start()
+            try:
+                self.assertTrue(shutting_down.wait(3))
+                self.assertFalse(returned.is_set())
+                acquired = self.owner.lock.acquire(blocking=False)
+                if acquired:
+                    self.owner.lock.release()
+                self.assertFalse(acquired)
+                self.assertFalse((self.nvme / 'a').exists())
+                self.assertTrue(all(path.exists() for path in self.owner._transfer_workspaces.values()))
+            finally:
+                proceed.set()
+                writer.join(5)
+        self.assertFalse(writer.is_alive())
+        self.assertEqual(len(errors), 1)
+        self.assertRegex(str(errors[0]), 'injected digest failure')
+        self.assertFalse(self.owner._transfer_workspaces)
+        self.assertFalse(self.owner.materializations)
+        self.assertFalse((self.nvme / 'a').exists())
+        self.assertEqual(self.owner.source_snapshot('a')['sources'], [])
+
+    def test_single_cpu_confirmation_keeps_serial_whole_file_checks(self):
+        from faaslora.memory import residency_manager as residency
+        actual_verify = residency._verify_publication_file_contents
+        readers = []
+        def verify(file, digest):
+            readers.append(threading.get_ident())
+            actual_verify(file, digest)
+        with patch.object(residency.os, 'sched_getaffinity', return_value={2}), \
+                patch.object(residency, 'ThreadPoolExecutor') as executor, \
+                patch.object(residency, '_verify_publication_file_contents', side_effect=verify):
+            self.assertTrue(self.fetch()[0])
+        executor.assert_not_called()
+        self.assertEqual(readers, [threading.get_ident()] * len(self.payload))
 
     def test_owner_rejects_same_size_bad_content_and_preserves_confirmed_copy(self):
         self.fetch()

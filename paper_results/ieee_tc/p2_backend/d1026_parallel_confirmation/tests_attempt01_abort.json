@@ -1,0 +1,20 @@
+{
+  "kind": "cpu_test_environment_abort",
+  "completed": false,
+  "scope": "primelora-tc-aux-d1026-tests.scope",
+  "command": "vLLM 0.30 environment python -m pytest ConfirmedFilePublication test_ieee_tc_file_state_process.py test_http_artifact_store.py",
+  "collected": 95,
+  "observed_completed_prefix": "37 ConfirmedFilePublication checks reported pass before process tests; incomplete batch is not a complete pass",
+  "observed_failures": "Two F markers during FileStateProcess tests before abort; traceback/JUnit not produced before termination, exact test failures unresolved",
+  "evidence": "Scope contained pytest, spawned Python owners and four additional Python compilation processes; memory.high events increased while process checks failed. No performance result.",
+  "resources_snapshot_not_terminal": {
+    "memory_peak_bytes": 3417489408,
+    "memory_high_events": 40825,
+    "memory_max_events": 0,
+    "memory_oom_events": 0,
+    "memory_oom_kill_events": 0,
+    "memory_swap_current_bytes": 0
+  },
+  "shutdown": "SIGINT followed by SIGTERM to the verified owned scope; command exit 143; subsequently inactive/dead with no cgroup",
+  "decision": "Retain aborted attempt. Reuse the already qualified LLM CPU environment for file-owner tests; do not raise memory limits or change production semantics."
+}

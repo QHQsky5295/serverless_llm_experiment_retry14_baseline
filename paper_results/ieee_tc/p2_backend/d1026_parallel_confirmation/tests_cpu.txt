@@ -1,0 +1,252 @@
+Running scope as unit: primelora-tc-aux-d1026-cpu-tests.scope
+W1103 02:24:18.652000 2697667 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_actual_async_copy_preallocates_payload_only_and_publishes_same_content (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_actual_async_copy_preallocates_payload_only_and_publishes_same_content) ... 2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy) ...     remote artifact fetch a: 0.0 MB, 6.7 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_bad_transfer_preserves_old_confirmed_copy_and_epoch (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_bad_transfer_preserves_old_confirmed_copy_and_epoch) ...     remote artifact fetch a: 0.0 MB, 4.3 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_coalesced_local_snapshot_and_pin_are_one_owner_transaction (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_coalesced_local_snapshot_and_pin_are_one_owner_transaction) ...     remote artifact fetch a: 0.0 MB, 4.0 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_confirmation_failure_joins_readers_before_workspace_cleanup (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmation_failure_joins_readers_before_workspace_cleanup) ...     remote artifact fetch a: 0.0 MB, 3.8 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity)
+Deterministic stat transition, not a replay of D309's kernel event. ... 2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope) ...     remote artifact fetch a: 0.0 MB, 4.2 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_confirmed_read_pin_still_rejects_content_changed_after_snapshot (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_still_rejects_content_changed_after_snapshot) ...     remote artifact fetch a: 0.0 MB, 3.8 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_corrupt_tier_copy_does_not_publish_fast_tier_or_invalidate_source (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_corrupt_tier_copy_does_not_publish_fast_tier_or_invalidate_source) ...     remote artifact fetch a: 0.0 MB, 3.9 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+    remote artifact fetch a: 0.0 MB, 4.9 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - ERROR - Confirmed tier copy failed for a: verified payload content changed before source publication
+ok
+test_d850_preissued_read_lease_still_joins_witness_owner_lock (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_d850_preissued_read_lease_still_joins_witness_owner_lock) ... 2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_d850_published_source_snapshot_still_joins_workspace_lock (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_d850_published_source_snapshot_still_joins_workspace_lock) ...     remote artifact fetch a: 0.0 MB, 4.3 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_delete_withdraws_before_reuse_and_failed_rename_restores_identity (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_delete_withdraws_before_reuse_and_failed_rename_restores_identity) ...     remote artifact fetch a: 0.0 MB, 10.3 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_directory_existence_is_not_confirmed_local_or_remote (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_directory_existence_is_not_confirmed_local_or_remote) ...     remote artifact fetch a: 0.0 MB, 4.5 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_existing_localhost_server_feeds_actual_runner_confirmed_publication (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_existing_localhost_server_feeds_actual_runner_confirmed_publication) ...     remote artifact fetch a: 0.0 MB, 4.5 ms
+2026-11-03 02:24:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_failed_copy_cleanup_retains_capacity_and_failure_evidence (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_failed_copy_cleanup_retains_capacity_and_failure_evidence) ... [03/Nov/2026 02:24:20] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+    remote artifact fetch a: 0.0 MB, 10.9 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_file_demand_witness_preserves_every_nonallocation_publication_field (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_file_demand_witness_preserves_every_nonallocation_publication_field) ...     remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_file_demand_witness_rejects_allocation_outside_reserved_envelope (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_file_demand_witness_rejects_allocation_outside_reserved_envelope) ...     remote artifact fetch a: 0.0 MB, 6.6 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_file_demand_witness_rejects_mutated_or_missing_publication (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_file_demand_witness_rejects_mutated_or_missing_publication) ...     remote artifact fetch a: 0.0 MB, 4.2 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_file_demand_witness_requires_actual_live_confirmed_lease (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_file_demand_witness_requires_actual_live_confirmed_lease) ...     remote artifact fetch a: 0.0 MB, 3.9 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_file_demand_witness_survives_bounded_allocation_refresh (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_file_demand_witness_survives_bounded_allocation_refresh)
+D364 hypothesis fixture, not a reconstruction of its kernel event. ...     remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_local_copy_cancellation_joins_writer_before_releasing_source (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_local_copy_cancellation_joins_writer_before_releasing_source) ...     remote artifact fetch a: 0.0 MB, 9.6 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_local_copy_shares_capacity_with_another_preallocated_transfer (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_local_copy_shares_capacity_with_another_preallocated_transfer) ...     remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_local_file_snapshot_cannot_change_frozen_budget_or_admit_unknown_copy (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_local_file_snapshot_cannot_change_frozen_budget_or_admit_unknown_copy) ...     remote artifact fetch a: 0.0 MB, 4.1 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_observed_file_metadata_change_withdraws_confirmation (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_observed_file_metadata_change_withdraws_confirmation) ...     remote artifact fetch a: 0.0 MB, 3.8 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_owner_receipt_is_required_before_content_verification_is_reported (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_owner_receipt_is_required_before_content_verification_is_reported) ...     remote artifact fetch a: 0.0 MB, 3.8 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_owner_rejects_same_size_bad_content_and_preserves_confirmed_copy (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_owner_rejects_same_size_bad_content_and_preserves_confirmed_copy) ... 2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_owner_verification_hashes_each_destination_once_before_visibility (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_owner_verification_hashes_each_destination_once_before_visibility) ...     remote artifact fetch a: 0.0 MB, 4.1 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_parallel_confirmation_retains_owner_and_joins_before_visibility (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_parallel_confirmation_retains_owner_and_joins_before_visibility) ...     remote artifact fetch a: 0.0 MB, 5.8 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_post_verification_mutation_rejects_before_publication (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_post_verification_mutation_rejects_before_publication) ...     remote artifact fetch a: 0.0 MB, 4.1 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_private_preallocation_does_not_publish_in_progress_copy (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_private_preallocation_does_not_publish_in_progress_copy) ... 2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_reader_cannot_observe_rename_before_confirmation (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_reader_cannot_observe_rename_before_confirmation)
+Real publisher/owner lock; force a pause after rename, before registry commit. ...     remote artifact fetch a: 0.0 MB, 7.0 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_reader_on_old_destination_prevents_replacement_not_source_release (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_reader_on_old_destination_prevents_replacement_not_source_release) ...     remote artifact fetch a: 0.0 MB, 4.2 ms
+    remote artifact fetch a: 0.0 MB, 4.7 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_remote_completion_snapshot_and_pin_are_one_owner_transaction (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_remote_completion_snapshot_and_pin_are_one_owner_transaction) ...     remote artifact fetch a: 0.0 MB, 3.8 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_replacement_requires_both_old_and_new_payload_space (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_replacement_requires_both_old_and_new_payload_space) ...     remote artifact fetch a: 0.0 MB, 6.5 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_single_cpu_confirmation_keeps_serial_whole_file_checks (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_single_cpu_confirmation_keeps_serial_whole_file_checks) ...     remote artifact fetch a: 0.0 MB, 4.4 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_stale_snapshot_and_wrong_identity_do_not_create_read_leases (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_stale_snapshot_and_wrong_identity_do_not_create_read_leases) ...     remote artifact fetch a: 0.0 MB, 5.1 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_verified_host_copy_preserves_content_and_lower_tier_after_eviction (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_verified_host_copy_preserves_content_and_lower_tier_after_eviction) ...     remote artifact fetch a: 0.0 MB, 4.0 ms
+2026-11-03 02:24:21 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_actual_spawn_identity_and_frozen_submission (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_actual_spawn_identity_and_frozen_submission) ...     remote artifact fetch a: 0.0 MB, 4.1 ms
+W1103 02:24:29.253000 2698027 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:24:29.253000 2698028 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_async_context_cancellation_after_entry_receipt_closes_owner_context (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_async_context_cancellation_after_entry_receipt_closes_owner_context)
+A cancelled async entry must not orphan a child-owned context. ... W1103 02:24:38.337000 2698622 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:24:45.011000 2698850 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_async_facade_context_joins_entry_and_exit (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_async_facade_context_joins_entry_and_exit) ... W1103 02:24:54.314000 2699168 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:25:00.832000 2699394 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_async_receipt_adoption_must_not_spawn_a_second_task (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_async_receipt_adoption_must_not_spawn_a_second_task) ... W1103 02:25:09.904000 2699715 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_cancelled_waiter_rejoins_the_same_mutation (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_cancelled_waiter_rejoins_the_same_mutation) ... W1103 02:25:17.781000 2699954 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_capacity_cannot_be_spent_twice (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_capacity_cannot_be_spent_twice) ... W1103 02:25:25.761000 2700217 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_corrupt_bytes_never_publish_and_context_kind_is_checked (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_corrupt_bytes_never_publish_and_context_kind_is_checked) ... W1103 02:25:33.746000 2700749 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_facade_copy_keeps_byte_io_outside_the_child_owner (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_facade_copy_keeps_byte_io_outside_the_child_owner) ... W1103 02:25:41.810000 2700968 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:25:48.476000 2701168 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_facade_preparation_snapshot_detaches_mappingproxy_metadata (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_facade_preparation_snapshot_detaches_mappingproxy_metadata) ... W1103 02:25:57.697000 2701481 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:26:04.343000 2701716 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_manager_process_owner_materializes_confirmed_source (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_manager_process_owner_materializes_confirmed_source) ... W1103 02:26:13.870000 2702046 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+2026-11-03 02:26:15 - faaslora.registry.artifact_registry - INFO - Using memory backend for artifact registry
+2026-11-03 02:26:15 - faaslora.registry.artifact_registry - INFO - Artifact registry initialized
+2026-11-03 02:26:15 - faaslora.memory.gpu_monitor - WARNING - CUDA not available, GPU monitoring disabled
+W1103 02:26:20.392000 2702308 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+2026-11-03 02:26:22 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_opt_in_timing_partitions_real_success_and_typed_failure (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_opt_in_timing_partitions_real_success_and_typed_failure) ... W1103 02:26:29.617000 2702786 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:26:37.548000 2703089 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_process_owner_async_native_retirement_uses_pidfd (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_process_owner_async_native_retirement_uses_pidfd) ... W1103 02:26:45.365000 2703284 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:26:51.988000 2703571 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:26:58.639000 2703812 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_real_pidfd_survives_parent_fd_close_until_actual_exit (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_real_pidfd_survives_parent_fd_close_until_actual_exit) ... W1103 02:27:08.922000 2704196 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:27:15.570000 2704381 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_receipt_event_is_delivered_once_after_cancelled_waiter_rejoins (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_receipt_event_is_delivered_once_after_cancelled_waiter_rejoins) ... W1103 02:27:24.742000 2704713 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_reserved_publication_atomic_acquisition_and_reclamation (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_reserved_publication_atomic_acquisition_and_reclamation) ... W1103 02:27:32.672000 2705165 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_residency_manager_process_owner_constructs_and_closes_in_pytest_module (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_residency_manager_process_owner_constructs_and_closes_in_pytest_module) ... W1103 02:27:40.489000 2705430 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+2026-11-03 02:27:42 - faaslora.registry.artifact_registry - INFO - Using memory backend for artifact registry
+2026-11-03 02:27:42 - faaslora.registry.artifact_registry - INFO - Artifact registry initialized
+2026-11-03 02:27:42 - faaslora.memory.gpu_monitor - WARNING - CUDA not available, GPU monitoring disabled
+W1103 02:27:46.983000 2705665 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+2026-11-03 02:27:48 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+ok
+test_value_only_facade_keeps_contexts_in_the_child_owner (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_value_only_facade_keeps_contexts_in_the_child_owner) ... W1103 02:27:56.048000 2705977 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W1103 02:28:02.585000 2706167 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_worker_death_does_not_create_a_new_owner (tests.test_ieee_tc_file_state_process.FileStateProcessTests.test_worker_death_does_not_create_a_new_owner) ... W1103 02:28:11.652000 2706517 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+ok
+test_cancellation_inside_wait_does_not_cancel_pending_command (tests.test_ieee_tc_file_state_process.FileStateWaitTests.test_cancellation_inside_wait_does_not_cancel_pending_command) ... ok
+test_cancelled_timed_call_records_first_rejoin_once (tests.test_ieee_tc_file_state_process.FileStateWaitTests.test_cancelled_timed_call_records_first_rejoin_once) ... ok
+test_actual_server_and_client_keep_pack_nested_and_transfer_identity (tests.test_http_artifact_store.AtomicArtifactPublication.test_actual_server_and_client_keep_pack_nested_and_transfer_identity) ... ok
+test_bad_archive_preserves_previous_destination (tests.test_http_artifact_store.AtomicArtifactPublication.test_bad_archive_preserves_previous_destination) ... ok
+test_cancel_qualification_does_not_relabel_network_failure_as_cancellation (tests.test_http_artifact_store.AtomicArtifactPublication.test_cancel_qualification_does_not_relabel_network_failure_as_cancellation) ... ok
+test_cancel_qualification_outer_temp_cleanup_cannot_hide_leaked_workspace (tests.test_http_artifact_store.AtomicArtifactPublication.test_cancel_qualification_outer_temp_cleanup_cannot_hide_leaked_workspace) ... ok
+test_cancel_qualification_uses_real_headers_and_checks_cleanup_before_outer_removal (tests.test_http_artifact_store.AtomicArtifactPublication.test_cancel_qualification_uses_real_headers_and_checks_cleanup_before_outer_removal) ... ok
+test_cancellation_after_transfer_does_not_publish_or_delete_previous (tests.test_http_artifact_store.AtomicArtifactPublication.test_cancellation_after_transfer_does_not_publish_or_delete_previous) ... ok
+test_completed_extraction_is_published_once_and_workspace_removed (tests.test_http_artifact_store.AtomicArtifactPublication.test_completed_extraction_is_published_once_and_workspace_removed) ... ok
+test_concurrent_published_roundtrip_retains_each_uuid_and_cleans_each_lane (tests.test_http_artifact_store.AtomicArtifactPublication.test_concurrent_published_roundtrip_retains_each_uuid_and_cleans_each_lane) ... ok
+test_concurrent_qualification_joins_failed_wave_without_running_later_waves (tests.test_http_artifact_store.AtomicArtifactPublication.test_concurrent_qualification_joins_failed_wave_without_running_later_waves) ... ok
+test_concurrent_qualification_rejects_unfrozen_protocol_and_empty_lanes (tests.test_http_artifact_store.AtomicArtifactPublication.test_concurrent_qualification_rejects_unfrozen_protocol_and_empty_lanes) ... ok
+test_existing_loopback_server_roundtrip (tests.test_http_artifact_store.AtomicArtifactPublication.test_existing_loopback_server_roundtrip) ... ok
+test_failed_restore_keeps_recovery_copy_instead_of_erasing_it (tests.test_http_artifact_store.AtomicArtifactPublication.test_failed_restore_keeps_recovery_copy_instead_of_erasing_it) ... ok
+test_frozen_manifest_is_immutable_order_independent_and_not_a_size_hint (tests.test_http_artifact_store.AtomicArtifactPublication.test_frozen_manifest_is_immutable_order_independent_and_not_a_size_hint) ... ok
+test_invalid_id_is_rejected_before_local_or_network_work (tests.test_http_artifact_store.AtomicArtifactPublication.test_invalid_id_is_rejected_before_local_or_network_work) ... ok
+test_invalid_manifest_paths_and_file_identities_are_rejected (tests.test_http_artifact_store.AtomicArtifactPublication.test_invalid_manifest_paths_and_file_identities_are_rejected) ... ok
+test_link_cannot_redefine_frozen_regular_file (tests.test_http_artifact_store.AtomicArtifactPublication.test_link_cannot_redefine_frozen_regular_file) ... ok
+test_native_transfer_requires_frozen_manifest_before_network_or_writes (tests.test_http_artifact_store.AtomicArtifactPublication.test_native_transfer_requires_frozen_manifest_before_network_or_writes) ... ok
+test_offline_publication_rejects_links_and_outside_paths (tests.test_http_artifact_store.AtomicArtifactPublication.test_offline_publication_rejects_links_and_outside_paths) ... ok
+test_pool_verification_is_complete_exclusive_and_removes_owned_copy (tests.test_http_artifact_store.AtomicArtifactPublication.test_pool_verification_is_complete_exclusive_and_removes_owned_copy) ... ok
+test_publication_failure_restores_previous_copy (tests.test_http_artifact_store.AtomicArtifactPublication.test_publication_failure_restores_previous_copy) ... ok
+test_publication_verification_requires_the_managed_owner_before_io (tests.test_http_artifact_store.AtomicArtifactPublication.test_publication_verification_requires_the_managed_owner_before_io) ... ok
+test_published_cache_cancellation_keeps_ready_object_and_cleans_client (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_cache_cancellation_keeps_ready_object_and_cleans_client) ... ok
+test_published_cache_rejects_changed_archive_and_never_falls_back (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_cache_rejects_changed_archive_and_never_falls_back) ... ok
+test_published_cache_rejects_corrupt_source_without_completion_manifest (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_cache_rejects_corrupt_source_without_completion_manifest) ... ok
+test_published_download_rejects_mismatched_manifest_archive_and_mode (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_download_rejects_mismatched_manifest_archive_and_mode) ... ok
+test_published_object_roundtrip_never_packs_hashes_or_creates_temp_at_request (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_object_roundtrip_never_packs_hashes_or_creates_temp_at_request) ... ok
+test_published_timing_requires_identity_and_complete_object_hashes (tests.test_http_artifact_store.AtomicArtifactPublication.test_published_timing_requires_identity_and_complete_object_hashes) ... ok
+test_remote_timing_contract_rejects_invalid_or_unbound_duration (tests.test_http_artifact_store.AtomicArtifactPublication.test_remote_timing_contract_rejects_invalid_or_unbound_duration) ... ok
+test_required_remote_timing_does_not_fabricate_missing_legacy_measurement (tests.test_http_artifact_store.AtomicArtifactPublication.test_required_remote_timing_does_not_fabricate_missing_legacy_measurement) ... ok
+test_routing_identity_uses_exact_frozen_config_and_logical_payload (tests.test_http_artifact_store.AtomicArtifactPublication.test_routing_identity_uses_exact_frozen_config_and_logical_payload) ... ok
+test_routing_rank_does_not_silently_approximate_unqualified_metadata (tests.test_http_artifact_store.AtomicArtifactPublication.test_routing_rank_does_not_silently_approximate_unqualified_metadata) ... ok
+test_server_cli_rejects_missing_pool_public_token_and_existing_journal (tests.test_http_artifact_store.AtomicArtifactPublication.test_server_cli_rejects_missing_pool_public_token_and_existing_journal) ... usage: server.py [-h] --root ROOT [--host HOST] [--port PORT]
+                 [--token-env TOKEN_ENV] [--token-file TOKEN_FILE]
+                 [--include-sizes] [--transfer-events TRANSFER_EVENTS]
+                 [--transfer-events-dir TRANSFER_EVENTS_DIR]
+                 [--prepare-delivery-cache PREPARE_DELIVERY_CACHE]
+                 [--content-index CONTENT_INDEX]
+                 [--delivery-cache DELIVERY_CACHE]
+server.py: error: artifact root must already exist; never create an empty replacement pool
+usage: server.py [-h] --root ROOT [--host HOST] [--port PORT]
+                 [--token-env TOKEN_ENV] [--token-file TOKEN_FILE]
+                 [--include-sizes] [--transfer-events TRANSFER_EVENTS]
+                 [--transfer-events-dir TRANSFER_EVENTS_DIR]
+                 [--prepare-delivery-cache PREPARE_DELIVERY_CACHE]
+                 [--content-index CONTENT_INDEX]
+                 [--delivery-cache DELIVERY_CACHE]
+server.py: error: token file must be owned by this UID and private (0600)
+ok
+test_unexpected_duplicate_missing_or_wrong_size_member_cannot_publish (tests.test_http_artifact_store.AtomicArtifactPublication.test_unexpected_duplicate_missing_or_wrong_size_member_cannot_publish) ... ok
+test_unfinished_extraction_does_not_expose_partial_destination (tests.test_http_artifact_store.AtomicArtifactPublication.test_unfinished_extraction_does_not_expose_partial_destination) ... ok
+test_verified_nested_files_publish_with_auditable_byte_counts (tests.test_http_artifact_store.AtomicArtifactPublication.test_verified_nested_files_publish_with_auditable_byte_counts) ... ok
+test_verified_transfer_rejects_same_length_wrong_content_without_publication (tests.test_http_artifact_store.AtomicArtifactPublication.test_verified_transfer_rejects_same_length_wrong_content_without_publication) ... ok
+test_verified_transfer_requires_exact_http_body_length (tests.test_http_artifact_store.AtomicArtifactPublication.test_verified_transfer_requires_exact_http_body_length) ... ok
+
+----------------------------------------------------------------------
+Ran 94 tests in 238.114s
+
+OK
+[03/Nov/2026 02:28:14] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:14] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /manifest HTTP/1.1" 200 -
+[03/Nov/2026 02:28:15] 127.0.0.1 "GET /artifacts/demo_lora.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:16] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:17] 127.0.0.1 code 409, message published object changed
+[03/Nov/2026 02:28:17] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 409 -
+[03/Nov/2026 02:28:17] 127.0.0.1 "GET /health HTTP/1.1" 200 -
+[03/Nov/2026 02:28:17] 127.0.0.1 "GET /manifest HTTP/1.1" 200 -
+[03/Nov/2026 02:28:17] 127.0.0.1 "HEAD /artifacts/a.tar.gz HTTP/1.1" 200 -
+[03/Nov/2026 02:28:17] 127.0.0.1 "GET /artifacts/a.tar.gz HTTP/1.1" 200 -

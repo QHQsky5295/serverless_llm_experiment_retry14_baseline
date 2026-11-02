@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor
 from types import MappingProxyType
 
 from .gpu_monitor import GPUMemoryMonitor
@@ -34,6 +35,39 @@ from ..utils.logger import get_logger
 
 IEEE_FILE_DEMAND_TRANSACTION = 'protected_file_owner_turn_v1'
 IEEE_HOST_LEASE_TRANSFER = 'same_owner_host_to_gpu_v1'
+
+
+def _verify_publication_file_contents(file, digest):
+    """Read one complete destination; never read or mutate owner state here."""
+    actual = hashlib.sha256()
+    with file.open('rb') as contents:
+        while chunk := contents.read(1024 * 1024):
+            actual.update(chunk)
+    if actual.hexdigest() != digest:
+        raise RuntimeError('verified payload content changed before source publication')
+
+
+def _verify_publication_contents(staging, expected):
+    """Join all independent file checks inside the caller's owner transaction.
+
+    Each file retains its original whole-file SHA-256. Threads inherit the
+    service's CPU/cgroup limits; parallelism is bounded by actual affinity and
+    file count, not by a workload-specific configuration. The executor context
+    joins every reader even when submission or a digest check raises, before
+    the caller can retire the workspace or release its transaction lock.
+    """
+    if not expected:
+        return
+    workers = min(len(expected), len(os.sched_getaffinity(0)))
+    if workers == 1:
+        for name, (_, digest) in expected.items():
+            _verify_publication_file_contents(Path(staging) / name, digest)
+        return
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix='file-confirmation') as executor:
+        pending = [executor.submit(_verify_publication_file_contents, Path(staging) / name, digest)
+                   for name, (_, digest) in expected.items()]
+        for future in pending:
+            future.result()
 
 
 def validate_file_demand_witness(witness, *, lora_name, lora_path, content_sha256):
@@ -1696,15 +1730,11 @@ class LocalSourceReferences:
                         or receipt.get('sha256') != digest
                         or receipt.get('signature') != _verified_file_signature(info)):
                     raise RuntimeError('verified payload changed before source publication')
-            # Stream verification alone does not bind the destination bytes.
-            # Equal-size rewrites may share filesystem timestamp granularity.
-            # Verify once at publication, not at each routing lookup.
-            actual = hashlib.sha256()
-            with file.open('rb') as contents:
-                while chunk := contents.read(1024 * 1024):
-                    actual.update(chunk)
-            if actual.hexdigest() != digest:
-                raise RuntimeError('verified payload content changed before source publication')
+        # Stream verification alone does not bind the destination bytes.
+        # Equal-size rewrites may share filesystem timestamp granularity.
+        # Keep the owner lock and complete verification-before-visibility law;
+        # only independent whole-file reads may execute concurrently.
+        _verify_publication_contents(staging, expected)
         if self._source_observation(Path(staging))[0] != before_signatures:
             raise RuntimeError('verified payload changed during source confirmation')
         contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)

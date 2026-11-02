@@ -162,3 +162,10 @@ PLAN/V1/V2仍为D1024记录的冻结SHA。最后可用磁盘161391173632B，约1
 未完范围不减：同版本两模型W0/W1/W2及G1/G2比较、独立数值正确性、A1–A5、
 S1–S13、CE/Pareto、B1/B2/C1/C2/C3及两轮审稿证据、后期图表和最终V2集成。
 已有baseline结果复用；不新增13B/SGLang、不改论文、不提前作图。
+
+后置备份回执：9文件检查点7d1e14142fd113228b64d7fbc37d3af7d84556a7已推送并
+ls-remote核验origin/retry14_continuous_queue_v2及faaslora_origin的
+backup/d1025-file-owner-timing-20261103；没有强推。后者仍是可回退备份，
+不是历史分歧V2的最终集成。提交路径、diff、源SHA和凭据模式检查通过；
+两个用户dirty文件不变。收尾无D1025运行scope、无GPU compute进程；
+可用磁盘161390657536B。本回执随下一正常检查点提交，不重复发布。
