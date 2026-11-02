@@ -4253,6 +4253,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_file_demand_length_transfer_v1',
         'native_fixed_output_metadata_length_transfer_v1',
         'native_fixed_output_graph_length_transfer_v1',
+        'native_fixed_output_graph_slot_length_transfer_v1',
         'native_fixed_output_private_host_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
@@ -4264,6 +4265,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_file_demand_length_transfer_v1',
             'native_fixed_output_metadata_length_transfer_v1',
             'native_fixed_output_graph_length_transfer_v1',
+            'native_fixed_output_graph_slot_length_transfer_v1',
             'native_fixed_output_private_host_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
@@ -4304,12 +4306,13 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
+        graph_slot_transfer = binding['kind'] == 'native_fixed_output_graph_slot_length_transfer_v1'
         private_host_transfer = binding['kind'] == 'native_fixed_output_private_host_length_transfer_v1'
         capacity_fields = {'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
         permitted = (capacity_fields
                      if capacity_transfer else {'max_num_batched_tokens'})
         numeric_changes = changes
-        if graph_transfer or private_host_transfer:
+        if graph_transfer or graph_slot_transfer or private_host_transfer:
             # Only historical *completed fixed-output counts* are reusable.
             # Capture sizes alter performance identity, so every timing class
             # must be remeasured. No existing source configuration is rewritten.
@@ -4328,6 +4331,19 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 raise ValueError('fixed-output graph capture sizes are invalid')
             permitted = {'compilation_config'}
             numeric_changes = {}
+            if graph_slot_transfer:
+                # Transfer prescribed completed lengths only. A larger GPU
+                # resident pool is NOT a larger request concurrency limit and
+                # requires fresh timing profiles and actual KV measurements.
+                source_slots = source_identity.get('max_loras')
+                target_slots = identity.get('max_loras')
+                cpu_slots = identity.get('max_cpu_loras')
+                if (any(type(n) is not int or n <= 0
+                        for n in (source_slots, target_slots, cpu_slots))
+                        or not source_slots < target_slots <= cpu_slots):
+                    raise ValueError('fixed-output graph slot transfer capacity differs')
+                permitted.add('max_loras')
+                numeric_changes = {'max_loras': changes.get('max_loras', {})}
             if private_host_transfer:
                 # This transfers completed prescribed token counts, never
                 # timings. CPU construction changes the strict timing identity.

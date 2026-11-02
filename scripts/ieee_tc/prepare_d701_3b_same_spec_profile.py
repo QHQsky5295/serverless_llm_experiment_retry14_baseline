@@ -172,7 +172,7 @@ def main() -> None:
 
 
 def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
-                        *, private_host: bool = False) -> None:
+                        *, private_host: bool = False, slot_only: bool = False) -> None:
     """Reuse D701 cases, not times, under explicit graph/CPU-construction changes."""
     if out.exists():
         raise FileExistsError(f"append-only preparation exists: {out}")
@@ -186,6 +186,15 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     model_key = 'llama32_3b_main_modelscope'
     graph = changed['model_profiles'][model_key]['model'].pop('compilation_config')
     changes = {'compilation_config': dict(source=None, target=graph)}
+    if slot_only:
+        source_model = old_config['model_profiles'][model_key]['model']
+        target_model = changed['model_profiles'][model_key]['model']
+        source_slots, target_slots = source_model['max_loras'], target_model['max_loras']
+        if (type(target_slots) is not int
+                or not source_slots < target_slots <= source_model['max_cpu_loras']):
+            raise ValueError('slot-only candidate must fit unchanged native HOST capacity')
+        changes['max_loras'] = dict(source=source_slots, target=target_slots)
+        target_model['max_loras'] = source_slots
     if private_host:
         policy = changed['model_profiles'][model_key]['model'].pop('ieee_host_construction')
         if policy != 'private_cpu_core_commit_v1':
@@ -200,7 +209,8 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     spec = copy.deepcopy(original)
     spec.pop('full_development_contract')
     spec['admission_initialization'].update(
-        kind=('native_fixed_output_private_host_length_transfer_v1' if private_host
+        kind=('native_fixed_output_graph_slot_length_transfer_v1' if slot_only else
+              'native_fixed_output_private_host_length_transfer_v1' if private_host
               else 'native_fixed_output_graph_length_transfer_v1'),
         model_config_changes=changes)
     spec['nvme_parent'] = str(raw.resolve())
@@ -211,15 +221,26 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
         source_config=dict(path=str(CONFIG), sha256=digest(CONFIG)),
         candidate_config=dict(path=str(config_path), sha256=digest(config_path)),
         requests_changed=False, timing_samples_reused=False)
-    if private_host:
-        spec['purpose'] = 'same_cases_fresh_native_timings_after_private_cpu_construction_change'
-        spec['derivation']['kind'] = 'same_spec_private_host_rebind_v1'
+    if private_host or slot_only:
+        spec['purpose'] = ('same_cases_fresh_native_timings_after_gpu_resident_slot_change'
+                           if slot_only else 'same_cases_fresh_native_timings_after_private_cpu_construction_change')
+        spec['derivation']['kind'] = ('same_spec_gpu_slot_rebind_v1' if slot_only
+                                     else 'same_spec_private_host_rebind_v1')
         previous = BASE / 'd725_3b_graph_profile/source_spec.json'
         previous_spec = read(previous)
         if (previous_spec['waves'] != spec['waves']
                 or previous_spec['representatives'] != spec['representatives']):
             raise ValueError('private HOST collection differs from completed D725 cases')
         spec['derivation']['previous_measured_spec'] = dict(path=str(previous), sha256=digest(previous))
+        if slot_only:
+            parent_config = ROOT / 'configs/ieee_tc/20261022_d724_3b_graph_native.yaml'
+            parent = yaml.safe_load(parent_config.read_text())
+            candidate = copy.deepcopy(new_config)
+            candidate['model_profiles'][model_key]['model']['max_loras'] = source_slots
+            if candidate != parent:
+                raise ValueError('slot-only candidate changes more than GPU residency capacity')
+            spec['derivation']['slot_only_parent_config'] = dict(
+                path=str(parent_config), sha256=digest(parent_config))
     cfg = copy.deepcopy(new_config['model_profiles'][model_key]['model'])
     cfg.update(generation_contract='fixed_length_greedy_v1',
         canonical_prompt_renderer='role_lines_v1', max_input_len=759,
@@ -271,19 +292,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rebind-graph-config', type=Path)
     parser.add_argument('--rebind-private-host-config', type=Path)
+    parser.add_argument('--rebind-slot-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--raw-directory', type=Path)
     parser.add_argument('--campaign')
     args = parser.parse_args()
-    selected_config = args.rebind_graph_config or args.rebind_private_host_config
-    if args.rebind_graph_config and args.rebind_private_host_config:
+    selected_config = args.rebind_graph_config or args.rebind_private_host_config or args.rebind_slot_config
+    if sum(bool(x) for x in (args.rebind_graph_config, args.rebind_private_host_config, args.rebind_slot_config)) > 1:
         parser.error('choose one configuration rebind')
     if selected_config:
         if not all((args.output, args.raw_directory, args.campaign)):
             parser.error('graph rebind requires output, raw-directory and campaign')
         rebind_graph_config(selected_config.resolve(strict=True), args.output.resolve(),
                             args.raw_directory.resolve(), args.campaign,
-                            private_host=bool(args.rebind_private_host_config))
+                            private_host=bool(args.rebind_private_host_config),
+                            slot_only=bool(args.rebind_slot_config))
     else:
         if any((args.output, args.raw_directory, args.campaign)):
             parser.error('output overrides require rebind-graph-config')

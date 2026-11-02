@@ -1517,6 +1517,49 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def slot_transfer_fixture(self):
+        candidate = self.graph_transfer_fixture()
+        for cfg in (self.cfg, self.run['model_config'], self.entry['model_config'], candidate):
+            cfg.update(max_loras=8, max_cpu_loras=32, max_num_seqs=8, runtime_concurrency_cap=8)
+        self.bind()
+        candidate['max_loras'] = 32
+        self.binding['kind'] = 'native_fixed_output_graph_slot_length_transfer_v1'
+        self.binding['model_config_changes']['max_loras'] = dict(source=8, target=32)
+        return candidate
+
+    def test_slot_only_transfer_preserves_counts_not_timing_or_concurrency(self):
+        from types import SimpleNamespace
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        candidate = self.slot_transfer_fixture()
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        graph_parent = dict(self.cfg, compilation_config=candidate['compilation_config'])
+        with self.assertRaisesRegex(ValueError, 'runtime configuration differs'):
+            FrozenServiceProfiles.validate_runtime(SimpleNamespace(
+                model_config_json=json.dumps(FrozenServiceProfiles.model_identity(graph_parent), sort_keys=True),
+                model_identity=FrozenServiceProfiles.model_identity), candidate)
+        for extra in (dict(max_num_seqs=16), dict(runtime_concurrency_cap=16),
+                      dict(max_cpu_loras=64), dict(max_loras=33), dict(max_loras=8),
+                      dict(max_loras=True), dict(generation_contract='natural_stop')):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **extra))
+        self.binding['kind'] = 'native_fixed_output_graph_length_transfer_v1'
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_slot_only_transfer_rejects_bad_completion_and_undeclared_change(self):
+        candidate = self.slot_transfer_fixture()
+        self.binding['model_config_changes']['max_loras']['target'] = 16
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+        self.binding['model_config_changes']['max_loras']['target'] = 32
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
     def test_private_host_transfer_only_reuses_completed_counts(self):
         candidate = self.graph_transfer_fixture()
         # The historical initializer source already has the same owner policies.
