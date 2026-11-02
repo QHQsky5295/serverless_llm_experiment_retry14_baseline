@@ -58,6 +58,16 @@ if [[ -n "${FAASLORA_D1000_PREFIX_COUNT:-}" ]]; then
   export FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT="$FAASLORA_D1000_PREFIX_COUNT"
 fi
 
+case "${FAASLORA_D1000_NATIVE_PROFILE:-}" in
+  '') ;;
+  host_spans_v1)
+    # Reuse the bounded native observer only for the registered prefix diagnostic.
+    test "${FAASLORA_D1000_PREFIX_COUNT:-}" = 1000
+    export FAASLORA_PYTHON="$ROOT/scripts/ieee_tc/profile_d328_controller_python.sh"
+    ;;
+  *) echo 'Unknown native diagnostic observer' >&2; exit 2 ;;
+esac
+
 exec bash scripts/run_all_experiments_user_scope.sh \
   --config "$CONFIG" \
   --scenario tc_ieee_full --full-stack

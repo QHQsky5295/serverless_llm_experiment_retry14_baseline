@@ -191,6 +191,29 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D1016CurrentNativeDiagnosticContract(unittest.TestCase):
+    def test_current_d1000_policy_only_three_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261101_d1000_3b_route_confirmed_arrival_prefetch_w1.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261102_d1016_3b_native_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_existing_runner_opt_in_does_not_change_default(self):
+        runner = (ROOT/'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh').read_text()
+        self.assertIn('case "${FAASLORA_D1000_NATIVE_PROFILE:-}" in', runner)
+        self.assertIn("  '') ;;", runner)
+        self.assertIn('test "${FAASLORA_D1000_PREFIX_COUNT:-}" = 1000', runner)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', runner)
+        self.assertIn('export FAASLORA_TC_REPLAY_PROFILE=W2', runner)
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertEqual(wrapper.count('d1016_3b_native_prefix1000'), 1)
+        self.assertIn('export FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
+        self.assertNotIn('d1016', '\n'.join(line for line in wrapper.splitlines() if line.startswith('if ')))
+
+
 class D863Attempt2Contract(unittest.TestCase):
     def test_failed_prelaunch_preserved_and_same_policy_in_new_paths(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261026_d863_3b_native_prefix1000.yaml').read_text())
