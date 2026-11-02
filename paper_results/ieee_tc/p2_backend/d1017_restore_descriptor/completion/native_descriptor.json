@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "requests": 4000,
+  "kinds": {
+    "fresh_native_tensor_descriptor_v1": 4000
+  },
+  "library_sha256_counts": {
+    "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044": 4000
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1017_20261102/d1017_3b_restored_fresh_descriptor_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1017_3b_restored_fresh_descriptor_w2.json",
+    "sha256": "eaa83764ddb9e364c33d8f33734b667a7cf07dca2b640b34ee566812eddcf0b6",
+    "bytes": 304679717
+  },
+  "previous_projection_error": "analyze.py used library_sha256; actual receipt field is sha256. Metric/stage outputs completed once and are not rerun."
+}

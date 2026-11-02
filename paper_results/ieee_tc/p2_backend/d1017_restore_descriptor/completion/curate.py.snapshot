@@ -1,0 +1,124 @@
+"""Finish D1017 receipts; do not rerun completed metric/stage analyses."""
+import collections
+import importlib.util
+import json
+import math
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import textwrap
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'d1017_3b_restored_fresh_descriptor_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1017_restore_descriptor/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False)
+        f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RUN/'launch.json')
+assert all(launch[k] is True for k in ('pass','service_path_removed','native_gpu_context_release_confirmed'))
+metric=read(OUT/'full4000.json')
+assert metric['passed'] and metric['counts']['n']==4000 and metric['n_correct'] is None
+assert read(OUT/'stages/diagnosis.json') and read(OUT/'paired_d1000/diagnosis.json')
+result=next(RUN.glob('experiment_results_full*.json'))
+kinds, hashes = collections.Counter(),collections.Counter()
+with result.open('rb') as f:
+    for row in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        receipt=row['gpu_reference_evidence']['receipt']['native_host_descriptor']
+        kinds[receipt['kind']]+=1
+        hashes[receipt['sha256']]+=1
+assert kinds=={'fresh_native_tensor_descriptor_v1':4000}
+assert hashes=={'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044':4000}
+save(OUT/'native_descriptor.json',dict(passed=True,requests=4000,kinds=dict(kinds),library_sha256_counts=dict(hashes),
+    source=ref(result),previous_projection_error='analyze.py used library_sha256; actual receipt field is sha256. Metric/stage outputs completed once and are not rerun.'))
+
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as f:
+    transfers=next(ijson.items(f,'remote_transfers',use_float=True))
+ids={r['http_transfer_id'] for r in transfers}
+assert len(ids)==len(transfers)
+remote='/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-026842a3bec74f1b9e012bb813642067.jsonl'
+expected=subprocess.check_output(['ssh','-o','BatchMode=yes','primelora-artifact-174','sha256sum',remote],text=True).split()[0]
+snapshot=RAW/'remote_transfer_log_snapshot.jsonl'
+assert not snapshot.exists()
+subprocess.run(['scp','-q','-o','BatchMode=yes','primelora-artifact-174:'+remote,str(snapshot)],check=True)
+assert p.digest(snapshot)==expected
+journal=RAW/'remote_transfers.jsonl'
+with snapshot.open() as f,journal.open('x') as out:
+    for line in f:
+        row=json.loads(line)
+        if row.get('transfer_id') in ids:
+            out.write(json.dumps(row,sort_keys=True)+'\n')
+spec=importlib.util.spec_from_file_location('d1017_artifact_health',ROOT/'faaslora/storage/http_artifact_store.py')
+module=importlib.util.module_from_spec(spec)
+sys.modules[spec.name]=module
+spec.loader.exec_module(module)
+client=module.HttpArtifactStoreClient(endpoint='http://192.168.4.174:18080',
+    token=Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_text().strip(),timeout_s=5,
+    required_delivery_mode='prepublished_gzip_v1')
+health=client.health()
+assert health['ok'] and health['clock_id']=='remote-process-monotonic:b7a04b62f38c4ae6adabb4da5c0fd8dc'
+save(RAW/'remote_health.json',{'3b':health,'collection_phase':'post_run_existing_service'})
+
+helper=ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'
+assert p.digest(helper)=='8a60e085434f8ec1d868efc0f8f44b23a9ef1262740cbc846a7e307f9be5d85c'
+source=helper.read_text()
+start=source.index('    server_rows = ',source.index('def audit_closed_outcome'))
+end=source.index('    audit = dict(',start)
+raw=RUN
+exec(compile(textwrap.dedent(source[start:end]),str(helper),'exec'),globals())
+# The exact existing join/control/watchdog body is reused; this run did not stop
+# the shared artifact service or start a new remote CPU monitor. No fake logs.
+foreign=[]
+with watchdog.open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row['event']=='resource_sample':
+            foreign.extend(row['gpu']['foreign_compute_processes'])
+            assert not row['gpu']['escaped_owned_processes']
+assert not foreign
+save(OUT/'delivery_and_resources.json',dict(passed=True,control=control,
+    remote=dict(transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+        all_server_client_ids_bytes_hashes_match=True,request_time_packing=False,
+        remote_service_restarted=False,remote_service_stopped=False,
+        monitoring_limitation='No new remote CPU monitor; complete external CPU-interference exclusion is not established.'),
+    resources=dict(events=dict(events),memory_events_max=dict(memory),service_peak_bytes=peak,
+        max_swap_bytes=swap,min_host_available_bytes=available,min_free_disk_bytes=free,
+        foreign_compute_processes=foreign),
+    physical_allocation_count=len(summary['allocation_journals']),
+    all_allocations_released=all(j['released'] for j in summary['allocation_journals']),
+    source_refs=[ref(x) for x in (helper,result,outcome,journal,snapshot,RAW/'remote_health.json',watchdog,RUN/'launch.json')]))
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert p.digest(ROOT/'docs/ieee_tc/EXECUTION_STATUS.md')=='41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'
+cache=RAW/'d1017_3b_restored_fresh_descriptor_w2_nvme'
+assert not cache.exists() or not any(cache.iterdir())
+host=Path('/dev/shm/tc-d1017_3b_restored_fresh_descriptor_w2')
+assert not host.exists() or not any(host.iterdir())
+save(OUT/'curation.json',dict(passed=True,identity=identity,resources=p.cgroup_snapshot(group),
+    n_correct=None,ranking_eligible=False,development_only=True,protected_files_unchanged=147,
+    empty_work_caches=True,disk_available_bytes=shutil.disk_usage(ROOT).free,
+    source_refs=[ref(x) for x in (Path(__file__),RAW/'analyze.py',RAW/'analysis_execution.json')]))
+for path in (RAW/'analyze.py',RAW/'curate.py',RAW/'analysis_execution.json'):
+    target=OUT/(path.name+'.snapshot' if path.suffix=='.py' else path.name)
+    with target.open('x') as f: f.write(path.read_text())
+save(OUT/'manifest.json',dict(files=[ref(x) for x in sorted(OUT.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True,native_receipts=sum(kinds.values()),transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers))),flush=True)

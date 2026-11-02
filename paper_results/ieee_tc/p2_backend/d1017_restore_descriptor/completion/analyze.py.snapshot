@@ -1,0 +1,63 @@
+"""D1017 closed full-run analysis using unchanged D703 entry points."""
+import collections
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'d1017_3b_restored_fresh_descriptor_w2'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1017_restore_descriptor/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+launch = json.loads((RUN/'launch.json').read_text())
+assert all(launch[k] is True for k in ('pass','service_path_removed','native_gpu_context_release_confirmed'))
+assert not OUT.exists()
+helper = ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'
+assert p.digest(helper) == '8a60e085434f8ec1d868efc0f8f44b23a9ef1262740cbc846a7e307f9be5d85c'
+OUT.mkdir()
+passed = False
+try:
+    commands = [
+        ['--raw',str(RUN),'--expected-count','4000','--reevaluate-common-slo',str(OUT/'full4000.json')],
+        ['--raw',str(RUN),'--metric-audit',str(OUT/'full4000.json'),'--diagnose-common-slo',str(OUT/'stages')],
+        ['--reference-stage-audit','/home/qhq/serverless_llm_experiment/results/ieee_tc/profile_output/d1015_20261102/d1000_stages',
+         '--stage-audit',str(OUT/'stages'),'--compare-stage-audits',str(OUT/'paired_d1000')],
+    ]
+    for ordinal, arguments in enumerate(commands):
+        with (RAW/f'analysis_{ordinal}.log').open('x') as log:
+            subprocess.run([sys.executable,'-B',str(helper),*arguments],cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
+        print('analysis_stage_completed',ordinal,flush=True)
+    result = next(RUN.glob('experiment_results_full*.json'))
+    kinds, hashes = collections.Counter(), collections.Counter()
+    with result.open('rb') as f:
+        for row in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+            receipt = row['gpu_reference_evidence']['receipt']['native_host_descriptor']
+            kinds[receipt['kind']] += 1
+            hashes[receipt['library_sha256']] += 1
+    assert kinds == {'fresh_native_tensor_descriptor_v1':4000}, kinds
+    assert hashes == {'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044':4000}, hashes
+    save(OUT/'native_descriptor.json',dict(passed=True,requests=4000,kinds=dict(kinds),library_sha256_counts=dict(hashes),
+        source=dict(path=str(result),sha256=p.digest(result))))
+    passed = True
+finally:
+    save(RAW/'analysis_execution.json',dict(passed=passed,identity=identity,resources=p.cgroup_snapshot(group),
+        script_sha256=p.digest(Path(__file__)),helper_sha256=p.digest(helper)))
+print(json.dumps(dict(passed=passed,output=str(OUT))),flush=True)

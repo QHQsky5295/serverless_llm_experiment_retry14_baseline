@@ -1,0 +1,97 @@
+"""Resume closed D1017 curation with its actual, retained forecast-release policy."""
+import collections
+import json
+import math
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import textwrap
+import ijson
+import yaml
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+RUN=RAW/'d1017_3b_restored_fresh_descriptor_w2'
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d1017_restore_descriptor/completion'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+identity=p.scope_identity(p.cg_path().name)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RUN/'launch.json')
+assert all(launch[k] is True for k in ('pass','service_path_removed','native_gpu_context_release_confirmed'))
+metric=read(OUT/'full4000.json')
+assert metric['passed'] and metric['counts']['n']==4000 and metric['n_correct'] is None
+native=read(OUT/'native_descriptor.json')
+assert native['passed'] and native['requests']==4000
+result=Path(native['source']['path'])
+assert p.digest(result)==native['source']['sha256']
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as f: transfers=next(ijson.items(f,'remote_transfers',use_float=True))
+journal=RAW/'remote_transfers.jsonl'
+snapshot=RAW/'remote_transfer_log_snapshot.jsonl'
+helper=ROOT/'scripts/ieee_tc/audit_d703_3b_full.py'
+assert p.digest(helper)=='8a60e085434f8ec1d868efc0f8f44b23a9ef1262740cbc846a7e307f9be5d85c'
+config=ROOT/'configs/ieee_tc/20261101_d1000_3b_route_confirmed_arrival_prefetch_w1.yaml'
+assert p.digest(config)=='f0009adf6de00590ba6e7e1dcc882ac85ef48be3e035a49545855a40558b9c05'
+settings=yaml.safe_load(config.read_text())['resource_coordination']['ieee_predictive_scaling']
+assert settings['enabled'] is True and settings['allow_forecast_scale_down'] is True
+autoscaler=ROOT/'faaslora/coordination/autoscaler.py'
+assert "'ieee_forecast_capacity_release'" in autoscaler.read_text()
+source=helper.read_text()
+start=source.index('    server_rows = ',source.index('def audit_closed_outcome'))
+end=source.index('    audit = dict(',start)
+body=textwrap.dedent(source[start:end])
+old="event['reason'] != 'ieee_all_low_through_cooldown'"
+assert body.count(old)==1
+body=body.replace(old,"event['reason'] not in ('ieee_all_low_through_cooldown', 'ieee_forecast_capacity_release')")
+raw=RUN
+exec(compile(body,str(helper)+'[D1017 retained-policy reasons]','exec'),globals())
+foreign=[]
+with watchdog.open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row['event']=='resource_sample':
+            foreign.extend(row['gpu']['foreign_compute_processes'])
+            assert not row['gpu']['escaped_owned_processes']
+assert not foreign
+save(OUT/'delivery_and_resources.json',dict(passed=True,control=control,
+    analysis_adaptation='D703 accepted only all-low release. D1017 reused already-frozen forecast release (config enabled and original timestamps ordered); add that exact reason only, retain all events and checks.',
+    remote=dict(transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+        all_server_client_ids_bytes_hashes_match=True,request_time_packing=False,
+        remote_service_restarted=False,remote_service_stopped=False,
+        monitoring_limitation='No new remote CPU monitor; complete external CPU-interference exclusion is not established.'),
+    resources=dict(events=dict(events),memory_events_max=dict(memory),service_peak_bytes=peak,
+        max_swap_bytes=swap,min_host_available_bytes=available,min_free_disk_bytes=free,foreign_compute_processes=foreign),
+    physical_allocation_count=len(summary['allocation_journals']),
+    all_allocations_released=all(j['released'] for j in summary['allocation_journals']),
+    source_refs=[ref(x) for x in (helper,autoscaler,config,result,outcome,journal,snapshot,RAW/'remote_health.json',watchdog,RUN/'launch.json')]))
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert p.digest(ROOT/'docs/ieee_tc/EXECUTION_STATUS.md')=='41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'
+cache=RAW/'d1017_3b_restored_fresh_descriptor_w2_nvme'
+host=Path('/dev/shm/tc-d1017_3b_restored_fresh_descriptor_w2')
+assert cache.is_dir() and not any(cache.iterdir())
+assert host.is_dir() and not any(host.iterdir())
+save(OUT/'curation.json',dict(passed=True,identity=identity,resources=p.cgroup_snapshot(group),
+    n_correct=None,ranking_eligible=False,development_only=True,protected_files_unchanged=147,
+    empty_work_caches=True,disk_available_bytes=shutil.disk_usage(ROOT).free,
+    source_refs=[ref(x) for x in (Path(__file__),RAW/'curate.py',RAW/'analyze.py',RAW/'analysis_execution.json')]))
+for path in (RAW/'analyze.py',RAW/'curate.py',Path(__file__),RAW/'analysis_execution.json'):
+    target=OUT/(path.name+'.snapshot' if path.suffix=='.py' else path.name)
+    with target.open('x') as f: f.write(path.read_text())
+save(OUT/'manifest.json',dict(files=[ref(x) for x in sorted(OUT.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True,native_receipts=4000,transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers))),flush=True)
