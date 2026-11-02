@@ -1,0 +1,59 @@
+{
+  "kind": "d719_full_profile_binding_audit_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full",
+  "n": 4000,
+  "tiers": {
+    "host": 12,
+    "remote": 493,
+    "gpu": 2955,
+    "nvme": 540
+  },
+  "service_classes": 100,
+  "preparation_classes": 52,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "performance_execution": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1022_3b_active_lora_w2_full.json",
+      "sha256": "c4910ebfd3f3b61981f2df3c3fcd94233f5060d4b601167dbea8299acfcac317",
+      "bytes": 285793600
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "06adb7e9c302e17d80cef826a145dc35e5d7770e0b812b1868f437c9007dfdda",
+      "bytes": 446084605
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/full4000.json",
+      "sha256": "0ddcbeeb1378234855b1f6e097a28e5de51947431910580396d725e52c46fe88",
+      "bytes": 72944
+    },
+    {
+      "path": "configs/ieee_tc/20261102_d1022_3b_active_lora_w2.yaml",
+      "sha256": "f8d4ac96c9121dba134e2f3ec5e6a9e354b09dcf44447bb5cc65ecefc8fda171",
+      "bytes": 6111
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1021_3b_active_lora_profile/export/service.json",
+      "sha256": "e846698d6c8cb3aa0d94c31b92fcbf65e852a5962ad9e6fb86c7f8cd955ef643",
+      "bytes": 449007
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1021_3b_active_lora_profile/export/preparation.json",
+      "sha256": "b35a6d32b36b445fcadbff301794159165fe2263d24f7f70ec1f059feaa5fc12",
+      "bytes": 6492201
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1021_3b_active_lora_profile/export/manifest.json",
+      "sha256": "1fa53f43ffec59d472fbe6fdc070b02ca63d60f9e0564405708cefa2df7281a2",
+      "bytes": 117331
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "bf116489662763177170ceefb86edc29d69b52c06f528e35cf5e5368e3d5b0bc",
+      "bytes": 120457
+    }
+  ]
+}

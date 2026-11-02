@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/closure.json",
+      "sha256": "1d686e123270e594ed5a1e233cf54d19fd0489e688b5c737600294a45aea3c8b",
+      "bytes": 2830
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "880654c2d16a0becd801905c7f85e7be23cff67aaa2bd3eaa0e35579e7d19058",
+      "bytes": 5635
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/delivery_and_resources.json",
+      "sha256": "e6d821b873fe724f2713bf3c0a03b31bd3b4bd42f8c90ba820a5e3b2b808ee08",
+      "bytes": 6074
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/full4000.json",
+      "sha256": "0ddcbeeb1378234855b1f6e097a28e5de51947431910580396d725e52c46fe88",
+      "bytes": 72944
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/native_descriptor.json",
+      "sha256": "c2e0b2c150364b9d0d73b856da6079c33889e26654f0e4a50eef7b3f1c1ad03d",
+      "bytes": 576
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/paired_d1020/diagnosis.json",
+      "sha256": "680262539061a7011eb42cfbc6cb935ace0a04fe74f1fbcbcf947cc8495b54d5",
+      "bytes": 258484
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/paired_d1020/paired_requests.csv",
+      "sha256": "1f6e6e6c7eab9ce438aac73ca75e9a6d7441d56f058beb48e99c289b489d91ab",
+      "bytes": 1233210
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/profile_bindings.json",
+      "sha256": "4c3045d547ddc1040f3bdcb00370618352fec9af823f0c507fabcb3f02449113",
+      "bytes": 2563
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/stages/diagnosis.json",
+      "sha256": "e5dd8b11742d195bf0ba0ea8867649442d807fe02655a0648539592eb28fa801",
+      "bytes": 227041
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1022_3b_active_lora_w2/completion/stages/requests.csv",
+      "sha256": "1ce422bb721c7e82d6df9d21a2b519d2fae558940fc1bf07c51656d7f5efb871",
+      "bytes": 2350479
+    }
+  ]
+}
