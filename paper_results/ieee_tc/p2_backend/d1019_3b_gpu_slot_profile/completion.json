@@ -1,0 +1,78 @@
+{
+  "kind": "d1019_gpu_slot_profile_completion_v1",
+  "passed": true,
+  "requests": 423,
+  "n_correct": null,
+  "full_qualified": false,
+  "ranking_eligible": false,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1019_20261102/source1.json",
+    "sha256": "be3a106867bd5560e7627c15d248387670052125820063d66b751bbecb52df46"
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1019_20261102/source1_launch.json",
+    "sha256": "7b640c06a7ac168cf50d855967ff7557bfb9dcac64a291ea9860b48d258ff988"
+  },
+  "export_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1019_3b_gpu_slot_profile/export/manifest.json",
+    "sha256": "9cb09b9a14e20eeb9d600146bf40d82d0f7479294e6af545437af09ec587ab62"
+  },
+  "watchdog": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1019_20261102/source1_launch.launch/watchdog.jsonl",
+    "sha256": "f8982636082ebb5b5e9b3819e60fbbd71805fbfa56e33c659582c6e2806b1830"
+  },
+  "startup_latency_ms": 100196.0433088243,
+  "physical_gpu_seconds": 572.9800887322053,
+  "pool": {
+    "before": {
+      "pool_allocated_bytes": 1825046528,
+      "lora_slots": 32,
+      "uniform_slot_layout": true,
+      "slot_capacity_bytes": 57032704,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 1835008,
+      "kv_unreserved_free_blocks": 4618,
+      "kv_pool_allocation_bytes": 8475901952
+    },
+    "after": {
+      "pool_allocated_bytes": 1825046528,
+      "lora_slots": 32,
+      "uniform_slot_layout": true,
+      "slot_capacity_bytes": 57032704,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 1835008,
+      "kv_unreserved_free_blocks": 4618,
+      "kv_pool_allocation_bytes": 8475901952
+    }
+  },
+  "resources": {
+    "samples": 581,
+    "memory_peak_bytes": 5780996096,
+    "min_host_available_bytes": 105672691712,
+    "swap_peak_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "foreign_compute_samples": 0,
+    "escaped_owned_samples": 0
+  },
+  "remote_transfer_count": 423,
+  "wire_bytes": 981702550,
+  "remote_journal_matched": true,
+  "remote_monitor_complete": false,
+  "profile_coverage": {
+    "measured_service_classes": 160,
+    "required_service_classes": 160,
+    "measured_preparation_classes": 96,
+    "preparation_samples": 332,
+    "service_samples": 415,
+    "service_class_domain_covered": true,
+    "missing_service_classes": [],
+    "missing_content_sources": []
+  },
+  "source_commit": "81c89670fce50821ab2438c6f1e32e55ab4a0a07",
+  "next_action": "D1017 controller unchanged, measured 32-slot profile, one full 4000-request W2; no extra short Full"
+}

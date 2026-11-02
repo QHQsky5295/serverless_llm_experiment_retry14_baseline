@@ -15,6 +15,8 @@ import copy
 import argparse
 import hashlib
 import json
+import shlex
+import subprocess
 from pathlib import Path
 
 import yaml
@@ -35,6 +37,8 @@ SPEC_PATH = PREP_DIR / "source_spec.json"
 PREP_PATH = PREP_DIR / "prepare.json"
 OUT = PREP_DIR / "export"
 CONTRACT_PATH = ROOT / "paper_results/ieee_tc/p2_backend/d643_3b_initializer/development_contract.json"
+ARTIFACT_CONTEXT_PATH = None
+REMOTE_JOURNAL = None
 
 
 def read(path: Path):
@@ -55,6 +59,60 @@ def require_digest(value: str, label: str) -> None:
     if not (isinstance(value, str) and len(value) == 64
             and all(c in "0123456789abcdef" for c in value)):
         raise ValueError(f"{label} is not a SHA-256 digest")
+
+
+def observed_artifact_context(receipt: dict) -> dict:
+    """Use observed resource facts, including unlimited/unknown, not old defaults."""
+    if (receipt.get('kind') != 'observed_artifact_resource_context_v1'
+            or receipt.get('continuous_monitoring') is not False):
+        raise ValueError('unsupported artifact resource observation')
+    before, after = receipt['before'], receipt['after']
+    for key in ('pid', 'process_clock_id', 'cgroup', 'cpus', 'memory_high',
+                'memory_max', 'memory_swap_max', 'cpu_max', 'delivery_mode'):
+        if key not in before or before[key] != after.get(key):
+            raise ValueError(f'artifact resource snapshots differ: {key}')
+    cpus = before['cpus']
+    if (not isinstance(cpus, list) or not cpus or cpus != sorted(set(cpus))
+            or any(type(c) is not int or c < 0 for c in cpus)
+            or type(before['pid']) is not int or before['pid'] <= 0
+            or not before['process_clock_id'].startswith('remote-process-monotonic:')
+            or before['delivery_mode'] != 'prepublished_gzip_v1'):
+        raise ValueError('invalid observed artifact process identity')
+    for key in ('memory_high', 'memory_max', 'memory_swap_max'):
+        value = before[key]
+        if value != 'max' and not (type(value) is int and value >= 0):
+            raise ValueError('unknown memory limit cannot be replaced with a default')
+    return dict(observation_scope='matching_pre_post_snapshots_not_continuous_monitoring',
+                process=copy.deepcopy(before), link=copy.deepcopy(receipt['link']),
+                source_on_disk=copy.deepcopy(receipt['source_on_disk']),
+                rate_limit=receipt['rate_limit'], continuous_monitoring=False)
+
+
+def matched_remote_transfers(raw: dict, journal: str, clock_id: str) -> list:
+    expected = {r['http_transfer_id']: r for r in raw['remote_transfers']}
+    if len(expected) != len(raw['remote_transfers']):
+        raise ValueError('duplicate client HTTP transfer identity')
+    matched = {}
+    for line in journal.splitlines():
+        row = json.loads(line)
+        key = row.get('transfer_id')
+        if key not in expected:
+            continue
+        if key in matched:
+            raise ValueError('duplicate server transfer identity')
+        client = expected[key]
+        if (row.get('clock_id') != clock_id or row.get('outcome') != 'sent'
+                or row.get('artifact_id') != client['artifact_id']
+                or row.get('archive_sha256') != client['remote_archive_sha256']
+                or any(row.get(k) != client['transferred_bytes']
+                       for k in ('archive_bytes', 'bytes_read', 'bytes_written'))
+                or row.get('pack_performed') is not False
+                or row.get('temporary_created') is not False):
+            raise ValueError('server/client delivery evidence differs')
+        matched[key] = row
+    if set(matched) != set(expected):
+        raise ValueError('server journal lacks selected client transfers')
+    return [matched[r['http_transfer_id']] for r in raw['remote_transfers']]
 
 
 def require_completed_run(raw: dict, launch: dict, spec: dict) -> None:
@@ -195,6 +253,22 @@ def main() -> None:
     # contract; reject accidental typos through the explicit length check.
     require_digest(envelope["artifact_service"]["published_server_sha256"],
                    "published server SHA")
+    artifact_context_reference, remote_rows = None, None
+    if ARTIFACT_CONTEXT_PATH is not None:
+        receipt = read(ARTIFACT_CONTEXT_PATH)
+        envelope['artifact_service'] = observed_artifact_context(receipt)
+        artifact_context_reference = ref(ARTIFACT_CONTEXT_PATH)
+        # Read the already existing journal only after this local GPU run closes.
+        # Store only its matched transfers, not other campaigns' records.
+        if (not REMOTE_JOURNAL or not REMOTE_JOURNAL.startswith('/home/lab14/')
+                or not REMOTE_JOURNAL.endswith('.jsonl')):
+            raise ValueError('explicit absolute remote journal is required')
+        journal = subprocess.run(
+            ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8',
+             'primelora-artifact-174', 'cat -- ' + shlex.quote(REMOTE_JOURNAL)],
+            check=True, text=True, capture_output=True, timeout=60).stdout
+        remote_rows = matched_remote_transfers(
+            raw, journal, receipt['before']['process_clock_id'])
     context = dict(
         backend_environment_sha256=raw["runtime_receipt_sha256"],
         resource_envelope_sha256=object_hash(envelope),
@@ -229,6 +303,8 @@ def main() -> None:
     service_path = save("service.json", service)
     preparation_path = save("preparation.json", preparation)
     coverage_path = save("coverage.json", measured_coverage)
+    remote_reference = (ref(save('remote_transfers.json', remote_rows))
+                        if remote_rows is not None else None)
     loaded_service = FrozenServiceProfiles.load(
         service_path, expected_sha256=p.digest(service_path),
         model_config=raw["model_config"], expected_context=context,
@@ -262,6 +338,8 @@ def main() -> None:
         raw_runtime_receipt_sha256=raw["runtime_receipt_sha256"],
         input_contract=input_contract,
         resource_envelope=envelope,
+        artifact_resource_context=artifact_context_reference,
+        matched_remote_transfers=remote_reference,
         context=context,
         structured_hash="SHA256 UTF-8 JSON sort_keys=True separators=(comma,colon) allow_nan=False",
         service_profile=loaded_service.identity(),
@@ -308,7 +386,14 @@ if __name__ == "__main__":
     parser.add_argument('--preparation-directory', type=Path)
     parser.add_argument('--raw-directory', type=Path)
     parser.add_argument('--config', type=Path)
+    parser.add_argument('--artifact-resource-context', type=Path)
+    parser.add_argument('--remote-journal')
     args = parser.parse_args()
+    if bool(args.artifact_resource_context) != bool(args.remote_journal):
+        parser.error('artifact resource context and remote journal are required together')
+    if args.artifact_resource_context:
+        ARTIFACT_CONTEXT_PATH = args.artifact_resource_context.resolve(strict=True)
+        REMOTE_JOURNAL = args.remote_journal
     if any((args.preparation_directory, args.raw_directory, args.config)):
         if not all((args.preparation_directory, args.raw_directory, args.config)):
             parser.error('all three source identity paths are required together')

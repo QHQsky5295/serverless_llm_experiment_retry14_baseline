@@ -125,3 +125,58 @@ artifact_timing_v2、原clock_id不变；PID1984520仍健康，用户unit inacti
 本文件登记候选与静态检查，不宣称画像或Full测量已经完成。后续结果追加，
 所有失败保留。7B/3B最终同版本主比较、G1/G2、A1–A5、S1–S13、数值正确性
 范围、审稿文档、图表和最终V2集成全部仍开放；接近目标前继续不绘图。
+
+## 20:39启动与交接（运行中，禁止重复启动）
+
+候选与静态准备已提交为`81c89670fce50821ab2438c6f1e32e55ab4a0a07`，
+`origin/retry14_continuous_queue_v2`与
+`faaslora_origin/backup/d1019-gpu-residency-capacity-20261102`的ls-remote均
+核对相同SHA。后者是备份，不冒充已有分歧的FaaSLoRA V2最终集成。
+
+20:39在tmux `tc-d1019-3b-gpu-slot-profile`启动唯一source1；实际入口为
+上述run_d298/d1019。辅助scope `primelora-tc-aux-ddc0f111e7a147b486e7730bf4db16b9.scope`，
+服务scope `primelora-tc-svc-c421f6e585f4462187c68aec3d771db4.scope`。
+原生GPU worker PID1890863受本次服务资源域和CPU分区覆盖。运行目录中的
+`source1_launch.launch/service.log`、`watchdog.jsonl`和physical_allocations
+是实时证据；完成标志为最终`source1.json`及`source1_launch.json`，不是
+tmux存在或部分请求成功。
+
+watchdog样本178时已记录56个原生样本，服务memory.events的high/max/OOM
+为0、无abort理由；这是中间状态，不是结束验收。继续等待同一次测量，
+不能另起Full或再跑source1。完成后先确认原生GPU释放，再核查423请求、
+32实际槽、实际KV、生成/身份及完整类覆盖，然后修正新导出的远端资源
+上下文（见上文），不沿用旧硬编码声明。只复用完成长度和请求，不复用旧
+时延。若这些必要检查通过，下一项为D1017控制不变的4000请求slot-only
+W2；不增加无必要的100请求Full。此后置交接在运行结束后的正常检查点
+再备份，测量中没有推送或压缩。
+
+## 完成与下一步（替代上节运行中状态）
+
+D1019 已完成并释放原生 GPU；source1 与两个 scope 均已结束，不重复启动。
+423/423 请求通过原生输出数量、预约释放和终态检查；32 个实际 GPU 槽、
+1,825,046,528 B LoRA 池、4,618 个空闲 KV block 在测量前后均有原生回执。
+画像启动耗时100.196秒、物理持卡572.980 GPU-s只描述画像，不代替Full结果。
+581个watchdog样本：服务峰值5,780,996,096 B，最低主机可用
+105,672,691,712 B，swap/high/max/OOM/外部GPU/逃逸进程均未观测到事件。
+独立数值正确性未知，n_correct=null，不能据此宣布G1/G2达标。
+
+严格导出覆盖160/160服务类、96准备类；415服务和332准备样本来自本次
+测量，不沿用旧时延。423次HTTP传输、981,702,550线上字节逐条对应远端
+既有journal，archive SHA、字节和sent终态一致，未按请求打包。远端前后
+快照一致，但没有连续远端干扰监测；新exporter明确记录实际无限制cgroup
+和未知限速，不再套用历史2/4GiB声明，不追改旧profile。
+
+完成证据位于 `paper_results/ieee_tc/p2_backend/d1019_3b_gpu_slot_profile/`：
+`completion.json`、`artifact_resource_context.json` 和 `export/`。source SHA
+为 `be3a106867bd5560e7627c15d248387670052125820063d66b751bbecb52df46`；
+export manifest SHA为
+`9cb09b9a14e20eeb9d600146bf40d82d0f7479294e6af545437af09ec587ab62`。
+观测上下文/传输匹配3项测试通过；实际export和Full画像加载器校验通过。
+147项历史保护、两个用户dirty文件SHA仍未变化。EXECUTION_STATUS.md
+属于用户未提交修改且历史交接落后，不覆盖或stage；当前交接以本节和
+`D1020_GPU_SLOTS32_FULL_W2_20261102.md`为准。
+
+下一项是D1020唯一完整4000请求W2，以D1017控制为父点、固定并发8，
+仅32槽及其必要新画像/身份绑定改变。没有额外100请求Full、没有新负载、
+没有新adapter、没有修改远端服务、没有生成图。完整比较与机制/敏感性
+仍须后续完成，不将本画像登记为主比较性能结果。
