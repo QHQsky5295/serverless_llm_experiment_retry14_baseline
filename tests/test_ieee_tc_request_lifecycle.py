@@ -2484,6 +2484,70 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertTrue(asyncio.run(run()))
         runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
 
+    def test_pressure_adaptive_preadmission_wait_preserves_late_arrivals(self):
+        from collections import deque
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch_reconciliation':
+                'route_confirmed_arrival_reconcile_pressure_adaptive_v1'
+        }
+        runner._dispatch_admitted_requests = 0
+        runner._dispatch_admission_waiters = deque()
+        runner._current_dispatch_capacity_limit = Mock(return_value=8)
+        remote_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='remote'),
+            replica_id=slot.instance_id,
+        )
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (SimpleNamespace(epoch=9),),
+            {slot.instance_id: {'source': {'tier': 'remote'}}},
+        ))
+        runner.router.select_instance_with_decision = Mock(
+            return_value=(slot, remote_decision))
+
+        async def run():
+            pending = asyncio.create_task(asyncio.sleep(.05, result={'state': 'completed'}))
+            await runner._maybe_wait_arrival_prefetch_before_admission(
+                trace=trace, request_plan=plan, arrival_prefetch_task=pending,
+                arrival_release_lateness_ms=1.0)
+            self.assertFalse(pending.done())
+            pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)
+
+        asyncio.run(run())
+        runner._ieee_request_snapshot.assert_not_awaited()
+
+    def test_pressure_adaptive_preadmission_wait_uses_idle_arrival_slack(self):
+        from collections import deque
+        runner, slot, trace, plan, _, _ = self.build('remote')
+        runner.coord_cfg = {
+            'ieee_route_confirmed_arrival_prefetch_reconciliation':
+                'route_confirmed_arrival_reconcile_pressure_adaptive_v1'
+        }
+        runner._dispatch_admitted_requests = 0
+        runner._dispatch_admission_waiters = deque()
+        runner._current_dispatch_capacity_limit = Mock(return_value=8)
+        remote_decision = SimpleNamespace(
+            service_class=SimpleNamespace(tier='remote'),
+            replica_id=slot.instance_id,
+        )
+        runner._ieee_request_snapshot = AsyncMock(return_value=(
+            (SimpleNamespace(epoch=9),),
+            {slot.instance_id: {'source': {'tier': 'remote'}}},
+        ))
+        runner.router.select_instance_with_decision = Mock(
+            return_value=(slot, remote_decision))
+
+        async def run():
+            pending = asyncio.create_task(asyncio.sleep(.01, result={'state': 'completed'}))
+            await runner._maybe_wait_arrival_prefetch_before_admission(
+                trace=trace, request_plan=plan, arrival_prefetch_task=pending,
+                arrival_release_lateness_ms=0.0)
+            self.assertTrue(pending.done())
+
+        asyncio.run(run())
+        runner._ieee_request_snapshot.assert_awaited_once_with(trace, plan)
+
     def test_nonblocking_arrival_prefetch_does_not_wait_for_pending_task(self):
         runner, slot, trace, plan, _, _ = self.build('remote')
         runner.coord_cfg = {

@@ -17264,7 +17264,8 @@ class ScenarioRunner:
                         'route_confirmed_arrival_reconcile_v1',
                         'route_confirmed_arrival_reconcile_nonblocking_v1',
                         'route_confirmed_arrival_reconcile_reroute_v1',
-                        'route_confirmed_arrival_reconcile_reroute_preadmission_v1'):
+                        'route_confirmed_arrival_reconcile_reroute_preadmission_v1',
+                        'route_confirmed_arrival_reconcile_pressure_adaptive_v1'):
                     raise ValueError('unsupported route-confirmed arrival reconciliation policy')
                 effective_arrival_prefetch_task = (
                     arrival_prefetch_task
@@ -17273,14 +17274,18 @@ class ScenarioRunner:
                         'route_confirmed_arrival_reconcile_nonblocking_v1',
                         'route_confirmed_arrival_reconcile_reroute_v1',
                         'route_confirmed_arrival_reconcile_reroute_preadmission_v1',
+                        'route_confirmed_arrival_reconcile_pressure_adaptive_v1',
                     )
                     else None
                 )
-                if reconcile_policy == 'route_confirmed_arrival_reconcile_reroute_preadmission_v1':
+                if reconcile_policy in (
+                        'route_confirmed_arrival_reconcile_reroute_preadmission_v1',
+                        'route_confirmed_arrival_reconcile_pressure_adaptive_v1'):
                     await self._maybe_wait_arrival_prefetch_before_admission(
                         trace=trace,
                         request_plan=request_plan,
                         arrival_prefetch_task=effective_arrival_prefetch_task,
+                        arrival_release_lateness_ms=arrival_release_lateness_ms,
                     )
                 await asyncio.sleep(0)
                 admission_start_at = time.perf_counter()
@@ -19351,6 +19356,7 @@ class ScenarioRunner:
         trace,
         request_plan,
         arrival_prefetch_task,
+        arrival_release_lateness_ms: float = 0.0,
     ):
         """Wait for arrival preparation without holding dispatch capacity.
 
@@ -19364,6 +19370,23 @@ class ScenarioRunner:
                 or not getattr(trace, 'adapter_id', None)
                 or getattr(self, '_routing_policy', None) != 'ieee_confirmed'):
             return
+        reconcile_policy = getattr(self, 'coord_cfg', {}).get(
+            'ieee_route_confirmed_arrival_prefetch_reconciliation')
+        if reconcile_policy == 'route_confirmed_arrival_reconcile_pressure_adaptive_v1':
+            # Speculative waiting is lawful only while the request is still on
+            # time and the dispatch gate has no queued pressure.  Once an
+            # offered arrival is already late, or another request is waiting
+            # for the shared gate, preserving arrival order is more valuable
+            # than hiding one optional file movement.  These are live
+            # controller observations; no fixed sleep or throughput estimate
+            # is introduced.
+            if float(arrival_release_lateness_ms or 0.0) > 0.0:
+                return
+            waiters = self._dispatch_admission_queue()
+            admitted = int(getattr(self, '_dispatch_admitted_requests', 0) or 0)
+            limit = max(1, int(self._current_dispatch_capacity_limit() or 1))
+            if waiters or admitted >= limit:
+                return
         try:
             committed = await self._ieee_request_snapshot(trace, request_plan)
             if committed is None:
@@ -19425,7 +19448,11 @@ class ScenarioRunner:
             'ieee_route_confirmed_arrival_prefetch_reconciliation')
         nonblocking = reconcile_policy == 'route_confirmed_arrival_reconcile_nonblocking_v1'
         allow_confirmed_nonremote_reroute = (
-            reconcile_policy == 'route_confirmed_arrival_reconcile_reroute_v1'
+            reconcile_policy in (
+                'route_confirmed_arrival_reconcile_reroute_v1',
+                'route_confirmed_arrival_reconcile_reroute_preadmission_v1',
+                'route_confirmed_arrival_reconcile_pressure_adaptive_v1',
+            )
         )
         if nonblocking and not arrival_prefetch_task.done():
             record.update(state='not_updated',
