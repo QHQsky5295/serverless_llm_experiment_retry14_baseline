@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "requests": 4000,
+  "kinds": {
+    "fresh_native_tensor_descriptor_v1": 4000
+  },
+  "library_sha256_counts": {
+    "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044": 4000
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1020_3b_gpu_slots32_w2_full.json",
+    "sha256": "0b00beecaa9346113886a090062a31ae78fd4d6da5e98cada2a6e3f45be3d8e3",
+    "bytes": 286658853
+  }
+}

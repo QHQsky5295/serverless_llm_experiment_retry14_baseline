@@ -1,0 +1,59 @@
+{
+  "kind": "d719_full_profile_binding_audit_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full",
+  "n": 4000,
+  "tiers": {
+    "host": 12,
+    "remote": 486,
+    "nvme": 534,
+    "gpu": 2968
+  },
+  "service_classes": 98,
+  "preparation_classes": 51,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "performance_execution": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1020_3b_gpu_slots32_w2_full.json",
+      "sha256": "0b00beecaa9346113886a090062a31ae78fd4d6da5e98cada2a6e3f45be3d8e3",
+      "bytes": 286658853
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "397fdbf75829f52d9e0af6bec56aaa697a7f0d529e12d03bb5405c49ae74e2c7",
+      "bytes": 461493934
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1020_3b_gpu_slots32_w2/completion/full4000.json",
+      "sha256": "b82eedde196768c2b24d6666bf04332203867f084b48baf2dd1c98dbcf79a3c8",
+      "bytes": 79847
+    },
+    {
+      "path": "configs/ieee_tc/20261102_d1020_3b_gpu_slots32_w2.yaml",
+      "sha256": "a0f063e706bd063d16f50b58621e9f0e04934c1beaff53ecf2b478ae27e08f55",
+      "bytes": 5996
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1019_3b_gpu_slot_profile/export/service.json",
+      "sha256": "b193e729165797a6739054ce3551a52f56071bf7e41f8634e1532c8866ae131d",
+      "bytes": 448997
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1019_3b_gpu_slot_profile/export/preparation.json",
+      "sha256": "2d8fb98db73079dc40269db648d21a3bd76eff5f780371d258ca5458aed62705",
+      "bytes": 6492259
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1019_3b_gpu_slot_profile/export/manifest.json",
+      "sha256": "9cb09b9a14e20eeb9d600146bf40d82d0f7479294e6af545437af09ec587ab62",
+      "bytes": 117269
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "5a51761846338d64d8a455b5804fe014308ccce32e91dd31f7a33f1f1060bc39",
+      "bytes": 118833
+    }
+  ]
+}

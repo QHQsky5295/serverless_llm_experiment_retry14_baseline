@@ -1212,7 +1212,29 @@ def diagnose_routing_retries(raw: Path, output: Path, stage_audit: Path) -> None
     print(json.dumps(dict(output=str(output),attempt_reasons=report['attempt_reasons'],groups=groups)))
 
 
-def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_path: Path) -> None:
+def configured_profile_sources(config: dict, manifest_path: Path):
+    """Bind an offline audit to explicit frozen inputs, never a historical default."""
+    if manifest_path is None:
+        raise ValueError('explicit profile manifest required')
+    rc = config['resource_coordination']
+    manifest = read(manifest_path)
+    if manifest.get('passed') is not True or manifest.get('development_only') is not True:
+        raise ValueError('passed development profile manifest required')
+    paths = []
+    for kind in ('service', 'preparation'):
+        configured = rc[f'ieee_{kind}_profile']
+        path = Path(configured['path']).resolve(strict=True)
+        if (digest(path) != configured['sha256']
+                or manifest[f'{kind}_profile']['profile_sha256'] != configured['sha256']
+                or manifest['context'] != configured['context']
+                or manifest[f'{kind}_profile']['beta'] != configured['ewma_beta']):
+            raise ValueError(f'config/manifest/{kind} profile binding differs')
+        paths.append(path)
+    return tuple(paths)
+
+
+def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_path: Path,
+                           manifest_path: Path = None) -> None:
     """Stream the original D703 profile checks after a strict full native audit."""
     import ijson
     if output.exists():
@@ -1227,18 +1249,20 @@ def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_p
     if digest(result) != source['sha256']:
         raise ValueError('metric source changed')
     config = __import__('yaml').safe_load(config_path.read_text())
-    service_sha, preparation_sha = digest(SERVICE_PROFILE), digest(PREPARATION_PROFILE)
     rc = config['resource_coordination']
-    if (rc['ieee_service_profile']['sha256'] != service_sha
-            or rc['ieee_preparation_profile']['sha256'] != preparation_sha
-            or Path(config['experiment']['output_dir']).resolve() != raw.resolve()
-            or read(PROFILE_MANIFEST)['development_only'] is not True):
-        raise ValueError('config/run/D701 profile binding differs')
-    service_payload, prep_payload = read(SERVICE_PROFILE), read(PREPARATION_PROFILE)
-    service = FrozenServiceProfiles.load(SERVICE_PROFILE, expected_sha256=service_sha,
-        model_config=service_payload['model_config'], expected_context=service_payload['context'], beta=0.5)
-    preparation = FrozenPreparationProfiles.load(PREPARATION_PROFILE, expected_sha256=preparation_sha,
-        model_config=prep_payload['model_config'], expected_context=prep_payload['context'], beta=0.5)
+    service_path, preparation_path = configured_profile_sources(config, manifest_path)
+    service_sha, preparation_sha = digest(service_path), digest(preparation_path)
+    if Path(config['experiment']['output_dir']).resolve() != raw.resolve():
+        raise ValueError('config/run output binding differs')
+    service_payload, prep_payload = read(service_path), read(preparation_path)
+    service = FrozenServiceProfiles.load(service_path, expected_sha256=service_sha,
+        model_config=service_payload['model_config'],
+        expected_context=rc['ieee_service_profile']['context'],
+        beta=rc['ieee_service_profile']['ewma_beta'])
+    preparation = FrozenPreparationProfiles.load(preparation_path, expected_sha256=preparation_sha,
+        model_config=prep_payload['model_config'],
+        expected_context=rc['ieee_preparation_profile']['context'],
+        beta=rc['ieee_preparation_profile']['ewma_beta'])
     if len(service.profiles) != 160 or len(preparation.profiles) != 96:
         raise ValueError('D701 profile cardinality changed')
     outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
@@ -1275,15 +1299,25 @@ def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_p
         n=len(ids), tiers=dict(tiers), service_classes=len(service_classes),
         preparation_classes=len(preparation_classes), numerical_correctness_qualified=False,
         ranking_eligible=False, performance_execution=False,
-        source_refs=[ref(x) for x in (result, outcome, metric_audit, config_path, SERVICE_PROFILE,
-            PREPARATION_PROFILE, PROFILE_MANIFEST, Path(__file__))])
+        source_refs=[ref(x) for x in (result, outcome, metric_audit, config_path, service_path,
+            preparation_path, manifest_path, Path(__file__))])
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x') as handle:
         json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
     print(json.dumps({k:v for k,v in report.items() if k != 'source_refs'}))
 
 
-def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
+def configured_release_reasons(config):
+    reasons = {'ieee_all_low_through_cooldown'}
+    if config is not None:
+        policy = config['resource_coordination'].get('ieee_predictive_scaling', {})
+        if policy.get('enabled') is True and policy.get('allow_forecast_scale_down') is True:
+            reasons.add('ieee_forecast_capacity_release')
+    return reasons
+
+
+def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path,
+                         config_path: Path = None, remote_observation='managed_monitor') -> None:
     """Join closed remote, control and watchdog evidence after the SLO audit."""
     import ijson
     from scripts.ieee_tc.check_d299_full_context import project
@@ -1292,6 +1326,12 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
     metric = read(metric_audit)
     if metric['source_run'] != str(raw) or metric['passed'] is not True:
         raise ValueError('same-run completed native metric audit required')
+    if remote_observation not in ('managed_monitor', 'existing_unmonitored'):
+        raise ValueError('explicit known remote observation mode required')
+    config = __import__('yaml').safe_load(config_path.read_text()) if config_path else None
+    if config is not None and Path(config['experiment']['output_dir']).resolve() != raw.resolve():
+        raise ValueError('closed audit config/run binding differs')
+    release_reasons = configured_release_reasons(config)
     source = next(x for x in metric['source_refs'] if Path(x['path']).name.startswith('experiment_results_full'))
     result = Path(source['path'])
     if digest(result) != source['sha256']:
@@ -1355,21 +1395,29 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path) -> None:
     for event in control['scale_down_event_log']:
         times = [event[k] for k in ('observed_monotonic_s', 'withdrawn_monotonic_s',
                                     'drained_monotonic_s', 'released_monotonic_s')]
-        if (event['reason'] != 'ieee_all_low_through_cooldown'
+        if (event['reason'] not in release_reasons
                 or not all(math.isfinite(x) for x in times)
                 or any(a>b for a,b in zip(times,times[1:]))):
             raise ValueError('ordered natural scale-in lifecycle required')
     summary = read(raw/'launch.launch/physical_deployment/summary.json')
+    source_paths = [result,outcome,journal,watchdog,raw.parent/'remote_health.json',Path(__file__)]
+    if config_path is not None:
+        source_paths.append(config_path)
+    if remote_observation == 'managed_monitor':
+        source_paths += [raw.parent/'remote_monitor.log',raw.parent/'remote_stop.log']
     audit = dict(kind='d713_closed_delivery_and_control_context_v1', passed=True,
         native_metric_audit=ref(metric_audit), terminal_meta=meta, control=control,
         physical_allocation_count=len(summary['allocation_journals']),
         all_allocations_released=all(j['released'] for j in summary['allocation_journals']),
         remote=dict(transfers=len(transfers), wire_bytes=sum(r['transferred_bytes'] for r in transfers),
-                    all_server_client_ids_bytes_hashes_match=True, request_time_packing=False),
+                    all_server_client_ids_bytes_hashes_match=True, request_time_packing=False,
+                    observation_mode=remote_observation,
+                    monitoring_limitation=('No continuous remote CPU/interference monitor; '
+                        'existing service was not restarted/stopped for this replay.'
+                        if remote_observation == 'existing_unmonitored' else None)),
         resources=dict(events=dict(events), memory_events_max=dict(memory), service_peak_bytes=peak,
             max_swap_bytes=swap, min_host_available_bytes=available, min_free_disk_bytes=free),
-        source_refs=[ref(x) for x in (result,outcome,journal,watchdog,raw.parent/'remote_health.json',
-            raw.parent/'remote_monitor.log',raw.parent/'remote_stop.log',Path(__file__))])
+        source_refs=[ref(x) for x in source_paths])
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x') as stream:
         json.dump(audit, stream, indent=2, allow_nan=False); stream.write('\n')
@@ -1855,6 +1903,9 @@ if __name__ == "__main__":
     parser.add_argument('--audit-closed-outcome', type=Path)
     parser.add_argument('--audit-profile-bindings', type=Path)
     parser.add_argument('--config', type=Path)
+    parser.add_argument('--profile-manifest', type=Path)
+    parser.add_argument('--remote-observation', choices=('managed_monitor', 'existing_unmonitored'),
+                        default='managed_monitor')
     parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
@@ -1894,9 +1945,10 @@ if __name__ == "__main__":
             parser.error('--stage-audit is required for --diagnose-decode-overlap')
         diagnose_decode_overlap(args.stage_audit, args.diagnose_decode_overlap)
     elif args.audit_profile_bindings is not None:
-        if args.metric_audit is None or args.config is None:
-            parser.error('--metric-audit and --config are required for --audit-profile-bindings')
-        audit_profile_bindings(args.raw, args.audit_profile_bindings, args.metric_audit, args.config)
+        if args.metric_audit is None or args.config is None or args.profile_manifest is None:
+            parser.error('--metric-audit, --config and --profile-manifest are required for --audit-profile-bindings')
+        audit_profile_bindings(args.raw, args.audit_profile_bindings, args.metric_audit,
+                               args.config, args.profile_manifest)
     elif args.diagnose_routing_retries is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-routing-retries')
@@ -1908,7 +1960,8 @@ if __name__ == "__main__":
     elif args.audit_closed_outcome is not None:
         if args.metric_audit is None:
             parser.error('--metric-audit is required for --audit-closed-outcome')
-        audit_closed_outcome(args.raw, args.audit_closed_outcome, args.metric_audit)
+        audit_closed_outcome(args.raw, args.audit_closed_outcome, args.metric_audit,
+                             args.config, args.remote_observation)
     elif args.reevaluate_common_slo is not None:
         reevaluate_common_slo(args.raw, args.reevaluate_common_slo, expected_count=args.expected_count)
     elif args.calibrate_control_lower is not None:

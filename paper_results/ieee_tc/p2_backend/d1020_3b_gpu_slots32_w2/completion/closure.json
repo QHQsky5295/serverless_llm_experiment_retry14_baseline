@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "source_commit": "23d6e2a376aee7c91f269c816479f79410777d75",
+  "n_correct": null,
+  "ranking_eligible": false,
+  "development_only": true,
+  "requests": 4000,
+  "resource_samples": 4047,
+  "foreign_compute_samples": 0,
+  "escaped_owned_samples": 0,
+  "work_caches_empty": true,
+  "protected_files_unchanged": 147,
+  "auxiliary_identity": {
+    "unit": "primelora-tc-aux-d1020000000000000000000000000009.scope",
+    "invocation_id": "571b76d8bc624adb8684617f24a140aa",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1020000000000000000000000000009.scope",
+    "inode": 37997779
+  },
+  "auxiliary_resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1020000000000000000000000000009.scope",
+    "memory.current": 653168640,
+    "memory.peak": 1793847296,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 79548325\nuser_usec 72659217\nsystem_usec 6889108\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1020_3b_gpu_slots32_w2_full.json",
+      "sha256": "0b00beecaa9346113886a090062a31ae78fd4d6da5e98cada2a6e3f45be3d8e3",
+      "bytes": 286658853
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/launch.json",
+      "sha256": "0b910335e80ceff6b32555687a2d10b4837f9051dff7d89ea4636408b3ec1875",
+      "bytes": 12507
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261102_d1020_3b_gpu_slots32_w2.yaml",
+      "sha256": "a0f063e706bd063d16f50b58621e9f0e04934c1beaff53ecf2b478ae27e08f55",
+      "bytes": 5996
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/collect_closed_evidence.py",
+      "sha256": "2d041f2222952ef797aee513003f607a0a1648b0c892b9637a0713732f45a93c",
+      "bytes": 5522
+    }
+  ]
+}
