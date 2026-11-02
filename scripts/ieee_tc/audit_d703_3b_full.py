@@ -16,6 +16,7 @@ import gzip
 import hashlib
 import json
 import math
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -72,6 +73,139 @@ def clipped_interval_union(start, end, spans):
 D716_TTFT_STAGES = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
     'executable_to_engine_ms', 'engine_entry_to_queue_ms',
     'native_engine_queue_ms', 'native_prefill_ms')
+
+
+def native_startup_log(text):
+    """D1023: parse observed V2 startup, not a GPU-kernel timing estimate."""
+    pids = set(map(int, re.findall(r'EngineCore pid=(\d+)', text)))
+    if len(pids) != 1 or 'Using V2 Model Runner' not in text:
+        raise ValueError('one native V2 worker identity required')
+    init = re.findall(r'init engine \(profile, create kv cache, warmup model\) '
+                      r'took ([\d.]+) s \(compilation: ([\d.]+) s\)', text)
+    captures = re.findall(r'Graph capturing finished in ([\d.]+) secs, '
+                         r'took ([\d.]+) GiB', text)
+    if len(init) != 1 or len(captures) != 2:
+        raise ValueError('one engine init and both profiling/real captures required')
+    progress = re.findall(r'Capturing CUDA graphs \(([^)]+)\):\s*100%[^\r\n]*?'
+                          r'(\d+)/(\d+)\s*\[', text)
+    if any(a != b for _, a, b in progress):
+        raise ValueError('completed capture progress has inconsistent total')
+    # tqdm may print the same completed line twice. Preserve observed totals,
+    # not a sum that would double-count the progress display.
+    totals = {mode: sorted({int(b) for m, _, b in progress if m == mode})
+              for mode, _, _ in progress}
+    if not {'PIECEWISE', 'FULL'} <= set(totals):
+        raise ValueError('both native graph-mode completion records required')
+    selected = [line for line in text.replace('\r', '\n').splitlines()
+                if any(s in line for s in ('Using V2 Model Runner',
+                    'Graph capturing finished', 'init engine (profile,',
+                    'torch.compile took', 'Dynamo bytecode transform time',
+                    'Using cache directory:', 'saved AOT compiled function',
+                    'loaded AOT compiled function'))]
+    return dict(worker_pid=pids.pop(), init_seconds=float(init[0][0]),
+        compilation_seconds=float(init[0][1]),
+        capture_seconds_rounded=[float(x[0]) for x in captures],
+        capture_memory_gib_rounded=[float(x[1]) for x in captures],
+        completed_progress_totals=totals, evidence_lines=selected)
+
+
+def diagnose_native_startup(stage_audit, worker_logs, output):
+    """Reuse sealed requests and allocation journals; no replay or subtraction."""
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+    if output.exists():
+        raise FileExistsError(output)
+    diagnosis_path, table = stage_audit/'diagnosis.json', stage_audit/'requests.csv'
+    diagnosis = read(diagnosis_path)
+    if (diagnosis['kind'] != 'd716_all_request_stage_diagnosis_v1'
+            or diagnosis['passed'] is not True
+            or Path(diagnosis['request_table']['path']).resolve() != table.resolve()
+            or digest(table) != diagnosis['request_table']['sha256']):
+        raise ValueError('sealed complete stage table required')
+    refs = {Path(x['path']): x['sha256'] for x in diagnosis['source_refs']}
+    metric_path, = (x for x in refs if x.name == 'full4000.json')
+    metric = read(metric_path)
+    if (digest(metric_path) != refs[metric_path] or metric['passed'] is not True
+            or metric['source_run'] != diagnosis['source_run']):
+        raise ValueError('same-run metric source changed')
+    raw = Path(metric['source_run'])
+    physical_path = raw/'launch.launch/physical_deployment/physical_resource_summary.json'
+    metric_refs = {Path(x['path']): x['sha256'] for x in metric['source_refs']}
+    if digest(physical_path) != metric_refs[physical_path]:
+        raise ValueError('physical resource source changed')
+    sources = [diagnosis_path, table, metric_path, physical_path, Path(__file__)]
+    workers = {}
+    for item in read(physical_path)['allocation_journals']:
+        path = Path(item['path'])
+        if digest(path) != item['sha256'] or item['released'] is not True:
+            raise ValueError('closed native allocation journal required')
+        sources.append(path)
+        events = [json.loads(line) for line in path.read_text().splitlines()]
+        for event in events:
+            if event['event'] == 'native_workers':
+                for worker in event['workers']:
+                    pid = worker['pid']
+                    if pid in workers:
+                        raise ValueError('native worker mapped more than once')
+                    workers[pid] = dict(lease_id=event['lease_id'],
+                        native_worker_bound_s=event['at'], gpu_uuid=worker['device_uuid'])
+    parsed = []
+    for path in worker_logs:
+        log = native_startup_log(path.read_text())
+        if log['worker_pid'] not in workers:
+            raise ValueError('log worker not owned by this run')
+        log.update(workers[log['worker_pid']], source=ref(path))
+        parsed.append(log)
+        sources.append(path)
+    if len(parsed) != len(workers) or {x['worker_pid'] for x in parsed} != set(workers):
+        raise ValueError('all allocated workers need distinct startup logs')
+    with table.open() as handle:
+        rows = list(csv.DictReader(handle))
+    for row in rows:
+        row['ordinal'] = int(row['ordinal'])
+        row['worker_pid'] = int(row['worker_pid'])
+        for key in ('ttft_pass', 'tpot_pass', 'joint_pass'):
+            if row[key] not in ('True', 'False'):
+                raise ValueError('typed boolean required')
+            row[key] = row[key] == 'True'
+        for key in ('first', 'admitted', 'ttft_ms', 'tpot_ms', 'dispatch_window_wait_ms'):
+            row[key] = float(row[key])
+        if row['worker_pid'] not in workers:
+            raise ValueError('request native worker is not allocated')
+    if (sorted(r['ordinal'] for r in rows) != list(range(4000))
+            or len({r['request_id'] for r in rows}) != 4000
+            or any(sum(r[k] for r in rows) != metric['counts'][k]
+                   for k in ('ttft_pass', 'tpot_pass', 'joint_pass'))):
+        raise ValueError('whole offered population/SLO counts mismatch')
+    def summarize(selected):
+        return dict(n=len(selected), **{k:sum(r[k] for r in selected)
+            for k in ('ttft_pass', 'tpot_pass', 'joint_pass')},
+            violation_groups=dict(collections.Counter(r['slo_group'] for r in selected)),
+            dominant_stages_of_ttft_fail=dict(collections.Counter(
+                r['dominant_ttft_stage'] for r in selected if not r['ttft_pass'])),
+            metrics={k:timing_stats([r[k] for r in selected])
+                for k in ('ttft_ms', 'tpot_ms', 'dispatch_window_wait_ms')})
+    groups = {f'ordinal_{a}_{b-1}':summarize([r for r in rows if a <= r['ordinal'] < b])
+              for a, b in ((0,25), (25,100), (100,500), (500,4000))}
+    first_admission = min(r['admitted'] for r in rows)
+    for before in (True, False):
+        selected = [r for r in rows
+                    if (r['first']-r['ttft_ms']/1000 < first_admission) == before]
+        groups['arrived_'+('before' if before else 'after')+'_first_observed_admission'] = summarize(selected)
+    report = dict(kind='d1023_native_startup_diagnosis_v1', passed=True,
+        source_run=str(raw), workers=sorted(parsed, key=lambda x:x['native_worker_bound_s']),
+        all_request_counts=metric['counts'], first_observed_admission_s=first_admission,
+        groups=groups, source_refs=[ref(x) for x in dict.fromkeys(sources)],
+        n_correct=None, ranking_eligible=False, confidence_interval=None,
+        limitations=['Native log durations are rounded and not GPU-kernel time.',
+            'Profiling capture and real capture are sequential; neither is added to the containing init span.',
+            'Progress totals are descriptor counts, not a sum over duplicated tqdm lines or low-level graph nodes.',
+            'Wall-clock native log timestamps are not subtracted from monotonic request timestamps.',
+            'First observed admission is an observed request boundary, not engine-ready or a causal counterfactual.',
+            'All 4000 requests and all allocated workers retained; no latency subtraction or simulated SLO gain.'])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')
+    print(json.dumps(dict(passed=True, output=str(output), workers=len(parsed), groups=groups)))
 
 
 def paired_stage_groups(reference, candidate):
@@ -1910,6 +2044,8 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--diagnose-demand-reuse', type=Path)
+    parser.add_argument('--diagnose-native-startup', type=Path)
+    parser.add_argument('--worker-log', type=Path, action='append')
     parser.add_argument('--diagnose-remote-preparation', type=Path)
     parser.add_argument('--diagnose-prefetch-control', type=Path)
     parser.add_argument('--preparation-audit', type=Path)
@@ -1921,9 +2057,14 @@ if __name__ == "__main__":
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_demand_reuse is not None:
+    if args.diagnose_native_startup is not None:
+        if args.stage_audit is None or not args.worker_log:
+            parser.error('--stage-audit and --worker-log are required for --diagnose-native-startup')
+        diagnose_native_startup(args.stage_audit.resolve(),
+            [x.resolve() for x in args.worker_log], args.diagnose_native_startup.resolve())
+    elif args.diagnose_demand_reuse is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-demand-reuse')
         diagnose_demand_reuse(args.stage_audit.resolve(), args.diagnose_demand_reuse.resolve())

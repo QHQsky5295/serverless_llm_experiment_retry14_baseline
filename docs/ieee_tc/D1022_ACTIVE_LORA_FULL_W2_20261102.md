@@ -89,6 +89,15 @@ HOST图方向。达到可用工作点后推进同版本W0/W1与完整外部比�
 B1/B2/C1/C2/C3和两轮审稿文档、图表及最终V2集成仍未完成，目标保持active。
 不画图、不改论文、不生成新工件/trace，不接管共享k3s。
 
+00:58后置备份：12文件结果检查点`d0dbd977edf0816dc7e65ad58b771ca088ef2177`
+已推送并经ls-remote核对origin/retry14_continuous_queue_v2和faaslora_origin的
+`backup/d1022-active-lora-w2-20261103`。后者是回退备份，不冒称已分歧V2
+分支的最终集成；未强推。10项curated manifest校验、diff检查、staged凭据
+模式检查通过；147项保护与两项用户dirty不变。无新生产代码，所以复用此前
+针对性测试及本次实际严格分析验证，不增加重复GPU smoke或广泛资格测试。
+当前没有GPU/离线分析进程运行。此后置文字在下一正常检查点提交；用户dirty
+EXECUTION_STATUS与manifest继续不触碰。先有界存储维护，再沿上述3B问题推进。
+
 ## 问题与保持不变的部分
 
 D1020已在4000请求上观测到3746联合达标（93.65%）、8135.629131GPU-s、
