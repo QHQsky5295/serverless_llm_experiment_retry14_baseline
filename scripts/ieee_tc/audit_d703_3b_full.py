@@ -163,7 +163,8 @@ def compare_stage_audits(reference_path, candidate_path, output):
         if diagnosis['kind'] != 'd716_all_request_stage_diagnosis_v1' or diagnosis['passed'] is not True:
             raise ValueError('sealed all-request stage audit required')
         table = stage_path/'requests.csv'
-        if diagnosis['request_table']['path'] != str(table) or digest(table) != diagnosis['request_table']['sha256']:
+        if (Path(diagnosis['request_table']['path']).resolve() != table.resolve()
+                or digest(table) != diagnosis['request_table']['sha256']):
             raise ValueError('sealed request table changed')
         refs = {Path(x['path']): x['sha256'] for x in diagnosis['source_refs']}
         metric_paths = [x for x in refs if x.name == 'full4000.json']
@@ -231,9 +232,7 @@ def compare_stage_audits(reference_path, candidate_path, output):
             'Lifecycle allocation boundaries explain accounting, not why the autoscaler triggered.',
             'No latency subtraction, counterfactual SLO, new replay, changed thresholds or plot.'])
     output.mkdir(parents=True, exist_ok=False)
-    with (output/'paired_requests.csv').open('x') as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(paired_requests[0]))
-        writer.writeheader(); writer.writerows(paired_requests)
+    write_exclusive_csv(output/'paired_requests.csv', paired_requests)
     report['request_table'] = ref(output/'paired_requests.csv')
     with (output/'diagnosis.json').open('x') as handle:
         json.dump(report, handle, indent=2, allow_nan=False); handle.write('\n')

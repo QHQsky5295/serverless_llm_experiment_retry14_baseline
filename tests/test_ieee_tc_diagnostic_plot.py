@@ -109,6 +109,32 @@ def test_d823_existing_output_cannot_be_overwritten(tmp_path):
         compare_stage_audits(tmp_path/'old', tmp_path/'new', tmp_path)
 
 
+@pytest.mark.parametrize('relative', [False, True])
+@pytest.mark.parametrize('fault', [None, 'path', 'digest'])
+def test_d1015_stage_seal_resolves_paths_without_weakening_digest(tmp_path, monkeypatch, relative, fault):
+    from scripts.ieee_tc.audit_d703_3b_full import compare_stage_audits, digest
+    monkeypatch.chdir(tmp_path)
+    stage = tmp_path/'old'
+    stage.mkdir()
+    table = stage/'requests.csv'
+    table.write_text('request_id\nr1\n', encoding='utf-8')
+    recorded = table.relative_to(tmp_path) if relative else table
+    seal = dict(path=str(recorded), sha256=digest(table))
+    if fault == 'path':
+        seal['path'] = str(tmp_path/'different.csv')
+    elif fault == 'digest':
+        seal['sha256'] = '0'*64
+    (stage/'diagnosis.json').write_text(json.dumps(dict(
+        kind='d716_all_request_stage_diagnosis_v1', passed=True,
+        request_table=seal, source_refs=[])), encoding='utf-8')
+    # Valid aliases pass the table seal and reach the next, intentionally absent,
+    # metric source. Different paths or bytes must still fail the original seal.
+    error = 'sealed request table changed' if fault else 'one complete metric audit required'
+    with pytest.raises(ValueError, match=error):
+        compare_stage_audits(stage, tmp_path/'new', tmp_path/'out')
+    assert not (tmp_path/'out').exists()
+
+
 def d721_rows():
     from scripts.ieee_tc.audit_d703_3b_full import D716_TTFT_STAGES
     def row(rid, owner, start, first, last, tokens, load=False):
