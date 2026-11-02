@@ -1,0 +1,16 @@
+"""Reuse the registered D1016/D723 offline audit for the repaired attempt.
+
+Only the attempt's input/output path changes. This is not another replay and
+does not weaken completeness, native binding, timing or resource checks.
+"""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1016_20261102/analyze.py'
+template_sha256 = 'a0743504ad6589def97eb22a04e1d175ebca3cf4c0b1fa680423d211d63a46d8'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == template_sha256
+source = template.read_text()
+assert source.count('d1016_3b_native_prefix1000') == 2
+source = source.replace('d1016_3b_native_prefix1000',
+                        'd1016_attempt2_3b_native_prefix1000')
+exec(compile(source, str(template), 'exec'), globals())
