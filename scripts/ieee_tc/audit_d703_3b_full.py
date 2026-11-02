@@ -963,6 +963,94 @@ def diagnose_decode_overlap(stage_audit: Path, output: Path):
         counts=stage['counts'])))
 
 
+def demand_reuse_groups(rows):
+    """D1018: admission-ordered demand distances, NOT native LRU misses.
+
+    Owner identity separates allocation epochs. Proactive touches, outstanding
+    references, evictions and concurrent acquisition order are not reconstructed.
+    In particular, no hit-rate or counterfactual latency is inferred here.
+    """
+    seen = set()
+    owners = collections.defaultdict(list)
+    for row in rows:
+        if (not row['request_id'] or row['request_id'] in seen
+                or not row['owner'] or not row['adapter_id']
+                or not math.isfinite(row['admitted']) or row['admitted'] <= 0
+                or any(type(row[k]) is not bool for k in
+                       ('native_load_invoked', 'ttft_pass', 'tpot_pass', 'joint_pass'))
+                or row['joint_pass'] != (row['ttft_pass'] and row['tpot_pass'])):
+            raise ValueError('unique complete admitted demand rows required')
+        seen.add(row['request_id'])
+        owners[row['owner']].append(row)
+    groups = collections.defaultdict(collections.Counter)
+    for history in owners.values():
+        stack = []  # Most-recent demand first; at most the existing adapter universe.
+        for row in sorted(history, key=lambda r: (r['admitted'], r['ordinal'])):
+            adapter = row['adapter_id']
+            distance = stack.index(adapter) if adapter in stack else None
+            label = ('first_in_owner' if distance is None else
+                     'repeat_0_to_7' if distance < 8 else
+                     'repeat_8_to_31' if distance < 32 else 'repeat_32_plus')
+            count = groups[label]
+            count['requests'] += 1
+            count['native_load_invoked'] += row['native_load_invoked']
+            count['ttft_fail'] += not row['ttft_pass']
+            count['tpot_fail'] += not row['tpot_pass']
+            count['joint_fail'] += not row['joint_pass']
+            count['native_load_and_joint_fail'] += row['native_load_invoked'] and not row['joint_pass']
+            count['source:' + row['native_source']] += 1
+            if distance is not None:
+                stack.pop(distance)
+            stack.insert(0, adapter)
+    return dict(requests=len(seen), owners=len(owners), groups={k: dict(v) for k, v in sorted(groups.items())})
+
+
+def diagnose_demand_reuse(stage_audit: Path, output: Path):
+    """Reuse the sealed D716 table without reopening the large raw result."""
+    if output.exists():
+        raise FileExistsError(output)
+    stage = read(stage_audit)
+    if (stage['kind'] != 'd716_all_request_stage_diagnosis_v1'
+            or stage['passed'] is not True or stage['counts']['n'] != 4000
+            or stage['max_stage_identity_error_ms'] > 1):
+        raise ValueError('complete sealed 4000-request stage audit required')
+    table = Path(stage['request_table']['path'])
+    if digest(table) != stage['request_table']['sha256']:
+        raise ValueError('sealed stage request table changed')
+    rows = []
+    with table.open() as handle:
+        for row in csv.DictReader(handle):
+            for key in ('native_load_invoked', 'ttft_pass', 'tpot_pass', 'joint_pass'):
+                if row[key] not in ('True', 'False'):
+                    raise ValueError('explicit boolean demand evidence required')
+                row[key] = row[key] == 'True'
+            row['admitted'] = float(row['admitted'])
+            row['ordinal'] = int(row['ordinal'])
+            rows.append(row)
+    if sorted(r['ordinal'] for r in rows) != list(range(4000)):
+        raise ValueError('all offered ordinals required')
+    if any(sum(r[k] for r in rows) != stage['counts'][k]
+           for k in ('ttft_pass', 'tpot_pass', 'joint_pass')):
+        raise ValueError('sealed stage counts differ')
+    report = dict(kind='d1018_admission_ordered_demand_reuse_v1', passed=True,
+        source_run=stage['source_run'], clock_id=stage['clock_id'],
+        counts=stage['counts'], **demand_reuse_groups(rows),
+        n_correct=stage['n_correct'], ranking_eligible=False, new_gpu_runs=0,
+        source_refs=[ref(stage_audit), ref(table), ref(Path(__file__))],
+        limitations=[
+            'Distance counts distinct demand adapters since the preceding demand in the same owner.',
+            'Order is admission time then ordinal, not complete native acquisition/LRU order.',
+            'Proactive preparation, eviction, pinning and native cache state are not reconstructed.',
+            'Buckets 8 and 32 describe current GPU and CPU slot limits, not selected optimal capacities.',
+            'No inferred cache hits, eliminated transfers, counterfactual SLO or saved GPU seconds.',
+            'Known development trace; independent numerical correctness remains unqualified.'])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as handle:
+        json.dump(report, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+    print(json.dumps(report, indent=2, allow_nan=False))
+
+
 def retained_routing_attempts(request, *, clock_id):
     """D717: rejected attempts, not final-acquisition rechecks or saved time."""
     attempts = request['gpu_reference_evidence'].get('prior_routing_attempts', [])
@@ -1770,6 +1858,7 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-common-slo', type=Path)
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
+    parser.add_argument('--diagnose-demand-reuse', type=Path)
     parser.add_argument('--diagnose-remote-preparation', type=Path)
     parser.add_argument('--diagnose-prefetch-control', type=Path)
     parser.add_argument('--preparation-audit', type=Path)
@@ -1781,9 +1870,13 @@ if __name__ == "__main__":
     parser.add_argument('--raw', type=Path, default=RAW)
     parser.add_argument('--expected-count', type=int, default=4000)
     args = parser.parse_args()
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.compare_stage_audits is not None:
+    if args.diagnose_demand_reuse is not None:
+        if args.stage_audit is None:
+            parser.error('--stage-audit is required for --diagnose-demand-reuse')
+        diagnose_demand_reuse(args.stage_audit.resolve(), args.diagnose_demand_reuse.resolve())
+    elif args.compare_stage_audits is not None:
         if args.reference_stage_audit is None or args.stage_audit is None:
             parser.error('--reference-stage-audit and --stage-audit are required for --compare-stage-audits')
         compare_stage_audits(args.reference_stage_audit.resolve(), args.stage_audit.resolve(), args.compare_stage_audits.resolve())

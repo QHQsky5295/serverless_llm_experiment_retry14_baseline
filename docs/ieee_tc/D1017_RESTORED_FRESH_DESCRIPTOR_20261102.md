@@ -330,3 +330,16 @@ S1–S13、正确性范围、审稿文档/图表及最终 V2 集成全部仍未�
 实验前按已有工具安全压缩闭合证据或核查可重建缓存，不删唯一工件，不在
 测量期间维护。此文件承接当前状态；用户 dirty 的 EXECUTION_STATUS 保持
 原字节、未 stage，不能用其中旧 D998 交接重新启动历史实验。
+
+### 发布交接
+
+结果检查点 `b8b19c7234b579be4a6ef466ec81408cfbcc974f` 已提交，恰好 14 个
+D1017 自有路径；12 个封存产物的 Git staged 字节与 manifest SHA 全部
+匹配，diff/secrets/旧文件保护检查通过。已 push，并由 `ls-remote` 确认
+`origin/retry14_continuous_queue_v2` 与
+`faaslora_origin/backup/d1017-restored-fresh-descriptor-20261102` 均为该 SHA。
+没有 force push；FaaSLoRA 分叉 V2 的最终集成仍未声称完成。生产代码和
+baseline 仓库没有改动。发布后实际 GPU compute 为空，仅两个既有用户
+文件仍为原 tracked dirty；本段为发布后交接增量，结果已备份。下一步不得
+重跑 D1017 或因旧状态回到 D998；先完成必要的安全存储余量，再针对当前
+3B 剩余违约做有界的证据分析。完整目标继续 active，不标 complete/blocked。

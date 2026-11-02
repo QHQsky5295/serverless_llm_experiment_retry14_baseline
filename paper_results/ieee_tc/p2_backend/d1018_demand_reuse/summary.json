@@ -1,0 +1,92 @@
+{
+  "kind": "d1018_admission_ordered_demand_reuse_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1017_20261102/d1017_3b_restored_fresh_descriptor_w2",
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "counts": {
+    "n": 4000,
+    "ttft_pass": 3831,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3894,
+    "joint_pass": 3738
+  },
+  "requests": 4000,
+  "owners": 6,
+  "groups": {
+    "first_in_owner": {
+      "requests": 954,
+      "native_load_invoked": 878,
+      "ttft_fail": 130,
+      "tpot_fail": 26,
+      "joint_fail": 148,
+      "native_load_and_joint_fail": 146,
+      "source:file": 732,
+      "source:host": 143,
+      "source:gpu": 76,
+      "source:staging": 3
+    },
+    "repeat_0_to_7": {
+      "requests": 1755,
+      "native_load_invoked": 224,
+      "ttft_fail": 13,
+      "tpot_fail": 45,
+      "joint_fail": 57,
+      "native_load_and_joint_fail": 5,
+      "source:gpu": 1531,
+      "source:host": 193,
+      "source:file": 31
+    },
+    "repeat_32_plus": {
+      "requests": 200,
+      "native_load_invoked": 167,
+      "ttft_fail": 1,
+      "tpot_fail": 4,
+      "joint_fail": 5,
+      "native_load_and_joint_fail": 4,
+      "source:file": 123,
+      "source:gpu": 33,
+      "source:host": 43,
+      "source:staging": 1
+    },
+    "repeat_8_to_31": {
+      "requests": 1091,
+      "native_load_invoked": 969,
+      "ttft_fail": 25,
+      "tpot_fail": 31,
+      "joint_fail": 52,
+      "native_load_and_joint_fail": 48,
+      "source:host": 834,
+      "source:gpu": 122,
+      "source:file": 133,
+      "source:staging": 2
+    }
+  },
+  "n_correct": null,
+  "ranking_eligible": false,
+  "new_gpu_runs": 0,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1017_restore_descriptor/completion/stages/diagnosis.json",
+      "sha256": "6ecb055bcabe3fdd8c0f66e4d0e230af241f75e3872e29ba9335f7bf307a564d",
+      "bytes": 243258
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1017_restore_descriptor/completion/stages/requests.csv",
+      "sha256": "bd0722fd79baae797494163d206407eb0d95d35c43d7d6024586609ee2083f18",
+      "bytes": 2480287
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "20000c148bb022404a47b9e9eb438b030e6633927c55655de693747b44bf1e3b",
+      "bytes": 117563
+    }
+  ],
+  "limitations": [
+    "Distance counts distinct demand adapters since the preceding demand in the same owner.",
+    "Order is admission time then ordinal, not complete native acquisition/LRU order.",
+    "Proactive preparation, eviction, pinning and native cache state are not reconstructed.",
+    "Buckets 8 and 32 describe current GPU and CPU slot limits, not selected optimal capacities.",
+    "No inferred cache hits, eliminated transfers, counterfactual SLO or saved GPU seconds.",
+    "Known development trace; independent numerical correctness remains unqualified."
+  ]
+}
