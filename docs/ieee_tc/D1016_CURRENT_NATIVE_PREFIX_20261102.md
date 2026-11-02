@@ -100,3 +100,70 @@ D648 SLO SHA：`d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8
 
 尚未完成：最终同版本 W0/W1/W2、G1/G2 主比较，A1–A5、S1–S13、正确性范围
 汇总、审稿证据文档/图表、最终 V2 集成。当前诊断不替代这些任务，不宣布最优。
+
+## 本次实际结果：归属检查误判导致提前中止
+
+入口提交 `08eec2d40fd2c70e92a9d33f276c4ecd32e46c55` 已在启动前推送并
+核验 origin V2 和 FaaSLoRA 的 `backup/d1016-current-native-prefix-20261102`。
+tmux 启动于 17:30:58，确实进入模型执行；不是只有启动命令成功。
+
+这次没有完成 1000 请求。外置回放记录 N_plan=1000、N_arrived=56、
+N_submitted=55；服务收到 55，记录 45 个终态，其中成功且原生合同匹配 44、
+中断 1。未到达/未完成部分不补成成功或超时。完整源仍为 4000。
+观察到的 GPU 时间为 348.282748 GPU-s，完整 GPU 时间为 null，不参与资源
+排名。没有运行要求完整前缀的分析器，不用中途 live 5000 ms SLO 当冻结指标。
+
+最早错误是旧 `_assert_clean_gpu_environment` 在 live_progress 报告
+`gpu2 pid=1445406 [No data] 7326MiB` 为 foreign。核对发现：
+
+- 同 PID、start_ticks=311918514 在独立监控的 74 个样本中属于本轮服务资源域。
+- 原生 allocation journal 也绑定相同 PID/出生身份和 GPU；没有外部计算进程。
+- 本轮在线控制实际发出一次自然缩容，原因 `ieee_all_low_cooldown`，
+  started=3119266.967794040、released=3119275.314833835；未接纳请求、无
+  unresolved request。worker 日志显示正常 shutdown 请求及 SIGTERM 收尾。
+- 旧检查先取 nvidia-smi 表、再读瞬时 parent/children 集合。退出阶段可能
+  已丢失父子链，但先前 GPU 表仍保留该 PID；这不构成外部作业的证据。
+- 所以早期 commentary 中的“后端退出”只描述现象；不是已经证明后端崩溃。
+  不能将这次误判归因为 LoRA 数值失败、CUDA OOM、观察上限或外部抢卡。
+
+183 个资源样本无保护中止；服务峰值 17284587520 B，high/max/OOM/swap
+均为 0。launcher pass=false，service/replay 返回 -15/1；watchdog 返回 0。
+最终三个原生进程已释放 GPU、服务资源域移除，147 项旧文件和两个用户 dirty
+文件 SHA 不变。远端既存服务未停止、未重启。三个原生观察文件正常写入 close，
+但只有部分负载，不能完成原先的瓶颈问题。
+
+保留产物：`paper_results/ieee_tc/p2_backend/d1016_interrupted_native_prefix/summary.json`，
+绑定原始回放、终态、完整失败 outcome、worker 日志、原生计时和资源来源。
+原始 `analyze.py` 是预备的完整分析入口，未对失败输入执行；`close_failed.py`
+只整理这次失败。其首次辅助启动因 scope 名不符合既有 UUID 身份格式，在读取
+实验输入/生成产物前失败；使用原规范名字后完成，未放松资源检查。
+
+## 修正决定与验证，不是性能优化结论
+
+使用 [psutil 官方说明](https://psutil.readthedocs.io/stable/#psutil.Process.children)
+核对父进程消失会丢失后代链；并检查现有 `NativeGPUCensus`：它已经按服务
+cgroup、PID/start_ticks 判断归属，保留未知身份、阻止外部计算进程、检查逃逸，
+最终 GPU release 也由它见证。它是本轮真实启用的独立每秒监控，不是新写的
+“忽略错误”分支。旧祖先链检查来自历史提交 `60737ddf`，早于该资源协议。
+
+因此只在已核验的 TC 服务中由既有独立监控承担 GPU 归属保护：
+
+- 每次先调用现有 verify_current_service，核对 live watchdog 出生身份、
+  服务资源域和实际资源限制；环境标志本身不构成授权。
+- 必须存在非测试的原生 GPU census 与已锁定 NVML binding 身份，否则拒绝。
+- 非 TC 路径保留原有外部 GPU 检查；不扩大允许 PID 列表、不忽略 `[No data]`
+  或未知进程、不加重试/sleep，不改变缩容、路由、admission 或后端公式。
+- supervisor 持续检查 watcher 退出；外部 GPU/逃逸/监控失败和实际释放规则
+  均未改。不同采样视图不能再以父子链缺失推定“外部”。
+
+新增修改：`scripts/run_all_experiments.py` 的 GPU 环境检查与
+`tests/test_basic_smoke.py` 的 4 项合同测试。6 项相关 runner 检查通过；7 项
+实际 supervisor 解释器的身份/退出检查和 9 项既有 native census 检查通过。
+首次将 supervisor 测试误用 serving venv，7 项中 1 项因其 signal 模块缺少
+pidfd_send_signal 失败；改用既定 `/usr/bin/python3` 后原测试通过，未改测试
+或监控语义。保留该失败，不当作生产 watcher 功能缺失。
+
+下一步是修正测量错误后的新 attempt 身份，不覆盖本次失败，不做同键择优。
+只完成原登记的 1000 请求问题，不追加另一套性能 smoke 或扩大诊断样本。
+重新启动前仍检查磁盘/内存、源与备份；当前尚未运行修正后的 GPU attempt。
+最终主线与全部未完成项不变。

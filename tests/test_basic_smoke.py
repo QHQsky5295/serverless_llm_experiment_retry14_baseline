@@ -4389,6 +4389,52 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
 
         guard.assert_called_once()
 
+    def test_tc_gpu_guard_uses_verified_birth_and_cgroup_watchdog(self) -> None:
+        import scripts.run_all_experiments as runner
+        receipt = {'watchdog_ready': {'test_trigger_enabled': False,
+            'gpu_initial': {'source': 'nvml_v3_compute_and_graphics'},
+            'nvml_binding_sha256': 'a' * 64}}
+        with patch.dict(os.environ, {'FAASLORA_TC_LAUNCH_RECEIPT': '/unused/receipt'}), \
+                patch('scripts.ieee_tc_preflight.verify_current_service') as verify, \
+                patch.object(Path, 'read_text', return_value=json.dumps(receipt)), \
+                patch.object(runner, '_detect_foreign_gpu_consumers') as legacy:
+            runner._assert_clean_gpu_environment([0], context='live_progress', root_pid=os.getpid())
+        verify.assert_called_once_with()
+        legacy.assert_not_called()
+
+    def test_tc_gpu_guard_does_not_bypass_missing_or_dead_watchdog(self) -> None:
+        import scripts.run_all_experiments as runner
+        with patch.dict(os.environ, {'FAASLORA_TC_LAUNCH_RECEIPT': '/unused/receipt'}), \
+                patch('scripts.ieee_tc_preflight.verify_current_service',
+                      side_effect=RuntimeError('watchdog birth identity differs')), \
+                patch.object(runner, '_detect_foreign_gpu_consumers') as legacy:
+            with self.assertRaisesRegex(RuntimeError, 'watchdog birth identity'):
+                runner._assert_clean_gpu_environment([0], context='live_progress')
+        legacy.assert_not_called()
+
+    def test_tc_gpu_guard_requires_actual_non_test_native_census(self) -> None:
+        import scripts.run_all_experiments as runner
+        good = {'test_trigger_enabled': False,
+            'gpu_initial': {'source': 'nvml_v3_compute_and_graphics'},
+            'nvml_binding_sha256': 'a' * 64}
+        for change in ({'gpu_initial': None}, {'test_trigger_enabled': True},
+                       {'nvml_binding_sha256': None}, {'gpu_initial': {'source': 'fake'}}):
+            with self.subTest(change=change), \
+                    patch.dict(os.environ, {'FAASLORA_TC_LAUNCH_RECEIPT': '/unused/receipt'}), \
+                    patch('scripts.ieee_tc_preflight.verify_current_service'), \
+                    patch.object(Path, 'read_text', return_value=json.dumps(
+                        {'watchdog_ready': {**good, **change}})):
+                with self.assertRaisesRegex(RuntimeError, 'independent native GPU census'):
+                    runner._assert_clean_gpu_environment([0], context='live_progress')
+
+    def test_legacy_gpu_guard_still_rejects_foreign_process(self) -> None:
+        import scripts.run_all_experiments as runner
+        with patch.dict(os.environ, {}, clear=True), \
+                patch.object(runner, '_detect_foreign_gpu_consumers', return_value=[
+                    dict(gpu_index=0, pid=123, process_name='foreign', used_mib=512)]):
+            with self.assertRaisesRegex(RuntimeError, 'foreign_gpu_consumer_detected'):
+                runner._assert_clean_gpu_environment([0], context='live_progress')
+
     def test_fatal_engine_error_message_detects_oom_and_background_loop(self) -> None:
         self.assertTrue(_is_fatal_engine_error_message("CUDA out of memory. Tried to allocate 34 MiB"))
         self.assertTrue(_is_fatal_engine_error_message("vLLM: Background loop has errored already."))

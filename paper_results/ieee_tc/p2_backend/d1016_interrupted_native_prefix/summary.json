@@ -1,0 +1,387 @@
+{
+  "kind": "d1016_interrupted_diagnostic_v1",
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "n_correct": null,
+  "source_count": 4000,
+  "diagnostic_plan_count": 1000,
+  "replay_terminal": {
+    "event": "replay_incomplete",
+    "N_plan": 1000,
+    "N_arrived": 56,
+    "N_submitted": 55,
+    "error": "ConnectionResetError: Connection lost"
+  },
+  "ingress_terminal": {
+    "event": "service_ingress_terminal",
+    "N_plan": 1000,
+    "N_received": 55,
+    "complete": false,
+    "error": "CancelledError"
+  },
+  "observed_terminals": 45,
+  "successful_terminals": 44,
+  "native_contract_terminals": 44,
+  "observed_gpu_seconds": 348.2827476360835,
+  "complete_gpu_seconds": null,
+  "error": {
+    "stage": "main_execution",
+    "type": "RuntimeError",
+    "message": "foreign_gpu_consumer_detected[live_progress]: gpu2 pid=1445406 [No data] 7326MiB",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 27707, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17336, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14992, in _run_continuous_observed\n    self._emit_live_snapshot(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13381, in _emit_live_snapshot\n    self._assert_clean_gpu_environment(context=\"live_progress\", force=force)\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 8334, in _assert_clean_gpu_environment\n    _assert_clean_gpu_environment(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 498, in _assert_clean_gpu_environment\n    raise RuntimeError(f\"foreign_gpu_consumer_detected[{context}]: {detail}\")\nRuntimeError: foreign_gpu_consumer_detected[live_progress]: gpu2 pid=1445406 [No data] 7326MiB\n"
+  },
+  "initial_launcher_classification": "protocol_or_launcher_error",
+  "root_cause": "legacy ancestry-based GPU guard classified an exiting owned EngineCore as foreign",
+  "ownership_evidence": {
+    "pid": 1445406,
+    "birth_ticks": 311918514,
+    "samples": 74,
+    "first": {
+      "at": 3119196.320161379,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "pid": 1445406,
+      "kind": "compute",
+      "used_gpu_memory_bytes": 291504128,
+      "identity": {
+        "pid": 1445406,
+        "start_ticks": 311918514,
+        "uid": 1001,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-580aeeb9303943cca240bff353fbd1e8.scope",
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "service_member": true,
+      "previously_owned": true
+    },
+    "last": {
+      "at": 3119270.355877308,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "pid": 1445406,
+      "kind": "compute",
+      "used_gpu_memory_bytes": 7681867776,
+      "identity": {
+        "pid": 1445406,
+        "start_ticks": 311918514,
+        "uid": 1001,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-580aeeb9303943cca240bff353fbd1e8.scope",
+        "affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "service_member": true,
+      "previously_owned": true
+    },
+    "foreign_samples": 0
+  },
+  "resource_samples": 183,
+  "service_peak_bytes": 17284587520,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "max_service_swap_bytes": 0,
+  "native_streams": [
+    {
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/diagnostic_core/1443323-311914171.jsonl",
+        "sha256": "2380e898cb6695334be73af7a704eb8474935339c98eabe2bebfe1bec49ae61f"
+      },
+      "header": {
+        "event": "native_core_host_timing_v1",
+        "pid": 1443323,
+        "start_ticks": 311914171,
+        "thread_ident": 123791082325824,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-580aeeb9303943cca240bff353fbd1e8.scope",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "replay_scope": "diagnostic_prefix_v1",
+        "diagnostic_prefix_count": 1000,
+        "max_bytes": 67108864,
+        "max_spans": 200000,
+        "formal_performance_result": false,
+        "gpu_kernel_timing": false,
+        "includes_queue_idle_wait": true,
+        "nested_spans_not_additive": true,
+        "observer_overhead_included": true,
+        "abrupt_exit_may_lose_active_spans": true
+      },
+      "footer": {
+        "event": "observation_close",
+        "monotonic_ns": 3119276688259507,
+        "completed_spans": 13636,
+        "truncated": false,
+        "unfinished_span_ids": [],
+        "observer_ns": 1712472746,
+        "write_ns": 1166083968,
+        "bytes_before_close": 5075041
+      }
+    },
+    {
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/diagnostic_core/1445376-311918309.jsonl",
+        "sha256": "a182dc70b9a2480e293c751d8602928e5a2d961c35fdd223a2f87f578977858c"
+      },
+      "header": {
+        "event": "native_core_host_timing_v1",
+        "pid": 1445376,
+        "start_ticks": 311918309,
+        "thread_ident": 139764993705792,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-580aeeb9303943cca240bff353fbd1e8.scope",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "replay_scope": "diagnostic_prefix_v1",
+        "diagnostic_prefix_count": 1000,
+        "max_bytes": 67108864,
+        "max_spans": 200000,
+        "formal_performance_result": false,
+        "gpu_kernel_timing": false,
+        "includes_queue_idle_wait": true,
+        "nested_spans_not_additive": true,
+        "observer_overhead_included": true,
+        "abrupt_exit_may_lose_active_spans": true
+      },
+      "footer": {
+        "event": "observation_close",
+        "monotonic_ns": 3119276638479184,
+        "completed_spans": 1716,
+        "truncated": false,
+        "unfinished_span_ids": [],
+        "observer_ns": 297945258,
+        "write_ns": 229060569,
+        "bytes_before_close": 641384
+      }
+    },
+    {
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/diagnostic_core/1445406-311918514.jsonl",
+        "sha256": "ae31938979e4abfb3bc5017beae66b137350cff25e8b1a61c9ba95f35e354edc"
+      },
+      "header": {
+        "event": "native_core_host_timing_v1",
+        "pid": 1445406,
+        "start_ticks": 311918514,
+        "thread_ident": 127182654084928,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-580aeeb9303943cca240bff353fbd1e8.scope",
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "replay_scope": "diagnostic_prefix_v1",
+        "diagnostic_prefix_count": 1000,
+        "max_bytes": 67108864,
+        "max_spans": 200000,
+        "formal_performance_result": false,
+        "gpu_kernel_timing": false,
+        "includes_queue_idle_wait": true,
+        "nested_spans_not_additive": true,
+        "observer_overhead_included": true,
+        "abrupt_exit_may_lose_active_spans": true
+      },
+      "footer": {
+        "event": "observation_close",
+        "monotonic_ns": 3119268422553267,
+        "completed_spans": 1779,
+        "truncated": false,
+        "unfinished_span_ids": [],
+        "observer_ns": 270666509,
+        "write_ns": 199643869,
+        "bytes_before_close": 662824
+      }
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "protected_user_files_unchanged": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.json",
+      "sha256": "293b63241d1b5a4bc45c90d647e14c24aa47c0a26daffc3444155bf38df22cfe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/exec_receipt.json",
+      "sha256": "c2016eeb3eb1fb973943d314f28929ebe5618d716157571179717e774637f3b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/watchdog.jsonl",
+      "sha256": "acd89b19ff9612c5febc1277a5ba825c91cafd82e18f55fe3f52979f935e1ba7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/replay.jsonl",
+      "sha256": "96109b7e0367c22cc917ed0ac20c41dbdb99b117a8d7eccb98b5fb58816c1c98"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/service_ingress.jsonl",
+      "sha256": "4fd81999e808cb78818c33de75b54173e8ea946ece5edb89150bcd4038ba07e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/service.log",
+      "sha256": "059cebdefd83c3627637b6c2227efa38b9c615b6bb3af3cea31a32158eba0e34"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "085295d98e96fd1cd63cda0d39a5ad33000c213be4cc9eb797a447f87a8ed3e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_deployment/summary.json",
+      "sha256": "2c0498ccb1dec3a5f1bf87bb2f4a0359f4a30715d165893e6183ce9f09e094a3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "4f837f226fa747b68005a70b0960cdf2a823376518240766f832a43398344386"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/close_failed.py",
+      "sha256": "609c28b4d697ecd8687bb5ecd19eb5880ae59656e048d5c1c255f9cb1a09a8cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/analyze.py",
+      "sha256": "a0743504ad6589def97eb22a04e1d175ebca3cf4c0b1fa680423d211d63a46d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_allocations/0a918411fd164bf896d61a07bc5b94bd.jsonl",
+      "sha256": "01d9f77c709e2ed9708d2cf6f57fdb1dd8f4e194b2afb07911b97badfe77e2c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_allocations/1e508e0b9d3842dea51663d95c333c1d.jsonl",
+      "sha256": "b127247441fe006a343759c58d2fc99af0c4dbbfcef6792b72ab3fc9713ed810"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/d1016_3b_native_prefix1000/launch.launch/physical_allocations/e223aee46ee0413db92308de5eea264e.jsonl",
+      "sha256": "66fb6ab8f6ac019bd99f1e90ed53e2ec8b48c69d379610b9fcd8ebd671453d42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_6cn999c6_engine_dead_1793612027/worker.log",
+      "sha256": "2d29760dac0ecebda077eef4ed0a40be809923aacd455ffba9171f32c6e424a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_ypx0f4jx_engine_dead_1793612036/worker.log",
+      "sha256": "232f68e7215243c3ab8db496ef5199ee7f14b26892cdc76c269952e20e59196f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_nhlhfn7a_engine_dead_1793612038/worker.log",
+      "sha256": "60ab1ad3d3e0f1d924b16c4f385507c1966245552ca5a28efefe08150272bba4"
+    }
+  ],
+  "closure": {
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "remote_existing_service_untouched": true,
+    "auxiliary_identity": {
+      "unit": "primelora-tc-aux-9a1279b77b0446e6bb2fb13965cb1016.scope",
+      "invocation_id": "8c2be85ee7af4d8ab7e6ff4aa60f47e2",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9a1279b77b0446e6bb2fb13965cb1016.scope",
+      "inode": 37859540
+    },
+    "auxiliary_resources": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9a1279b77b0446e6bb2fb13965cb1016.scope",
+      "memory.current": 47349760,
+      "memory.peak": 70459392,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 528804\nuser_usec 404850\nsystem_usec 123954\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    }
+  },
+  "caveats": [
+    "Interrupted diagnostic is not a complete performance point.",
+    "No numerical correctness or SLO result is inferred from 44 successful terminals.",
+    "Worker logs show requested shutdown, not an independently established model crash.",
+    "Prepared complete-prefix analyzer was not executed against incomplete input.",
+    "No new remote resource monitor was started; remote-wide performance attribution is not claimed."
+  ]
+}

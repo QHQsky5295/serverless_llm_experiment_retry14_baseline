@@ -484,6 +484,26 @@ def _assert_clean_gpu_environment(
     root_pid: Optional[int] = None,
     min_used_mib: int = 256,
 ) -> None:
+    if os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT'):
+        # Guarded TC launches already have an independent native GPU census.
+        # Its ownership is the service cgroup + process birth, not an ancestry
+        # snapshot taken after nvidia-smi. During scale-in the latter can label
+        # our exiting EngineCore as foreign after its parent disappears (D1016).
+        # Reuse the stronger, live watchdog; an env flag alone never disables
+        # checking, and a missing/dead/mismatched watcher still fails closed.
+        from scripts.ieee_tc_preflight import verify_current_service
+        if root_pid is not None and root_pid != os.getpid():
+            raise RuntimeError('guarded GPU census must cover the current service')
+        verify_current_service()
+        receipt = json.loads(Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).read_text())
+        watcher = receipt['watchdog_ready']
+        initial = watcher.get('gpu_initial')
+        if (watcher.get('test_trigger_enabled') is not False
+                or not isinstance(initial, dict)
+                or initial.get('source') != 'nvml_v3_compute_and_graphics'
+                or not watcher.get('nvml_binding_sha256')):
+            raise RuntimeError('guarded service lacks the independent native GPU census')
+        return
     offenders = _detect_foreign_gpu_consumers(
         device_ids,
         root_pid=root_pid,
