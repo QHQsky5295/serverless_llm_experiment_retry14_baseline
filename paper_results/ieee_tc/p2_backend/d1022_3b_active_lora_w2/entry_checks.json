@@ -1,0 +1,15 @@
+{
+  "kind": "d1022_full_profile_entry_check_v1",
+  "passed": true,
+  "config_sha256": "f8d4ac96c9121dba134e2f3ec5e6a9e354b09dcf44447bb5cc65ecefc8fda171",
+  "service_classes": 160,
+  "preparation_classes": 96,
+  "wrong_specialization_rejected": true,
+  "only_target_and_profile_paths_changed": true,
+  "gpu_runs": 0,
+  "full_qualified": false,
+  "scope": "CPU-only actual ScenarioRunner profile loading and parent-difference assertions; not a performance measurement",
+  "resource_scope": "primelora-tc-aux-d1022000000000000000000000000001.scope",
+  "resource_policy": "MemoryHigh=3GiB MemoryMax=4GiB swap=0 CPU2,3,26,27 GPU hidden",
+  "resource_peak_retained": false
+}

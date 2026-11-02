@@ -1,6 +1,7 @@
 # D1021：驻留容量与活跃 LoRA 计算网格分离
 
-2026-11-02。当前状态：原生选项接入及静态画像准备完成；尚未启动 GPU 测量。
+2026-11-02。当前状态：唯一 GPU 画像已完成，23:34 严格导出通过，资源已释放。
+下一项为 D1022 完整 W2；下方准备和运行中记录保留原时点，不再表示仍运行。
 本文承接 D1020，不覆盖用户修改的 EXECUTION_STATUS.md。完整目标保持 active。
 
 ## 主线、已有结果和本轮边界
@@ -113,3 +114,79 @@ GPU 运行、远端服务操作、删除、压缩或绘图；用户两个 dirty 
 D1020/D1017 和所有负向候选继续保留。目标仍是同一版本跨 W0/W1/W2 的
 G1/G2；两模型最终比较、A1–A5、S1–S13、独立数值正确性范围、两轮审稿
 文档、后期图表与最终 V2 集成全部未删除。尚未达标，不宣布系统最优。
+
+## 实际启动交接：23:21 后运行中，禁止重复启动
+
+接入提交 `cdd2ed5a99fbb2e95b5be0577cb369bf3c8bd0e7` 已在测量前推送并经
+ls-remote 核验：origin 的 retry14_continuous_queue_v2，以及 faaslora_origin
+的 backup/d1021-active-lora-entry-20261102。后者是可回退备份，不冒充有
+分歧的 FaaSLoRA V2 最终集成，没有强推或暂存用户 dirty 文件。
+
+再次核查 PLAN SHA 未变、原147保护项通过；GPU compute 为空、约150.6 GiB
+磁盘和104 GiB可用内存，实际 gated-launch 按8 GiB预计增长及原内存规则
+放行。远端认证 health 为已发布gzip/artifact_timing_v2，原clock_id不变；
+PID1984520仍是10月31日的既有服务。两端链路当前1000/full，远端可用
+132879314944 B；没有重启、改资源或打包。没有连续远端CPU监控，保留此限制。
+
+23:21:05，tmux `tc-d1021-3b-active-lora-profile` 执行既有 run_d298 的 d1021
+入口，显式取消三项详细 core timing 环境变量。实际资源域：
+
+- aux：`primelora-tc-aux-903174ec2cbb486da153865a4f296c78.scope`；
+- service：`primelora-tc-svc-9a97a0603583498f81c60c2274241403.scope`；
+- service InvocationID：`5faf340deb444913bc6deba17e98986d`。
+
+样本84时原生 GPU worker PID2269373 已持有GPU0（9246 MiB），服务进入
+engine_initialization，尚无 source1.json/launch 终态。service峰值
+5699629056 B、主机可用107731865600 B、磁盘161700741120 B；high/max/OOM/
+swap/foreign compute/escaped 均无观察事件，无保护告警。这是运行中样本，
+不等于整轮资源或原生计数验收。
+
+发现历史 D998 aux scope 仍显示 active，但 TasksCurrent=0，仅31.5 MB剩余
+记账；它不是正在执行的旧GPU实验。测量期间不清理该空scope，不停止共享
+服务、不压缩、不构建其他项目或推送。当前轻量交接在本轮结束后再备份。
+
+继续监测同一 raw `results/ieee_tc/p2_backend_qualification/d1021_20261102/`
+的 source1_launch.launch/service.log、watchdog.jsonl 与最终 source1.json。
+完成后先实际GPU释放，再复用D1019导出流程核查423请求、160服务类与准备
+画像、原生选项/捕获记录、真实远端交付及资源；通过才进入一次新FullW2。
+不要再次 prepare 已存在的输出、重启该profile或在运行中叠加捕获集合修改。
+
+## 完成：画像通过，进入完整工作负载
+
+23:31 前 source1 与 gated-launch 均成功结束；423/423 请求满足原生计数、
+终态和 reservation 释放检查。23:34 使用现有 export_d701 导出，160/160
+服务类、96 准备类、415 服务样本和332准备样本全部来自此次测量。
+423次HTTP传输、981702550线上字节逐条匹配远端既有journal的ID、归档SHA、
+字节和sent终态，无请求时打包。没有重复source1或重新生成输入。
+
+| 画像观测（不是Full性能结果） | D1019 | D1021 |
+|---|---:|---:|
+| 初始化时间（秒） | 100.196043 | 116.424165 |
+| 画像物理GPU-s | 572.980089 | 577.996995 |
+| GPU LoRA槽 / 池字节 | 32 / 1825046528 | 32 / 1825046528 |
+| 空闲KV block | 4618 | 4269 |
+| KV池字节 | 8475901952 | 7835484160 |
+
+初始化增加16.228秒，KV减少349个block，均保留为候选代价；不从后续TTFT或
+GPU-s扣除。当前初始化模型回执包含specialize_active_lora=true，参数透传
+测试已通过；未记录直接kernel网格/图数量，因此不将官方捕获集合冒称运行中
+实测数量，也不凭上述表宣布decode加速。完整4000请求决定端到端收益。
+
+586个资源样本：服务峰值5776695296B、主机最低可用105648058368B、磁盘最低
+161315610624B；high/max/OOM/oom_kill/swap、外部compute、本服务逃逸、告警和
+中止均无记录。实际allocation release与原生上下文释放成立，两测量scope
+均inactive。源画像清理仍有既有未await的HOST预算协程警告；引擎已退出、
+工作目录删除和物理释放有独立证据，但不声称该逻辑协程执行成功，不隐藏警告。
+
+远端15:34:03Z只读快照仍为PID1984520、原clock/cgroup、CPU0–39、无限制
+memory high/max/swap以及1000/full。资源前快照复用D1019的12:37:47Z历史
+记录，覆盖本次运行但不是即时pre-run/连续监控；D1021测前note确认PID/clock/
+链路。export上下文明确此局限，不沿用虚构2/4GiB限额，不改健康服务。
+
+完成证据：paper_results/ieee_tc/p2_backend/d1021_3b_active_lora_profile/
+completion.json、artifact_resource_context.json及export/。source SHA
+14550e0a06401c12cd267beca8cc68da07c8ddb076ebaf88422df160fd70b5d1；
+manifest SHA 1fa53f43ffec59d472fbe6fdc070b02ca63d60f9e0564405708cefa2df7281a2。
+独立数值正确性仍未知、非主比较性能结果。147历史保护项与用户两个dirty文件
+SHA未变，不修改EXECUTION_STATUS.md。下一步严格按D1022登记进行一次完整W2，
+不加短Full、不修改捕获集合，不重开基线适配或局部参数扫描。

@@ -1,0 +1,92 @@
+{
+  "kind": "d1021_active_lora_profile_completion_v1",
+  "passed": true,
+  "requests": 423,
+  "n_correct": null,
+  "full_qualified": false,
+  "ranking_eligible": false,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1021_20261102/source1.json",
+    "sha256": "14550e0a06401c12cd267beca8cc68da07c8ddb076ebaf88422df160fd70b5d1"
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1021_20261102/source1_launch.json",
+    "sha256": "94494adbc8877d6bd2969333d2c5e355f1ad69046c6f7ec2e4e73bd0b8059468"
+  },
+  "export_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1021_3b_active_lora_profile/export/manifest.json",
+    "sha256": "1fa53f43ffec59d472fbe6fdc070b02ca63d60f9e0564405708cefa2df7281a2"
+  },
+  "watchdog": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1021_20261102/source1_launch.launch/watchdog.jsonl",
+    "sha256": "efaae861468deef8df027081865f5ff148f088d844ec16795ea3d6ddf2370419"
+  },
+  "source_commit": "cdd2ed5a99fbb2e95b5be0577cb369bf3c8bd0e7",
+  "startup_latency_ms": 116424.16458018124,
+  "physical_gpu_seconds": 577.9969945289195,
+  "pool": {
+    "before": {
+      "pool_allocated_bytes": 1825046528,
+      "lora_slots": 32,
+      "uniform_slot_layout": true,
+      "slot_capacity_bytes": 57032704,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 1835008,
+      "kv_unreserved_free_blocks": 4269,
+      "kv_pool_allocation_bytes": 7835484160
+    },
+    "after": {
+      "pool_allocated_bytes": 1825046528,
+      "lora_slots": 32,
+      "uniform_slot_layout": true,
+      "slot_capacity_bytes": 57032704,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 1835008,
+      "kv_unreserved_free_blocks": 4269,
+      "kv_pool_allocation_bytes": 7835484160
+    }
+  },
+  "resources": {
+    "samples": 586,
+    "memory_peak_bytes": 5776695296,
+    "min_host_available_bytes": 105648058368,
+    "min_disk_free_bytes": 161315610624,
+    "swap_peak_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "foreign_compute_samples": 0,
+    "escaped_owned_samples": 0,
+    "warnings": 0,
+    "aborts": 0
+  },
+  "remote_transfer_count": 423,
+  "wire_bytes": 981702550,
+  "remote_journal_matched": true,
+  "remote_monitor_complete": false,
+  "profile_coverage": {
+    "measured_service_classes": 160,
+    "required_service_classes": 160,
+    "measured_preparation_classes": 96,
+    "preparation_samples": 332,
+    "service_samples": 415,
+    "service_class_domain_covered": true,
+    "missing_service_classes": [],
+    "missing_content_sources": []
+  },
+  "specialization": {
+    "initialized_model_config": true,
+    "native_argument_forwarding_tested": true,
+    "direct_kernel_grid_observation": false,
+    "capture_count_runtime_observed": false,
+    "scope": "initialized model receipt and tested native EngineArgs forwarding; no direct kernel timing or captured-graph count claim"
+  },
+  "warnings": [
+    "Qualification cleanup emitted an unawaited _retire_ieee_host_budget coroutine warning after engine shutdown; actual allocation released, GPU contexts clear, source workspaces removed. This does not establish that the logical host-budget coroutine ran.",
+    "No continuous remote CPU/interference monitoring; remote resource pre-snapshot is historical and brackets this run."
+  ],
+  "next_action": "One D1022 complete 4000-request W2; D1020 controls unchanged, specialize_active_lora true and newly measured D1021 profiles. No additional short Full."
+}
