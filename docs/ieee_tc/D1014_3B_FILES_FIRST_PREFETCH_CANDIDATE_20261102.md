@@ -1,6 +1,8 @@
 # D1014：共享文件来源优先的辅助预取查询
 
-2026-11-02。当前为 PrimeLoRA 3B W2 开发候选，尚无本候选性能结果。
+2026-11-02。本文保留 PrimeLoRA 3B W2 开发候选的事前登记。
+完整回放现已结束：3652/4000联合通过（91.30%），拒绝替换D1000；详见
+`D1014_3B_FILES_FIRST_PREFETCH_OUTCOME_20261102.md`。下文启动前表述保留其历史时态。
 继续采用完整 PLAN（SHA `d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83`）
 及冻结 V1／单轮 V2。HydraServe 两模型的 W0/W1/W2 已有记录，不重开基础适配，
 不访问共享 k3s。本候选不删除剩余主比较、消融、敏感性与最终交付范围。
@@ -125,3 +127,46 @@ fixed-length greedy、D725 profiles、共同 D648 SLO、三路移动及资源包
 不强推、不宣称已集成。新检查点先推正常 origin/V2 和 FaaSLoRA 独立 backup 分支，
 最终 V2 分歧整合单独处理。`EXECUTION_STATUS.md` 的既有 dirty 内容保持原样，
 本文件作为本轮可提交的执行记录。
+
+## 启动回执（2026-11-02 15:44 +08:00）
+
+- 候选检查点 `63c2610414dc9547345e0c6d213a35f278a45e43` 已通过远端读回确认：
+  `origin/retry14_continuous_queue_v2` 及
+  `faaslora_origin/backup/d1014-files-first-prefetch-candidate-20261102`。
+  未强推存在分歧的 FaaSLoRA V2。
+- 旧投稿保护 seal 校验147项、零变化；本轮未暂存两份已有用户修改。
+- 远端既有3B用户服务已启动，认证health确认正确3B池及
+  `prepublished_gzip_v1`；复用既有交付缓存，未重新发布或打包。
+  运行期间不更改远端服务。其他项目的k3s未改动。
+- 唯一完整运行已经开始，不另开短回放：tmux
+  `tc-d1014-3b-files-first-w2`；服务scope
+  `primelora-tc-svc-ae77354af7c94398860fea59de79b25a.scope`，invocation
+  `b143d093ac1b4c7ca5672df7c501b7f3`。
+- 原始目录：
+  `/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1014_full_20261102/d1014_3b_files_first_prefetch_w2_full`。
+  `launch.launch/exec_receipt.json`确认服务72/80GiB、swap2GiB及辅助3/4GiB、swap0。
+  已出现原生EngineCore进程及请求提交事件。第76次资源样本主机可用96.31GiB、
+  服务占用7.36GiB，无high/max/OOM事件、无告警/中止原因。这是运行中状态，
+  不是完整回放或性能资格。
+- 历史D998辅助scope仍被systemd列出，但TasksCurrent=0；不误判为并行实验，
+  不在测量时做无关清理。性能回放期间不做构建、批量哈希、压缩、测试或推送。
+- 下一步仅监测本次执行键；终态后复用D703审计入口、补新机制计数，报告完整
+  4000请求的联合SLO和物理GPU占用。没有最终结果前不宣称改善，也不启动另一候选。
+
+### 同一运行的继续监测
+
+下一目标轮确认为verified-wait：实际服务scope仍active/running、237个任务，
+不是仅依赖tmux名称或旧状态文件。第354次外置样本无high/max/OOM及保护事件；
+已提交至index176，终态文件当时176行。继续观察同一执行键，不因观察间隔重启。
+仅复核既有D810、D715及冻结V1/V2小型文档，未扫描原始大结果、运行分析作业或
+改动在线配置。D810基线观测继续保留；其旧PrimeLoRA行不能填充D1014的W0/W1。
+95%不是基线入表条件，低于95%的完整观测仍报告；D1014完整性能与机制判定待终态。
+
+### 终态覆盖上述等待状态
+
+4000/4000正常终态，服务/replay/watchdog退出0，服务域及GPU上下文已释放。
+联合SLO为91.30%，比D1000低0.95个百分点；物理GPU-s为8007.929976。
+辅助完整查询确实跳过3489次，但没有改善最终目标；不重复本执行键，不启用该
+候选替换参考。后置147项投稿保护零变化，两份用户dirty文件字节不变。
+旧D1013和本轮闭合main_outcome日志已双重解压SHA验证后无损压缩；可恢复，
+原始请求结果JSON仍保留。下一主线与全部未完成范围见OUTCOME文档。

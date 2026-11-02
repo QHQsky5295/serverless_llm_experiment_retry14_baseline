@@ -1,0 +1,64 @@
+{
+  "kind": "d1014_arrival_prefetch_mechanism_observation_v1",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1014_full_20261102/d1014_3b_files_first_prefetch_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1014_3b_files_first_prefetch_w2_full.json",
+    "sha256": "ed2cf2a186ceba0363c5848059cfc8a42237eeb6c461bfeac60532771da9a62f",
+    "bytes": 298480736
+  },
+  "n": 4000,
+  "states": {"completed": 499, "skipped": 3501},
+  "reasons": {
+    "no_reason": 499,
+    "confirmed_shared_file_available": 3489,
+    "no_feasible_confirmed_route": 12
+  },
+  "counts": {
+    "full_snapshot_True": 511,
+    "full_snapshot_False": 3489,
+    "file_prefilter_records": 4000,
+    "source_admission_present": 4000,
+    "normal_remote_preparation_present": 8,
+    "file_settlement_present": 494
+  },
+  "file_observation_tiers": {"none": 511, "nvme": 3435, "host+nvme": 54},
+  "file_query_elapsed_ms": {
+    "count": 4000,
+    "mean": 8.256918293656781,
+    "p50_type1": 2.7637379243969917,
+    "p95_type1": 4.017803352326155
+  },
+  "local_file_query_elapsed_ms": {
+    "count": 3489,
+    "mean": 8.534893876928745,
+    "p50_type1": 2.825547009706497,
+    "p95_type1": 4.194969777017832
+  },
+  "dispatch_tiers": {"remote": 500, "gpu": 1761, "host": 1208, "nvme": 531},
+  "client_remote_transfers": {
+    "count": 505,
+    "wire_bytes": 1172100920,
+    "all_published_content_verified": true,
+    "request_time_packing": false,
+    "server_journal_joined": false
+  },
+  "resources": {
+    "events": {
+      "watchdog_ready": 1,
+      "resource_sample": 4054,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "memory_events_max": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+    "peak_bytes": 29800824832,
+    "max_swap_bytes": 0,
+    "min_available_bytes": 93582651392,
+    "min_disk_free_bytes": 144775331840
+  },
+  "analysis_method": "Read-only bounded ijson projection of all detailed_results.tc_ieee_full.requests; counts from gpu_reference_evidence.route_confirmed_arrival_file_preparation, source_admission, remote_preparation, file_preparation_settlement, and readiness_tier_before_dispatch. Remote counts from physical_deployment/main_outcome.json remote_transfers; resource extrema from watchdog.jsonl. Existing audit_d402_serverlessllm_path.timing_stats provides Type-1 quantiles.",
+  "limitations": [
+    "Optional-query records are not execution permissions or counterfactual latency savings.",
+    "Selected non-GPU tier is not a witness that another replica held a GPU-ready copy.",
+    "Client remote records are verified; an independent server journal join was not performed in this projection.",
+    "Full independent numerical adapter correctness remains unknown."
+  ]
+}

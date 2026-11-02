@@ -1,0 +1,73 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793609962.2022438,
+  "before": {
+    "available_bytes": 160650117120
+  },
+  "after": {
+    "available_bytes": 161650880512
+  },
+  "entries": [
+    {
+      "run": "d1013_full_20261102/d1013_3b_measured_activation_prior_w1_full",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1013_full_20261102/d1013_3b_measured_activation_prior_w1_full/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1013_full_20261102/d1013_3b_measured_activation_prior_w1_full/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "90775fcb5d195240e39827a3841ee8205d8fb69cf10ce2baae4a9f781ef22c1e",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103303498,
+        "size": 608990166,
+        "mtime_ns": 1793598321594092561,
+        "ctime_ns": 1793598321594092561,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 1189448
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "63a78774e8960449bd09bcb0f883c931fff9c7a085812db637c9551298e61279",
+      "archive_sha256": "11f6f80e8c4d984aa8476eede84482d7cf4567f90c1c3c521fa94be5665dfe1a",
+      "archive_bytes": 75076254,
+      "archive_allocated_bytes": 75079680,
+      "first_roundtrip_sha256": "90775fcb5d195240e39827a3841ee8205d8fb69cf10ce2baae4a9f781ef22c1e",
+      "second_roundtrip_sha256": "90775fcb5d195240e39827a3841ee8205d8fb69cf10ce2baae4a9f781ef22c1e",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 533917696
+    },
+    {
+      "run": "d1014_full_20261102/d1014_3b_files_first_prefetch_w2_full",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1014_full_20261102/d1014_3b_files_first_prefetch_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1014_full_20261102/d1014_3b_files_first_prefetch_w2_full/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "9e3ef541822cbba250d006bbc5c76fc9d4226d8d65a5c74db83df31254359f99",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103303529,
+        "size": 533001888,
+        "mtime_ns": 1793609557360823246,
+        "ctime_ns": 1793609557360823246,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 1041032
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "2bad0843074e130c206a6d1f8b344b17d8655384055fb34536defed0bea8b9f9",
+      "archive_sha256": "669094d120ec8e2ca2eea449600e53e684b58d0c6c3a9889c2dfbb0427e7f7cd",
+      "archive_bytes": 66021069,
+      "archive_allocated_bytes": 66023424,
+      "first_roundtrip_sha256": "9e3ef541822cbba250d006bbc5c76fc9d4226d8d65a5c74db83df31254359f99",
+      "second_roundtrip_sha256": "9e3ef541822cbba250d006bbc5c76fc9d4226d8d65a5c74db83df31254359f99",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 466984960
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
