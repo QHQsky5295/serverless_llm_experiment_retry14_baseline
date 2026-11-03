@@ -1781,6 +1781,194 @@ class IEEEControlContract(unittest.TestCase):
         self.assertEqual(result['target_instances'], 4)
 
 
+class IEEEEventBusyTimeContract(unittest.TestCase):
+    """Exact ownership-time fixtures, not a replay or a new tuning surface."""
+
+    def make(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        return IEEEReplicaControl(ieee_control_fixture(), interval_s=2.,
+            min_instances=1, max_instances=4,
+            predictive_config=dict(enabled=True, history_window_s=4.,
+                ewma_beta=1., initial_activation_horizon_s=4.,
+                allow_forecast_scale_down=True))
+
+    def evaluate(self, control, now, *, completed=0, busy=0):
+        return control.evaluate(now=now, queue_depth=0, active_requests=busy,
+            ready_capacity=8, ready_instances=2, pending_instances=0,
+            arrived_request_count=completed, completed_request_count=completed,
+            busy_instances=busy)
+
+    def test_request_entirely_between_polls_is_not_lost(self):
+        control = self.make()
+        control.observe_busy_instances(now=0., busy_instances=0)
+        self.evaluate(control, 0.)
+        control.observe_busy_instances(now=.25, busy_instances=1)
+        control.observe_busy_instances(now=.75, busy_instances=0)
+        result = self.evaluate(control, 2., completed=1)
+        observation = result['predictive_observation']
+        self.assertEqual(result['busy_time_observation'], 'reservation_events_v1')
+        self.assertEqual(observation['busy_instance_seconds'], .5)
+        self.assertEqual(observation['service_rate_rps_per_busy_instance'], 2.)
+        self.assertEqual(observation['busy_instance_event_count'], 3)
+        # The historical sampled API is retained for old standalone callers,
+        # not used as a fallback by the live runner.
+        sampled = self.make()
+        self.evaluate(sampled, 0.)
+        old = self.evaluate(sampled, 2., completed=1)
+        self.assertEqual(old['busy_time_observation'], 'sampled_left_rectangles_v1')
+        self.assertEqual(old['predictive_observation']['busy_instance_seconds'], 0.)
+        self.assertIsNone(old['predictive_observation']['service_rate_rps_per_busy_instance'])
+
+    def test_overlapping_requests_count_runtime_union_not_request_sum(self):
+        control = self.make()
+        control.observe_busy_instances(now=0., busy_instances=0)
+        self.evaluate(control, 0.)
+        for now, count in ((.25, 1), (.5, 1), (1., 1), (1.75, 0)):
+            control.observe_busy_instances(now=now, busy_instances=count)
+        result = self.evaluate(control, 2., completed=2)['predictive_observation']
+        self.assertEqual(result['busy_instance_seconds'], 1.5)
+        self.assertAlmostEqual(result['service_rate_rps_per_busy_instance'], 2/1.5)
+
+    def test_window_endpoints_and_idle_service_ewma_are_preserved(self):
+        control = self.make()
+        control.observe_busy_instances(now=0., busy_instances=0)
+        self.evaluate(control, 0.)
+        control.observe_busy_instances(now=1., busy_instances=1)
+        self.evaluate(control, 2., busy=1)
+        control.observe_busy_instances(now=3., busy_instances=0)
+        self.evaluate(control, 4., completed=1)
+        at6 = self.evaluate(control, 6., completed=1)['predictive_observation']
+        self.assertEqual(at6['history_elapsed_s'], 4.)
+        self.assertEqual(at6['busy_instance_seconds'], 1.)  # Only [2,3].
+        self.assertEqual(at6['busy_instance_seconds_total'], 2.)
+        at8 = self.evaluate(control, 8., completed=1)['predictive_observation']
+        self.assertEqual(at8['busy_instance_seconds'], 0.)
+        self.assertEqual(at8['service_rate_rps_per_busy_instance'], 1.)
+
+    def test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks(self):
+        control = self.make()
+        control.observe_busy_instances(now=0., busy_instances=0)
+        self.evaluate(control, 0.)
+        with self.assertRaisesRegex(ValueError, 'busy.*event|event.*busy'):
+            self.evaluate(control, 2., completed=1, busy=1)
+        sampled = self.make()
+        self.evaluate(sampled, 0.)
+        with self.assertRaisesRegex(ValueError, 'history|observation'):
+            sampled.observe_busy_instances(now=1., busy_instances=1)
+
+    def test_invalid_or_reversed_events_do_not_mutate_valid_observation(self):
+        for now, count in ((-1., 0), (float('nan'), 0), (True, 0),
+                           (0., True), (0., -1), (0., 5), (0., 1.0)):
+            with self.subTest(now=now, count=count), self.assertRaises(ValueError):
+                self.make().observe_busy_instances(now=now, busy_instances=count)
+        control = self.make()
+        control.observe_busy_instances(now=0., busy_instances=1)
+        self.evaluate(control, 0., busy=1)
+        self.evaluate(control, 2., completed=1, busy=1)
+        with self.assertRaises(ValueError):
+            control.observe_busy_instances(now=1., busy_instances=0)
+        result = self.evaluate(control, 4., completed=2, busy=1)['predictive_observation']
+        self.assertEqual(result['busy_instance_seconds'], 4.)
+
+    def service(self):
+        from faaslora.experiment.instance_pool import InstancePool
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service.model_cfg = dict(runtime_concurrency_cap=4, max_num_seqs=4, max_loras=4)
+        service.coord_cfg = dict(ieee_scaling=ieee_control_fixture(),
+            ieee_predictive_scaling=dict(enabled=True, history_window_s=4., ewma_beta=1.))
+        service._scale_eval_interval_s = 2.
+        service.instance_pool = InstancePool(min_instances=1, max_instances=4)
+        engine = SimpleNamespace()
+        a = service.instance_pool.add_instance(engine, None)
+        alias = service.instance_pool.add_instance(engine, None)
+        b = service.instance_pool.add_instance(SimpleNamespace(), None)
+        with patch.object(runner.time, 'monotonic', return_value=0.):
+            control = service._ieee_control_owner()
+        return service, control, [service.instance_pool.get_slot(s) for s in (a, alias, b)]
+
+    def reserve(self, service, slot, name, now):
+        with patch.object(runner.time, 'monotonic', return_value=now):
+            accepted, adapter = service._try_reserve_runtime_request_slot(slot, None)
+        self.assertTrue(accepted)
+        reservation = runner.RuntimeRequestReservation(name)
+        reservation.bind(slot, None, adapter)
+        return reservation
+
+    def release(self, service, reservation, now):
+        with patch.object(runner.time, 'monotonic', return_value=now):
+            asyncio.run(service._release_runtime_controller_accounting(
+                reservation, native_outcome='no_acquisition'))
+
+    def test_real_reserve_release_aliases_and_idempotency(self):
+        service, control, (a, alias, b) = self.service()
+        self.evaluate(control, 0.)
+        first = self.reserve(service, a, 'a', .25)
+        second = self.reserve(service, alias, 'alias', .5)
+        third = self.reserve(service, b, 'b', .75)
+        self.release(service, first, 1.)
+        self.release(service, second, 1.25)
+        self.release(service, second, 1.5)  # Idempotent; does not end b.
+        self.release(service, third, 1.75)
+        result = self.evaluate(control, 2., completed=3)['predictive_observation']
+        self.assertEqual(result['busy_instance_seconds'], 2.)  # a/alias 1 + b 1.
+        self.assertEqual(result['busy_instance_event_count'], 7)  # Init + 3 + 3.
+
+    def test_withdrawal_stops_serving_time_not_physical_gpu_ownership(self):
+        service, control, (a, _, _) = self.service()
+        self.evaluate(control, 0.)
+        request = self.reserve(service, a, 'a', .25)
+        with patch.object(runner.time, 'monotonic', return_value=.75):
+            service._withdraw_runtime_slot(a)
+        self.assertEqual(a.status, 'draining')
+        self.assertEqual(a.active_requests, 1)
+        self.assertIs(service.instance_pool.get_slot(a.instance_id), a)
+        with patch.object(runner.time, 'monotonic', return_value=1.):
+            self.assertEqual(service._try_reserve_runtime_request_slot(a, None), (False, False))
+        self.release(service, request, 1.5)
+        result = self.evaluate(control, 2., completed=1)['predictive_observation']
+        self.assertEqual(result['busy_instance_seconds'], .5)
+
+    def test_failed_local_release_keeps_reservation_busy_until_withdrawn(self):
+        service, control, (a, _, _) = self.service()
+        self.evaluate(control, 0.)
+        request = self.reserve(service, a, 'a', .25)
+        with patch.object(service, '_release_runtime_local_source_async',
+                          AsyncMock(side_effect=asyncio.CancelledError)):
+            with self.assertRaises(asyncio.CancelledError):
+                self.release(service, request, .75)
+        self.assertFalse(request.released)
+        self.assertEqual(a.active_requests, 1)
+        with patch.object(runner.time, 'monotonic', return_value=1.25):
+            service._withdraw_runtime_slot(a)
+        self.release(service, request, 1.5)
+        result = self.evaluate(control, 2., completed=1)['predictive_observation']
+        self.assertEqual(result['busy_instance_seconds'], 1.)
+
+    def test_all_real_withdrawal_sites_use_one_event_boundary(self):
+        import ast
+        tree = ast.parse(Path(runner.__file__).read_text())
+        scenario = next(n for n in tree.body if isinstance(n, ast.ClassDef)
+                        and n.name == 'ScenarioRunner')
+        writes = []
+        callers = set()
+        for method in scenario.body:
+            if not isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for node in ast.walk(method):
+                if (isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
+                        and node.value.value == 'draining'
+                        and any(isinstance(t, ast.Attribute) and t.attr == 'status'
+                                for t in node.targets)):
+                    writes.append(method.name)
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                        and node.func.attr == '_withdraw_runtime_slot'):
+                    callers.add(method.name)
+        self.assertEqual(writes, ['_withdraw_runtime_slot'])
+        self.assertEqual(callers, {'_retire_failed_slot', '_shutdown_instance_pool_runtimes',
+            '_add_ieee_dedicated_instance', '_scale_down_one_instance', '_cleanup_extra_instances',
+            '_retain_runtime_request_reservation', '_schedule_runtime_retirement'})
+
+
 class IEEEActualControl(unittest.TestCase):
     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):
         fixture, files, service, queue, engine = self.make('no_handoff')

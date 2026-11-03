@@ -9880,6 +9880,7 @@ class ScenarioRunner:
             slot.begin_active_adapter(adapter_id)
             active_adapter_reserved = True
         slot.active_requests = active_requests + 1
+        self._observe_ieee_busy_instances()
         slot.last_selected_at = time.time()
         return True, active_adapter_reserved
 
@@ -13701,6 +13702,24 @@ class ScenarioRunner:
             if any(int(getattr(slot, "active_requests", 0) or 0) > 0 for slot in group)
         )
 
+    def _observe_ieee_busy_instances(self) -> None:
+        """Close the prior busy interval at the actual ownership mutation.
+
+        All callers are synchronous with the request counter or withdrawal;
+        no coroutine can observe half of a reservation. Historical non-IEEE
+        runners have no predictive owner and do not consume this observation.
+        """
+        controller = getattr(self, '_ieee_scale_controller', None)
+        if controller is not None and controller.predictive_config is not None:
+            controller.observe_busy_instances(now=time.monotonic(),
+                                              busy_instances=self._busy_instance_count())
+
+    def _withdraw_runtime_slot(self, slot) -> None:
+        # Withdrawal ends serving-capacity time, not the physical GPU lease.
+        # Keep admitted counters and membership until the existing drain/exit.
+        slot.status = 'draining'
+        self._observe_ieee_busy_instances()
+
     def _current_runtime_group_count(self) -> int:
         if self.instance_pool is None:
             return 1 if getattr(self, "engine", None) is not None else 0
@@ -14399,6 +14418,7 @@ class ScenarioRunner:
                 min_instances=self.instance_pool.min_instances, max_instances=self.instance_pool.max_instances,
                 predictive_config=self.coord_cfg.get('ieee_predictive_scaling'))
             self._ieee_scale_controller = controller
+            self._observe_ieee_busy_instances()
         return controller
 
     async def _evaluate_ieee_live_control(self, *, result, coord_enabled, replay_t0,
@@ -15253,7 +15273,7 @@ class ScenarioRunner:
             if current is None:
                 return False
             removed = current
-            removed.status = 'draining'
+            self._withdraw_runtime_slot(removed)
             failed_device_id = getattr(removed, "device_id", None)
             if failed_device_id is not None and getattr(removed, "owns_engine", False):
                 failed_devices = getattr(self, "_failed_runtime_device_ids", None)
@@ -15384,7 +15404,7 @@ class ScenarioRunner:
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
                 continue
-            slot.status = 'draining'
+            self._withdraw_runtime_slot(slot)
             # Logical aliases may share one engine even with distinct controller
             # identities. Retire those serially; independent physical runtimes
             # have no remaining dependency after the shared owners above settle.
@@ -15848,7 +15868,7 @@ class ScenarioRunner:
                         activation_id,
                         reason='activation_failed',
                     )
-                    self.instance_pool.get_slot(activation_id).status = 'draining'
+                    self._withdraw_runtime_slot(self.instance_pool.get_slot(activation_id))
                 domain = getattr(self, '_shared_file_pressure', None)
                 member = domain.members.get(id(engine)) if domain is not None else None
                 if member is not None and member['state'] == 'attached':
@@ -16403,7 +16423,7 @@ class ScenarioRunner:
             or max(0, int(getattr(selected_slot, "runtime_forwarding_active", 0) or 0)) > 0
         ):
             return None
-        selected_slot.status = 'draining'
+        self._withdraw_runtime_slot(selected_slot)
         await self._cleanup_removed_slot(
             selected_slot,
             removal_reason="scale_down",
@@ -16428,7 +16448,7 @@ class ScenarioRunner:
             return
         slots = [s for s in self.instance_pool.get_all_slots() if s.instance_id != self._primary_instance_id]
         for slot in reversed(slots):
-            slot.status = 'draining'
+            self._withdraw_runtime_slot(slot)
             await self._cleanup_removed_slot(
                 slot,
                 removal_reason="cleanup_extra_instances",
@@ -19617,7 +19637,7 @@ class ScenarioRunner:
 
     def _retain_runtime_request_reservation(self, reservation: RuntimeRequestReservation) -> None:
         if reservation.slot is not None:
-            reservation.slot.status = 'draining'
+            self._withdraw_runtime_slot(reservation.slot)
         previous = self._unsettled_runtime_reservations.get(reservation.request_id)
         if previous is not None and previous is not reservation:
             raise RuntimeError('request ID already has an unsettled reservation')
@@ -19664,7 +19684,7 @@ class ScenarioRunner:
             entry['changed'].set()
             return entry
         from faaslora.clock import local_monotonic_clock_id
-        slot.status = 'draining'
+        self._withdraw_runtime_slot(slot)
         record = dict(instance_id=slot.instance_id, device_id=slot.device_id,
             reason=reason, state='draining_controllers', admitted_at_withdrawal=slot.active_requests,
             quarantine_requested=reason == 'unresolved_native_request_ownership',
@@ -19887,6 +19907,7 @@ class ScenarioRunner:
             if reservation.adapter_reserved:
                 slot.end_active_adapter(reservation.adapter_id)
             slot.active_requests -= 1
+            self._observe_ieee_busy_instances()
             if slot.active_requests == 0:
                 slot.last_idle_at = time.time()
         # Synchronous accounting is committed before any cancellable wake-up.

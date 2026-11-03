@@ -1,0 +1,192 @@
+W1103 21:46:09.649000 1204552 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_all_real_withdrawal_sites_use_one_event_boundary (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_all_real_withdrawal_sites_use_one_event_boundary) ... FAIL
+test_failed_local_release_keeps_reservation_busy_until_withdrawn (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_failed_local_release_keeps_reservation_busy_until_withdrawn) ... 2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_3 added (total=3)
+ERROR
+test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) ... 
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=-1.0, count=0) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=nan, count=0) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=True, count=0) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=True) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=-1) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=5) ... ERROR
+  test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=1.0) ... ERROR
+test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) ... ERROR
+test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks) ... ERROR
+test_overlapping_requests_count_runtime_union_not_request_sum (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_overlapping_requests_count_runtime_union_not_request_sum) ... ERROR
+test_real_reserve_release_aliases_and_idempotency (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_real_reserve_release_aliases_and_idempotency) ... 2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_3 added (total=3)
+FAIL
+test_request_entirely_between_polls_is_not_lost (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_request_entirely_between_polls_is_not_lost) ... ERROR
+test_window_endpoints_and_idle_service_ewma_are_preserved (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_window_endpoints_and_idle_service_ewma_are_preserved) ... ERROR
+test_withdrawal_stops_serving_time_not_physical_gpu_ownership (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_withdrawal_stops_serving_time_not_physical_gpu_ownership) ... 2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+2026-11-03 21:46:11 - faaslora.experiment.instance_pool - INFO - Instance inst_3 added (total=3)
+ERROR
+
+======================================================================
+ERROR: test_failed_local_release_keeps_reservation_busy_until_withdrawn (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_failed_local_release_keeps_reservation_busy_until_withdrawn)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1942, in test_failed_local_release_keeps_reservation_busy_until_withdrawn
+    service._withdraw_runtime_slot(a)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ScenarioRunner' object has no attribute '_withdraw_runtime_slot'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=-1.0, count=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=nan, count=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=True, count=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=-1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation) (now=0.0, count=1.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1863, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    self.make().observe_busy_instances(now=now, busy_instances=count)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_invalid_or_reversed_events_do_not_mutate_valid_observation (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_invalid_or_reversed_events_do_not_mutate_valid_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1865, in test_invalid_or_reversed_events_do_not_mutate_valid_observation
+    control.observe_busy_instances(now=0., busy_instances=1)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1850, in test_missed_boundary_and_switch_after_history_are_not_sampled_fallbacks
+    control.observe_busy_instances(now=0., busy_instances=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_overlapping_requests_count_runtime_union_not_request_sum (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_overlapping_requests_count_runtime_union_not_request_sum)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1824, in test_overlapping_requests_count_runtime_union_not_request_sum
+    control.observe_busy_instances(now=0., busy_instances=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_request_entirely_between_polls_is_not_lost (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_request_entirely_between_polls_is_not_lost)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1803, in test_request_entirely_between_polls_is_not_lost
+    control.observe_busy_instances(now=0., busy_instances=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_window_endpoints_and_idle_service_ewma_are_preserved (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_window_endpoints_and_idle_service_ewma_are_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1834, in test_window_endpoints_and_idle_service_ewma_are_preserved
+    control.observe_busy_instances(now=0., busy_instances=0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'IEEEReplicaControl' object has no attribute 'observe_busy_instances'
+
+======================================================================
+ERROR: test_withdrawal_stops_serving_time_not_physical_gpu_ownership (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_withdrawal_stops_serving_time_not_physical_gpu_ownership)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1921, in test_withdrawal_stops_serving_time_not_physical_gpu_ownership
+    service._withdraw_runtime_slot(a)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ScenarioRunner' object has no attribute '_withdraw_runtime_slot'
+
+======================================================================
+FAIL: test_all_real_withdrawal_sites_use_one_event_boundary (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_all_real_withdrawal_sites_use_one_event_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1966, in test_all_real_withdrawal_sites_use_one_event_boundary
+    self.assertEqual(writes, ['_withdraw_runtime_slot'])
+AssertionError: Lists differ: ['_retire_failed_slot', '_shutdown_instance_[169 chars]ent'] != ['_withdraw_runtime_slot']
+
+First differing element 0:
+'_retire_failed_slot'
+'_withdraw_runtime_slot'
+
+First list contains 6 additional elements.
+First extra element 1:
+'_shutdown_instance_pool_runtimes'
+
++ ['_withdraw_runtime_slot']
+- ['_retire_failed_slot',
+-  '_shutdown_instance_pool_runtimes',
+-  '_add_ieee_dedicated_instance',
+-  '_scale_down_one_instance',
+-  '_cleanup_extra_instances',
+-  '_retain_runtime_request_reservation',
+-  '_schedule_runtime_retirement']
+
+======================================================================
+FAIL: test_real_reserve_release_aliases_and_idempotency (tests.test_ieee_tc_launch.IEEEEventBusyTimeContract.test_real_reserve_release_aliases_and_idempotency)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py", line 1913, in test_real_reserve_release_aliases_and_idempotency
+    self.assertEqual(result['busy_instance_seconds'], 2.)  # a/alias 1 + b 1.
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0.0 != 2.0
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.599s
+
+FAILED (failures=2, errors=14)

@@ -1,0 +1,8 @@
+{
+  "classification": "test_launcher_environment_error",
+  "scope": "primelora-tc-aux-9648646463a14a1ba01da831d1045001.scope",
+  "returncode": 1,
+  "tests_executed": 0,
+  "message": "/home/qhq/anaconda3/envs/LLM/bin/python: No module named pytest",
+  "next_action": "Reuse the existing unittest wrapper; do not install packages or alter the environment."
+}

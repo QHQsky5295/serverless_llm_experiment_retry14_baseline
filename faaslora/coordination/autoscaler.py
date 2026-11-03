@@ -147,6 +147,13 @@ class IEEEReplicaControl:
         self._arrival_rate_ewma = None
         self._service_rate_ewma = None
         self._activation_horizon_s = None
+        # Live runners enable this before the first control-history sample.
+        # A lifetime cumulative integral lets every trailing window retain its
+        # existing endpoints without retaining per-request event histories.
+        self._busy_time_last_at = None
+        self._busy_time_count = 0
+        self._busy_time_total = 0.0
+        self._busy_time_event_count = 0
         # Forecast-based release has a separate causal dwell timer.  The
         # ordinary IEEE low-load timer intentionally requires a valid TTFT
         # sample; reusing it would continuously reset forecast release on a
@@ -209,6 +216,31 @@ class IEEEReplicaControl:
         else:
             self._activation_horizon_s = beta * horizon_s + (1.0 - beta) * self._activation_horizon_s
 
+    def observe_busy_instances(self, *, now, busy_instances):
+        """Commit a real reservation/release/withdrawal boundary, without await.
+
+        The count is the same running runtime-group census used at evaluation,
+        not concurrent requests, GPU utilization, or physical allocation time.
+        Initialize before history begins; changing observation mode mid-history
+        would make cumulative differences undefined and is not allowed.
+        """
+        if (self.predictive_config is None
+                or isinstance(now, bool) or not isinstance(now, (int, float))
+                or not math.isfinite(now) or now < 0
+                or type(busy_instances) is not int
+                or not 0 <= busy_instances <= self.max_instances
+                or (self.last_evaluation is not None and now < self.last_evaluation)
+                or (self._busy_time_last_at is not None and now < self._busy_time_last_at)):
+            raise ValueError('invalid causal busy-instance event')
+        if self._busy_time_last_at is None:
+            if self._work_history:
+                raise ValueError('busy observation cannot change after control history starts')
+        else:
+            self._busy_time_total += (now - self._busy_time_last_at) * self._busy_time_count
+        self._busy_time_last_at = float(now)
+        self._busy_time_count = busy_instances
+        self._busy_time_event_count += 1
+
     def _observe_work(self, *, now, arrived_request_count, completed_request_count,
                       ready_instances, busy_instances):
         if self.predictive_config is None:
@@ -219,9 +251,15 @@ class IEEEReplicaControl:
                 raise ValueError('IEEE predictive workload counts must be nonnegative integers')
         if busy_instances > ready_instances:
             raise ValueError('IEEE busy instances cannot exceed ready instances')
+        cumulative_busy = None
+        if self._busy_time_last_at is not None:
+            if now < self._busy_time_last_at or busy_instances != self._busy_time_count:
+                raise ValueError('busy-instance snapshot disagrees with causal event observation')
+            cumulative_busy = (self._busy_time_total
+                + (now - self._busy_time_last_at) * self._busy_time_count)
         self._work_history.append((float(now), arrived_request_count,
                                    completed_request_count, ready_instances,
-                                   busy_instances))
+                                   busy_instances, cumulative_busy))
         window = self.predictive_config['history_window_s']
         while self._work_history and self._work_history[0][0] < now - window:
             self._work_history.popleft()
@@ -238,13 +276,19 @@ class IEEEReplicaControl:
         # capacity.  This is a causal service-rate estimate, not a future
         # trace estimate.  A completed interval with no busy-instance time
         # yields no new sample rather than inventing an infinite rate.
-        busy_instance_seconds = 0.0
-        previous = first
-        for current in list(self._work_history)[1:]:
-            dt = max(0.0, current[0] - previous[0])
-            busy_instance_seconds += dt * max(0, previous[4])
-            previous = current
-        busy_instance_seconds += max(0.0, now - previous[0]) * max(0, previous[4])
+        if cumulative_busy is not None:
+            busy_instance_seconds = cumulative_busy - first[5]
+        else:
+            # Historical standalone API, explicitly identified in metadata.
+            # The live runner enables event observation before its first sample;
+            # invalid/missing events above never select this compatibility path.
+            busy_instance_seconds = 0.0
+            previous = first
+            for current in list(self._work_history)[1:]:
+                dt = max(0.0, current[0] - previous[0])
+                busy_instance_seconds += dt * max(0, previous[4])
+                previous = current
+            busy_instance_seconds += max(0.0, now - previous[0]) * max(0, previous[4])
         service_rate = (completed_delta / busy_instance_seconds
                         if busy_instance_seconds > 0 else 0.0)
         beta = self.predictive_config['ewma_beta']
@@ -259,6 +303,8 @@ class IEEEReplicaControl:
             'activation_horizon_s': self._activation_horizon_s,
             'history_elapsed_s': elapsed,
             'busy_instance_seconds': busy_instance_seconds,
+            'busy_instance_seconds_total': cumulative_busy,
+            'busy_instance_event_count': self._busy_time_event_count,
         }
 
     def observe_ttft(self, request_id, ttft_ms, *, observed_at, pressure_class="unknown"):
@@ -375,6 +421,8 @@ class IEEEReplicaControl:
             active_saturation=saturation, p95_ttft_ms=p95, ttft_sample_count=len(ordered),
             p95_pressure_class=p95_pressure_class,
             ratios=ratios, score=score, all_low=all_low, low_since=self.low_since,
+            busy_time_observation=('reservation_events_v1' if self._busy_time_last_at is not None
+                                   else 'sampled_left_rectangles_v1'),
             predictive_observation=predictive, predictive_target_instances=predictive_target)
 
 
