@@ -134,6 +134,16 @@ ServerlessLLM为98.125%、16084.201、480.724ms。它们超75%预算但服务质
 G1/G2、A1–A5、S1–S13、CE/Pareto、B1/B2/C1/C2/C3、两轮审稿文档、后期
 图表及最终V2集成全部保留。完整目标继续active。
 
+后置备份：21文件检查点7f5da3f82c888bf3be90ebc3805a4bba1924deb8已推送，
+ls-remote核验origin/retry14_continuous_queue_v2及faaslora_origin的
+backup/d1027-parallel-confirmation-w2-20261103均为该SHA。后者是回退备份，
+不是已有分歧V2的最终集成；未强推。10项completion manifest、6份归档
+worker日志SHA、collector语法、147保护项、diff及暂存凭据模式检查通过。
+用户manifest/EXECUTION_STATUS未暂存、SHA不变。未改生产算法，沿用D1026
+相关回归及本轮严格原生/闭合分析，不新增无目的GPU smoke。
+最后可用磁盘161150361600B、主机available约105GiB；GPU compute为空，
+本轮性能和离线分析均已结束。此后置说明随下一正常检查点提交。
+
 ## 唯一改变与主线（运行前登记，历史保留）
 
 相对D1022，只改变发布事务内独立文件SHA校验的执行并行性，保留owner锁、

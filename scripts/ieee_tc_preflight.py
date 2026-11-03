@@ -4255,6 +4255,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_graph_length_transfer_v1',
         'native_fixed_output_graph_slot_length_transfer_v1',
         'native_fixed_output_graph_slot_specialization_length_transfer_v1',
+        'native_fixed_output_reachable_lora_length_transfer_v1',
         'native_fixed_output_private_host_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
@@ -4268,6 +4269,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_graph_length_transfer_v1',
             'native_fixed_output_graph_slot_length_transfer_v1',
             'native_fixed_output_graph_slot_specialization_length_transfer_v1',
+            'native_fixed_output_reachable_lora_length_transfer_v1',
             'native_fixed_output_private_host_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
@@ -4308,7 +4310,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
-        specialization_transfer = binding['kind'] == 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
+        reachable_transfer = binding['kind'] == 'native_fixed_output_reachable_lora_length_transfer_v1'
+        specialization_transfer = (binding['kind'] == 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
+                                   or reachable_transfer)
         graph_slot_transfer = (binding['kind'] == 'native_fixed_output_graph_slot_length_transfer_v1'
                                or specialization_transfer)
         private_host_transfer = binding['kind'] == 'native_fixed_output_private_host_length_transfer_v1'
@@ -4356,6 +4360,12 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                         or identity.get('specialize_active_lora') is not True):
                     raise ValueError('fixed-output active LoRA specialization transfer differs')
                 permitted.add('specialize_active_lora')
+            if reachable_transfer:
+                from faaslora.experiment.reachable_lora_graphs import POLICY
+                if ('ieee_lora_capture_policy' in source_identity
+                        or identity.get('ieee_lora_capture_policy') != POLICY):
+                    raise ValueError('fixed-output reachable LoRA capture transfer differs')
+                permitted.add('ieee_lora_capture_policy')
             if private_host_transfer:
                 # This transfers completed prescribed token counts, never
                 # timings. CPU construction changes the strict timing identity.

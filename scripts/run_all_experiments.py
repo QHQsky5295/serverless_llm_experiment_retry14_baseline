@@ -3913,6 +3913,14 @@ class InferenceEngine:
                 kwargs["max_loras"] = max_loras
                 if max_cpu_loras is not None:
                     kwargs["max_cpu_loras"] = max(int(max_cpu_loras), int(max_loras))
+            from faaslora.experiment.reachable_lora_graphs import validate_capture_policy
+            capture_policy = validate_capture_policy(self.model_cfg)
+            if capture_policy is not None:
+                if not enable_lora or eager or tp != 1 or max_loras != self.model_cfg['max_loras']:
+                    raise ValueError('reachable LoRA graph runtime differs from its frozen configuration')
+                kwargs['worker_cls'] = (
+                    'faaslora.experiment.vllm_reachable_graph_worker.IEEEReachableGraphWorker')
+                kwargs['additional_config']['ieee_tc_lora_capture_policy'] = capture_policy
             if enable_chunked_prefill is not None:
                 kwargs["enable_chunked_prefill"] = enable_chunked_prefill
             if enable_prefix_caching is not None:

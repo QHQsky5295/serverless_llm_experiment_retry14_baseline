@@ -1934,6 +1934,9 @@ class IEEEWorkerObservationExtension:
             torch.cuda.synchronize(self.device)
         content = ({} if audit_adapter_ids is None else
                    {'slot_content_audit': _ieee_lora_slot_content_audit(manager, audit_adapter_ids)})
+        capture_receipt = getattr(runner, '_ieee_lora_capture_receipt', None)
+        if capture_receipt is not None:
+            content['lora_capture_policy'] = copy.deepcopy(capture_receipt)
         publisher = getattr(self, '_ieee_metadata_publisher', None)
         if publisher is not None:
             content['metadata_publication'] = publisher.snapshot()

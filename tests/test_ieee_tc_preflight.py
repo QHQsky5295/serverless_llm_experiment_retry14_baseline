@@ -1594,6 +1594,40 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def test_reachable_capture_transfer_preserves_only_lengths(self):
+        candidate = self.slot_transfer_fixture()
+        candidate.update(specialize_active_lora=True,
+                         ieee_lora_capture_policy='scheduler_reachable_active_lora_v1')
+        self.binding['kind'] = 'native_fixed_output_reachable_lora_length_transfer_v1'
+        for field in ('specialize_active_lora', 'ieee_lora_capture_policy'):
+            self.binding['model_config_changes'][field] = dict(source=None, target=candidate[field])
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        for change in ({'ieee_lora_capture_policy': 'unknown'}, {'max_num_seqs': 16},
+                       {'specialize_active_lora': False}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **change))
+        self.binding['kind'] = 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_reachable_capture_rejects_undeclared_change_and_bad_completion(self):
+        candidate = self.slot_transfer_fixture()
+        candidate.update(specialize_active_lora=True,
+                         ieee_lora_capture_policy='scheduler_reachable_active_lora_v1')
+        self.binding['kind'] = 'native_fixed_output_reachable_lora_length_transfer_v1'
+        self.binding['model_config_changes']['specialize_active_lora'] = dict(source=None, target=True)
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+        self.binding['model_config_changes']['ieee_lora_capture_policy'] = dict(
+            source=None, target=candidate['ieee_lora_capture_policy'])
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
     def test_private_host_transfer_only_reuses_completed_counts(self):
         candidate = self.graph_transfer_fixture()
         # The historical initializer source already has the same owner policies.
