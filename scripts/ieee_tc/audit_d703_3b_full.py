@@ -75,6 +75,51 @@ D716_TTFT_STAGES = ('arrival_to_admission_ms', 'admission_to_acquired_ms',
     'native_engine_queue_ms', 'native_prefill_ms')
 
 
+def native_compile_factor_difference(left, right):
+    """Compare recorded factors, without loading or relocating compiled code.
+
+    Equal short hashes are observations, not proof that every runtime setting
+    is identical. In particular, the native config hash omits loader fields.
+    """
+    required = {'env', 'config_hash', 'code_hash', 'compiler_hash'}
+    for value in (left, right):
+        if not isinstance(value, dict) or set(value) != required:
+            raise ValueError('complete native compile-factor metadata required')
+        if not isinstance(value['env'], dict):
+            raise ValueError('native environment factors must be a mapping')
+        for key in required - {'env'}:
+            if not isinstance(value[key], str) or not re.fullmatch('[0-9a-f]+', value[key]):
+                raise ValueError('recorded native factor hash required')
+    return dict(
+        changed_components=sorted(k for k in required if left[k] != right[k]),
+        changed_environment_names=sorted(k for k in set(left['env']) | set(right['env'])
+            if k not in left['env'] or k not in right['env'] or left['env'][k] != right['env'][k]),
+        environment_factor_counts=[len(left['env']), len(right['env'])],
+        recorded_hashes={k: {'left': left[k], 'right': right[k]}
+                         for k in sorted(required - {'env'})},
+        exact_compiler_subfactor_identified=False,
+        causal_latency_improvement_established=False,
+    )
+
+
+def compare_native_compile_factors(left, right, output):
+    if output.exists():
+        raise FileExistsError(output)
+    result = native_compile_factor_difference(read(left), read(right))
+    result.update(kind='d1030_native_compile_factor_comparison_v1',
+        gpu_runs=0, source_refs=[ref(left), ref(right), ref(Path(__file__))],
+        limitations=[
+            'Only persisted native factor groups are compared; compiler subfactors were not recorded.',
+            'Equal graph-config hash does not imply equal loader or entire execution contract.',
+            'No cache copying, forced cache hit, cache invalidation bypass or warm rerun.',
+        ])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as handle:
+        json.dump(result, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+    print(json.dumps(result, sort_keys=True))
+
+
 def native_startup_log(text):
     """D1023: parse observed V2 startup, not a GPU-kernel timing estimate."""
     pids = set(map(int, re.findall(r'EngineCore pid=(\d+)', text)))
@@ -2174,6 +2219,9 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--diagnose-demand-reuse', type=Path)
     parser.add_argument('--diagnose-native-startup', type=Path)
+    parser.add_argument('--compare-native-compile-factors', type=Path)
+    parser.add_argument('--reference-compile-factors', type=Path)
+    parser.add_argument('--candidate-compile-factors', type=Path)
     parser.add_argument('--worker-log', type=Path, action='append')
     parser.add_argument('--diagnose-remote-preparation', type=Path)
     parser.add_argument('--include-route-prefetch', action='store_true')
@@ -2189,9 +2237,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.include_route_prefetch and args.diagnose_remote_preparation is None:
         parser.error('--include-route-prefetch requires --diagnose-remote-preparation')
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits, args.compare_native_compile_factors)) != 1:
         parser.error('select exactly one offline analysis mode')
-    if args.diagnose_native_startup is not None:
+    if args.compare_native_compile_factors is not None:
+        if args.reference_compile_factors is None or args.candidate_compile_factors is None:
+            parser.error('--reference-compile-factors and --candidate-compile-factors are required')
+        compare_native_compile_factors(args.reference_compile_factors.resolve(),
+            args.candidate_compile_factors.resolve(), args.compare_native_compile_factors.resolve())
+    elif args.diagnose_native_startup is not None:
         if args.stage_audit is None or not args.worker_log:
             parser.error('--stage-audit and --worker-log are required for --diagnose-native-startup')
         diagnose_native_startup(args.stage_audit.resolve(),

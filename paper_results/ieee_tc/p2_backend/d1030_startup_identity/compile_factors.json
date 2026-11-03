@@ -1,0 +1,50 @@
+{
+  "causal_latency_improvement_established": false,
+  "changed_components": [
+    "compiler_hash"
+  ],
+  "changed_environment_names": [],
+  "environment_factor_counts": [
+    237,
+    237
+  ],
+  "exact_compiler_subfactor_identified": false,
+  "gpu_runs": 0,
+  "kind": "d1030_native_compile_factor_comparison_v1",
+  "limitations": [
+    "Only persisted native factor groups are compared; compiler subfactors were not recorded.",
+    "Equal graph-config hash does not imply equal loader or entire execution contract.",
+    "No cache copying, forced cache hit, cache invalidation bypass or warm rerun."
+  ],
+  "recorded_hashes": {
+    "code_hash": {
+      "left": "fe4ac84c7d0766cdfcc1f902d784260e22693d5d5149a0a3465ea162bc7d801d",
+      "right": "fe4ac84c7d0766cdfcc1f902d784260e22693d5d5149a0a3465ea162bc7d801d"
+    },
+    "compiler_hash": {
+      "left": "67f58750f5",
+      "right": "8e33489fd9"
+    },
+    "config_hash": {
+      "left": "56a30633c7",
+      "right": "56a30633c7"
+    }
+  },
+  "source_refs": [
+    {
+      "bytes": 10138,
+      "path": "/home/qhq/.cache/vllm/torch_compile_cache/294240ebed/rank_0_0/backbone/cache_key_factors.json",
+      "sha256": "84d484c5438c5e0263cf33018badb9c26c2bba0506def7e3ae0f19548a569f44"
+    },
+    {
+      "bytes": 10138,
+      "path": "/home/qhq/.cache/vllm/torch_compile_cache/220adc727a/rank_0_0/backbone/cache_key_factors.json",
+      "sha256": "9b164645f1f749b12905796af97010055d9e1688c5187325712d4ddfb1e81034"
+    },
+    {
+      "bytes": 140601,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "af69434f4b20029d77338f527aca9d8acc6a24809debe356f105dd6cdda126d9"
+    }
+  ]
+}

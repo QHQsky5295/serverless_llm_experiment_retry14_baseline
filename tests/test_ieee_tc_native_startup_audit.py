@@ -1,6 +1,12 @@
+import copy
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
-from scripts.ieee_tc.audit_d703_3b_full import native_startup_log
+from scripts.ieee_tc.audit_d703_3b_full import (
+    compare_native_compile_factors, native_compile_factor_difference, native_startup_log,
+)
 
 
 LOG = '''(EngineCore pid=123) Using V2 Model Runner
@@ -31,6 +37,51 @@ class NativeStartupTests(unittest.TestCase):
                      LOG.replace('took 82.56 s', 'took nan s')):
             with self.subTest(text=text[-100:]), self.assertRaises(ValueError):
                 native_startup_log(text)
+
+
+class NativeCompileFactorTests(unittest.TestCase):
+    def setUp(self):
+        self.left = dict(env={'feature': True, 'unset': None}, config_hash='a123',
+                         code_hash='b123', compiler_hash='c123')
+
+    def test_compiler_only_difference_is_not_a_configuration_claim(self):
+        right = dict(self.left, compiler_hash='c456')
+        result = native_compile_factor_difference(self.left, right)
+        self.assertEqual(result['changed_components'], ['compiler_hash'])
+        self.assertEqual(result['changed_environment_names'], [])
+        self.assertFalse(result['exact_compiler_subfactor_identified'])
+        self.assertFalse(result['causal_latency_improvement_established'])
+
+    def test_missing_environment_key_differs_from_recorded_null(self):
+        right = copy.deepcopy(self.left)
+        del right['env']['unset']
+        result = native_compile_factor_difference(self.left, right)
+        self.assertEqual(result['changed_components'], ['env'])
+        self.assertEqual(result['changed_environment_names'], ['unset'])
+
+    def test_incomplete_factor_record_rejected(self):
+        for key in self.left:
+            value = dict(self.left)
+            del value[key]
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                native_compile_factor_difference(value, self.left)
+        for value in (dict(self.left, env=[]), dict(self.left, compiler_hash=None),
+                      dict(self.left, code_hash='unknown')):
+            with self.assertRaises(ValueError):
+                native_compile_factor_difference(self.left, value)
+
+    def test_identical_metadata_and_append_only_output(self):
+        self.assertEqual(native_compile_factor_difference(self.left, self.left)['changed_components'], [])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            left, right, out = root/'left.json', root/'right.json', root/'out.json'
+            for path in (left, right):
+                path.write_text(json.dumps(self.left))
+            compare_native_compile_factors(left, right, out)
+            before = out.read_bytes()
+            with self.assertRaises(FileExistsError):
+                compare_native_compile_factors(left, right, out)
+            self.assertEqual(out.read_bytes(), before)
 
 
 if __name__ == '__main__':

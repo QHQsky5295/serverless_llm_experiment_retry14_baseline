@@ -1,0 +1,215 @@
+{
+  "archive_verified_members": {
+    "220adc727a/rank_0_0/backbone/cache_key_factors.json": {
+      "bytes": 10138,
+      "path": "/home/qhq/.cache/vllm/torch_compile_cache/220adc727a/rank_0_0/backbone/cache_key_factors.json",
+      "sha256": "9b164645f1f749b12905796af97010055d9e1688c5187325712d4ddfb1e81034"
+    },
+    "294240ebed/rank_0_0/backbone/cache_key_factors.json": {
+      "bytes": 10138,
+      "path": "/home/qhq/.cache/vllm/torch_compile_cache/294240ebed/rank_0_0/backbone/cache_key_factors.json",
+      "sha256": "84d484c5438c5e0263cf33018badb9c26c2bba0506def7e3ae0f19548a569f44"
+    },
+    "faaslora_worker_2h5r128g/payload.json": {
+      "bytes": 2513,
+      "path": "/tmp/faaslora_worker_2h5r128g/payload.json",
+      "sha256": "f23f6c381113ab47460fb46c282fa999cf4f7ec04ad143a9ac420b3438665a5b"
+    },
+    "faaslora_worker_k01e1lja/payload.json": {
+      "bytes": 3299,
+      "path": "/tmp/faaslora_worker_k01e1lja/payload.json",
+      "sha256": "fd8b29466933b7ae57875690eea6bace7d63b0685082af4ddc9d91be3035d0d3"
+    }
+  },
+  "compiler_import_probes": [
+    {
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "compiler_hash": "7e70d33753",
+      "component_hashes": [
+        "dda9c3cfb139a76ebca5618520bb2bffef8a4a56364283ea38419e144b75bb7b",
+        "be68791ba674958088adfb1aee7ee17c42bf4a0e5a4224b5f3f95d921f8e71f9",
+        "208b339f7c3028f900ac733b33002afed4a5cc41c46de36402439fb5a3af6420",
+        "1f8e84ad9c0a496cc97108a8d4a60310b1c47bf575c99ca1b6eb560776d0c0ec"
+      ],
+      "cuda_initialized": false,
+      "gpu_measurement": false,
+      "kind": "d1030_cpu_compiler_identity_probe_v1",
+      "loader_imported": false,
+      "pid": 3962219,
+      "torch_version": "2.13.0+cu130"
+    },
+    {
+      "affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "compiler_hash": "7e70d33753",
+      "component_hashes": [
+        "dda9c3cfb139a76ebca5618520bb2bffef8a4a56364283ea38419e144b75bb7b",
+        "be68791ba674958088adfb1aee7ee17c42bf4a0e5a4224b5f3f95d921f8e71f9",
+        "208b339f7c3028f900ac733b33002afed4a5cc41c46de36402439fb5a3af6420",
+        "1f8e84ad9c0a496cc97108a8d4a60310b1c47bf575c99ca1b6eb560776d0c0ec"
+      ],
+      "cuda_initialized": false,
+      "gpu_measurement": false,
+      "kind": "d1030_cpu_compiler_identity_probe_v1",
+      "loader_imported": true,
+      "pid": 3962741,
+      "torch_version": "2.13.0+cu130"
+    }
+  ],
+  "figures_generated": false,
+  "gpu_runs": 0,
+  "kind": "d1030_startup_identity_evidence_v1",
+  "limitations": [
+    "CPU factor probes do not reconstruct historical GPU compiler subfactors.",
+    "Native startup-plan capacity and memory identity require qualification before adoption.",
+    "Full post-exit resource peak/event history was not captured for every CPU scope."
+  ],
+  "next_candidate": "exact-runtime memory-profile reuse via existing native startup-plan/worker_cls entry",
+  "next_candidate_implemented": false,
+  "numerical_correctness_qualified": false,
+  "production_changes": false,
+  "protected": {
+    "changed": [],
+    "entry_count": 147,
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  },
+  "resource_scope": "aux CPUs 2,3,26,27; memory.high 3GiB / max 4GiB / swap0; CUDA hidden",
+  "source_refs": [
+    {
+      "bytes": 1691,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1030_20261103/inspect_compiler_factors.py",
+      "sha256": "ad31233705f7e6bedce4ec06e7e977eba9bdf1151d9adda4238143036cef0fb2"
+    },
+    {
+      "bytes": 4404,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1030_20261103/collect_identity_evidence.py",
+      "sha256": "e6caa9f8df3a880266fc0826bd96228957e387210301739880003d8ccbc2c2ec"
+    },
+    {
+      "bytes": 29630,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1030_20261103/factors1.json",
+      "sha256": "ee39fbd5f1b0270ec65a556dac55543d61586e1f571fd674f2882c07eead8939"
+    },
+    {
+      "bytes": 29629,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1030_20261103/factors2.json",
+      "sha256": "e393505694f19331c98ccf5aa86efd841af57ebfd0f0df7c8518608c2eaa1142"
+    },
+    {
+      "bytes": 1702,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1030_startup_identity/compile_factors.json",
+      "sha256": "341e4cdd520ce5f547c6838b15703b8b82fd44296c90feea85192ea5a8191ee7"
+    },
+    {
+      "bytes": 5159,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1030_20261103/identity_sources.tar.gz",
+      "sha256": "9677e84f650d6fecf1b89bbc03e2b3611d3fab6a15db6abd7d2bea6c5ec7690a"
+    },
+    {
+      "bytes": 140601,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "af69434f4b20029d77338f527aca9d8acc6a24809debe356f105dd6cdda126d9"
+    },
+    {
+      "bytes": 4118,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_native_startup_audit.py",
+      "sha256": "836677f47a59168508a41064aec7c96fa6b272ce3b4f981229fc026feb60cc25"
+    },
+    {
+      "bytes": 9314,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D1030_STARTUP_IDENTITY_AND_MEMORY_PLAN_20261103.md",
+      "sha256": "10bb2277af9e696011b4d165e1ff11b964650828607c10641ac8a147e4790449"
+    },
+    {
+      "bytes": 82192,
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    {
+      "bytes": 18511,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "bytes": 4135,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "bytes": 7332,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/startup_plan.py",
+      "sha256": "84bcbb4f7a9fd7c8d10c9c895aadd9673d44c767b9132368d11eb5e017afe86b"
+    },
+    {
+      "bytes": 65620,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_worker.py",
+      "sha256": "6994436e4547c0996ab555b3e814e8ccea26b650dfc1b378b97d640745309347"
+    },
+    {
+      "bytes": 17129,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/cache.py",
+      "sha256": "f1c226ba679c884930dbfcaf41a57248b137a9a20d3ed8e3d3b31752bb484c07"
+    },
+    {
+      "bytes": 7090,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/load.py",
+      "sha256": "bd6431c22e078362d749a56a2c84145432ebf2605d8bcfa2ac679182d18ed630"
+    },
+    {
+      "bytes": 47830,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/parallel.py",
+      "sha256": "f012ace89e3fb730a467f729f602679bc145c49f0d10721811c9d818570e7b2b"
+    },
+    {
+      "bytes": 14778,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/scheduler.py",
+      "sha256": "822179da62be4bca0619c8590082ae09123f5c4415f9cc2037be673748239edb"
+    },
+    {
+      "bytes": 151001,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/config/vllm.py",
+      "sha256": "956b812e5a719bcbfa3a3958801361b38b9c928c96b8c073311bbb96376dfb7a"
+    },
+    {
+      "bytes": 23942,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/compilation/caching.py",
+      "sha256": "71d212452dde742fbf28b8a01ed29d3c08a7457ff7f8da2a20ce9d17e902c2cf"
+    },
+    {
+      "bytes": 32121,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/compilation/compiler_interface.py",
+      "sha256": "8d84e2864bf83f754bae9e9f77119e0287cca9f97f5fa5ec2535e07b5ad88944"
+    },
+    {
+      "bytes": 32513,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/compilation/decorators.py",
+      "sha256": "cab6962e8a1fead59c75f5ed8cb4732f9e5441ff972030c2f4b1c4ba0c58de3c"
+    },
+    {
+      "bytes": 52334,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/compilation/backends.py",
+      "sha256": "fa4bff8920b363efbbde9456f135fa9d2c004a5bde1898877f177418b2d8b008"
+    },
+    {
+      "bytes": 113452,
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/envs.py",
+      "sha256": "fbd370b2f56ff798d373e85705c9e044ccae893ef974f2800eec4ef6f2b4fb7f"
+    }
+  ],
+  "user_dirty_sha256": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  }
+}
